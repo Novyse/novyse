@@ -9,7 +9,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           {/* Schermata principale */}
           <Stack.Screen name="index" />
-          <Stack.Screen name="loginSignup/EmailCheck" />
+          <Stack.Screen name="loginSignup/EmailCheckForm" />
           <Stack.Screen
             name="loginSignup/Signup"
             options={{ headerShown: true, title: "Registrazione" }}

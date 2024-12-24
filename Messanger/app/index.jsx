@@ -27,7 +27,7 @@ export default function Index() {
               uri: "https://picsum.photos/200",
             }}
           />
-          <Pressable style={styles.containerStartButton} onPress={ () => router.push(`/loginSignup/EmailCheck`)}>
+          <Pressable style={styles.containerStartButton} onPress={ () => router.push(`/loginSignup/EmailCheckForm`)}>
             <Text style={styles.containerStartButtonText}>
               Start
             </Text>
