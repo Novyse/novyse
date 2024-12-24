@@ -1,19 +1,29 @@
-import { Text, View} from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import EmailCheckForm from "./EmailCheckForm";
+import { ThemeContext } from "@/context/ThemeContext";
+import { useContext } from "react";
 
+const EmailCheck = () => {
+  const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
+  const styles = createStyle(theme, colorScheme);
+  
+  return (
+    <View style={styles.container}>
+      <EmailCheckForm />
+    </View>
+  );
+};
 
-export default function emailCheck() {
+export default EmailCheck;
 
-    const router = useRouter();
-    
-    return (
-        <SafeAreaProvider>
-            <SafeAreaView>
-                <View>
-                    <Text>Ciao</Text>
-                </View>
-            </SafeAreaView>
-        </SafeAreaProvider>
-    )
+function createStyle(theme, colorScheme) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: "#354966",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+  });
 }

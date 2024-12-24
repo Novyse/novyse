@@ -7,8 +7,17 @@ export default function RootLayout() {
     <ThemeProvider>
       <SafeAreaProvider>
         <Stack screenOptions={{ headerShown: false }}>
+          {/* Schermata principale */}
           <Stack.Screen name="index" />
-          <Stack.Screen name="loginSignup/emailCheck" />
+          <Stack.Screen name="loginSignup/EmailCheck" />
+          <Stack.Screen
+            name="loginSignup/Signup"
+            options={{ headerShown: true, title: "Registrazione" }}
+          />
+          <Stack.Screen
+            name="loginSignup/LoginPassword"
+            options={{ headerShown: true, title: "Login" }}
+          />
         </Stack>
       </SafeAreaProvider>
     </ThemeProvider>
