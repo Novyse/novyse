@@ -29,6 +29,7 @@ class APIMethods {
     const url = `${this.APIlink}/user/action/check-handle-availability?handle=${handle}`;
     try {
       const response = await axios.get(url);
+      console.log("handleAvailability in APImethods: ", response);
       return response;
     } catch (error) {
       console.error("Error in handleAvailability:", error);

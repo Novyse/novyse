@@ -9,7 +9,7 @@ class JsonParser {
 
       if (response.status === 200) {
         const jsonResponse = response.data;
-        const emailResponse = jsonResponse['accessType'].toString();
+        const emailResponse = jsonResponse['access_type'].toString();
         return emailResponse; // "login" o "signup"
       } else {
         console.error(`Errore nella richiesta: ${response.status}`);
@@ -28,7 +28,7 @@ class JsonParser {
 
       if (response.status === 200) {
         const jsonResponse = response.data;
-        const signupResponse = jsonResponse['signedUp'];
+        const signupResponse = jsonResponse['signed_up'];
         return signupResponse; // true o false
       } else {
         console.error(`Errore nella richiesta: ${response.status}`);
@@ -47,8 +47,14 @@ class JsonParser {
 
       if (response.status === 200) {
         const jsonResponse = response.data;
-        const loginResponse = jsonResponse['api_key'].toString();
-        return loginResponse; // API Key
+        const loginResponseBool = jsonResponse['logged_in'];
+        let loginResponseApiKey = "";
+        if (loginResponseBool) {
+          loginResponseApiKey = jsonResponse['api_key'].toString();
+          return loginResponseApiKey;
+        } else {
+          return 'false';
+        }
       } else {
         console.error(`Errore nella richiesta: ${response.status}`);
         return '';

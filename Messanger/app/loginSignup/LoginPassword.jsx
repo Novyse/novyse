@@ -1,60 +1,18 @@
-// // LoginPassword.js
-// import React from "react";
-// import { View, Text, StyleSheet } from "react-native";
-// import { useLocalSearchParams } from "expo-router";
-// import { useRouter } from "expo-router";
-// import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-
-// const LoginPassword = () => {
-//   const router = useRouter();
-
-//   const { emailValue } = useLocalSearchParams();
-
-//   return (
-//     <SafeAreaProvider>
-//       <SafeAreaView style={styles.container}>
-//         <View style={styles.formContainer}>
-//           <Text style={styles.text}>Welcome to Login</Text>
-//           <Text style={styles.text}>Email: {emailValue}</Text>
-//         </View>
-//       </SafeAreaView>
-//     </SafeAreaProvider>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-//   formContainer:{
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-//   text: {
-//     fontSize: 18,
-//   },
-// });
-
-// export default LoginPassword;
-
 import React, { useState } from "react";
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
-  Button,
   ActivityIndicator,
-  Alert,
+  Pressable,
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
-import WebSocketProvider, { WebSocketContext } from '../utils/webSocketMethods'; // Importa il modulo corretto
-import { useContext } from 'react';
+import WebSocketProvider, { WebSocketContext } from "../utils/webSocketMethods"; // Importa il modulo corretto
+import { useContext } from "react";
+import { ThemeContext } from "@/context/ThemeContext";
 
 import LocalDatabaseMethods from "../utils/localDatabaseMethods";
 import JsonParser from "../utils/JsonParse";
@@ -66,18 +24,23 @@ const LoginPassword = () => {
 
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
+  const styles = createStyle(theme, colorScheme);
 
   const handleLogin = async () => {
     if (!password) {
-      Alert.alert("Error", "Please enter your password.");
+      console.log("Error", "Please enter your password.");
       return;
     }
 
     setIsLoading(true);
     try {
-      const apiKey = await JsonParser.loginPasswordJson(emailValue, password);
+      let apiKey = await JsonParser.loginPasswordJson(emailValue, password);
       if (apiKey === "false") {
-        Alert.alert("Error", "Incorrect password.");
+        console.log("Error", "Incorrect password.");
+        setError("Password non corretta");
         setIsLoading(false);
         return;
       } else {
@@ -91,9 +54,6 @@ const LoginPassword = () => {
             }
           }, 50); // Controlla ogni 50ms
         });
-
-
-        
 
         // const userId = await db.fetchLocalUserID();
         // console.log("User ID:", userId);
@@ -117,11 +77,11 @@ const LoginPassword = () => {
 
       // await WebSocketMethods.WebSocketReceiver();
 
-      Alert.alert("Success", "Login successful.");
+      console.log("Success", "Login successful.");
       router.push("/ChatList"); // Navigate to ChatList
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "An unexpected error occurred.");
+      console.log("Error", "An unexpected error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -130,23 +90,25 @@ const LoginPassword = () => {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <Text style={styles.header}>Password Login</Text>
-        <Text style={styles.label}>Email: {emailValue}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your password"
-          placeholderTextColor="#ccc"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Submit"
-            onPress={handleLogin}
-            color={isLoading ? "#888" : "#007BFF"}
-            disabled={isLoading}
+        <View style={styles.formContainer}>
+          <Text style={styles.header}>Password Login</Text>
+          <Text style={styles.label}>Email: {emailValue}</Text>
+          <TextInput
+            style={[styles.input, error ? styles.inputError : null]}
+            placeholder="Enter your password"
+            placeholderTextColor="#ccc"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
           />
+          {error && <Text style={styles.errorText}>{error}</Text>}
+          <Pressable
+            style={styles.containerButton}
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            <Text style={styles.containerButtonText}>Invia</Text>
+          </Pressable>
           {isLoading && (
             <ActivityIndicator style={styles.loader} size="small" />
           )}
@@ -156,41 +118,59 @@ const LoginPassword = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#354966",
-    padding: 20,
-  },
-  header: {
-    fontSize: 24,
-    color: "white",
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    color: "white",
-    marginBottom: 10,
-  },
-  input: {
-    width: "100%",
-    height: 40,
-    borderColor: "white",
-    borderWidth: 1,
-    marginBottom: 20,
-    paddingHorizontal: 10,
-    color: "white",
-    borderRadius: 5,
-  },
-  buttonContainer: {
-    width: "100%",
-    alignItems: "center",
-  },
-  loader: {
-    marginTop: 10,
-  },
-});
-
 export default LoginPassword;
+
+function createStyle(theme, colorScheme) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: "#354966",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    formContainer: {
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    header: {
+      fontSize: 24,
+      color: "white",
+      marginBottom: 20,
+    },
+    label: {
+      fontSize: 16,
+      color: "white",
+      marginBottom: 10,
+    },
+    input: {
+      width: 250,
+      borderBottomWidth: 1,
+      borderBottomColor: "white",
+      color: "white",
+      marginBottom: 16,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      pointerEvents: "auto",
+    },
+    inputError: {
+      borderBottomColor: "red",
+    },
+    errorText: {
+      color: "red",
+      marginBottom: 8,
+    },
+    containerButton: {
+      backgroundColor: theme.button,
+      paddingHorizontal: 20,
+      paddingVertical: 5,
+      borderRadius: 100,
+    },
+    containerButtonText: {
+      color: theme.text,
+      fontSize: 18,
+    },
+    loader: {
+      marginTop: 10,
+    },
+  });
+}

@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import {
   View,
   TextInput,
-  Button,
   StyleSheet,
-  Alert,
   Text,
   Pressable,
 } from "react-native";
@@ -22,7 +20,6 @@ const EmailCheckForm = () => {
   const [error, setError] = useState(null);
 
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
-
   const styles = createStyle(theme, colorScheme);
 
   const router = useRouter();
@@ -81,7 +78,7 @@ const EmailCheckForm = () => {
           <TextInput
             style={[styles.input, error ? styles.inputError : null]}
             placeholder="Email"
-            placeholderTextColor="#ffffff88"
+            placeholderTextColor="#ccc"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -107,7 +104,7 @@ function createStyle(theme, colorScheme) {
       justifyContent: "center",
       alignItems: "center",
     },
-    formContainer:{
+    formContainer: {
       justifyContent: "center",
       alignItems: "center",
     },
