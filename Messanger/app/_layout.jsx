@@ -8,8 +8,14 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <Stack screenOptions={{ headerShown: false }}>
           {/* Schermata principale */}
-          <Stack.Screen name="index" />
-          <Stack.Screen name="loginSignup/EmailCheckForm" />
+          <Stack.Screen
+            name="index"
+            options={{ headerShown: false, title: "Registrazione" }}
+          />
+          <Stack.Screen
+            name="loginSignup/EmailCheckForm"
+            options={{ headerShown: false, title: "Registrazione" }}
+          />
           <Stack.Screen
             name="loginSignup/Signup"
             options={{ headerShown: true, title: "Registrazione" }}
@@ -17,6 +23,10 @@ export default function RootLayout() {
           <Stack.Screen
             name="loginSignup/LoginPassword"
             options={{ headerShown: true, title: "Login" }}
+          />
+          <Stack.Screen
+            name="ChatList"
+            options={{ headerShown: false, title: "ChatList" }}
           />
         </Stack>
       </SafeAreaProvider>
