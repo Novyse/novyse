@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   SafeAreaView,
   Dimensions,
@@ -103,28 +103,30 @@ const ChatApp = () => {
         isSidebarVisible ? styles.sidebarVisible : styles.sidebarHidden,
       ]}
     >
-      <TouchableOpacity onPress={toggleSidebar} style={styles.closeButton}>
+      <Pressable onPress={toggleSidebar} style={styles.closeButton}>
         <Icon name="close" size={24} color="#fff" />
-      </TouchableOpacity>
+      </Pressable>
       <Text style={styles.sidebarText}>Menu Item 1</Text>
       <Text style={styles.sidebarText}>Menu Item 2</Text>
-      <Text style={styles.sidebarText}>Menu Item 3</Text>
+      <Pressable onPress={() => { db.clearDatabase()}}>
+        <Text style={styles.sidebarText}>Elimina database</Text>
+      </Pressable>
     </Animated.View>
   );
 
   const renderHeader = () => (
     <View style={styles.header}>
       {isSmallScreen && selectedChat ? (
-        <TouchableOpacity
+        <Pressable
           onPress={() => setSelectedChat(null)}
           style={styles.backButton}
         >
           <Icon name="arrow-back" size={24} color={theme.icon} />
-        </TouchableOpacity>
+        </Pressable>
       ) : (
-        <TouchableOpacity onPress={toggleSidebar} style={styles.menuButton}>
+        <Pressable onPress={toggleSidebar} style={styles.menuButton}>
           <Icon name="menu" size={24} color={theme.icon} />
-        </TouchableOpacity>
+        </Pressable>
       )}
       <Text style={styles.headerTitle}>
         {isSmallScreen && selectedChat ? "Nome chat/utente" : ""}
@@ -151,7 +153,7 @@ const ChatApp = () => {
           const lastMessage = details.lastMessage || {};
 
           return (
-            <TouchableOpacity
+            <Pressable
               style={[
                 styles.chatItem,
                 selectedChat === item.chat_id && styles.selected,
@@ -170,7 +172,7 @@ const ChatApp = () => {
                   {lastMessage.text || "No messages yet"}
                 </Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
           );
         }}
       />
@@ -194,9 +196,9 @@ const ChatApp = () => {
                   isSmallScreen ? styles.mobileHeader : null,
                 ]}
               >
-                {/* <TouchableOpacity onPress={() => setSelectedChat(null)} style={styles.backButton}>
+                {/* <Pressable onPress={() => setSelectedChat(null)} style={styles.backButton}>
                 <Icon name="arrow-back" size={24} color="#fff" />
-              </TouchableOpacity> */}
+              </Pressable> */}
                 <Text style={styles.headerTitle}>Chat with {user.handle}</Text>
               </View>
             )}

@@ -46,7 +46,6 @@ const LoginPassword = () => {
         return;
       } else {
         const db = new LocalDatabase();
-        const ws = new WebSocketMethods();
 
         await new Promise((resolve) => {
           const checkDb = setInterval(() => {
@@ -58,7 +57,7 @@ const LoginPassword = () => {
         });
 
         
-        await ws.openWebSocketConnection(localUserID, apiKey)
+        await WebSocketMethods.openWebSocketConnection(localUserID, apiKey)
 
         await db.insertLocalUser(localUserID, apiKey);
 

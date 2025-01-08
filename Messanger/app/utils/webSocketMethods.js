@@ -1,48 +1,41 @@
 import LocalDatabase from "../utils/localDatabaseMethods";
 
+let webSocketChannel = null;
+let localUserID = "";
+let apiKey = "";
 const db = new LocalDatabase();
+const webSocketAddress = "wss://api.messanger.bpup.israiken.it/ws";
 
-class WebSocketMethods {
-  constructor() {
-    this.localUserID = "";
-    this.apiKey = "";
-    this.webSocketAddress = "wss://api.messanger.bpup.israiken.it/ws";
-    this.webSocketChannel = null;
-  }
-
-  async openWebSocketConnection(localUserID, apiKey) {
-    this.localUserID = localUserID;
-    this.apiKey = apiKey;
-    const url = `${this.webSocketAddress}/${localUserID}/${apiKey}`;
+const WebSocketMethods = {
+  
+  openWebSocketConnection: async (localUserIDParam, apiKeyParam) => {
+    localUserID = localUserIDParam;
+    apiKey = apiKeyParam;
+    const url = `${webSocketAddress}/${localUserID}/${apiKey}`;
 
     try {
-      this.webSocketChannel = new WebSocket(url);
+      webSocketChannel = new WebSocket(url);
 
-      this.webSocketChannel.onopen = async () => {
+      webSocketChannel.onopen = async () => {
         console.log("Connessione aperta");
-
-        await this.webSocketSenderMessage(
+        await WebSocketMethods.webSocketSenderMessage(
           `{"type":"init","apiKey":"${apiKey}"}`
         );
-
-        await this.webSocketReceiver();
+        await WebSocketMethods.webSocketReceiver();
       };
 
-      this.webSocketChannel.onerror = (e) => {
+      webSocketChannel.onerror = (e) => {
         console.log("WebSocket error:", e.message);
       };
     } catch (error) {
       console.error("WebSocket initialization error:", error);
     }
-  }
+  },
 
-  async webSocketSenderMessage(message) {
-    if (
-      this.webSocketChannel &&
-      this.webSocketChannel.readyState === WebSocket.OPEN
-    ) {
+  webSocketSenderMessage: async (message) => {
+    if (webSocketChannel && webSocketChannel.readyState === WebSocket.OPEN) {
       try {
-        this.webSocketChannel.send(message);
+        webSocketChannel.send(message);
         console.log(`Messaggio inviato alla websocket: ${message}`);
       } catch (error) {
         console.error("Error sending message:", error);
@@ -50,15 +43,15 @@ class WebSocketMethods {
     } else {
       console.log("WebSocket not open for sending message.");
     }
-  }
+  },
 
-  async webSocketReceiver() {
-    if (!this.webSocketChannel) {
+  webSocketReceiver: async () => {
+    if (!webSocketChannel) {
       console.log("WebSocket not initialized");
       return;
     }
 
-    this.webSocketChannel.onmessage = async (event) => {
+    webSocketChannel.onmessage = async (event) => {
       try {
         const data = JSON.parse(event.data);
         switch (data.type) {
@@ -109,7 +102,7 @@ class WebSocketMethods {
             const { message_id, chat_id, text, sender, date } = data;
             // Removed AsyncStorage call
             console.log(`Nuovo messaggio ricevuto da ${sender}`);
-            // Here you could emit an event or update state in a React component to notify about new messages
+            // Qui potresti emettere un evento o aggiornare lo stato in un componente React per notificare nuovi messaggi
             break;
 
           default:
@@ -121,7 +114,7 @@ class WebSocketMethods {
     };
 
     return "return of web socket function";
-  }
-}
+  },
+};
 
 export default WebSocketMethods;

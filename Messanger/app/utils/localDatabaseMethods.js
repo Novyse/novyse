@@ -44,6 +44,39 @@ class LocalDatabase {
     });
   }
 
+
+  async clearDatabase() {
+    if (isBrowser) {
+      try {
+        // Clear all stores in the localForage instance
+        await this.db.clear();
+        console.log("Database cleared successfully.");
+      } catch (error) {
+        console.error("Error clearing localForage database:", error);
+      }
+    } else {
+      try {
+        await new Promise((resolve, reject) => {
+          this.db.transaction((tx) => {
+            tx.executeSql('DROP TABLE IF EXISTS localUser');
+            tx.executeSql('DROP TABLE IF EXISTS chats');
+            tx.executeSql('DROP TABLE IF EXISTS users');
+            tx.executeSql('DROP TABLE IF EXISTS messages');
+            tx.executeSql('DROP TABLE IF EXISTS chat_users');
+            resolve();
+          }, reject);
+        });
+
+        // Recreate tables
+        await this.createTables();
+        console.log("Database cleared and tables recreated successfully.");
+      } catch (error) {
+        console.error("Error clearing SQLite database:", error);
+      }
+    }
+  }
+
+
   async getSingleValue(table, column, where = "", args = []) {
     const row = await this.getRowData(table, [column], where, args);
     return row ? row[column] : `${column} not found`;
@@ -254,14 +287,30 @@ class LocalDatabase {
     await this.insertOrReplace("chats", { chat_id, group_channel_name });
   }
   async insertMessage(message_id, chat_id, text, sender, date, hash) {
-    await this.insertOrReplace("messages", {
-      message_id,
-      chat_id,
-      text,
-      sender,
-      date_time: date,
-      hash,
-    });
+    if (isBrowser) {
+      let items = (await this.db.getItem("messages")) || [];
+      items.push({ message_id, chat_id, text, sender, date_time: date, hash });
+      await this.db
+        .setItem("messages", items)
+        .catch((e) => console.error("Error inserting in localStorage:", e));
+    } else {
+      await new Promise((resolve, reject) => {
+        this.db.transaction((tx) => {
+          tx.executeSql(
+            "INSERT INTO messages (message_id, chat_id, text, sender, date_time, hash) VALUES (?, ?, ?, ?, ?, ?)",
+            [message_id, chat_id, text, sender, date, hash],
+            (_, result) => {
+              console.log("Insert successful:", result);
+              resolve();
+            },
+            (_, error) => {
+              console.error("Error inserting into database:", error);
+              reject(error);
+            }
+          );
+        });
+      }).catch((e) => console.error("Transaction error:", e));
+    }
   }
   async updateSendMessage(date, message_id, hash) {
     await this.update(
