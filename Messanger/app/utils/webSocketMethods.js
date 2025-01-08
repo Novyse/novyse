@@ -1,176 +1,127 @@
-import React, { createContext, useState, useEffect, useRef } from "react";
-import { WebSocket } from "react-native-websocket";
-import { JsonParser } from "./JsonParse"; // Implement JsonParser similar to the Dart one
-import { LocalDatabaseMethods } from "./localDatabaseMethods"; // Replace with your implementation
+import LocalDatabase from "../utils/localDatabaseMethods";
 
-const WebSocketContext = createContext(null);
+const db = new LocalDatabase();
 
-class WebSocketProvider extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      webSocket: null,
-      localUserID: "",
-      apiKey: "",
-    };
+class WebSocketMethods {
+  constructor() {
+    this.localUserID = "";
+    this.apiKey = "";
     this.webSocketAddress = "wss://api.messanger.bpup.israiken.it/ws";
+    this.webSocketChannel = null;
   }
 
-  openWebSocketConnection = (_localUserID, _apiKey) => {
-    this.setState({ localUserID: _localUserID, apiKey: _apiKey });
+  async openWebSocketConnection(localUserID, apiKey) {
+    this.localUserID = localUserID;
+    this.apiKey = apiKey;
+    const url = `${this.webSocketAddress}/${localUserID}/${apiKey}`;
 
-    const ws = new WebSocket(
-      `<span class="math-inline">\{this\.webSocketAddress\}/</span>{_localUserID}/${_apiKey}`
-    );
+    try {
+      this.webSocketChannel = new WebSocket(url);
 
-    ws.onopen = () => {
-      console.log("WebSocket connection opened");
-      this.setState({ webSocket: ws });
-    };
+      this.webSocketChannel.onopen = async () => {
+        console.log("Connessione aperta");
 
-    ws.onclose = () => {
-      console.log("WebSocket connection closed");
-      this.setState({ webSocket: null });
-    };
+        await this.webSocketSenderMessage(
+          `{"type":"init","apiKey":"${apiKey}"}`
+        );
 
-    ws.onerror = (error) => {
-      console.error("WebSocket error", error);
-    };
-  };
-
-  WebSocketSenderMessage = (message) => {
-    if (this.state.webSocket) {
-      this.state.webSocket.send(message);
-      console.log("Message sent via WebSocket:", message);
-    }
-  };
-
-  // Use useRef to avoid unnecessary re-renders
-  messageHandlerRef = useRef(null);
-
-  componentDidMount() {
-    this.messageHandlerRef.current = async (event) => {
-      const data = event.data;
-      const parsedData = JsonParser.convertJsonToDynamicStructure(data);
-      const type = parsedData.type;
-
-      switch (type) {
-        case "init": {
-          const init = parsedData.init;
-          if (init === "True") {
-            console.log(data);
-
-            const localUserMap = parsedData.localUser;
-            const { email, handle, name, surname } = localUserMap;
-
-            await LocalDatabaseMethods.updateLocalUser(
-              email,
-              handle,
-              name,
-              surname
-            );
-
-            const chats = parsedData.chats;
-            for (const chat of chats) {
-              const chatMap = { ...chat, name: chat.name || "" };
-              await LocalDatabaseMethods.insertChat(
-                chatMap.chat_id,
-                chatMap.name
-              );
-
-              for (const user of chatMap.users) {
-                const userMap = { ...user };
-                await LocalDatabaseMethods.insertUsers(userMap.handle);
-                await LocalDatabaseMethods.insertChatAndUsers(
-                  chatMap.chat_id,
-                  userMap.handle
-                );
-              }
-
-              for (const message of chatMap.messages) {
-                const messageMap = { ...message };
-                await LocalDatabaseMethods.insertMessage(
-                  messageMap.message_id,
-                  messageMap.chat_id,
-                  messageMap.text,
-                  messageMap.sender,
-                  messageMap.date,
-                  ""
-                );
-              }
-            }
-          } else {
-            console.error("Server error during init");
-          }
-          break;
-        }
-
-        case "send_message": {
-          const sendMessage = parsedData.send_message;
-          if (sendMessage === "True") {
-            console.log("Message echoed back: true");
-            console.log(parsedData.hash);
-          } else {
-            console.log("Message echoed back: false");
-          }
-          break;
-        }
-
-        case "receive_message": {
-          const { message_id, chat_id, text, sender, date } = parsedData;
-          await LocalDatabaseMethods.insertMessage(
-            message_id,
-            chat_id,
-            text,
-            sender,
-            date,
-            ""
-          );
-
-          const newMessage = { sender, text, date_time: date };
-
-          console.log("New message received:", newMessage);
-          break;
-        }
-
-        default:
-          console.warn("Unhandled message type:", type);
-      }
-    };
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.webSocket !== this.state.webSocket) {
-      if (this.state.webSocket) {
-        this.state.webSocket.onmessage = this.messageHandlerRef.current;
-      }
-      return () => {
-        if (this.state.webSocket) {
-          this.state.webSocket.close();
-        }
+        await this.webSocketReceiver();
       };
+
+      this.webSocketChannel.onerror = (e) => {
+        console.log("WebSocket error:", e.message);
+      };
+    } catch (error) {
+      console.error("WebSocket initialization error:", error);
     }
   }
 
-  componentWillUnmount() {
-    if (this.state.webSocket) {
-      this.state.webSocket.close();
+  async webSocketSenderMessage(message) {
+    if (
+      this.webSocketChannel &&
+      this.webSocketChannel.readyState === WebSocket.OPEN
+    ) {
+      try {
+        this.webSocketChannel.send(message);
+        console.log(`Messaggio inviato alla websocket: ${message}`);
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
+    } else {
+      console.log("WebSocket not open for sending message.");
     }
   }
 
-  render() {
-    return (
-      <WebSocketContext.Provider
-        value={{
-          openWebSocketConnection: this.openWebSocketConnection,
-          WebSocketSenderMessage: this.WebSocketSenderMessage,
-        }}
-      >
-        {this.props.children}
-      </WebSocketContext.Provider>
-    );
+  async webSocketReceiver() {
+    if (!this.webSocketChannel) {
+      console.log("WebSocket not initialized");
+      return;
+    }
+
+    this.webSocketChannel.onmessage = async (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        switch (data.type) {
+          case "init":
+            if (data.init === "True") {
+              console.log(data);
+
+              const { email, handle, name, surname } = data.localUser;
+              await db.updateLocalUser(email, handle, name, surname);
+
+              for (const chat of data.chats) {
+                const chatName = chat.name || "";
+
+                await db.insertChat(chat.chat_id, chatName);
+
+                for (const user of chat.users) {
+                  db.insertUsers(user.handle);
+                  db.insertChatAndUsers(chat.chat_id, user.handle);
+                }
+
+                for (const message of chat.messages) {
+                  await db.insertMessage(
+                    message.message_id,
+                    message.chat_id,
+                    message.text,
+                    message.sender.toString(),
+                    message.date,
+                    ""
+                  );
+                }
+              }
+              console.log("Init con successo");
+            } else if (data.init === "False") {
+              console.log("Server error during init");
+            }
+            break;
+
+          case "send_message":
+            if (data.send_message === "True") {
+              console.log("Messaggio tornato indietro: true");
+              console.log(data.hash);
+            } else if (data.send_message === "False") {
+              console.log("Messaggio tornato indietro: false");
+            }
+            break;
+
+          case "receive_message":
+            const { message_id, chat_id, text, sender, date } = data;
+            // Removed AsyncStorage call
+            console.log(`Nuovo messaggio ricevuto da ${sender}`);
+            // Here you could emit an event or update state in a React component to notify about new messages
+            break;
+
+          default:
+            console.log("Unknown message type");
+        }
+      } catch (error) {
+        console.error("Error processing message:", error);
+      }
+    };
+
+    return "return of web socket function";
   }
 }
 
-export default WebSocketProvider;
-export { WebSocketContext };
+export default WebSocketMethods;

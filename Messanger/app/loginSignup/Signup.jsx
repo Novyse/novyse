@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import EmailCheckForm from "./EmailCheckForm"; // Assuming this is your EmailCheck component
-import JsonParser from "../utils/JsonParse";
+import JsonParser from "../utils/JsonParser";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useContext } from "react";
@@ -97,7 +97,7 @@ const Signup = () => {
     console.log("Signup avvenuto con successo");
 
     if (signupResponse) {
-      router.push("/ChatList");
+      router.push("/loginSignup/EmailCheckForm");
     } else {
       console.log("Signup Failed", "Please try again.");
     }

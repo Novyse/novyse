@@ -11,6 +11,7 @@ export const ThemeProvider = ({ children }) => {
     //     ? Colors.dark
     //     : Colors.light
 
+    //temporaneo
     const theme = Colors.default;
     
 

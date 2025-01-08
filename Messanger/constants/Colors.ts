@@ -13,8 +13,14 @@ export const Colors = {
   },
   default: {
     text: 'white',
-    background: '#354966',
-    icon: 'blue',
-    button: '#2399C3'
+    backgroundClassic: '#354966',
+    backgroundChatList: '#17212b',
+    backgroundChat: '#1b2734',
+    chatListDivider: '#101921',
+    chatListRightBorder: '#101921',
+    chatListSelected: '#2b5278',
+    icon: 'white',
+    button: '#2399C3',
+
   },
 };

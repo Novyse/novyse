@@ -18,11 +18,11 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="loginSignup/Signup"
-            options={{ headerShown: true, title: "Registrazione" }}
+            options={{ headerShown: false, title: "Registrazione" }}
           />
           <Stack.Screen
             name="loginSignup/LoginPassword"
-            options={{ headerShown: true, title: "Login" }}
+            options={{ headerShown: false, title: "Login" }}
           />
           <Stack.Screen
             name="ChatList"

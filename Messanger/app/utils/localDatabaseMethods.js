@@ -1,6 +1,6 @@
-import localforage from 'localforage';
+import localforage from "localforage";
 
-const isBrowserEnvironment = typeof window !== 'undefined';
+const isBrowser = typeof window !== "undefined";
 
 class LocalDatabase {
   constructor() {
@@ -9,200 +9,273 @@ class LocalDatabase {
   }
 
   async initializeDatabase() {
-    if (isBrowserEnvironment) {
-      this.db = localforage.createInstance({
-        name: 'localDatabase',
-        storeName: 'localStore',
-      });
-      console.log('Database initialized for Web. Using localForage.');
+    if (isBrowser) {
+      this.db = localforage.createInstance({ name: "db", storeName: "store" });
+      console.log("Web DB init.");
     } else {
       try {
-        const SQLite = require('expo-sqlite');
-        this.db = SQLite.openDatabase('localDatabase.db');
-        console.log('Database initialized for Native. Using SQLite.');
+        const SQLite = require("expo-sqlite");
+        this.db = SQLite.openDatabase("db.sqlite");
+        console.log("Native DB init.");
       } catch (error) {
-        console.warn("SQLite is not available. Using a mock database.", error);
-        this.db = {
-          transaction: (callback) => callback(
-            {executeSql: () => {}}
-          )
-        };
+        console.warn("Using mock DB due to SQLite error:", error);
+        this.db = { transaction: (cb) => cb({ executeSql: () => {} }) };
       }
     }
-    await this.databaseOpen();
+    await this.createTables();
   }
 
-  async databaseOpen() {
-    if (!this.db || !this.db.transaction) {
-      console.warn("Database is not properly initialized.");
-      return Promise.resolve();
-    }
-    if (isBrowserEnvironment) {
-        return Promise.resolve();
-    }
-    return new Promise((resolve, reject) => {
-      this.db.transaction(tx => {
-        try {
-          tx.executeSql(`CREATE TABLE IF NOT EXISTS localUser (user_id TEXT, apiKey TEXT PRIMARY KEY, user_email TEXT, handle TEXT, name TEXT, surname TEXT);`);
-          tx.executeSql(`CREATE TABLE IF NOT EXISTS chats (chat_id TEXT PRIMARY KEY, group_channel_name TEXT);`);
-          tx.executeSql(`CREATE TABLE IF NOT EXISTS users (handle TEXT PRIMARY KEY);`);
-          tx.executeSql(`CREATE TABLE IF NOT EXISTS messages (message_id TEXT, chat_id TEXT REFERENCES chats(chat_id), sender TEXT, text TEXT, date_time TEXT, hash TEXT);`);
-          tx.executeSql(`CREATE TABLE IF NOT EXISTS chat_users (chat_id TEXT, handle TEXT, PRIMARY KEY (chat_id, handle), FOREIGN KEY (chat_id) REFERENCES chats(chat_id), FOREIGN KEY (handle) REFERENCES users(handle));`);
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      }, (_, error) => reject(error));
+  async createTables() {
+    if (isBrowser) return;
+    const tableDefs = [
+      "localUser (user_id TEXT, apiKey TEXT PRIMARY KEY, user_email TEXT, handle TEXT, name TEXT, surname TEXT)",
+      "chats (chat_id TEXT PRIMARY KEY, group_channel_name TEXT)",
+      "users (handle TEXT PRIMARY KEY)",
+      "messages (message_id TEXT, chat_id TEXT, sender TEXT, text TEXT, date_time TEXT, hash TEXT)",
+      "chat_users (chat_id TEXT, handle TEXT, PRIMARY KEY (chat_id, handle), FOREIGN KEY (chat_id) REFERENCES chats(chat_id), FOREIGN KEY (handle) REFERENCES users(handle))",
+    ];
+    await new Promise((resolve, reject) => {
+      this.db.transaction((tx) => {
+        tableDefs.forEach((def) =>
+          tx.executeSql(`CREATE TABLE IF NOT EXISTS ${def}`)
+        );
+        resolve();
+      }, reject);
     });
   }
 
-  async getSingleValue(tableName, columnName, whereClause = '', whereArgs = []) {
-    const row = await this.getRowData(tableName, [columnName], whereClause, whereArgs);
-    return row ? row[columnName] : `${columnName} not found`;
+  async getSingleValue(table, column, where = "", args = []) {
+    const row = await this.getRowData(table, [column], where, args);
+    return row ? row[column] : `${column} not found`;
   }
 
-  async getRowData(tableName, columns, whereClause = '', whereArgs = []) {
-    if (isBrowserEnvironment) {
-      const items = await this.db.getItem(tableName) || [];
-      return items.find(item => whereArgs.every((arg, i) => item[Object.keys(item)[i]] === arg)) || null;
+  async getRowData(table, columns, where = "", args = []) {
+    if (isBrowser) {
+      const items = (await this.db.getItem(table)) || [];
+      return (
+        items.find((item) =>
+          args.every((arg, i) => item[Object.keys(item)[i]] === arg)
+        ) || null
+      );
     } else {
       return new Promise((resolve, reject) => {
-        this.db.transaction(tx => {
-          tx.executeSql(`SELECT ${columns.join(', ')} FROM ${tableName} ${whereClause ? `WHERE ${whereClause}` : ''};`, whereArgs, (_, { rows }) => resolve(rows.length > 0 ? rows.item(0) : null), (_, error) => reject(error));
+        this.db.transaction((tx) => {
+          tx.executeSql(
+            `SELECT ${columns.join(",")} FROM ${table} ${
+              where ? "WHERE " + where : ""
+            }`,
+            args,
+            (_, { rows }) => resolve(rows.length > 0 ? rows.item(0) : null),
+            reject
+          );
         });
       });
     }
   }
 
-  async getTableData(tableName, columns = '*', whereClause = '', whereArgs = [], extraClauses = '') {
-    if (isBrowserEnvironment) {
-      return (await this.db.getItem(tableName)) || [];
-    } else {
-      return new Promise((resolve, reject) => {
-        this.db.transaction(tx => {
-          tx.executeSql(`SELECT ${columns} FROM ${tableName} ${whereClause ? `WHERE ${whereClause}` : ''} ${extraClauses};`, whereArgs, (_, { rows }) => resolve(rows._array || []), (_, error) => reject(error));
-        });
-      });
-    }
-  }
-
-  async insertOrReplace(tableName, values) {
-    if (isBrowserEnvironment) {
-      let items = (await this.db.getItem(tableName)) || [];
-      const primaryKey = Object.keys(values)[0];
-      const itemIndex = items.findIndex(item => item[primaryKey] === values[primaryKey]);
-      if (itemIndex > -1) {
-        items[itemIndex] = { ...items[itemIndex], ...values };
-      } else {
-        items.push(values);
+  async getTableData(table, columns = "*", where = "", args = [], extra = "") {
+    if (isBrowser) {
+      let items = (await this.db.getItem(table)) || [];
+      
+      if (where) {
+        const whereParts = where.split('=');
+        if (whereParts.length === 2) {
+          const key = whereParts[0].trim();
+          const value = args[0];
+          items = items.filter(item => item[key] === value);
+        }
       }
-      await this.db.setItem(tableName, items);
+      
+      if (extra.includes("ORDER BY")) {
+        const orderByCol = extra.match(/ORDER BY (\w+)/)[1];
+        items.sort((a, b) => b[orderByCol] - a[orderByCol]);
+      }
+      
+      if (extra.includes("LIMIT 1")) {
+        items = items.slice(0, 1);
+      }
+      
+      return items;
+    }
+  }
+
+  async insertOrReplace(table, values) {
+    if (isBrowser) {
+      let items = (await this.db.getItem(table)) || [];
+      const pk = Object.keys(values)[0];
+      const index = items.findIndex((item) => item[pk] === values[pk]);
+      if (index > -1) items[index] = { ...items[index], ...values };
+      else items.push(values);
+      await this.db.setItem(table, items);
     } else {
-      const keys = Object.keys(values);
-      const placeholders = keys.map(() => '?').join(', ');
-      const query = `INSERT OR REPLACE INTO <span class="math-inline">\{tableName\} \(</span>{keys.join(', ')}) VALUES (${placeholders});`;
-      return new Promise((resolve, reject) => {
-        this.db.transaction(tx => {
-          tx.executeSql(query, Object.values(values), () => resolve(), (_, error) => reject(error));
+      const [keys, placeholders] = [
+        Object.keys(values),
+        Object.values(values)
+          .map(() => "?")
+          .join(","),
+      ];
+      await new Promise((resolve, reject) => {
+        this.db.transaction((tx) => {
+          tx.executeSql(
+            `INSERT OR REPLACE INTO ${table} (${keys.join(
+              ","
+            )}) VALUES (${placeholders})`,
+            Object.values(values),
+            resolve,
+            reject
+          );
         });
       });
     }
   }
 
-    async insertOrIgnore(tableName, values) {
-        if (isBrowserEnvironment) {
-            let items = (await this.db.getItem(tableName)) || [];
-            const primaryKey = Object.keys(values)[0];
-            if (!items.find(item => item[primaryKey] === values[primaryKey])) {
-                items.push(values);
-                await this.db.setItem(tableName, items);
-            }
-        } else {
-            const keys = Object.keys(values);
-            const placeholders = keys.map(() => '?').join(', ');
-            const query = `INSERT OR IGNORE INTO <span class="math-inline">\{tableName\} \(</span>{keys.join(', ')}) VALUES (${placeholders});`;
-
-            return new Promise((resolve, reject) => {
-                this.db.transaction(tx => {
-                    tx.executeSql(query, Object.values(values), () => resolve(), (_, error) => reject(error));
-                });
-            });
-        }
+  async insertOrIgnore(table, values) {
+    if (isBrowser) {
+      let items = (await this.db.getItem(table)) || [];
+      const pk = Object.keys(values)[0];
+      if (!items.find((item) => item[pk] === values[pk])) {
+        items.push(values);
+        await this.db.setItem(table, items);
+      }
+    } else {
+      const [keys, placeholders] = [
+        Object.keys(values),
+        Object.values(values)
+          .map(() => "?")
+          .join(","),
+      ];
+      await new Promise((resolve, reject) => {
+        this.db.transaction((tx) => {
+          tx.executeSql(
+            `INSERT OR IGNORE INTO ${table} (${keys.join(
+              ","
+            )}) VALUES (${placeholders})`,
+            Object.values(values),
+            resolve,
+            reject
+          );
+        });
+      });
     }
+  }
 
-  async update(tableName, values, whereClause, whereArgs = []) {
-    if (isBrowserEnvironment) {
-        let items = (await this.db.getItem(tableName)) || [];
-        const updatedItems = items.map(item =>
-            whereArgs.every((arg, i) => item[Object.keys(values)[i]] === arg) ? { ...item, ...values } : item
+  async update(table, values, where, args = []) {
+    if (isBrowser) {
+      let items = (await this.db.getItem(table)) || [];
+      items = items.map((item) =>
+        args.every((arg, i) => item[Object.keys(values)[i]] === arg)
+          ? { ...item, ...values }
+          : item
+      );
+      await this.db.setItem(table, items);
+    } else {
+      const setters = Object.keys(values)
+        .map((key) => `${key} = ?`)
+        .join(", ");
+      await new Promise((resolve, reject) => {
+        this.db.transaction((tx) => {
+          tx.executeSql(
+            `UPDATE ${table} SET ${setters} WHERE ${where}`,
+            [...Object.values(values), ...args],
+            resolve,
+            reject
+          );
+        });
+      });
+    }
+  }
+
+  async checkDatabaseExistence() {
+    if (isBrowser) {
+      const keys = await this.db.keys();
+      return keys.length > 0;
+    } else {
+      return new Promise((resolve) => {
+        this.db.transaction(
+          () => resolve(true),
+          () => resolve(false)
         );
-        await this.db.setItem(tableName, updatedItems);
-    } else {
-      const keys = Object.keys(values);
-      const setters = keys.map(key => `${key} = ?`).join(', ');
-      const query = `UPDATE ${tableName} SET ${setters} WHERE ${whereClause};`;
-      return new Promise((resolve, reject) => {
-        this.db.transaction(tx => {
-          tx.executeSql(query, [...Object.values(values), ...whereArgs], () => resolve(), (_, error) => reject(error));
-        });
       });
     }
   }
 
-    async checkDatabaseExistence() {
-        if (isBrowserEnvironment) {
-            const keys = await this.db.keys();
-            return keys.length > 0;
-        } else {
-            if (this.db.transaction) {
-                return new Promise((resolve) => {
-                    this.db.transaction(
-                        () => resolve(true),
-                        () => resolve(false)
-                    );
-                });
-            } else {
-                console.warn("Cannot check database existence in this environment.");
-                return Promise.resolve(false);
-            }
-        }
-    }
-
-
-  // Metodi specifici per l'applicazione (che usano i metodi generici)
-  async fetchLocalUserID() { return this.getSingleValue('localUser', 'user_id'); }
-  async fetchLocalUserApiKey() { return this.getSingleValue('localUser', 'apiKey'); }
+  // Application-specific methods
+  async fetchLocalUserID() {
+    console.log(this.getSingleValue("localUser", "user_id"));
+    return this.getSingleValue("localUser", "user_id");
+  }
+  async fetchLocalUserApiKey() {
+    return this.getSingleValue("localUser", "apiKey");
+  }
   async fetchLocalUserNameAndSurname() {
-    const result = await this.getRowData('localUser', ['name', 'surname']);
-    return result ? `${result.name} ${result.surname}` : 'Name or surname not found';
+    const { name, surname } =
+      (await this.getRowData("localUser", ["name", "surname"])) || {};
+    return name && surname ? `${name} ${surname}` : "Name or surname not found";
   }
-  async fetchLocalUserEmail() { return this.getSingleValue('localUser', 'user_email'); }
-    async fetchLocalUserHandle() { return this.getSingleValue('localUser', 'handle'); }
+  async fetchLocalUserEmail() {
+    return this.getSingleValue("localUser", "user_email");
+  }
+  async fetchLocalUserHandle() {
+    return this.getSingleValue("localUser", "handle");
+  }
 
-  async fetchChats() { return this.getTableData('chats'); }
-  async  fetchUser(chat_id) { return this.getTableData('chat_users', 'handle', 'chat_id = ?', [chat_id]); }
+  async fetchChats() {
+    return this.getTableData("chats");
+  }
+  async fetchUser(chat_id) {
+    return this.getSingleValue("chat_users", "handle", "chat_id = ?", [chat_id]);
+  }
   async fetchLastMessage(chat_id) {
-    return this.getTableData('messages', '*', 'chat_id = ?', [chat_id], 'ORDER BY message_id DESC LIMIT 1');
-  }
-  async fetchAllChatMessages(chat_id) { return this.getTableData('messages', '*', 'chat_id = ?', [chat_id]); }
+    const messages = await this.getTableData(
+      "messages",
+      "*",
+      "chat_id = ?",
+      [chat_id],
+      "ORDER BY message_id DESC LIMIT 1"
+    );
 
-  async insertLocalUser(user_id, apiKey) { await this.insertOrReplace('localUser', { user_id, apiKey }); }
-  async updateLocalUser(user_email, handle, name, surname) { await this.update('localUser', { user_email, handle, name, surname }, '1 = 1'); }
-  async insertChat(chat_id, group_channel_name) { await this.insertOrReplace('chats', { chat_id, group_channel_name }); }
+    return messages.length > 0 ? messages[0] : null;
+  }
+  async fetchAllChatMessages(chat_id) {
+    return this.getTableData("messages", "*", "chat_id = ?", [chat_id]);
+  }
+
+  async insertLocalUser(user_id, apiKey) {
+    await this.insertOrReplace("localUser", { user_id, apiKey });
+  }
+  async updateLocalUser(user_email, handle, name, surname) {
+    await this.update(
+      "localUser",
+      { user_email, handle, name, surname },
+      "1=1"
+    );
+  }
+  async insertChat(chat_id, group_channel_name) {
+    await this.insertOrReplace("chats", { chat_id, group_channel_name });
+  }
   async insertMessage(message_id, chat_id, text, sender, date, hash) {
-    await this.insertOrReplace('messages', { message_id, chat_id, text, sender, date_time: date, hash });
+    await this.insertOrReplace("messages", {
+      message_id,
+      chat_id,
+      text,
+      sender,
+      date_time: date,
+      hash,
+    });
   }
-
   async updateSendMessage(date, message_id, hash) {
-    await this.update('messages', { date_time: date, message_id, hash }, 'hash = ?', [hash]);
+    await this.update(
+      "messages",
+      { date_time: date, message_id, hash },
+      "hash = ?",
+      [hash]
+    );
   }
-
-    async insertUsers(handle) {
-        await this.insertOrIgnore('users', { handle });
-    }
-
+  async insertUsers(handle) {
+    await this.insertOrIgnore("users", { handle });
+  }
   async insertChatAndUsers(chat_id, handle) {
-    await this.insertOrReplace('chat_users', { chat_id, handle });
+    await this.insertOrReplace("chat_users", { chat_id, handle });
   }
 }
 

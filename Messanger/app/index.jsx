@@ -42,7 +42,7 @@ function createStyle(theme, colorScheme) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.background,
+      backgroundColor: theme.backgroundClassic,
     },
     containerStart: {
       flex: 1,

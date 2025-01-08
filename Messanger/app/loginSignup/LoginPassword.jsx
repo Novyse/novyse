@@ -10,13 +10,12 @@ import {
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
-import WebSocketProvider, { WebSocketContext } from "../utils/webSocketMethods"; // Importa il modulo corretto
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 
-import LocalDatabaseMethods from "../utils/localDatabaseMethods";
-import JsonParser from "../utils/JsonParse";
+import JsonParser from "../utils/JsonParser";
 import LocalDatabase from "../utils/localDatabaseMethods";
+import WebSocketMethods from "../utils/webSocketMethods";
 
 const LoginPassword = () => {
   const { emailValue } = useLocalSearchParams();
@@ -37,7 +36,9 @@ const LoginPassword = () => {
 
     setIsLoading(true);
     try {
-      let apiKey = await JsonParser.loginPasswordJson(emailValue, password);
+      const apiKey = await JsonParser.loginPasswordJson(emailValue, password);
+      const localUserID = await JsonParser.getUserID(apiKey);
+
       if (apiKey === "false") {
         console.log("Error", "Incorrect password.");
         setError("Password non corretta");
@@ -45,6 +46,7 @@ const LoginPassword = () => {
         return;
       } else {
         const db = new LocalDatabase();
+        const ws = new WebSocketMethods();
 
         await new Promise((resolve) => {
           const checkDb = setInterval(() => {
@@ -55,16 +57,30 @@ const LoginPassword = () => {
           }, 50); // Controlla ogni 50ms
         });
 
-        // const userId = await db.fetchLocalUserID();
-        // console.log("User ID:", userId);
+        
+        await ws.openWebSocketConnection(localUserID, apiKey)
 
-        // await db.insertLocalUser("777", "nuova_chiave_api_2");
+        await db.insertLocalUser(localUserID, apiKey);
+
+        const userId = await db.fetchLocalUserID();
+        console.log("User ID:", userId);
+
+        // await db.insertLocalUser("778", "nuova_chiave_api_2");
 
         // const newUserId = await db.fetchLocalUserID();
         // console.log("New User ID:", newUserId);
 
-        // const exists = await db.checkDatabaseExistence();
-        // console.log("Database exists:", exists);
+        const exists = await db.checkDatabaseExistence();
+        console.log("Database exists:", exists);
+
+        // await ws.webSocketSenderMessage(
+        //   `{"type":"init","apiKey":"${apiKey}"}`
+        // );
+
+        // await ws.webSocketReceiver();
+
+        console.log("Success", "Login successful.");
+        router.push("/ChatList"); // Navigate to ChatList
       }
 
       // const userId = await JsonParser.getUserID(apiKey);
@@ -76,9 +92,6 @@ const LoginPassword = () => {
       // );
 
       // await WebSocketMethods.WebSocketReceiver();
-
-      console.log("Success", "Login successful.");
-      router.push("/ChatList"); // Navigate to ChatList
     } catch (error) {
       console.error(error);
       console.log("Error", "An unexpected error occurred.");

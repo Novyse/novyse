@@ -11,7 +11,10 @@ import {
   Animated,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import ChatContent from "./ChatContent"; // Adjust the path as needed
+import ChatContent from "./ChatContent";
+import { useContext } from "react";
+import { ThemeContext } from "@/context/ThemeContext";
+import LocalDatabase from "./utils/localDatabaseMethods";
 
 const ChatApp = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -20,6 +23,12 @@ const ChatApp = () => {
   const [chats, setChats] = useState([]);
   const [chatDetails, setChatDetails] = useState({});
   const [userName, setUserName] = useState("");
+  const [userId, setUserId] = useState("");
+
+  const db = new LocalDatabase();
+
+  const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
+  const styles = createStyle(theme, colorScheme);
 
   useEffect(() => {
     const updateScreenSize = () => {
@@ -30,6 +39,13 @@ const ChatApp = () => {
     Dimensions.addEventListener("change", updateScreenSize);
     updateScreenSize();
 
+    // fetch del local user id per passarlo alle chat
+    const fetchUserId = async () => {
+      const id = await db.fetchLocalUserID();
+      setUserId(id); // Aggiorna lo stato con il valore ottenuto
+    };
+    fetchUserId();
+
     return () => {
       Dimensions.removeEventListener("change", updateScreenSize);
     };
@@ -38,18 +54,28 @@ const ChatApp = () => {
   // Mock database functions
   const fetchLocalUserNameAndSurname = () => Promise.resolve("John Doe");
   const fetchChats = () =>
-    Promise.resolve([
-      { chat_id: "1", group_channel_name: "Group Chat 1" },
-      { chat_id: "2", group_channel_name: "Group Chat 2" },
-      { chat_id: "3", group_channel_name: "" },
-    ]);
-  const fetchUser = (chatId) =>
-    Promise.resolve({ handle: `User for chat ${chatId}` });
-  const fetchLastMessage = (chatId) =>
-    Promise.resolve({
-      text: `Last message for chat ${chatId}`,
-      date_time: "2024-12-28T14:33:00",
+    db.fetchChats().then((chats) => {
+      return chats.map((chat) => ({
+        chat_id: chat.chat_id,
+        group_channel_name: chat.group_channel_name || "",
+      }));
     });
+  const fetchUser = async (chatId) =>
+    Promise.resolve({ handle: await db.fetchUser(chatId) });
+
+  const fetchLastMessage = async (chatId) => {
+    const row = await db.fetchLastMessage(chatId);
+    // console.log(row);
+    const msgText = row.text;
+    const msgTime = row.date_time;
+    // console.log(msgText);
+    // console.log(msgTime);
+
+    return Promise.resolve({
+      text: msgText,
+      date_time: msgTime,
+    });
+  };
 
   useEffect(() => {
     fetchLocalUserNameAndSurname().then(setUserName);
@@ -58,6 +84,7 @@ const ChatApp = () => {
       for (const chat of chats) {
         const user = await fetchUser(chat.chat_id);
         const lastMessage = await fetchLastMessage(chat.chat_id);
+        // console.log(chat.chat_id);
         details[chat.chat_id] = { user, lastMessage };
       }
       setChats(chats);
@@ -92,11 +119,11 @@ const ChatApp = () => {
           onPress={() => setSelectedChat(null)}
           style={styles.backButton}
         >
-          <Icon name="arrow-back" size={24} color="#fff" />
+          <Icon name="arrow-back" size={24} color={theme.icon} />
         </TouchableOpacity>
       ) : (
         <TouchableOpacity onPress={toggleSidebar} style={styles.menuButton}>
-          <Icon name="menu" size={24} color="#fff" />
+          <Icon name="menu" size={24} color={theme.icon} />
         </TouchableOpacity>
       )}
       <Text style={styles.headerTitle}>
@@ -107,7 +134,13 @@ const ChatApp = () => {
 
   const renderChatList = () => (
     <View
-      style={[styles.chatList, !isSmallScreen && styles.largeScreenChatList]}
+      style={[
+        styles.chatList,
+        !isSmallScreen && styles.largeScreenChatList,
+        !isSmallScreen
+          ? { borderRightColor: theme.chatListRightBorder, borderRightWidth: 1 }
+          : null,
+      ]}
     >
       <FlatList
         data={chats}
@@ -170,7 +203,7 @@ const ChatApp = () => {
 
             <ChatContent
               chatId={selectedChat}
-              userHandle={user.handle}
+              userId={userId}
               lastMessage={lastMessage.text}
               dateTime={lastMessage.date_time}
               onBack={() => setSelectedChat(null)}
@@ -201,110 +234,110 @@ const ChatApp = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#f0f0f0",
-  },
-  container: {
-    flex: 1,
-    flexDirection: "row",
-  },
-  header: {
-    height: 50,
-    backgroundColor: "#007AFF",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-  },
-  menuButton: {
-    marginRight: 10,
-  },
-  headerTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  chatList: {
-    backgroundColor: "#e0e0e0",
-    padding: 10,
-    borderRightWidth: 1,
-    borderRightColor: "#ccc",
-    flex: 1,
-  },
-  largeScreenChatList: {
-    flex: 0.4,
-  },
-  chatItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-  },
-  selected: {
-    backgroundColor: "#d0d0d0",
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  chatTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  chatSubtitle: {
-    fontSize: 14,
-    color: "#666",
-  },
-  chatContent: {
-    flex: 1,
-    padding: 10,
-    backgroundColor: "#fff",
-  },
-  sidebar: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    bottom: 0,
-    width: 250,
-    backgroundColor: "#333",
-    zIndex: 2,
-    padding: 20,
-  },
-  sidebarVisible: {
-    transform: [{ translateX: 0 }],
-  },
-  sidebarHidden: {
-    transform: [{ translateX: -250 }],
-  },
-  sidebarText: {
-    color: "#fff",
-    marginVertical: 10,
-  },
-  backButton: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: "#007AFF",
-    borderRadius: 5,
-    alignSelf: "flex-start",
-  },
-  backButtonText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-  mobileHeader: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1,
-  },
-  backButton: {
-    marginRight: 10,
-  },
-});
-
 export default ChatApp;
+
+function createStyle(theme, colorScheme) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: "#17212b",
+    },
+    container: {
+      flex: 1,
+      flexDirection: "row",
+    },
+    header: {
+      height: 50,
+      backgroundColor: "#17212b",
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 10,
+    },
+    menuButton: {
+      marginRight: 10,
+    },
+    headerTitle: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    chatList: {
+      backgroundColor: "#17212b",
+      flex: 1,
+    },
+    largeScreenChatList: {
+      flex: 0.4,
+    },
+    chatItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.chatListDivider,
+    },
+    selected: {
+      backgroundColor: theme.chatListSelected,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 10,
+    },
+    chatTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: theme.text,
+    },
+    chatSubtitle: {
+      fontSize: 14,
+      color: theme.text,
+    },
+    chatContent: {
+      flex: 1,
+      padding: 10,
+      backgroundColor: theme.backgroundChat,
+    },
+    sidebar: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      bottom: 0,
+      width: 250,
+      backgroundColor: "#333",
+      zIndex: 2,
+      padding: 10,
+    },
+    sidebarVisible: {
+      transform: [{ translateX: 0 }],
+    },
+    sidebarHidden: {
+      transform: [{ translateX: -250 }],
+    },
+    sidebarText: {
+      color: theme.text,
+      marginVertical: 10,
+    },
+    backButton: {
+      marginTop: 10,
+      padding: 10,
+      backgroundColor: "#007AFF",
+      borderRadius: 5,
+      alignSelf: "flex-start",
+    },
+    backButtonText: {
+      color: theme.icon,
+      fontWeight: "bold",
+    },
+    mobileHeader: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1,
+    },
+    backButton: {
+      marginRight: 10,
+    },
+  });
+}
