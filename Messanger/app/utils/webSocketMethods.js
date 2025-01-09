@@ -7,7 +7,6 @@ const db = new LocalDatabase();
 const webSocketAddress = "wss://api.messanger.bpup.israiken.it/ws";
 
 const WebSocketMethods = {
-  
   openWebSocketConnection: async (localUserIDParam, apiKeyParam) => {
     localUserID = localUserIDParam;
     apiKey = apiKeyParam;
@@ -55,7 +54,7 @@ const WebSocketMethods = {
       try {
         const data = JSON.parse(event.data);
         switch (data.type) {
-          case "init":
+          case "init": {
             if (data.init === "True") {
               console.log(data);
 
@@ -88,22 +87,26 @@ const WebSocketMethods = {
               console.log("Server error during init");
             }
             break;
+          }
 
-          case "send_message":
+          case "send_message": {
             if (data.send_message === "True") {
               console.log("Messaggio tornato indietro: true");
               console.log(data.hash);
+              db.updateSendMessage(data.date, data.message_id, data.hash);
             } else if (data.send_message === "False") {
               console.log("Messaggio tornato indietro: false");
             }
             break;
+          }
 
-          case "receive_message":
+          case "receive_message": {
             const { message_id, chat_id, text, sender, date } = data;
-            // Removed AsyncStorage call
+
             console.log(`Nuovo messaggio ricevuto da ${sender}`);
-            // Qui potresti emettere un evento o aggiornare lo stato in un componente React per notificare nuovi messaggi
+
             break;
+          }
 
           default:
             console.log("Unknown message type");

@@ -17,6 +17,8 @@ import JsonParser from "../utils/JsonParser";
 import LocalDatabase from "../utils/localDatabaseMethods";
 import WebSocketMethods from "../utils/webSocketMethods";
 
+const db = new LocalDatabase(); 
+
 const LoginPassword = () => {
   const { emailValue } = useLocalSearchParams();
   const router = useRouter();
@@ -45,7 +47,7 @@ const LoginPassword = () => {
         setIsLoading(false);
         return;
       } else {
-        const db = new LocalDatabase();
+        
 
         await new Promise((resolve) => {
           const checkDb = setInterval(() => {
@@ -56,7 +58,8 @@ const LoginPassword = () => {
           }, 50); // Controlla ogni 50ms
         });
 
-        
+        // await db.clearDatabase();
+
         await WebSocketMethods.openWebSocketConnection(localUserID, apiKey)
 
         await db.insertLocalUser(localUserID, apiKey);

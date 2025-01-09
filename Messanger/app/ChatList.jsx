@@ -16,6 +16,8 @@ import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 import LocalDatabase from "./utils/localDatabaseMethods";
 
+const db = new LocalDatabase();
+
 const ChatApp = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
@@ -25,7 +27,7 @@ const ChatApp = () => {
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
 
-  const db = new LocalDatabase();
+  
 
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);

@@ -44,7 +44,6 @@ class LocalDatabase {
     });
   }
 
-
   async clearDatabase() {
     if (isBrowser) {
       try {
@@ -58,11 +57,11 @@ class LocalDatabase {
       try {
         await new Promise((resolve, reject) => {
           this.db.transaction((tx) => {
-            tx.executeSql('DROP TABLE IF EXISTS localUser');
-            tx.executeSql('DROP TABLE IF EXISTS chats');
-            tx.executeSql('DROP TABLE IF EXISTS users');
-            tx.executeSql('DROP TABLE IF EXISTS messages');
-            tx.executeSql('DROP TABLE IF EXISTS chat_users');
+            tx.executeSql("DROP TABLE IF EXISTS localUser");
+            tx.executeSql("DROP TABLE IF EXISTS chats");
+            tx.executeSql("DROP TABLE IF EXISTS users");
+            tx.executeSql("DROP TABLE IF EXISTS messages");
+            tx.executeSql("DROP TABLE IF EXISTS chat_users");
             resolve();
           }, reject);
         });
@@ -75,7 +74,6 @@ class LocalDatabase {
       }
     }
   }
-
 
   async getSingleValue(table, column, where = "", args = []) {
     const row = await this.getRowData(table, [column], where, args);
@@ -109,25 +107,25 @@ class LocalDatabase {
   async getTableData(table, columns = "*", where = "", args = [], extra = "") {
     if (isBrowser) {
       let items = (await this.db.getItem(table)) || [];
-      
+
       if (where) {
-        const whereParts = where.split('=');
+        const whereParts = where.split("=");
         if (whereParts.length === 2) {
           const key = whereParts[0].trim();
           const value = args[0];
-          items = items.filter(item => item[key] === value);
+          items = items.filter((item) => item[key] === value);
         }
       }
-      
+
       if (extra.includes("ORDER BY")) {
         const orderByCol = extra.match(/ORDER BY (\w+)/)[1];
         items.sort((a, b) => b[orderByCol] - a[orderByCol]);
       }
-      
+
       if (extra.includes("LIMIT 1")) {
         items = items.slice(0, 1);
       }
-      
+
       return items;
     }
   }
@@ -195,22 +193,49 @@ class LocalDatabase {
   async update(table, values, where, args = []) {
     if (isBrowser) {
       let items = (await this.db.getItem(table)) || [];
-      items = items.map((item) =>
-        args.every((arg, i) => item[Object.keys(values)[i]] === arg)
-          ? { ...item, ...values }
-          : item
-      );
+      let updatedItem = null;
+
+      items = items.map((item) => {
+        if (args.every((arg, i) => item[Object.keys(values)[i]] === arg)) {
+          updatedItem = { ...item, ...values };
+          return updatedItem;
+        }
+        return item;
+      });
+
       await this.db.setItem(table, items);
+
+      if (updatedItem) {
+        console.log("Updated item:", updatedItem);
+      } else {
+        console.log("No item was updated matching the criteria.");
+      }
     } else {
       const setters = Object.keys(values)
         .map((key) => `${key} = ?`)
         .join(", ");
+
       await new Promise((resolve, reject) => {
         this.db.transaction((tx) => {
           tx.executeSql(
             `UPDATE ${table} SET ${setters} WHERE ${where}`,
             [...Object.values(values), ...args],
-            resolve,
+            (_, result) => {
+              if (result.rowsAffected > 0) {
+                // Here you need to fetch the updated item since SQLite doesn't return the updated row directly
+                this.getRowData(table, Object.keys(values), where, args)
+                  .then((item) => {
+                    if (item) {
+                      console.log("Updated item:", item);
+                    }
+                    resolve();
+                  })
+                  .catch(reject);
+              } else {
+                console.log("No item was updated matching the criteria.");
+                resolve();
+              }
+            },
             reject
           );
         });
@@ -256,7 +281,9 @@ class LocalDatabase {
     return this.getTableData("chats");
   }
   async fetchUser(chat_id) {
-    return this.getSingleValue("chat_users", "handle", "chat_id = ?", [chat_id]);
+    return this.getSingleValue("chat_users", "handle", "chat_id = ?", [
+      chat_id,
+    ]);
   }
   async fetchLastMessage(chat_id) {
     const messages = await this.getTableData(
@@ -272,6 +299,45 @@ class LocalDatabase {
   async fetchAllChatMessages(chat_id) {
     return this.getTableData("messages", "*", "chat_id = ?", [chat_id]);
   }
+
+
+
+
+
+
+
+
+
+
+
+  async searchMessageByHash(hash) {
+
+    console.log("---Searching for message with hash:", hash);
+    hash = hash.toString();
+    const message = await this.getRowData(
+      "messages",
+      ["*"], // Select all columns of the message
+      "hash = ?",
+      [hash]
+    );
+  
+    if (message) {
+      console.log("---Message found with hash:", hash, "Message details:", message);
+    } else {
+      console.log("---No message found with hash:", hash);
+    }
+  
+    return message;
+  }
+
+
+
+
+
+
+
+
+
 
   async insertLocalUser(user_id, apiKey) {
     await this.insertOrReplace("localUser", { user_id, apiKey });
@@ -313,11 +379,41 @@ class LocalDatabase {
     }
   }
   async updateSendMessage(date, message_id, hash) {
-    await this.update(
+    console.log("Attempting to update message with hash:", hash);
+    const existingMessage = await this.getRowData(
       "messages",
-      { date_time: date, message_id, hash },
+      ["hash"],
       "hash = ?",
       [hash]
+    );
+    console.log(
+      "Existing message hash:",
+      existingMessage ? existingMessage.hash : "Not found"
+    );
+
+    // Use the update method with hash for identification but update both date_time and message_id
+    await this.update(
+      "messages",
+      { date_time: date, message_id: message_id },
+      "hash = ?",
+      [hash]
+    );
+
+    const updatedMessage = await this.getRowData(
+      "messages",
+      ["hash", "message_id", "date_time"],
+      "hash = ?",
+      [hash]
+    );
+    console.log(
+      "Updated message:",
+      updatedMessage
+        ? {
+            hash: updatedMessage.hash,
+            message_id: updatedMessage.message_id,
+            date_time: updatedMessage.date_time,
+          }
+        : "Not updated"
     );
   }
   async insertUsers(handle) {

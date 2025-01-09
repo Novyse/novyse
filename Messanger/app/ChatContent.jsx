@@ -17,13 +17,13 @@ import moment from "moment";
 import bcrypt from "bcryptjs";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
+const db = new LocalDatabase();
+
 const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
   const [messages, setMessages] = useState([]);
   const [newMessageText, setNewMessageText] = useState("");
-
-  const db = new LocalDatabase();
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -52,6 +52,17 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     }
   };
 
+  const generateHash = async (message, salt) => {
+    try {
+      salt = salt;
+      const hashedMessage = bcrypt.hashSync(message, salt);
+      return hashedMessage;
+    } catch (error) {
+      console.error("Error in hash generation:", error);
+      throw error;
+    }
+  };
+
   const addNewMessage = async () => {
     if (newMessageText.trim()) {
       try {
@@ -60,6 +71,8 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
         // console.log("Messaggio cifrato: ", hashedMessage);
 
         const salt = bcrypt.genSaltSync();
+        const hashedMessage = await generateHash(newMessageText, salt);
+        
 
         // Crea un oggetto temporaneo per il nuovo messaggio
         const newMessage = {
@@ -67,7 +80,16 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
           text: newMessageText,
           date_time: "",
         };
-        await db.insertMessage("", chatId, newMessageText, userId, "", "");
+        await db.insertMessage(
+          "",
+          chatId,
+          newMessageText,
+          userId,
+          "",
+          hashedMessage
+        );
+
+        db.searchMessageByHash(hashedMessage);
 
         WebSocketMethods.webSocketSenderMessage(
           JSON.stringify({
