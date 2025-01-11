@@ -3,6 +3,10 @@ import { useState, useContext, useEffect } from "react";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
+import localDatabase from "./utils/localDatabaseMethods";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+ 
 
 export default function Index() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -13,8 +17,21 @@ export default function Index() {
 
   const router = useRouter();
 
-  useEffect (() => {
-
+  useEffect(() => {
+    const checkLogged = async () => {
+      const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
+      if(storeGetIsLoggedIn == "true") { // Nota: valori da AsyncStorage sono stringhe
+        // const localUserId = await localDatabase.fetchLocalUserID();
+        // const apiKey = await localDatabase.fetchLocalUserApiKey();
+        // await WebSocketMethods.openWebSocketConnection(localUserId, apiKey);
+        router.push("/ChatList");
+      } else {
+        
+      }
+    };
+    checkLogged().then(() => {
+      console.log("CheckLogged completed");
+    });
   }, []);
 
   return (

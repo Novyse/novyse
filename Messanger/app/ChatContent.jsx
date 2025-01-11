@@ -11,13 +11,12 @@ import {
 } from "react-native";
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
-import LocalDatabase from "./utils/localDatabaseMethods";
+import localDatabase from "./utils/localDatabaseMethods";
 import WebSocketMethods from "./utils/webSocketMethods";
 import moment from "moment";
 import bcrypt from "bcryptjs";
-import Icon from "react-native-vector-icons/MaterialIcons";
-
-const db = new LocalDatabase();
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import eventEmitter from "./utils/EventEmitter";
 
 const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
@@ -28,15 +27,83 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
   useEffect(() => {
     const loadMessages = async () => {
       try {
-        const msgs = await db.fetchAllChatMessages(chatId);
-        // Inverte l'ordine dei messaggi
+        const msgs = await localDatabase.fetchAllChatMessages(chatId);
         setMessages(msgs.reverse());
       } catch (error) {
         console.error("Error loading messages:", error);
+        setMessages([]); // Imposta un array vuoto in caso di errore
       }
     };
     loadMessages();
   }, [chatId]);
+
+  useEffect(() => {
+    const handleReceiveMessage = eventEmitter.on("newMessage", (data) => {
+      const newMessage = {
+        message_id: data.message_id,
+        sender: data.sender,
+        text: data.text,
+        date_time: data.date,
+      };
+      setMessages((currentMessages) => [newMessage, ...currentMessages]);
+    });
+
+    const handleUpdateMessage = eventEmitter.on("updateMessage", (data) => {
+      
+      localDatabase.fetchLastMessage(chatId);
+    
+      setMessages((currentMessages) =>
+        currentMessages.map((item) => {
+          if (item.message_id === data.message_id || item.hash === data.hash) {
+            console.log("Updating message:", item);
+            return { ...item, date_time: data.date };
+          }
+          return item;
+        })
+      );
+    });
+    
+
+    // Cleanup: rimuove i listener quando l'effetto si smonta o `chatId` cambia
+    return () => {
+      eventEmitter.off("newMessage", handleReceiveMessage);
+      eventEmitter.off("updateMessage", handleUpdateMessage);
+    };
+  }, []);
+
+  // useEffect(() => {
+  //   const loadMessages = async () => {
+  //     try {
+  //       const msgs = await localDatabase.fetchAllChatMessages(chatId);
+  //       // Inverte l'ordine dei messaggi
+  //       setMessages(msgs.reverse());
+  //     } catch (error) {
+  //       console.error("Error loading messages:", error);
+  //     }
+  //   };
+  //   loadMessages();
+
+  //   const handleReceiveMessage = eventEmitter.on("newMessage", (data) => {
+  //     const newMessage = {
+  //       message_id: data.message_id,
+  //       sender: data.sender,
+  //       text: data.text,
+  //       date_time: data.date,
+  //     };
+  //     setMessages((currentMessages) => [newMessage, ...currentMessages]);
+  //   });
+
+  //   const handleUpdateMessage = eventEmitter.on("updateMessage", (data) => {
+  //     const { date, message_id, hash } = data;
+  //     // console.log("::::::::::::::::::::::::::::::::::", hash);
+
+  //     setMessages(
+  //       messages.map((message) =>
+  //         message.hash === hash ? { ...message, date: date } : message
+  //       )
+  //     );
+  //   });
+  // }, [chatId]);
 
   const parseTime = (dateTimeMessage) => {
     if (!dateTimeMessage) {
@@ -72,15 +139,15 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
 
         const salt = bcrypt.genSaltSync();
         const hashedMessage = await generateHash(newMessageText, salt);
-        
 
         // Crea un oggetto temporaneo per il nuovo messaggio
         const newMessage = {
           sender: userId,
           text: newMessageText,
           date_time: "",
+          hash: hashedMessage,
         };
-        await db.insertMessage(
+        await localDatabase.insertMessage(
           "",
           chatId,
           newMessageText,
@@ -89,7 +156,9 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
           hashedMessage
         );
 
-        db.searchMessageByHash(hashedMessage);
+        // console.log("Hash appena inserito nel db: ", hashedMessage);
+
+        // await db.searchMessageByHash(hashedMessage);
 
         WebSocketMethods.webSocketSenderMessage(
           JSON.stringify({
@@ -113,16 +182,21 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     <View style={styles.listContainer}>
       <FlatList
         data={messages}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item) => item.message_id || item.hash}
         renderItem={({ item }) => (
           <View
             style={
               item.sender === userId ? styles.msgSender : styles.msgReceiver
             }
           >
-            <Text style={styles.textMessageContente}>{item.text}</Text>
+            <Text style={styles.textMessageContent}>{item.text}</Text>
             <Text style={styles.timeText}>
-              {item.date_time == "" ? "non inviato" : parseTime(item.date_time)}
+              {item.date_time == "" ? (
+                <MaterialIcons name="access-time" size={14} color="#ffffff" />
+              ) : (
+                parseTime(item.date_time)
+              )}
+              {/* <MaterialIcons name="access-time" size={14} color="#ffffff" /> */}
             </Text>
           </View>
         )}
@@ -138,12 +212,13 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
         placeholder="New message"
         placeholderTextColor="gray"
         value={newMessageText}
+        maxLength={2000}
         onChangeText={setNewMessageText}
         returnKeyType="send"
         onSubmitEditing={Platform.OS === "web" ? addNewMessage : undefined}
       />
       <Pressable onPress={addNewMessage} style={styles.sendButton}>
-        <Icon name="send" size={24} color="#ffffff" />
+        <MaterialIcons name="send" size={24} color="#ffffff" />
       </Pressable>
     </View>
   );
@@ -164,9 +239,10 @@ function createStyle(theme, colorScheme) {
       flex: 1,
       backgroundColor: theme.backgroundChat,
     },
-    textMessageContente: {
+    textMessageContent: {
       color: theme.text,
       fontSize: 18,
+      maxWidth: "100%",
     },
     timeText: {
       color: theme.text,

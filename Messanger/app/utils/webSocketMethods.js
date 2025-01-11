@@ -1,9 +1,9 @@
-import LocalDatabase from "../utils/localDatabaseMethods";
+import localDatabase from "../utils/localDatabaseMethods";
+import eventEmitter from "./EventEmitter"
 
 let webSocketChannel = null;
 let localUserID = "";
 let apiKey = "";
-const db = new LocalDatabase();
 const webSocketAddress = "wss://api.messanger.bpup.israiken.it/ws";
 
 const WebSocketMethods = {
@@ -13,19 +13,36 @@ const WebSocketMethods = {
     const url = `${webSocketAddress}/${localUserID}/${apiKey}`;
 
     try {
-      webSocketChannel = new WebSocket(url);
+      try {
+        if (webSocketChannel && webSocketChannel.readyState === WebSocket.OPEN) {
+          // webSocketChannel.close();
+          console.log("Una websocket era già aperta");
+        } else {
+          webSocketChannel = new WebSocket(url);
+
+          
+        }
+      } catch (error) {
+        console.error("Error closing WebSocket:", error);
+      }
+
+      
 
       webSocketChannel.onopen = async () => {
-        console.log("Connessione aperta");
-        await WebSocketMethods.webSocketSenderMessage(
-          `{"type":"init","apiKey":"${apiKey}"}`
-        );
+        console.log("Connessione websocket aperta");
+        // await WebSocketMethods.webSocketSenderMessage(
+        //   `{"type":"init","apiKey":"${apiKey}"}`
+        // );
         await WebSocketMethods.webSocketReceiver();
       };
 
       webSocketChannel.onerror = (e) => {
         console.log("WebSocket error:", e.message);
       };
+
+      webSocketChannel.onclose = async () => {
+        console.log("Connessione websocket chiusa");
+      }
     } catch (error) {
       console.error("WebSocket initialization error:", error);
     }
@@ -59,20 +76,20 @@ const WebSocketMethods = {
               console.log(data);
 
               const { email, handle, name, surname } = data.localUser;
-              await db.updateLocalUser(email, handle, name, surname);
+              await localDatabase.updateLocalUser(email, handle, name, surname);
 
               for (const chat of data.chats) {
                 const chatName = chat.name || "";
 
-                await db.insertChat(chat.chat_id, chatName);
+                await localDatabase.insertChat(chat.chat_id, chatName);
 
                 for (const user of chat.users) {
-                  db.insertUsers(user.handle);
-                  db.insertChatAndUsers(chat.chat_id, user.handle);
+                  localDatabase.insertUsers(user.handle);
+                  localDatabase.insertChatAndUsers(chat.chat_id, user.handle);
                 }
 
                 for (const message of chat.messages) {
-                  await db.insertMessage(
+                  await localDatabase.insertMessage(
                     message.message_id,
                     message.chat_id,
                     message.text,
@@ -93,7 +110,7 @@ const WebSocketMethods = {
             if (data.send_message === "True") {
               console.log("Messaggio tornato indietro: true");
               console.log(data.hash);
-              db.updateSendMessage(data.date, data.message_id, data.hash);
+              localDatabase.updateSendMessage(data.date, data.message_id, data.hash);
             } else if (data.send_message === "False") {
               console.log("Messaggio tornato indietro: false");
             }
@@ -102,6 +119,11 @@ const WebSocketMethods = {
 
           case "receive_message": {
             const { message_id, chat_id, text, sender, date } = data;
+
+            localDatabase.insertMessage(message_id, chat_id, text, sender, date, "");
+
+            eventEmitter.emit('newMessage', data);
+            eventEmitter.emit("updateNewLastMessage", data);
 
             console.log(`Nuovo messaggio ricevuto da ${sender}`);
 

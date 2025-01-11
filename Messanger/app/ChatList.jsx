@@ -14,9 +14,11 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import ChatContent from "./ChatContent";
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
-import LocalDatabase from "./utils/localDatabaseMethods";
-
-const db = new LocalDatabase();
+import localDatabase from "./utils/localDatabaseMethods";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import WebSocketMethods from "./utils/webSocketMethods";
+import eventEmitter from "./utils/EventEmitter";
 
 const ChatApp = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -26,11 +28,53 @@ const ChatApp = () => {
   const [chatDetails, setChatDetails] = useState({});
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
-
-  
+  const router = useRouter();
+  const [sidebarPosition] = useState(new Animated.Value(-250));
+  const [overlayVisible, setOverlayVisible] = useState(false);
 
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
+
+  useEffect(() => {
+    const checkLogged = async () => {
+      const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
+      if (storeGetIsLoggedIn == "true") {
+        // Nota: valori da AsyncStorage sono stringhe
+        const localUserId = await localDatabase.fetchLocalUserID();
+        const apiKey = await localDatabase.fetchLocalUserApiKey();
+        await WebSocketMethods.openWebSocketConnection(localUserId, apiKey);
+      } else {
+        logout();
+      }
+    };
+    checkLogged().then(() => {
+      console.log("CheckLogged completed");
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleNewLastMessage = eventEmitter.on(
+      "updateNewLastMessage",
+      (data) => {
+        console.log("===========================", data)
+        setChatDetails((currentChatDetails) => {
+          if (data.chat_id in currentChatDetails) {
+            return {
+              ...currentChatDetails,
+              [data.chat_id]: {
+                ...currentChatDetails[data.chat_id],
+                lastMessage: {
+                  ...currentChatDetails[data.chat_id].lastMessage,
+                  text: data.text || data.lastMessage.text,
+                },
+              },
+            };
+          }
+          return currentChatDetails; // se il chat_id non esiste, non aggiorniamo nulla
+        });
+      }
+    );
+  }, []);
 
   useEffect(() => {
     const updateScreenSize = () => {
@@ -43,7 +87,7 @@ const ChatApp = () => {
 
     // fetch del local user id per passarlo alle chat
     const fetchUserId = async () => {
-      const id = await db.fetchLocalUserID();
+      const id = await localDatabase.fetchLocalUserID();
       setUserId(id); // Aggiorna lo stato con il valore ottenuto
     };
     fetchUserId();
@@ -53,20 +97,33 @@ const ChatApp = () => {
     };
   }, []);
 
+  const storeSetIsLoggedIn = async (value) => {
+    try {
+      await AsyncStorage.setItem("isLoggedIn", value);
+      console.log("storeSetIsLoggedIn: ", value);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const logout = async () => {
+    router.push("/loginSignup/EmailCheckForm");
+  };
+
   // Mock database functions
   const fetchLocalUserNameAndSurname = () => Promise.resolve("John Doe");
   const fetchChats = () =>
-    db.fetchChats().then((chats) => {
+    localDatabase.fetchChats().then((chats) => {
       return chats.map((chat) => ({
         chat_id: chat.chat_id,
         group_channel_name: chat.group_channel_name || "",
       }));
     });
   const fetchUser = async (chatId) =>
-    Promise.resolve({ handle: await db.fetchUser(chatId) });
+    Promise.resolve({ handle: await localDatabase.fetchUser(chatId) });
 
   const fetchLastMessage = async (chatId) => {
-    const row = await db.fetchLastMessage(chatId);
+    const row = await localDatabase.fetchLastMessage(chatId);
     // console.log(row);
     const msgText = row.text;
     const msgTime = row.date_time;
@@ -95,25 +152,51 @@ const ChatApp = () => {
   }, []);
 
   const toggleSidebar = () => {
-    setIsSidebarVisible(!isSidebarVisible);
+    Animated.timing(sidebarPosition, {
+      toValue: isSidebarVisible ? -250 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsSidebarVisible(!isSidebarVisible);
+      setOverlayVisible(!isSidebarVisible); // Invertiamo anche l'overlay
+    });
   };
 
+  const renderOverlay = () =>
+    overlayVisible && (
+      <Pressable
+        style={styles.overlay}
+        onPress={() => {
+          toggleSidebar();
+        }}
+      />
+    );
+
   const renderSidebar = () => (
-    <Animated.View
-      style={[
-        styles.sidebar,
-        isSidebarVisible ? styles.sidebarVisible : styles.sidebarHidden,
-      ]}
-    >
-      <Pressable onPress={toggleSidebar} style={styles.closeButton}>
-        <Icon name="close" size={24} color="#fff" />
-      </Pressable>
-      <Text style={styles.sidebarText}>Menu Item 1</Text>
-      <Text style={styles.sidebarText}>Menu Item 2</Text>
-      <Pressable onPress={() => { db.clearDatabase()}}>
-        <Text style={styles.sidebarText}>Elimina database</Text>
-      </Pressable>
-    </Animated.View>
+    <>
+      {renderOverlay()}
+      <Animated.View
+        style={[
+          styles.sidebar,
+          {
+            transform: [{ translateX: sidebarPosition }],
+          },
+        ]}
+      >
+        <Pressable onPress={toggleSidebar} style={styles.closeButton}>
+          <Icon name="close" size={24} color="#fff" />
+        </Pressable>
+        <Text style={styles.sidebarText}>Menu Item 1</Text>
+        <Text style={styles.sidebarText}>Menu Item 2</Text>
+        <Pressable
+          onPress={() => {
+            localDatabase.clearDatabase(), storeSetIsLoggedIn(false), logout();
+          }}
+        >
+          <Text style={styles.sidebarText}>Logout</Text>
+        </Pressable>
+      </Animated.View>
+    </>
   );
 
   const renderHeader = () => (
@@ -171,6 +254,7 @@ const ChatApp = () => {
                   {item.group_channel_name || user.handle || "Unknown User"}
                 </Text>
                 <Text style={styles.chatSubtitle}>
+                  {/* {lastMessage.sender || "No User:"} */}
                   {lastMessage.text || "No messages yet"}
                 </Text>
               </View>
@@ -251,11 +335,9 @@ function createStyle(theme, colorScheme) {
       flexDirection: "row",
     },
     header: {
-      height: 50,
       backgroundColor: "#17212b",
       flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 10,
+      padding: 10,
     },
     menuButton: {
       marginRight: 10,
@@ -317,6 +399,14 @@ function createStyle(theme, colorScheme) {
     },
     sidebarHidden: {
       transform: [{ translateX: -250 }],
+    },
+    overlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 1, // Assicurati che sia sopra il contenuto ma sotto la sidebar
     },
     sidebarText: {
       color: theme.text,

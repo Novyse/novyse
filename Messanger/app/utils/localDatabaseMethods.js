@@ -1,4 +1,5 @@
 import localforage from "localforage";
+import eventEmitter from "./EventEmitter";
 
 const isBrowser = typeof window !== "undefined";
 
@@ -116,16 +117,6 @@ class LocalDatabase {
           items = items.filter((item) => item[key] === value);
         }
       }
-
-      if (extra.includes("ORDER BY")) {
-        const orderByCol = extra.match(/ORDER BY (\w+)/)[1];
-        items.sort((a, b) => b[orderByCol] - a[orderByCol]);
-      }
-
-      if (extra.includes("LIMIT 1")) {
-        items = items.slice(0, 1);
-      }
-
       return items;
     }
   }
@@ -286,62 +277,49 @@ class LocalDatabase {
     ]);
   }
   async fetchLastMessage(chat_id) {
-    const messages = await this.getTableData(
-      "messages",
-      "*",
-      "chat_id = ?",
-      [chat_id],
-      "ORDER BY message_id DESC LIMIT 1"
-    );
+    if (isBrowser) {
+      // Per localForage, dobbiamo ordinare manualmente i messaggi
+      const messages = await this.getTableData(
+        "messages",
+        "*",
+        "chat_id = ?",
+        [chat_id],
+        ""
+      );
+      // Ordiniamo per data e ora in modo discendente, poi prendiamo l'ultimo elemento
+      const sortedMessages = messages.sort((a, b) => {
+        return new Date(b.date_time) - new Date(a.date_time);
+      });
 
-    return messages.length > 0 ? messages[0] : null;
+
+      const lastMessage = sortedMessages[0];
+      const data = { lastMessage, chat_id};
+      eventEmitter.emit("updateNewLastMessage", data);
+
+      return sortedMessages.length > 0 ? lastMessage : null;
+    } else {
+      // Per SQLite, modifichiamo la query per ordinare in modo discendente e LIMIT 1
+      return new Promise((resolve, reject) => {
+        this.db.transaction((tx) => {
+          tx.executeSql(
+            `SELECT * FROM messages WHERE chat_id = ? ORDER BY date_time DESC LIMIT 1`,
+            [chat_id],
+            (_, { rows }) => resolve(rows.length > 0 ? rows.item(0) : null),
+            (_, error) => reject(error)
+          );
+        });
+      });
+    }
   }
+
   async fetchAllChatMessages(chat_id) {
     return this.getTableData("messages", "*", "chat_id = ?", [chat_id]);
   }
 
-
-
-
-
-
-
-
-
-
-
-  async searchMessageByHash(hash) {
-
-    console.log("---Searching for message with hash:", hash);
-    hash = hash.toString();
-    const message = await this.getRowData(
-      "messages",
-      ["*"], // Select all columns of the message
-      "hash = ?",
-      [hash]
-    );
-  
-    if (message) {
-      console.log("---Message found with hash:", hash, "Message details:", message);
-    } else {
-      console.log("---No message found with hash:", hash);
-    }
-  
-    return message;
-  }
-
-
-
-
-
-
-
-
-
-
   async insertLocalUser(user_id, apiKey) {
     await this.insertOrReplace("localUser", { user_id, apiKey });
   }
+
   async updateLocalUser(user_email, handle, name, surname) {
     await this.update(
       "localUser",
@@ -349,9 +327,11 @@ class LocalDatabase {
       "1=1"
     );
   }
+
   async insertChat(chat_id, group_channel_name) {
     await this.insertOrReplace("chats", { chat_id, group_channel_name });
   }
+
   async insertMessage(message_id, chat_id, text, sender, date, hash) {
     if (isBrowser) {
       let items = (await this.db.getItem("messages")) || [];
@@ -378,44 +358,57 @@ class LocalDatabase {
       }).catch((e) => console.error("Transaction error:", e));
     }
   }
+
   async updateSendMessage(date, message_id, hash) {
     console.log("Attempting to update message with hash:", hash);
-    const existingMessage = await this.getRowData(
-      "messages",
-      ["hash"],
-      "hash = ?",
-      [hash]
-    );
-    console.log(
-      "Existing message hash:",
-      existingMessage ? existingMessage.hash : "Not found"
-    );
 
-    // Use the update method with hash for identification but update both date_time and message_id
-    await this.update(
-      "messages",
-      { date_time: date, message_id: message_id },
-      "hash = ?",
-      [hash]
-    );
+    const data = { date, message_id, hash };
 
-    const updatedMessage = await this.getRowData(
-      "messages",
-      ["hash", "message_id", "date_time"],
-      "hash = ?",
-      [hash]
-    );
-    console.log(
-      "Updated message:",
-      updatedMessage
-        ? {
-            hash: updatedMessage.hash,
-            message_id: updatedMessage.message_id,
-            date_time: updatedMessage.date_time,
-          }
-        : "Not updated"
-    );
+    if (isBrowser) {
+      // Esegui un update mirato nel browser usando localForage
+      const items = (await this.db.getItem("messages")) || [];
+      const index = items.findIndex((item) => item.hash === hash.trim());
+      if (index > -1) {
+        items[index] = {
+          ...items[index],
+          date_time: date,
+          message_id: message_id,
+        };
+        await this.db.setItem("messages", items);
+        console.log("Updated message (browser):", items[index]);
+      } else {
+        console.log("Message with the given hash not found in browser.");
+      }
+    } else {
+      // Esegui un update mirato su SQLite
+      await new Promise((resolve, reject) => {
+        this.db.transaction((tx) => {
+          tx.executeSql(
+            `UPDATE messages SET date_time = ?, message_id = ? WHERE hash = ?`,
+            [date, message_id, hash],
+            (_, result) => {
+              if (result.rowsAffected > 0) {
+                console.log(
+                  "Message successfully updated in SQLite with hash:",
+                  hash
+                );
+                resolve();
+              } else {
+                console.log("No message found with the specified hash.");
+                resolve();
+              }
+            },
+            (_, error) => {
+              console.error("Error during update:", error);
+              reject(error);
+            }
+          );
+        });
+      });
+    }
+    eventEmitter.emit("updateMessage", data);
   }
+
   async insertUsers(handle) {
     await this.insertOrIgnore("users", { handle });
   }
@@ -424,4 +417,5 @@ class LocalDatabase {
   }
 }
 
-export default LocalDatabase;
+const localDatabase = new LocalDatabase();
+export default localDatabase;

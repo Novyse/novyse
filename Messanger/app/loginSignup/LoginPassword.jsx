@@ -14,10 +14,12 @@ import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 
 import JsonParser from "../utils/JsonParser";
-import LocalDatabase from "../utils/localDatabaseMethods";
+import localDatabase from "../utils/localDatabaseMethods";
 import WebSocketMethods from "../utils/webSocketMethods";
 
-const db = new LocalDatabase(); 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
 
 const LoginPassword = () => {
   const { emailValue } = useLocalSearchParams();
@@ -29,6 +31,15 @@ const LoginPassword = () => {
 
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
+
+  const storeSetIsLoggedIn = async (value) => {
+    try {
+      await AsyncStorage.setItem('isLoggedIn', value);
+      console.log("storeSetIsLoggedIn: ", value);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   const handleLogin = async () => {
     if (!password) {
@@ -50,36 +61,31 @@ const LoginPassword = () => {
         
 
         await new Promise((resolve) => {
-          const checkDb = setInterval(() => {
-            if (db.db) {
-              clearInterval(checkDb);
+          const checklocalDatabase = setInterval(() => {
+            if (localDatabase.db) {
+              clearInterval(checklocalDatabase);
               resolve();
             }
           }, 50); // Controlla ogni 50ms
         });
 
-        // await db.clearDatabase();
+        await localDatabase.clearDatabase();
 
         await WebSocketMethods.openWebSocketConnection(localUserID, apiKey)
 
-        await db.insertLocalUser(localUserID, apiKey);
+        storeSetIsLoggedIn(true);
 
-        const userId = await db.fetchLocalUserID();
+        await localDatabase.insertLocalUser(localUserID, apiKey);
+
+        const userId = await localDatabase.fetchLocalUserID();
         console.log("User ID:", userId);
 
-        // await db.insertLocalUser("778", "nuova_chiave_api_2");
-
-        // const newUserId = await db.fetchLocalUserID();
-        // console.log("New User ID:", newUserId);
-
-        const exists = await db.checkDatabaseExistence();
+        const exists = await localDatabase.checkDatabaseExistence();
         console.log("Database exists:", exists);
 
-        // await ws.webSocketSenderMessage(
-        //   `{"type":"init","apiKey":"${apiKey}"}`
-        // );
-
-        // await ws.webSocketReceiver();
+        await WebSocketMethods.webSocketSenderMessage(
+          `{"type":"init","apiKey":"${apiKey}"}`
+        );
 
         console.log("Success", "Login successful.");
         router.push("/ChatList"); // Navigate to ChatList
