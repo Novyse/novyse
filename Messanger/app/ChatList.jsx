@@ -42,7 +42,17 @@ const ChatApp = () => {
         // Nota: valori da AsyncStorage sono stringhe
         const localUserId = await localDatabase.fetchLocalUserID();
         const apiKey = await localDatabase.fetchLocalUserApiKey();
-        await WebSocketMethods.openWebSocketConnection(localUserId, apiKey);
+        console.log("Chat list - DB:", localUserId);
+        console.log("Chat list - DB:", apiKey);
+
+        if (apiKey != null) {
+          await WebSocketMethods.openWebSocketConnection(localUserId, apiKey);
+        } else {
+          console.log(
+            "ChatList apikey checklogged (dovrebbe essere null), websocket non riaperta:",
+            apiKey
+          );
+        }
       } else {
         logout();
       }
@@ -56,7 +66,6 @@ const ChatApp = () => {
     const handleNewLastMessage = eventEmitter.on(
       "updateNewLastMessage",
       (data) => {
-        console.log("===========================", data)
         setChatDetails((currentChatDetails) => {
           if (data.chat_id in currentChatDetails) {
             return {
@@ -112,6 +121,7 @@ const ChatApp = () => {
 
   // Mock database functions
   const fetchLocalUserNameAndSurname = () => Promise.resolve("John Doe");
+
   const fetchChats = () =>
     localDatabase.fetchChats().then((chats) => {
       return chats.map((chat) => ({
@@ -119,6 +129,7 @@ const ChatApp = () => {
         group_channel_name: chat.group_channel_name || "",
       }));
     });
+
   const fetchUser = async (chatId) =>
     Promise.resolve({ handle: await localDatabase.fetchUser(chatId) });
 
@@ -143,10 +154,10 @@ const ChatApp = () => {
       for (const chat of chats) {
         const user = await fetchUser(chat.chat_id);
         const lastMessage = await fetchLastMessage(chat.chat_id);
-        // console.log(chat.chat_id);
         details[chat.chat_id] = { user, lastMessage };
       }
       setChats(chats);
+      
       setChatDetails(details);
     });
   }, []);
@@ -190,7 +201,9 @@ const ChatApp = () => {
         <Text style={styles.sidebarText}>Menu Item 2</Text>
         <Pressable
           onPress={() => {
-            localDatabase.clearDatabase(), storeSetIsLoggedIn(false), logout();
+            localDatabase.clearDatabase(),
+              storeSetIsLoggedIn("false"),
+              logout();
           }}
         >
           <Text style={styles.sidebarText}>Logout</Text>

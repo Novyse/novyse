@@ -65,10 +65,10 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     
 
     // Cleanup: rimuove i listener quando l'effetto si smonta o `chatId` cambia
-    return () => {
-      eventEmitter.off("newMessage", handleReceiveMessage);
-      eventEmitter.off("updateMessage", handleUpdateMessage);
-    };
+    // return () => {
+    //   eventEmitter.off("newMessage", handleReceiveMessage);
+    //   eventEmitter.off("updateMessage", handleUpdateMessage);
+    // };
   }, []);
 
   // useEffect(() => {
@@ -122,7 +122,7 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
   const generateHash = async (message, salt) => {
     try {
       salt = salt;
-      const hashedMessage = bcrypt.hashSync(message, salt);
+      const hashedMessage = await bcrypt.hash(message, salt);
       return hashedMessage;
     } catch (error) {
       console.error("Error in hash generation:", error);
@@ -137,7 +137,7 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
 
         // console.log("Messaggio cifrato: ", hashedMessage);
 
-        const salt = bcrypt.genSaltSync();
+        const salt = await bcrypt.genSalt();
         const hashedMessage = await generateHash(newMessageText, salt);
 
         // Crea un oggetto temporaneo per il nuovo messaggio

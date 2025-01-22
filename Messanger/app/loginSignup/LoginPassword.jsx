@@ -17,9 +17,7 @@ import JsonParser from "../utils/JsonParser";
 import localDatabase from "../utils/localDatabaseMethods";
 import WebSocketMethods from "../utils/webSocketMethods";
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LoginPassword = () => {
   const { emailValue } = useLocalSearchParams();
@@ -34,7 +32,7 @@ const LoginPassword = () => {
 
   const storeSetIsLoggedIn = async (value) => {
     try {
-      await AsyncStorage.setItem('isLoggedIn', value);
+      await AsyncStorage.setItem("isLoggedIn", value);
       console.log("storeSetIsLoggedIn: ", value);
     } catch (e) {
       console.log(e);
@@ -50,16 +48,17 @@ const LoginPassword = () => {
     setIsLoading(true);
     try {
       const apiKey = await JsonParser.loginPasswordJson(emailValue, password);
-      const localUserID = await JsonParser.getUserID(apiKey);
+      console.log("LoginPassword - Apikey:", apiKey);
 
-      if (apiKey === "false") {
+      const localUserID = await JsonParser.getUserID(apiKey);
+      console.log("LoginPassword - localUserID:", localUserID);
+
+      if (apiKey == "false") {
         console.log("Error", "Incorrect password.");
         setError("Password non corretta");
         setIsLoading(false);
         return;
       } else {
-        
-
         await new Promise((resolve) => {
           const checklocalDatabase = setInterval(() => {
             if (localDatabase.db) {
@@ -71,35 +70,47 @@ const LoginPassword = () => {
 
         await localDatabase.clearDatabase();
 
-        await WebSocketMethods.openWebSocketConnection(localUserID, apiKey)
+        await WebSocketMethods.openWebSocketConnection(localUserID, apiKey);
 
-        storeSetIsLoggedIn(true);
+        storeSetIsLoggedIn("true");
 
         await localDatabase.insertLocalUser(localUserID, apiKey);
 
-        const userId = await localDatabase.fetchLocalUserID();
-        console.log("User ID:", userId);
+        const userIdDB = await localDatabase.fetchLocalUserID();
+        console.log("LoginPassword - User ID dal DB:", userIdDB);
+        const apiKeyDB = await localDatabase.fetchLocalUserApiKey();
+        console.log("LoginPassword - ApiKey dal DB:", apiKeyDB);
 
         const exists = await localDatabase.checkDatabaseExistence();
         console.log("Database exists:", exists);
 
-        await WebSocketMethods.webSocketSenderMessage(
-          `{"type":"init","apiKey":"${apiKey}"}`
-        );
+        if (apiKey != null) {
+          await WebSocketMethods.webSocketSenderMessage(
+            `{"type":"init","apiKey":"${apiKey}"}`
+          );
+        } else {
+          console.log("LoginPassword - Apikey nulla");
+        }
+
+
+
+
+
+
+
+
+        const sleep = (ms) => {
+          return new Promise((resolve) => setTimeout(resolve, ms));
+        };
+        await sleep(4000);
+
+
+
+
 
         console.log("Success", "Login successful.");
         router.push("/ChatList"); // Navigate to ChatList
       }
-
-      // const userId = await JsonParser.getUserID(apiKey);
-      // await LocalDatabaseMethods.insertLocalUser(userId, apiKey);
-
-      // await WebSocketMethods.openWebSocketConnection(userId, apiKey);
-      // await WebSocketMethods.WebSocketSenderMessage(
-      //   `{"type":"init","apiKey":"${apiKey}"}`
-      // );
-
-      // await WebSocketMethods.WebSocketReceiver();
     } catch (error) {
       console.error(error);
       console.log("Error", "An unexpected error occurred.");
