@@ -8,13 +8,14 @@ import {
   StyleSheet,
   FlatList,
   TextInput,
+  BackHandler,
 } from "react-native";
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 import localDatabase from "./utils/localDatabaseMethods";
 import WebSocketMethods from "./utils/webSocketMethods";
 import moment from "moment";
-import bcrypt from "bcryptjs";
+import * as Crypto from "expo-crypto";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import eventEmitter from "./utils/EventEmitter";
 
@@ -49,9 +50,8 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     });
 
     const handleUpdateMessage = eventEmitter.on("updateMessage", (data) => {
-      
       localDatabase.fetchLastMessage(chatId);
-    
+
       setMessages((currentMessages) =>
         currentMessages.map((item) => {
           if (item.message_id === data.message_id || item.hash === data.hash) {
@@ -62,13 +62,22 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
         })
       );
     });
-    
 
-    // Cleanup: rimuove i listener quando l'effetto si smonta o `chatId` cambia
-    // return () => {
-    //   eventEmitter.off("newMessage", handleReceiveMessage);
-    //   eventEmitter.off("updateMessage", handleUpdateMessage);
-    // };
+    const backAction = () => {
+      onBack();
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    //Cleanup: rimuove i listener quando l'effetto si smonta o `chatId` cambia
+    return () => {
+      eventEmitter.off("newMessage", handleReceiveMessage);
+      eventEmitter.off("updateMessage", handleUpdateMessage);
+      backHandler.remove();
+    };
   }, []);
 
   // useEffect(() => {
@@ -119,11 +128,27 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     }
   };
 
-  const generateHash = async (message, salt) => {
+  //NON TOCCARE QUESTO METODO, GRAZIE
+  const generateHash = async (message) => {
     try {
-      salt = salt;
-      const hashedMessage = await bcrypt.hash(message, salt);
-      return hashedMessage;
+      // Generate random salt
+      const saltBytes = await Crypto.getRandomBytesAsync(16);
+      const saltHex = Array.from(saltBytes)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      // Combine message and salt as string
+      const messageWithSalt = message + saltHex;
+
+      // Generate SHA-256 hash from string
+      const hash = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        messageWithSalt
+      );
+
+      console.log("==========", hash, saltHex);
+
+      return { hash, saltHex };
     } catch (error) {
       console.error("Error in hash generation:", error);
       throw error;
@@ -133,12 +158,9 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
   const addNewMessage = async () => {
     if (newMessageText.trim()) {
       try {
-        // const hashedMessage = await generateHash(newMessageText);
-
-        // console.log("Messaggio cifrato: ", hashedMessage);
-
-        const salt = await bcrypt.genSalt();
-        const hashedMessage = await generateHash(newMessageText, salt);
+        const { hash: hashedMessage, saltHex: salt } = await generateHash(
+          newMessageText
+        );
 
         // Crea un oggetto temporaneo per il nuovo messaggio
         const newMessage = {
@@ -175,6 +197,8 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
       } catch (error) {
         console.error("Error adding new message:", error);
       }
+    } else {
+      console.warn("Empty message, not sending");
     }
   };
 

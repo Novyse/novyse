@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Pressable,
+  BackHandler,
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -20,8 +21,9 @@ import WebSocketMethods from "../utils/webSocketMethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LoginPassword = () => {
-  const { emailValue } = useLocalSearchParams();
   const router = useRouter();
+
+  const { emailValue } = useLocalSearchParams();
 
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +31,30 @@ const LoginPassword = () => {
 
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
+
+  useEffect(() => {
+    const checkLogged = async () => {
+      const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
+      if (storeGetIsLoggedIn == "true") {
+        router.push("/ChatList");
+      } else {
+        console.log("Utente non loggato");
+      }
+    };
+    checkLogged().then(() => {
+      console.log("CheckLogged completed");
+    });
+
+    const backAction = () => {
+      router.push("/loginSignup/EmailCheckForm");
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+    return () => backHandler.remove();
+  }, []);
 
   const storeSetIsLoggedIn = async (value) => {
     try {
@@ -91,22 +117,6 @@ const LoginPassword = () => {
         } else {
           console.log("LoginPassword - Apikey nulla");
         }
-
-
-
-
-
-
-
-
-        const sleep = (ms) => {
-          return new Promise((resolve) => setTimeout(resolve, ms));
-        };
-        await sleep(4000);
-
-
-
-
 
         console.log("Success", "Login successful.");
         router.push("/ChatList"); // Navigate to ChatList

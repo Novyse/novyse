@@ -6,14 +6,14 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
+  BackHandler
 } from "react-native";
-import EmailCheckForm from "./EmailCheckForm"; // Assuming this is your EmailCheck component
 import JsonParser from "../utils/JsonParser";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // const Signup = ({ route, navigation }) => {
 //   const { emailValue } = route.params; // Assume navigation passes the emailValue
@@ -38,6 +38,31 @@ const Signup = () => {
     surname: "",
     handle: "",
   });
+
+  useEffect(() => {
+    const checkLogged = async () => {
+      const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
+      if (storeGetIsLoggedIn == "true") {
+        router.push("/ChatList");
+      } else {
+        console.log("Utente non loggato");
+      }
+    };
+    checkLogged().then(() => {
+      console.log("CheckLogged completed");
+    });
+
+
+    const backAction = () => {
+      router.push("/loginSignup/EmailCheckForm");
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+    return () => backHandler.remove();
+  }, []);
 
   const [handleAvailable, setHandleAvailable] = useState(null);
   const [isLoading, setIsLoading] = useState(false);

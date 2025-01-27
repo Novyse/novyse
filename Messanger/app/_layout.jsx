@@ -28,6 +28,10 @@ export default function RootLayout() {
             name="ChatList"
             options={{ headerShown: false, title: "ChatList" }}
           />
+          <Stack.Screen
+            name="ChatContent"
+            options={{ headerShown: false, title: "ChatContent" }}
+          />
         </Stack>
       </SafeAreaProvider>
     </ThemeProvider>

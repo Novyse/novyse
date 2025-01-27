@@ -12,6 +12,8 @@ const WebSocketMethods = {
     apiKey = apiKeyParam;
     const url = `${webSocketAddress}/${localUserID}/${apiKey}`;
 
+    
+
     try {
       try {
         if (webSocketChannel && webSocketChannel.readyState === WebSocket.OPEN) {
@@ -19,8 +21,6 @@ const WebSocketMethods = {
           console.log("Una websocket era già aperta");
         } else {
           webSocketChannel = new WebSocket(url);
-
-          
         }
       } catch (error) {
         console.error("Error closing WebSocket:", error);

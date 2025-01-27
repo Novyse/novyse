@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   TextInput,
   StyleSheet,
   Text,
   Pressable,
+  BackHandler,
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import APIMethods from "../utils/APImethods";
@@ -23,6 +24,18 @@ const EmailCheckForm = () => {
   const styles = createStyle(theme, colorScheme);
 
   const router = useRouter();
+
+  useEffect(() => {
+    const backAction = () => {
+      router.push("/");
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+    return () => backHandler.remove();
+  }, []);
 
   const validateEmail = (value) => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

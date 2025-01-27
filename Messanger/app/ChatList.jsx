@@ -9,6 +9,8 @@ import {
   FlatList,
   Image,
   Animated,
+  BackHandler,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import ChatContent from "./ChatContent";
@@ -20,7 +22,7 @@ import { useRouter } from "expo-router";
 import WebSocketMethods from "./utils/webSocketMethods";
 import eventEmitter from "./utils/EventEmitter";
 
-const ChatApp = () => {
+const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
@@ -60,6 +62,25 @@ const ChatApp = () => {
     checkLogged().then(() => {
       console.log("CheckLogged completed");
     });
+
+    const backAction = () => {
+      Alert.alert("Attenzione", "Sei sicuro di voler uscire?", [
+        {
+          text: "No",
+          onPress: () => null,
+          style: "cancel",
+        },
+        { text: "Si", onPress: () => BackHandler.exitApp() },
+      ]);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
   }, []);
 
   useEffect(() => {
@@ -157,7 +178,7 @@ const ChatApp = () => {
         details[chat.chat_id] = { user, lastMessage };
       }
       setChats(chats);
-      
+
       setChatDetails(details);
     });
   }, []);
@@ -212,25 +233,30 @@ const ChatApp = () => {
     </>
   );
 
-  const renderHeader = () => (
-    <View style={styles.header}>
-      {isSmallScreen && selectedChat ? (
-        <Pressable
-          onPress={() => setSelectedChat(null)}
-          style={styles.backButton}
-        >
-          <Icon name="arrow-back" size={24} color={theme.icon} />
-        </Pressable>
-      ) : (
-        <Pressable onPress={toggleSidebar} style={styles.menuButton}>
-          <Icon name="menu" size={24} color={theme.icon} />
-        </Pressable>
-      )}
-      <Text style={styles.headerTitle}>
-        {isSmallScreen && selectedChat ? "Nome chat/utente" : ""}
-      </Text>
-    </View>
-  );
+  const renderHeader = () => {
+    const selectedDetails = chatDetails[selectedChat] || {};
+    const user = selectedDetails.user || {};
+
+    return (
+      <View style={styles.header}>
+        {isSmallScreen && selectedChat ? (
+          <Pressable
+            onPress={() => setSelectedChat(null)}
+            style={styles.backButton}
+          >
+            <Icon name="arrow-back" size={24} color={theme.icon} />
+          </Pressable>
+        ) : (
+          <Pressable onPress={toggleSidebar} style={styles.menuButton}>
+            <Icon name="menu" size={24} color={theme.icon} />
+          </Pressable>
+        )}
+        <Text style={styles.headerTitle}>
+          {isSmallScreen && selectedChat ? user.handle : ""}
+        </Text>
+      </View>
+    );
+  };
 
   const renderChatList = () => (
     <View
@@ -335,7 +361,7 @@ const ChatApp = () => {
   );
 };
 
-export default ChatApp;
+export default ChatList;
 
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({

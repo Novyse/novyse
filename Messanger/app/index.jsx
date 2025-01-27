@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, Pressable, Image } from "react-native";
+import { Text, View, StyleSheet, Pressable, Image, BackHandler, Alert } from "react-native";
 import { useState, useContext, useEffect } from "react";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -32,6 +32,25 @@ export default function Index() {
     checkLogged().then(() => {
       console.log("CheckLogged completed");
     });
+
+    const backAction = () => {
+      Alert.alert('Hold on!', 'Are you sure you want to go back?', [
+        {
+          text: 'Cancel',
+          onPress: () => null,
+          style: 'cancel',
+        },
+        {text: 'YES', onPress: () => BackHandler.exitApp()},
+      ]);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
   }, []);
 
   return (
