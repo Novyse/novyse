@@ -137,16 +137,26 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
 
-      // Combine message and salt as string
-      const messageWithSalt = message + saltHex;
+      const messageBytes = new TextEncoder().encode(message);
+
+      // Combine message and salt as Uint8Array
+      const messageWithSalt = new Uint8Array(
+        saltBytes.length + messageBytes.length
+      );
+      messageWithSalt.set(saltBytes);
+      messageWithSalt.set(messageBytes, saltBytes.length);
 
       // Generate SHA-256 hash from string
-      const hash = await Crypto.digestStringAsync(
+      const hashBytes = await Crypto.digest(
         Crypto.CryptoDigestAlgorithm.SHA256,
         messageWithSalt
       );
 
-      console.log("==========", hash, saltHex);
+      const hash = Array.from(new Uint8Array(hashBytes))
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("");
+
+      console.log("HashBytes generato:", hashBytes);
 
       return { hash, saltHex };
     } catch (error) {
