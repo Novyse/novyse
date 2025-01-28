@@ -11,6 +11,7 @@ import {
   Animated,
   BackHandler,
   Alert,
+  Platform,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import ChatContent from "./ChatContent";
@@ -213,6 +214,7 @@ const ChatList = () => {
           {
             transform: [{ translateX: sidebarPosition }],
           },
+          { paddingTop: Platform.OS === "android" ? 25 : 10},
         ]}
       >
         <Pressable onPress={toggleSidebar} style={styles.closeButton}>
@@ -342,7 +344,12 @@ const ChatList = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        { paddingTop: Platform.OS === "android" ? 25 : 0 },
+      ]}
+    >
       {renderSidebar()}
       {renderHeader()}
       <View style={styles.container}>
@@ -368,6 +375,7 @@ function createStyle(theme, colorScheme) {
     safeArea: {
       flex: 1,
       backgroundColor: "#17212b",
+      paddingTop: 30,
     },
     container: {
       flex: 1,

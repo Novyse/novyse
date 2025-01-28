@@ -59,7 +59,8 @@
     "react-native-webview": "13.12.5",
     "react-navigation-stack": "^2.10.4",
     "react-redux": "^9.2.0",
-    "expo-crypto": "~14.0.2"
+    "expo-crypto": "~14.0.2",
+    "expo-navigation-bar": "~4.0.7"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

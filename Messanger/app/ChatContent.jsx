@@ -128,6 +128,8 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     }
   };
 
+
+
   //NON TOCCARE QUESTO METODO, GRAZIE
   const generateHash = async (message) => {
     try {
@@ -165,6 +167,8 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     }
   };
 
+
+  
   const addNewMessage = async () => {
     if (newMessageText.trim()) {
       try {

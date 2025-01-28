@@ -2,10 +2,11 @@
   "expo": {
     "name": "BPUP Messanger",
     "slug": "Messanger",
-    "version": "alpha-0.0.2",
+    "version": "pre-alpha-0.0.2",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/bpup_logo.png",
     "scheme": "myapp",
+    "owner": "bpup",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -14,22 +15,22 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/bpup_logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.miryad.Messanger"
+      "package": "com.BPUP.Messanger"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/bpup_logo.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/bpup_logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"

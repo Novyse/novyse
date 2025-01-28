@@ -21,6 +21,5 @@ export const Colors = {
     chatListSelected: '#2b5278',
     icon: 'white',
     button: '#2399C3',
-
   },
 };

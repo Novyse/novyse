@@ -1,22 +1,28 @@
 import localDatabase from "../utils/localDatabaseMethods";
-import eventEmitter from "./EventEmitter"
+import eventEmitter from "./EventEmitter";
 
 let webSocketChannel = null;
 let localUserID = "";
 let apiKey = "";
 const webSocketAddress = "wss://api.messanger.bpup.israiken.it/ws";
+let sendMessageAttempt = 0;
 
 const WebSocketMethods = {
-  openWebSocketConnection: async (localUserIDParam, apiKeyParam) => {
+  saveParameters: async (localUserIDParam, apiKeyParam) => {
     localUserID = localUserIDParam;
     apiKey = apiKeyParam;
-    const url = `${webSocketAddress}/${localUserID}/${apiKey}`;
+    console.log("Parametri salvati");
+  },
 
-    
+  openWebSocketConnection: async () => {
+    const url = `${webSocketAddress}/${localUserID}/${apiKey}`;
 
     try {
       try {
-        if (webSocketChannel && webSocketChannel.readyState === WebSocket.OPEN) {
+        if (
+          webSocketChannel &&
+          webSocketChannel.readyState === WebSocket.OPEN
+        ) {
           // webSocketChannel.close();
           console.log("Una websocket era già aperta");
         } else {
@@ -26,14 +32,10 @@ const WebSocketMethods = {
         console.error("Error closing WebSocket:", error);
       }
 
-      
-
       webSocketChannel.onopen = async () => {
         console.log("Connessione websocket aperta");
-        // await WebSocketMethods.webSocketSenderMessage(
-        //   `{"type":"init","apiKey":"${apiKey}"}`
-        // );
         await WebSocketMethods.webSocketReceiver();
+        eventEmitter.emit("webSocketOpen");
       };
 
       webSocketChannel.onerror = (e) => {
@@ -42,7 +44,7 @@ const WebSocketMethods = {
 
       webSocketChannel.onclose = async () => {
         console.log("Connessione websocket chiusa");
-      }
+      };
     } catch (error) {
       console.error("WebSocket initialization error:", error);
     }
@@ -57,7 +59,16 @@ const WebSocketMethods = {
         console.error("Error sending message:", error);
       }
     } else {
-      console.log("WebSocket not open for sending message.");
+      if (sendMessageAttempt < 5) {
+        setTimeout(async () => {
+          console.log("WebSocket not open for sending message, retrying");
+          await WebSocketMethods.openWebSocketConnection();
+          await WebSocketMethods.webSocketSenderMessage(message);
+          sendMessageAttempt += 1;
+        }, 2000);
+      } else {
+        console.error("WebSocket not open for sending message, max attempts");
+      }
     }
   },
 
@@ -99,6 +110,7 @@ const WebSocketMethods = {
                   );
                 }
               }
+              eventEmitter.emit("loginToChatList");
               console.log("Init con successo");
             } else if (data.init === "False") {
               console.log("Server error during init");
@@ -110,7 +122,11 @@ const WebSocketMethods = {
             if (data.send_message === "True") {
               console.log("Messaggio tornato indietro: true");
               console.log(data.hash);
-              localDatabase.updateSendMessage(data.date, data.message_id, data.hash);
+              localDatabase.updateSendMessage(
+                data.date,
+                data.message_id,
+                data.hash
+              );
             } else if (data.send_message === "False") {
               console.log("Messaggio tornato indietro: false");
             }
@@ -120,9 +136,16 @@ const WebSocketMethods = {
           case "receive_message": {
             const { message_id, chat_id, text, sender, date } = data;
 
-            localDatabase.insertMessage(message_id, chat_id, text, sender, date, "");
+            localDatabase.insertMessage(
+              message_id,
+              chat_id,
+              text,
+              sender,
+              date,
+              ""
+            );
 
-            eventEmitter.emit('newMessage', data);
+            eventEmitter.emit("newMessage", data);
             eventEmitter.emit("updateNewLastMessage", data);
 
             console.log(`Nuovo messaggio ricevuto da ${sender}`);

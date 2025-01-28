@@ -11,6 +11,8 @@ import {
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
+import eventEmitter from "../utils/EventEmitter";
+
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 
@@ -96,30 +98,34 @@ const LoginPassword = () => {
 
         await localDatabase.clearDatabase();
 
-        await WebSocketMethods.openWebSocketConnection(localUserID, apiKey);
-
-        storeSetIsLoggedIn("true");
-
+        await WebSocketMethods.saveParameters(localUserID, apiKey);
+        await WebSocketMethods.openWebSocketConnection();
+        
         await localDatabase.insertLocalUser(localUserID, apiKey);
-
-        const userIdDB = await localDatabase.fetchLocalUserID();
-        console.log("LoginPassword - User ID dal DB:", userIdDB);
-        const apiKeyDB = await localDatabase.fetchLocalUserApiKey();
-        console.log("LoginPassword - ApiKey dal DB:", apiKeyDB);
-
         const exists = await localDatabase.checkDatabaseExistence();
         console.log("Database exists:", exists);
 
-        if (apiKey != null) {
-          await WebSocketMethods.webSocketSenderMessage(
-            `{"type":"init","apiKey":"${apiKey}"}`
-          );
-        } else {
-          console.log("LoginPassword - Apikey nulla");
-        }
+
+        eventEmitter.on("webSocketOpen", async () => {
+          
+
+          if (apiKey != null) {
+            await WebSocketMethods.webSocketSenderMessage(
+              `{"type":"init","apiKey":"${apiKey}"}`
+            );
+          } else {
+            console.log("LoginPassword - Apikey nulla");
+          }
+        });
+
+        eventEmitter.on("loginToChatList", async () => {
+          eventEmitter.off("loginToChatList");
+          console.log("LoginPassword - loginToChatList:");
+          await storeSetIsLoggedIn("true");
+          router.push("/ChatList");
+        });
 
         console.log("Success", "Login successful.");
-        router.push("/ChatList"); // Navigate to ChatList
       }
     } catch (error) {
       console.error(error);
