@@ -49,7 +49,8 @@ const ChatList = () => {
         console.log("Chat list - DB:", apiKey);
 
         if (apiKey != null) {
-          await WebSocketMethods.openWebSocketConnection(localUserId, apiKey);
+          await WebSocketMethods.saveParameters(localUserId, apiKey);
+          await WebSocketMethods.openWebSocketConnection();
         } else {
           console.log(
             "ChatList apikey checklogged (dovrebbe essere null), websocket non riaperta:",
