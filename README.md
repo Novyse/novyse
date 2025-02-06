@@ -1,1 +1,1 @@
-npx expo export:web
+npx expo export --platform web
