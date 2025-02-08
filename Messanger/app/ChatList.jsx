@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import WebSocketMethods from "./utils/webSocketMethods";
 import eventEmitter from "./utils/EventEmitter";
+import NetInfo from "@react-native-community/netinfo";
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -34,6 +35,7 @@ const ChatList = () => {
   const router = useRouter();
   const [sidebarPosition] = useState(new Animated.Value(-250));
   const [overlayVisible, setOverlayVisible] = useState(false);
+  const [networkAvailable, setNetworkAvailable] = useState(false);
 
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
@@ -65,6 +67,18 @@ const ChatList = () => {
       console.log("CheckLogged completed");
     });
 
+
+    
+    const checkConnection = NetInfo.addEventListener((state) => {
+      setNetworkAvailable(state.isConnected); // <--- AGGIUNTA: Aggiorna lo stato networkAvailable
+      // if(networkAvailable){
+      //   console.log("Sei di nuovo Online");
+      // } else {
+      //   console.log("Oh No! Sei Offline");
+      // }
+      console.log("CONNESSO:::::::::::", state.isConnected, networkAvailable);
+    });
+
     const backAction = () => {
       Alert.alert("Attenzione", "Sei sicuro di voler uscire?", [
         {
@@ -82,7 +96,10 @@ const ChatList = () => {
       backAction
     );
 
-    return () => backHandler.remove();
+    return () => {
+      backHandler.remove();
+      checkConnection();
+    };
   }, []);
 
   useEffect(() => {
@@ -109,24 +126,16 @@ const ChatList = () => {
   }, []);
 
   useEffect(() => {
+    console.log("useEffect Dimensions - Mounting/Running"); // Log di mount/run
+
     const updateScreenSize = () => {
       const { width } = Dimensions.get("window");
       setIsSmallScreen(width <= 768);
     };
 
-    Dimensions.addEventListener("change", updateScreenSize);
+    const listener = updateScreenSize;
+    Dimensions.addEventListener("change", listener);
     updateScreenSize();
-
-    // fetch del local user id per passarlo alle chat
-    const fetchUserId = async () => {
-      const id = await localDatabase.fetchLocalUserID();
-      setUserId(id); // Aggiorna lo stato con il valore ottenuto
-    };
-    fetchUserId();
-
-    return () => {
-      Dimensions.removeEventListener("change", updateScreenSize);
-    };
   }, []);
 
   const storeSetIsLoggedIn = async (value) => {
@@ -215,7 +224,7 @@ const ChatList = () => {
           {
             transform: [{ translateX: sidebarPosition }],
           },
-          { paddingTop: Platform.OS === "android" ? 25 : 10},
+          { paddingTop: Platform.OS === "android" ? 25 : 10 },
         ]}
       >
         <Pressable onPress={toggleSidebar} style={styles.closeButton}>
@@ -365,6 +374,11 @@ const ChatList = () => {
           </>
         )}
       </View>
+      {!networkAvailable ? (
+        <Text style={styles.connectionInfoContainer}>
+          Network Status: Not Connected
+        </Text>
+      ) : null}
     </SafeAreaView>
   );
 };
@@ -480,6 +494,14 @@ function createStyle(theme, colorScheme) {
     },
     backButton: {
       marginRight: 10,
+    },
+    connectionInfoContainer: {
+      backgroundColor: theme.backgroundChatListCheckNetwork,
+      padding: 10,
+      margin: 10,
+      borderRadius: 8,
+      borderColor: "black",
+      color: "white",
     },
   });
 }
