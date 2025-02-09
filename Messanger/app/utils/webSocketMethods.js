@@ -1,11 +1,49 @@
+import * as TaskManager from "expo-task-manager";
 import localDatabase from "../utils/localDatabaseMethods";
 import eventEmitter from "./EventEmitter";
+import { Platform } from "react-native";
 
 let webSocketChannel = null;
 let localUserID = "";
 let apiKey = "";
 const webSocketAddress = "wss://api.messanger.bpup.israiken.it/ws";
 let sendMessageAttempt = 0;
+
+
+  //Background task to keep websocket open
+  const BACKGROUND_WEBSOCKET_TASK = "background-websocket-task";
+
+  TaskManager.defineTask(BACKGROUND_WEBSOCKET_TASK, async () => {
+    console.log("Websocketmethods - Websocket Task Open 1");
+    // Riapri la connessione WebSocket se non è già aperta
+    if (!webSocketChannel || webSocketChannel.readyState !== WebSocket.OPEN) {
+      await WebSocketMethods.openWebSocketConnection();
+    }
+    console.log("Websocketmethods - Websocket Task Open 2");
+    // Mantieni la connessione aperta o gestisci le operazioni necessarie
+    return Promise.resolve();
+  });
+
+  const startWebSocketBackgroundTask = async () => {
+    try {
+      if (TaskManager.isTaskRegisteredAsync(BACKGROUND_WEBSOCKET_TASK)) {
+        const isRunning = await TaskManager.isTaskRunningAsync(
+          BACKGROUND_WEBSOCKET_TASK
+        );
+        if (isRunning) {
+          console.log("Task WebSocket di background è già in esecuzione.");
+          return;
+        }
+      }
+      await TaskManager.startBackgroundTaskAsync(BACKGROUND_WEBSOCKET_TASK);
+      console.log("Task WebSocket di background avviato.");
+    } catch (error) {
+      console.error(
+        "Errore nell'avvio del task WebSocket di background:",
+        error
+      );
+    }
+  };
 
 const WebSocketMethods = {
   saveParameters: async (localUserIDParam, apiKeyParam) => {
@@ -36,6 +74,11 @@ const WebSocketMethods = {
         console.log("Connessione websocket aperta");
         await WebSocketMethods.webSocketReceiver();
         eventEmitter.emit("webSocketOpen");
+        if (Platform.OS === "android") {
+          console.log("Apertura Background Task WebSocket: 1");
+          startWebSocketBackgroundTask();
+          console.log("Apertura Background Task WebSocket: 2");
+        }
       };
 
       webSocketChannel.onerror = (e) => {
@@ -163,6 +206,16 @@ const WebSocketMethods = {
 
     return "return of web socket function";
   },
+
+  // Metodo per registrare il task di background
+  // registerBackgroundTask: async () => {
+  //   try {
+  //     await TaskManager.defineTask(BACKGROUND_WEBSOCKET_TASK, );
+  //     console.log("Task registrato per mantenere la websocket in background");
+  //   } catch (err) {
+  //     console.error("Error registering task:", err);
+  //   }
+  // }
 };
 
 export default WebSocketMethods;

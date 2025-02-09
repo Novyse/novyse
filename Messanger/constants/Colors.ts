@@ -17,6 +17,8 @@ export const Colors = {
     backgroundChatList: '#17212b',
     backgroundChat: '#1b2734',
     backgroundChatListCheckNetwork: '#1d3340',
+    floatingBigButton: '#39546D',
+    floatingLittleButton: '#39546D',
     chatListDivider: '#101921',
     chatListRightBorder: '#101921',
     chatListSelected: '#2b5278',

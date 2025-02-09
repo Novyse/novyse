@@ -6,7 +6,6 @@ import {
   Image,
   BackHandler,
   Alert,
-  Platform,
 } from "react-native";
 import { useState, useContext, useEffect } from "react";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";

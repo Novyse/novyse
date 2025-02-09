@@ -23,6 +23,8 @@ import { useRouter } from "expo-router";
 import WebSocketMethods from "./utils/webSocketMethods";
 import eventEmitter from "./utils/EventEmitter";
 import NetInfo from "@react-native-community/netinfo";
+import { FloatingAction } from "react-native-floating-action";
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -39,6 +41,37 @@ const ChatList = () => {
 
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
+
+  const actions = [
+    {
+      text: "Nuova chat",
+      icon: <AntDesign name="adduser" size={24} color="white" />,
+      name: "bt_accessibility",
+      position: 1,
+      color: theme.floatingLittleButton,
+    },
+    {
+      text: "Nuovo gruppo",
+      icon: <AntDesign name="addusergroup" size={24} color="white" />,
+      name: "bt_language",
+      position: 2,
+      color: theme.floatingLittleButton,
+    },
+    {
+      text: "Location",
+      // icon: require("./images/ic_room_white.png"),
+      name: "bt_room",
+      position: 3,
+      color: theme.floatingLittleButton,
+    },
+    {
+      text: "Video",
+      // icon: require("./images/ic_videocam_white.png"),
+      name: "bt_videocam",
+      position: 4,
+      color: theme.floatingLittleButton,
+    },
+  ];
 
   useEffect(() => {
     const checkLogged = async () => {
@@ -67,8 +100,6 @@ const ChatList = () => {
       console.log("CheckLogged completed");
     });
 
-
-    
     const checkConnection = NetInfo.addEventListener((state) => {
       setNetworkAvailable(state.isConnected); // <--- AGGIUNTA: Aggiorna lo stato networkAvailable
       // if(networkAvailable){
@@ -76,7 +107,6 @@ const ChatList = () => {
       // } else {
       //   console.log("Oh No! Sei Offline");
       // }
-      console.log("CONNESSO:::::::::::", state.isConnected, networkAvailable);
     });
 
     const backAction = () => {
@@ -197,7 +227,7 @@ const ChatList = () => {
   const toggleSidebar = () => {
     Animated.timing(sidebarPosition, {
       toValue: isSidebarVisible ? -250 : 0,
-      duration: 300,
+      duration: 250,
       useNativeDriver: true,
     }).start(() => {
       setIsSidebarVisible(!isSidebarVisible);
@@ -311,6 +341,17 @@ const ChatList = () => {
               </View>
             </Pressable>
           );
+        }}
+      />
+      <FloatingAction
+        actions={actions}
+        onPressItem={(name) => {
+          console.log(`selected button: ${name}`);
+        }}
+        color={theme.floatingBigButton}
+        overlayColor='rgba(0, 0, 0, 0)'
+        shadow={{
+          shadowColor: "transparent",
         }}
       />
     </View>
