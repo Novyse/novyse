@@ -23,20 +23,16 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
   const styles = createStyle(theme, colorScheme);
   const [messages, setMessages] = useState([]);
   const [newMessageText, setNewMessageText] = useState("");
-
-  // Stato per il menu a tendina (dropdown)
   const [dropdownInfo, setDropdownInfo] = useState({
     visible: false,
     x: 0,
     y: 0,
     message: null,
   });
-  // Stato per misurare la dimensione del container (width e height)
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
   });
-  // Riferimento al container per misurare la sua posizione assoluta
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -68,7 +64,6 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
       setMessages((currentMessages) =>
         currentMessages.map((item) => {
           if (item.message_id === data.message_id || item.hash === data.hash) {
-            console.log("Updating message:", item);
             return { ...item, date_time: data.date };
           }
           return item;
@@ -98,7 +93,6 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
 
-  // NON TOCCARE QUESTO METODO, GRAZIE
   const generateHash = async (message) => {
     try {
       const saltBytes = await Crypto.getRandomBytesAsync(16);
@@ -118,7 +112,6 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
       const hash = Array.from(new Uint8Array(hashBytes))
         .map((byte) => byte.toString(16).padStart(2, "0"))
         .join("");
-      console.log("HashBytes generato:", hashBytes);
       return { hash, saltHex };
     } catch (error) {
       console.error("Error in hash generation:", error);
@@ -164,17 +157,13 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     }
   };
 
-  // Funzione per gestire il long press su un messaggio
   const handleLongPress = (event, message) => {
-    // Nasconde eventuali dropdown già visibili
     if (dropdownInfo.visible) {
       setDropdownInfo({ visible: false, x: 0, y: 0, message: null });
     }
     const { pageX, pageY } = event.nativeEvent;
-    // Misuriamo la posizione assoluta del container
     if (containerRef.current) {
       containerRef.current.measureInWindow((containerX, containerY) => {
-        // Calcola le coordinate relative al container
         const relativeX = pageX - containerX;
         const relativeY = pageY - containerY;
         setDropdownInfo({
@@ -187,36 +176,103 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     }
   };
 
-  // Nasconde il dropdown se si tocca altrove
   const hideDropdown = () => {
     if (dropdownInfo.visible) {
       setDropdownInfo({ visible: false, x: 0, y: 0, message: null });
     }
   };
 
+  // Funzione per raggruppare i messaggi e inserire separatori di data, adattata per inverted
+  const prepareMessagesWithDateSeparators = () => {
+    const groupedMessages = [];
+    let currentDayMessages = [];
+    let lastDate = null;
+
+    // Se non ci sono messaggi, restituiamo un array vuoto
+    if (messages.length === 0) return groupedMessages;
+
+    // Iteriamo sui messaggi
+    messages.forEach((message) => {
+      const messageDate = moment(message.date_time || new Date()).format(
+        "DD-MM-YYYY"
+      );
+
+      // Se la data cambia o è il primo messaggio dopo un gruppo, aggiungiamo il separatore
+      if (lastDate && lastDate !== messageDate) {
+        // Aggiungiamo tutti i messaggi accumulati del giorno precedente
+        groupedMessages.push(...currentDayMessages);
+        // Aggiungiamo il separatore della data del giorno precedente
+        groupedMessages.push({
+          type: "date_separator",
+          date: lastDate,
+        });
+        // Resettiamo l'array per il nuovo giorno
+        currentDayMessages = [];
+      }
+
+      // Aggiungiamo il messaggio corrente al gruppo del giorno
+      currentDayMessages.push({
+        type: "message",
+        data: message,
+      });
+      lastDate = messageDate;
+    });
+
+    // Dopo l'ultimo gruppo di messaggi, aggiungiamo i messaggi rimanenti e il separatore
+    if (currentDayMessages.length > 0) {
+      groupedMessages.push(...currentDayMessages);
+      groupedMessages.push({
+        type: "date_separator",
+        date: lastDate,
+      });
+    }
+
+    return groupedMessages;
+  };
+
   const renderMessagesList = () => (
     <View style={styles.listContainer}>
       <FlatList
-        data={messages}
-        keyExtractor={(item) => item.message_id || item.hash}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={(e) => handleLongPress(e, item)}
-            // onPress={hideDropdown}
-            style={
-              item.sender === userId ? styles.msgSender : styles.msgReceiver
-            }
-          >
-            <Text style={styles.textMessageContent}>{item.text}</Text>
-            <Text style={styles.timeText}>
-              {item.date_time === "" ? (
-                <MaterialIcons name="access-time" size={14} color="#ffffff" />
-              ) : (
-                parseTime(item.date_time)
-              )}
-            </Text>
-          </Pressable>
-        )}
+        data={prepareMessagesWithDateSeparators()}
+        keyExtractor={(item, index) =>
+          item.type === "message"
+            ? item.data.message_id || item.data.hash
+            : `date_${index}`
+        }
+        renderItem={({ item }) => {
+          if (item.type === "date_separator") {
+            return (
+              <View style={styles.dateSeparator}>
+                <Text style={styles.dateSeparatorText}>{item.date}</Text>
+              </View>
+            );
+          } else {
+            const message = item.data;
+            return (
+              <Pressable
+                onPress={(e) => handleLongPress(e, message)}
+                style={
+                  message.sender === userId
+                    ? styles.msgSender
+                    : styles.msgReceiver
+                }
+              >
+                <Text style={styles.textMessageContent}>{message.text}</Text>
+                <Text style={styles.timeText}>
+                  {message.date_time === "" ? (
+                    <MaterialIcons
+                      name="access-time"
+                      size={14}
+                      color="#ffffff"
+                    />
+                  ) : (
+                    parseTime(message.date_time)
+                  )}
+                </Text>
+              </Pressable>
+            );
+          }
+        }}
         inverted
       />
     </View>
@@ -240,7 +296,6 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     </View>
   );
 
-  // Calcola la posizione del dropdown in modo che non esca fuori dal container
   const getDropdownStyle = () => {
     const menuWidth = 200;
     const menuHeight = 50;
@@ -278,7 +333,6 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     <SafeAreaView
       ref={containerRef}
       style={styles.container}
-      // Rende il container un responder in modo da intercettare i tocchi su zone vuote
       onStartShouldSetResponder={() => true}
       onResponderRelease={hideDropdown}
       onLayout={(event) => {
@@ -364,6 +418,19 @@ function createStyle(theme, colorScheme) {
       justifyContent: "center",
       alignItems: "center",
       marginLeft: 10,
+    },
+    dateSeparator: {
+      alignSelf: "center",
+      backgroundColor: "#ffffff",
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 10,
+      marginVertical: 10,
+    },
+    dateSeparatorText: {
+      color: "#000",
+      fontSize: 14,
+      fontWeight: "bold",
     },
   });
 }

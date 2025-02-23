@@ -401,8 +401,9 @@ const ChatList = () => {
         backgroundColor="#17212b" // Colore della status bar
         translucent={false} // Impedisce che il contenuto scorra sotto
       />
+      {renderSidebar()}
       <SafeAreaView style={[styles.safeArea]}>
-        {renderSidebar()}
+        
         {renderHeader()}
         <View style={styles.container}>
           {isSmallScreen && !selectedChat ? (
