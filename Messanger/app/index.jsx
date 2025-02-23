@@ -28,12 +28,7 @@ export default function Index() {
     const checkLogged = async () => {
       const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
       if (storeGetIsLoggedIn == "true") {
-        // Nota: valori da AsyncStorage sono stringhe
-        // const localUserId = await localDatabase.fetchLocalUserID();
-        // const apiKey = await localDatabase.fetchLocalUserApiKey();
-        // await WebSocketMethods.openWebSocketConnection(localUserId, apiKey);
         router.push("/ChatList");
-      } else {
       }
     };
     checkLogged().then(() => {
@@ -77,7 +72,11 @@ export default function Index() {
             <Text style={styles.containerStartButtonText}>Start</Text>
           </Pressable>
         </View>
-        <StatusBar style={"light"} />
+        {/* Modified StatusBar with backgroundColor */}
+        <StatusBar
+          style="light" // Text/icon color (light or dark)
+          backgroundColor={theme.backgroundClassic} // Background color tied to theme
+        />
       </SafeAreaView>
     </SafeAreaProvider>
   );

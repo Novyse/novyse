@@ -9,6 +9,7 @@ let localUserID = "";
 let apiKey = "";
 const webSocketAddress = "wss://api.messanger.bpup.israiken.it/ws";
 let sendMessageAttempt = 0;
+let heartbeatInterval = null; // Variable to hold the heartbeat interval timer
 
 // Background task to keep websocket open
 const BACKGROUND_WEBSOCKET_TASK = "background-websocket-task";
@@ -82,14 +83,26 @@ const WebSocketMethods = {
         eventEmitter.emit("webSocketOpen");
         console.log("Avvio Background Task WebSocket after connection open");
         WebSocketMethods.startWebSocketBackgroundTask(); // Start background task WHEN connection opens
+
+        // Set up heartbeat interval on connection open
+        if (!heartbeatInterval) {
+          heartbeatInterval = setInterval(WebSocketMethods.sendHeartbeat, 30000); // Send heartbeat every 30 seconds (adjust as needed)
+          console.log("Heartbeat interval timer started.");
+        }
+
+
       };
 
       webSocketChannel.onerror = (e) => {
         console.log("WebSocket error:", e.message);
+        clearInterval(heartbeatInterval); // Clear heartbeat on error
+        heartbeatInterval = null;
       };
 
       webSocketChannel.onclose = async () => {
         console.log("Connessione websocket chiusa");
+        clearInterval(heartbeatInterval); // Clear heartbeat on close
+        heartbeatInterval = null;
         console.log("Riavvio Background Task WebSocket after connection close (for periodic reconnect attempts)");
         WebSocketMethods.startWebSocketBackgroundTask(); // Restart background task on close too (keep-alive attempt)
       };
@@ -129,21 +142,27 @@ const WebSocketMethods = {
 
     webSocketChannel.onmessage = async (event) => {
       try {
+        console.log("WebSocket onmessage event:", event); // Log the raw event
         const data = JSON.parse(event.data);
+        console.log("WebSocket onmessage data:", data); // Log parsed data
+
         switch (data.type) {
           case "init": {
             if (data.init === "True") {
               console.log("Init Successo WebSocket:", data);
               const { email, handle, name, surname } = data.localUser;
               await localDatabase.updateLocalUser(email, handle, name, surname);
+              console.log("Database updateLocalUser completed"); // Log DB operation start and end
 
               for (const chat of data.chats) {
                 const chatName = chat.name || "";
                 await localDatabase.insertChat(chat.chat_id, chatName);
+                console.log(`Database insertChat for chat_id ${chat.chat_id} completed`);
 
                 for (const user of chat.users) {
                   localDatabase.insertUsers(user.handle);
                   localDatabase.insertChatAndUsers(chat.chat_id, user.handle);
+                  console.log(`Database insertUsers and insertChatAndUsers for user ${user.handle} in chat ${chat.chat_id} completed`);
                 }
 
                 for (const message of chat.messages) {
@@ -155,9 +174,11 @@ const WebSocketMethods = {
                     message.date,
                     ""
                   );
+                  //console.log(`Database insertMessage for message_id ${message.message_id} in chat ${chat.chat_id} completed`);
                 }
               }
               eventEmitter.emit("loginToChatList");
+              console.log("EventEmitter emit loginToChatList completed");
               console.log("Websocket Init completato con successo");
             } else if (data.init === "False") {
               console.log("Server error during websocket init");
@@ -173,6 +194,7 @@ const WebSocketMethods = {
                 data.message_id,
                 data.hash
               );
+              console.log(`Database updateSendMessage for message_id ${data.message_id} completed`);
             } else if (data.send_message === "False") {
               console.log("Messaggio tornato indietro (send_message: false):", data);
             }
@@ -181,7 +203,7 @@ const WebSocketMethods = {
 
           case "receive_message": {
             const { message_id, chat_id, text, sender, date } = data;
-            localDatabase.insertMessage(
+            await localDatabase.insertMessage(
               message_id,
               chat_id,
               text,
@@ -189,8 +211,11 @@ const WebSocketMethods = {
               date,
               ""
             );
+            console.log(`Database insertMessage for message_id ${message_id} in chat ${chat_id} completed`);
             eventEmitter.emit("newMessage", data);
+            console.log("EventEmitter emit newMessage completed");
             eventEmitter.emit("updateNewLastMessage", data);
+            console.log("EventEmitter emit updateNewLastMessage completed");
             console.log(`Nuovo messaggio ricevuto da ${sender}`);
             break;
           }
@@ -216,7 +241,7 @@ const WebSocketMethods = {
       }
 
       await BackgroundFetch.registerTaskAsync(BACKGROUND_WEBSOCKET_TASK, {
-        minimumInterval: 60 * 1, // 15 minutes (adjust as needed)
+        minimumInterval: 60 * 1, // 1 minutes (adjust as needed for testing, use higher value in prod)
         stopOnTerminate: false,
         startOnBoot: true,
       });

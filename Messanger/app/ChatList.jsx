@@ -13,6 +13,7 @@ import {
   Alert,
   Platform,
 } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import ChatContent from "./ChatContent";
 import { useContext } from "react";
@@ -24,7 +25,7 @@ import WebSocketMethods from "./utils/webSocketMethods";
 import eventEmitter from "./utils/EventEmitter";
 import NetInfo from "@react-native-community/netinfo";
 import { FloatingAction } from "react-native-floating-action";
-import AntDesign from '@expo/vector-icons/AntDesign';
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -254,7 +255,6 @@ const ChatList = () => {
           {
             transform: [{ translateX: sidebarPosition }],
           },
-          { paddingTop: Platform.OS === "android" ? 25 : 10 },
         ]}
       >
         <Pressable onPress={toggleSidebar} style={styles.closeButton}>
@@ -349,7 +349,7 @@ const ChatList = () => {
           console.log(`selected button: ${name}`);
         }}
         color={theme.floatingBigButton}
-        overlayColor='rgba(0, 0, 0, 0)'
+        overlayColor="rgba(0, 0, 0, 0)"
         shadow={{
           shadowColor: "transparent",
         }}
@@ -395,32 +395,34 @@ const ChatList = () => {
   };
 
   return (
-    <SafeAreaView
-      style={[
-        styles.safeArea,
-        { paddingTop: Platform.OS === "android" ? 25 : 0 },
-      ]}
-    >
-      {renderSidebar()}
-      {renderHeader()}
-      <View style={styles.container}>
-        {isSmallScreen && !selectedChat ? (
-          renderChatList()
-        ) : isSmallScreen && selectedChat ? (
-          renderChatContent()
-        ) : (
-          <>
-            {renderChatList()}
-            {renderChatContent()}
-          </>
-        )}
-      </View>
-      {!networkAvailable ? (
-        <Text style={styles.connectionInfoContainer}>
-          Network Status: Not Connected
-        </Text>
-      ) : null}
-    </SafeAreaView>
+    <>
+      <StatusBar
+        style="light"
+        backgroundColor="#17212b" // Colore della status bar
+        translucent={false} // Impedisce che il contenuto scorra sotto
+      />
+      <SafeAreaView style={[styles.safeArea]}>
+        {renderSidebar()}
+        {renderHeader()}
+        <View style={styles.container}>
+          {isSmallScreen && !selectedChat ? (
+            renderChatList()
+          ) : isSmallScreen && selectedChat ? (
+            renderChatContent()
+          ) : (
+            <>
+              {renderChatList()}
+              {renderChatContent()}
+            </>
+          )}
+        </View>
+        {!networkAvailable ? (
+          <Text style={styles.connectionInfoContainer}>
+            Network Status: Not Connected
+          </Text>
+        ) : null}
+      </SafeAreaView>
+    </>
   );
 };
 
@@ -431,7 +433,6 @@ function createStyle(theme, colorScheme) {
     safeArea: {
       flex: 1,
       backgroundColor: "#17212b",
-      paddingTop: 30,
     },
     container: {
       flex: 1,
