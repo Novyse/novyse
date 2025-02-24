@@ -17,10 +17,11 @@ import moment from "moment";
 import * as Crypto from "expo-crypto";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import eventEmitter from "./utils/EventEmitter";
+import { useRouter } from "expo-router"; // Per la navigazione
 
-const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
-  const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
-  const styles = createStyle(theme, colorScheme);
+const ChatContent = ({ chatId, userId, onBack }) => {
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyle(theme);
   const [messages, setMessages] = useState([]);
   const [newMessageText, setNewMessageText] = useState("");
   const [dropdownInfo, setDropdownInfo] = useState({
@@ -34,12 +35,16 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     height: 0,
   });
   const containerRef = useRef(null);
+  const router = useRouter();
 
   useEffect(() => {
     const loadMessages = async () => {
       try {
         const msgs = await localDatabase.fetchAllChatMessages(chatId);
-        setMessages(msgs.reverse());
+        setMessages(msgs.reverse().map((msg, index) => ({
+          ...msg,
+          uniqueKey: msg.message_id || `msg-${Date.now()}-${index}` // Chiave unica per ogni messaggio
+        })));
       } catch (error) {
         console.error("Error loading messages:", error);
         setMessages([]);
@@ -50,20 +55,22 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
 
   useEffect(() => {
     const handleReceiveMessage = eventEmitter.on("newMessage", (data) => {
-      const newMessage = {
-        message_id: data.message_id,
-        sender: data.sender,
-        text: data.text,
-        date_time: data.date,
-      };
-      setMessages((currentMessages) => [newMessage, ...currentMessages]);
+      if (data.chat_id === chatId) {
+        const newMessage = {
+          message_id: data.message_id || Date.now().toString(),
+          sender: data.sender,
+          text: data.text,
+          date_time: data.date,
+          uniqueKey: data.message_id || `msg-${Date.now()}`, // Chiave unica
+        };
+        setMessages((currentMessages) => [newMessage, ...currentMessages]);
+      }
     });
 
     const handleUpdateMessage = eventEmitter.on("updateMessage", (data) => {
-      localDatabase.fetchLastMessage(chatId);
       setMessages((currentMessages) =>
         currentMessages.map((item) => {
-          if (item.message_id === data.message_id || item.hash === data.hash) {
+          if (item.message_id === data.message_id) {
             return { ...item, date_time: data.date };
           }
           return item;
@@ -72,7 +79,11 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     });
 
     const backAction = () => {
-      onBack();
+      if (onBack) {
+        onBack();
+      } else {
+        router.back();
+      }
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -85,7 +96,7 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
       eventEmitter.off("updateMessage", handleUpdateMessage);
       backHandler.remove();
     };
-  }, []);
+  }, [chatId, onBack]);
 
   const parseTime = (dateTimeMessage) => {
     if (!dateTimeMessage) return "";
@@ -99,7 +110,8 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
       const saltHex = Array.from(saltBytes)
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
-      const messageBytes = new TextEncoder().encode(message);
+      const timestamp = Date.now().toString(); // Aggiunge un timestamp per unicità
+      const messageBytes = new TextEncoder().encode(`${message}-${timestamp}`);
       const messageWithSalt = new Uint8Array(
         saltBytes.length + messageBytes.length
       );
@@ -120,40 +132,54 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
   };
 
   const addNewMessage = async () => {
-    if (newMessageText.trim()) {
-      try {
-        const { hash: hashedMessage, saltHex: salt } = await generateHash(
-          newMessageText
-        );
-        const newMessage = {
-          sender: userId,
-          text: newMessageText,
-          date_time: "",
-          hash: hashedMessage,
-        };
-        await localDatabase.insertMessage(
-          "",
-          chatId,
-          newMessageText,
-          userId,
-          "",
-          hashedMessage
-        );
-        WebSocketMethods.webSocketSenderMessage(
-          JSON.stringify({
-            type: "send_message",
-            text: newMessageText,
-            chat_id: chatId,
-            salt: salt,
-          })
-        );
-        setMessages((currentMessages) => [newMessage, ...currentMessages]);
-        setNewMessageText("");
-      } catch (error) {
-        console.error("Error adding new message:", error);
-      }
-    } else {
+    if (!newMessageText.trim()) {
       console.warn("Empty message, not sending");
+      return;
+    }
+
+    try {
+      const { hash, saltHex } = await generateHash(newMessageText);
+      const newMessage = {
+        message_id: Date.now().toString(), // ID univoco basato sul timestamp
+        sender: userId,
+        text: newMessageText,
+        date_time: new Date().toISOString(),
+        hash,
+        uniqueKey: `msg-${Date.now()}`, // Chiave unica per il FlatList
+      };
+
+      console.log("Tentativo di salvare e inviare messaggio:", newMessage);
+
+      // Salva nel database locale
+      await localDatabase.insertMessage(
+        "",
+        chatId,
+        newMessageText,
+        userId,
+        newMessage.date_time,
+        hash
+      );
+      console.log("Messaggio salvato nel database locale");
+
+      // Invia via WebSocket con retry se necessario
+      const sendWebSocketMessage = () => {
+          WebSocketMethods.webSocketSenderMessage(
+            JSON.stringify({
+              type: "send_message",
+              text: newMessageText,
+              chat_id: chatId,
+              salt: saltHex,
+            })
+          );
+          console.log("Messaggio inviato via WebSocket");
+      };
+      sendWebSocketMessage();
+
+      // Aggiorna lo stato locale
+      setMessages((currentMessages) => [newMessage, ...currentMessages]);
+      setNewMessageText("");
+    } catch (error) {
+      console.error("Errore nell'invio del messaggio:", error);
     }
   };
 
@@ -182,35 +208,28 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     }
   };
 
-  // Funzione per raggruppare i messaggi e inserire separatori di data, adattata per inverted
   const prepareMessagesWithDateSeparators = () => {
     const groupedMessages = [];
     let currentDayMessages = [];
     let lastDate = null;
 
-    // Se non ci sono messaggi, restituiamo un array vuoto
     if (messages.length === 0) return groupedMessages;
 
-    // Iteriamo sui messaggi
     messages.forEach((message) => {
       const messageDate = moment(message.date_time || new Date()).format(
         "DD-MM-YYYY"
       );
 
-      // Se la data cambia o è il primo messaggio dopo un gruppo, aggiungiamo il separatore
       if (lastDate && lastDate !== messageDate) {
-        // Aggiungiamo tutti i messaggi accumulati del giorno precedente
         groupedMessages.push(...currentDayMessages);
-        // Aggiungiamo il separatore della data del giorno precedente
         groupedMessages.push({
           type: "date_separator",
           date: lastDate,
+          uniqueKey: `date-${Date.now()}-${groupedMessages.length}`, // Chiave unica
         });
-        // Resettiamo l'array per il nuovo giorno
         currentDayMessages = [];
       }
 
-      // Aggiungiamo il messaggio corrente al gruppo del giorno
       currentDayMessages.push({
         type: "message",
         data: message,
@@ -218,12 +237,12 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
       lastDate = messageDate;
     });
 
-    // Dopo l'ultimo gruppo di messaggi, aggiungiamo i messaggi rimanenti e il separatore
     if (currentDayMessages.length > 0) {
       groupedMessages.push(...currentDayMessages);
       groupedMessages.push({
         type: "date_separator",
         date: lastDate,
+        uniqueKey: `date-${Date.now()}-${groupedMessages.length}`, // Chiave unica
       });
     }
 
@@ -234,11 +253,7 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
     <View style={styles.listContainer}>
       <FlatList
         data={prepareMessagesWithDateSeparators()}
-        keyExtractor={(item, index) =>
-          item.type === "message"
-            ? item.data.message_id || item.data.hash
-            : `date_${index}`
-        }
+        keyExtractor={(item) => item.uniqueKey} // Usa uniqueKey per garantire unicità
         renderItem={({ item }) => {
           if (item.type === "date_separator") {
             return (
@@ -260,11 +275,7 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
                 <Text style={styles.textMessageContent}>{message.text}</Text>
                 <Text style={styles.timeText}>
                   {message.date_time === "" ? (
-                    <MaterialIcons
-                      name="access-time"
-                      size={14}
-                      color="#ffffff"
-                    />
+                    <MaterialIcons name="access-time" size={14} color="#ffffff" />
                   ) : (
                     parseTime(message.date_time)
                   )}
@@ -274,6 +285,9 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
           }
         }}
         inverted
+        style={styles.flatList}
+        showsVerticalScrollIndicator={true}
+        scrollIndicatorInsets={{ right: 1 }}
       />
     </View>
   );
@@ -355,7 +369,7 @@ const ChatContent = ({ chatId, userId, lastMessage, dateTime, onBack }) => {
 
 export default ChatContent;
 
-function createStyle(theme, colorScheme) {
+function createStyle(theme) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -376,7 +390,7 @@ function createStyle(theme, colorScheme) {
       padding: 10,
       maxWidth: "70%",
       borderRadius: 10,
-      borderTopRightRadius: 0,
+      borderTopRightRadius: 3,
       alignSelf: "flex-end",
       alignItems: "flex-end",
     },
@@ -386,12 +400,30 @@ function createStyle(theme, colorScheme) {
       padding: 10,
       maxWidth: "70%",
       borderRadius: 10,
-      borderTopLeftRadius: 0,
+      borderTopLeftRadius: 3,
       alignSelf: "flex-start",
       alignItems: "flex-start",
     },
     listContainer: {
       flex: 1,
+    },
+    flatList: {
+      flex: 1,
+      ...(Platform.OS === "web" && {
+        scrollbarWidth: "thin", // Firefox
+        scrollbarColor: "#000000 transparent", // Firefox: slider nero, sfondo trasparente
+        "::-webkit-scrollbar": {
+          width: 8,
+          backgroundColor: "transparent",
+        },
+        "::-webkit-scrollbar-thumb": {
+          backgroundColor: "#000000",
+          borderRadius: 4,
+        },
+        "::-webkit-scrollbar-track": {
+          backgroundColor: "transparent",
+        },
+      }),
     },
     bottomBarContainer: {
       flexDirection: "row",
