@@ -43,7 +43,7 @@ const Signup = () => {
     const checkLogged = async () => {
       const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
       if (storeGetIsLoggedIn == "true") {
-        router.push("/ChatList");
+        router.navigate("/messages");
       } else {
         console.log("Utente non loggato");
       }
@@ -54,7 +54,7 @@ const Signup = () => {
 
 
     const backAction = () => {
-      router.push("/loginSignup/EmailCheckForm");
+      router.navigate("/loginSignup/EmailCheckForm");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -122,7 +122,7 @@ const Signup = () => {
     console.log("Signup avvenuto con successo");
 
     if (signupResponse) {
-      router.push("/loginSignup/EmailCheckForm");
+      router.navigate("/loginSignup/EmailCheckForm");
     } else {
       console.log("Signup Failed", "Please try again.");
     }

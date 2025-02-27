@@ -38,7 +38,7 @@ const LoginPassword = () => {
     const checkLogged = async () => {
       const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
       if (storeGetIsLoggedIn == "true") {
-        router.push("/ChatList");
+        router.navigate("/messages");
       } else {
         console.log("Utente non loggato");
       }
@@ -48,7 +48,7 @@ const LoginPassword = () => {
     });
 
     const backAction = () => {
-      router.push("/loginSignup/EmailCheckForm");
+      router.navigate("/loginSignup/EmailCheckForm");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -122,7 +122,7 @@ const LoginPassword = () => {
           eventEmitter.off("loginToChatList");
           console.log("LoginPassword - loginToChatList:");
           await storeSetIsLoggedIn("true");
-          router.push("/ChatList");
+          router.navigate("/messages");
         });
 
         console.log("Success", "Login successful.");

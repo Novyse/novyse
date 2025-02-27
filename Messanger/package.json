@@ -29,6 +29,7 @@
     "bcrypt-react-native": "^1.1.1",
     "bcryptjs": "^2.4.3",
     "expo": "~52.0.31",
+    "expo-background-fetch": "~13.0.5",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.3",
     "expo-crypto": "~14.0.2",
@@ -45,6 +46,7 @@
     "expo-status-bar": "~2.0.1",
     "expo-symbols": "~0.2.2",
     "expo-system-ui": "~4.0.8",
+    "expo-task-manager": "~12.0.5",
     "expo-web-browser": "~14.0.2",
     "localforage": "^1.10.0",
     "moment": "^2.30.1",
@@ -62,9 +64,7 @@
     "react-native-websocket": "^1.0.2",
     "react-native-webview": "13.12.5",
     "react-navigation-stack": "^2.10.4",
-    "react-redux": "^9.2.0",
-    "expo-background-fetch": "~13.0.5",
-    "expo-task-manager": "~12.0.5"
+    "react-redux": "^9.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

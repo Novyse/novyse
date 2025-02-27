@@ -28,7 +28,7 @@ export default function Index() {
     const checkLogged = async () => {
       const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
       if (storeGetIsLoggedIn == "true") {
-        router.push("/ChatList");
+        router.navigate("/messages");
       }
     };
     checkLogged().then(() => {
@@ -67,7 +67,7 @@ export default function Index() {
           />
           <Pressable
             style={styles.containerStartButton}
-            onPress={() => router.push(`/loginSignup/EmailCheckForm`)}
+            onPress={() => router.navigate(`/loginSignup/EmailCheckForm`)}
           >
             <Text style={styles.containerStartButtonText}>Start</Text>
           </Pressable>

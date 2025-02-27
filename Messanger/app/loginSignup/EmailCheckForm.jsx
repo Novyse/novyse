@@ -27,7 +27,7 @@ const EmailCheckForm = () => {
 
   useEffect(() => {
     const backAction = () => {
-      router.push("/");
+      router.navigate("/");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -63,14 +63,14 @@ const EmailCheckForm = () => {
       const emailResponse = await JsonParser.emailCheckJson(emailValue);
 
       if (emailResponse === "signup") {
-        router.push({
+        router.navigate({
           pathname: "/loginSignup/Signup",
           params: {
             emailValue: emailValue,
           },
         });
       } else if (emailResponse === "login") {
-        router.push({
+        router.navigate({
           pathname: "/loginSignup/LoginPassword",
           params: {
             emailValue: emailValue,

@@ -39,6 +39,9 @@ const ChatList = () => {
   const [sidebarPosition] = useState(new Animated.Value(-250));
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [networkAvailable, setNetworkAvailable] = useState(false);
+  const [chatContentPosition] = useState(
+    new Animated.Value(Dimensions.get("window").width)
+  ); // Animazione per il contenuto della chat
 
   const { colorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
@@ -51,7 +54,7 @@ const ChatList = () => {
       position: 1,
       color: theme.floatingLittleButton,
     },
-    // Altri actions...
+    // Puoi aggiungere altri actions qui se necessario
   ];
 
   useEffect(() => {
@@ -126,8 +129,18 @@ const ChatList = () => {
     });
   }, []);
 
+  useEffect(() => {
+    if (isSmallScreen) {
+      Animated.timing(chatContentPosition, {
+        toValue: selectedChat ? 0 : Dimensions.get("window").width,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [selectedChat, isSmallScreen]);
+
   const logout = () => {
-    router.push("/loginSignup/EmailCheckForm");
+    router.navigate("/loginSignup/EmailCheckForm");
   };
 
   const fetchLocalUserNameAndSurname = () => Promise.resolve("John Doe");
@@ -175,11 +188,9 @@ const ChatList = () => {
   };
 
   const handleChatPress = (chatId) => {
-    if (isSmallScreen) {
-      router.push(`/messages/${chatId}`); // Usa /messages/ per la navigazione
-    } else {
-      setSelectedChat(chatId);
-      router.replace(`/messages/${chatId}`); // Usa /messages/ per l'URL
+    setSelectedChat(chatId); // Imposta la chat selezionata
+    if (!isSmallScreen) {
+      router.setParams({ chatId }); // Aggiorna l'URL solo su schermi grandi
     }
   };
 
@@ -218,7 +229,10 @@ const ChatList = () => {
     return (
       <View style={styles.header}>
         {isSmallScreen && selectedChat ? (
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Pressable
+            onPress={() => setSelectedChat(null)}
+            style={styles.backButton}
+          >
             <Icon name="arrow-back" size={24} color={theme.icon} />
           </Pressable>
         ) : (
@@ -283,16 +297,15 @@ const ChatList = () => {
     if (!selectedChat) return null;
     const selectedDetails = chatDetails[selectedChat] || {};
     const user = selectedDetails.user || {};
-    const lastMessage = selectedDetails.lastMessage || {};
+    const chatName = user.handle || "Unknown User";
 
     return (
       <View style={styles.chatContent}>
         <ChatContent
           chatId={selectedChat}
           userId={userId}
-          lastMessage={lastMessage.text}
-          dateTime={lastMessage.date_time}
-          onBack={() => router.back()}
+          chatName={chatName}
+          onBack={() => setSelectedChat(null)} // Passa la funzione per tornare indietro
         />
       </View>
     );
@@ -300,15 +313,33 @@ const ChatList = () => {
 
   return (
     <>
-      <StatusBar style="light" backgroundColor="#17212b" />
+      <StatusBar style="light" backgroundColor="#17212b" translucent={false} />
       {renderSidebar()}
       <SafeAreaView style={styles.safeArea}>
         {renderHeader()}
         <View style={styles.container}>
-          {isSmallScreen && !selectedChat ? (
-            renderChatList()
-          ) : isSmallScreen && selectedChat ? (
-            renderChatContent()
+          {isSmallScreen ? (
+            <>
+              <View style={styles.chatList}>{renderChatList()}</View>
+              {selectedChat && (
+                <Animated.View
+                  style={[
+                    styles.chatContent,
+                    {
+                      transform: [{ translateX: chatContentPosition }],
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      zIndex: 1,
+                    },
+                  ]}
+                >
+                  {renderChatContent()}
+                </Animated.View>
+              )}
+            </>
           ) : (
             <>
               {renderChatList()}
@@ -337,7 +368,7 @@ function createStyle(theme, colorScheme) {
     headerTitle: { color: theme.text, fontSize: 18, fontWeight: "bold" },
     chatList: { backgroundColor: "#17212b", flex: 1 },
     largeScreenChatList: {
-      flex: 0.4,
+      flex: 0.25,         //spazio che occupa la colonna delle chat
       borderRightWidth: 1,
       borderRightColor: theme.chatListRightBorder,
     },
@@ -353,7 +384,7 @@ function createStyle(theme, colorScheme) {
     chatTitle: { fontSize: 16, fontWeight: "bold", color: theme.text },
     chatSubtitle: { fontSize: 14, color: theme.text },
     chatContent: {
-      flex: 1,
+      flex: 0.75,           //spazio che occupa la colonna ddel contenuto della chat
       padding: 10,
       backgroundColor: theme.backgroundChat,
     },
