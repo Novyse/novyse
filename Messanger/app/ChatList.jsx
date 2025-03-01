@@ -53,6 +53,13 @@ const ChatList = () => {
       name: "bt_accessibility",
       position: 1,
       color: theme.floatingLittleButton,
+      // onPress: async () => await WebSocketMethods.webSocketSenderMessage(
+      //   {
+      //     "type": "create_chat",
+      //     "chatType":"personal",
+      //     "handle":{handle}
+      //   }
+      // )
     },
     // Puoi aggiungere altri actions qui se necessario
   ];

@@ -154,6 +154,13 @@ const WebSocketMethods = {
               await localDatabase.updateLocalUser(email, handle, name, surname);
               console.log("Database updateLocalUser completed"); // Log DB operation start and end
 
+              if (data.chats == null) {
+                eventEmitter.emit("loginToChatList");
+                console.log("EventEmitter emit loginToChatList completed");
+                console.log("Websocket Init completato con successo (senza chat)");
+                return;
+              }
+
               for (const chat of data.chats) {
                 const chatName = chat.name || "";
                 await localDatabase.insertChat(chat.chat_id, chatName);

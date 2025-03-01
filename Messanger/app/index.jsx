@@ -1,3 +1,4 @@
+import React, { useState, useContext, useEffect } from "react";
 import {
   Text,
   View,
@@ -7,27 +8,24 @@ import {
   BackHandler,
   Alert,
 } from "react-native";
-import { useState, useContext, useEffect } from "react";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
-import localDatabase from "./utils/localDatabaseMethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
+import { LinearGradient } from 'expo-linear-gradient';
+import EvilIcons from '@expo/vector-icons/EvilIcons';
 
 export default function Index() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
-
   const styles = createStyle(theme, colorScheme);
-
   const router = useRouter();
 
   useEffect(() => {
     const checkLogged = async () => {
       const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-      if (storeGetIsLoggedIn == "true") {
+      if (storeGetIsLoggedIn === "true") {
         router.navigate("/messages");
       }
     };
@@ -57,37 +55,55 @@ export default function Index() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.containerStart}>
-          <Image
-            style={styles.containerStartImage}
-            source={{
-              uri: "https://picsum.photos/200",
-            }}
+      <LinearGradient
+        colors={['#1B2734', '#49698C', '#7896B7']}
+        locations={[0, 0.68, 1]} // 0% (0), 68% (0.68), 100% (1)
+        style={{ flex: 1}}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.containerStart}>
+            {/* <Image
+              style={styles.containerStartImage}
+              source={{
+                uri: "https://picsum.photos/200",
+              }}
+            /> */}
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: 56,
+                marginBottom: 20,
+                fontWeight: 700,
+                top: -200,
+              }}>
+              BENVENUTO
+            </Text>
+            <Pressable
+              style={styles.containerStartButton}
+              onPress={() => router.navigate(`/loginSignup/EmailCheckForm`)}
+            >
+              {/* <Text style={styles.containerStartButtonText}>Start</Text> */}
+              <EvilIcons name="arrow-right" size={56} color="white" />
+            </Pressable>
+          </View>
+          <StatusBar
+            style="light"
+            backgroundColor={theme.backgroundClassic}
           />
-          <Pressable
-            style={styles.containerStartButton}
-            onPress={() => router.navigate(`/loginSignup/EmailCheckForm`)}
-          >
-            <Text style={styles.containerStartButtonText}>Start</Text>
-          </Pressable>
-        </View>
-        {/* Modified StatusBar with backgroundColor */}
-        <StatusBar
-          style="light" // Text/icon color (light or dark)
-          backgroundColor={theme.backgroundClassic} // Background color tied to theme
-        />
-      </SafeAreaView>
+        </SafeAreaView>
+      </LinearGradient>
     </SafeAreaProvider>
   );
 }
 
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
-    container: {
+    linearGradient: {
+      flex: 1,
+    },
+    safeArea: {
       flex: 1,
       paddingTop: 30,
-      backgroundColor: theme.backgroundClassic,
     },
     containerStart: {
       flex: 1,
@@ -101,10 +117,10 @@ function createStyle(theme, colorScheme) {
       marginBottom: 40,
     },
     containerStartButton: {
-      backgroundColor: theme.button,
-      paddingHorizontal: 20,
-      paddingVertical: 5,
-      borderRadius: 100,
+      // backgroundColor: theme.button,
+      // paddingHorizontal: 20,
+      // paddingVertical: 5,
+      // borderRadius: 100,
     },
     containerStartButtonText: {
       color: theme.text,
