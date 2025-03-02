@@ -6,7 +6,8 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  BackHandler
+  BackHandler,
+  useWindowDimensions,
 } from "react-native";
 import JsonParser from "../utils/JsonParser";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -14,29 +15,29 @@ import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-// const Signup = ({ route, navigation }) => {
-//   const { emailValue } = route.params; // Assume navigation passes the emailValue
-//   return (
-//     <View style={styles.container}>
-//       <SignupForm emailValue={emailValue} navigation={navigation} />
-//     </View>
-//   );
-// };
+import { LinearGradient } from "expo-linear-gradient";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"; // Importa le icone
 
 const Signup = () => {
   const { emailValue } = useLocalSearchParams();
   const router = useRouter();
+  const { width } = useWindowDimensions(); // Ottieni la larghezza dello schermo
 
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
 
   const [form, setForm] = useState({
     password: "",
-    confirmpassword: "",            //non cambiare questo nome di "confirmpassword", per il modo in cui è fatto il form
+    confirmpassword: "", // Non cambiare questo nome, per il modo in cui è fatto il form
     name: "",
     surname: "",
     handle: "",
+  });
+
+  // Stato per gestire la visibilità della password (true = nascosta, false = visibile)
+  const [showPassword, setShowPassword] = useState({
+    password: true,
+    confirmpassword: true,
   });
 
   useEffect(() => {
@@ -52,14 +53,13 @@ const Signup = () => {
       console.log("CheckLogged completed");
     });
 
-
     const backAction = () => {
       router.navigate("/loginSignup/EmailCheckForm");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction,
+      "hardwareBackPress",
+      backAction
     );
     return () => backHandler.remove();
   }, []);
@@ -84,6 +84,13 @@ const Signup = () => {
 
       setHandleTimer(timer);
     }
+  };
+
+  const toggleShowPassword = (field) => {
+    setShowPassword((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
   };
 
   const validateForm = () => {
@@ -128,82 +135,276 @@ const Signup = () => {
     }
   };
 
+  const isLargeScreen = width > 600; // Soglia per considerare uno schermo "grande" (es. tablet)
+
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.formContainer}>
-          {["Password", "Confirm Password", "Name", "Surname", "Handle"].map(
-            (label, index) => (
-              <View key={index} style={styles.inputGroup}>
-                <Text style={styles.label}>{label}</Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    label === "Handle" && handleAvailable == false ? styles.handleInputError : null, // Conditional styling
-                  ]}
-                  secureTextEntry={label.toLowerCase().includes("password")}
-                  onChangeText={(text) =>
-                    handleChange(label.toLowerCase().replace(" ", ""), text)
-                  }
-                  placeholder={label}
-                  placeholderTextColor="#ccc"
-                />
-                { label === "Handle" && handleAvailable == false ? <Text style={styles.handleTextError}>Handle già in utilizzo</Text> : null}
-              </View>
-            )
-          )}
-
-          
-          <TouchableOpacity
-            style={[
-              styles.button,
-              { backgroundColor: handleAvailable ? "#2399C3" : "#999" },
-            ]}
-            disabled={!handleAvailable}
-            onPress={handleSignup}
+      <LinearGradient
+        colors={["#1B2734", "#49698C", "#7896B7"]}
+        locations={[0, 0.68, 1]}
+        style={{ flex: 1 }}
+      >
+        <SafeAreaView style={styles.container}>
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 56,
+              marginBottom: 20,
+              fontWeight: 700,
+              top: -35,
+            }}
           >
-            {isLoading ? (
-              <ActivityIndicator size="small" color="#ffffff" />
+            SIGNUP
+          </Text>
+          <View style={styles.formContainer}>
+            {isLargeScreen ? (
+              // Layout a griglia (2 colonne) per schermi grandi
+              <View style={styles.gridContainer}>
+                <View style={styles.gridRow}>
+                  <View style={styles.gridColumn}>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Password</Text>
+                      <View style={styles.inputContainer}>
+                        <TextInput
+                          style={styles.input}
+                          secureTextEntry={showPassword.password}
+                          onChangeText={(text) =>
+                            handleChange("password", text)
+                          }
+                          placeholder="Password"
+                          placeholderTextColor="#ccc"
+                        />
+                        <TouchableOpacity
+                          style={styles.eyeIcon}
+                          onPress={() => toggleShowPassword("password")}
+                        >
+                          <MaterialCommunityIcons
+                            name={
+                              showPassword.password
+                                ? "eye-outline"
+                                : "eye-off-outline"
+                            }
+                            size={24}
+                            color="white"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Name</Text>
+                      <View style={styles.inputContainer}>
+                        <TextInput
+                          style={styles.input}
+                          onChangeText={(text) => handleChange("name", text)}
+                          placeholder="Name"
+                          placeholderTextColor="#ccc"
+                        />
+                      </View>
+                    </View>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Handle</Text>
+                      <View style={styles.inputContainer}>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            handleAvailable == false
+                              ? styles.handleInputError
+                              : null,
+                          ]}
+                          onChangeText={(text) => handleChange("handle", text)}
+                          placeholder="Handle"
+                          placeholderTextColor="#ccc"
+                        />
+                      </View>
+                      {handleAvailable == false && (
+                        <Text style={styles.handleTextError}>
+                          Handle già in utilizzo
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                  <View style={styles.gridColumn}>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Confirm Password</Text>
+                      <View style={styles.inputContainer}>
+                        <TextInput
+                          style={styles.input}
+                          secureTextEntry={showPassword.confirmpassword}
+                          onChangeText={(text) =>
+                            handleChange("confirmpassword", text)
+                          }
+                          placeholder="Confirm Password"
+                          placeholderTextColor="#ccc"
+                        />
+                        <TouchableOpacity
+                          style={styles.eyeIcon}
+                          onPress={() => toggleShowPassword("confirmpassword")}
+                        >
+                          <MaterialCommunityIcons
+                            name={
+                              showPassword.confirmpassword
+                                ? "eye-outline"
+                                : "eye-off-outline"
+                            }
+                            size={24}
+                            color="white"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Surname</Text>
+                      <View style={styles.inputContainer}>
+                        <TextInput
+                          style={styles.input}
+                          onChangeText={(text) => handleChange("surname", text)}
+                          placeholder="Surname"
+                          placeholderTextColor="#ccc"
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
             ) : (
-              <Text style={styles.buttonText}>Submit</Text>
+              // Layout a colonna singola per schermi piccoli
+              <View>
+                {[
+                  "Password",
+                  "Confirm Password",
+                  "Name",
+                  "Surname",
+                  "Handle",
+                ].map((label, index) => (
+                  <View key={index} style={styles.inputGroup}>
+                    <Text style={styles.label}>{label}</Text>
+                    <View style={styles.inputContainer}>
+                      <TextInput
+                        style={[
+                          styles.input,
+                          label === "Handle" && handleAvailable == false
+                            ? styles.handleInputError
+                            : null,
+                        ]}
+                        secureTextEntry={
+                          label.toLowerCase().includes("password") &&
+                          showPassword[label.toLowerCase().replace(" ", "")]
+                        }
+                        onChangeText={(text) =>
+                          handleChange(
+                            label.toLowerCase().replace(" ", ""),
+                            text
+                          )
+                        }
+                        placeholder={label}
+                        placeholderTextColor="#ccc"
+                      />
+                      {label.toLowerCase().includes("password") && (
+                        <TouchableOpacity
+                          style={styles.eyeIcon}
+                          onPress={() =>
+                            toggleShowPassword(
+                              label.toLowerCase().replace(" ", "")
+                            )
+                          }
+                        >
+                          <MaterialCommunityIcons
+                            name={
+                              showPassword[label.toLowerCase().replace(" ", "")]
+                                ? "eye-outline"
+                                : "eye-off-outline"
+                            }
+                            size={24}
+                            color="white"
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                    {label === "Handle" && handleAvailable == false ? (
+                      <Text style={styles.handleTextError}>
+                        Handle già in utilizzo
+                      </Text>
+                    ) : null}
+                  </View>
+                ))}
+              </View>
             )}
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+
+            <TouchableOpacity
+              style={[
+                styles.button,
+                { backgroundColor: handleAvailable ? "#2399C3" : "#999" },
+              ]}
+              disabled={!handleAvailable}
+              onPress={handleSignup}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text style={styles.buttonText}>Submit</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
     </SafeAreaProvider>
   );
 };
 
 export default Signup;
 
-const styles = StyleSheet.create({});
-
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "#354966",
       justifyContent: "center",
       alignItems: "center",
     },
     formContainer: {
       justifyContent: "center",
       alignItems: "center",
+      width: "90%", // Larghezza massima per il contenitore
+      paddingHorizontal: 20, // Padding laterale per controllare la larghezza totale
+    },
+    gridContainer: {
+      flexDirection: "column",
+      width: "100%",
+    },
+    gridRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      width: "100%",
+    },
+    gridColumn: {
+      flex: 1,
+      maxWidth: 300, // Limita la larghezza massima di ogni colonna per schermi grandi
+      marginHorizontal: 10, // Maggiore spazio tra le colonne per evitare che i campi siano troppo larghi
     },
     inputGroup: {
       marginVertical: 10,
-      width: "80%",
     },
     label: {
       color: "#ffffff",
       fontSize: 16,
       marginBottom: 5,
     },
-    input: {
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
       borderBottomWidth: 1,
       borderBottomColor: "#ffffff",
+      marginBottom: 16,
+      width: "100%", // Larghezza piena per ogni campo nella griglia, limitata dal maxWidth della colonna
+    },
+    input: {
+      outlineStyle: "none",
+      flex: 1,
       color: "#ffffff",
-      padding: 5,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+    },
+    eyeIcon: {
+      padding: 10,
     },
     button: {
       marginTop: 20,

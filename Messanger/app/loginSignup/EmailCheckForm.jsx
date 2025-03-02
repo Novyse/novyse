@@ -103,7 +103,7 @@ const EmailCheckForm = () => {
                 top: -176,
               }}
             >
-              LOGIN
+              EMAIL
             </Text>
             <TextInput
               style={[styles.input, error ? styles.inputError : null]}
@@ -142,6 +142,7 @@ function createStyle(theme, colorScheme) {
       alignItems: "center",
     },
     input: {
+      outlineStyle: "none",
       width: 250,
       borderBottomWidth: 1,
       borderBottomColor: "white",

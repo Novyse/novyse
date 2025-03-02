@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -7,32 +7,28 @@ import {
   ActivityIndicator,
   Pressable,
   BackHandler,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
-
 import eventEmitter from "../utils/EventEmitter";
-
-import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
-
 import JsonParser from "../utils/JsonParser";
 import localDatabase from "../utils/localDatabaseMethods";
 import WebSocketMethods from "../utils/webSocketMethods";
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 const LoginPassword = () => {
   const router = useRouter();
-
   const { emailValue } = useLocalSearchParams();
-
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
+  const [secureTextEntry, setSecureTextEntry] = useState(true); // Stato per nascondere/mostrare la password
 
   useEffect(() => {
     const checkLogged = async () => {
@@ -100,15 +96,12 @@ const LoginPassword = () => {
 
         await WebSocketMethods.saveParameters(localUserID, apiKey);
         await WebSocketMethods.openWebSocketConnection();
-        
+
         await localDatabase.insertLocalUser(localUserID, apiKey);
         const exists = await localDatabase.checkDatabaseExistence();
         console.log("Database exists:", exists);
 
-
         eventEmitter.on("webSocketOpen", async () => {
-          
-
           if (apiKey != null) {
             await WebSocketMethods.webSocketSenderMessage(
               `{"type":"init","apiKey":"${apiKey}"}`
@@ -135,33 +128,65 @@ const LoginPassword = () => {
     }
   };
 
+  const toggleSecureEntry = () => {
+    setSecureTextEntry(!secureTextEntry);
+  };
+
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.formContainer}>
-          <Text style={styles.header}>Password Login</Text>
-          <Text style={styles.label}>Email: {emailValue}</Text>
-          <TextInput
-            style={[styles.input, error ? styles.inputError : null]}
-            placeholder="Enter your password"
-            placeholderTextColor="#ccc"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-          {error && <Text style={styles.errorText}>{error}</Text>}
-          <Pressable
-            style={styles.containerButton}
-            onPress={handleLogin}
-            disabled={isLoading}
-          >
-            <Text style={styles.containerButtonText}>Invia</Text>
-          </Pressable>
-          {isLoading && (
-            <ActivityIndicator style={styles.loader} size="small" />
-          )}
-        </View>
-      </SafeAreaView>
+      <LinearGradient
+        colors={["#1B2734", "#49698C", "#7896B7"]}
+        locations={[0, 0.68, 1]}
+        style={{ flex: 1 }}
+      >
+        <SafeAreaView style={styles.container}>
+          <View style={styles.formContainer}>
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: 56,
+                marginBottom: 20,
+                fontWeight: 700,
+                top: -176,
+              }}
+            >
+              {emailValue}
+            </Text>
+            {/* <Text style={styles.email}>{emailValue}</Text> */}
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={[styles.input, error ? styles.inputError : null]}
+                placeholder="Enter your password"
+                placeholderTextColor="#ccc"
+                secureTextEntry={secureTextEntry}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={toggleSecureEntry}
+              >
+                <MaterialCommunityIcons
+                  name={secureTextEntry ? "eye-outline" : "eye-off-outline"}
+                  size={24}
+                  color="white"
+                />
+              </TouchableOpacity>
+            </View>
+            {error && <Text style={styles.errorText}>{error}</Text>}
+            <Pressable
+              style={styles.containerButton}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
+              <Text style={styles.containerButtonText}>Invia</Text>
+            </Pressable>
+            {isLoading && (
+              <ActivityIndicator style={styles.loader} size="small" />
+            )}
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
     </SafeAreaProvider>
   );
 };
@@ -172,7 +197,6 @@ function createStyle(theme, colorScheme) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "#354966",
       justifyContent: "center",
       alignItems: "center",
     },
@@ -185,20 +209,27 @@ function createStyle(theme, colorScheme) {
       color: "white",
       marginBottom: 20,
     },
-    label: {
-      fontSize: 16,
-      color: "white",
-      marginBottom: 10,
-    },
-    input: {
-      width: 250,
+    // email: {
+    //   fontSize: 16,
+    //   color: "white",
+    //   marginBottom: 10,
+    // },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
       borderBottomWidth: 1,
       borderBottomColor: "white",
-      color: "white",
       marginBottom: 16,
+      // width: 250,
+    },
+    input: {
+      outlineStyle: "none",
+      flex: 1,
+      color: "white",
       paddingHorizontal: 8,
       paddingVertical: 4,
       pointerEvents: "auto",
+      width: 250,
     },
     inputError: {
       borderBottomColor: "red",
@@ -217,8 +248,12 @@ function createStyle(theme, colorScheme) {
       color: theme.text,
       fontSize: 18,
     },
-    loader: {
-      marginTop: 10,
+    // loader: {
+    //   marginTop: 10,
+    // },
+    eyeIcon: {
+      // padding: 10,
+      outlineStyle: "none",
     },
   });
 }
