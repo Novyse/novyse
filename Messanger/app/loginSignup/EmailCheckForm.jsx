@@ -9,8 +9,6 @@ import {
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import APIMethods from "../utils/APImethods";
-import Signup from "./Signup"; // Import Signup screen
-import LoginPassword from "./LoginPassword"; // Import LoginPassword screen
 import JsonParser from "../utils/JsonParser";
 import { usePathname, useRouter } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";

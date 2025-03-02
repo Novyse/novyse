@@ -41,10 +41,12 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     const loadMessages = async () => {
       try {
         const msgs = await localDatabase.fetchAllChatMessages(chatId);
-        setMessages(msgs.reverse().map((msg, index) => ({
-          ...msg,
-          uniqueKey: msg.message_id || `msg-${Date.now()}-${index}` // Chiave unica per ogni messaggio
-        })));
+        setMessages(
+          msgs.reverse().map((msg, index) => ({
+            ...msg,
+            uniqueKey: msg.message_id || `msg-${Date.now()}-${index}`, // Chiave unica per ogni messaggio
+          }))
+        );
       } catch (error) {
         console.error("Error loading messages:", error);
         setMessages([]);
@@ -162,18 +164,15 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       console.log("Messaggio salvato nel database locale");
 
       // Invia via WebSocket con retry se necessario
-      const sendWebSocketMessage = () => {
-          WebSocketMethods.webSocketSenderMessage(
-            JSON.stringify({
-              type: "send_message",
-              text: newMessageText,
-              chat_id: chatId,
-              salt: saltHex,
-            })
-          );
-          console.log("Messaggio inviato via WebSocket");
-      };
-      sendWebSocketMessage();
+      WebSocketMethods.webSocketSenderMessage(
+        JSON.stringify({
+          type: "send_message",
+          text: newMessageText,
+          chat_id: chatId,
+          salt: saltHex,
+        })
+      );
+      console.log("Messaggio inviato via WebSocket");
 
       // Aggiorna lo stato locale
       setMessages((currentMessages) => [newMessage, ...currentMessages]);
@@ -225,7 +224,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         groupedMessages.push({
           type: "date_separator",
           date: lastDate,
-          uniqueKey: `date-${Date.now()}-${groupedMessages.length}`, // Chiave unica
+          uniqueKey: `date-${lastDate}-${groupedMessages.length}`, // Chiave unica
         });
         currentDayMessages = [];
       }
@@ -233,6 +232,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       currentDayMessages.push({
         type: "message",
         data: message,
+        uniqueKey: message.message_id || `msg-${Date.now()}-${groupedMessages.length}`, // Chiave unica
       });
       lastDate = messageDate;
     });
@@ -242,7 +242,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       groupedMessages.push({
         type: "date_separator",
         date: lastDate,
-        uniqueKey: `date-${Date.now()}-${groupedMessages.length}`, // Chiave unica
+        uniqueKey: `date-${lastDate}-${groupedMessages.length}`, // Chiave unica
       });
     }
 
@@ -265,7 +265,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
             const message = item.data;
             return (
               <Pressable
-                onPress={(e) => handleLongPress(e, message)}
+                onLongPress={(e) => handleLongPress(e, message)}
                 style={
                   message.sender === userId
                     ? styles.msgSender
@@ -275,7 +275,11 @@ const ChatContent = ({ chatId, userId, onBack }) => {
                 <Text style={styles.textMessageContent}>{message.text}</Text>
                 <Text style={styles.timeText}>
                   {message.date_time === "" ? (
-                    <MaterialIcons name="access-time" size={14} color="#ffffff" />
+                    <MaterialIcons
+                      name="access-time"
+                      size={14}
+                      color="#ffffff"
+                    />
                   ) : (
                     parseTime(message.date_time)
                   )}

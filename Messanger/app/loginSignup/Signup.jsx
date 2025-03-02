@@ -145,17 +145,6 @@ const Signup = () => {
         style={{ flex: 1 }}
       >
         <SafeAreaView style={styles.container}>
-          <Text
-            style={{
-              color: theme.text,
-              fontSize: 56,
-              marginBottom: 20,
-              fontWeight: 700,
-              top: -35,
-            }}
-          >
-            SIGNUP
-          </Text>
           <View style={styles.formContainer}>
             {isLargeScreen ? (
               // Layout a griglia (2 colonne) per schermi grandi
@@ -168,9 +157,7 @@ const Signup = () => {
                         <TextInput
                           style={styles.input}
                           secureTextEntry={showPassword.password}
-                          onChangeText={(text) =>
-                            handleChange("password", text)
-                          }
+                          onChangeText={(text) => handleChange("password", text)}
                           placeholder="Password"
                           placeholderTextColor="#ccc"
                         />
@@ -180,9 +167,7 @@ const Signup = () => {
                         >
                           <MaterialCommunityIcons
                             name={
-                              showPassword.password
-                                ? "eye-outline"
-                                : "eye-off-outline"
+                              showPassword.password ? "eye-outline" : "eye-off-outline"
                             }
                             size={24}
                             color="white"
@@ -201,15 +186,14 @@ const Signup = () => {
                         />
                       </View>
                     </View>
-                    <View style={styles.inputGroup}>
+                    {/* Centra verticalmente il campo Handle */}
+                    <View style={[styles.inputGroup, styles.centeredHandle]}>
                       <Text style={styles.label}>Handle</Text>
                       <View style={styles.inputContainer}>
                         <TextInput
                           style={[
                             styles.input,
-                            handleAvailable == false
-                              ? styles.handleInputError
-                              : null,
+                            handleAvailable == false ? styles.handleInputError : null,
                           ]}
                           onChangeText={(text) => handleChange("handle", text)}
                           placeholder="Handle"
@@ -269,64 +253,62 @@ const Signup = () => {
             ) : (
               // Layout a colonna singola per schermi piccoli
               <View>
-                {[
-                  "Password",
-                  "Confirm Password",
-                  "Name",
-                  "Surname",
-                  "Handle",
-                ].map((label, index) => (
-                  <View key={index} style={styles.inputGroup}>
-                    <Text style={styles.label}>{label}</Text>
-                    <View style={styles.inputContainer}>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          label === "Handle" && handleAvailable == false
-                            ? styles.handleInputError
-                            : null,
-                        ]}
-                        secureTextEntry={
-                          label.toLowerCase().includes("password") &&
-                          showPassword[label.toLowerCase().replace(" ", "")]
-                        }
-                        onChangeText={(text) =>
-                          handleChange(
-                            label.toLowerCase().replace(" ", ""),
-                            text
-                          )
-                        }
-                        placeholder={label}
-                        placeholderTextColor="#ccc"
-                      />
-                      {label.toLowerCase().includes("password") && (
-                        <TouchableOpacity
-                          style={styles.eyeIcon}
-                          onPress={() =>
-                            toggleShowPassword(
-                              label.toLowerCase().replace(" ", "")
+                {["Password", "Confirm Password", "Name", "Surname", "Handle"].map(
+                  (label, index) => (
+                    <View key={index} style={styles.inputGroup}>
+                      <Text style={styles.label}>{label}</Text>
+                      <View style={styles.inputContainer}>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            label === "Handle" && handleAvailable == false
+                              ? styles.handleInputError
+                              : null,
+                          ]}
+                          secureTextEntry={
+                            label.toLowerCase().includes("password") &&
+                            showPassword[label.toLowerCase().replace(" ", "")]
+                          }
+                          onChangeText={(text) =>
+                            handleChange(
+                              label.toLowerCase().replace(" ", ""),
+                              text
                             )
                           }
-                        >
-                          <MaterialCommunityIcons
-                            name={
-                              showPassword[label.toLowerCase().replace(" ", "")]
-                                ? "eye-outline"
-                                : "eye-off-outline"
+                          placeholder={label}
+                          placeholderTextColor="#ccc"
+                        />
+                        {label.toLowerCase().includes("password") && (
+                          <TouchableOpacity
+                            style={styles.eyeIcon}
+                            onPress={() =>
+                              toggleShowPassword(
+                                label.toLowerCase().replace(" ", "")
+                              )
                             }
-                            size={24}
-                            color="white"
-                          />
-                        </TouchableOpacity>
-                      )}
+                          >
+                            <MaterialCommunityIcons
+                              name={
+                                showPassword[
+                                  label.toLowerCase().replace(" ", "")
+                                ]
+                                  ? "eye-outline"
+                                  : "eye-off-outline"
+                              }
+                              size={24}
+                              color="white"
+                            />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                      {label === "Handle" && handleAvailable == false ? (
+                        <Text style={styles.handleTextError}>
+                          Handle già in utilizzo
+                        </Text>
+                      ) : null}
                     </View>
-                    {label === "Handle" && handleAvailable == false ? (
-                      <Text style={styles.handleTextError}>
-                        Handle già in utilizzo
-                      </Text>
-                    ) : null}
-                  </View>
-                ))}
+                  )
+                )}
               </View>
             )}
 
@@ -378,10 +360,14 @@ function createStyle(theme, colorScheme) {
     gridColumn: {
       flex: 1,
       maxWidth: 300, // Limita la larghezza massima di ogni colonna per schermi grandi
-      marginHorizontal: 10, // Maggiore spazio tra le colonne per evitare che i campi siano troppo larghi
+      marginHorizontal: 10, // Maggiore spazio tra le colonne
     },
     inputGroup: {
       marginVertical: 10,
+    },
+    centeredHandle: {
+      flex: 1,
+      justifyContent: "center", // Centra verticalmente il campo Handle nella colonna
     },
     label: {
       color: "#ffffff",

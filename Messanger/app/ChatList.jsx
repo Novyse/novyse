@@ -53,15 +53,7 @@ const ChatList = () => {
       name: "bt_accessibility",
       position: 1,
       color: theme.floatingLittleButton,
-      // onPress: async () => await WebSocketMethods.webSocketSenderMessage(
-      //   {
-      //     "type": "create_chat",
-      //     "chatType":"personal",
-      //     "handle":{handle}
-      //   }
-      // )
     },
-    // Puoi aggiungere altri actions qui se necessario
   ];
 
   useEffect(() => {
@@ -248,7 +240,7 @@ const ChatList = () => {
           </Pressable>
         )}
         <Text style={styles.headerTitle}>
-          {isSmallScreen && selectedChat ? user.handle : "Chats"}
+          {selectedChat ? user.handle : "Chats"}
         </Text>
       </View>
     );
@@ -308,6 +300,12 @@ const ChatList = () => {
 
     return (
       <View style={styles.chatContent}>
+        {!isSmallScreen ? (
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>{chatName}</Text>
+          </View>
+        ) : null}
+
         <ChatContent
           chatId={selectedChat}
           userId={userId}
@@ -368,14 +366,34 @@ export default ChatList;
 
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: "#17212b" },
-    container: { flex: 1, flexDirection: "row" },
-    header: { backgroundColor: "#17212b", flexDirection: "row", padding: 10 },
-    menuButton: { marginRight: 10 },
-    headerTitle: { color: theme.text, fontSize: 18, fontWeight: "bold" },
-    chatList: { backgroundColor: "#17212b", flex: 1 },
+    safeArea: {
+      flex: 1,
+      backgroundColor: "#17212b",
+    },
+    container: {
+      flex: 1,
+      flexDirection: "row",
+    },
+    header: {
+      backgroundColor: "#17212b",
+      flexDirection: "row",
+      padding: 10,
+    },
+    menuButton: {
+      marginRight: 10,
+    },
+    headerTitle: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    chatList: {
+      backgroundColor: "#17212b",
+      flex: 1,
+      padding: 10,
+    },
     largeScreenChatList: {
-      flex: 0.25,         //spazio che occupa la colonna delle chat
+      flex: 0.25, //spazio che occupa la colonna delle chat
       borderRightWidth: 1,
       borderRightColor: theme.chatListRightBorder,
     },
@@ -383,18 +401,44 @@ function createStyle(theme, colorScheme) {
       flexDirection: "row",
       alignItems: "center",
       padding: 10,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.chatListDivider,
+      backgroundColor: "#2b3e51",
+      borderRadius: 13,
+      marginBottom: 10,
     },
-    selected: { backgroundColor: theme.chatListSelected },
-    avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
-    chatTitle: { fontSize: 16, fontWeight: "bold", color: theme.text },
-    chatSubtitle: { fontSize: 14, color: theme.text },
+    selected: {
+      backgroundColor: theme.chatListSelected,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 10,
+    },
+    chatTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: theme.text,
+    },
+    chatSubtitle: {
+      fontSize: 14,
+      color: theme.text,
+    },
     chatContent: {
-      flex: 0.75,           //spazio che occupa la colonna ddel contenuto della chat
+      flex: 1, //spazio che occupa la colonna del contenuto della chat
       padding: 10,
       backgroundColor: theme.backgroundChat,
     },
+    // chatHeader: {
+    //   backgroundColor: theme.backgroundChatHeader,
+    //   padding: 10,
+    //   borderBottomWidth: 1,
+    //   borderBottomColor: theme.chatHeaderBorder,
+    // },
+    // chatHeaderTitle: {
+    //   color: theme.text,
+    //   fontSize: 18,
+    //   fontWeight: "bold",
+    // },
     sidebar: {
       position: "absolute",
       top: 0,
@@ -413,8 +457,13 @@ function createStyle(theme, colorScheme) {
       bottom: 0,
       zIndex: 1,
     },
-    sidebarText: { color: theme.text, marginVertical: 10 },
-    backButton: { marginRight: 10 },
+    sidebarText: {
+      color: theme.text,
+      marginVertical: 10,
+    },
+    backButton: {
+      marginRight: 10,
+    },
     connectionInfoContainer: {
       backgroundColor: theme.backgroundChatListCheckNetwork,
       padding: 10,
