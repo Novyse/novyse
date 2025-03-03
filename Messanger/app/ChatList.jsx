@@ -298,6 +298,9 @@ const ChatList = () => {
         overlayColor="rgba(0, 0, 0, 0)"
         shadow={{ shadowColor: "transparent" }}
       />
+      <Text style={{ fontSize: 12, color: "#426080", textAlign: "center"}}>
+        Versione: pre-alpha 0.0.4
+      </Text>
     </View>
   );
 
@@ -369,7 +372,7 @@ const ChatList = () => {
 
   return (
     <>
-      <StatusBar style="light" backgroundColor="#17212b" translucent={false} />
+      <StatusBar style="light" backgroundColor="#1b2734" translucent={false} />
       {renderSidebar()}
       <SafeAreaView style={styles.safeArea}>
         {renderHeader()}
@@ -418,15 +421,15 @@ export default ChatList;
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
     safeArea: {
+      backgroundColor: theme.backgroundClassic,
       flex: 1,
-      backgroundColor: "#17212b",
     },
     container: {
       flex: 1,
       flexDirection: "row",
     },
     chatList: {
-      backgroundColor: "#17212b",
+      backgroundColor: theme.backgroundChatList,
       flex: 1,
       padding: 10,
       paddingTop: 0,
@@ -470,7 +473,7 @@ function createStyle(theme, colorScheme) {
     },
     //Header pagina e chat
     header: {
-      backgroundColor: "#17212b",
+      backgroundColor: theme.backgroundHeader,
       flexDirection: "row",
       padding: 10,
       alignItems: "center",
@@ -500,7 +503,7 @@ function createStyle(theme, colorScheme) {
       fontWeight: "bold",
       marginLeft: 20,
       flex: 1, // Per occupare lo spazio centrale
-      textAlign: "center", // Centra il testo
+      textAlign: "left", // Centra il testo
     },
     sidebar: {
       position: "absolute",

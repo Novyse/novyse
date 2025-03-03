@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+  useCallback,
+} from "react";
 import {
   Platform,
   View,
@@ -16,6 +22,8 @@ import WebSocketMethods from "./utils/webSocketMethods";
 import moment from "moment";
 import * as Crypto from "expo-crypto";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import eventEmitter from "./utils/EventEmitter";
 import { useRouter } from "expo-router"; // Per la navigazione
 
@@ -23,8 +31,9 @@ const ChatContent = ({ chatId, userId, onBack }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const [messages, setMessages] = useState([]);
-  const messagesRef = useRef([]); // Add a ref to track messages
+  const messagesRef = useRef([]);
   const [newMessageText, setNewMessageText] = useState("");
+  const [isVoiceMessage, setVoiceMessage] = useState(true); // Default to true
   const [dropdownInfo, setDropdownInfo] = useState({
     visible: false,
     x: 0,
@@ -44,7 +53,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         const msgs = await localDatabase.fetchAllChatMessages(chatId);
         const reversedMsgs = msgs.reverse();
         setMessages(reversedMsgs);
-        messagesRef.current = reversedMsgs; // Update ref
+        messagesRef.current = reversedMsgs;
       } catch (error) {
         console.error("Error loading messages:", error);
         setMessages([]);
@@ -61,17 +70,14 @@ const ChatContent = ({ chatId, userId, onBack }) => {
           message_id: data.message_id,
           sender: data.sender,
           text: data.text,
-          date_time: data.date
+          date_time: data.date,
         };
-        
-        // Check if message already exists
-        //if (!messagesRef.current.some(msg => msg.message_id === newMessage.message_id)) {
-          setMessages(currentMessages => {
-            const updatedMessages = [newMessage, ...currentMessages];
-            messagesRef.current = updatedMessages; // Update ref
-            return updatedMessages;
-          });
-        //}
+
+        setMessages((currentMessages) => {
+          const updatedMessages = [newMessage, ...currentMessages];
+          messagesRef.current = updatedMessages;
+          return updatedMessages;
+        });
       }
     };
 
@@ -125,7 +131,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       const saltHex = Array.from(saltBytes)
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
-      const timestamp = Date.now().toString(); // Aggiunge un timestamp per unicità
+      const timestamp = Date.now().toString();
       const messageBytes = new TextEncoder().encode(`${message}-${timestamp}`);
       const messageWithSalt = new Uint8Array(
         saltBytes.length + messageBytes.length
@@ -156,19 +162,16 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       const { hash, saltHex } = await generateHash(newMessageText);
 
       const newMessage = {
-        message_id: Date.now().toString(), // ID univoco basato sul timestamp
+        message_id: Date.now().toString(),
         sender: userId,
         text: newMessageText,
         date_time: new Date().toISOString(),
         hash,
-        uniqueKey: `msg-${Date.now()}`, // Chiave unica per il FlatList
+        uniqueKey: `msg-${Date.now()}`,
       };
-
-      
 
       console.log("Tentativo di salvare e inviare messaggio:", newMessage);
 
-      // Salva nel database locale
       await localDatabase.insertMessage(
         "",
         chatId,
@@ -180,11 +183,9 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       console.log("Messaggio salvato nel database locale");
 
       const newMessageDate = newMessage.date_time;
-      data = {chat_id: chatId, text: newMessageText, date: newMessageDate}
+      const data = { chat_id: chatId, text: newMessageText, date: newMessageDate };
       eventEmitter.emit("updateNewLastMessage", data);
 
-
-      // Invia via WebSocket con retry se necessario
       WebSocketMethods.webSocketSenderMessage(
         JSON.stringify({
           type: "send_message",
@@ -195,14 +196,17 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       );
       console.log("Messaggio inviato via WebSocket");
 
-      
-
-      // Aggiorna lo stato locale
       setMessages((currentMessages) => [newMessage, ...currentMessages]);
       setNewMessageText("");
+      setVoiceMessage(true); // Reset to show microphone icon
     } catch (error) {
       console.error("Errore nell'invio del messaggio:", error);
     }
+  };
+
+  const handleVoiceMessage = () => {
+    console.log("Voice message button pressed");
+    // Add your logic for handling voice messages here
   };
 
   const handleLongPress = (event, message) => {
@@ -255,7 +259,6 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       currentDayMessages.push({
         type: "message",
         data: message,
-        // Use message_id directly without wrapping it in another object
         uniqueKey: message.message_id,
       });
       lastDate = messageDate;
@@ -275,11 +278,16 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     return groupedMessages;
   }, [messages]);
 
+  const handleTextChanging = (text) => {
+    setNewMessageText(text);
+    setVoiceMessage(text.length === 0);
+  };
+
   const renderMessagesList = () => (
     <View style={styles.listContainer}>
       <FlatList
         data={prepareMessagesWithDateSeparators()}
-        keyExtractor={(item) => item.uniqueKey} // Usa uniqueKey per garantire unicità
+        keyExtractor={(item) => item.uniqueKey}
         renderItem={({ item }) => {
           if (item.type === "date_separator") {
             return (
@@ -324,19 +332,31 @@ const ChatContent = ({ chatId, userId, onBack }) => {
 
   const renderBottomBar = () => (
     <View style={styles.bottomBarContainer}>
+      <Pressable style={styles.iconButton}>
+        <MaterialCommunityIcons name="plus" size={24} color="#fff" />
+      </Pressable>
       <TextInput
         style={styles.bottomBarTextInput}
         placeholder="New message"
         placeholderTextColor="gray"
         value={newMessageText}
         maxLength={2000}
-        onChangeText={setNewMessageText}
+        onChangeText={handleTextChanging}
         returnKeyType="send"
         onSubmitEditing={Platform.OS === "web" ? handleSendMessage : undefined}
       />
-      <Pressable onPress={handleSendMessage} style={styles.sendButton}>
-        <MaterialIcons name="send" size={24} color="#ffffff" />
+      <Pressable style={styles.iconButton}>
+        <FontAwesome6 name="face-smile" size={24} color="#fff" />
       </Pressable>
+      {isVoiceMessage ? (
+        <Pressable onPress={handleVoiceMessage} style={styles.iconButton}>
+          <MaterialCommunityIcons name="microphone" size={24} color="#fff" />
+        </Pressable>
+      ) : (
+        <Pressable onPress={handleSendMessage} style={styles.iconButton}>
+          <MaterialIcons name="arrow-upward" size={24} color="#fff" />
+        </Pressable>
+      )}
     </View>
   );
 
@@ -440,8 +460,8 @@ function createStyle(theme) {
     flatList: {
       flex: 1,
       ...(Platform.OS === "web" && {
-        scrollbarWidth: "thin", // Firefox
-        scrollbarColor: "#000000 transparent", // Firefox: slider nero, sfondo trasparente
+        scrollbarWidth: "thin",
+        scrollbarColor: "#000000 transparent",
         "::-webkit-scrollbar": {
           width: 8,
           backgroundColor: "transparent",
@@ -460,26 +480,26 @@ function createStyle(theme) {
       alignItems: "center",
       marginTop: 10,
       width: "100%",
-      maxWidth: 1024,
       marginHorizontal: "auto",
+      gap: 10,
     },
     bottomBarTextInput: {
       flex: 1,
-      borderColor: "white",
-      borderWidth: 1,
-      borderRadius: 100,
-      padding: 10,
+      backgroundColor: theme.backgroundChatTextInput,
+      borderRadius: 15,
+      padding: 15,
       fontSize: 18,
       color: theme.text,
+      placeholderTextColor: "#bfbfbf",
+      outlineStyle: "none",
     },
-    sendButton: {
-      backgroundColor: "#2196F3",
+    iconButton: {
+      backgroundColor: "transparent",
       borderRadius: 100,
-      width: 45,
-      height: 45,
+      width: 35,
+      height: 35,
       justifyContent: "center",
       alignItems: "center",
-      marginLeft: 10,
     },
     dateSeparator: {
       alignSelf: "center",

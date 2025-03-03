@@ -13,9 +13,11 @@ export const Colors = {
   },
   default: {
     text: 'white',
-    backgroundClassic: '#354966',
-    backgroundChatList: '#17212b',
+    backgroundClassic: '#1b2734',
+    backgroundChatList: '#1b2734',
     backgroundChat: '#1b2734',
+    backgroundHeader: '#1b2734',
+    backgroundChatTextInput: "#374e68",
     backgroundChatListCheckNetwork: '#1d3340',
     floatingBigButton: '#39546D',
     floatingLittleButton: '#39546D',
