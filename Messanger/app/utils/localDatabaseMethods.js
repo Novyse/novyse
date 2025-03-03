@@ -329,8 +329,11 @@ class LocalDatabase {
       });
 
       const lastMessage = sortedMessages[0];
-      const data = { lastMessage, chat_id };
-      eventEmitter.emit("updateNewLastMessage", data);
+
+      // non funzionava
+      // const data = { lastMessage, chat_id };
+      // eventEmitter.emit("updateNewLastMessage", data);
+      // console.log("Patatine al limone 🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶")
 
       return sortedMessages.length > 0 ? lastMessage : null;
     } else {

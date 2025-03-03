@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import {
   Platform,
   View,
@@ -23,6 +23,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const [messages, setMessages] = useState([]);
+  const messagesRef = useRef([]); // Add a ref to track messages
   const [newMessageText, setNewMessageText] = useState("");
   const [dropdownInfo, setDropdownInfo] = useState({
     visible: false,
@@ -41,34 +42,47 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     const loadMessages = async () => {
       try {
         const msgs = await localDatabase.fetchAllChatMessages(chatId);
-        setMessages(
-          msgs.reverse().map((msg, index) => ({
-            ...msg,
-            uniqueKey: msg.message_id || `msg-${Date.now()}-${index}`, // Chiave unica per ogni messaggio
-          }))
-        );
+        const reversedMsgs = msgs.reverse();
+        setMessages(reversedMsgs);
+        messagesRef.current = reversedMsgs; // Update ref
       } catch (error) {
         console.error("Error loading messages:", error);
         setMessages([]);
+        messagesRef.current = [];
       }
     };
     loadMessages();
   }, [chatId]);
 
   useEffect(() => {
-    const handleReceiveMessage = eventEmitter.on("newMessage", (data) => {
+    const handleReceiveMessage = (data) => {
       if (data.chat_id === chatId) {
         const newMessage = {
-          message_id: data.message_id || Date.now().toString(),
+          message_id: data.message_id,
           sender: data.sender,
           text: data.text,
-          date_time: data.date,
-          uniqueKey: data.message_id || `msg-${Date.now()}`, // Chiave unica
+          date_time: data.date
         };
-        setMessages((currentMessages) => [newMessage, ...currentMessages]);
+        
+        // Check if message already exists
+        //if (!messagesRef.current.some(msg => msg.message_id === newMessage.message_id)) {
+          setMessages(currentMessages => {
+            const updatedMessages = [newMessage, ...currentMessages];
+            messagesRef.current = updatedMessages; // Update ref
+            return updatedMessages;
+          });
+        //}
       }
-    });
+    };
 
+    eventEmitter.on("newMessage", handleReceiveMessage);
+
+    return () => {
+      eventEmitter.off("newMessage", handleReceiveMessage);
+    };
+  }, [chatId]);
+
+  useEffect(() => {
     const handleUpdateMessage = eventEmitter.on("updateMessage", (data) => {
       setMessages((currentMessages) =>
         currentMessages.map((item) => {
@@ -94,7 +108,6 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     );
 
     return () => {
-      eventEmitter.off("newMessage", handleReceiveMessage);
       eventEmitter.off("updateMessage", handleUpdateMessage);
       backHandler.remove();
     };
@@ -133,7 +146,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     }
   };
 
-  const addNewMessage = async () => {
+  const handleSendMessage = async () => {
     if (!newMessageText.trim()) {
       console.warn("Empty message, not sending");
       return;
@@ -141,6 +154,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
 
     try {
       const { hash, saltHex } = await generateHash(newMessageText);
+
       const newMessage = {
         message_id: Date.now().toString(), // ID univoco basato sul timestamp
         sender: userId,
@@ -149,6 +163,8 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         hash,
         uniqueKey: `msg-${Date.now()}`, // Chiave unica per il FlatList
       };
+
+      
 
       console.log("Tentativo di salvare e inviare messaggio:", newMessage);
 
@@ -163,6 +179,11 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       );
       console.log("Messaggio salvato nel database locale");
 
+      const newMessageDate = newMessage.date_time;
+      data = {chat_id: chatId, text: newMessageText, date: newMessageDate}
+      eventEmitter.emit("updateNewLastMessage", data);
+
+
       // Invia via WebSocket con retry se necessario
       WebSocketMethods.webSocketSenderMessage(
         JSON.stringify({
@@ -173,6 +194,8 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         })
       );
       console.log("Messaggio inviato via WebSocket");
+
+      
 
       // Aggiorna lo stato locale
       setMessages((currentMessages) => [newMessage, ...currentMessages]);
@@ -207,14 +230,14 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     }
   };
 
-  const prepareMessagesWithDateSeparators = () => {
+  const prepareMessagesWithDateSeparators = useCallback(() => {
     const groupedMessages = [];
     let currentDayMessages = [];
     let lastDate = null;
 
     if (messages.length === 0) return groupedMessages;
 
-    messages.forEach((message, index) => {
+    messages.forEach((message) => {
       const messageDate = moment(message.date_time || new Date()).format(
         "DD-MM-YYYY"
       );
@@ -224,7 +247,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         groupedMessages.push({
           type: "date_separator",
           date: lastDate,
-          uniqueKey: `date-${lastDate}-${groupedMessages.length}-${index}`, // Chiave unica
+          uniqueKey: `date-${lastDate}`,
         });
         currentDayMessages = [];
       }
@@ -232,22 +255,25 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       currentDayMessages.push({
         type: "message",
         data: message,
-        uniqueKey: message.message_id || `msg-${Date.now()}-${groupedMessages.length}-${index}`, // Chiave unica
+        // Use message_id directly without wrapping it in another object
+        uniqueKey: message.message_id,
       });
       lastDate = messageDate;
     });
 
     if (currentDayMessages.length > 0) {
       groupedMessages.push(...currentDayMessages);
-      groupedMessages.push({
-        type: "date_separator",
-        date: lastDate,
-        uniqueKey: `date-${lastDate}-${groupedMessages.length}`, // Chiave unica
-      });
+      if (lastDate) {
+        groupedMessages.push({
+          type: "date_separator",
+          date: lastDate,
+          uniqueKey: `date-${lastDate}`,
+        });
+      }
     }
 
     return groupedMessages;
-  };
+  }, [messages]);
 
   const renderMessagesList = () => (
     <View style={styles.listContainer}>
@@ -306,9 +332,9 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         maxLength={2000}
         onChangeText={setNewMessageText}
         returnKeyType="send"
-        onSubmitEditing={Platform.OS === "web" ? addNewMessage : undefined}
+        onSubmitEditing={Platform.OS === "web" ? handleSendMessage : undefined}
       />
-      <Pressable onPress={addNewMessage} style={styles.sendButton}>
+      <Pressable onPress={handleSendMessage} style={styles.sendButton}>
         <MaterialIcons name="send" size={24} color="#ffffff" />
       </Pressable>
     </View>
