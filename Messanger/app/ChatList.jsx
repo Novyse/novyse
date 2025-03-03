@@ -34,6 +34,7 @@ const ChatList = () => {
   const [chatDetails, setChatDetails] = useState({});
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
+  const [isMenuVisible, setIsMenuVisible] = useState(false); // Stato per il menu a tendina
   const router = useRouter();
   const params = useLocalSearchParams(); // Per i parametri URL
   const [sidebarPosition] = useState(new Animated.Value(-250));
@@ -114,18 +115,26 @@ const ChatList = () => {
   }, [params.chatId]);
 
   useEffect(() => {
-    eventEmitter.on("updateNewLastMessage", (data) => {
+    const handleNewMessageSent = (data) => {
+      const { chat_id, text, date } = data;
       setChatDetails((current) => ({
         ...current,
-        [data.chat_id]: {
-          ...current[data.chat_id],
+        [chat_id]: {
+          ...current[chat_id],
           lastMessage: {
-            ...current[data.chat_id]?.lastMessage,
-            text: data.text,
+            ...current[chat_id]?.lastMessage,
+            text: text,
+            date_time: date,
           },
         },
       }));
-    });
+    };
+
+    eventEmitter.on("updateNewLastMessage", handleNewMessageSent);
+
+    return () => {
+      eventEmitter.off("updateNewLastMessage", handleNewMessageSent);
+    };
   }, []);
 
   useEffect(() => {
@@ -240,7 +249,7 @@ const ChatList = () => {
           </Pressable>
         )}
         <Text style={styles.headerTitle}>
-          {selectedChat ? user.handle : "Chats"}
+          Chats
         </Text>
       </View>
     );
@@ -301,8 +310,50 @@ const ChatList = () => {
     return (
       <View style={styles.chatContent}>
         {!isSmallScreen ? (
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>{chatName}</Text>
+          <View style={[styles.header, styles.chatHeader]}>
+            <Image
+              source={{ uri: "https://picsum.photos/200" }}
+              style={styles.avatar}
+            />
+            <Text style={[styles.headerTitle, styles.chatHeaderTitle]}>
+              {chatName}
+            </Text>
+            {/* Icona dei tre puntini */}
+            <Pressable
+              style={styles.moreButton}
+              onPress={() => setIsMenuVisible(!isMenuVisible)}
+            >
+              <Icon name="more-vert" size={24} color={theme.icon} />
+            </Pressable>
+            {/* Menu a tendina */}
+            {isMenuVisible && (
+              <View style={styles.dropdownMenu}>
+                <Pressable
+                  onPress={() => {
+                    console.log("Opzione 1 selezionata");
+                    setIsMenuVisible(false);
+                  }}
+                >
+                  <Text style={styles.dropdownItem}>Opzione 1</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    console.log("Opzione 2 selezionata");
+                    setIsMenuVisible(false);
+                  }}
+                >
+                  <Text style={styles.dropdownItem}>Opzione 2</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    console.log("Opzione 2 selezionata");
+                    setIsMenuVisible(false);
+                  }}
+                >
+                  <Text style={styles.dropdownItem}>Opzione 2</Text>
+                </Pressable>
+              </View>
+            )}
           </View>
         ) : null}
 
@@ -374,23 +425,11 @@ function createStyle(theme, colorScheme) {
       flex: 1,
       flexDirection: "row",
     },
-    header: {
-      backgroundColor: "#17212b",
-      flexDirection: "row",
-      padding: 10,
-    },
-    menuButton: {
-      marginRight: 10,
-    },
-    headerTitle: {
-      color: theme.text,
-      fontSize: 18,
-      fontWeight: "bold",
-    },
     chatList: {
       backgroundColor: "#17212b",
       flex: 1,
       padding: 10,
+      paddingTop: 0,
     },
     largeScreenChatList: {
       flex: 0.25, //spazio che occupa la colonna delle chat
@@ -427,18 +466,42 @@ function createStyle(theme, colorScheme) {
       flex: 1, //spazio che occupa la colonna del contenuto della chat
       padding: 10,
       backgroundColor: theme.backgroundChat,
+      zIndex: 0, // Assicuriamo che il contenuto della chat sia sotto l'header
     },
-    // chatHeader: {
-    //   backgroundColor: theme.backgroundChatHeader,
-    //   padding: 10,
-    //   borderBottomWidth: 1,
-    //   borderBottomColor: theme.chatHeaderBorder,
-    // },
-    // chatHeaderTitle: {
-    //   color: theme.text,
-    //   fontSize: 18,
-    //   fontWeight: "bold",
-    // },
+    //Header pagina e chat
+    header: {
+      backgroundColor: "#17212b",
+      flexDirection: "row",
+      padding: 10,
+      alignItems: "center",
+    },
+    menuButton: {
+      marginRight: 10,
+    },
+    moreButton: {
+      padding: 5,
+    },
+    headerTitle: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    chatHeader: {
+      backgroundColor: "transparent",
+      padding: 10,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between", // Per allineare avatar, titolo e tre puntini
+      zIndex: 10, // Sopra il contenuto della chat
+    },
+    chatHeaderTitle: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: "bold",
+      marginLeft: 20,
+      flex: 1, // Per occupare lo spazio centrale
+      textAlign: "center", // Centra il testo
+    },
     sidebar: {
       position: "absolute",
       top: 0,
@@ -461,6 +524,9 @@ function createStyle(theme, colorScheme) {
       color: theme.text,
       marginVertical: 10,
     },
+    // closeButton: {
+    //   alignSelf: "flex-end",
+    // },
     backButton: {
       marginRight: 10,
     },
@@ -470,6 +536,26 @@ function createStyle(theme, colorScheme) {
       margin: 10,
       borderRadius: 8,
       color: "white",
+    },
+    dropdownMenu: {
+      position: "absolute",
+      top: 50, // Posizionato sotto l'header della chat
+      right: 20,
+      backgroundColor: "#17212b",
+      color: theme.text,
+      borderRadius: 8,
+      padding: 15,
+      zIndex: 11, // Sopra tutto il resto
+      elevation: 5, // Ombra per Android
+      shadowColor: "#000", // Ombra per iOS
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+    },
+    dropdownItem: {
+      color: theme.text,
+      marginVertical: 8,
+      fontSize: 16,
     },
   });
 }

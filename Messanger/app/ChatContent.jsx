@@ -214,7 +214,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
 
     if (messages.length === 0) return groupedMessages;
 
-    messages.forEach((message) => {
+    messages.forEach((message, index) => {
       const messageDate = moment(message.date_time || new Date()).format(
         "DD-MM-YYYY"
       );
@@ -224,7 +224,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         groupedMessages.push({
           type: "date_separator",
           date: lastDate,
-          uniqueKey: `date-${lastDate}-${groupedMessages.length}`, // Chiave unica
+          uniqueKey: `date-${lastDate}-${groupedMessages.length}-${index}`, // Chiave unica
         });
         currentDayMessages = [];
       }
@@ -232,7 +232,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       currentDayMessages.push({
         type: "message",
         data: message,
-        uniqueKey: message.message_id || `msg-${Date.now()}-${groupedMessages.length}`, // Chiave unica
+        uniqueKey: message.message_id || `msg-${Date.now()}-${groupedMessages.length}-${index}`, // Chiave unica
       });
       lastDate = messageDate;
     });
@@ -457,14 +457,14 @@ function createStyle(theme) {
     },
     dateSeparator: {
       alignSelf: "center",
-      backgroundColor: "#ffffff",
+      backgroundColor: "#17212b",
       paddingHorizontal: 10,
       paddingVertical: 5,
       borderRadius: 10,
       marginVertical: 10,
     },
     dateSeparatorText: {
-      color: "#000",
+      color: theme.text,
       fontSize: 14,
       fontWeight: "bold",
     },
