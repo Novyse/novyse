@@ -127,6 +127,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
 
+  //funzione per generare hash messaggio da inviare
   const generateHash = async (message) => {
     try {
       const saltBytes = await Crypto.getRandomBytesAsync(16);
