@@ -25,7 +25,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import eventEmitter from "./utils/EventEmitter";
-import { useRouter } from "expo-router"; // Per la navigazione
+import { useRouter } from "expo-router";
 
 const ChatContent = ({ chatId, userId, onBack }) => {
   const { theme } = useContext(ThemeContext);
@@ -33,7 +33,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
   const [messages, setMessages] = useState([]);
   const messagesRef = useRef([]);
   const [newMessageText, setNewMessageText] = useState("");
-  const [isVoiceMessage, setVoiceMessage] = useState(true); // Default to true
+  const [isVoiceMessage, setVoiceMessage] = useState(true);
   const [dropdownInfo, setDropdownInfo] = useState({
     visible: false,
     x: 0,
@@ -46,6 +46,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
   });
   const containerRef = useRef(null);
   const router = useRouter();
+  const [isMicClicked, setIsMicClicked] = useState(false);
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -67,10 +68,11 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     const handleReceiveMessage = (data) => {
       if (data.chat_id === chatId) {
         const newMessage = {
-          message_id: data.message_id,
+          message_id: data.message_id || data.hash, // Usa l'hash se disponibile
           sender: data.sender,
           text: data.text,
           date_time: data.date,
+          hash: data.hash, // Assumi che il server restituisca l'hash
         };
 
         setMessages((currentMessages) => {
@@ -162,12 +164,11 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       const { hash, saltHex } = await generateHash(newMessageText);
 
       const newMessage = {
-        message_id: Date.now().toString(),
+        message_id: hash, // Usa l'hash come message_id
         sender: userId,
         text: newMessageText,
         date_time: new Date().toISOString(),
-        hash,
-        uniqueKey: `msg-${Date.now()}`,
+        hash, // Salva l'hash nel messaggio
       };
 
       console.log("Tentativo di salvare e inviare messaggio:", newMessage);
@@ -183,7 +184,11 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       console.log("Messaggio salvato nel database locale");
 
       const newMessageDate = newMessage.date_time;
-      const data = { chat_id: chatId, text: newMessageText, date: newMessageDate };
+      const data = {
+        chat_id: chatId,
+        text: newMessageText,
+        date: newMessageDate,
+      };
       eventEmitter.emit("updateNewLastMessage", data);
 
       WebSocketMethods.webSocketSenderMessage(
@@ -198,7 +203,8 @@ const ChatContent = ({ chatId, userId, onBack }) => {
 
       setMessages((currentMessages) => [newMessage, ...currentMessages]);
       setNewMessageText("");
-      setVoiceMessage(true); // Reset to show microphone icon
+      setVoiceMessage(true);
+      setIsMicClicked(false);
     } catch (error) {
       console.error("Errore nell'invio del messaggio:", error);
     }
@@ -206,7 +212,8 @@ const ChatContent = ({ chatId, userId, onBack }) => {
 
   const handleVoiceMessage = () => {
     console.log("Voice message button pressed");
-    // Add your logic for handling voice messages here
+    setIsMicClicked(true);
+    setVoiceMessage(false);
   };
 
   const handleLongPress = (event, message) => {
@@ -259,7 +266,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       currentDayMessages.push({
         type: "message",
         data: message,
-        uniqueKey: message.message_id,
+        uniqueKey: message.hash || message.message_id, // Usa l'hash come uniqueKey
       });
       lastDate = messageDate;
     });
@@ -280,7 +287,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
 
   const handleTextChanging = (text) => {
     setNewMessageText(text);
-    setVoiceMessage(text.length === 0);
+    setVoiceMessage(text.length === 0 && !isMicClicked);
   };
 
   const renderMessagesList = () => (
@@ -431,8 +438,12 @@ function createStyle(theme) {
       maxWidth: "100%",
     },
     timeText: {
-      color: theme.text,
-      fontSize: 14,
+      color: theme.textTime,
+      fontSize: 12,
+      marginLeft: 4,
+      alignSelf: "flex-end",
+      minWidth: 35,
+      textAlign: "right",
     },
     msgSender: {
       backgroundColor: "#2b5278",
@@ -440,9 +451,13 @@ function createStyle(theme) {
       padding: 10,
       maxWidth: "70%",
       borderRadius: 10,
-      borderTopRightRadius: 3,
+      borderBottomRightRadius: 0,
       alignSelf: "flex-end",
+      flexDirection: "row",
+      flexWrap: "wrap",
       alignItems: "flex-end",
+      justifyContent: "flex-end",
+      gap: 4,
     },
     msgReceiver: {
       backgroundColor: "#2b5278",
@@ -450,21 +465,28 @@ function createStyle(theme) {
       padding: 10,
       maxWidth: "70%",
       borderRadius: 10,
-      borderTopLeftRadius: 3,
+      borderBottomLeftRadius: 0,
       alignSelf: "flex-start",
-      alignItems: "flex-start",
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "flex-end",
+      justifyContent: "flex-end",
+      gap: 4,
     },
     listContainer: {
       flex: 1,
     },
     flatList: {
       flex: 1,
+      position: "relative",
       ...(Platform.OS === "web" && {
         scrollbarWidth: "thin",
         scrollbarColor: "#000000 transparent",
         "::-webkit-scrollbar": {
           width: 8,
           backgroundColor: "transparent",
+          position: "absolute",
+          right: 0,
         },
         "::-webkit-scrollbar-thumb": {
           backgroundColor: "#000000",
@@ -472,6 +494,8 @@ function createStyle(theme) {
         },
         "::-webkit-scrollbar-track": {
           backgroundColor: "transparent",
+          position: "absolute",
+          right: 0,
         },
       }),
     },

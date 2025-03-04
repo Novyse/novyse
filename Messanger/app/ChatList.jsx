@@ -437,7 +437,7 @@ function createStyle(theme, colorScheme) {
     largeScreenChatList: {
       flex: 0.25, //spazio che occupa la colonna delle chat
       borderRightWidth: 1,
-      borderRightColor: theme.chatListRightBorder,
+      borderRightColor: theme.chatDivider,
     },
     chatItem: {
       flexDirection: "row",
@@ -491,6 +491,8 @@ function createStyle(theme, colorScheme) {
     },
     chatHeader: {
       backgroundColor: "transparent",
+      borderBottomColor: theme.chatDivider,
+      borderBottomWidth: 1,
       padding: 10,
       flexDirection: "row",
       alignItems: "center",
