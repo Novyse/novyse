@@ -55,4 +55,8 @@ Contiene metodi di supporto alle chiamate API. Permette al codice di interfaccia
 Contiene i metodi per gestire le websocket (apertura, chiusura, invio e ricezione messaggi da esse)
 
 ## /utils/EventEmitter
+<<<<<<< HEAD
 Contiene dei metodi che permettono di aggiornare dei campi nelle varie pagine dell'applicazione quando avviene un determinato evento (ad esempio quando si riceve un messaggio aggiorna l'ultimo messaggio ricevuto da questa chat nel riquadro nella lista delle chat)
+=======
+Contiene dei metodi che permettono di aggiornare dei campi nelle varie pagine dell'applicazione quando avviene un determinato evento (ad esempio quando si riceve un messaggio aggiorna l'ultimo messaggio ricevuto da questa chat nel riquadro nella lista delle chat)
+>>>>>>> 02241ce73b39b6ca34732943404cf29c146371aa
