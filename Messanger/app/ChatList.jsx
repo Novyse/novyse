@@ -25,6 +25,7 @@ import eventEmitter from "./utils/EventEmitter";
 import NetInfo from "@react-native-community/netinfo";
 import { FloatingAction } from "react-native-floating-action";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import appJson from "../app.json"
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -299,7 +300,7 @@ const ChatList = () => {
         shadow={{ shadowColor: "transparent" }}
       />
       <Text style={{ fontSize: 12, color: "#426080", textAlign: "center"}}>
-        Versione: pre-alpha 0.0.4
+        Versione: {appJson.expo.version}
       </Text>
     </View>
   );
