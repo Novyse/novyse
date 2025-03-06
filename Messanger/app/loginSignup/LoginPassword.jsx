@@ -134,11 +134,6 @@ const LoginPassword = () => {
 
   return (
     <SafeAreaProvider>
-      <LinearGradient
-        colors={["#1B2734", "#49698C", "#7896B7"]}
-        locations={[0, 0.68, 1]}
-        style={{ flex: 1 }}
-      >
         <SafeAreaView style={styles.container}>
           <View style={styles.formContainer}>
             <Text
@@ -186,7 +181,6 @@ const LoginPassword = () => {
             )}
           </View>
         </SafeAreaView>
-      </LinearGradient>
     </SafeAreaProvider>
   );
 };
@@ -199,6 +193,7 @@ function createStyle(theme, colorScheme) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
+      backgroundColor: theme.backgroundClassic,
     },
     formContainer: {
       justifyContent: "center",

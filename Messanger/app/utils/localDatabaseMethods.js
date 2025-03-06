@@ -1,15 +1,13 @@
 import localforage from "localforage";
 import eventEmitter from "./EventEmitter";
-import * as Device from "expo-device";
+import { Platform } from 'react-native';
 
-const deviceType = Device.deviceType;
-console.log("Tipologia dispositivo:", deviceType);
-// 3 = browser
-// 1 = mobile
+const isWeb = Platform.OS === 'web';
+console.log("Platform:", Platform.OS);
 
 let SQLite = null;
 
-if (deviceType != 3) {
+if (!isWeb) {
   SQLite = require("expo-sqlite");
 }
 
@@ -20,7 +18,7 @@ class LocalDatabase {
   }
 
   async initializeDatabase() {
-    if (deviceType == 3) {
+    if (isWeb) {
       this.db = localforage.createInstance({ name: "db", storeName: "store" });
       console.log("Web DB init.");
     } else {
@@ -37,7 +35,7 @@ class LocalDatabase {
   }
 
   async createTables() {
-    if (deviceType == 3) return;
+    if (isWeb) return;
     // const tableDefs = [
     //   "localUser (user_id TEXT, apiKey TEXT PRIMARY KEY, user_email TEXT, handle TEXT, name TEXT, surname TEXT)",
     //   "chats (chat_id TEXT PRIMARY KEY, group_channel_name TEXT)",
@@ -62,7 +60,7 @@ class LocalDatabase {
   }
 
   async clearDatabase() {
-    if (deviceType == 3) {
+    if (isWeb) {
       try {
         // Clear all stores in the localForage instance
         await this.db.clear();
@@ -94,7 +92,7 @@ class LocalDatabase {
   }
 
   async getRowData(table, columns, where = "", args = []) {
-    if (deviceType == 3) {
+    if (isWeb) {
       const items = (await this.db.getItem(table)) || [];
       return (
         items.find((item) =>
@@ -126,7 +124,7 @@ class LocalDatabase {
   }
 
   async getTableData(table, columns = "*", where = "", args = [], extra = "") {
-    if (deviceType == 3) {
+    if (isWeb) {
       let items = (await this.db.getItem(table)) || [];
 
       if (where) {
@@ -148,7 +146,7 @@ class LocalDatabase {
   }
 
   async insertOrReplace(table, values) {
-    if (deviceType == 3) {
+    if (isWeb) {
       let items = (await this.db.getItem(table)) || [];
       const pk = Object.keys(values)[0];
       const index = items.findIndex((item) => item[pk] === values[pk]);
@@ -175,7 +173,7 @@ class LocalDatabase {
   }
 
   async insertOrIgnore(table, values) {
-    if (deviceType == 3) {
+    if (isWeb) {
       let items = (await this.db.getItem(table)) || [];
       const pk = Object.keys(values)[0];
       if (!items.find((item) => item[pk] === values[pk])) {
@@ -212,7 +210,7 @@ class LocalDatabase {
   }
 
   async update(table, values, where, args = []) {
-    if (deviceType == 3) {
+    if (isWeb) {
       let items = (await this.db.getItem(table)) || [];
       let updatedItem = null;
 
@@ -269,7 +267,7 @@ class LocalDatabase {
   }
 
   async checkDatabaseExistence() {
-    if (deviceType == 3) {
+    if (isWeb) {
       const keys = await this.db.keys();
       return keys.length > 0;
     } else {
@@ -314,7 +312,7 @@ class LocalDatabase {
     ]);
   }
   async fetchLastMessage(chat_id) {
-    if (deviceType == 3) {
+    if (isWeb) {
       // Per localForage, dobbiamo ordinare manualmente i messaggi
       const messages = await this.getTableData(
         "messages",
@@ -375,7 +373,7 @@ class LocalDatabase {
   }
 
   async insertMessage(message_id, chat_id, text, sender, date, hash) {
-    if (deviceType == 3) {
+    if (isWeb) {
       let items = (await this.db.getItem("messages")) || [];
       items.push({ message_id, chat_id, text, sender, date_time: date, hash });
       await this.db
@@ -412,7 +410,7 @@ class LocalDatabase {
 
     const data = { date, message_id, hash };
 
-    if (deviceType == 3) {
+    if (isWeb) {
       // Esegui un update mirato nel browser usando localForage
       const items = (await this.db.getItem("messages")) || [];
       const index = items.findIndex((item) => item.hash === hash.trim());

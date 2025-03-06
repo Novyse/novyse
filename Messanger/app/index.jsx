@@ -55,11 +55,6 @@ export default function Index() {
 
   return (
     <SafeAreaProvider>
-      <LinearGradient
-        colors={['#1B2734', '#49698C', '#7896B7']}
-        locations={[0, 0.68, 1]} // 0% (0), 68% (0.68), 100% (1)
-        style={{ flex: 1}}
-      >
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.containerStart}>
             {/* <Image
@@ -91,7 +86,6 @@ export default function Index() {
             backgroundColor={theme.backgroundClassic}
           />
         </SafeAreaView>
-      </LinearGradient>
     </SafeAreaProvider>
   );
 }
@@ -104,6 +98,7 @@ function createStyle(theme, colorScheme) {
     safeArea: {
       flex: 1,
       paddingTop: 30,
+      backgroundColor: theme.backgroundClassic,
     },
     containerStart: {
       flex: 1,
