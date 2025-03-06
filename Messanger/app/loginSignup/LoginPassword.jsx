@@ -111,6 +111,8 @@ const LoginPassword = () => {
           }
         });
 
+
+        // quando l'init avviene con successo, si passa alle chat
         eventEmitter.on("loginToChatList", async () => {
           eventEmitter.off("loginToChatList");
           console.log("LoginPassword - loginToChatList:");

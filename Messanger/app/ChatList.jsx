@@ -258,7 +258,7 @@ const ChatList = () => {
 
   const renderChatList = () => (
     <View
-      style={[styles.chatList, !isSmallScreen && styles.largeScreenChatList]}
+      style={[styles.chatList, {padding: 10, paddingTop: 0}, !isSmallScreen && styles.largeScreenChatList]}
     >
       <FlatList
         data={chats}
@@ -298,6 +298,7 @@ const ChatList = () => {
         color={theme.floatingBigButton}
         overlayColor="rgba(0, 0, 0, 0)"
         shadow={{ shadowColor: "transparent" }}
+        distanceToEdge={10}
       />
       <Text style={{ fontSize: 12, color: "#426080", textAlign: "center"}}>
         Versione: {appJson.expo.version}
@@ -312,7 +313,7 @@ const ChatList = () => {
     const chatName = user.handle || "Unknown User";
 
     return (
-      <View style={styles.chatContent}>
+      <View style={[styles.chatContent, {paddingHorizontal: isSmallScreen ? 2 : 10, paddingVertical: 10}]}>
         {!isSmallScreen ? (
           <View style={[styles.header, styles.chatHeader]}>
             <Image
@@ -432,8 +433,6 @@ function createStyle(theme, colorScheme) {
     chatList: {
       backgroundColor: theme.backgroundChatList,
       flex: 1,
-      padding: 10,
-      paddingTop: 0,
     },
     largeScreenChatList: {
       flex: 0.25, //spazio che occupa la colonna delle chat
@@ -468,7 +467,6 @@ function createStyle(theme, colorScheme) {
     },
     chatContent: {
       flex: 1, //spazio che occupa la colonna del contenuto della chat
-      padding: 10,
       backgroundColor: theme.backgroundChat,
       zIndex: 0, // Assicuriamo che il contenuto della chat sia sotto l'header
     },

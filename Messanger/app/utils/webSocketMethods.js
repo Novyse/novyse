@@ -9,29 +9,29 @@ let localUserID = "";
 let apiKey = "";
 const webSocketAddress = "wss://api.messanger.bpup.israiken.it/ws";
 let sendMessageAttempt = 0;
-let heartbeatInterval = null; // Variable to hold the heartbeat interval timer
+// let heartbeatInterval = null; // Variable to hold the heartbeat interval timer
 
-// Background task to keep websocket open
-const BACKGROUND_WEBSOCKET_TASK = "background-websocket-task";
-const BACKGROUND_FETCH_TASK_NAME = "websocket-keep-alive-fetch-task"; // Nome per BackgroundFetch task (unused in this corrected version, kept for clarity)
+// // Background task to keep websocket open
+// const BACKGROUND_WEBSOCKET_TASK = "background-websocket-task";
+// const BACKGROUND_FETCH_TASK_NAME = "websocket-keep-alive-fetch-task"; // Nome per BackgroundFetch task (unused in this corrected version, kept for clarity)
 
-TaskManager.defineTask(BACKGROUND_WEBSOCKET_TASK, async () => {
-  console.log("Websocketmethods - Background Task Executing...");
-  try {
-    // 1. Verifica lo stato della connessione WebSocket
-    if (!WebSocketMethods.isWebSocketOpen()) {
-      console.log("Websocket chiusa o non esistente nel task di background, riapro...");
-      await WebSocketMethods.openWebSocketConnection(); // Riapri la connessione
-    } else {
-      console.log("Websocket sembra aperta nel task di background, invio heartbeat...");
-      WebSocketMethods.sendHeartbeat(); // Invia messaggio heartbeat
-    }
-    return BackgroundFetch.Result.NewData; // Indica that task did something (websocket maintenance)
-  } catch (error) {
-    console.error("Errore nel task di background WebSocket:", error);
-    return BackgroundFetch.Result.Failed; // Indicate task failure
-  }
-});
+// TaskManager.defineTask(BACKGROUND_WEBSOCKET_TASK, async () => {
+//   console.log("Websocketmethods - Background Task Executing...");
+//   try {
+//     // 1. Verifica lo stato della connessione WebSocket
+//     if (!WebSocketMethods.isWebSocketOpen()) {
+//       console.log("Websocket chiusa o non esistente nel task di background, riapro...");
+//       await WebSocketMethods.openWebSocketConnection(); // Riapri la connessione
+//     } else {
+//       console.log("Websocket sembra aperta nel task di background, invio heartbeat...");
+//       WebSocketMethods.sendHeartbeat(); // Invia messaggio heartbeat
+//     }
+//     return BackgroundFetch.Result.NewData; // Indica that task did something (websocket maintenance)
+//   } catch (error) {
+//     console.error("Errore nel task di background WebSocket:", error);
+//     return BackgroundFetch.Result.Failed; // Indicate task failure
+//   }
+// });
 
 
 const WebSocketMethods = {
@@ -45,15 +45,15 @@ const WebSocketMethods = {
     return webSocketChannel && webSocketChannel.readyState === WebSocket.OPEN;
   },
 
-  sendHeartbeat: () => {
-    if (WebSocketMethods.isWebSocketOpen()) {
-      const heartbeatMessage = JSON.stringify({ type: "heartbeat", timestamp: Date.now() });
-      WebSocketMethods.webSocketSenderMessage(heartbeatMessage);
-      console.log("Heartbeat WebSocket inviato.");
-    } else {
-      console.log("Websocket non aperta, heartbeat non inviato.");
-    }
-  },
+  // sendHeartbeat: () => {
+  //   if (WebSocketMethods.isWebSocketOpen()) {
+  //     const heartbeatMessage = JSON.stringify({ type: "heartbeat", timestamp: Date.now() });
+  //     WebSocketMethods.webSocketSenderMessage(heartbeatMessage);
+  //     console.log("Heartbeat WebSocket inviato.");
+  //   } else {
+  //     console.log("Websocket non aperta, heartbeat non inviato.");
+  //   }
+  // },
 
 
   openWebSocketConnection: async () => {
@@ -81,30 +81,30 @@ const WebSocketMethods = {
         console.log("Connessione websocket aperta");
         await WebSocketMethods.webSocketReceiver();
         eventEmitter.emit("webSocketOpen");
-        console.log("Avvio Background Task WebSocket after connection open");
-        WebSocketMethods.startWebSocketBackgroundTask(); // Start background task WHEN connection opens
+        // console.log("Avvio Background Task WebSocket after connection open");
+        // WebSocketMethods.startWebSocketBackgroundTask(); // Start background task WHEN connection opens
 
         // Set up heartbeat interval on connection open
-        if (!heartbeatInterval) {
-          heartbeatInterval = setInterval(WebSocketMethods.sendHeartbeat, 30000); // Send heartbeat every 30 seconds (adjust as needed)
-          console.log("Heartbeat interval timer started.");
-        }
+        // if (!heartbeatInterval) {
+        //   heartbeatInterval = setInterval(WebSocketMethods.sendHeartbeat, 30000); // Send heartbeat every 30 seconds (adjust as needed)
+        //   console.log("Heartbeat interval timer started.");
+        // }
 
 
       };
 
       webSocketChannel.onerror = (e) => {
         console.log("WebSocket error:", e.message);
-        clearInterval(heartbeatInterval); // Clear heartbeat on error
-        heartbeatInterval = null;
+        // clearInterval(heartbeatInterval); // Clear heartbeat on error
+        // heartbeatInterval = null;
       };
 
       webSocketChannel.onclose = async () => {
         console.log("Connessione websocket chiusa");
-        clearInterval(heartbeatInterval); // Clear heartbeat on close
-        heartbeatInterval = null;
-        console.log("Riavvio Background Task WebSocket after connection close (for periodic reconnect attempts)");
-        WebSocketMethods.startWebSocketBackgroundTask(); // Restart background task on close too (keep-alive attempt)
+        // clearInterval(heartbeatInterval); // Clear heartbeat on close
+        // heartbeatInterval = null;
+        // console.log("Riavvio Background Task WebSocket after connection close (for periodic reconnect attempts)");
+        // WebSocketMethods.startWebSocketBackgroundTask(); // Restart background task on close too (keep-alive attempt)
       };
 
     } catch (error) {
@@ -155,9 +155,9 @@ const WebSocketMethods = {
               console.log("Database updateLocalUser completed"); // Log DB operation start and end
 
               if (data.chats == null) {
+                //invia un evento a loginpassword per effettuare il login
                 eventEmitter.emit("loginToChatList");
-                console.log("EventEmitter emit loginToChatList completed");
-                console.log("Websocket Init completato con successo (senza chat)");
+                console.log("Chat nell'init vuote, init completat con successo");
                 return;
               }
 
@@ -184,8 +184,9 @@ const WebSocketMethods = {
                   //console.log(`Database insertMessage for message_id ${message.message_id} in chat ${chat.chat_id} completed`);
                 }
               }
+
+              //invia un evento a loginpassword per effettuare il login
               eventEmitter.emit("loginToChatList");
-              console.log("EventEmitter emit loginToChatList completed");
               console.log("Websocket Init completato con successo");
             } else if (data.init === "False") {
               console.log("Server error during websocket init");

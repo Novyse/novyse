@@ -343,19 +343,24 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       <Pressable style={styles.iconButton}>
         <MaterialCommunityIcons name="plus" size={24} color="#fff" />
       </Pressable>
-      <TextInput
-        style={styles.bottomBarTextInput}
-        placeholder="New message"
-        placeholderTextColor="gray"
-        value={newMessageText}
-        maxLength={2000}
-        onChangeText={handleTextChanging}
-        returnKeyType="send"
-        onSubmitEditing={Platform.OS === "web" ? handleSendMessage : undefined}
-      />
-      <Pressable style={styles.iconButton}>
-        <FontAwesome6 name="face-smile" size={24} color="#fff" />
-      </Pressable>
+      <View style={styles.bottomTextBarContainer}> 
+        <TextInput
+          style={styles.bottomBarTextInput}
+          placeholder="New message"
+          placeholderTextColor="gray"
+          value={newMessageText}
+          maxLength={2000}
+          onChangeText={handleTextChanging}
+          returnKeyType="send"
+          onSubmitEditing={
+            Platform.OS === "web" ? handleSendMessage : undefined
+          }
+        />
+        <Pressable style={styles.iconButton}>
+          <FontAwesome6 name="face-smile" size={24} color="#fff" />
+        </Pressable>
+      </View>
+
       {isVoiceMessage ? (
         <Pressable onPress={handleVoiceMessage} style={styles.iconButton}>
           <MaterialCommunityIcons name="microphone" size={24} color="#fff" />
@@ -459,6 +464,7 @@ function createStyle(theme) {
       alignItems: "flex-end",
       justifyContent: "flex-end",
       gap: 4,
+      marginRight: 8,
     },
     msgReceiver: {
       backgroundColor: "#2b5278",
@@ -505,18 +511,27 @@ function createStyle(theme) {
       alignItems: "center",
       marginTop: 10,
       width: "100%",
-      marginHorizontal: "auto",
-      gap: 10,
     },
-    bottomBarTextInput: {
+    bottomTextBarContainer: {
       flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       backgroundColor: theme.backgroundChatTextInput,
       borderRadius: 15,
-      padding: 15,
+      padding: 8,
+    },
+    bottomBarTextInput: {
+      // flex: 1,
+      // backgroundColor: theme.backgroundChatTextInput,
+      // borderRadius: 15,
+      
       fontSize: 18,
+      minWidth: 20,
       color: theme.text,
       placeholderTextColor: "#bfbfbf",
       outlineStyle: "none",
+      maxHeight: 45,
     },
     iconButton: {
       backgroundColor: "transparent",
@@ -525,6 +540,7 @@ function createStyle(theme) {
       height: 35,
       justifyContent: "center",
       alignItems: "center",
+      marginHorizontal: 5,
     },
     dateSeparator: {
       alignSelf: "center",
