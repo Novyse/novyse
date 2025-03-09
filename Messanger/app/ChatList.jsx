@@ -16,6 +16,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import ChatContent from "./ChatContent";
+import VocalContent from "./VocalContent";
 import { ThemeContext } from "@/context/ThemeContext";
 import localDatabase from "./utils/localDatabaseMethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -36,16 +37,16 @@ const ChatList = () => {
   const [chatDetails, setChatDetails] = useState({});
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
-  const [isMenuVisible, setIsMenuVisible] = useState(false); // Stato per il menu a tendina
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
   const router = useRouter();
-  const params = useLocalSearchParams(); // Per i parametri URL
+  const params = useLocalSearchParams();
   const [sidebarPosition] = useState(new Animated.Value(-250));
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [networkAvailable, setNetworkAvailable] = useState(false);
+  const [contentView, setContentView] = useState("chat");
   const [chatContentPosition] = useState(
     new Animated.Value(Dimensions.get("window").width)
-  ); // Animazione per il contenuto della chat
-
+  );
   const { colorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
 
@@ -110,7 +111,6 @@ const ChatList = () => {
     Dimensions.addEventListener("change", updateScreenSize);
     updateScreenSize();
 
-    // Gestisci il chatId dall'URL per schermi grandi
     if (!isSmallScreen && params.chatId) {
       setSelectedChat(params.chatId);
     }
@@ -198,9 +198,9 @@ const ChatList = () => {
   };
 
   const handleChatPress = (chatId) => {
-    setSelectedChat(chatId); // Imposta la chat selezionata
+    setSelectedChat(chatId);
     if (!isSmallScreen) {
-      router.setParams({ chatId }); // Aggiorna l'URL solo su schermi grandi
+      router.setParams({ chatId });
     }
   };
 
@@ -233,23 +233,11 @@ const ChatList = () => {
   );
 
   const renderHeader = () => {
-    const selectedDetails = chatDetails[selectedChat] || {};
-    const user = selectedDetails.user || {};
-
     return (
       <View style={styles.header}>
-        {isSmallScreen && selectedChat ? (
-          <Pressable
-            onPress={() => setSelectedChat(null)}
-            style={styles.backButton}
-          >
-            <Icon name="arrow-back" size={24} color={theme.icon} />
-          </Pressable>
-        ) : (
-          <Pressable onPress={toggleSidebar} style={styles.menuButton}>
-            <Icon name="menu" size={24} color={theme.icon} />
-          </Pressable>
-        )}
+        <Pressable onPress={toggleSidebar} style={styles.menuButton}>
+          <Icon name="menu" size={24} color={theme.icon} />
+        </Pressable>
         <Text style={styles.headerTitle}>Chats</Text>
       </View>
     );
@@ -296,7 +284,6 @@ const ChatList = () => {
         }}
       />
       <FloatingAction
-        // actions={actions}
         onPressItem={(name) => console.log(`selected button: ${name}`)}
         color={theme.floatingBigButton}
         overlayColor="rgba(0, 0, 0, 0)"
@@ -309,75 +296,126 @@ const ChatList = () => {
     </View>
   );
 
-  const renderChatContent = () => {
+  const renderChatHeaderAndContent = () => {
     if (!selectedChat) return null;
     const selectedDetails = chatDetails[selectedChat] || {};
     const user = selectedDetails.user || {};
     const chatName = user.handle || "Unknown User";
 
-    return (
-      <View
-        style={[
-          styles.chatContent,
-          { paddingHorizontal: isSmallScreen ? 2 : 10, paddingVertical: 10 },
-        ]}
-      >
-        {!isSmallScreen ? (
-          <View style={[styles.header, styles.chatHeader]}>
-            <Image
-              source={{ uri: "https://picsum.photos/200" }}
-              style={styles.avatar}
-            />
-            <Text style={[styles.headerTitle, styles.chatHeaderTitle]}>
-              {chatName}
-            </Text>
-            {/* Icona dei tre puntini */}
+    const renderChatHeader = (
+      <View style={[styles.header, styles.chatHeader]}>
+        {isSmallScreen && (
+          <Pressable
+            onPress={() => setSelectedChat(null)}
+            style={styles.backButton}
+          >
+            <Icon name="arrow-back" size={24} color={theme.icon} />
+          </Pressable>
+        )}
+        <Image
+          source={{ uri: "https://picsum.photos/200" }}
+          style={styles.avatar}
+        />
+        <Text style={[styles.headerTitle, styles.chatHeaderTitle]}>
+          {chatName}
+        </Text>
+        <Pressable
+          style={styles.moreButton}
+          onPress={() => setIsMenuVisible(!isMenuVisible)}
+        >
+          <Icon name="more-vert" size={24} color={theme.icon} />
+        </Pressable>
+        {isMenuVisible && (
+          <View style={styles.dropdownMenu}>
             <Pressable
-              style={styles.moreButton}
-              onPress={() => setIsMenuVisible(!isMenuVisible)}
+              onPress={() => {
+                setContentView("chat");
+                setIsMenuVisible(false);
+              }}
             >
-              <Icon name="more-vert" size={24} color={theme.icon} />
+              <Text style={styles.dropdownItem}>Chat View</Text>
             </Pressable>
-            {/* Menu a tendina */}
-            {isMenuVisible && (
-              <View style={styles.dropdownMenu}>
-                <Pressable
-                  onPress={() => {
-                    console.log("Opzione 1 selezionata");
-                    setIsMenuVisible(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItem}>Opzione 1</Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    console.log("Opzione 2 selezionata");
-                    setIsMenuVisible(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItem}>Opzione 2</Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    console.log("Opzione 2 selezionata");
-                    setIsMenuVisible(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItem}>Opzione 2</Text>
-                </Pressable>
-              </View>
+            <Pressable
+              onPress={() => {
+                setContentView("vocal");
+                setIsMenuVisible(false);
+              }}
+            >
+              <Text style={styles.dropdownItem}>Vocal View</Text>
+            </Pressable>
+            {!isSmallScreen && (
+              <Pressable
+                onPress={() => {
+                  setContentView("both");
+                  setIsMenuVisible(false);
+                }}
+              >
+                <Text style={styles.dropdownItem}>Split View</Text>
+              </Pressable>
             )}
           </View>
-        ) : null}
-
-        <ChatContent
-          chatId={selectedChat}
-          userId={userId}
-          chatName={chatName}
-          onBack={() => setSelectedChat(null)} // Passa la funzione per tornare indietro
-        />
+        )}
       </View>
     );
+
+    switch (contentView) {
+      case "vocal":
+        return (
+          <View style={styles.chatContent}>
+            {renderChatHeader}
+            <VocalContent chatId={selectedChat} userId={userId} />
+          </View>
+        );
+      case "chat":
+        return (
+          <View style={styles.chatContent}>
+            {renderChatHeader}
+            <ChatContent
+              chatId={selectedChat}
+              userId={userId}
+              chatName={chatName}
+              onBack={() => setSelectedChat(null)}
+            />
+          </View>
+        );
+      case "both":
+        return (
+          <View style={styles.chatContent}>
+            {renderChatHeader}
+            <View style={{ flex: 1, flexDirection: "row" }}>
+              <View
+                style={{
+                  flex: 1,
+                  borderRightWidth: 1,
+                  borderColor: theme.chatDivider,
+                }}
+              >
+                <ChatContent
+                  chatId={selectedChat}
+                  userId={userId}
+                  chatName={chatName}
+                  onBack={() => setSelectedChat(null)}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <VocalContent chatId={selectedChat} userId={userId} />
+              </View>
+            </View>
+          </View>
+        );
+      default:
+        return (
+          <View style={styles.chatContent}>
+            {renderChatHeader}
+            <ChatContent
+              chatId={selectedChat}
+              userId={userId}
+              chatName={chatName}
+              onBack={() => setSelectedChat(null)}
+            />
+          </View>
+        );
+    }
   };
 
   return (
@@ -385,8 +423,7 @@ const ChatList = () => {
       <StatusBar style="light" backgroundColor="#1b2734" translucent={false} />
       {renderSidebar()}
       <SafeAreaView style={styles.safeArea}>
-        {renderHeader()}
-
+        {!isSmallScreen || (isSmallScreen && !selectedChat) ? renderHeader() : null}
         <View style={styles.container}>
           {isSmallScreen ? (
             <>
@@ -406,18 +443,17 @@ const ChatList = () => {
                     },
                   ]}
                 >
-                  {renderChatContent()}
+                  {renderChatHeaderAndContent()}
                 </Animated.View>
               )}
             </>
           ) : (
             <>
               {renderChatList()}
-              {renderChatContent()}
+              {renderChatHeaderAndContent()}
             </>
           )}
         </View>
-
         {!networkAvailable && (
           <Text style={styles.connectionInfoContainer}>
             Network Status: Not Connected
@@ -445,7 +481,7 @@ function createStyle(theme, colorScheme) {
       flex: 1,
     },
     largeScreenChatList: {
-      flex: 0.25, //spazio che occupa la colonna delle chat
+      flex: 0.25,
       borderRightWidth: 1,
       borderRightColor: theme.chatDivider,
     },
@@ -476,11 +512,10 @@ function createStyle(theme, colorScheme) {
       color: theme.text,
     },
     chatContent: {
-      flex: 1, //spazio che occupa la colonna del contenuto della chat
+      padding: 10,
+      flex: 1,
       backgroundColor: theme.backgroundChat,
-      zIndex: 0, // Assicuriamo che il contenuto della chat sia sotto l'header
     },
-    //Header pagina e chat
     header: {
       backgroundColor: theme.backgroundHeader,
       flexDirection: "row",
@@ -499,22 +534,23 @@ function createStyle(theme, colorScheme) {
       fontWeight: "bold",
     },
     chatHeader: {
-      backgroundColor: "transparent",
+      backgroundColor: theme.backgroundChat,
       borderBottomColor: theme.chatDivider,
       borderBottomWidth: 1,
       padding: 10,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between", // Per allineare avatar, titolo e tre puntini
-      zIndex: 10, // Sopra il contenuto della chat
+      justifyContent: "space-between",
+      width: "100%",
+      zIndex: 10,
     },
     chatHeaderTitle: {
       color: theme.text,
       fontSize: 18,
       fontWeight: "bold",
       marginLeft: 20,
-      flex: 1, // Per occupare lo spazio centrale
-      textAlign: "left", // Centra il testo
+      flex: 1,
+      textAlign: "left",
     },
     sidebar: {
       position: "absolute",
@@ -538,9 +574,6 @@ function createStyle(theme, colorScheme) {
       color: theme.text,
       marginVertical: 10,
     },
-    // closeButton: {
-    //   alignSelf: "flex-end",
-    // },
     backButton: {
       marginRight: 10,
     },
@@ -553,18 +586,18 @@ function createStyle(theme, colorScheme) {
     },
     dropdownMenu: {
       position: "absolute",
-      top: 50, // Posizionato sotto l'header della chat
-      right: 20,
+      top: 50,
+      right: 10,
       backgroundColor: "#17212b",
-      color: theme.text,
       borderRadius: 8,
       padding: 15,
-      zIndex: 11, // Sopra tutto il resto
-      elevation: 5, // Ombra per Android
-      shadowColor: "#000", // Ombra per iOS
+      zIndex: 20,
+      elevation: 5,
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.3,
       shadowRadius: 4,
+      minWidth: 150,
     },
     dropdownItem: {
       color: theme.text,
