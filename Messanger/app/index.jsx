@@ -92,9 +92,6 @@ export default function Index() {
 
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
-    linearGradient: {
-      flex: 1,
-    },
     safeArea: {
       flex: 1,
       paddingTop: 30,

@@ -25,7 +25,8 @@ import eventEmitter from "./utils/EventEmitter";
 import NetInfo from "@react-native-community/netinfo";
 import { FloatingAction } from "react-native-floating-action";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import appJson from "../app.json"
+import appJson from "../app.json";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -249,16 +250,18 @@ const ChatList = () => {
             <Icon name="menu" size={24} color={theme.icon} />
           </Pressable>
         )}
-        <Text style={styles.headerTitle}>
-          Chats
-        </Text>
+        <Text style={styles.headerTitle}>Chats</Text>
       </View>
     );
   };
 
   const renderChatList = () => (
     <View
-      style={[styles.chatList, {padding: 10, paddingTop: 0}, !isSmallScreen && styles.largeScreenChatList]}
+      style={[
+        styles.chatList,
+        { padding: 10, paddingTop: 0 },
+        !isSmallScreen && styles.largeScreenChatList,
+      ]}
     >
       <FlatList
         data={chats}
@@ -293,14 +296,14 @@ const ChatList = () => {
         }}
       />
       <FloatingAction
-        actions={actions}
+        // actions={actions}
         onPressItem={(name) => console.log(`selected button: ${name}`)}
         color={theme.floatingBigButton}
         overlayColor="rgba(0, 0, 0, 0)"
         shadow={{ shadowColor: "transparent" }}
         distanceToEdge={10}
       />
-      <Text style={{ fontSize: 12, color: "#426080", textAlign: "center"}}>
+      <Text style={{ fontSize: 12, color: "#426080", textAlign: "center" }}>
         Versione: {appJson.expo.version}
       </Text>
     </View>
@@ -313,7 +316,12 @@ const ChatList = () => {
     const chatName = user.handle || "Unknown User";
 
     return (
-      <View style={[styles.chatContent, {paddingHorizontal: isSmallScreen ? 2 : 10, paddingVertical: 10}]}>
+      <View
+        style={[
+          styles.chatContent,
+          { paddingHorizontal: isSmallScreen ? 2 : 10, paddingVertical: 10 },
+        ]}
+      >
         {!isSmallScreen ? (
           <View style={[styles.header, styles.chatHeader]}>
             <Image
@@ -373,11 +381,12 @@ const ChatList = () => {
   };
 
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="light" backgroundColor="#1b2734" translucent={false} />
       {renderSidebar()}
       <SafeAreaView style={styles.safeArea}>
         {renderHeader()}
+
         <View style={styles.container}>
           {isSmallScreen ? (
             <>
@@ -408,13 +417,14 @@ const ChatList = () => {
             </>
           )}
         </View>
+
         {!networkAvailable && (
           <Text style={styles.connectionInfoContainer}>
             Network Status: Not Connected
           </Text>
         )}
       </SafeAreaView>
-    </>
+    </SafeAreaProvider>
   );
 };
 
