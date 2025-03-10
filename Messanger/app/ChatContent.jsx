@@ -522,7 +522,7 @@ function createStyle(theme) {
       padding: 8,
     },
     bottomBarTextInput: {
-      // flex: 1,
+      flex: 1,
       // backgroundColor: theme.backgroundChatTextInput,
       // borderRadius: 15,
       

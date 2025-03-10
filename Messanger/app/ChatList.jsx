@@ -27,6 +27,7 @@ import NetInfo from "@react-native-community/netinfo";
 import { FloatingAction } from "react-native-floating-action";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import appJson from "../app.json";
+import moment from "moment";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const ChatList = () => {
@@ -204,6 +205,12 @@ const ChatList = () => {
     }
   };
 
+  const parseTime = (dateTimeMessage) => {
+    if (!dateTimeMessage) return "";
+    const timeMoment = moment(dateTimeMessage);
+    return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
+  };
+
   const renderSidebar = () => (
     <>
       {overlayVisible && (
@@ -258,6 +265,8 @@ const ChatList = () => {
           const details = chatDetails[item.chat_id] || {};
           const user = details.user || {};
           const lastMessage = details.lastMessage || {};
+          const lastMessageDate = parseTime(lastMessage.date_time);
+
 
           return (
             <Pressable
@@ -271,13 +280,27 @@ const ChatList = () => {
                 source={{ uri: "https://picsum.photos/200" }}
                 style={styles.avatar}
               />
-              <View>
-                <Text style={styles.chatTitle}>
-                  {item.group_channel_name || user.handle || "Unknown User"}
-                </Text>
-                <Text style={styles.chatSubtitle}>
-                  {lastMessage.text || "No messages yet"}
-                </Text>
+              <View style={styles.chatItemGrid}>
+                <View style={styles.gridItem}>
+                  <Text style={[styles.chatTitle, styles.gridText]} numberOfLines={1} ellipsizeMode="tail">
+                    {item.group_channel_name || user.handle || "Unknown User"}
+                  </Text>
+                </View>
+                <View style={styles.gridItem}>
+                  <Text style={[styles.chatDate, styles.gridText]} numberOfLines={1} ellipsizeMode="tail">
+                    {lastMessageDate}
+                  </Text>
+                </View>
+                <View style={styles.gridItem}>
+                  <Text style={[styles.chatSubtitle, styles.gridText]} numberOfLines={1} ellipsizeMode="tail">
+                    {lastMessage.text || "No messages yet"}
+                  </Text>
+                </View>
+                <View style={styles.gridItem}>
+                  <Text style={[styles.staticNumber, styles.gridText]}>
+                    123
+                  </Text>
+                </View>
               </View>
             </Pressable>
           );
@@ -603,6 +626,27 @@ function createStyle(theme, colorScheme) {
       color: theme.text,
       marginVertical: 8,
       fontSize: 16,
+    },
+    chatItemGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap', // Allow items to wrap to the next row
+      marginLeft: 10,
+      flex: 1,
+    },
+    gridItem: {
+      width: '50%', // Each item takes up 50% width
+      paddingRight: 10, // Add some right padding for spacing
+      marginBottom: 5, // Add bottom margin for vertical spacing
+    },
+    gridText: {
+      fontSize: 14,
+      color: theme.text,
+    },
+    chatDate: {
+      textAlign: 'right',
+    },
+    staticNumber: {
+      textAlign: 'right',
     },
   });
 }

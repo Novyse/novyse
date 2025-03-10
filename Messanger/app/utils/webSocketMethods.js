@@ -147,6 +147,7 @@ const WebSocketMethods = {
         console.log("WebSocket onmessage data:", data); // Log parsed data
 
         switch (data.type) {
+          //Dopo il login ricevo init con tutti i dati necessari di un utente
           case "init": {
             if (data.init === "True") {
               console.log("Init Successo WebSocket:", data);
@@ -194,6 +195,7 @@ const WebSocketMethods = {
             break;
           }
 
+          //Quando mando un messaggio questo metodo ritorna dal server se questo messaggio è ricevuto e ritorna delle info sul messaggio
           case "send_message": {
             if (data.send_message === "True") {
               console.log("Messaggio tornato indietro (send_message: true):", data);
@@ -209,6 +211,7 @@ const WebSocketMethods = {
             break;
           }
 
+          //Quando ricevo un messaggio da qualcuno
           case "receive_message": {
             const { message_id, chat_id, text, sender, date } = data;
             await localDatabase.insertMessage(
