@@ -167,7 +167,7 @@ const ChatList = () => {
   const fetchUser = (chatId) =>
     localDatabase.fetchUser(chatId).then((handle) => ({ handle }));
 
-  const fetchLastMessage = (chatId) =>
+  const fetchLastMessage = (chatId) => 
     localDatabase.fetchLastMessage(chatId).then((row) => ({
       text: row.text,
       date_time: row.date_time,
@@ -281,22 +281,18 @@ const ChatList = () => {
                 style={styles.avatar}
               />
               <View style={styles.chatItemGrid}>
-                <View style={styles.gridItem}>
-                  <Text style={[styles.chatTitle, styles.gridText]} numberOfLines={1} ellipsizeMode="tail">
+                <View style={styles.leftContainer}>
+                  <Text style={[styles.chatTitle, styles.gridText, {marginBottom: 5}]} numberOfLines={1} ellipsizeMode="tail">
                     {item.group_channel_name || user.handle || "Unknown User"}
                   </Text>
-                </View>
-                <View style={styles.gridItem}>
-                  <Text style={[styles.chatDate, styles.gridText]} numberOfLines={1} ellipsizeMode="tail">
-                    {lastMessageDate}
-                  </Text>
-                </View>
-                <View style={styles.gridItem}>
                   <Text style={[styles.chatSubtitle, styles.gridText]} numberOfLines={1} ellipsizeMode="tail">
                     {lastMessage.text || "No messages yet"}
                   </Text>
                 </View>
-                <View style={styles.gridItem}>
+                <View style={styles.rightContainer}>
+                  <Text style={[styles.chatDate, styles.gridText, {marginBottom: 5}]} numberOfLines={1} ellipsizeMode="tail">
+                    {lastMessageDate}
+                  </Text>
                   <Text style={[styles.staticNumber, styles.gridText]}>
                     123
                   </Text>
@@ -629,14 +625,16 @@ function createStyle(theme, colorScheme) {
     },
     chatItemGrid: {
       flexDirection: 'row',
-      flexWrap: 'wrap', // Allow items to wrap to the next row
-      marginLeft: 10,
       flex: 1,
+      justifyContent: 'space-between',
     },
-    gridItem: {
-      width: '50%', // Each item takes up 50% width
-      paddingRight: 10, // Add some right padding for spacing
-      marginBottom: 5, // Add bottom margin for vertical spacing
+    leftContainer: {
+      flex: 1,
+      flexDirection: 'column',
+    },
+    rightContainer: {
+      flexDirection: 'column',
+      alignItems: 'flex-end',
     },
     gridText: {
       fontSize: 14,

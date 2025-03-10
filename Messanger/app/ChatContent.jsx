@@ -20,12 +20,14 @@ import { ThemeContext } from "@/context/ThemeContext";
 import localDatabase from "./utils/localDatabaseMethods";
 import WebSocketMethods from "./utils/webSocketMethods";
 import moment from "moment";
-import * as Crypto from "expo-crypto";
+// import * as Crypto from "expo-crypto";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import eventEmitter from "./utils/EventEmitter";
 import { useRouter } from "expo-router";
+import 'react-native-get-random-values';
+import crypto from 'react-native-crypto';
 
 const ChatContent = ({ chatId, userId, onBack }) => {
   const { theme } = useContext(ThemeContext);
@@ -128,29 +130,27 @@ const ChatContent = ({ chatId, userId, onBack }) => {
   };
 
   //funzione per generare hash messaggio da inviare
-  const generateHash = async (message) => {
+  const generateHash = async (digest) => {
     try {
-      const saltBytes = await Crypto.getRandomBytesAsync(16);
-      const saltHex = Array.from(saltBytes)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-      const timestamp = Date.now().toString();
-      const messageBytes = new TextEncoder().encode(`${message}-${timestamp}`);
-      const messageWithSalt = new Uint8Array(
-        saltBytes.length + messageBytes.length
-      );
-      messageWithSalt.set(saltBytes);
-      messageWithSalt.set(messageBytes, saltBytes.length);
-      const hashBytes = await Crypto.digest(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        messageWithSalt
-      );
-      const hash = Array.from(new Uint8Array(hashBytes))
-        .map((byte) => byte.toString(16).padStart(2, "0"))
-        .join("");
-      return { hash, saltHex };
+      const saltBytes = crypto.randomBytes(16);
+      const saltHex = saltBytes.toString('hex');
+  
+      // Convert the digest to a Buffer
+      const digestBytes = Buffer.from(digest, 'utf-8');
+  
+      // Concatenate the salt and digest
+      const saltedDigest = Buffer.concat([saltBytes, digestBytes]);
+  
+      // Create a SHA-256 hash
+      const hash = crypto.createHash('sha256');
+  
+      // Update the hash with the salted digest
+      hash.update(saltedDigest);
+      const hashHex = hash.digest('hex');
+  
+      return { hashHex, salt: saltHex };
     } catch (error) {
-      console.error("Error in hash generation:", error);
+      console.error('Error in hash generation:', error);
       throw error;
     }
   };
@@ -162,13 +162,13 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     }
 
     try {
-      const { hash, saltHex } = await generateHash(newMessageText);
+      const { saltHex, hash } = await generateHash(newMessageText);
 
       const newMessage = {
         message_id: hash, // Usa l'hash come message_id
         sender: userId,
         text: newMessageText,
-        date_time: new Date().toISOString(),
+        date_time: "",
         hash, // Salva l'hash nel messaggio
       };
 
@@ -192,14 +192,11 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       };
       eventEmitter.emit("updateNewLastMessage", data);
 
-      WebSocketMethods.webSocketSenderMessage(
-        JSON.stringify({
-          type: "send_message",
-          text: newMessageText,
-          chat_id: chatId,
-          salt: saltHex,
-        })
-      );
+      WebSocketMethods.sendNewMessage({
+        text: newMessageText,
+        chat_id: chatId,
+        salt: saltHex,
+      });
       console.log("Messaggio inviato via WebSocket");
 
       setMessages((currentMessages) => [newMessage, ...currentMessages]);
@@ -343,7 +340,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       <Pressable style={styles.iconButton}>
         <MaterialCommunityIcons name="plus" size={24} color="#fff" />
       </Pressable>
-      <View style={styles.bottomTextBarContainer}> 
+      <View style={styles.bottomTextBarContainer}>
         <TextInput
           style={styles.bottomBarTextInput}
           placeholder="New message"
@@ -525,7 +522,7 @@ function createStyle(theme) {
       flex: 1,
       // backgroundColor: theme.backgroundChatTextInput,
       // borderRadius: 15,
-      
+
       fontSize: 18,
       minWidth: 20,
       color: theme.text,

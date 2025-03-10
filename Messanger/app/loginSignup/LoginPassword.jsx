@@ -8,6 +8,7 @@ import {
   Pressable,
   BackHandler,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -103,14 +104,11 @@ const LoginPassword = () => {
 
         eventEmitter.on("webSocketOpen", async () => {
           if (apiKey != null) {
-            await WebSocketMethods.webSocketSenderMessage(
-              `{"type":"init","apiKey":"${apiKey}"}`
-            );
+            await WebSocketMethods.init();
           } else {
             console.log("LoginPassword - Apikey nulla");
           }
         });
-
 
         // quando l'init avviene con successo, si passa alle chat
         eventEmitter.on("loginToChatList", async () => {
@@ -136,53 +134,56 @@ const LoginPassword = () => {
 
   return (
     <SafeAreaProvider>
-        <SafeAreaView style={styles.container}>
-          <View style={styles.formContainer}>
-            <Text
-              style={{
-                color: theme.text,
-                fontSize: 56,
-                marginBottom: 20,
-                fontWeight: 700,
-                top: -176,
-              }}
+      <SafeAreaView style={styles.container}>
+        <View style={styles.formContainer}>
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 56,
+              marginBottom: 20,
+              fontWeight: 700,
+              top: -176,
+            }}
+          >
+            {emailValue}
+          </Text>
+          {/* <Text style={styles.email}>{emailValue}</Text> */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={[styles.input, error ? styles.inputError : null]}
+              placeholder="Enter your password"
+              placeholderTextColor="#ccc"
+              secureTextEntry={secureTextEntry}
+              value={password}
+              onChangeText={setPassword}
+              onSubmitEditing={
+                Platform.OS === "web" ? handleLogin : undefined
+              }
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={toggleSecureEntry}
             >
-              {emailValue}
-            </Text>
-            {/* <Text style={styles.email}>{emailValue}</Text> */}
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={[styles.input, error ? styles.inputError : null]}
-                placeholder="Enter your password"
-                placeholderTextColor="#ccc"
-                secureTextEntry={secureTextEntry}
-                value={password}
-                onChangeText={setPassword}
+              <MaterialCommunityIcons
+                name={secureTextEntry ? "eye-outline" : "eye-off-outline"}
+                size={24}
+                color="white"
               />
-              <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={toggleSecureEntry}
-              >
-                <MaterialCommunityIcons
-                  name={secureTextEntry ? "eye-outline" : "eye-off-outline"}
-                  size={24}
-                  color="white"
-                />
-              </TouchableOpacity>
-            </View>
-            {error && <Text style={styles.errorText}>{error}</Text>}
-            <Pressable
-              style={styles.containerButton}
-              onPress={handleLogin}
-              disabled={isLoading}
-            >
-              <Text style={styles.containerButtonText}>Invia</Text>
-            </Pressable>
-            {isLoading && (
-              <ActivityIndicator style={styles.loader} size="small" />
-            )}
+            </TouchableOpacity>
           </View>
-        </SafeAreaView>
+          {error && <Text style={styles.errorText}>{error}</Text>}
+          <Pressable
+            style={styles.containerButton}
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            <Text style={styles.containerButtonText}>Invia</Text>
+          </Pressable>
+          {isLoading && (
+            <ActivityIndicator style={styles.loader} size="small" />
+          )}
+        </View>
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 };

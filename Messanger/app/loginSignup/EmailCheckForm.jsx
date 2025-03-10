@@ -6,6 +6,7 @@ import {
   Text,
   Pressable,
   BackHandler,
+  Platform,
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import JsonParser from "../utils/JsonParser";
@@ -84,37 +85,37 @@ const EmailCheckForm = () => {
 
   return (
     <SafeAreaProvider>
-        <SafeAreaView style={styles.container}>
-          <View style={styles.formContainer}>
-            <Text
-              style={{
-                color: theme.text,
-                fontSize: 56,
-                marginBottom: 20,
-                fontWeight: 700,
-                top: -176,
-              }}
-            >
-              EMAIL
-            </Text>
-            <TextInput
-              style={[styles.input, error ? styles.inputError : null]}
-              placeholder="Email"
-              placeholderTextColor="#ccc"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            {error && <Text style={styles.errorText}>{error}</Text>}
-            <Pressable
-              style={styles.containerStartButton}
-              onPress={handleSubmit}
-            >
-              <Text style={styles.containerStartButtonText}>Invia</Text>
-            </Pressable>
-          </View>
-        </SafeAreaView>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.formContainer}>
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 56,
+              marginBottom: 20,
+              fontWeight: 700,
+              top: -176,
+            }}
+          >
+            EMAIL
+          </Text>
+          <TextInput
+            style={[styles.input, error ? styles.inputError : null]}
+            placeholder="Email"
+            placeholderTextColor="#ccc"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            onSubmitEditing={
+              Platform.OS === "web" ? handleSubmit : undefined
+            }
+          />
+          {error && <Text style={styles.errorText}>{error}</Text>}
+          <Pressable style={styles.containerStartButton} onPress={handleSubmit}>
+            <Text style={styles.containerStartButtonText}>Invia</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 };
