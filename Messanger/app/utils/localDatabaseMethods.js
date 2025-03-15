@@ -329,8 +329,11 @@ class LocalDatabase {
       const lastMessage = sortedMessages[0];
 
       // non funzionava
-      // const data = { lastMessage, chat_id };
-      // eventEmitter.emit("updateNewLastMessage", data);
+      const chatid = lastMessage.chat_id;
+      const text = lastMessage.text;
+      const date = lastMessage.date_time;
+      const data = { chatid, text, date};
+      eventEmitter.emit("updateNewLastMessage", data);
       // console.log("Patatine al limone 🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶")
 
       return sortedMessages.length > 0 ? lastMessage : null;
@@ -432,34 +435,9 @@ class LocalDatabase {
         `,
         [date, message_id, hash]
       );
-
-      // Esegui un update mirato su SQLite
-      // await new Promise((resolve, reject) => {
-      //   this.db.transaction((tx) => {
-      //     tx.executeSql(
-      //       `UPDATE messages SET date_time = ?, message_id = ? WHERE hash = ?`,
-      //       [date, message_id, hash],
-      //       (_, result) => {
-      //         if (result.rowsAffected > 0) {
-      //           console.log(
-      //             "Message successfully updated in SQLite with hash:",
-      //             hash
-      //           );
-      //           resolve();
-      //         } else {
-      //           console.log("No message found with the specified hash.");
-      //           resolve();
-      //         }
-      //       },
-      //       (_, error) => {
-      //         console.error("Error during update:", error);
-      //         reject(error);
-      //       }
-      //     );
-      //   });
-      // });
     }
     eventEmitter.emit("updateMessage", data);
+
   }
 
   async insertUsers(handle) {

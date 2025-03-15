@@ -118,7 +118,6 @@ const WebSocketMethods = {
         const { email, handle, name, surname } = data.localUser;
         await localDatabase.updateLocalUser(email, handle, name, surname);
         const localUserHandle = await localDatabase.fetchLocalUserHandle();
-        console.log("⭐⭐⭐⭐⭐", localUserHandle);
         console.log("Database updateLocalUser completed");
 
         if (data.chats == null) {
@@ -171,12 +170,18 @@ const WebSocketMethods = {
       if (data.send_message) {
         console.log("Messaggio tornato indietro (send_message: true):", data);
         localDatabase.updateSendMessage(data.date, data.message_id, data.hash);
-        console.log("⭐⭐⭐⭐⭐",data.date);
-        console.log("⭐⭐⭐⭐⭐",data.message_id);
-        console.log("⭐⭐⭐⭐⭐",data.hash);
         console.log(
           `Database updateSendMessage for message_id ${data.message_id} completed`
         );
+
+        lastMessageData = {
+          chat_id: data.chat_id,
+          text: null,
+          date: data.date
+        }
+        
+        eventEmitter.emit("updateNewLastMessage", lastMessageData);
+        console.log("💎💎💎🟡", lastMessageData);
       } else {
         console.log("Messaggio tornato indietro (send_message: false):", data);
       }

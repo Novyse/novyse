@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import ChatContent from "./ChatContent";
 import VocalContent from "./VocalContent";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -120,21 +121,22 @@ const ChatList = () => {
   useEffect(() => {
     const handleNewMessageSent = (data) => {
       const { chat_id, text, date } = data;
+      console.log("💎💎💎", data);
       setChatDetails((current) => ({
         ...current,
         [chat_id]: {
           ...current[chat_id],
           lastMessage: {
             ...current[chat_id]?.lastMessage,
-            text: text,
+            text: text !== null ? text : current[chat_id]?.lastMessage?.text, // Mantieni il vecchio text se il nuovo è null
             date_time: date,
           },
         },
       }));
     };
-
+  
     eventEmitter.on("updateNewLastMessage", handleNewMessageSent);
-
+  
     return () => {
       eventEmitter.off("updateNewLastMessage", handleNewMessageSent);
     };
@@ -291,7 +293,15 @@ const ChatList = () => {
                 </View>
                 <View style={styles.rightContainer}>
                   <Text style={[styles.chatDate, styles.gridText, {marginBottom: 5}]} numberOfLines={1} ellipsizeMode="tail">
-                    {lastMessageDate}
+                    {lastMessageDate === "" ? (
+                    <MaterialIcons
+                      name="access-time"
+                      size={14}
+                      color="#ffffff"
+                    />
+                  ) : (
+                    lastMessageDate
+                  )}
                   </Text>
                   <Text style={[styles.staticNumber, styles.gridText]}>
                     123

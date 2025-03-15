@@ -26,7 +26,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import eventEmitter from "./utils/EventEmitter";
 import { useRouter } from "expo-router";
-import 'react-native-get-random-values';
+import "react-native-get-random-values";
 
 const ChatContent = ({ chatId, userId, onBack }) => {
   const { theme } = useContext(ThemeContext);
@@ -92,16 +92,38 @@ const ChatContent = ({ chatId, userId, onBack }) => {
   }, [chatId]);
 
   useEffect(() => {
-    const handleUpdateMessage = eventEmitter.on("updateMessage", (data) => {
-      setMessages((currentMessages) =>
-        currentMessages.map((item) => {
-          if (item.message_id === data.message_id) {
-            return { ...item, date_time: data.date };
-          }
-          return item;
-        })
-      );
-    });
+    const handleUpdateMessage = (data) => {
+      setMessages((currentMessages) => {
+        const messageExists = currentMessages.some(
+          (item) =>
+            item.message_id === data.message_id || item.hash === data.hash
+        );
+        if (messageExists) {
+          // Aggiorna il messaggio esistente
+          return currentMessages.map((item) => {
+            if (
+              item.message_id === data.message_id ||
+              item.hash === data.hash
+            ) {
+              return { ...item, date_time: data.date };
+            }
+            return item;
+          });
+        } else {
+          // Aggiungi il messaggio se non esiste
+          const newMessage = {
+            message_id: data.message_id || data.hash,
+            sender: data.sender || "unknown", // Aggiungi sender se disponibile
+            text: data.text || "", // Aggiungi text se disponibile
+            date_time: data.date,
+            hash: data.hash,
+          };
+          return [newMessage, ...currentMessages];
+        }
+      });
+    };
+
+    eventEmitter.on("updateMessage", handleUpdateMessage);
 
     const backAction = () => {
       if (onBack) {
@@ -128,7 +150,6 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
 
-  
   //funzione per generare hash messaggio da inviare
   const generateHash = async (message) => {
     try {
@@ -151,7 +172,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         .join("");
       return { hash, saltHex };
     } catch (error) {
-      console.error('Error in hash generation:', error);
+      console.error("Error in hash generation:", error);
       throw error;
     }
   };
@@ -185,11 +206,10 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       );
       console.log("Messaggio salvato nel database locale");
 
-      const newMessageDate = newMessage.date_time;
       const data = {
         chat_id: chatId,
         text: newMessageText,
-        date: newMessageDate,
+        date: newMessage.date_time,
       };
       eventEmitter.emit("updateNewLastMessage", data);
 
