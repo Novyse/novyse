@@ -181,7 +181,6 @@ const WebSocketMethods = {
         }
         
         eventEmitter.emit("updateNewLastMessage", lastMessageData);
-        console.log("💎💎💎🟡", lastMessageData);
       } else {
         console.log("Messaggio tornato indietro (send_message: false):", data);
       }

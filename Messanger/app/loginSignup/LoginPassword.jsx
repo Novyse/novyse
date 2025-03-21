@@ -18,7 +18,7 @@ import JsonParser from "../utils/JsonParser";
 import localDatabase from "../utils/localDatabaseMethods";
 import WebSocketMethods from "../utils/webSocketMethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LinearGradient } from "expo-linear-gradient";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 const LoginPassword = () => {
@@ -151,22 +151,20 @@ const LoginPassword = () => {
           <View style={styles.inputContainer}>
             <TextInput
               style={[styles.input, error ? styles.inputError : null]}
-              placeholder="Enter your password"
+              placeholder="Password"
               placeholderTextColor="#ccc"
               secureTextEntry={secureTextEntry}
               value={password}
               onChangeText={setPassword}
-              onSubmitEditing={
-                Platform.OS === "web" ? handleLogin : undefined
-              }
+              onSubmitEditing={Platform.OS === "web" ? handleLogin : undefined}
             />
             <TouchableOpacity
               style={styles.eyeIcon}
               onPress={toggleSecureEntry}
             >
-              <MaterialCommunityIcons
-                name={secureTextEntry ? "eye-outline" : "eye-off-outline"}
-                size={24}
+              <AntDesign
+                name={secureTextEntry ? "eyeo" : "eye"}
+                size={17}
                 color="white"
               />
             </TouchableOpacity>
@@ -215,17 +213,16 @@ function createStyle(theme, colorScheme) {
     inputContainer: {
       flexDirection: "row",
       alignItems: "center",
-      borderBottomWidth: 1,
-      borderBottomColor: "white",
+      borderWidth: 1,
+      borderColor: "white",
+      borderRadius: 12,
+      padding: 10,
       marginBottom: 16,
       // width: 250,
     },
     input: {
       outlineStyle: "none",
-      flex: 1,
       color: "white",
-      paddingHorizontal: 8,
-      paddingVertical: 4,
       pointerEvents: "auto",
       width: 250,
     },
@@ -250,7 +247,8 @@ function createStyle(theme, colorScheme) {
     //   marginTop: 10,
     // },
     eyeIcon: {
-      // padding: 10,
+      padding: 0,
+      margin: 0,
       outlineStyle: "none",
     },
   });

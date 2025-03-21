@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import {
   View,
   Text,
@@ -51,6 +51,7 @@ const ChatList = () => {
   );
   const { colorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
+  const mainViewRef = useRef(null);
 
   const actions = [
     {
@@ -121,7 +122,6 @@ const ChatList = () => {
   useEffect(() => {
     const handleNewMessageSent = (data) => {
       const { chat_id, text, date } = data;
-      console.log("💎💎💎", data);
       setChatDetails((current) => ({
         ...current,
         [chat_id]: {
@@ -134,9 +134,9 @@ const ChatList = () => {
         },
       }));
     };
-  
+
     eventEmitter.on("updateNewLastMessage", handleNewMessageSent);
-  
+
     return () => {
       eventEmitter.off("updateNewLastMessage", handleNewMessageSent);
     };
@@ -169,7 +169,7 @@ const ChatList = () => {
   const fetchUser = (chatId) =>
     localDatabase.fetchUser(chatId).then((handle) => ({ handle }));
 
-  const fetchLastMessage = (chatId) => 
+  const fetchLastMessage = (chatId) =>
     localDatabase.fetchLastMessage(chatId).then((row) => ({
       text: row.text,
       date_time: row.date_time,
@@ -224,19 +224,52 @@ const ChatList = () => {
           { transform: [{ translateX: sidebarPosition }] },
         ]}
       >
-        <Pressable onPress={toggleSidebar} style={styles.closeButton}>
-          <Icon name="close" size={24} color="#fff" />
-        </Pressable>
-        <Text style={styles.sidebarText}>Menu Item 1</Text>
-        <Pressable
-          onPress={() => {
-            localDatabase.clearDatabase();
-            AsyncStorage.setItem("isLoggedIn", "false");
-            logout();
-          }}
-        >
-          <Text style={styles.sidebarText}>Logout</Text>
-        </Pressable>
+        {/* User Profile Section */}
+        <View style={styles.profileContainer}>
+          <View style={styles.avatar} />
+          <View style={styles.profileTextContainer}>
+            <Text style={styles.profileName}>Nome Cognome</Text>
+            <Text style={styles.profilePhone}>+39 1234567890</Text>
+          </View>
+        </View>
+
+        {/* Menu Items */}
+        <View style={styles.menuContainer}>
+          {/* Menu Item 1: Profile */}
+          <Pressable style={styles.menuItem}>
+            <AntDesign
+              name="user"
+              size={24}
+              color="white"
+              style={styles.menuIcon}
+            />
+            <Text style={styles.sidebarText}>Profile</Text>
+          </Pressable>
+
+          {/* Menu Item 2: Settings */}
+          <Pressable style={styles.menuItem}>
+            <MaterialIcons
+              name="settings"
+              size={24}
+              color="white"
+              style={styles.menuIcon}
+            />
+            <Text style={styles.sidebarText}>Settings</Text>
+          </Pressable>
+
+          {/* Logout Button */}
+          <Pressable
+            style={styles.menuItem}
+            onPress={() => {
+              localDatabase.clearDatabase();
+              AsyncStorage.setItem("isLoggedIn", "false");
+              logout();
+            }}
+          >
+            <MaterialIcons name="logout" size={24} color="white" style={styles.menuIcon} />
+            <Text style={styles.sidebarText}>Logout qua temp</Text>
+          </Pressable>
+        </View>
       </Animated.View>
     </>
   );
@@ -269,7 +302,6 @@ const ChatList = () => {
           const lastMessage = details.lastMessage || {};
           const lastMessageDate = parseTime(lastMessage.date_time);
 
-
           return (
             <Pressable
               style={[
@@ -284,24 +316,44 @@ const ChatList = () => {
               />
               <View style={styles.chatItemGrid}>
                 <View style={styles.leftContainer}>
-                  <Text style={[styles.chatTitle, styles.gridText, {marginBottom: 5}]} numberOfLines={1} ellipsizeMode="tail">
+                  <Text
+                    style={[
+                      styles.chatTitle,
+                      styles.gridText,
+                      { marginBottom: 5 },
+                    ]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     {item.group_channel_name || user.handle || "Unknown User"}
                   </Text>
-                  <Text style={[styles.chatSubtitle, styles.gridText]} numberOfLines={1} ellipsizeMode="tail">
+                  <Text
+                    style={[styles.chatSubtitle, styles.gridText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     {lastMessage.text || "No messages yet"}
                   </Text>
                 </View>
                 <View style={styles.rightContainer}>
-                  <Text style={[styles.chatDate, styles.gridText, {marginBottom: 5}]} numberOfLines={1} ellipsizeMode="tail">
+                  <Text
+                    style={[
+                      styles.chatDate,
+                      styles.gridText,
+                      { marginBottom: 5 },
+                    ]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     {lastMessageDate === "" ? (
-                    <MaterialIcons
-                      name="access-time"
-                      size={14}
-                      color="#ffffff"
-                    />
-                  ) : (
-                    lastMessageDate
-                  )}
+                      <MaterialIcons
+                        name="access-time"
+                        size={14}
+                        color="#ffffff"
+                      />
+                    ) : (
+                      lastMessageDate
+                    )}
                   </Text>
                   <Text style={[styles.staticNumber, styles.gridText]}>
                     123
@@ -313,6 +365,7 @@ const ChatList = () => {
         }}
       />
       <FloatingAction
+        actions={actions}
         onPressItem={(name) => console.log(`selected button: ${name}`)}
         color={theme.floatingBigButton}
         overlayColor="rgba(0, 0, 0, 0)"
@@ -452,8 +505,10 @@ const ChatList = () => {
       <StatusBar style="light" backgroundColor="#1b2734" translucent={false} />
       {renderSidebar()}
       <SafeAreaView style={styles.safeArea}>
-        {!isSmallScreen || (isSmallScreen && !selectedChat) ? renderHeader() : null}
-        <View style={styles.container}>
+        {!isSmallScreen || (isSmallScreen && !selectedChat)
+          ? renderHeader()
+          : null}
+        <View style={styles.container} ref={mainViewRef}>
           {isSmallScreen ? (
             <>
               <View style={styles.chatList}>{renderChatList()}</View>
@@ -500,10 +555,12 @@ function createStyle(theme, colorScheme) {
     safeArea: {
       backgroundColor: theme.backgroundClassic,
       flex: 1,
+      overflow: "hidden", // Important: Add this to the SafeAreaView
     },
     container: {
       flex: 1,
       flexDirection: "row",
+      overflow: "hidden", // Important: Add this to the container
     },
     chatList: {
       backgroundColor: theme.backgroundChatList,
@@ -541,7 +598,7 @@ function createStyle(theme, colorScheme) {
       color: theme.text,
     },
     chatContent: {
-      padding: 10,
+      padding: 0,
       flex: 1,
       backgroundColor: theme.backgroundChat,
     },
@@ -581,28 +638,7 @@ function createStyle(theme, colorScheme) {
       flex: 1,
       textAlign: "left",
     },
-    sidebar: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      bottom: 0,
-      width: 250,
-      backgroundColor: "#333",
-      zIndex: 2,
-      padding: 10,
-    },
-    overlay: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 1,
-    },
-    sidebarText: {
-      color: theme.text,
-      marginVertical: 10,
-    },
+
     backButton: {
       marginRight: 10,
     },
@@ -634,27 +670,90 @@ function createStyle(theme, colorScheme) {
       fontSize: 16,
     },
     chatItemGrid: {
-      flexDirection: 'row',
+      flexDirection: "row",
       flex: 1,
-      justifyContent: 'space-between',
+      justifyContent: "space-between",
     },
     leftContainer: {
       flex: 1,
-      flexDirection: 'column',
+      flexDirection: "column",
     },
     rightContainer: {
-      flexDirection: 'column',
-      alignItems: 'flex-end',
+      flexDirection: "column",
+      alignItems: "flex-end",
     },
     gridText: {
       fontSize: 14,
       color: theme.text,
     },
     chatDate: {
-      textAlign: 'right',
+      textAlign: "right",
     },
     staticNumber: {
-      textAlign: 'right',
+      textAlign: "right",
+    },
+
+    // sidebar
+
+    sidebar: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      bottom: 0,
+      width: 250,
+      backgroundColor: "#405770", // Dark blue/gray color from the image
+      zIndex: 2,
+      padding: 20,
+      borderTopRightRadius: 15,
+    },
+    overlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 1,
+    },
+    profileContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 30,
+    },
+    avatar: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: "#ccc", // Placeholder for the avatar (gray circle)
+      marginRight: 15,
+    },
+    profileTextContainer: {
+      flexDirection: "column",
+    },
+    profileName: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    profilePhone: {
+      color: "#ccc",
+      fontSize: 14,
+    },
+    menuContainer: {
+      flex: 1,
+    },
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: "rgba(255, 255, 255, 0.1)", // Subtle divider
+    },
+    menuIcon: {
+      marginRight: 15,
+    },
+    sidebarText: {
+      color: "#fff",
+      fontSize: 16,
     },
   });
 }

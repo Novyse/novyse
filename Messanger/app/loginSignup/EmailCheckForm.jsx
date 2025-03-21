@@ -137,12 +137,12 @@ function createStyle(theme, colorScheme) {
     input: {
       outlineStyle: "none",
       width: 250,
-      borderBottomWidth: 1,
-      borderBottomColor: "white",
+      borderWidth: 1,
+      borderColor: "white",
+      borderRadius: 12,
+      padding: 10,
       color: "white",
       marginBottom: 16,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
       pointerEvents: "auto",
     },
     inputError: {

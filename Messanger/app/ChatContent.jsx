@@ -497,6 +497,7 @@ function createStyle(theme) {
       alignItems: "flex-end",
       justifyContent: "flex-end",
       gap: 4,
+      marginLeft: 8,
     },
     listContainer: {
       flex: 1,
@@ -529,6 +530,7 @@ function createStyle(theme) {
       alignItems: "center",
       marginTop: 10,
       width: "100%",
+      paddingBottom: 10,
     },
     bottomTextBarContainer: {
       flex: 1,
