@@ -45,10 +45,10 @@ class LocalDatabase {
     // ];
     await this.db.execAsync(`
       PRAGMA journal_mode = WAL;
-      CREATE TABLE IF NOT EXISTS localUser (user_id TEXT, apiKey TEXT PRIMARY KEY, user_email TEXT, handle TEXT, name TEXT, surname TEXT);
+      CREATE TABLE IF NOT EXISTS localUser (user_id TEXT PRIMARY KEY, user_email TEXT, handle TEXT, name TEXT, surname TEXT);
       CREATE TABLE IF NOT EXISTS chats (chat_id TEXT PRIMARY KEY, group_channel_name TEXT);
       CREATE TABLE IF NOT EXISTS users (handle TEXT PRIMARY KEY);
-      CREATE TABLE IF NOT EXISTS messages (message_id TEXT, chat_id TEXT, sender TEXT, text TEXT, date_time TEXT, hash TEXT);
+      CREATE TABLE IF NOT EXISTS messages (message_id TEXT, chat_id TEXT, sender TEXT, text TEXT, date_time TEXT);
       CREATE TABLE IF NOT EXISTS chat_users (chat_id TEXT, handle TEXT, PRIMARY KEY (chat_id, handle), FOREIGN KEY (chat_id) REFERENCES chats(chat_id), FOREIGN KEY (handle) REFERENCES users(handle));
     `);
 
@@ -359,52 +359,36 @@ class LocalDatabase {
     return this.getTableData("messages", "*", "chat_id = ?", [chat_id]);
   }
 
-  async insertLocalUser(user_id, apiKey) {
-    await this.insertOrReplace("localUser", { user_id, apiKey });
+  async insertLocalUser(user_id, user_email, handle, name, surname) {
+    await this.insertOrReplace("localUser", { user_id, user_email, handle, name, surname});
   }
 
-  async updateLocalUser(user_email, handle, name, surname) {
-    await this.update(
-      "localUser",
-      { user_email, handle, name, surname },
-      "1 = 1"
-    );
-  }
+  // async updateLocalUser(user_email, handle, name, surname) {
+  //   await this.update(
+  //     "localUser",
+  //     { user_email, handle, name, surname },
+  //     "1 = 1"
+  //   );
+  // }
 
   async insertChat(chat_id, group_channel_name) {
     await this.insertOrReplace("chats", { chat_id, group_channel_name });
   }
 
-  async insertMessage(message_id, chat_id, text, sender, date, hash) {
+  async insertMessage(message_id, chat_id, text, sender, date) {
     if (isWeb) {
       let items = (await this.db.getItem("messages")) || [];
-      items.push({ message_id, chat_id, text, sender, date_time: date, hash });
+      items.push({ message_id, chat_id, text, sender, date_time: date});
       await this.db
         .setItem("messages", items)
         .catch((e) => console.error("Error inserting in localStorage:", e));
     } else {
       await this.db.runAsync(
         `
-        INSERT INTO messages (message_id, chat_id, text, sender, date_time, hash) VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO messages (message_id, chat_id, text, sender, date_time) VALUES (?, ?, ?, ?, ?)
       `,
-        [message_id, chat_id, text, sender, date, hash]
+        [message_id, chat_id, text, sender, date]
       );
-      // await new Promise((resolve, reject) => {
-      //   this.db.transaction((tx) => {
-      //     tx.executeSql(
-      //       "INSERT INTO messages (message_id, chat_id, text, sender, date_time, hash) VALUES (?, ?, ?, ?, ?, ?)",
-      //       [message_id, chat_id, text, sender, date, hash],
-      //       (_, result) => {
-      //         console.log("Insert successful:", result);
-      //         resolve();
-      //       },
-      //       (_, error) => {
-      //         console.error("Error inserting into database:", error);
-      //         reject(error);
-      //       }
-      //     );
-      //   });
-      // }).catch((e) => console.error("Transaction error:", e));
     }
   }
 

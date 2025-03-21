@@ -20,13 +20,13 @@ import { ThemeContext } from "@/context/ThemeContext";
 import localDatabase from "./utils/localDatabaseMethods";
 import WebSocketMethods from "./utils/webSocketMethods";
 import moment from "moment";
-import * as Crypto from "expo-crypto";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import eventEmitter from "./utils/EventEmitter";
 import { useRouter } from "expo-router";
 import "react-native-get-random-values";
+import JsonParser from "./utils/JsonParser";
 
 const ChatContent = ({ chatId, userId, onBack }) => {
   const { theme } = useContext(ThemeContext);
@@ -150,33 +150,6 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
 
-  //funzione per generare hash messaggio da inviare
-  const generateHash = async (message) => {
-    try {
-      const saltBytes = await Crypto.getRandomBytesAsync(16);
-      const saltHex = Array.from(saltBytes)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-      const messageBytes = new TextEncoder().encode(`${message}`);
-      const messageWithSalt = new Uint8Array(
-        saltBytes.length + messageBytes.length
-      );
-      messageWithSalt.set(saltBytes);
-      messageWithSalt.set(messageBytes, saltBytes.length);
-      const hashBytes = await Crypto.digest(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        messageWithSalt
-      );
-      const hash = Array.from(new Uint8Array(hashBytes))
-        .map((byte) => byte.toString(16).padStart(2, "0"))
-        .join("");
-      return { hash, saltHex };
-    } catch (error) {
-      console.error("Error in hash generation:", error);
-      throw error;
-    }
-  };
-
   const handleSendMessage = async () => {
     if (!newMessageText.trim()) {
       console.warn("Empty message, not sending");
@@ -184,27 +157,37 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     }
 
     try {
-      const { hash, saltHex } = await generateHash(newMessageText);
+      //genero numero casuale di 8 cifre
+      const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
+
+      const randomNumberPlusDate = Date.now() + randomNumber;
 
       const newMessage = {
-        message_id: hash, // Usa l'hash come message_id
+        message_id: randomNumberPlusDate,
         sender: userId,
         text: newMessageText,
         date_time: "",
-        hash, // Salva l'hash nel messaggio
       };
 
       console.log("Tentativo di salvare e inviare messaggio:", newMessage);
 
-      await localDatabase.insertMessage(
-        "",
+      const responseNewMessage = JsonParser.sendMessageJson(
         chatId,
-        newMessageText,
-        userId,
-        newMessage.date_time,
-        hash
+        newMessageText
       );
-      console.log("Messaggio salvato nel database locale");
+
+      if (responseNewMessage) {
+        await localDatabase.insertMessage(
+          randomNumberPlusDate,
+          chatId,
+          newMessageText,
+          userId,
+          newMessage.date_time
+        );
+        console.log("Messaggio salvato nel database locale");
+      } else {
+        console.log("Errore nell'invio del messaggio");
+      }
 
       const data = {
         chat_id: chatId,
@@ -212,13 +195,6 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         date: newMessage.date_time,
       };
       eventEmitter.emit("updateNewLastMessage", data);
-
-      WebSocketMethods.sendNewMessage({
-        text: newMessageText,
-        chat_id: chatId,
-        salt: saltHex,
-      });
-      console.log("Messaggio inviato via WebSocket");
 
       setMessages((currentMessages) => [newMessage, ...currentMessages]);
       setNewMessageText("");

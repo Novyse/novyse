@@ -72,13 +72,16 @@ const LoginPassword = () => {
 
     setIsLoading(true);
     try {
-      const apiKey = await JsonParser.loginPasswordJson(emailValue, password);
-      console.log("LoginPassword - Apikey:", apiKey);
+      const loginSuccess = await JsonParser.loginPasswordJson(
+        emailValue,
+        password
+      );
+      console.log("Login Success?", loginSuccess);
 
-      const localUserID = await JsonParser.getUserID(apiKey);
-      console.log("LoginPassword - localUserID:", localUserID);
+      // const localUserID = await JsonParser.getUserID(apiKey);
+      // console.log("LoginPassword - localUserID:", localUserID);
 
-      if (apiKey == "false") {
+      if (!loginSuccess) {
         console.log("Error", "Incorrect password.");
         setError("Password non corretta");
         setIsLoading(false);
@@ -95,30 +98,18 @@ const LoginPassword = () => {
 
         await localDatabase.clearDatabase();
 
-        await WebSocketMethods.saveParameters(localUserID, apiKey);
-        await WebSocketMethods.openWebSocketConnection();
-
-        await localDatabase.insertLocalUser(localUserID, apiKey);
         const exists = await localDatabase.checkDatabaseExistence();
         console.log("Database exists:", exists);
 
-        eventEmitter.on("webSocketOpen", async () => {
-          if (apiKey != null) {
-            await WebSocketMethods.init();
-          } else {
-            console.log("LoginPassword - Apikey nulla");
-          }
-        });
+        const initSuccess = await JsonParser.initJson();
 
-        // quando l'init avviene con successo, si passa alle chat
-        eventEmitter.on("loginToChatList", async () => {
-          eventEmitter.off("loginToChatList");
-          console.log("LoginPassword - loginToChatList:");
+        if (initSuccess) {
+          console.log("Init Success ⭐");
           await storeSetIsLoggedIn("true");
           router.navigate("/messages");
-        });
-
-        console.log("Success", "Login successful.");
+        } else {
+          console.log("Init Error");
+        }
       }
     } catch (error) {
       console.error(error);

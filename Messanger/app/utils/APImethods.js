@@ -3,8 +3,10 @@ import axios from 'axios';
 class APIMethods {
   static APIlink = 'https://api.messanger.bpup.israiken.it';
 
+
+  //controlla se l'email è già registrata
   static async emailCheckAPI(email) {
-    const url = `${this.APIlink}/user/action/access?email=${email}`;
+    const url = `${this.APIlink}/user/auth/access?email=${email}`;
     try {
       const response = await axios.get(url);
       return response;
@@ -14,8 +16,10 @@ class APIMethods {
     }
   }
 
+
+  // chiede registrazione all'API
   static async signupAPI(email, name, surname, handle, password, confirm_password) {
-    const url = `${this.APIlink}/user/action/signup?email=${email}&name=${name}&surname=${surname}&handle=${handle}&password=${password}&confirm_password=${confirm_password}`;
+    const url = `${this.APIlink}/user/auth/signup?email=${email}&name=${name}&surname=${surname}&handle=${handle}&password=${password}&confirm_password=${confirm_password}`;
     try {
       const response = await axios.get(url);
       return response;
@@ -25,8 +29,10 @@ class APIMethods {
     }
   }
 
+
+  // controlla che l'handle sia disponibile
   static async handleAvailability(handle) {
-    const url = `${this.APIlink}/user/action/check-handle-availability?handle=${handle}`;
+    const url = `${this.APIlink}/user/data/check/handle-availability?handle=${handle}`;
     try {
       const response = await axios.get(url);
       console.log("handleAvailability in APImethods: ", response);
@@ -37,8 +43,10 @@ class APIMethods {
     }
   }
 
+
+  // chiede il login all'API
   static async loginPasswordAPI(email, password) {
-    const url = `${this.APIlink}/user/action/login?email=${email}&password=${password}`;
+    const url = `${this.APIlink}/user/auth/login?email=${email}&password=${password}`;
     try {
       const response = await axios.get(url);
       return response;
@@ -48,13 +56,28 @@ class APIMethods {
     }
   }
 
-  static async getUserID(apiKey) {
-    const url = `${this.APIlink}/user/action/get-user-id?api_key=${apiKey}`;
+  
+  //chiede init all'API
+  static async initAPI() {
+    const url = `${this.APIlink}/user/data/get/init`;
     try {
       const response = await axios.get(url);
       return response;
     } catch (error) {
-      console.error("Error in getUserID:", error);
+      console.error("Error in initAPI:", error);
+      throw error;
+    }
+  }
+
+
+  // quando un messaggio viene inviato all'API, questa ritorna info utili al messaggio da salvare in locale
+  static async sendMessageAPI(chat_id, text) {
+    const url = `${this.APIlink}/user/data/send/message?chat_id=${chat_id}&text=${text}`;
+    try {
+      const response = await axios.get(url);
+      return response;
+    } catch (error) {
+      console.error("Error in sendMessageAPI:", error);
       throw error;
     }
   }

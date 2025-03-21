@@ -112,60 +112,6 @@ const WebSocketMethods = {
       return;
     }
 
-    socket.on("init", async (data) => {
-      if (data.init) {
-        console.log("Init Successo Socket.IO:", data);
-        const { email, handle, name, surname } = data.localUser;
-        await localDatabase.updateLocalUser(email, handle, name, surname);
-        const localUserHandle = await localDatabase.fetchLocalUserHandle();
-        console.log("Database updateLocalUser completed");
-
-        if (data.chats == null) {
-          eventEmitter.emit("loginToChatList");
-          console.log("Chat nell'init vuote, init completato con successo");
-          return;
-        }
-
-        for (const chat of data.chats) {
-          const chatName = chat.name || "";
-          await localDatabase.insertChat(chat.chat_id, chatName);
-          console.log(
-            `Database insertChat for chat_id ${chat.chat_id} completed`
-          );
-
-          for (const user of chat.users) {
-            if(user.handle != localUserHandle) {
-              localDatabase.insertChatAndUsers(chat.chat_id, user.handle);
-              localDatabase.insertUsers(user.handle);
-            }
-            
-            console.log(
-              `Database insertUsers and insertChatAndUsers for user ${user.handle} in chat ${chat.chat_id} completed`
-            );
-          }
-
-
-
-          for (const message of chat.messages) {
-            await localDatabase.insertMessage(
-              message.message_id,
-              chat.chat_id,
-              message.text,
-              message.sender.toString(),
-              message.date,
-              ""
-            );
-            // console.log("inserimento messaggio: ", message);
-          }
-        }
-
-        eventEmitter.emit("loginToChatList");
-        console.log("Socket.IO Init completato con successo");
-      } else {
-        console.log("Server error during Socket.IO init");
-      }
-    });
-
     socket.on("send_message", async (data) => {
       if (data.send_message) {
         console.log("Messaggio tornato indietro (send_message: true):", data);
