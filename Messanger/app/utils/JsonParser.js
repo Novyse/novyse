@@ -95,6 +95,26 @@ class JsonParser {
     }
   }
 
+
+  // Metodo per cercare qualsiasi cosa nell'app
+  static async searchAll(value) {
+    try {
+      const response = await APIMethods.searchAll(value);
+
+      if (response.status === 200) {
+        const jsonResponse = response.data;
+        const searchAllResponse = jsonResponse["searched_list"];
+        return searchAllResponse;
+      } else {
+        console.error(`Errore nella richiesta: ${response.status}`);
+        return false;
+      }
+    } catch (error) {
+      console.error("Errore durante la ricerca:", error);
+      return false;
+    }
+  }
+
   // Funzione per convertire una stringa JSON in una struttura dinamica
   static convertJsonToDynamicStructure(jsonString) {
     try {
@@ -154,8 +174,8 @@ class JsonParser {
 
             for (const user of chat.users) {
               if (user.handle != localUserHandle) {
-                localDatabase.insertChatAndUsers(chat.chat_id, user.handle);
-                localDatabase.insertUsers(user.handle);
+                await localDatabase.insertChatAndUsers(chat.chat_id, user.handle);
+                await localDatabase.insertUsers(user.handle);
               }
 
               console.log(
@@ -163,16 +183,20 @@ class JsonParser {
               );
             }
 
-            for (const message of chat.messages) {
-              await localDatabase.insertMessage(
-                message.message_id,
-                chat.chat_id,
-                message.text,
-                message.sender,
-                message.date,
-                ""
-              );
-              // console.log("inserimento messaggio: ", message);
+            if (chat.messages == null) {
+              console.log("Messaggi nella chat vuoti");
+            } else {
+              for (const message of chat.messages) {
+                await localDatabase.insertMessage(
+                  message.message_id,
+                  chat.chat_id,
+                  message.text,
+                  message.sender,
+                  message.date,
+                  ""
+                );
+                // console.log("inserimento messaggio: ", message);
+              }
             }
           }
           console.log("Init completato con successo");
@@ -213,7 +237,7 @@ class JsonParser {
             date: jsonResponse.date,
             message_id: jsonResponse.message_id,
             hash: randomNumberPlusDate,
-            sender: jsonResponse.sender
+            sender: jsonResponse.sender,
           };
           eventEmitter.emit("updateMessage", data);
           eventEmitter.emit("updateNewLastMessage", data);
@@ -227,6 +251,8 @@ class JsonParser {
       return false;
     }
   }
+
+  
 }
 
 export default JsonParser;

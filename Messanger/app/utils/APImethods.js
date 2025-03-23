@@ -57,6 +57,20 @@ class APIMethods {
     }
   }
 
+  // Chiede tutto all'API (search)
+  static async searchAll(value) {
+    try {
+      const response = await this.api.get(
+        `/user/data/search/all?handle=${value}`
+      );
+      console.log("searchAll in APImethods: ", response);
+      return response;
+    } catch (error) {
+      console.error("Error in searchAll in APImethods:", error);
+      throw error;
+    }
+  }
+
   // chiede il login all'API
   static async loginPasswordAPI(email, password) {
     try {
@@ -87,11 +101,23 @@ class APIMethods {
   static async sendMessageAPI(chat_id, text) {
     try {
       const response = await this.api.get(
-        `/user/data/send/message?chat_id=${chat_id}&text=${text}`
+        `/chat/send/message?chat_id=${chat_id}&text=${text}`
       );
       return response;
     } catch (error) {
       console.error("Error in sendMessageAPI:", error);
+      throw error;
+    }
+  }
+
+  static async getChatMembers(chat_id) {
+    try {
+      const response = await this.api.get(
+        `/chat/get/members?chat_id=${chat_id}`
+      );
+      return response.data.members_list;
+    } catch (error) {
+      console.error("Error in getChatMembers API:", error);
       throw error;
     }
   }

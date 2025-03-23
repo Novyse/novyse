@@ -1,8 +1,8 @@
 import localforage from "localforage";
 import eventEmitter from "./EventEmitter";
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 
-const isWeb = Platform.OS === 'web';
+const isWeb = Platform.OS === "web";
 console.log("Platform:", Platform.OS);
 
 let SQLite = null;
@@ -64,7 +64,7 @@ class LocalDatabase {
       try {
         // Clear all stores in the localForage instance
         await this.db.clear();
-        console.log("Database cleared successfully.");
+        console.log("Database cleared successfully. 1");
       } catch (error) {
         console.error("Error clearing localForage database:", error);
       }
@@ -79,7 +79,7 @@ class LocalDatabase {
           DROP TABLE IF EXISTS chat_users;
         `);
         this.createTables();
-        console.log("Database cleared successfully.");
+        console.log("Database cleared successfully. 2");
       } catch (error) {
         console.error("Error clearing SQLite database:", error);
       }
@@ -140,7 +140,8 @@ class LocalDatabase {
       return await this.db.getAllAsync(
         `SELECT ${columns} FROM ${table} ${
           where ? "WHERE " + where : ""
-        } ${extra}`, args
+        } ${extra}`,
+        args
       );
     }
   }
@@ -328,19 +329,26 @@ class LocalDatabase {
 
       const lastMessage = sortedMessages[0];
 
+      if (lastMessage === undefined) {
+        return "no messages found";
+      }
+
       // non funzionava
       const chatid = lastMessage.chat_id;
       const text = lastMessage.text;
       const date = lastMessage.date_time;
-      const data = { chatid, text, date};
+      const data = { chatid, text, date };
       eventEmitter.emit("updateNewLastMessage", data);
       // console.log("Patatine al limone 🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶")
 
       return sortedMessages.length > 0 ? lastMessage : null;
     } else {
-      return await this.db.getFirstAsync(`
+      return await this.db.getFirstAsync(
+        `
         SELECT * FROM messages WHERE chat_id = ? ORDER BY date_time DESC LIMIT 1;
-        `, [chat_id]);
+        `,
+        [chat_id]
+      );
       // Per SQLite, modifichiamo la query per ordinare in modo discendente e LIMIT 1
       // return new Promise((resolve, reject) => {
       //   this.db.transaction((tx) => {
@@ -360,7 +368,13 @@ class LocalDatabase {
   }
 
   async insertLocalUser(user_id, user_email, handle, name, surname) {
-    await this.insertOrReplace("localUser", { user_id, user_email, handle, name, surname});
+    await this.insertOrReplace("localUser", {
+      user_id,
+      user_email,
+      handle,
+      name,
+      surname,
+    });
   }
 
   // async updateLocalUser(user_email, handle, name, surname) {
@@ -372,23 +386,86 @@ class LocalDatabase {
   // }
 
   async insertChat(chat_id, group_channel_name) {
-    await this.insertOrReplace("chats", { chat_id, group_channel_name });
+    try {
+      if (isWeb) {
+        let items = (await this.db.getItem("chats")) || [];
+        // Check if chat already exists
+        const chatExists = items.some((item) => item.chat_id === chat_id);
+
+        if (!chatExists) {
+          items.push({ chat_id, group_channel_name });
+          await this.db.setItem("chats", items);
+          console.log("Chat inserted successfully");
+          return false;
+        } else {
+          console.log("Chat already exists, skipping insertion");
+          return true;
+        }
+      } else {
+        // For SQLite, use INSERT OR IGNORE and check changes
+        const result = await this.db.runAsync(
+          `INSERT OR IGNORE INTO chats (chat_id, group_channel_name) VALUES (?, ?)`,
+          [chat_id, group_channel_name]
+        );
+
+        const wasInserted = result.changes > 0;
+        console.log(
+          wasInserted
+            ? "Chat inserted successfully"
+            : "Chat already exists, skipping insertion"
+        );
+        return !wasInserted;
+      }
+    } catch (error) {
+      console.error("Error inserting chat:", error);
+      return true;
+    }
   }
 
   async insertMessage(message_id, chat_id, text, sender, date) {
-    if (isWeb) {
-      let items = (await this.db.getItem("messages")) || [];
-      items.push({ message_id, chat_id, text, sender, date_time: date});
-      await this.db
-        .setItem("messages", items)
-        .catch((e) => console.error("Error inserting in localStorage:", e));
-    } else {
-      await this.db.runAsync(
-        `
-        INSERT INTO messages (message_id, chat_id, text, sender, date_time) VALUES (?, ?, ?, ?, ?)
-      `,
-        [message_id, chat_id, text, sender, date]
-      );
+    try {
+      if (isWeb) {
+        
+        let items = (await this.db.getItem("messages")) || [];
+        // Check if message already exists
+        const messageExists = items.some(
+          (item) => item.message_id === message_id && item.chat_id === chat_id
+        );
+
+        if (!messageExists) {
+          items.push({ message_id, chat_id, text, sender, date_time: date });
+          await this.db.setItem("messages", items);
+          console.log("Message inserted successfully. 3");
+          return false;
+        } else {
+          console.log("Message already exists, skipping insertion");
+          return true;
+        }
+      } else {
+        // For SQLite, use INSERT OR IGNORE
+        const result = await this.db.runAsync(
+          `
+          INSERT OR IGNORE INTO messages (message_id, chat_id, text, sender, date_time)
+          SELECT ?, ?, ?, ?, ?
+          WHERE NOT EXISTS (
+            SELECT 1 FROM messages 
+            WHERE message_id = ? AND chat_id = ?
+          )
+          `,
+          [message_id, chat_id, text, sender, date, message_id, chat_id]
+        );
+
+        const wasInserted = result.changes > 0;
+        console.log(
+          wasInserted
+            ? "Message inserted successfully. 4"
+            : "Message already exists, skipping insertion"
+        );
+        return !wasInserted;
+      }
+    } catch (error) {
+      console.error("Error inserting message:", error);
+      return true;
     }
   }
 

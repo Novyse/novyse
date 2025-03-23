@@ -30,29 +30,34 @@ import appJson from "../app.json";
 import moment from "moment";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import WebSocketMethods from "./utils/webSocketMethods";
+import Search from "./Search";
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-  const [chats, setChats] = useState([]);
-  const [chatDetails, setChatDetails] = useState({});
-  const [userName, setUserName] = useState("");
-  const [userId, setUserId] = useState("");
+
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [isSettingsMenuVisible, setIsSettingsMenuVisible] = useState(false);
-  const router = useRouter();
-  const params = useLocalSearchParams();
-  const [sidebarPosition] = useState(new Animated.Value(-250));
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [networkAvailable, setNetworkAvailable] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
+  const [isSettingsMenuVisible, setIsSettingsMenuVisible] = useState(false);
+
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const [chats, setChats] = useState([]);
+  const [userId, setUserId] = useState("");
+  const [userName, setUserName] = useState("");
+  const [chatDetails, setChatDetails] = useState({});
   const [contentView, setContentView] = useState("chat");
+
+  const { colorScheme, theme } = useContext(ThemeContext);
+  const styles = createStyle(theme, colorScheme);
+
+  const [sidebarPosition] = useState(new Animated.Value(-250));
   const [chatContentPosition] = useState(
     new Animated.Value(Dimensions.get("window").width)
   );
-  const { colorScheme, theme } = useContext(ThemeContext);
-  const styles = createStyle(theme, colorScheme);
-  const mainViewRef = useRef(null);
 
   const actions = [
     {
@@ -87,9 +92,7 @@ const ChatList = () => {
       setNetworkAvailable(state.isConnected);
     });
 
-    if (networkAvailable) {
-      WebSocketMethods.openWebSocketConnection();
-    }
+    WebSocketMethods.openWebSocketConnection();
 
     const backAction = () => {
       if (isSmallScreen && selectedChat) {
@@ -183,17 +186,37 @@ const ChatList = () => {
     }));
 
   useEffect(() => {
-    fetchLocalUserNameAndSurname().then(setUserName);
-    fetchChats().then(async (chats) => {
-      const details = {};
-      for (const chat of chats) {
-        const user = await fetchUser(chat.chat_id);
-        const lastMessage = await fetchLastMessage(chat.chat_id);
-        details[chat.chat_id] = { user, lastMessage };
+    // Create a function to fetch and update chat data
+    const updateChatsAndDetails = async () => {
+      try {
+        const fetchedChats = await fetchChats();
+        const details = {};
+
+        for (const chat of fetchedChats) {
+          const user = await fetchUser(chat.chat_id);
+          const lastMessage = await fetchLastMessage(chat.chat_id);
+          details[chat.chat_id] = { user, lastMessage };
+        }
+
+        setChats(fetchedChats);
+        setChatDetails(details);
+        console.log("Chats updated:", fetchedChats);
+        console.log("Chat Details updated:", details);
+      } catch (error) {
+        console.error("Error updating chats:", error);
       }
-      setChats(chats);
-      setChatDetails(details);
-    });
+    };
+
+    // Initial fetch
+    updateChatsAndDetails();
+
+    // Listen for new chat events
+    eventEmitter.on("newChat", updateChatsAndDetails);
+
+    // Cleanup
+    return () => {
+      eventEmitter.off("newChat", updateChatsAndDetails);
+    };
   }, []);
 
   const toggleSidebar = () => {
@@ -220,14 +243,10 @@ const ChatList = () => {
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
 
-
-  
   //Setting Menu
   const handleSettingsPress = () => {
     router.navigate("/settings/SettingsMenu");
   };
-
-
 
   const renderSidebar = () => (
     <>
@@ -282,7 +301,12 @@ const ChatList = () => {
               logout();
             }}
           >
-            <MaterialIcons name="logout" size={24} color="white" style={styles.menuIcon} />
+            <MaterialIcons
+              name="logout"
+              size={24}
+              color="white"
+              style={styles.menuIcon}
+            />
             <Text style={styles.sidebarText}>Logout qua temp</Text>
           </Pressable>
         </View>
@@ -297,6 +321,17 @@ const ChatList = () => {
           <Icon name="menu" size={24} color={theme.icon} />
         </Pressable>
         <Text style={styles.headerTitle}>Chats</Text>
+        <Pressable
+          onPress={() => {
+            // router.navigate("/Search");
+            isToggleSearchChats
+              ? setIsToggleSearchChats(false)
+              : setIsToggleSearchChats(true);
+          }}
+          style={styles.searchButton}
+        >
+          <MaterialIcons name="search" size={24} color={theme.icon} />
+        </Pressable>
       </View>
     );
   };
@@ -519,15 +554,19 @@ const ChatList = () => {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" backgroundColor="#1b2734" translucent={false} />
-      {renderSidebar()}
       <SafeAreaView style={styles.safeArea}>
+        {renderSidebar()}
         {!isSmallScreen || (isSmallScreen && !selectedChat)
           ? renderHeader()
           : null}
-        <View style={styles.container} ref={mainViewRef}>
+        <View style={styles.container}>
           {isSmallScreen ? (
             <>
-              <View style={styles.chatList}>{renderChatList()}</View>
+              {!isToggleSearchChats ? (
+                <View style={styles.chatList}>{renderChatList()}</View>
+              ) : (
+                <Search style={styles.chatList}/>
+              )}
               {selectedChat && (
                 <Animated.View
                   style={[
@@ -549,7 +588,13 @@ const ChatList = () => {
             </>
           ) : (
             <>
-              {renderChatList()}
+              {!isToggleSearchChats ? (
+              renderChatList()
+            ) : (
+              <View style={[styles.chatList, styles.largeScreenChatList]}>
+                <Search />
+              </View>
+            )}
               {renderChatHeaderAndContent()}
             </>
           )}
@@ -626,6 +671,9 @@ function createStyle(theme, colorScheme) {
     },
     menuButton: {
       marginRight: 10,
+    },
+    searchButton: {
+      marginLeft: "auto",
     },
     moreButton: {
       padding: 5,

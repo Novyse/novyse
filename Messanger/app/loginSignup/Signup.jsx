@@ -42,13 +42,13 @@ const Signup = () => {
   const [handleTimer, setHandleTimer] = useState(null);
 
   useEffect(() => {
-    const checkLogged = async () => {
-      const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-      if (storeGetIsLoggedIn === "true") {
-        router.navigate("/messages");
-      }
-    };
-    checkLogged();
+    // const checkLogged = async () => {
+    //   const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
+    //   if (storeGetIsLoggedIn === "true") {
+    //     router.navigate("/messages");
+    //   }
+    // };
+    // checkLogged();
 
     const backAction = () => {
       router.navigate("/loginSignup/EmailCheckForm");
@@ -132,6 +132,9 @@ const Signup = () => {
               <View key={index} style={styles.inputGroup}>
                 <Text style={styles.label}>{label}</Text>
                 <View style={styles.inputContainer}>
+
+
+
                   <TextInput
                     style={[
                       styles.input,
@@ -146,6 +149,9 @@ const Signup = () => {
                     placeholder={label}
                     placeholderTextColor="#ccc"
                   />
+
+                  
+
                   {field.includes("password") && (
                     <TouchableOpacity onPress={() => toggleShowPassword(field)}>
                       <AntDesign

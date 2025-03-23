@@ -33,6 +33,10 @@ export default function RootLayout() {
             options={{ headerShown: false, title: "ChatContent" }}
           />
           <Stack.Screen
+            name="Search"
+            options={{ headerShown: false, title: "Search" }}
+          />
+          <Stack.Screen
             name="settings/SettingsMenu"
             options={{ headerShown: false, title: "SettingsMenu" }}
           />

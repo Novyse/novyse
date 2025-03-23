@@ -3,12 +3,10 @@ import eventEmitter from "./EventEmitter";
 import { io } from "socket.io-client";
 import APIMethods from "./APImethods";
 
-
 let socket = null;
+let localUserHandle = null;
 
 // const socketAddress = "wss://ws.messanger.bpup.israiken.it/";
-
-
 
 const WebSocketMethods = {
   saveParameters: async (localUserIDParam) => {
@@ -21,11 +19,10 @@ const WebSocketMethods = {
   },
 
   openWebSocketConnection: async () => {
-
     const response = await APIMethods.api.get("/user/auth/session");
     const sessionId = response.data.session_id;
+    localUserHandle = await localDatabase.fetchLocalUserHandle();
     console.log("Session ID: ", sessionId);
-    
 
     try {
       if (socket && socket.connected) {
@@ -40,8 +37,8 @@ const WebSocketMethods = {
         transports: ["websocket"],
         autoConnect: true,
         reconnectionAttempts: -1,
-        extraHeaders: {
-          'Authorization': `Bearer ${sessionId}`,
+        auth: {
+          sessionId: sessionId,
         },
       });
 
@@ -75,69 +72,41 @@ const WebSocketMethods = {
 
   sendNewMessage: async (data) => {
     try {
-      socket.emit("send_message", data)
+      socket.emit("send_message", data);
     } catch (error) {
       console.log(error);
     }
   },
 
-  
-
-  // webSocketSenderMessage: async (message) => {
-  //   if (WebSocketMethods.isWebSocketOpen()) {
-  //     try {
-  //       socket.emit("message", message);
-  //       console.log(
-  //         `Messaggio inviato tramite Socket.IO: ${JSON.stringify(message)}`
-  //       );
-  //     } catch (error) {
-  //       console.error("Error sending message:", error);
-  //     }
-  //   } else {
-  //     if (sendMessageAttempt < 5) {
-  //       setTimeout(async () => {
-  //         console.log("Socket.IO non aperta per l'invio, ritento...");
-  //         await WebSocketMethods.openWebSocketConnection();
-  //         await WebSocketMethods.webSocketSenderMessage(message);
-  //         sendMessageAttempt += 1;
-  //       }, 2000);
-  //     } else {
-  //       console.error(
-  //         "Socket.IO non aperta per l'invio, massimo tentativi raggiunti."
-  //       );
-  //     }
-  //   }
-  // },
-
+  // Gestisco quando il socket.io mi ritorna un messaggio
   socketReceiver: async () => {
     if (!socket) {
       console.log("Socket.IO non inizializzata (socketReceiver)");
       return;
     }
 
-    socket.on("send_message", async (data) => {
-      if (data.send_message) {
-        console.log("Messaggio tornato indietro (send_message: true):", data);
-        localDatabase.updateSendMessage(data.date, data.message_id, data.hash);
-        console.log(
-          `Database updateSendMessage for message_id ${data.message_id} completed`
-        );
-
-        lastMessageData = {
-          chat_id: data.chat_id,
-          text: null,
-          date: data.date
-        }
-        
-        eventEmitter.emit("updateNewLastMessage", lastMessageData);
-      } else {
-        console.log("Messaggio tornato indietro (send_message: false):", data);
-      }
-    });
-
     socket.on("receive_message", async (data) => {
       const { message_id, chat_id, text, sender, date } = data;
-      await localDatabase.insertMessage(
+
+      const ChatAlreadyInDatabaseawait = await localDatabase.insertChat(
+        chat_id,
+        ""
+      );
+
+      if (!ChatAlreadyInDatabaseawait) {
+        const users = await APIMethods.getChatMembers(chat_id);
+        console.log("Users in chat:", users);
+        for (const user of users) {
+          if (user != localUserHandle) {
+            console.log("Utente da inserire nella chat:", user);
+            await localDatabase.insertChatAndUsers(chat_id, user);
+            await localDatabase.insertUsers(user);
+          }
+        }
+        eventEmitter.emit("newChat");
+      }
+
+      const MessageAlreadyInDatabase = await localDatabase.insertMessage(
         message_id,
         chat_id,
         text,
@@ -145,12 +114,15 @@ const WebSocketMethods = {
         date,
         ""
       );
-      console.log(
-        `Database insertMessage for message_id ${message_id} in chat ${chat_id} completed`
-      );
-      eventEmitter.emit("newMessage", data);
-      eventEmitter.emit("updateNewLastMessage", data);
-      console.log(`Nuovo messaggio ricevuto da ${sender}`);
+
+      if (MessageAlreadyInDatabase) {
+        eventEmitter.emit("updateNewLastMessage", data);
+        eventEmitter.emit("newMessage", data);
+        console.log(
+          `Database insertMessage for message_id ${message_id} in chat ${chat_id} completed`
+        );
+        console.log(`Nuovo messaggio ricevuto da ${sender}`);
+      }
     });
 
     return "return of socket.io receiver function";
