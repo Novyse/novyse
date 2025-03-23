@@ -94,32 +94,19 @@ const ChatContent = ({ chatId, userId, onBack }) => {
   useEffect(() => {
     const handleUpdateMessage = (data) => {
       setMessages((currentMessages) => {
-        const messageExists = currentMessages.some(
-          (item) =>
-            item.message_id === data.message_id || item.hash === data.hash
-        );
-        if (messageExists) {
-          // Aggiorna il messaggio esistente
-          return currentMessages.map((item) => {
-            if (
-              item.message_id === data.message_id ||
-              item.hash === data.hash
-            ) {
-              return { ...item, date_time: data.date };
-            }
-            return item;
-          });
-        } else {
-          // Aggiungi il messaggio se non esiste
-          const newMessage = {
-            message_id: data.message_id || data.hash,
-            sender: data.sender || "unknown", // Aggiungi sender se disponibile
-            text: data.text || "", // Aggiungi text se disponibile
-            date_time: data.date,
-            hash: data.hash,
-          };
-          return [newMessage, ...currentMessages];
-        }
+        return currentMessages.map((item) => {
+          // Check if this is our temporary message that needs updating
+          if (item.hash === data.hash) {
+            return {
+              message_id: data.message_id,
+              sender: data.sender,
+              text: data.text,
+              date_time: data.date,
+              hash: data.hash
+            };
+          }
+          return item;
+        });
       });
     };
 
@@ -157,49 +144,27 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     }
 
     try {
-      //genero numero casuale di 8 cifre
       const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
-
       const randomNumberPlusDate = Date.now() + randomNumber;
 
-      const newMessage = {
-        message_id: randomNumberPlusDate,
+      const tempMessage = {
+        message_id: randomNumberPlusDate, // This will be our temporary ID and hash
         sender: userId,
         text: newMessageText,
         date_time: "",
+        hash: randomNumberPlusDate, // Add this to track the message
       };
 
-      console.log("Tentativo di salvare e inviare messaggio:", newMessage);
-
-      const responseNewMessage = JsonParser.sendMessageJson(
-        chatId,
-        newMessageText
-      );
-
-      if (responseNewMessage) {
-        await localDatabase.insertMessage(
-          randomNumberPlusDate,
-          chatId,
-          newMessageText,
-          userId,
-          newMessage.date_time
-        );
-        console.log("Messaggio salvato nel database locale");
-      } else {
-        console.log("Errore nell'invio del messaggio");
-      }
-
-      const data = {
-        chat_id: chatId,
-        text: newMessageText,
-        date: newMessage.date_time,
-      };
-      eventEmitter.emit("updateNewLastMessage", data);
-
-      setMessages((currentMessages) => [newMessage, ...currentMessages]);
+      setMessages((currentMessages) => [tempMessage, ...currentMessages]);
       setNewMessageText("");
       setVoiceMessage(true);
       setIsMicClicked(false);
+
+      const responseNewMessage = await JsonParser.sendMessageJson(
+        chatId,
+        newMessageText,
+        randomNumberPlusDate
+      );
     } catch (error) {
       console.error("Errore nell'invio del messaggio:", error);
     }
@@ -303,7 +268,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
               <Pressable
                 onLongPress={(e) => handleLongPress(e, message)}
                 style={
-                  message.sender === userId
+                  message.sender == userId
                     ? styles.msgSender
                     : styles.msgReceiver
                 }

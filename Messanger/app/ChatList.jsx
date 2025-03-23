@@ -22,7 +22,6 @@ import { ThemeContext } from "@/context/ThemeContext";
 import localDatabase from "./utils/localDatabaseMethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import WebSocketMethods from "./utils/webSocketMethods";
 import eventEmitter from "./utils/EventEmitter";
 import NetInfo from "@react-native-community/netinfo";
 import { FloatingAction } from "react-native-floating-action";
@@ -30,6 +29,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import appJson from "../app.json";
 import moment from "moment";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import WebSocketMethods from "./utils/webSocketMethods";
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -40,6 +40,7 @@ const ChatList = () => {
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isSettingsMenuVisible, setIsSettingsMenuVisible] = useState(false);
   const router = useRouter();
   const params = useLocalSearchParams();
   const [sidebarPosition] = useState(new Animated.Value(-250));
@@ -57,8 +58,15 @@ const ChatList = () => {
     {
       text: "Nuova chat",
       icon: <AntDesign name="adduser" size={24} color="white" />,
-      name: "bt_accessibility",
+      name: "bt_new_chat",
       position: 1,
+      color: theme.floatingLittleButton,
+    },
+    {
+      text: "Nuovo gruppo",
+      icon: <AntDesign name="addusergroup" size={24} color="white" />,
+      name: "bt_new_group",
+      position: 2,
       color: theme.floatingLittleButton,
     },
   ];
@@ -68,12 +76,7 @@ const ChatList = () => {
       const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
       if (isLoggedIn === "true") {
         const localUserId = await localDatabase.fetchLocalUserID();
-        const apiKey = await localDatabase.fetchLocalUserApiKey();
         setUserId(localUserId);
-        if (apiKey) {
-          await WebSocketMethods.saveParameters(localUserId, apiKey);
-          await WebSocketMethods.openWebSocketConnection();
-        }
       } else {
         logout();
       }
@@ -83,6 +86,10 @@ const ChatList = () => {
     const checkConnection = NetInfo.addEventListener((state) => {
       setNetworkAvailable(state.isConnected);
     });
+
+    if (networkAvailable) {
+      WebSocketMethods.openWebSocketConnection();
+    }
 
     const backAction = () => {
       if (isSmallScreen && selectedChat) {
@@ -213,6 +220,15 @@ const ChatList = () => {
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
 
+
+  
+  //Setting Menu
+  const handleSettingsPress = () => {
+    router.navigate("/settings/SettingsMenu");
+  };
+
+
+
   const renderSidebar = () => (
     <>
       {overlayVisible && (
@@ -247,7 +263,7 @@ const ChatList = () => {
           </Pressable>
 
           {/* Menu Item 2: Settings */}
-          <Pressable style={styles.menuItem}>
+          <Pressable style={styles.menuItem} onPress={handleSettingsPress}>
             <MaterialIcons
               name="settings"
               size={24}

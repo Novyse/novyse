@@ -1,14 +1,21 @@
-import axios from 'axios';
+import { Platform } from "react-native";
+
+import axios from "axios";
+axios.defaults.withCredentials = true;
 
 class APIMethods {
-  static APIlink = 'https://api.messanger.bpup.israiken.it';
+  static domain = "https://api.messanger.bpup.israiken.it";
+  static APIlink = this.domain + "/v1";
 
+  static api = axios.create({
+    baseURL: this.APIlink,
+    withCredentials: true, // IMPORTANTE: Mantiene i cookie
+  });
 
   //controlla se l'email è già registrata
   static async emailCheckAPI(email) {
-    const url = `${this.APIlink}/user/auth/access?email=${email}`;
     try {
-      const response = await axios.get(url);
+      const response = await this.api.get(`/user/auth/access?email=${email}`);
       return response;
     } catch (error) {
       console.error("Error in emailCheckAPI:", error);
@@ -16,12 +23,19 @@ class APIMethods {
     }
   }
 
-
   // chiede registrazione all'API
-  static async signupAPI(email, name, surname, handle, password, confirm_password) {
-    const url = `${this.APIlink}/user/auth/signup?email=${email}&name=${name}&surname=${surname}&handle=${handle}&password=${password}&confirm_password=${confirm_password}`;
+  static async signupAPI(
+    email,
+    name,
+    surname,
+    handle,
+    password,
+    confirm_password
+  ) {
     try {
-      const response = await axios.get(url);
+      const response = await this.api.get(
+        `/user/auth/signup?email=${email}&name=${name}&surname=${surname}&handle=${handle}&password=${password}&confirm_password=${confirm_password}`
+      );
       return response;
     } catch (error) {
       console.error("Error in signupAPI:", error);
@@ -29,12 +43,12 @@ class APIMethods {
     }
   }
 
-
   // controlla che l'handle sia disponibile
   static async handleAvailability(handle) {
-    const url = `${this.APIlink}/user/data/check/handle-availability?handle=${handle}`;
     try {
-      const response = await axios.get(url);
+      const response = await this.api.get(
+        `/user/data/check/handle-availability?handle=${handle}`
+      );
       console.log("handleAvailability in APImethods: ", response);
       return response;
     } catch (error) {
@@ -43,12 +57,13 @@ class APIMethods {
     }
   }
 
-
   // chiede il login all'API
   static async loginPasswordAPI(email, password) {
-    const url = `${this.APIlink}/user/auth/login?email=${email}&password=${password}`;
     try {
-      const response = await axios.get(url);
+      const response = await this.api.get(
+        `/user/auth/login?email=${email}&password=${password}`
+      );
+
       return response;
     } catch (error) {
       console.error("Error in loginPasswordAPI:", error);
@@ -56,12 +71,11 @@ class APIMethods {
     }
   }
 
-  
   //chiede init all'API
   static async initAPI() {
-    const url = `${this.APIlink}/user/data/get/init`;
     try {
-      const response = await axios.get(url);
+      const response = await this.api.get("/user/data/get/init");
+
       return response;
     } catch (error) {
       console.error("Error in initAPI:", error);
@@ -69,12 +83,12 @@ class APIMethods {
     }
   }
 
-
   // quando un messaggio viene inviato all'API, questa ritorna info utili al messaggio da salvare in locale
   static async sendMessageAPI(chat_id, text) {
-    const url = `${this.APIlink}/user/data/send/message?chat_id=${chat_id}&text=${text}`;
     try {
-      const response = await axios.get(url);
+      const response = await this.api.get(
+        `/user/data/send/message?chat_id=${chat_id}&text=${text}`
+      );
       return response;
     } catch (error) {
       console.error("Error in sendMessageAPI:", error);

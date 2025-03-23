@@ -1,5 +1,7 @@
 import axios from "axios";
 import APIMethods from "./APImethods"; // Importa la classe API esistente
+import localDatabase from "../utils/localDatabaseMethods";
+import eventEmitter from "../utils/EventEmitter";
 
 class JsonParser {
   // Metodo per controllare l'email e restituire "login" o "signup"
@@ -124,19 +126,26 @@ class JsonParser {
       const response = await APIMethods.initAPI();
 
       if (response.status === 200) {
-        if (response.init) {
-          console.log("Init Successo:", response);
-          const { email, handle, name, surname, user_id } = response.localUser;
-          await localDatabase.insertLocalUser(user_id, email, handle, name, surname);
+        const data = response.data;
+        if (data.init) {
+          console.log("Init Successo:", data);
+          const { email, handle, name, surname, user_id } = data.localUser;
+          await localDatabase.insertLocalUser(
+            user_id,
+            email,
+            handle,
+            name,
+            surname
+          );
           const localUserHandle = handle;
           console.log("Database updateLocalUser completed");
 
-          if (response.chats == null) {
+          if (data.chats == null) {
             console.log("Chat nell'init vuote, init completato con successo");
             return true;
           }
 
-          for (const chat of response.chats) {
+          for (const chat of data.chats) {
             const chatName = chat.name || "";
             await localDatabase.insertChat(chat.chat_id, chatName);
             console.log(
@@ -159,7 +168,7 @@ class JsonParser {
                 message.message_id,
                 chat.chat_id,
                 message.text,
-                message.sender.toString(),
+                message.sender,
                 message.date,
                 ""
               );
@@ -173,7 +182,7 @@ class JsonParser {
           return false;
         }
       } else {
-        console.error(`Errore nella richiesta: ${response.status}`);
+        console.error(`Errore nella richiesta: ${data.status}`);
         return false;
       }
     } catch (error) {
@@ -182,7 +191,7 @@ class JsonParser {
     }
   }
 
-  static async sendMessageJson(chat_id, text) {
+  static async sendMessageJson(chat_id, text, randomNumberPlusDate) {
     try {
       const response = await APIMethods.sendMessageAPI(chat_id, text);
 
@@ -190,14 +199,29 @@ class JsonParser {
         const jsonResponse = response.data;
         const messageResponse = jsonResponse["message_sent"];
         if (messageResponse) {
-          return jsonResponse;
-        } else {
-          return false;
+          await localDatabase.insertMessage(
+            jsonResponse.message_id,
+            jsonResponse.chat_id,
+            jsonResponse.text,
+            jsonResponse.sender,
+            jsonResponse.date
+          );
+
+          const data = {
+            chat_id: jsonResponse.chat_id,
+            text: jsonResponse.text,
+            date: jsonResponse.date,
+            message_id: jsonResponse.message_id,
+            hash: randomNumberPlusDate,
+            sender: jsonResponse.sender
+          };
+          eventEmitter.emit("updateMessage", data);
+          eventEmitter.emit("updateNewLastMessage", data);
+          return true;
         }
-      } else {
-        console.error(`Errore nella richiesta: ${response.status}`);
         return false;
       }
+      return false;
     } catch (error) {
       console.error("Errore durante l'invio del messaggio:", error);
       return false;

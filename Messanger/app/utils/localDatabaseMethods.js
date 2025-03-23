@@ -395,7 +395,7 @@ class LocalDatabase {
   async updateSendMessage(date, message_id, hash) {
     console.log("Attempting to update message with hash:", hash);
 
-    const data = { date, message_id, hash };
+    // const data = { date, message_id, hash };
 
     if (isWeb) {
       // Esegui un update mirato nel browser usando localForage
@@ -420,8 +420,7 @@ class LocalDatabase {
         [date, message_id, hash]
       );
     }
-    eventEmitter.emit("updateMessage", data);
-
+    // eventEmitter.emit("updateMessage", data);
   }
 
   async insertUsers(handle) {

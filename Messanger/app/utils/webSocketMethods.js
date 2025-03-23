@@ -1,18 +1,18 @@
 import localDatabase from "../utils/localDatabaseMethods";
 import eventEmitter from "./EventEmitter";
 import { io } from "socket.io-client";
+import APIMethods from "./APImethods";
+
 
 let socket = null;
-let localUserID = "";
-let apiKey = "";
+
 // const socketAddress = "wss://ws.messanger.bpup.israiken.it/";
 
-let sendMessageAttempt = 0;
+
 
 const WebSocketMethods = {
-  saveParameters: async (localUserIDParam, apiKeyParam) => {
+  saveParameters: async (localUserIDParam) => {
     localUserID = localUserIDParam;
-    apiKey = apiKeyParam;
     console.log("Parametri salvati");
   },
 
@@ -21,7 +21,11 @@ const WebSocketMethods = {
   },
 
   openWebSocketConnection: async () => {
-    // const url = `${socketAddress}?userId=${localUserID}&apiKey=${apiKey}`;
+
+    const response = await APIMethods.api.get("/user/auth/session");
+    const sessionId = response.data.session_id;
+    console.log("Session ID: ", sessionId);
+    
 
     try {
       if (socket && socket.connected) {
@@ -32,13 +36,12 @@ const WebSocketMethods = {
         socket = null;
       }
 
-      socket = io("wss://ws.messanger.bpup.israiken.it/", {
+      socket = io("wss://io.messanger.bpup.israiken.it/", {
         transports: ["websocket"],
         autoConnect: true,
         reconnectionAttempts: -1,
-        auth: {
-          user_id: localUserID,
-          api_key: apiKey,
+        extraHeaders: {
+          'Authorization': `Bearer ${sessionId}`,
         },
       });
 

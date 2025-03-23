@@ -32,6 +32,10 @@ export default function RootLayout() {
             name="ChatContent"
             options={{ headerShown: false, title: "ChatContent" }}
           />
+          <Stack.Screen
+            name="settings/SettingsMenu"
+            options={{ headerShown: false, title: "SettingsMenu" }}
+          />
         </Stack>
       </SafeAreaProvider>
     </ThemeProvider>
