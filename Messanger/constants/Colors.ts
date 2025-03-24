@@ -17,6 +17,7 @@ export const Colors = {
     backgroundClassic: '#1b2734',
     backgroundChatList: '#1b2734',
     backgroundChat: '#1b2734',
+    backgroundChatInsideList: '#2b3e51',
     backgroundHeader: '#1b2734',
     backgroundChatTextInput: "#374e68",
     backgroundChatListCheckNetwork: '#1d3340',

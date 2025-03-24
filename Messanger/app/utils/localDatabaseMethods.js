@@ -456,11 +456,9 @@ class LocalDatabase {
         );
 
         const wasInserted = result.changes > 0;
-        console.log(
-          wasInserted
-            ? "Message inserted successfully. 4"
-            : "Message already exists, skipping insertion"
-        );
+        if(wasInserted) {
+          console.log("Message already exists, skipping insertion");
+        }
         return !wasInserted;
       }
     } catch (error) {

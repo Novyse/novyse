@@ -31,6 +31,7 @@ import moment from "moment";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import WebSocketMethods from "./utils/webSocketMethods";
 import Search from "./Search";
+import APIMethods from "./utils/APImethods";
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -59,6 +60,7 @@ const ChatList = () => {
     new Animated.Value(Dimensions.get("window").width)
   );
 
+  //azioni sul floating button
   const actions = [
     {
       text: "Nuova chat",
@@ -162,7 +164,13 @@ const ChatList = () => {
     }
   }, [selectedChat, isSmallScreen]);
 
-  const logout = () => {
+  //logout dall'app sia locale (elimina DB) che remoto (API)
+  const logout = async () => {
+    await localDatabase.clearDatabase();
+    const loggedOutFromAPI = await APIMethods.logoutAPI();
+    if (loggedOutFromAPI) {
+      console.log("Logout dall'API completato");
+    }
     router.navigate("/loginSignup/EmailCheckForm");
   };
 
@@ -186,8 +194,30 @@ const ChatList = () => {
     }));
 
   useEffect(() => {
+    const handleSearchResult = (data) => {
+      const { handle } = data;
+      // Crea un ID temporaneo per la chat
+      const tempChatId = `temp_${handle}_${Date.now()}`;
+      setSelectedChat(tempChatId);
+      console.log("Chat selezionata da ricerca: ", tempChatId);
+
+      // Chiudi la ricerca
+      // setIsToggleSearchChats(false);
+    };
+
+    eventEmitter.on("searchResultSelected", handleSearchResult);
+
+    return () => {
+      eventEmitter.off("searchResultSelected", handleSearchResult);
+    };
+  }, []);
+
+  useEffect(() => {
     // Create a function to fetch and update chat data
-    const updateChatsAndDetails = async () => {
+    const updateChatsAndDetails = async (data) => {
+      const newChatId = data?.newChatId;
+      console.log("⭐⭐⭐ New Chat ID:", newChatId);
+
       try {
         const fetchedChats = await fetchChats();
         const details = {};
@@ -200,6 +230,10 @@ const ChatList = () => {
 
         setChats(fetchedChats);
         setChatDetails(details);
+        if (newChatId) {
+          setSelectedChat(newChatId);
+        }
+
         console.log("Chats updated:", fetchedChats);
         console.log("Chat Details updated:", details);
       } catch (error) {
@@ -230,10 +264,11 @@ const ChatList = () => {
     });
   };
 
+  // Quando una chat nella lista di quelle salvate viene premuta
   const handleChatPress = (chatId) => {
     setSelectedChat(chatId);
     if (!isSmallScreen) {
-      router.setParams({ chatId });
+      router.setParams({ chatId, creatingChatWith: undefined });
     }
   };
 
@@ -296,7 +331,6 @@ const ChatList = () => {
           <Pressable
             style={styles.menuItem}
             onPress={() => {
-              localDatabase.clearDatabase();
               AsyncStorage.setItem("isLoggedIn", "false");
               logout();
             }}
@@ -433,7 +467,7 @@ const ChatList = () => {
     if (!selectedChat) return null;
     const selectedDetails = chatDetails[selectedChat] || {};
     const user = selectedDetails.user || {};
-    const chatName = user.handle || "Unknown User";
+    const chatName = user.handle || params.creatingChatWith || "Unknown User";
 
     const renderChatHeader = (
       <View style={[styles.header, styles.chatHeader]}>
@@ -565,7 +599,7 @@ const ChatList = () => {
               {!isToggleSearchChats ? (
                 <View style={styles.chatList}>{renderChatList()}</View>
               ) : (
-                <Search style={styles.chatList}/>
+                <Search style={styles.chatList} />
               )}
               {selectedChat && (
                 <Animated.View
@@ -589,12 +623,12 @@ const ChatList = () => {
           ) : (
             <>
               {!isToggleSearchChats ? (
-              renderChatList()
-            ) : (
-              <View style={[styles.chatList, styles.largeScreenChatList]}>
-                <Search />
-              </View>
-            )}
+                renderChatList()
+              ) : (
+                <View style={[styles.chatList, styles.largeScreenChatList]}>
+                  <Search />
+                </View>
+              )}
               {renderChatHeaderAndContent()}
             </>
           )}
@@ -636,7 +670,7 @@ function createStyle(theme, colorScheme) {
       flexDirection: "row",
       alignItems: "center",
       padding: 10,
-      backgroundColor: "#2b3e51",
+      backgroundColor: theme.backgroundChatInsideList,
       borderRadius: 13,
       marginBottom: 10,
     },
@@ -782,13 +816,6 @@ function createStyle(theme, colorScheme) {
       flexDirection: "row",
       alignItems: "center",
       marginBottom: 30,
-    },
-    avatar: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      backgroundColor: "#ccc", // Placeholder for the avatar (gray circle)
-      marginRight: 15,
     },
     profileTextContainer: {
       flexDirection: "column",

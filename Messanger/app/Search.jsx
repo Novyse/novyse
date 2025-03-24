@@ -7,13 +7,16 @@ import {
   TextInput,
   BackHandler,
   ActivityIndicator,
+  FlatList,
+  Image,
+  TouchableOpacity,
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// Importa o definisci JsonParser
 import JsonParser from "./utils/JsonParser";
+import eventEmitter from "./utils/EventEmitter";
 
 const Search = () => {
   const { theme } = useContext(ThemeContext);
@@ -34,7 +37,7 @@ const Search = () => {
     checkLogged();
 
     const backAction = () => {
-      router.navigate("/ChatList"); // Modificato da EmailCheckForm
+      router.navigate("/ChatList");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -55,7 +58,6 @@ const Search = () => {
 
     const timerOnChange = setTimeout(async () => {
       try {
-        // Assicurati che JsonParser.searchAll sia definito
         const searched_list = await JsonParser.searchAll(value);
         setResponseArray(searched_list || []);
         console.log("Lista ricerca:", searched_list);
@@ -65,27 +67,50 @@ const Search = () => {
       } finally {
         setIsLoading(false);
       }
-    }, 3000);
+    }, 500);
 
     setTimer(timerOnChange);
   };
+
+  const renderItem = ({ item, index }) => (
+    <TouchableOpacity
+      style={styles.resultItem}
+      onPress={() => {
+        // Emit event with handle and close search
+        eventEmitter.emit("searchResultSelected", { handle: item });
+        router.setParams({ chatId: undefined, creatingChatWith: item });
+      }}
+    >
+      <Image
+        source={{ uri: "https://picsum.photos/200" }}
+        style={styles.avatar}
+      />
+      <Text style={styles.resultText}>{item}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
       <TextInput
         placeholder="Search"
+        placeholderTextColor="gray"
         style={styles.searchBar}
         onChangeText={handleChange}
       />
       {isLoading && (
-        <ActivityIndicator size="large" color={theme.icon} style={styles.loader} />
+        <ActivityIndicator
+          size="large"
+          color={theme.icon}
+          style={styles.loader}
+        />
       )}
       {responseArray.length > 0 && (
-        <View style={styles.results}>
-          {responseArray.map((item, index) => (
-            <Text key={index}>{item}</Text>
-          ))}
-        </View>
+        <FlatList
+          data={responseArray}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index.toString()}
+          style={styles.results}
+        />
       )}
     </View>
   );
@@ -100,16 +125,40 @@ const createStyle = (theme) =>
       paddingTop: 0,
     },
     searchBar: {
-      backgroundColor: "white",
-      padding: 10,
-      borderRadius: 10,
-      marginBottom: 10,
+      flex: 1,
+      backgroundColor: theme.backgroundChatTextInput,
+      borderRadius: 15,
+      padding: 8,
+      fontSize: 18,
+      minWidth: 20,
+      color: theme.text,
+      placeholderTextColor: "#bfbfbf",
+      outlineStyle: "none",
+      maxHeight: 45,
     },
     loader: {
       marginTop: 20,
     },
     results: {
       marginTop: 10,
+      flex: 1,
+    },
+    resultItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 10,
+      backgroundColor: theme.backgroundChatInsideList,
+      borderRadius: 13,
+    },
+    resultText: {
+      fontSize: 16,
+      color: theme.text,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 10,
     },
   });
 

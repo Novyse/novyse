@@ -18,15 +18,15 @@ import {
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import localDatabase from "./utils/localDatabaseMethods";
-import WebSocketMethods from "./utils/webSocketMethods";
 import moment from "moment";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import eventEmitter from "./utils/EventEmitter";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import "react-native-get-random-values";
 import JsonParser from "./utils/JsonParser";
+import APIMethods from "./utils/APImethods";
 
 const ChatContent = ({ chatId, userId, onBack }) => {
   const { theme } = useContext(ThemeContext);
@@ -35,6 +35,9 @@ const ChatContent = ({ chatId, userId, onBack }) => {
   const messagesRef = useRef([]);
   const [newMessageText, setNewMessageText] = useState("");
   const [isVoiceMessage, setVoiceMessage] = useState(true);
+
+  const params = useLocalSearchParams();
+
   const [dropdownInfo, setDropdownInfo] = useState({
     visible: false,
     x: 0,
@@ -102,7 +105,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
               sender: data.sender,
               text: data.text,
               date_time: data.date,
-              hash: data.hash
+              hash: data.hash,
             };
           }
           return item;
@@ -137,6 +140,44 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
 
+  // quando voglio inviare il primo messaggio per avviare una chat
+  const handleNewChatFirstMessage = async (handle) => {
+    //creo nuova chat
+    const newChatChatId = await APIMethods.createNewChatAPI(handle);
+    console.log("🚨Nuova chat ID: ", newChatChatId);
+
+    // inserisco chat e user nel db locale
+    await localDatabase.insertChat(newChatChatId, "");
+    await localDatabase.insertChatAndUsers(newChatChatId, handle);
+    await localDatabase.insertUsers(handle);
+    // Clear the parameter after handling
+    router.setParams({ chatId: newChatChatId, creatingChatWith: undefined });
+    router.navigate(`/messages?chatId=${newChatChatId}`);
+
+    // aggiorno live la lista delle chat
+eventEmitter.emit("newChat", { newChatId: newChatChatId });
+
+    // Existing message handling logic
+    const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
+    const randomNumberPlusDate = Date.now() + randomNumber;
+
+    const tempMessage = {
+      message_id: randomNumberPlusDate,
+      sender: userId,
+      text: newMessageText,
+      date_time: "",
+      hash: randomNumberPlusDate,
+    };
+
+    setMessages((currentMessages) => [tempMessage, ...currentMessages]);
+    await JsonParser.sendMessageJson(
+      newChatChatId,
+      newMessageText,
+      randomNumberPlusDate
+    );
+  };
+
+  //gestione invio messaggio
   const handleSendMessage = async () => {
     if (!newMessageText.trim()) {
       console.warn("Empty message, not sending");
@@ -144,27 +185,37 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     }
 
     try {
-      const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
-      const randomNumberPlusDate = Date.now() + randomNumber;
+      if (
+        params.creatingChatWith !== null &&
+        params.creatingChatWith !== undefined
+      ) {
+        // Handle first message in new chat
+        await handleNewChatFirstMessage(params.creatingChatWith);
+      } else {
+        // Existing message handling logic
+        const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
+        const randomNumberPlusDate = Date.now() + randomNumber;
 
-      const tempMessage = {
-        message_id: randomNumberPlusDate, // This will be our temporary ID and hash
-        sender: userId,
-        text: newMessageText,
-        date_time: "",
-        hash: randomNumberPlusDate, // Add this to track the message
-      };
+        const tempMessage = {
+          message_id: randomNumberPlusDate,
+          sender: userId,
+          text: newMessageText,
+          date_time: "",
+          hash: randomNumberPlusDate,
+        };
 
-      setMessages((currentMessages) => [tempMessage, ...currentMessages]);
+        setMessages((currentMessages) => [tempMessage, ...currentMessages]);
+        await JsonParser.sendMessageJson(
+          chatId,
+          newMessageText,
+          randomNumberPlusDate
+        );
+      }
+
+      // Common cleanup
       setNewMessageText("");
       setVoiceMessage(true);
       setIsMicClicked(false);
-
-      const responseNewMessage = await JsonParser.sendMessageJson(
-        chatId,
-        newMessageText,
-        randomNumberPlusDate
-      );
     } catch (error) {
       console.error("Errore nell'invio del messaggio:", error);
     }

@@ -121,6 +121,29 @@ class APIMethods {
       throw error;
     }
   }
+
+  static async logoutAPI() {
+    try {
+      const response = await this.api.get("/user/auth/logout");
+      return response.data.logged_out;
+    } catch (error) {
+      console.error("Error in logout API:", error);
+      throw error;
+    }
+  }
+
+  //creazione nuova chat
+  static async createNewChatAPI(handle) {
+    try {
+      const response = await this.api.get(`/chat/create/chat?handle=${handle}`);
+      return response.data.chat_id;
+    } catch (error) {
+      console.error("Error in createNewChatAPI:", error);
+      throw error;
+    }
+  }
+
+  
 }
 
 export default APIMethods;
