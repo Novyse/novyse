@@ -29,10 +29,10 @@ import JsonParser from "./utils/JsonParser";
 import APIMethods from "./utils/APImethods";
 
 const ChatContent = ({ chatId, userId, onBack }) => {
+  const messagesRef = useRef([]);
+  const [messages, setMessages] = useState([]);
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-  const [messages, setMessages] = useState([]);
-  const messagesRef = useRef([]);
   const [newMessageText, setNewMessageText] = useState("");
   const [isVoiceMessage, setVoiceMessage] = useState(true);
 
@@ -53,6 +53,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
   const [isMicClicked, setIsMicClicked] = useState(false);
 
   useEffect(() => {
+    // carico i messaggi quando apro la pagina
     const loadMessages = async () => {
       try {
         const msgs = await localDatabase.fetchAllChatMessages(chatId);
@@ -66,17 +67,16 @@ const ChatContent = ({ chatId, userId, onBack }) => {
       }
     };
     loadMessages();
-  }, [chatId]);
 
-  useEffect(() => {
+    // gestisco quando ricevo un messaggio da un utente
     const handleReceiveMessage = (data) => {
       if (data.chat_id === chatId) {
         const newMessage = {
-          message_id: data.message_id || data.hash, // Usa l'hash se disponibile
+          message_id: data.message_id || data.hash, // Nota: l'hash non è più usato, al suo posto ci va un numero random
           sender: data.sender,
           text: data.text,
           date_time: data.date,
-          hash: data.hash, // Assumi che il server restituisca l'hash
+          hash: data.hash,
         };
 
         setMessages((currentMessages) => {
@@ -86,15 +86,9 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         });
       }
     };
-
     eventEmitter.on("newMessage", handleReceiveMessage);
 
-    return () => {
-      eventEmitter.off("newMessage", handleReceiveMessage);
-    };
-  }, [chatId]);
-
-  useEffect(() => {
+    // gestisco quando il server ritorna le info del messaggio (il server conferma che ha ricevuto il messaggio)
     const handleUpdateMessage = (data) => {
       setMessages((currentMessages) => {
         return currentMessages.map((item) => {
@@ -112,9 +106,9 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         });
       });
     };
-
     eventEmitter.on("updateMessage", handleUpdateMessage);
 
+    // gestisco quando l'utente vuole tornare alla pagina precedente
     const backAction = () => {
       if (onBack) {
         onBack();
@@ -129,11 +123,13 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     );
 
     return () => {
+      eventEmitter.off("newMessage", handleReceiveMessage);
       eventEmitter.off("updateMessage", handleUpdateMessage);
       backHandler.remove();
     };
   }, [chatId, onBack]);
 
+  // trasforma la data in un formato HH:MM
   const parseTime = (dateTimeMessage) => {
     if (!dateTimeMessage) return "";
     const timeMoment = moment(dateTimeMessage);
@@ -155,7 +151,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     router.navigate(`/messages?chatId=${newChatChatId}`);
 
     // aggiorno live la lista delle chat
-eventEmitter.emit("newChat", { newChatId: newChatChatId });
+    eventEmitter.emit("newChat", { newChatId: newChatChatId });
 
     // Existing message handling logic
     const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
@@ -177,7 +173,7 @@ eventEmitter.emit("newChat", { newChatId: newChatChatId });
     );
   };
 
-  //gestione invio messaggio
+  //gestione invio messaggio (quando l'utente preme il pulsante)
   const handleSendMessage = async () => {
     if (!newMessageText.trim()) {
       console.warn("Empty message, not sending");
@@ -221,12 +217,15 @@ eventEmitter.emit("newChat", { newChatId: newChatChatId });
     }
   };
 
+  // gestisco quando il microfono viene premuto
+  // non ci sono ancora i messaggi vocali, ma intanto l'ho fatto
   const handleVoiceMessage = () => {
     console.log("Voice message button pressed");
     setIsMicClicked(true);
     setVoiceMessage(false);
   };
 
+  // gestisco quando l'utente tiene premuto su un messaggio nella chat
   const handleLongPress = (event, message) => {
     if (dropdownInfo.visible) {
       setDropdownInfo({ visible: false, x: 0, y: 0, message: null });
@@ -246,12 +245,48 @@ eventEmitter.emit("newChat", { newChatId: newChatChatId });
     }
   };
 
+  
   const hideDropdown = () => {
     if (dropdownInfo.visible) {
       setDropdownInfo({ visible: false, x: 0, y: 0, message: null });
     }
   };
 
+  
+  const getDropdownStyle = () => {
+    const menuWidth = 200;
+    const menuHeight = 50;
+    let x = dropdownInfo.x;
+    let y = dropdownInfo.y;
+
+    if (containerLayout.width && containerLayout.height) {
+      if (x + menuWidth > containerLayout.width) {
+        x = containerLayout.width - menuWidth;
+      }
+      if (y + menuHeight > containerLayout.height) {
+        y = containerLayout.height - menuHeight;
+      }
+      if (x < 0) x = 0;
+      if (y < 0) y = 0;
+    }
+
+    return {
+      position: "absolute",
+      left: x,
+      top: y,
+      width: menuWidth,
+      height: menuHeight,
+      backgroundColor: "#ffffff",
+      borderColor: "#000",
+      borderWidth: 1,
+      borderRadius: 5,
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 999,
+    };
+  };
+
+  // preparo i messaggi prima che vengano stampati --> aggiungo le date tra messaggi di giorni diversi
   const prepareMessagesWithDateSeparators = useCallback(() => {
     const groupedMessages = [];
     let currentDayMessages = [];
@@ -296,6 +331,7 @@ eventEmitter.emit("newChat", { newChatId: newChatChatId });
     return groupedMessages;
   }, [messages]);
 
+  //gestisco quando il testo cmbia nel textinput
   const handleTextChanging = (text) => {
     setNewMessageText(text);
     setVoiceMessage(text.length === 0 && !isMicClicked);
@@ -382,39 +418,6 @@ eventEmitter.emit("newChat", { newChatId: newChatChatId });
       )}
     </View>
   );
-
-  const getDropdownStyle = () => {
-    const menuWidth = 200;
-    const menuHeight = 50;
-    let x = dropdownInfo.x;
-    let y = dropdownInfo.y;
-
-    if (containerLayout.width && containerLayout.height) {
-      if (x + menuWidth > containerLayout.width) {
-        x = containerLayout.width - menuWidth;
-      }
-      if (y + menuHeight > containerLayout.height) {
-        y = containerLayout.height - menuHeight;
-      }
-      if (x < 0) x = 0;
-      if (y < 0) y = 0;
-    }
-
-    return {
-      position: "absolute",
-      left: x,
-      top: y,
-      width: menuWidth,
-      height: menuHeight,
-      backgroundColor: "#ffffff",
-      borderColor: "#000",
-      borderWidth: 1,
-      borderRadius: 5,
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 999,
-    };
-  };
 
   return (
     <SafeAreaView

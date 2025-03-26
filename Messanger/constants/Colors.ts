@@ -27,8 +27,6 @@ export const Colors = {
     chatListSelected: '#2b5278',
     icon: 'white',
     button: '#2399C3',
-    //sideBar - ChatList
-    sideBarBackground: '#405770',
-
+    sideBarBackground: '#405770',               //sideBar - ChatList
   },
 };

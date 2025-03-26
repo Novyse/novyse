@@ -149,6 +149,7 @@ const createStyle = (theme) =>
       padding: 10,
       backgroundColor: theme.backgroundChatInsideList,
       borderRadius: 13,
+      marginBottom: 10,
     },
     resultText: {
       fontSize: 16,

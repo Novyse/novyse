@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -11,27 +11,27 @@ import {
   Animated,
   BackHandler,
   Alert,
-  Platform,
 } from "react-native";
+import moment from "moment";
+import appJson from "../app.json";
 import { StatusBar } from "expo-status-bar";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { ThemeContext } from "@/context/ThemeContext";
+import NetInfo from "@react-native-community/netinfo";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { FloatingAction } from "react-native-floating-action";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import Search from "./Search";
 import ChatContent from "./ChatContent";
 import VocalContent from "./VocalContent";
-import { ThemeContext } from "@/context/ThemeContext";
-import localDatabase from "./utils/localDatabaseMethods";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import eventEmitter from "./utils/EventEmitter";
-import NetInfo from "@react-native-community/netinfo";
-import { FloatingAction } from "react-native-floating-action";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import appJson from "../app.json";
-import moment from "moment";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import WebSocketMethods from "./utils/webSocketMethods";
-import Search from "./Search";
 import APIMethods from "./utils/APImethods";
+import eventEmitter from "./utils/EventEmitter";
+import WebSocketMethods from "./utils/webSocketMethods";
+import localDatabase from "./utils/localDatabaseMethods";
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -48,10 +48,10 @@ const ChatList = () => {
   const params = useLocalSearchParams();
   const [chats, setChats] = useState([]);
   const [userId, setUserId] = useState("");
-  const [userName, setUserName] = useState("");
   const [chatDetails, setChatDetails] = useState({});
   const [contentView, setContentView] = useState("chat");
 
+  // importo stile e temi colori
   const { colorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
 
@@ -96,6 +96,7 @@ const ChatList = () => {
 
     WebSocketMethods.openWebSocketConnection();
 
+    // gestisco quando l'utente vuole tornare alla pagina precedente
     const backAction = () => {
       if (isSmallScreen && selectedChat) {
         setSelectedChat(null);
@@ -112,26 +113,7 @@ const ChatList = () => {
       backAction
     );
 
-    return () => {
-      backHandler.remove();
-      checkConnection();
-    };
-  }, [isSmallScreen, selectedChat]);
-
-  useEffect(() => {
-    const updateScreenSize = () => {
-      const { width } = Dimensions.get("window");
-      setIsSmallScreen(width <= 768);
-    };
-    Dimensions.addEventListener("change", updateScreenSize);
-    updateScreenSize();
-
-    if (!isSmallScreen && params.chatId) {
-      setSelectedChat(params.chatId);
-    }
-  }, [params.chatId]);
-
-  useEffect(() => {
+    // gestisco quando un nuovo messaggio viene inviato dall'utente
     const handleNewMessageSent = (data) => {
       const { chat_id, text, date } = data;
       setChatDetails((current) => ({
@@ -146,77 +128,23 @@ const ChatList = () => {
         },
       }));
     };
-
     eventEmitter.on("updateNewLastMessage", handleNewMessageSent);
 
-    return () => {
-      eventEmitter.off("updateNewLastMessage", handleNewMessageSent);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isSmallScreen) {
-      Animated.timing(chatContentPosition, {
-        toValue: selectedChat ? 0 : Dimensions.get("window").width,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [selectedChat, isSmallScreen]);
-
-  //logout dall'app sia locale (elimina DB) che remoto (API)
-  const logout = async () => {
-    await localDatabase.clearDatabase();
-    const loggedOutFromAPI = await APIMethods.logoutAPI();
-    if (loggedOutFromAPI) {
-      console.log("Logout dall'API completato");
-    }
-    router.navigate("/loginSignup/EmailCheckForm");
-  };
-
-  const fetchLocalUserNameAndSurname = () => Promise.resolve("John Doe");
-
-  const fetchChats = () =>
-    localDatabase.fetchChats().then((chats) =>
-      chats.map((chat) => ({
-        chat_id: chat.chat_id,
-        group_channel_name: chat.group_channel_name || "",
-      }))
-    );
-
-  const fetchUser = (chatId) =>
-    localDatabase.fetchUser(chatId).then((handle) => ({ handle }));
-
-  const fetchLastMessage = (chatId) =>
-    localDatabase.fetchLastMessage(chatId).then((row) => ({
-      text: row.text,
-      date_time: row.date_time,
-    }));
-
-  useEffect(() => {
+    // gestisco quando l'utente clicca su una chat che risulta da Search --> potrebbe essere fatto meglio
     const handleSearchResult = (data) => {
       const { handle } = data;
       // Crea un ID temporaneo per la chat
       const tempChatId = `temp_${handle}_${Date.now()}`;
       setSelectedChat(tempChatId);
       console.log("Chat selezionata da ricerca: ", tempChatId);
-
       // Chiudi la ricerca
       // setIsToggleSearchChats(false);
     };
-
     eventEmitter.on("searchResultSelected", handleSearchResult);
 
-    return () => {
-      eventEmitter.off("searchResultSelected", handleSearchResult);
-    };
-  }, []);
-
-  useEffect(() => {
     // Create a function to fetch and update chat data
     const updateChatsAndDetails = async (data) => {
       const newChatId = data?.newChatId;
-      console.log("⭐⭐⭐ New Chat ID:", newChatId);
 
       try {
         const fetchedChats = await fetchChats();
@@ -240,19 +168,75 @@ const ChatList = () => {
         console.error("Error updating chats:", error);
       }
     };
+    // Listen for new chat events
+    eventEmitter.on("newChat", updateChatsAndDetails);
 
     // Initial fetch
     updateChatsAndDetails();
 
-    // Listen for new chat events
-    eventEmitter.on("newChat", updateChatsAndDetails);
-
-    // Cleanup
     return () => {
+      eventEmitter.off("updateNewLastMessage", handleNewMessageSent);
       eventEmitter.off("newChat", updateChatsAndDetails);
+      eventEmitter.off("searchResultSelected", handleSearchResult);
+      backHandler.remove();
+      checkConnection();
     };
-  }, []);
+  }, [isSmallScreen, selectedChat]);
 
+  useEffect(() => {
+    const updateScreenSize = () => {
+      const { width } = Dimensions.get("window");
+      setIsSmallScreen(width <= 768);
+    };
+    Dimensions.addEventListener("change", updateScreenSize);
+    updateScreenSize();
+
+    if (!isSmallScreen && params.chatId) {
+      setSelectedChat(params.chatId);
+    }
+  }, [params.chatId]);
+
+  useEffect(() => {
+    if (isSmallScreen) {
+      Animated.timing(chatContentPosition, {
+        toValue: selectedChat ? 0 : Dimensions.get("window").width,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [selectedChat, isSmallScreen]);
+
+  //logout dall'app sia locale (elimina DB) che remoto (API)
+  const logout = async () => {
+    await localDatabase.clearDatabase();
+    const loggedOutFromAPI = await APIMethods.logoutAPI();
+    if (loggedOutFromAPI) {
+      console.log("Logout dall'API completato");
+    }
+    router.navigate("/loginSignup/EmailCheckForm");
+  };
+
+  // viene richiamata nello useEffect, serve per ottenere le chat dal DB locale
+  const fetchChats = () =>
+    localDatabase.fetchChats().then((chats) =>
+      chats.map((chat) => ({
+        chat_id: chat.chat_id,
+        group_channel_name: chat.group_channel_name || "",
+      }))
+    );
+
+  // viene richiamata nello useEffect, serve per ottenere gli user dal DB locale
+  const fetchUser = (chatId) =>
+    localDatabase.fetchUser(chatId).then((handle) => ({ handle }));
+
+  // viene richiamata nello useEffect, serve per ottenere l'ultimo messaggio dal DB locale
+  const fetchLastMessage = (chatId) =>
+    localDatabase.fetchLastMessage(chatId).then((row) => ({
+      text: row.text,
+      date_time: row.date_time,
+    }));
+
+  // apre / chiude la sidebar
   const toggleSidebar = () => {
     Animated.timing(sidebarPosition, {
       toValue: isSidebarVisible ? -250 : 0,
@@ -272,6 +256,7 @@ const ChatList = () => {
     }
   };
 
+  // trasforma la data in un formato HH:MM
   const parseTime = (dateTimeMessage) => {
     if (!dateTimeMessage) return "";
     const timeMoment = moment(dateTimeMessage);
@@ -659,10 +644,12 @@ function createStyle(theme, colorScheme) {
     },
     chatList: {
       backgroundColor: theme.backgroundChatList,
-      flex: 1,
+      flex: 1, // For small screens, it takes full width
+      minWidth: 330, // Minimum width to prevent shrinking
     },
     largeScreenChatList: {
-      flex: 0.25,
+      flex: 0, // Override flex: 1 for large screens
+      width: 330, // Fixed width for large screens
       borderRightWidth: 1,
       borderRightColor: theme.chatDivider,
     },
@@ -736,7 +723,6 @@ function createStyle(theme, colorScheme) {
       flex: 1,
       textAlign: "left",
     },
-
     backButton: {
       marginRight: 10,
     },
