@@ -24,7 +24,7 @@ const SettingsMenu = () => {
     return (
       <View style={styles.header}>
         <Pressable
-          onPress={() => {router.navigate("/ChatList")}}
+          onPress={() => {router.navigate("/messages")}}
           style={styles.backButton}
         >
           <Icon name="arrow-back" size={24} color={theme.icon} />

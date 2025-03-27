@@ -11,6 +11,7 @@ import {
   Animated,
   BackHandler,
   Alert,
+  Modal,
 } from "react-native";
 import moment from "moment";
 import appJson from "../app.json";
@@ -24,6 +25,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { FloatingAction } from "react-native-floating-action";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import CreateGroupModal from "./components/CreateGroupModal";
 
 import Search from "./Search";
 import ChatContent from "./ChatContent";
@@ -43,6 +45,7 @@ const ChatList = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
   const [isSettingsMenuVisible, setIsSettingsMenuVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -63,17 +66,10 @@ const ChatList = () => {
   //azioni sul floating button
   const actions = [
     {
-      text: "Nuova chat",
-      icon: <AntDesign name="adduser" size={24} color="white" />,
-      name: "bt_new_chat",
-      position: 1,
-      color: theme.floatingLittleButton,
-    },
-    {
       text: "Nuovo gruppo",
       icon: <AntDesign name="addusergroup" size={24} color="white" />,
       name: "bt_new_group",
-      position: 2,
+      position: 1,
       color: theme.floatingLittleButton,
     },
   ];
@@ -436,7 +432,12 @@ const ChatList = () => {
       />
       <FloatingAction
         actions={actions}
-        onPressItem={(name) => console.log(`selected button: ${name}`)}
+        onPressItem={(name) => {
+          if (name === "bt_new_group") {
+            setIsModalVisible(true);
+          }
+          console.log(`selected button: ${name}`);
+        }}
         color={theme.floatingBigButton}
         overlayColor="rgba(0, 0, 0, 0)"
         shadow={{ shadowColor: "transparent" }}
@@ -623,6 +624,7 @@ const ChatList = () => {
             Network Status: Not Connected
           </Text>
         )}
+        <CreateGroupModal visible={isModalVisible} onClose={() => setIsModalVisible(false)}/>
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -831,6 +833,42 @@ function createStyle(theme, colorScheme) {
     sidebarText: {
       color: "#fff",
       fontSize: 16,
+    },
+
+    modalView: {
+      margin: 20,
+      backgroundColor: "white",
+      borderRadius: 20,
+      padding: 35,
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    button: {
+      borderRadius: 20,
+      padding: 10,
+      elevation: 2,
+    },
+    buttonOpen: {
+      backgroundColor: "#F194FF",
+    },
+    buttonClose: {
+      backgroundColor: "#2196F3",
+    },
+    textStyle: {
+      color: "white",
+      fontWeight: "bold",
+      textAlign: "center",
+    },
+    modalText: {
+      marginBottom: 15,
+      textAlign: "center",
     },
   });
 }

@@ -37,7 +37,7 @@ const Search = () => {
     checkLogged();
 
     const backAction = () => {
-      router.navigate("/ChatList");
+      router.navigate("/messages");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
