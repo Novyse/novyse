@@ -45,7 +45,7 @@ const ChatList = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
   const [isSettingsMenuVisible, setIsSettingsMenuVisible] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] = useState(false);
 
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -434,7 +434,7 @@ const ChatList = () => {
         actions={actions}
         onPressItem={(name) => {
           if (name === "bt_new_group") {
-            setIsModalVisible(true);
+            setIsCreateGroupModalVisible(true);
           }
           console.log(`selected button: ${name}`);
         }}
@@ -624,7 +624,7 @@ const ChatList = () => {
             Network Status: Not Connected
           </Text>
         )}
-        <CreateGroupModal visible={isModalVisible} onClose={() => setIsModalVisible(false)}/>
+        <CreateGroupModal visible={isCreateGroupModalVisible} onClose={() => setIsCreateGroupModalVisible(false)}/>
       </SafeAreaView>
     </SafeAreaProvider>
   );
