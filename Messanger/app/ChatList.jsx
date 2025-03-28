@@ -45,7 +45,8 @@ const ChatList = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
   const [isSettingsMenuVisible, setIsSettingsMenuVisible] = useState(false);
-  const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] = useState(false);
+  const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] =
+    useState(false);
 
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -157,9 +158,6 @@ const ChatList = () => {
         if (newChatId) {
           setSelectedChat(newChatId);
         }
-
-        console.log("Chats updated:", fetchedChats);
-        console.log("Chat Details updated:", details);
       } catch (error) {
         console.error("Error updating chats:", error);
       }
@@ -575,6 +573,10 @@ const ChatList = () => {
     <SafeAreaProvider>
       <StatusBar style="light" backgroundColor="#1b2734" translucent={false} />
       <SafeAreaView style={styles.safeArea}>
+        <CreateGroupModal
+          visible={isCreateGroupModalVisible}
+          onClose={() => setIsCreateGroupModalVisible(false)}
+        />
         {renderSidebar()}
         {!isSmallScreen || (isSmallScreen && !selectedChat)
           ? renderHeader()
@@ -624,7 +626,6 @@ const ChatList = () => {
             Network Status: Not Connected
           </Text>
         )}
-        <CreateGroupModal visible={isCreateGroupModalVisible} onClose={() => setIsCreateGroupModalVisible(false)}/>
       </SafeAreaView>
     </SafeAreaProvider>
   );

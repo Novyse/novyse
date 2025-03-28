@@ -12,15 +12,11 @@ import {
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import eventEmitter from "../utils/EventEmitter";
 import { ThemeContext } from "@/context/ThemeContext";
 import JsonParser from "../utils/JsonParser";
 import localDatabase from "../utils/localDatabaseMethods";
-import WebSocketMethods from "../utils/webSocketMethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-
 
 const LoginPassword = () => {
   const router = useRouter();
@@ -168,10 +164,10 @@ const LoginPassword = () => {
             disabled={isLoading}
           >
             <Text style={styles.containerButtonText}>Invia</Text>
+            {isLoading && (
+              <ActivityIndicator style={styles.loader} size="small" />
+            )}
           </Pressable>
-          {isLoading && (
-            <ActivityIndicator style={styles.loader} size="small" />
-          )}
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -235,9 +231,9 @@ function createStyle(theme, colorScheme) {
       color: theme.text,
       fontSize: 18,
     },
-    // loader: {
-    //   marginTop: 10,
-    // },
+    loader: {
+       marginLeft: 10,
+    },
     eyeIcon: {
       padding: 0,
       margin: 0,

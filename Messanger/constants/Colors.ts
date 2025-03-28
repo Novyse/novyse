@@ -28,5 +28,6 @@ export const Colors = {
     icon: 'white',
     button: '#2399C3',
     sideBarBackground: '#405770',               //sideBar - ChatList
+    modalsBackground: '#416a90',
   },
 };
