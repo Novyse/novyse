@@ -146,7 +146,6 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
     await localDatabase.insertChat(newChatChatId, "");
     await localDatabase.insertChatAndUsers(newChatChatId, handle);
     await localDatabase.insertUsers(handle);
-    // Clear the parameter after handling
 
     router.navigate(`/messages?chatId=${newChatChatId}`);
 
@@ -186,10 +185,8 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
         params.creatingChatWith !== undefined
       ) {
         // Handle first message in new chat
-        console.log("🟡", params.creatingChatWith);
         await handleNewChatFirstMessage(params.creatingChatWith);
       } else {
-        console.log("🔴");
         // Existing message handling logic
         const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
         const randomNumberPlusDate = Date.now() + randomNumber;
@@ -340,11 +337,13 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
   // gestisco quando clicco il pulsante per joinare un gruppo
   const handleJoinGroup = async () => {
     const joinGroup = await APIMethods.joinGroup(params.creatingChatWith);
-    console.log("🟡🟡🟡", joinGroup);
 
 
     if (joinGroup.group_joined) {
       await localDatabase.insertChat(joinGroup.chat_id, joinGroup.group_name);
+
+      // da capire se usare uno useState in qualche modo
+      chatJoined = true;
 
       for (const member of joinGroup.members) {
         await localDatabase.insertChatAndUsers(
@@ -368,7 +367,6 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
           );
         }
       }
-
       router.navigate(`/messages?chatId=${joinGroup.chat_id}`);
 
       // aggiorno live la lista delle chat

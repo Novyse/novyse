@@ -250,7 +250,7 @@ const ChatList = () => {
     setChatJoined(true);
     setSelectedChat(chatId);
     if (!isSmallScreen) {
-      router.setParams({ chatId, creatingChatWith: undefined });
+      router.setParams({ chatId });
     }
   };
 
