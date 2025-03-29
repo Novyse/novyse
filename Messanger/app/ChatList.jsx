@@ -16,16 +16,16 @@ import {
 import moment from "moment";
 import appJson from "../app.json";
 import { StatusBar } from "expo-status-bar";
-import AntDesign from "@expo/vector-icons/AntDesign";
 import { ThemeContext } from "@/context/ThemeContext";
 import NetInfo from "@react-native-community/netinfo";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { FloatingAction } from "react-native-floating-action";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import CreateGroupModal from "./components/CreateGroupModal";
+import SidebarItem from "./components/SidebarItem";
 
 import Search from "./Search";
 import ChatContent from "./ChatContent";
@@ -63,17 +63,6 @@ const ChatList = () => {
   const [chatContentPosition] = useState(
     new Animated.Value(Dimensions.get("window").width)
   );
-
-  //azioni sul floating button
-  const actions = [
-    {
-      text: "Nuovo gruppo",
-      icon: <AntDesign name="addusergroup" size={24} color="white" />,
-      name: "bt_new_group",
-      position: 1,
-      color: theme.floatingLittleButton,
-    },
-  ];
 
   useEffect(() => {
     const checkLogged = async () => {
@@ -284,44 +273,28 @@ const ChatList = () => {
 
         {/* Menu Items */}
         <View style={styles.menuContainer}>
-          {/* Menu Item 1: Profile */}
-          <Pressable style={styles.menuItem}>
-            <AntDesign
-              name="user"
-              size={24}
-              color="white"
-              style={styles.menuIcon}
-            />
-            <Text style={styles.sidebarText}>Profile</Text>
-          </Pressable>
-
-          {/* Menu Item 2: Settings */}
-          <Pressable style={styles.menuItem} onPress={handleSettingsPress}>
-            <MaterialIcons
-              name="settings"
-              size={24}
-              color="white"
-              style={styles.menuIcon}
-            />
-            <Text style={styles.sidebarText}>Settings</Text>
-          </Pressable>
-
-          {/* Logout Button */}
-          <Pressable
-            style={styles.menuItem}
+          <SidebarItem text="Profile" iconName="person" />
+          <SidebarItem
+            text="Settings"
+            iconName="settings"
+            onPress={handleSettingsPress}
+          />
+          <SidebarItem
+            text="Nuovo Gruppo"
+            iconName="people"
+            onPress={() => {
+              toggleSidebar();
+              setIsCreateGroupModalVisible(true);
+            }}
+          />
+          <SidebarItem
+            text="Logout"
+            iconName="logout"
             onPress={() => {
               AsyncStorage.setItem("isLoggedIn", "false");
               logout();
             }}
-          >
-            <MaterialIcons
-              name="logout"
-              size={24}
-              color="white"
-              style={styles.menuIcon}
-            />
-            <Text style={styles.sidebarText}>Logout qua temp</Text>
-          </Pressable>
+          />
         </View>
       </Animated.View>
     </>
@@ -427,19 +400,6 @@ const ChatList = () => {
             </Pressable>
           );
         }}
-      />
-      <FloatingAction
-        actions={actions}
-        onPressItem={(name) => {
-          if (name === "bt_new_group") {
-            setIsCreateGroupModalVisible(true);
-          }
-          console.log(`selected button: ${name}`);
-        }}
-        color={theme.floatingBigButton}
-        overlayColor="rgba(0, 0, 0, 0)"
-        shadow={{ shadowColor: "transparent" }}
-        distanceToEdge={10}
       />
       <Text style={{ fontSize: 12, color: "#426080", textAlign: "center" }}>
         Versione: {appJson.expo.version}
@@ -573,10 +533,6 @@ const ChatList = () => {
     <SafeAreaProvider>
       <StatusBar style="light" backgroundColor="#1b2734" translucent={false} />
       <SafeAreaView style={styles.safeArea}>
-        <CreateGroupModal
-          visible={isCreateGroupModalVisible}
-          onClose={() => setIsCreateGroupModalVisible(false)}
-        />
         {renderSidebar()}
         {!isSmallScreen || (isSmallScreen && !selectedChat)
           ? renderHeader()
@@ -621,6 +577,10 @@ const ChatList = () => {
             </>
           )}
         </View>
+        <CreateGroupModal
+          visible={isCreateGroupModalVisible}
+          onClose={() => setIsCreateGroupModalVisible(false)}
+        />
         {!networkAvailable && (
           <Text style={styles.connectionInfoContainer}>
             Network Status: Not Connected
@@ -820,56 +780,6 @@ function createStyle(theme, colorScheme) {
     },
     menuContainer: {
       flex: 1,
-    },
-    menuItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 15,
-      borderBottomWidth: 1,
-      borderBottomColor: "rgba(255, 255, 255, 0.1)", // Subtle divider
-    },
-    menuIcon: {
-      marginRight: 15,
-    },
-    sidebarText: {
-      color: "#fff",
-      fontSize: 16,
-    },
-
-    modalView: {
-      margin: 20,
-      backgroundColor: "white",
-      borderRadius: 20,
-      padding: 35,
-      alignItems: "center",
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-      elevation: 5,
-    },
-    button: {
-      borderRadius: 20,
-      padding: 10,
-      elevation: 2,
-    },
-    buttonOpen: {
-      backgroundColor: "#F194FF",
-    },
-    buttonClose: {
-      backgroundColor: "#2196F3",
-    },
-    textStyle: {
-      color: "white",
-      fontWeight: "bold",
-      textAlign: "center",
-    },
-    modalText: {
-      marginBottom: 15,
-      textAlign: "center",
     },
   });
 }

@@ -10,70 +10,107 @@ import {
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 
-const CreateGroupModal = (props) => {
+const CreateGroupModal = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   const [groupName, setGroupName] = useState("");
+  const [groupHandle, setGroupHandle] = useState("");
   const [isPublic, setIsPublic] = useState(false);
+  const [isTextError1, setIsTextError1] = useState(false);
+  const [isTextError2, setIsTextError2] = useState(false);
 
-  const handleCreateGroup = () => {
-    console.log("🟢🟢🟢", isPublic, groupName);
-    props.onClose();
-  };
+  const handleCreateGroupPress = () => {
+    if(!groupName) {
+      setIsTextError1(true);
+    }
+    if(!groupHandle) {
+      setIsTextError2(true);
+    }
+  }
 
   return (
-    <View>
-      <Modal animationType="slide" transparent={true} visible={props.visible}>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalTitleText}>Crea un nuovo gruppo</Text>
+    // <Modal animationType="slide" transparent={true} visible={visible}>
+    //   <View style={styles.centeredView}>
+    //     <View style={styles.modalView}>
+    //       <Text style={styles.modalText}>Hello World!</Text>
+    //       <Pressable
+    //         style={[styles.button, styles.buttonClose]}
+    //         onPress={onClose}
+    //       >
+    //         <Text style={styles.textStyle}>Close Modal</Text>
+    //       </Pressable>
+    //     </View>
+    //   </View>
+    // </Modal>
+
+    <Modal animationType="slide" transparent={true} visible={visible}>
+      <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+          <Text style={styles.modalTitleText}>Crea un nuovo gruppo</Text>
+          <TextInput
+            style={isTextError1 ? styles.textInputError : styles.textInput}
+            placeholder="Nome del gruppo"
+            placeholderTextColor={isTextError1 ? "#red" : "#ccc"}
+            value={groupName}
+            onChangeText={setGroupName}
+          />
+          {isPublic ? (
             <TextInput
-              style={styles.textInput}
-              placeholder="Nome del gruppo"
-              placeholderTextColor="#ccc"
-              value={groupName}
-              onChangeText={setGroupName}
+              style={isTextError2 ? styles.textInputError : styles.textInput}
+              placeholder="Handle del gruppo"
+              placeholderTextColor={isTextError2 ? "#red" : "#ccc"}
+              value={groupHandle}
+              onChangeText={setGroupHandle}
             />
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 10,
-                marginBottom: 10,
-                justifyContent: "space-between",
-                width: "100%",
-              }}
-            >
-              <Text style={styles.isPublicText}>{isPublic ? "Pubblico" : "Privato"}</Text>
-              <Switch
+          ) : null}
+
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 10,
+              marginBottom: 10,
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <Text style={styles.isPublicText}>
+              {isPublic ? "Pubblico" : "Privato"}
+            </Text>
+            <Switch
                 trackColor={{ false: "#767577", true: "#81b0ff" }}
                 thumbColor={isPublic ? '#f5dd4b' : '#f4f3f4'}
                 ios_backgroundColor="#3e3e3e"
                 onValueChange={setIsPublic}
                 value={isPublic}
               />
-            </View>
+          </View>
 
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <Pressable
-                style={[styles.button, styles.buttonClose]}
-                onPress={props.onClose}
-              >
-                <Text style={styles.textStyle}>Indietro</Text>
-              </Pressable>
-              <Pressable style={[styles.button, styles.buttonClose]} onPress={handleCreateGroup}>
-                <Text style={styles.textStyle}>Crea gruppo</Text>
-              </Pressable>
-            </View>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <Pressable
+              style={[styles.button, styles.buttonClose]}
+              onPress={onClose}
+            >
+              <Text style={styles.textStyle}>Indietro</Text>
+            </Pressable>
+            <Pressable style={[styles.button, styles.buttonClose]} onPress={handleCreateGroupPress}>
+              <Text style={styles.textStyle}>Crea gruppo</Text>
+            </Pressable>
           </View>
         </View>
-      </Modal>
-    </View>
+      </View>
+    </Modal>
   );
 };
 
-const createStyle = (theme) =>
-  StyleSheet.create({
+function createStyle(theme, colorScheme) {
+  return StyleSheet.create({
     centeredView: {
       flex: 1,
       justifyContent: "center",
@@ -110,6 +147,10 @@ const createStyle = (theme) =>
       fontWeight: "bold",
       textAlign: "center",
     },
+    modalText: {
+      marginBottom: 15,
+      textAlign: "center",
+    },
     modalTitleText: {
       marginBottom: 15,
       textAlign: "center",
@@ -128,9 +169,21 @@ const createStyle = (theme) =>
       marginBottom: 10,
       padding: 10,
     },
+    textInputError: {
+      width: "100%",
+      outlineStyle: "none",
+      borderColor: "red",
+      borderWidth: 1,
+      borderRadius: 12,
+      color: "red",
+      pointerEvents: "auto",
+      marginBottom: 10,
+      padding: 10,
+    },
     isPublicText: {
       color: theme.text,
-    }
+    },
   });
+}
 
 export default CreateGroupModal;
