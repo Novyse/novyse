@@ -10,10 +10,14 @@ import {
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import APIMethods from "../utils/APImethods";
+import localDatabase from "../utils/localDatabaseMethods";
+import { useRouter } from "expo-router";
+import eventEmitter from "../utils/EventEmitter";
 
 const CreateGroupModal = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+  const router = useRouter();
 
   const [groupName, setGroupName] = useState("");
   const [groupHandle, setGroupHandle] = useState("");
@@ -21,7 +25,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
   const [isTextError1, setIsTextError1] = useState(false);
   const [isTextError2, setIsTextError2] = useState(false);
 
-  const handleCreateGroupPress = () => {
+  const handleCreateGroupPress = async () => {
     setIsTextError1(false);
     setIsTextError2(false);
     if (!groupName) {
@@ -29,28 +33,41 @@ const CreateGroupModal = ({ visible, onClose }) => {
     } else if (!groupHandle && isPublic) {
       setIsTextError2(true);
     } else {
-      if (!isPublic) {
-        setGroupHandle(null);
-        APIMethods.createNewGroupAPI(groupHandle, groupName);
+      const success = await APIMethods.createNewGroupAPI(
+        groupHandle,
+        groupName
+      );
+      if (success.group_created) {
+        console.log("Gruppo creato con successo", success.group_created);
+        onClose();
+
+        const newGroupChatId = success.chat_id;
+
+        console.log("🚨Nuovo gruppo ID: ", newGroupChatId);
+
+        // inserisco chat e user nel db locale
+        await localDatabase.insertChat(newGroupChatId, groupName);
+        // await localDatabase.insertChatAndUsers(newGroupChatId, handle);
+        // await localDatabase.insertUsers(handle);
+        // Clear the parameter after handling
+        router.setParams({
+          chatId: newGroupChatId,
+          creatingChatWith: undefined,
+        });
+        router.navigate(`/messages?chatId=${newGroupChatId}`);
+
+        // aggiorno live la lista delle chat
+        eventEmitter.emit("newChat", { newChatId: newGroupChatId });
+      } else {
+        console.log(
+          "Errore durante la creazione del gruppo",
+          success.group_created
+        );
       }
     }
   };
 
   return (
-    // <Modal animationType="slide" transparent={true} visible={visible}>
-    //   <View style={styles.centeredView}>
-    //     <View style={styles.modalView}>
-    //       <Text style={styles.modalText}>Hello World!</Text>
-    //       <Pressable
-    //         style={[styles.button, styles.buttonClose]}
-    //         onPress={onClose}
-    //       >
-    //         <Text style={styles.textStyle}>Close Modal</Text>
-    //       </Pressable>
-    //     </View>
-    //   </View>
-    // </Modal>
-
     <Modal animationType="slide" transparent={true} visible={visible}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>

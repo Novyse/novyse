@@ -119,6 +119,11 @@ const WebSocketMethods = {
       }
     });
 
+    // quando qualcuno crea un gruppo e mi aggiunge
+    socket.on("group_created", async (data) => {
+
+    });
+
     return "return of socket.io receiver function";
   },
 };

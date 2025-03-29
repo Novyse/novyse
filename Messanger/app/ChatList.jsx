@@ -47,6 +47,8 @@ const ChatList = () => {
   const [isSettingsMenuVisible, setIsSettingsMenuVisible] = useState(false);
   const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] =
     useState(false);
+  // se un utente ha accesso alla chat/gruppo, quindi per capire se mostrare la barra per mandare i messaggi oppure un pulsante join chat/group
+  const [chatJoined, setChatJoined] = useState(true);
 
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -118,10 +120,18 @@ const ChatList = () => {
 
     // gestisco quando l'utente clicca su una chat che risulta da Search --> potrebbe essere fatto meglio
     const handleSearchResult = (data) => {
-      const { handle } = data;
+      const { handle, type } = data;
       // Crea un ID temporaneo per la chat
       const tempChatId = `temp_${handle}_${Date.now()}`;
-      setSelectedChat(tempChatId);
+
+      // da capire bene --> da fare col chat_id
+      if (data.type == "group") {
+        setChatJoined(false);
+        setSelectedChat(tempChatId);
+      } else {
+        setChatJoined(true);
+        setSelectedChat(tempChatId);
+      }
       console.log("Chat selezionata da ricerca: ", tempChatId);
       // Chiudi la ricerca
       // setIsToggleSearchChats(false);
@@ -139,7 +149,11 @@ const ChatList = () => {
         for (const chat of fetchedChats) {
           const user = await fetchUser(chat.chat_id);
           const lastMessage = await fetchLastMessage(chat.chat_id);
-          details[chat.chat_id] = { user, lastMessage };
+          details[chat.chat_id] = {
+            user,
+            lastMessage,
+            group_channel_name: chat.group_channel_name,
+          };
         }
 
         setChats(fetchedChats);
@@ -233,6 +247,7 @@ const ChatList = () => {
 
   // Quando una chat nella lista di quelle salvate viene premuta
   const handleChatPress = (chatId) => {
+    setChatJoined(true);
     setSelectedChat(chatId);
     if (!isSmallScreen) {
       router.setParams({ chatId, creatingChatWith: undefined });
@@ -332,10 +347,14 @@ const ChatList = () => {
         data={chats}
         keyExtractor={(item) => item.chat_id}
         renderItem={({ item }) => {
+          // Usa chatDetails invece di accedere direttamente a item
           const details = chatDetails[item.chat_id] || {};
           const user = details.user || {};
           const lastMessage = details.lastMessage || {};
           const lastMessageDate = parseTime(lastMessage.date_time);
+          // Priorità a group_channel_name, poi user.handle
+          const chatName =
+            details.group_channel_name || user.handle || "Unknown User";
 
           return (
             <Pressable
@@ -360,7 +379,7 @@ const ChatList = () => {
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
-                    {item.group_channel_name || user.handle || "Unknown User"}
+                    {chatName}
                   </Text>
                   <Text
                     style={[styles.chatSubtitle, styles.gridText]}
@@ -409,7 +428,12 @@ const ChatList = () => {
     if (!selectedChat) return null;
     const selectedDetails = chatDetails[selectedChat] || {};
     const user = selectedDetails.user || {};
-    const chatName = user.handle || params.creatingChatWith || "Unknown User";
+    const group_channel_name = selectedDetails.group_channel_name || "";
+    const chatName =
+      group_channel_name ||
+      user.handle ||
+      params.creatingChatWith ||
+      "Unknown Name";
 
     const renderChatHeader = (
       <View style={[styles.header, styles.chatHeader]}>
@@ -480,6 +504,7 @@ const ChatList = () => {
           <View style={styles.chatContent}>
             {renderChatHeader}
             <ChatContent
+              chatJoined={chatJoined}
               chatId={selectedChat}
               userId={userId}
               chatName={chatName}
@@ -500,6 +525,7 @@ const ChatList = () => {
                 }}
               >
                 <ChatContent
+                  chatJoined={chatJoined}
                   chatId={selectedChat}
                   userId={userId}
                   chatName={chatName}
@@ -517,6 +543,7 @@ const ChatList = () => {
           <View style={styles.chatContent}>
             {renderChatHeader}
             <ChatContent
+              chatJoined={chatJoined}
               chatId={selectedChat}
               userId={userId}
               chatName={chatName}

@@ -144,12 +144,27 @@ class APIMethods {
   }
 
   //creazione gruppo
-  static async createNewGroupAPI(handle, name, members ) {
+  static async createNewGroupAPI(handle, name, members) {
     try {
-      const response = await this.api.get(`/chat/create/group?handle=${handle}&name=${name}`);
-      return response.data.chat_id;
+      const response = await this.api.get(
+        `/chat/create/group?handle=${handle}&name=${name}`
+      );
+      return response.data;
     } catch (error) {
       console.error("Error in createNewGroupAPI:", error);
+      throw error;
+    }
+  }
+
+  // join gruppo
+  static async joinGroup(handle) {
+    try {
+      const response = await this.api.get(
+        `/chat/join/group?handle=${handle}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error in joinGroupAPI:", error);
       throw error;
     }
   }

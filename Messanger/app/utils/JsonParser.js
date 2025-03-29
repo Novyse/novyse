@@ -95,7 +95,6 @@ class JsonParser {
     }
   }
 
-
   // Metodo per cercare qualsiasi cosa nell'app
   static async searchAll(value) {
     try {
@@ -160,45 +159,94 @@ class JsonParser {
           const localUserHandle = handle;
           console.log("Database updateLocalUser completed");
 
-          if (data.chats == null) {
-            console.log("Chat nell'init vuote, init completato con successo");
+          // controllo se l'init contiene chat e gruppi
+          if (data.chats == null && data.groups == null) {
+            console.log(
+              "Chat e gruppi nell'init vuoti, init completato con successo"
+            );
             return true;
           }
 
-          for (const chat of data.chats) {
-            const chatName = chat.name || "";
-            await localDatabase.insertChat(chat.chat_id, chatName);
-            console.log(
-              `Database insertChat for chat_id ${chat.chat_id} completed`
-            );
-
-            for (const user of chat.users) {
-              if (user.handle != localUserHandle) {
-                await localDatabase.insertChatAndUsers(chat.chat_id, user.handle);
-                await localDatabase.insertUsers(user.handle);
-              }
-
+          // inserisco le chat
+          if (data.chats) {
+            for (const chat of data.chats) {
+              const chatName = chat.name || "";
+              await localDatabase.insertChat(chat.chat_id, chatName);
               console.log(
-                `Database insertUsers and insertChatAndUsers for user ${user.handle} in chat ${chat.chat_id} completed`
+                `Database insertChat for chat_id ${chat.chat_id} completed`
               );
-            }
 
-            if (chat.messages == null) {
-              console.log("Messaggi nella chat vuoti");
-            } else {
-              for (const message of chat.messages) {
-                await localDatabase.insertMessage(
-                  message.message_id,
-                  chat.chat_id,
-                  message.text,
-                  message.sender,
-                  message.date,
-                  ""
+              for (const user of chat.users) {
+                if (user.handle != localUserHandle) {
+                  await localDatabase.insertChatAndUsers(
+                    chat.chat_id,
+                    user.handle
+                  );
+                  await localDatabase.insertUsers(user.handle);
+                }
+
+                console.log(
+                  `Database insertUsers and insertChatAndUsers for user ${user.handle} in chat ${chat.chat_id} completed`
                 );
-                // console.log("inserimento messaggio: ", message);
+              }
+
+              if (chat.messages == null) {
+                console.log("Messaggi nella chat vuoti");
+              } else {
+                for (const message of chat.messages) {
+                  await localDatabase.insertMessage(
+                    message.message_id,
+                    chat.chat_id,
+                    message.text,
+                    message.sender,
+                    message.date,
+                    ""
+                  );
+                }
               }
             }
-          }
+          };
+
+          // inserisco i gruppi
+          if (data.groups) {
+            for (const group of data.groups) {
+              const groupName = group.name || "";
+              await localDatabase.insertChat(group.chat_id, groupName);
+              console.log(
+                `Database insertChat for chat_id ${group.chat_id} completed`
+              );
+
+              for (const user of group.users) {
+                if (user.handle != localUserHandle) {
+                  await localDatabase.insertChatAndUsers(
+                    group.chat_id,
+                    user.handle
+                  );
+                  await localDatabase.insertUsers(user.handle);
+                }
+
+                console.log(
+                  `Database insertUsers and insertChatAndUsers for user ${user.handle} in chat ${group.chat_id} completed`
+                );
+              }
+
+              if (group.messages == null) {
+                console.log("Messaggi nel gruppo vuoti");
+              } else {
+                for (const message of group.messages) {
+                  await localDatabase.insertMessage(
+                    message.message_id,
+                    group.chat_id,
+                    message.text,
+                    message.sender,
+                    message.date,
+                    ""
+                  );
+                }
+              }
+            }
+          };
+
           console.log("Init completato con successo");
           return true;
         } else {
@@ -251,8 +299,6 @@ class JsonParser {
       return false;
     }
   }
-
-  
 }
 
 export default JsonParser;

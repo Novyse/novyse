@@ -28,7 +28,7 @@ import "react-native-get-random-values";
 import JsonParser from "./utils/JsonParser";
 import APIMethods from "./utils/APImethods";
 
-const ChatContent = ({ chatId, userId, onBack }) => {
+const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
   const messagesRef = useRef([]);
   const [messages, setMessages] = useState([]);
   const { theme } = useContext(ThemeContext);
@@ -147,7 +147,7 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     await localDatabase.insertChatAndUsers(newChatChatId, handle);
     await localDatabase.insertUsers(handle);
     // Clear the parameter after handling
-    router.setParams({ chatId: newChatChatId, creatingChatWith: undefined });
+
     router.navigate(`/messages?chatId=${newChatChatId}`);
 
     // aggiorno live la lista delle chat
@@ -186,8 +186,10 @@ const ChatContent = ({ chatId, userId, onBack }) => {
         params.creatingChatWith !== undefined
       ) {
         // Handle first message in new chat
+        console.log("🟡", params.creatingChatWith);
         await handleNewChatFirstMessage(params.creatingChatWith);
       } else {
+        console.log("🔴");
         // Existing message handling logic
         const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
         const randomNumberPlusDate = Date.now() + randomNumber;
@@ -245,14 +247,12 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     }
   };
 
-  
   const hideDropdown = () => {
     if (dropdownInfo.visible) {
       setDropdownInfo({ visible: false, x: 0, y: 0, message: null });
     }
   };
 
-  
   const getDropdownStyle = () => {
     const menuWidth = 200;
     const menuHeight = 50;
@@ -337,6 +337,45 @@ const ChatContent = ({ chatId, userId, onBack }) => {
     setVoiceMessage(text.length === 0 && !isMicClicked);
   };
 
+  // gestisco quando clicco il pulsante per joinare un gruppo
+  const handleJoinGroup = async () => {
+    const joinGroup = await APIMethods.joinGroup(params.creatingChatWith);
+    console.log("🟡🟡🟡", joinGroup);
+
+
+    if (joinGroup.group_joined) {
+      await localDatabase.insertChat(joinGroup.chat_id, joinGroup.group_name);
+
+      for (const member of joinGroup.members) {
+        await localDatabase.insertChatAndUsers(
+          joinGroup.chat_id,
+          member.handle
+        );
+        await localDatabase.insertUsers(member.handle);
+      }
+
+      if (joinGroup.messages == null) {
+        console.log("Messaggi nel gruppo vuoti");
+      } else {
+        for (const message of joinGroup.messages) {
+          await localDatabase.insertMessage(
+            message.message_id,
+            joinGroup.chat_id,
+            message.text,
+            message.sender,
+            message.date,
+            ""
+          );
+        }
+      }
+
+      router.navigate(`/messages?chatId=${joinGroup.chat_id}`);
+
+      // aggiorno live la lista delle chat
+      eventEmitter.emit("newChat", { newChatId: joinGroup.chat_id });
+    }
+  };
+
   const renderMessagesList = () => (
     <View style={styles.listContainer}>
       <FlatList
@@ -386,34 +425,46 @@ const ChatContent = ({ chatId, userId, onBack }) => {
 
   const renderBottomBar = () => (
     <View style={styles.bottomBarContainer}>
-      <Pressable style={styles.iconButton}>
-        <MaterialCommunityIcons name="plus" size={24} color="#fff" />
-      </Pressable>
-      <View style={styles.bottomTextBarContainer}>
-        <TextInput
-          style={styles.bottomBarTextInput}
-          placeholder="New message"
-          placeholderTextColor="gray"
-          value={newMessageText}
-          maxLength={2000}
-          onChangeText={handleTextChanging}
-          returnKeyType="send"
-          onSubmitEditing={
-            Platform.OS === "web" ? handleSendMessage : undefined
-          }
-        />
-        <Pressable style={styles.iconButton}>
-          <FontAwesome6 name="face-smile" size={24} color="#fff" />
-        </Pressable>
-      </View>
+      {chatJoined ? (
+        <>
+          <Pressable style={styles.iconButton}>
+            <MaterialCommunityIcons name="plus" size={24} color="#fff" />
+          </Pressable>
+          <View style={styles.bottomTextBarContainer}>
+            <TextInput
+              style={styles.bottomBarTextInput}
+              placeholder="New message"
+              placeholderTextColor="gray"
+              value={newMessageText}
+              maxLength={2000}
+              onChangeText={handleTextChanging}
+              returnKeyType="send"
+              onSubmitEditing={
+                Platform.OS === "web" ? handleSendMessage : undefined
+              }
+            />
+            <Pressable style={styles.iconButton}>
+              <FontAwesome6 name="face-smile" size={24} color="#fff" />
+            </Pressable>
+          </View>
 
-      {isVoiceMessage ? (
-        <Pressable onPress={handleVoiceMessage} style={styles.iconButton}>
-          <MaterialCommunityIcons name="microphone" size={24} color="#fff" />
-        </Pressable>
+          {isVoiceMessage ? (
+            <Pressable onPress={handleVoiceMessage} style={styles.iconButton}>
+              <MaterialCommunityIcons
+                name="microphone"
+                size={24}
+                color="#fff"
+              />
+            </Pressable>
+          ) : (
+            <Pressable onPress={handleSendMessage} style={styles.iconButton}>
+              <MaterialIcons name="arrow-upward" size={24} color="#fff" />
+            </Pressable>
+          )}
+        </>
       ) : (
-        <Pressable onPress={handleSendMessage} style={styles.iconButton}>
-          <MaterialIcons name="arrow-upward" size={24} color="#fff" />
+        <Pressable onPress={handleJoinGroup}>
+          <Text>Join</Text>
         </Pressable>
       )}
     </View>

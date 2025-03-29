@@ -77,15 +77,20 @@ const Search = () => {
       style={styles.resultItem}
       onPress={() => {
         // Emit event with handle and close search
-        eventEmitter.emit("searchResultSelected", { handle: item });
-        router.setParams({ chatId: undefined, creatingChatWith: item });
+        eventEmitter.emit("searchResultSelected", { handle: item.handle, type: item.type });
+        router.setParams({ chatId: undefined, creatingChatWith: item.handle });
       }}
     >
       <Image
         source={{ uri: "https://picsum.photos/200" }}
         style={styles.avatar}
       />
-      <Text style={styles.resultText}>{item}</Text>
+      <Text style={styles.resultText}>{item.handle}</Text>
+      {/* {item.type == "group" ? (
+        <Text>Banane al salame</Text>
+      ) : (
+        <Text>Banane al cioccolato</Text>
+      )} */}
     </TouchableOpacity>
   );
 
