@@ -252,6 +252,7 @@ const ChatList = () => {
     if (!isSmallScreen) {
       router.setParams({ chatId });
     }
+    router.setParams({ chatId: chatId, creatingChatWith: undefined});
   };
 
   // trasforma la data in un formato HH:MM

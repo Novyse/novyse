@@ -77,7 +77,10 @@ const Search = () => {
       style={styles.resultItem}
       onPress={() => {
         // Emit event with handle and close search
-        eventEmitter.emit("searchResultSelected", { handle: item.handle, type: item.type });
+        eventEmitter.emit("searchResultSelected", {
+          handle: item.handle,
+          type: item.type,
+        });
         router.setParams({ chatId: undefined, creatingChatWith: item.handle });
       }}
     >
@@ -121,8 +124,10 @@ const Search = () => {
   );
 };
 
-const createStyle = (theme) =>
-  StyleSheet.create({
+export default Search;
+
+function createStyle(theme) {
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.backgroundClassic,
@@ -167,5 +172,4 @@ const createStyle = (theme) =>
       marginRight: 10,
     },
   });
-
-export default Search;
+}

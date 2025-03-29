@@ -252,7 +252,7 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
 
   const getDropdownStyle = () => {
     const menuWidth = 200;
-    const menuHeight = 50;
+    const menuHeight = 170;
     let x = dropdownInfo.x;
     let y = dropdownInfo.y;
 
@@ -424,7 +424,7 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
   const renderBottomBar = () => (
     <View style={styles.bottomBarContainer}>
       {chatJoined ? (
-        <>
+        <View style={{ paddingBottom: 10, flexDirection: "row", width: "100%", alignItems: "center"}}>
           <Pressable style={styles.iconButton}>
             <MaterialCommunityIcons name="plus" size={24} color="#fff" />
           </Pressable>
@@ -459,10 +459,10 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
               <MaterialIcons name="arrow-upward" size={24} color="#fff" />
             </Pressable>
           )}
-        </>
+        </View>
       ) : (
-        <Pressable onPress={handleJoinGroup}>
-          <Text>Join</Text>
+        <Pressable onPress={handleJoinGroup} style={styles.joinGroupButton}>
+          <Text style={styles.joinGroupButtonText}>Join</Text>
         </Pressable>
       )}
     </View>
@@ -485,6 +485,11 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
       {renderBottomBar()}
       {dropdownInfo.visible && (
         <View style={getDropdownStyle()}>
+          <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
+          <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
+          <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
+          <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
+          <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
           <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
         </View>
       )}
@@ -574,7 +579,6 @@ function createStyle(theme) {
       alignItems: "center",
       marginTop: 10,
       width: "100%",
-      paddingBottom: 10,
     },
     bottomTextBarContainer: {
       flex: 1,
@@ -619,5 +623,19 @@ function createStyle(theme) {
       fontSize: 14,
       fontWeight: "bold",
     },
+    joinGroupButton: {
+      backgroundColor: "#1b2734",
+      width: "100%",
+      height: "100%",
+      padding: 12,
+      borderTopWidth: 1,
+      borderTopColor: theme.chatDivider,
+    },
+    joinGroupButtonText: {
+      fontSize: 18,
+      textAlign: "center",
+      color: theme.text,
+      fontWeight: "bold",
+    }
   });
 }
