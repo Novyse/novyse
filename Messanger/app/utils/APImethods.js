@@ -144,7 +144,7 @@ class APIMethods {
   }
 
   //creazione gruppo
-  static async createNewGroupAPI(handle, name, members, ) {
+  static async createNewGroupAPI(handle, name, members ) {
     try {
       const response = await this.api.get(`/chat/create/group?handle=${handle}&name=${name}`);
       return response.data.chat_id;

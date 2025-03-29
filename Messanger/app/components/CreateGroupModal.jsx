@@ -9,6 +9,7 @@ import {
   TextInput,
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
+import APIMethods from "../utils/APImethods";
 
 const CreateGroupModal = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
@@ -21,13 +22,19 @@ const CreateGroupModal = ({ visible, onClose }) => {
   const [isTextError2, setIsTextError2] = useState(false);
 
   const handleCreateGroupPress = () => {
-    if(!groupName) {
+    setIsTextError1(false);
+    setIsTextError2(false);
+    if (!groupName) {
       setIsTextError1(true);
-    }
-    if(!groupHandle) {
+    } else if (!groupHandle && isPublic) {
       setIsTextError2(true);
+    } else {
+      if (!isPublic) {
+        setGroupHandle(null);
+        APIMethods.createNewGroupAPI(groupHandle, groupName);
+      }
     }
-  }
+  };
 
   return (
     // <Modal animationType="slide" transparent={true} visible={visible}>
@@ -78,12 +85,12 @@ const CreateGroupModal = ({ visible, onClose }) => {
               {isPublic ? "Pubblico" : "Privato"}
             </Text>
             <Switch
-                trackColor={{ false: "#767577", true: "#81b0ff" }}
-                thumbColor={isPublic ? '#f5dd4b' : '#f4f3f4'}
-                ios_backgroundColor="#3e3e3e"
-                onValueChange={setIsPublic}
-                value={isPublic}
-              />
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
+              thumbColor={isPublic ? "#f5dd4b" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={setIsPublic}
+              value={isPublic}
+            />
           </View>
 
           <View
@@ -99,7 +106,10 @@ const CreateGroupModal = ({ visible, onClose }) => {
             >
               <Text style={styles.textStyle}>Indietro</Text>
             </Pressable>
-            <Pressable style={[styles.button, styles.buttonClose]} onPress={handleCreateGroupPress}>
+            <Pressable
+              style={[styles.button, styles.buttonClose]}
+              onPress={handleCreateGroupPress}
+            >
               <Text style={styles.textStyle}>Crea gruppo</Text>
             </Pressable>
           </View>

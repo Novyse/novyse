@@ -52,7 +52,7 @@ class LocalDatabase {
       CREATE TABLE IF NOT EXISTS chat_users (chat_id TEXT, handle TEXT, PRIMARY KEY (chat_id, handle), FOREIGN KEY (chat_id) REFERENCES chats(chat_id), FOREIGN KEY (handle) REFERENCES users(handle));
     `);
 
-    console.log(await this.db.getAllAsync("SELECT * FROM localUser"));
+    // console.log(await this.db.getAllAsync("SELECT * FROM localUser"));
     // console.log(await this.db.getAllAsync("SELECT * FROM chats"));
     // console.log(await this.db.getAllAsync("SELECT * FROM users"));
     // console.log(await this.db.getAllAsync("SELECT * FROM messages"));
@@ -162,13 +162,9 @@ class LocalDatabase {
           .join(","),
       ];
 
-      console.log("tette==============================");
       await this.db.runAsync(
         `INSERT INTO ${table} (${keys.join(",")}) VALUES (${placeholders})`,
         Object.values(values)
-      );
-      console.log(
-        `INSERT INTO ${table} (${keys.join(",")}) VALUES (${placeholders})`
       );
     }
   }
@@ -238,32 +234,6 @@ class LocalDatabase {
       return await this.db.runAsync(
         `UPDATE ${table} SET ${setters} WHERE ${where}`
       );
-
-      // await new Promise((resolve, reject) => {
-      //   this.db.transaction((tx) => {
-      //     tx.executeSql(
-      //       `UPDATE ${table} SET ${setters} WHERE ${where}`,
-      //       [...Object.values(values), ...args],
-      //       (_, result) => {
-      //         if (result.rowsAffected > 0) {
-      //           // Here you need to fetch the updated item since SQLite doesn't return the updated row directly
-      //           this.getRowData(table, Object.keys(values), where, args)
-      //             .then((item) => {
-      //               if (item) {
-      //                 console.log("Updated item:", item);
-      //               }
-      //               resolve();
-      //             })
-      //             .catch(reject);
-      //         } else {
-      //           console.log("No item was updated matching the criteria.");
-      //           resolve();
-      //         }
-      //       },
-      //       reject
-      //     );
-      //   });
-      // });
     }
   }
 
@@ -286,7 +256,6 @@ class LocalDatabase {
 
   // Application-specific methods
   async fetchLocalUserID() {
-    console.log(this.getSingleValue("localUser", "user_id"));
     return this.getSingleValue("localUser", "user_id");
   }
   async fetchLocalUserApiKey() {
@@ -339,7 +308,6 @@ class LocalDatabase {
       const date = lastMessage.date_time;
       const data = { chatid, text, date };
       eventEmitter.emit("updateNewLastMessage", data);
-      // console.log("Patatine al limone 🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶")
 
       return sortedMessages.length > 0 ? lastMessage : null;
     } else {
@@ -395,7 +363,6 @@ class LocalDatabase {
         if (!chatExists) {
           items.push({ chat_id, group_channel_name });
           await this.db.setItem("chats", items);
-          console.log("Chat inserted successfully");
           return false;
         } else {
           console.log("Chat already exists, skipping insertion");
@@ -435,7 +402,6 @@ class LocalDatabase {
         if (!messageExists) {
           items.push({ message_id, chat_id, text, sender, date_time: date });
           await this.db.setItem("messages", items);
-          console.log("Message inserted successfully. 3");
           return false;
         } else {
           console.log("Message already exists, skipping insertion");
@@ -468,7 +434,6 @@ class LocalDatabase {
   }
 
   async updateSendMessage(date, message_id, hash) {
-    console.log("Attempting to update message with hash:", hash);
 
     // const data = { date, message_id, hash };
 

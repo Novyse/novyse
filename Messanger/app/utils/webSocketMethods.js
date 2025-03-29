@@ -9,10 +9,6 @@ let localUserHandle = null;
 // const socketAddress = "wss://ws.messanger.bpup.israiken.it/";
 
 const WebSocketMethods = {
-  saveParameters: async (localUserIDParam) => {
-    localUserID = localUserIDParam;
-    console.log("Parametri salvati");
-  },
 
   isWebSocketOpen: () => {
     return socket && socket.connected;
@@ -95,10 +91,8 @@ const WebSocketMethods = {
 
       if (!ChatAlreadyInDatabaseawait) {
         const users = await APIMethods.getChatMembers(chat_id);
-        console.log("Users in chat:", users);
         for (const user of users) {
           if (user != localUserHandle) {
-            console.log("Utente da inserire nella chat:", user);
             await localDatabase.insertChatAndUsers(chat_id, user);
             await localDatabase.insertUsers(user);
           }
@@ -118,10 +112,10 @@ const WebSocketMethods = {
       if (MessageAlreadyInDatabase) {
         eventEmitter.emit("updateNewLastMessage", data);
         eventEmitter.emit("newMessage", data);
-        console.log(
-          `Database insertMessage for message_id ${message_id} in chat ${chat_id} completed`
-        );
-        console.log(`Nuovo messaggio ricevuto da ${sender}`);
+        // console.log(
+        //   `Database insertMessage for message_id ${message_id} in chat ${chat_id} completed`
+        // );
+        // console.log(`Nuovo messaggio ricevuto da ${sender}`);
       }
     });
 

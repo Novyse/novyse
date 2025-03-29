@@ -262,7 +262,6 @@ const ChatList = () => {
           { transform: [{ translateX: sidebarPosition }] },
         ]}
       >
-        {/* User Profile Section */}
         <View style={styles.profileContainer}>
           <View style={styles.avatar} />
           <View style={styles.profileTextContainer}>
@@ -271,7 +270,6 @@ const ChatList = () => {
           </View>
         </View>
 
-        {/* Menu Items */}
         <View style={styles.menuContainer}>
           <SidebarItem text="Profile" iconName="person" />
           <SidebarItem
