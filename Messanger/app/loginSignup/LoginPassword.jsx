@@ -163,9 +163,11 @@ const LoginPassword = () => {
             onPress={handleLogin}
             disabled={isLoading}
           >
-            <Text style={styles.containerButtonText}>Invia</Text>
-            {isLoading && (
-              <ActivityIndicator style={styles.loader} size="small" />
+            
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#fff"/>
+            ) : (
+              <Text style={styles.containerButtonText}>Invia</Text>
             )}
           </Pressable>
         </View>
@@ -226,13 +228,11 @@ function createStyle(theme, colorScheme) {
       paddingHorizontal: 20,
       paddingVertical: 5,
       borderRadius: 100,
+      flexDirection: "row",
     },
     containerButtonText: {
       color: theme.text,
       fontSize: 18,
-    },
-    loader: {
-       marginLeft: 10,
     },
     eyeIcon: {
       padding: 0,

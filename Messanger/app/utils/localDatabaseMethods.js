@@ -467,7 +467,7 @@ class LocalDatabase {
     await this.insertOrIgnore("users", { handle });
   }
   async insertChatAndUsers(chat_id, handle) {
-    await this.insertOrReplace("chat_users", { chat_id, handle });
+    await this.insertOrIgnore("chat_users", { chat_id, handle });
   }
 }
 

@@ -1,5 +1,3 @@
-import { Platform } from "react-native";
-
 import axios from "axios";
 axios.defaults.withCredentials = true;
 
@@ -168,6 +166,21 @@ class APIMethods {
       throw error;
     }
   }
+
+  // update di tutto
+  static async updateAll(date_time) {
+    try {
+      const response = await this.api.get(
+        `/user/data/get/update?latest_update_datetime=${date_time}`
+      );
+      return response;
+    } catch (error) {
+      console.error("Error in updateAll:", error);
+      throw error;
+    }
+  }
+
+
 }
 
 export default APIMethods;

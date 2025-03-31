@@ -13,11 +13,10 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
-import { LinearGradient } from 'expo-linear-gradient';
 import EvilIcons from '@expo/vector-icons/EvilIcons';
+import JsonParser from "./utils/JsonParser";
 
 export default function Index() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
   const router = useRouter();
@@ -26,6 +25,7 @@ export default function Index() {
     const checkLogged = async () => {
       const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
       if (storeGetIsLoggedIn === "true") {
+        await JsonParser.updateAll(await AsyncStorage.getItem("lastUpdateDateTime"));
         router.navigate("/messages");
       }
     };

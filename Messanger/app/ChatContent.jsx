@@ -68,6 +68,8 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
     };
     loadMessages();
 
+    setNewMessageText("");
+
     // gestisco quando ricevo un messaggio da un utente
     const handleReceiveMessage = (data) => {
       if (data.chat_id === chatId) {
