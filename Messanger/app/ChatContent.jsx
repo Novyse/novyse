@@ -28,7 +28,7 @@ import "react-native-get-random-values";
 import JsonParser from "./utils/JsonParser";
 import APIMethods from "./utils/APImethods";
 
-const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
+const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
   const messagesRef = useRef([]);
   const [messages, setMessages] = useState([]);
   const { theme } = useContext(ThemeContext);
@@ -340,7 +340,6 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
   const handleJoinGroup = async () => {
     const joinGroup = await APIMethods.joinGroup(params.creatingChatWith);
 
-
     if (joinGroup.group_joined) {
       await localDatabase.insertChat(joinGroup.chat_id, joinGroup.group_name);
 
@@ -369,6 +368,11 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
           );
         }
       }
+
+      if (onJoinSuccess) {
+        onJoinSuccess(joinGroup.chat_id); // Passa il nuovo chat_id al genitore
+      }
+
       router.navigate(`/messages?chatId=${joinGroup.chat_id}`);
 
       // aggiorno live la lista delle chat
@@ -426,7 +430,14 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack }) => {
   const renderBottomBar = () => (
     <View style={styles.bottomBarContainer}>
       {chatJoined ? (
-        <View style={{ paddingBottom: 10, flexDirection: "row", width: "100%", alignItems: "center"}}>
+        <View
+          style={{
+            paddingBottom: 10,
+            flexDirection: "row",
+            width: "100%",
+            alignItems: "center",
+          }}
+        >
           <Pressable style={styles.iconButton}>
             <MaterialCommunityIcons name="plus" size={24} color="#fff" />
           </Pressable>
@@ -638,6 +649,6 @@ function createStyle(theme) {
       textAlign: "center",
       color: theme.text,
       fontWeight: "bold",
-    }
+    },
   });
 }

@@ -252,7 +252,7 @@ const ChatList = () => {
     if (!isSmallScreen) {
       router.setParams({ chatId });
     }
-    router.setParams({ chatId: chatId, creatingChatWith: undefined});
+    router.setParams({ chatId: chatId, creatingChatWith: undefined });
   };
 
   // trasforma la data in un formato HH:MM
@@ -265,6 +265,17 @@ const ChatList = () => {
   //Setting Menu
   const handleSettingsPress = () => {
     router.navigate("/settings/SettingsMenu");
+  };
+
+  //gestisce se mostrare join oppure bottomBar in ChatContent
+  const handleSuccessfulJoin = (newChatId) => {
+    console.log(
+      `ChatList: Gruppo ${newChatId} joinato con successo. Aggiorno lo stato.`
+    );
+    setChatJoined(true);
+    // Potrebbe essere utile anche aggiornare selectedChat qui,
+    // se la navigazione non lo fa già implicitamente
+    setSelectedChat(newChatId);
   };
 
   const renderSidebar = () => (
@@ -510,6 +521,7 @@ const ChatList = () => {
               userId={userId}
               chatName={chatName}
               onBack={() => setSelectedChat(null)}
+              onJoinSuccess={handleSuccessfulJoin}
             />
           </View>
         );
@@ -531,6 +543,7 @@ const ChatList = () => {
                   userId={userId}
                   chatName={chatName}
                   onBack={() => setSelectedChat(null)}
+                  onJoinSuccess={handleSuccessfulJoin}
                 />
               </View>
               <View style={{ flex: 1 }}>
@@ -549,6 +562,7 @@ const ChatList = () => {
               userId={userId}
               chatName={chatName}
               onBack={() => setSelectedChat(null)}
+              onJoinSuccess={handleSuccessfulJoin}
             />
           </View>
         );
