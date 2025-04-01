@@ -317,17 +317,6 @@ class LocalDatabase {
         `,
         [chat_id]
       );
-      // Per SQLite, modifichiamo la query per ordinare in modo discendente e LIMIT 1
-      // return new Promise((resolve, reject) => {
-      //   this.db.transaction((tx) => {
-      //     tx.executeSql(
-      //       `SELECT * FROM messages WHERE chat_id = ? ORDER BY date_time DESC LIMIT 1`,
-      //       [chat_id],
-      //       (_, { rows }) => resolve(rows.length > 0 ? rows.item(0) : null),
-      //       (_, error) => reject(error)
-      //     );
-      //   });
-      // });
     }
   }
 
