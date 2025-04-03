@@ -145,7 +145,6 @@ const ChatList = () => {
       try {
         const fetchedChats = await fetchChats();
         const details = {};
-
         for (const chat of fetchedChats) {
           const user = await fetchUser(chat.chat_id);
           const lastMessage = await fetchLastMessage(chat.chat_id);
@@ -228,10 +227,9 @@ const ChatList = () => {
 
   // viene richiamata nello useEffect, serve per ottenere l'ultimo messaggio dal DB locale
   const fetchLastMessage = (chatId) =>
-    localDatabase.fetchLastMessage(chatId).then((row) => ({
-      text: row.text,
-      date_time: row.date_time,
-    }));
+    localDatabase.fetchLastMessage(chatId).then((row) => {
+      return row;
+    });
 
   // apre / chiude la sidebar
   const toggleSidebar = () => {

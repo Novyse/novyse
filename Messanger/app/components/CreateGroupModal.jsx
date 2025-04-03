@@ -7,9 +7,11 @@ import {
   Modal,
   Switch,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import APIMethods from "../utils/APImethods";
+import JsonParser from "../utils/JsonParser";
 import localDatabase from "../utils/localDatabaseMethods";
 import { useRouter } from "expo-router";
 import eventEmitter from "../utils/EventEmitter";
@@ -24,6 +26,45 @@ const CreateGroupModal = ({ visible, onClose }) => {
   const [isPublic, setIsPublic] = useState(false);
   const [isTextError1, setIsTextError1] = useState(false);
   const [isTextError2, setIsTextError2] = useState(false);
+  
+  // Add new state variables for handle availability check
+  const [groupHandleAvailable, setGroupHandleAvailable] = useState(null);
+  const [isHandleLoading, setIsHandleLoading] = useState(false);
+  const [handleTimer, setHandleTimer] = useState(null);
+
+  // funzione per resettare tutti i campi (poi magna la gestisci come vuoi, io preferisco così :)  )
+  const resetFields = () => {
+    setGroupName("");
+    setGroupHandle("");
+    setIsPublic(false);
+    setIsTextError1(false);
+    setIsTextError2(false);
+    setGroupHandleAvailable(null);
+    setIsHandleLoading(false);
+  };
+
+  // Handle change function for group handle with availability check
+  const handleGroupHandleChange = (value) => {
+    setGroupHandle(value);
+    setIsTextError2(false);
+    
+    if (value) {
+      setIsHandleLoading(true);
+      setGroupHandleAvailable(null);
+      
+      // Clear any existing timer
+      if (handleTimer) clearTimeout(handleTimer);
+      
+      // Set new timer to check availability after typing stops
+      const timer = setTimeout(async () => {
+        const available = await JsonParser.handleAvailability(value);
+        setGroupHandleAvailable(available);
+        setIsHandleLoading(false);
+      }, 1000);
+      
+      setHandleTimer(timer);
+    }
+  };
 
   const handleCreateGroupPress = async () => {
     setIsTextError1(false);
@@ -32,6 +73,8 @@ const CreateGroupModal = ({ visible, onClose }) => {
       setIsTextError1(true);
     } else if (!groupHandle && isPublic) {
       setIsTextError2(true);
+    } else if (isPublic && groupHandleAvailable === false) {
+      setIsTextError2(true);
     } else {
       const success = await APIMethods.createNewGroupAPI(
         groupHandle,
@@ -39,6 +82,8 @@ const CreateGroupModal = ({ visible, onClose }) => {
       );
       if (success.group_created) {
         console.log("Gruppo creato con successo", success.group_created);
+
+        resetFields();
         onClose();
 
         const newGroupChatId = success.chat_id;
@@ -79,14 +124,32 @@ const CreateGroupModal = ({ visible, onClose }) => {
             value={groupName}
             onChangeText={setGroupName}
           />
+
           {isPublic ? (
-            <TextInput
-              style={isTextError2 ? styles.textInputError : styles.textInput}
-              placeholder="Handle del gruppo"
-              placeholderTextColor={isTextError2 ? "#red" : "#ccc"}
-              value={groupHandle}
-              onChangeText={setGroupHandle}
-            />
+            <View style={{width: "100%"}}>
+              <View style={styles.inputWrapperContainer}>
+                <TextInput
+                  style={[
+                    isTextError2 ? styles.textInputError : styles.textInput,
+                    groupHandleAvailable === false ? styles.handleInputError : null,
+                  ]}
+                  placeholder="Handle del gruppo"
+                  placeholderTextColor={isTextError2 ? "#red" : "#ccc"}
+                  value={groupHandle}
+                  onChangeText={handleGroupHandleChange}
+                />
+                {isHandleLoading && (
+                  <ActivityIndicator 
+                    size="small" 
+                    color="#2399C3" 
+                    style={styles.overlayIndicator} 
+                  />
+                )}
+              </View>
+              {groupHandleAvailable === false && (
+                <Text style={styles.handleTextError}>Handle già in utilizzo</Text>
+              )}
+            </View>
           ) : null}
 
           <View
@@ -124,8 +187,13 @@ const CreateGroupModal = ({ visible, onClose }) => {
               <Text style={styles.textStyle}>Indietro</Text>
             </Pressable>
             <Pressable
-              style={[styles.button, styles.buttonClose]}
+              style={[
+                styles.button, 
+                styles.buttonClose,
+                isPublic && !groupHandleAvailable && groupHandle ? styles.buttonDisabled : null
+              ]}
               onPress={handleCreateGroupPress}
+              disabled={isPublic && !groupHandleAvailable && groupHandle}
             >
               <Text style={styles.textStyle}>Crea gruppo</Text>
             </Pressable>
@@ -209,6 +277,37 @@ function createStyle(theme, colorScheme) {
     },
     isPublicText: {
       color: theme.text,
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      width: "100%",
+    },
+    handleInputError: {
+      borderColor: "red",
+    },
+    handleTextError: {
+      color: "red",
+      marginTop: 5,
+      marginBottom: 10,
+    },
+    indicator: {
+      position: "absolute",
+      right: 10,
+    },
+    buttonDisabled: {
+      backgroundColor: "#999",
+      opacity: 0.7,
+    },
+    inputWrapperContainer: {
+      position: 'relative',
+      width: '100%',
+    },
+    overlayIndicator: {
+      position: 'absolute',
+      right: 15,
+      top: '50%',
+      marginTop: -16  , 
     },
   });
 }
