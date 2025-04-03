@@ -13,11 +13,11 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
-import EvilIcons from '@expo/vector-icons/EvilIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import JsonParser from "./utils/JsonParser";
 
 export default function Index() {
-  const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
+  const { colorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
   const router = useRouter();
 
@@ -78,7 +78,7 @@ export default function Index() {
               onPress={() => router.navigate(`/loginSignup/EmailCheckForm`)}
             >
               {/* <Text style={styles.containerStartButtonText}>Start</Text> */}
-              <EvilIcons name="arrow-right" size={56} color="white" />
+              <MaterialIcons name="arrow-forward" size={52} color="white" />
             </Pressable>
           </View>
           <StatusBar
@@ -94,7 +94,6 @@ function createStyle(theme, colorScheme) {
   return StyleSheet.create({
     safeArea: {
       flex: 1,
-      paddingTop: 30,
       backgroundColor: theme.backgroundClassic,
     },
     containerStart: {
@@ -109,10 +108,9 @@ function createStyle(theme, colorScheme) {
       marginBottom: 40,
     },
     containerStartButton: {
-      // backgroundColor: theme.button,
-      // paddingHorizontal: 20,
-      // paddingVertical: 5,
-      // borderRadius: 100,
+      // borderRadius: "100%",
+      // borderColor: "#fff",
+      // borderWidth: 3,
     },
     containerStartButtonText: {
       color: theme.text,

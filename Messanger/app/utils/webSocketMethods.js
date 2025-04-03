@@ -29,7 +29,8 @@ const WebSocketMethods = {
         socket = null;
       }
 
-      socket = io("wss://io.messanger.bpup.israiken.it/", {
+      socket = io("wss://io.buzz.israiken.it", {
+        path:"/test",
         transports: ["websocket"],
         autoConnect: true,
         reconnectionAttempts: -1,

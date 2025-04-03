@@ -2,8 +2,8 @@ import axios from "axios";
 axios.defaults.withCredentials = true;
 
 class APIMethods {
-  static domain = "https://api.messanger.bpup.israiken.it";
-  static APIlink = this.domain + "/v1";
+  static domain = "https://api.buzz.israiken.it";
+  static APIlink = this.domain + "/test";
 
   static api = axios.create({
     baseURL: this.APIlink,

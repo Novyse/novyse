@@ -52,23 +52,41 @@ const Search = () => {
   }, [timer]);
 
   const handleChange = (value) => {
-    setIsLoading(true);
-    setResponseArray([]);
+    // Pulisce il timer precedente se esiste
     if (timer) clearTimeout(timer);
+    setTimer(null); // Resetta lo stato del timer
+
+    const trimmedValue = value.trim();
+
+    // Se il valore (dopo il trim) è vuoto, resetta lo stato e non fare la chiamata API
+    if (trimmedValue === "") {
+      setIsLoading(false);
+      setResponseArray([]);
+      // Non impostare un nuovo timer e non eseguire la chiamata API
+      return;
+    }
+
+    // Se il valore non è vuoto, mostra l'indicatore di caricamento
+    // e pianifica la chiamata API dopo un ritardo (debounce)
+    setIsLoading(true);
+    setResponseArray([]); // Pulisce i risultati precedenti mentre si caricano i nuovi
 
     const timerOnChange = setTimeout(async () => {
       try {
-        const searched_list = await JsonParser.searchAll(value);
+        // Usa trimmedValue per la ricerca
+        const searched_list = await JsonParser.searchAll(trimmedValue);
         setResponseArray(searched_list || []);
         console.log("Lista ricerca:", searched_list);
       } catch (error) {
         console.error("Errore nella ricerca:", error);
-        setResponseArray([]);
+        setResponseArray([]); // Svuota i risultati in caso di errore
       } finally {
+        // Nasconde l'indicatore di caricamento alla fine, sia in caso di successo che di errore
         setIsLoading(false);
       }
-    }, 500);
+    }, 500); // Ritardo di 500ms (debounce)
 
+    // Salva il riferimento al nuovo timer
     setTimer(timerOnChange);
   };
 
@@ -89,11 +107,6 @@ const Search = () => {
         style={styles.avatar}
       />
       <Text style={styles.resultText}>{item.handle}</Text>
-      {/* {item.type == "group" ? (
-        <Text>Banane al salame</Text>
-      ) : (
-        <Text>Banane al cioccolato</Text>
-      )} */}
     </TouchableOpacity>
   );
 
