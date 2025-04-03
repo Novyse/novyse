@@ -184,7 +184,8 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
     try {
       if (
         params.creatingChatWith !== null &&
-        params.creatingChatWith !== undefined
+        params.creatingChatWith !== undefined &&
+        params.creatingChatWith !== "undefined"
       ) {
         // Handle first message in new chat
         await handleNewChatFirstMessage(params.creatingChatWith);
