@@ -156,7 +156,7 @@ class LocalDatabase {
     }
   }
 
-  // 🚨 PUò GENERARE PROBLEMI SU MOBILE 🚨
+  
   async insertOrIgnore(table, values) {
     if (isWeb) {
       let items = (await this.db.getItem(table)) || [];
