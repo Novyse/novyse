@@ -47,7 +47,7 @@ class APIMethods {
       const response = await this.api.get(
         `/user/data/check/handle-availability?handle=${handle}`
       );
-      console.log("handleAvailability in APImethods: ", response);
+      //console.log("handleAvailability in APImethods: ", response);
       return response;
     } catch (error) {
       console.error("Error in handleAvailability:", error);

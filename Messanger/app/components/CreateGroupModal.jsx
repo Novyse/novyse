@@ -193,7 +193,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
                 isPublic && !groupHandleAvailable && groupHandle ? styles.buttonDisabled : null
               ]}
               onPress={handleCreateGroupPress}
-              disabled={isPublic && !groupHandleAvailable && groupHandle}
+              disabled={isPublic && !groupHandleAvailable && groupHandle!=""}
             >
               <Text style={styles.textStyle}>Crea gruppo</Text>
             </Pressable>
