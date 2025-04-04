@@ -88,7 +88,7 @@ class LocalDatabase {
 
   async getSingleValue(table, column, where = "", args = []) {
     const row = await this.getRowData(table, [column], where, args);
-    return row ? row[column] : `${column} not found`;
+    return row ? row[column] : `${column} not found in DB`;
   }
 
   async getRowData(table, columns, where = "", args = []) {
@@ -107,19 +107,6 @@ class LocalDatabase {
         }`,
         args
       );
-
-      // return new Promise((resolve, reject) => {
-      //   this.db.transaction((tx) => {
-      //     tx.executeSql(
-      //       `SELECT ${columns.join(",")} FROM ${table} ${
-      //         where ? "WHERE " + where : ""
-      //       }`,
-      //       args,
-      //       (_, { rows }) => resolve(rows.length > 0 ? rows.item(0) : null),
-      //       reject
-      //     );
-      //   });
-      // });
     }
   }
 
@@ -169,7 +156,8 @@ class LocalDatabase {
     }
   }
 
-  async insertOrIgnore(table, values) {
+  // 🚨 NON FUNZIONA SU MOBILE 🚨
+  /* async insertOrIgnore(table, values) {
     if (isWeb) {
       let items = (await this.db.getItem(table)) || [];
       const pk = Object.keys(values)[0];
@@ -190,21 +178,8 @@ class LocalDatabase {
           ","
         )}) VALUES (${placeholders})`
       );
-
-      // await new Promise((resolve, reject) => {
-      //   this.db.transaction((tx) => {
-      //     tx.executeSql(
-      //       `INSERT OR IGNORE INTO ${table} (${keys.join(
-      //         ","
-      //       )}) VALUES (${placeholders})`,
-      //       Object.values(values),
-      //       resolve,
-      //       reject
-      //     );
-      //   });
-      // });
     }
-  }
+  } */
 
   async update(table, values, where, args = []) {
     if (isWeb) {
@@ -453,10 +428,10 @@ class LocalDatabase {
   }
 
   async insertUsers(handle) {
-    await this.insertOrIgnore("users", { handle });
+    await this.insertOrReplace("users", { handle });
   }
   async insertChatAndUsers(chat_id, handle) {
-    await this.insertOrIgnore("chat_users", { chat_id, handle });
+    await this.insertOrReplace("chat_users", { chat_id, handle });
   }
 }
 
