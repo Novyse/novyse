@@ -156,8 +156,8 @@ class LocalDatabase {
     }
   }
 
-  // 🚨 NON FUNZIONA SU MOBILE 🚨
-  /* async insertOrIgnore(table, values) {
+  // 🚨 PUò GENERARE PROBLEMI SU MOBILE 🚨
+  async insertOrIgnore(table, values) {
     if (isWeb) {
       let items = (await this.db.getItem(table)) || [];
       const pk = Object.keys(values)[0];
@@ -176,10 +176,11 @@ class LocalDatabase {
       return await this.db.runAsync(
         `INSERT OR IGNORE INTO ${table} (${keys.join(
           ","
-        )}) VALUES (${placeholders})`
+        )}) VALUES (${placeholders})`,
+        Object.values(values)
       );
     }
-  } */
+  }
 
   async update(table, values, where, args = []) {
     if (isWeb) {
@@ -356,7 +357,6 @@ class LocalDatabase {
   async insertMessage(message_id, chat_id, text, sender, date) {
     try {
       if (isWeb) {
-        
         let items = (await this.db.getItem("messages")) || [];
         // Check if message already exists
         const messageExists = items.some(
@@ -386,7 +386,7 @@ class LocalDatabase {
         );
 
         const wasInserted = result.changes > 0;
-        if(wasInserted) {
+        if (wasInserted) {
           console.log("Message already exists, skipping insertion");
         }
         return !wasInserted;
@@ -398,7 +398,6 @@ class LocalDatabase {
   }
 
   async updateSendMessage(date, message_id, hash) {
-
     // const data = { date, message_id, hash };
 
     if (isWeb) {
@@ -428,10 +427,10 @@ class LocalDatabase {
   }
 
   async insertUsers(handle) {
-    await this.insertOrReplace("users", { handle });
+    await this.insertOrIgnore("users", { handle });
   }
   async insertChatAndUsers(chat_id, handle) {
-    await this.insertOrReplace("chat_users", { chat_id, handle });
+    await this.insertOrIgnore("chat_users", { chat_id, handle });
   }
 }
 
