@@ -14,7 +14,6 @@ import {
   Modal,
 } from "react-native";
 import moment from "moment";
-import appJson from "../app.json";
 import { StatusBar } from "expo-status-bar";
 import { ThemeContext } from "@/context/ThemeContext";
 import NetInfo from "@react-native-community/netinfo";
@@ -428,9 +427,6 @@ const ChatList = () => {
           );
         }}
       />
-      <Text style={{ fontSize: 12, color: "#426080", textAlign: "center" }}>
-        Versione: {appJson.expo.version}
-      </Text>
     </View>
   );
 

@@ -3,7 +3,7 @@ axios.defaults.withCredentials = true;
 
 class APIMethods {
   static domain = "https://api.buzz.israiken.it";
-  static APIlink = this.domain + "/v1";
+  static APIlink = this.domain + "/test";
 
   static api = axios.create({
     baseURL: this.APIlink,
@@ -22,13 +22,7 @@ class APIMethods {
   }
 
   // chiede registrazione all'API
-  static async signupAPI(
-    email,
-    name,
-    surname,
-    handle,
-    password
-  ) {
+  static async signupAPI(email, name, surname, handle, password) {
     try {
       const response = await this.api.get(
         `/user/auth/signup?email=${email}&name=${name}&surname=${surname}&handle=${handle}&password=${password}`
@@ -124,8 +118,13 @@ class APIMethods {
       const response = await this.api.get("/user/auth/logout");
       return response.data.logged_out;
     } catch (error) {
-      console.error("Error in logout API:", error);
-      throw error;
+      // if (response.status === 401) {
+      //   return true;
+      // } else {
+      //   console.error("Error in logout API:", error);
+      //   throw error;
+      // }
+      return true;
     }
   }
 
@@ -156,9 +155,7 @@ class APIMethods {
   // join gruppo
   static async joinGroup(handle) {
     try {
-      const response = await this.api.get(
-        `/chat/join/group?handle=${handle}`
-      );
+      const response = await this.api.get(`/chat/join/group?handle=${handle}`);
       return response.data;
     } catch (error) {
       console.error("Error in joinGroupAPI:", error);
@@ -178,8 +175,6 @@ class APIMethods {
       throw error;
     }
   }
-
-
 }
 
 export default APIMethods;

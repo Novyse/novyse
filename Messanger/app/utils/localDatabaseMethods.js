@@ -156,7 +156,6 @@ class LocalDatabase {
     }
   }
 
-  
   async insertOrIgnore(table, values) {
     if (isWeb) {
       let items = (await this.db.getItem(table)) || [];
@@ -429,8 +428,42 @@ class LocalDatabase {
   async insertUsers(handle) {
     await this.insertOrIgnore("users", { handle });
   }
+
   async insertChatAndUsers(chat_id, handle) {
     await this.insertOrIgnore("chat_users", { chat_id, handle });
+  }
+
+  // Aggiungi questo metodo alla tua classe LocalDatabase
+  async getDatabaseSize() {
+    try {
+      if (isWeb) {
+        // Calcolo dimensione per localForage (web)
+        let totalSize = 0;
+        await this.db.iterate((value) => {
+          // Calcola la dimensione approssimativa in byte
+          const size = new TextEncoder().encode(JSON.stringify(value)).length;
+          totalSize += size;
+        });
+        // Converti in MB
+        return (totalSize / (1024 * 1024)).toFixed(2);
+      } else {
+        // Calcolo dimensione per SQLite (mobile)
+        // Nota: expo-sqlite non fornisce direttamente la dimensione del file,
+        // quindi dobbiamo usare expo-file-system
+        const FileSystem = require("expo-file-system");
+        const dbPath = `${FileSystem.documentDirectory}SQLite/db.sqlite`;
+        const { size } = await FileSystem.getInfoAsync(dbPath);
+        if (!size) {
+          console.warn("Impossibile ottenere la dimensione del database");
+          return "0.00";
+        }
+        // Converti in MB
+        return (size / (1024 * 1024)).toFixed(2);
+      }
+    } catch (error) {
+      console.error("Errore nel calcolo della dimensione del database:", error);
+      return "Errore";
+    }
   }
 }
 

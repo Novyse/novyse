@@ -1,57 +1,51 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { ThemeContext } from '@/context/ThemeContext';
-import { useRouter } from 'expo-router';
+import React, { useContext } from "react";
+import { View, StyleSheet, Pressable, Text } from "react-native";
+import { ThemeContext } from "@/context/ThemeContext";
+import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
+import { Colors } from "../../constants/Colors";
 
-const ThemesPage = () => {
-  const { theme, setTheme } = useContext(ThemeContext);
+const Themes = () => {
+  const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-  const router = useRouter();
+
+  // Ottieni la lista dei temi disponibili
+  const availableThemes = Object.keys(Colors);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Temi</Text>
-      <Pressable style={styles.themeOption} onPress={() => setTheme('light')}>
-        <Text style={styles.themeOptionText}>Chiaro</Text>
-      </Pressable>
-      <Pressable style={styles.themeOption} onPress={() => setTheme('dark')}>
-        <Text style={styles.themeOptionText}>Scuro</Text>
-      </Pressable>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Indietro</Text>
-      </Pressable>
+      <HeaderWithBackArrow goBackTo="./SettingsMenu" />
+
+      {availableThemes.map((themeName) => (
+        <Pressable
+          key={themeName}
+          onPress={() => setColorScheme(themeName)}
+          style={styles.themeButton}
+        >
+          <Text style={styles.themeText}>
+            {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
+          </Text>
+        </Pressable>
+      ))}
     </View>
   );
 };
 
-const createStyle = (theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.background,
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.text,
-    marginBottom: 20,
-  },
-  themeOption: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  themeOptionText: {
-    color: theme.text,
-    fontSize: 18,
-  },
-  backButton: {
-    marginTop: 20,
-  },
-  backButtonText: {
-    color: theme.text,
-    fontSize: 16,
-  },
-});
+const createStyle = (theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.backgroundClassic,
+      padding: 10,
+    },
+    themeButton: {
+      padding: 10,
+      marginVertical: 5,
+      backgroundColor: theme.buttonBackground || "#e0e0e0", // Personalizzabile
+    },
+    themeText: {
+      color: theme.text || "#000000",
+      fontSize: 16,
+    },
+  });
 
-export default ThemesPage;
+export default Themes;
