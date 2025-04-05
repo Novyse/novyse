@@ -3,7 +3,7 @@ axios.defaults.withCredentials = true;
 
 class APIMethods {
   static domain = "https://api.buzz.israiken.it";
-  static APIlink = this.domain + "/test";
+  static APIlink = this.domain + "/v1";
 
   static api = axios.create({
     baseURL: this.APIlink,
@@ -27,12 +27,11 @@ class APIMethods {
     name,
     surname,
     handle,
-    password,
-    confirm_password
+    password
   ) {
     try {
       const response = await this.api.get(
-        `/user/auth/signup?email=${email}&name=${name}&surname=${surname}&handle=${handle}&password=${password}&confirm_password=${confirm_password}`
+        `/user/auth/signup?email=${email}&name=${name}&surname=${surname}&handle=${handle}&password=${password}`
       );
       return response;
     } catch (error) {

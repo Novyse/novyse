@@ -584,7 +584,7 @@ const ChatList = () => {
                 <Search style={styles.chatList} />
               )}
               {selectedChat && (
-                <Animated.View
+                <View
                   style={[
                     styles.chatContent,
                     {
@@ -599,7 +599,7 @@ const ChatList = () => {
                   ]}
                 >
                   {renderChatHeaderAndContent()}
-                </Animated.View>
+                </View>
               )}
             </>
           ) : (

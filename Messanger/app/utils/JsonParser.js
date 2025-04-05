@@ -29,8 +29,7 @@ class JsonParser {
     name,
     surname,
     handle,
-    password,
-    confirm_password
+    password
   ) {
     try {
       const response = await APIMethods.signupAPI(
@@ -38,8 +37,7 @@ class JsonParser {
         name,
         surname,
         handle,
-        password,
-        confirm_password
+        password
       );
 
       if (response.status === 200) {

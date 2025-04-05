@@ -100,14 +100,13 @@ const Signup = () => {
       return;
     }
 
-    const { password, confirmpassword, name, surname, handle } = form;
+    const { password, name, surname, handle } = form;
     const signupResponse = await JsonParser.signupJson(
       emailValue,
       name,
       surname,
       handle,
-      password,
-      confirmpassword
+      password
     );
 
     if (signupResponse) {

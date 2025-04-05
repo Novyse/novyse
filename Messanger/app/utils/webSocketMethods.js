@@ -30,7 +30,7 @@ const WebSocketMethods = {
       }
 
       socket = io("wss://io.buzz.israiken.it", {
-        path:"/test",
+        path:"/v1",
         transports: ["websocket"],
         autoConnect: true,
         reconnectionAttempts: -1,
