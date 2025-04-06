@@ -94,7 +94,7 @@ const WebSocketMethods = {
         ""
       );
 
-      if (MessageAlreadyInDatabase) {
+      if (!MessageAlreadyInDatabase) {
         eventEmitter.emit("updateNewLastMessage", data);
         eventEmitter.emit("newMessage", data);
       }

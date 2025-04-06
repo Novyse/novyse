@@ -295,11 +295,20 @@ const ChatList = () => {
         </View>
 
         <View style={styles.menuContainer}>
-          <SidebarItem text="Profile" iconName="person" />
+          <SidebarItem
+            text="Profile"
+            iconName="person"
+            onPress={() => {
+              toggleSidebar();
+            }}
+          />
           <SidebarItem
             text="Settings"
             iconName="settings"
-            onPress={handleSettingsPress}
+            onPress={() => {
+              toggleSidebar();
+              handleSettingsPress();
+            }}
           />
           <SidebarItem
             text="Nuovo Gruppo"
@@ -313,6 +322,7 @@ const ChatList = () => {
             text="Logout"
             iconName="logout"
             onPress={() => {
+              toggleSidebar();
               AsyncStorage.setItem("isLoggedIn", "false");
               logout();
             }}
@@ -580,7 +590,7 @@ const ChatList = () => {
                 <Search style={styles.chatList} />
               )}
               {selectedChat && (
-                <View
+                <Animated.View
                   style={[
                     styles.chatContent,
                     {
@@ -595,7 +605,7 @@ const ChatList = () => {
                   ]}
                 >
                   {renderChatHeaderAndContent()}
-                </View>
+                </Animated.View>
               )}
             </>
           ) : (
