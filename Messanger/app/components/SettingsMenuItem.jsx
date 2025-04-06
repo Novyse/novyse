@@ -8,7 +8,6 @@ const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
   const router = useRouter();
 
   return (
-    <div>
       <Pressable
         style={styles.menuItem}
         onPress={() => router.navigate(`/settings/${navToPage}`)}
@@ -22,7 +21,6 @@ const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
         />
         <Text style={styles.menuItemText}>{pageName}</Text>
       </Pressable>
-    </div>
   );
 };
 
