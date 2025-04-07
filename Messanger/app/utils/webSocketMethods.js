@@ -173,7 +173,49 @@ const WebSocketMethods = {
       console.log("🟢 You joined group");
     });
 
+    // quello che ricevo dal server dopo aver joinato una vocal chat
+    socket.on("join", async (data) => {
+      const { success, chatId } = data;
+      if(success){
+        console.log("⭐ti sei unito alla chat vocale");
+      } else {
+        console.log("Non hai accesso alla chat vocale");
+      }
+    });
+
+    // quello che ricevo dal server dopo che qualcuno ha joinato una vocal chat
+    socket.on("joined", async (data) => {
+      const { chat_id, handle } = data;
+      console.log("🐬Qualcuno è entrato nella chat vocale");
+    });
+
+    // risposta del server quando io esco dalla chat
+    socket.on("leave", async (data) => {
+      const { success, chat_id } = data;
+      if(success){
+        console.log("⭐hai abbandonato alla chat vocale");
+      } else {
+        console.log("Non puoi uscire dalla chat vocale");
+      }
+    });
+
+    // risposta del server quando qualcuno esce dalla chat
+    socket.on("left", async (data) => {
+      const { chat_id, handle } = data;
+      console.log("🐬Qualcuno è uscito nella chat vocale");
+    });
+
     return "return of socket.io receiver function";
+  },
+
+  // quando voglio entrare in una vocal chat
+  EmitJoinVocalChat: async (chatId) => {
+    socket.emit("join", {chat_id: chatId});
+  },
+
+  // quando voglio uscire in una vocal chat
+  EmitLeaveVocalChat: async (chatId) => {
+    socket.emit("leave", {chat_id: chatId});
   },
 
   UpdateLastWebSocketActionDateTime: async (date) => {
