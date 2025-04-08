@@ -433,7 +433,7 @@ class LocalDatabase {
     await this.insertOrIgnore("chat_users", { chat_id, handle });
   }
 
-  // Aggiungi questo metodo alla tua classe LocalDatabase
+  // Ritorna la dimensione totale del db locale
   async getDatabaseSize() {
     try {
       if (isWeb) {
@@ -463,6 +463,26 @@ class LocalDatabase {
     } catch (error) {
       console.error("Errore nel calcolo della dimensione del database:", error);
       return "Errore";
+    }
+  }
+
+  // Ritorna la dimensione approssimativa della tabella messages
+  async getMessagesSize() {
+    try {
+      if (isWeb) {
+        // Per localForage, recupera solo i dati della tabella "messages"
+        const messages = (await this.db.getItem("messages")) || [];
+        const messagesSize = new TextEncoder().encode(JSON.stringify(messages)).length;
+        return (messagesSize / (1024 * 1024)).toFixed(2);
+      } else {
+        // Per SQLite, recupera tutti i messaggi e calcola la dimensione
+        const messages = await this.db.getAllAsync("SELECT * FROM messages");
+        const messagesSize = new TextEncoder().encode(JSON.stringify(messages)).length;
+        return (messagesSize / (1024 * 1024)).toFixed(2);
+      }
+    } catch (error) {
+      console.error("Errore nel calcolo della dimensione dei messaggi:", error);
+      return "0.00";
     }
   }
 }

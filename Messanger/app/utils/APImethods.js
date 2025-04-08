@@ -101,6 +101,7 @@ class APIMethods {
     }
   }
 
+  // ottiene i membri di una chat
   static async getChatMembers(chat_id) {
     try {
       const response = await this.api.get(
@@ -113,6 +114,7 @@ class APIMethods {
     }
   }
 
+  // effettua il logout
   static async logoutAPI() {
     try {
       const response = await this.api.get("/user/auth/logout");
@@ -163,7 +165,7 @@ class APIMethods {
     }
   }
 
-  // update di tutto
+  // update rispetto all'ultimo evento dal websocket
   static async updateAll(date_time) {
     try {
       const response = await this.api.get(

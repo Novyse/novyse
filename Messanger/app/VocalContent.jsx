@@ -2,8 +2,6 @@ import React, { useState, useContext, useEffect } from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
-// Assumendo che questi import siano corretti per il tuo progetto
-// import WebSocketMethods from "./utils/webSocketMethods";
 import VocalContentBottomBar from "./components/VocalContentBottomBar";
 
 const VocalContent = ({ selectedChat, chatId }) => {
@@ -12,77 +10,85 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const router = useRouter();
   const [profilesInVocalChat, setProfilesInVocalChat] = useState([]);
 
-  // cosa succede quando premo il pulsante per entrare nella chat vocale
+  // Gestione dell'ingresso nella chat vocale
   const handleSelfJoined = () => {
-    setProfilesInVocalChat([...profilesInVocalChat, "placeholder"]);
-  }
+    // Aggiungo un oggetto più significativo invece di un semplice placeholder
+    const newProfile = {
+      id: Date.now(), // ID univoco basato sul timestamp
+      name: "Utente " + (profilesInVocalChat.length + 1), // Nome dinamico
+      status: "joined"
+    };
+    setProfilesInVocalChat(prev => [...prev, newProfile]);
+  };
 
-  // cosa succede quando premo il pulsante per abbandonare la chat vocale
+  // Gestione dell'uscita dalla chat vocale
   const handleSelfLeft = () => {
-    
-  }
+    // Rimuovo l'ultimo profilo aggiunto (puoi modificare la logica di rimozione)
+    setProfilesInVocalChat(prev => prev.slice(0, -1));
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.profilesContainer}>
-        {/* Usa map() invece di forEach() */}
-        {profilesInVocalChat.map((element, index) => (
-          // Aggiungi una prop 'key' univoca per ogni elemento della lista
-          <Pressable key={index} style={styles.profile}>
-            {/* Puoi usare 'element' se ti serve, es: <Text>Profilo {element}</Text> */}
-            <Text style={styles.profileText}>Entra</Text>
-          </Pressable>
-        ))}
-
-        {/* Codice commentato originale */}
-        {/* <Pressable style={styles.profile}>
-          <Text style={styles.profileText}>Entra</Text>
-        </Pressable>
-        <Pressable style={styles.profile}>
-          <Text style={styles.profileText}>Esci</Text>
-        </Pressable>
-        <Pressable style={styles.profile}>
-          <Text style={styles.profileText}>Ciao</Text>
-        </Pressable> */}
+        {profilesInVocalChat.length > 0 ? (
+          profilesInVocalChat.map((profile) => (
+            <Pressable 
+              key={profile.id} 
+              style={styles.profile}
+              onPress={() => console.log(`Pressed ${profile.name}`)} // Azione opzionale
+            >
+              <Text style={styles.profileText}>{profile.name}</Text>
+              <Text style={[styles.profileText, { fontSize: 12 }]}>
+                {profile.status}
+              </Text>
+            </Pressable>
+          ))
+        ) : (
+          <Text style={styles.profileText}>Nessun utente nella chat</Text>
+        )}
       </View>
 
-      <VocalContentBottomBar chatId={chatId} selfJoined={handleSelfJoined} selfLeft={handleSelfLeft}/>
+      <VocalContentBottomBar 
+        chatId={chatId} 
+        selfJoined={handleSelfJoined} 
+        selfLeft={handleSelfLeft}
+      />
     </View>
   );
 };
 
 export default VocalContent;
 
-// La funzione createStyle rimane invariata
 function createStyle(theme) {
   return StyleSheet.create({
-    profilesContainer: {
-      flex: 1,
-      flexDirection: "row", // Gli elementi si disporranno in riga
-      justifyContent: 'space-around', // Aggiunto per spaziare meglio i bottoni
-      alignItems: 'flex-start', // Allinea all'inizio
-      gap: 15, // Mantiene lo spazio tra elementi
-    },
     container: {
       flex: 1,
       flexDirection: "column",
       padding: 15,
       gap: 15,
     },
+    profilesContainer: {
+      flex: 1,
+      flexDirection: "row",
+      flexWrap: "wrap", // Permette agli elementi di andare a capo se necessario
+      justifyContent: "space-around",
+      alignItems: "flex-start",
+      gap: 15,
+    },
     profile: {
-      backgroundColor: "black", // Sfondo nero come da esempio
+      backgroundColor: "black",
       borderRadius: 10,
-      flexGrow: 1, // Permette ai pressable di crescere e occupare spazio
-      maxWidth: '30%', // Limita la larghezza massima per evitare che uno occupi tutto
-      height: 100, // Altezza fissa come da esempio
-      // Aggiunto per centrare il testo nel Pressable (opzionale)
-      justifyContent: 'center',
-      alignItems: 'center',
+      padding: 10, // Aggiunto padding interno
+      flexGrow: 1,
+      maxWidth: "30%",
+      minHeight: 100, // Usato minHeight invece di height fisso
+      justifyContent: "center",
+      alignItems: "center",
     },
     profileText: {
-      color: theme ? theme.text : 'white', // Usa il tema se disponibile, altrimenti bianco
-      // Aggiunto stile di base per il testo
+      color: theme?.text || "white",
       fontSize: 16,
+      textAlign: "center",
     },
   });
 }

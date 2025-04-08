@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
+import DatabaseSizeChart from "../components/DatabaseSizeChart";
 
 const StoragePage = () => {
   const { theme } = useContext(ThemeContext);
@@ -12,6 +13,7 @@ const StoragePage = () => {
       <HeaderWithBackArrow 
         goBackTo="./SettingsMenu"
       />
+      <DatabaseSizeChart/>
     </View>
   );
 };
