@@ -15,8 +15,9 @@ const WebSocketMethods = {
   },
 
   openWebSocketConnection: async () => {
-    const response = await APIMethods.api.get("/user/auth/session");
-    const sessionId = response.data.session_id;
+    
+    const sessionId = await AsyncStorage.getItem("sessionIdToken");
+    
     localUserHandle = await localDatabase.fetchLocalUserHandle();
     console.log("Session ID: ", sessionId);
 

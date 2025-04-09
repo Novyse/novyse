@@ -61,9 +61,9 @@ class JsonParser {
 
       if (response.status === 200) {
         const jsonResponse = response.data;
-        const loginResponseBool = jsonResponse["logged_in"];
+        const loginResponseToken = jsonResponse["token"];
 
-        return loginResponseBool;
+        return loginResponseToken;
       } else {
         console.error(`Errore nella richiesta: ${response.status}`);
         return false;

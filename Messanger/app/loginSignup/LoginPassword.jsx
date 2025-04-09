@@ -98,6 +98,9 @@ const LoginPassword = () => {
         const exists = await localDatabase.checkDatabaseExistence();
         console.log("Database exists:", exists);
 
+        await AsyncStorage.setItem("sessionIdToken", loginSuccess);
+        console.log("⭐⭐⭐", await AsyncStorage.getItem("sessionIdToken"));
+
         const initSuccess = await JsonParser.initJson();
 
         if (initSuccess) {
