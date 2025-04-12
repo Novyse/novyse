@@ -4,15 +4,10 @@ import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import APIMethods from "../utils/APImethods";
 import localDatabase from "../utils/localDatabaseMethods";
-import { useAudioPlayer } from "expo-audio";
-import { sounds } from "../utils/sounds";
 
 const VocalContentBottomBar = ({ chatId, memberJoined, memberLeft }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-  
-  const comms_join_vocal = useAudioPlayer(sounds.comms_join_vocal);
-  const comms_leave_vocal = useAudioPlayer(sounds.comms_leave_vocal);
 
   const [isJoinedVocal, setIsJoinedVocal] = useState(false);
 
@@ -29,7 +24,6 @@ const VocalContentBottomBar = ({ chatId, memberJoined, memberLeft }) => {
                 handle: await localDatabase.fetchLocalUserHandle(),
                 chat_id: chatId,
               });
-              comms_join_vocal.play();
               setIsJoinedVocal(true);
             }
           }}
@@ -43,7 +37,6 @@ const VocalContentBottomBar = ({ chatId, memberJoined, memberLeft }) => {
             const data = await APIMethods.commsLeave();
             if (data.comms_left) {
               memberLeft(data);
-              comms_leave_vocal.play();
               setIsJoinedVocal(false);
             }
           }}

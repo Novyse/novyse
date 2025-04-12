@@ -4,13 +4,18 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import VocalContentBottomBar from "./components/VocalContentBottomBar";
 import APIMethods from "./utils/APImethods";
-import localDatabase from "./utils/localDatabaseMethods";
 import eventEmitter from "./utils/EventEmitter";
+import { useAudioPlayer } from "expo-audio";
+import { sounds } from "./utils/sounds";
 
 const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const router = useRouter();
+
+  const comms_join_vocal = useAudioPlayer(sounds.comms_join_vocal);
+  const comms_leave_vocal = useAudioPlayer(sounds.comms_leave_vocal);
+
   const [profilesInVocalChat, setProfilesInVocalChat] = useState([]);
 
   const getVocalMembers = async () => {
@@ -32,17 +37,16 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
-    console.log(data);
     if (data.chat_id == chatId) {
+      comms_join_vocal.play();
       setProfilesInVocalChat((prev) => [...prev, data]);
     }
   };
 
   // Gestione dell'uscita dalla chat vocale
   const handleMemberLeft = (data) => {
-    console.log(data);
     if (data.chat_id == chatId) {
-      
+      comms_leave_vocal.play();
       // Rimuovo l'ultimo profilo aggiunto (puoi modificare la logica di rimozione)
       setProfilesInVocalChat(
         (prevProfiles) =>
