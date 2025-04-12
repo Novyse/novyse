@@ -12,7 +12,7 @@ class EventEmitter {
   }
 
   emit(event, data) {
-    console.log("EventEmitter emit");
+    console.log("EventEmitter emit", event, data);
     if (this.listeners[event]) {
       this.listeners[event].forEach((callback) => callback(data));
     }

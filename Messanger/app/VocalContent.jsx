@@ -20,28 +20,38 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   useEffect(() => {
     getVocalMembers();
+
+    eventEmitter.on("member_joined_comms", handleMemberJoined);
+    eventEmitter.on("member_left_comms", handleMemberLeft);
+
+    return () => {
+      eventEmitter.off("member_joined_comms", handleMemberJoined);
+      eventEmitter.off("member_left_comms", handleMemberLeft);
+    };
   }, []);
 
   // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
-    setProfilesInVocalChat((prev) => [...prev, data]);
+    console.log(data);
+    if (data.chat_id == chatId) {
+      setProfilesInVocalChat((prev) => [...prev, data]);
+    }
   };
 
   // Gestione dell'uscita dalla chat vocale
   const handleMemberLeft = (data) => {
-    // Rimuovo l'ultimo profilo aggiunto (puoi modificare la logica di rimozione)
-    setProfilesInVocalChat(
-      (prevProfiles) =>
-        // Filtra l'array precedente
-        prevProfiles.filter(
-          (profile) => profile.comms_id !== data.comms_id
-        )
-      // Mantieni solo i profili il cui comms_id NON corrisponde a quello da rimuovere
-    );
+    console.log(data);
+    if (data.chat_id == chatId) {
+      
+      // Rimuovo l'ultimo profilo aggiunto (puoi modificare la logica di rimozione)
+      setProfilesInVocalChat(
+        (prevProfiles) =>
+          // Filtra l'array precedente
+          prevProfiles.filter((profile) => profile.comms_id !== data.comms_id)
+        // Mantieni solo i profili il cui comms_id NON corrisponde a quello da rimuovere
+      );
+    }
   };
-
-  eventEmitter.on("member_joined_comms", handleMemberLeft);
-  eventEmitter.on("member_left_comms", handleMemberLeft);
 
   return (
     <View style={styles.container}>

@@ -188,7 +188,18 @@ const WebSocketMethods = {
       eventEmitter.emit("member_left_comms", data);
     });
 
+    socket.on("candidate", async (data) => {
+
+    });
+
+
+
     return "return of socket.io receiver function";
+  },
+
+  // quando voglio entrare in una vocal chat
+  IceCandidate: async (data) => {
+    socket.emit("candidate", data);
   },
 
   UpdateLastWebSocketActionDateTime: async (date) => {

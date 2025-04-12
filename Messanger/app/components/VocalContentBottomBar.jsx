@@ -4,10 +4,16 @@ import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import APIMethods from "../utils/APImethods";
 import localDatabase from "../utils/localDatabaseMethods";
+import { useAudioPlayer } from "expo-audio";
+import { sounds } from "../utils/sounds";
 
 const VocalContentBottomBar = ({ chatId, memberJoined, memberLeft }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+  
+  const comms_join_vocal = useAudioPlayer(sounds.comms_join_vocal);
+  const comms_leave_vocal = useAudioPlayer(sounds.comms_leave_vocal);
+
   const [isJoinedVocal, setIsJoinedVocal] = useState(false);
 
   return (
@@ -21,7 +27,9 @@ const VocalContentBottomBar = ({ chatId, memberJoined, memberLeft }) => {
               memberJoined({
                 comms_id: data.comms_id,
                 handle: await localDatabase.fetchLocalUserHandle(),
+                chat_id: chatId,
               });
+              comms_join_vocal.play();
               setIsJoinedVocal(true);
             }
           }}
@@ -34,7 +42,8 @@ const VocalContentBottomBar = ({ chatId, memberJoined, memberLeft }) => {
           onPress={async () => {
             const data = await APIMethods.commsLeave();
             if (data.comms_left) {
-              memberLeft({comms_id: data.comms_id});
+              memberLeft(data);
+              comms_leave_vocal.play();
               setIsJoinedVocal(false);
             }
           }}

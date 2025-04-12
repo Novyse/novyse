@@ -27,12 +27,11 @@ import CreateGroupModal from "./components/CreateGroupModal";
 import SidebarItem from "./components/SidebarItem";
 
 import Search from "./Search";
-import ChatContent from "./ChatContent";
-import VocalContent from "./VocalContent";
 import APIMethods from "./utils/APImethods";
 import eventEmitter from "./utils/EventEmitter";
 import WebSocketMethods from "./utils/webSocketMethods";
 import localDatabase from "./utils/localDatabaseMethods";
+import ChatContainer from "./ChatContainer";
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -65,6 +64,7 @@ const ChatList = () => {
     new Animated.Value(Dimensions.get("window").width)
   );
 
+  // First useEffect - runs only once for initialization
   useEffect(() => {
     const checkLogged = async () => {
       const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
@@ -77,30 +77,10 @@ const ChatList = () => {
     };
     checkLogged();
 
-    const checkConnection = NetInfo.addEventListener((state) => {
-      setNetworkAvailable(state.isConnected);
-    });
-
+    // Initialize WebSocket
     WebSocketMethods.openWebSocketConnection();
 
-    // gestisco quando l'utente vuole tornare alla pagina precedente
-    const backAction = () => {
-      if (isSmallScreen && selectedChat) {
-        setSelectedChat(null);
-        return true;
-      }
-      Alert.alert("Attenzione", "Sei sicuro di voler uscire?", [
-        { text: "No", style: "cancel" },
-        { text: "Sì", onPress: () => BackHandler.exitApp() },
-      ]);
-      return true;
-    };
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-
-    // gestisco quando un nuovo messaggio viene inviato dall'utente
+    // Set up event listeners
     const handleNewMessageSent = (data) => {
       const { chat_id, text, date } = data;
       setChatDetails((current) => ({
@@ -109,38 +89,22 @@ const ChatList = () => {
           ...current[chat_id],
           lastMessage: {
             ...current[chat_id]?.lastMessage,
-            text: text !== null ? text : current[chat_id]?.lastMessage?.text, // Mantieni il vecchio text se il nuovo è null
+            text: text !== null ? text : current[chat_id]?.lastMessage?.text,
             date_time: date,
           },
         },
       }));
     };
-    eventEmitter.on("updateNewLastMessage", handleNewMessageSent);
 
-    // gestisco quando l'utente clicca su una chat che risulta da Search --> potrebbe essere fatto meglio
     const handleSearchResult = (data) => {
       const { handle, type } = data;
-      // Crea un ID temporaneo per la chat
       const tempChatId = `temp_${handle}_${Date.now()}`;
-
-      // da capire bene --> da fare col chat_id
-      if (data.type == "group") {
-        setChatJoined(false);
-        setSelectedChat(tempChatId);
-      } else {
-        setChatJoined(true);
-        setSelectedChat(tempChatId);
-      }
-      console.log("Chat selezionata da ricerca: ", tempChatId);
-      // Chiudi la ricerca
-      // setIsToggleSearchChats(false);
+      setChatJoined(type !== "group");
+      setSelectedChat(tempChatId);
     };
-    eventEmitter.on("searchResultSelected", handleSearchResult);
 
-    // Create a function to fetch and update chat data
     const updateChatsAndDetails = async (data) => {
       const newChatId = data?.newChatId;
-
       try {
         const fetchedChats = await fetchChats();
         const details = {};
@@ -163,20 +127,51 @@ const ChatList = () => {
         console.error("Error updating chats:", error);
       }
     };
-    // Listen for new chat events
+
+    // Add event listeners
+    eventEmitter.on("updateNewLastMessage", handleNewMessageSent);
     eventEmitter.on("newChat", updateChatsAndDetails);
+    eventEmitter.on("searchResultSelected", handleSearchResult);
 
     // Initial fetch
     updateChatsAndDetails();
 
+    // Cleanup function
     return () => {
       eventEmitter.off("updateNewLastMessage", handleNewMessageSent);
       eventEmitter.off("newChat", updateChatsAndDetails);
       eventEmitter.off("searchResultSelected", handleSearchResult);
+    };
+  }, []); // Empty dependency array means it runs only once
+
+  // Second useEffect - handles network status and back button
+  useEffect(() => {
+    const checkConnection = NetInfo.addEventListener((state) => {
+      setNetworkAvailable(state.isConnected);
+    });
+
+    const backAction = () => {
+      if (isSmallScreen && selectedChat) {
+        setSelectedChat(null);
+        return true;
+      }
+      Alert.alert("Attenzione", "Sei sicuro di voler uscire?", [
+        { text: "No", style: "cancel" },
+        { text: "Sì", onPress: () => BackHandler.exitApp() },
+      ]);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => {
       backHandler.remove();
       checkConnection();
     };
-  }, [isSmallScreen, selectedChat]);
+  }, [isSmallScreen, selectedChat]); // Only re-run when these values change
 
   useEffect(() => {
     const updateScreenSize = () => {
@@ -246,6 +241,7 @@ const ChatList = () => {
   const handleChatPress = (chatId) => {
     setChatJoined(true);
     setSelectedChat(chatId);
+    setContentView("chat");
     if (!isSmallScreen) {
       router.setParams({ chatId });
     }
@@ -507,23 +503,19 @@ const ChatList = () => {
       </View>
     );
 
+    // In renderChatHeaderAndContent:
     switch (contentView) {
       case "vocal":
-        return (
-          <View style={styles.chatContent}>
-            {renderChatHeader}
-            <VocalContent chatId={selectedChat} userId={userId} />
-          </View>
-        );
       case "chat":
         return (
           <View style={styles.chatContent}>
             {renderChatHeader}
-            <ChatContent
+            <ChatContainer
               chatJoined={chatJoined}
               chatId={selectedChat}
               userId={userId}
               chatName={chatName}
+              contentView={contentView}
               onBack={() => setSelectedChat(null)}
               onJoinSuccess={handleSuccessfulJoin}
             />
@@ -541,33 +533,26 @@ const ChatList = () => {
                   borderColor: theme.chatDivider,
                 }}
               >
-                <ChatContent
-                  chatJoined={chatJoined}
+                <ChatContainer
                   chatId={selectedChat}
                   userId={userId}
                   chatName={chatName}
+                  contentView="chat"
                   onBack={() => setSelectedChat(null)}
                   onJoinSuccess={handleSuccessfulJoin}
                 />
               </View>
               <View style={{ flex: 1 }}>
-                <VocalContent chatId={selectedChat} userId={userId} />
+                <ChatContainer
+                  chatId={selectedChat}
+                  userId={userId}
+                  chatName={chatName}
+                  contentView="vocal"
+                  onBack={() => setSelectedChat(null)}
+                  onJoinSuccess={handleSuccessfulJoin}
+                />
               </View>
             </View>
-          </View>
-        );
-      default:
-        return (
-          <View style={styles.chatContent}>
-            {renderChatHeader}
-            <ChatContent
-              chatJoined={chatJoined}
-              chatId={selectedChat}
-              userId={userId}
-              chatName={chatName}
-              onBack={() => setSelectedChat(null)}
-              onJoinSuccess={handleSuccessfulJoin}
-            />
           </View>
         );
     }
