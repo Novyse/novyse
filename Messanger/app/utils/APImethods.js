@@ -177,6 +177,45 @@ class APIMethods {
       throw error;
     }
   }
+
+  // quando uno user vuole entrare in una chat vocale
+  static async commsJoin(chatId) {
+    try {
+      const response = await this.api.get(
+        `/comms/join?chat_id=${chatId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error in updateAll:", error);
+      throw error;
+    }
+  }
+
+  // quando uno user vuole abbandonare una chat vocale
+  static async commsLeave() {
+    try {
+      const response = await this.api.get(
+        `/comms/leave`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error in updateAll:", error);
+      throw error;
+    }
+  }
+
+  // quando lo user richiede chi è in una chat vocale
+  static async retrieveVocalUsers(chatId) {
+    try {
+      const response = await this.api.get(
+        `/comms/get/members?chat_id=${chatId}`
+      );
+      return response.data.comms_members_list;
+    } catch (error) {
+      console.error("Error in updateAll:", error);
+      throw error;
+    }
+  }
 }
 
 export default APIMethods;

@@ -40,7 +40,7 @@
     "expo-local-authentication": "~15.0.2",
     "expo-navigation-bar": "~4.0.9",
     "expo-router": "~4.0.20",
-    "expo-splash-screen": "~0.29.21",
+    "expo-splash-screen": "~0.29.22",
     "expo-sqlite": "~15.1.4",
     "expo-status-bar": "~2.0.1",
     "expo-symbols": "~0.2.2",

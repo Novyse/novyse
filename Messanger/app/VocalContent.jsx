@@ -3,6 +3,9 @@ import { StyleSheet, Text, View, Pressable } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import VocalContentBottomBar from "./components/VocalContentBottomBar";
+import APIMethods from "./utils/APImethods";
+import localDatabase from "./utils/localDatabaseMethods";
+import eventEmitter from "./utils/EventEmitter";
 
 const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);
@@ -10,34 +13,43 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const router = useRouter();
   const [profilesInVocalChat, setProfilesInVocalChat] = useState([]);
 
+  const getVocalMembers = async () => {
+    const usersInfo = await APIMethods.retrieveVocalUsers(chatId);
+    setProfilesInVocalChat(usersInfo);
+  };
+
+  useEffect(() => {
+    getVocalMembers();
+  }, []);
+
   // Gestione dell'ingresso nella chat vocale
-  const handleSelfJoined = () => {
-    // Aggiungo un oggetto più significativo invece di un semplice placeholder
-    const newProfile = {
-      id: Date.now(), // ID univoco basato sul timestamp
-      name: "Utente " + (profilesInVocalChat.length + 1), // Nome dinamico
-      status: "joined"
-    };
-    setProfilesInVocalChat(prev => [...prev, newProfile]);
+  const handleMemberJoined = async (data) => {
+    setProfilesInVocalChat((prev) => [...prev, data]);
   };
 
   // Gestione dell'uscita dalla chat vocale
-  const handleSelfLeft = () => {
+  const handleMemberLeft = (data) => {
     // Rimuovo l'ultimo profilo aggiunto (puoi modificare la logica di rimozione)
-    setProfilesInVocalChat(prev => prev.slice(0, -1));
+    setProfilesInVocalChat(
+      (prevProfiles) =>
+        // Filtra l'array precedente
+        prevProfiles.filter(
+          (profile) => profile.comms_id !== data.comms_id
+        )
+      // Mantieni solo i profili il cui comms_id NON corrisponde a quello da rimuovere
+    );
   };
+
+  eventEmitter.on("member_joined_comms", handleMemberLeft);
+  eventEmitter.on("member_left_comms", handleMemberLeft);
 
   return (
     <View style={styles.container}>
       <View style={styles.profilesContainer}>
         {profilesInVocalChat.length > 0 ? (
           profilesInVocalChat.map((profile) => (
-            <Pressable 
-              key={profile.id} 
-              style={styles.profile}
-              onPress={() => console.log(`Pressed ${profile.name}`)} // Azione opzionale
-            >
-              <Text style={styles.profileText}>{profile.name}</Text>
+            <Pressable key={profile.comms_id} style={styles.profile}>
+              <Text style={styles.profileText}>{profile.handle}</Text>
               <Text style={[styles.profileText, { fontSize: 12 }]}>
                 {profile.status}
               </Text>
@@ -48,10 +60,10 @@ const VocalContent = ({ selectedChat, chatId }) => {
         )}
       </View>
 
-      <VocalContentBottomBar 
-        chatId={chatId} 
-        selfJoined={handleSelfJoined} 
-        selfLeft={handleSelfLeft}
+      <VocalContentBottomBar
+        chatId={chatId}
+        memberJoined={handleMemberJoined}
+        memberLeft={handleMemberLeft}
       />
     </View>
   );
