@@ -15,9 +15,8 @@ const WebSocketMethods = {
   },
 
   openWebSocketConnection: async () => {
-    
     const sessionId = await AsyncStorage.getItem("sessionIdToken");
-    
+
     localUserHandle = await localDatabase.fetchLocalUserHandle();
     console.log("Session ID: ", sessionId);
 
@@ -31,7 +30,7 @@ const WebSocketMethods = {
       }
 
       socket = io("wss://io.buzz.israiken.it", {
-        path:"/test/io",
+        path: "/test/io",
         transports: ["websocket"],
         autoConnect: true,
         reconnectionAttempts: -1,
@@ -174,8 +173,6 @@ const WebSocketMethods = {
       console.log("🟢 You joined group");
     });
 
-    
-
     // quello che ricevo dal server dopo che qualcuno ha joinato una vocal chat
     socket.on("member_joined_comms", async (data) => {
       console.log("🐬Qualcuno è entrato nella chat vocale");
@@ -189,10 +186,16 @@ const WebSocketMethods = {
     });
 
     socket.on("candidate", async (data) => {
-
+      // event emitter che richiama metodi nel file js del webrtc
     });
 
+    socket.on("answer", async (data) => {
+      // event emitter che richiama metodi nel file js del webrtc
+    });
 
+    socket.on("offer", async (data) => {
+      // event emitter che richiama metodi nel file js del webrtc
+    });
 
     return "return of socket.io receiver function";
   },
@@ -200,6 +203,16 @@ const WebSocketMethods = {
   // quando voglio entrare in una vocal chat
   IceCandidate: async (data) => {
     socket.emit("candidate", data);
+  },
+
+  // quando voglio entrare in una vocal chat
+  RTCOffer: async (data) => {
+    socket.emit("offer", data);
+  },
+
+  // quando voglio entrare in una vocal chat
+  RTCAnswer: async (data) => {
+    socket.emit("answer", data);
   },
 
   UpdateLastWebSocketActionDateTime: async (date) => {
