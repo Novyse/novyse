@@ -1,11 +1,22 @@
 import WebSocketMethods from "./webSocketMethods";
-import {
-  RTCPeerConnection,
-  RTCIceCandidate,
-  RTCSessionDescription,
-  mediaDevices,
-  MediaStream,
-} from "react-native-webrtc";
+import { Platform }from 'react-native';
+
+// Web implementation
+let WebRTC;
+
+if (Platform.OS === 'web') {
+  // Use react-native-webrtc-web-shim for web
+  WebRTC = require('react-native-webrtc-web-shim');
+} else {
+  // Use react-native-webrtc for mobile
+  WebRTC = require('react-native-webrtc');
+}
+
+const RTCPeerConnection = WebRTC.RTCPeerConnection;
+const RTCIceCandidate = WebRTC.RTCIceCandidate;
+const RTCSessionDescription = WebRTC.RTCSessionDescription;
+const mediaDevices = WebRTC.mediaDevices;
+const MediaStream = WebRTC.MediaStream;
 
 const configuration = {
   iceServers: [

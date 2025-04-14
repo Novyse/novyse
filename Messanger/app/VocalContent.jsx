@@ -7,6 +7,7 @@ import APIMethods from "./utils/APImethods";
 import eventEmitter from "./utils/EventEmitter";
 import { useAudioPlayer } from "expo-audio";
 import { sounds } from "./utils/sounds";
+import MultiPeerWebRTCManager from "./utils/webrtcMethods";
 
 const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);
