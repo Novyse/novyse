@@ -6,22 +6,36 @@ import VocalContentBottomBar from "./components/VocalContentBottomBar";
 import APIMethods from "./utils/APImethods";
 import eventEmitter from "./utils/EventEmitter";
 import { useAudioPlayer } from "expo-audio";
-import { sounds } from "./utils/sounds";
-import MultiPeerWebRTCManager from "./utils/webrtcMethods";
+import sounds from "./utils/sounds";
+import multiPeerWebRTCManager from "./utils/webrtcMethods";
+import localDatabase from "./utils/localDatabaseMethods";
 
 const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const router = useRouter();
+  const WebRTC = multiPeerWebRTCManager;
 
   const comms_join_vocal = useAudioPlayer(sounds.comms_join_vocal);
   const comms_leave_vocal = useAudioPlayer(sounds.comms_leave_vocal);
 
   const [profilesInVocalChat, setProfilesInVocalChat] = useState([]);
+  
 
   const getVocalMembers = async () => {
-    const usersInfo = await APIMethods.retrieveVocalUsers(chatId);
-    setProfilesInVocalChat(usersInfo);
+    console.log("sto prendendo i membri 1...");
+    if (chatId != WebRTC.chatId) {
+      console.log("sto prendendo i membri 2...");
+      const usersInfo = await APIMethods.retrieveVocalUsers(chatId);
+      setProfilesInVocalChat(usersInfo);
+    } else {
+      console.log("sto prendendo i membri 3...");
+      console.log(WebRTC.userData);
+      const userList = Object.values(WebRTC.userData);
+      const localUserHandle = await localDatabase.fetchLocalUserHandle();
+      userList.push({ handle: localUserHandle, from: WebRTC.myId });
+      setProfilesInVocalChat(userList);
+    }
   };
 
   useEffect(() => {
@@ -36,6 +50,20 @@ const VocalContent = ({ selectedChat, chatId }) => {
     };
   }, []);
 
+  // quando io entro in una room
+  const selfJoined = async (data) => {
+    
+    WebRTC.regenerate(data.from, chatId, null, null, null, null);
+    await handleMemberJoined(data);
+    WebRTC.existingUsers(profilesInVocalChat);
+  };
+
+  // quando io esco in una room
+  const selfLeft = async (data) => {
+    await handleMemberLeft(data);
+    WebRTC.closeAllConnections();
+  };
+
   // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
     if (data.chat_id == chatId) {
@@ -45,15 +73,15 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   // Gestione dell'uscita dalla chat vocale
-  const handleMemberLeft = (data) => {
+  const handleMemberLeft = async (data) => {
     if (data.chat_id == chatId) {
       comms_leave_vocal.play();
       // Rimuovo l'ultimo profilo aggiunto (puoi modificare la logica di rimozione)
       setProfilesInVocalChat(
         (prevProfiles) =>
           // Filtra l'array precedente
-          prevProfiles.filter((profile) => profile.comms_id !== data.comms_id)
-        // Mantieni solo i profili il cui comms_id NON corrisponde a quello da rimuovere
+          prevProfiles.filter((profile) => profile.from !== data.from)
+        // Mantieni solo i profili il cui from NON corrisponde a quello da rimuovere
       );
     }
   };
@@ -63,7 +91,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       <View style={styles.profilesContainer}>
         {profilesInVocalChat.length > 0 ? (
           profilesInVocalChat.map((profile) => (
-            <Pressable key={profile.comms_id} style={styles.profile}>
+            <Pressable key={profile.from} style={styles.profile}>
               <Text style={styles.profileText}>{profile.handle}</Text>
               <Text style={[styles.profileText, { fontSize: 12 }]}>
                 {profile.status}
@@ -77,8 +105,9 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
       <VocalContentBottomBar
         chatId={chatId}
-        memberJoined={handleMemberJoined}
-        memberLeft={handleMemberLeft}
+        selfJoined={selfJoined}
+        selfLeft={selfLeft}
+        WebRTC={WebRTC}
       />
     </View>
   );

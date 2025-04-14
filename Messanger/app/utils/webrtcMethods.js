@@ -1,15 +1,15 @@
 import WebSocketMethods from "./webSocketMethods";
-import { Platform }from 'react-native';
+import { Platform } from "react-native";
 
 // Web implementation
 let WebRTC;
 
-if (Platform.OS === 'web') {
+if (Platform.OS === "web") {
   // Use react-native-webrtc-web-shim for web
-  WebRTC = require('react-native-webrtc-web-shim');
+  WebRTC = require("react-native-webrtc-web-shim");
 } else {
   // Use react-native-webrtc for mobile
-  WebRTC = require('react-native-webrtc');
+  WebRTC = require("react-native-webrtc");
 }
 
 const RTCPeerConnection = WebRTC.RTCPeerConnection;
@@ -28,7 +28,9 @@ const configuration = {
 
 class MultiPeerWebRTCManager {
   myId = null; // Identificativo univoco per questo client (dovrebbe essere assegnato dal server/login)
+  chatId = null; // Identifico la chat in cui mi trovo
   peerConnections = {}; // Oggetto per memorizzare le connessioni: { participantId: RTCPeerConnection }
+  userData = {};
   localStream = null;
   remoteStreams = {}; // Oggetto per memorizzare gli stream remoti: { participantId: MediaStream }
 
@@ -42,21 +44,27 @@ class MultiPeerWebRTCManager {
   onParticipantLeft = null;
 
   constructor(
-    myId,
-    onLocalStreamReady,
-    onRemoteStreamAddedOrUpdated,
-    onPeerConnectionStateChange,
-    onParticipantLeft,
+    myId = null,
+    chatId = null,
+    onLocalStreamReady = null,
+    onRemoteStreamAddedOrUpdated = null,
+    onPeerConnectionStateChange = null,
+    onParticipantLeft = null
   ) {
-    console.log(`MultiPeerWebRTCManager: Inizializzato per l'utente ${myId}`);
-    if (!myId) {
-      throw new Error("ID utente richiesto.");
+    if (myId) {
+      console.log(`MultiPeerWebRTCManager: Inizializzato per l'utente ${myId}`);
+      if (!myId) {
+        throw new Error("ID utente richiesto.");
+      }
+      this.myId = myId;
+      this.chatId = chatId;
+      this.onLocalStreamReady = onLocalStreamReady;
+      this.onRemoteStreamAddedOrUpdated = onRemoteStreamAddedOrUpdated;
+      this.onPeerConnectionStateChange = onPeerConnectionStateChange;
+      this.onParticipantLeft = onParticipantLeft;
+    } else {
+      console.log("MultiPeerWebRTCManager: Inizializzato vuoto");
     }
-    this.myId = myId;
-    this.onLocalStreamReady = onLocalStreamReady;
-    this.onRemoteStreamAddedOrUpdated = onRemoteStreamAddedOrUpdated;
-    this.onPeerConnectionStateChange = onPeerConnectionStateChange;
-    this.onParticipantLeft = onParticipantLeft;
   }
 
   /**
@@ -95,7 +103,9 @@ class MultiPeerWebRTCManager {
    * @param {string} participantId - L'ID univoco del partecipante remoto.
    * @returns {RTCPeerConnection} La connessione creata.
    */
-  createPeerConnection(participantId) {
+  createPeerConnection(participant) {
+    const participantId = participant.from;
+
     if (this.peerConnections[participantId]) {
       console.warn(
         `MultiPeerWebRTCManager: Connessione peer per ${participantId} esiste già.`
@@ -108,23 +118,25 @@ class MultiPeerWebRTCManager {
     );
     try {
       const pc = new RTCPeerConnection(configuration);
+      const userData = { handle: participant.handle, from: participantId };
+      console.log("a1", userData);
       this.peerConnections[participantId] = pc; // Memorizza la connessione
+      this.userData[participantId] = userData;
+        // --- Gestione Eventi Specifica per questa Connessione ---
 
-      // --- Gestione Eventi Specifica per questa Connessione ---
-
-      pc.onicecandidate = async (event) => {
-        if (event.candidate) {
-          // Invia il candidato SPECIFICATAMENTE a questo partecipante
-          console.log(
-            `MultiPeerWebRTCManager: Invio candidato ICE a ${participantId}`
-          );
-          await WebSocketMethods.IceCandidate({
-            candidate: event.candidate.toJSON(),
-            to: participantId,
-            from: this.myId,
-          });
-        }
-      };
+        pc.onicecandidate = async (event) => {
+          if (event.candidate) {
+            // Invia il candidato SPECIFICATAMENTE a questo partecipante
+            console.log(
+              `MultiPeerWebRTCManager: Invio candidato ICE a ${participantId}`
+            );
+            await WebSocketMethods.IceCandidate({
+              candidate: event.candidate.toJSON(),
+              to: participantId,
+              from: this.myId,
+            });
+          }
+        };
 
       pc.ontrack = (event) => {
         console.log(
@@ -271,10 +283,11 @@ class MultiPeerWebRTCManager {
 
   /**
    * Gestisce un messaggio di segnalazione ricevuto. Ora deve considerare 'from' e 'to'.
-   * @param {object} message - Es: { type: 'offer', sdp: '...', from: 'peerA', to: 'myId' }
+   * @param {object} message - Es: { sdp: '...', from: 'peerA', to: 'myId' }
    */
-  async handleSignalMessage(message) {
-    // Ignora messaggi non destinati a me (anche se il server dovrebbe già filtrare)
+
+  // Ignora messaggi non destinati a me (anche se il server dovrebbe già filtrare)
+  async assureMessageIsForMe(message) {
     if (message.to && message.to !== this.myId) {
       console.log(
         `MultiPeerWebRTCManager: Messaggio ignorato, non per me (destinatario: ${message.to})`
@@ -295,13 +308,16 @@ class MultiPeerWebRTCManager {
     console.log(
       `MultiPeerWebRTCManager: Ricevuto messaggio "${message.type}" da ${senderId}`
     );
+  }
 
-    // Assicurati che la connessione peer per questo mittente esista o creala se necessario (es. su offerta)
+  // Assicurati che la connessione peer per questo mittente esista o creala se necessario (es. su offerta)
+  async assureConnectionExists(message) {
+    const senderId = message.from;
     let pc = this.peerConnections[senderId];
-    if (!pc /*&&(message.type === "offer" || message.type === "candidate")*/) {
+    if (!pc) {
       // Se riceviamo un'offerta o un candidato da un nuovo peer, creiamo la connessione per lui
       console.log(
-        `MultiPeerWebRTCManager: Creo connessione per il nuovo peer ${senderId} su ricezione ${message.type}...`
+        `MultiPeerWebRTCManager: Creo connessione per il nuovo peer ${senderId}`
       );
       // Assicurati che lo stream locale sia pronto PRIMA di creare la connessione per un nuovo peer
       if (!this.localStream) {
@@ -309,132 +325,145 @@ class MultiPeerWebRTCManager {
           await this.startLocalStream();
         } catch (error) {
           console.error(
-            `MultiPeerWebRTCManager: Impossibile avviare stream locale per gestire ${message.type} da ${senderId}`
+            `MultiPeerWebRTCManager: Impossibile avviare stream locale da ${senderId}`
           );
-          return; // Non possiamo procedere senza stream locale
+          return false; // Non possiamo procedere senza stream locale
         }
       }
-      pc = this.createPeerConnection(senderId);
+      pc = this.createPeerConnection(message);
       if (!pc) {
         console.error(
           `MultiPeerWebRTCManager: Fallimento creazione PeerConnection per ${senderId} su ricezione segnale.`
         );
-        return;
+        return false;
       }
     } else if (!pc) {
       console.error(
-        `MultiPeerWebRTCManager: Ricevuto messaggio "${message.type}" da ${senderId} ma non esiste una PeerConnection.`
+        `MultiPeerWebRTCManager: Ricevuto messaggio da ${senderId} ma non esiste una PeerConnection.`
       );
-      return; // Non possiamo gestire risposta o candidato senza connessione esistente
+      return false; // Non possiamo gestire risposta o candidato senza connessione esistente
     }
+    return pc;
+  }
 
-    try {
-      switch (message.type) {
-        case "offer":
-          if (!message.sdp) {
-            console.error("Offerta ricevuta senza SDP da", senderId);
-            return;
-          }
-          console.log(
-            `MultiPeerWebRTCManager: Gestione offerta da ${senderId}...`
-          );
-          await pc.setRemoteDescription(
-            new RTCSessionDescription({ type: "offer", sdp: message.sdp })
-          );
-          console.log(
-            `MultiPeerWebRTCManager: Descrizione remota (offerta) da ${senderId} impostata.`
-          );
-          await this.createAnswer(senderId); // Crea e invia una risposta a questo specifico peer
-          break;
+  async offerMessage(message) {
+    if (!(await this.assureMessageIsForMe(message))) {
+      return;
+    }
+    const pc = await this.assureConnectionExists(message);
+    if (!pc) {
+      return;
+    }
+    const senderId = message.from;
+    if (!message.sdp) {
+      console.error("Offerta ricevuta senza SDP da", senderId);
+      return;
+    }
+    console.log(`MultiPeerWebRTCManager: Gestione offerta da ${senderId}...`);
+    await pc.setRemoteDescription(
+      new RTCSessionDescription({ type: "offer", sdp: message.sdp })
+    );
+    console.log(
+      `MultiPeerWebRTCManager: Descrizione remota (offerta) da ${senderId} impostata.`
+    );
+    await this.createAnswer(senderId); // Crea e invia una risposta a questo specifico peer
+  }
 
-        case "answer":
-          if (!message.sdp) {
-            console.error("Risposta ricevuta senza SDP da", senderId);
-            return;
-          }
-          console.log(
-            `MultiPeerWebRTCManager: Gestione risposta da ${senderId}...`
-          );
-          await pc.setRemoteDescription(
-            new RTCSessionDescription({ type: "answer", sdp: message.sdp })
-          );
-          console.log(
-            `MultiPeerWebRTCManager: Descrizione remota (risposta) da ${senderId} impostata.`
-          );
-          // Connessione SDP stabilita con 'senderId'
-          break;
+  async answerMessage(message) {
+    if (!(await this.assureMessageIsForMe(message))) {
+      return;
+    }
+    const pc = await this.assureConnectionExists(message);
+    if (!pc) {
+      return;
+    }
+    const senderId = message.from;
+    if (!message.sdp) {
+      console.error("Risposta ricevuta senza SDP da", senderId);
+      return;
+    }
+    console.log(`MultiPeerWebRTCManager: Gestione risposta da ${senderId}...`);
+    await pc.setRemoteDescription(
+      new RTCSessionDescription({ type: "answer", sdp: message.sdp })
+    );
+    console.log(
+      `MultiPeerWebRTCManager: Descrizione remota (risposta) da ${senderId} impostata.`
+    );
+    // Connessione SDP stabilita con 'senderId'
+  }
 
-        case "candidate":
-          if (!message.candidate) {
-            console.error("Candidato ricevuto senza dati da", senderId);
-            return;
-          }
-          console.log(
-            `MultiPeerWebRTCManager: Gestione candidato ICE da ${senderId}...`
-          );
-          const candidate = new RTCIceCandidate(message.candidate);
-          await pc.addIceCandidate(candidate);
-          console.log(
-            `MultiPeerWebRTCManager: Candidato ICE da ${senderId} aggiunto.`
-          );
-          break;
+  async candidateMessage(message) {
+    if (!(await this.assureMessageIsForMe(message))) {
+      return;
+    }
+    const pc = await this.assureConnectionExists(message);
+    if (!pc) {
+      return;
+    }
+    const senderId = message.from;
+    if (!message.candidate) {
+      console.error("Candidato ricevuto senza dati da", senderId);
+      return;
+    }
+    console.log(
+      `MultiPeerWebRTCManager: Gestione candidato ICE da ${senderId}...`
+    );
+    const candidate = new RTCIceCandidate(message.candidate);
+    await pc.addIceCandidate(candidate);
+    console.log(
+      `MultiPeerWebRTCManager: Candidato ICE da ${senderId} aggiunto.`
+    );
+  }
 
-        // --- NUOVI TIPI DI MESSAGGIO PER MULTI-PEER ---
-        // Questi tipi dipendono fortemente dal tuo server di segnalazione
-
-        case "user-joined":
-          // Un nuovo utente (message.userId) è entrato nella stanza
-          const newUserId = message.userId;
-          if (
-            newUserId &&
-            newUserId !== this.myId &&
-            !this.peerConnections[newUserId]
-          ) {
-            console.log(
-              `MultiPeerWebRTCManager: Utente ${newUserId} entrato. Inizio connessione...`
-            );
-            await this.connectToNewParticipant(newUserId);
-          }
-          break;
-
-        case "user-left":
-          // Un utente (message.userId) ha lasciato la stanza
-          const leavingUserId = message.userId;
-          if (leavingUserId && leavingUserId !== this.myId) {
-            console.log(
-              `MultiPeerWebRTCManager: Utente ${leavingUserId} uscito. Chiudo la connessione...`
-            );
-            this.closePeerConnection(leavingUserId);
-          }
-          break;
-
-        case "existing-users":
-          // Ricevuto elenco di utenti (message.users: array di ID) già presenti nella stanza
-          const existingUsers = message.users || [];
-          console.log(
-            `MultiPeerWebRTCManager: Utenti esistenti nella stanza:`,
-            existingUsers
-          );
-          for (const userId of existingUsers) {
-            if (userId !== this.myId && !this.peerConnections[userId]) {
-              console.log(
-                `MultiPeerWebRTCManager: Connessione all'utente esistente ${userId}...`
-              );
-              await this.connectToNewParticipant(userId);
-            }
-          }
-          break;
-
-        default:
-          console.warn(
-            `MultiPeerWebRTCManager: Tipo messaggio non gestito: ${message.type}`
-          );
-      }
-    } catch (error) {
-      console.error(
-        `MultiPeerWebRTCManager: Errore gestione messaggio "${message.type}" da ${senderId}:`,
-        error
+  async userJoined(message) {
+    if (message.chat_id != this.chatId) {
+      return;
+    }
+    // Un nuovo utente (message.userId) è entrato nella stanza
+    const newUserId = message.from;
+    if (
+      newUserId &&
+      newUserId !== this.myId &&
+      !this.peerConnections[newUserId]
+    ) {
+      console.log(
+        `MultiPeerWebRTCManager: Utente ${newUserId} entrato. Inizio connessione...`
       );
+      await this.connectToNewParticipant(message);
+    }
+  }
+
+  async userLeft(message) {
+    if (message.chat_id != this.chatId) {
+      return;
+    }
+    // Un utente (message.userId) ha lasciato la stanza
+    const leavingUserId = message.from;
+    if (leavingUserId && leavingUserId !== this.myId) {
+      console.log(
+        `MultiPeerWebRTCManager: Utente ${leavingUserId} uscito. Chiudo la connessione...`
+      );
+      this.closePeerConnection(leavingUserId);
+    }
+  }
+
+  async existingUsers(existingUsers) {
+    // Ricevuto elenco di utenti (message.users: array di ID) già presenti nella stanza
+    
+    console.log(
+      `MultiPeerWebRTCManager: Utenti esistenti nella stanza:`,
+      existingUsers
+    );
+    for (const existingUser of existingUsers) {
+      if (
+        existingUser.from !== this.myId &&
+        !this.peerConnections[existingUser.from]
+      ) {
+        console.log(
+          `MultiPeerWebRTCManager: Connessione all'utente esistente ${existingUser.handle}...`
+        );
+        await this.connectToNewParticipant(existingUser);
+      }
     }
   }
 
@@ -465,7 +494,6 @@ class MultiPeerWebRTCManager {
         to: participantId,
         from: this.myId,
       });
-
     } catch (error) {
       console.error(
         `MultiPeerWebRTCManager: Errore creazione/invio risposta per ${participantId}:`,
@@ -479,7 +507,9 @@ class MultiPeerWebRTCManager {
    * Di solito, questo implica creare una PeerConnection e inviare un'offerta.
    * @param {string} participantId
    */
-  async connectToNewParticipant(participantId) {
+  async connectToNewParticipant(participant) {
+    const participantId = participant.from;
+
     if (this.peerConnections[participantId]) {
       console.log(
         `MultiPeerWebRTCManager: Connessione a ${participantId} già in corso o esistente.`
@@ -500,7 +530,7 @@ class MultiPeerWebRTCManager {
         return;
       }
     }
-    const pc = this.createPeerConnection(participantId);
+    const pc = this.createPeerConnection(participant);
     if (pc) {
       // Chi inizia la connessione (noi, in questo caso) crea l'offerta
       await this.createOffer(participantId);
@@ -519,6 +549,7 @@ class MultiPeerWebRTCManager {
       );
       pc.close();
       delete this.peerConnections[participantId]; // Rimuovi dalla lista
+      delete this.userData[participantId];
     }
     // Rimuovi anche lo stream remoto associato
     const remoteStream = this.remoteStreams[participantId];
@@ -551,6 +582,7 @@ class MultiPeerWebRTCManager {
       this.closePeerConnection(participantId); // Usa il metodo esistente per pulire singolarmente
     });
     this.peerConnections = {}; // Assicura che l'oggetto sia vuoto
+    this.userData = {};
 
     // Ferma lo stream locale
     if (this.localStream) {
@@ -563,8 +595,11 @@ class MultiPeerWebRTCManager {
     // Pulisci gli stream remoti rimasti (dovrebbero essere già stati rimossi da closePeerConnection)
     this.remoteStreams = {};
 
-    // Resetta ID (opzionale)
-    // this.myId = null;
+    // Resetta ID
+    this.myId = null;
+
+    // Resetta chat ID
+    this.chatId = null;
 
     console.log(
       "MultiPeerWebRTCManager: Tutte le connessioni chiuse e risorse rilasciate."
@@ -572,6 +607,33 @@ class MultiPeerWebRTCManager {
     // Potresti voler notificare un cambio di stato generale qui
     // if (this.onPeerConnectionStateChange) this.onPeerConnectionStateChange(null, 'closed');
   }
+
+  regenerate(
+    myId,
+    chatId,
+    onLocalStreamReady,
+    onRemoteStreamAddedOrUpdated,
+    onPeerConnectionStateChange,
+    onParticipantLeft
+  ) {
+    // Prima pulisci tutte le connessioni esistenti
+    this.closeAllConnections();
+
+    // Reinizializza tutte le proprietà
+    this.myId = myId;
+    this.chatId = chatId;
+    this.onLocalStreamReady = onLocalStreamReady;
+    this.onRemoteStreamAddedOrUpdated = onRemoteStreamAddedOrUpdated;
+    this.onPeerConnectionStateChange = onPeerConnectionStateChange;
+    this.onParticipantLeft = onParticipantLeft;
+
+    this.peerConnections = {};
+    this.localStream = null;
+    this.remoteStreams = {};
+
+    console.log(`MultiPeerWebRTCManager: Rigenerato per l'utente ${myId}`);
+  }
 }
 
-export default MultiPeerWebRTCManager;
+let multiPeerWebRTCManager = new MultiPeerWebRTCManager();
+export default multiPeerWebRTCManager;

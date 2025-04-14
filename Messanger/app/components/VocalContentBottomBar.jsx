@@ -5,11 +5,11 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import APIMethods from "../utils/APImethods";
 import localDatabase from "../utils/localDatabaseMethods";
 
-const VocalContentBottomBar = ({ chatId, memberJoined, memberLeft }) => {
+const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const [isJoinedVocal, setIsJoinedVocal] = useState(false);
+  const [isJoinedVocal, setIsJoinedVocal] = useState(WebRTC.chatId == chatId);
 
   return (
     <View style={styles.container}>
@@ -19,8 +19,8 @@ const VocalContentBottomBar = ({ chatId, memberJoined, memberLeft }) => {
           onPress={async () => {
             const data = await APIMethods.commsJoin(chatId);
             if (data.comms_joined) {
-              memberJoined({
-                comms_id: data.comms_id,
+              selfJoined({
+                from: data.from,
                 handle: await localDatabase.fetchLocalUserHandle(),
                 chat_id: chatId,
               });
@@ -36,7 +36,7 @@ const VocalContentBottomBar = ({ chatId, memberJoined, memberLeft }) => {
           onPress={async () => {
             const data = await APIMethods.commsLeave();
             if (data.comms_left) {
-              memberLeft(data);
+              selfLeft(data);
               setIsJoinedVocal(false);
             }
           }}

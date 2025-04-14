@@ -16,7 +16,6 @@ const ChatContainer = ({
 }) => {
   const [chatData, setChatData] = useState({
     messages: [],
-    vocalMembers: [],
     isJoined: false,
   });
 

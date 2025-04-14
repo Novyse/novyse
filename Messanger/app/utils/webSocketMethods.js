@@ -3,6 +3,7 @@ import eventEmitter from "./EventEmitter";
 import { io } from "socket.io-client";
 import APIMethods from "./APImethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import multiPeerWebRTCManager from "./webrtcMethods";
 
 let socket = null;
 let localUserHandle = null;
@@ -177,24 +178,29 @@ const WebSocketMethods = {
     socket.on("member_joined_comms", async (data) => {
       console.log("🐬Qualcuno è entrato nella chat vocale");
       eventEmitter.emit("member_joined_comms", data);
+      await multiPeerWebRTCManager.userJoined(data);
     });
 
     // risposta del server quando qualcuno esce dalla chat
     socket.on("member_left_comms", async (data) => {
       console.log("🐬Qualcuno è uscito nella chat vocale");
       eventEmitter.emit("member_left_comms", data);
+      await multiPeerWebRTCManager.userLeft(data);
     });
 
     socket.on("candidate", async (data) => {
-      // event emitter che richiama metodi nel file js del webrtc
+      eventEmitter.emit("candidate", data);
+      await multiPeerWebRTCManager.candidateMessage(data);
     });
 
     socket.on("answer", async (data) => {
-      // event emitter che richiama metodi nel file js del webrtc
+      eventEmitter.emit("answer", data);
+      await multiPeerWebRTCManager.answerMessage(data);
     });
 
     socket.on("offer", async (data) => {
-      // event emitter che richiama metodi nel file js del webrtc
+      eventEmitter.emit("offer", data);
+      await multiPeerWebRTCManager.offerMessage(data);
     });
 
     return "return of socket.io receiver function";
