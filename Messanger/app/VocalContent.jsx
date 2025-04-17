@@ -67,7 +67,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
         const audioElement = new Audio();
         audioElement.srcObject = stream;
         audioElement.autoplay = true;
-        audioElement.muted = false;
+        audioElement.muted = true;
         document.body.appendChild(audioElement);
 
         // VIDEO
@@ -76,8 +76,9 @@ const VocalContent = ({ selectedChat, chatId }) => {
           document.createElement("video");
         videoElement.id = `video-${participantId}`;
         videoElement.srcObject = stream;
+        videoElement.playsInline = true;
         videoElement.autoplay = true;
-        videoElement.muted = false; // true se vuoi silenziare il proprio video
+        videoElement.muted = true; // true se vuoi silenziare il proprio video
         videoElement.style.width = "320px";
         videoElement.style.height = "180px";
         document.body.appendChild(videoElement);
@@ -153,6 +154,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
                         borderRadius: 10,
                       }}
                       objectFit="cover"
+                      muted={true}
                     />
                   ) : (
                     <RTCView
@@ -163,6 +165,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
                         borderRadius: 10,
                       }}
                       objectFit="cover"
+                      muted={true}
                     />
                   )
                 ) : WebRTC.remoteStreams[profile.from] ? (
@@ -175,6 +178,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
                         borderRadius: 10,
                       }}
                       objectFit="cover"
+                      muted={true}
                     />
                   ) : (
                     <RTCView
@@ -185,6 +189,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
                         borderRadius: 10,
                       }}
                       objectFit="cover"
+                      muted={true}
                     />
                   )
                 ) : null}
