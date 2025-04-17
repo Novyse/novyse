@@ -20,13 +20,13 @@ const MediaStream = WebRTC.MediaStream;
 
 const configuration = {
   iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
+    // { urls: "stun:stun.l.google.com:19302" },
+    // { urls: "stun:stun1.l.google.com:19302" },
     {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-  },
+      urls: "turn:relay1.expressturn.com:3478",
+      username: "efB7ZDLCVQB3O9HYR1",
+      credential: "ntCLDSAnEbH28s4l",
+    },
     // Aggiungi i tuoi server TURN se necessario
   ],
 };
@@ -88,7 +88,11 @@ class MultiPeerWebRTCManager {
           noiseSuppression: true,
           autoGainControl: true,
         },
-        video: false,
+        video: {
+          facingMode: "user", // oppure "environment" per la fotocamera posteriore
+          width: 640, // o la risoluzione che preferisci
+          height: 360,
+        },
       }; // Semplificato
       const stream = await mediaDevices.getUserMedia(constraints);
       console.log("MultiPeerWebRTCManager: Stream locale ottenuto.");
@@ -286,7 +290,7 @@ class MultiPeerWebRTCManager {
         `MultiPeerWebRTCManager: Offerta per ${participantId} creata e impostata localmente.`
       );
 
-      console.log("Mandata offerta a", participantId,"👀👀👀");
+      console.log("Mandata offerta a", participantId, "👀👀👀");
       await WebSocketMethods.RTCOffer({
         sdp: pc.localDescription.sdp,
         to: participantId,
@@ -367,7 +371,8 @@ class MultiPeerWebRTCManager {
   getExistingPeerConnection(participantId) {
     const pc = this.peerConnections[participantId];
     if (!pc) {
-      console.warn( // Cambiato da error a warn, potrebbe essere normale se arriva un candidato "in ritardo"
+      console.warn(
+        // Cambiato da error a warn, potrebbe essere normale se arriva un candidato "in ritardo"
         `MultiPeerWebRTCManager: PeerConnection per ${participantId} non trovata.`
       );
     }
@@ -390,7 +395,7 @@ class MultiPeerWebRTCManager {
     }
     console.log(`MultiPeerWebRTCManager: Gestione offerta da ${senderId}...`);
 
-    if(!(pc.signalingState === "have-local-offer")) {
+    if (!(pc.signalingState === "have-local-offer")) {
       console.warn(
         `MultiPeerWebRTCManager: Impossibile gestire offerta, signalingState=${pc.signalingState}`
       );
@@ -539,7 +544,8 @@ class MultiPeerWebRTCManager {
     try {
       const answer = await pc.createAnswer();
       console.log(
-        `MultiPeerWebRTCManager: Risposta SDP creata per ${participantId}. ✨✨✨`,answer
+        `MultiPeerWebRTCManager: Risposta SDP creata per ${participantId}. ✨✨✨`,
+        answer
       );
       await pc.setLocalDescription(answer);
       console.log(

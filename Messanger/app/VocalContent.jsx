@@ -9,8 +9,14 @@ import { useAudioPlayer } from "expo-audio";
 import sounds from "./utils/sounds";
 import multiPeerWebRTCManager from "./utils/webrtcMethods";
 import localDatabase from "./utils/localDatabaseMethods";
-
 import { Platform } from "react-native";
+
+let RTCView;
+if (Platform.OS === "web") {
+  RTCView = require("react-native-webrtc-web-shim").RTCView;
+} else {
+  RTCView = require("react-native-webrtc").RTCView;
+}
 
 const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);
@@ -23,6 +29,19 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   const [profilesInVocalChat, setProfilesInVocalChat] = useState([]);
 
+  useEffect(() => {
+    getVocalMembers();
+
+    eventEmitter.on("member_joined_comms", handleMemberJoined);
+    eventEmitter.on("member_left_comms", handleMemberLeft);
+
+    return () => {
+      eventEmitter.off("member_joined_comms", handleMemberJoined);
+      eventEmitter.off("member_left_comms", handleMemberLeft);
+    };
+  }, []);
+
+  // ottiene chi è dentro la vocal chat
   const getVocalMembers = async () => {
     console.log("sto prendendo i membri 1...");
     if (chatId != WebRTC.chatId) {
@@ -39,17 +58,31 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }
   };
 
+  // permette la riproduzione audio lato UI
   function handleRemoteStream(participantId, stream) {
-    console.log("Audio ON 🟢");
     // Crea un elemento audio per riprodurre lo stream (solo per web)
     if (Platform.OS === "web") {
       try {
+        // AUDIO
         const audioElement = new Audio();
         audioElement.srcObject = stream;
-        console.log(`VocalContent: Tentativo play() per ${participantId}`);
-        audioElement.play().catch(err => console.error(`VocalContent: Errore play() per ${participantId}:`, err));
+        audioElement.autoplay = true;
+        audioElement.muted = false;
+        document.body.appendChild(audioElement);
+
+        // VIDEO
+        const videoElement =
+          document.getElementById(`video-${participantId}`) ||
+          document.createElement("video");
+        videoElement.id = `video-${participantId}`;
+        videoElement.srcObject = stream;
+        videoElement.autoplay = true;
+        videoElement.muted = false; // true se vuoi silenziare il proprio video
+        videoElement.style.width = "320px";
+        videoElement.style.height = "180px";
+        document.body.appendChild(videoElement);
       } catch (error) {
-        console.error(`VocalContent: Errore creazione/gestione audioElement per ${participantId}:`, error);
+        console.error(`Errore gestione stream per ${participantId}:`, error);
       }
     } else {
       // Per mobile, usa le API native per la riproduzione
@@ -57,21 +90,16 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }
   }
 
-  useEffect(() => {
-    getVocalMembers();
-
-    eventEmitter.on("member_joined_comms", handleMemberJoined);
-    eventEmitter.on("member_left_comms", handleMemberLeft);
-
-    return () => {
-      eventEmitter.off("member_joined_comms", handleMemberJoined);
-      eventEmitter.off("member_left_comms", handleMemberLeft);
-    };
-  }, []);
-
   // quando io entro in una room
   const selfJoined = async (data) => {
-    await WebRTC.regenerate(data.from, chatId, null, handleRemoteStream, null, null);
+    await WebRTC.regenerate(
+      data.from,
+      chatId,
+      null,
+      handleRemoteStream,
+      null,
+      null
+    );
     await handleMemberJoined(data);
     WebRTC.existingUsers(profilesInVocalChat);
   };
@@ -85,15 +113,16 @@ const VocalContent = ({ selectedChat, chatId }) => {
   // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
     if (data.chat_id == chatId) {
-      comms_join_vocal.play();
       setProfilesInVocalChat((prev) => [...prev, data]);
+    }
+    if (WebRTC.chatId == chatId) {
+      comms_join_vocal.play();
     }
   };
 
   // Gestione dell'uscita dalla chat vocale
   const handleMemberLeft = async (data) => {
     if (data.chat_id == chatId) {
-      comms_leave_vocal.play();
       // Rimuovo l'ultimo profilo aggiunto (puoi modificare la logica di rimozione)
       setProfilesInVocalChat(
         (prevProfiles) =>
@@ -101,6 +130,9 @@ const VocalContent = ({ selectedChat, chatId }) => {
           prevProfiles.filter((profile) => profile.from !== data.from)
         // Mantieni solo i profili il cui from NON corrisponde a quello da rimuovere
       );
+    }
+    if (WebRTC.chatId == chatId) {
+      comms_leave_vocal.play();
     }
   };
 
@@ -110,10 +142,54 @@ const VocalContent = ({ selectedChat, chatId }) => {
         {profilesInVocalChat.length > 0 ? (
           profilesInVocalChat.map((profile) => (
             <Pressable key={profile.from} style={styles.profile}>
-              <Text style={styles.profileText}>{profile.handle}</Text>
-              <Text style={[styles.profileText, { fontSize: 12 }]}>
-                {profile.status}
-              </Text>
+              <View style={{ width: 300, height: 180 }}>
+                {profile.from === WebRTC.myId && WebRTC.localStream ? (
+                  Platform.OS === "web" ? (
+                    <RTCView
+                      stream={WebRTC.localStream}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: 10,
+                      }}
+                      objectFit="cover"
+                    />
+                  ) : (
+                    <RTCView
+                      streamURL={WebRTC.localStream.toURL()}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: 10,
+                      }}
+                      objectFit="cover"
+                    />
+                  )
+                ) : WebRTC.remoteStreams[profile.from] ? (
+                  Platform.OS === "web" ? (
+                    <RTCView
+                      stream={WebRTC.remoteStreams[profile.from]}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: 10,
+                      }}
+                      objectFit="cover"
+                    />
+                  ) : (
+                    <RTCView
+                      streamURL={WebRTC.remoteStreams[profile.from].toURL()}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: 10,
+                      }}
+                      objectFit="cover"
+                    />
+                  )
+                ) : null}
+                <Text style={styles.profileText}>{profile.handle}</Text>
+              </View>
             </Pressable>
           ))
         ) : (
