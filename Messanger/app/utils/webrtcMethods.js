@@ -77,7 +77,14 @@ class MultiPeerWebRTCManager {
       return this.localStream;
     }
     try {
-      const constraints = { audio: true, video: true }; // Semplificato
+      const constraints = {
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+        video: false,
+      }; // Semplificato
       const stream = await mediaDevices.getUserMedia(constraints);
       console.log("MultiPeerWebRTCManager: Stream locale ottenuto.");
       this.localStream = stream;
@@ -122,21 +129,21 @@ class MultiPeerWebRTCManager {
       console.log("a1", userData);
       this.peerConnections[participantId] = pc; // Memorizza la connessione
       this.userData[participantId] = userData;
-        // --- Gestione Eventi Specifica per questa Connessione ---
+      // --- Gestione Eventi Specifica per questa Connessione ---
 
-        pc.onicecandidate = async (event) => {
-          if (event.candidate) {
-            // Invia il candidato SPECIFICATAMENTE a questo partecipante
-            console.log(
-              `MultiPeerWebRTCManager: Invio candidato ICE a ${participantId}`
-            );
-            await WebSocketMethods.IceCandidate({
-              candidate: event.candidate.toJSON(),
-              to: participantId,
-              from: this.myId,
-            });
-          }
-        };
+      pc.onicecandidate = async (event) => {
+        if (event.candidate) {
+          // Invia il candidato SPECIFICATAMENTE a questo partecipante
+          console.log(
+            `MultiPeerWebRTCManager: Invio candidato ICE a ${participantId}`
+          );
+          await WebSocketMethods.IceCandidate({
+            candidate: event.candidate.toJSON(),
+            to: participantId,
+            from: this.myId,
+          });
+        }
+      };
 
       pc.ontrack = (event) => {
         console.log(
@@ -255,6 +262,12 @@ class MultiPeerWebRTCManager {
       );
       return;
     }
+    if (pc.signalingState !== "stable") {
+      console.warn(
+        `MultiPeerWebRTCManager: Impossibile creare offer, signalingState=${pc.signalingState}`
+      );
+      return;
+    }
     console.log(
       `MultiPeerWebRTCManager: Creazione offerta SDP per ${participantId}...`
     );
@@ -305,9 +318,8 @@ class MultiPeerWebRTCManager {
       return;
     }
 
-    console.log(
-      `MultiPeerWebRTCManager: Ricevuto messaggio "${message.type}" da ${senderId}`
-    );
+    console.log(`MultiPeerWebRTCManager: Ricevuto messaggio da ${senderId}`);
+    return true;
   }
 
   // Assicurati che la connessione peer per questo mittente esista o creala se necessario (es. su offerta)
@@ -347,6 +359,7 @@ class MultiPeerWebRTCManager {
   }
 
   async offerMessage(message) {
+    console.log("🟡🟡🟡offerta arrivata");
     if (!(await this.assureMessageIsForMe(message))) {
       return;
     }
@@ -394,12 +407,15 @@ class MultiPeerWebRTCManager {
 
   async candidateMessage(message) {
     if (!(await this.assureMessageIsForMe(message))) {
+      console.log("candidate message 1");
       return;
     }
     const pc = await this.assureConnectionExists(message);
     if (!pc) {
+      console.log("candidate message 2");
       return;
     }
+    console.log("candidate message 3");
     const senderId = message.from;
     if (!message.candidate) {
       console.error("Candidato ricevuto senza dati da", senderId);
@@ -449,7 +465,7 @@ class MultiPeerWebRTCManager {
 
   async existingUsers(existingUsers) {
     // Ricevuto elenco di utenti (message.users: array di ID) già presenti nella stanza
-    
+
     console.log(
       `MultiPeerWebRTCManager: Utenti esistenti nella stanza:`,
       existingUsers

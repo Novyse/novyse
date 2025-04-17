@@ -20,7 +20,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const comms_leave_vocal = useAudioPlayer(sounds.comms_leave_vocal);
 
   const [profilesInVocalChat, setProfilesInVocalChat] = useState([]);
-  
 
   const getVocalMembers = async () => {
     console.log("sto prendendo i membri 1...");
@@ -39,6 +38,27 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   useEffect(() => {
+    const handleRemoteStream = (participantId, stream) => {
+      console.log("Audio ON 🟢");
+      // Crea un elemento audio per riprodurre lo stream (solo per web)
+      if (Platform.OS === "web") {
+        const audioElement = new Audio();
+        audioElement.srcObject = stream;
+        audioElement.play().catch(console.error);
+      } else {
+        // Per mobile, usa le API native per la riproduzione
+        // React Native gestisce automaticamente la riproduzione dell'audio WebRTC
+      }
+    };
+
+    WebRTC.onRemoteStreamAddedOrUpdated = handleRemoteStream;
+
+    return () => {
+      WebRTC.onRemoteStreamAddedOrUpdated = null;
+    };
+  }, []);
+
+  useEffect(() => {
     getVocalMembers();
 
     eventEmitter.on("member_joined_comms", handleMemberJoined);
@@ -52,7 +72,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // quando io entro in una room
   const selfJoined = async (data) => {
-    
     WebRTC.regenerate(data.from, chatId, null, null, null, null);
     await handleMemberJoined(data);
     WebRTC.existingUsers(profilesInVocalChat);
