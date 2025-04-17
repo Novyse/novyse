@@ -22,6 +22,11 @@ const configuration = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+  },
     // Aggiungi i tuoi server TURN se necessario
   ],
 };
@@ -262,7 +267,7 @@ class MultiPeerWebRTCManager {
       );
       return;
     }
-    if (pc.signalingState !== "stable") {
+    if (!(pc.signalingState === "stable")) {
       console.warn(
         `MultiPeerWebRTCManager: Impossibile creare offer, signalingState=${pc.signalingState}`
       );
@@ -281,6 +286,7 @@ class MultiPeerWebRTCManager {
         `MultiPeerWebRTCManager: Offerta per ${participantId} creata e impostata localmente.`
       );
 
+      console.log("Mandata offerta a", participantId,"👀👀👀");
       await WebSocketMethods.RTCOffer({
         sdp: pc.localDescription.sdp,
         to: participantId,
@@ -358,6 +364,16 @@ class MultiPeerWebRTCManager {
     return pc;
   }
 
+  getExistingPeerConnection(participantId) {
+    const pc = this.peerConnections[participantId];
+    if (!pc) {
+      console.warn( // Cambiato da error a warn, potrebbe essere normale se arriva un candidato "in ritardo"
+        `MultiPeerWebRTCManager: PeerConnection per ${participantId} non trovata.`
+      );
+    }
+    return pc;
+  }
+
   async offerMessage(message) {
     console.log("🟡🟡🟡offerta arrivata");
     if (!(await this.assureMessageIsForMe(message))) {
@@ -373,6 +389,14 @@ class MultiPeerWebRTCManager {
       return;
     }
     console.log(`MultiPeerWebRTCManager: Gestione offerta da ${senderId}...`);
+
+    if(!(pc.signalingState === "have-local-offer")) {
+      console.warn(
+        `MultiPeerWebRTCManager: Impossibile gestire offerta, signalingState=${pc.signalingState}`
+      );
+      return;
+    }
+
     await pc.setRemoteDescription(
       new RTCSessionDescription({ type: "offer", sdp: message.sdp })
     );
@@ -383,10 +407,11 @@ class MultiPeerWebRTCManager {
   }
 
   async answerMessage(message) {
+    console.log("🟣🟣🟣risposta arrivata");
     if (!(await this.assureMessageIsForMe(message))) {
       return;
     }
-    const pc = await this.assureConnectionExists(message);
+    const pc = await this.getExistingPeerConnection(message.from);
     if (!pc) {
       return;
     }
@@ -396,6 +421,14 @@ class MultiPeerWebRTCManager {
       return;
     }
     console.log(`MultiPeerWebRTCManager: Gestione risposta da ${senderId}...`);
+
+    if (!(pc.signalingState === "have-local-offer")) {
+      console.warn(
+        `MultiPeerWebRTCManager: Impossibile gestire risposta, signalingState=${pc.signalingState}`
+      );
+      return;
+    }
+
     await pc.setRemoteDescription(
       new RTCSessionDescription({ type: "answer", sdp: message.sdp })
     );
@@ -407,15 +440,13 @@ class MultiPeerWebRTCManager {
 
   async candidateMessage(message) {
     if (!(await this.assureMessageIsForMe(message))) {
-      console.log("candidate message 1");
       return;
     }
-    const pc = await this.assureConnectionExists(message);
+    const pc = await this.getExistingPeerConnection(message.from);
     if (!pc) {
-      console.log("candidate message 2");
       return;
     }
-    console.log("candidate message 3");
+    console.log("Candidato ricevuto", message.candidate);
     const senderId = message.from;
     if (!message.candidate) {
       console.error("Candidato ricevuto senza dati da", senderId);
@@ -488,10 +519,17 @@ class MultiPeerWebRTCManager {
    * @param {string} participantId - L'ID del peer a cui rispondere (quello che ha inviato l'offerta).
    */
   async createAnswer(participantId) {
+    console.log("Inizio creazione risposta SDP...🎂🎂");
     const pc = this.peerConnections[participantId];
     if (!pc) {
       console.error(
         `MultiPeerWebRTCManager: PeerConnection per ${participantId} non trovata per creare risposta.`
+      );
+      return;
+    }
+    if (!(pc.signalingState === "have-remote-offer")) {
+      console.warn(
+        `MultiPeerWebRTCManager: Impossibile creare answer, signalingState=${pc.signalingState}`
       );
       return;
     }
@@ -500,6 +538,9 @@ class MultiPeerWebRTCManager {
     );
     try {
       const answer = await pc.createAnswer();
+      console.log(
+        `MultiPeerWebRTCManager: Risposta SDP creata per ${participantId}. ✨✨✨`,answer
+      );
       await pc.setLocalDescription(answer);
       console.log(
         `MultiPeerWebRTCManager: Risposta per ${participantId} creata e impostata localmente.`
@@ -624,7 +665,7 @@ class MultiPeerWebRTCManager {
     // if (this.onPeerConnectionStateChange) this.onPeerConnectionStateChange(null, 'closed');
   }
 
-  regenerate(
+  async regenerate(
     myId,
     chatId,
     onLocalStreamReady,

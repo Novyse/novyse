@@ -10,6 +10,8 @@ import sounds from "./utils/sounds";
 import multiPeerWebRTCManager from "./utils/webrtcMethods";
 import localDatabase from "./utils/localDatabaseMethods";
 
+import { Platform } from "react-native";
+
 const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -37,26 +39,23 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }
   };
 
-  useEffect(() => {
-    const handleRemoteStream = (participantId, stream) => {
-      console.log("Audio ON 🟢");
-      // Crea un elemento audio per riprodurre lo stream (solo per web)
-      if (Platform.OS === "web") {
+  function handleRemoteStream(participantId, stream) {
+    console.log("Audio ON 🟢");
+    // Crea un elemento audio per riprodurre lo stream (solo per web)
+    if (Platform.OS === "web") {
+      try {
         const audioElement = new Audio();
         audioElement.srcObject = stream;
-        audioElement.play().catch(console.error);
-      } else {
-        // Per mobile, usa le API native per la riproduzione
-        // React Native gestisce automaticamente la riproduzione dell'audio WebRTC
+        console.log(`VocalContent: Tentativo play() per ${participantId}`);
+        audioElement.play().catch(err => console.error(`VocalContent: Errore play() per ${participantId}:`, err));
+      } catch (error) {
+        console.error(`VocalContent: Errore creazione/gestione audioElement per ${participantId}:`, error);
       }
-    };
-
-    WebRTC.onRemoteStreamAddedOrUpdated = handleRemoteStream;
-
-    return () => {
-      WebRTC.onRemoteStreamAddedOrUpdated = null;
-    };
-  }, []);
+    } else {
+      // Per mobile, usa le API native per la riproduzione
+      // React Native gestisce automaticamente la riproduzione dell'audio WebRTC
+    }
+  }
 
   useEffect(() => {
     getVocalMembers();
@@ -72,7 +71,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // quando io entro in una room
   const selfJoined = async (data) => {
-    WebRTC.regenerate(data.from, chatId, null, null, null, null);
+    await WebRTC.regenerate(data.from, chatId, null, handleRemoteStream, null, null);
     await handleMemberJoined(data);
     WebRTC.existingUsers(profilesInVocalChat);
   };
