@@ -28,6 +28,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const comms_leave_vocal = useAudioPlayer(sounds.comms_leave_vocal);
 
   const [profilesInVocalChat, setProfilesInVocalChat] = useState([]);
+  const [screenShareStream, setScreenShareStream] = useState(null);
 
   useEffect(() => {
     getVocalMembers();
@@ -86,6 +87,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
         console.error(`Errore gestione stream per ${participantId}:`, error);
       }
     } else {
+      console.log("Non so come sei arrivato qui 🚨");
       // Per mobile, usa le API native per la riproduzione
       // React Native gestisce automaticamente la riproduzione dell'audio WebRTC
     }
@@ -137,84 +139,71 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }
   };
 
+  const handleScreenShare = async () => {
+    if (!screenShareStream) {
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false,
+        });
+        setScreenShareStream(stream);
+
+        // Quando l'utente ferma la condivisione dal browser
+        stream.getVideoTracks()[0].onended = () => setScreenShareStream(null);
+      } catch (err) {
+        console.error("Errore durante la condivisione schermo:", err);
+      }
+    } else {
+      // Ferma la condivisione
+      screenShareStream.getTracks().forEach((track) => track.stop());
+      setScreenShareStream(null);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.profilesContainer}>
         {profilesInVocalChat.length > 0 ? (
-          profilesInVocalChat.map((profile) => (
-            <Pressable key={profile.from} style={styles.profile}>
-              <View
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  position: "relative",
-                  aspectRatio: 16 / 9,
-                }}
-              >
-                {profile.from === WebRTC.myId && WebRTC.localStream ? (
-                  Platform.OS === "web" ? (
-                    <>
-                      <RTCView
-                        stream={WebRTC.localStream}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          borderRadius: 10,
-                        }}
-                        objectFit="cover"
-                        muted={true}
-                      />
-                      <Text style={styles.profileText}>{profile.handle}</Text>
-                    </>
-                  ) : (
-                    <>
-                      <RTCView
-                        streamURL={WebRTC.localStream.toURL()}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          borderRadius: 10,
-                        }}
-                        objectFit="cover"
-                        muted={true}
-                      />
-                      <Text style={styles.profileText}>{profile.handle}</Text>
-                    </>
-                  )
-                ) : WebRTC.remoteStreams[profile.from] ? (
-                  Platform.OS === "web" ? (
-                    <>
-                      <RTCView
-                        stream={WebRTC.remoteStreams[profile.from]}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          borderRadius: 10,
-                        }}
-                        objectFit="cover"
-                        muted={true}
-                      />
-                      <Text style={styles.profileText}>{profile.handle}</Text>
-                    </>
-                  ) : (
-                    <>
-                      <RTCView
-                        streamURL={WebRTC.remoteStreams[profile.from].toURL()}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          borderRadius: 10,
-                        }}
-                        objectFit="cover"
-                        muted={true}
-                      />
-                      <Text style={styles.profileText}>{profile.handle}</Text>
-                    </>
-                  )
-                ) : null}
-              </View>
-            </Pressable>
-          ))
+          <>
+            {/* Riquadri per gli utenti */}
+            {profilesInVocalChat.map((profile) => (
+              <Pressable key={profile.from} style={styles.profile}>
+                <View style={styles.videoContainer}>
+                  {profile.from === WebRTC.myId && WebRTC.localStream ? (
+                    <RTCView
+                      stream={WebRTC.localStream}
+                      style={styles.videoStream}
+                      objectFit="cover"
+                      muted={true}
+                    />
+                  ) : WebRTC.remoteStreams[profile.from] ? (
+                    <RTCView
+                      stream={WebRTC.remoteStreams[profile.from]}
+                      style={styles.videoStream}
+                      objectFit="cover"
+                      muted={false}
+                    />
+                  ) : null}
+                  <Text style={styles.profileText}>{profile.handle}</Text>
+                </View>
+              </Pressable>
+            ))}
+
+            {/* Riquadro per la condivisione schermo */}
+            {screenShareStream && (
+              <Pressable style={styles.profile}>
+                <View style={styles.videoContainer}>
+                  <RTCView
+                    stream={screenShareStream}
+                    style={styles.videoStream}
+                    objectFit="cover"
+                    muted={true}
+                  />
+                  <Text style={styles.profileText}>Schermo condiviso</Text>
+                </View>
+              </Pressable>
+            )}
+          </>
         ) : (
           <Text style={styles.profileText}>Nessun utente nella chat</Text>
         )}
@@ -225,6 +214,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
         selfJoined={selfJoined}
         selfLeft={selfLeft}
         WebRTC={WebRTC}
+        onScreenShare={handleScreenShare}
       />
     </View>
   );
@@ -232,8 +222,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
 export default VocalContent;
 
-function createStyle(theme) {
-  return StyleSheet.create({
+const createStyle = (theme) =>
+  StyleSheet.create({
     container: {
       flex: 1,
       flexDirection: "column",
@@ -256,7 +246,7 @@ function createStyle(theme) {
       minHeight: 100,
       justifyContent: "center",
       alignItems: "center",
-      aspectRatio: 16/9, // Add this to maintain ratio
+      aspectRatio: 16 / 9, // Add this to maintain ratio
       overflow: "hidden",
     },
     profileText: {
@@ -271,5 +261,14 @@ function createStyle(theme) {
       borderRadius: 5,
       alignContent: "center",
     },
+    videoContainer: {
+      width: "100%",
+      height: "100%",
+      position: "relative",
+      aspectRatio: 16 / 9,
+      overflow: "hidden",
+      borderRadius: 10,
+    },
+    videoStream: {
+    },
   });
-}

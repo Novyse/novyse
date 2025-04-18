@@ -11,7 +11,6 @@ import {
   Animated,
   BackHandler,
   Alert,
-  Modal,
 } from "react-native";
 import moment from "moment";
 import { StatusBar } from "expo-status-bar";

@@ -1,11 +1,18 @@
 import React, { useContext, useState } from "react";
 import { View, Pressable, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import Icon from "react-native-vector-icons/MaterialIcons";
 import APIMethods from "../utils/APImethods";
 import localDatabase from "../utils/localDatabaseMethods";
+import VocalBottomBarButton from "./VocalBottomBarButton";
+import { Platform } from "react-native";
 
-const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
+const VocalContentBottomBar = ({
+  chatId,
+  selfJoined,
+  selfLeft,
+  WebRTC,
+  onScreenShare,
+}) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -37,8 +44,7 @@ const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
     <View style={styles.container}>
       {!isJoinedVocal ? (
         <>
-          <Pressable
-            style={styles.iconButton}
+          <VocalBottomBarButton
             onPress={async () => {
               const data = await APIMethods.commsJoin(chatId);
               if (data.comms_joined) {
@@ -50,14 +56,30 @@ const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
                 setIsJoinedVocal(true);
               }
             }}
-          >
-            <Icon name="phone" size={24} color="green" />
-          </Pressable>
+            iconName="phone"
+            iconColor="green"
+          />
         </>
       ) : (
         <>
-          <Pressable
-            style={styles.iconButton}
+          <VocalBottomBarButton
+            onPress={toggleAudio}
+            iconName={isAudioEnabled ? "mic" : "mic-off"}
+            iconColor={theme.icon}
+          />
+          <VocalBottomBarButton
+            onPress={toggleVideo}
+            iconName={isVideoEnabled ? "videocam" : "videocam-off"}
+            iconColor={theme.icon}
+          />
+          {Platform.OS === "web" && (
+            <VocalBottomBarButton
+              onPress={onScreenShare}
+              iconName="screen-share"
+              iconColor="white"
+            />
+          )}
+          <VocalBottomBarButton
             onPress={async () => {
               const data = await APIMethods.commsLeave();
               if (data.comms_left) {
@@ -65,23 +87,9 @@ const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
                 setIsJoinedVocal(false);
               }
             }}
-          >
-            <Icon name="phone" size={24} color="red" />
-          </Pressable>
-          <Pressable onPress={toggleAudio} style={styles.iconButton}>
-            <Icon
-              name={isAudioEnabled ? "mic" : "mic-off"}
-              size={24}
-              color={theme.icon}
-            />
-          </Pressable>
-          <Pressable onPress={toggleVideo} style={styles.iconButton}>
-            <Icon
-              name={isVideoEnabled ? "videocam" : "videocam-off"}
-              size={24}
-              color={theme.icon}
-            />
-          </Pressable>
+            iconName="phone"
+            iconColor="red"
+          />
         </>
       )}
     </View>
@@ -95,14 +103,6 @@ const createStyle = (theme) =>
       flexDirection: "row",
       justifyContent: "center",
       gap: 15,
-    },
-    iconButton: {
-      backgroundColor: "black",
-      borderRadius: 100,
-      height: 45,
-      width: 45,
-      alignItems: "center",
-      justifyContent: "center",
     },
   });
 
