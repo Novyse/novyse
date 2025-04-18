@@ -58,35 +58,38 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // permette la riproduzione audio lato UI
   function handleRemoteStream(participantId, stream) {
-    // Crea un elemento audio per riprodurre lo stream (solo per web)
     if (Platform.OS === "web") {
       try {
-        // AUDIO
+        // Rimuovi eventuali elementi esistenti per evitare duplicati
+        const existingAudio = document.getElementById(`audio-${participantId}`);
+        const existingVideo = document.getElementById(`video-${participantId}`);
+        if (existingAudio) existingAudio.remove();
+        if (existingVideo) existingVideo.remove();
+  
+        // AUDIO - muta solo se è il proprio stream
         const audioElement = new Audio();
+        audioElement.id = `audio-${participantId}`;
         audioElement.srcObject = stream;
         audioElement.autoplay = true;
-        audioElement.muted = true;
+        audioElement.muted = participantId === WebRTC.myId; // Muta solo il proprio audio
         document.body.appendChild(audioElement);
-
+  
         // VIDEO
-        const videoElement =
-          document.getElementById(`video-${participantId}`) ||
-          document.createElement("video");
+        const videoElement = document.createElement("video");
         videoElement.id = `video-${participantId}`;
         videoElement.srcObject = stream;
         videoElement.playsInline = true;
         videoElement.autoplay = true;
-        videoElement.muted = true; // true se vuoi silenziare il proprio video
+        videoElement.muted = true; // Video sempre mutato per evitare echo
         videoElement.style.width = "320px";
         videoElement.style.height = "180px";
         document.body.appendChild(videoElement);
+  
       } catch (error) {
         console.error(`Errore gestione stream per ${participantId}:`, error);
       }
     } else {
-      console.log("Non so come sei arrivato qui 🚨");
-      // Per mobile, usa le API native per la riproduzione
-      // React Native gestisce automaticamente la riproduzione dell'audio WebRTC
+      console.log("Stream gestito automaticamente da React Native");
     }
   }
 
