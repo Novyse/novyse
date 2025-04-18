@@ -108,6 +108,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const selfLeft = async (data) => {
     await handleMemberLeft(data);
     WebRTC.closeAllConnections();
+    WebRTC.closeLocalStream();
   };
 
   // Gestione dell'ingresso nella chat vocale

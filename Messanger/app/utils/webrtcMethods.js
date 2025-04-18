@@ -642,6 +642,17 @@ class MultiPeerWebRTCManager {
     );
   }
 
+  // chiude lo stream locale
+  closeLocalStream() {
+    // Ferma lo stream locale
+    if (this.localStream) {
+      this.localStream.getTracks().forEach((track) => track.stop());
+      this.localStream = null;
+      if (this.onLocalStreamReady) this.onLocalStreamReady(null);
+      console.log("MultiPeerWebRTCManager: Stream locale fermato.");
+    }
+  }
+
   /**
    * Chiude TUTTE le connessioni e rilascia le risorse.
    */
@@ -655,13 +666,7 @@ class MultiPeerWebRTCManager {
     this.peerConnections = {}; // Assicura che l'oggetto sia vuoto
     this.userData = {};
 
-    // Ferma lo stream locale
-    // if (this.localStream) {
-    //   this.localStream.getTracks().forEach((track) => track.stop());
-    //   this.localStream = null;
-    //   if (this.onLocalStreamReady) this.onLocalStreamReady(null);
-    //   console.log("MultiPeerWebRTCManager: Stream locale fermato.");
-    // }
+    
 
     // Pulisci gli stream remoti rimasti (dovrebbero essere già stati rimossi da closePeerConnection)
     this.remoteStreams = {};
