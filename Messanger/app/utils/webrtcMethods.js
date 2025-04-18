@@ -92,6 +92,7 @@ class MultiPeerWebRTCManager {
           facingMode: "user", // oppure "environment" per la fotocamera posteriore
           width: 640, // o la risoluzione che preferisci
           height: 360,
+          frameRate: 60,
         },
       }; // Semplificato
       const stream = await mediaDevices.getUserMedia(constraints);

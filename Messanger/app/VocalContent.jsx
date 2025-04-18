@@ -143,57 +143,75 @@ const VocalContent = ({ selectedChat, chatId }) => {
         {profilesInVocalChat.length > 0 ? (
           profilesInVocalChat.map((profile) => (
             <Pressable key={profile.from} style={styles.profile}>
-              <View style={{ width: 300, height: 180 }}>
+              <View
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  position: "relative",
+                  aspectRatio: 16 / 9,
+                }}
+              >
                 {profile.from === WebRTC.myId && WebRTC.localStream ? (
                   Platform.OS === "web" ? (
-                    <RTCView
-                      stream={WebRTC.localStream}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: 10,
-                      }}
-                      objectFit="cover"
-                      muted={true}
-                    />
+                    <>
+                      <RTCView
+                        stream={WebRTC.localStream}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: 10,
+                        }}
+                        objectFit="cover"
+                        muted={true}
+                      />
+                      <Text style={styles.profileText}>{profile.handle}</Text>
+                    </>
                   ) : (
-                    <RTCView
-                      streamURL={WebRTC.localStream.toURL()}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: 10,
-                      }}
-                      objectFit="cover"
-                      muted={true}
-                    />
+                    <>
+                      <RTCView
+                        streamURL={WebRTC.localStream.toURL()}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: 10,
+                        }}
+                        objectFit="cover"
+                        muted={true}
+                      />
+                      <Text style={styles.profileText}>{profile.handle}</Text>
+                    </>
                   )
                 ) : WebRTC.remoteStreams[profile.from] ? (
                   Platform.OS === "web" ? (
-                    <RTCView
-                      stream={WebRTC.remoteStreams[profile.from]}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: 10,
-                      }}
-                      objectFit="cover"
-                      muted={true}
-                    />
+                    <>
+                      <RTCView
+                        stream={WebRTC.remoteStreams[profile.from]}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: 10,
+                        }}
+                        objectFit="cover"
+                        muted={true}
+                      />
+                      <Text style={styles.profileText}>{profile.handle}</Text>
+                    </>
                   ) : (
-                    <RTCView
-                      streamURL={WebRTC.remoteStreams[profile.from].toURL()}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: 10,
-                      }}
-                      objectFit="cover"
-                      muted={true}
-                    />
+                    <>
+                      <RTCView
+                        streamURL={WebRTC.remoteStreams[profile.from].toURL()}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: 10,
+                        }}
+                        objectFit="cover"
+                        muted={true}
+                      />
+                      <Text style={styles.profileText}>{profile.handle}</Text>
+                    </>
                   )
                 ) : null}
-                <Text style={styles.profileText}>{profile.handle}</Text>
               </View>
             </Pressable>
           ))
@@ -233,17 +251,25 @@ function createStyle(theme) {
     profile: {
       backgroundColor: "black",
       borderRadius: 10,
-      padding: 10, // Aggiunto padding interno
       flexGrow: 1,
       maxWidth: "30%",
-      minHeight: 100, // Usato minHeight invece di height fisso
+      minHeight: 100,
       justifyContent: "center",
       alignItems: "center",
+      aspectRatio: 16/9, // Add this to maintain ratio
+      overflow: "hidden",
     },
     profileText: {
-      color: theme?.text || "white",
+      color: "white",
       fontSize: 16,
-      textAlign: "center",
+      position: "absolute",
+      bottom: 10,
+      left: 10,
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
+      padding: 5,
+      margin: 0,
+      borderRadius: 5,
+      alignContent: "center",
     },
   });
 }
