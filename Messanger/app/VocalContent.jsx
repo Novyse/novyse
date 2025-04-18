@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View} from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import VocalContentBottomBar from "./components/VocalContentBottomBar";
@@ -10,13 +10,9 @@ import sounds from "./utils/sounds";
 import multiPeerWebRTCManager from "./utils/webrtcMethods";
 import localDatabase from "./utils/localDatabaseMethods";
 import { Platform } from "react-native";
+import VocalMembersLayout from "./components/VocalMembersLayout";
 
-let RTCView;
-if (Platform.OS === "web") {
-  RTCView = require("react-native-webrtc-web-shim").RTCView;
-} else {
-  RTCView = require("react-native-webrtc").RTCView;
-}
+
 
 const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);
@@ -31,6 +27,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const [screenShareStream, setScreenShareStream] = useState(null);
 
   useEffect(() => {
+    WebRTC.startLocalStream();
     getVocalMembers();
 
     eventEmitter.on("member_joined_comms", handleMemberJoined);
@@ -162,53 +159,13 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.profilesContainer}>
-        {profilesInVocalChat.length > 0 ? (
-          <>
-            {/* Riquadri per gli utenti */}
-            {profilesInVocalChat.map((profile) => (
-              <Pressable key={profile.from} style={styles.profile}>
-                <View style={styles.videoContainer}>
-                  {profile.from === WebRTC.myId && WebRTC.localStream ? (
-                    <RTCView
-                      stream={WebRTC.localStream}
-                      style={styles.videoStream}
-                      objectFit="cover"
-                      muted={true}
-                    />
-                  ) : WebRTC.remoteStreams[profile.from] ? (
-                    <RTCView
-                      stream={WebRTC.remoteStreams[profile.from]}
-                      style={styles.videoStream}
-                      objectFit="cover"
-                      muted={false}
-                    />
-                  ) : null}
-                  <Text style={styles.profileText}>{profile.handle}</Text>
-                </View>
-              </Pressable>
-            ))}
-
-            {/* Riquadro per la condivisione schermo */}
-            {screenShareStream && (
-              <Pressable style={styles.profile}>
-                <View style={styles.videoContainer}>
-                  <RTCView
-                    stream={screenShareStream}
-                    style={styles.videoStream}
-                    objectFit="cover"
-                    muted={true}
-                  />
-                  <Text style={styles.profileText}>Schermo condiviso</Text>
-                </View>
-              </Pressable>
-            )}
-          </>
-        ) : (
-          <Text style={styles.profileText}>Nessun utente nella chat</Text>
-        )}
-      </View>
-
+      <VocalMembersLayout 
+        profiles={profilesInVocalChat}
+        WebRTC={WebRTC}
+        screenShareStream={screenShareStream}
+        theme={theme}
+      />
+      
       <VocalContentBottomBar
         chatId={chatId}
         selfJoined={selfJoined}
@@ -229,46 +186,5 @@ const createStyle = (theme) =>
       flexDirection: "column",
       padding: 15,
       gap: 15,
-    },
-    profilesContainer: {
-      flex: 1,
-      flexDirection: "row",
-      flexWrap: "wrap", // Permette agli elementi di andare a capo se necessario
-      justifyContent: "space-around",
-      alignItems: "flex-start",
-      gap: 15,
-    },
-    profile: {
-      backgroundColor: "black",
-      borderRadius: 10,
-      flexGrow: 1,
-      maxWidth: "30%",
-      minHeight: 100,
-      justifyContent: "center",
-      alignItems: "center",
-      aspectRatio: 16 / 9, // Add this to maintain ratio
-      overflow: "hidden",
-    },
-    profileText: {
-      color: "white",
-      fontSize: 16,
-      position: "absolute",
-      bottom: 10,
-      left: 10,
-      backgroundColor: "rgba(0, 0, 0, 0.6)",
-      padding: 5,
-      margin: 0,
-      borderRadius: 5,
-      alignContent: "center",
-    },
-    videoContainer: {
-      width: "100%",
-      height: "100%",
-      position: "relative",
-      aspectRatio: 16 / 9,
-      overflow: "hidden",
-      borderRadius: 10,
-    },
-    videoStream: {
     },
   });

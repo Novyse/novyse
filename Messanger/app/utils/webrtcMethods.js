@@ -18,6 +18,8 @@ const RTCSessionDescription = WebRTC.RTCSessionDescription;
 const mediaDevices = WebRTC.mediaDevices;
 const MediaStream = WebRTC.MediaStream;
 
+
+
 const configuration = {
   iceServers: [
     // { urls: "stun:stun.l.google.com:19302" },
@@ -27,9 +29,12 @@ const configuration = {
       username: "efB7ZDLCVQB3O9HYR1",
       credential: "ntCLDSAnEbH28s4l",
     },
-    // Aggiungi i tuoi server TURN se necessario
   ],
+  bundlePolicy: "max-bundle",         // raggruppa audio/video
+  sdpSemantics: "unified-plan"        // prende tutte le track e le mette in una
 };
+
+
 
 class MultiPeerWebRTCManager {
   myId = null; // Identificativo univoco per questo client (dovrebbe essere assegnato dal server/login)
@@ -38,6 +43,8 @@ class MultiPeerWebRTCManager {
   userData = {};
   localStream = null;
   remoteStreams = {}; // Oggetto per memorizzare gli stream remoti: { participantId: MediaStream }
+  
+
 
   // --- Callback UI aggiornate ---
   onLocalStreamReady = null;
@@ -90,8 +97,8 @@ class MultiPeerWebRTCManager {
         },
         video: {
           facingMode: "user", // oppure "environment" per la fotocamera posteriore
-          width: 640, // o la risoluzione che preferisci
-          height: 360,
+          width: 1920,
+          height: 1080,
           frameRate: 60,
         },
       }; // Semplificato
@@ -649,12 +656,12 @@ class MultiPeerWebRTCManager {
     this.userData = {};
 
     // Ferma lo stream locale
-    if (this.localStream) {
-      this.localStream.getTracks().forEach((track) => track.stop());
-      this.localStream = null;
-      if (this.onLocalStreamReady) this.onLocalStreamReady(null);
-      console.log("MultiPeerWebRTCManager: Stream locale fermato.");
-    }
+    // if (this.localStream) {
+    //   this.localStream.getTracks().forEach((track) => track.stop());
+    //   this.localStream = null;
+    //   if (this.onLocalStreamReady) this.onLocalStreamReady(null);
+    //   console.log("MultiPeerWebRTCManager: Stream locale fermato.");
+    // }
 
     // Pulisci gli stream remoti rimasti (dovrebbero essere già stati rimossi da closePeerConnection)
     this.remoteStreams = {};
@@ -692,7 +699,6 @@ class MultiPeerWebRTCManager {
     this.onParticipantLeft = onParticipantLeft;
 
     this.peerConnections = {};
-    this.localStream = null;
     this.remoteStreams = {};
 
     console.log(`MultiPeerWebRTCManager: Rigenerato per l'utente ${myId}`);
