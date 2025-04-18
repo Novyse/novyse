@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { View, Pressable, StyleSheet } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import APIMethods from "../utils/APImethods";
 import localDatabase from "../utils/localDatabaseMethods";
@@ -10,8 +10,7 @@ const VocalContentBottomBar = ({
   chatId,
   selfJoined,
   selfLeft,
-  WebRTC,
-  onScreenShare,
+  WebRTC
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -19,6 +18,27 @@ const VocalContentBottomBar = ({
   const [isJoinedVocal, setIsJoinedVocal] = useState(WebRTC.chatId == chatId);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleJoinVocal = async () => {
+    try {
+      setIsLoading(true);
+      await WebRTC.startLocalStream();
+      const data = await APIMethods.commsJoin(chatId);
+      if (data.comms_joined) {
+        selfJoined({
+          from: data.from,
+          handle: await localDatabase.fetchLocalUserHandle(),
+          chat_id: chatId,
+        });
+        setIsJoinedVocal(true);
+      }
+    } catch (error) {
+      console.error("Error joining vocal:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const toggleAudio = () => {
     if (WebRTC.localStream) {
@@ -44,21 +64,17 @@ const VocalContentBottomBar = ({
     <View style={styles.container}>
       {!isJoinedVocal ? (
         <>
-          <VocalBottomBarButton
-            onPress={async () => {
-              const data = await APIMethods.commsJoin(chatId);
-              if (data.comms_joined) {
-                selfJoined({
-                  from: data.from,
-                  handle: await localDatabase.fetchLocalUserHandle(),
-                  chat_id: chatId,
-                });
-                setIsJoinedVocal(true);
-              }
-            }}
-            iconName="phone"
-            iconColor="green"
-          />
+          {isLoading ? (
+            <View style={styles.iconButton}>
+              <ActivityIndicator color={theme.icon} size="small" />
+            </View>
+          ) : (
+            <VocalBottomBarButton
+              onPress={handleJoinVocal}
+              iconName="phone"
+              iconColor="green"
+            />
+          )}
         </>
       ) : (
         <>
@@ -72,13 +88,6 @@ const VocalContentBottomBar = ({
             iconName={isVideoEnabled ? "videocam" : "videocam-off"}
             iconColor={theme.icon}
           />
-          {Platform.OS === "web" && (
-            <VocalBottomBarButton
-              onPress={onScreenShare}
-              iconName="screen-share"
-              iconColor="white"
-            />
-          )}
           <VocalBottomBarButton
             onPress={async () => {
               const data = await APIMethods.commsLeave();
@@ -103,6 +112,15 @@ const createStyle = (theme) =>
       flexDirection: "row",
       justifyContent: "center",
       gap: 15,
+    },
+    
+    iconButton: {
+      backgroundColor: "rgba(0, 0, 0, 0.65)",
+      borderRadius: 100,
+      height: 45,
+      width: 45,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });
 

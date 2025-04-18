@@ -11,9 +11,8 @@ if (Platform.OS === "web") {
 
 // Costanti
 const ASPECT_RATIO = 16 / 9;
-const MARGIN = 2;
 
-const VocalMembersLayout = ({ profiles, WebRTC, screenShareStream }) => {
+const VocalMembersLayout = ({ profiles, WebRTC }) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
     height: 0,
@@ -159,19 +158,7 @@ const VocalMembersLayout = ({ profiles, WebRTC, screenShareStream }) => {
     </Pressable>
   );
 
-  const renderScreenShare = () =>
-    screenShareStream && (
-      <Pressable style={styles.profile}>
-        <View style={styles.videoContainer}>
-          <RTCView
-            stream={screenShareStream}
-            style={styles.videoStream}
-            muted={true}
-          />
-          <Text style={styles.profileText}>Schermo condiviso</Text>
-        </View>
-      </Pressable>
-    );
+  
 
   return (
     <View style={styles.container} onLayout={onContainerLayout}>
@@ -179,7 +166,6 @@ const VocalMembersLayout = ({ profiles, WebRTC, screenShareStream }) => {
         {profiles.length > 0 ? (
           <>
             {profiles.map(renderProfile)}
-            {renderScreenShare()}
           </>
         ) : (
           <Text style={styles.profileText}>Nessun utente nella chat</Text>

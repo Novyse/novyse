@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { StyleSheet, View} from "react-native";
+import { StyleSheet, View } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import VocalContentBottomBar from "./components/VocalContentBottomBar";
@@ -11,8 +11,6 @@ import multiPeerWebRTCManager from "./utils/webrtcMethods";
 import localDatabase from "./utils/localDatabaseMethods";
 import { Platform } from "react-native";
 import VocalMembersLayout from "./components/VocalMembersLayout";
-
-
 
 const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);
@@ -27,7 +25,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const [screenShareStream, setScreenShareStream] = useState(null);
 
   useEffect(() => {
-    WebRTC.startLocalStream();
+    
     getVocalMembers();
 
     eventEmitter.on("member_joined_comms", handleMemberJoined);
@@ -65,7 +63,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
         const existingVideo = document.getElementById(`video-${participantId}`);
         if (existingAudio) existingAudio.remove();
         if (existingVideo) existingVideo.remove();
-  
+
         // AUDIO - muta solo se è il proprio stream
         const audioElement = new Audio();
         audioElement.id = `audio-${participantId}`;
@@ -73,7 +71,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
         audioElement.autoplay = true;
         audioElement.muted = participantId === WebRTC.myId; // Muta solo il proprio audio
         document.body.appendChild(audioElement);
-  
+
         // VIDEO
         const videoElement = document.createElement("video");
         videoElement.id = `video-${participantId}`;
@@ -84,7 +82,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
         videoElement.style.width = "320px";
         videoElement.style.height = "180px";
         document.body.appendChild(videoElement);
-  
       } catch (error) {
         console.error(`Errore gestione stream per ${participantId}:`, error);
       }
@@ -140,42 +137,22 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }
   };
 
-  const handleScreenShare = async () => {
-    if (!screenShareStream) {
-      try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: false,
-        });
-        setScreenShareStream(stream);
-
-        // Quando l'utente ferma la condivisione dal browser
-        stream.getVideoTracks()[0].onended = () => setScreenShareStream(null);
-      } catch (err) {
-        console.error("Errore durante la condivisione schermo:", err);
-      }
-    } else {
-      // Ferma la condivisione
-      screenShareStream.getTracks().forEach((track) => track.stop());
-      setScreenShareStream(null);
-    }
-  };
+  
 
   return (
     <View style={styles.container}>
-      <VocalMembersLayout 
+      <VocalMembersLayout
         profiles={profilesInVocalChat}
         WebRTC={WebRTC}
         screenShareStream={screenShareStream}
         theme={theme}
       />
-      
+
       <VocalContentBottomBar
         chatId={chatId}
         selfJoined={selfJoined}
         selfLeft={selfLeft}
         WebRTC={WebRTC}
-        onScreenShare={handleScreenShare}
       />
     </View>
   );
