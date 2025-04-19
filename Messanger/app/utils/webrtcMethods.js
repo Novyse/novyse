@@ -18,8 +18,6 @@ const RTCSessionDescription = WebRTC.RTCSessionDescription;
 const mediaDevices = WebRTC.mediaDevices;
 const MediaStream = WebRTC.MediaStream;
 
-
-
 const configuration = {
   iceServers: [
     // { urls: "stun:stun.l.google.com:19302" },
@@ -30,11 +28,9 @@ const configuration = {
       credential: "ntCLDSAnEbH28s4l",
     },
   ],
-  bundlePolicy: "max-bundle",         // raggruppa audio/video
-  sdpSemantics: "unified-plan"        // prende tutte le track e le mette in una
+  bundlePolicy: "max-bundle", // raggruppa audio/video
+  sdpSemantics: "unified-plan", // prende tutte le track e le mette in una
 };
-
-
 
 class MultiPeerWebRTCManager {
   myId = null; // Identificativo univoco per questo client (dovrebbe essere assegnato dal server/login)
@@ -43,8 +39,6 @@ class MultiPeerWebRTCManager {
   userData = {};
   localStream = null;
   remoteStreams = {}; // Oggetto per memorizzare gli stream remoti: { participantId: MediaStream }
-  
-
 
   // --- Callback UI aggiornate ---
   onLocalStreamReady = null;
@@ -82,12 +76,15 @@ class MultiPeerWebRTCManager {
   /**
    * Inizia l'acquisizione dello stream locale (invariato)
    */
-  async startLocalStream() {
-    console.log("MultiPeerWebRTCManager: Richiesta stream locale...");
+  async startLocalStream(audioOnly = true) {
+    console.log(
+      "MultiPeerWebRTCManager: Richiesta stream locale (audio only)..."
+    );
     if (this.localStream) {
       console.log("MultiPeerWebRTCManager: Stream locale già attivo.");
       return this.localStream;
     }
+
     try {
       const constraints = {
         audio: {
@@ -95,30 +92,135 @@ class MultiPeerWebRTCManager {
           noiseSuppression: true,
           autoGainControl: true,
         },
-        video: {
-          facingMode: "user", // oppure "environment" per la fotocamera posteriore
-          width: 1920,
-          height: 1080,
-          frameRate: 60,
-        },
-      }; // Semplificato
+        video: false,
+      };
+
       const stream = await mediaDevices.getUserMedia(constraints);
-      console.log("MultiPeerWebRTCManager: Stream locale ottenuto.");
+      console.log("MultiPeerWebRTCManager: Stream audio locale ottenuto.");
       this.localStream = stream;
+
       if (this.onLocalStreamReady) {
         this.onLocalStreamReady(stream);
       }
-      // Se ci sono già connessioni peer attive, aggiungi lo stream a tutte
+
       Object.values(this.peerConnections).forEach((pc) => {
         this._addLocalTracksToPeerConnection(pc);
       });
+
       return stream;
     } catch (error) {
-      console.error(
-        "MultiPeerWebRTCManager: Errore ottenendo stream locale:",
-        error
-      );
-      throw error; // Rilancia l'errore per gestione esterna se necessario
+      console.error("MultiPeerWebRTCManager: Errore stream locale:", error);
+      throw error;
+    }
+  }
+
+  async addVideoTrack() {
+    console.log("MultiPeerWebRTCManager: Aggiunta video webcam...");
+    try {
+      const videoStream = await mediaDevices.getUserMedia({
+        video: true,
+      });
+
+      const videoTrack = videoStream.getVideoTracks()[0];
+      this.localStream.addTrack(videoTrack);
+
+      // Aggiungi la traccia video a tutte le connessioni esistenti
+      Object.entries(this.peerConnections).forEach(async ([peerId, pc]) => {
+        pc.addTrack(videoTrack, this.localStream);
+        await this.createOffer(peerId);
+      });
+
+      if (this.onLocalStreamReady) {
+        this.onLocalStreamReady(this.localStream);
+      }
+
+      return videoTrack;
+    } catch (error) {
+      console.error("MultiPeerWebRTCManager: Errore aggiunta video:", error);
+      throw error;
+    }
+  }
+
+  async startScreenSharing() {
+    console.log("MultiPeerWebRTCManager: Avvio condivisione schermo...");
+    try {
+      const screenStream = await mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false,
+      });
+
+      const screenTrack = screenStream.getVideoTracks()[0];
+
+      // Crea un nuovo MediaStream per lo schermo condiviso
+      const screenOnlyStream = new MediaStream([screenTrack]);
+
+      // Memorizza lo stream dello schermo come se fosse un altro partecipante
+      const screenShareId = `screen_${this.myId}`;
+      this.remoteStreams[screenShareId] = screenOnlyStream;
+
+      // Aggiungi la traccia dello schermo a tutte le connessioni esistenti
+      for (const [peerId, pc] of Object.entries(this.peerConnections)) {
+        try {
+          // Aggiungi la traccia alla peer connection
+          const sender = pc.addTrack(screenTrack, screenOnlyStream);
+
+          // Crea e invia una nuova offerta
+          await this.createOffer(peerId);
+
+          console.log(`Screen share track added to peer ${peerId}`);
+        } catch (err) {
+          console.error(`Error adding screen share to peer ${peerId}:`, err);
+        }
+      }
+
+      // Notifica l'UI del nuovo "partecipante" (lo schermo condiviso)
+      if (this.onRemoteStreamAddedOrUpdated) {
+        this.onRemoteStreamAddedOrUpdated(screenShareId, screenOnlyStream);
+      }
+
+      // Gestisci quando l'utente stoppa la condivisione
+      screenTrack.onended = () => {
+        this.stopScreenSharing(screenShareId);
+      };
+
+      return screenOnlyStream;
+    } catch (error) {
+      console.error("MultiPeerWebRTCManager: Errore screen sharing:", error);
+      throw error;
+    }
+  }
+
+  async stopScreenSharing(screenShareId) {
+    const screenStream = this.remoteStreams[screenShareId];
+    if (screenStream) {
+      // Ferma tutte le tracce
+      screenStream.getTracks().forEach((track) => {
+        track.stop();
+
+        // Rimuovi la traccia da tutte le connessioni
+        Object.entries(this.peerConnections).forEach(async ([peerId, pc]) => {
+          try {
+            const sender = pc.getSenders().find((s) => s.track === track);
+            if (sender) {
+              pc.removeTrack(sender);
+              // Rinegozia la connessione
+              await this.createOffer(peerId);
+            }
+          } catch (err) {
+            console.error(
+              `Error removing screen share from peer ${peerId}:`,
+              err
+            );
+          }
+        });
+      });
+
+      delete this.remoteStreams[screenShareId];
+
+      // Notifica l'UI che lo screen share è stato rimosso
+      if (this.onParticipantLeft) {
+        this.onParticipantLeft(screenShareId);
+      }
     }
   }
 
@@ -665,8 +767,6 @@ class MultiPeerWebRTCManager {
     });
     this.peerConnections = {}; // Assicura che l'oggetto sia vuoto
     this.userData = {};
-
-    
 
     // Pulisci gli stream remoti rimasti (dovrebbero essere già stati rimossi da closePeerConnection)
     this.remoteStreams = {};
