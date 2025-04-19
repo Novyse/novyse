@@ -24,10 +24,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const comms_leave_vocal = useAudioPlayer(sounds.comms_leave_vocal);
 
   const [profilesInVocalChat, setProfilesInVocalChat] = useState([]);
-  const [screenShareStream, setScreenShareStream] = useState(null);
 
   useEffect(() => {
-    WebRTC.startLocalStream();
     getVocalMembers();
 
     eventEmitter.on("member_joined_comms", handleMemberJoined);
@@ -140,33 +138,11 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }
   };
 
-  const handleScreenShare = async () => {
-    if (!screenShareStream) {
-      try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: false,
-        });
-        setScreenShareStream(stream);
-
-        // Quando l'utente ferma la condivisione dal browser
-        stream.getVideoTracks()[0].onended = () => setScreenShareStream(null);
-      } catch (err) {
-        console.error("Errore durante la condivisione schermo:", err);
-      }
-    } else {
-      // Ferma la condivisione
-      screenShareStream.getTracks().forEach((track) => track.stop());
-      setScreenShareStream(null);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <VocalMembersLayout 
         profiles={profilesInVocalChat}
         WebRTC={WebRTC}
-        screenShareStream={screenShareStream}
         theme={theme}
       />
       
@@ -175,7 +151,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
         selfJoined={selfJoined}
         selfLeft={selfLeft}
         WebRTC={WebRTC}
-        onScreenShare={handleScreenShare}
       />
     </View>
   );

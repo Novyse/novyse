@@ -18,8 +18,6 @@ const RTCSessionDescription = WebRTC.RTCSessionDescription;
 const mediaDevices = WebRTC.mediaDevices;
 const MediaStream = WebRTC.MediaStream;
 
-
-
 const configuration = {
   iceServers: [
     // { urls: "stun:stun.l.google.com:19302" },
@@ -29,12 +27,11 @@ const configuration = {
       username: "efB7ZDLCVQB3O9HYR1",
       credential: "ntCLDSAnEbH28s4l",
     },
+    // Aggiungi i tuoi server TURN se necessario
   ],
   bundlePolicy: "max-bundle",         // raggruppa audio/video
   sdpSemantics: "unified-plan"        // prende tutte le track e le mette in una
 };
-
-
 
 class MultiPeerWebRTCManager {
   myId = null; // Identificativo univoco per questo client (dovrebbe essere assegnato dal server/login)
@@ -43,8 +40,6 @@ class MultiPeerWebRTCManager {
   userData = {};
   localStream = null;
   remoteStreams = {}; // Oggetto per memorizzare gli stream remoti: { participantId: MediaStream }
-  
-
 
   // --- Callback UI aggiornate ---
   onLocalStreamReady = null;
@@ -96,12 +91,11 @@ class MultiPeerWebRTCManager {
           autoGainControl: true,
         },
         video: {
-          facingMode: "user", // oppure "environment" per la fotocamera posteriore
+          facingMode: "user",
           width: 1920,
           height: 1080,
-          frameRate: 60,
         },
-      }; // Semplificato
+      };
       const stream = await mediaDevices.getUserMedia(constraints);
       console.log("MultiPeerWebRTCManager: Stream locale ottenuto.");
       this.localStream = stream;
@@ -163,26 +157,18 @@ class MultiPeerWebRTCManager {
       };
 
       pc.ontrack = (event) => {
-        console.log(
-          `MultiPeerWebRTCManager: Ricevuto track da ${participantId}`
-        );
-        if (event.streams && event.streams[0]) {
-          const remoteStream = event.streams[0];
-          this.remoteStreams[participantId] = remoteStream; // Memorizza lo stream remoto associato all'ID
-          if (this.onRemoteStreamAddedOrUpdated) {
-            this.onRemoteStreamAddedOrUpdated(participantId, remoteStream);
-          }
-        } else if (event.track) {
-          // Gestione alternativa se arriva solo la traccia
-          let stream = this.remoteStreams[participantId];
-          if (!stream) {
-            stream = new MediaStream(undefined);
-            this.remoteStreams[participantId] = stream;
-          }
-          stream.addTrack(event.track);
-          if (this.onRemoteStreamAddedOrUpdated) {
-            this.onRemoteStreamAddedOrUpdated(participantId, stream);
-          }
+        const remoteStream = event.streams && event.streams[0]
+          ? event.streams[0]
+          : (this.remoteStreams[participantId] || new MediaStream());
+
+        if (!this.remoteStreams[participantId]) {
+          this.remoteStreams[participantId] = remoteStream;
+        }
+        if (!remoteStream.getTracks().find(t => t.id === event.track.id)) {
+          remoteStream.addTrack(event.track);
+        }
+        if (this.onRemoteStreamAddedOrUpdated) {
+          this.onRemoteStreamAddedOrUpdated(participantId, remoteStream);
         }
       };
 
@@ -236,22 +222,11 @@ class MultiPeerWebRTCManager {
    */
   _addLocalTracksToPeerConnection(pc) {
     if (!this.localStream) return;
-    console.log(
-      `MultiPeerWebRTCManager: Aggiunta tracce locali alla connessione per ${this._findParticipantIdByPeerConnection(
-        pc
-      )}`
-    );
     this.localStream.getTracks().forEach((track) => {
-      // Verifica se la traccia è già stata aggiunta per evitare errori
-      const senders = pc.getSenders();
-      const senderExists = senders.find((sender) => sender.track === track);
-      if (!senderExists) {
+      // Evita duplicati
+      const already = pc.getSenders().find((s) => s.track && s.track.id === track.id);
+      if (!already) {
         pc.addTrack(track, this.localStream);
-        console.log(`MultiPeerWebRTCManager: Traccia ${track.kind} aggiunta.`);
-      } else {
-        console.log(
-          `MultiPeerWebRTCManager: Traccia ${track.kind} già presente.`
-        );
       }
     });
   }
@@ -665,8 +640,6 @@ class MultiPeerWebRTCManager {
     });
     this.peerConnections = {}; // Assicura che l'oggetto sia vuoto
     this.userData = {};
-
-    
 
     // Pulisci gli stream remoti rimasti (dovrebbero essere già stati rimossi da closePeerConnection)
     this.remoteStreams = {};

@@ -13,7 +13,7 @@ if (Platform.OS === "web") {
 const ASPECT_RATIO = 16 / 9;
 const MARGIN = 2;
 
-const VocalMembersLayout = ({ profiles, WebRTC, screenShareStream }) => {
+const VocalMembersLayout = ({ profiles, WebRTC }) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
     height: 0,
@@ -159,19 +159,7 @@ const VocalMembersLayout = ({ profiles, WebRTC, screenShareStream }) => {
     </Pressable>
   );
 
-  const renderScreenShare = () =>
-    screenShareStream && (
-      <Pressable style={styles.profile}>
-        <View style={styles.videoContainer}>
-          <RTCView
-            stream={screenShareStream}
-            style={styles.videoStream}
-            muted={true}
-          />
-          <Text style={styles.profileText}>Schermo condiviso</Text>
-        </View>
-      </Pressable>
-    );
+  
 
   return (
     <View style={styles.container} onLayout={onContainerLayout}>
@@ -179,10 +167,9 @@ const VocalMembersLayout = ({ profiles, WebRTC, screenShareStream }) => {
         {profiles.length > 0 ? (
           <>
             {profiles.map(renderProfile)}
-            {renderScreenShare()}
           </>
         ) : (
-          <Text style={styles.profileText}>Nessun utente nella chat</Text>
+          <Text style={styles.emptyChatText}>Nessun utente nella chat</Text>
         )}
       </View>
     </View>
@@ -193,6 +180,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
   },
   grid: {
     flexDirection: "row",
@@ -229,6 +217,15 @@ const styles = StyleSheet.create({
     padding: 5,
     margin: 0,
     borderRadius: 5,
+    alignContent: "center",
+  },
+  emptyChatText: {
+    color: "white",
+    fontSize: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.25)",
+    padding: 8,
+    margin: 0,
+    borderRadius: 8,
     alignContent: "center",
   },
 });
