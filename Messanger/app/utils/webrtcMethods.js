@@ -28,9 +28,8 @@ const configuration = {
       credential: "ntCLDSAnEbH28s4l",
     },
     // Aggiungi i tuoi server TURN se necessario
+    // Aggiungi i tuoi server TURN se necessario
   ],
-  bundlePolicy: "max-bundle",         // raggruppa audio/video
-  sdpSemantics: "unified-plan"        // prende tutte le track e le mette in una
 };
 
 class MultiPeerWebRTCManager {
