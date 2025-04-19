@@ -111,14 +111,13 @@ const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
           />
           <VocalBottomBarButton
             onPress={toggleVideo}
-            iconName={isVideoEnabled ? "videocam" : "videocam-off"}
+            iconName={isVideoEnabled ? "videocam-off" : "videocam"}
             iconColor={theme.icon}
           />
           <VocalBottomBarButton
             onPress={async () => {
               const data = await APIMethods.commsLeave();
               if (data.comms_left) {
-                // Stop screen sharing if active when leaving
                 
                 await selfLeft(data);
                 setIsJoinedVocal(false);

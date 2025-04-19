@@ -27,9 +27,8 @@ const configuration = {
       username: "efB7ZDLCVQB3O9HYR1",
       credential: "ntCLDSAnEbH28s4l",
     },
+    // Aggiungi i tuoi server TURN se necessario
   ],
-  bundlePolicy: "max-bundle", // raggruppa audio/video
-  sdpSemantics: "unified-plan", // prende tutte le track e le mette in una
 };
 
 class MultiPeerWebRTCManager {
@@ -76,15 +75,12 @@ class MultiPeerWebRTCManager {
   /**
    * Inizia l'acquisizione dello stream locale (invariato)
    */
-  async startLocalStream(audioOnly = true) {
-    console.log(
-      "MultiPeerWebRTCManager: Richiesta stream locale (audio only)..."
-    );
+  async startLocalStream() {
+    console.log("MultiPeerWebRTCManager: Richiesta stream locale...");
     if (this.localStream) {
       console.log("MultiPeerWebRTCManager: Stream locale già attivo.");
       return this.localStream;
     }
-
     try {
       const constraints = {
         audio: {
@@ -92,51 +88,30 @@ class MultiPeerWebRTCManager {
           noiseSuppression: true,
           autoGainControl: true,
         },
-        video: false,
-      };
-
+        video: {
+          facingMode: "user", // oppure "environment" per la fotocamera posteriore
+          width: 640, // o la risoluzione che preferisci
+          height: 360,
+          frameRate: 60,
+        },
+      }; // Semplificato
       const stream = await mediaDevices.getUserMedia(constraints);
-      console.log("MultiPeerWebRTCManager: Stream audio locale ottenuto.");
+      console.log("MultiPeerWebRTCManager: Stream locale ottenuto.");
       this.localStream = stream;
-
       if (this.onLocalStreamReady) {
         this.onLocalStreamReady(stream);
       }
-
+      // Se ci sono già connessioni peer attive, aggiungi lo stream a tutte
       Object.values(this.peerConnections).forEach((pc) => {
         this._addLocalTracksToPeerConnection(pc);
       });
-
       return stream;
     } catch (error) {
-      console.error("MultiPeerWebRTCManager: Errore stream locale:", error);
-      throw error;
-    }
-  }
-
-  async addVideoTrack() {
-    const videoStream = await mediaDevices.getUserMedia({ video: true });
-    const videoTrack = videoStream.getVideoTracks()[0];
-    this.localStream.addTrack(videoTrack);
-
-    Object.entries(this.peerConnections).forEach(async ([peerId, pc]) => {
-      pc.addTrack(videoTrack, this.localStream);
-      await this.createOffer(peerId);
-    });
-  }
-
-  async removeVideoTrack() {
-    const videoTrack = this.localStream.getVideoTracks()[0];
-    if (videoTrack) {
-      videoTrack.stop();
-      this.localStream.removeTrack(videoTrack);
-      Object.entries(this.peerConnections).forEach(async ([peerId, pc]) => {
-        const sender = pc.getSenders().find((s) => s.track === videoTrack);
-        if (sender) {
-          pc.removeTrack(sender);
-          await this.createOffer(peerId);
-        }
-      });
+      console.error(
+        "MultiPeerWebRTCManager: Errore ottenendo stream locale:",
+        error
+      );
+      throw error; // Rilancia l'errore per gestione esterna se necessario
     }
   }
 
@@ -260,12 +235,16 @@ class MultiPeerWebRTCManager {
       )}`
     );
     this.localStream.getTracks().forEach((track) => {
-      // Verifica che la traccia sia abilitata
-      track.enabled = true;
-      // Aggiungi la traccia solo se non già presente
+      // Verifica se la traccia è già stata aggiunta per evitare errori
       const senders = pc.getSenders();
-      if (!senders.find((s) => s.track === track)) {
+      const senderExists = senders.find((sender) => sender.track === track);
+      if (!senderExists) {
         pc.addTrack(track, this.localStream);
+        console.log(`MultiPeerWebRTCManager: Traccia ${track.kind} aggiunta.`);
+      } else {
+        console.log(
+          `MultiPeerWebRTCManager: Traccia ${track.kind} già presente.`
+        );
       }
     });
   }
