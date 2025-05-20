@@ -53,7 +53,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   // permette la riproduzione audio lato UI
-  function handleRemoteStream(participantId, stream) {
+  async function handleRemoteStream(participantId, stream) {
     if (Platform.OS === "web") {
       try {
         console.log(
@@ -62,60 +62,60 @@ const VocalContent = ({ selectedChat, chatId }) => {
           `Video tracks: ${stream.getVideoTracks().length}`
         );
 
-        // Rimuovi eventuali elementi esistenti per evitare duplicati
+        // Clean up existing elements
         const existingAudio = document.getElementById(`audio-${participantId}`);
         const existingVideo = document.getElementById(`video-${participantId}`);
         if (existingAudio) existingAudio.remove();
         if (existingVideo) existingVideo.remove();
 
-        // AUDIO - muta solo il proprio stream
+        // Handle audio stream
         if (stream.getAudioTracks().length > 0) {
-          const audioElement = document.createElement("audio");
+          const audioElement = new Audio();
           audioElement.id = `audio-${participantId}`;
-          audioElement.srcObject = stream;
+          audioElement.srcObject = new MediaStream([
+            stream.getAudioTracks()[0],
+          ]);
           audioElement.autoplay = true;
-          audioElement.muted = participantId === WebRTC.myId; // Muta solo il proprio audio
-          audioElement.style.display = "none"; // Non visualizzare l'elemento audio
+          audioElement.muted = participantId === WebRTC.myId;
 
-          // Aggiungi listener per diagnostica
-          audioElement.onloadedmetadata = () => {
-            console.log(`Audio metadata loaded for ${participantId}`);
-            audioElement
-              .play()
-              .catch((e) => console.error("Audio play failed:", e));
-          };
+          // Add debugging listeners
+          audioElement.onplay = () =>
+            console.log(`Audio playing for ${participantId}`);
+          audioElement.onerror = (e) =>
+            console.error(`Audio error for ${participantId}:`, e);
 
+          await audioElement.play();
           document.body.appendChild(audioElement);
-          console.log(`Audio element created for ${participantId}`);
         }
 
-        // VIDEO - non mutare il video
+        // Handle video stream
         if (stream.getVideoTracks().length > 0) {
           const videoElement = document.createElement("video");
           videoElement.id = `video-${participantId}`;
-          videoElement.srcObject = stream;
+          videoElement.srcObject = new MediaStream([
+            stream.getVideoTracks()[0],
+          ]);
           videoElement.playsInline = true;
           videoElement.autoplay = true;
-          videoElement.muted = false; // NON mutare il video
           videoElement.style.width = "320px";
           videoElement.style.height = "180px";
 
-          // Aggiungi listener per diagnostica
-          videoElement.onloadedmetadata = () => {
-            console.log(`Video metadata loaded for ${participantId}`);
-            videoElement
-              .play()
-              .catch((e) => console.error("Video play failed:", e));
-          };
+          // Add debugging listeners
+          videoElement.onplay = () =>
+            console.log(`Video playing for ${participantId}`);
+          videoElement.onerror = (e) =>
+            console.error(`Video error for ${participantId}:`, e);
 
+          await videoElement.play();
           document.body.appendChild(videoElement);
-          console.log(`Video element created for ${participantId}`);
         }
       } catch (error) {
-        console.error(`Errore gestione stream per ${participantId}:`, error);
+        console.error(`Error handling stream for ${participantId}:`, error);
       }
     } else {
-      console.log("Stream gestito automaticamente da React Native");
+      // For React Native mobile platforms
+      // You'll need to implement platform-specific video rendering here
+      console.log(`Remote stream received for ${participantId} on mobile`);
     }
   }
 
