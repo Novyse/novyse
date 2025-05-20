@@ -167,13 +167,18 @@ class MultiPeerWebRTCManager {
           event.track.kind
         );
 
-        const remoteStream = new MediaStream();
-        remoteStream.addTrack(event.track);
+        // Usa un MediaStream esistente o creane uno nuovo
+        if (!this.remoteStreams[participantId]) {
+          this.remoteStreams[participantId] = new MediaStream();
+        }
 
-        this.remoteStreams[participantId] = remoteStream;
+        // Aggiungi la traccia allo stream esistente
+        const stream = this.remoteStreams[participantId];
+        stream.addTrack(event.track);
 
+        // Notifica solo quando riceviamo sia audio che video (o uno dei due se è tutto ciò che ci aspettiamo)
         if (this.onRemoteStreamAddedOrUpdated) {
-          this.onRemoteStreamAddedOrUpdated(participantId, remoteStream);
+          this.onRemoteStreamAddedOrUpdated(participantId, stream);
         }
       };
 
@@ -308,41 +313,45 @@ class MultiPeerWebRTCManager {
   async createOffer(participantId) {
     const pc = this.peerConnections[participantId];
     if (!pc) {
-      console.error(
-        `MultiPeerWebRTCManager: PeerConnection per ${participantId} non trovata per creare offerta.`
-      );
+      console.error(`PeerConnection for ${participantId} not found`);
       return;
     }
-    if (!(pc.signalingState === "stable")) {
-      console.warn(
-        `MultiPeerWebRTCManager: Impossibile creare offer, signalingState=${pc.signalingState}`
-      );
-      return;
-    }
-    console.log(
-      `MultiPeerWebRTCManager: Creazione offerta SDP per ${participantId}...`
-    );
+
     try {
-      const offer = await pc.createOffer({
+      const offerOptions = {
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
-      });
-      await pc.setLocalDescription(offer);
-      console.log(
-        `MultiPeerWebRTCManager: Offerta per ${participantId} creata e impostata localmente.`
-      );
+        voiceActivityDetection: true,
+        iceRestart: true,
+      };
 
-      console.log("Mandata offerta a", participantId, "👀👀👀");
+      console.log(`Creating offer for ${participantId}...`);
+      const offer = await pc.createOffer(offerOptions);
+
+      console.log(`Setting local description for ${participantId}...`);
+      await pc.setLocalDescription(offer);
+
+      // Wait for ICE gathering to complete
+      if (pc.iceGatheringState !== "complete") {
+        await new Promise((resolve) => {
+          const checkState = () => {
+            if (pc.iceGatheringState === "complete") {
+              pc.removeEventListener("icegatheringstatechange", checkState);
+              resolve();
+            }
+          };
+          pc.addEventListener("icegatheringstatechange", checkState);
+        });
+      }
+
+      console.log(`Sending offer to ${participantId}`);
       await WebSocketMethods.RTCOffer({
         sdp: pc.localDescription.sdp,
         to: participantId,
         from: this.myId,
       });
     } catch (error) {
-      console.error(
-        `MultiPeerWebRTCManager: Errore creazione/invio offerta per ${participantId}:`,
-        error
-      );
+      console.error(`Error creating/sending offer to ${participantId}:`, error);
     }
   }
 
@@ -486,28 +495,32 @@ class MultiPeerWebRTCManager {
     // Connessione SDP stabilita con 'senderId'
   }
 
+  // filepath: d:\Github\Messanger_react_native\Messanger\app\utils\webrtcMethods.js
   async candidateMessage(message) {
     if (!(await this.assureMessageIsForMe(message))) {
       return;
     }
+
     const pc = await this.getExistingPeerConnection(message.from);
     if (!pc) {
       return;
     }
-    console.log("Candidato ricevuto", message.candidate);
-    const senderId = message.from;
-    if (!message.candidate) {
-      console.error("Candidato ricevuto senza dati da", senderId);
-      return;
+
+    try {
+      if (message.candidate) {
+        console.log(
+          `Adding ICE candidate for ${message.from}:`,
+          message.candidate
+        );
+        await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+        console.log(`ICE candidate added successfully for ${message.from}`);
+      } else {
+        console.log(`End of candidates for ${message.from}`);
+        await pc.addIceCandidate(null);
+      }
+    } catch (error) {
+      console.error(`Error adding ICE candidate for ${message.from}:`, error);
     }
-    console.log(
-      `MultiPeerWebRTCManager: Gestione candidato ICE da ${senderId}...`
-    );
-    const candidate = new RTCIceCandidate(message.candidate);
-    await pc.addIceCandidate(candidate);
-    console.log(
-      `MultiPeerWebRTCManager: Candidato ICE da ${senderId} aggiunto.`
-    );
   }
 
   async userJoined(message) {
