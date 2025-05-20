@@ -30,7 +30,12 @@ const configuration = {
       username: "test",
       credential: "test",
     },
+    ,
+    // Add fallback public STUN servers
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
   ],
+  iceCandidatePoolSize: 10, // Pre-gather ICE candidates
 };
 
 class MultiPeerWebRTCManager {
