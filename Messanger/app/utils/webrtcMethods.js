@@ -161,7 +161,7 @@ class MultiPeerWebRTCManager {
           event.streams && event.streams[0]
             ? event.streams[0]
             : this.remoteStreams[participantId] || new MediaStream();
-      
+
         if (!this.remoteStreams[participantId]) {
           this.remoteStreams[participantId] = remoteStream;
         }
@@ -227,12 +227,12 @@ class MultiPeerWebRTCManager {
         this.localStream = new MediaStream();
       }
       this.localStream.addTrack(videoTrack);
-  
+
       // Aggiungi la traccia a tutte le peer connection
-      Object.values(this.peerConnections).forEach(pc => {
+      Object.values(this.peerConnections).forEach((pc) => {
         pc.addTrack(videoTrack, this.localStream);
       });
-  
+
       if (this.onLocalStreamReady) {
         this.onLocalStreamReady(this.localStream);
       }
@@ -407,24 +407,25 @@ class MultiPeerWebRTCManager {
     }
     console.log(`MultiPeerWebRTCManager: Gestione offerta da ${senderId}...`);
 
-    if (!(pc.signalingState === "have-local-offer")) {
-      console.warn(
-        `MultiPeerWebRTCManager: Impossibile gestire offerta, signalingState=${pc.signalingState}`
-      );
+    if (pc.signalingState === "closed") {
+      console.warn("Cannot handle offer, connection is closed");
       return;
     }
-
-    await pc.setRemoteDescription(
-      new RTCSessionDescription({ type: "offer", sdp: message.sdp })
-    );
-    console.log(
-      `MultiPeerWebRTCManager: Descrizione remota (offerta) da ${senderId} impostata.`
-    );
-    await this.createAnswer(senderId); // Crea e invia una risposta a questo specifico peer
+    // Instead of restricting to very specific states, just proceed with handling the SDP
+    try {
+      await pc.setRemoteDescription(
+        new RTCSessionDescription({ type: "offer", sdp: message.sdp })
+      );
+      console.log(`Remote description (offer) from ${senderId} set.`);
+      await this.createAnswer(senderId);
+    } catch (error) {
+      console.error(`Error handling offer:`, error);
+      // this._reportError("offer_handling_failed", Failed to process offer from ${senderId}, error);
+    }
   }
 
   async answerMessage(message) {
-    console.log("🟣🟣🟣risposta arrivata");
+    console.log("Risposta arrivata");
     if (!(await this.assureMessageIsForMe(message))) {
       return;
     }
