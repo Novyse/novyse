@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { StyleSheet, View} from "react-native";
+import { StyleSheet, View } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import VocalContentBottomBar from "./components/VocalContentBottomBar";
@@ -11,8 +11,6 @@ import multiPeerWebRTCManager from "./utils/webrtcMethods";
 import localDatabase from "./utils/localDatabaseMethods";
 import { Platform } from "react-native";
 import VocalMembersLayout from "./components/VocalMembersLayout";
-
-
 
 const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);
@@ -55,65 +53,71 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   // permette la riproduzione audio lato UI
-function handleRemoteStream(participantId, stream) {
-  if (Platform.OS === "web") {
-    try {
-      console.log(`Handling remote stream for ${participantId}`, 
-        `Audio tracks: ${stream.getAudioTracks().length}`, 
-        `Video tracks: ${stream.getVideoTracks().length}`);
-      
-      // Rimuovi eventuali elementi esistenti per evitare duplicati
-      const existingAudio = document.getElementById(`audio-${participantId}`);
-      const existingVideo = document.getElementById(`video-${participantId}`);
-      if (existingAudio) existingAudio.remove();
-      if (existingVideo) existingVideo.remove();
-  
-      // AUDIO - muta solo il proprio stream
-      if (stream.getAudioTracks().length > 0) {
-        const audioElement = document.createElement("audio");
-        audioElement.id = `audio-${participantId}`;
-        audioElement.srcObject = stream;
-        audioElement.autoplay = true;
-        audioElement.muted = participantId === WebRTC.myId; // Muta solo il proprio audio
-        audioElement.style.display = "none"; // Non visualizzare l'elemento audio
-        
-        // Aggiungi listener per diagnostica
-        audioElement.onloadedmetadata = () => {
-          console.log(`Audio metadata loaded for ${participantId}`);
-          audioElement.play().catch(e => console.error("Audio play failed:", e));
-        };
-        
-        document.body.appendChild(audioElement);
-        console.log(`Audio element created for ${participantId}`);
+  function handleRemoteStream(participantId, stream) {
+    if (Platform.OS === "web") {
+      try {
+        console.log(
+          `Handling remote stream for ${participantId}`,
+          `Audio tracks: ${stream.getAudioTracks().length}`,
+          `Video tracks: ${stream.getVideoTracks().length}`
+        );
+
+        // Rimuovi eventuali elementi esistenti per evitare duplicati
+        const existingAudio = document.getElementById(`audio-${participantId}`);
+        const existingVideo = document.getElementById(`video-${participantId}`);
+        if (existingAudio) existingAudio.remove();
+        if (existingVideo) existingVideo.remove();
+
+        // AUDIO - muta solo il proprio stream
+        if (stream.getAudioTracks().length > 0) {
+          const audioElement = document.createElement("audio");
+          audioElement.id = `audio-${participantId}`;
+          audioElement.srcObject = stream;
+          audioElement.autoplay = true;
+          audioElement.muted = participantId === WebRTC.myId; // Muta solo il proprio audio
+          audioElement.style.display = "none"; // Non visualizzare l'elemento audio
+
+          // Aggiungi listener per diagnostica
+          audioElement.onloadedmetadata = () => {
+            console.log(`Audio metadata loaded for ${participantId}`);
+            audioElement
+              .play()
+              .catch((e) => console.error("Audio play failed:", e));
+          };
+
+          document.body.appendChild(audioElement);
+          console.log(`Audio element created for ${participantId}`);
+        }
+
+        // VIDEO - non mutare il video
+        if (stream.getVideoTracks().length > 0) {
+          const videoElement = document.createElement("video");
+          videoElement.id = `video-${participantId}`;
+          videoElement.srcObject = stream;
+          videoElement.playsInline = true;
+          videoElement.autoplay = true;
+          videoElement.muted = false; // NON mutare il video
+          videoElement.style.width = "320px";
+          videoElement.style.height = "180px";
+
+          // Aggiungi listener per diagnostica
+          videoElement.onloadedmetadata = () => {
+            console.log(`Video metadata loaded for ${participantId}`);
+            videoElement
+              .play()
+              .catch((e) => console.error("Video play failed:", e));
+          };
+
+          document.body.appendChild(videoElement);
+          console.log(`Video element created for ${participantId}`);
+        }
+      } catch (error) {
+        console.error(`Errore gestione stream per ${participantId}:`, error);
       }
-  
-      // VIDEO - non mutare il video
-      if (stream.getVideoTracks().length > 0) {
-        const videoElement = document.createElement("video");
-        videoElement.id = `video-${participantId}`;
-        videoElement.srcObject = stream;
-        videoElement.playsInline = true;
-        videoElement.autoplay = true;
-        videoElement.muted = false; // NON mutare il video
-        videoElement.style.width = "320px";
-        videoElement.style.height = "180px";
-        
-        // Aggiungi listener per diagnostica
-        videoElement.onloadedmetadata = () => {
-          console.log(`Video metadata loaded for ${participantId}`);
-          videoElement.play().catch(e => console.error("Video play failed:", e));
-        };
-        
-        document.body.appendChild(videoElement);
-        console.log(`Video element created for ${participantId}`);
-      }
-    } catch (error) {
-      console.error(`Errore gestione stream per ${participantId}:`, error);
+    } else {
+      console.log("Stream gestito automaticamente da React Native");
     }
-  } else {
-    console.log("Stream gestito automaticamente da React Native");
   }
-}
 
   // quando io entro in una room
   const selfJoined = async (data) => {
@@ -125,7 +129,6 @@ function handleRemoteStream(participantId, stream) {
       null,
       null
     );
-    await WebRTC.startLocalStream();
     await handleMemberJoined(data);
     WebRTC.existingUsers(profilesInVocalChat);
   };
@@ -165,12 +168,12 @@ function handleRemoteStream(participantId, stream) {
 
   return (
     <View style={styles.container}>
-      <VocalMembersLayout 
+      <VocalMembersLayout
         profiles={profilesInVocalChat}
         WebRTC={WebRTC}
         theme={theme}
       />
-      
+
       <VocalContentBottomBar
         chatId={chatId}
         selfJoined={selfJoined}

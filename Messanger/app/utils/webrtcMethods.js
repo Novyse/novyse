@@ -160,22 +160,21 @@ class MultiPeerWebRTCManager {
         }
       };
 
+      // In webrtcMethods.js, inside createPeerConnection method
       pc.ontrack = (event) => {
-        const remoteStream =
-          event.streams && event.streams[0]
-            ? event.streams[0]
-            : this.remoteStreams[participantId] || new MediaStream();
+        console.log(
+          `Got remote track from ${participantId}:`,
+          event.track.kind
+        );
 
-        if (!this.remoteStreams[participantId]) {
-          this.remoteStreams[participantId] = remoteStream;
-        }
-        if (!remoteStream.getTracks().find((t) => t.id === event.track.id)) {
-          remoteStream.addTrack(event.track);
-        }
+        const remoteStream = new MediaStream();
+        remoteStream.addTrack(event.track);
+
+        this.remoteStreams[participantId] = remoteStream;
+
         if (this.onRemoteStreamAddedOrUpdated) {
           this.onRemoteStreamAddedOrUpdated(participantId, remoteStream);
         }
-        console.log("Terminato evento pc.ontrack");
       };
 
       pc.oniceconnectionstatechange = (event) => {
