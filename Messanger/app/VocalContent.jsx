@@ -55,46 +55,65 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   // permette la riproduzione audio lato UI
-  function handleRemoteStream(participantId, stream) {
-    if (Platform.OS === "web") {
-      try {
-        // Rimuovi eventuali elementi esistenti per evitare duplicati
-        const existingAudio = document.getElementById(`audio-${participantId}`);
-        const existingVideo = document.getElementById(`video-${participantId}`);
-        if (existingAudio) existingAudio.remove();
-        if (existingVideo) existingVideo.remove();
+function handleRemoteStream(participantId, stream) {
+  if (Platform.OS === "web") {
+    try {
+      console.log(`Handling remote stream for ${participantId}`, 
+        `Audio tracks: ${stream.getAudioTracks().length}`, 
+        `Video tracks: ${stream.getVideoTracks().length}`);
+      
+      // Rimuovi eventuali elementi esistenti per evitare duplicati
+      const existingAudio = document.getElementById(`audio-${participantId}`);
+      const existingVideo = document.getElementById(`video-${participantId}`);
+      if (existingAudio) existingAudio.remove();
+      if (existingVideo) existingVideo.remove();
   
-        // AUDIO - muta solo il proprio stream
-        if (stream.getAudioTracks().length > 0) {
-          const audioElement = new Audio();
-          audioElement.id = `audio-${participantId}`;
-          audioElement.srcObject = stream;
-          audioElement.autoplay = true;
-          audioElement.muted = participantId === WebRTC.myId; // Muta solo il proprio audio
-          document.body.appendChild(audioElement);
-          console.log(`Audio element created for ${participantId}`);
-        }
-  
-        // VIDEO - non mutare il video
-        if (stream.getVideoTracks().length > 0) {
-          const videoElement = document.createElement("video");
-          videoElement.id = `video-${participantId}`;
-          videoElement.srcObject = stream;
-          videoElement.playsInline = true;
-          videoElement.autoplay = true;
-          videoElement.muted = false; // NON mutare il video
-          videoElement.style.width = "320px";
-          videoElement.style.height = "180px";
-          document.body.appendChild(videoElement);
-          console.log(`Video element created for ${participantId}`);
-        }
-      } catch (error) {
-        console.error(`Errore gestione stream per ${participantId}:`, error);
+      // AUDIO - muta solo il proprio stream
+      if (stream.getAudioTracks().length > 0) {
+        const audioElement = document.createElement("audio");
+        audioElement.id = `audio-${participantId}`;
+        audioElement.srcObject = stream;
+        audioElement.autoplay = true;
+        audioElement.muted = participantId === WebRTC.myId; // Muta solo il proprio audio
+        audioElement.style.display = "none"; // Non visualizzare l'elemento audio
+        
+        // Aggiungi listener per diagnostica
+        audioElement.onloadedmetadata = () => {
+          console.log(`Audio metadata loaded for ${participantId}`);
+          audioElement.play().catch(e => console.error("Audio play failed:", e));
+        };
+        
+        document.body.appendChild(audioElement);
+        console.log(`Audio element created for ${participantId}`);
       }
-    } else {
-      console.log("Stream gestito automaticamente da React Native");
+  
+      // VIDEO - non mutare il video
+      if (stream.getVideoTracks().length > 0) {
+        const videoElement = document.createElement("video");
+        videoElement.id = `video-${participantId}`;
+        videoElement.srcObject = stream;
+        videoElement.playsInline = true;
+        videoElement.autoplay = true;
+        videoElement.muted = false; // NON mutare il video
+        videoElement.style.width = "320px";
+        videoElement.style.height = "180px";
+        
+        // Aggiungi listener per diagnostica
+        videoElement.onloadedmetadata = () => {
+          console.log(`Video metadata loaded for ${participantId}`);
+          videoElement.play().catch(e => console.error("Video play failed:", e));
+        };
+        
+        document.body.appendChild(videoElement);
+        console.log(`Video element created for ${participantId}`);
+      }
+    } catch (error) {
+      console.error(`Errore gestione stream per ${participantId}:`, error);
     }
+  } else {
+    console.log("Stream gestito automaticamente da React Native");
   }
+}
 
   // quando io entro in una room
   const selfJoined = async (data) => {
