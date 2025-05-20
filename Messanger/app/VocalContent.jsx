@@ -54,35 +54,47 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // permette la riproduzione audio lato UI
   function handleRemoteStream(participantId, stream) {
-    // Crea un elemento audio per riprodurre lo stream (solo per web)
     if (Platform.OS === "web") {
       try {
         // AUDIO
-        const audioElement = new Audio();
-        audioElement.srcObject = stream;
-        audioElement.autoplay = true;
-        audioElement.muted = true;
-        document.body.appendChild(audioElement);
+        if (stream.getAudioTracks().length > 0) {
+          let audioElement = document.getElementById(`audio-${participantId}`);
+          if (!audioElement) {
+            audioElement = document.createElement("audio");
+            audioElement.id = `audio-${participantId}`;
+            audioElement.autoplay = true;
+            audioElement.controls = true;
+            document.body.appendChild(audioElement);
+          }
+          audioElement.srcObject = new MediaStream([
+            stream.getAudioTracks()[0],
+          ]);
+          audioElement.muted = participantId === WebRTC.myId;
+        }
 
         // VIDEO
-        const videoElement =
-          document.getElementById(`video-${participantId}`) ||
-          document.createElement("video");
-        videoElement.id = `video-${participantId}`;
-        videoElement.srcObject = stream;
-        videoElement.playsInline = true;
-        videoElement.autoplay = true;
-        videoElement.muted = true; // true se vuoi silenziare il proprio video
-        videoElement.style.width = "320px";
-        videoElement.style.height = "180px";
-        document.body.appendChild(videoElement);
+        if (stream.getVideoTracks().length > 0) {
+          let videoElement = document.getElementById(`video-${participantId}`);
+          if (!videoElement) {
+            videoElement = document.createElement("video");
+            videoElement.id = `video-${participantId}`;
+            videoElement.autoplay = true;
+            videoElement.playsInline = true;
+            videoElement.style.width = "320px";
+            videoElement.style.height = "180px";
+            document.body.appendChild(videoElement);
+          }
+          videoElement.srcObject = new MediaStream([
+            stream.getVideoTracks()[0],
+          ]);
+          videoElement.muted = participantId === WebRTC.myId;
+        }
       } catch (error) {
         console.error(`Errore gestione stream per ${participantId}:`, error);
       }
     } else {
-      console.log("Non so come sei arrivato qui 🚨");
-      // Per mobile, usa le API native per la riproduzione
-      // React Native gestisce automaticamente la riproduzione dell'audio WebRTC
+      // Mobile: React Native gestisce lo stream nativamente
+      console.log("Remote stream ricevuto su mobile", participantId);
     }
   }
 
