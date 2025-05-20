@@ -125,6 +125,7 @@ function handleRemoteStream(participantId, stream) {
       null,
       null
     );
+    await WebRTC.startLocalStream();
     await handleMemberJoined(data);
     WebRTC.existingUsers(profilesInVocalChat);
   };
