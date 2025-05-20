@@ -30,7 +30,6 @@ const configuration = {
       username: "test",
       credential: "test",
     },
-    ,
     // Add fallback public STUN servers
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
@@ -182,21 +181,48 @@ class MultiPeerWebRTCManager {
       pc.oniceconnectionstatechange = (event) => {
         const newState = pc.iceConnectionState;
         console.log(
-          `MultiPeerWebRTCManager: Stato connessione ICE per ${participantId}: ${newState}`
+          `MultiPeerWebRTCManager: ICE connection state for ${participantId}: ${newState}`
         );
+
         if (this.onPeerConnectionStateChange) {
           this.onPeerConnectionStateChange(participantId, newState);
         }
-        if (
-          newState === "failed" ||
-          newState === "disconnected" ||
-          newState === "closed"
-        ) {
-          console.warn(
-            `MultiPeerWebRTCManager: Connessione con ${participantId} ${newState}. Potrebbe essere necessario chiudere.`
-          );
-          // Potresti voler chiudere automaticamente la connessione qui
-          // this.closePeerConnection(participantId);
+
+        // Enhanced state handling
+        switch (newState) {
+          case "connected":
+          case "completed":
+            // Connection established successfully
+            // this._clearConnectionTimeout(participantId);
+            console.log(
+              `Connection to ${participantId} established successfully`
+            );
+            break;
+
+          case "failed":
+            console.warn(`Connection to ${participantId} failed`);
+            // this._reportError(
+            //   "ice_connection_failed",
+            //   ICE connection to ${participantId} failed,
+            //   null,
+            //   participantId
+            // );
+            break;
+
+          case "disconnected":
+            console.warn(`Connection to ${participantId} disconnected`);
+            // Start a reconnection timeout - might recover on its own
+            setTimeout(() => {
+              if (pc.iceConnectionState === "disconnected") {
+                // this._reportError(
+                //   "connection_disconnected",
+                //   Connection to ${participantId} disconnected and didn't recover,
+                //   null,
+                //   participantId
+                // );
+              }
+            }, 5000); // Wait 5 seconds to see if it recovers
+            break;
         }
       };
 
