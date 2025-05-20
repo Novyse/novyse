@@ -53,69 +53,36 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   // permette la riproduzione audio lato UI
-  async function handleRemoteStream(participantId, stream) {
+  function handleRemoteStream(participantId, stream) {
+    // Crea un elemento audio per riprodurre lo stream (solo per web)
     if (Platform.OS === "web") {
       try {
-        console.log(
-          `Handling remote stream for ${participantId}`,
-          `Audio tracks: ${stream.getAudioTracks().length}`,
-          `Video tracks: ${stream.getVideoTracks().length}`
-        );
+        // AUDIO
+        const audioElement = new Audio();
+        audioElement.srcObject = stream;
+        audioElement.autoplay = true;
+        audioElement.muted = true;
+        document.body.appendChild(audioElement);
 
-        // Clean up existing elements
-        const existingAudio = document.getElementById(`audio-${participantId}`);
-        const existingVideo = document.getElementById(`video-${participantId}`);
-        if (existingAudio) existingAudio.remove();
-        if (existingVideo) existingVideo.remove();
-
-        // Handle audio stream
-        if (stream.getAudioTracks().length > 0) {
-          const audioElement = new Audio();
-          audioElement.id = `audio-${participantId}`;
-          audioElement.srcObject = new MediaStream([
-            stream.getAudioTracks()[0],
-          ]);
-          audioElement.autoplay = true;
-          audioElement.muted = participantId === WebRTC.myId;
-
-          // Add debugging listeners
-          audioElement.onplay = () =>
-            console.log(`Audio playing for ${participantId}`);
-          audioElement.onerror = (e) =>
-            console.error(`Audio error for ${participantId}:`, e);
-
-          await audioElement.play();
-          document.body.appendChild(audioElement);
-        }
-
-        // Handle video stream
-        if (stream.getVideoTracks().length > 0) {
-          const videoElement = document.createElement("video");
-          videoElement.id = `video-${participantId}`;
-          videoElement.srcObject = new MediaStream([
-            stream.getVideoTracks()[0],
-          ]);
-          videoElement.playsInline = true;
-          videoElement.autoplay = true;
-          videoElement.style.width = "320px";
-          videoElement.style.height = "180px";
-
-          // Add debugging listeners
-          videoElement.onplay = () =>
-            console.log(`Video playing for ${participantId}`);
-          videoElement.onerror = (e) =>
-            console.error(`Video error for ${participantId}:`, e);
-
-          await videoElement.play();
-          document.body.appendChild(videoElement);
-        }
+        // VIDEO
+        const videoElement =
+          document.getElementById(`video-${participantId}`) ||
+          document.createElement("video");
+        videoElement.id = `video-${participantId}`;
+        videoElement.srcObject = stream;
+        videoElement.playsInline = true;
+        videoElement.autoplay = true;
+        videoElement.muted = true; // true se vuoi silenziare il proprio video
+        videoElement.style.width = "320px";
+        videoElement.style.height = "180px";
+        document.body.appendChild(videoElement);
       } catch (error) {
-        console.error(`Error handling stream for ${participantId}:`, error);
+        console.error(`Errore gestione stream per ${participantId}:`, error);
       }
     } else {
-      // For React Native mobile platforms
-      // You'll need to implement platform-specific video rendering here
-      console.log(`Remote stream received for ${participantId} on mobile`);
+      console.log("Non so come sei arrivato qui 🚨");
+      // Per mobile, usa le API native per la riproduzione
+      // React Native gestisce automaticamente la riproduzione dell'audio WebRTC
     }
   }
 
