@@ -1,7 +1,7 @@
 import WebSocketMethods from "./webSocketMethods";
 import { Platform } from "react-native";
 
-// Web implementation
+// web implementation
 let WebRTC;
 
 if (Platform.OS === "web") {
