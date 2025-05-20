@@ -20,15 +20,16 @@ const MediaStream = WebRTC.MediaStream;
 
 const configuration = {
   iceServers: [
-    // { urls: "stun:stun.l.google.com:19302" },
-    // { urls: "stun:stun1.l.google.com:19302" },
     {
-      urls: "turn:relay1.expressturn.com:3478",
-      username: "efB7ZDLCVQB3O9HYR1",
-      credential: "ntCLDSAnEbH28s4l",
+      urls: "stun:oracle.israiken.it:3478?transport=udp",
+      username: "test",
+      credential: "test",
     },
-    // Aggiungi i tuoi server TURN se necessario
-    // Aggiungi i tuoi server TURN se necessario
+    {
+      urls: "turn:oracle.israiken.it:3478?transport=udp",
+      username: "test",
+      credential: "test",
+    },
   ],
 };
 
@@ -156,19 +157,21 @@ class MultiPeerWebRTCManager {
       };
 
       pc.ontrack = (event) => {
-        const remoteStream = event.streams && event.streams[0]
-          ? event.streams[0]
-          : (this.remoteStreams[participantId] || new MediaStream());
-
+        const remoteStream =
+          event.streams && event.streams[0]
+            ? event.streams[0]
+            : this.remoteStreams[participantId] || new MediaStream();
+      
         if (!this.remoteStreams[participantId]) {
           this.remoteStreams[participantId] = remoteStream;
         }
-        if (!remoteStream.getTracks().find(t => t.id === event.track.id)) {
+        if (!remoteStream.getTracks().find((t) => t.id === event.track.id)) {
           remoteStream.addTrack(event.track);
         }
         if (this.onRemoteStreamAddedOrUpdated) {
           this.onRemoteStreamAddedOrUpdated(participantId, remoteStream);
         }
+        console.log("Terminato evento pc.ontrack");
       };
 
       pc.oniceconnectionstatechange = (event) => {
@@ -215,6 +218,31 @@ class MultiPeerWebRTCManager {
     }
   }
 
+  // aggiunge una video track allo stream
+  async addVideoTrack() {
+    try {
+      const videoStream = await mediaDevices.getUserMedia({ video: true });
+      const videoTrack = videoStream.getVideoTracks()[0];
+      if (!this.localStream) {
+        this.localStream = new MediaStream();
+      }
+      this.localStream.addTrack(videoTrack);
+  
+      // Aggiungi la traccia a tutte le peer connection
+      Object.values(this.peerConnections).forEach(pc => {
+        pc.addTrack(videoTrack, this.localStream);
+      });
+  
+      if (this.onLocalStreamReady) {
+        this.onLocalStreamReady(this.localStream);
+      }
+      return videoStream;
+    } catch (error) {
+      console.error("Errore addVideoTrack:", error);
+      throw error;
+    }
+  }
+
   /**
    * Helper per aggiungere tracce locali a una PeerConnection
    * @param {RTCPeerConnection} pc
@@ -223,7 +251,9 @@ class MultiPeerWebRTCManager {
     if (!this.localStream) return;
     this.localStream.getTracks().forEach((track) => {
       // Evita duplicati
-      const already = pc.getSenders().find((s) => s.track && s.track.id === track.id);
+      const already = pc
+        .getSenders()
+        .find((s) => s.track && s.track.id === track.id);
       if (!already) {
         pc.addTrack(track, this.localStream);
       }

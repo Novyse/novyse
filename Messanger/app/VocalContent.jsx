@@ -64,25 +64,30 @@ const VocalContent = ({ selectedChat, chatId }) => {
         if (existingAudio) existingAudio.remove();
         if (existingVideo) existingVideo.remove();
   
-        // AUDIO - muta solo se è il proprio stream
-        const audioElement = new Audio();
-        audioElement.id = `audio-${participantId}`;
-        audioElement.srcObject = stream;
-        audioElement.autoplay = true;
-        audioElement.muted = participantId === WebRTC.myId; // Muta solo il proprio audio
-        document.body.appendChild(audioElement);
+        // AUDIO - muta solo il proprio stream
+        if (stream.getAudioTracks().length > 0) {
+          const audioElement = new Audio();
+          audioElement.id = `audio-${participantId}`;
+          audioElement.srcObject = stream;
+          audioElement.autoplay = true;
+          audioElement.muted = participantId === WebRTC.myId; // Muta solo il proprio audio
+          document.body.appendChild(audioElement);
+          console.log(`Audio element created for ${participantId}`);
+        }
   
-        // VIDEO
-        const videoElement = document.createElement("video");
-        videoElement.id = `video-${participantId}`;
-        videoElement.srcObject = stream;
-        videoElement.playsInline = true;
-        videoElement.autoplay = true;
-        videoElement.muted = true; // Video sempre mutato per evitare echo
-        videoElement.style.width = "320px";
-        videoElement.style.height = "180px";
-        document.body.appendChild(videoElement);
-  
+        // VIDEO - non mutare il video
+        if (stream.getVideoTracks().length > 0) {
+          const videoElement = document.createElement("video");
+          videoElement.id = `video-${participantId}`;
+          videoElement.srcObject = stream;
+          videoElement.playsInline = true;
+          videoElement.autoplay = true;
+          videoElement.muted = false; // NON mutare il video
+          videoElement.style.width = "320px";
+          videoElement.style.height = "180px";
+          document.body.appendChild(videoElement);
+          console.log(`Video element created for ${participantId}`);
+        }
       } catch (error) {
         console.error(`Errore gestione stream per ${participantId}:`, error);
       }

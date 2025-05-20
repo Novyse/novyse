@@ -2,7 +2,7 @@ import axios from "axios";
 axios.defaults.withCredentials = true;
 
 class APIMethods {
-  static domain = "https://api.buzz.israiken.it";
+  static domain = "https://api.novyse.com";
   static APIlink = this.domain + "/test";
 
   static api = axios.create({

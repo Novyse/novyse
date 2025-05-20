@@ -8,7 +8,7 @@ import multiPeerWebRTCManager from "./webrtcMethods";
 let socket = null;
 let localUserHandle = null;
 
-// const socketAddress = "wss://ws.messanger.bpup.israiken.it/";
+
 
 const WebSocketMethods = {
   isWebSocketOpen: () => {
@@ -30,7 +30,7 @@ const WebSocketMethods = {
         socket = null;
       }
 
-      socket = io("wss://io.buzz.israiken.it", {
+      socket = io("wss://io.novyse.com", {
         path: "/test/io",
         transports: ["websocket"],
         autoConnect: true,

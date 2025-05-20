@@ -10,10 +10,9 @@ import {
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import JsonParser from "../utils/JsonParser";
-import { usePathname, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useContext } from "react";
-import { LinearGradient } from "expo-linear-gradient";
 
 const EmailCheckForm = () => {
   const [email, setEmail] = useState("");

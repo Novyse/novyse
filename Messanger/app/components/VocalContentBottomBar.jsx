@@ -53,12 +53,41 @@ const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
     }
   };
 
-  const toggleVideo = () => {
-    if (WebRTC.localStream) {
-      const videoTrack = WebRTC.localStream.getVideoTracks()[0];
+  const toggleVideo = async () => {
+    if (!isVideoEnabled) {
+      // Attiva video: aggiungi la traccia video e rinegozia
+      try {
+        const videoStream = await WebRTC.addVideoTrack(); // Implementa questo metodo nel tuo WebRTC manager!
+        if (videoStream) {
+          setIsVideoEnabled(true);
+          // Rinegozia con tutti i peer
+          for (const peerId of Object.keys(WebRTC.peerConnections)) {
+            await WebRTC.createOffer(peerId);
+          }
+        }
+      } catch (err) {
+        alert("Errore nell'attivare la webcam: " + err.message);
+      }
+    } else {
+      // Disattiva video: rimuovi la traccia video e rinegozia
+      try {
+        const videoTrack = WebRTC.localStream.getVideoTracks()[0];
         if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoEnabled(videoTrack.enabled);
+          videoTrack.stop();
+          WebRTC.localStream.removeTrack(videoTrack);
+          // Rimuovi la traccia da tutte le peer connection
+          for (const peerId of Object.keys(WebRTC.peerConnections)) {
+            const pc = WebRTC.peerConnections[peerId];
+            const sender = pc.getSenders().find(s => s.track === videoTrack);
+            if (sender) {
+              pc.removeTrack(sender);
+              await WebRTC.createOffer(peerId);
+            }
+          }
+          setIsVideoEnabled(false);
+        }
+      } catch (err) {
+        alert("Errore nel disattivare la webcam: " + err.message);
       }
     }
   };
@@ -67,17 +96,6 @@ const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
     <View style={styles.container}>
       {!isJoinedVocal ? (
         <>
-          {isLoading ? (
-            <View style={styles.iconButton}>
-              <ActivityIndicator color={theme.icon} size="small" />
-            </View>
-          ) : (
-            <VocalBottomBarButton
-              onPress={handleJoinVocal}
-              iconName="phone"
-              iconColor="green"
-            />
-          )}
           {isLoading ? (
             <View style={styles.iconButton}>
               <ActivityIndicator color={theme.icon} size="small" />
@@ -111,8 +129,6 @@ const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
                 
                 await selfLeft(data);
                 setIsJoinedVocal(false);
-                setIsVideoEnabled(false);
-                setIsAudioEnabled(true);
                 setIsVideoEnabled(false);
                 setIsAudioEnabled(true);
               }

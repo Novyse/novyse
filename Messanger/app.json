@@ -1,36 +1,36 @@
 {
   "expo": {
-    "name": "BPUP Messanger",
-    "slug": "Messanger",
+    "name": "Novyse",
+    "slug": "Novyse",
     "version": "0.0.6",
     "orientation": "portrait",
-    "icon": "./assets/images/bpup_logo.png",
+    "icon": "./assets/images/logo-novyse-bg.png",
     "scheme": "myapp",
     "owner": "bpup",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.BPUP.Messanger"
+      "bundleIdentifier": "com.novyse"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/bpup_logo.png",
+        "foregroundImage": "./assets/images/logo-novyse-bg.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.BPUP.Messanger"
+      "package": "com.novyse"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/bpup_logo.png"
+      "favicon": "./assets/images/logo-novyse-nobg-zoom.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/bpup_logo.png",
+          "image": "./assets/images/logo-novyse-bg.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
