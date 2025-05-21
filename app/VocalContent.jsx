@@ -142,6 +142,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
+    await multiPeerWebRTCManager.userJoined(data);
     if (data.chat_id == chatId) {
       setProfilesInVocalChat((prev) => [...prev, data]);
     }
@@ -152,6 +153,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // Gestione dell'uscita dalla chat vocale
   const handleMemberLeft = async (data) => {
+    await multiPeerWebRTCManager.userLeft(data);
     if (data.chat_id == chatId) {
       // Rimuovo l'ultimo profilo aggiunto (puoi modificare la logica di rimozione)
       setProfilesInVocalChat(

@@ -1,5 +1,6 @@
 import WebSocketMethods from "./webSocketMethods";
 import { Platform } from "react-native";
+import eventEmitter from "./EventEmitter";
 
 // web implementation
 let WebRTC;
@@ -74,10 +75,33 @@ class MultiPeerWebRTCManager {
       this.onRemoteStreamAddedOrUpdated = onRemoteStreamAddedOrUpdated;
       this.onPeerConnectionStateChange = onPeerConnectionStateChange;
       this.onParticipantLeft = onParticipantLeft;
+      this._setupEventListeners();
     } else {
       console.log("MultiPeerWebRTCManager: Inizializzato vuoto");
     }
   }
+
+  // Gestione degli eventi
+
+  _setupEventListeners() {
+    // Rimuovi eventuali listener precedenti
+    this._removeEventListeners();
+    
+    // Aggiungi i listener per i vari tipi di messaggi
+    eventEmitter.on('offer', this.offerMessage.bind(this));
+    eventEmitter.on('answer', this.answerMessage.bind(this));
+    eventEmitter.on('candidate', this.candidateMessage.bind(this));
+    
+    console.log('MultiPeerWebRTCManager: Event listeners configurati');
+  }
+
+  // Metodo per rimuovere gli event listeners
+  _removeEventListeners() {
+    eventEmitter.off('offer', this.offerMessage.bind(this));
+    eventEmitter.off('answer', this.answerMessage.bind(this));
+    eventEmitter.off('candidate', this.candidateMessage.bind(this));
+  }
+
 
   /**
    * Inizia l'acquisizione dello stream locale (invariato)
@@ -723,6 +747,9 @@ class MultiPeerWebRTCManager {
     // Resetta chat ID
     this.chatId = null;
 
+    // Disabilito gli event listeners non più necessari (candidate, offer, answer sono utili solo quando sei in una comms)
+    this._removeEventListeners();
+    
     console.log(
       "MultiPeerWebRTCManager: Tutte le connessioni chiuse e risorse rilasciate."
     );
@@ -751,6 +778,7 @@ class MultiPeerWebRTCManager {
 
     this.peerConnections = {};
     this.remoteStreams = {};
+    this._setupEventListeners();
 
     console.log(`MultiPeerWebRTCManager: Rigenerato per l'utente ${myId}`);
   }
