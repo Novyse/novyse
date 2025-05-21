@@ -52,7 +52,7 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
   const containerRef = useRef(null);
   const router = useRouter();
   const [isMicClicked, setIsMicClicked] = useState(false);
-  const urlRegex = /((https?:\/\/|www\.)[^\s]+)|([^\s]+@[^\s]+)/g;
+  const urlRegex = /(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])(\S*)/g; //PERFETTO
 
   useEffect(() => {
     // carico i messaggi quando apro la pagina
@@ -141,38 +141,44 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
   };
 
   // capisco se una parte del messaggio è un link oppure no
-  const LinkedText = ({ text, style }) =>
-    text
-      .split(urlRegex)
-      .filter(Boolean)
-      .map((part, index) => {
-        if (part.match(urlRegex)) {
-          let url = part;
-          if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            url = `https://${url}`; // Aggiunge http:// se manca
-          }
-
-          return (
-            <Text
-              key={index}
-              style={styles.messagesLink}
-              onPress={() => {
-                Platform.OS === "web"
-                  ? window.open(url, "_blank")
-                  : Linking.openURL(url);
-              }}
-            >
-              {part}
-            </Text>
-          );
-        } else {
-          return (
-            <Text key={index} style={style}>
-              {part}
-            </Text>
-          );
-        }
-      });
+const LinkedText = ({ text, style }) => {
+  if (!text) return null;
+  
+  // Trova tutte le corrispondenze
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  
+  while ((match = urlRegex.exec(text)) !== null) {
+    // Aggiungi testo prima del link
+    if (match.index > lastIndex) {
+      parts.push(<Text key={`t-${lastIndex}`} style={style}>{text.substring(lastIndex, match.index)}</Text>);
+    }
+    
+    // Prepara URL per il click
+    const linkUrl = match[0].startsWith('http') ? match[0] : `https://${match[0]}`;
+    
+    // Aggiungi il link
+    parts.push(
+      <Text
+        key={`l-${match.index}`}
+        style={styles.messagesLink}
+        onPress={() => Platform.OS === "web" ? window.open(linkUrl, "_blank") : Linking.openURL(linkUrl)}
+      >
+        {match[0]}
+      </Text>
+    );
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Aggiungi testo rimanente
+  if (lastIndex < text.length) {
+    parts.push(<Text key={`t-last`} style={style}>{text.substring(lastIndex)}</Text>);
+  }
+  
+  return parts.length ? parts : <Text style={style}>{text}</Text>;
+};
 
   // quando voglio inviare il primo messaggio per avviare una chat
   const handleNewChatFirstMessage = async (handle) => {
@@ -194,6 +200,8 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
     const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
     const randomNumberPlusDate = Date.now() + randomNumber;
 
+
+    
     const tempMessage = {
       message_id: randomNumberPlusDate,
       sender: userId,
@@ -203,6 +211,7 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
     };
 
     setMessages((currentMessages) => [tempMessage, ...currentMessages]);
+
     await JsonParser.sendMessageJson(
       newChatChatId,
       newMessageText,
@@ -239,6 +248,7 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
         };
 
         setMessages((currentMessages) => [tempMessage, ...currentMessages]);
+
         await JsonParser.sendMessageJson(
           chatId,
           newMessageText,

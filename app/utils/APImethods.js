@@ -108,6 +108,11 @@ const APIMethods = {
   // quando un messaggio viene inviato all'API, questa ritorna info utili al messaggio da salvare in locale
   async sendMessageAPI(chat_id, text) {
     try {
+      // edited message to encode the URLs
+      text = text
+            .replace(/http:\/\//g, "http%3A%2F%2F")
+            .replace(/https:\/\//g, "https%3A%2F%2F");
+            
       const response = await api.get(
         `/chat/send/message?chat_id=${chat_id}&text=${text}`
       );
