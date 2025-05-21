@@ -1,35 +1,52 @@
-import { Stack } from "expo-router";
+import { Stack} from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider } from "../context/ThemeContext";
+
 import { useEffect } from "react";
 import eventEmitter from "./utils/EventEmitter";
+
+// TEMPORARY IMPORTS TO ALLOW AUTOMATIC LOGOUT
 import localDatabase from "./utils/localDatabaseMethods";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+// TEMPORARY IMPORTS TO ALLOW AUTOMATIC LOGOUT
 
 export default function RootLayout() {
-  const router = useRouter(); // Sposta useRouter qui
+
+  // TEMPORARY IMPORTS TO ALLOW AUTOMATIC LOGOUT
+  const router = useRouter();
+  // TEMPORARY IMPORTS TO ALLOW AUTOMATIC LOGOUT
 
   useEffect(() => {
     const handleUserSessionInvalid = async () => {
-      console.log("User session became invalid. Taking action... 🍹");
+      console.log('User session became invalid. Taking action... 🍹');
+      // da qui tocca chiamare metodo per il logout, per ora faccio a manina dopo è da sistemare
 
+      // TEMPORARY CODE TO ALLOW AUTOMATIC LOGOUT
       await localDatabase.clearDatabase();
       await AsyncStorage.setItem("isLoggedIn", "false");
       router.navigate("/loginSignup/EmailCheckForm");
+      // TEMPORARY CODE TO ALLOW AUTOMATIC LOGOUT
+
     };
 
-    eventEmitter.on("invalidSession", handleUserSessionInvalid);
+    // ------------------> global event listeners 
+    // session invalid event
+    eventEmitter.on('invalidSession', handleUserSessionInvalid);
+
+    // ------------------> global event listeners END
 
     return () => {
-      eventEmitter.off("invalidSession", handleUserSessionInvalid);
+      eventEmitter.off('invalidSession', handleUserSessionInvalid);
     };
-  }, [router]); // Aggiungi router come dipendenza
+  }, []);
 
+  
   return (
     <ThemeProvider>
       <SafeAreaProvider>
         <Stack screenOptions={{ headerShown: false }}>
+          {/* Schermata principale */}
           <Stack.Screen
             name="index"
             options={{ headerShown: false, title: "Registrazione" }}
