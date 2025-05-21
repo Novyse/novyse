@@ -106,7 +106,8 @@ const LoginPassword = () => {
         if (initSuccess) {
           console.log("Init Success ⭐");
           await storeSetIsLoggedIn("true");
-          router.navigate("/messages");
+          //router.navigate("/messages"); // causa problemi relativi alla cache salvata nel router
+          router.replace("/messages");
         } else {
           console.log("Init Error");
         }
