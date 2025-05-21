@@ -21,12 +21,12 @@ const MediaStream = WebRTC.MediaStream;
 const configuration = {
   iceServers: [
     {
-      urls: "stun:oracle.israiken.it:3478?transport=udp",
+      urls: "stun:oracle.israiken.it:3478",
       username: "test",
       credential: "test",
     },
     {
-      urls: "turn:oracle.israiken.it:3478?transport=udp",
+      urls: "turn:oracle.israiken.it:3478",
       username: "test",
       credential: "test",
     },
@@ -35,6 +35,7 @@ const configuration = {
     { urls: "stun:stun1.l.google.com:19302" },
   ],
   iceCandidatePoolSize: 10, // Pre-gather ICE candidates
+  sdpSemantics: "unified-plan",
 };
 
 class MultiPeerWebRTCManager {
@@ -600,8 +601,7 @@ class MultiPeerWebRTCManager {
     try {
       const answer = await pc.createAnswer();
       console.log(
-        `MultiPeerWebRTCManager: Risposta SDP creata per ${participantId}. ✨✨✨`,
-        answer
+        `MultiPeerWebRTCManager: Risposta SDP creata per ${participantId}. ✨✨✨`
       );
       await pc.setLocalDescription(answer);
       console.log(
