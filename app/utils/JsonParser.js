@@ -363,15 +363,15 @@ class JsonParser {
           return true;
         } else {
           console.log("Server error during init");
-          return false;
+          throw error;
         }
       } else {
         console.error(`Errore nella richiesta: ${data.status}`);
-        return false;
+        throw error;
       }
     } catch (error) {
       console.error("Errore durante l'inizializzazione:", error);
-      return false;
+      throw error;
     }
   }
 

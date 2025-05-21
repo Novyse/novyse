@@ -48,6 +48,10 @@ const WebSocketMethods = {
 
       socket.on("connect_error", (error) => {
         console.log("Socket.IO connection error:", error);
+        if(error.data.status === 401) {
+          eventEmitter.emit('invalidSession');
+          console.log("Sessione scaduta");
+        }
       });
 
       socket.on("disconnect", () => {
