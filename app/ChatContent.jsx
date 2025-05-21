@@ -27,6 +27,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import "react-native-get-random-values";
 import JsonParser from "./utils/JsonParser";
 import APIMethods from "./utils/APImethods";
+import * as Linking from "expo-linking"; // Importa Linking da expo-linking
 
 const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
   const messagesRef = useRef([]);
@@ -51,6 +52,7 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
   const containerRef = useRef(null);
   const router = useRouter();
   const [isMicClicked, setIsMicClicked] = useState(false);
+  const urlRegex = /((https?:\/\/|www\.)[^\s]+)|([^\s]+@[^\s]+)/g;
 
   useEffect(() => {
     // carico i messaggi quando apro la pagina
@@ -137,6 +139,40 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
     const timeMoment = moment(dateTimeMessage);
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
+
+  // capisco se una parte del messaggio è un link oppure no
+  const LinkedText = ({ text, style }) =>
+    text
+      .split(urlRegex)
+      .filter(Boolean)
+      .map((part, index) => {
+        if (part.match(urlRegex)) {
+          let url = part;
+          if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = `https://${url}`; // Aggiunge http:// se manca
+          }
+
+          return (
+            <Text
+              key={index}
+              style={styles.messagesLink}
+              onPress={() => {
+                Platform.OS === "web"
+                  ? window.open(url, "_blank")
+                  : Linking.openURL(url);
+              }}
+            >
+              {part}
+            </Text>
+          );
+        } else {
+          return (
+            <Text key={index} style={style}>
+              {part}
+            </Text>
+          );
+        }
+      });
 
   // quando voglio inviare il primo messaggio per avviare una chat
   const handleNewChatFirstMessage = async (handle) => {
@@ -287,49 +323,47 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
   };
 
   // preparo i messaggi prima che vengano stampati --> aggiungo le date tra messaggi di giorni diversi
-  const prepareMessagesWithDateSeparators = useCallback(() => {
-    const groupedMessages = [];
-    let currentDayMessages = [];
-    let lastDate = null;
+  const prepareMessages = useCallback((messages) => {
+    const prepared = [];
+    let currentGroup = [];
+    let lastKey = null;
 
-    if (messages.length === 0) return groupedMessages;
+    if (messages.length === 0) return prepared;
 
     messages.forEach((message) => {
-      const messageDate = moment(message.date_time || new Date()).format(
-        "DD-MM-YYYY"
-      );
+      const key = moment(message.date_time || new Date()).format("DD-MM-YYYY");
 
-      if (lastDate && lastDate !== messageDate) {
-        groupedMessages.push(...currentDayMessages);
-        groupedMessages.push({
-          type: "date_separator",
-          date: lastDate,
-          uniqueKey: `date-${lastDate}`,
+      if (lastKey && lastKey !== key) {
+        prepared.push(...currentGroup);
+        prepared.push({
+          type: "separator",
+          data: lastKey,
+          uniqueKey: `separator-${lastKey}`,
         });
-        currentDayMessages = [];
+        currentGroup = [];
       }
 
-      currentDayMessages.push({
+      currentGroup.push({
         type: "message",
         data: message,
         uniqueKey: message.hash || message.message_id, // Usa l'hash come uniqueKey
       });
-      lastDate = messageDate;
+      lastKey = key;
     });
 
-    if (currentDayMessages.length > 0) {
-      groupedMessages.push(...currentDayMessages);
-      if (lastDate) {
-        groupedMessages.push({
-          type: "date_separator",
-          date: lastDate,
-          uniqueKey: `date-${lastDate}`,
+    if (currentGroup.length > 0) {
+      prepared.push(...currentGroup);
+      if (lastKey) {
+        prepared.push({
+          type: "separator",
+          data: lastKey,
+          uniqueKey: `separator-${lastKey}`,
         });
       }
     }
 
-    return groupedMessages;
-  }, [messages]);
+    return prepared;
+  }, []);
 
   //gestisco quando il testo cmbia nel textinput
   const handleTextChanging = (text) => {
@@ -384,13 +418,13 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
   const renderMessagesList = () => (
     <View style={styles.listContainer}>
       <FlatList
-        data={prepareMessagesWithDateSeparators()}
+        data={prepareMessages(messages)}
         keyExtractor={(item) => item.uniqueKey}
         renderItem={({ item }) => {
-          if (item.type === "date_separator") {
+          if (item.type === "separator") {
             return (
               <View style={styles.dateSeparator}>
-                <Text style={styles.dateSeparatorText}>{item.date}</Text>
+                <Text style={styles.dateSeparatorText}>{item.data}</Text>
               </View>
             );
           } else {
@@ -404,7 +438,11 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
                     : styles.msgReceiver
                 }
               >
-                <Text style={styles.textMessageContent}>{message.text}</Text>
+                {/* Usa il componente LinkedText */}
+                <LinkedText
+                  text={message.text}
+                  style={styles.textMessageContent}
+                />
                 <Text style={styles.timeText}>
                   {message.date_time === "" ? (
                     <MaterialIcons
@@ -650,6 +688,11 @@ function createStyle(theme) {
       textAlign: "center",
       color: theme.text,
       fontWeight: "bold",
+    },
+    messagesLink: {
+      fontSize: 18,
+      color: theme.messagesLink,
+      textDecorationLine: "underline",
     },
   });
 }

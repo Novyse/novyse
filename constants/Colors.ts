@@ -1,4 +1,24 @@
 export const Colors = {
+  default: {
+    text: 'white',
+    textTime: '#c9d1d9',
+    backgroundClassic: '#1b2734',
+    backgroundChatList: '#1b2734',
+    backgroundChat: '#1b2734',
+    backgroundChatInsideList: '#2b3e51',
+    backgroundHeader: '#1b2734',
+    backgroundChatTextInput: "#374e68",
+    backgroundChatListCheckNetwork: '#1d3340',
+    floatingBigButton: '#39546d',
+    floatingLittleButton: '#39546d',
+    chatDivider: '#101921',
+    chatListSelected: '#2b5278',
+    icon: 'white',
+    button: '#2399C3',
+    sideBarBackground: '#405770',               //sideBar - ChatList
+    modalsBackground: '#416a90',
+    messagesLink: "#61abe6",
+  },
   light: {
     text: 'black',
     textTime: '#c9d1d9',
@@ -17,6 +37,7 @@ export const Colors = {
     button: '#2399C3',
     sideBarBackground: '#405770',               //sideBar - ChatList
     modalsBackground: '#416a90',
+    messagesLink: "#61abe6",
   },
   dark: {
     text: 'white',
@@ -36,24 +57,6 @@ export const Colors = {
     button: '#2399C3',
     sideBarBackground: '#405770',               //sideBar - ChatList
     modalsBackground: '#416a90',
-  },
-  default: {
-    text: 'white',
-    textTime: '#c9d1d9',
-    backgroundClassic: '#1b2734',
-    backgroundChatList: '#1b2734',
-    backgroundChat: '#1b2734',
-    backgroundChatInsideList: '#2b3e51',
-    backgroundHeader: '#1b2734',
-    backgroundChatTextInput: "#374e68",
-    backgroundChatListCheckNetwork: '#1d3340',
-    floatingBigButton: '#39546d',
-    floatingLittleButton: '#39546d',
-    chatDivider: '#101921',
-    chatListSelected: '#2b5278',
-    icon: 'white',
-    button: '#2399C3',
-    sideBarBackground: '#405770',               //sideBar - ChatList
-    modalsBackground: '#416a90',
+    messagesLink: "#61abe6",
   },
 };
