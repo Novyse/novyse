@@ -130,7 +130,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       null
     );
     await handleMemberJoined(data);
-    WebRTC.existingUsers(profilesInVocalChat);
+    WebRTC.setExistingUsers(profilesInVocalChat);
   };
 
   // quando io esco in una room

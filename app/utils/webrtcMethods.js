@@ -580,7 +580,7 @@ class MultiPeerWebRTCManager {
     }
   }
 
-  async existingUsers(existingUsers) {
+  async setExistingUsers(existingUsers) {
     // Ricevuto elenco di utenti (message.users: array di ID) già presenti nella stanza
 
     console.log(
