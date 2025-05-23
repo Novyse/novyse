@@ -146,7 +146,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
     if (data.chat_id == chatId) {
       setProfilesInVocalChat((prev) => [...prev, data]);
     }
-    if (WebRTC.chatId == chatId) {
+    if (WebRTC.chatId == data.chat_id) {
       comms_join_vocal.play();
     }
   };
@@ -163,7 +163,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
         // Mantieni solo i profili il cui from NON corrisponde a quello da rimuovere
       );
     }
-    if (WebRTC.chatId == chatId) {
+    if (WebRTC.chatId == data.chat_id) {
       comms_leave_vocal.play();
     }
   };
