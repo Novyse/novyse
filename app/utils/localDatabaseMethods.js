@@ -247,6 +247,10 @@ class LocalDatabase {
   async fetchLocalUserHandle() {
     return this.getSingleValue("localUser", "handle");
   }
+  
+  async fetchLocalUserData() {
+    return this.getRowData("localUser", ["*"]);
+  }
 
   async fetchChats() {
     return this.getTableData("chats");

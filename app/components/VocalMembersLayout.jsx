@@ -1,6 +1,7 @@
-import React, { useState, useCallback, useContext } from 'react';
+import React, { useState, useCallback, useContext, useEffect } from 'react';
 import { View, StyleSheet, Text, Pressable, Platform, Dimensions } from 'react-native';
 import { ThemeContext } from '@/context/ThemeContext';
+import UserProfileAvatar from './UserProfileAvatar';
 
 let RTCView;
 if (Platform.OS === 'web') {
@@ -14,10 +15,10 @@ const ASPECT_RATIO = 16 / 9;
 const MARGIN = 4;
 
 const VocalMembersLayout = ({ profiles, WebRTC }) => {
-  const [containerDimensions, setContainerDimensions] = useState({
-    width: 0,
+  const [containerDimensions, setContainerDimensions] = useState({    width: 0,
     height: 0,
   });
+  const [forceUpdate, setForceUpdate] = useState(0);
   const { theme } = useContext(ThemeContext);
 
   // Handler per il layout
@@ -25,6 +26,20 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
     const { width, height } = event.nativeEvent.layout;
     setContainerDimensions({ width, height });
   }, []);
+
+  // Ascolta i cambiamenti nello stream per forzare re-render
+  useEffect(() => {
+    if (WebRTC && WebRTC.onStreamUpdate) {
+      WebRTC.onStreamUpdate = () => {
+        setForceUpdate(prev => prev + 1);
+      };    }
+
+    return () => {
+      if (WebRTC && WebRTC.onStreamUpdate) {
+        WebRTC.onStreamUpdate = null;
+      }
+    };
+  }, [WebRTC]);
 
   // Calcolo ottimizzato del layout
   const calculateLayout = useCallback(() => {
@@ -82,81 +97,72 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
 
   const { rectWidth, rectHeight, margin } = calculateLayout();
 
-  const renderProfile = (profile) => (
-    <Pressable
-      key={profile.from}
-      style={[
-        styles.profile,
-        {
-          width: rectWidth,
-          height: rectHeight,
-          margin: margin / 2,
-        },
-      ]}
-    >
-      <View style={styles.videoContainer}>
-        {profile.from === WebRTC.myId && WebRTC.localStream ? (
-          Platform.OS === 'web' ? (
-            <>
-              <RTCView
-                stream={WebRTC.localStream}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: 10,
-                }}
-                muted={true}
-              />
+  const renderProfile = (profile) => {
+    // Determina se c'è un video attivo per questo profilo
+    let hasVideo = false;    let activeStream = null;
+
+    if (profile.from === WebRTC.myId && WebRTC.localStream) {
+      const videoTracks = WebRTC.localStream.getVideoTracks();
+      const hasActiveTracks = videoTracks.length > 0 && videoTracks.some(track => track.enabled && track.readyState === 'live');
+      
+      if (hasActiveTracks) {
+        hasVideo = true;
+        activeStream = WebRTC.localStream;
+      }
+    } else if (WebRTC.remoteStreams[profile.from]) {      const videoTracks = WebRTC.remoteStreams[profile.from].getVideoTracks();
+      const hasActiveTracks = videoTracks.length > 0 && videoTracks.some(track => track.enabled && track.readyState === 'live');
+
+      if (hasActiveTracks) {
+        hasVideo = true;
+        activeStream = WebRTC.remoteStreams[profile.from];
+      }
+    }
+
+    return (
+      <Pressable
+        key={`${profile.from}-${forceUpdate}-${hasVideo}`}
+        style={[
+          styles.profile,
+          {
+            width: rectWidth,
+            height: rectHeight,
+            margin: margin / 2,
+          },
+        ]}
+      >
+        <View style={styles.videoContainer}>
+          {hasVideo && activeStream ? (
+            <View style={styles.videoOverlay}>
+              {Platform.OS === 'web' ? (
+                <RTCView
+                  key={`video-${profile.from}-${forceUpdate}`}
+                  stream={activeStream}
+                  style={styles.videoStyle}
+                  muted={true}
+                />
+              ) : (
+                <RTCView
+                  key={`video-${profile.from}-${forceUpdate}`}
+                  streamURL={activeStream.toURL()}
+                  style={styles.videoStyle}
+                  muted={true}
+                />
+              )}
               <Text style={styles.profileText}>{profile.handle}</Text>
-            </>
+            </View>
           ) : (
-            <>
-              <RTCView
-                streamURL={WebRTC.localStream.toURL()}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: 10,
-                }}
-                muted={true}
-              />
-              <Text style={styles.profileText}>{profile.handle}</Text>
-            </>
-          )
-        ) : WebRTC.remoteStreams[profile.from] ? (
-          Platform.OS === 'web' ? (
-            <>
-              <RTCView
-                stream={WebRTC.remoteStreams[profile.from]}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: 10,
-                }}
-                muted={true}
-              />
-              <Text style={styles.profileText}>{profile.handle}</Text>
-            </>
-          ) : (
-            <>
-              <RTCView
-                streamURL={WebRTC.remoteStreams[profile.from].toURL()}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: 10,
-                }}
-                muted={true}
-              />
-              <Text style={styles.profileText}>{profile.handle}</Text>
-            </>
-          )
-        ) : (
-          <Text style={styles.profileText}>{profile.handle}</Text>
-        )}
-      </View>
-    </Pressable>
-  );
+            <UserProfileAvatar
+              key={`avatar-${profile.from}-${forceUpdate}`}
+              userHandle={profile.handle}
+              profileImageUri={profile.profileImage || null}
+              containerWidth={rectWidth}
+              containerHeight={rectHeight}
+            />
+          )}
+        </View>
+      </Pressable>
+    );
+  };
 
   return (
     <View style={styles.container} onLayout={onContainerLayout}>
@@ -184,7 +190,7 @@ const styles = StyleSheet.create({
     alignContent: 'center',
   },
   profile: {
-    backgroundColor: 'black',
+    backgroundColor: 'transparent',
     borderRadius: 10,
     overflow: 'hidden',
   },
@@ -193,6 +199,16 @@ const styles = StyleSheet.create({
     height: '100%',
     overflow: 'hidden',
     borderRadius: 10,
+  },
+  videoOverlay: {
+    flex: 1,
+  },
+  videoStyle: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+    objectFit: 'cover',
+    resizeMode: 'cover',
   },
   profileText: {
     color: 'white',

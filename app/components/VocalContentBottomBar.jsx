@@ -5,14 +5,13 @@ import APIMethods from "../utils/APImethods";
 import localDatabase from "../utils/localDatabaseMethods";
 import VocalBottomBarButton from "./VocalBottomBarButton";
 
-
-const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
+const VocalContentBottomBar= ({ chatId, selfJoined, selfLeft, WebRTC }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   const [isJoinedVocal, setIsJoinedVocal] = useState(WebRTC.chatId == chatId);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(false); // Start with video disabled
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleJoinVocal = async () => {
@@ -49,67 +48,110 @@ const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
         setIsAudioEnabled(audioTrack.enabled);
-      }
-    }
+      }    }
   };
-
+  
   const toggleVideo = async () => {
-    if (!isVideoEnabled) {
-      // Attiva video: aggiungi la traccia video e rinegozia
-      try {
-        const videoStream = await WebRTC.addVideoTrack(); // Implementa questo metodo nel tuo WebRTC manager!
+    try {
+      if (!isVideoEnabled) {
+        // Attiva video: aggiungi la traccia video con constraints specifici        console.log('Attivando video...');
+        
+        // Usa constraints specifici per mantenere aspect ratio
+        const videoConstraints = {
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            aspectRatio: { ideal: 16/9 },
+            facingMode: 'user'
+          }
+        };
+        
+        const videoStream = await WebRTC.addVideoTrack(videoConstraints);
         if (videoStream) {
           setIsVideoEnabled(true);
+          
           // Rinegozia con tutti i peer
           for (const peerId of Object.keys(WebRTC.peerConnections)) {
             await WebRTC.createOffer(peerId);
           }
+          
+          console.log('Video attivato con successo');
+          
+          // Forza l'aggiornamento dell'interfaccia
+          if (WebRTC.onStreamUpdate) {
+            WebRTC.onStreamUpdate();
+          }
         }
-      } catch (err) {
-        alert("Errore nell'attivare la webcam: " + err.message);
-      }
-    } else {
-      // Disattiva video: rimuovi la traccia video e rinegozia
-      try {
-        const videoTrack = WebRTC.localStream.getVideoTracks()[0];
-        if (videoTrack) {
-          videoTrack.stop();
-          WebRTC.localStream.removeTrack(videoTrack);
-          // Rimuovi la traccia da tutte le peer connection
+      } else {
+        // Disattiva video: rimuovi completamente la traccia video
+        console.log('Disattivando video...');
+        if (WebRTC.localStream) {
+          const videoTracks = WebRTC.localStream.getVideoTracks();
+          console.log(`Trovate ${videoTracks.length} tracce video da rimuovere`);
+          
+          // Ferma e rimuovi tutte le tracce video
+          videoTracks.forEach(track => {
+            console.log(`Fermando traccia video: ${track.id}, stato: ${track.readyState}`);
+            track.stop();
+            WebRTC.localStream.removeTrack(track);
+          });
+          
+          // Rimuovi le tracce dalle peer connections
           for (const peerId of Object.keys(WebRTC.peerConnections)) {
             const pc = WebRTC.peerConnections[peerId];
-            const sender = pc.getSenders().find(s => s.track === videoTrack);
-            if (sender) {
-              pc.removeTrack(sender);
-              await WebRTC.createOffer(peerId);
-            }
+            const senders = pc.getSenders();
+            
+            senders.forEach(sender => {
+              if (sender.track && sender.track.kind === 'video') {
+                console.log(`Rimuovendo sender video per peer: ${peerId}`);
+                pc.removeTrack(sender);
+              }
+            });
+            
+            // Rinegozia la connessione
+            await WebRTC.createOffer(peerId);
           }
+          
           setIsVideoEnabled(false);
+          
+          // Attende un momento per assicurarsi che le tracce siano completamente rimosse
+          setTimeout(() => {
+            // Forza l'aggiornamento dell'interfaccia
+            if (WebRTC.onStreamUpdate) {
+              WebRTC.onStreamUpdate();
+            }
+            
+            // Notifica anche il cambio di stream locale
+            if (WebRTC.onLocalStreamReady) {
+              WebRTC.onLocalStreamReady(WebRTC.localStream);
+            }
+          }, 100);
+          
+          console.log('Video disattivato con successo');
         }
-      } catch (err) {
-        alert("Errore nel disattivare la webcam: " + err.message);
       }
+    } catch (err) {
+      console.error('Errore nel toggle video:', err);
+      alert("Errore nel toggle video: " + err.message);
     }
   };
 
   return (
     <View style={styles.container}>
       {!isJoinedVocal ? (
-        <>
-          {isLoading ? (
-            <View style={styles.iconButton}>
-              <ActivityIndicator color={theme.icon} size="small" />
-            </View>
-          ) : (
-            <VocalBottomBarButton
-              onPress={handleJoinVocal}
-              iconName="phone"
-              iconColor="green"
-            />
-          )}
-        </>
+        isLoading ? (
+          <View style={styles.iconButton}>
+            <ActivityIndicator color={theme.icon} size="small" />
+          </View>
+        ) : (
+          <VocalBottomBarButton
+            onPress={handleJoinVocal}
+            iconName="phone"
+            iconColor="green"
+          />
+        )
       ) : (
-        <>
+        <View style={styles.container}>
           <VocalBottomBarButton
             onPress={toggleAudio}
             iconName={isAudioEnabled ? "mic" : "mic-off"}
@@ -117,26 +159,23 @@ const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
           />
           <VocalBottomBarButton
             onPress={toggleVideo}
-            iconName={isVideoEnabled ? "videocam-off" : "videocam"}
+            iconName={isVideoEnabled ? "videocam" : "videocam-off"}
             iconColor={theme.icon}
           />
           <VocalBottomBarButton
             onPress={async () => {
               const data = await APIMethods.commsLeave();
               if (data.comms_left) {
-                
-                await selfLeft(data);
-                
                 await selfLeft(data);
                 setIsJoinedVocal(false);
-                setIsVideoEnabled(false);
+                setIsVideoEnabled(true);
                 setIsAudioEnabled(true);
               }
             }}
             iconName="phone"
             iconColor="red"
           />
-        </>
+        </View>
       )}
     </View>
   );
