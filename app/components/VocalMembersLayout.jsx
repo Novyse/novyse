@@ -99,7 +99,8 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
 
   const renderProfile = (profile) => {
     // Determina se c'è un video attivo per questo profilo
-    let hasVideo = false;    let activeStream = null;
+    let hasVideo = false;
+    let activeStream = null;
 
     if (profile.from === WebRTC.myId && WebRTC.localStream) {
       const videoTracks = WebRTC.localStream.getVideoTracks();
@@ -109,7 +110,8 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
         hasVideo = true;
         activeStream = WebRTC.localStream;
       }
-    } else if (WebRTC.remoteStreams[profile.from]) {      const videoTracks = WebRTC.remoteStreams[profile.from].getVideoTracks();
+    } else if (WebRTC.remoteStreams[profile.from]) {
+      const videoTracks = WebRTC.remoteStreams[profile.from].getVideoTracks();
       const hasActiveTracks = videoTracks.length > 0 && videoTracks.some(track => track.enabled && track.readyState === 'live');
 
       if (hasActiveTracks) {
@@ -170,7 +172,9 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
         {profiles.length > 0 ? (
           profiles.map(renderProfile)
         ) : (
-          <Text style={styles.emptyChatText}>Nessun utente nella chat</Text>
+          <View style={styles.emptyChatContainer}>
+            <Text style={styles.emptyChatText}>Nessun utente nella chat</Text>
+          </View>
         )}
       </View>
     </View>
@@ -219,6 +223,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     padding: 5,
     borderRadius: 5,
+  },
+  emptyChatContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
   },
   emptyChatText: {
     color: 'white',

@@ -72,7 +72,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
             audioElement.controls = true;
             container.appendChild(audioElement);
           }
-          const audioStream = new MediaStream([stream.getAudioTracks()[0]]);          audioElement.srcObject = audioStream;
+          const audioStream = new MediaStream([stream.getAudioTracks()[0]]);          
+          audioElement.srcObject = audioStream;
           audioElement.muted = participantId === WebRTC.myId;
         }
 

@@ -23,6 +23,10 @@ const VocalContentBottomBar= ({ chatId, selfJoined, selfLeft, WebRTC }) => {
         throw new Error("Failed to get audio stream");
       }
 
+      if(WebRTC.chatId != chatId) {
+        await APIMethods.commsLeave(chatId);
+      }
+
       const data = await APIMethods.commsJoin(chatId);
       if (data.comms_joined) {
         await selfJoined({
