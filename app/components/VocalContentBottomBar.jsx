@@ -58,81 +58,15 @@ const VocalContentBottomBar= ({ chatId, selfJoined, selfLeft, WebRTC }) => {
   const toggleVideo = async () => {
     try {
       if (!isVideoEnabled) {
-        // Attiva video: aggiungi la traccia video con constraints specifici        console.log('Attivando video...');
-        
-        // Usa constraints specifici per mantenere aspect ratio
-        const videoConstraints = {
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            aspectRatio: { ideal: 16/9 },
-            facingMode: 'user'
-          }
-        };
-        
-        const videoStream = await WebRTC.addVideoTrack(videoConstraints);
-        if (videoStream) {
+        // Attiva video
+        const videoTrack = await WebRTC.addVideoTrack();
+        if (videoTrack) {
           setIsVideoEnabled(true);
-          
-          // Rinegozia con tutti i peer
-          for (const peerId of Object.keys(WebRTC.peerConnections)) {
-            await WebRTC.createOffer(peerId);
-          }
-          
-          console.log('Video attivato con successo');
-          
-          // Forza l'aggiornamento dell'interfaccia
-          if (WebRTC.onStreamUpdate) {
-            WebRTC.onStreamUpdate();
-          }
         }
       } else {
-        // Disattiva video: rimuovi completamente la traccia video
-        console.log('Disattivando video...');
-        if (WebRTC.localStream) {
-          const videoTracks = WebRTC.localStream.getVideoTracks();
-          console.log(`Trovate ${videoTracks.length} tracce video da rimuovere`);
-          
-          // Ferma e rimuovi tutte le tracce video
-          videoTracks.forEach(track => {
-            console.log(`Fermando traccia video: ${track.id}, stato: ${track.readyState}`);
-            track.stop();
-            WebRTC.localStream.removeTrack(track);
-          });
-          
-          // Rimuovi le tracce dalle peer connections
-          for (const peerId of Object.keys(WebRTC.peerConnections)) {
-            const pc = WebRTC.peerConnections[peerId];
-            const senders = pc.getSenders();
-            
-            senders.forEach(sender => {
-              if (sender.track && sender.track.kind === 'video') {
-                console.log(`Rimuovendo sender video per peer: ${peerId}`);
-                pc.removeTrack(sender);
-              }
-            });
-            
-            // Rinegozia la connessione
-            await WebRTC.createOffer(peerId);
-          }
-          
-          setIsVideoEnabled(false);
-          
-          // Attende un momento per assicurarsi che le tracce siano completamente rimosse
-          setTimeout(() => {
-            // Forza l'aggiornamento dell'interfaccia
-            if (WebRTC.onStreamUpdate) {
-              WebRTC.onStreamUpdate();
-            }
-            
-            // Notifica anche il cambio di stream locale
-            if (WebRTC.onLocalStreamReady) {
-              WebRTC.onLocalStreamReady(WebRTC.localStream);
-            }
-          }, 100);
-          
-          console.log('Video disattivato con successo');
-        }
+        // Disattiva video
+        await WebRTC.removeVideoTracks();
+        setIsVideoEnabled(false);
       }
     } catch (err) {
       console.error('Errore nel toggle video:', err);

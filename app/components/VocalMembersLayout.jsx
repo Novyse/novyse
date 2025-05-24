@@ -14,7 +14,7 @@ if (Platform.OS === 'web') {
 const ASPECT_RATIO = 16 / 9;
 const MARGIN = 4;
 
-const VocalMembersLayout = ({ profiles, WebRTC }) => {
+const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
   const [containerDimensions, setContainerDimensions] = useState({    width: 0,
     height: 0,
   });
@@ -29,10 +29,13 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
 
   // Ascolta i cambiamenti nello stream per forzare re-render
   useEffect(() => {
-    if (WebRTC && WebRTC.onStreamUpdate) {
-      WebRTC.onStreamUpdate = () => {
-        setForceUpdate(prev => prev + 1);
-      };    }
+    const handleStreamUpdate = () => {
+      setForceUpdate(prev => prev + 1);
+    };
+
+    if (WebRTC) {
+      WebRTC.onStreamUpdate = handleStreamUpdate;
+    }
 
     return () => {
       if (WebRTC && WebRTC.onStreamUpdate) {
@@ -40,6 +43,17 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
       }
     };
   }, [WebRTC]);
+
+  // Aggiorna quando streamUpdateTrigger cambia (da VocalContent)
+  useEffect(() => {
+    if (streamUpdateTrigger > 0) {
+      setForceUpdate(prev => prev + 1);
+    }
+  }, [streamUpdateTrigger]);
+
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [profiles]);
 
   // Calcolo ottimizzato del layout
   const calculateLayout = useCallback(() => {
@@ -102,7 +116,7 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
     let hasVideo = false;
     let activeStream = null;
 
-    if (profile.from === WebRTC.myId && WebRTC.localStream) {
+    if (profile.from === WebRTC?.myId && WebRTC?.localStream) {
       const videoTracks = WebRTC.localStream.getVideoTracks();
       const hasActiveTracks = videoTracks.length > 0 && videoTracks.some(track => track.enabled && track.readyState === 'live');
       
@@ -110,7 +124,7 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
         hasVideo = true;
         activeStream = WebRTC.localStream;
       }
-    } else if (WebRTC.remoteStreams[profile.from]) {
+    } else if (WebRTC?.remoteStreams?.[profile.from]) {
       const videoTracks = WebRTC.remoteStreams[profile.from].getVideoTracks();
       const hasActiveTracks = videoTracks.length > 0 && videoTracks.some(track => track.enabled && track.readyState === 'live');
 
@@ -122,7 +136,7 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
 
     return (
       <Pressable
-        key={`${profile.from}-${forceUpdate}-${hasVideo}`}
+        key={`${profile.from}-${forceUpdate}-${hasVideo}-${streamUpdateTrigger}`}
         style={[
           styles.profile,
           {
@@ -137,14 +151,14 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
             <View style={styles.videoOverlay}>
               {Platform.OS === 'web' ? (
                 <RTCView
-                  key={`video-${profile.from}-${forceUpdate}`}
+                  key={`video-${profile.from}-${forceUpdate}-${streamUpdateTrigger}`}
                   stream={activeStream}
                   style={styles.videoStyle}
                   muted={true}
                 />
               ) : (
                 <RTCView
-                  key={`video-${profile.from}-${forceUpdate}`}
+                  key={`video-${profile.from}-${forceUpdate}-${streamUpdateTrigger}`}
                   streamURL={activeStream.toURL()}
                   style={styles.videoStyle}
                   muted={true}
@@ -154,7 +168,7 @@ const VocalMembersLayout = ({ profiles, WebRTC }) => {
             </View>
           ) : (
             <UserProfileAvatar
-              key={`avatar-${profile.from}-${forceUpdate}`}
+              key={`avatar-${profile.from}-${forceUpdate}-${streamUpdateTrigger}`}
               userHandle={profile.handle}
               profileImageUri={profile.profileImage || null}
               containerWidth={rectWidth}

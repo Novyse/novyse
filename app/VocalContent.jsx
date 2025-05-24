@@ -22,16 +22,35 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const comms_leave_vocal = useAudioPlayer(sounds.comms_leave_vocal);
 
   const [profilesInVocalChat, setProfilesInVocalChat] = useState([]);
+  const [streamUpdateTrigger, setStreamUpdateTrigger] = useState(0);
 
   useEffect(() => {
     getVocalMembers();
 
+    if (WebRTC) {
+      WebRTC.onStreamUpdate = () => {
+        setStreamUpdateTrigger((prev) => prev + 1);
+      };
+    }
+
     eventEmitter.on("member_joined_comms", handleMemberJoined);
-    eventEmitter.on("member_left_comms", handleMemberLeft);    return () => {
+    eventEmitter.on("member_left_comms", handleMemberLeft);
+
+    return () => {
       eventEmitter.off("member_joined_comms", handleMemberJoined);
       eventEmitter.off("member_left_comms", handleMemberLeft);
+
+      if (WebRTC && WebRTC.onStreamUpdate) {
+        WebRTC.onStreamUpdate = null;
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (WebRTC) {
+      WebRTC.notifyStreamUpdate();
+    }
+  }, [chatId]);
 
   // ottiene chi è dentro la vocal chat
   const getVocalMembers = async () => {
@@ -42,13 +61,14 @@ const VocalContent = ({ selectedChat, chatId }) => {
       const userList = Object.values(WebRTC.userData);
       const localUserHandle = await localDatabase.fetchLocalUserHandle();
       const localUserData = await localDatabase.fetchLocalUserData();
-      userList.push({ 
-        handle: localUserHandle, 
+      userList.push({
+        handle: localUserHandle,
         from: WebRTC.myId,
-        profileImage: localUserData?.profileImage || null      });
+        profileImage: localUserData?.profileImage || null,
+      });
       setProfilesInVocalChat(userList);
     }
-  }
+  };
 
   // permette la riproduzione audio lato UI
   function handleRemoteStream(participantId, stream) {
@@ -72,7 +92,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
             audioElement.controls = true;
             container.appendChild(audioElement);
           }
-          const audioStream = new MediaStream([stream.getAudioTracks()[0]]);          
+          const audioStream = new MediaStream([stream.getAudioTracks()[0]]);
           audioElement.srcObject = audioStream;
           audioElement.muted = participantId === WebRTC.myId;
         }
@@ -88,7 +108,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
             videoElement.style.width = "320px";
             videoElement.style.height = "180px";
             container.appendChild(videoElement);
-          }          const videoStream = new MediaStream([stream.getVideoTracks()[0]]);
+          }
+          const videoStream = new MediaStream([stream.getVideoTracks()[0]]);
           videoElement.srcObject = videoStream;
           videoElement.muted = participantId === WebRTC.myId;
 
@@ -96,6 +117,12 @@ const VocalContent = ({ selectedChat, chatId }) => {
             .play()
             .catch((e) => console.error("Error playing video:", e));
         }
+
+        setTimeout(() => {
+          if (WebRTC) {
+            WebRTC.notifyStreamUpdate();
+          }
+        }, 100);
       } catch (error) {
         console.error(`Error handling stream for ${participantId}:`, error);
       }
@@ -114,6 +141,10 @@ const VocalContent = ({ selectedChat, chatId }) => {
     );
     await handleMemberJoined(data);
     WebRTC.setExistingUsers(profilesInVocalChat);
+
+    setTimeout(() => {
+      WebRTC.notifyStreamUpdate();
+    }, 200);
   };
 
   // quando io esco in una room
@@ -121,7 +152,11 @@ const VocalContent = ({ selectedChat, chatId }) => {
     await handleMemberLeft(data);
     WebRTC.closeAllConnections();
     WebRTC.closeLocalStream();
-  }  // Gestione dell'ingresso nella chat vocale
+
+    setTimeout(() => {
+      WebRTC.notifyStreamUpdate();
+    }, 200);
+  }; // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
     await multiPeerWebRTCManager.userJoined(data);
     if (data.chat_id == chatId) {
@@ -137,10 +172,9 @@ const VocalContent = ({ selectedChat, chatId }) => {
     await multiPeerWebRTCManager.userLeft(data);
     if (data.chat_id == chatId) {
       // Rimuovo l'ultimo profilo aggiunto (puoi modificare la logica di rimozione)
-      setProfilesInVocalChat(
-        (prevProfiles) =>
-          // Filtra l'array precedente
-          prevProfiles.filter((profile) => profile.from !== data.from)
+      setProfilesInVocalChat((prevProfiles) =>
+        // Filtra l'array precedente
+        prevProfiles.filter((profile) => profile.from !== data.from)
         // Mantieni solo i profili il cui from NON corrisponde a quello da rimuovere
       );
     }
@@ -155,6 +189,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
         profiles={profilesInVocalChat}
         WebRTC={WebRTC}
         theme={theme}
+        streamUpdateTrigger={streamUpdateTrigger}
       />
 
       <VocalContentBottomBar

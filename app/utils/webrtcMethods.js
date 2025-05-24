@@ -55,7 +55,9 @@ class MultiPeerWebRTCManager {
   onPeerConnectionStateChange = null;
   // Chiamata quando un partecipante lascia (la sua connessione viene chiusa)
   onParticipantLeft = null;
+  onStreamUpdate = null;
 
+  // Aggiungi una proprietà per tracciare le rinegoziazioni in corso
   constructor(
     myId = null,
     chatId = null,
@@ -79,6 +81,7 @@ class MultiPeerWebRTCManager {
     } else {
       console.log("MultiPeerWebRTCManager: Inizializzato vuoto");
     }
+    this.negotiationInProgress = {}; // Traccia rinegoziazioni per peer
   }
 
   // Gestione degli eventi
@@ -146,6 +149,15 @@ class MultiPeerWebRTCManager {
   }
 
   /**
+   * Metodo per notificare cambio stream ai componenti UI
+   */
+  notifyStreamUpdate() {
+    if (this.onStreamUpdate) {
+      this.onStreamUpdate();
+    }
+  }
+
+  /**
    * Crea e configura una RTCPeerConnection PER UN SINGOLO PARTECIPANTE REMOTO.
    * @param {string} participantId - L'ID univoco del partecipante remoto.
    * @returns {RTCPeerConnection} La connessione creata.
@@ -166,7 +178,6 @@ class MultiPeerWebRTCManager {
     try {
       const pc = new RTCPeerConnection(configuration);
       const userData = { handle: participant.handle, from: participantId };
-      console.log("a1", userData);
       this.peerConnections[participantId] = pc; // Memorizza la connessione
       this.userData[participantId] = userData;
       // --- Gestione Eventi Specifica per questa Connessione ---
@@ -205,6 +216,20 @@ class MultiPeerWebRTCManager {
         if (this.onRemoteStreamAddedOrUpdated) {
           this.onRemoteStreamAddedOrUpdated(participantId, stream);
         }
+        
+        this.notifyStreamUpdate();
+
+        event.track.onended = () => {
+          this.notifyStreamUpdate();
+        };
+
+        event.track.onmute = () => {
+          this.notifyStreamUpdate();
+        };
+
+        event.track.onunmute = () => {
+          this.notifyStreamUpdate();
+        };
       };
 
       pc.oniceconnectionstatechange = (event) => {
@@ -281,25 +306,185 @@ class MultiPeerWebRTCManager {
   // aggiunge una video track allo stream
   async addVideoTrack() {
     try {
-      const videoStream = await mediaDevices.getUserMedia({ video: true });
-      const videoTrack = videoStream.getVideoTracks()[0];
-      if (!this.localStream) {
-        this.localStream = new MediaStream();
-      }
-      this.localStream.addTrack(videoTrack);
-
-      // Aggiungi la traccia a tutte le peer connection
-      Object.values(this.peerConnections).forEach((pc) => {
-        pc.addTrack(videoTrack, this.localStream);
+      const videoStream = await mediaDevices.getUserMedia({ 
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          aspectRatio: { ideal: 16/9 },
+          facingMode: 'user'
+        }
       });
+      const videoTrack = videoStream.getVideoTracks()[0];
+      
+      if (this.localStream && videoTrack) {
+        this.localStream.addTrack(videoTrack);
+        
+        // Aggiungi la traccia a tutte le peer connections attive
+        for (const [peerId, pc] of Object.entries(this.peerConnections)) {
+          if (pc.connectionState === 'connected' || pc.connectionState === 'connecting') {
+            try {
+              await pc.addTrack(videoTrack, this.localStream);
+            } catch (error) {
+              console.error(`Error adding video track to peer ${peerId}:`, error);
+            }
+          }
+        }
+        
+        if (this.onLocalStreamReady) {
+          this.onLocalStreamReady(this.localStream);
+        }
+        this.notifyStreamUpdate();
+        
+        // Aspetta un momento prima di rinegoziare
+        setTimeout(async () => {
+          await this.renegotiateWithAllPeers();
+        }, 100);
+        
+        return videoTrack;
+      }
+    } catch (error) {
+      console.error("Error adding video track:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Rimuove tutte le tracce video dal local stream
+   */
+  async removeVideoTracks() {
+    if (this.localStream) {
+      const videoTracks = this.localStream.getVideoTracks();
+      
+      // Ferma e rimuovi le tracce dal local stream
+      videoTracks.forEach(track => {
+        track.stop();
+        this.localStream.removeTrack(track);
+      });
+
+      // Rimuovi i sender dalle peer connections
+      for (const [peerId, pc] of Object.entries(this.peerConnections)) {
+        if (pc.connectionState === 'connected' || pc.connectionState === 'connecting') {
+          const senders = pc.getSenders();
+          for (const sender of senders) {
+            if (sender.track && sender.track.kind === 'video') {
+              try {
+                await pc.removeTrack(sender);
+              } catch (error) {
+                console.error(`Error removing video track from peer ${peerId}:`, error);
+              }
+            }
+          }
+        }
+      }
 
       if (this.onLocalStreamReady) {
         this.onLocalStreamReady(this.localStream);
       }
-      return videoStream;
+      this.notifyStreamUpdate();
+      
+      // Aspetta un momento prima di rinegoziare
+      setTimeout(async () => {
+        await this.renegotiateWithAllPeers();
+      }, 100);
+    }
+  }
+
+  /**
+   * Rinegozia con tutti i peer attivi
+   */
+  async renegotiateWithAllPeers() {
+    for (const peerId of Object.keys(this.peerConnections)) {
+      await this.createOffer(peerId);
+    }
+  }
+
+  /**
+   * Crea un'offerta SDP per un partecipante specifico.
+   */
+  async createOffer(participantId) {
+    const pc = this.peerConnections[participantId];
+    if (!pc) {
+      console.warn(`No peer connection found for ${participantId}`);
+      return;
+    }
+
+    // Evita rinegoziazioni multiple simultanee
+    if (this.negotiationInProgress[participantId]) {
+      console.log(`Negotiation already in progress for ${participantId}`);
+      return;
+    }
+
+    try {
+      this.negotiationInProgress[participantId] = true;
+      
+      console.log(`Creating offer for ${participantId}...`);
+      const offer = await pc.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
+        iceRestart: false
+      });
+      
+      console.log(`Setting local description for ${participantId}...`);
+      await pc.setLocalDescription(offer);
+
+      await WebSocketMethods.RTCOffer({
+        offer: offer.toJSON ? offer.toJSON() : offer,
+        to: participantId,
+        from: this.myId,
+      });
+      
     } catch (error) {
-      console.error("Errore addVideoTrack:", error);
-      throw error;
+      console.error(`Error creating offer for ${participantId}:`, error);
+    } finally {
+      // Rimuovi il flag dopo un timeout per evitare deadlock
+      setTimeout(() => {
+        this.negotiationInProgress[participantId] = false;
+      }, 3000);
+    }
+  }
+
+  /**
+   * Gestisce la ricezione di un'offerta da un partecipante remoto.
+   */
+  async handleOffer(participantId, offer) {
+    const pc = this.peerConnections[participantId];
+    if (!pc) {
+      console.warn(`No peer connection found for ${participantId} when handling offer`);
+      return;
+    }
+
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      await WebSocketMethods.RTCAnswer({
+        answer: answer.toJSON ? answer.toJSON() : answer,
+        to: participantId,
+        from: this.myId,
+      });
+      
+    } catch (error) {
+      console.error(`Error handling offer from ${participantId}:`, error);
+    }
+  }
+
+  /**
+   * Gestisce la ricezione di una risposta da un partecipante remoto.
+   */
+  async handleAnswer(participantId, answer) {
+    const pc = this.peerConnections[participantId];
+    if (!pc) {
+      console.warn(`No peer connection found for ${participantId} when handling answer`);
+      return;
+    }
+
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription(answer));
+      this.negotiationInProgress[participantId] = false;
+    } catch (error) {
+      console.error(`Error handling answer from ${participantId}:`, error);
     }
   }
 
