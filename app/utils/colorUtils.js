@@ -216,14 +216,22 @@ const generateGradientFromColors = (dominantColors) => {
 };
 
 /**
- * Get fallback gradient colors based on user handle (truly random each time)
+ * Get fallback gradient colors based on user handle (deterministic)
  * @param {string} userHandle - User's handle/name
  * @returns {string[]} Array of hex color strings
  */
 const getFallbackGradient = (userHandle) => {
-  // Usa un indice completamente casuale ogni volta per più varietà
-  const randomIndex = Math.floor(Math.random() * GRADIENT_PALETTES.length);
-  return GRADIENT_PALETTES[randomIndex];
+  // Usa un hash del nome utente per colori deterministici
+  let hash = 0;
+  if (userHandle) {
+    for (let i = 0; i < userHandle.length; i++) {
+      const char = userHandle.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+  }
+  const index = Math.abs(hash) % GRADIENT_PALETTES.length;
+  return GRADIENT_PALETTES[index];
 };
 
 /**

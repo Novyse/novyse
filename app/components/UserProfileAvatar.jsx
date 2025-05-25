@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { View, StyleSheet, Text, Image, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { extractDominantColors, getFirstLetter } from "../utils/colorUtils";
+import { getFirstLetter } from "../utils/colorUtils";
 
 const UserProfileAvatar = ({
   userHandle,
@@ -9,43 +9,45 @@ const UserProfileAvatar = ({
   containerWidth,
   containerHeight,
 }) => {
-  const [gradientColors, setGradientColors] = useState(["#667eea", "#764ba2"]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showFallback, setShowFallback] = useState(false);
-  // Estrai colori dall'immagine del profilo
-  useEffect(() => {
-    const loadColors = async () => {
-      setIsLoading(true);
+  const [showFallback, setShowFallback] = useState(!profileImageUri);
 
-      try {
-        if (profileImageUri) {
-          const colors = await extractDominantColors(
-            profileImageUri,
-            userHandle
-          );
-          setGradientColors(colors);
-          setShowFallback(false);
-        } else {
-          const colors = await extractDominantColors(null, userHandle);
-          setGradientColors(colors);
-          setShowFallback(true);
-        }
-      } catch (error) {
-        // Fallback con colori basati sul nome utente
-        const colors = await extractDominantColors(null, userHandle);
-        setGradientColors(colors);
-        setShowFallback(true);
-      } finally {
-        setIsLoading(false);
+  // Memoizza i colori del gradiente per evitare rigenerazioni continue
+  const gradientColors = useMemo(() => {
+    // Genera colori deterministici basati su userHandle
+    let hash = 0;
+    if (userHandle) {
+      for (let i = 0; i < userHandle.length; i++) {
+        const char = userHandle.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash;
       }
-    };
+    }
 
-    loadColors();
-  }, [profileImageUri, userHandle]);
+    const gradientPalettes = [
+      ["#667eea", "#764ba2"], // Purple blue
+      ["#f093fb", "#f5576c"], // Pink red
+      ["#4facfe", "#00f2fe"], // Blue cyan
+      ["#43e97b", "#38f9d7"], // Green cyan
+      ["#fa709a", "#fee140"], // Pink yellow
+      ["#a8edea", "#fed6e3"], // Cyan pink light
+      ["#ffecd2", "#fcb69f"], // Orange peach
+      ["#ff9a9e", "#fecfef"], // Pink purple light
+      ["#d299c2", "#fef9d7"], // Purple yellow
+      ["#89f7fe", "#66a6ff"], // Light blue
+    ];
+
+    const index = Math.abs(hash) % gradientPalettes.length;
+    return gradientPalettes[index];
+  }, [userHandle]);
+
+  // Estrai colori dall'immagine del profilo solo se necessario
+  useEffect(() => {
+    setShowFallback(!profileImageUri);
+  }, [profileImageUri]);
 
   // Calcola le dimensioni dell'avatar (circa 35% della dimensione del container)
-  const avatarSize = Math.min(containerWidth, containerHeight) * 0.35;
-  const fontSize = avatarSize * 0.4; // Dimensione del testo relativa all'avatar
+  const avatarSize = Math.max(Math.min(containerWidth, containerHeight) * 0.35, 20); // Minimo 20px per evitare dimensioni zero
+  const fontSize = Math.max(avatarSize * 0.4, 10); // Minimo 10px per evitare dimensione zero del font
 
   return (
     <View
@@ -71,38 +73,24 @@ const UserProfileAvatar = ({
               },
             ]}
           >
-            <View
-              style={[
-                styles.fallbackAvatar,
-                {
-                  width: avatarSize,
-                  height: avatarSize,
-                  borderRadius: avatarSize / 2,
-                },
-              ]}
-            >
+            {showFallback ? (
               <Text style={[styles.fallbackText, { fontSize }]}>
                 {getFirstLetter(userHandle)}
               </Text>
-            </View>
-            {profileImageUri && !showFallback && (
-              <View style={styles.profileImageContainer}>
-                <Image
-                  source={{ uri: profileImageUri }}
-                  style={[
-                    styles.profileImage,
-                    {
-                      width: avatarSize,
-                      height: avatarSize,
-                      borderRadius: avatarSize,
-                    },
-                  ]}
-                  resizeMode="cover"
-                  onError={() => {
-                    setShowFallback(true);
-                  }}
-                />
-              </View>
+            ) : (
+              <Image
+                source={{ uri: profileImageUri }}
+                style={[
+                  styles.profileImage,
+                  {
+                    width: avatarSize,
+                    height: avatarSize,
+                    borderRadius: avatarSize / 2,
+                  },
+                ]}
+                resizeMode="cover"
+                onError={() => setShowFallback(true)}
+              />
             )}
           </View>
           <View style={styles.nameContainer}>
@@ -122,7 +110,6 @@ const UserProfileAvatar = ({
 
 const styles = StyleSheet.create({
   container: {
-    position: "relative",
     overflow: "hidden",
     borderRadius: 10,
   },
@@ -135,48 +122,23 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
   },
   avatarContainer: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  profileImageContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.4)",
   },
   profileImage: {
-    borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.8)",
-  },
-  fallbackAvatar: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.6)",
   },
   fallbackText: {
     color: "#FFFFFF",
     fontWeight: "bold",
     textAlign: "center",
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
   },
   nameContainer: {
     position: "absolute",
@@ -186,18 +148,13 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    maxWidth: "70%", // Limita la larghezza massima al 70% del container
-    flexShrink: 1,
-    alignSelf: "flex-start",
+    maxWidth: "70%",
   },
   userName: {
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600",
     textAlign: "left",
-    textShadowColor: "rgba(0, 0, 0, 0.5)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
   },
 });
 
