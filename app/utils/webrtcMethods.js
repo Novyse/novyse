@@ -1,29 +1,3 @@
-
-/**
- * WebRTC Multi-Peer Connection Manager with Enhanced Stability and Reconnection Policy
- * 
- * RECONNECTION POLICY:
- * - Maximum 3 reconnection attempts per participant
- * - Exponential backoff: 2s, 4s, 8s delays between attempts  
- * - Three-tier recovery strategy:
- *   1. ICE Restart (attempt 1)
- *   2. SDP Renegotiation (attempt 2) 
- *   3. Complete Connection Recreation (attempt 3)
- * 
- * HEALTH MONITORING:
- * - Continuous health checks every 5 seconds
- * - Automatic detection of problematic connection states
- * - Smart recovery triggering based on connection age and state
- * 
- * ERROR HANDLING:
- * - Comprehensive error logging with detailed failure analysis
- * - Connection statistics and debugging information
- * - Manual recovery methods for testing and UI integration
- * 
- * After 3 failed attempts, the connection is permanently marked as failed
- * and detailed error information is logged to the console.
- */
-
 import WebSocketMethods from "./webSocketMethods";
 import { Platform } from "react-native";
 import eventEmitter from "./EventEmitter";
