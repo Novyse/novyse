@@ -8,7 +8,7 @@ import voiceActivityDetection from "../utils/voiceActivityDetection";
 
 const audioOnly = true; // Imposta audioOnly a true per iniziare con l'audio
 
-const VocalContentBottomBar= ({ chatId, selfJoined, selfLeft, WebRTC }) => {
+const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -58,7 +58,7 @@ const VocalContentBottomBar= ({ chatId, selfJoined, selfLeft, WebRTC }) => {
       }
     }
   };
-  
+
   const toggleVideo = async () => {
     try {
       if (!isVideoEnabled) {
@@ -75,6 +75,41 @@ const VocalContentBottomBar= ({ chatId, selfJoined, selfLeft, WebRTC }) => {
     } catch (err) {
       console.error('Errore nel toggle video:', err);
       alert("Errore nel toggle video: " + err.message);
+    }
+  };
+
+  const handleScreenShare = async () => {
+    try {
+      console.log('[ScreenShare] Starting screen share, Platform:', Platform.OS);
+      const result = await WebRTC.addScreenShareStream();
+      if (result) {
+        console.log(`[ScreenShare] Screen share started with ID: ${result.streamId}`);
+      } else {
+        console.warn('[ScreenShare] Failed to start screen share');
+        if (Platform.OS === 'android') {
+          alert('Screen sharing failed. Please ensure camera and microphone permissions are granted, and try again.');
+        } else {
+          alert('Failed to start screen share. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('[ScreenShare] Error starting screen share:', error);
+      
+      // Provide specific error messages for different scenarios
+      let errorMessage = 'Error starting screen share: ';
+      if (Platform.OS === 'android') {
+        if (error.message.includes('Permission')) {
+          errorMessage += 'Camera permission required for screen sharing on Android. Please grant camera access and try again.';
+        } else if (error.message.includes('not available')) {
+          errorMessage += 'Screen sharing not supported on this Android device. Camera will be used as fallback.';
+        } else {
+          errorMessage += `Android screen sharing error: ${error.message}`;
+        }
+      } else {
+        errorMessage += error.message;
+      }
+      
+      alert(errorMessage);
     }
   };
 
@@ -102,6 +137,11 @@ const VocalContentBottomBar= ({ chatId, selfJoined, selfLeft, WebRTC }) => {
           <VocalBottomBarButton
             onPress={toggleVideo}
             iconName={isVideoEnabled ? "videocam" : "videocam-off"}
+            iconColor={theme.icon}
+          />
+          <VocalBottomBarButton
+            onPress={handleScreenShare}
+            iconName="desktop-windows"
             iconColor={theme.icon}
           />
           <VocalBottomBarButton

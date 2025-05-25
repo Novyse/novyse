@@ -224,6 +224,37 @@ const WebSocketMethods = {
       });
     });
 
+    // Screen sharing signaling
+    socket.on("screen_share_started", async (data) => {
+      if (!data || !data.from || !data.streamId) {
+        console.error("Invalid screen_share_started data received:", data);
+        return;
+      }
+      console.log(`Screen share started by ${data.from}, streamId: ${data.streamId}`);
+
+      // Emit event to notify components
+      eventEmitter.emit("screen_share_started", {
+        from: data.from,
+        streamId: data.streamId,
+        streamType: data.streamType
+      });
+    });
+
+    socket.on("screen_share_stopped", async (data) => {
+      if (!data || !data.from || !data.streamId) {
+        console.error("Invalid screen_share_stopped data received:", data);
+        return;
+      }
+      console.log(`Screen share stopped by ${data.from}, streamId: ${data.streamId}`);
+
+      // Emit event to notify components
+      eventEmitter.emit("screen_share_stopped", {
+        from: data.from,
+        streamId: data.streamId,
+        streamType: data.streamType
+      });
+    });
+
     return "return of socket.io receiver function";
   },
 
@@ -241,7 +272,6 @@ const WebSocketMethods = {
   RTCAnswer: async (data) => {
     socket.emit("answer", data);
   },
-
   // Voice Activity Detection signaling methods
   sendSpeakingStatus: async (chatId, id, isSpeaking) => {
     if (!socket || !socket.connected) {
@@ -263,6 +293,39 @@ const WebSocketMethods = {
 
     // Then send to server
     socket.emit(eventType, data);
+  },
+
+  // Screen sharing signaling methods
+  sendScreenShareStarted: async (chatId, from, streamId) => {
+    if (!socket || !socket.connected) {
+      console.log("Cannot send screen share status: Socket not connected");
+      return;
+    }
+
+    const data = {
+      to: chatId,
+      from: from,
+      streamId: streamId,
+      streamType: 'screenshare'
+    };
+
+    socket.emit("screen_share_started", data);
+  },
+
+  sendScreenShareStopped: async (chatId, from, streamId) => {
+    if (!socket || !socket.connected) {
+      console.log("Cannot send screen share status: Socket not connected");
+      return;
+    }
+
+    const data = {
+      to: chatId,
+      from: from,
+      streamId: streamId,
+      streamType: 'screenshare'
+    };
+
+    socket.emit("screen_share_stopped", data);
   },
 
   UpdateLastWebSocketActionDateTime: async (date) => {

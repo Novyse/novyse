@@ -44,6 +44,95 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
   // useRef per tracciare i render e prevenire re-render frequenti
   const renderedVideos = useRef(new Map());
 
+  // Funzione per ottenere tutti gli stream attivi (webcam + screen shares)
+  const getAllActiveStreams = useCallback(() => {
+    const streams = [];
+    
+    console.log('[VocalMembersLayout] Debug - WebRTC object:', {
+      myId: WebRTC?.myId,
+      localStream: !!WebRTC?.localStream,
+      screenStreams: WebRTC?.screenStreams ? Object.keys(WebRTC.screenStreams) : [],
+      remoteStreams: WebRTC?.remoteStreams ? Object.keys(WebRTC.remoteStreams) : [],
+      remoteScreenStreams: WebRTC?.remoteScreenStreams ? Object.keys(WebRTC.remoteScreenStreams) : []
+    });
+
+    // Safety check: ensure WebRTC and profiles are available
+    if (!WebRTC || !profiles || !Array.isArray(profiles)) {
+      console.warn('[VocalMembersLayout] Missing WebRTC or profiles data');
+      return streams;
+    }
+
+    // Aggiungi sempre l'utente locale (webcam principale)
+    const localProfile = profiles.find(p => p && p.from === WebRTC?.myId);
+    if (localProfile && WebRTC?.localStream) {
+      streams.push({
+        type: 'webcam',
+        profile: localProfile,
+        stream: WebRTC?.localStream,
+        streamId: `local-webcam-${WebRTC?.myId}`,
+        canClose: false, // La webcam principale non può essere chiusa
+      });
+    }
+    
+    // Aggiungi screen shares locali
+    if (WebRTC?.screenStreams && localProfile) {
+      Object.entries(WebRTC.screenStreams).forEach(([streamId, stream]) => {
+        if (stream && stream.getVideoTracks().length > 0) { // Only add if stream has active video tracks
+          streams.push({
+            type: 'screenshare',
+            profile: localProfile,
+            stream: stream,
+            streamId: `local-screen-${streamId}`,
+            canClose: true,
+          });
+        }
+      });
+    }
+
+    // Aggiungi stream remoti (webcam + screen shares)
+    profiles.forEach(profile => {
+      // Enhanced safety check for profile validity
+      if (!profile || !profile.from || profile.from === WebRTC?.myId) {
+        return; // Skip invalid profiles or own profile
+      }
+      
+      // Webcam remota
+      if (WebRTC?.remoteStreams?.[profile.from]) {
+        const remoteStream = WebRTC.remoteStreams[profile.from];
+        // Only add if stream has active tracks
+        if (remoteStream && (remoteStream.getAudioTracks().length > 0 || remoteStream.getVideoTracks().length > 0)) {
+          streams.push({
+            type: 'webcam',
+            profile: profile,
+            stream: remoteStream,
+            streamId: `remote-webcam-${profile.from}`,
+            canClose: false,
+          });
+        }
+      }
+
+      // Screen shares remote
+      if (WebRTC?.remoteScreenStreams?.[profile.from]) {
+        Object.entries(WebRTC.remoteScreenStreams[profile.from]).forEach(([streamId, stream]) => {
+          // Only add if stream exists and has active video tracks
+          if (stream && stream.getVideoTracks().length > 0) {
+            streams.push({
+              type: 'screenshare',
+              profile: profile,
+              stream: stream,
+              streamId: `remote-screen-${profile.from}-${streamId}`,
+              canClose: false, // Gli stream remoti non possono essere chiusi dal client locale
+            });
+          }
+        });
+      }
+    });
+
+    console.log('[VocalMembersLayout] Total streams found:', streams.length, streams.map(s => ({ type: s.type, streamId: s.streamId, handle: s.profile?.handle })));
+    
+    return streams;
+  }, [profiles, WebRTC, WebRTC?.screenStreams, forceUpdate]);
+
   // Add CSS animation for web platform - only once per session
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
@@ -91,13 +180,15 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
   useEffect(() => {
     setForceUpdate(prev => prev + 1);
   }, [profiles]);
-
   // Calcolo ottimizzato del layout
   const calculateLayout = useCallback(() => {
+    const allStreams = getAllActiveStreams();
+    const totalStreams = allStreams.length;
+
     if (
       !containerDimensions.width ||
       !containerDimensions.height ||
-      profiles.length === 0
+      totalStreams === 0
     ) {
       return { numColumns: 0, rectWidth: 0, rectHeight: 0, margin: MARGIN };
     }
@@ -108,18 +199,18 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
     let numColumns, numRows;
 
     // Logica per l'orientamento verticale (portrait)
-    if (isPortrait && profiles.length <= 2) {
-      // Per 1 o 2 utenti in verticale, usa una colonna (uno sopra l'altro)
+    if (isPortrait && totalStreams <= 2) {
+      // Per 1 o 2 stream in verticale, usa una colonna (uno sopra l'altro)
       numColumns = 1;
-      numRows = profiles.length;
+      numRows = totalStreams;
     } else {
       // Per altri casi, usa un layout bilanciato
-      numColumns = Math.ceil(Math.sqrt(profiles.length));
-      numRows = Math.ceil(profiles.length / numColumns);
+      numColumns = Math.ceil(Math.sqrt(totalStreams));
+      numRows = Math.ceil(totalStreams / numColumns);
       // In portrait, se ci sono poche righe, riduci il numero di colonne per sfruttare l'altezza
       if (isPortrait && numRows < 3 && numColumns > 1) {
         numColumns = Math.max(1, Math.floor(numColumns / 2));
-        numRows = Math.ceil(profiles.length / numColumns);
+        numRows = Math.ceil(totalStreams / numColumns);
       }
     }
 
@@ -144,29 +235,45 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
     }
 
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
-  }, [containerDimensions, profiles.length]);
+  }, [containerDimensions, getAllActiveStreams]);
 
   const { rectWidth, rectHeight, margin } = calculateLayout();
 
-  const renderProfile = (profile) => {
+  // Funzione per chiudere uno screen share locale
+  const handleCloseScreenShare = (streamId) => {
+    if (WebRTC?.removeScreenShareStream) {
+      // Estrai l'ID vero dello stream dal streamId
+      const actualStreamId = streamId.replace('local-screen-', '');
+      WebRTC.removeScreenShareStream(actualStreamId);
+    }
+  };
+
+  const renderStream = (streamData) => {
+    // Enhanced safety check - ensure streamData exists and has required properties
+    if (!streamData || !streamData.profile || !streamData.stream) {
+      console.warn(`[VocalMembersLayout] Skipping invalid stream data:`, streamData);
+      return null;
+    }
+    
+    const { type, profile, stream, streamId, canClose } = streamData;
+    
+    // Additional safety check: if profile is undefined, skip rendering this stream
+    if (!profile || !profile.handle) {
+      console.warn(`[VocalMembersLayout] Skipping stream ${streamId} - profile is invalid:`, profile);
+      return null;
+    }
+    
     let hasVideo = false;
     let activeStream = null;
 
-    if (profile.from === WebRTC?.myId && WebRTC?.localStream) {
-      const videoTracks = WebRTC.localStream.getVideoTracks();
+    // Controlla se il stream ha video attivo
+    if (stream) {
+      const videoTracks = stream.getVideoTracks();
       const hasActiveTracks = videoTracks.length > 0 && videoTracks.some(track => track.enabled && track.readyState === 'live');
       
       if (hasActiveTracks) {
         hasVideo = true;
-        activeStream = WebRTC.localStream;
-      }
-    } else if (WebRTC?.remoteStreams?.[profile.from]) {
-      const videoTracks = WebRTC.remoteStreams[profile.from].getVideoTracks();
-      const hasActiveTracks = videoTracks.length > 0 && videoTracks.some(track => track.enabled && track.readyState === 'live');
-
-      if (hasActiveTracks) {
-        hasVideo = true;
-        activeStream = WebRTC.remoteStreams[profile.from];
+        activeStream = stream;
       }
     }
 
@@ -189,9 +296,17 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
       speakingCache.set(speakingKey, isSpeaking);
     }
 
+    // Determina l'etichetta da mostrare
+    const getStreamLabel = () => {
+      if (type === 'screenshare') {
+        return `${profile.handle} (Screen)`;
+      }
+      return profile.handle;
+    };
+
     return (
       <Pressable
-        key={`${profile.from}-${hasVideo}-${activeStream ? 'stream' : 'no-stream'}`}
+        key={streamId}
         style={[
           styles.profile,
           {
@@ -206,38 +321,57 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
             <View style={styles.videoOverlay}>
               {Platform.OS === 'web' ? (
                 <RTCView
-                  key={`video-${profile.from}-permanent`}
+                  key={`video-${streamId}`}
                   stream={activeStream}
-                  style={styles.videoStyle}
+                  style={[styles.videoStyle, { objectFit: 'cover' }]} // Fix per warning objectFit
                   muted={true}
-                  objectFit="cover"
                 />
               ) : (
                 <RTCView
-                  key={`video-${profile.from}-permanent`}
+                  key={`video-${streamId}`}
                   streamURL={activeStream.toURL()}
                   style={styles.videoStyle}
                   muted={true}
                   objectFit="cover"
                 />
               )}
-              <Text style={styles.profileText}>{profile.handle}</Text>
+              <Text style={styles.profileText}>{getStreamLabel()}</Text>
+              {/* Bottone di chiusura per screen shares locali */}
+              {canClose && (
+                <Pressable
+                  style={styles.closeButton}
+                  onPress={() => handleCloseScreenShare(streamId)}
+                >
+                  <Text style={styles.closeButtonText}>×</Text>
+                </Pressable>
+              )}
             </View>
           ) : (
-            <UserProfileAvatar
-              key={`avatar-${profile.from}-stable`}
-              userHandle={profile.handle}
-              profileImageUri={profile.profileImage || null}
-              containerWidth={rectWidth}
-              containerHeight={rectHeight}
-            />
+            <View style={styles.avatarContainer}>
+              <UserProfileAvatar
+                key={`avatar-${streamId}`}
+                userHandle={profile.handle}
+                profileImageUri={profile.profileImage || null}
+                containerWidth={rectWidth}
+                containerHeight={rectHeight}
+              />
+              {/* Mostra il bottone di chiusura anche quando non c'è video per screen shares */}
+              {canClose && type === 'screenshare' && (
+                <Pressable
+                  style={styles.closeButton}
+                  onPress={() => handleCloseScreenShare(streamId)}
+                >
+                  <Text style={styles.closeButtonText}>×</Text>
+                </Pressable>
+              )}
+            </View>
           )}
           <View 
-            key={`speaking-indicator-${profile.from}`}
+            key={`speaking-indicator-${streamId}`}
             style={[
               styles.speakingOverlayContainer,
-              isSpeaking && styles.speakingOverlay,
-              Platform.OS === "web" && isSpeaking && {
+              isSpeaking && type === 'webcam' && styles.speakingOverlay, // Solo webcam ha il speaking indicator
+              Platform.OS === "web" && isSpeaking && type === 'webcam' && {
                 animationName: "pulse",
                 animationDuration: "1.5s",
                 animationIterationCount: "infinite",
@@ -252,8 +386,8 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
   return (
     <View style={styles.container} onLayout={onContainerLayout}>
       <View style={[styles.grid, { width: containerDimensions.width }]}>
-        {profiles.length > 0 ? (
-          profiles.map(renderProfile)
+        {getAllActiveStreams().length > 0 ? (
+          getAllActiveStreams().map(renderStream)
         ) : (
           <View style={styles.emptyChatContainer}>
             <Text style={styles.emptyChatText}>Nessun utente nella chat</Text>
@@ -328,6 +462,28 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     padding: 5,
     borderRadius: 5,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    width: 28,
+    height: 28,
+    backgroundColor: 'rgba(255, 0, 0, 0.8)',
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 15,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    lineHeight: 20,
+  },
+  avatarContainer: {
+    flex: 1,
+    position: 'relative',
   },
   emptyChatContainer: {
     flex: 1,

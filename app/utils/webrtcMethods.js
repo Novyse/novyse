@@ -47,6 +47,12 @@ class MultiPeerWebRTCManager {
   userData = {};
   localStream = null;
   remoteStreams = {}; // Oggetto per memorizzare gli stream remoti: { participantId: MediaStream }
+  remoteScreenStreams = {}; // Oggetto per memorizzare gli screen share remoti: { participantId: { streamId: MediaStream } }
+  remoteStreamMetadata = {}; // Metadata per tracciare i tipi di stream remoti: { participantId: { streamId: 'webcam'|'screenshare' } }
+  
+  // Screen sharing functionality
+  screenStreams = {}; // Store multiple screen share streams { streamId: MediaStream }
+  screenStreamCounter = 0; // Counter for unique stream IDs
 
   // Voice Activity Detection
   speakingUsers = new Set(); // Track who is currently speaking
@@ -114,14 +120,16 @@ class MultiPeerWebRTCManager {
     eventEmitter.on('offer', this.offerMessage.bind(this));
     eventEmitter.on('answer', this.answerMessage.bind(this));
     eventEmitter.on('candidate', this.candidateMessage.bind(this));
-    
-    // Add speaking status listeners
+      // Add speaking status listeners
     eventEmitter.on('speaking', this.handleRemoteSpeaking.bind(this));
     eventEmitter.on('not_speaking', this.handleRemoteNotSpeaking.bind(this));
     
+    // Add screen sharing listeners
+    eventEmitter.on('screen_share_started', this.handleRemoteScreenShareStarted.bind(this));
+    eventEmitter.on('screen_share_stopped', this.handleRemoteScreenShareStopped.bind(this));
+    
     console.log('MultiPeerWebRTCManager: Event listeners configurati');
   }
-
   // Metodo per rimuovere gli event listeners
   _removeEventListeners() {
     eventEmitter.off('offer', this.offerMessage.bind(this));
@@ -129,6 +137,8 @@ class MultiPeerWebRTCManager {
     eventEmitter.off('candidate', this.candidateMessage.bind(this));
     eventEmitter.off('speaking', this.handleRemoteSpeaking.bind(this));
     eventEmitter.off('not_speaking', this.handleRemoteNotSpeaking.bind(this));
+    eventEmitter.off('screen_share_started', this.handleRemoteScreenShareStarted.bind(this));
+    eventEmitter.off('screen_share_stopped', this.handleRemoteScreenShareStopped.bind(this));
   }
 
 
@@ -153,11 +163,13 @@ class MultiPeerWebRTCManager {
           width: 1920,
           height: 1080,
         },
-      };      const stream = await mediaDevices.getUserMedia(constraints);
+      };
+      const stream = await mediaDevices.getUserMedia(constraints);
       console.log("MultiPeerWebRTCManager: Stream locale ottenuto.");
       this.localStream = stream;
       if (this.onLocalStreamReady) {
-        this.onLocalStreamReady(stream);      }
+        this.onLocalStreamReady(stream);
+      }
       
       // Se ci sono già connessioni peer attive, aggiungi lo stream a tutte
       Object.values(this.peerConnections).forEach((pc) => {
@@ -274,7 +286,6 @@ class MultiPeerWebRTCManager {
       this.handleSpeakingStatusChange(userId, true);
     }
   }
-
   /**
    * Handle remote user not speaking events
    */
@@ -282,6 +293,45 @@ class MultiPeerWebRTCManager {
     const userId = data.from || data.id;
     if (userId && userId !== this.myId) {
       this.handleSpeakingStatusChange(userId, false);
+    }
+  }
+
+  /**
+   * Handle remote screen share started events
+   */
+  handleRemoteScreenShareStarted(data) {
+    const { from, streamId } = data;
+    if (from && from !== this.myId) {
+      console.log(`Remote screen share started: ${from}/${streamId}`);
+      
+      // Initialize metadata tracking
+      if (!this.remoteStreamMetadata[from]) {
+        this.remoteStreamMetadata[from] = {};
+      }
+      this.remoteStreamMetadata[from][streamId] = 'screenshare';
+      
+      // The actual stream will be handled in ontrack when the media arrives
+    }
+  }
+
+  /**
+   * Handle remote screen share stopped events
+   */
+  handleRemoteScreenShareStopped(data) {
+    const { from, streamId } = data;
+    if (from && from !== this.myId) {
+      console.log(`Remote screen share stopped: ${from}/${streamId}`);
+      
+      // Remove from metadata
+      if (this.remoteStreamMetadata[from]) {
+        delete this.remoteStreamMetadata[from][streamId];
+      }
+      
+      // Remove the stream
+      if (this.remoteScreenStreams[from] && this.remoteScreenStreams[from][streamId]) {
+        delete this.remoteScreenStreams[from][streamId];
+        this.notifyStreamUpdate();
+      }
     }
   }
 
@@ -334,28 +384,86 @@ class MultiPeerWebRTCManager {
           console.log(`[WebRTC ICE] ICE gathering completato per ${participantId}`);
           this._reportConnectionEvent(participantId, 'ice_gathering_complete');
         }
-      };
-
-      // In webrtcMethods.js, inside createPeerConnection method
+      };      // In webrtcMethods.js, inside createPeerConnection method
       pc.ontrack = (event) => {
         console.log(
           `[WebRTC Track] Ricevuta track remota da ${participantId}:`,
-          event.track.kind
+          event.track.kind,
+          'label:', event.track.label,
+          'id:', event.track.id,
+          'streams:', event.streams.map(s => s.id)
         );
         this._reportConnectionEvent(participantId, 'remote_track_received', { kind: event.track.kind });
 
-        // Usa un MediaStream esistente o creane uno nuovo
-        if (!this.remoteStreams[participantId]) {
-          this.remoteStreams[participantId] = new MediaStream();
+        // Check if we have metadata for this track (from signaling)
+        let isScreenShare = false;
+        let streamId = null;
+
+        // Try to match the track to a known screen share stream
+        if (this.remoteStreamMetadata[participantId]) {
+          // Look for screen share metadata based on stream IDs or track IDs
+          for (const [metaStreamId, streamType] of Object.entries(this.remoteStreamMetadata[participantId])) {
+            if (streamType === 'screenshare') {
+              // Use the stream ID from event.streams or fallback to track-based detection
+              const eventStreamId = event.streams.length > 0 ? event.streams[0].id : event.track.id;
+              if (eventStreamId.includes(metaStreamId) || metaStreamId.includes('screen')) {
+                isScreenShare = true;
+                streamId = metaStreamId;
+                break;
+              }
+            }
+          }
         }
 
-        // Aggiungi la traccia allo stream esistente
-        const stream = this.remoteStreams[participantId];
-        stream.addTrack(event.track);
+        // Fallback: try to identify screen share tracks by label or stream ID patterns
+        if (!isScreenShare) {
+          const isScreenShareFallback = event.track.label.includes('screen') ||
+                                       event.track.label.includes('Screen') ||
+                                       event.track.id.includes('screen') ||
+                                       (event.streams.length > 0 && event.streams[0].id.includes('screen'));
+          
+          if (isScreenShareFallback) {
+            isScreenShare = true;
+            streamId = event.streams.length > 0 ? event.streams[0].id : `screen_${Date.now()}`;
+            
+            // Update metadata for future use
+            if (!this.remoteStreamMetadata[participantId]) {
+              this.remoteStreamMetadata[participantId] = {};
+            }
+            this.remoteStreamMetadata[participantId][streamId] = 'screenshare';
+          }
+        }
 
-        // Notifica solo quando riceviamo sia audio che video (o uno dei due se è tutto ciò che ci aspettiamo)
-        if (this.onRemoteStreamAddedOrUpdated) {
-          this.onRemoteStreamAddedOrUpdated(participantId, stream);
+        if (isScreenShare && streamId) {
+          // Handle screen share tracks separately
+          if (!this.remoteScreenStreams) {
+            this.remoteScreenStreams = {};
+          }
+          if (!this.remoteScreenStreams[participantId]) {
+            this.remoteScreenStreams[participantId] = {};
+          }
+
+          // Create or get the screen share stream for this specific streamId
+          if (!this.remoteScreenStreams[participantId][streamId]) {
+            this.remoteScreenStreams[participantId][streamId] = new MediaStream();
+          }
+
+          this.remoteScreenStreams[participantId][streamId].addTrack(event.track);
+          console.log(`[WebRTC Track] Added screen share track to ${participantId}/${streamId}`);
+        } else {
+          // Handle regular webcam tracks
+          if (!this.remoteStreams[participantId]) {
+            this.remoteStreams[participantId] = new MediaStream();
+          }
+
+          // Aggiungi la traccia allo stream esistente
+          const stream = this.remoteStreams[participantId];
+          stream.addTrack(event.track);
+
+          // Notifica solo quando riceviamo sia audio che video (o uno dei due se è tutto ciò che ci aspettiamo)
+          if (this.onRemoteStreamAddedOrUpdated) {
+            this.onRemoteStreamAddedOrUpdated(participantId, stream);
+          }
         }
         
         this.notifyStreamUpdate();
@@ -1787,12 +1895,27 @@ class MultiPeerWebRTCManager {
   }
   /**
    * Chiude TUTTE le connessioni e rilascia le risorse.
-   */
-  closeAllConnections() {
+   */  closeAllConnections() {
     console.log("MultiPeerWebRTCManager: Chiusura di tutte le connessioni...");
 
     // Stop voice activity detection
     this.stopVoiceActivityDetection();
+
+    // Close all screen share streams first
+    if (this.screenStreams) {
+      Object.keys(this.screenStreams).forEach(streamId => {
+        const stream = this.screenStreams[streamId];
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+      });
+      this.screenStreams = {};
+      this.screenStreamCounter = 0;
+    }
+
+    // Clean up remote screen streams
+    this.remoteScreenStreams = {};
+    this.remoteStreamMetadata = {};
 
     // Chiudi tutte le connessioni peer
     Object.keys(this.peerConnections).forEach((participantId) => {
@@ -1804,6 +1927,25 @@ class MultiPeerWebRTCManager {
     // Pulisci gli stream remoti rimasti (dovrebbero essere già stati rimossi da closePeerConnection)
     this.remoteStreams = {};
 
+    // Clear all connection tracking
+    this.connectionStates = {};
+    this.connectionTimestamps = {};
+    this.reconnectionAttempts = {};
+    this.lastKnownGoodStates = {};
+    this.iceCandidateQueues = {};
+    this.negotiationInProgress = {};
+    
+    // Clear health checkers and timeouts
+    Object.values(this.connectionHealthCheckers).forEach(checker => {
+      if (checker) clearInterval(checker);
+    });
+    this.connectionHealthCheckers = {};
+    
+    Object.values(this.reconnectionTimeouts).forEach(timeout => {
+      if (timeout) clearTimeout(timeout);
+    });
+    this.reconnectionTimeouts = {};
+
     // Resetta ID
     this.myId = null;
 
@@ -1812,11 +1954,11 @@ class MultiPeerWebRTCManager {
 
     // Disabilito gli event listeners non più necessari (candidate, offer, answer sono utili solo quando sei in una comms)
     this._removeEventListeners();
-      console.log(
-      "MultiPeerWebRTCManager: Tutte le connessioni chiuse e risorse rilasciate."
-    );
-    // Potresti voler notificare un cambio di stato generale qui
-    // if (this.onPeerConnectionStateChange) this.onPeerConnectionStateChange(null, 'closed');
+    
+    console.log("MultiPeerWebRTCManager: Tutte le connessioni chiuse e risorse rilasciate.");
+    
+    // Notify UI about cleanup
+    this.notifyStreamUpdate();
   }
 
   /**
@@ -1909,6 +2051,268 @@ class MultiPeerWebRTCManager {
     }
 
     console.log(`MultiPeerWebRTCManager: Rigenerato per l'utente ${myId}`);
+  }
+  // ===== SCREEN SHARING FUNCTIONALITY =====
+
+  /**
+   * Start a new screen sharing stream
+   * @returns {Object} { streamId, stream } or null if failed
+   */
+  async addScreenShareStream() {
+    try {
+      if (Platform.OS === 'web') {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            aspectRatio: { ideal: 16/9 }
+          },
+          audio: true // Include system audio if available
+        });
+
+        const streamId = `screen_${this.screenStreamCounter++}`;
+        this.screenStreams[streamId] = screenStream;
+
+        // Add screen share tracks to all peer connections
+        for (const [peerId, pc] of Object.entries(this.peerConnections)) {
+          if (pc.connectionState === 'connected' || pc.connectionState === 'connecting') {
+            try {
+              screenStream.getTracks().forEach(track => {
+                // Add a custom property to identify this as a screen share track
+                track.streamId = streamId;
+                track.streamType = 'screenshare';
+                pc.addTrack(track, screenStream);
+              });
+            } catch (error) {
+              console.error(`Error adding screen share tracks to peer ${peerId}:`, error);
+            }
+          }
+        }
+
+        // Listen for when user stops screen sharing via browser UI
+        screenStream.getVideoTracks()[0].onended = () => {
+          this.removeScreenShareStream(streamId);
+        };
+        console.log(`Screen share stream ${streamId} started successfully`);
+        
+        // Send signaling message to notify other participants
+        if (this.chatId && WebSocketMethods.sendScreenShareStarted) {
+          await WebSocketMethods.sendScreenShareStarted(this.chatId, this.myId, streamId);
+        }
+        
+        // Notify UI components
+        this.notifyStreamUpdate();
+        
+        // Renegotiate with all peers
+        setTimeout(async () => {
+          await this.renegotiateWithAllPeers();
+        }, 100);
+
+        return { streamId, stream: screenStream };
+      } else {
+        // For Android, use proper screen capture implementation
+        try {
+          let screenStream = null;
+          
+          // Method 1: Try react-native-webrtc's built-in screen capture
+          if (mediaDevices.getDisplayMedia) {
+            try {
+              console.log('[Android] Attempting getDisplayMedia screen capture');
+              screenStream = await mediaDevices.getDisplayMedia({
+                video: {
+                  width: { ideal: 1920, min: 720, max: 1920 },
+                  height: { ideal: 1080, min: 480, max: 1080 },
+                  frameRate: { ideal: 15, max: 30 }
+                },
+                audio: false // Audio capture often causes issues on Android
+              });
+              console.log('[Android] getDisplayMedia successful');
+            } catch (displayError) {
+              console.warn('[Android] getDisplayMedia failed:', displayError.message);
+              screenStream = null;
+            }
+          }
+          
+          // Method 2: Try react-native-webrtc's getUserMedia with screen source
+          if (!screenStream && mediaDevices.getUserMedia) {
+            try {
+              console.log('[Android] Attempting getUserMedia with screen source');
+              screenStream = await mediaDevices.getUserMedia({
+                video: {
+                  mandatory: {
+                    chromeMediaSource: 'screen',
+                    maxWidth: 1920,
+                    maxHeight: 1080,
+                    maxFrameRate: 15
+                  }
+                },
+                audio: false
+              });
+              console.log('[Android] getUserMedia with screen source successful');
+            } catch (screenError) {
+              console.warn('[Android] getUserMedia with screen source failed:', screenError.message);
+              screenStream = null;
+            }
+          }
+          
+          // Method 3: Fallback to high-quality camera stream with proper labeling
+          if (!screenStream) {
+            console.log('[Android] Using camera fallback for screen sharing');
+            try {
+              screenStream = await mediaDevices.getUserMedia({
+                video: {
+                  width: { ideal: 1920, min: 720 },
+                  height: { ideal: 1080, min: 480 },
+                  frameRate: { ideal: 30, min: 15 },
+                  facingMode: { ideal: 'environment' } // Back camera typically better quality
+                },
+                audio: false
+              });
+              console.log('[Android] Camera fallback successful');
+            } catch (cameraError) {
+              console.error('[Android] All screen sharing methods failed:', cameraError.message);
+              throw new Error(`Screen sharing not available: ${cameraError.message}`);
+            }
+          }
+
+          if (!screenStream) {
+            throw new Error('Failed to obtain screen capture stream on Android');
+          }
+
+          const streamId = `screen_${this.screenStreamCounter++}`;
+          this.screenStreams[streamId] = screenStream;
+
+          // Add screen share tracks to all peer connections
+          for (const [peerId, pc] of Object.entries(this.peerConnections)) {
+            if (pc.connectionState === 'connected' || pc.connectionState === 'connecting') {
+              try {
+                screenStream.getTracks().forEach(track => {
+                  // Mark track with metadata for proper identification
+                  track.streamId = streamId;
+                  track.streamType = 'screenshare';
+                  track.label = `screen-share-${streamId}`;
+                  pc.addTrack(track, screenStream);
+                });
+              } catch (error) {
+                console.error(`Error adding screen share tracks to peer ${peerId}:`, error);
+              }
+            }
+          }
+
+          // Handle stream end event
+          screenStream.getVideoTracks().forEach(track => {
+            track.onended = () => {
+              console.log(`[Android] Screen share track ended: ${streamId}`);
+              this.removeScreenShareStream(streamId);
+            };
+          });
+
+          console.log(`[Android] Screen share stream ${streamId} started successfully`);
+          
+          // Send signaling message to notify other participants
+          if (this.chatId && WebSocketMethods.sendScreenShareStarted) {
+            await WebSocketMethods.sendScreenShareStarted(this.chatId, this.myId, streamId);
+          }
+          
+          this.notifyStreamUpdate();
+          
+          // Renegotiate with all peers after a short delay
+          setTimeout(async () => {
+            await this.renegotiateWithAllPeers();
+          }, 100);
+
+          return { streamId, stream: screenStream };
+
+        } catch (error) {
+          console.error('[Android] Error starting screen share:', error);
+          throw new Error(`Android screen sharing failed: ${error.message}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error starting screen share:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Remove a specific screen sharing stream
+   * @param {string} streamId - The ID of the screen share stream to remove
+   */
+  async removeScreenShareStream(streamId) {
+    const screenStream = this.screenStreams[streamId];
+    if (!screenStream) {
+      console.warn(`Screen share stream ${streamId} not found`);
+      return;
+    }
+
+    try {
+      // Stop all tracks in the screen stream
+      screenStream.getTracks().forEach(track => {
+        track.stop();
+      });
+
+      // Remove screen share tracks from all peer connections
+      for (const [peerId, pc] of Object.entries(this.peerConnections)) {
+        if (pc.connectionState === 'connected' || pc.connectionState === 'connecting') {
+          const senders = pc.getSenders();
+          for (const sender of senders) {
+            if (sender.track && sender.track.streamId === streamId) {
+              try {
+                await pc.removeTrack(sender);
+              } catch (error) {
+                console.error(`Error removing screen share track from peer ${peerId}:`, error);
+              }
+            }
+          }
+        }
+      }      // Remove from our collection
+      delete this.screenStreams[streamId];
+
+      console.log(`Screen share stream ${streamId} removed successfully`);
+      
+      // Send WebSocket signaling to notify other participants
+      if (this.chatId && WebSocketMethods.sendScreenShareStopped) {
+        await WebSocketMethods.sendScreenShareStopped(this.chatId, this.myId, streamId);
+      }
+      
+      // Notify UI components
+      this.notifyStreamUpdate();
+      
+      // Renegotiate with all peers
+      setTimeout(async () => {
+        await this.renegotiateWithAllPeers();
+      }, 100);
+
+    } catch (error) {
+      console.error(`Error removing screen share stream ${streamId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all active screen share streams
+   * @returns {Object} Object containing all screen share streams
+   */
+  getScreenShareStreams() {
+    return { ...this.screenStreams };
+  }
+
+  /**
+   * Check if any screen sharing is active
+   * @returns {boolean} True if at least one screen share is active
+   */
+  hasActiveScreenShare() {
+    return Object.keys(this.screenStreams).length > 0;
+  }
+
+  /**
+   * Remove all screen sharing streams
+   */
+  async removeAllScreenShareStreams() {
+    const streamIds = Object.keys(this.screenStreams);
+    for (const streamId of streamIds) {
+      await this.removeScreenShareStream(streamId);
+    }
   }
 }
 
