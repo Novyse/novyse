@@ -201,7 +201,6 @@ const WebSocketMethods = {
 
     // Voice Activity Detection signaling
     socket.on("speaking", async (data) => {
-      console.log("Speaking event received from server:", data);
       if (!data || !data.from) {
         console.error("Invalid speaking data received:", data);
         return;
@@ -214,7 +213,6 @@ const WebSocketMethods = {
     });
 
     socket.on("not_speaking", async (data) => {
-      console.log("Not speaking event received from server:", data);
       if (!data || !data.from) {
         console.error("Invalid not_speaking data received:", data);
         return;
@@ -256,8 +254,6 @@ const WebSocketMethods = {
       to: chatId,
       from: id
     };
-
-    console.log(`Sending ${eventType} event:`, data);
     
     // First emit directly to update local UI immediately
     eventEmitter.emit(eventType, { 

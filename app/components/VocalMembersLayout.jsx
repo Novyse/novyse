@@ -15,11 +15,40 @@ const ASPECT_RATIO = 16 / 9;
 const MARGIN = 4;
 
 const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
-  const [containerDimensions, setContainerDimensions] = useState({    width: 0,
+  const [containerDimensions, setContainerDimensions] = useState({
+    width: 0,
     height: 0,
   });
   const [forceUpdate, setForceUpdate] = useState(0);
   const { theme } = useContext(ThemeContext);
+
+  // Add CSS animation for web platform
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      // Check if animation already exists
+      const existingStyle = document.getElementById('vocal-speaking-animation');
+      if (!existingStyle) {
+        const style = document.createElement('style');
+        style.id = 'vocal-speaking-animation';        style.textContent = `
+          @keyframes pulse {
+            0% {
+              box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.8);
+              border-color: #00FF00;
+            }
+            50% {
+              box-shadow: inset 0 0 25px rgba(0, 255, 0, 1);
+              border-color: #00DD00;
+            }
+            100% {
+              box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.8);
+              border-color: #00FF00;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+  }, []);
 
   // Handler per il layout
   const onContainerLayout = useCallback((event) => {
@@ -110,11 +139,13 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
   }, [containerDimensions, profiles.length]);
 
   const { rectWidth, rectHeight, margin } = calculateLayout();
-
   const renderProfile = (profile) => {
     // Determina se c'è un video attivo per questo profilo
     let hasVideo = false;
     let activeStream = null;
+
+    // Check if user is currently speaking
+    const isSpeaking = WebRTC?.isUserSpeaking ? WebRTC.isUserSpeaking(profile.from) : false;
 
     if (profile.from === WebRTC?.myId && WebRTC?.localStream) {
       const videoTracks = WebRTC.localStream.getVideoTracks();
@@ -132,9 +163,7 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
         hasVideo = true;
         activeStream = WebRTC.remoteStreams[profile.from];
       }
-    }
-
-    return (
+    }    return (
       <Pressable
         key={`${profile.from}-${forceUpdate}-${hasVideo}-${streamUpdateTrigger}`}
         style={[
@@ -144,7 +173,16 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
             height: rectHeight,
             margin: margin / 2,
           },
+          isSpeaking && styles.speakingBorder,
         ]}
+        ref={(ref) => {
+          // Apply web animation dynamically
+          if (Platform.OS === 'web' && ref && isSpeaking) {
+            ref.style.animation = 'pulse 1.5s infinite';
+          } else if (Platform.OS === 'web' && ref && !isSpeaking) {
+            ref.style.animation = '';
+          }
+        }}
       >
         <View style={styles.videoContainer}>
           {hasVideo && activeStream ? (
@@ -211,6 +249,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 10,
     overflow: 'hidden',
+  },  speakingBorder: {
+    borderWidth: 4,
+    borderColor: '#00FF00',
+    // Remove external shadow effects and use internal border approach
+    ...(Platform.OS === 'web' && {
+      // Use inset shadow for web to create internal glow effect
+      boxShadow: 'inset 0 0 15px rgba(0, 255, 0, 0.8)',
+    }),
+    ...(Platform.OS === 'ios' && {
+      shadowColor: '#00FF00',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.6,
+      shadowRadius: 6,
+    }),
   },
   videoContainer: {
     width: '100%',

@@ -1,6 +1,7 @@
 import WebSocketMethods from "./webSocketMethods";
 import { Platform } from "react-native";
 import eventEmitter from "./EventEmitter";
+import voiceActivityDetection from "./voiceActivityDetection";
 
 // web implementation
 let WebRTC;
@@ -47,6 +48,10 @@ class MultiPeerWebRTCManager {
   localStream = null;
   remoteStreams = {}; // Oggetto per memorizzare gli stream remoti: { participantId: MediaStream }
 
+  // Voice Activity Detection
+  speakingUsers = new Set(); // Track who is currently speaking
+  onSpeakingStatusChange = null; // Callback for UI updates
+
   // --- Callback UI aggiornate ---
   onLocalStreamReady = null;
   // Chiamata quando un nuovo stream remoto viene aggiunto o uno esistente viene aggiornato
@@ -85,7 +90,6 @@ class MultiPeerWebRTCManager {
   }
 
   // Gestione degli eventi
-
   _setupEventListeners() {
     // Rimuovi eventuali listener precedenti
     this._removeEventListeners();
@@ -95,6 +99,10 @@ class MultiPeerWebRTCManager {
     eventEmitter.on('answer', this.answerMessage.bind(this));
     eventEmitter.on('candidate', this.candidateMessage.bind(this));
     
+    // Add speaking status listeners
+    eventEmitter.on('speaking', this.handleRemoteSpeaking.bind(this));
+    eventEmitter.on('not_speaking', this.handleRemoteNotSpeaking.bind(this));
+    
     console.log('MultiPeerWebRTCManager: Event listeners configurati');
   }
 
@@ -103,6 +111,8 @@ class MultiPeerWebRTCManager {
     eventEmitter.off('offer', this.offerMessage.bind(this));
     eventEmitter.off('answer', this.answerMessage.bind(this));
     eventEmitter.off('candidate', this.candidateMessage.bind(this));
+    eventEmitter.off('speaking', this.handleRemoteSpeaking.bind(this));
+    eventEmitter.off('not_speaking', this.handleRemoteNotSpeaking.bind(this));
   }
 
 
@@ -127,13 +137,12 @@ class MultiPeerWebRTCManager {
           width: 1920,
           height: 1080,
         },
-      };
-      const stream = await mediaDevices.getUserMedia(constraints);
+      };      const stream = await mediaDevices.getUserMedia(constraints);
       console.log("MultiPeerWebRTCManager: Stream locale ottenuto.");
       this.localStream = stream;
       if (this.onLocalStreamReady) {
-        this.onLocalStreamReady(stream);
-      }
+        this.onLocalStreamReady(stream);      }
+      
       // Se ci sono già connessioni peer attive, aggiungi lo stream a tutte
       Object.values(this.peerConnections).forEach((pc) => {
         this._addLocalTracksToPeerConnection(pc);
@@ -154,6 +163,101 @@ class MultiPeerWebRTCManager {
   notifyStreamUpdate() {
     if (this.onStreamUpdate) {
       this.onStreamUpdate();
+    }
+  }
+  /**
+   * Initialize voice activity detection for local stream
+   */
+  async initializeVoiceActivityDetection() {
+    console.log('Attempting to initialize VAD...', {
+      hasLocalStream: !!this.localStream,
+      chatId: this.chatId,
+      myId: this.myId,
+      platform: Platform.OS
+    });
+
+    if (!this.localStream || !this.chatId || !this.myId) {
+      console.warn('Cannot initialize VAD: missing stream, chatId, or myId', {
+        hasLocalStream: !!this.localStream,
+        chatId: this.chatId,
+        myId: this.myId
+      });
+      return false;
+    }
+
+    const success = await voiceActivityDetection.initialize(
+      this.localStream,
+      this.chatId,
+      this.myId,
+      (userId, isSpeaking) => {
+        this.handleSpeakingStatusChange(userId, isSpeaking);
+      }
+    );
+
+    if (success) {
+      voiceActivityDetection.start();
+      console.log('Voice Activity Detection initialized and started successfully');
+    } else {
+      console.error('Failed to initialize Voice Activity Detection');
+    }
+
+    return success;
+  }
+
+  /**
+   * Handle speaking status changes (both local and remote)
+   */
+  handleSpeakingStatusChange(userId, isSpeaking) {
+    if (isSpeaking) {
+      this.speakingUsers.add(userId);
+    } else {
+      this.speakingUsers.delete(userId);
+    }
+
+    // Notify UI callback if set
+    if (this.onSpeakingStatusChange) {
+      this.onSpeakingStatusChange(userId, isSpeaking);
+    }
+  }
+
+  /**
+   * Check if a user is currently speaking
+   */
+  isUserSpeaking(userId) {
+    return this.speakingUsers.has(userId);
+  }
+
+  /**
+   * Get all currently speaking users
+   */
+  getSpeakingUsers() {
+    return Array.from(this.speakingUsers);
+  }
+  /**
+   * Stop voice activity detection
+   */
+  stopVoiceActivityDetection() {
+    voiceActivityDetection.cleanup();
+    this.speakingUsers.clear();
+  }
+
+  /**
+   * Handle remote user speaking events
+   */
+  handleRemoteSpeaking(data) {
+    const userId = data.from || data.id;
+    if (userId && userId !== this.myId) {
+      this.handleSpeakingStatusChange(userId, true);
+    }
+  }
+
+  /**
+   * Handle remote user not speaking events
+   */
+  handleRemoteNotSpeaking(data) {
+    const userId = data.from || data.id;
+    if (userId && userId !== this.myId) {
+      this.handleSpeakingStatusChange(userId, false);
     }
   }
 
@@ -898,9 +1002,11 @@ class MultiPeerWebRTCManager {
       `MultiPeerWebRTCManager: Connessione con ${participantId} chiusa.`
     );
   }
-
   // chiude lo stream locale
   closeLocalStream() {
+    // Stop voice activity detection first
+    this.stopVoiceActivityDetection();
+    
     // Ferma lo stream locale
     if (this.localStream) {
       this.localStream.getTracks().forEach((track) => track.stop());
@@ -909,12 +1015,14 @@ class MultiPeerWebRTCManager {
       console.log("MultiPeerWebRTCManager: Stream locale fermato.");
     }
   }
-
   /**
    * Chiude TUTTE le connessioni e rilascia le risorse.
    */
   closeAllConnections() {
     console.log("MultiPeerWebRTCManager: Chiusura di tutte le connessioni...");
+
+    // Stop voice activity detection
+    this.stopVoiceActivityDetection();
 
     // Chiudi tutte le connessioni peer
     Object.keys(this.peerConnections).forEach((participantId) => {
@@ -959,11 +1067,17 @@ class MultiPeerWebRTCManager {
     this.onLocalStreamReady = onLocalStreamReady;
     this.onRemoteStreamAddedOrUpdated = onRemoteStreamAddedOrUpdated;
     this.onPeerConnectionStateChange = onPeerConnectionStateChange;
-    this.onParticipantLeft = onParticipantLeft;
-
-    this.peerConnections = {};
+    this.onParticipantLeft = onParticipantLeft;    this.peerConnections = {};
     this.remoteStreams = {};
     this._setupEventListeners();
+
+    // Initialize voice activity detection if we have a local stream and we're on web
+    if (this.localStream && Platform.OS === 'web') {
+      console.log('VAD: Initializing after regenerate...');
+      setTimeout(() => {
+        this.initializeVoiceActivityDetection();
+      }, 500); // Small delay to ensure everything is set up
+    }
 
     console.log(`MultiPeerWebRTCManager: Rigenerato per l'utente ${myId}`);
   }

@@ -23,7 +23,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   const [profilesInVocalChat, setProfilesInVocalChat] = useState([]);
   const [streamUpdateTrigger, setStreamUpdateTrigger] = useState(0);
-
   useEffect(() => {
     getVocalMembers();
 
@@ -31,17 +30,24 @@ const VocalContent = ({ selectedChat, chatId }) => {
       WebRTC.onStreamUpdate = () => {
         setStreamUpdateTrigger((prev) => prev + 1);
       };
+
+      // Set up speaking status callback to trigger UI updates
+      WebRTC.onSpeakingStatusChange = (userId, isSpeaking) => {
+        setStreamUpdateTrigger((prev) => prev + 1);
+      };
     }
 
     eventEmitter.on("member_joined_comms", handleMemberJoined);
-    eventEmitter.on("member_left_comms", handleMemberLeft);
-
-    return () => {
+    eventEmitter.on("member_left_comms", handleMemberLeft);    return () => {
       eventEmitter.off("member_joined_comms", handleMemberJoined);
       eventEmitter.off("member_left_comms", handleMemberLeft);
 
       if (WebRTC && WebRTC.onStreamUpdate) {
         WebRTC.onStreamUpdate = null;
+      }
+
+      if (WebRTC && WebRTC.onSpeakingStatusChange) {
+        WebRTC.onSpeakingStatusChange = null;
       }
     };
   }, []);
@@ -146,17 +152,19 @@ const VocalContent = ({ selectedChat, chatId }) => {
       WebRTC.notifyStreamUpdate();
     }, 200);
   };
-
   // quando io esco in una room
   const selfLeft = async (data) => {
     await handleMemberLeft(data);
     WebRTC.closeAllConnections();
     WebRTC.closeLocalStream();
+    
+    // Stop voice activity detection when leaving vocal chat
+    WebRTC.stopVoiceActivityDetection();
 
     setTimeout(() => {
       WebRTC.notifyStreamUpdate();
     }, 200);
-  }; // Gestione dell'ingresso nella chat vocale
+  };// Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
     await multiPeerWebRTCManager.userJoined(data);
     if (data.chat_id == chatId) {
