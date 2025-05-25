@@ -20,15 +20,15 @@ const speakingCache = new Map();
 const PULSE_ANIMATION = `
   @keyframes pulse {
     0% {
-      box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.6);
+      box-shadow: inset 0 0 15px #00FF00, 0 0 20px #00FF00;
       border-color: #00FF00;
     }
     50% {
-      box-shadow: inset 0 0 25px rgba(0, 255, 0, 1), 0 0 30px rgba(0, 255, 0, 0.8);
+      box-shadow: inset 0 0 25px #22FF22, 0 0 30px #22FF22;
       border-color: #22FF22;
     }
     100% {
-      box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.6);
+      box-shadow: inset 0 0 15px #00FF00, 0 0 20px #00FF00;
       border-color: #00FF00;
     }
   }
@@ -146,8 +146,9 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
   }, [containerDimensions, profiles.length]);
 
-  const { rectWidth, rectHeight, margin } = calculateLayout();  const renderProfile = (profile) => {
-    // Determina se c'è un video attivo per questo profilo
+  const { rectWidth, rectHeight, margin } = calculateLayout();
+
+  const renderProfile = (profile) => {
     let hasVideo = false;
     let activeStream = null;
 
@@ -167,29 +168,28 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
         hasVideo = true;
         activeStream = WebRTC.remoteStreams[profile.from];
       }
-    }    // Check if user is currently speaking (dopo aver determinato video/stream)
-    // Usa lo speakingCache per evitare re-render non necessari
+    }
+
     const currentSpeakingState = WebRTC?.isUserSpeaking ? WebRTC.isUserSpeaking(profile.from) : false;
     let isSpeaking = currentSpeakingState;
     
-    // Usa una cache per evitare re-render inutili del video quando lo stato cambia
     if (hasVideo && activeStream) {
       const prevState = speakingCache.get(profile.from);
       if (prevState !== undefined && prevState === currentSpeakingState) {
-        // Nessun cambiamento, usa lo stesso stato
         isSpeaking = prevState;
       } else {
-        // Aggiorna la cache solo quando lo stato cambia realmente
         speakingCache.set(profile.from, currentSpeakingState);
       }
     } else {
-      // Per i non-video, aggiorna sempre lo stato
       speakingCache.set(profile.from, currentSpeakingState);
-    }    // Nota: rimuoviamo l'ottimizzazione che restituiva null perché causa errori di rendering
+    }
+
     const speakingKey = `${profile.from}-${isSpeaking}`;
     if (!speakingCache.has(speakingKey)) {
       speakingCache.set(speakingKey, isSpeaking);
-    }return (
+    }
+
+    return (
       <Pressable
         key={`${profile.from}-${hasVideo}-${activeStream ? 'stream' : 'no-stream'}`}
         style={[
@@ -204,22 +204,21 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
         <View style={styles.videoContainer}>
           {hasVideo && activeStream ? (
             <View style={styles.videoOverlay}>
-              {Platform.OS === 'web' ? (                <RTCView
-                  // Usa una key stabile per evitare re-render non necessari
+              {Platform.OS === 'web' ? (
+                <RTCView
                   key={`video-${profile.from}-permanent`}
                   stream={activeStream}
                   style={styles.videoStyle}
                   muted={true}
-                  objectFit="cover" // Assicurati che il video sia sempre correttamente dimensionato
+                  objectFit="cover"
                 />
               ) : (
                 <RTCView
-                  // Usa una key stabile per evitare re-render non necessari
                   key={`video-${profile.from}-permanent`}
                   streamURL={activeStream.toURL()}
                   style={styles.videoStyle}
                   muted={true}
-                  objectFit="cover" // Assicurati che il video sia sempre correttamente dimensionato
+                  objectFit="cover"
                 />
               )}
               <Text style={styles.profileText}>{profile.handle}</Text>
@@ -232,16 +231,17 @@ const VocalMembersLayout = ({ profiles, WebRTC, streamUpdateTrigger }) => {
               containerWidth={rectWidth}
               containerHeight={rectHeight}
             />
-          )}          {/* Speaking border overlay - usa un componente separato permanente */}
+          )}
           <View 
             key={`speaking-indicator-${profile.from}`}
             style={[
               styles.speakingOverlayContainer,
-              isSpeaking && styles.speakingOverlay,              Platform.OS === 'web' && isSpeaking && { 
-                animationName: 'pulse',
-                animationDuration: '1.5s',
-                animationIterationCount: 'infinite'
-              }
+              isSpeaking && styles.speakingOverlay,
+              Platform.OS === "web" && isSpeaking && {
+                animationName: "pulse",
+                animationDuration: "1.5s",
+                animationIterationCount: "infinite",
+              },
             ]}
           />
         </View>
@@ -297,23 +297,10 @@ const styles = StyleSheet.create({
   },
   speakingOverlay: {
     borderWidth: 2,
-    borderColor: '#00FF00',
+    borderColor: "#00FF00",
     opacity: 1,
-    ...(Platform.OS === 'web' && {
-      boxShadow: 'inset 0 0 15px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.6)',
-    }),
-    ...(Platform.OS === 'ios' && {
-      shadowColor: '#00FF00',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.8,
-      shadowRadius: 8,
-    }),
-    ...(Platform.OS === 'android' && {
-      elevation: 10,
-      shadowColor: '#00FF00',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.8,
-      shadowRadius: 8,
+    ...(Platform.OS === "web" && {
+      boxShadow: `inset 0 0 15px #00FF00, 0 0 20px #00FF00`,
     }),
   },
   videoContainer: {

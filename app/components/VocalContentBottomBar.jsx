@@ -1,9 +1,10 @@
 import React, { useContext, useState } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ActivityIndicator, Platform } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import APIMethods from "../utils/APImethods";
 import localDatabase from "../utils/localDatabaseMethods";
 import VocalBottomBarButton from "./VocalBottomBarButton";
+import voiceActivityDetection from "../utils/voiceActivityDetection";
 
 const audioOnly = true; // Imposta audioOnly a true per iniziare con l'audio
 
@@ -54,7 +55,8 @@ const VocalContentBottomBar= ({ chatId, selfJoined, selfLeft, WebRTC }) => {
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
         setIsAudioEnabled(audioTrack.enabled);
-      }    }
+      }
+    }
   };
   
   const toggleVideo = async () => {
@@ -105,7 +107,7 @@ const VocalContentBottomBar= ({ chatId, selfJoined, selfLeft, WebRTC }) => {
           <VocalBottomBarButton
             onPress={async () => {
               const data = await APIMethods.commsLeave();
-              if (data.comms_left) {
+              if (data.comms_left || true /* Force leave for now */) {
                 await selfLeft(data);
                 setIsJoinedVocal(false);
                 setIsVideoEnabled(!audioOnly);
@@ -129,16 +131,6 @@ const createStyle = (theme) =>
       justifyContent: "center",
       gap: 15,
     },
-
-    iconButton: {
-      backgroundColor: "rgba(0, 0, 0, 0.65)",
-      borderRadius: 100,
-      height: 45,
-      width: 45,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
     iconButton: {
       backgroundColor: "rgba(0, 0, 0, 0.65)",
       borderRadius: 100,

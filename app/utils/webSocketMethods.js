@@ -45,8 +45,8 @@ const WebSocketMethods = {
 
       socket.on("connect_error", (error) => {
         console.log("Socket.IO connection error:", error);
-        if(error.data.status === 401) {
-          eventEmitter.emit('invalidSession');
+        if (error.data.status === 401) {
+          eventEmitter.emit("invalidSession");
           console.log("Sessione scaduta");
         }
       });
@@ -206,9 +206,9 @@ const WebSocketMethods = {
         return;
       }
       // Emit event to match your component expectations
-      eventEmitter.emit("speaking", { 
-        id: data.from, 
-        from: data.from 
+      eventEmitter.emit("speaking", {
+        id: data.from,
+        from: data.from,
       });
     });
 
@@ -218,9 +218,9 @@ const WebSocketMethods = {
         return;
       }
       // Emit event to match your component expectations
-      eventEmitter.emit("not_speaking", { 
-        id: data.from, 
-        from: data.from 
+      eventEmitter.emit("not_speaking", {
+        id: data.from,
+        from: data.from,
       });
     });
 
@@ -252,15 +252,15 @@ const WebSocketMethods = {
     const eventType = isSpeaking ? "speaking" : "not_speaking";
     const data = {
       to: chatId,
-      from: id
+      from: id,
     };
-    
+
     // First emit directly to update local UI immediately
-    eventEmitter.emit(eventType, { 
+    eventEmitter.emit(eventType, {
       id: id, // Using id field to match your naming system
-      from: id // Including from as well for compatibility
+      from: id, // Including from as well for compatibility
     });
-    
+
     // Then send to server
     socket.emit(eventType, data);
   },

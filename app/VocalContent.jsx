@@ -38,7 +38,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }
 
     eventEmitter.on("member_joined_comms", handleMemberJoined);
-    eventEmitter.on("member_left_comms", handleMemberLeft);    return () => {
+    eventEmitter.on("member_left_comms", handleMemberLeft);
+    return () => {
       eventEmitter.off("member_joined_comms", handleMemberJoined);
       eventEmitter.off("member_left_comms", handleMemberLeft);
 
@@ -157,14 +158,16 @@ const VocalContent = ({ selectedChat, chatId }) => {
     await handleMemberLeft(data);
     WebRTC.closeAllConnections();
     WebRTC.closeLocalStream();
-    
+
     // Stop voice activity detection when leaving vocal chat
     WebRTC.stopVoiceActivityDetection();
 
     setTimeout(() => {
       WebRTC.notifyStreamUpdate();
     }, 200);
-  };// Gestione dell'ingresso nella chat vocale
+  };
+
+  // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
     await multiPeerWebRTCManager.userJoined(data);
     if (data.chat_id == chatId) {

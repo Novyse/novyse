@@ -196,7 +196,15 @@ class MultiPeerWebRTCManager {
 
     if (success) {
       voiceActivityDetection.start();
-      console.log('Voice Activity Detection initialized and started successfully');
+      console.log(`Voice Activity Detection initialized and started successfully for ${Platform.OS}`);
+      
+      // For mobile platforms, add a test trigger after initialization
+      if (Platform.OS !== 'web') {
+        setTimeout(() => {
+          console.log('Testing mobile VAD with manual trigger...');
+          voiceActivityDetection.triggerMobileSpeaking(1500);
+        }, 3000);
+      }
     } else {
       console.error('Failed to initialize Voice Activity Detection');
     }
@@ -1071,12 +1079,13 @@ class MultiPeerWebRTCManager {
     this.remoteStreams = {};
     this._setupEventListeners();
 
-    // Initialize voice activity detection if we have a local stream and we're on web
-    if (this.localStream && Platform.OS === 'web') {
+    // Initialize voice activity detection with platform-specific delay
+    if (this.localStream) {
       console.log('VAD: Initializing after regenerate...');
+      const delay = Platform.OS === 'web' ? 500 : 1000; // Longer delay for mobile
       setTimeout(() => {
         this.initializeVoiceActivityDetection();
-      }, 500); // Small delay to ensure everything is set up
+      }, delay);
     }
 
     console.log(`MultiPeerWebRTCManager: Rigenerato per l'utente ${myId}`);
