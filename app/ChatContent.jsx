@@ -162,7 +162,14 @@ const LinkedText = ({ text, style }) => {
     parts.push(
       <Text
         key={`l-${match.index}`}
-        style={styles.messagesLink}
+        style={[
+          styles.messagesLink,
+          Platform.OS === 'web' && {
+            wordBreak: 'break-all',
+            overflowWrap: 'break-word',
+            whiteSpace: 'pre-wrap',
+          }
+        ]}
         onPress={() => Platform.OS === "web" ? window.open(linkUrl, "_blank") : Linking.openURL(linkUrl)}
       >
         {match[0]}
@@ -571,6 +578,11 @@ function createStyle(theme) {
       color: theme.text,
       fontSize: 18,
       maxWidth: "100%",
+      ...(Platform.OS === 'web' && {
+        wordBreak: 'break-word',
+        overflowWrap: 'break-word',
+        whiteSpace: 'pre-wrap',
+      }),
     },
     timeText: {
       color: theme.textTime,
@@ -594,6 +606,10 @@ function createStyle(theme) {
       justifyContent: "flex-end",
       gap: 4,
       marginRight: 8,
+      ...(Platform.OS === 'web' && {
+        wordBreak: 'break-word',
+        overflowWrap: 'break-word',
+      }),
     },
     msgReceiver: {
       backgroundColor: "#2b5278",
@@ -609,6 +625,10 @@ function createStyle(theme) {
       justifyContent: "flex-end",
       gap: 4,
       marginLeft: 8,
+      ...(Platform.OS === 'web' && {
+        wordBreak: 'break-word',
+        overflowWrap: 'break-word',
+      }),
     },
     listContainer: {
       flex: 1,
@@ -703,6 +723,12 @@ function createStyle(theme) {
       fontSize: 18,
       color: theme.messagesLink,
       textDecorationLine: "underline",
+      ...(Platform.OS === 'web' && {
+        wordBreak: 'break-all',
+        overflowWrap: 'break-word',
+        whiteSpace: 'pre-wrap',
+        maxWidth: '100%',
+      }),
     },
   });
 }
