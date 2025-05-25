@@ -109,7 +109,7 @@ class MultiPeerWebRTCManager {
   /**
    * Inizia l'acquisizione dello stream locale (invariato)
    */
-  async startLocalStream() {
+  async startLocalStream(audioOnly = true) {
     console.log("MultiPeerWebRTCManager: Richiesta stream locale...");
     if (this.localStream) {
       console.log("MultiPeerWebRTCManager: Stream locale già attivo.");
@@ -122,7 +122,7 @@ class MultiPeerWebRTCManager {
           noiseSuppression: true,
           autoGainControl: true,
         },
-        video: {
+        video: audioOnly ? false : {
           facingMode: "user",
           width: 1920,
           height: 1080,

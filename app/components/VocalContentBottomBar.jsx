@@ -5,20 +5,22 @@ import APIMethods from "../utils/APImethods";
 import localDatabase from "../utils/localDatabaseMethods";
 import VocalBottomBarButton from "./VocalBottomBarButton";
 
+const audioOnly = true; // Imposta audioOnly a true per iniziare con l'audio
+
 const VocalContentBottomBar= ({ chatId, selfJoined, selfLeft, WebRTC }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   const [isJoinedVocal, setIsJoinedVocal] = useState(WebRTC.chatId == chatId);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(!audioOnly);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleJoinVocal = async () => {
     try {
       setIsLoading(true);
       // Start with audio only
-      const stream = await WebRTC.startLocalStream(true);
+      const stream = await WebRTC.startLocalStream(audioOnly);
       if (!stream) {
         throw new Error("Failed to get audio stream");
       }
@@ -106,7 +108,7 @@ const VocalContentBottomBar= ({ chatId, selfJoined, selfLeft, WebRTC }) => {
               if (data.comms_left) {
                 await selfLeft(data);
                 setIsJoinedVocal(false);
-                setIsVideoEnabled(true);
+                setIsVideoEnabled(!audioOnly);
                 setIsAudioEnabled(true);
               }
             }}

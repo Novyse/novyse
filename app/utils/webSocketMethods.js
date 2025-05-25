@@ -199,6 +199,33 @@ const WebSocketMethods = {
       eventEmitter.emit("offer", data);
     });
 
+    // Voice Activity Detection signaling
+    socket.on("speaking", async (data) => {
+      console.log("Speaking event received from server:", data);
+      if (!data || !data.from) {
+        console.error("Invalid speaking data received:", data);
+        return;
+      }
+      // Emit event to match your component expectations
+      eventEmitter.emit("speaking", { 
+        id: data.from, 
+        from: data.from 
+      });
+    });
+
+    socket.on("not_speaking", async (data) => {
+      console.log("Not speaking event received from server:", data);
+      if (!data || !data.from) {
+        console.error("Invalid not_speaking data received:", data);
+        return;
+      }
+      // Emit event to match your component expectations
+      eventEmitter.emit("not_speaking", { 
+        id: data.from, 
+        from: data.from 
+      });
+    });
+
     return "return of socket.io receiver function";
   },
 
@@ -215,6 +242,31 @@ const WebSocketMethods = {
   // quando voglio entrare in una vocal chat
   RTCAnswer: async (data) => {
     socket.emit("answer", data);
+  },
+
+  // Voice Activity Detection signaling methods
+  sendSpeakingStatus: async (chatId, id, isSpeaking) => {
+    if (!socket || !socket.connected) {
+      console.log("Cannot send speaking status: Socket not connected");
+      return;
+    }
+
+    const eventType = isSpeaking ? "speaking" : "not_speaking";
+    const data = {
+      to: chatId,
+      from: id
+    };
+
+    console.log(`Sending ${eventType} event:`, data);
+    
+    // First emit directly to update local UI immediately
+    eventEmitter.emit(eventType, { 
+      id: id, // Using id field to match your naming system
+      from: id // Including from as well for compatibility
+    });
+    
+    // Then send to server
+    socket.emit(eventType, data);
   },
 
   UpdateLastWebSocketActionDateTime: async (date) => {
