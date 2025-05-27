@@ -60,8 +60,6 @@ class MultiPeerWebRTCManager {
 
   // --- Callback UI aggiornate ---
   onLocalStreamReady = null;
-  // Chiamata quando un nuovo stream remoto viene aggiunto o uno esistente viene aggiornato
-  onRemoteStreamAddedOrUpdated = null;
   // Chiamata quando lo stato di una specifica connessione peer cambia
   onPeerConnectionStateChange = null;
   // Chiamata quando un partecipante lascia (la sua connessione viene chiusa)
@@ -83,13 +81,13 @@ class MultiPeerWebRTCManager {
   HEALTH_CHECK_INTERVAL = 5000; // 5 secondi per health check
   CONNECTION_TIMEOUT = 30000; // 30 secondi timeout per tentativi di connessione
   STABILIZATION_TIMEOUT = 15000; // 15 secondi per stabilizzazione connessione
-
   // Aggiungi una proprietà per tracciare le rinegoziazioni in corso
+  audioContextRef = null; // Riferimento al context audio
+
   constructor(
     myId = null,
     chatId = null,
     onLocalStreamReady = null,
-    onRemoteStreamAddedOrUpdated = null,
     onPeerConnectionStateChange = null,
     onParticipantLeft = null
   ) {
@@ -101,14 +99,21 @@ class MultiPeerWebRTCManager {
       this.myId = myId;
       this.chatId = chatId;
       this.onLocalStreamReady = onLocalStreamReady;
-      this.onRemoteStreamAddedOrUpdated = onRemoteStreamAddedOrUpdated;
       this.onPeerConnectionStateChange = onPeerConnectionStateChange;
       this.onParticipantLeft = onParticipantLeft;
       this._setupEventListeners();
     } else {
       console.log("MultiPeerWebRTCManager: Inizializzato vuoto");
-    }
-    this.negotiationInProgress = {}; // Traccia rinegoziazioni per peer
+    }    this.negotiationInProgress = {}; // Traccia rinegoziazioni per peer
+  }
+
+  /**
+   * Set the audio context reference for handling WebRTC audio
+   * @param {Object} audioContext - The audio context from useAudio hook
+   */
+  setAudioContext(audioContext) {
+    this.audioContextRef = audioContext;
+    console.log('WebRTC: Audio context reference set');
   }
 
   // Gestione degli eventi
@@ -446,24 +451,36 @@ class MultiPeerWebRTCManager {
           // Create or get the screen share stream for this specific streamId
           if (!this.remoteScreenStreams[participantId][streamId]) {
             this.remoteScreenStreams[participantId][streamId] = new MediaStream();
-          }
-
-          this.remoteScreenStreams[participantId][streamId].addTrack(event.track);
+          }          this.remoteScreenStreams[participantId][streamId].addTrack(event.track);
           console.log(`[WebRTC Track] Added screen share track to ${participantId}/${streamId}`);
+          
+          // Emit global stream event for screen sharing
+          eventEmitter.emit('stream_added_or_updated', {
+            participantId,
+            stream: this.remoteScreenStreams[participantId][streamId],
+            streamType: 'screenshare',
+            streamId: streamId,
+            userData: this.userData[participantId]
+          });
         } else {
           // Handle regular webcam tracks
           if (!this.remoteStreams[participantId]) {
             this.remoteStreams[participantId] = new MediaStream();
-          }
-
-          // Aggiungi la traccia allo stream esistente
+          }          // Aggiungi la traccia allo stream esistente
           const stream = this.remoteStreams[participantId];
-          stream.addTrack(event.track);
-
-          // Notifica solo quando riceviamo sia audio che video (o uno dei due se è tutto ciò che ci aspettiamo)
-          if (this.onRemoteStreamAddedOrUpdated) {
-            this.onRemoteStreamAddedOrUpdated(participantId, stream);
+          stream.addTrack(event.track);          // Gestione audio tramite AudioContext
+          if (this.audioContextRef && stream.getAudioTracks().length > 0) {
+            this.audioContextRef.addAudio(participantId, stream);
           }
+
+          // Emit global stream event instead of direct callback
+          eventEmitter.emit('stream_added_or_updated', {
+            participantId,
+            stream,
+            streamType: 'webcam',
+            userData: this.userData[participantId]
+          });
+
         }
         
         this.notifyStreamUpdate();
@@ -1915,14 +1932,12 @@ class MultiPeerWebRTCManager {
 
     // Clean up remote screen streams
     this.remoteScreenStreams = {};
-    this.remoteStreamMetadata = {};
-
-    // Chiudi tutte le connessioni peer
+    this.remoteStreamMetadata = {};    // Chiudi tutte le connessioni peer
     Object.keys(this.peerConnections).forEach((participantId) => {
       this.closePeerConnection(participantId); // Usa il metodo esistente per pulire singolarmente
     });
     this.peerConnections = {}; // Assicura che l'oggetto sia vuoto
-    this.userData = {};
+    // Note: We're not clearing userData in closeAllConnections anymore since regenerate handles that
 
     // Pulisci gli stream remoti rimasti (dovrebbero essere già stati rimossi da closePeerConnection)
     this.remoteStreams = {};
@@ -2019,15 +2034,17 @@ class MultiPeerWebRTCManager {
       this.reconnectionTimeouts = {};
     }
   }
-
   async regenerate(
     myId,
     chatId,
     onLocalStreamReady,
-    onRemoteStreamAddedOrUpdated,
     onPeerConnectionStateChange,
     onParticipantLeft
   ) {
+    // Store existing users to reconnect with them later
+    // Note: we don't use API methods here because we already have the data
+    const existingUsersData = Object.values(this.userData);
+    
     // Prima pulisci tutte le connessioni esistenti
     this.closeAllConnections();
 
@@ -2035,9 +2052,9 @@ class MultiPeerWebRTCManager {
     this.myId = myId;
     this.chatId = chatId;
     this.onLocalStreamReady = onLocalStreamReady;
-    this.onRemoteStreamAddedOrUpdated = onRemoteStreamAddedOrUpdated;
     this.onPeerConnectionStateChange = onPeerConnectionStateChange;
-    this.onParticipantLeft = onParticipantLeft;    this.peerConnections = {};
+    this.onParticipantLeft = onParticipantLeft;
+    this.peerConnections = {};
     this.remoteStreams = {};
     this._setupEventListeners();
 
@@ -2051,6 +2068,20 @@ class MultiPeerWebRTCManager {
     }
 
     console.log(`MultiPeerWebRTCManager: Rigenerato per l'utente ${myId}`);
+    
+    // Reconnect with existing users
+    if (existingUsersData && existingUsersData.length > 0) {
+      console.log(`MultiPeerWebRTCManager: Riconnessione con ${existingUsersData.length} utenti esistenti...`);
+      setTimeout(async () => {
+        for (const userData of existingUsersData) {
+          // Skip if it's ourselves
+          if (userData.from === myId) continue;
+          
+          console.log(`MultiPeerWebRTCManager: Riconnessione con utente ${userData.handle}...`);
+          await this.connectToNewParticipant(userData);
+        }
+      }, 500); // Small delay to ensure everything is ready
+    }
   }
   // ===== SCREEN SHARING FUNCTIONALITY =====
 

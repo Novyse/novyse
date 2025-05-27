@@ -1,4 +1,4 @@
-const path = '../../assets/audio/';
+const path = '../../../assets/audio/';
 
 export default sounds = {
     comms_join_vocal : require(path + 'comms_join_vocal.mp3'),

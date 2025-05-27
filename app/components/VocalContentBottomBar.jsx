@@ -7,14 +7,13 @@ import voiceActivityDetection from "../utils/voiceActivityDetection";
 import utils from "../utils/webrtc/utils";
 const { self, handle, check, get } = utils;
 
-const audioOnly = true; // Imposta audioOnly a true per iniziare con l'audio
 
 const VocalContentBottomBar = ({ chatId }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(!audioOnly);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true); // SETTINGS PARTE 2
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleJoinVocal = async () => {
@@ -77,7 +76,7 @@ const VocalContentBottomBar = ({ chatId }) => {
 
   return (
     <View style={styles.container}>
-      {!isJoinedVocal ? (
+      {!check.isInComms() ? (
         isLoading ? (
           <View style={styles.iconButton}>
             <ActivityIndicator color={theme.icon} size="small" />

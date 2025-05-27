@@ -1,6 +1,7 @@
 import { Stack} from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider } from "../context/ThemeContext";
+import { AudioProvider } from "../context/AudioContext";
 
 import { useEffect } from "react";
 import eventEmitter from "./utils/EventEmitter";
@@ -39,11 +40,9 @@ export default function RootLayout() {
     return () => {
       eventEmitter.off('invalidSession', handleUserSessionInvalid);
     };
-  }, []);
-
-  
-  return (
+  }, []);    return (
     <ThemeProvider>
+      <AudioProvider>
         <SafeAreaProvider>
           <Stack screenOptions={{ headerShown: false }}>
             {/* Schermata principale */}
@@ -90,9 +89,10 @@ export default function RootLayout() {
             <Stack.Screen
               name="settings/themes"
               options={{ headerShown: false, title: "themes" }}
-            />
+            />          
           </Stack>
         </SafeAreaProvider>
+      </AudioProvider>
     </ThemeProvider>
   );
 }

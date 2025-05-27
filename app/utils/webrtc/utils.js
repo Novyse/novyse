@@ -2,21 +2,17 @@
 import APIMethods from "../APImethods";
 import multiPeerWebRTCManager from "../webrtcMethods";
 import eventEmitter from "../EventEmitter";
+import localDatabase from "../localDatabaseMethods";
+import SoundPlayer from "../sounds/SoundPlayer";
 
 const WebRTC = multiPeerWebRTCManager;
 
-//import { useAudioPlayer } from "expo-audio";
-//import sounds from '../sounds';
-
-//const comms_join_vocal = useAudioPlayer(sounds.comms_join_vocal);
-//const comms_leave_vocal = useAudioPlayer(sounds.comms_leave_vocal);
-
 const self = {
-  // quando io entro in una room
-  async join(chatId, handleRemoteStream){
+  // quando io entro in una room  
+  async join(chatId){
 
     // Start local stream
-    const stream = await WebRTC.startLocalStream();
+    const stream = await WebRTC.startLocalStream(); // audio only for now
     if (!stream) {
       throw new Error("Failed to get audio stream");
     }
@@ -25,26 +21,35 @@ const self = {
     if(WebRTC.chatId != chatId) {
       await APIMethods.commsLeave(chatId);
     }
-    
-    // Join vocal chat
+      // Join vocal chat
     const data = await APIMethods.commsJoin(chatId);
     if (!data.comms_joined) {
       throw new Error("Failed to join vocal chat");
     };
     
-    // Rigenero 
+    // Rigenero
     await WebRTC.regenerate(
       data.from,
       chatId,
       null,
-      handleRemoteStream,
       null,
       null
-    );
+    );    
+    // Aggiungi il chat_id ai dati prima di emettere l'evento
+    // e includi anche i dati dell'utente locale
+    const localUserHandle = await localDatabase.fetchLocalUserHandle();
+    const localUserData = await localDatabase.fetchLocalUserData();
+    
+    const dataWithChatId = { 
+      ...data, 
+      chat_id: chatId,
+      handle: localUserHandle,
+      profileImage: localUserData?.profileImage || null,
+      profileImageUri: localUserData?.profileImage || null
+    };
+    await handle.memberJoined(dataWithChatId);
 
-    await handle.memberJoined(data);
-
-    const existingUsers = await APIMethods.retrieveVocalUsers(data.chat_id);
+    const existingUsers = await APIMethods.retrieveVocalUsers(chatId);
     WebRTC.setExistingUsers(existingUsers);
 
   },
@@ -105,13 +110,12 @@ const self = {
 
 }
 
-const handle = {
-  // quando un nuovo membro entra in una room
+const handle = {  // quando un nuovo membro entra in una room
   async memberJoined(data){
 
     // Solo se il membro che entra è nella stessa chat vocale
     if (WebRTC.chatId == data.chat_id) {
-      //comms_join_vocal.play();
+      SoundPlayer.getInstance().playSound('comms_join_vocal');
     }
 
     eventEmitter.emit("member_joined_comms", data);
@@ -119,13 +123,12 @@ const handle = {
     await multiPeerWebRTCManager.userJoined(data);
 
   },
-
   // quando un membro esce da una room
   async memberLeft(data){
 
     // Solo se il membro che esce è nella stessa chat vocale
     if (WebRTC.chatId == data.chat_id) {
-      //comms_leave_vocal.play();
+      SoundPlayer.getInstance().playSound('comms_leave_vocal');
     }
 
     eventEmitter.emit("member_left_comms", data);
