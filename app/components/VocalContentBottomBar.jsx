@@ -1,18 +1,18 @@
 import React, { useContext, useState } from "react";
 import { View, StyleSheet, ActivityIndicator, Platform } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import APIMethods from "../utils/APImethods";
-import localDatabase from "../utils/localDatabaseMethods";
 import VocalBottomBarButton from "./VocalBottomBarButton";
 import voiceActivityDetection from "../utils/voiceActivityDetection";
 
+import utils from "../utils/webrtc/utils";
+const { self, handle, check, get } = utils;
+
 const audioOnly = true; // Imposta audioOnly a true per iniziare con l'audio
 
-const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
+const VocalContentBottomBar = ({ chatId }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const [isJoinedVocal, setIsJoinedVocal] = useState(WebRTC.chatId == chatId);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(!audioOnly);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,62 +20,24 @@ const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
   const handleJoinVocal = async () => {
     try {
       setIsLoading(true);
-      // Start with audio only
-      const stream = await WebRTC.startLocalStream(audioOnly);
-      if (!stream) {
-        throw new Error("Failed to get audio stream");
-      }
+      await self.join(chatId);
 
-      if(WebRTC.chatId != chatId) {
-        await APIMethods.commsLeave(chatId);
-      }
-
-      const data = await APIMethods.commsJoin(chatId);
-      if (data.comms_joined) {
-        await selfJoined({
-          from: data.from,
-          handle: await localDatabase.fetchLocalUserHandle(),
-          chat_id: chatId,
-        });
-        setIsJoinedVocal(true);
-      }
     } catch (error) {
-      console.error("Error joining vocal:", error);
+      console.error("Error joining comms:", error);
       alert(
-        "Could not join vocal chat. Please check your microphone permissions."
+        "Could not join comms."
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleAudio = () => {
-    if (WebRTC.localStream) {
-      const audioTrack = WebRTC.localStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setIsAudioEnabled(audioTrack.enabled);
-      }
-    }
+  const toggleAudio = async () => {
+    setIsAudioEnabled(await self.toggleAudio());
   };
 
   const toggleVideo = async () => {
-    try {
-      if (!isVideoEnabled) {
-        // Attiva video
-        const videoTrack = await WebRTC.addVideoTrack();
-        if (videoTrack) {
-          setIsVideoEnabled(true);
-        }
-      } else {
-        // Disattiva video
-        await WebRTC.removeVideoTracks();
-        setIsVideoEnabled(false);
-      }
-    } catch (err) {
-      console.error('Errore nel toggle video:', err);
-      alert("Errore nel toggle video: " + err.message);
-    }
+    setIsVideoEnabled(await self.toggleVideo());
   };
 
   const handleScreenShare = async () => {
@@ -146,13 +108,9 @@ const VocalContentBottomBar = ({ chatId, selfJoined, selfLeft, WebRTC }) => {
           />
           <VocalBottomBarButton
             onPress={async () => {
-              const data = await APIMethods.commsLeave();
-              if (data.comms_left || true /* Force leave for now */) {
-                await selfLeft(data);
-                setIsJoinedVocal(false);
-                setIsVideoEnabled(!audioOnly);
-                setIsAudioEnabled(true);
-              }
+              self.left(chatId);
+              setIsVideoEnabled(false); //TEMPORARY, NEED TO BE FIXED WITH SETTINGS (dette settinghe in italiano)
+              setIsAudioEnabled(true);
             }}
             iconName="phone"
             iconColor="red"
