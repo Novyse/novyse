@@ -32,6 +32,9 @@ import WebSocketMethods from "./utils/webSocketMethods";
 import localDatabase from "./utils/localDatabaseMethods";
 import ChatContainer from "./ChatContainer";
 
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Menu02Icon, Search02Icon, Clock01Icon } from "@hugeicons/core-free-icons";
+
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
 
@@ -331,7 +334,12 @@ const ChatList = () => {
     return (
       <View style={styles.header}>
         <Pressable onPress={toggleSidebar} style={styles.menuButton}>
-          <Icon name="menu" size={24} color={theme.icon} />
+          <HugeiconsIcon
+            icon={Menu02Icon}
+            size={36}
+            color={theme.icon}
+            strokeWidth={1.5}
+          />
         </Pressable>
         <Text style={styles.headerTitle}>Chats</Text>
         <Pressable
@@ -343,7 +351,12 @@ const ChatList = () => {
           }}
           style={styles.searchButton}
         >
-          <MaterialIcons name="search" size={24} color={theme.icon} />
+          <HugeiconsIcon
+            icon={Search02Icon}
+            size={36}
+            color={theme.icon}
+            strokeWidth={1.5}
+          />
         </Pressable>
       </View>
     );
@@ -414,10 +427,11 @@ const ChatList = () => {
                     ellipsizeMode="tail"
                   >
                     {lastMessageDate === "" ? (
-                      <MaterialIcons
-                        name="access-time"
+                      <HugeiconsIcon
+                        icon={Clock01Icon}
                         size={14}
-                        color="#ffffff"
+                        color={theme.icon}
+                        strokeWidth={1.5}
                       />
                     ) : (
                       lastMessageDate

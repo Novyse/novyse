@@ -1,5 +1,6 @@
 import React, { memo, useContext, useMemo, useEffect } from "react";
 import { View, StyleSheet, Platform } from "react-native";
+import { BlurView } from "expo-blur";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
 import multiPeerWebRTCManager from "../utils/webrtcMethods";
@@ -84,14 +85,13 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'android' && {
       // Nessun effetto aggiuntivo per Android
     }),
-  },
-  videoContainer: {
+  },  videoContainer: {
     width: '100%',
     height: '100%',
     overflow: 'hidden',
     borderRadius: 8,
     position: 'relative',
-    backgroundColor: 'transparent',
+    backgroundColor: '#000',
   },
   videoWrapper: {
     width: '100%',
@@ -102,6 +102,34 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 8,
+  },  blurredBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: 1,
+    ...(Platform.OS === 'web' && {
+      filter: 'blur(20px)',
+      transform: 'scale(1.1)',
+    }),
+    ...(Platform.OS === 'ios' && {
+      opacity: 0.6,
+      transform: [{ scale: 1.1 }],
+    }),
+    ...(Platform.OS === 'android' && {
+      opacity: 0.6,
+      transform: [{ scale: 1.1 }],
+    }),
+  },
+  videoStreamMain: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    borderRadius: 8,
+    zIndex: 2,
   },
 });
 
@@ -114,21 +142,47 @@ const VideoContent = memo(({
   profileImageUri, 
   width, 
   height 
-}) => {
-  return (
+}) => {  return (
     <View style={styles.videoContainer}>
       {hasVideo && streamToRender ? (
-        <View style={styles.videoWrapper}>
+        <View style={styles.videoWrapper}>          {/* Sfondo sfocato - usa lo stesso stream ma ingrandito e sfocato */}
           {Platform.OS === "web" ? (
             <RTCView
               stream={streamToRender}
-              style={styles.videoStream}
+              style={[styles.videoStream, styles.blurredBackground, { objectFit: 'cover' }]}
+              muted={isLocalUser}
+            />
+          ) : (
+            <View style={styles.blurredBackground}>
+              <RTCView
+                streamURL={streamToRender.toURL()}
+                style={[styles.videoStream, { objectFit: 'cover' }]}
+                muted={isLocalUser}
+              />
+              <BlurView
+                intensity={80}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                }}
+              />
+            </View>
+          )}
+          
+          {/* Video principale al centro */}
+          {Platform.OS === "web" ? (
+            <RTCView
+              stream={streamToRender}
+              style={[styles.videoStreamMain, { objectFit: 'contain' }]}
               muted={isLocalUser}
             />
           ) : (
             <RTCView
               streamURL={streamToRender.toURL()}
-              style={styles.videoStream}
+              style={[styles.videoStreamMain, { objectFit: 'contain' }]}
               muted={isLocalUser}
             />
           )}

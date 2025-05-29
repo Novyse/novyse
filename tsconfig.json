@@ -15,6 +15,7 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "app/index.jsx",
-    "context/ThemeContext.js", "app/_app.js",
+    "context/ThemeContext.js", 
+    "app/_app.js"
   ]
 }
