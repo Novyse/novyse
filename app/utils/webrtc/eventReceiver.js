@@ -36,23 +36,23 @@ class WebRTCEventReceiver {
 
   // Voice Activity Detection Handlers
   handleRemoteSpeaking(data) {
-    console.log('[EventReceiver] Remote user speaking:', data);
+    //console.log('[EventReceiver] Remote user speaking:', data);
     this.webrtcManager?.handleRemoteSpeaking(data);
   }
 
   handleRemoteNotSpeaking(data) {
-    console.log('[EventReceiver] Remote user stopped speaking:', data);
+    //console.log('[EventReceiver] Remote user stopped speaking:', data);
     this.webrtcManager?.handleRemoteNotSpeaking(data);
   }
 
   handleRemoteUserStartedSpeaking(data) {
-    console.log('[EventReceiver] Remote user started speaking (UI):', data);
+    //console.log('[EventReceiver] Remote user started speaking (UI):', data);
     // Emit for UI components
     eventEmitter.emit('user_started_speaking', data);
   }
 
   handleRemoteUserStoppedSpeaking(data) {
-    console.log('[EventReceiver] Remote user stopped speaking (UI):', data);
+    //console.log('[EventReceiver] Remote user stopped speaking (UI):', data);
     // Emit for UI components
     eventEmitter.emit('user_stopped_speaking', data);
   }
@@ -72,15 +72,22 @@ class WebRTCEventReceiver {
 
   // User Management Handlers
   async handleMemberJoined(data) {
-    console.log('[EventReceiver] Member joined comms:', data);
-    SoundPlayer.getInstance().playSound('comms_join_vocal');
-    await this.webrtcManager?.userJoined(data);
+    // Check if the member is not the current user and if my id is defined
+    if(data.from !== this.webrtcManager?.myId && this.webrtcManager?.myId !== undefined) {
+      console.log('[EventReceiver] Member joined comms:', data);
+      SoundPlayer.getInstance().playSound('comms_join_vocal');
+      await this.webrtcManager?.userJoined(data);
+    }
+    
   }
 
   async handleMemberLeft(data) {
-    console.log('[EventReceiver] Member left comms:', data);
-    SoundPlayer.getInstance().playSound('comms_leave_vocal');
-    await this.webrtcManager?.userLeft(data);
+    // Check if the member is not the current user and if my id is defined
+    if(data.from !== this.webrtcManager?.myId && this.webrtcManager?.myId !== undefined) {
+      console.log('[EventReceiver] Member left comms:', data);
+      SoundPlayer.getInstance().playSound('comms_leave_vocal');
+      await this.webrtcManager?.userLeft(data);
+    }
   }
 
   // Cleanup method

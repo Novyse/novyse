@@ -110,10 +110,10 @@ const self = {
 
   // quando premo pulsante screen share
 
-  async startScreenShare() {
+  async addScreenShare() {
     // da sistemare con chiamata API e manda tramite emitter
     try {
-      const result = await WebRTC.addScreenShareStream();
+      const result = WebRTC.addScreenShareStream();
       if (result) {
         console.log(`[ScreenShare] Screen share started with ID: ${result.streamId}`);
         return result;

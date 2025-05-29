@@ -1,8 +1,7 @@
 import React, { useContext, useState } from "react";
-import { View, StyleSheet, ActivityIndicator, Platform } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import VocalBottomBarButton from "./VocalBottomBarButton";
-import voiceActivityDetection from "../utils/voiceActivityDetection";
 
 import utils from "../utils/webrtc/utils";
 const { self, check } = utils;
@@ -40,38 +39,7 @@ const VocalContentBottomBar = ({ chatId }) => {
   };
 
   const handleScreenShare = async () => {
-    try {
-      console.log('[ScreenShare] Starting screen share, Platform:', Platform.OS);
-      const result = await WebRTC.addScreenShareStream();
-      if (result) {
-        console.log(`[ScreenShare] Screen share started with ID: ${result.streamId}`);
-      } else {
-        console.warn('[ScreenShare] Failed to start screen share');
-        if (Platform.OS === 'android') {
-          alert('Screen sharing failed. Please ensure camera and microphone permissions are granted, and try again.');
-        } else {
-          alert('Failed to start screen share. Please try again.');
-        }
-      }
-    } catch (error) {
-      console.error('[ScreenShare] Error starting screen share:', error);
-      
-      // Provide specific error messages for different scenarios
-      let errorMessage = 'Error starting screen share: ';
-      if (Platform.OS === 'android') {
-        if (error.message.includes('Permission')) {
-          errorMessage += 'Camera permission required for screen sharing on Android. Please grant camera access and try again.';
-        } else if (error.message.includes('not available')) {
-          errorMessage += 'Screen sharing not supported on this Android device. Camera will be used as fallback.';
-        } else {
-          errorMessage += `Android screen sharing error: ${error.message}`;
-        }
-      } else {
-        errorMessage += error.message;
-      }
-      
-      alert(errorMessage);
-    }
+    await self.addScreenShare();
   };
 
   return (

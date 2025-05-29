@@ -196,7 +196,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
       <VocalMembersLayout
         profiles={profilesInCommsChat}
         activeStreams={activeStreams}
-        theme={theme}
       />
 
       <VocalContentBottomBar
