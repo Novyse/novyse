@@ -2,6 +2,7 @@ import WebSocketMethods from "./webSocketMethods";
 import { Platform } from "react-native";
 import eventEmitter from "./EventEmitter";
 import voiceActivityDetection from "./voiceActivityDetection";
+import WebRTCEventReceiver from "./webrtc/eventReceiver";
 
 // web implementation
 let WebRTC;
@@ -1995,7 +1996,7 @@ class MultiPeerWebRTCManager {
 
     // Disabilito gli event listeners non più necessari (candidate, offer, answer sono utili solo quando sei in una comms)
     this._removeEventListeners();
-    this._cleanupEventReceivers();
+    this._cleanupEventReceiver();
     
     console.log("MultiPeerWebRTCManager: Tutte le connessioni chiuse e risorse rilasciate.");
     

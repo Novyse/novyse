@@ -9,7 +9,7 @@ import VocalMembersLayout from "./components/VocalMembersLayout";
 import multiPeerWebRTCManager from "./utils/webrtcMethods";
 
 import utils from "./utils/webrtc/utils";
-const { get } = utils;
+const { get, check } = utils;
 
 const VocalContent = ({ selectedChat, chatId }) => {
   
@@ -19,7 +19,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   const [profilesInCommsChat, setProfilesInCommsChat] = useState([]);
   const [activeStreams, setActiveStreams] = useState({}); // { participantId: { stream, userData, streamType } }
-  const [speakingUsers, setSpeakingUsers] = useState({}); // { userId: boolean }
   
   useEffect(() => {
     // Set audio context reference in WebRTC manager when component mounts
@@ -86,34 +85,48 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // Speech detection handlers
   const handleUserStartedSpeaking = () => {
-    if(get.isInComms()) {
+    if(check.isInComms()) {
       console.log('[VocalContent] Current user started speaking');
-      setSpeakingUsers(prev => ({
-        ...prev,
-        'current_user': true
-      }));
+      
+      // Aggiorna lo stato is_speaking per l'utente corrente in profilesInCommsChat
+      setProfilesInCommsChat(prev => 
+        prev.map(profile => 
+          profile.from === get.myId() 
+            ? { ...profile, is_speaking: true }
+            : profile
+        )
+      );
     }
   };
 
   const handleUserStoppedSpeaking = () => {
-    if(get.isInComms()) {
+    if(check.isInComms()) {
       console.log('[VocalContent] Current user stopped speaking');
-      setSpeakingUsers(prev => ({
-        ...prev,
-        'current_user': false
-      }));
+      
+      // Aggiorna lo stato is_speaking per l'utente corrente in profilesInCommsChat
+      setProfilesInCommsChat(prev => 
+        prev.map(profile => 
+          profile.from === get.myId() 
+            ? { ...profile, is_speaking: false }
+            : profile
+        )
+      );
     }
-
   };
 
   const handleRemoteUserStartedSpeaking = (data) => {
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
     if (data.chat_id === chatId && data.chat_id === get.commsId() && data.id !== get.myId()) {
       console.log('[VocalContent] Remote user started speaking:', data);
-      setSpeakingUsers(prev => ({
-        ...prev,
-        [data.id]: true
-      }));
+      
+      // Aggiorna lo stato is_speaking per l'utente remoto in profilesInCommsChat
+      setProfilesInCommsChat(prev => 
+        prev.map(profile => 
+          profile.from === data.id 
+            ? { ...profile, is_speaking: true }
+            : profile
+        )
+      );
     }
   };
 
@@ -121,10 +134,15 @@ const VocalContent = ({ selectedChat, chatId }) => {
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
     if (data.chat_id === chatId && data.chat_id === get.commsId() && data.id !== get.myId()) {
       console.log('[VocalContent] Remote user stopped speaking:', data);
-      setSpeakingUsers(prev => ({
-        ...prev,
-        [data.id]: false
-      }));
+      
+      // Aggiorna lo stato is_speaking per l'utente remoto in profilesInCommsChat
+      setProfilesInCommsChat(prev => 
+        prev.map(profile => 
+          profile.from === data.id 
+            ? { ...profile, is_speaking: false }
+            : profile
+        )
+      );
     }
   };
 
@@ -178,7 +196,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
       <VocalMembersLayout
         profiles={profilesInCommsChat}
         activeStreams={activeStreams}
-        speakingUsers={speakingUsers}
         theme={theme}
       />
 

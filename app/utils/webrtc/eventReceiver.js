@@ -9,7 +9,7 @@ class WebRTCEventReceiver {
   }
 // QUA SETTIAMO GLI EVENTI GLOBALI DI WEBRTC, QUINDI AVREMO DUE EVENT EMITTER ON, UNO SU VOCAL CONTENT PER LA UI E UNO QUI PER TUTTA LA LOGICA DIETRO
 
-  initialized() {
+  initialize() {
     if (!this.initialized) {
       this.initialized = true; // Set initialized flag
       this.setupEventListeners(); // Setup event listeners
