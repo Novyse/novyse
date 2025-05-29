@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext, useCallback, useRef, useMemo } from "react";
-import { View, StyleSheet, Text, Pressable, Platform, Dimensions, Animated } from "react-native";
+import React, { useState, useCallback, useContext } from "react";
+import { View, StyleSheet, Text, Platform } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
 import multiPeerWebRTCManager from "../utils/webrtcMethods";
@@ -23,86 +23,15 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
     width: 0,
     height: 0,
   });
+
   const { theme } = useContext(ThemeContext);
-  const pulseAnimations = useRef({});  // Initialize pulse animations for speaking detection (including screen shares)
-  useEffect(() => {
-    profiles.forEach(profile => {
-      const userId = profile.from;
-      if (userId && !pulseAnimations.current[userId]) {
-        pulseAnimations.current[userId] = new Animated.Value(0);
-      }
-      
-      // Add animations for screen shares (usando direttamente shareId che è già unico)
-      if (profile.active_screen_share && Array.isArray(profile.active_screen_share)) {
-        profile.active_screen_share.forEach(shareId => {
-          if (!pulseAnimations.current[shareId]) {
-            pulseAnimations.current[shareId] = new Animated.Value(0);
-          }
-        });
-      }
-    });
-  }, [profiles]);  // Handle speaking state changes based on profiles' is_speaking property
-  const speakingUsersMap = useMemo(() => {
-    const currentSpeakingUsers = {};
-    profiles.forEach(profile => {
-      const userId = profile.from;
-      if (profile.is_speaking) {
-        currentSpeakingUsers[userId] = true;
-      }
-    });
-    return currentSpeakingUsers;
-  }, [profiles.map(p => `${p.from}:${p.is_speaking}`).join(',')]); // Only re-compute when speaking states change
-
-  useEffect(() => {
-    // Handle animations for all users
-    Object.keys(pulseAnimations.current).forEach(animationKey => {
-      const isSpeaking = speakingUsersMap[animationKey];
-      const animation = pulseAnimations.current[animationKey];
-      
-      if (animation) {
-        // Stop any existing animation first
-        animation.stopAnimation();
-        
-        if (isSpeaking) {
-          // Smooth entry animation then loop
-          Animated.sequence([
-            Animated.timing(animation, {
-              toValue: 1,
-              duration: 300,
-              useNativeDriver: true, // Use native driver for better performance
-            }),
-            Animated.loop(
-              Animated.sequence([
-                Animated.timing(animation, {
-                  toValue: 0.3,
-                  duration: 800,
-                  useNativeDriver: true,
-                }),
-                Animated.timing(animation, {
-                  toValue: 1,
-                  duration: 800,
-                  useNativeDriver: true,
-                }),
-              ])
-            )
-          ]).start();
-        } else {
-          // Smooth exit animation
-          Animated.timing(animation, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: true,
-          }).start();
-        }
-      }
-    });
-  }, [speakingUsersMap]);
-
   // Handler per il layout
   const onContainerLayout = useCallback((event) => {
     const { width, height } = event.nativeEvent.layout;
     setContainerDimensions({ width, height });
-  }, []);  // Calcolo ottimizzato del layout considerando anche le screen share
+  }, []);
+
+  // Calcolo ottimizzato del layout considerando anche le screen share
   const calculateLayout = useCallback(() => {
     // Calcola il numero totale di elementi da visualizzare (utenti + screen shares)
     let totalElements = profiles.length;
@@ -122,7 +51,6 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
 
     const { width, height } = containerDimensions;
     const isPortrait = height > width;
-    const isLargeScreen = width > 600;
 
     let numColumns, numRows;
 
@@ -168,13 +96,10 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
     rectHeight = Math.max(50 / ASPECT_RATIO, rectHeight);
 
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
-  }, [containerDimensions, profiles.length, profiles.map(p => p.active_screen_share?.length || 0).join(',')]); // Only depend on layout-affecting changes
-  const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();
-  // Memoized render function for screen shares to prevent unnecessary re-renders
-  const renderScreenShare = useCallback((profile, shareId) => {
-    const participantId = profile.from;
-    const userPulseAnim = pulseAnimations.current[participantId] || new Animated.Value(0);
-    
+  }, [containerDimensions, profiles]);
+
+  const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();  // Render function for screen shares
+  const renderScreenShare = (profile, shareId) => {
     const activeStream = activeStreams[shareId];
     let streamToRender = null;
     
@@ -185,22 +110,10 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
     }
 
     const hasVideo = streamToRender?.getVideoTracks().length > 0;
-
-    // Create animated border effect that doesn't affect layout
-    const borderColor = userPulseAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['rgba(0, 0, 0, 0)', 'rgba(0, 255, 0, 0.8)'],
-    });
-
-    const borderWidth = userPulseAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 3],
-    });
-
     const displayName = `${profile.handle || profile.from || 'Unknown'} : Screen Share`;
 
     return (
-      <Animated.View
+      <View
         key={shareId}
         style={[
           styles.profile,
@@ -209,8 +122,6 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
             height: rectHeight,
             marginRight: margin,
             marginBottom: margin,
-            borderColor: borderColor,
-            borderWidth: borderWidth,
           }
         ]}
       >
@@ -228,34 +139,23 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
                   style={styles.videoStream}
                 />
               )}
-            </View>          ) : (
-            <Animated.View style={[
-              {
-                borderColor: borderColor,
-                borderWidth: borderWidth,
-                borderRadius: 8,
-                overflow: 'hidden',
-              }
-            ]}>
-              <UserProfileAvatar 
-                userHandle={displayName}
-                profileImageUri={null}
-                containerWidth={rectWidth}
-                containerHeight={rectHeight}
-              />
-            </Animated.View>
+            </View>
+          ) : (
+            <UserProfileAvatar 
+              userHandle={displayName}
+              profileImageUri={null}
+              containerWidth={rectWidth}
+              containerHeight={rectHeight}
+            />
           )}
         </View>
-      </Animated.View>
+      </View>
     );
-  }, []); // NO dependencies to prevent re-renders
-    // Memoized render function for user profiles to prevent unnecessary re-renders
-  const renderProfile = useCallback((profile) => {
+  };  // Render function for user profiles
+  const renderProfile = (profile) => {
     const participantId = profile.from;
     const activeStream = activeStreams[participantId];
     const isLocalUser = participantId === get.myId();
-    
-    const pulseAnim = pulseAnimations.current[participantId] || new Animated.Value(0);
     
     // Determina quale stream utilizzare
     let streamToRender = null;
@@ -269,16 +169,7 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
 
     const hasVideo = streamToRender?.getVideoTracks().length > 0;
 
-    // Create animated border effect that doesn't affect layout
-    const borderColor = pulseAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['rgba(0, 0, 0, 0)', 'rgba(0, 255, 0, 0.8)'],
-    });
-
-    const borderWidth = pulseAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 3],
-    });    return (
+    return (
       <View
         key={participantId} 
         style={[
@@ -307,34 +198,27 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
                 />
               )}
             </View>
-          ) : (            <Animated.View style={[
-              {
-                borderColor: borderColor,
-                borderWidth: borderWidth,
-                borderRadius: 8,
-                overflow: 'hidden',
-              }
-            ]}>
-              <UserProfileAvatar 
-                userHandle={activeStream?.userData?.handle || profile.handle || 'Loading...'}
-                profileImageUri={activeStream?.userData?.profileImageUri || profile.profileImageUri}
-                containerWidth={rectWidth}
-                containerHeight={rectHeight}              />
-            </Animated.View>
+          ) : (
+            <UserProfileAvatar 
+              userHandle={activeStream?.userData?.handle || profile.handle || 'Loading...'}
+              profileImageUri={activeStream?.userData?.profileImageUri || profile.profileImageUri}
+              containerWidth={rectWidth}
+              containerHeight={rectHeight}
+            />
           )}
         </View>
       </View>
     );
-  }, []); // NO dependencies to prevent re-renders
-
+  };
   return (
-    <View style={styles.container} onLayout={onContainerLayout}>      <View style={[
+    <View style={styles.container} onLayout={onContainerLayout}>
+      <View style={[
         styles.grid, 
         { 
           width: containerDimensions.width,
-          // Rimosso il padding per evitare problemi di layout
         }
-      ]}>{profiles.length > 0 ? (
+      ]}>
+        {profiles.length > 0 ? (
           <>
             {/* Render user profiles */}
             {profiles.map(renderProfile)}
@@ -362,17 +246,19 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-  },    grid: {
+  },
+  grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-evenly", 
     alignItems: "flex-start",
-  },profile: {
+  },
+  profile: {
     backgroundColor: 'black',
     borderRadius: 10,
     overflow: 'hidden',
-    borderStyle: 'solid', 
-  },  videoContainer: {
+  },
+  videoContainer: {
     width: '100%',
     height: '100%',
     overflow: 'hidden',
@@ -382,26 +268,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     position: 'relative',
-  },  videoStream: {
+  },
+  videoStream: {
     width: "100%",
     height: "100%",
     borderRadius: 10,
-  },
-  speakingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 255, 0, 0.3)',
-    borderRadius: 10,
-    pointerEvents: 'none',
-  },
-  profileText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "500",
-    flex: 1,
   },
   emptyChatText: {
     color: "white",
