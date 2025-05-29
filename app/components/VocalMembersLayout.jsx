@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useContext } from "react";
 import { View, StyleSheet, Text, Platform } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import UserProfileAvatar from "./UserProfileAvatar";
+import UserCard from "./UserCard";
 import multiPeerWebRTCManager from "../utils/webrtcMethods";
 
 import utils from "../utils/webrtc/utils";
@@ -101,113 +101,43 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
   const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();  // Render function for screen shares
   const renderScreenShare = (profile, shareId) => {
     const activeStream = activeStreams[shareId];
-    let streamToRender = null;
     
-    if (activeStream?.stream) {
-      streamToRender = activeStream.stream;
-    } else if (multiPeerWebRTCManager.remoteStreams[shareId]) {
-      streamToRender = multiPeerWebRTCManager.remoteStreams[shareId];
-    }
-
-    const hasVideo = streamToRender?.getVideoTracks().length > 0;
-    const displayName = `${profile.handle || profile.from || 'Unknown'} : Screen Share`;
+    // Crea un profilo temporaneo per lo screen share
+    const screenShareProfile = {
+      ...profile,
+      from: shareId,
+      handle: profile.handle || profile.from || 'Unknown'
+    };
 
     return (
-      <View
+      <UserCard
         key={shareId}
-        style={[
-          styles.profile,
-          {
-            width: rectWidth,
-            height: rectHeight,
-            marginRight: margin,
-            marginBottom: margin,
-          }
-        ]}
-      >
-        <View style={styles.videoContainer}>
-          {hasVideo && streamToRender ? (
-            <View style={styles.videoWrapper}>
-              {Platform.OS === "web" ? (
-                <RTCView
-                  stream={streamToRender}
-                  style={styles.videoStream}
-                />
-              ) : (
-                <RTCView
-                  streamURL={streamToRender.toURL()}
-                  style={styles.videoStream}
-                />
-              )}
-            </View>
-          ) : (
-            <UserProfileAvatar 
-              userHandle={displayName}
-              profileImageUri={null}
-              containerWidth={rectWidth}
-              containerHeight={rectHeight}
-            />
-          )}
-        </View>
-      </View>
+        profile={screenShareProfile}
+        activeStream={activeStream}
+        isSpeaking={false} // Screen share non ha speaking status
+        width={rectWidth}
+        height={rectHeight}
+        margin={margin}
+        isScreenShare={true}
+      />
     );
   };  // Render function for user profiles
   const renderProfile = (profile) => {
     const participantId = profile.from;
     const activeStream = activeStreams[participantId];
-    const isLocalUser = participantId === get.myId();
-    
-    // Determina quale stream utilizzare
-    let streamToRender = null;
-    if (isLocalUser && multiPeerWebRTCManager.localStream) {
-      streamToRender = multiPeerWebRTCManager.localStream;
-    } else if (activeStream?.stream) {
-      streamToRender = activeStream.stream;
-    } else if (multiPeerWebRTCManager.remoteStreams[participantId]) {
-      streamToRender = multiPeerWebRTCManager.remoteStreams[participantId];
-    }
-
-    const hasVideo = streamToRender?.getVideoTracks().length > 0;
+    const isSpeaking = profile.is_speaking || false; // Usa il parametro is_speaking dal profilo
 
     return (
-      <View
-        key={participantId} 
-        style={[
-          styles.profile,
-          {
-            width: rectWidth,
-            height: rectHeight,
-            margin: margin / 2,
-          }
-        ]}
-      >
-        <View style={styles.videoContainer}>
-          {hasVideo && streamToRender ? (
-            <View style={styles.videoWrapper}>
-              {Platform.OS === "web" ? (
-                <RTCView
-                  stream={streamToRender}
-                  style={styles.videoStream}
-                  muted={isLocalUser}
-                />
-              ) : (
-                <RTCView
-                  streamURL={streamToRender.toURL()}
-                  style={styles.videoStream}
-                  muted={isLocalUser}
-                />
-              )}
-            </View>
-          ) : (
-            <UserProfileAvatar 
-              userHandle={activeStream?.userData?.handle || profile.handle || 'Loading...'}
-              profileImageUri={activeStream?.userData?.profileImageUri || profile.profileImageUri}
-              containerWidth={rectWidth}
-              containerHeight={rectHeight}
-            />
-          )}
-        </View>
-      </View>
+      <UserCard
+        key={participantId}
+        profile={profile}
+        activeStream={activeStream}
+        isSpeaking={isSpeaking}
+        width={rectWidth}
+        height={rectHeight}
+        margin={margin}
+        isScreenShare={false}
+      />
     );
   };
   return (
@@ -250,29 +180,8 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-evenly", 
+    justifyContent: "center", 
     alignItems: "flex-start",
-  },
-  profile: {
-    backgroundColor: 'black',
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  videoContainer: {
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden',
-    borderRadius: 10,
-  },
-  videoWrapper: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-  },
-  videoStream: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 10,
   },
   emptyChatText: {
     color: "white",
