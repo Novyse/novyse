@@ -197,8 +197,10 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
       outputRange: [0, 3],
     });
 
-    const displayName = `${profile.handle || profile.from || 'Unknown'} : Screen Share`;    return (
-      <View
+    const displayName = `${profile.handle || profile.from || 'Unknown'} : Screen Share`;
+
+    return (
+      <Animated.View
         key={shareId}
         style={[
           styles.profile,
@@ -207,19 +209,14 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
             height: rectHeight,
             marginRight: margin,
             marginBottom: margin,
+            borderColor: borderColor,
+            borderWidth: borderWidth,
           }
         ]}
-      >        <View style={styles.videoContainer}>
+      >
+        <View style={styles.videoContainer}>
           {hasVideo && streamToRender ? (
-            <Animated.View style={[
-              styles.videoWrapper,
-              {
-                borderColor: borderColor,
-                borderWidth: borderWidth,
-                borderRadius: 8,
-                overflow: 'hidden',
-              }
-            ]}>
+            <View style={styles.videoWrapper}>
               {Platform.OS === "web" ? (
                 <RTCView
                   stream={streamToRender}
@@ -231,7 +228,7 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
                   style={styles.videoStream}
                 />
               )}
-            </Animated.View>) : (
+            </View>          ) : (
             <Animated.View style={[
               {
                 borderColor: borderColor,
@@ -245,10 +242,11 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
                 profileImageUri={null}
                 containerWidth={rectWidth}
                 containerHeight={rectHeight}
-              />            </Animated.View>
+              />
+            </Animated.View>
           )}
         </View>
-      </View>
+      </Animated.View>
     );
   }, []); // NO dependencies to prevent re-renders
     // Memoized render function for user profiles to prevent unnecessary re-renders
@@ -291,17 +289,10 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
             margin: margin / 2,
           }
         ]}
-      >        <View style={styles.videoContainer}>
+      >
+        <View style={styles.videoContainer}>
           {hasVideo && streamToRender ? (
-            <Animated.View style={[
-              styles.videoWrapper,
-              {
-                borderColor: borderColor,
-                borderWidth: borderWidth,
-                borderRadius: 8,
-                overflow: 'hidden',
-              }
-            ]}>
+            <View style={styles.videoWrapper}>
               {Platform.OS === "web" ? (
                 <RTCView
                   stream={streamToRender}
@@ -315,7 +306,7 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
                   muted={isLocalUser}
                 />
               )}
-            </Animated.View>
+            </View>
           ) : (            <Animated.View style={[
               {
                 borderColor: borderColor,
