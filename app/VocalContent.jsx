@@ -19,18 +19,23 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   const [profilesInCommsChat, setProfilesInCommsChat] = useState([]);
   const [activeStreams, setActiveStreams] = useState({}); // { participantId: { stream, userData, streamType } }
+  const [speakingUsers, setSpeakingUsers] = useState({}); // { userId: boolean }
   
   useEffect(() => {
     // Set audio context reference in WebRTC manager when component mounts
     multiPeerWebRTCManager.setAudioContext(audioContext);
-  }, [audioContext]);
+  }, [audioContext]); // da capire se questa parte si può far esplodere @SamueleOrazioDurante @Matt3opower
 
   useEffect(() => {
 
-    // Registra i listeners PRIMA di fare qualsiasi chiamata API
+    // Registra i listeners
     eventEmitter.on("member_joined_comms", handleMemberJoined);
     eventEmitter.on("member_left_comms", handleMemberLeft);
     eventEmitter.on("stream_added_or_updated", handleStreamUpdate);    
+    eventEmitter.on("user_started_speaking", handleUserStartedSpeaking);
+    eventEmitter.on("user_stopped_speaking", handleUserStoppedSpeaking);
+    eventEmitter.on("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
+    eventEmitter.on("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
     
     const getMembers = async () => {
       const members = await get.commsMembers(chatId);
@@ -43,6 +48,10 @@ const VocalContent = ({ selectedChat, chatId }) => {
       eventEmitter.off("member_joined_comms", handleMemberJoined);
       eventEmitter.off("member_left_comms", handleMemberLeft);
       eventEmitter.off("stream_added_or_updated", handleStreamUpdate);
+      eventEmitter.off("user_started_speaking", handleUserStartedSpeaking);
+      eventEmitter.off("user_stopped_speaking", handleUserStoppedSpeaking);
+      eventEmitter.off("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
+      eventEmitter.off("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
     };
   }, [chatId]);
 
@@ -69,8 +78,50 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   };
 
+  // Speech detection handlers
+  const handleUserStartedSpeaking = () => {
+    if(get.isInComms()) {
+      console.log('[VocalContent] Current user started speaking');
+      setSpeakingUsers(prev => ({
+        ...prev,
+        'current_user': true
+      }));
+    }
+  };
 
-    
+  const handleUserStoppedSpeaking = () => {
+    if(get.isInComms()) {
+      console.log('[VocalContent] Current user stopped speaking');
+      setSpeakingUsers(prev => ({
+        ...prev,
+        'current_user': false
+      }));
+    }
+
+  };
+
+  const handleRemoteUserStartedSpeaking = (data) => {
+    // Solo se il remote user è nella chat in cui sono e non è l'utente locale
+    if (data.chat_id === chatId && data.chat_id === get.commsId() && data.id !== get.myId()) {
+      console.log('[VocalContent] Remote user started speaking:', data);
+      setSpeakingUsers(prev => ({
+        ...prev,
+        [data.id]: true
+      }));
+    }
+  };
+
+  const handleRemoteUserStoppedSpeaking = (data) => {
+    // Solo se il remote user è nella chat in cui sono e non è l'utente locale
+    if (data.chat_id === chatId && data.chat_id === get.commsId() && data.id !== get.myId()) {
+      console.log('[VocalContent] Remote user stopped speaking:', data);
+      setSpeakingUsers(prev => ({
+        ...prev,
+        [data.id]: false
+      }));
+    }
+  };
+
   // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
     console.log('[VocalContent] handleMemberJoined called with:', data);
@@ -121,6 +172,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       <VocalMembersLayout
         profiles={profilesInCommsChat}
         activeStreams={activeStreams}
+        speakingUsers={speakingUsers}
         theme={theme}
       />
 

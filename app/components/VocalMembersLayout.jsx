@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext, useCallback } from "react";
-import { View, StyleSheet, Text, Pressable, Platform, Dimensions } from "react-native";
+import React, { useState, useEffect, useContext, useCallback, useRef } from "react";
+import { View, StyleSheet, Text, Pressable, Platform, Dimensions, Animated } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
 import multiPeerWebRTCManager from "../utils/webrtcMethods";
@@ -15,12 +15,62 @@ if (Platform.OS === "web") {
 const ASPECT_RATIO = 16 / 9;
 const MARGIN = 4;
 
-const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
+const VocalMembersLayout = ({ profiles, activeStreams = {}, speakingUsers = {} }) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
     height: 0,
   });
   const { theme } = useContext(ThemeContext);
+  const pulseAnimations = useRef({});
+
+  // Initialize pulse animations for speaking detection
+  useEffect(() => {
+    profiles.forEach(profile => {
+      const userId = profile.from;
+      if (userId && !pulseAnimations.current[userId]) {
+        pulseAnimations.current[userId] = new Animated.Value(0);
+      }
+    });
+    
+    // Add animation for current user if not exists
+    if (!pulseAnimations.current['current_user']) {
+      pulseAnimations.current['current_user'] = new Animated.Value(0);
+    }
+  }, [profiles]);
+
+  // Handle speaking state changes
+  useEffect(() => {
+    Object.keys(speakingUsers).forEach(userId => {
+      const isSpeaking = speakingUsers[userId];
+      const animation = pulseAnimations.current[userId];
+      
+      if (animation) {
+        if (isSpeaking) {
+          Animated.loop(
+            Animated.sequence([
+              Animated.timing(animation, {
+                toValue: 1,
+                duration: 500,
+                useNativeDriver: false,
+              }),
+              Animated.timing(animation, {
+                toValue: 0,
+                duration: 500,
+                useNativeDriver: false,
+              }),
+            ])
+          ).start();
+        } else {
+          animation.stopAnimation();
+          Animated.timing(animation, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: false,
+          }).start();
+        }
+      }
+    });
+  }, [speakingUsers]);
 
   // Handler per il layout
   const onContainerLayout = useCallback((event) => {
@@ -90,6 +140,10 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
     const activeStream = activeStreams[participantId];
     const isLocalUser = participantId === multiPeerWebRTCManager.myId;
     
+    // Use 'current_user' key for local user animations
+    const animationKey = isLocalUser ? 'current_user' : participantId;
+    const pulseAnim = pulseAnimations.current[animationKey] || new Animated.Value(0);
+    
     // Determina quale stream utilizzare
     let streamToRender = null;
     if (isLocalUser && multiPeerWebRTCManager.localStream) {
@@ -101,7 +155,20 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
     }
 
     const hasVideo = streamToRender?.getVideoTracks().length > 0;
-    const hasAudio = streamToRender?.getAudioTracks().length > 0;    return (      <Pressable 
+    const hasAudio = streamToRender?.getAudioTracks().length > 0;    
+
+    const borderColor = pulseAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['transparent', '#00ff00'],
+    });
+
+    const borderWidth = pulseAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 3],
+    });
+
+    return (
+      <Animated.View
         key={participantId} 
         style={[
           styles.profile,
@@ -110,6 +177,8 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
             height: rectHeight,
             marginRight: margin,
             marginBottom: margin,
+            borderColor: borderColor,
+            borderWidth: borderWidth,
           }
         ]}
       >
@@ -139,7 +208,7 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
             />
           )}
         </View>
-      </Pressable>
+      </Animated.View>
     );
   };
 

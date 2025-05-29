@@ -206,9 +206,9 @@ const WebSocketMethods = {
         return;
       }
       // Emit event to match your component expectations
-      eventEmitter.emit("speaking", {
+      eventEmitter.emit("remote_user_started_speaking", {
         id: data.from,
-        from: data.from,
+        chatId: data.to,
       });
     });
 
@@ -218,9 +218,9 @@ const WebSocketMethods = {
         return;
       }
       // Emit event to match your component expectations
-      eventEmitter.emit("not_speaking", {
+      eventEmitter.emit("remote_user_stopped_speaking", {
         id: data.from,
-        from: data.from,
+        chatId: data.to,
       });
     });
 

@@ -145,7 +145,7 @@ const check = {
 
 const get = {
 
-  chatId: () => {
+  commsId: () => {
     return WebRTC.chatId;
   },
   myId: () => {

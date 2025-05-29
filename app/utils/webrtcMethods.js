@@ -105,6 +105,7 @@ class MultiPeerWebRTCManager {
     } else {
       console.log("MultiPeerWebRTCManager: Inizializzato vuoto");
     }    this.negotiationInProgress = {}; // Traccia rinegoziazioni per peer
+    this.vadInitialized = false;
   }
 
   /**
@@ -180,6 +181,12 @@ class MultiPeerWebRTCManager {
       Object.values(this.peerConnections).forEach((pc) => {
         this._addLocalTracksToPeerConnection(pc);
       });
+
+      // Initialize VAD after getting local stream - use our own chatId
+      if (audioOnly && this.localStream && !this.vadInitialized && this.chatId && this.myId) {
+        await this.initializeVoiceActivityDetection();
+      }
+
       return stream;
     } catch (error) {
       console.error(
@@ -2050,7 +2057,7 @@ class MultiPeerWebRTCManager {
 
     // Reinizializza tutte le proprietà
     this.myId = myId;
-    this.chatId = chatId;
+    this.chatId = chatId; // Set chatId first
     this.onLocalStreamReady = onLocalStreamReady;
     this.onPeerConnectionStateChange = onPeerConnectionStateChange;
     this.onParticipantLeft = onParticipantLeft;
@@ -2058,12 +2065,12 @@ class MultiPeerWebRTCManager {
     this.remoteStreams = {};
     this._setupEventListeners();
 
-    // Initialize voice activity detection with platform-specific delay
-    if (this.localStream) {
+    // Initialize VAD with our internal chatId and myId
+    if (this.localStream && this.chatId && this.myId) {
       console.log('VAD: Initializing after regenerate...');
-      const delay = Platform.OS === 'web' ? 500 : 1000; // Longer delay for mobile
+      const delay = Platform.OS === 'web' ? 500 : 1000;
       setTimeout(() => {
-        this.initializeVoiceActivityDetection();
+        this.initializeVoiceActivityDetection(); // Will use this.chatId and this.myId
       }, delay);
     }
 
