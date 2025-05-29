@@ -237,7 +237,32 @@ const APIMethods = {
       console.error("Error in updateAll:", error);
       throw error;
     }
+  },
+
+  async startScreenShare(chatId){
+    try {
+      const response = await api.get(
+        `/comms/screen_share/start?chat_id=${chatId}`
+      );
+      return response.data; // ritorna screen_share_started : true/false e screen_share_id : response.data.screen_share_id
+    } catch (error) {
+      console.error("Error in startStream:", error);
+      throw error;
+    }
+  },
+
+  async stopScreenShare(chatId,screenShareId){
+    try {
+      const response = await api.get(
+        `/comms/screen_share/stop?chat_id=${chatId}&screen_share_id=${screenShareId}`
+      );
+      return response.data; // ritorna screen_share_stopped : true/false
+    } catch (error) {
+      console.error("Error in stopStream:", error);
+      throw error;
+    }
   }
 };
+
 
 export default APIMethods;
