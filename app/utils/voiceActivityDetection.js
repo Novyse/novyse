@@ -9,6 +9,7 @@ class VoiceActivityDetection {
     this.dataArray = null;
     this.isInitialized = false;
     this.isSpeaking = false;
+   // @SamueleOrazioDurante vedi cosa togliere qua, tipo il controllo per chatid a cosa cazzo serve,tanto se l'audio è attivo sono in una chat, cosa gliene frega se la chat è giusta
     this.chatId = null;
     this.userId = null;
     this.onSpeakingStatusChange = null;
@@ -186,7 +187,7 @@ class VoiceActivityDetection {
     }
 
     this.isSpeaking = speaking;
-
+    // @SamueleOrazioDurante importante, qua è da cambiare per notificare l'event emitter e poi da qua direi di notificare la UI (vocal content) e il back-end (eventReciver) ed è poi l'ui che provvederà a mandare le informazioni lato server
     // Notify local UI
     if (this.onSpeakingStatusChange) {
       this.onSpeakingStatusChange(this.userId, speaking);
