@@ -66,6 +66,8 @@ class MultiPeerWebRTCManager {
   onParticipantLeft = null;
   onStreamUpdate = null;
 
+  eventReciver = null; // Riferimento all'istanza dell'event receiver
+
   // ===== STABILITÀ E RICONNESSIONE =====
   // Connection stability and reconnection management
   connectionStates = {}; // Track connection states per peer
@@ -102,6 +104,7 @@ class MultiPeerWebRTCManager {
       this.onPeerConnectionStateChange = onPeerConnectionStateChange;
       this.onParticipantLeft = onParticipantLeft;
       this._setupEventListeners();
+      this._initializeEventReceiver();
     } else {
       console.log("MultiPeerWebRTCManager: Inizializzato vuoto");
     }    this.negotiationInProgress = {}; // Traccia rinegoziazioni per peer
@@ -116,7 +119,19 @@ class MultiPeerWebRTCManager {
     this.audioContextRef = audioContext;
     console.log('WebRTC: Audio context reference set');
   }
-
+  _initializeEventReceiver() {
+    // Create and initialize the event receiver
+    this.eventReceiver = new WebRTCEventReceiver(this);
+    this.eventReceiver.initialize();
+    console.log('[WebRTC] Event receiver initialized');
+  }
+    _cleanupEventReceiver() {
+    if (this.eventReceiver) {
+      this.eventReceiver.destroy();
+      this.eventReceiver = null;
+      console.log('[WebRTC] Event receiver cleaned up');
+    }
+  }
   // Gestione degli eventi
   _setupEventListeners() {
     // Rimuovi eventuali listener precedenti
@@ -126,6 +141,8 @@ class MultiPeerWebRTCManager {
     eventEmitter.on('offer', this.offerMessage.bind(this));
     eventEmitter.on('answer', this.answerMessage.bind(this));
     eventEmitter.on('candidate', this.candidateMessage.bind(this));
+
+    // da togliere quelli sotto
       // Add speaking status listeners
     eventEmitter.on('speaking', this.handleRemoteSpeaking.bind(this));
     eventEmitter.on('not_speaking', this.handleRemoteNotSpeaking.bind(this));
@@ -141,6 +158,8 @@ class MultiPeerWebRTCManager {
     eventEmitter.off('offer', this.offerMessage.bind(this));
     eventEmitter.off('answer', this.answerMessage.bind(this));
     eventEmitter.off('candidate', this.candidateMessage.bind(this));
+
+    // da far sparire
     eventEmitter.off('speaking', this.handleRemoteSpeaking.bind(this));
     eventEmitter.off('not_speaking', this.handleRemoteNotSpeaking.bind(this));
     eventEmitter.off('screen_share_started', this.handleRemoteScreenShareStarted.bind(this));
@@ -1976,6 +1995,7 @@ class MultiPeerWebRTCManager {
 
     // Disabilito gli event listeners non più necessari (candidate, offer, answer sono utili solo quando sei in una comms)
     this._removeEventListeners();
+    this._cleanupEventReceivers();
     
     console.log("MultiPeerWebRTCManager: Tutte le connessioni chiuse e risorse rilasciate.");
     
@@ -2064,6 +2084,7 @@ class MultiPeerWebRTCManager {
     this.peerConnections = {};
     this.remoteStreams = {};
     this._setupEventListeners();
+    this._initializeEventReceiver();
 
     // Initialize VAD with our internal chatId and myId
     if (this.localStream && this.chatId && this.myId) {

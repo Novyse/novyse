@@ -31,9 +31,12 @@ const VocalContent = ({ selectedChat, chatId }) => {
     // Registra i listeners
     eventEmitter.on("member_joined_comms", handleMemberJoined);
     eventEmitter.on("member_left_comms", handleMemberLeft);
+
     eventEmitter.on("stream_added_or_updated", handleStreamUpdate);    
+
     eventEmitter.on("user_started_speaking", handleUserStartedSpeaking);
     eventEmitter.on("user_stopped_speaking", handleUserStoppedSpeaking);
+
     eventEmitter.on("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
     eventEmitter.on("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
     
@@ -47,9 +50,12 @@ const VocalContent = ({ selectedChat, chatId }) => {
     return () => {
       eventEmitter.off("member_joined_comms", handleMemberJoined);
       eventEmitter.off("member_left_comms", handleMemberLeft);
+
       eventEmitter.off("stream_added_or_updated", handleStreamUpdate);
+
       eventEmitter.off("user_started_speaking", handleUserStartedSpeaking);
       eventEmitter.off("user_stopped_speaking", handleUserStoppedSpeaking);
+
       eventEmitter.off("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
       eventEmitter.off("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
     };

@@ -106,7 +106,26 @@ const self = {
       console.error('Errore nel toggle video:', err);
       throw new Error("Errore nel toggle video: " + err.message);
     }
-  }
+  },
+
+  // quando premo pulsante screen share
+
+  async startScreenShare() {
+    // da sistemare con chiamata API e manda tramite emitter
+    try {
+      const result = await WebRTC.addScreenShareStream();
+      if (result) {
+        console.log(`[ScreenShare] Screen share started with ID: ${result.streamId}`);
+        return result;
+      } else {
+        console.warn('[ScreenShare] Failed to start screen share');
+        throw new Error('Failed to start screen share');
+      }
+    } catch (error) {
+      console.error('[ScreenShare] Error starting screen share:', error);
+      throw new Error("Error starting screen share: " + error.message);
+    }
+  },
 
 }
 
@@ -135,6 +154,24 @@ const handle = {  // quando un nuovo membro entra in una room
 
     await multiPeerWebRTCManager.userLeft(data);
   },
+
+  async screenShareStarted(data) {
+    // Solo se il membro che ha iniziato lo screen share è nella stessa chat vocale
+    if (WebRTC.chatId == data.chat_id) {
+      SoundPlayer.getInstance().playSound('comms_stream_started');
+    }
+
+    eventEmitter.emit("screen_share_started", data);
+  },
+
+  async screenShareStopped(data) {
+    // Solo se il membro che ha fermato lo screen share è nella stessa chat vocale
+    if (WebRTC.chatId == data.chat_id) {
+      SoundPlayer.getInstance().playSound('comms_stream_stopped');
+    }
+
+    eventEmitter.emit("screen_share_stopped", data);
+  }
 }
 
 const check = {
@@ -178,5 +215,5 @@ const get = {
   }
 }
 
-export default { self, handle, check, get };
+export default { self, check, get };
 

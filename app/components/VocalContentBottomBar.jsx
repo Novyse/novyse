@@ -5,7 +5,7 @@ import VocalBottomBarButton from "./VocalBottomBarButton";
 import voiceActivityDetection from "../utils/voiceActivityDetection";
 
 import utils from "../utils/webrtc/utils";
-const { self, handle, check, get } = utils;
+const { self, check } = utils;
 
 
 const VocalContentBottomBar = ({ chatId }) => {
