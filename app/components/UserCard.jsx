@@ -68,7 +68,8 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     borderColor: 'transparent',
     opacity: 0,
-  },  speakingOverlay: {
+  },
+  speakingOverlay: {
     borderWidth: 2,
     borderColor: '#00FF00',
     opacity: 1,
@@ -80,12 +81,12 @@ const styles = StyleSheet.create({
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.8,
       shadowRadius: 8,
-    }),
-    // Android: solo bordo semplice, nessun effetto shadow/elevation
+    }),    // Android: solo bordo semplice, nessun effetto shadow/elevation
     ...(Platform.OS === 'android' && {
       // Nessun effetto aggiuntivo per Android
     }),
-  },  videoContainer: {
+  },
+  videoContainer: {
     width: '100%',
     height: '100%',
     overflow: 'hidden',
@@ -102,23 +103,31 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 8,
-  },  blurredBackground: {
+  },
+  blurredBackground: {
     position: 'absolute',
     top: 0,
     left: 0,
     width: '100%',
     height: '100%',
     zIndex: 1,
+    overflow: 'hidden',
+    borderRadius: 8,
+    // --- BLUR WEB ---
     ...(Platform.OS === 'web' && {
-      filter: 'blur(20px)',
-      transform: 'scale(1.1)',
+      filter: 'blur(32px) saturate(1.5)', // blur più forte e saturazione
+      transform: 'scale(1.12)', // leggero zoom per evitare bordi
+      opacity: 1,      backgroundColor: 'rgba(0,0,0,0.12)', // leggero overlay per contrasto
     }),
-    ...(Platform.OS === 'ios' && {
-      opacity: 0.6,
-      transform: [{ scale: 1.1 }],
-    }),
+    // --- BLUR ANDROID ---
     ...(Platform.OS === 'android' && {
-      opacity: 0.6,
+      opacity: 1,
+      transform: [{ scale: 2 }], // zoom più forte per Android
+      backgroundColor: 'rgba(0, 0, 0, 0.8)', // overlay molto più scuro
+    }),
+    // --- BLUR iOS ---
+    ...(Platform.OS === 'ios' && {
+      opacity: 0.7,
       transform: [{ scale: 1.1 }],
     }),
   },
@@ -142,16 +151,31 @@ const VideoContent = memo(({
   profileImageUri, 
   width, 
   height 
-}) => {  return (
+}) => {
+  return (
     <View style={styles.videoContainer}>
       {hasVideo && streamToRender ? (
-        <View style={styles.videoWrapper}>          {/* Sfondo sfocato - usa lo stesso stream ma ingrandito e sfocato */}
+        <View style={styles.videoWrapper}>
+          {/* Sfondo sfocato - usa lo stesso stream ma ingrandito e sfocato */}
           {Platform.OS === "web" ? (
-            <RTCView
-              stream={streamToRender}
-              style={[styles.videoStream, styles.blurredBackground, { objectFit: 'cover' }]}
-              muted={isLocalUser}
-            />
+            <>
+              <RTCView
+                stream={streamToRender}
+                style={[styles.videoStream, styles.blurredBackground, { objectFit: 'cover' }]}
+                muted={isLocalUser}
+              />
+              {/* Overlay per migliorare il contrasto del blur su web */}
+              <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'rgba(0,0,0,0.10)',
+                borderRadius: 8,
+                zIndex: 2,
+              }} />
+            </>
           ) : (
             <View style={styles.blurredBackground}>
               <RTCView
@@ -160,13 +184,17 @@ const VideoContent = memo(({
                 muted={isLocalUser}
               />
               <BlurView
-                intensity={80}
+                intensity={Platform.OS === 'android' ? 500 : 300}
+                tint="dark"
                 style={{
                   position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
+                  top: -5,
+                  left: -5,
+                  width: '110%',
+                  height: '110%',
+                  borderRadius: 8,
+                  backgroundColor: Platform.OS === 'android' ? 'rgba(0,0,0,0.70)' : 'rgba(0,0,0,0.25)',
+                  zIndex: 2,
                 }}
               />
             </View>
@@ -246,8 +274,7 @@ const UserCard = memo(({
       ? null 
       : activeStream?.userData?.profileImageUri || profile.profileImageUri,
     width,
-    height
-  }), [hasVideo, streamToRender, isLocalUser, profile, activeStream, isScreenShare, width, height]);
+    height  }), [hasVideo, streamToRender, isLocalUser, profile, activeStream, isScreenShare, width, height]);
   // Calcola lo stile del bordo speaking overlay dinamicamente
   const speakingOverlayStyle = useMemo(() => {
     if (isScreenShare || !isSpeaking) {

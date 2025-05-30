@@ -1,4 +1,4 @@
-package com.BPUP.Messanger
+package com.novyse
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

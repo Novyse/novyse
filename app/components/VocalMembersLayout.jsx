@@ -53,11 +53,16 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
     const isPortrait = height > width;
 
     let numColumns, numRows;
-
     // Logica specifica per 2 persone
     if (totalElements === 2) {
-      numColumns = 2;
-      numRows = 1;
+      // Su Android, metti 2 persone in colonna; su altre piattaforme, in riga
+      if (Platform.OS === 'android') {
+        numColumns = 1;
+        numRows = 2;
+      } else {
+        numColumns = 2;
+        numRows = 1;
+      }
     }
     // Logica per l'orientamento verticale (portrait) con più di 2 elementi
     else if (isPortrait && totalElements <= 3) {
@@ -66,16 +71,14 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
     } else {
       numColumns = Math.ceil(Math.sqrt(totalElements));
       numRows = Math.ceil(totalElements / numColumns);
-      
-      if (isPortrait && numRows < 3 && numColumns > 1) {
+        if (isPortrait && numRows < 3 && numColumns > 1) {
         numColumns = Math.max(1, Math.floor(numColumns / 2));
         numRows = Math.ceil(totalElements / numColumns);
       }
     }
-
-    // Calcola lo spazio disponibile
-    const availableWidth = width - (MARGIN * 2);
-    const availableHeight = height - (MARGIN * 2);
+    // Calcola lo spazio disponibile con margini generosi per evitare overflow
+    const availableWidth = width - (MARGIN * 4); // Margine extra per evitare overflow
+    const availableHeight = height - (MARGIN * 4); // Margine extra per evitare overflow
 
     // Calcola la larghezza e altezza dei rettangoli rispettando il rapporto 16:9
     const maxRectWidth = availableWidth / numColumns;
@@ -87,18 +90,17 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
     if (rectWidthByHeight <= maxRectWidth) {
       rectHeight = maxRectHeight;
       rectWidth = rectHeight * ASPECT_RATIO;
-    } else {
-      rectWidth = maxRectWidth;
+    } else {      rectWidth = maxRectWidth;
       rectHeight = rectWidth * (1 / ASPECT_RATIO);
     }
-
-    rectWidth = Math.max(50, rectWidth);
-    rectHeight = Math.max(50 / ASPECT_RATIO, rectHeight);
+    rectWidth = Math.max(50, rectWidth * 0.9); // Riduci leggermente per evitare overflow
+    rectHeight = Math.max(50 / ASPECT_RATIO, rectHeight * 0.9); // Riduci leggermente per evitare overflow
 
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
   }, [containerDimensions, profiles]);
 
-  const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();  // Render function for screen shares
+  const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();
+  // Render function for screen shares
   const renderScreenShare = (profile, shareId) => {
     const activeStream = activeStreams[shareId];
     
@@ -119,9 +121,9 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
         height={rectHeight}
         margin={margin}
         isScreenShare={true}
-      />
-    );
-  };  // Render function for user profiles
+      />    );
+  };
+  // Render function for user profiles
   const renderProfile = (profile) => {
     const participantId = profile.from;
     const activeStream = activeStreams[participantId];
@@ -180,8 +182,11 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "center", 
+    justifyContent: Platform.OS === 'web' ? 'center' : 'space-around', // Su web ora centrato
     alignItems: "flex-start",
+    padding: 0, // Nessun padding per la griglia
+    rowGap: 0,
+    columnGap: 0,
   },
   emptyChatText: {
     color: "white",

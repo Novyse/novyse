@@ -1,4 +1,4 @@
-package com.BPUP.Messanger
+package com.novyse
 
 import android.app.Application
 import android.content.res.Configuration
