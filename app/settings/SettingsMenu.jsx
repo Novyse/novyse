@@ -3,7 +3,10 @@ import { View, Text, StyleSheet, ScrollView } from "react-native"; // Aggiungi S
 import { ThemeContext } from "@/context/ThemeContext";
 import SettingsMenuItem from "../components/SettingsMenuItem";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { PaintBoardIcon, Folder01Icon } from "@hugeicons/core-free-icons";
 import appJson from "../../app.json";
+
 
 const SettingsMenu = () => {
   const { theme } = useContext(ThemeContext);
@@ -18,13 +21,13 @@ const SettingsMenu = () => {
         <SettingsMenuItem
           navToPage="themes"
           pageName="Temi"
-          iconName="color-lens"
+          iconName={PaintBoardIcon}
         />
 
         <SettingsMenuItem
           navToPage="storage"
           pageName="Archiviazione"
-          iconName="storage"
+          iconName={Folder01Icon}
         />
       </ScrollView>
 
