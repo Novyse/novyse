@@ -19,11 +19,49 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   const [profilesInCommsChat, setProfilesInCommsChat] = useState([]);
   const [activeStreams, setActiveStreams] = useState({}); // { participantId: { stream, userData, streamType } }
-  
   useEffect(() => {
     // Set audio context reference in WebRTC manager when component mounts
     multiPeerWebRTCManager.setAudioContext(audioContext);
-  }, [audioContext]); // da capire se questa parte si può far esplodere @SamueleOrazioDurante @Matt3opower
+  }, [audioContext]); // da capire se questa parte si può far esplodere @SamueleOrazioDurante @Matt3opower  // Add effect to monitor comms status and clear streams when user leaves comms
+  useEffect(() => {
+    let wasInComms = check.isInComms();
+    
+    const interval = setInterval(async () => {
+      const currentlyInComms = check.isInComms();
+      
+      if (!currentlyInComms) {
+        // Clear all active streams when user is no longer in comms
+        // but keep the profiles so other users are still visible
+        setActiveStreams({});
+        
+        // Se l'utente era in comms e ora non lo è più, aggiorna la lista dei membri
+        if (wasInComms && !currentlyInComms) {
+          console.log('[VocalContent] User left comms, updating member list from API');
+          try {
+            // Aspetta un momento per permettere al server di aggiornarsi
+            setTimeout(async () => {
+              const members = await get.commsMembers(chatId);
+              setProfilesInCommsChat(members);
+            }, 1000);
+          } catch (error) {
+            console.error('[VocalContent] Error updating members after leaving comms:', error);
+          }
+        }
+        
+        // Aggiorna solo lo stato speaking di tutti gli utenti a false
+        setProfilesInCommsChat(prev => 
+          prev.map(profile => ({
+            ...profile,
+            is_speaking: false
+          }))
+        );
+      }
+      
+      wasInComms = currentlyInComms;
+    }, 1000); // Check every second
+
+    return () => clearInterval(interval);
+  }, [chatId]);
 
   useEffect(() => {
 
@@ -58,10 +96,17 @@ const VocalContent = ({ selectedChat, chatId }) => {
       eventEmitter.off("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
       eventEmitter.off("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
     };
-  }, [chatId]);
-
-  // Gestione globale degli stream
+  }, [chatId]);  // Gestione globale degli stream
   const handleStreamUpdate = (data) => {
+    // Only update streams if the user is still in comms
+    if (!check.isInComms()) {
+      console.log('[VocalContent] User not in comms, ignoring stream update');
+      
+      // Clear all active streams if user is no longer in comms
+      setActiveStreams({});
+      return;
+    }
+
     const { participantId, stream, streamType, userData } = data;
     
     console.log(`[VocalContent] Stream update for ${participantId}:`, {
@@ -91,7 +136,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       // Aggiorna lo stato is_speaking per l'utente corrente in profilesInCommsChat
       setProfilesInCommsChat(prev => 
         prev.map(profile => 
-          profile.from === get.myId() 
+          profile.from === get.myPartecipantId() 
             ? { ...profile, is_speaking: true }
             : profile
         )
@@ -106,17 +151,22 @@ const VocalContent = ({ selectedChat, chatId }) => {
       // Aggiorna lo stato is_speaking per l'utente corrente in profilesInCommsChat
       setProfilesInCommsChat(prev => 
         prev.map(profile => 
-          profile.from === get.myId() 
+          profile.from === get.myPartecipantId() 
             ? { ...profile, is_speaking: false }
             : profile
         )
       );
     }
   };
-
   const handleRemoteUserStartedSpeaking = (data) => {
+    // Only process if user is in comms and event is for the correct chat
+    if (!check.isInComms()) {
+      console.log('[VocalContent] User not in comms, ignoring remote speaking event');
+      return;
+    }
+    
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
-    if (data.chat_id === chatId && data.chat_id === get.commsId() && data.id !== get.myId()) {
+    if (data.chatId === chatId && data.chatId === get.commsId() && data.id !== get.myPartecipantId()) {
       console.log('[VocalContent] Remote user started speaking:', data);
       
       // Aggiorna lo stato is_speaking per l'utente remoto in profilesInCommsChat
@@ -129,10 +179,15 @@ const VocalContent = ({ selectedChat, chatId }) => {
       );
     }
   };
-
   const handleRemoteUserStoppedSpeaking = (data) => {
+    // Only process if user is in comms and event is for the correct chat
+    if (!check.isInComms()) {
+      console.log('[VocalContent] User not in comms, ignoring remote speaking event');
+      return;
+    }
+    
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
-    if (data.chat_id === chatId && data.chat_id === get.commsId() && data.id !== get.myId()) {
+    if (data.chatId === chatId && data.chatId === get.commsId() && data.id !== get.myPartecipantId()) {
       console.log('[VocalContent] Remote user stopped speaking:', data);
       
       // Aggiorna lo stato is_speaking per l'utente remoto in profilesInCommsChat

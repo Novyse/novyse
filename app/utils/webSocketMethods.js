@@ -205,6 +205,7 @@ const WebSocketMethods = {
         console.error("Invalid speaking data received:", data);
         return;
       }
+      console.debug("Remote user started speaking:", data.from);
       // Emit event to match your component expectations
       eventEmitter.emit("remote_user_started_speaking", {
         id: data.from,
@@ -217,6 +218,7 @@ const WebSocketMethods = {
         console.error("Invalid not_speaking data received:", data);
         return;
       }
+      console.debug("Remote user started speaking:", data.from);
       // Emit event to match your component expectations
       eventEmitter.emit("remote_user_stopped_speaking", {
         id: data.from,
@@ -273,7 +275,7 @@ const WebSocketMethods = {
     socket.emit("answer", data);
   },
   // Voice Activity Detection signaling methods
-  sendSpeakingStatus: async (chatId, id, isSpeaking) => {
+  sendSpeakingStatus: async (commsId, partecipantId, isSpeaking) => {
     if (!socket || !socket.connected) {
       console.log("Cannot send speaking status: Socket not connected");
       return;
@@ -281,17 +283,11 @@ const WebSocketMethods = {
 
     const eventType = isSpeaking ? "speaking" : "not_speaking";
     const data = {
-      to: chatId,
-      from: id,
+      to: commsId,
+      from: partecipantId,
     };
 
-    // First emit directly to update local UI immediately
-    eventEmitter.emit(eventType, {
-      id: id, // Using id field to match your naming system
-      from: id, // Including from as well for compatibility
-    });
-
-    // Then send to server
+    // Send to server
     socket.emit(eventType, data);
   },
 

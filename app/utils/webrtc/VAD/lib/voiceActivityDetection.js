@@ -1,4 +1,3 @@
-import WebSocketMethods from './webSocketMethods';
 import { Platform } from 'react-native';
 
 class VoiceActivityDetection {
@@ -9,9 +8,7 @@ class VoiceActivityDetection {
     this.dataArray = null;
     this.isInitialized = false;
     this.isSpeaking = false;
-   // @SamueleOrazioDurante vedi cosa togliere qua, tipo il controllo per chatid a cosa cazzo serve,tanto se l'audio è attivo sono in una chat, cosa gliene frega se la chat è giusta
-    this.chatId = null;
-    this.userId = null;
+
     this.onSpeakingStatusChange = null;
 
     // VAD parameters
@@ -31,10 +28,8 @@ class VoiceActivityDetection {
     this.mobileStream = null;
   }
 
-  async initialize(audioStream, chatId, userId, onSpeakingStatusChange) {
+  async initialize(audioStream, onSpeakingStatusChange) {
     try {
-      this.chatId = chatId;
-      this.userId = userId;
       this.onSpeakingStatusChange = onSpeakingStatusChange;
 
       if (Platform.OS === 'web') {
@@ -187,16 +182,10 @@ class VoiceActivityDetection {
     }
 
     this.isSpeaking = speaking;
-    // @SamueleOrazioDurante importante, qua è da cambiare per notificare l'event emitter e poi da qua direi di notificare la UI (vocal content) e il back-end (eventReciver) ed è poi l'ui che provvederà a mandare le informazioni lato server
-    // Notify local UI
     if (this.onSpeakingStatusChange) {
-      this.onSpeakingStatusChange(this.userId, speaking);
+      this.onSpeakingStatusChange(speaking);
     }
 
-    // Send WebSocket notification
-    if (this.chatId && this.userId) {
-      WebSocketMethods.sendSpeakingStatus(this.chatId, this.userId, speaking);
-    }
   }
 
   cleanup() {
@@ -227,22 +216,6 @@ class VoiceActivityDetection {
   // Get current speaking status
   getCurrentSpeakingStatus() {
     return this.isSpeaking;
-  }
-
-  // Update chat and user info (for when switching chats)
-  updateContext(chatId, userId) {
-    this.chatId = chatId;
-    this.userId = userId;
-  }
-
-  // Mobile-specific method to manually trigger speaking (for testing)
-  triggerMobileSpeaking(duration = 2000) {
-    if (Platform.OS !== 'web') {
-      this.setSpeakingStatus(true);
-      setTimeout(() => {
-        this.setSpeakingStatus(false);
-      }, duration);
-    }
   }
 }
 

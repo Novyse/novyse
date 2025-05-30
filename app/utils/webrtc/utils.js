@@ -4,6 +4,7 @@ import multiPeerWebRTCManager from "../webrtcMethods";
 import eventEmitter from "../EventEmitter";
 import localDatabase from "../localDatabaseMethods";
 import SoundPlayer from "../sounds/SoundPlayer";
+import VAD from "./VAD/utils.js";
 
 const WebRTC = multiPeerWebRTCManager;
 
@@ -16,6 +17,8 @@ const self = {
     if (!stream) {
       throw new Error("Failed to get audio stream");
     }
+
+    await VAD.initializeVoiceActivityDetection(stream);
 
     // Check if already in a vocal chat
     if(WebRTC.chatId != chatId) {
@@ -40,7 +43,7 @@ const self = {
     const localUserHandle = await localDatabase.fetchLocalUserHandle();
     const localUserData = await localDatabase.fetchLocalUserData();
     
-    const dataWithChatId = { 
+    const dataWithChatId = {  
       ...data, 
       chat_id: chatId,
       handle: localUserHandle,
@@ -70,7 +73,7 @@ const self = {
     WebRTC.closeLocalStream();
 
     // Stop voice activity detection when leaving vocal chat
-    WebRTC.stopVoiceActivityDetection();
+    VAD.stopVoiceActivityDetection();
   },
 
   // quando premo pulsante microfono
@@ -185,7 +188,7 @@ const get = {
   commsId: () => {
     return WebRTC.chatId;
   },
-  myId: () => {
+  myPartecipantId: () => {
     return WebRTC.myId;
   },
   commsMembers: async (chatId) => { 

@@ -1,7 +1,6 @@
 import WebSocketMethods from "./webSocketMethods";
 import { Platform } from "react-native";
 import eventEmitter from "./EventEmitter";
-import voiceActivityDetection from "./voiceActivityDetection";
 import WebRTCEventReceiver from "./webrtc/eventReceiver";
 
 // web implementation
@@ -109,7 +108,6 @@ class MultiPeerWebRTCManager {
     } else {
       console.log("MultiPeerWebRTCManager: Inizializzato vuoto");
     }    this.negotiationInProgress = {}; // Traccia rinegoziazioni per peer
-    this.vadInitialized = false;
   }
 
   /**
@@ -167,6 +165,12 @@ class MultiPeerWebRTCManager {
     eventEmitter.off('screen_share_stopped', this.handleRemoteScreenShareStopped.bind(this));
   }
 
+  setUserSpeaking(userId, isSpeaking) {
+    if (this.userData[userId]) {
+      this.userData[userId].is_speaking = isSpeaking;
+    }
+  }
+
 
   /**
    * Inizia l'acquisizione dello stream locale (invariato)
@@ -202,11 +206,6 @@ class MultiPeerWebRTCManager {
         this._addLocalTracksToPeerConnection(pc);
       });
 
-      // Initialize VAD after getting local stream - use our own chatId
-      if (audioOnly && this.localStream && !this.vadInitialized && this.chatId && this.myId) {
-        await this.initializeVoiceActivityDetection();
-      }
-
       return stream;
     } catch (error) {
       console.error(
@@ -225,52 +224,7 @@ class MultiPeerWebRTCManager {
       this.onStreamUpdate();
     }
   }
-  /**
-   * Initialize voice activity detection for local stream
-   */
-  async initializeVoiceActivityDetection() {
-    console.log('Attempting to initialize VAD...', {
-      hasLocalStream: !!this.localStream,
-      chatId: this.chatId,
-      myId: this.myId,
-      platform: Platform.OS
-    });
 
-    if (!this.localStream || !this.chatId || !this.myId) {
-      console.warn('Cannot initialize VAD: missing stream, chatId, or myId', {
-        hasLocalStream: !!this.localStream,
-        chatId: this.chatId,
-        myId: this.myId
-      });
-      return false;
-    }
-
-    const success = await voiceActivityDetection.initialize(
-      this.localStream,
-      this.chatId,
-      this.myId,
-      (userId, isSpeaking) => {
-        this.handleSpeakingStatusChange(userId, isSpeaking);
-      }
-    );
-
-    if (success) {
-      voiceActivityDetection.start();
-      console.log(`Voice Activity Detection initialized and started successfully for ${Platform.OS}`);
-      
-      // For mobile platforms, add a test trigger after initialization
-      if (Platform.OS !== 'web') {
-        setTimeout(() => {
-          console.log('Testing mobile VAD with manual trigger...');
-          voiceActivityDetection.triggerMobileSpeaking(1500);
-        }, 3000);
-      }
-    } else {
-      console.error('Failed to initialize Voice Activity Detection');
-    }
-
-    return success;
-  }
 
   /**
    * Handle speaking status changes (both local and remote)
@@ -300,13 +254,6 @@ class MultiPeerWebRTCManager {
    */
   getSpeakingUsers() {
     return Array.from(this.speakingUsers);
-  }
-  /**
-   * Stop voice activity detection
-   */
-  stopVoiceActivityDetection() {
-    voiceActivityDetection.cleanup();
-    this.speakingUsers.clear();
   }
 
   /**
@@ -1927,7 +1874,6 @@ class MultiPeerWebRTCManager {
   // chiude lo stream locale
   closeLocalStream() {
     // Stop voice activity detection first
-    this.stopVoiceActivityDetection();
     
     // Ferma lo stream locale
     if (this.localStream) {
@@ -1942,8 +1888,6 @@ class MultiPeerWebRTCManager {
    */  closeAllConnections() {
     console.log("MultiPeerWebRTCManager: Chiusura di tutte le connessioni...");
 
-    // Stop voice activity detection
-    this.stopVoiceActivityDetection();
 
     // Close all screen share streams first
     if (this.screenStreams) {
@@ -2086,15 +2030,6 @@ class MultiPeerWebRTCManager {
     this.remoteStreams = {};
     this._setupEventListeners();
     this._initializeEventReceiver();
-
-    // Initialize VAD with our internal chatId and myId
-    if (this.localStream && this.chatId && this.myId) {
-      console.log('VAD: Initializing after regenerate...');
-      const delay = Platform.OS === 'web' ? 500 : 1000;
-      setTimeout(() => {
-        this.initializeVoiceActivityDetection(); // Will use this.chatId and this.myId
-      }, delay);
-    }
 
     console.log(`MultiPeerWebRTCManager: Rigenerato per l'utente ${myId}`);
     

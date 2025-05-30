@@ -1,5 +1,8 @@
 import eventEmitter from '../EventEmitter';
 import SoundPlayer from '../sounds/SoundPlayer';
+import WebSocketMethods from '../webSocketMethods';
+
+import { get, check } from './utils';
 
 class WebRTCEventReceiver {
 
@@ -7,7 +10,6 @@ class WebRTCEventReceiver {
     this.webrtcManager = webrtcManager;
     this.initialized = false; // Flag to check if initialized
   }
-// QUA SETTIAMO GLI EVENTI GLOBALI DI WEBRTC, QUINDI AVREMO DUE EVENT EMITTER ON, UNO SU VOCAL CONTENT PER LA UI E UNO QUI PER TUTTA LA LOGICA DIETRO
 
   initialize() {
     if (!this.initialized) {
@@ -18,9 +20,9 @@ class WebRTCEventReceiver {
 
   setupEventListeners() {
 
-    // Voice Activity Detection Events (da sistemare)
-    eventEmitter.on('speaking', this.handleRemoteSpeaking.bind(this));
-    eventEmitter.on('not_speaking', this.handleRemoteNotSpeaking.bind(this));
+    // Voice Activity Detection Events
+    eventEmitter.on('user_started_speaking', this.handleUserStartedSpeaking.bind(this));
+    eventEmitter.on('user_stopped_speaking', this.handleUserStoppedSpeaking.bind(this));
     eventEmitter.on('remote_user_started_speaking', this.handleRemoteUserStartedSpeaking.bind(this));
     eventEmitter.on('remote_user_stopped_speaking', this.handleRemoteUserStoppedSpeaking.bind(this));
 
@@ -35,26 +37,27 @@ class WebRTCEventReceiver {
   }
 
   // Voice Activity Detection Handlers
-  handleRemoteSpeaking(data) {
-    //console.log('[EventReceiver] Remote user speaking:', data);
-    this.webrtcManager?.handleRemoteSpeaking(data);
+  async handleUserStartedSpeaking() {
+    this.webrtcManager?.setUserSpeaking(this.webrtcManager?.myId, true);
+    await WebSocketMethods.sendSpeakingStatus(this.webrtcManager?.chatId, this.webrtcManager?.myId, true);
+
   }
 
-  handleRemoteNotSpeaking(data) {
-    //console.log('[EventReceiver] Remote user stopped speaking:', data);
-    this.webrtcManager?.handleRemoteNotSpeaking(data);
+  async handleUserStoppedSpeaking() {
+    this.webrtcManager?.setUserSpeaking(this.webrtcManager?.myId, false);
+    await WebSocketMethods.sendSpeakingStatus(this.webrtcManager?.chatId, this.webrtcManager?.myId, false);
   }
 
   handleRemoteUserStartedSpeaking(data) {
-    //console.log('[EventReceiver] Remote user started speaking (UI):', data);
-    // Emit for UI components
-    eventEmitter.emit('user_started_speaking', data);
+    if(data.from !== this.webrtcManager?.myId && this.webrtcManager?.myId !== undefined) {
+      this.webrtcManager?.setUserSpeaking(data.from, true);
+    }
   }
 
   handleRemoteUserStoppedSpeaking(data) {
-    //console.log('[EventReceiver] Remote user stopped speaking (UI):', data);
-    // Emit for UI components
-    eventEmitter.emit('user_stopped_speaking', data);
+    if(data.from !== this.webrtcManager?.myId && this.webrtcManager?.myId !== undefined) {
+      this.webrtcManager?.setUserSpeaking(data.from, false);
+    }
   }
 
   // Screen Sharing Handlers
@@ -92,8 +95,8 @@ class WebRTCEventReceiver {
 
   // Cleanup method
   removeEventListeners() {
-    eventEmitter.off('speaking', this.handleRemoteSpeaking.bind(this));
-    eventEmitter.off('not_speaking', this.handleRemoteNotSpeaking.bind(this));
+    eventEmitter.off('user_started_speaking', this.handleUserStartedSpeaking.bind(this));
+    eventEmitter.off('user_stopped_speaking', this.handleUserStoppedSpeaking.bind(this));
     eventEmitter.off('remote_user_started_speaking', this.handleRemoteUserStartedSpeaking.bind(this));
     eventEmitter.off('remote_user_stopped_speaking', this.handleRemoteUserStoppedSpeaking.bind(this));
     eventEmitter.off('screen_share_started', this.handleScreenShareStarted.bind(this));

@@ -6,7 +6,7 @@ import UserProfileAvatar from "./UserProfileAvatar";
 import multiPeerWebRTCManager from "../utils/webrtcMethods";
 
 import utils from "../utils/webrtc/utils";
-const { get } = utils;
+const { get, check } = utils;
 
 let RTCView;
 if (Platform.OS === "web") {
@@ -248,21 +248,25 @@ const UserCard = memo(({
   }, []);
   
   // Determina se è l'utente locale
-  const isLocalUser = profile.from === get.myId();
+  const isLocalUser = profile.from === get.myPartecipantId();
   
-  // Determina quale stream utilizzare
+  // Check if current user is in comms - only render video and speaking if in comms
+  const userIsInComms = check.isInComms();
+  
+  // Determina quale stream utilizzare - solo se l'utente è in comms
   let streamToRender = null;
-  if (isLocalUser && multiPeerWebRTCManager.localStream) {
-    streamToRender = multiPeerWebRTCManager.localStream;
-  } else if (activeStream?.stream) {
-    streamToRender = activeStream.stream;
-  } else if (multiPeerWebRTCManager.remoteStreams[profile.from]) {
-    streamToRender = multiPeerWebRTCManager.remoteStreams[profile.from];
+  if (userIsInComms) {
+    if (isLocalUser && multiPeerWebRTCManager.localStream) {
+      streamToRender = multiPeerWebRTCManager.localStream;
+    } else if (activeStream?.stream) {
+      streamToRender = activeStream.stream;
+    } else if (multiPeerWebRTCManager.remoteStreams[profile.from]) {
+      streamToRender = multiPeerWebRTCManager.remoteStreams[profile.from];
+    }
   }
 
-  const hasVideo = streamToRender?.getVideoTracks().length > 0;
-  
-  // Memoizza i valori per il componente VideoContent per prevenire re-render
+  const hasVideo = userIsInComms && streamToRender?.getVideoTracks().length > 0;
+    // Memoizza i valori per il componente VideoContent per prevenire re-render
   const videoProps = useMemo(() => ({
     hasVideo,
     streamToRender,
@@ -274,10 +278,10 @@ const UserCard = memo(({
       ? null 
       : activeStream?.userData?.profileImageUri || profile.profileImageUri,
     width,
-    height  }), [hasVideo, streamToRender, isLocalUser, profile, activeStream, isScreenShare, width, height]);
-  // Calcola lo stile del bordo speaking overlay dinamicamente
+    height  }), [hasVideo, streamToRender, isLocalUser, profile, activeStream, isScreenShare, width, height, userIsInComms]);// Calcola lo stile del bordo speaking overlay dinamicamente
   const speakingOverlayStyle = useMemo(() => {
-    if (isScreenShare || !isSpeaking) {
+    // Non mostrare il bordo speaking se l'utente non è in comms, è uno screen share, o non sta parlando
+    if (!userIsInComms || isScreenShare || !isSpeaking) {
       return styles.speakingOverlayContainer;
     }
     
@@ -296,7 +300,7 @@ const UserCard = memo(({
     }
     
     return baseStyle;
-  }, [isScreenShare, isSpeaking]);
+  }, [userIsInComms, isScreenShare, isSpeaking]);
 
   return (
     <View
