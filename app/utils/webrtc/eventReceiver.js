@@ -2,8 +2,6 @@ import eventEmitter from '../EventEmitter';
 import SoundPlayer from '../sounds/SoundPlayer';
 import WebSocketMethods from '../webSocketMethods';
 
-import { get, check } from './utils';
-
 class WebRTCEventReceiver {
 
   constructor(webrtcManager) {

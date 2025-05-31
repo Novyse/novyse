@@ -21,64 +21,65 @@ if (Platform.OS === "web") {
   mediaDevices = WebRTCLib.mediaDevices;
 }
 
-const MicrophoneSelector = ({ visible, onClose, onMicrophoneSelected, currentDeviceId }) => {
-  const [availableMicrophones, setAvailableMicrophones] = useState([]);
+const CameraSelector = ({ visible, onClose, onCameraSelected, currentDeviceId }) => {
+  const [availableCameras, setAvailableCameras] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (visible) {
-      loadMicrophones();
+      loadCameras();
     }
   }, [visible]);
 
-  const loadMicrophones = async () => {
+  const loadCameras = async () => {
     setLoading(true);
     try {
       if (Platform.OS === 'web') {
         // Web platform - use enumerateDevices
         const devices = await mediaDevices.enumerateDevices();
-        const microphones = devices.filter(device => device.kind === 'audioinput');
-        setAvailableMicrophones(microphones);
+        const cameras = devices.filter(device => device.kind === 'videoinput');
+        setAvailableCameras(cameras);
       } else {
         // Mobile platform - limited device enumeration
         // For now, we'll show a basic list since react-native-webrtc has limited device enumeration
-        setAvailableMicrophones([
-          { deviceId: 'default', label: 'Default Microphone' },
-          { deviceId: 'communications', label: 'Communications Microphone' },
+        setAvailableCameras([
+          { deviceId: 'default', label: 'Default Camera' },
+          { deviceId: 'front', label: 'Front Camera' },
+          { deviceId: 'back', label: 'Back Camera' },
         ]);
       }
     } catch (error) {
-      console.error('Error loading microphones:', error);
-      Alert.alert('Error', 'Failed to load available microphones');
+      console.error('Error loading cameras:', error);
+      Alert.alert('Error', 'Failed to load available cameras');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleMicrophoneSelect = (device) => {
-    onMicrophoneSelected(device.deviceId);
+  const handleCameraSelect = (device) => {
+    onCameraSelected(device.deviceId);
     onClose();
   };
 
-  const renderMicrophoneItem = ({ item }) => (
+  const renderCameraItem = ({ item }) => (
     <TouchableOpacity
       style={[
-        styles.microphoneItem,
-        item.deviceId === currentDeviceId && styles.selectedMicrophone
+        styles.cameraItem,
+        item.deviceId === currentDeviceId && styles.selectedCamera
       ]}
-      onPress={() => handleMicrophoneSelect(item)}
+      onPress={() => handleCameraSelect(item)}
     >
       <MaterialIcons
-        name="mic"
+        name="videocam"
         size={24}
         color={item.deviceId === currentDeviceId ? "#4CAF50" : "#666"}
       />
-      <View style={styles.microphoneInfo}>
+      <View style={styles.cameraInfo}>
         <Text style={[
-          styles.microphoneName,
+          styles.cameraName,
           item.deviceId === currentDeviceId && styles.selectedText
         ]}>
-          {item.label || `Microphone ${item.deviceId}`}
+          {item.label || `Camera ${item.deviceId}`}
         </Text>
         {item.deviceId === currentDeviceId && (
           <Text style={styles.currentLabel}>Currently Selected</Text>
@@ -100,7 +101,7 @@ const MicrophoneSelector = ({ visible, onClose, onMicrophoneSelected, currentDev
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.header}>
-            <Text style={styles.title}>Select Microphone</Text>
+            <Text style={styles.title}>Select Camera</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <MaterialIcons name="close" size={24} color="#666" />
             </TouchableOpacity>
@@ -108,14 +109,14 @@ const MicrophoneSelector = ({ visible, onClose, onMicrophoneSelected, currentDev
 
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Loading microphones...</Text>
+              <Text style={styles.loadingText}>Loading cameras...</Text>
             </View>
           ) : (
             <FlatList
-              data={availableMicrophones}
-              renderItem={renderMicrophoneItem}
+              data={availableCameras}
+              renderItem={renderCameraItem}
               keyExtractor={(item) => item.deviceId}
-              style={styles.microphoneList}
+              style={styles.cameraList}
               showsVerticalScrollIndicator={false}
             />
           )}
@@ -171,10 +172,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
   },
-  microphoneList: {
+  cameraList: {
     maxHeight: 300,
   },
-  microphoneItem: {
+  cameraItem: {
     flexDirection: "row",
     alignItems: "center",
     padding: 15,
@@ -182,16 +183,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     backgroundColor: "#f5f5f5",
   },
-  selectedMicrophone: {
+  selectedCamera: {
     backgroundColor: "#e8f5e8",
     borderWidth: 1,
     borderColor: "#4CAF50",
   },
-  microphoneInfo: {
+  cameraInfo: {
     flex: 1,
     marginLeft: 12,
   },
-  microphoneName: {
+  cameraName: {
     fontSize: 16,
     color: "#333",
     fontWeight: "500",
@@ -221,4 +222,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MicrophoneSelector;
+export default CameraSelector;

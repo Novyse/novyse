@@ -150,16 +150,17 @@ const VideoContent = memo(({
   displayName, 
   profileImageUri, 
   width, 
-  height 
+  height,
+  videoStreamKey
 }) => {
   return (
     <View style={styles.videoContainer}>
       {hasVideo && streamToRender ? (
-        <View style={styles.videoWrapper}>
-          {/* Sfondo sfocato - usa lo stesso stream ma ingrandito e sfocato */}
+        <View style={styles.videoWrapper}>          {/* Sfondo sfocato - usa lo stesso stream ma ingrandito e sfocato */}
           {Platform.OS === "web" ? (
             <>
               <RTCView
+                key={`bg-${videoStreamKey || 'default'}`}
                 stream={streamToRender}
                 style={[styles.videoStream, styles.blurredBackground, { objectFit: 'cover' }]}
                 muted={isLocalUser}
@@ -179,6 +180,7 @@ const VideoContent = memo(({
           ) : (
             <View style={styles.blurredBackground}>
               <RTCView
+                key={`bg-mobile-${videoStreamKey || 'default'}`}
                 streamURL={streamToRender.toURL()}
                 style={[styles.videoStream, { objectFit: 'cover' }]}
                 muted={isLocalUser}
@@ -203,12 +205,14 @@ const VideoContent = memo(({
           {/* Video principale al centro */}
           {Platform.OS === "web" ? (
             <RTCView
+              key={`main-${videoStreamKey || 'default'}`}
               stream={streamToRender}
               style={[styles.videoStreamMain, { objectFit: 'contain' }]}
               muted={isLocalUser}
             />
           ) : (
             <RTCView
+              key={`main-mobile-${videoStreamKey || 'default'}`}
               streamURL={streamToRender.toURL()}
               style={[styles.videoStreamMain, { objectFit: 'contain' }]}
               muted={isLocalUser}
@@ -238,7 +242,8 @@ const UserCard = memo(({
   width, 
   height, 
   margin,
-  isScreenShare = false 
+  isScreenShare = false,
+  videoStreamKey
 }) => {
   const { theme } = useContext(ThemeContext);
   
@@ -264,7 +269,6 @@ const UserCard = memo(({
       streamToRender = multiPeerWebRTCManager.remoteStreams[profile.from];
     }
   }
-
   const hasVideo = userIsInComms && streamToRender?.getVideoTracks().length > 0;
     // Memoizza i valori per il componente VideoContent per prevenire re-render
   const videoProps = useMemo(() => ({
@@ -278,7 +282,9 @@ const UserCard = memo(({
       ? null 
       : activeStream?.userData?.profileImageUri || profile.profileImageUri,
     width,
-    height  }), [hasVideo, streamToRender, isLocalUser, profile, activeStream, isScreenShare, width, height, userIsInComms]);// Calcola lo stile del bordo speaking overlay dinamicamente
+    height,
+    videoStreamKey
+  }), [hasVideo, streamToRender, isLocalUser, profile, activeStream, isScreenShare, width, height, userIsInComms, videoStreamKey]);// Calcola lo stile del bordo speaking overlay dinamicamente
   const speakingOverlayStyle = useMemo(() => {
     // Non mostrare il bordo speaking se l'utente non è in comms, è uno screen share, o non sta parlando
     if (!userIsInComms || isScreenShare || !isSpeaking) {

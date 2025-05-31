@@ -4,8 +4,19 @@ import eventEmitter from "../EventEmitter";
 import localDatabase from "../localDatabaseMethods";
 import SoundPlayer from "../sounds/SoundPlayer";
 import VAD from "./VAD/utils.js";
+import { Platform } from "react-native";
 
 const WebRTC = multiPeerWebRTCManager;
+
+// Import mediaDevices from react-native-webrtc
+let mediaDevices;
+if (Platform.OS === "web") {
+  const WebRTCLib = require("react-native-webrtc-web-shim");
+  mediaDevices = WebRTCLib.mediaDevices;
+} else {
+  const WebRTCLib = require("react-native-webrtc");
+  mediaDevices = WebRTCLib.mediaDevices;
+}
 
 const self = {
   // quando io entro in una room  
@@ -109,7 +120,7 @@ const self = {
         }
       };
 
-      const newAudioStream = await navigator.mediaDevices.getUserMedia(newConstraints);
+      const newAudioStream = await mediaDevices.getUserMedia(newConstraints);
       const newAudioTrack = newAudioStream.getAudioTracks()[0];
 
       if (!newAudioTrack) {
@@ -145,10 +156,211 @@ const self = {
       await VAD.initializeVoiceActivityDetection(WebRTC.localStream);
 
       console.log(`Successfully switched to microphone device: ${deviceId || 'default'}`);
+      return true;   
+     } catch (error) {
+      console.error('Error switching microphone:', error);
+      throw error;
+    }
+  },
+
+  // Switch camera device
+  async switchCamera(deviceId) {
+    try {
+      if (!WebRTC.localStream) {
+        console.warn('No local stream available for camera switching');
+        return false;
+      }
+
+      // Check if video is currently enabled
+      const currentVideoTrack = WebRTC.localStream.getVideoTracks()[0];
+      if (!currentVideoTrack) {
+        console.warn('No video track available for camera switching');
+        return false;
+      }
+
+      const wasVideoEnabled = currentVideoTrack.enabled;
+
+      // Create new video stream with selected device
+      const newConstraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          aspectRatio: { ideal: 16/9 },
+          facingMode: deviceId ? undefined : 'user'
+        }
+      };
+
+      const newVideoStream = await mediaDevices.getUserMedia(newConstraints);
+      const newVideoTrack = newVideoStream.getVideoTracks()[0];
+
+      if (!newVideoTrack) {
+        throw new Error('Failed to get video track from new device');
+      }
+
+      // Set the same enabled state as the previous track
+      newVideoTrack.enabled = wasVideoEnabled;
+
+      // Replace the video track in all peer connections
+      for (const [peerId, pc] of Object.entries(WebRTC.peerConnections)) {
+        const senders = pc.getSenders();
+        const videoSender = senders.find(sender => 
+          sender.track && sender.track.kind === 'video'
+        );
+
+        if (videoSender) {
+          await videoSender.replaceTrack(newVideoTrack);
+          console.log(`Replaced video track for peer ${peerId}`);
+        }
+      }
+
+      // Replace the track in the local stream
+      if (currentVideoTrack) {
+        WebRTC.localStream.removeTrack(currentVideoTrack);
+        currentVideoTrack.stop();
+      }
+      
+      WebRTC.localStream.addTrack(newVideoTrack);      // Notify UI of the stream update
+      WebRTC.notifyStreamUpdate();
+
+      // Also emit event for local stream update so VocalContent updates local video preview
+      if (WebRTC.onLocalStreamReady) {
+        WebRTC.onLocalStreamReady(WebRTC.localStream);
+      }
+
+      // Emit stream_added_or_updated event for local user
+      eventEmitter.emit('stream_added_or_updated', {
+        participantId: WebRTC.myId,
+        stream: WebRTC.localStream,
+        streamType: 'webcam',
+        userData: { handle: 'You' } // Local user identifier
+      });
+
+      console.log(`Successfully switched to camera device: ${deviceId || 'default'}`);
       return true;
 
     } catch (error) {
-      console.error('Error switching microphone:', error);
+      console.error('Error switching camera:', error);
+      throw error;
+    }
+  },  
+  
+  // Switch mobile camera with facingMode (for mobile platforms)
+  async switchMobileCamera(constraints, facingMode) {
+    try {
+      if (!WebRTC.localStream) {
+        console.warn('No local stream available for mobile camera switching');
+        return false;
+      }
+
+      // Get current video track
+      const currentVideoTrack = WebRTC.localStream.getVideoTracks()[0];
+      let wasVideoEnabled = false;
+      
+      if (currentVideoTrack) {
+        wasVideoEnabled = currentVideoTrack.enabled;
+      } else {
+        console.warn('No current video track available for mobile camera switching');
+        return false;
+      }
+
+      // Try different constraint approaches for better mobile compatibility
+      let newVideoStream;
+        try {
+        // First try with exact facingMode
+        newVideoStream = await mediaDevices.getUserMedia(constraints);
+      } catch (exactError) {
+        console.warn('Exact facingMode failed, trying ideal:', exactError.message);
+        
+        try {
+          // Fallback to ideal facingMode
+          const fallbackConstraints = {
+            video: {
+              facingMode: { ideal: facingMode },
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              aspectRatio: { ideal: 16/9 }
+            }
+          };
+          newVideoStream = await mediaDevices.getUserMedia(fallbackConstraints);
+        } catch (idealError) {
+          console.warn('Ideal facingMode failed, trying basic:', idealError.message);
+          
+          // Last resort: basic constraints
+          const basicConstraints = {
+            video: {
+              facingMode: facingMode,
+              width: 1280,
+              height: 720
+            }
+          };
+          newVideoStream = await mediaDevices.getUserMedia(basicConstraints);
+        }
+      }
+
+      const newVideoTrack = newVideoStream.getVideoTracks()[0];
+
+      if (!newVideoTrack) {
+        throw new Error('Failed to get video track from new mobile camera');
+      }
+
+      // Set the same enabled state as the previous track
+      newVideoTrack.enabled = wasVideoEnabled;
+
+      // Replace the video track in all peer connections
+      for (const [peerId, pc] of Object.entries(WebRTC.peerConnections)) {
+        const senders = pc.getSenders();
+        const videoSender = senders.find(sender => 
+          sender.track && sender.track.kind === 'video'
+        );
+
+        if (videoSender) {
+          await videoSender.replaceTrack(newVideoTrack);
+          console.log(`Replaced mobile video track for peer ${peerId} with facingMode: ${facingMode}`);
+        }      }
+
+      // Replace the track in the local stream
+      if (currentVideoTrack) {
+        WebRTC.localStream.removeTrack(currentVideoTrack);
+        currentVideoTrack.stop();
+      }
+      
+      WebRTC.localStream.addTrack(newVideoTrack);
+
+      // Notify UI of the stream update
+      WebRTC.notifyStreamUpdate();
+
+      // Force local stream update for mobile platforms with delay
+      setTimeout(() => {
+        if (WebRTC.onLocalStreamReady) {
+          WebRTC.onLocalStreamReady(WebRTC.localStream);
+        }
+        
+        // Emit a more specific event for mobile camera switching
+        eventEmitter.emit('mobile_camera_switched', {
+          participantId: WebRTC.myId,
+          stream: WebRTC.localStream,
+          streamType: 'webcam',
+          facingMode: facingMode,
+          timestamp: Date.now(), // Add timestamp to force re-render
+          userData: { handle: 'You' }
+        });
+        
+        // Also emit the standard stream update event
+        eventEmitter.emit('stream_added_or_updated', {
+          participantId: WebRTC.myId,
+          stream: WebRTC.localStream,
+          streamType: 'webcam',
+          timestamp: Date.now(), // Add timestamp to force re-render
+          userData: { handle: 'You' }
+        });
+      }, 200); // Increased delay for Android compatibility
+
+      console.log(`Successfully switched to mobile camera with facingMode: ${facingMode}`);
+      return true;
+
+    } catch (error) {
+      console.error('Error switching mobile camera:', error);
       throw error;
     }
   },

@@ -18,7 +18,7 @@ if (Platform.OS === "web") {
 const ASPECT_RATIO = 16 / 9;
 const MARGIN = 4;
 
-const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
+const VocalMembersLayout = ({ profiles, activeStreams = {}, videoStreamKeys = {} }) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
     height: 0,
@@ -109,9 +109,7 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
       ...profile,
       from: shareId,
       handle: profile.handle || profile.from || 'Unknown'
-    };
-
-    return (
+    };    return (
       <UserCard
         key={shareId}
         profile={screenShareProfile}
@@ -121,9 +119,9 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
         height={rectHeight}
         margin={margin}
         isScreenShare={true}
+        videoStreamKey={videoStreamKeys[shareId]}
       />    );
-  };
-  // Render function for user profiles
+  };  // Render function for user profiles
   const renderProfile = (profile) => {
     const participantId = profile.from;
     const activeStream = activeStreams[participantId];
@@ -139,6 +137,7 @@ const VocalMembersLayout = ({ profiles, activeStreams = {} }) => {
         height={rectHeight}
         margin={margin}
         isScreenShare={false}
+        videoStreamKey={videoStreamKeys[participantId]}
       />
     );
   };

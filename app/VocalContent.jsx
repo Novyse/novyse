@@ -16,9 +16,9 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);
   const audioContext = useAudio();
   const styles = createStyle(theme);
-
   const [profilesInCommsChat, setProfilesInCommsChat] = useState([]);
   const [activeStreams, setActiveStreams] = useState({}); // { participantId: { stream, userData, streamType } }
+  const [videoStreamKeys, setVideoStreamKeys] = useState({}); // For forcing RTCView re-render on Android
   useEffect(() => {
     // Set audio context reference in WebRTC manager when component mounts
     multiPeerWebRTCManager.setAudioContext(audioContext);
@@ -72,10 +72,11 @@ const VocalContent = ({ selectedChat, chatId }) => {
     eventEmitter.on("stream_added_or_updated", handleStreamUpdate);    
 
     eventEmitter.on("user_started_speaking", handleUserStartedSpeaking);
-    eventEmitter.on("user_stopped_speaking", handleUserStoppedSpeaking);
-
-    eventEmitter.on("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
+    eventEmitter.on("user_stopped_speaking", handleUserStoppedSpeaking);    eventEmitter.on("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
     eventEmitter.on("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
+    
+    // Listen for mobile camera switch events specifically for Android compatibility
+    eventEmitter.on("mobile_camera_switched", handleStreamUpdate);
     
     const getMembers = async () => {
       const members = await get.commsMembers(chatId);
@@ -95,6 +96,9 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
       eventEmitter.off("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
       eventEmitter.off("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
+      
+      // Remove mobile camera switch listener
+      eventEmitter.off("mobile_camera_switched", handleStreamUpdate);
     };
   }, [chatId]);  // Gestione globale degli stream
   const handleStreamUpdate = (data) => {
@@ -104,17 +108,21 @@ const VocalContent = ({ selectedChat, chatId }) => {
       
       // Clear all active streams if user is no longer in comms
       setActiveStreams({});
+      setVideoStreamKeys({});
       return;
     }
 
-    const { participantId, stream, streamType, userData } = data;
+    const { participantId, stream, streamType, userData, timestamp } = data;
     
     console.log(`[VocalContent] Stream update for ${participantId}:`, {
       streamType,
       hasAudio: stream?.getAudioTracks().length > 0,
       hasVideo: stream?.getVideoTracks().length > 0,
-      userData
-    });    // Aggiorna lo stato degli stream attivi
+      userData,
+      timestamp
+    });
+
+    // Aggiorna lo stato degli stream attivi
     setActiveStreams(prev => ({
       ...prev,
       [participantId]: {
@@ -125,6 +133,14 @@ const VocalContent = ({ selectedChat, chatId }) => {
         hasVideo: stream?.getVideoTracks().length > 0
       }
     }));
+
+    // For Android: Update video stream keys to force RTCView re-render when stream changes
+    if (Platform.OS === 'android' && stream?.getVideoTracks().length > 0) {
+      setVideoStreamKeys(prev => ({
+        ...prev,
+        [participantId]: timestamp || Date.now()
+      }));
+    }
 
   };
 
@@ -246,11 +262,11 @@ const VocalContent = ({ selectedChat, chatId }) => {
       }
     }
   };
-  return (
-    <View style={styles.container}>
+  return (    <View style={styles.container}>
       <VocalMembersLayout
         profiles={profilesInCommsChat}
         activeStreams={activeStreams}
+        videoStreamKeys={videoStreamKeys}
       />
 
       <VocalContentBottomBar
