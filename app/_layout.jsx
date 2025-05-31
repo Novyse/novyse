@@ -38,9 +38,10 @@ export default function RootLayout() {
     // ------------------> global event listeners END
 
     return () => {
-      eventEmitter.off('invalidSession', handleUserSessionInvalid);
-    };
-  }, []);    return (
+      eventEmitter.off('invalidSession', handleUserSessionInvalid);    };
+  }, []);
+
+  return (
     <ThemeProvider>
       <AudioProvider>
         <SafeAreaProvider>

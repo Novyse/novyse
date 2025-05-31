@@ -12,12 +12,13 @@ import utils from "./utils/webrtc/utils";
 const { get, check } = utils;
 
 const VocalContent = ({ selectedChat, chatId }) => {
-  
-  const { theme } = useContext(ThemeContext);
+    const { theme } = useContext(ThemeContext);
   const audioContext = useAudio();
   const styles = createStyle(theme);
+
   const [profilesInCommsChat, setProfilesInCommsChat] = useState([]);
-  const [activeStreams, setActiveStreams] = useState({}); // { participantId: { stream, userData, streamType } }  const [videoStreamKeys, setVideoStreamKeys] = useState({}); // For forcing RTCView re-render on Android
+  const [activeStreams, setActiveStreams] = useState({}); // { participantId: { stream, userData, streamType } }
+  const [videoStreamKeys, setVideoStreamKeys] = useState({}); // For forcing RTCView re-render on Android
 
   useEffect(() => {
     // Set audio context reference in WebRTC manager when component mounts
@@ -69,12 +70,11 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
     // Registra i listeners
     eventEmitter.on("member_joined_comms", handleMemberJoined);
-    eventEmitter.on("member_left_comms", handleMemberLeft);
-
-    eventEmitter.on("stream_added_or_updated", handleStreamUpdate);    
+    eventEmitter.on("member_left_comms", handleMemberLeft);    eventEmitter.on("stream_added_or_updated", handleStreamUpdate);
 
     eventEmitter.on("user_started_speaking", handleUserStartedSpeaking);
-    eventEmitter.on("user_stopped_speaking", handleUserStoppedSpeaking);    eventEmitter.on("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
+    eventEmitter.on("user_stopped_speaking", handleUserStoppedSpeaking);
+    eventEmitter.on("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
     eventEmitter.on("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
     
     // Listen for mobile camera switch events specifically for Android compatibility
@@ -98,9 +98,9 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
       eventEmitter.off("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
       eventEmitter.off("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
-      
-      // Remove mobile camera switch listener
-      eventEmitter.off("mobile_camera_switched", handleStreamUpdate);    };
+        // Remove mobile camera switch listener
+      eventEmitter.off("mobile_camera_switched", handleStreamUpdate);
+    };
   }, [chatId]);
 
   // Gestione globale degli stream
@@ -263,9 +263,10 @@ const VocalContent = ({ selectedChat, chatId }) => {
           container.remove();
         }
       }
-    }
-  };
-  return (    <View style={styles.container}>
+    }  };
+
+  return (
+    <View style={styles.container}>
       <VocalMembersLayout
         profiles={profilesInCommsChat}
         activeStreams={activeStreams}
