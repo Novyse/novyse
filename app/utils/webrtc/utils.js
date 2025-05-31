@@ -1,4 +1,3 @@
-
 import APIMethods from "../APImethods";
 import multiPeerWebRTCManager from "../webrtcMethods";
 import eventEmitter from "../EventEmitter";
@@ -86,6 +85,72 @@ const self = {
       }
     }
     return false;
+  },
+
+  // Switch microphone device
+  async switchMicrophone(deviceId) {
+    try {
+      if (!WebRTC.localStream) {
+        console.warn('No local stream available for microphone switching');
+        return false;
+      }
+
+      // Store current audio enabled state
+      const currentAudioTrack = WebRTC.localStream.getAudioTracks()[0];
+      const wasAudioEnabled = currentAudioTrack ? currentAudioTrack.enabled : true;
+
+      // Create new audio stream with selected device
+      const newConstraints = {
+        audio: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        }
+      };
+
+      const newAudioStream = await navigator.mediaDevices.getUserMedia(newConstraints);
+      const newAudioTrack = newAudioStream.getAudioTracks()[0];
+
+      if (!newAudioTrack) {
+        throw new Error('Failed to get audio track from new device');
+      }
+
+      // Set the same enabled state as the previous track
+      newAudioTrack.enabled = wasAudioEnabled;
+
+      // Replace the audio track in all peer connections
+      for (const [peerId, pc] of Object.entries(WebRTC.peerConnections)) {
+        const senders = pc.getSenders();
+        const audioSender = senders.find(sender => 
+          sender.track && sender.track.kind === 'audio'
+        );
+
+        if (audioSender) {
+          await audioSender.replaceTrack(newAudioTrack);
+          console.log(`Replaced audio track for peer ${peerId}`);
+        }
+      }
+
+      // Replace the track in the local stream
+      if (currentAudioTrack) {
+        WebRTC.localStream.removeTrack(currentAudioTrack);
+        currentAudioTrack.stop();
+      }
+      
+      WebRTC.localStream.addTrack(newAudioTrack);
+
+      // Reinitialize VAD with new stream
+      VAD.stopVoiceActivityDetection();
+      await VAD.initializeVoiceActivityDetection(WebRTC.localStream);
+
+      console.log(`Successfully switched to microphone device: ${deviceId || 'default'}`);
+      return true;
+
+    } catch (error) {
+      console.error('Error switching microphone:', error);
+      throw error;
+    }
   },
 
   // quando premo pulsante video

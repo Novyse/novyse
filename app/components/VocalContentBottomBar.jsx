@@ -1,11 +1,12 @@
 import React, { useContext, useState } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import VocalBottomBarButton from "./VocalBottomBarButton";
+import MicrophoneSelector from "./MicrophoneSelector";
+import MicrophoneArrowButton from "./MicrophoneArrowButton";
 
 import utils from "../utils/webrtc/utils";
 const { self, check } = utils;
-
 
 const VocalContentBottomBar = ({ chatId }) => {
   const { theme } = useContext(ThemeContext);
@@ -14,17 +15,16 @@ const VocalContentBottomBar = ({ chatId }) => {
   const [isAudioEnabled, setIsAudioEnabled] = useState(true); // SETTINGS PARTE 2
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showMicrophoneSelector, setShowMicrophoneSelector] = useState(false);
+  const [currentMicrophoneId, setCurrentMicrophoneId] = useState(null);
 
   const handleJoinVocal = async () => {
     try {
       setIsLoading(true);
       await self.join(chatId);
-
     } catch (error) {
       console.error("Error joining comms:", error);
-      alert(
-        "Could not join comms."
-      );
+      alert("Could not join comms.");
     } finally {
       setIsLoading(false);
     }
@@ -42,6 +42,25 @@ const VocalContentBottomBar = ({ chatId }) => {
     await self.addScreenShare();
   };
 
+  const handleMicrophoneSelect = () => {
+    if (check.isInComms()) {
+      setShowMicrophoneSelector(true);
+    }
+  };
+
+  const handleMicrophoneChange = async (deviceId) => {
+    try {
+      await self.switchMicrophone(deviceId);
+      setCurrentMicrophoneId(deviceId);
+    } catch (error) {
+      console.error("Failed to switch microphone:", error);
+      Alert.alert(
+        "Microphone Error",
+        "Failed to switch microphone. Please try again."
+      );
+    }
+  };
+
   return (
     <View style={styles.container}>
       {!check.isInComms() ? (
@@ -56,13 +75,19 @@ const VocalContentBottomBar = ({ chatId }) => {
             iconColor="green"
           />
         )
-      ) : (
-        <View style={styles.container}>
-          <VocalBottomBarButton
-            onPress={toggleAudio}
-            iconName={isAudioEnabled ? "mic" : "mic-off"}
-            iconColor={theme.icon}
-          />
+      ) : (        
+      <View style={styles.container}>
+          <View style={styles.microphoneButtonContainer}>
+            <VocalBottomBarButton
+              onPress={toggleAudio}
+              iconName={isAudioEnabled ? "mic" : "mic-off"}
+              iconColor={theme.icon}
+            />
+            <MicrophoneArrowButton
+              onPress={handleMicrophoneSelect}
+              theme={theme}
+            />
+          </View>
           <VocalBottomBarButton
             onPress={toggleVideo}
             iconName={isVideoEnabled ? "videocam" : "videocam-off"}
@@ -83,6 +108,14 @@ const VocalContentBottomBar = ({ chatId }) => {
             iconColor="red"
           />
         </View>
+      )}      
+      {showMicrophoneSelector && (
+        <MicrophoneSelector
+          visible={showMicrophoneSelector}
+          onClose={() => setShowMicrophoneSelector(false)}
+          onMicrophoneSelected={handleMicrophoneChange}
+          currentDeviceId={currentMicrophoneId}
+        />
       )}
     </View>
   );
@@ -95,6 +128,9 @@ const createStyle = (theme) =>
       flexDirection: "row",
       justifyContent: "center",
       gap: 15,
+    },
+    microphoneButtonContainer: {
+      position: "relative",
     },
     iconButton: {
       backgroundColor: "rgba(0, 0, 0, 0.65)",
