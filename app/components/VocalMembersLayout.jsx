@@ -108,8 +108,9 @@ const VocalMembersLayout = ({ profiles, activeStreams = {}, videoStreamKeys = {}
     const screenShareProfile = {
       ...profile,
       from: shareId,
-      handle: profile.handle || profile.from || 'Unknown'
-    };    return (
+      handle: profile.handle || profile.from || 'Unknown'    };
+
+    return (
       <UserCard
         key={shareId}
         profile={screenShareProfile}
@@ -120,8 +121,11 @@ const VocalMembersLayout = ({ profiles, activeStreams = {}, videoStreamKeys = {}
         margin={margin}
         isScreenShare={true}
         videoStreamKey={videoStreamKeys[shareId]}
-      />    );
-  };  // Render function for user profiles
+      />
+    );
+  };
+
+  // Render function for user profiles
   const renderProfile = (profile) => {
     const participantId = profile.from;
     const activeStream = activeStreams[participantId];

@@ -17,12 +17,14 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const audioContext = useAudio();
   const styles = createStyle(theme);
   const [profilesInCommsChat, setProfilesInCommsChat] = useState([]);
-  const [activeStreams, setActiveStreams] = useState({}); // { participantId: { stream, userData, streamType } }
-  const [videoStreamKeys, setVideoStreamKeys] = useState({}); // For forcing RTCView re-render on Android
+  const [activeStreams, setActiveStreams] = useState({}); // { participantId: { stream, userData, streamType } }  const [videoStreamKeys, setVideoStreamKeys] = useState({}); // For forcing RTCView re-render on Android
+
   useEffect(() => {
     // Set audio context reference in WebRTC manager when component mounts
     multiPeerWebRTCManager.setAudioContext(audioContext);
-  }, [audioContext]); // da capire se questa parte si può far esplodere @SamueleOrazioDurante @Matt3opower  // Add effect to monitor comms status and clear streams when user leaves comms
+  }, [audioContext]); // da capire se questa parte si può far esplodere @SamueleOrazioDurante @Matt3opower
+
+  // Add effect to monitor comms status and clear streams when user leaves comms
   useEffect(() => {
     let wasInComms = check.isInComms();
     
@@ -98,9 +100,10 @@ const VocalContent = ({ selectedChat, chatId }) => {
       eventEmitter.off("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
       
       // Remove mobile camera switch listener
-      eventEmitter.off("mobile_camera_switched", handleStreamUpdate);
-    };
-  }, [chatId]);  // Gestione globale degli stream
+      eventEmitter.off("mobile_camera_switched", handleStreamUpdate);    };
+  }, [chatId]);
+
+  // Gestione globale degli stream
   const handleStreamUpdate = (data) => {
     // Only update streams if the user is still in comms
     if (!check.isInComms()) {

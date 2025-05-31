@@ -280,11 +280,12 @@ const UserCard = memo(({
       : activeStream?.userData?.handle || profile.handle || 'Loading...',
     profileImageUri: isScreenShare 
       ? null 
-      : activeStream?.userData?.profileImageUri || profile.profileImageUri,
-    width,
+      : activeStream?.userData?.profileImageUri || profile.profileImageUri,    width,
     height,
     videoStreamKey
-  }), [hasVideo, streamToRender, isLocalUser, profile, activeStream, isScreenShare, width, height, userIsInComms, videoStreamKey]);// Calcola lo stile del bordo speaking overlay dinamicamente
+  }), [hasVideo, streamToRender, isLocalUser, profile, activeStream, isScreenShare, width, height, userIsInComms, videoStreamKey]);
+
+  // Calcola lo stile del bordo speaking overlay dinamicamente
   const speakingOverlayStyle = useMemo(() => {
     // Non mostrare il bordo speaking se l'utente non è in comms, è uno screen share, o non sta parlando
     if (!userIsInComms || isScreenShare || !isSpeaking) {
