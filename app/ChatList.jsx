@@ -33,7 +33,15 @@ import localDatabase from "./utils/localDatabaseMethods";
 import ChatContainer from "./ChatContainer";
 
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Menu02Icon, Search02Icon, Clock01Icon } from "@hugeicons/core-free-icons";
+import {
+  Menu02Icon,
+  Search02Icon,
+  Clock01Icon,
+  User03Icon,
+  Settings02Icon,
+  UserGroup03Icon,
+  Logout03Icon,
+} from "@hugeicons/core-free-icons";
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -295,14 +303,14 @@ const ChatList = () => {
         <View style={styles.menuContainer}>
           <SidebarItem
             text="Profile"
-            iconName="person"
+            iconName={User03Icon}
             onPress={() => {
               toggleSidebar();
             }}
           />
           <SidebarItem
             text="Settings"
-            iconName="settings"
+            iconName={Settings02Icon}
             onPress={() => {
               toggleSidebar();
               handleSettingsPress();
@@ -310,7 +318,7 @@ const ChatList = () => {
           />
           <SidebarItem
             text="Nuovo Gruppo"
-            iconName="people"
+            iconName={UserGroup03Icon}
             onPress={() => {
               toggleSidebar();
               setIsCreateGroupModalVisible(true);
@@ -318,7 +326,7 @@ const ChatList = () => {
           />
           <SidebarItem
             text="Logout"
-            iconName="logout"
+            iconName={Logout03Icon}
             onPress={() => {
               toggleSidebar();
               AsyncStorage.setItem("isLoggedIn", "false");

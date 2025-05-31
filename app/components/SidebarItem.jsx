@@ -1,15 +1,16 @@
 import React from "react";
 import { StyleSheet, Text, Pressable } from "react-native";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { User03Icon, Settings02Icon, UserGroup03Icon, Logout03Icon } from "@hugeicons/core-free-icons";
 
 const SidebarItem = (props) => {
   return (
     <Pressable style={styles.menuItem} onPress={props.onPress}>
-      <MaterialIcons
-        name={props.iconName}
+      <HugeiconsIcon
+        icon={props.iconName}
         size={24}
-        color="white"
-        style={styles.menuIcon}
+        color="#fff"
+        strokeWidth={1.5}
       />
       <Text style={styles.sidebarText}>{props.text}</Text>
     </Pressable>
@@ -24,12 +25,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255, 255, 255, 0.1)", // Subtle divider
   },
-  menuIcon: {
-    marginRight: 15,
-  },
   sidebarText: {
     color: "#fff",
     fontSize: 16,
+    marginLeft: 15,
   },
 });
 
