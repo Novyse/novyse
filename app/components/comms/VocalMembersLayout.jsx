@@ -2,9 +2,8 @@ import React, { useState, useCallback, useContext } from "react";
 import { View, StyleSheet, Text, Platform } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserCard from "./UserCard";
-import multiPeerWebRTCManager from "../utils/webrtcMethods";
 
-import utils from "../utils/webrtc/utils";
+import utils from "../../utils/webrtc/utils";
 const { get } = utils;
 
 let RTCView;

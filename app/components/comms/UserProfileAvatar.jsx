@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { View, StyleSheet, Text, Image, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { getFirstLetter } from "../utils/colorUtils";
+import { getFirstLetter } from "../../utils/colorUtils";
 
 const UserProfileAvatar = ({
   userHandle,

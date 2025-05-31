@@ -3,9 +3,9 @@ import { View, StyleSheet, Platform } from "react-native";
 import { BlurView } from "expo-blur";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
-import multiPeerWebRTCManager from "../utils/webrtcMethods";
+import multiPeerWebRTCManager from "../../utils/webrtcMethods";
 
-import utils from "../utils/webrtc/utils";
+import utils from "../../utils/webrtc/utils";
 const { get, check } = utils;
 
 let RTCView;

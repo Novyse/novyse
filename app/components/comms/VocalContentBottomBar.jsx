@@ -7,7 +7,7 @@ import MicrophoneArrowButton from "./MicrophoneArrowButton";
 import CameraSelector from "./CameraSelector";
 import CameraArrowButton from "./CameraArrowButton";
 
-import utils from "../utils/webrtc/utils";
+import utils from "../../utils/webrtc/utils";
 const { self, check } = utils;
 
 const VocalContentBottomBar = ({ chatId }) => {

@@ -2,10 +2,10 @@ import React, { useState, useContext, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useAudio } from "@/context/AudioContext";
-import VocalContentBottomBar from "./components/VocalContentBottomBar";
+import VocalContentBottomBar from "./components/comms/VocalContentBottomBar";
 import eventEmitter from "./utils/EventEmitter";
 import { Platform } from "react-native";
-import VocalMembersLayout from "./components/VocalMembersLayout";
+import VocalMembersLayout from "./components/comms/VocalMembersLayout";
 import multiPeerWebRTCManager from "./utils/webrtcMethods";
 
 import utils from "./utils/webrtc/utils";
@@ -18,7 +18,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   const [profilesInCommsChat, setProfilesInCommsChat] = useState([]);
   const [activeStreams, setActiveStreams] = useState({}); // { participantId: { stream, userData, streamType } }
-  const [videoStreamKeys, setVideoStreamKeys] = useState({}); // For forcing RTCView re-render on Android
+  const [videoStreamKeys, setVideoStreamKeys] = useState({}); // For forcing RTCView re-render
 
   useEffect(() => {
     // Set audio context reference in WebRTC manager when component mounts
@@ -70,7 +70,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
     // Registra i listeners
     eventEmitter.on("member_joined_comms", handleMemberJoined);
-    eventEmitter.on("member_left_comms", handleMemberLeft);    eventEmitter.on("stream_added_or_updated", handleStreamUpdate);
+    eventEmitter.on("member_left_comms", handleMemberLeft);    
+    eventEmitter.on("stream_added_or_updated", handleStreamUpdate);
 
     eventEmitter.on("user_started_speaking", handleUserStartedSpeaking);
     eventEmitter.on("user_stopped_speaking", handleUserStoppedSpeaking);
@@ -98,7 +99,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
       eventEmitter.off("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
       eventEmitter.off("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
-        // Remove mobile camera switch listener
+
       eventEmitter.off("mobile_camera_switched", handleStreamUpdate);
     };
   }, [chatId]);
