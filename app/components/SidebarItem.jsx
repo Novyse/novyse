@@ -1,7 +1,12 @@
 import React from "react";
 import { StyleSheet, Text, Pressable } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { User03Icon, Settings02Icon, UserGroup03Icon, Logout03Icon } from "@hugeicons/core-free-icons";
+import {
+  User03Icon,
+  Settings02Icon,
+  UserGroup03Icon,
+  Logout03Icon,
+} from "@hugeicons/core-free-icons";
 
 const SidebarItem = (props) => {
   return (

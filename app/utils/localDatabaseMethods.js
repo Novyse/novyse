@@ -247,7 +247,7 @@ class LocalDatabase {
   async fetchLocalUserHandle() {
     return this.getSingleValue("localUser", "handle");
   }
-  
+
   async fetchLocalUserData() {
     return this.getRowData("localUser", ["*"]);
   }
@@ -476,12 +476,16 @@ class LocalDatabase {
       if (isWeb) {
         // Per localForage, recupera solo i dati della tabella "messages"
         const messages = (await this.db.getItem("messages")) || [];
-        const messagesSize = new TextEncoder().encode(JSON.stringify(messages)).length;
+        const messagesSize = new TextEncoder().encode(
+          JSON.stringify(messages)
+        ).length;
         return (messagesSize / (1024 * 1024)).toFixed(2);
       } else {
         // Per SQLite, recupera tutti i messaggi e calcola la dimensione
         const messages = await this.db.getAllAsync("SELECT * FROM messages");
-        const messagesSize = new TextEncoder().encode(JSON.stringify(messages)).length;
+        const messagesSize = new TextEncoder().encode(
+          JSON.stringify(messages)
+        ).length;
         return (messagesSize / (1024 * 1024)).toFixed(2);
       }
     } catch (error) {

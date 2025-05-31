@@ -4,8 +4,11 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 const MicrophoneArrowButton = ({ onPress, theme }) => {
   return (
-    <Pressable 
-      style={[styles.arrowButton, { backgroundColor: theme?.background || "rgba(0, 0, 0, 0.75)" }]} 
+    <Pressable
+      style={[
+        styles.arrowButton,
+        { backgroundColor: theme?.background || "rgba(0, 0, 0, 0.75)" },
+      ]}
       onPress={onPress}
     >
       <MaterialIcons

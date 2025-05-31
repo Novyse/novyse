@@ -24,13 +24,7 @@ class JsonParser {
   }
 
   // Metodo per effettuare il signup e restituire un booleano
-  static async signupJson(
-    email,
-    name,
-    surname,
-    handle,
-    password
-  ) {
+  static async signupJson(email, name, surname, handle, password) {
     try {
       const response = await APIMethods.signupAPI(
         email,
@@ -271,7 +265,6 @@ class JsonParser {
         const data = response.data;
         if (data.update) {
           console.log("🟢 Update Successo:", data);
-          
 
           // controllo se l'init contiene chat e gruppi
           if (data.chats == null && data.groups == null) {

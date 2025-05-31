@@ -10,15 +10,9 @@ const DatabaseSizeChart = () => {
   const styles = createStyle(theme);
   const router = useRouter();
 
-  useEffect(() => {
-    
-  }, []);
+  useEffect(() => {}, []);
 
-  return (
-    <View style={styles.container}>
-      
-    </View>
-  );
+  return <View style={styles.container}></View>;
 };
 
 const createStyle = (theme) =>

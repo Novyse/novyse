@@ -1,15 +1,24 @@
 import React from "react";
 import { StyleSheet, Pressable } from "react-native";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import {
+  Mic02Icon,
+  MicOff02Icon,
+  Video02Icon,
+  VideoOffIcon,
+  ComputerScreenShareIcon,
+  ComputerRemoveIcon,
+  Call02Icon,
+} from "@hugeicons/core-free-icons";
 
 const VocalBottomBarButton = ({ onPress, iconName, iconColor }) => {
   return (
     <Pressable style={styles.iconButton} onPress={onPress}>
-      <MaterialIcons
-        name={iconName}
+      <HugeiconsIcon
+        icon={iconName}
         size={24}
         color={iconColor}
-        style={styles.menuIcon}
+        strokeWidth={1.5}
       />
     </Pressable>
   );

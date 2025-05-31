@@ -15,27 +15,69 @@ if (Platform.OS === "web") {
 
 // Costanti
 const ASPECT_RATIO = 16 / 9;
-const MARGIN = 4;
+const MARGIN = 0;
+const HEIGHT_MULTIPLYER = 1;
+const WIDTH_MULTIPLYER = 1;
 
-const VocalMembersLayout = ({ profiles, activeStreams = {}, videoStreamKeys = {} }) => {
+const VocalMembersLayout = ({
+  profiles,
+  activeStreams = {},
+  videoStreamKeys = {},
+}) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
     height: 0,
   });
+  const [pinnedUserId, setPinnedUserId] = useState(null);
 
   const { theme } = useContext(ThemeContext);
+
   // Handler per il layout
   const onContainerLayout = useCallback((event) => {
     const { width, height } = event.nativeEvent.layout;
     setContainerDimensions({ width, height });
   }, []);
 
+  // Funzione per pinnare/unpinnare un utente
+  const handlePinUser = useCallback((userId) => {
+    setPinnedUserId(prevPinned => prevPinned === userId ? null : userId);
+  }, []);
+
   // Calcolo ottimizzato del layout considerando anche le screen share
   const calculateLayout = useCallback(() => {
+    // Se c'è un utente pinnato, calcola layout per un singolo elemento
+    if (pinnedUserId) {
+      if (!containerDimensions.width || !containerDimensions.height) {
+        return { numColumns: 1, rectWidth: 0, rectHeight: 0, margin: MARGIN };
+      }
+
+      const { width, height } = containerDimensions;
+      const availableWidth = width - MARGIN * 2;
+      const availableHeight = height - MARGIN * 2;
+
+      // Calcola dimensioni per occupare tutto lo spazio disponibile rispettando il rapporto 16:9
+      const rectWidthByHeight = availableHeight * ASPECT_RATIO;
+      const rectHeightByWidth = availableWidth * (1 / ASPECT_RATIO);
+
+      let rectWidth, rectHeight;
+      if (rectWidthByHeight <= availableWidth) {
+        rectHeight = availableHeight;
+        rectWidth = rectHeight * ASPECT_RATIO;
+      } else {
+        rectWidth = availableWidth;
+        rectHeight = rectWidth * (1 / ASPECT_RATIO);
+      }
+
+      return { numColumns: 1, rectWidth, rectHeight, margin: MARGIN };
+    }
+
     // Calcola il numero totale di elementi da visualizzare (utenti + screen shares)
     let totalElements = profiles.length;
-    profiles.forEach(profile => {
-      if (profile.active_screen_share && Array.isArray(profile.active_screen_share)) {
+    profiles.forEach((profile) => {
+      if (
+        profile.active_screen_share &&
+        Array.isArray(profile.active_screen_share)
+      ) {
         totalElements += profile.active_screen_share.length;
       }
     });
@@ -54,8 +96,8 @@ const VocalMembersLayout = ({ profiles, activeStreams = {}, videoStreamKeys = {}
     let numColumns, numRows;
     // Logica specifica per 2 persone
     if (totalElements === 2) {
-      // Su Android, metti 2 persone in colonna; su altre piattaforme, in riga
-      if (Platform.OS === 'android') {
+      // Su schermi piccoli (mobile) o Android, metti 2 persone in colonna
+      if (Platform.OS === "android" || isPortrait || width < 600) {
         numColumns = 1;
         numRows = 2;
       } else {
@@ -70,14 +112,14 @@ const VocalMembersLayout = ({ profiles, activeStreams = {}, videoStreamKeys = {}
     } else {
       numColumns = Math.ceil(Math.sqrt(totalElements));
       numRows = Math.ceil(totalElements / numColumns);
-        if (isPortrait && numRows < 3 && numColumns > 1) {
+      if (isPortrait && numRows < 3 && numColumns > 1) {
         numColumns = Math.max(1, Math.floor(numColumns / 2));
         numRows = Math.ceil(totalElements / numColumns);
       }
     }
     // Calcola lo spazio disponibile con margini generosi per evitare overflow
-    const availableWidth = width - (MARGIN * 4); // Margine extra per evitare overflow
-    const availableHeight = height - (MARGIN * 4); // Margine extra per evitare overflow
+    const availableWidth = width - MARGIN * 4; // Margine extra per evitare overflow
+    const availableHeight = height - MARGIN * 4; // Margine extra per evitare overflow
 
     // Calcola la larghezza e altezza dei rettangoli rispettando il rapporto 16:9
     const maxRectWidth = availableWidth / numColumns;
@@ -89,25 +131,33 @@ const VocalMembersLayout = ({ profiles, activeStreams = {}, videoStreamKeys = {}
     if (rectWidthByHeight <= maxRectWidth) {
       rectHeight = maxRectHeight;
       rectWidth = rectHeight * ASPECT_RATIO;
-    } else {      rectWidth = maxRectWidth;
+    } else {
+      rectWidth = maxRectWidth;
       rectHeight = rectWidth * (1 / ASPECT_RATIO);
     }
-    rectWidth = Math.max(50, rectWidth * 0.9); // Riduci leggermente per evitare overflow
-    rectHeight = Math.max(50 / ASPECT_RATIO, rectHeight * 0.9); // Riduci leggermente per evitare overflow
+    rectWidth = Math.max(50, rectWidth * WIDTH_MULTIPLYER);
+    rectHeight = Math.max(50 / ASPECT_RATIO, rectHeight * HEIGHT_MULTIPLYER);
 
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
-  }, [containerDimensions, profiles]);
+  }, [containerDimensions, profiles, pinnedUserId]);
 
   const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();
+
   // Render function for screen shares
   const renderScreenShare = (profile, shareId) => {
+    // Se c'è un utente pinnato e non è questo screen share, non renderizzarlo
+    if (pinnedUserId && pinnedUserId !== shareId) {
+      return null;
+    }
+
     const activeStream = activeStreams[shareId];
-    
+
     // Crea un profilo temporaneo per lo screen share
     const screenShareProfile = {
       ...profile,
       from: shareId,
-      handle: profile.handle || profile.from || 'Unknown'    };
+      handle: profile.handle || profile.from || "Unknown",
+    };
 
     return (
       <UserCard
@@ -120,6 +170,8 @@ const VocalMembersLayout = ({ profiles, activeStreams = {}, videoStreamKeys = {}
         margin={margin}
         isScreenShare={true}
         videoStreamKey={videoStreamKeys[shareId]}
+        isPinned={pinnedUserId === shareId}
+        onPin={() => handlePinUser(shareId)}
       />
     );
   };
@@ -127,6 +179,12 @@ const VocalMembersLayout = ({ profiles, activeStreams = {}, videoStreamKeys = {}
   // Render function for user profiles
   const renderProfile = (profile) => {
     const participantId = profile.from;
+    
+    // Se c'è un utente pinnato e non è questo utente, non renderizzarlo
+    if (pinnedUserId && pinnedUserId !== participantId) {
+      return null;
+    }
+
     const activeStream = activeStreams[participantId];
     const isSpeaking = profile.is_speaking || false; // Usa il parametro is_speaking dal profilo
 
@@ -141,26 +199,34 @@ const VocalMembersLayout = ({ profiles, activeStreams = {}, videoStreamKeys = {}
         margin={margin}
         isScreenShare={false}
         videoStreamKey={videoStreamKeys[participantId]}
+        isPinned={pinnedUserId === participantId}
+        onPin={() => handlePinUser(participantId)}
       />
     );
   };
+
   return (
     <View style={styles.container} onLayout={onContainerLayout}>
-      <View style={[
-        styles.grid, 
-        { 
-          width: containerDimensions.width,
-        }
-      ]}>
+      <View
+        style={[
+          styles.grid,
+          {
+            width: containerDimensions.width,
+          },
+        ]}
+      >
         {profiles.length > 0 ? (
           <>
             {/* Render user profiles */}
             {profiles.map(renderProfile)}
-            
+
             {/* Render screen shares */}
-            {profiles.map(profile => {
-              if (profile.active_screen_share && Array.isArray(profile.active_screen_share)) {
-                return profile.active_screen_share.map(shareId => 
+            {profiles.map((profile) => {
+              if (
+                profile.active_screen_share &&
+                Array.isArray(profile.active_screen_share)
+              ) {
+                return profile.active_screen_share.map((shareId) =>
                   renderScreenShare(profile, shareId)
                 );
               }
@@ -168,7 +234,7 @@ const VocalMembersLayout = ({ profiles, activeStreams = {}, videoStreamKeys = {}
             })}
           </>
         ) : (
-          <Text style={styles.emptyChatText}>Nessun utente nella chat 😔</Text>
+          <Text style={styles.emptyChatText}>Nessun utente nella chat</Text>
         )}
       </View>
     </View>
@@ -184,7 +250,7 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: Platform.OS === 'web' ? 'center' : 'space-around', // Su web ora centrato
+    justifyContent: Platform.OS === "web" ? "center" : "space-around", // Su web ora centrato
     alignItems: "flex-start",
     padding: 0, // Nessun padding per la griglia
     rowGap: 0,

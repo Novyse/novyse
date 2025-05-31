@@ -1,11 +1,28 @@
 import React, { useContext, useState } from "react";
-import { View, StyleSheet, ActivityIndicator, Alert, Platform } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  Platform,
+} from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import VocalBottomBarButton from "./VocalBottomBarButton";
 import MicrophoneSelector from "./MicrophoneSelector";
 import MicrophoneArrowButton from "./MicrophoneArrowButton";
 import CameraSelector from "./CameraSelector";
 import CameraArrowButton from "./CameraArrowButton";
+
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import {
+  Mic02Icon,
+  MicOff02Icon,
+  Video02Icon,
+  VideoOffIcon,
+  ComputerScreenShareIcon,
+  ComputerRemoveIcon,
+  Call02Icon,
+} from "@hugeicons/core-free-icons";
 
 import utils from "../../utils/webrtc/utils";
 const { self, check } = utils;
@@ -15,14 +32,15 @@ const VocalContentBottomBar = ({ chatId }) => {
   const styles = createStyle(theme);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true); // SETTINGS PARTE 2
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);  // State for microphone and camera selectors
+  const [isLoading, setIsLoading] = useState(false); // State for microphone and camera selectors
   const [showMicrophoneSelector, setShowMicrophoneSelector] = useState(false);
   const [currentMicrophoneId, setCurrentMicrophoneId] = useState(null);
   const [showCameraSelector, setShowCameraSelector] = useState(false);
   const [currentCameraId, setCurrentCameraId] = useState(null);
   // State for mobile camera facing mode and preferences
-  const [currentFacingMode, setCurrentFacingMode] = useState('user'); // 'user' for front, 'environment' for back
-  const [pendingCameraPreferences, setPendingCameraPreferences] = useState(null); // Store camera preferences when video is off
+  const [currentFacingMode, setCurrentFacingMode] = useState("user"); // 'user' for front, 'environment' for back
+  const [pendingCameraPreferences, setPendingCameraPreferences] =
+    useState(null); // Store camera preferences when video is off
 
   const handleJoinVocal = async () => {
     try {
@@ -42,7 +60,7 @@ const VocalContentBottomBar = ({ chatId }) => {
   const toggleVideo = async () => {
     const newVideoState = await self.toggleVideo();
     setIsVideoEnabled(newVideoState);
-    
+
     // If video was just enabled and we have pending camera preferences, apply them
     if (newVideoState && pendingCameraPreferences) {
       try {
@@ -53,10 +71,13 @@ const VocalContentBottomBar = ({ chatId }) => {
               facingMode: { exact: pendingCameraPreferences.facingMode },
               width: { ideal: 1280 },
               height: { ideal: 720 },
-              aspectRatio: { ideal: 16/9 }
-            }
+              aspectRatio: { ideal: 16 / 9 },
+            },
           };
-          await self.switchMobileCamera(constraints, pendingCameraPreferences.facingMode);
+          await self.switchMobileCamera(
+            constraints,
+            pendingCameraPreferences.facingMode
+          );
           setCurrentFacingMode(pendingCameraPreferences.facingMode);
         } else {
           // Web: apply deviceId preference
@@ -92,8 +113,11 @@ const VocalContentBottomBar = ({ chatId }) => {
         "Failed to switch microphone. Please try again."
       );
     }
-  };  const handleCameraSelect = () => {
-    console.log(`Camera select pressed - Platform: ${Platform.OS}, Video enabled: ${isVideoEnabled}`);
+  };
+  const handleCameraSelect = () => {
+    console.log(
+      `Camera select pressed - Platform: ${Platform.OS}, Video enabled: ${isVideoEnabled}`
+    );
     if (check.isInComms()) {
       if (Platform.OS !== "web") {
         // Mobile: switch between front/back cameras
@@ -103,18 +127,22 @@ const VocalContentBottomBar = ({ chatId }) => {
         setShowCameraSelector(true);
       }
     }
-  };const handleMobileCameraSwitch = async () => {
+  };
+  const handleMobileCameraSwitch = async () => {
     try {
       // Toggle between front and back camera
-      const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-      const cameraName = newFacingMode === 'user' ? 'Front' : 'Back';
-      
+      const newFacingMode =
+        currentFacingMode === "user" ? "environment" : "user";
+      const cameraName = newFacingMode === "user" ? "Front" : "Back";
+
       if (!isVideoEnabled) {
         // Video is disabled, just save the preference for later
         setPendingCameraPreferences({ facingMode: newFacingMode });
         setCurrentFacingMode(newFacingMode);
-        console.log(`Camera preference saved: ${newFacingMode} (video disabled)`);
-        
+        console.log(
+          `Camera preference saved: ${newFacingMode} (video disabled)`
+        );
+
         Alert.alert(
           "Camera Preference Saved",
           `${cameraName} camera will be used when video is enabled.`,
@@ -122,25 +150,22 @@ const VocalContentBottomBar = ({ chatId }) => {
         );
         return;
       }
-      
+
       // Video is enabled, apply the change immediately
       const constraints = {
         video: {
           facingMode: { exact: newFacingMode },
           width: { ideal: 1280 },
           height: { ideal: 720 },
-          aspectRatio: { ideal: 16/9 }
-        }
+          aspectRatio: { ideal: 16 / 9 },
+        },
       };
 
       await self.switchMobileCamera(constraints, newFacingMode);
       setCurrentFacingMode(newFacingMode);
     } catch (error) {
       console.error("Failed to switch mobile camera:", error);
-      Alert.alert(
-        "Camera Error",
-        "Failed to switch camera. Please try again."
-      );
+      Alert.alert("Camera Error", "Failed to switch camera. Please try again.");
     }
   };
   const handleCameraChange = async (deviceId) => {
@@ -149,19 +174,18 @@ const VocalContentBottomBar = ({ chatId }) => {
         // Video is disabled, just save the preference for later
         setPendingCameraPreferences({ deviceId });
         setCurrentCameraId(deviceId);
-        console.log(`Camera device preference saved: ${deviceId} (video disabled)`);
+        console.log(
+          `Camera device preference saved: ${deviceId} (video disabled)`
+        );
         return;
       }
-      
+
       // Video is enabled, apply the change immediately
       await self.switchCamera(deviceId);
       setCurrentCameraId(deviceId);
     } catch (error) {
       console.error("Failed to switch camera:", error);
-      Alert.alert(
-        "Camera Error",
-        "Failed to switch camera. Please try again."
-      );
+      Alert.alert("Camera Error", "Failed to switch camera. Please try again.");
     }
   };
 
@@ -175,35 +199,34 @@ const VocalContentBottomBar = ({ chatId }) => {
         ) : (
           <VocalBottomBarButton
             onPress={handleJoinVocal}
-            iconName="phone"
+            iconName={Call02Icon}
             iconColor="green"
           />
         )
-      ) : (        
-      <View style={styles.container}>
+      ) : (
+        <View style={styles.container}>
           <View style={styles.microphoneButtonContainer}>
             <VocalBottomBarButton
               onPress={toggleAudio}
-              iconName={isAudioEnabled ? "mic" : "mic-off"}
+              iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
               iconColor={theme.icon}
             />
             <MicrophoneArrowButton
               onPress={handleMicrophoneSelect}
               theme={theme}
-            />          </View>          <View style={styles.cameraButtonContainer}>
+            />
+          </View>
+          <View style={styles.cameraButtonContainer}>
             <VocalBottomBarButton
               onPress={toggleVideo}
-              iconName={isVideoEnabled ? "videocam" : "videocam-off"}
+              iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
               iconColor={theme.icon}
             />
-            <CameraArrowButton
-              onPress={handleCameraSelect}
-              theme={theme}
-            />
+            <CameraArrowButton onPress={handleCameraSelect} theme={theme} />
           </View>
           <VocalBottomBarButton
             onPress={handleScreenShare}
-            iconName="desktop-windows"
+            iconName={ComputerScreenShareIcon}
             iconColor={theme.icon}
           />
           <VocalBottomBarButton
@@ -212,11 +235,11 @@ const VocalContentBottomBar = ({ chatId }) => {
               setIsVideoEnabled(false); //TEMPORARY, NEED TO BE FIXED WITH SETTINGS (dette settinghe in italiano)
               setIsAudioEnabled(true);
             }}
-            iconName="phone"
+            iconName={Call02Icon}
             iconColor="red"
           />
         </View>
-      )}        
+      )}
       {showMicrophoneSelector && (
         <MicrophoneSelector
           visible={showMicrophoneSelector}
@@ -224,7 +247,8 @@ const VocalContentBottomBar = ({ chatId }) => {
           onMicrophoneSelected={handleMicrophoneChange}
           currentDeviceId={currentMicrophoneId}
         />
-      )}      {showCameraSelector && Platform.OS === "web" && (
+      )}
+      {showCameraSelector && Platform.OS === "web" && (
         <CameraSelector
           visible={showCameraSelector}
           onClose={() => setShowCameraSelector(false)}
@@ -243,7 +267,8 @@ const createStyle = (theme) =>
       flexDirection: "row",
       justifyContent: "center",
       gap: 15,
-    },    microphoneButtonContainer: {
+    },
+    microphoneButtonContainer: {
       position: "relative",
     },
     cameraButtonContainer: {

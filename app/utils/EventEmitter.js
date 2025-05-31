@@ -21,7 +21,9 @@ class EventEmitter {
   off(event, listener) {
     if (this.listeners[event]) {
       // Filter out the listener to be removed
-      this.listeners[event] = this.listeners[event].filter(l => l !== listener);
+      this.listeners[event] = this.listeners[event].filter(
+        (l) => l !== listener
+      );
 
       // If no listeners remain, delete the event key
       if (this.listeners[event].length === 0) {

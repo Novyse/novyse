@@ -49,7 +49,7 @@ class MultiPeerWebRTCManager {
   remoteStreams = {}; // Oggetto per memorizzare gli stream remoti: { participantId: MediaStream }
   remoteScreenStreams = {}; // Oggetto per memorizzare gli screen share remoti: { participantId: { streamId: MediaStream } }
   remoteStreamMetadata = {}; // Metadata per tracciare i tipi di stream remoti: { participantId: { streamId: 'webcam'|'screenshare' } }
-  
+
   // Screen sharing functionality
   screenStreams = {}; // Store multiple screen share streams { streamId: MediaStream }
   screenStreamCounter = 0; // Counter for unique stream IDs
@@ -77,7 +77,7 @@ class MultiPeerWebRTCManager {
   connectionHealthCheckers = {}; // Health check intervals per connection
   lastKnownGoodStates = {}; // Track last known good connection states
   iceCandidateQueues = {}; // Queue ICE candidates for early-arriving candidates
-    // Constants for reconnection policy
+  // Constants for reconnection policy
   MAX_RECONNECTION_ATTEMPTS = 3; // Massimo 3 tentativi come richiesto
   RECONNECTION_BASE_DELAY = 2000; // 2 secondi delay base
   HEALTH_CHECK_INTERVAL = 5000; // 5 secondi per health check
@@ -107,7 +107,8 @@ class MultiPeerWebRTCManager {
       this._initializeEventReceiver();
     } else {
       console.log("MultiPeerWebRTCManager: Inizializzato vuoto");
-    }    this.negotiationInProgress = {}; // Traccia rinegoziazioni per peer
+    }
+    this.negotiationInProgress = {}; // Traccia rinegoziazioni per peer
   }
 
   /**
@@ -116,53 +117,65 @@ class MultiPeerWebRTCManager {
    */
   setAudioContext(audioContext) {
     this.audioContextRef = audioContext;
-    console.log('WebRTC: Audio context reference set');
+    console.log("WebRTC: Audio context reference set");
   }
   _initializeEventReceiver() {
     // Create and initialize the event receiver
     this.eventReceiver = new WebRTCEventReceiver(this);
     this.eventReceiver.initialize();
-    console.log('[WebRTC] Event receiver initialized');
+    console.log("[WebRTC] Event receiver initialized");
   }
-    _cleanupEventReceiver() {
+  _cleanupEventReceiver() {
     if (this.eventReceiver) {
       this.eventReceiver.destroy();
       this.eventReceiver = null;
-      console.log('[WebRTC] Event receiver cleaned up');
+      console.log("[WebRTC] Event receiver cleaned up");
     }
   }
   // Gestione degli eventi
   _setupEventListeners() {
     // Rimuovi eventuali listener precedenti
     this._removeEventListeners();
-    
+
     // Aggiungi i listener per i vari tipi di messaggi
-    eventEmitter.on('offer', this.offerMessage.bind(this));
-    eventEmitter.on('answer', this.answerMessage.bind(this));
-    eventEmitter.on('candidate', this.candidateMessage.bind(this));
+    eventEmitter.on("offer", this.offerMessage.bind(this));
+    eventEmitter.on("answer", this.answerMessage.bind(this));
+    eventEmitter.on("candidate", this.candidateMessage.bind(this));
 
     // da togliere quelli sotto
-      // Add speaking status listeners
-    eventEmitter.on('speaking', this.handleRemoteSpeaking.bind(this));
-    eventEmitter.on('not_speaking', this.handleRemoteNotSpeaking.bind(this));
-    
+    // Add speaking status listeners
+    eventEmitter.on("speaking", this.handleRemoteSpeaking.bind(this));
+    eventEmitter.on("not_speaking", this.handleRemoteNotSpeaking.bind(this));
+
     // Add screen sharing listeners
-    eventEmitter.on('screen_share_started', this.handleRemoteScreenShareStarted.bind(this));
-    eventEmitter.on('screen_share_stopped', this.handleRemoteScreenShareStopped.bind(this));
-    
-    console.log('MultiPeerWebRTCManager: Event listeners configurati');
+    eventEmitter.on(
+      "screen_share_started",
+      this.handleRemoteScreenShareStarted.bind(this)
+    );
+    eventEmitter.on(
+      "screen_share_stopped",
+      this.handleRemoteScreenShareStopped.bind(this)
+    );
+
+    console.log("MultiPeerWebRTCManager: Event listeners configurati");
   }
   // Metodo per rimuovere gli event listeners
   _removeEventListeners() {
-    eventEmitter.off('offer', this.offerMessage.bind(this));
-    eventEmitter.off('answer', this.answerMessage.bind(this));
-    eventEmitter.off('candidate', this.candidateMessage.bind(this));
+    eventEmitter.off("offer", this.offerMessage.bind(this));
+    eventEmitter.off("answer", this.answerMessage.bind(this));
+    eventEmitter.off("candidate", this.candidateMessage.bind(this));
 
     // da far sparire
-    eventEmitter.off('speaking', this.handleRemoteSpeaking.bind(this));
-    eventEmitter.off('not_speaking', this.handleRemoteNotSpeaking.bind(this));
-    eventEmitter.off('screen_share_started', this.handleRemoteScreenShareStarted.bind(this));
-    eventEmitter.off('screen_share_stopped', this.handleRemoteScreenShareStopped.bind(this));
+    eventEmitter.off("speaking", this.handleRemoteSpeaking.bind(this));
+    eventEmitter.off("not_speaking", this.handleRemoteNotSpeaking.bind(this));
+    eventEmitter.off(
+      "screen_share_started",
+      this.handleRemoteScreenShareStarted.bind(this)
+    );
+    eventEmitter.off(
+      "screen_share_stopped",
+      this.handleRemoteScreenShareStopped.bind(this)
+    );
   }
 
   setUserSpeaking(userId, isSpeaking) {
@@ -170,7 +183,6 @@ class MultiPeerWebRTCManager {
       this.userData[userId].is_speaking = isSpeaking;
     }
   }
-
 
   /**
    * Inizia l'acquisizione dello stream locale (invariato)
@@ -188,11 +200,13 @@ class MultiPeerWebRTCManager {
           noiseSuppression: true,
           autoGainControl: true,
         },
-        video: audioOnly ? false : {
-          facingMode: "user",
-          width: 1920,
-          height: 1080,
-        },
+        video: audioOnly
+          ? false
+          : {
+              facingMode: "user",
+              width: 1920,
+              height: 1080,
+            },
       };
       const stream = await mediaDevices.getUserMedia(constraints);
       console.log("MultiPeerWebRTCManager: Stream locale ottenuto.");
@@ -200,7 +214,7 @@ class MultiPeerWebRTCManager {
       if (this.onLocalStreamReady) {
         this.onLocalStreamReady(stream);
       }
-      
+
       // Se ci sono già connessioni peer attive, aggiungi lo stream a tutte
       Object.values(this.peerConnections).forEach((pc) => {
         this._addLocalTracksToPeerConnection(pc);
@@ -224,7 +238,6 @@ class MultiPeerWebRTCManager {
       this.onStreamUpdate();
     }
   }
-
 
   /**
    * Handle speaking status changes (both local and remote)
@@ -282,13 +295,13 @@ class MultiPeerWebRTCManager {
     const { from, streamId } = data;
     if (from && from !== this.myId) {
       console.log(`Remote screen share started: ${from}/${streamId}`);
-      
+
       // Initialize metadata tracking
       if (!this.remoteStreamMetadata[from]) {
         this.remoteStreamMetadata[from] = {};
       }
-      this.remoteStreamMetadata[from][streamId] = 'screenshare';
-      
+      this.remoteStreamMetadata[from][streamId] = "screenshare";
+
       // The actual stream will be handled in ontrack when the media arrives
     }
   }
@@ -300,14 +313,17 @@ class MultiPeerWebRTCManager {
     const { from, streamId } = data;
     if (from && from !== this.myId) {
       console.log(`Remote screen share stopped: ${from}/${streamId}`);
-      
+
       // Remove from metadata
       if (this.remoteStreamMetadata[from]) {
         delete this.remoteStreamMetadata[from][streamId];
       }
-      
+
       // Remove the stream
-      if (this.remoteScreenStreams[from] && this.remoteScreenStreams[from][streamId]) {
+      if (
+        this.remoteScreenStreams[from] &&
+        this.remoteScreenStreams[from][streamId]
+      ) {
         delete this.remoteScreenStreams[from][streamId];
         this.notifyStreamUpdate();
       }
@@ -318,7 +334,7 @@ class MultiPeerWebRTCManager {
    * Crea e configura una RTCPeerConnection PER UN SINGOLO PARTECIPANTE REMOTO.
    * @param {string} participantId - L'ID univoco del partecipante remoto.
    * @returns {RTCPeerConnection} La connessione creata.
-   */  createPeerConnection(participant) {
+   */ createPeerConnection(participant) {
     const participantId = participant.from;
 
     if (this.peerConnections[participantId]) {
@@ -336,43 +352,48 @@ class MultiPeerWebRTCManager {
       const userData = { handle: participant.handle, from: participantId };
       this.peerConnections[participantId] = pc; // Memorizza la connessione
       this.userData[participantId] = userData;
-      
+
       // Initialize connection stability tracking
       this._initializeConnectionTracking(participantId);
-      this._reportConnectionEvent(participantId, 'peer_connection_created');
+      this._reportConnectionEvent(participantId, "peer_connection_created");
 
       // --- Gestione Eventi Specifica per questa Connessione ---
 
       pc.onicecandidate = async (event) => {
         if (event.candidate) {
           // Invia il candidato SPECIFICATAMENTE a questo partecipante
-          console.log(
-            `[WebRTC ICE] Invio candidato ICE a ${participantId}`
-          );
-          this._reportConnectionEvent(participantId, 'ice_candidate_sent', {
+          console.log(`[WebRTC ICE] Invio candidato ICE a ${participantId}`);
+          this._reportConnectionEvent(participantId, "ice_candidate_sent", {
             type: event.candidate.type,
-            protocol: event.candidate.protocol
+            protocol: event.candidate.protocol,
           });
-          
+
           await WebSocketMethods.IceCandidate({
             candidate: event.candidate.toJSON(),
             to: participantId,
             from: this.myId,
           });
         } else {
-          console.log(`[WebRTC ICE] ICE gathering completato per ${participantId}`);
-          this._reportConnectionEvent(participantId, 'ice_gathering_complete');
+          console.log(
+            `[WebRTC ICE] ICE gathering completato per ${participantId}`
+          );
+          this._reportConnectionEvent(participantId, "ice_gathering_complete");
         }
-      };      // In webrtcMethods.js, inside createPeerConnection method
+      }; // In webrtcMethods.js, inside createPeerConnection method
       pc.ontrack = (event) => {
         console.log(
           `[WebRTC Track] Ricevuta track remota da ${participantId}:`,
           event.track.kind,
-          'label:', event.track.label,
-          'id:', event.track.id,
-          'streams:', event.streams.map(s => s.id)
+          "label:",
+          event.track.label,
+          "id:",
+          event.track.id,
+          "streams:",
+          event.streams.map((s) => s.id)
         );
-        this._reportConnectionEvent(participantId, 'remote_track_received', { kind: event.track.kind });
+        this._reportConnectionEvent(participantId, "remote_track_received", {
+          kind: event.track.kind,
+        });
 
         // Check if we have metadata for this track (from signaling)
         let isScreenShare = false;
@@ -381,11 +402,17 @@ class MultiPeerWebRTCManager {
         // Try to match the track to a known screen share stream
         if (this.remoteStreamMetadata[participantId]) {
           // Look for screen share metadata based on stream IDs or track IDs
-          for (const [metaStreamId, streamType] of Object.entries(this.remoteStreamMetadata[participantId])) {
-            if (streamType === 'screenshare') {
+          for (const [metaStreamId, streamType] of Object.entries(
+            this.remoteStreamMetadata[participantId]
+          )) {
+            if (streamType === "screenshare") {
               // Use the stream ID from event.streams or fallback to track-based detection
-              const eventStreamId = event.streams.length > 0 ? event.streams[0].id : event.track.id;
-              if (eventStreamId.includes(metaStreamId) || metaStreamId.includes('screen')) {
+              const eventStreamId =
+                event.streams.length > 0 ? event.streams[0].id : event.track.id;
+              if (
+                eventStreamId.includes(metaStreamId) ||
+                metaStreamId.includes("screen")
+              ) {
                 isScreenShare = true;
                 streamId = metaStreamId;
                 break;
@@ -396,20 +423,25 @@ class MultiPeerWebRTCManager {
 
         // Fallback: try to identify screen share tracks by label or stream ID patterns
         if (!isScreenShare) {
-          const isScreenShareFallback = event.track.label.includes('screen') ||
-                                       event.track.label.includes('Screen') ||
-                                       event.track.id.includes('screen') ||
-                                       (event.streams.length > 0 && event.streams[0].id.includes('screen'));
-          
+          const isScreenShareFallback =
+            event.track.label.includes("screen") ||
+            event.track.label.includes("Screen") ||
+            event.track.id.includes("screen") ||
+            (event.streams.length > 0 &&
+              event.streams[0].id.includes("screen"));
+
           if (isScreenShareFallback) {
             isScreenShare = true;
-            streamId = event.streams.length > 0 ? event.streams[0].id : `screen_${Date.now()}`;
-            
+            streamId =
+              event.streams.length > 0
+                ? event.streams[0].id
+                : `screen_${Date.now()}`;
+
             // Update metadata for future use
             if (!this.remoteStreamMetadata[participantId]) {
               this.remoteStreamMetadata[participantId] = {};
             }
-            this.remoteStreamMetadata[participantId][streamId] = 'screenshare';
+            this.remoteStreamMetadata[participantId][streamId] = "screenshare";
           }
         }
 
@@ -424,44 +456,51 @@ class MultiPeerWebRTCManager {
 
           // Create or get the screen share stream for this specific streamId
           if (!this.remoteScreenStreams[participantId][streamId]) {
-            this.remoteScreenStreams[participantId][streamId] = new MediaStream();
-          }          this.remoteScreenStreams[participantId][streamId].addTrack(event.track);
-          console.log(`[WebRTC Track] Added screen share track to ${participantId}/${streamId}`);
-          
+            this.remoteScreenStreams[participantId][streamId] =
+              new MediaStream();
+          }
+          this.remoteScreenStreams[participantId][streamId].addTrack(
+            event.track
+          );
+          console.log(
+            `[WebRTC Track] Added screen share track to ${participantId}/${streamId}`
+          );
+
           // Emit global stream event for screen sharing
-          eventEmitter.emit('stream_added_or_updated', {
+          eventEmitter.emit("stream_added_or_updated", {
             participantId,
             stream: this.remoteScreenStreams[participantId][streamId],
-            streamType: 'screenshare',
+            streamType: "screenshare",
             streamId: streamId,
-            userData: this.userData[participantId]
+            userData: this.userData[participantId],
           });
         } else {
           // Handle regular webcam tracks
           if (!this.remoteStreams[participantId]) {
             this.remoteStreams[participantId] = new MediaStream();
-          }          // Aggiungi la traccia allo stream esistente
+          } // Aggiungi la traccia allo stream esistente
           const stream = this.remoteStreams[participantId];
-          stream.addTrack(event.track);          // Gestione audio tramite AudioContext
+          stream.addTrack(event.track); // Gestione audio tramite AudioContext
           if (this.audioContextRef && stream.getAudioTracks().length > 0) {
             this.audioContextRef.addAudio(participantId, stream);
           }
 
           // Emit global stream event instead of direct callback
-          eventEmitter.emit('stream_added_or_updated', {
+          eventEmitter.emit("stream_added_or_updated", {
             participantId,
             stream,
-            streamType: 'webcam',
-            userData: this.userData[participantId]
+            streamType: "webcam",
+            userData: this.userData[participantId],
           });
-
         }
-        
+
         this.notifyStreamUpdate();
 
         event.track.onended = () => {
           this.notifyStreamUpdate();
-          this._reportConnectionEvent(participantId, 'remote_track_ended', { kind: event.track.kind });
+          this._reportConnectionEvent(participantId, "remote_track_ended", {
+            kind: event.track.kind,
+          });
         };
 
         event.track.onmute = () => {
@@ -478,9 +517,12 @@ class MultiPeerWebRTCManager {
         console.log(
           `[WebRTC State] ICE connection state for ${participantId}: ${newState}`
         );
-        
-        this._reportConnectionEvent(participantId, `ice_connection_state_${newState}`);
-        this._logConnectionDebugInfo(participantId, 'ice_state_change');
+
+        this._reportConnectionEvent(
+          participantId,
+          `ice_connection_state_${newState}`
+        );
+        this._logConnectionDebugInfo(participantId, "ice_state_change");
 
         if (this.onPeerConnectionStateChange) {
           this.onPeerConnectionStateChange(participantId, newState);
@@ -490,37 +532,53 @@ class MultiPeerWebRTCManager {
         switch (newState) {
           case "connected":
           case "completed":
-            console.log(`[WebRTC State] ✅ Connection to ${participantId} established successfully`);
-            this._reportConnectionEvent(participantId, 'connection_established_successfully');
+            console.log(
+              `[WebRTC State] ✅ Connection to ${participantId} established successfully`
+            );
+            this._reportConnectionEvent(
+              participantId,
+              "connection_established_successfully"
+            );
             break;
 
           case "failed":
-            console.warn(`[WebRTC State] ❌ Connection to ${participantId} failed`);
-            this._reportConnectionEvent(participantId, 'connection_failed');
+            console.warn(
+              `[WebRTC State] ❌ Connection to ${participantId} failed`
+            );
+            this._reportConnectionEvent(participantId, "connection_failed");
             // Trigger automatic recovery
             this._attemptConnectionRecovery(participantId);
             break;
 
           case "disconnected":
-            console.warn(`[WebRTC State] ⚠️ Connection to ${participantId} disconnected`);
-            this._reportConnectionEvent(participantId, 'connection_disconnected');
+            console.warn(
+              `[WebRTC State] ⚠️ Connection to ${participantId} disconnected`
+            );
+            this._reportConnectionEvent(
+              participantId,
+              "connection_disconnected"
+            );
             // Give some time for self-recovery before attempting manual recovery
             setTimeout(() => {
               if (pc.iceConnectionState === "disconnected") {
-                console.warn(`[WebRTC State] Connection to ${participantId} still disconnected after 5s, attempting recovery`);
+                console.warn(
+                  `[WebRTC State] Connection to ${participantId} still disconnected after 5s, attempting recovery`
+                );
                 this._attemptConnectionRecovery(participantId);
               }
             }, 5000);
             break;
-            
+
           case "checking":
-            console.log(`[WebRTC State] 🔄 Connection to ${participantId} checking...`);
-            this._reportConnectionEvent(participantId, 'connection_checking');
+            console.log(
+              `[WebRTC State] 🔄 Connection to ${participantId} checking...`
+            );
+            this._reportConnectionEvent(participantId, "connection_checking");
             break;
-            
+
           case "new":
             console.log(`[WebRTC State] 🆕 New connection to ${participantId}`);
-            this._reportConnectionEvent(participantId, 'connection_new');
+            this._reportConnectionEvent(participantId, "connection_new");
             break;
         }
       };
@@ -528,10 +586,12 @@ class MultiPeerWebRTCManager {
       // Additional connection state monitoring
       pc.onconnectionstatechange = () => {
         const state = pc.connectionState;
-        console.log(`[WebRTC State] Overall connection state for ${participantId}: ${state}`);
+        console.log(
+          `[WebRTC State] Overall connection state for ${participantId}: ${state}`
+        );
         this._reportConnectionEvent(participantId, `connection_state_${state}`);
-        
-        if (state === 'failed') {
+
+        if (state === "failed") {
           this._attemptConnectionRecovery(participantId);
         }
       };
@@ -539,26 +599,36 @@ class MultiPeerWebRTCManager {
       // Signaling state monitoring
       pc.onsignalingstatechange = () => {
         const state = pc.signalingState;
-        console.log(`[WebRTC State] Signaling state for ${participantId}: ${state}`);
+        console.log(
+          `[WebRTC State] Signaling state for ${participantId}: ${state}`
+        );
         this._reportConnectionEvent(participantId, `signaling_state_${state}`);
       };
 
       // ICE gathering state monitoring
       pc.onicegatheringstatechange = () => {
         const state = pc.iceGatheringState;
-        console.log(`[WebRTC State] ICE gathering state for ${participantId}: ${state}`);
-        this._reportConnectionEvent(participantId, `ice_gathering_state_${state}`);
+        console.log(
+          `[WebRTC State] ICE gathering state for ${participantId}: ${state}`
+        );
+        this._reportConnectionEvent(
+          participantId,
+          `ice_gathering_state_${state}`
+        );
       };
 
       // Aggiungi lo stream locale a QUESTA specifica connessione peer
       if (this.localStream) {
         this._addLocalTracksToPeerConnection(pc);
-        this._reportConnectionEvent(participantId, 'local_tracks_added');
+        this._reportConnectionEvent(participantId, "local_tracks_added");
       } else {
         console.warn(
           `MultiPeerWebRTCManager: Attenzione - PeerConnection per ${participantId} creata senza stream locale pronto.`
         );
-        this._reportConnectionEvent(participantId, 'created_without_local_stream');
+        this._reportConnectionEvent(
+          participantId,
+          "created_without_local_stream"
+        );
       }
 
       console.log(
@@ -570,7 +640,11 @@ class MultiPeerWebRTCManager {
         `MultiPeerWebRTCManager: Errore creazione PeerConnection per ${participantId}:`,
         error
       );
-      this._reportConnectionEvent(participantId, 'peer_connection_creation_failed', error.message);
+      this._reportConnectionEvent(
+        participantId,
+        "peer_connection_creation_failed",
+        error.message
+      );
       delete this.peerConnections[participantId]; // Rimuovi la connessione fallita
       this._clearConnectionTracking(participantId); // Clean up tracking
       return null;
@@ -580,40 +654,46 @@ class MultiPeerWebRTCManager {
   // aggiunge una video track allo stream
   async addVideoTrack() {
     try {
-      const videoStream = await mediaDevices.getUserMedia({ 
+      const videoStream = await mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
-          aspectRatio: { ideal: 16/9 },
-          facingMode: 'user'
-        }
+          aspectRatio: { ideal: 16 / 9 },
+          facingMode: "user",
+        },
       });
       const videoTrack = videoStream.getVideoTracks()[0];
-      
+
       if (this.localStream && videoTrack) {
         this.localStream.addTrack(videoTrack);
-        
+
         // Aggiungi la traccia a tutte le peer connections attive
         for (const [peerId, pc] of Object.entries(this.peerConnections)) {
-          if (pc.connectionState === 'connected' || pc.connectionState === 'connecting') {
+          if (
+            pc.connectionState === "connected" ||
+            pc.connectionState === "connecting"
+          ) {
             try {
               await pc.addTrack(videoTrack, this.localStream);
             } catch (error) {
-              console.error(`Error adding video track to peer ${peerId}:`, error);
+              console.error(
+                `Error adding video track to peer ${peerId}:`,
+                error
+              );
             }
           }
         }
-        
+
         if (this.onLocalStreamReady) {
           this.onLocalStreamReady(this.localStream);
         }
         this.notifyStreamUpdate();
-        
+
         // Aspetta un momento prima di rinegoziare
         setTimeout(async () => {
           await this.renegotiateWithAllPeers();
         }, 100);
-        
+
         return videoTrack;
       }
     } catch (error) {
@@ -628,23 +708,29 @@ class MultiPeerWebRTCManager {
   async removeVideoTracks() {
     if (this.localStream) {
       const videoTracks = this.localStream.getVideoTracks();
-      
+
       // Ferma e rimuovi le tracce dal local stream
-      videoTracks.forEach(track => {
+      videoTracks.forEach((track) => {
         track.stop();
         this.localStream.removeTrack(track);
       });
 
       // Rimuovi i sender dalle peer connections
       for (const [peerId, pc] of Object.entries(this.peerConnections)) {
-        if (pc.connectionState === 'connected' || pc.connectionState === 'connecting') {
+        if (
+          pc.connectionState === "connected" ||
+          pc.connectionState === "connecting"
+        ) {
           const senders = pc.getSenders();
           for (const sender of senders) {
-            if (sender.track && sender.track.kind === 'video') {
+            if (sender.track && sender.track.kind === "video") {
               try {
                 await pc.removeTrack(sender);
               } catch (error) {
-                console.error(`Error removing video track from peer ${peerId}:`, error);
+                console.error(
+                  `Error removing video track from peer ${peerId}:`,
+                  error
+                );
               }
             }
           }
@@ -655,7 +741,7 @@ class MultiPeerWebRTCManager {
         this.onLocalStreamReady(this.localStream);
       }
       this.notifyStreamUpdate();
-      
+
       // Aspetta un momento prima di rinegoziare
       setTimeout(async () => {
         await this.renegotiateWithAllPeers();
@@ -690,14 +776,14 @@ class MultiPeerWebRTCManager {
 
     try {
       this.negotiationInProgress[participantId] = true;
-      
+
       console.log(`Creating offer for ${participantId}...`);
       const offer = await pc.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
-        iceRestart: false
+        iceRestart: false,
       });
-      
+
       console.log(`Setting local description for ${participantId}...`);
       await pc.setLocalDescription(offer);
 
@@ -706,7 +792,6 @@ class MultiPeerWebRTCManager {
         to: participantId,
         from: this.myId,
       });
-      
     } catch (error) {
       console.error(`Error creating offer for ${participantId}:`, error);
     } finally {
@@ -723,13 +808,15 @@ class MultiPeerWebRTCManager {
   async handleOffer(participantId, offer) {
     const pc = this.peerConnections[participantId];
     if (!pc) {
-      console.warn(`No peer connection found for ${participantId} when handling offer`);
+      console.warn(
+        `No peer connection found for ${participantId} when handling offer`
+      );
       return;
     }
 
     try {
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      
+
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
@@ -738,7 +825,6 @@ class MultiPeerWebRTCManager {
         to: participantId,
         from: this.myId,
       });
-      
     } catch (error) {
       console.error(`Error handling offer from ${participantId}:`, error);
     }
@@ -750,7 +836,9 @@ class MultiPeerWebRTCManager {
   async handleAnswer(participantId, answer) {
     const pc = this.peerConnections[participantId];
     if (!pc) {
-      console.warn(`No peer connection found for ${participantId} when handling answer`);
+      console.warn(
+        `No peer connection found for ${participantId} when handling answer`
+      );
       return;
     }
 
@@ -793,45 +881,50 @@ class MultiPeerWebRTCManager {
 
   /**
    * Inizializza il tracking della stabilità per un partecipante
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   _initializeConnectionTracking(participantId) {
-    console.log(`[WebRTC Stability] Initializing connection tracking for ${participantId}`);
-    
-    this.connectionStates[participantId] = 'connecting';
+    console.log(
+      `[WebRTC Stability] Initializing connection tracking for ${participantId}`
+    );
+
+    this.connectionStates[participantId] = "connecting";
     this.connectionTimestamps[participantId] = Date.now();
     this.reconnectionAttempts[participantId] = 0;
     this.lastKnownGoodStates[participantId] = null;
     this.iceCandidateQueues[participantId] = [];
-    
+
     // Start health monitoring
     this._startConnectionHealthCheck(participantId);
   }
 
   /**
    * Registra eventi di connessione per debugging
-   * @param {string} participantId 
-   * @param {string} event 
-   * @param {*} data 
+   * @param {string} participantId
+   * @param {string} event
+   * @param {*} data
    */
   _reportConnectionEvent(participantId, event, data = null) {
     const timestamp = new Date().toISOString();
-    console.log(`[WebRTC Event] ${timestamp} - ${participantId}: ${event}`, data || '');
-    
+    console.log(
+      `[WebRTC Event] ${timestamp} - ${participantId}: ${event}`,
+      data || ""
+    );
+
     // Update connection state
-    if (event.includes('connected') || event.includes('completed')) {
-      this.connectionStates[participantId] = 'connected';
+    if (event.includes("connected") || event.includes("completed")) {
+      this.connectionStates[participantId] = "connected";
       this.lastKnownGoodStates[participantId] = Date.now();
       this.reconnectionAttempts[participantId] = 0; // Reset attempts on success
-    } else if (event.includes('failed') || event.includes('disconnected')) {
-      this.connectionStates[participantId] = 'failed';
+    } else if (event.includes("failed") || event.includes("disconnected")) {
+      this.connectionStates[participantId] = "failed";
     }
   }
 
   /**
    * Registra informazioni dettagliate di debugging per una connessione
-   * @param {string} participantId 
-   * @param {string} context 
+   * @param {string} participantId
+   * @param {string} context
    */
   _logConnectionDebugInfo(participantId, context) {
     const pc = this.peerConnections[participantId];
@@ -845,21 +938,23 @@ class MultiPeerWebRTCManager {
       iceGatheringState: pc.iceGatheringState,
       reconnectionAttempts: this.reconnectionAttempts[participantId] || 0,
       lastGoodConnection: this.lastKnownGoodStates[participantId],
-      queuedCandidates: this.iceCandidateQueues[participantId]?.length || 0
+      queuedCandidates: this.iceCandidateQueues[participantId]?.length || 0,
     };
 
     console.log(`[WebRTC Debug] ${participantId}:`, debugInfo);
   }
   /**
    * Avvia il monitoraggio dello stato di salute per una connessione
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   _startConnectionHealthCheck(participantId) {
     // Clear any existing health checker
     this._stopConnectionHealthCheck(participantId);
 
-    console.log(`[WebRTC Health] 🏥 Avvio monitoraggio sanitario per ${participantId}`);
-    
+    console.log(
+      `[WebRTC Health] 🏥 Avvio monitoraggio sanitario per ${participantId}`
+    );
+
     const healthChecker = setInterval(() => {
       const pc = this.peerConnections[participantId];
       if (!pc) {
@@ -868,49 +963,73 @@ class MultiPeerWebRTCManager {
       }
 
       const currentTime = Date.now();
-      const connectionAge = currentTime - (this.connectionTimestamps[participantId] || currentTime);
-      const timeSinceLastGood = this.lastKnownGoodStates[participantId] 
-        ? currentTime - this.lastKnownGoodStates[participantId] 
+      const connectionAge =
+        currentTime - (this.connectionTimestamps[participantId] || currentTime);
+      const timeSinceLastGood = this.lastKnownGoodStates[participantId]
+        ? currentTime - this.lastKnownGoodStates[participantId]
         : connectionAge;
 
-      this._logConnectionDebugInfo(participantId, 'health_check');
+      this._logConnectionDebugInfo(participantId, "health_check");
 
       // Enhanced health checks
-      const isUnhealthy = (
-        pc.iceConnectionState === 'disconnected' || 
-        pc.iceConnectionState === 'failed' ||
-        pc.connectionState === 'failed' ||
-        (pc.iceConnectionState === 'checking' && connectionAge > 30000) || // Too long in checking state
-        (timeSinceLastGood > 45000 && pc.iceConnectionState !== 'connected' && pc.iceConnectionState !== 'completed') // Too long without good connection
-      );
+      const isUnhealthy =
+        pc.iceConnectionState === "disconnected" ||
+        pc.iceConnectionState === "failed" ||
+        pc.connectionState === "failed" ||
+        (pc.iceConnectionState === "checking" && connectionAge > 30000) || // Too long in checking state
+        (timeSinceLastGood > 45000 &&
+          pc.iceConnectionState !== "connected" &&
+          pc.iceConnectionState !== "completed"); // Too long without good connection
 
       if (isUnhealthy) {
-        const reason = pc.iceConnectionState === 'failed' ? 'ICE_FAILED' :
-                      pc.connectionState === 'failed' ? 'CONNECTION_FAILED' :
-                      pc.iceConnectionState === 'disconnected' ? 'DISCONNECTED' :
-                      connectionAge > 30000 ? 'STUCK_IN_CHECKING' : 'NO_GOOD_CONNECTION';
-                      
-        console.warn(`[WebRTC Health] 🚨 Problema di salute rilevato per ${participantId}: ${reason}`);
-        console.warn(`[WebRTC Health] 📊 Statistiche: età=${Math.round(connectionAge/1000)}s, ultimoBuono=${Math.round(timeSinceLastGood/1000)}s`);
-        
-        this._reportConnectionEvent(participantId, 'health_issue_detected', { 
-          reason, 
-          connectionAge: Math.round(connectionAge/1000),
-          timeSinceLastGood: Math.round(timeSinceLastGood/1000)
+        const reason =
+          pc.iceConnectionState === "failed"
+            ? "ICE_FAILED"
+            : pc.connectionState === "failed"
+            ? "CONNECTION_FAILED"
+            : pc.iceConnectionState === "disconnected"
+            ? "DISCONNECTED"
+            : connectionAge > 30000
+            ? "STUCK_IN_CHECKING"
+            : "NO_GOOD_CONNECTION";
+
+        console.warn(
+          `[WebRTC Health] 🚨 Problema di salute rilevato per ${participantId}: ${reason}`
+        );
+        console.warn(
+          `[WebRTC Health] 📊 Statistiche: età=${Math.round(
+            connectionAge / 1000
+          )}s, ultimoBuono=${Math.round(timeSinceLastGood / 1000)}s`
+        );
+
+        this._reportConnectionEvent(participantId, "health_issue_detected", {
+          reason,
+          connectionAge: Math.round(connectionAge / 1000),
+          timeSinceLastGood: Math.round(timeSinceLastGood / 1000),
         });
-        
+
         // Only trigger recovery if we haven't exceeded max attempts
         const currentAttempts = this.reconnectionAttempts[participantId] || 0;
         if (currentAttempts < this.MAX_RECONNECTION_ATTEMPTS) {
           this._attemptConnectionRecovery(participantId);
         } else {
-          console.error(`[WebRTC Health] ⛔ Non avvio recupero per ${participantId}: tentativi esauriti (${currentAttempts}/${this.MAX_RECONNECTION_ATTEMPTS})`);
+          console.error(
+            `[WebRTC Health] ⛔ Non avvio recupero per ${participantId}: tentativi esauriti (${currentAttempts}/${this.MAX_RECONNECTION_ATTEMPTS})`
+          );
         }
-      } else if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+      } else if (
+        pc.iceConnectionState === "connected" ||
+        pc.iceConnectionState === "completed"
+      ) {
         // Connection is healthy - update last good state if it wasn't already recent
-        if (!this.lastKnownGoodStates[participantId] || currentTime - this.lastKnownGoodStates[participantId] > 10000) {
+        if (
+          !this.lastKnownGoodStates[participantId] ||
+          currentTime - this.lastKnownGoodStates[participantId] > 10000
+        ) {
           this.lastKnownGoodStates[participantId] = currentTime;
-          console.log(`[WebRTC Health] ✅ Connessione salutare confermata per ${participantId}`);
+          console.log(
+            `[WebRTC Health] ✅ Connessione salutare confermata per ${participantId}`
+          );
         }
       }
     }, this.HEALTH_CHECK_INTERVAL);
@@ -920,65 +1039,105 @@ class MultiPeerWebRTCManager {
 
   /**
    * Ferma il monitoraggio dello stato di salute per una connessione
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   _stopConnectionHealthCheck(participantId) {
     if (this.connectionHealthCheckers[participantId]) {
       clearInterval(this.connectionHealthCheckers[participantId]);
       delete this.connectionHealthCheckers[participantId];
-      console.log(`[WebRTC Health] Stopped health monitoring for ${participantId}`);
+      console.log(
+        `[WebRTC Health] Stopped health monitoring for ${participantId}`
+      );
     }
   }
   /**
    * Tentativo di recupero della connessione con politica di retry (MAX 3 tentativi)
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   async _attemptConnectionRecovery(participantId) {
     const currentAttempts = this.reconnectionAttempts[participantId] || 0;
 
     if (currentAttempts >= this.MAX_RECONNECTION_ATTEMPTS) {
-      console.error(`[WebRTC Recovery] ERRORE CRITICO: Raggiunti ${this.MAX_RECONNECTION_ATTEMPTS} tentativi massimi per ${participantId}. Connessione definitivamente fallita.`);
-      console.error(`[WebRTC Recovery] IMPOSSIBILE STABILIRE CONNESSIONE CON ${participantId} - Tutti i tentativi di riconnessione sono falliti`);
+      console.error(
+        `[WebRTC Recovery] ERRORE CRITICO: Raggiunti ${this.MAX_RECONNECTION_ATTEMPTS} tentativi massimi per ${participantId}. Connessione definitivamente fallita.`
+      );
+      console.error(
+        `[WebRTC Recovery] IMPOSSIBILE STABILIRE CONNESSIONE CON ${participantId} - Tutti i tentativi di riconnessione sono falliti`
+      );
       this._handleConnectionFailure(participantId);
       return;
     }
 
     this.reconnectionAttempts[participantId] = currentAttempts + 1;
     const attempt = this.reconnectionAttempts[participantId];
-    
+
     // Exponential backoff: 2s, 4s, 8s
     const delay = this.RECONNECTION_BASE_DELAY * Math.pow(2, attempt - 1);
-    
-    console.warn(`[WebRTC Recovery] 🔄 Tentativo ${attempt}/${this.MAX_RECONNECTION_ATTEMPTS} di riconnessione per ${participantId} in ${delay}ms`);
-    console.warn(`[WebRTC Recovery] Strategia: ${attempt === 1 ? 'ICE Restart' : attempt === 2 ? 'Rinegoziazione' : 'Ricreazione connessione'}`);
-    
+
+    console.warn(
+      `[WebRTC Recovery] 🔄 Tentativo ${attempt}/${this.MAX_RECONNECTION_ATTEMPTS} di riconnessione per ${participantId} in ${delay}ms`
+    );
+    console.warn(
+      `[WebRTC Recovery] Strategia: ${
+        attempt === 1
+          ? "ICE Restart"
+          : attempt === 2
+          ? "Rinegoziazione"
+          : "Ricreazione connessione"
+      }`
+    );
+
     // Clear any existing timeout
     if (this.reconnectionTimeouts[participantId]) {
       clearTimeout(this.reconnectionTimeouts[participantId]);
     }
 
     // Report reconnection attempt to UI
-    this._reportConnectionEvent(participantId, `reconnection_attempt_${attempt}`, { delay, strategy: attempt === 1 ? 'ice_restart' : attempt === 2 ? 'renegotiation' : 'recreation' });
+    this._reportConnectionEvent(
+      participantId,
+      `reconnection_attempt_${attempt}`,
+      {
+        delay,
+        strategy:
+          attempt === 1
+            ? "ice_restart"
+            : attempt === 2
+            ? "renegotiation"
+            : "recreation",
+      }
+    );
 
     this.reconnectionTimeouts[participantId] = setTimeout(async () => {
       try {
-        console.log(`[WebRTC Recovery] 🚀 Esecuzione tentativo ${attempt} per ${participantId}`);
+        console.log(
+          `[WebRTC Recovery] 🚀 Esecuzione tentativo ${attempt} per ${participantId}`
+        );
         await this._performConnectionRecovery(participantId);
-        
+
         // If we get here, recovery was successful
-        console.log(`[WebRTC Recovery] ✅ Tentativo ${attempt} per ${participantId} completato con successo`);
-        
+        console.log(
+          `[WebRTC Recovery] ✅ Tentativo ${attempt} per ${participantId} completato con successo`
+        );
       } catch (error) {
-        console.error(`[WebRTC Recovery] ❌ Tentativo ${attempt} per ${participantId} fallito:`, error.message);
-        
+        console.error(
+          `[WebRTC Recovery] ❌ Tentativo ${attempt} per ${participantId} fallito:`,
+          error.message
+        );
+
         // If this was not the last attempt, try again immediately
         if (attempt < this.MAX_RECONNECTION_ATTEMPTS) {
-          console.warn(`[WebRTC Recovery] ⏭️ Preparazione tentativo successivo ${attempt + 1}/${this.MAX_RECONNECTION_ATTEMPTS} per ${participantId}`);
+          console.warn(
+            `[WebRTC Recovery] ⏭️ Preparazione tentativo successivo ${
+              attempt + 1
+            }/${this.MAX_RECONNECTION_ATTEMPTS} per ${participantId}`
+          );
           setTimeout(() => {
             this._attemptConnectionRecovery(participantId);
           }, 500); // Short delay before next attempt
         } else {
-          console.error(`[WebRTC Recovery] 💀 FALLIMENTO DEFINITIVO per ${participantId} dopo ${this.MAX_RECONNECTION_ATTEMPTS} tentativi`);
+          console.error(
+            `[WebRTC Recovery] 💀 FALLIMENTO DEFINITIVO per ${participantId} dopo ${this.MAX_RECONNECTION_ATTEMPTS} tentativi`
+          );
           this._handleConnectionFailure(participantId);
         }
       }
@@ -986,37 +1145,56 @@ class MultiPeerWebRTCManager {
   }
   /**
    * Esegue il recupero effettivo della connessione
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   async _performConnectionRecovery(participantId) {
-    console.log(`[WebRTC Recovery] 🔧 Eseguendo recupero connessione per ${participantId}`);
-    
+    console.log(
+      `[WebRTC Recovery] 🔧 Eseguendo recupero connessione per ${participantId}`
+    );
+
     const pc = this.peerConnections[participantId];
     if (!pc) {
-      throw new Error(`PeerConnection per ${participantId} non trovata durante il recupero`);
+      throw new Error(
+        `PeerConnection per ${participantId} non trovata durante il recupero`
+      );
     }
 
     const currentAttempt = this.reconnectionAttempts[participantId];
-    this._reportConnectionEvent(participantId, 'recovery_attempt_started', { attempt: currentAttempt });
+    this._reportConnectionEvent(participantId, "recovery_attempt_started", {
+      attempt: currentAttempt,
+    });
 
     // Strategy 1: Try ICE restart first (attempt 1)
     if (currentAttempt === 1) {
       try {
-        console.log(`[WebRTC Recovery] 🧊 Tentativo ICE restart per ${participantId} (tentativo ${currentAttempt})`);
+        console.log(
+          `[WebRTC Recovery] 🧊 Tentativo ICE restart per ${participantId} (tentativo ${currentAttempt})`
+        );
         await this._performICERestart(participantId);
-        
+
         // Wait for connection to stabilize
         await this._waitForConnectionStabilization(participantId, 10000);
-        
-        if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
-          console.log(`[WebRTC Recovery] ✅ ICE restart riuscito per ${participantId}`);
-          this._reportConnectionEvent(participantId, 'recovery_ice_restart_success');
+
+        if (
+          pc.iceConnectionState === "connected" ||
+          pc.iceConnectionState === "completed"
+        ) {
+          console.log(
+            `[WebRTC Recovery] ✅ ICE restart riuscito per ${participantId}`
+          );
+          this._reportConnectionEvent(
+            participantId,
+            "recovery_ice_restart_success"
+          );
           this.reconnectionAttempts[participantId] = 0; // Reset on success
           return;
         }
-        throw new Error('ICE restart non ha migliorato la connessione');
+        throw new Error("ICE restart non ha migliorato la connessione");
       } catch (error) {
-        console.warn(`[WebRTC Recovery] ⚠️ ICE restart fallito per ${participantId}:`, error.message);
+        console.warn(
+          `[WebRTC Recovery] ⚠️ ICE restart fallito per ${participantId}:`,
+          error.message
+        );
         throw error;
       }
     }
@@ -1024,20 +1202,33 @@ class MultiPeerWebRTCManager {
     // Strategy 2: If ICE restart failed, try renegotiation (attempt 2)
     if (currentAttempt === 2) {
       try {
-        console.log(`[WebRTC Recovery] 🔄 Tentativo rinegoziazione per ${participantId} (tentativo ${currentAttempt})`);
+        console.log(
+          `[WebRTC Recovery] 🔄 Tentativo rinegoziazione per ${participantId} (tentativo ${currentAttempt})`
+        );
         await this._safeRenegotiate(participantId);
-        
+
         await this._waitForConnectionStabilization(participantId, 10000);
-        
-        if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
-          console.log(`[WebRTC Recovery] ✅ Rinegoziazione riuscita per ${participantId}`);
-          this._reportConnectionEvent(participantId, 'recovery_renegotiation_success');
+
+        if (
+          pc.iceConnectionState === "connected" ||
+          pc.iceConnectionState === "completed"
+        ) {
+          console.log(
+            `[WebRTC Recovery] ✅ Rinegoziazione riuscita per ${participantId}`
+          );
+          this._reportConnectionEvent(
+            participantId,
+            "recovery_renegotiation_success"
+          );
           this.reconnectionAttempts[participantId] = 0; // Reset on success
           return;
         }
-        throw new Error('Rinegoziazione non ha migliorato la connessione');
+        throw new Error("Rinegoziazione non ha migliorato la connessione");
       } catch (error) {
-        console.warn(`[WebRTC Recovery] ⚠️ Rinegoziazione fallita per ${participantId}:`, error.message);
+        console.warn(
+          `[WebRTC Recovery] ⚠️ Rinegoziazione fallita per ${participantId}:`,
+          error.message
+        );
         throw error;
       }
     }
@@ -1045,32 +1236,48 @@ class MultiPeerWebRTCManager {
     // Strategy 3: Last resort - recreate connection completely (attempt 3)
     if (currentAttempt === 3) {
       try {
-        console.log(`[WebRTC Recovery] 🆕 Tentativo ricreazione connessione per ${participantId} (tentativo ${currentAttempt})`);
+        console.log(
+          `[WebRTC Recovery] 🆕 Tentativo ricreazione connessione per ${participantId} (tentativo ${currentAttempt})`
+        );
         await this._recreateConnection(participantId);
-        
+
         await this._waitForConnectionStabilization(participantId, 15000);
-        
+
         const newPc = this.peerConnections[participantId];
-        if (newPc && (newPc.iceConnectionState === 'connected' || newPc.iceConnectionState === 'completed')) {
-          console.log(`[WebRTC Recovery] ✅ Ricreazione connessione riuscita per ${participantId}`);
-          this._reportConnectionEvent(participantId, 'recovery_recreation_success');
+        if (
+          newPc &&
+          (newPc.iceConnectionState === "connected" ||
+            newPc.iceConnectionState === "completed")
+        ) {
+          console.log(
+            `[WebRTC Recovery] ✅ Ricreazione connessione riuscita per ${participantId}`
+          );
+          this._reportConnectionEvent(
+            participantId,
+            "recovery_recreation_success"
+          );
           this.reconnectionAttempts[participantId] = 0; // Reset on success
           return;
         }
-        throw new Error('Ricreazione connessione non è riuscita');
+        throw new Error("Ricreazione connessione non è riuscita");
       } catch (error) {
-        console.error(`[WebRTC Recovery] ❌ Ricreazione connessione fallita per ${participantId}:`, error.message);
+        console.error(
+          `[WebRTC Recovery] ❌ Ricreazione connessione fallita per ${participantId}:`,
+          error.message
+        );
         throw error;
       }
     }
 
     // If we get here, all strategies failed
-    throw new Error(`Tutte le strategie di recupero fallite per ${participantId} (tentativo ${currentAttempt})`);
+    throw new Error(
+      `Tutte le strategie di recupero fallite per ${participantId} (tentativo ${currentAttempt})`
+    );
   }
 
   /**
    * Esegue un ICE restart
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   async _performICERestart(participantId) {
     const pc = this.peerConnections[participantId];
@@ -1078,23 +1285,27 @@ class MultiPeerWebRTCManager {
 
     const offer = await pc.createOffer({ iceRestart: true });
     await pc.setLocalDescription(offer);
-    
+
     await WebSocketMethods.RTCOffer({
       sdp: pc.localDescription.sdp,
       to: participantId,
       from: this.myId,
     });
-    
-    console.log(`[WebRTC Recovery] ICE restart offer inviato per ${participantId}`);
+
+    console.log(
+      `[WebRTC Recovery] ICE restart offer inviato per ${participantId}`
+    );
   }
   /**
    * Rinegoziazione sicura per evitare collisioni
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   async _safeRenegotiate(participantId) {
     // Avoid multiple simultaneous negotiations
     if (this.negotiationInProgress[participantId]) {
-      console.log(`[WebRTC Recovery] Rinegoziazione già in corso per ${participantId}`);
+      console.log(
+        `[WebRTC Recovery] Rinegoziazione già in corso per ${participantId}`
+      );
       return;
     }
 
@@ -1111,15 +1322,19 @@ class MultiPeerWebRTCManager {
 
   /**
    * Ricrea completamente la connessione come ultima risorsa
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   async _recreateConnection(participantId) {
-    console.log(`[WebRTC Recovery] 🔨 Ricreazione completa connessione per ${participantId}`);
-    
+    console.log(
+      `[WebRTC Recovery] 🔨 Ricreazione completa connessione per ${participantId}`
+    );
+
     // Store user data before destroying connection
     const userData = this.userData[participantId];
     if (!userData) {
-      throw new Error(`Dati utente per ${participantId} non trovati per la ricreazione`);
+      throw new Error(
+        `Dati utente per ${participantId} non trovati per la ricreazione`
+      );
     }
 
     // Clean up existing connection completely
@@ -1127,43 +1342,53 @@ class MultiPeerWebRTCManager {
     if (oldPc) {
       oldPc.close();
     }
-    
+
     // Clean up tracking for old connection
     this._clearConnectionTracking(participantId);
-    
+
     // Remove from peer connections
     delete this.peerConnections[participantId];
     delete this.userData[participantId];
-    
+
     // Remove remote stream
     if (this.remoteStreams[participantId]) {
-      this.remoteStreams[participantId].getTracks().forEach(track => track.stop());
+      this.remoteStreams[participantId]
+        .getTracks()
+        .forEach((track) => track.stop());
       delete this.remoteStreams[participantId];
     }
-    
-    console.log(`[WebRTC Recovery] 🧹 Pulizia completata per ${participantId}, ricreazione in corso...`);
-    
+
+    console.log(
+      `[WebRTC Recovery] 🧹 Pulizia completata per ${participantId}, ricreazione in corso...`
+    );
+
     // Wait a moment before recreating
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     // Recreate the connection with stored user data
     const newPc = this.createPeerConnection(userData);
     if (!newPc) {
-      throw new Error(`Impossibile ricreare PeerConnection per ${participantId}`);
+      throw new Error(
+        `Impossibile ricreare PeerConnection per ${participantId}`
+      );
     }
-    
-    console.log(`[WebRTC Recovery] 🆕 Nuova PeerConnection creata per ${participantId}`);
-    
+
+    console.log(
+      `[WebRTC Recovery] 🆕 Nuova PeerConnection creata per ${participantId}`
+    );
+
     // Start the connection process as initiator
     await this.createOffer(participantId);
-    
-    console.log(`[WebRTC Recovery] 📤 Nuova offerta inviata per connessione ricreata di ${participantId}`);
+
+    console.log(
+      `[WebRTC Recovery] 📤 Nuova offerta inviata per connessione ricreata di ${participantId}`
+    );
   }
 
   /**
    * Aspetta che la connessione si stabilizzi
-   * @param {string} participantId 
-   * @param {number} timeout 
+   * @param {string} participantId
+   * @param {number} timeout
    */
   async _waitForConnectionStabilization(participantId, timeout = 15000) {
     return new Promise((resolve, reject) => {
@@ -1174,45 +1399,70 @@ class MultiPeerWebRTCManager {
       }
 
       const timeoutId = setTimeout(() => {
-        reject(new Error(`Timeout waiting for connection stabilization for ${participantId}`));
+        reject(
+          new Error(
+            `Timeout waiting for connection stabilization for ${participantId}`
+          )
+        );
       }, timeout);
 
       const checkConnection = () => {
-        if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+        if (
+          pc.iceConnectionState === "connected" ||
+          pc.iceConnectionState === "completed"
+        ) {
           clearTimeout(timeoutId);
-          pc.removeEventListener('iceconnectionstatechange', checkConnection);
+          pc.removeEventListener("iceconnectionstatechange", checkConnection);
           resolve();
-        } else if (pc.iceConnectionState === 'failed') {
+        } else if (pc.iceConnectionState === "failed") {
           clearTimeout(timeoutId);
-          pc.removeEventListener('iceconnectionstatechange', checkConnection);
-          reject(new Error(`Connection failed during stabilization for ${participantId}`));
+          pc.removeEventListener("iceconnectionstatechange", checkConnection);
+          reject(
+            new Error(
+              `Connection failed during stabilization for ${participantId}`
+            )
+          );
         }
       };
 
-      pc.addEventListener('iceconnectionstatechange', checkConnection);
-      
+      pc.addEventListener("iceconnectionstatechange", checkConnection);
+
       // Check current state immediately
       checkConnection();
     });
   }
   /**
    * Gestisce il fallimento definitivo della connessione dopo tutti i tentativi
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   _handleConnectionFailure(participantId) {
     const attemptCount = this.reconnectionAttempts[participantId] || 0;
     const userData = this.userData[participantId];
-    const userInfo = userData ? `${userData.handle} (${participantId})` : participantId;
-    
+    const userInfo = userData
+      ? `${userData.handle} (${participantId})`
+      : participantId;
+
     // Log critico per debug
     console.error(`\n========================================`);
     console.error(`❌ CONNESSIONE WEBRTC FALLITA DEFINITIVAMENTE`);
     console.error(`========================================`);
     console.error(`👤 Utente: ${userInfo}`);
-    console.error(`🔢 Tentativi effettuati: ${attemptCount}/${this.MAX_RECONNECTION_ATTEMPTS}`);
-    console.error(`⏰ Tempo trascorso: ${Date.now() - (this.connectionTimestamps[participantId] || Date.now())}ms`);
-    console.error(`🏥 Ultimo stato salutare: ${this.lastKnownGoodStates[participantId] ? new Date(this.lastKnownGoodStates[participantId]).toISOString() : 'Mai connesso'}`);
-    
+    console.error(
+      `🔢 Tentativi effettuati: ${attemptCount}/${this.MAX_RECONNECTION_ATTEMPTS}`
+    );
+    console.error(
+      `⏰ Tempo trascorso: ${
+        Date.now() - (this.connectionTimestamps[participantId] || Date.now())
+      }ms`
+    );
+    console.error(
+      `🏥 Ultimo stato salutare: ${
+        this.lastKnownGoodStates[participantId]
+          ? new Date(this.lastKnownGoodStates[participantId]).toISOString()
+          : "Mai connesso"
+      }`
+    );
+
     const pc = this.peerConnections[participantId];
     if (pc) {
       console.error(`🔗 Stato finale connessione:`);
@@ -1221,62 +1471,69 @@ class MultiPeerWebRTCManager {
       console.error(`   - Signaling: ${pc.signalingState}`);
       console.error(`   - ICE Gathering: ${pc.iceGatheringState}`);
     }
-    
+
     console.error(`💡 CAUSE POSSIBILI:`);
     console.error(`   - Problemi di rete/firewall`);
     console.error(`   - Server STUN/TURN non disponibili`);
     console.error(`   - NAT troppo restrittivo`);
     console.error(`   - L'altro client ha problemi`);
     console.error(`========================================\n`);
-    
-    this._reportConnectionEvent(participantId, 'connection_failed_permanently', {
-      attempts: attemptCount,
-      maxAttempts: this.MAX_RECONNECTION_ATTEMPTS,
-      duration: Date.now() - (this.connectionTimestamps[participantId] || Date.now()),
-      lastGoodConnection: this.lastKnownGoodStates[participantId]
-    });
-    
+
+    this._reportConnectionEvent(
+      participantId,
+      "connection_failed_permanently",
+      {
+        attempts: attemptCount,
+        maxAttempts: this.MAX_RECONNECTION_ATTEMPTS,
+        duration:
+          Date.now() - (this.connectionTimestamps[participantId] || Date.now()),
+        lastGoodConnection: this.lastKnownGoodStates[participantId],
+      }
+    );
+
     // Clean up connection tracking
     this._clearConnectionTracking(participantId);
-    
+
     // Close the failed connection
     this.closePeerConnection(participantId);
-    
+
     // Notify UI about the permanent failure with more context
     if (this.onPeerConnectionStateChange) {
-      this.onPeerConnectionStateChange(participantId, 'failed_permanently', {
-        reason: 'max_reconnection_attempts_exceeded',
+      this.onPeerConnectionStateChange(participantId, "failed_permanently", {
+        reason: "max_reconnection_attempts_exceeded",
         attempts: attemptCount,
-        userInfo: userInfo
+        userInfo: userInfo,
       });
     }
-    
+
     // Optional: You could emit a specific event for permanent failures
-    eventEmitter.emit('webrtc_connection_permanently_failed', {
+    eventEmitter.emit("webrtc_connection_permanently_failed", {
       participantId,
       userInfo,
       attempts: attemptCount,
-      reason: 'Connessione fallita dopo tutti i tentativi di riconnessione'
+      reason: "Connessione fallita dopo tutti i tentativi di riconnessione",
     });
   }
 
   /**
    * Mette in coda un ICE candidate se la descrizione remota non è ancora impostata
-   * @param {string} participantId 
-   * @param {RTCIceCandidate} candidate 
+   * @param {string} participantId
+   * @param {RTCIceCandidate} candidate
    */
   _queueICECandidate(participantId, candidate) {
     if (!this.iceCandidateQueues[participantId]) {
       this.iceCandidateQueues[participantId] = [];
     }
-    
+
     this.iceCandidateQueues[participantId].push(candidate);
-    console.log(`[WebRTC ICE] Candidato ICE messo in coda per ${participantId}. Coda: ${this.iceCandidateQueues[participantId].length}`);
+    console.log(
+      `[WebRTC ICE] Candidato ICE messo in coda per ${participantId}. Coda: ${this.iceCandidateQueues[participantId].length}`
+    );
   }
 
   /**
    * Processa tutti i candidati ICE in coda
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   async _processQueuedICECandidates(participantId) {
     const queue = this.iceCandidateQueues[participantId];
@@ -1285,14 +1542,21 @@ class MultiPeerWebRTCManager {
     const pc = this.peerConnections[participantId];
     if (!pc || !pc.remoteDescription) return;
 
-    console.log(`[WebRTC ICE] Processando ${queue.length} candidati ICE in coda per ${participantId}`);
+    console.log(
+      `[WebRTC ICE] Processando ${queue.length} candidati ICE in coda per ${participantId}`
+    );
 
     for (const candidate of queue) {
       try {
         await pc.addIceCandidate(candidate);
-        console.log(`[WebRTC ICE] Candidato ICE processato dalla coda per ${participantId}`);
+        console.log(
+          `[WebRTC ICE] Candidato ICE processato dalla coda per ${participantId}`
+        );
       } catch (error) {
-        console.error(`[WebRTC ICE] Errore processando candidato dalla coda per ${participantId}:`, error);
+        console.error(
+          `[WebRTC ICE] Errore processando candidato dalla coda per ${participantId}:`,
+          error
+        );
       }
     }
 
@@ -1301,20 +1565,22 @@ class MultiPeerWebRTCManager {
   }
   /**
    * Pulisce tutto il tracking della connessione per un partecipante
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   _clearConnectionTracking(participantId) {
-    console.log(`[WebRTC Cleanup] Pulizia tracking connessione per ${participantId}`);
-    
+    console.log(
+      `[WebRTC Cleanup] Pulizia tracking connessione per ${participantId}`
+    );
+
     // Stop health monitoring
     this._stopConnectionHealthCheck(participantId);
-    
+
     // Clear reconnection timeout
     if (this.reconnectionTimeouts[participantId]) {
       clearTimeout(this.reconnectionTimeouts[participantId]);
       delete this.reconnectionTimeouts[participantId];
     }
-    
+
     // Clear all tracking data
     delete this.connectionStates[participantId];
     delete this.connectionTimestamps[participantId];
@@ -1334,35 +1600,41 @@ class MultiPeerWebRTCManager {
       const pc = this.peerConnections[participantId];
       const userData = this.userData[participantId];
       const currentTime = Date.now();
-      
+
       return {
         participantId,
-        userHandle: userData?.handle || 'Unknown',
+        userHandle: userData?.handle || "Unknown",
         connectionExists: !!pc,
-        connectionState: pc?.connectionState || 'N/A',
-        iceConnectionState: pc?.iceConnectionState || 'N/A',
-        signalingState: pc?.signalingState || 'N/A',
-        iceGatheringState: pc?.iceGatheringState || 'N/A',
+        connectionState: pc?.connectionState || "N/A",
+        iceConnectionState: pc?.iceConnectionState || "N/A",
+        signalingState: pc?.signalingState || "N/A",
+        iceGatheringState: pc?.iceGatheringState || "N/A",
         reconnectionAttempts: this.reconnectionAttempts[participantId] || 0,
         maxAttempts: this.MAX_RECONNECTION_ATTEMPTS,
-        connectionAge: this.connectionTimestamps[participantId] 
-          ? Math.round((currentTime - this.connectionTimestamps[participantId]) / 1000) 
+        connectionAge: this.connectionTimestamps[participantId]
+          ? Math.round(
+              (currentTime - this.connectionTimestamps[participantId]) / 1000
+            )
           : 0,
         lastGoodConnection: this.lastKnownGoodStates[participantId]
-          ? Math.round((currentTime - this.lastKnownGoodStates[participantId]) / 1000)
+          ? Math.round(
+              (currentTime - this.lastKnownGoodStates[participantId]) / 1000
+            )
           : null,
         queuedCandidates: this.iceCandidateQueues[participantId]?.length || 0,
-        negotiationInProgress: this.negotiationInProgress[participantId] || false,
+        negotiationInProgress:
+          this.negotiationInProgress[participantId] || false,
         hasRemoteStream: !!this.remoteStreams[participantId],
-        remoteStreamTracks: this.remoteStreams[participantId]?.getTracks()?.length || 0
+        remoteStreamTracks:
+          this.remoteStreams[participantId]?.getTracks()?.length || 0,
       };
     } else {
       // Return stats for all connections
       const allStats = {};
-      Object.keys(this.peerConnections).forEach(id => {
+      Object.keys(this.peerConnections).forEach((id) => {
         allStats[id] = this.getConnectionStats(id);
       });
-      
+
       return {
         totalConnections: Object.keys(this.peerConnections).length,
         myId: this.myId,
@@ -1372,7 +1644,7 @@ class MultiPeerWebRTCManager {
         connections: allStats,
         healthCheckInterval: this.HEALTH_CHECK_INTERVAL,
         maxReconnectionAttempts: this.MAX_RECONNECTION_ATTEMPTS,
-        reconnectionBaseDelay: this.RECONNECTION_BASE_DELAY
+        reconnectionBaseDelay: this.RECONNECTION_BASE_DELAY,
       };
     }
   }
@@ -1381,32 +1653,60 @@ class MultiPeerWebRTCManager {
    * Stampa un report dettagliato delle connessioni per debugging
    */
   printConnectionReport() {
-    console.log('\n🔍 ===== WEBRTC CONNECTION REPORT =====');
+    console.log("\n🔍 ===== WEBRTC CONNECTION REPORT =====");
     const stats = this.getConnectionStats();
-    
+
     console.log(`👤 My ID: ${stats.myId}`);
     console.log(`💬 Chat ID: ${stats.chatId}`);
-    console.log(`🎤 Local Stream: ${stats.hasLocalStream ? `✅ (${stats.localStreamTracks} tracks)` : '❌'}`);
+    console.log(
+      `🎤 Local Stream: ${
+        stats.hasLocalStream ? `✅ (${stats.localStreamTracks} tracks)` : "❌"
+      }`
+    );
     console.log(`🔗 Total Connections: ${stats.totalConnections}`);
     console.log(`⚙️ Health Check Interval: ${stats.healthCheckInterval}ms`);
-    console.log(`🔄 Max Reconnection Attempts: ${stats.maxReconnectionAttempts}`);
-    
+    console.log(
+      `🔄 Max Reconnection Attempts: ${stats.maxReconnectionAttempts}`
+    );
+
     if (stats.totalConnections === 0) {
-      console.log('📭 No active connections');
+      console.log("📭 No active connections");
     } else {
-      console.log('\n📊 CONNECTION DETAILS:');
+      console.log("\n📊 CONNECTION DETAILS:");
       Object.entries(stats.connections).forEach(([id, conn]) => {
         console.log(`\n👥 ${conn.userHandle} (${id}):`);
-        console.log(`   🔗 Connection: ${conn.connectionState} | ICE: ${conn.iceConnectionState}`);
-        console.log(`   📡 Signaling: ${conn.signalingState} | ICE Gathering: ${conn.iceGatheringState}`);
-        console.log(`   🔄 Reconnection: ${conn.reconnectionAttempts}/${conn.maxAttempts}`);
-        console.log(`   ⏰ Age: ${conn.connectionAge}s | Last Good: ${conn.lastGoodConnection ? conn.lastGoodConnection + 's ago' : 'Never'}`);
-        console.log(`   📺 Remote Stream: ${conn.hasRemoteStream ? `✅ (${conn.remoteStreamTracks} tracks)` : '❌'}`);
-        console.log(`   📋 Queued Candidates: ${conn.queuedCandidates} | Negotiating: ${conn.negotiationInProgress ? '✅' : '❌'}`);
+        console.log(
+          `   🔗 Connection: ${conn.connectionState} | ICE: ${conn.iceConnectionState}`
+        );
+        console.log(
+          `   📡 Signaling: ${conn.signalingState} | ICE Gathering: ${conn.iceGatheringState}`
+        );
+        console.log(
+          `   🔄 Reconnection: ${conn.reconnectionAttempts}/${conn.maxAttempts}`
+        );
+        console.log(
+          `   ⏰ Age: ${conn.connectionAge}s | Last Good: ${
+            conn.lastGoodConnection
+              ? conn.lastGoodConnection + "s ago"
+              : "Never"
+          }`
+        );
+        console.log(
+          `   📺 Remote Stream: ${
+            conn.hasRemoteStream
+              ? `✅ (${conn.remoteStreamTracks} tracks)`
+              : "❌"
+          }`
+        );
+        console.log(
+          `   📋 Queued Candidates: ${conn.queuedCandidates} | Negotiating: ${
+            conn.negotiationInProgress ? "✅" : "❌"
+          }`
+        );
       });
     }
-    
-    console.log('===== END REPORT =====\n');
+
+    console.log("===== END REPORT =====\n");
   }
 
   /**
@@ -1546,33 +1846,42 @@ class MultiPeerWebRTCManager {
       console.error("Offerta ricevuta senza SDP da", senderId);
       return;
     }
-    
+
     console.log(`[WebRTC Offer] Gestione offerta da ${senderId}...`);
-    this._reportConnectionEvent(senderId, 'offer_received');
-    this._logConnectionDebugInfo(senderId, 'offer_processing');
+    this._reportConnectionEvent(senderId, "offer_received");
+    this._logConnectionDebugInfo(senderId, "offer_processing");
 
     if (pc.signalingState === "closed") {
       console.warn("[WebRTC Offer] Cannot handle offer, connection is closed");
-      this._reportConnectionEvent(senderId, 'offer_rejected_connection_closed');
+      this._reportConnectionEvent(senderId, "offer_rejected_connection_closed");
       return;
     }
-    
+
     // Instead of restricting to very specific states, just proceed with handling the SDP
     try {
       await pc.setRemoteDescription(
         new RTCSessionDescription({ type: "offer", sdp: message.sdp })
       );
-      console.log(`[WebRTC Offer] ✅ Remote description (offer) from ${senderId} set.`);
-      this._reportConnectionEvent(senderId, 'offer_remote_description_set');
-      
+      console.log(
+        `[WebRTC Offer] ✅ Remote description (offer) from ${senderId} set.`
+      );
+      this._reportConnectionEvent(senderId, "offer_remote_description_set");
+
       // Process any queued ICE candidates now that remote description is set
       await this._processQueuedICECandidates(senderId);
-      
+
       await this.createAnswer(senderId);
     } catch (error) {
-      console.error(`[WebRTC Offer] ❌ Error handling offer from ${senderId}:`, error);
-      this._reportConnectionEvent(senderId, 'offer_handling_failed', error.message);
-      
+      console.error(
+        `[WebRTC Offer] ❌ Error handling offer from ${senderId}:`,
+        error
+      );
+      this._reportConnectionEvent(
+        senderId,
+        "offer_handling_failed",
+        error.message
+      );
+
       // Trigger recovery if offer handling fails
       this._attemptConnectionRecovery(senderId);
     }
@@ -1592,16 +1901,20 @@ class MultiPeerWebRTCManager {
       console.error("[WebRTC Answer] Risposta ricevuta senza SDP da", senderId);
       return;
     }
-    
+
     console.log(`[WebRTC Answer] Gestione risposta da ${senderId}...`);
-    this._reportConnectionEvent(senderId, 'answer_received');
-    this._logConnectionDebugInfo(senderId, 'answer_processing');
+    this._reportConnectionEvent(senderId, "answer_received");
+    this._logConnectionDebugInfo(senderId, "answer_processing");
 
     if (!(pc.signalingState === "have-local-offer")) {
       console.warn(
         `[WebRTC Answer] Impossibile gestire risposta, signalingState=${pc.signalingState}`
       );
-      this._reportConnectionEvent(senderId, 'answer_rejected_wrong_signaling_state', pc.signalingState);
+      this._reportConnectionEvent(
+        senderId,
+        "answer_rejected_wrong_signaling_state",
+        pc.signalingState
+      );
       return;
     }
 
@@ -1612,19 +1925,26 @@ class MultiPeerWebRTCManager {
       console.log(
         `[WebRTC Answer] ✅ Descrizione remota (risposta) da ${senderId} impostata.`
       );
-      this._reportConnectionEvent(senderId, 'answer_remote_description_set');
-      
+      this._reportConnectionEvent(senderId, "answer_remote_description_set");
+
       // Process any queued ICE candidates now that remote description is set
       await this._processQueuedICECandidates(senderId);
-      
+
       // Clear negotiation flag on successful answer
       this.negotiationInProgress[senderId] = false;
-      
+
       // Connessione SDP stabilita con 'senderId'
     } catch (error) {
-      console.error(`[WebRTC Answer] ❌ Error handling answer from ${senderId}:`, error);
-      this._reportConnectionEvent(senderId, 'answer_handling_failed', error.message);
-      
+      console.error(
+        `[WebRTC Answer] ❌ Error handling answer from ${senderId}:`,
+        error
+      );
+      this._reportConnectionEvent(
+        senderId,
+        "answer_handling_failed",
+        error.message
+      );
+
       // Trigger recovery if answer handling fails
       this._attemptConnectionRecovery(senderId);
     }
@@ -1641,7 +1961,7 @@ class MultiPeerWebRTCManager {
     }
 
     const participantId = message.from;
-    
+
     try {
       if (message.candidate) {
         console.log(
@@ -1649,58 +1969,82 @@ class MultiPeerWebRTCManager {
           {
             type: message.candidate.type,
             protocol: message.candidate.protocol,
-            foundation: message.candidate.foundation
+            foundation: message.candidate.foundation,
           }
         );
-        
-        this._reportConnectionEvent(participantId, 'ice_candidate_received', {
+
+        this._reportConnectionEvent(participantId, "ice_candidate_received", {
           type: message.candidate.type,
-          protocol: message.candidate.protocol
+          protocol: message.candidate.protocol,
         });
 
         const candidate = new RTCIceCandidate(message.candidate);
-        
+
         // Check if remote description is set, if not queue the candidate
         if (!pc.remoteDescription) {
-          console.log(`[WebRTC ICE] Remote description non ancora impostata per ${participantId}, metto candidato in coda`);
+          console.log(
+            `[WebRTC ICE] Remote description non ancora impostata per ${participantId}, metto candidato in coda`
+          );
           this._queueICECandidate(participantId, candidate);
           return;
         }
 
         // Try to add the candidate with retry logic for Android
         let retryCount = 0;
-        const maxRetries = Platform.OS === 'android' ? 3 : 1;
-        
+        const maxRetries = Platform.OS === "android" ? 3 : 1;
+
         while (retryCount < maxRetries) {
           try {
             await pc.addIceCandidate(candidate);
-            console.log(`[WebRTC ICE] ✅ Candidato ICE aggiunto con successo per ${participantId}`);
-            this._reportConnectionEvent(participantId, 'ice_candidate_added_successfully');
+            console.log(
+              `[WebRTC ICE] ✅ Candidato ICE aggiunto con successo per ${participantId}`
+            );
+            this._reportConnectionEvent(
+              participantId,
+              "ice_candidate_added_successfully"
+            );
             break;
           } catch (error) {
             retryCount++;
-            console.warn(`[WebRTC ICE] ⚠️ Tentativo ${retryCount}/${maxRetries} fallito per candidato ICE di ${participantId}:`, error);
-            
+            console.warn(
+              `[WebRTC ICE] ⚠️ Tentativo ${retryCount}/${maxRetries} fallito per candidato ICE di ${participantId}:`,
+              error
+            );
+
             if (retryCount < maxRetries) {
               // Wait before retry (exponential backoff)
-              await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, retryCount)));
+              await new Promise((resolve) =>
+                setTimeout(resolve, 100 * Math.pow(2, retryCount))
+              );
             } else {
-              console.error(`[WebRTC ICE] ❌ Tutti i tentativi falliti per candidato ICE di ${participantId}`);
-              this._reportConnectionEvent(participantId, 'ice_candidate_failed', error.message);
+              console.error(
+                `[WebRTC ICE] ❌ Tutti i tentativi falliti per candidato ICE di ${participantId}`
+              );
+              this._reportConnectionEvent(
+                participantId,
+                "ice_candidate_failed",
+                error.message
+              );
               throw error;
             }
           }
         }
-        
       } else {
         console.log(`[WebRTC ICE] Fine candidati ICE per ${participantId}`);
-        this._reportConnectionEvent(participantId, 'ice_candidates_complete');
+        this._reportConnectionEvent(participantId, "ice_candidates_complete");
         await pc.addIceCandidate(null);
       }
     } catch (error) {
-      console.error(`[WebRTC ICE] Errore aggiunta candidato ICE per ${participantId}:`, error);
-      this._reportConnectionEvent(participantId, 'ice_candidate_error', error.message);
-      
+      console.error(
+        `[WebRTC ICE] Errore aggiunta candidato ICE per ${participantId}:`,
+        error
+      );
+      this._reportConnectionEvent(
+        participantId,
+        "ice_candidate_error",
+        error.message
+      );
+
       // Don't trigger recovery for candidate errors as they're usually not critical
       // The connection might still work with other candidates
     }
@@ -1874,7 +2218,7 @@ class MultiPeerWebRTCManager {
   // chiude lo stream locale
   closeLocalStream() {
     // Stop voice activity detection first
-    
+
     // Ferma lo stream locale
     if (this.localStream) {
       this.localStream.getTracks().forEach((track) => track.stop());
@@ -1885,16 +2229,15 @@ class MultiPeerWebRTCManager {
   }
   /**
    * Chiude TUTTE le connessioni e rilascia le risorse.
-   */  closeAllConnections() {
+   */ closeAllConnections() {
     console.log("MultiPeerWebRTCManager: Chiusura di tutte le connessioni...");
-
 
     // Close all screen share streams first
     if (this.screenStreams) {
-      Object.keys(this.screenStreams).forEach(streamId => {
+      Object.keys(this.screenStreams).forEach((streamId) => {
         const stream = this.screenStreams[streamId];
         if (stream) {
-          stream.getTracks().forEach(track => track.stop());
+          stream.getTracks().forEach((track) => track.stop());
         }
       });
       this.screenStreams = {};
@@ -1903,7 +2246,7 @@ class MultiPeerWebRTCManager {
 
     // Clean up remote screen streams
     this.remoteScreenStreams = {};
-    this.remoteStreamMetadata = {};    // Chiudi tutte le connessioni peer
+    this.remoteStreamMetadata = {}; // Chiudi tutte le connessioni peer
     Object.keys(this.peerConnections).forEach((participantId) => {
       this.closePeerConnection(participantId); // Usa il metodo esistente per pulire singolarmente
     });
@@ -1920,14 +2263,14 @@ class MultiPeerWebRTCManager {
     this.lastKnownGoodStates = {};
     this.iceCandidateQueues = {};
     this.negotiationInProgress = {};
-    
+
     // Clear health checkers and timeouts
-    Object.values(this.connectionHealthCheckers).forEach(checker => {
+    Object.values(this.connectionHealthCheckers).forEach((checker) => {
       if (checker) clearInterval(checker);
     });
     this.connectionHealthCheckers = {};
-    
-    Object.values(this.reconnectionTimeouts).forEach(timeout => {
+
+    Object.values(this.reconnectionTimeouts).forEach((timeout) => {
       if (timeout) clearTimeout(timeout);
     });
     this.reconnectionTimeouts = {};
@@ -1941,9 +2284,11 @@ class MultiPeerWebRTCManager {
     // Disabilito gli event listeners non più necessari (candidate, offer, answer sono utili solo quando sei in una comms)
     this._removeEventListeners();
     this._cleanupEventReceiver();
-    
-    console.log("MultiPeerWebRTCManager: Tutte le connessioni chiuse e risorse rilasciate.");
-    
+
+    console.log(
+      "MultiPeerWebRTCManager: Tutte le connessioni chiuse e risorse rilasciate."
+    );
+
     // Notify UI about cleanup
     this.notifyStreamUpdate();
   }
@@ -1951,23 +2296,29 @@ class MultiPeerWebRTCManager {
   /**
    * Forza manualmente un tentativo di riconnessione per un partecipante specifico
    * Utile per testing o per interfacce utente che permettono retry manuali
-   * @param {string} participantId 
+   * @param {string} participantId
    * @returns {boolean} True se il tentativo è stato avviato, false se non possibile
    */
   async forceReconnection(participantId) {
     if (!participantId || !this.peerConnections[participantId]) {
-      console.warn(`[WebRTC Manual] Impossibile forzare riconnessione: partecipante ${participantId} non trovato`);
+      console.warn(
+        `[WebRTC Manual] Impossibile forzare riconnessione: partecipante ${participantId} non trovato`
+      );
       return false;
     }
 
     const currentAttempts = this.reconnectionAttempts[participantId] || 0;
     if (currentAttempts >= this.MAX_RECONNECTION_ATTEMPTS) {
-      console.warn(`[WebRTC Manual] Impossibile forzare riconnessione: tentativi massimi raggiunti per ${participantId} (${currentAttempts}/${this.MAX_RECONNECTION_ATTEMPTS})`);
+      console.warn(
+        `[WebRTC Manual] Impossibile forzare riconnessione: tentativi massimi raggiunti per ${participantId} (${currentAttempts}/${this.MAX_RECONNECTION_ATTEMPTS})`
+      );
       return false;
     }
 
-    console.log(`[WebRTC Manual] 🔄 Forzando riconnessione manuale per ${participantId}`);
-    
+    console.log(
+      `[WebRTC Manual] 🔄 Forzando riconnessione manuale per ${participantId}`
+    );
+
     // Reset some tracking to allow manual retry
     if (this.reconnectionTimeouts[participantId]) {
       clearTimeout(this.reconnectionTimeouts[participantId]);
@@ -1978,31 +2329,40 @@ class MultiPeerWebRTCManager {
       await this._attemptConnectionRecovery(participantId);
       return true;
     } catch (error) {
-      console.error(`[WebRTC Manual] Errore durante riconnessione forzata per ${participantId}:`, error);
+      console.error(
+        `[WebRTC Manual] Errore durante riconnessione forzata per ${participantId}:`,
+        error
+      );
       return false;
     }
   }
 
   /**
    * Reset dei contatori di riconnessione per un partecipante (per testing o recovery manual)
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   resetReconnectionAttempts(participantId) {
     if (participantId) {
-      console.log(`[WebRTC Manual] 🔄 Reset contatori riconnessione per ${participantId}`);
+      console.log(
+        `[WebRTC Manual] 🔄 Reset contatori riconnessione per ${participantId}`
+      );
       this.reconnectionAttempts[participantId] = 0;
-      
+
       // Clear any pending timeouts
       if (this.reconnectionTimeouts[participantId]) {
         clearTimeout(this.reconnectionTimeouts[participantId]);
         delete this.reconnectionTimeouts[participantId];
       }
     } else {
-      console.log(`[WebRTC Manual] 🔄 Reset contatori riconnessione per tutti i partecipanti`);
+      console.log(
+        `[WebRTC Manual] 🔄 Reset contatori riconnessione per tutti i partecipanti`
+      );
       this.reconnectionAttempts = {};
-      
+
       // Clear all pending timeouts
-      Object.values(this.reconnectionTimeouts).forEach(timeout => clearTimeout(timeout));
+      Object.values(this.reconnectionTimeouts).forEach((timeout) =>
+        clearTimeout(timeout)
+      );
       this.reconnectionTimeouts = {};
     }
   }
@@ -2016,7 +2376,7 @@ class MultiPeerWebRTCManager {
     // Store existing users to reconnect with them later
     // Note: we don't use API methods here because we already have the data
     const existingUsersData = Object.values(this.userData);
-    
+
     // Prima pulisci tutte le connessioni esistenti
     this.closeAllConnections();
 
@@ -2032,16 +2392,20 @@ class MultiPeerWebRTCManager {
     this._initializeEventReceiver();
 
     console.log(`MultiPeerWebRTCManager: Rigenerato per l'utente ${myId}`);
-    
+
     // Reconnect with existing users
     if (existingUsersData && existingUsersData.length > 0) {
-      console.log(`MultiPeerWebRTCManager: Riconnessione con ${existingUsersData.length} utenti esistenti...`);
+      console.log(
+        `MultiPeerWebRTCManager: Riconnessione con ${existingUsersData.length} utenti esistenti...`
+      );
       setTimeout(async () => {
         for (const userData of existingUsersData) {
           // Skip if it's ourselves
           if (userData.from === myId) continue;
-          
-          console.log(`MultiPeerWebRTCManager: Riconnessione con utente ${userData.handle}...`);
+
+          console.log(
+            `MultiPeerWebRTCManager: Riconnessione con utente ${userData.handle}...`
+          );
           await this.connectToNewParticipant(userData);
         }
       }, 500); // Small delay to ensure everything is ready
@@ -2055,14 +2419,14 @@ class MultiPeerWebRTCManager {
    */
   async addScreenShareStream() {
     try {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === "web") {
         const screenStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
             width: { ideal: 1920 },
             height: { ideal: 1080 },
-            aspectRatio: { ideal: 16/9 }
+            aspectRatio: { ideal: 16 / 9 },
           },
-          audio: true // Include system audio if available
+          audio: true, // Include system audio if available
         });
 
         const streamId = `screen_${this.screenStreamCounter++}`;
@@ -2070,16 +2434,22 @@ class MultiPeerWebRTCManager {
 
         // Add screen share tracks to all peer connections
         for (const [peerId, pc] of Object.entries(this.peerConnections)) {
-          if (pc.connectionState === 'connected' || pc.connectionState === 'connecting') {
+          if (
+            pc.connectionState === "connected" ||
+            pc.connectionState === "connecting"
+          ) {
             try {
-              screenStream.getTracks().forEach(track => {
+              screenStream.getTracks().forEach((track) => {
                 // Add a custom property to identify this as a screen share track
                 track.streamId = streamId;
-                track.streamType = 'screenshare';
+                track.streamType = "screenshare";
                 pc.addTrack(track, screenStream);
               });
             } catch (error) {
-              console.error(`Error adding screen share tracks to peer ${peerId}:`, error);
+              console.error(
+                `Error adding screen share tracks to peer ${peerId}:`,
+                error
+              );
             }
           }
         }
@@ -2089,15 +2459,19 @@ class MultiPeerWebRTCManager {
           this.removeScreenShareStream(streamId);
         };
         console.log(`Screen share stream ${streamId} started successfully`);
-        
+
         // Send signaling message to notify other participants
         if (this.chatId && WebSocketMethods.sendScreenShareStarted) {
-          await WebSocketMethods.sendScreenShareStarted(this.chatId, this.myId, streamId);
+          await WebSocketMethods.sendScreenShareStarted(
+            this.chatId,
+            this.myId,
+            streamId
+          );
         }
-        
+
         // Notify UI components
         this.notifyStreamUpdate();
-        
+
         // Renegotiate with all peers
         setTimeout(async () => {
           await this.renegotiateWithAllPeers();
@@ -2108,70 +2482,89 @@ class MultiPeerWebRTCManager {
         // For Android, use proper screen capture implementation
         try {
           let screenStream = null;
-          
+
           // Method 1: Try react-native-webrtc's built-in screen capture
           if (mediaDevices.getDisplayMedia) {
             try {
-              console.log('[Android] Attempting getDisplayMedia screen capture');
+              console.log(
+                "[Android] Attempting getDisplayMedia screen capture"
+              );
               screenStream = await mediaDevices.getDisplayMedia({
                 video: {
                   width: { ideal: 1920, min: 720, max: 1920 },
                   height: { ideal: 1080, min: 480, max: 1080 },
-                  frameRate: { ideal: 15, max: 30 }
+                  frameRate: { ideal: 15, max: 30 },
                 },
-                audio: false // Audio capture often causes issues on Android
+                audio: false, // Audio capture often causes issues on Android
               });
-              console.log('[Android] getDisplayMedia successful');
+              console.log("[Android] getDisplayMedia successful");
             } catch (displayError) {
-              console.warn('[Android] getDisplayMedia failed:', displayError.message);
+              console.warn(
+                "[Android] getDisplayMedia failed:",
+                displayError.message
+              );
               screenStream = null;
             }
           }
-          
+
           // Method 2: Try react-native-webrtc's getUserMedia with screen source
           if (!screenStream && mediaDevices.getUserMedia) {
             try {
-              console.log('[Android] Attempting getUserMedia with screen source');
+              console.log(
+                "[Android] Attempting getUserMedia with screen source"
+              );
               screenStream = await mediaDevices.getUserMedia({
                 video: {
                   mandatory: {
-                    chromeMediaSource: 'screen',
+                    chromeMediaSource: "screen",
                     maxWidth: 1920,
                     maxHeight: 1080,
-                    maxFrameRate: 15
-                  }
+                    maxFrameRate: 15,
+                  },
                 },
-                audio: false
+                audio: false,
               });
-              console.log('[Android] getUserMedia with screen source successful');
+              console.log(
+                "[Android] getUserMedia with screen source successful"
+              );
             } catch (screenError) {
-              console.warn('[Android] getUserMedia with screen source failed:', screenError.message);
+              console.warn(
+                "[Android] getUserMedia with screen source failed:",
+                screenError.message
+              );
               screenStream = null;
             }
           }
-          
+
           // Method 3: Fallback to high-quality camera stream with proper labeling
           if (!screenStream) {
-            console.log('[Android] Using camera fallback for screen sharing');
+            console.log("[Android] Using camera fallback for screen sharing");
             try {
               screenStream = await mediaDevices.getUserMedia({
                 video: {
                   width: { ideal: 1920, min: 720 },
                   height: { ideal: 1080, min: 480 },
                   frameRate: { ideal: 30, min: 15 },
-                  facingMode: { ideal: 'environment' } // Back camera typically better quality
+                  facingMode: { ideal: "environment" }, // Back camera typically better quality
                 },
-                audio: false
+                audio: false,
               });
-              console.log('[Android] Camera fallback successful');
+              console.log("[Android] Camera fallback successful");
             } catch (cameraError) {
-              console.error('[Android] All screen sharing methods failed:', cameraError.message);
-              throw new Error(`Screen sharing not available: ${cameraError.message}`);
+              console.error(
+                "[Android] All screen sharing methods failed:",
+                cameraError.message
+              );
+              throw new Error(
+                `Screen sharing not available: ${cameraError.message}`
+              );
             }
           }
 
           if (!screenStream) {
-            throw new Error('Failed to obtain screen capture stream on Android');
+            throw new Error(
+              "Failed to obtain screen capture stream on Android"
+            );
           }
 
           const streamId = `screen_${this.screenStreamCounter++}`;
@@ -2179,52 +2572,63 @@ class MultiPeerWebRTCManager {
 
           // Add screen share tracks to all peer connections
           for (const [peerId, pc] of Object.entries(this.peerConnections)) {
-            if (pc.connectionState === 'connected' || pc.connectionState === 'connecting') {
+            if (
+              pc.connectionState === "connected" ||
+              pc.connectionState === "connecting"
+            ) {
               try {
-                screenStream.getTracks().forEach(track => {
+                screenStream.getTracks().forEach((track) => {
                   // Mark track with metadata for proper identification
                   track.streamId = streamId;
-                  track.streamType = 'screenshare';
+                  track.streamType = "screenshare";
                   track.label = `screen-share-${streamId}`;
                   pc.addTrack(track, screenStream);
                 });
               } catch (error) {
-                console.error(`Error adding screen share tracks to peer ${peerId}:`, error);
+                console.error(
+                  `Error adding screen share tracks to peer ${peerId}:`,
+                  error
+                );
               }
             }
           }
 
           // Handle stream end event
-          screenStream.getVideoTracks().forEach(track => {
+          screenStream.getVideoTracks().forEach((track) => {
             track.onended = () => {
               console.log(`[Android] Screen share track ended: ${streamId}`);
               this.removeScreenShareStream(streamId);
             };
           });
 
-          console.log(`[Android] Screen share stream ${streamId} started successfully`);
-          
+          console.log(
+            `[Android] Screen share stream ${streamId} started successfully`
+          );
+
           // Send signaling message to notify other participants
           if (this.chatId && WebSocketMethods.sendScreenShareStarted) {
-            await WebSocketMethods.sendScreenShareStarted(this.chatId, this.myId, streamId);
+            await WebSocketMethods.sendScreenShareStarted(
+              this.chatId,
+              this.myId,
+              streamId
+            );
           }
-          
+
           this.notifyStreamUpdate();
-          
+
           // Renegotiate with all peers after a short delay
           setTimeout(async () => {
             await this.renegotiateWithAllPeers();
           }, 100);
 
           return { streamId, stream: screenStream };
-
         } catch (error) {
-          console.error('[Android] Error starting screen share:', error);
+          console.error("[Android] Error starting screen share:", error);
           throw new Error(`Android screen sharing failed: ${error.message}`);
         }
       }
     } catch (error) {
-      console.error('Error starting screen share:', error);
+      console.error("Error starting screen share:", error);
       throw error;
     }
   }
@@ -2242,42 +2646,51 @@ class MultiPeerWebRTCManager {
 
     try {
       // Stop all tracks in the screen stream
-      screenStream.getTracks().forEach(track => {
+      screenStream.getTracks().forEach((track) => {
         track.stop();
       });
 
       // Remove screen share tracks from all peer connections
       for (const [peerId, pc] of Object.entries(this.peerConnections)) {
-        if (pc.connectionState === 'connected' || pc.connectionState === 'connecting') {
+        if (
+          pc.connectionState === "connected" ||
+          pc.connectionState === "connecting"
+        ) {
           const senders = pc.getSenders();
           for (const sender of senders) {
             if (sender.track && sender.track.streamId === streamId) {
               try {
                 await pc.removeTrack(sender);
               } catch (error) {
-                console.error(`Error removing screen share track from peer ${peerId}:`, error);
+                console.error(
+                  `Error removing screen share track from peer ${peerId}:`,
+                  error
+                );
               }
             }
           }
         }
-      }      // Remove from our collection
+      } // Remove from our collection
       delete this.screenStreams[streamId];
 
       console.log(`Screen share stream ${streamId} removed successfully`);
-      
+
       // Send WebSocket signaling to notify other participants
       if (this.chatId && WebSocketMethods.sendScreenShareStopped) {
-        await WebSocketMethods.sendScreenShareStopped(this.chatId, this.myId, streamId);
+        await WebSocketMethods.sendScreenShareStopped(
+          this.chatId,
+          this.myId,
+          streamId
+        );
       }
-      
+
       // Notify UI components
       this.notifyStreamUpdate();
-      
+
       // Renegotiate with all peers
       setTimeout(async () => {
         await this.renegotiateWithAllPeers();
       }, 100);
-
     } catch (error) {
       console.error(`Error removing screen share stream ${streamId}:`, error);
       throw error;

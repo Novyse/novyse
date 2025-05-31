@@ -12,7 +12,7 @@ import utils from "./utils/webrtc/utils";
 const { get, check } = utils;
 
 const VocalContent = ({ selectedChat, chatId }) => {
-    const { theme } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const audioContext = useAudio();
   const styles = createStyle(theme);
 
@@ -28,18 +28,20 @@ const VocalContent = ({ selectedChat, chatId }) => {
   // Add effect to monitor comms status and clear streams when user leaves comms
   useEffect(() => {
     let wasInComms = check.isInComms();
-    
+
     const interval = setInterval(async () => {
       const currentlyInComms = check.isInComms();
-      
+
       if (!currentlyInComms) {
         // Clear all active streams when user is no longer in comms
         // but keep the profiles so other users are still visible
         setActiveStreams({});
-        
+
         // Se l'utente era in comms e ora non lo è più, aggiorna la lista dei membri
         if (wasInComms && !currentlyInComms) {
-          console.log('[VocalContent] User left comms, updating member list from API');
+          console.log(
+            "[VocalContent] User left comms, updating member list from API"
+          );
           try {
             // Aspetta un momento per permettere al server di aggiornarsi
             setTimeout(async () => {
@@ -47,19 +49,22 @@ const VocalContent = ({ selectedChat, chatId }) => {
               setProfilesInCommsChat(members);
             }, 1000);
           } catch (error) {
-            console.error('[VocalContent] Error updating members after leaving comms:', error);
+            console.error(
+              "[VocalContent] Error updating members after leaving comms:",
+              error
+            );
           }
         }
-        
+
         // Aggiorna solo lo stato speaking di tutti gli utenti a false
-        setProfilesInCommsChat(prev => 
-          prev.map(profile => ({
+        setProfilesInCommsChat((prev) =>
+          prev.map((profile) => ({
             ...profile,
-            is_speaking: false
+            is_speaking: false,
           }))
         );
       }
-      
+
       wasInComms = currentlyInComms;
     }, 1000); // Check every second
 
@@ -67,27 +72,32 @@ const VocalContent = ({ selectedChat, chatId }) => {
   }, [chatId]);
 
   useEffect(() => {
-
     // Registra i listeners
     eventEmitter.on("member_joined_comms", handleMemberJoined);
-    eventEmitter.on("member_left_comms", handleMemberLeft);    
+    eventEmitter.on("member_left_comms", handleMemberLeft);
     eventEmitter.on("stream_added_or_updated", handleStreamUpdate);
 
     eventEmitter.on("user_started_speaking", handleUserStartedSpeaking);
     eventEmitter.on("user_stopped_speaking", handleUserStoppedSpeaking);
-    eventEmitter.on("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
-    eventEmitter.on("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
-    
+    eventEmitter.on(
+      "remote_user_started_speaking",
+      handleRemoteUserStartedSpeaking
+    );
+    eventEmitter.on(
+      "remote_user_stopped_speaking",
+      handleRemoteUserStoppedSpeaking
+    );
+
     // Listen for mobile camera switch events specifically for Android compatibility
     eventEmitter.on("mobile_camera_switched", handleStreamUpdate);
-    
+
     const getMembers = async () => {
       const members = await get.commsMembers(chatId);
       setProfilesInCommsChat(members);
-    }
+    };
 
     getMembers();
-    
+
     return () => {
       eventEmitter.off("member_joined_comms", handleMemberJoined);
       eventEmitter.off("member_left_comms", handleMemberLeft);
@@ -97,8 +107,14 @@ const VocalContent = ({ selectedChat, chatId }) => {
       eventEmitter.off("user_started_speaking", handleUserStartedSpeaking);
       eventEmitter.off("user_stopped_speaking", handleUserStoppedSpeaking);
 
-      eventEmitter.off("remote_user_started_speaking", handleRemoteUserStartedSpeaking);
-      eventEmitter.off("remote_user_stopped_speaking", handleRemoteUserStoppedSpeaking);
+      eventEmitter.off(
+        "remote_user_started_speaking",
+        handleRemoteUserStartedSpeaking
+      );
+      eventEmitter.off(
+        "remote_user_stopped_speaking",
+        handleRemoteUserStoppedSpeaking
+      );
 
       eventEmitter.off("mobile_camera_switched", handleStreamUpdate);
     };
@@ -108,8 +124,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const handleStreamUpdate = (data) => {
     // Only update streams if the user is still in comms
     if (!check.isInComms()) {
-      console.log('[VocalContent] User not in comms, ignoring stream update');
-      
+      console.log("[VocalContent] User not in comms, ignoring stream update");
+
       // Clear all active streams if user is no longer in comms
       setActiveStreams({});
       setVideoStreamKeys({});
@@ -117,46 +133,43 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }
 
     const { participantId, stream, streamType, userData, timestamp } = data;
-    
+
     console.log(`[VocalContent] Stream update for ${participantId}:`, {
       streamType,
       hasAudio: stream?.getAudioTracks().length > 0,
       hasVideo: stream?.getVideoTracks().length > 0,
       userData,
-      timestamp
+      timestamp,
     });
 
     // Aggiorna lo stato degli stream attivi
-    setActiveStreams(prev => ({
+    setActiveStreams((prev) => ({
       ...prev,
       [participantId]: {
         stream,
         userData,
         streamType,
         hasAudio: stream?.getAudioTracks().length > 0,
-        hasVideo: stream?.getVideoTracks().length > 0
-      }
+        hasVideo: stream?.getVideoTracks().length > 0,
+      },
     }));
 
     // For Android: Update video stream keys to force RTCView re-render when stream changes
-    if (Platform.OS === 'android' && stream?.getVideoTracks().length > 0) {
-      setVideoStreamKeys(prev => ({
+    if (Platform.OS === "android" && stream?.getVideoTracks().length > 0) {
+      setVideoStreamKeys((prev) => ({
         ...prev,
-        [participantId]: timestamp || Date.now()
+        [participantId]: timestamp || Date.now(),
       }));
     }
-
   };
 
   // Speech detection handlers
   const handleUserStartedSpeaking = () => {
-    if(check.isInComms()) {
-      console.log('[VocalContent] Current user started speaking');
-      
+    if (check.isInComms()) {
       // Aggiorna lo stato is_speaking per l'utente corrente in profilesInCommsChat
-      setProfilesInCommsChat(prev => 
-        prev.map(profile => 
-          profile.from === get.myPartecipantId() 
+      setProfilesInCommsChat((prev) =>
+        prev.map((profile) =>
+          profile.from === get.myPartecipantId()
             ? { ...profile, is_speaking: true }
             : profile
         )
@@ -165,13 +178,11 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   const handleUserStoppedSpeaking = () => {
-    if(check.isInComms()) {
-      console.log('[VocalContent] Current user stopped speaking');
-      
+    if (check.isInComms()) {
       // Aggiorna lo stato is_speaking per l'utente corrente in profilesInCommsChat
-      setProfilesInCommsChat(prev => 
-        prev.map(profile => 
-          profile.from === get.myPartecipantId() 
+      setProfilesInCommsChat((prev) =>
+        prev.map((profile) =>
+          profile.from === get.myPartecipantId()
             ? { ...profile, is_speaking: false }
             : profile
         )
@@ -181,20 +192,22 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const handleRemoteUserStartedSpeaking = (data) => {
     // Only process if user is in comms and event is for the correct chat
     if (!check.isInComms()) {
-      console.log('[VocalContent] User not in comms, ignoring remote speaking event');
+      console.log(
+        "[VocalContent] User not in comms, ignoring remote speaking event"
+      );
       return;
     }
-    
+
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
-    if (data.chatId === chatId && data.chatId === get.commsId() && data.id !== get.myPartecipantId()) {
-      console.log('[VocalContent] Remote user started speaking:', data);
-      
+    if (
+      data.chatId === chatId &&
+      data.chatId === get.commsId() &&
+      data.id !== get.myPartecipantId()
+    ) {
       // Aggiorna lo stato is_speaking per l'utente remoto in profilesInCommsChat
-      setProfilesInCommsChat(prev => 
-        prev.map(profile => 
-          profile.from === data.id 
-            ? { ...profile, is_speaking: true }
-            : profile
+      setProfilesInCommsChat((prev) =>
+        prev.map((profile) =>
+          profile.from === data.id ? { ...profile, is_speaking: true } : profile
         )
       );
     }
@@ -202,18 +215,22 @@ const VocalContent = ({ selectedChat, chatId }) => {
   const handleRemoteUserStoppedSpeaking = (data) => {
     // Only process if user is in comms and event is for the correct chat
     if (!check.isInComms()) {
-      console.log('[VocalContent] User not in comms, ignoring remote speaking event');
+      console.log(
+        "[VocalContent] User not in comms, ignoring remote speaking event"
+      );
       return;
     }
-    
+
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
-    if (data.chatId === chatId && data.chatId === get.commsId() && data.id !== get.myPartecipantId()) {
-      console.log('[VocalContent] Remote user stopped speaking:', data);
-      
+    if (
+      data.chatId === chatId &&
+      data.chatId === get.commsId() &&
+      data.id !== get.myPartecipantId()
+    ) {
       // Aggiorna lo stato is_speaking per l'utente remoto in profilesInCommsChat
-      setProfilesInCommsChat(prev => 
-        prev.map(profile => 
-          profile.from === data.id 
+      setProfilesInCommsChat((prev) =>
+        prev.map((profile) =>
+          profile.from === data.id
             ? { ...profile, is_speaking: false }
             : profile
         )
@@ -223,21 +240,24 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
-    console.log('[VocalContent] handleMemberJoined called with:', data);
-    console.log('[VocalContent] Current chatId:', chatId);
-    console.log('[VocalContent] Current profiles count:', profilesInCommsChat.length);
-    
+    console.log("[VocalContent] handleMemberJoined called with:", data);
+    console.log("[VocalContent] Current chatId:", chatId);
+    console.log(
+      "[VocalContent] Current profiles count:",
+      profilesInCommsChat.length
+    );
+
     // Solo se la view corretta è aperta
     if (data.chat_id == chatId) {
-      console.log('[VocalContent] Adding member to profiles');
+      console.log("[VocalContent] Adding member to profiles");
       setProfilesInCommsChat((prev) => {
-        console.log('[VocalContent] Previous profiles:', prev);
+        console.log("[VocalContent] Previous profiles:", prev);
         const newProfiles = [...prev, data];
-        console.log('[VocalContent] New profiles:', newProfiles);
+        console.log("[VocalContent] New profiles:", newProfiles);
         return newProfiles;
       });
     } else {
-      console.log('[VocalContent] Member joined different chat, ignoring');
+      console.log("[VocalContent] Member joined different chat, ignoring");
     }
   };
 
@@ -251,7 +271,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       );
 
       // Rimuovo anche lo stream associato
-      setActiveStreams(prev => {
+      setActiveStreams((prev) => {
         const newStreams = { ...prev };
         delete newStreams[data.from];
         return newStreams;
@@ -259,12 +279,15 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
       // Cleanup elementi DOM per Web
       if (Platform.OS === "web") {
-        const container = document.getElementById(`media-container-${data.from}`);
+        const container = document.getElementById(
+          `media-container-${data.from}`
+        );
         if (container) {
           container.remove();
         }
       }
-    }  };
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -273,10 +296,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
         activeStreams={activeStreams}
         videoStreamKeys={videoStreamKeys}
       />
-
-      <VocalContentBottomBar
-        chatId={chatId}
-      />
+      <VocalContentBottomBar chatId={chatId} />
     </View>
   );
 };

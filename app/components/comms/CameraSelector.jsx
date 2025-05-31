@@ -21,7 +21,12 @@ if (Platform.OS === "web") {
   mediaDevices = WebRTCLib.mediaDevices;
 }
 
-const CameraSelector = ({ visible, onClose, onCameraSelected, currentDeviceId }) => {
+const CameraSelector = ({
+  visible,
+  onClose,
+  onCameraSelected,
+  currentDeviceId,
+}) => {
   const [availableCameras, setAvailableCameras] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -34,23 +39,25 @@ const CameraSelector = ({ visible, onClose, onCameraSelected, currentDeviceId })
   const loadCameras = async () => {
     setLoading(true);
     try {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === "web") {
         // Web platform - use enumerateDevices
         const devices = await mediaDevices.enumerateDevices();
-        const cameras = devices.filter(device => device.kind === 'videoinput');
+        const cameras = devices.filter(
+          (device) => device.kind === "videoinput"
+        );
         setAvailableCameras(cameras);
       } else {
         // Mobile platform - limited device enumeration
         // For now, we'll show a basic list since react-native-webrtc has limited device enumeration
         setAvailableCameras([
-          { deviceId: 'default', label: 'Default Camera' },
-          { deviceId: 'front', label: 'Front Camera' },
-          { deviceId: 'back', label: 'Back Camera' },
+          { deviceId: "default", label: "Default Camera" },
+          { deviceId: "front", label: "Front Camera" },
+          { deviceId: "back", label: "Back Camera" },
         ]);
       }
     } catch (error) {
-      console.error('Error loading cameras:', error);
-      Alert.alert('Error', 'Failed to load available cameras');
+      console.error("Error loading cameras:", error);
+      Alert.alert("Error", "Failed to load available cameras");
     } finally {
       setLoading(false);
     }
@@ -65,7 +72,7 @@ const CameraSelector = ({ visible, onClose, onCameraSelected, currentDeviceId })
     <TouchableOpacity
       style={[
         styles.cameraItem,
-        item.deviceId === currentDeviceId && styles.selectedCamera
+        item.deviceId === currentDeviceId && styles.selectedCamera,
       ]}
       onPress={() => handleCameraSelect(item)}
     >
@@ -75,10 +82,12 @@ const CameraSelector = ({ visible, onClose, onCameraSelected, currentDeviceId })
         color={item.deviceId === currentDeviceId ? "#4CAF50" : "#666"}
       />
       <View style={styles.cameraInfo}>
-        <Text style={[
-          styles.cameraName,
-          item.deviceId === currentDeviceId && styles.selectedText
-        ]}>
+        <Text
+          style={[
+            styles.cameraName,
+            item.deviceId === currentDeviceId && styles.selectedText,
+          ]}
+        >
           {item.label || `Camera ${item.deviceId}`}
         </Text>
         {item.deviceId === currentDeviceId && (
@@ -122,10 +131,7 @@ const CameraSelector = ({ visible, onClose, onCameraSelected, currentDeviceId })
           )}
 
           <View style={styles.footer}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={onClose}
-            >
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>

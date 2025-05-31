@@ -4,23 +4,24 @@ import eventEmitter from "./EventEmitter";
 const domain = "https://api.novyse.com";
 const APIlink = domain + "/test";
 const api = axios.create({
-    baseURL: APIlink,
-    withCredentials: true, // IMPORTANTE: Mantiene i cookie
-    timeout: 10000,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  baseURL: APIlink,
+  withCredentials: true, // IMPORTANTE: Mantiene i cookie
+  timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 // Intercetta la risposta dell'API per gli errori di autenticazione
 
 api.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     const status = error.response?.status;
 
-    if (status === 401) { // Non autorizzato
-      eventEmitter.emit('invalidSession');
+    if (status === 401) {
+      // Non autorizzato
+      eventEmitter.emit("invalidSession");
       console.error("Invalid session - 401");
     }
   }
@@ -68,9 +69,7 @@ const APIMethods = {
   // Chiede tutto all'API (search)
   async searchAll(value) {
     try {
-      const response = await api.get(
-        `/user/data/search/all?handle=${value}`
-      );
+      const response = await api.get(`/user/data/search/all?handle=${value}`);
       console.log("searchAll in APImethods: ", response);
       return response;
     } catch (error) {
@@ -110,9 +109,9 @@ const APIMethods = {
     try {
       // edited message to encode the URLs
       text = text
-            .replace(/http:\/\//g, "http%3A%2F%2F")
-            .replace(/https:\/\//g, "https%3A%2F%2F");
-            
+        .replace(/http:\/\//g, "http%3A%2F%2F")
+        .replace(/https:\/\//g, "https%3A%2F%2F");
+
       const response = await api.get(
         `/chat/send/message?chat_id=${chat_id}&text=${text}`
       );
@@ -126,9 +125,7 @@ const APIMethods = {
   // ottiene i membri di una chat
   async getChatMembers(chat_id) {
     try {
-      const response = await api.get(
-        `/chat/get/members?chat_id=${chat_id}`
-      );
+      const response = await api.get(`/chat/get/members?chat_id=${chat_id}`);
       return response.data.members_list;
     } catch (error) {
       console.error("Error in getChatMembers API:", error);
@@ -203,9 +200,7 @@ const APIMethods = {
   // quando uno user vuole entrare in una chat vocale
   async commsJoin(chatId) {
     try {
-      const response = await api.get(
-        `/comms/join?chat_id=${chatId}`
-      );
+      const response = await api.get(`/comms/join?chat_id=${chatId}`);
       return response.data;
     } catch (error) {
       console.error("Error in updateAll:", error);
@@ -216,9 +211,7 @@ const APIMethods = {
   // quando uno user vuole abbandonare una chat vocale
   async commsLeave() {
     try {
-      const response = await api.get(
-        `/comms/leave`
-      );
+      const response = await api.get(`/comms/leave`);
       return response.data;
     } catch (error) {
       console.error("Error in updateAll:", error);
@@ -229,9 +222,7 @@ const APIMethods = {
   // quando lo user richiede chi è in una chat vocale
   async retrieveVocalUsers(chatId) {
     try {
-      const response = await api.get(
-        `/comms/get/members?chat_id=${chatId}`
-      );
+      const response = await api.get(`/comms/get/members?chat_id=${chatId}`);
       return response.data.comms_members_list;
     } catch (error) {
       console.error("Error in updateAll:", error);
@@ -239,7 +230,7 @@ const APIMethods = {
     }
   },
 
-  async startScreenShare(chatId){
+  async startScreenShare(chatId) {
     try {
       const response = await api.get(
         `/comms/screen_share/start?chat_id=${chatId}`
@@ -251,7 +242,7 @@ const APIMethods = {
     }
   },
 
-  async stopScreenShare(chatId,screenShareId){
+  async stopScreenShare(chatId, screenShareId) {
     try {
       const response = await api.get(
         `/comms/screen_share/stop?chat_id=${chatId}&screen_share_id=${screenShareId}`
@@ -261,8 +252,7 @@ const APIMethods = {
       console.error("Error in stopStream:", error);
       throw error;
     }
-  }
+  },
 };
-
 
 export default APIMethods;

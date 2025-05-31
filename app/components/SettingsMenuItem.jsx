@@ -12,12 +12,7 @@ const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
       style={styles.menuItem}
       onPress={() => router.navigate(`/settings/${navToPage}`)}
     >
-      <HugeiconsIcon
-        icon={iconName}
-        size={24}
-        color="#fff"
-        strokeWidth={1.5}
-      />
+      <HugeiconsIcon icon={iconName} size={24} color="#fff" strokeWidth={1.5} />
       <Text style={styles.menuItemText}>{pageName}</Text>
     </Pressable>
   );

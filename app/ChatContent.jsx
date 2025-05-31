@@ -52,7 +52,8 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
   const containerRef = useRef(null);
   const router = useRouter();
   const [isMicClicked, setIsMicClicked] = useState(false);
-  const urlRegex = /(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])(\S*)/g; //PERFETTO
+  const urlRegex =
+    /(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])(\S*)/g; //PERFETTO
 
   useEffect(() => {
     // carico i messaggi quando apro la pagina
@@ -141,51 +142,65 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
   };
 
   // capisco se una parte del messaggio è un link oppure no
-const LinkedText = ({ text, style }) => {
-  if (!text) return null;
-  
-  // Trova tutte le corrispondenze
-  const parts = [];
-  let lastIndex = 0;
-  let match;
-  
-  while ((match = urlRegex.exec(text)) !== null) {
-    // Aggiungi testo prima del link
-    if (match.index > lastIndex) {
-      parts.push(<Text key={`t-${lastIndex}`} style={style}>{text.substring(lastIndex, match.index)}</Text>);
-    }
-    
-    // Prepara URL per il click
-    const linkUrl = match[0].startsWith('http') ? match[0] : `https://${match[0]}`;
-    
-    // Aggiungi il link
-    parts.push(
-      <Text
-        key={`l-${match.index}`}
-        style={[
-          styles.messagesLink,
-          Platform.OS === 'web' && {
-            wordBreak: 'break-all',
-            overflowWrap: 'break-word',
-            whiteSpace: 'pre-wrap',
+  const LinkedText = ({ text, style }) => {
+    if (!text) return null;
+
+    // Trova tutte le corrispondenze
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = urlRegex.exec(text)) !== null) {
+      // Aggiungi testo prima del link
+      if (match.index > lastIndex) {
+        parts.push(
+          <Text key={`t-${lastIndex}`} style={style}>
+            {text.substring(lastIndex, match.index)}
+          </Text>
+        );
+      }
+
+      // Prepara URL per il click
+      const linkUrl = match[0].startsWith("http")
+        ? match[0]
+        : `https://${match[0]}`;
+
+      // Aggiungi il link
+      parts.push(
+        <Text
+          key={`l-${match.index}`}
+          style={[
+            styles.messagesLink,
+            Platform.OS === "web" && {
+              wordBreak: "break-all",
+              overflowWrap: "break-word",
+              whiteSpace: "pre-wrap",
+            },
+          ]}
+          onPress={() =>
+            Platform.OS === "web"
+              ? window.open(linkUrl, "_blank")
+              : Linking.openURL(linkUrl)
           }
-        ]}
-        onPress={() => Platform.OS === "web" ? window.open(linkUrl, "_blank") : Linking.openURL(linkUrl)}
-      >
-        {match[0]}
-      </Text>
-    );
-    
-    lastIndex = match.index + match[0].length;
-  }
-  
-  // Aggiungi testo rimanente
-  if (lastIndex < text.length) {
-    parts.push(<Text key={`t-last`} style={style}>{text.substring(lastIndex)}</Text>);
-  }
-  
-  return parts.length ? parts : <Text style={style}>{text}</Text>;
-};
+        >
+          {match[0]}
+        </Text>
+      );
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Aggiungi testo rimanente
+    if (lastIndex < text.length) {
+      parts.push(
+        <Text key={`t-last`} style={style}>
+          {text.substring(lastIndex)}
+        </Text>
+      );
+    }
+
+    return parts.length ? parts : <Text style={style}>{text}</Text>;
+  };
 
   // quando voglio inviare il primo messaggio per avviare una chat
   const handleNewChatFirstMessage = async (handle) => {
@@ -207,8 +222,6 @@ const LinkedText = ({ text, style }) => {
     const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
     const randomNumberPlusDate = Date.now() + randomNumber;
 
-
-    
     const tempMessage = {
       message_id: randomNumberPlusDate,
       sender: userId,
@@ -578,10 +591,10 @@ function createStyle(theme) {
       color: theme.text,
       fontSize: 18,
       maxWidth: "100%",
-      ...(Platform.OS === 'web' && {
-        wordBreak: 'break-word',
-        overflowWrap: 'break-word',
-        whiteSpace: 'pre-wrap',
+      ...(Platform.OS === "web" && {
+        wordBreak: "break-word",
+        overflowWrap: "break-word",
+        whiteSpace: "pre-wrap",
       }),
     },
     timeText: {
@@ -606,9 +619,9 @@ function createStyle(theme) {
       justifyContent: "flex-end",
       gap: 4,
       marginRight: 8,
-      ...(Platform.OS === 'web' && {
-        wordBreak: 'break-word',
-        overflowWrap: 'break-word',
+      ...(Platform.OS === "web" && {
+        wordBreak: "break-word",
+        overflowWrap: "break-word",
       }),
     },
     msgReceiver: {
@@ -625,9 +638,9 @@ function createStyle(theme) {
       justifyContent: "flex-end",
       gap: 4,
       marginLeft: 8,
-      ...(Platform.OS === 'web' && {
-        wordBreak: 'break-word',
-        overflowWrap: 'break-word',
+      ...(Platform.OS === "web" && {
+        wordBreak: "break-word",
+        overflowWrap: "break-word",
       }),
     },
     listContainer: {
@@ -723,11 +736,11 @@ function createStyle(theme) {
       fontSize: 18,
       color: theme.messagesLink,
       textDecorationLine: "underline",
-      ...(Platform.OS === 'web' && {
-        wordBreak: 'break-all',
-        overflowWrap: 'break-word',
-        whiteSpace: 'pre-wrap',
-        maxWidth: '100%',
+      ...(Platform.OS === "web" && {
+        wordBreak: "break-all",
+        overflowWrap: "break-word",
+        whiteSpace: "pre-wrap",
+        maxWidth: "100%",
       }),
     },
   });

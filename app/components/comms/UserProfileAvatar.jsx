@@ -46,7 +46,10 @@ const UserProfileAvatar = ({
   }, [profileImageUri]);
 
   // Calcola le dimensioni dell'avatar (circa 35% della dimensione del container)
-  const avatarSize = Math.max(Math.min(containerWidth, containerHeight) * 0.35, 20); // Minimo 20px per evitare dimensioni zero
+  const avatarSize = Math.max(
+    Math.min(containerWidth, containerHeight) * 0.35,
+    20
+  ); // Minimo 20px per evitare dimensioni zero
   const fontSize = Math.max(avatarSize * 0.4, 10); // Minimo 10px per evitare dimensione zero del font
 
   return (

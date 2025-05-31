@@ -15,7 +15,6 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
         onPress={() => {
           router.navigate(goBackTo);
         }}
-        //   style={styles.backButton}
       >
         <Icon name="arrow-back" size={24} color={theme.icon} />
       </Pressable>

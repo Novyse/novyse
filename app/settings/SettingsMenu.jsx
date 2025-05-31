@@ -14,7 +14,7 @@ const SettingsMenu = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderWithBackArrow goBackTo="/messages" />
+      <HeaderWithBackArrow goBackTo="/messages"/>
 
       {/* Avvolgi i menu items in uno ScrollView */}
       <ScrollView contentContainerStyle={styles.scrollContent}>

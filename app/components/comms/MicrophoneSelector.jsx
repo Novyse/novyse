@@ -21,7 +21,12 @@ if (Platform.OS === "web") {
   mediaDevices = WebRTCLib.mediaDevices;
 }
 
-const MicrophoneSelector = ({ visible, onClose, onMicrophoneSelected, currentDeviceId }) => {
+const MicrophoneSelector = ({
+  visible,
+  onClose,
+  onMicrophoneSelected,
+  currentDeviceId,
+}) => {
   const [availableMicrophones, setAvailableMicrophones] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -34,22 +39,24 @@ const MicrophoneSelector = ({ visible, onClose, onMicrophoneSelected, currentDev
   const loadMicrophones = async () => {
     setLoading(true);
     try {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === "web") {
         // Web platform - use enumerateDevices
         const devices = await mediaDevices.enumerateDevices();
-        const microphones = devices.filter(device => device.kind === 'audioinput');
+        const microphones = devices.filter(
+          (device) => device.kind === "audioinput"
+        );
         setAvailableMicrophones(microphones);
       } else {
         // Mobile platform - limited device enumeration
         // For now, we'll show a basic list since react-native-webrtc has limited device enumeration
         setAvailableMicrophones([
-          { deviceId: 'default', label: 'Default Microphone' },
-          { deviceId: 'communications', label: 'Communications Microphone' },
+          { deviceId: "default", label: "Default Microphone" },
+          { deviceId: "communications", label: "Communications Microphone" },
         ]);
       }
     } catch (error) {
-      console.error('Error loading microphones:', error);
-      Alert.alert('Error', 'Failed to load available microphones');
+      console.error("Error loading microphones:", error);
+      Alert.alert("Error", "Failed to load available microphones");
     } finally {
       setLoading(false);
     }
@@ -64,7 +71,7 @@ const MicrophoneSelector = ({ visible, onClose, onMicrophoneSelected, currentDev
     <TouchableOpacity
       style={[
         styles.microphoneItem,
-        item.deviceId === currentDeviceId && styles.selectedMicrophone
+        item.deviceId === currentDeviceId && styles.selectedMicrophone,
       ]}
       onPress={() => handleMicrophoneSelect(item)}
     >
@@ -74,10 +81,12 @@ const MicrophoneSelector = ({ visible, onClose, onMicrophoneSelected, currentDev
         color={item.deviceId === currentDeviceId ? "#4CAF50" : "#666"}
       />
       <View style={styles.microphoneInfo}>
-        <Text style={[
-          styles.microphoneName,
-          item.deviceId === currentDeviceId && styles.selectedText
-        ]}>
+        <Text
+          style={[
+            styles.microphoneName,
+            item.deviceId === currentDeviceId && styles.selectedText,
+          ]}
+        >
           {item.label || `Microphone ${item.deviceId}`}
         </Text>
         {item.deviceId === currentDeviceId && (
@@ -121,10 +130,7 @@ const MicrophoneSelector = ({ visible, onClose, onMicrophoneSelected, currentDev
           )}
 
           <View style={styles.footer}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={onClose}
-            >
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>

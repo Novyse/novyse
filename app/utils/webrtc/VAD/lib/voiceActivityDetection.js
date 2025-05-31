@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 
 class VoiceActivityDetection {
   constructor() {
@@ -21,7 +21,7 @@ class VoiceActivityDetection {
 
     this.isRunning = false;
     this.animationFrame = null;
-    
+
     // Mobile-specific properties
     this.mobileVADInterval = null;
     this.mobileAudioLevel = 0;
@@ -32,20 +32,21 @@ class VoiceActivityDetection {
     try {
       this.onSpeakingStatusChange = onSpeakingStatusChange;
 
-      if (Platform.OS === 'web') {
+      if (Platform.OS === "web") {
         return await this.initializeWeb(audioStream);
       } else {
         return await this.initializeMobile(audioStream);
       }
     } catch (error) {
-      console.error('Error initializing VAD:', error);
+      console.error("Error initializing VAD:", error);
       return false;
     }
   }
 
   async initializeWeb(audioStream) {
     // Create audio context
-    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    this.audioContext = new (window.AudioContext ||
+      window.webkitAudioContext)();
 
     // Create analyser node
     this.analyser = this.audioContext.createAnalyser();
@@ -69,8 +70,8 @@ class VoiceActivityDetection {
     // This is a fallback implementation since mobile doesn't have direct access to audio analysis
     this.mobileStream = audioStream;
     this.isInitialized = true;
-    
-    console.log('Mobile VAD initialized with simplified detection');
+
+    console.log("Mobile VAD initialized with simplified detection");
     return true;
   }
 
@@ -81,7 +82,7 @@ class VoiceActivityDetection {
 
     this.isRunning = true;
 
-    if (Platform.OS === 'web') {
+    if (Platform.OS === "web") {
       this.analyzeAudio();
     } else {
       this.startMobileVAD();
@@ -94,8 +95,8 @@ class VoiceActivityDetection {
     this.mobileVADInterval = setInterval(() => {
       if (this.mobileStream) {
         const audioTracks = this.mobileStream.getAudioTracks();
-        const hasActiveAudio = audioTracks.some(track => 
-          track.enabled && track.readyState === 'live'
+        const hasActiveAudio = audioTracks.some(
+          (track) => track.enabled && track.readyState === "live"
         );
 
         // Simple heuristic: if audio is active and we haven't been speaking, start speaking
@@ -104,7 +105,7 @@ class VoiceActivityDetection {
           // For mobile, we'll use a more aggressive detection
           // In a real implementation, you might want to use native modules for actual audio level detection
           this.setSpeakingStatus(true);
-          
+
           // Automatically stop speaking after a period (simulate speech detection)
           setTimeout(() => {
             if (this.isSpeaking) {
@@ -123,7 +124,7 @@ class VoiceActivityDetection {
 
     this.isRunning = false;
 
-    if (Platform.OS === 'web') {
+    if (Platform.OS === "web") {
       if (this.animationFrame) {
         cancelAnimationFrame(this.animationFrame);
         this.animationFrame = null;
@@ -150,7 +151,9 @@ class VoiceActivityDetection {
     this.analyser.getByteFrequencyData(this.dataArray);
 
     // Calculate average volume
-    const average = this.dataArray.reduce((sum, value) => sum + value, 0) / this.dataArray.length;
+    const average =
+      this.dataArray.reduce((sum, value) => sum + value, 0) /
+      this.dataArray.length;
 
     // Convert to dB scale (approximate)
     const volume = average > 0 ? 20 * Math.log10(average / 255) : -Infinity;
@@ -160,7 +163,10 @@ class VoiceActivityDetection {
       this.speakingCount++;
       this.silenceCount = 0;
 
-      if (this.speakingCount >= this.requiredSpeakingFrames && !this.isSpeaking) {
+      if (
+        this.speakingCount >= this.requiredSpeakingFrames &&
+        !this.isSpeaking
+      ) {
         this.setSpeakingStatus(true);
       }
     } else if (volume < this.silenceThreshold) {
@@ -185,19 +191,18 @@ class VoiceActivityDetection {
     if (this.onSpeakingStatusChange) {
       this.onSpeakingStatusChange(speaking);
     }
-
   }
 
   cleanup() {
     this.stop();
 
-    if (Platform.OS === 'web') {
+    if (Platform.OS === "web") {
       if (this.microphone) {
         this.microphone.disconnect();
         this.microphone = null;
       }
 
-      if (this.audioContext && this.audioContext.state !== 'closed') {
+      if (this.audioContext && this.audioContext.state !== "closed") {
         this.audioContext.close();
         this.audioContext = null;
       }

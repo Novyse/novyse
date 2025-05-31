@@ -205,7 +205,6 @@ const WebSocketMethods = {
         console.error("Invalid speaking data received:", data);
         return;
       }
-      console.debug("Remote user started speaking:", data.from);
       // Emit event to match your component expectations
       eventEmitter.emit("remote_user_started_speaking", {
         id: data.from,
@@ -218,7 +217,6 @@ const WebSocketMethods = {
         console.error("Invalid not_speaking data received:", data);
         return;
       }
-      console.debug("Remote user started speaking:", data.from);
       // Emit event to match your component expectations
       eventEmitter.emit("remote_user_stopped_speaking", {
         id: data.from,
@@ -232,13 +230,15 @@ const WebSocketMethods = {
         console.error("Invalid screen_share_started data received:", data);
         return;
       }
-      console.log(`Screen share started by ${data.from}, streamId: ${data.streamId}`);
+      console.log(
+        `Screen share started by ${data.from}, streamId: ${data.streamId}`
+      );
 
       // Emit event to notify components
       eventEmitter.emit("screen_share_started", {
         from: data.from,
         streamId: data.streamId,
-        streamType: data.streamType
+        streamType: data.streamType,
       });
     });
 
@@ -247,13 +247,15 @@ const WebSocketMethods = {
         console.error("Invalid screen_share_stopped data received:", data);
         return;
       }
-      console.log(`Screen share stopped by ${data.from}, streamId: ${data.streamId}`);
+      console.log(
+        `Screen share stopped by ${data.from}, streamId: ${data.streamId}`
+      );
 
       // Emit event to notify components
       eventEmitter.emit("screen_share_stopped", {
         from: data.from,
         streamId: data.streamId,
-        streamType: data.streamType
+        streamType: data.streamType,
       });
     });
 
@@ -302,7 +304,7 @@ const WebSocketMethods = {
       to: chatId,
       from: from,
       streamId: streamId,
-      streamType: 'screenshare'
+      streamType: "screenshare",
     };
 
     socket.emit("screen_share_started", data);
@@ -318,7 +320,7 @@ const WebSocketMethods = {
       to: chatId,
       from: from,
       streamId: streamId,
-      streamType: 'screenshare'
+      streamType: "screenshare",
     };
 
     socket.emit("screen_share_stopped", data);

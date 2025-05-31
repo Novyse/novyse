@@ -79,7 +79,7 @@ export default function Index() {
             { justifyContent: "center", alignItems: "center" },
           ]}
         >
-          <Image source={bpup_logo} style={{ width: 100, height: 100 }}/>
+          <Image source={bpup_logo} style={{ width: 100, height: 100 }} />
           {/* <Text style={{ color: theme.text }}>Caricamento...</Text> */}
         </SafeAreaView>
       </SafeAreaProvider>
