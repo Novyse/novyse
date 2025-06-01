@@ -16,8 +16,6 @@ import moment from "moment";
 import { StatusBar } from "expo-status-bar";
 import { ThemeContext } from "@/context/ThemeContext";
 import NetInfo from "@react-native-community/netinfo";
-import Icon from "react-native-vector-icons/MaterialIcons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -41,6 +39,8 @@ import {
   Settings02Icon,
   UserGroup03Icon,
   Logout03Icon,
+  ArrowLeft02Icon,
+  MoreVerticalCircle01Icon,
 } from "@hugeicons/core-free-icons";
 
 const ChatList = () => {
@@ -475,7 +475,12 @@ const ChatList = () => {
             onPress={() => setSelectedChat(null)}
             style={styles.backButton}
           >
-            <Icon name="arrow-back" size={24} color={theme.icon} />
+            <HugeiconsIcon
+              icon={ArrowLeft02Icon}
+              size={24}
+              color={theme.icon}
+              strokeWidth={1.5}
+            />
           </Pressable>
         )}
         <Image
@@ -489,7 +494,12 @@ const ChatList = () => {
           style={styles.moreButton}
           onPress={() => setIsMenuVisible(!isMenuVisible)}
         >
-          <Icon name="more-vert" size={24} color={theme.icon} />
+          <HugeiconsIcon
+            icon={MoreVerticalCircle01Icon}
+            size={24}
+            color={theme.icon}
+            strokeWidth={1.5}
+          />
         </Pressable>
         {isMenuVisible && (
           <View style={styles.dropdownMenu}>
