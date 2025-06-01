@@ -496,6 +496,21 @@ const get = {
 
     return usersList;
   },
+  pinnedUser: () => {
+    return WebRTC.getPinnedUser();
+  },
 };
 
-export default { self, check, get };
+const pin = {
+  toggle: (rectangleId) => {
+    return WebRTC.togglePinUser(rectangleId);
+  },
+  set: (rectangleId) => {
+    return WebRTC.setPinnedUser(rectangleId);
+  },
+  clear: () => {
+    return WebRTC.setPinnedUser(null);
+  },
+};
+
+export default { self, check, get, pin };

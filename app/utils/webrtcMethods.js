@@ -83,8 +83,10 @@ class MultiPeerWebRTCManager {
   HEALTH_CHECK_INTERVAL = 5000; // 5 secondi per health check
   CONNECTION_TIMEOUT = 30000; // 30 secondi timeout per tentativi di connessione
   STABILIZATION_TIMEOUT = 15000; // 15 secondi per stabilizzazione connessione
-  // Aggiungi una proprietà per tracciare le rinegoziazioni in corso
   audioContextRef = null; // Riferimento al context audio
+  
+  // Pin state management
+  pinnedUserId = null; // ID of the currently pinned rectangle (user ID or screen share ID)
 
   constructor(
     myId = null,
@@ -2067,7 +2069,6 @@ class MultiPeerWebRTCManager {
       await this.connectToNewParticipant(message);
     }
   }
-
   async userLeft(message) {
     if (message.chat_id != this.chatId) {
       return;
@@ -2078,6 +2079,10 @@ class MultiPeerWebRTCManager {
       console.log(
         `MultiPeerWebRTCManager: Utente ${leavingUserId} uscito. Chiudo la connessione...`
       );
+      
+      // Clear pin if this user was pinned
+      this.clearPinIfUser(leavingUserId);
+      
       this.closePeerConnection(leavingUserId);
     }
   }
@@ -2276,10 +2281,11 @@ class MultiPeerWebRTCManager {
     this.reconnectionTimeouts = {};
 
     // Resetta ID
-    this.myId = null;
-
-    // Resetta chat ID
+    this.myId = null;    // Resetta chat ID
     this.chatId = null;
+
+    // Clear pin state when leaving vocal chat
+    this.pinnedUserId = null;
 
     // Disabilito gli event listeners non più necessari (candidate, offer, answer sono utili solo quando sei in una comms)
     this._removeEventListeners();
@@ -2715,11 +2721,83 @@ class MultiPeerWebRTCManager {
 
   /**
    * Remove all screen sharing streams
-   */
-  async removeAllScreenShareStreams() {
+   */  async removeAllScreenShareStreams() {
     const streamIds = Object.keys(this.screenStreams);
     for (const streamId of streamIds) {
       await this.removeScreenShareStream(streamId);
+    }
+  }
+
+  // ===== PIN MANAGEMENT =====
+    /**
+   * Set the pinned rectangle ID (can be user ID or screen share ID)
+   * @param {string|null} rectangleId - The rectangle ID to pin, or null to unpin
+   */
+  setPinnedUser(rectangleId) {
+    // Allow pinning any rectangle ID that could be rendered:
+    // 1. User IDs (participant IDs)
+    // 2. Screen share IDs (from any user)
+    // 3. Local user ID (self)
+    if (rectangleId !== null) {
+      const isValidRectangle = 
+        // Check if it's a regular user ID in the chat
+        this.userData[rectangleId] ||
+        // Check if it's the local user ID (self)
+        rectangleId === this.myId ||
+        // Check if it's a screen share ID from any user
+        Object.values(this.userData).some(user => 
+          user.active_screen_share && user.active_screen_share.includes(rectangleId)
+        ) ||
+        // Check if it's a local screen share ID
+        this.screenStreams && Object.keys(this.screenStreams).includes(rectangleId) ||
+        // Check if it's a remote screen share ID
+        Object.values(this.remoteScreenStreams || {}).some(userScreenShares =>
+          Object.keys(userScreenShares).includes(rectangleId)
+        );
+      
+      if (!isValidRectangle) {
+        console.warn(`Cannot pin rectangle ${rectangleId}: not found in current chat or screen shares`);
+        return false;
+      }
+    }
+    
+    const previousPinned = this.pinnedUserId;
+    this.pinnedUserId = rectangleId;
+    
+    console.log(`Pin state changed: ${previousPinned} -> ${rectangleId}`);
+    return true;
+  }
+    /**
+   * Get the currently pinned rectangle ID
+   * @returns {string|null} The pinned rectangle ID or null if no rectangle is pinned
+   */
+  getPinnedUser() {
+    return this.pinnedUserId;
+  }
+  
+  /**
+   * Toggle pin state for a rectangle
+   * @param {string} rectangleId - The rectangle ID to toggle pin for (user ID or screen share ID)
+   * @returns {boolean} True if pinning was successful, false otherwise
+   */
+  togglePinUser(rectangleId) {
+    if (this.pinnedUserId === rectangleId) {
+      // Unpin if already pinned
+      return this.setPinnedUser(null);
+    } else {
+      // Pin the rectangle
+      return this.setPinnedUser(rectangleId);
+    }
+  }
+  
+  /**
+   * Clear pinned rectangle if it matches the specified ID
+   * @param {string} rectangleId - The rectangle ID that should be unpinned if currently pinned
+   */
+  clearPinIfUser(rectangleId) {
+    if (this.pinnedUserId === rectangleId) {
+      console.log(`Clearing pin for rectangle ${rectangleId} (rectangle removed or unavailable)`);
+      this.pinnedUserId = null;
     }
   }
 }

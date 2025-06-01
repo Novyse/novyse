@@ -296,7 +296,8 @@ const UserCard = memo(
         <View style={styles.videoContainer}>
           <VideoContent {...videoProps} />
           <View style={speakingOverlayStyle} />
-          {onPin && !pinDisabled && <PinButton />} {/* Mostra il pulsante solo se onPin è presente e pinDisabled è false */}
+          {onPin && !pinDisabled && <PinButton />}
+          {/* Mostra il pulsante solo se onPin è presente e pinDisabled è false */}
         </View>
       </View>
     );

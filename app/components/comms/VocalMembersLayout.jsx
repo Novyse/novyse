@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useContext } from "react";
+import React, { useState, useCallback, useContext, useEffect } from "react";
 import { View, StyleSheet, Text, Platform } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserCard from "./UserCard";
 
 import utils from "../../utils/webrtc/utils";
-const { get, check } = utils;
+const { get, check, pin } = utils;
 
 let RTCView;
 if (Platform.OS === "web") {
@@ -28,7 +28,23 @@ const VocalMembersLayout = ({
     width: 0,
     height: 0,
   });
+  // State to track pin changes
   const [pinnedUserId, setPinnedUserId] = useState(null);
+  const [isTogglingPin, setIsTogglingPin] = useState(false);
+
+  // Sync pin state from WebRTC manager
+  useEffect(() => {
+    const currentPinnedUser = get.pinnedUser();
+    if (currentPinnedUser !== pinnedUserId) {
+      setPinnedUserId(currentPinnedUser);
+    }
+  }, [pinnedUserId]);
+
+  // Update pin state when profiles change (new users join/leave)
+  useEffect(() => {
+    const currentPinnedUser = get.pinnedUser();
+    setPinnedUserId(currentPinnedUser);
+  }, [profiles]);
 
   const { theme } = useContext(ThemeContext);
 
@@ -36,17 +52,39 @@ const VocalMembersLayout = ({
   const onContainerLayout = useCallback((event) => {
     const { width, height } = event.nativeEvent.layout;
     setContainerDimensions({ width, height });
-  }, []);
+  }, []); // Funzione per pinnare/unpinnare un utente
+  const handlePinUser = useCallback(
+    (userId) => {
+      
+      // Controlla se l'utente è nella chat vocale
+      if (!check.isInComms()) {
+        console.log("Non puoi pinnare utenti se non sei nella chat vocale");
+        return;
+      }
 
-  // Funzione per pinnare/unpinnare un utente
-  const handlePinUser = useCallback((userId) => {
-    // Controlla se l'utente è nella chat vocale
-    if (!check.isInComms()) {
-      console.log("Non puoi pinnare utenti se non sei nella chat vocale");
-      return;
-    }
-    setPinnedUserId(prevPinned => prevPinned === userId ? null : userId);
-  }, []);
+      setIsTogglingPin(true);
+      console.log(
+        `Toggling pin for user ${userId}, current pinned: ${pinnedUserId}`
+      );
+
+      // Use pin utils to toggle pin state
+      const success = pin.toggle(userId);
+      if (!success) {
+        console.warn(`Failed to toggle pin for user ${userId}`);
+      } else {
+        // Update local state to reflect the change immediately
+        const newPinnedUser = get.pinnedUser();
+        console.log(`Pin toggle successful, new pinned user: ${newPinnedUser}`);
+        setPinnedUserId(newPinnedUser);
+      }
+
+      // Reset the toggle flag after a short delay to prevent rapid clicks
+      setTimeout(() => {
+        setIsTogglingPin(false);
+      }, 200);
+    },
+    [isTogglingPin, pinnedUserId]
+  );
 
   // Calcolo ottimizzato del layout considerando anche le screen share
   const calculateLayout = useCallback(() => {
@@ -57,8 +95,8 @@ const VocalMembersLayout = ({
       }
 
       const { width, height } = containerDimensions;
-      const availableWidth = width - MARGIN * 2;
-      const availableHeight = height - MARGIN * 2;
+      const availableWidth = width - MARGIN;
+      const availableHeight = height - MARGIN;
 
       // Calcola dimensioni per occupare tutto lo spazio disponibile rispettando il rapporto 16:9
       const rectWidthByHeight = availableHeight * ASPECT_RATIO;
@@ -123,8 +161,8 @@ const VocalMembersLayout = ({
       }
     }
     // Calcola lo spazio disponibile con margini generosi per evitare overflow
-    const availableWidth = width - MARGIN * 4; // Margine extra per evitare overflow
-    const availableHeight = height - MARGIN * 4; // Margine extra per evitare overflow
+    const availableWidth = width - MARGIN;
+    const availableHeight = height - MARGIN;
 
     // Calcola la larghezza e altezza dei rettangoli rispettando il rapporto 16:9
     const maxRectWidth = availableWidth / numColumns;
@@ -142,7 +180,6 @@ const VocalMembersLayout = ({
     }
     rectWidth = Math.max(50, rectWidth * WIDTH_MULTIPLYER);
     rectHeight = Math.max(50 / ASPECT_RATIO, rectHeight * HEIGHT_MULTIPLYER);
-
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
   }, [containerDimensions, profiles, pinnedUserId]);
 
@@ -185,7 +222,6 @@ const VocalMembersLayout = ({
   // Render function for user profiles
   const renderProfile = (profile) => {
     const participantId = profile.from;
-    
     // Se c'è un utente pinnato e non è questo utente, non renderizzarlo
     if (pinnedUserId && pinnedUserId !== participantId) {
       return null;
@@ -224,10 +260,7 @@ const VocalMembersLayout = ({
       >
         {profiles.length > 0 ? (
           <>
-            {/* Render user profiles */}
             {profiles.map(renderProfile)}
-
-            {/* Render screen shares */}
             {profiles.map((profile) => {
               if (
                 profile.active_screen_share &&
