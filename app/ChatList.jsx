@@ -19,9 +19,12 @@ import NetInfo from "@react-native-community/netinfo";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import utils from "./utils/webrtc/utils";
+const { get, check } = utils;
 
 import CreateGroupModal from "./components/CreateGroupModal";
 import SidebarItem from "./components/SidebarItem";
+import BigFloatingCommsMenu from "./components/comms/BigFloatingCommsMenu";
 
 import Search from "./Search";
 import APIMethods from "./utils/APImethods";
@@ -52,7 +55,6 @@ const ChatList = () => {
   const [networkAvailable, setNetworkAvailable] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
-  const [isSettingsMenuVisible, setIsSettingsMenuVisible] = useState(false);
   const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] =
     useState(false);
   // se un utente ha accesso alla chat/gruppo, quindi per capire se mostrare la barra per mandare i messaggi oppure un pulsante join chat/group
@@ -371,14 +373,10 @@ const ChatList = () => {
   };
 
   const renderChatList = () => (
-    <View
-      style={[
-        styles.chatList,
-        { padding: 10, paddingTop: 0 },
-        !isSmallScreen && styles.largeScreenChatList,
-      ]}
-    >
+    <View style={[styles.chatListContainer]}>
       <FlatList
+        style={styles.flatList}
+        contentContainerStyle={styles.flatListContent}
         data={chats}
         keyExtractor={(item) => item.chat_id}
         renderItem={({ item }) => {
@@ -600,11 +598,9 @@ const ChatList = () => {
         <View style={styles.container}>
           {isSmallScreen ? (
             <>
-              {!isToggleSearchChats ? (
-                <View style={styles.chatList}>{renderChatList()}</View>
-              ) : (
-                <Search style={styles.chatList} />
-              )}
+              <View style={styles.chatList}>
+                {!isToggleSearchChats ? renderChatList() : <Search />}
+              </View>
               {selectedChat && (
                 <Animated.View
                   style={[
@@ -626,13 +622,80 @@ const ChatList = () => {
             </>
           ) : (
             <>
-              {!isToggleSearchChats ? (
-                renderChatList()
-              ) : (
-                <View style={[styles.chatList, styles.largeScreenChatList]}>
-                  <Search />
+              <View style={[styles.chatList, styles.largeScreenChatList]}>
+                <View style={styles.chatListWrapper}>
+                  {!isToggleSearchChats ? renderChatList() : <Search />}
+                  {/* BigFloatingCommsMenu con controlli annidati */}
+                  {console.log("CONTROLLO 1 - isSmallScreen:", !isSmallScreen)}
+                  {!isSmallScreen && (
+                    <>
+                      {console.log(
+                        "CONTROLLO 2 - isInComms:",
+                        check.isInComms()
+                      )}
+                      {check.isInComms() ? (
+                        // Se siamo in una chiamata
+                        <>
+                          {console.log(
+                            "CONTROLLO 3 - contentView:",
+                            contentView
+                          )}
+                          {(contentView == "chat") && (
+                            <>
+                              {console.log(
+                                "CONTROLLO 4 - selectedChat:",
+                                selectedChat,
+                                "commsId:",
+                                get.commsId()
+                              )}
+                              {selectedChat !== get.commsId() && (
+                                <>
+                                  {console.log(
+                                    "RENDERING BigFloatingCommsMenu in chiamata"
+                                  )}
+                                  <BigFloatingCommsMenu
+                                    onVoiceCall={() =>
+                                      console.log("Voice call")
+                                    }
+                                    onVideoCall={() =>
+                                      console.log("Video call")
+                                    }
+                                    onScreenShare={() =>
+                                      console.log("Screen share")
+                                    }
+                                  />
+                                </>
+                              )}
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        // Se NON siamo in una chiamata
+                        <>
+                          {console.log(
+                            "CONTROLLO 5 - selectedChat:",
+                            !selectedChat
+                          )}
+                          {!selectedChat && (
+                            <>
+                              {console.log(
+                                "RENDERING BigFloatingCommsMenu fuori chiamata"
+                              )}
+                              <BigFloatingCommsMenu
+                                onVoiceCall={() => console.log("Voice call")}
+                                onVideoCall={() => console.log("Video call")}
+                                onScreenShare={() =>
+                                  console.log("Screen share")
+                                }
+                              />
+                            </>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
                 </View>
-              )}
+              </View>
               {renderChatHeaderAndContent()}
             </>
           )}
@@ -840,6 +903,22 @@ function createStyle(theme, colorScheme) {
     },
     menuContainer: {
       flex: 1,
+    },
+    chatListContainer: {
+      flex: 1,
+      position: "relative",
+    },
+    chatListWrapper: {
+      flex: 1,
+      position: "relative",
+      paddingBottom: 26,
+    },
+    flatList: {
+      flex: 1,
+    },
+    flatListContent: {
+      padding: 10,
+      paddingTop: 0,
     },
   });
 }

@@ -18,6 +18,7 @@ export const Colors = {
     sideBarBackground: '#405770',               //sideBar - ChatList
     modalsBackground: '#416a90',
     messagesLink: "#61abe6",
+    bigFloatingCommsMenu: "#53709a"
   },
   light: {
     text: 'black',
@@ -38,6 +39,7 @@ export const Colors = {
     sideBarBackground: '#405770',               //sideBar - ChatList
     modalsBackground: '#416a90',
     messagesLink: "#61abe6",
+    bigFloatingCommsMenu: "#53709a"
   },
   dark: {
     text: 'white',
@@ -58,5 +60,6 @@ export const Colors = {
     sideBarBackground: '#405770',               //sideBar - ChatList
     modalsBackground: '#416a90',
     messagesLink: "#61abe6",
+    bigFloatingCommsMenu: "#53709a"
   },
 };
