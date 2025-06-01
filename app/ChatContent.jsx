@@ -19,15 +19,20 @@ import {
 import { ThemeContext } from "@/context/ThemeContext";
 import localDatabase from "./utils/localDatabaseMethods";
 import moment from "moment";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import eventEmitter from "./utils/EventEmitter";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import "react-native-get-random-values";
 import JsonParser from "./utils/JsonParser";
 import APIMethods from "./utils/APImethods";
-import * as Linking from "expo-linking"; // Importa Linking da expo-linking
+import * as Linking from "expo-linking";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import {
+  PlusSignIcon,
+  Mic02Icon,
+  SmileIcon,
+  SentIcon,
+  Clock01Icon
+} from "@hugeicons/core-free-icons";
 
 const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
   const messagesRef = useRef([]);
@@ -475,10 +480,11 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
                 />
                 <Text style={styles.timeText}>
                   {message.date_time === "" ? (
-                    <MaterialIcons
-                      name="access-time"
+                    <HugeiconsIcon
+                      icon={Clock01Icon}
                       size={14}
-                      color="#ffffff"
+                      color="#fff"
+                      strokeWidth={1.5}
                     />
                   ) : (
                     parseTime(message.date_time)
@@ -508,7 +514,12 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
           }}
         >
           <Pressable style={styles.iconButton}>
-            <MaterialCommunityIcons name="plus" size={24} color="#fff" />
+            <HugeiconsIcon
+              icon={PlusSignIcon}
+              size={24}
+              color="#fff"
+              strokeWidth={1.5}
+            />
           </Pressable>
           <View style={styles.bottomTextBarContainer}>
             <TextInput
@@ -524,21 +535,32 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
               }
             />
             <Pressable style={styles.iconButton}>
-              <FontAwesome6 name="face-smile" size={24} color="#fff" />
+              <HugeiconsIcon
+                icon={SmileIcon}
+                size={24}
+                color="#fff"
+                strokeWidth={1.5}
+              />
             </Pressable>
           </View>
 
           {isVoiceMessage ? (
             <Pressable onPress={handleVoiceMessage} style={styles.iconButton}>
-              <MaterialCommunityIcons
-                name="microphone"
+              <HugeiconsIcon
+                icon={Mic02Icon}
                 size={24}
                 color="#fff"
+                strokeWidth={1.5}
               />
             </Pressable>
           ) : (
             <Pressable onPress={handleSendMessage} style={styles.iconButton}>
-              <MaterialIcons name="arrow-upward" size={24} color="#fff" />
+              <HugeiconsIcon
+                icon={SentIcon}
+                size={24}
+                color="#fff"
+                strokeWidth={1.5}
+              />
             </Pressable>
           )}
         </View>
