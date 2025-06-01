@@ -4,7 +4,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import UserCard from "./UserCard";
 
 import utils from "../../utils/webrtc/utils";
-const { get } = utils;
+const { get, check } = utils;
 
 let RTCView;
 if (Platform.OS === "web") {
@@ -15,7 +15,7 @@ if (Platform.OS === "web") {
 
 // Costanti
 const ASPECT_RATIO = 16 / 9;
-const MARGIN = 0;
+const MARGIN = 10;
 const HEIGHT_MULTIPLYER = 1;
 const WIDTH_MULTIPLYER = 1;
 
@@ -40,6 +40,11 @@ const VocalMembersLayout = ({
 
   // Funzione per pinnare/unpinnare un utente
   const handlePinUser = useCallback((userId) => {
+    // Controlla se l'utente è nella chat vocale
+    if (!check.isInComms()) {
+      console.log("Non puoi pinnare utenti se non sei nella chat vocale");
+      return;
+    }
     setPinnedUserId(prevPinned => prevPinned === userId ? null : userId);
   }, []);
 
@@ -172,6 +177,7 @@ const VocalMembersLayout = ({
         videoStreamKey={videoStreamKeys[shareId]}
         isPinned={pinnedUserId === shareId}
         onPin={() => handlePinUser(shareId)}
+        pinDisabled={!check.isInComms()} // Disabilita il pin se non sei in comms
       />
     );
   };
@@ -201,6 +207,7 @@ const VocalMembersLayout = ({
         videoStreamKey={videoStreamKeys[participantId]}
         isPinned={pinnedUserId === participantId}
         onPin={() => handlePinUser(participantId)}
+        pinDisabled={!check.isInComms()} // Disabilita il pin se non sei in comms
       />
     );
   };

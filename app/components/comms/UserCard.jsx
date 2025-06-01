@@ -180,6 +180,7 @@ const UserCard = memo(
     videoStreamKey,
     isPinned = false,
     onPin,
+    pinDisabled,
   }) => {
     const { theme } = useContext(ThemeContext);
 
@@ -242,8 +243,6 @@ const UserCard = memo(
     const speakingOverlayStyle = useMemo(() => {
       const baseStyle = [styles.speakingOverlayContainer];
 
-      
-
       // Non mostrare il bordo speaking se l'utente non è in comms, è uno screen share, o non sta parlando
       if (!userIsInComms || isScreenShare || !isSpeaking) {
         return baseStyle;
@@ -266,14 +265,18 @@ const UserCard = memo(
     // Componente del pulsante pin
     const PinButton = () => (
       <TouchableOpacity
-        style={styles.pinButton}
+        style={[
+          styles.pinButton,
+          pinDisabled && styles.pinButtonDisabled, // Aggiungi stile disabled
+        ]}
         onPress={onPin}
-        activeOpacity={0.7}
+        disabled={pinDisabled} // Disabilita il pulsante
+        activeOpacity={pinDisabled ? 1 : 0.7}
       >
         <HugeiconsIcon
           icon={isPinned ? PinOffIcon : PinIcon}
           size={24}
-          color="#fff"
+          color={pinDisabled ? "#666" : "#fff"} // Colore grigio se disabilitato
           strokeWidth={1.5}
         />
       </TouchableOpacity>
@@ -293,7 +296,7 @@ const UserCard = memo(
         <View style={styles.videoContainer}>
           <VideoContent {...videoProps} />
           <View style={speakingOverlayStyle} />
-          {onPin && <PinButton />}
+          {onPin && !pinDisabled && <PinButton />} {/* Mostra il pulsante solo se onPin è presente e pinDisabled è false */}
         </View>
       </View>
     );
@@ -417,6 +420,9 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     alignItems: "center",
+  },
+  pinButtonDisabled: {
+    opacity: 0.5,
   },
   pinIconPinned: {
     backgroundColor: "#000",
