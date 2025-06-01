@@ -9,6 +9,7 @@ import {
   ComputerScreenShareIcon,
   ComputerRemoveIcon,
   Call02Icon,
+  Close02Icon,
 } from "@hugeicons/core-free-icons";
 
 const VocalBottomBarButton = ({ onPress, iconName, iconColor }) => {

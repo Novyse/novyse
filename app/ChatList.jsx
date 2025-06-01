@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import CreateGroupModal from "./components/CreateGroupModal";
 import SidebarItem from "./components/SidebarItem";
+import BigFloatingCommsMenu from "./components/comms/BigFloatingCommsMenu";
 
 import Search from "./Search";
 import APIMethods from "./utils/APImethods";
@@ -371,14 +372,10 @@ const ChatList = () => {
   };
 
   const renderChatList = () => (
-    <View
-      style={[
-        styles.chatList,
-        { padding: 10, paddingTop: 0 },
-        !isSmallScreen && styles.largeScreenChatList,
-      ]}
-    >
+    <View style={[styles.chatListContainer]}>
       <FlatList
+        style={styles.flatList}
+        contentContainerStyle={styles.flatListContent}
         data={chats}
         keyExtractor={(item) => item.chat_id}
         renderItem={({ item }) => {
@@ -600,11 +597,20 @@ const ChatList = () => {
         <View style={styles.container}>
           {isSmallScreen ? (
             <>
-              {!isToggleSearchChats ? (
-                <View style={styles.chatList}>{renderChatList()}</View>
-              ) : (
-                <Search style={styles.chatList} />
-              )}
+              <View style={styles.chatList}>
+                {!isToggleSearchChats ? (
+                  renderChatList()
+                ) : (
+                  <Search />
+                )}
+                {!selectedChat && (
+                  <BigFloatingCommsMenu
+                    onVoiceCall={() => console.log("Voice call")}
+                    onVideoCall={() => console.log("Video call")}
+                    onScreenShare={() => console.log("Screen share")}
+                  />
+                )}
+              </View>
               {selectedChat && (
                 <Animated.View
                   style={[
@@ -626,13 +632,22 @@ const ChatList = () => {
             </>
           ) : (
             <>
-              {!isToggleSearchChats ? (
-                renderChatList()
-              ) : (
-                <View style={[styles.chatList, styles.largeScreenChatList]}>
-                  <Search />
+              <View style={[styles.chatList, styles.largeScreenChatList]}>
+                <View style={styles.chatListWrapper}>
+                  {!isToggleSearchChats ? (
+                    renderChatList()
+                  ) : (
+                    <Search />
+                  )}
+                  {!selectedChat && !isSmallScreen && (
+                    <BigFloatingCommsMenu
+                      onVoiceCall={() => console.log("Voice call")}
+                      onVideoCall={() => console.log("Video call")}
+                      onScreenShare={() => console.log("Screen share")}
+                    />
+                  )}
                 </View>
-              )}
+              </View>
               {renderChatHeaderAndContent()}
             </>
           )}
@@ -840,6 +855,21 @@ function createStyle(theme, colorScheme) {
     },
     menuContainer: {
       flex: 1,
+    },
+    chatListContainer: {
+      flex: 1,
+      position: "relative",
+    },
+    chatListWrapper: {
+      flex: 1,
+      position: "relative",
+    },
+    flatList: {
+      flex: 1,
+    },
+    flatListContent: {
+      padding: 10,
+      paddingTop: 0,
     },
   });
 }
