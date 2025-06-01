@@ -48,6 +48,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
     // Listen for mobile camera switch events specifically for Android compatibility
     eventEmitter.on("mobile_camera_switched", handleStreamUpdate);
+
     const getMembers = async () => {
       const members = await get.commsMembers(chatId);
       console.log("[VocalContent] All profiles for debugging:", members);
@@ -107,15 +108,12 @@ const VocalContent = ({ selectedChat, chatId }) => {
       eventEmitter.off("mobile_camera_switched", handleStreamUpdate);
     };
   }, [chatId]);
+
   // Gestione globale degli stream
   const handleStreamUpdate = (data) => {
     // Only update streams if the user is still in comms
     if (!check.isInComms()) {
-      console.log("[VocalContent] User not in comms, ignoring stream update");
-
-      // Clear all active streams if user is no longer in comms
-      setActiveStreams({});
-      setVideoStreamKeys({});
+      console.log("[VocalContent] User not in comms or in the wrong comms view, ignoring stream update");
       return;
     }
 
@@ -129,7 +127,9 @@ const VocalContent = ({ selectedChat, chatId }) => {
       userData,
       timestamp,
       streamId,
-    }); // Handle screen sharing streams differently
+    });
+
+    // Handle screen sharing streams differently
     if (streamType === "screenshare" && streamId) {
       console.log(`[VocalContent] Adding screen share stream: ${streamId}`);
 
@@ -182,7 +182,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // Speech detection handlers
   const handleUserStartedSpeaking = () => {
-    if (check.isInComms()) {
+    if (check.isInComms() && chatId === get.commsId()) {
       // Aggiorna lo stato is_speaking per l'utente corrente in profilesInCommsChat
       setProfilesInCommsChat((prev) =>
         prev.map((profile) =>
@@ -195,7 +195,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   const handleUserStoppedSpeaking = () => {
-    if (check.isInComms()) {
+    if (check.isInComms() && chatId === get.commsId()) {
       // Aggiorna lo stato is_speaking per l'utente corrente in profilesInCommsChat
       setProfilesInCommsChat((prev) =>
         prev.map((profile) =>
@@ -256,6 +256,13 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
   // Screen sharing handlers
   const handleScreenShareStarted = (data) => {
+    if (!check.isInComms()) {
+      console.log(
+        "[VocalContent] User not in comms or in the wrong comms view, ignoring screen share start"
+      );
+      return;
+    }
+
     console.log("[VocalContent] Screen share started:", data);
 
     const { from, streamId } = data;
@@ -264,13 +271,18 @@ const VocalContent = ({ selectedChat, chatId }) => {
     if (from === get.myPartecipantId()) {
       console.log("[VocalContent] Ignoring own screen share started event");
       return;
-    }    // Find the user profile for this screen share using functional update
+    } // Find the user profile for this screen share using functional update
     console.log("[VocalContent] Finding user profile for screen share");
-    
-    setProfilesInCommsChat(currentProfiles => {
-      console.log("[VocalContent] Current profilesInCommsChat for debugging:", currentProfiles);
-      
-      let userProfile = currentProfiles.find(profile => profile.from === from);
+
+    setProfilesInCommsChat((currentProfiles) => {
+      console.log(
+        "[VocalContent] Current profilesInCommsChat for debugging:",
+        currentProfiles
+      );
+
+      let userProfile = currentProfiles.find(
+        (profile) => profile.from === from
+      );
 
       // If profile not found, create a minimal one
       if (!userProfile) {
@@ -312,6 +324,13 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   const handleScreenShareStopped = (data) => {
+    if (!check.isInComms()) {
+      console.log(
+        "[VocalContent] User not in comms or in the wrong comms view, ignoring screen share stop"
+      );
+      return;
+    }
+
     console.log("[VocalContent] Screen share stopped:", data);
 
     const { from, streamId } = data;

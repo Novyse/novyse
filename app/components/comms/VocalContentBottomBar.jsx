@@ -25,7 +25,7 @@ import {
 } from "@hugeicons/core-free-icons";
 
 import utils from "../../utils/webrtc/utils";
-const { self, check } = utils;
+const { get, self, check } = utils;
 
 const VocalContentBottomBar = ({ chatId }) => {
   const { theme } = useContext(ThemeContext);
@@ -39,8 +39,7 @@ const VocalContentBottomBar = ({ chatId }) => {
   const [currentCameraId, setCurrentCameraId] = useState(null);
   // State for mobile camera facing mode and preferences
   const [currentFacingMode, setCurrentFacingMode] = useState("user"); // 'user' for front, 'environment' for back
-  const [pendingCameraPreferences, setPendingCameraPreferences] =
-    useState(null); // Store camera preferences when video is off
+  const [pendingCameraPreferences, setPendingCameraPreferences] = useState(null); // Store camera preferences when video is off
 
   const handleJoinVocal = async () => {
     try {
@@ -57,6 +56,7 @@ const VocalContentBottomBar = ({ chatId }) => {
   const toggleAudio = async () => {
     setIsAudioEnabled(await self.toggleAudio());
   };
+
   const toggleVideo = async () => {
     const newVideoState = await self.toggleVideo();
     setIsVideoEnabled(newVideoState);
@@ -168,7 +168,8 @@ const VocalContentBottomBar = ({ chatId }) => {
           height: { ideal: 720 },
           aspectRatio: { ideal: 16 / 9 },
         },
-      };      const result = await self.switchMobileCamera(constraints, newFacingMode);
+      };      
+      const result = await self.switchMobileCamera(constraints, newFacingMode);
       if (result === false) {
         // Permission was denied or switch failed, do nothing
         console.log("Mobile camera switch failed or permission denied - staying in current state");
@@ -206,7 +207,7 @@ const VocalContentBottomBar = ({ chatId }) => {
 
   return (
     <View style={styles.container}>
-      {!check.isInComms() ? (
+      {(!check.isInComms() || get.commsId() !== chatId) ? (
         isLoading ? (
           <View style={styles.iconButton}>
             <ActivityIndicator color={theme.icon} size="small" />

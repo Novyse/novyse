@@ -689,6 +689,12 @@ const get = {
   pinnedUser: () => {
     return WebRTC.getPinnedUser();
   },
+  microphoneStatus: () => {
+    return WebRTC.localStream && WebRTC.localStream.getAudioTracks()[0]?.enabled;
+  },
+  videoStatus: () => {
+    return WebRTC.localStream && WebRTC.localStream.getVideoTracks()[0]?.enabled;
+  },
 };
 
 const pin = {

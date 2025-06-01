@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import {
   View,
   Text,
@@ -66,6 +66,9 @@ const ChatList = () => {
   const [userId, setUserId] = useState("");
   const [chatDetails, setChatDetails] = useState({});
   const [contentView, setContentView] = useState("chat");
+  
+  // Force re-render when comms state changes
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   // importo stile e temi colori
   const { colorScheme, theme } = useContext(ThemeContext);
@@ -197,7 +200,6 @@ const ChatList = () => {
       setSelectedChat(params.chatId);
     }
   }, [params.chatId]);
-
   useEffect(() => {
     if (isSmallScreen) {
       Animated.timing(chatContentPosition, {
@@ -207,6 +209,22 @@ const ChatList = () => {
       }).start();
     }
   }, [selectedChat, isSmallScreen]);
+  // Event-based comms state change detection
+  useEffect(() => {
+    const handleCommsStateChange = () => {
+      // Force re-render when someone joins or leaves comms
+      setForceUpdate(prev => prev + 1);
+    };
+
+    // Listen to comms events
+    eventEmitter.on("member_joined_comms", handleCommsStateChange);
+    eventEmitter.on("member_left_comms", handleCommsStateChange);
+
+    return () => {
+      eventEmitter.off("member_joined_comms", handleCommsStateChange);
+      eventEmitter.off("member_left_comms", handleCommsStateChange);
+    };
+  }, []);
 
   //logout dall'app sia locale (elimina DB) che remoto (API)
   const logout = async () => {
@@ -281,6 +299,62 @@ const ChatList = () => {
     // Potrebbe essere utile anche aggiornare selectedChat qui,
     // se la navigazione non lo fa già implicitamente
     setSelectedChat(newChatId);
+  };
+
+  // Handlers for BigFloatingCommsMenu actions
+  const handleVoiceCall = () => {
+    console.log("Voice call");
+    // Add your voice call logic here
+  };
+
+  const handleVideoCall = () => {
+    console.log("Video call");
+    // Add your video call logic here
+  };
+
+  const handleScreenShare = () => {
+    console.log("Screen share");
+    // Add your screen share logic here
+  };  
+  
+  // Optimized function to determine when to show BigFloatingCommsMenu
+  const shouldShowBigFloatingCommsMenu = useCallback(() => {
+    if (isSmallScreen) return false;
+
+    const isInComms = check.isInComms();
+
+    if (isInComms) {
+      const commsId = get.commsId();
+      
+      // If we're in a different chat than the comms chat, always show the menu
+      if (selectedChat !== commsId) {
+        return true;
+      }
+      
+      // If we're in the same chat as comms but in "chat" view, show the menu
+      if (selectedChat === commsId && contentView === "chat") {
+        return true;
+      }
+      
+      // If we're in the same chat as comms and in "vocal" or "both" view, don't show
+      return false;
+    } else {
+      // Show menu if we're not in a call and no chat is selected
+      return !selectedChat;
+    }
+  }, [isSmallScreen, selectedChat, contentView, forceUpdate]);
+
+  // Render BigFloatingCommsMenu with consistent props
+  const renderBigFloatingCommsMenu = () => {
+    if (!shouldShowBigFloatingCommsMenu()) return null;
+
+    return (
+      <BigFloatingCommsMenu
+        onVoiceCall={handleVoiceCall}
+        onVideoCall={handleVideoCall}
+        onScreenShare={handleScreenShare}
+      />
+    );
   };
 
   const renderSidebar = () => (
@@ -625,75 +699,7 @@ const ChatList = () => {
               <View style={[styles.chatList, styles.largeScreenChatList]}>
                 <View style={styles.chatListWrapper}>
                   {!isToggleSearchChats ? renderChatList() : <Search />}
-                  {/* BigFloatingCommsMenu con controlli annidati */}
-                  {console.log("CONTROLLO 1 - isSmallScreen:", !isSmallScreen)}
-                  {!isSmallScreen && (
-                    <>
-                      {console.log(
-                        "CONTROLLO 2 - isInComms:",
-                        check.isInComms()
-                      )}
-                      {check.isInComms() ? (
-                        // Se siamo in una chiamata
-                        <>
-                          {console.log(
-                            "CONTROLLO 3 - contentView:",
-                            contentView
-                          )}
-                          {(contentView == "chat") && (
-                            <>
-                              {console.log(
-                                "CONTROLLO 4 - selectedChat:",
-                                selectedChat,
-                                "commsId:",
-                                get.commsId()
-                              )}
-                              {selectedChat !== get.commsId() && (
-                                <>
-                                  {console.log(
-                                    "RENDERING BigFloatingCommsMenu in chiamata"
-                                  )}
-                                  <BigFloatingCommsMenu
-                                    onVoiceCall={() =>
-                                      console.log("Voice call")
-                                    }
-                                    onVideoCall={() =>
-                                      console.log("Video call")
-                                    }
-                                    onScreenShare={() =>
-                                      console.log("Screen share")
-                                    }
-                                  />
-                                </>
-                              )}
-                            </>
-                          )}
-                        </>
-                      ) : (
-                        // Se NON siamo in una chiamata
-                        <>
-                          {console.log(
-                            "CONTROLLO 5 - selectedChat:",
-                            !selectedChat
-                          )}
-                          {!selectedChat && (
-                            <>
-                              {console.log(
-                                "RENDERING BigFloatingCommsMenu fuori chiamata"
-                              )}
-                              <BigFloatingCommsMenu
-                                onVoiceCall={() => console.log("Voice call")}
-                                onVideoCall={() => console.log("Video call")}
-                                onScreenShare={() =>
-                                  console.log("Screen share")
-                                }
-                              />
-                            </>
-                          )}
-                        </>
-                      )}
-                    </>
-                  )}
+                  {renderBigFloatingCommsMenu()}
                 </View>
               </View>
               {renderChatHeaderAndContent()}
