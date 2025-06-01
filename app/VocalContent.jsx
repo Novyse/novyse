@@ -25,52 +25,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
     multiPeerWebRTCManager.setAudioContext(audioContext);
   }, [audioContext]); // da capire se questa parte si può far esplodere @SamueleOrazioDurante @Matt3opower
 
-  // Add effect to monitor comms status and clear streams when user leaves comms
-  useEffect(() => {
-    let wasInComms = check.isInComms();
-
-    const interval = setInterval(async () => {
-      const currentlyInComms = check.isInComms();
-
-      if (!currentlyInComms) {
-        // Clear all active streams when user is no longer in comms
-        // but keep the profiles so other users are still visible
-        setActiveStreams({});
-
-        // Se l'utente era in comms e ora non lo è più, aggiorna la lista dei membri
-        if (wasInComms && !currentlyInComms) {
-          console.log(
-            "[VocalContent] User left comms, updating member list from API"
-          );
-          try {
-            // Aspetta un momento per permettere al server di aggiornarsi
-            setTimeout(async () => {
-              const members = await get.commsMembers(chatId);
-              setProfilesInCommsChat(members);
-            }, 1000);
-          } catch (error) {
-            console.error(
-              "[VocalContent] Error updating members after leaving comms:",
-              error
-            );
-          }
-        }
-
-        // Aggiorna solo lo stato speaking di tutti gli utenti a false
-        setProfilesInCommsChat((prev) =>
-          prev.map((profile) => ({
-            ...profile,
-            is_speaking: false,
-          }))
-        );
-      }
-
-      wasInComms = currentlyInComms;
-    }, 1000); // Check every second
-
-    return () => clearInterval(interval);
-  }, [chatId]);
-
   useEffect(() => {
     // Registra i listeners
     eventEmitter.on("member_joined_comms", handleMemberJoined);
@@ -88,12 +42,42 @@ const VocalContent = ({ selectedChat, chatId }) => {
       handleRemoteUserStoppedSpeaking
     );
 
+    // Screen sharing events
+    eventEmitter.on("screen_share_started", handleScreenShareStarted);
+    eventEmitter.on("screen_share_stopped", handleScreenShareStopped);
+
     // Listen for mobile camera switch events specifically for Android compatibility
     eventEmitter.on("mobile_camera_switched", handleStreamUpdate);
-
     const getMembers = async () => {
       const members = await get.commsMembers(chatId);
+      console.log("[VocalContent] All profiles for debugging:", members);
       setProfilesInCommsChat(members);
+
+      // Process any existing screen shares from the profiles
+      members.forEach((profile) => {
+        if (
+          profile.active_screen_share &&
+          Array.isArray(profile.active_screen_share)
+        ) {
+          profile.active_screen_share.forEach((streamId) => {
+            console.log(
+              `[VocalContent] Creating screen share rectangle from existing profile for ${profile.from}, streamId: ${streamId}`
+            );
+            setActiveStreams((prevStreams) => ({
+              ...prevStreams,
+              [streamId]: {
+                stream: null, // Will be filled when WebRTC stream arrives
+                userData: profile,
+                streamType: "screenshare",
+                streamId,
+                hasAudio: false,
+                hasVideo: false,
+                isPlaceholder: true, // Mark this as a placeholder until real stream arrives
+              },
+            }));
+          });
+        }
+      });
     };
 
     getMembers();
@@ -116,10 +100,13 @@ const VocalContent = ({ selectedChat, chatId }) => {
         handleRemoteUserStoppedSpeaking
       );
 
+      // Screen sharing events cleanup
+      eventEmitter.off("screen_share_started", handleScreenShareStarted);
+      eventEmitter.off("screen_share_stopped", handleScreenShareStopped);
+
       eventEmitter.off("mobile_camera_switched", handleStreamUpdate);
     };
   }, [chatId]);
-
   // Gestione globale degli stream
   const handleStreamUpdate = (data) => {
     // Only update streams if the user is still in comms
@@ -132,7 +119,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
       return;
     }
 
-    const { participantId, stream, streamType, userData, timestamp } = data;
+    const { participantId, stream, streamType, userData, timestamp, streamId } =
+      data;
 
     console.log(`[VocalContent] Stream update for ${participantId}:`, {
       streamType,
@@ -140,26 +128,55 @@ const VocalContent = ({ selectedChat, chatId }) => {
       hasVideo: stream?.getVideoTracks().length > 0,
       userData,
       timestamp,
-    });
+      streamId,
+    }); // Handle screen sharing streams differently
+    if (streamType === "screenshare" && streamId) {
+      console.log(`[VocalContent] Adding screen share stream: ${streamId}`);
 
-    // Aggiorna lo stato degli stream attivi
-    setActiveStreams((prev) => ({
-      ...prev,
-      [participantId]: {
-        stream,
-        userData,
-        streamType,
-        hasAudio: stream?.getAudioTracks().length > 0,
-        hasVideo: stream?.getVideoTracks().length > 0,
-      },
-    }));
+      setActiveStreams((prev) => {
+        // Check if we already have a placeholder for this screen share
+        const existingEntry = prev[streamId];
 
-    // For Android: Update video stream keys to force RTCView re-render when stream changes
-    if (Platform.OS === "android" && stream?.getVideoTracks().length > 0) {
-      setVideoStreamKeys((prev) => ({
+        return {
+          ...prev,
+          [streamId]: {
+            stream,
+            userData: existingEntry?.userData || userData,
+            streamType: "screenshare",
+            hasAudio: stream?.getAudioTracks().length > 0,
+            hasVideo: stream?.getVideoTracks().length > 0,
+            isPlaceholder: false, // No longer a placeholder, we have the real stream
+          },
+        };
+      });
+
+      // For Android: Update video stream keys to force RTCView re-render when stream changes
+      if (Platform.OS === "android" && stream?.getVideoTracks().length > 0) {
+        setVideoStreamKeys((prev) => ({
+          ...prev,
+          [streamId]: timestamp || Date.now(),
+        }));
+      }
+    } else {
+      // Handle regular webcam streams
+      setActiveStreams((prev) => ({
         ...prev,
-        [participantId]: timestamp || Date.now(),
+        [participantId]: {
+          stream,
+          userData,
+          streamType,
+          hasAudio: stream?.getAudioTracks().length > 0,
+          hasVideo: stream?.getVideoTracks().length > 0,
+        },
       }));
+
+      // For Android: Update video stream keys to force RTCView re-render when stream changes
+      if (Platform.OS === "android" && stream?.getVideoTracks().length > 0) {
+        setVideoStreamKeys((prev) => ({
+          ...prev,
+          [participantId]: timestamp || Date.now(),
+        }));
+      }
     }
   };
 
@@ -237,7 +254,92 @@ const VocalContent = ({ selectedChat, chatId }) => {
       );
     }
   };
+  // Screen sharing handlers
+  const handleScreenShareStarted = (data) => {
+    console.log("[VocalContent] Screen share started:", data);
 
+    const { from, streamId } = data;
+
+    // Skip if it's from the current user (they already have their own screen share)
+    if (from === get.myPartecipantId()) {
+      console.log("[VocalContent] Ignoring own screen share started event");
+      return;
+    }    // Find the user profile for this screen share using functional update
+    console.log("[VocalContent] Finding user profile for screen share");
+    
+    setProfilesInCommsChat(currentProfiles => {
+      console.log("[VocalContent] Current profilesInCommsChat for debugging:", currentProfiles);
+      
+      let userProfile = currentProfiles.find(profile => profile.from === from);
+
+      // If profile not found, create a minimal one
+      if (!userProfile) {
+        console.log(
+          `[VocalContent] User profile not found for ${from}, creating minimal profile`
+        );
+        userProfile = {
+          from: from,
+          handle: "Unknown User",
+          is_speaking: false,
+        };
+      }
+
+      console.log(
+        `[VocalContent] Creating screen share rectangle for user ${from}, streamId: ${streamId}`
+      );
+
+      // Create the screen share rectangle immediately using streamId as the key
+      setActiveStreams((prev) => ({
+        ...prev,
+        [streamId]: {
+          stream: null, // Will be filled when WebRTC stream arrives
+          userData: userProfile,
+          streamType: "screenshare",
+          streamId,
+          hasAudio: false,
+          hasVideo: false,
+          isPlaceholder: true, // Mark this as a placeholder until real stream arrives
+        },
+      }));
+
+      console.log(
+        `[VocalContent] Created screen share rectangle with streamId: ${streamId}`
+      );
+
+      // Return the same profiles (no modification needed)
+      return currentProfiles;
+    });
+  };
+
+  const handleScreenShareStopped = (data) => {
+    console.log("[VocalContent] Screen share stopped:", data);
+
+    const { from, streamId } = data;
+
+    // Skip if it's from the current user
+    if (from === get.myPartecipantId()) {
+      console.log("[VocalContent] Ignoring own screen share stopped event");
+      return;
+    }
+
+    setActiveStreams((prev) => {
+      const newStreams = { ...prev };
+      delete newStreams[streamId];
+      console.log(
+        `[VocalContent] Removed screen share ${streamId} from active streams`
+      );
+      return newStreams;
+    });
+
+    // Also clean up video stream keys for Android
+    if (Platform.OS === "android") {
+      setVideoStreamKeys((prev) => {
+        const newKeys = { ...prev };
+        delete newKeys[streamId];
+        return newKeys;
+      });
+    }
+  };
   // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
     console.log("[VocalContent] handleMemberJoined called with:", data);
@@ -254,6 +356,31 @@ const VocalContent = ({ selectedChat, chatId }) => {
         console.log("[VocalContent] Previous profiles:", prev);
         const newProfiles = [...prev, data];
         console.log("[VocalContent] New profiles:", newProfiles);
+
+        // Create screen share rectangles for any active screen shares in the new profile
+        if (
+          data.active_screen_share &&
+          Array.isArray(data.active_screen_share)
+        ) {
+          data.active_screen_share.forEach((streamId) => {
+            console.log(
+              `[VocalContent] Creating screen share rectangle for ${data.from}, streamId: ${streamId}`
+            );
+            setActiveStreams((prevStreams) => ({
+              ...prevStreams,
+              [streamId]: {
+                stream: null, // Will be filled when WebRTC stream arrives
+                userData: data,
+                streamType: "screenshare",
+                streamId,
+                hasAudio: false,
+                hasVideo: false,
+                isPlaceholder: true, // Mark this as a placeholder until real stream arrives
+              },
+            }));
+          });
+        }
+
         return newProfiles;
       });
     } else {
@@ -270,12 +397,49 @@ const VocalContent = ({ selectedChat, chatId }) => {
         prevProfiles.filter((profile) => profile.from !== data.from)
       );
 
-      // Rimuovo anche lo stream associato
+      // Rimuovo anche lo stream associato e tutti i screen share streams dell'utente
       setActiveStreams((prev) => {
         const newStreams = { ...prev };
         delete newStreams[data.from];
+
+        // Also remove any screen share streams from this user
+        // Screen shares are stored with streamId as key, but we need to check userData.from
+        Object.keys(newStreams).forEach((key) => {
+          const streamData = newStreams[key];
+          if (
+            streamData.streamType === "screenshare" &&
+            streamData.userData?.from === data.from
+          ) {
+            delete newStreams[key];
+            console.log(
+              `[VocalContent] Removed screen share ${key} for departing user ${data.from}`
+            );
+          }
+        });
+
         return newStreams;
       });
+
+      // Also clean up video stream keys for Android
+      if (Platform.OS === "android") {
+        setVideoStreamKeys((prev) => {
+          const newKeys = { ...prev };
+          delete newKeys[data.from];
+
+          // Also remove screen share video keys
+          Object.keys(newKeys).forEach((key) => {
+            const streamData = activeStreams[key];
+            if (
+              streamData?.streamType === "screenshare" &&
+              streamData?.userData?.from === data.from
+            ) {
+              delete newKeys[key];
+            }
+          });
+
+          return newKeys;
+        });
+      }
 
       // Cleanup elementi DOM per Web
       if (Platform.OS === "web") {
@@ -285,6 +449,22 @@ const VocalContent = ({ selectedChat, chatId }) => {
         if (container) {
           container.remove();
         }
+
+        // Also cleanup any screen share containers for this user
+        Object.keys(activeStreams).forEach((key) => {
+          const streamData = activeStreams[key];
+          if (
+            streamData?.streamType === "screenshare" &&
+            streamData?.userData?.from === data.from
+          ) {
+            const screenShareContainer = document.getElementById(
+              `media-container-${key}`
+            );
+            if (screenShareContainer) {
+              screenShareContainer.remove();
+            }
+          }
+        });
       }
     }
   };

@@ -88,15 +88,25 @@ class WebRTCEventReceiver {
 
   // Screen Sharing Handlers
   handleScreenShareStarted(data) {
-    console.log("[EventReceiver] Screen share started:", data);
-    SoundPlayer.getInstance().playSound("comms_stream_started");
-    this.webrtcManager?.handleRemoteScreenShareStarted(data);
+    if (
+      data.from !== this.webrtcManager?.myId &&
+      this.webrtcManager?.myId !== undefined
+    ) {
+      console.log("[EventReceiver] Screen share started:", data);
+      SoundPlayer.getInstance().playSound("comms_stream_started");
+      this.webrtcManager?.handleRemoteScreenShareStarted(data);
+    }
   }
 
   handleScreenShareStopped(data) {
-    console.log("[EventReceiver] Screen share stopped:", data);
-    SoundPlayer.getInstance().playSound("comms_stream_stopped");
-    this.webrtcManager?.handleRemoteScreenShareStopped(data);
+    if (
+      data.from !== this.webrtcManager?.myId &&
+      this.webrtcManager?.myId !== undefined
+    ) {
+      console.log("[EventReceiver] Screen share stopped:", data);
+      SoundPlayer.getInstance().playSound("comms_stream_stopped");
+      this.webrtcManager?.handleRemoteScreenShareStopped(data);
+    }
   }
 
   // User Management Handlers

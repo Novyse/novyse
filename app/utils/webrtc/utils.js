@@ -184,13 +184,23 @@ const self = {
           aspectRatio: { ideal: 16 / 9 },
           facingMode: deviceId ? undefined : "user",
         },
-      };
+      };      let newVideoStream, newVideoTrack;
+      try {
+        newVideoStream = await mediaDevices.getUserMedia(newConstraints);
+        newVideoTrack = newVideoStream.getVideoTracks()[0];
 
-      const newVideoStream = await mediaDevices.getUserMedia(newConstraints);
-      const newVideoTrack = newVideoStream.getVideoTracks()[0];
-
-      if (!newVideoTrack) {
-        throw new Error("Failed to get video track from new device");
+        if (!newVideoTrack) {
+          throw new Error("Failed to get video track from new device");
+        }
+      } catch (permissionError) {
+        // Handle permission denied gracefully
+        if (permissionError.name === "NotAllowedError" || 
+            permissionError.message.includes("Permission denied") ||
+            permissionError.message.includes("cancelled by user")) {
+          console.log("Camera permission denied by user - silently ignoring");
+          return false; // Return false instead of throwing, so the UI can stay in previous state
+        }
+        throw permissionError; // Re-throw other errors
       }
 
       // Set the same enabled state as the previous track
@@ -260,14 +270,20 @@ const self = {
           "No current video track available for mobile camera switching"
         );
         return false;
-      }
-
-      // Try different constraint approaches for better mobile compatibility
+      }      // Try different constraint approaches for better mobile compatibility
       let newVideoStream;
       try {
         // First try with exact facingMode
         newVideoStream = await mediaDevices.getUserMedia(constraints);
       } catch (exactError) {
+        // Handle permission denied gracefully even in exact mode
+        if (exactError.name === "NotAllowedError" || 
+            exactError.message.includes("Permission denied") ||
+            exactError.message.includes("cancelled by user")) {
+          console.log("Mobile camera permission denied by user - silently ignoring");
+          return false; // Return false instead of throwing, so the UI can stay in previous state
+        }
+        
         console.warn(
           "Exact facingMode failed, trying ideal:",
           exactError.message
@@ -285,20 +301,39 @@ const self = {
           };
           newVideoStream = await mediaDevices.getUserMedia(fallbackConstraints);
         } catch (idealError) {
+          // Handle permission denied gracefully in ideal mode
+          if (idealError.name === "NotAllowedError" || 
+              idealError.message.includes("Permission denied") ||
+              idealError.message.includes("cancelled by user")) {
+            console.log("Mobile camera permission denied by user - silently ignoring");
+            return false;
+          }
+          
           console.warn(
             "Ideal facingMode failed, trying basic:",
             idealError.message
           );
 
-          // Last resort: basic constraints
-          const basicConstraints = {
-            video: {
-              facingMode: facingMode,
-              width: 1280,
-              height: 720,
-            },
-          };
-          newVideoStream = await mediaDevices.getUserMedia(basicConstraints);
+          try {
+            // Last resort: basic constraints
+            const basicConstraints = {
+              video: {
+                facingMode: facingMode,
+                width: 1280,
+                height: 720,
+              },
+            };
+            newVideoStream = await mediaDevices.getUserMedia(basicConstraints);
+          } catch (basicError) {
+            // Handle permission denied gracefully in basic mode
+            if (basicError.name === "NotAllowedError" || 
+                basicError.message.includes("Permission denied") ||
+                basicError.message.includes("cancelled by user")) {
+              console.log("Mobile camera permission denied by user - silently ignoring");
+              return false;
+            }
+            throw basicError; // Re-throw other errors
+          }
         }
       }
 
@@ -374,7 +409,6 @@ const self = {
   },
 
   // quando premo pulsante video
-
   async toggleVideo() {
     try {
       if (!WebRTC.isVideoEnabled) {
@@ -383,6 +417,10 @@ const self = {
         if (videoTrack) {
           WebRTC.isVideoEnabled = true;
           return true;
+        } else {
+          // Permission was denied or failed to get video track, stay disabled
+          console.log("Video track permission denied or failed - staying disabled");
+          return false;
         }
       } else {
         // Disattiva video
@@ -392,30 +430,182 @@ const self = {
       }
     } catch (err) {
       console.error("Errore nel toggle video:", err);
+      // Don't throw error for permission denied cases
+      if (err.name === "NotAllowedError" || 
+          err.message.includes("Permission denied") ||
+          err.message.includes("cancelled by user")) {
+        console.log("Video permission denied - staying in current state");
+        return WebRTC.isVideoEnabled; // Return current state
+      }
       throw new Error("Errore nel toggle video: " + err.message);
     }
   },
-
   // quando premo pulsante screen share
-
   async addScreenShare() {
-    // da sistemare con chiamata API e manda tramite emitter
     try {
-      const result = WebRTC.addScreenShareStream();
-      if (result) {
-        console.log(
-          `[ScreenShare] Screen share started with ID: ${result.streamId}`
-        );
-        return result;
+      // First, ask for screen share permission and get the media stream
+      let screenStream;
+      if (Platform.OS === "web") {
+        try {
+          screenStream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+              aspectRatio: { ideal: 16 / 9 },
+            },
+            audio: true, // Include system audio if available
+          });
+        } catch (permissionError) {
+          // Handle permission denied gracefully for web
+          if (permissionError.name === "NotAllowedError" || 
+              permissionError.message.includes("Permission denied") ||
+              permissionError.message.includes("cancelled by user") ||
+              permissionError.message.includes("Permission dismissed")) {
+            console.log("Screen share permission denied by user - silently ignoring");
+            return null; // Return null instead of throwing, so the UI can stay in previous state
+          }
+          throw permissionError; // Re-throw other errors
+        }
       } else {
-        console.warn("[ScreenShare] Failed to start screen share");
-        throw new Error("Failed to start screen share");
+        // For mobile platforms, try different methods
+        try {
+          if (mediaDevices.getDisplayMedia) {
+            try {
+              screenStream = await mediaDevices.getDisplayMedia({
+                video: {
+                  width: { ideal: 1920, min: 720, max: 1920 },
+                  height: { ideal: 1080, min: 480, max: 1080 },
+                  frameRate: { ideal: 15, max: 30 },
+                },
+                audio: false,
+              });
+            } catch (displayError) {
+              // Handle permission denied gracefully for mobile getDisplayMedia
+              if (displayError.name === "NotAllowedError" || 
+                  displayError.message.includes("Permission denied") ||
+                  displayError.message.includes("cancelled by user")) {
+                console.log("Mobile screen share permission denied by user - silently ignoring");
+                return null;
+              }
+              throw displayError;
+            }
+          } else {
+            // Fallback for platforms without getDisplayMedia
+            try {
+              screenStream = await mediaDevices.getUserMedia({
+                video: {
+                  mandatory: {
+                    chromeMediaSource: "screen",
+                    maxWidth: 1920,
+                    maxHeight: 1080,
+                    maxFrameRate: 15,
+                  },
+                },
+                audio: false,
+              });
+            } catch (screenError) {
+              // Handle permission denied gracefully for getUserMedia with screen source
+              if (screenError.name === "NotAllowedError" || 
+                  screenError.message.includes("Permission denied") ||
+                  screenError.message.includes("cancelled by user")) {
+                console.log("Mobile screen share permission denied by user - silently ignoring");
+                return null;
+              }
+              throw screenError;
+            }
+          }
+        } catch (mobileError) {
+          // Handle permission denied gracefully even in mobile error handling
+          if (mobileError.name === "NotAllowedError" || 
+              mobileError.message.includes("Permission denied") ||
+              mobileError.message.includes("cancelled by user")) {
+            console.log("Mobile screen share permission denied by user - silently ignoring");
+            return null;
+          }
+          
+          console.warn("Mobile screen capture failed, using camera fallback:", mobileError.message);
+          try {
+            screenStream = await mediaDevices.getUserMedia({
+              video: {
+                width: { ideal: 1920, min: 720 },
+                height: { ideal: 1080, min: 480 },
+                frameRate: { ideal: 30, min: 15 },
+                facingMode: { ideal: "environment" },
+              },
+              audio: false,
+            });
+          } catch (cameraError) {
+            // Handle permission denied gracefully for camera fallback
+            if (cameraError.name === "NotAllowedError" || 
+                cameraError.message.includes("Permission denied") ||
+                cameraError.message.includes("cancelled by user")) {
+              console.log("Camera fallback permission denied by user - silently ignoring");
+              return null;
+            }
+            throw cameraError;
+          }
+        }
       }
-    } catch (error) {
+
+      if (!screenStream) {
+        throw new Error("Failed to get screen share permission or stream");
+      }
+
+      // Now that we have permission and the stream, get the screen share ID from API
+      const data = await APIMethods.startScreenShare(WebRTC.chatId);
+
+      if (data.screen_share_started) {
+        const screenShareId = data.screen_share_id;
+      
+        const result = WebRTC.addScreenShareStream(screenShareId, screenStream);
+        if (result) {
+          console.log(
+            `[ScreenShare] Screen share started with ID: ${screenShareId}`
+          );
+          return result;
+        } else {
+          console.warn("[ScreenShare] Failed to start screen share");
+          // Clean up the stream if we failed to add it
+          screenStream.getTracks().forEach(track => track.stop());
+          throw new Error("Failed to start screen share");
+        }
+      } else {
+        throw new Error("Screen share couldnt be started");
+      }    } catch (error) {
+      // Handle permission denied gracefully at the top level
+      if (error.name === "NotAllowedError" || 
+          error.message.includes("Permission denied") ||
+          error.message.includes("cancelled by user") ||
+          error.message.includes("Permission dismissed")) {
+        console.log("Screen share permission denied by user - silently ignoring");
+        return null; // Return null instead of throwing, so the UI can stay in previous state
+      }
+      
       console.error("[ScreenShare] Error starting screen share:", error);
       throw new Error("Error starting screen share: " + error.message);
     }
   },
+  // quando premo x per fermare lo screen share
+
+  async stopScreenShare(screenShareId) {
+    try {
+      const data = await APIMethods.stopScreenShare(
+        WebRTC.chatId,
+        screenShareId
+      );
+
+      if (!data.screen_share_stopped) {
+        console.warn("[ScreenShare] Failed to stop screen share");
+        throw new Error("Failed to stop screen share");
+      }
+
+      WebRTC.removeScreenShareStream(screenShareId);
+      console.log("[ScreenShare] Screen share stopped successfully");
+    } catch (error) {
+      console.error("[ScreenShare] Error stopping screen share:", error);
+      throw new Error("Error stopping screen share: " + error.message);
+    }
+  }
 };
 
 const handle = {

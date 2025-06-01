@@ -226,36 +226,34 @@ const WebSocketMethods = {
 
     // Screen sharing signaling
     socket.on("screen_share_started", async (data) => {
-      if (!data || !data.from || !data.streamId) {
+      if (!data || !data.from || !data.screen_share_id) {
         console.error("Invalid screen_share_started data received:", data);
         return;
       }
       console.log(
-        `Screen share started by ${data.from}, streamId: ${data.streamId}`
+        `streamId: ${data.screen_share_id}`
       );
 
       // Emit event to notify components
       eventEmitter.emit("screen_share_started", {
         from: data.from,
-        streamId: data.streamId,
-        streamType: data.streamType,
+        streamId: data.screen_share_id
       });
     });
 
     socket.on("screen_share_stopped", async (data) => {
-      if (!data || !data.from || !data.streamId) {
+      if (!data || !data.from || !data.screen_share_id) {
         console.error("Invalid screen_share_stopped data received:", data);
         return;
       }
       console.log(
-        `Screen share stopped by ${data.from}, streamId: ${data.streamId}`
+        `streamId: ${data.screen_share_id}`
       );
 
       // Emit event to notify components
       eventEmitter.emit("screen_share_stopped", {
         from: data.from,
-        streamId: data.streamId,
-        streamType: data.streamType,
+        streamId: data.screen_share_id
       });
     });
 

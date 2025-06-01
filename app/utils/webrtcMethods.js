@@ -1,4 +1,5 @@
 import WebSocketMethods from "./webSocketMethods";
+import APIMethods from "./APImethods";
 import { Platform } from "react-native";
 import eventEmitter from "./EventEmitter";
 import WebRTCEventReceiver from "./webrtc/eventReceiver";
@@ -652,7 +653,6 @@ class MultiPeerWebRTCManager {
       return null;
     }
   }
-
   // aggiunge una video track allo stream
   async addVideoTrack() {
     try {
@@ -699,6 +699,11 @@ class MultiPeerWebRTCManager {
         return videoTrack;
       }
     } catch (error) {
+      // Handle permission denied gracefully
+      if (error.name === "NotAllowedError" || error.message.includes("Permission denied")) {
+        console.log("Video permission denied by user - silently ignoring");
+        return null; // Return null instead of throwing, so the UI can stay in previous state
+      }
       console.error("Error adding video track:", error);
       throw error;
     }
@@ -2418,26 +2423,163 @@ class MultiPeerWebRTCManager {
     }
   }
   // ===== SCREEN SHARING FUNCTIONALITY =====
-
   /**
    * Start a new screen sharing stream
+   * @param {string} screenShareId - The screen share ID from the API
+   * @param {MediaStream} existingStream - Optional existing screen stream (if permission already granted)
    * @returns {Object} { streamId, stream } or null if failed
-   */
-  async addScreenShareStream() {
+   */  async addScreenShareStream(screenShareId, existingStream = null) {
     try {
+      let screenStream = existingStream;
+      
+      // If no existing stream provided, get one
+      if (!screenStream) {
+        if (Platform.OS === "web") {
+          try {
+            screenStream = await navigator.mediaDevices.getDisplayMedia({
+              video: {
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+                aspectRatio: { ideal: 16 / 9 },
+              },
+              audio: true, // Include system audio if available
+            });
+          } catch (permissionError) {
+            // Handle permission denied gracefully
+            if (permissionError.name === "NotAllowedError" || 
+                permissionError.message.includes("Permission denied") ||
+                permissionError.message.includes("cancelled by user")) {
+              console.log("Screen share permission denied by user - silently ignoring");
+              return null; // Return null instead of throwing, so the UI can stay in previous state
+            }
+            throw permissionError; // Re-throw other errors
+          }
+        } else {
+          // For Android, use proper screen capture implementation
+          try {
+            // Method 1: Try react-native-webrtc's built-in screen capture
+            if (mediaDevices.getDisplayMedia) {
+              try {
+                console.log(
+                  "[Android] Attempting getDisplayMedia screen capture"
+                );
+                screenStream = await mediaDevices.getDisplayMedia({
+                  video: {
+                    width: { ideal: 1920, min: 720, max: 1920 },
+                    height: { ideal: 1080, min: 480, max: 1080 },
+                    frameRate: { ideal: 15, max: 30 },
+                  },
+                  audio: false, // Audio capture often causes issues on Android
+                });
+                console.log("[Android] getDisplayMedia successful");
+              } catch (displayError) {
+                // Handle permission denied gracefully
+                if (displayError.name === "NotAllowedError" || 
+                    displayError.message.includes("Permission denied") ||
+                    displayError.message.includes("cancelled by user")) {
+                  console.log("Screen share permission denied by user - silently ignoring");
+                  return null;
+                }
+                console.warn(
+                  "[Android] getDisplayMedia failed:",
+                  displayError.message
+                );
+                screenStream = null;
+              }
+            }
+
+            // Method 2: Try react-native-webrtc's getUserMedia with screen source
+            if (!screenStream && mediaDevices.getUserMedia) {
+              try {
+                console.log(
+                  "[Android] Attempting getUserMedia with screen source"
+                );
+                screenStream = await mediaDevices.getUserMedia({
+                  video: {
+                    mandatory: {
+                      chromeMediaSource: "screen",
+                      maxWidth: 1920,
+                      maxHeight: 1080,
+                      maxFrameRate: 15,
+                    },
+                  },
+                  audio: false,
+                });
+                console.log(
+                  "[Android] getUserMedia with screen source successful"
+                );
+              } catch (screenError) {
+                // Handle permission denied gracefully
+                if (screenError.name === "NotAllowedError" || 
+                    screenError.message.includes("Permission denied") ||
+                    screenError.message.includes("cancelled by user")) {
+                  console.log("Screen share permission denied by user - silently ignoring");
+                  return null;
+                }
+                console.warn(
+                  "[Android] getUserMedia with screen source failed:",
+                  screenError.message
+                );
+                screenStream = null;
+              }
+            }
+
+            // Method 3: Fallback to high-quality camera stream with proper labeling
+            if (!screenStream) {
+              console.log("[Android] Using camera fallback for screen sharing");
+              try {
+                screenStream = await mediaDevices.getUserMedia({
+                  video: {
+                    width: { ideal: 1920, min: 720 },
+                    height: { ideal: 1080, min: 480 },
+                    frameRate: { ideal: 30, min: 15 },
+                    facingMode: { ideal: "environment" }, // Back camera typically better quality
+                  },
+                  audio: false,
+                });
+                console.log("[Android] Camera fallback successful");
+              } catch (cameraError) {
+                // Handle permission denied gracefully
+                if (cameraError.name === "NotAllowedError" || 
+                    cameraError.message.includes("Permission denied") ||
+                    cameraError.message.includes("cancelled by user")) {
+                  console.log("Camera permission denied by user - silently ignoring");
+                  return null;
+                }
+                console.error(
+                  "[Android] All screen sharing methods failed:",
+                  cameraError.message
+                );
+                throw new Error(
+                  `Screen sharing not available: ${cameraError.message}`
+                );
+              }
+            }
+
+            if (!screenStream) {
+              throw new Error(
+                "Failed to obtain screen capture stream on Android"
+              );
+            }
+          } catch (error) {
+            // Handle permission denied gracefully at top level
+            if (error.name === "NotAllowedError" || 
+                error.message.includes("Permission denied") ||
+                error.message.includes("cancelled by user")) {
+              console.log("Screen share permission denied by user - silently ignoring");
+              return null;
+            }
+            console.error("[Android] Error starting screen share:", error);
+            throw new Error(`Android screen sharing failed: ${error.message}`);
+          }
+        }
+      }
+
+      // Use the provided screen share ID instead of generating our own
+      const streamId = screenShareId || `screen_${this.screenStreamCounter++}`;
+      this.screenStreams[streamId] = screenStream;
+
       if (Platform.OS === "web") {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({
-          video: {
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            aspectRatio: { ideal: 16 / 9 },
-          },
-          audio: true, // Include system audio if available
-        });
-
-        const streamId = `screen_${this.screenStreamCounter++}`;
-        this.screenStreams[streamId] = screenStream;
-
         // Add screen share tracks to all peer connections
         for (const [peerId, pc] of Object.entries(this.peerConnections)) {
           if (
@@ -2458,181 +2600,77 @@ class MultiPeerWebRTCManager {
               );
             }
           }
-        }
-
-        // Listen for when user stops screen sharing via browser UI
-        screenStream.getVideoTracks()[0].onended = () => {
+        }        // Listen for when user stops screen sharing via browser UI
+        screenStream.getVideoTracks()[0].onended = async () => {
+          // Call API to stop screen share
+          try {
+            await APIMethods.stopScreenShare(this.chatId, streamId);
+          } catch (error) {
+            console.error("Error calling stopScreenShare API:", error);
+          }
           this.removeScreenShareStream(streamId);
         };
         console.log(`Screen share stream ${streamId} started successfully`);
-
-        // Send signaling message to notify other participants
-        if (this.chatId && WebSocketMethods.sendScreenShareStarted) {
-          await WebSocketMethods.sendScreenShareStarted(
-            this.chatId,
-            this.myId,
-            streamId
-          );
-        }
-
-        // Notify UI components
-        this.notifyStreamUpdate();
-
-        // Renegotiate with all peers
-        setTimeout(async () => {
-          await this.renegotiateWithAllPeers();
-        }, 100);
-
-        return { streamId, stream: screenStream };
       } else {
-        // For Android, use proper screen capture implementation
-        try {
-          let screenStream = null;
-
-          // Method 1: Try react-native-webrtc's built-in screen capture
-          if (mediaDevices.getDisplayMedia) {
+        // Android implementation
+        // Add screen share tracks to all peer connections
+        for (const [peerId, pc] of Object.entries(this.peerConnections)) {
+          if (
+            pc.connectionState === "connected" ||
+            pc.connectionState === "connecting"
+          ) {
             try {
-              console.log(
-                "[Android] Attempting getDisplayMedia screen capture"
-              );
-              screenStream = await mediaDevices.getDisplayMedia({
-                video: {
-                  width: { ideal: 1920, min: 720, max: 1920 },
-                  height: { ideal: 1080, min: 480, max: 1080 },
-                  frameRate: { ideal: 15, max: 30 },
-                },
-                audio: false, // Audio capture often causes issues on Android
+              screenStream.getTracks().forEach((track) => {
+                // Mark track with metadata for proper identification
+                track.streamId = streamId;
+                track.streamType = "screenshare";
+                track.label = `screen-share-${streamId}`;
+                pc.addTrack(track, screenStream);
               });
-              console.log("[Android] getDisplayMedia successful");
-            } catch (displayError) {
-              console.warn(
-                "[Android] getDisplayMedia failed:",
-                displayError.message
-              );
-              screenStream = null;
-            }
-          }
-
-          // Method 2: Try react-native-webrtc's getUserMedia with screen source
-          if (!screenStream && mediaDevices.getUserMedia) {
-            try {
-              console.log(
-                "[Android] Attempting getUserMedia with screen source"
-              );
-              screenStream = await mediaDevices.getUserMedia({
-                video: {
-                  mandatory: {
-                    chromeMediaSource: "screen",
-                    maxWidth: 1920,
-                    maxHeight: 1080,
-                    maxFrameRate: 15,
-                  },
-                },
-                audio: false,
-              });
-              console.log(
-                "[Android] getUserMedia with screen source successful"
-              );
-            } catch (screenError) {
-              console.warn(
-                "[Android] getUserMedia with screen source failed:",
-                screenError.message
-              );
-              screenStream = null;
-            }
-          }
-
-          // Method 3: Fallback to high-quality camera stream with proper labeling
-          if (!screenStream) {
-            console.log("[Android] Using camera fallback for screen sharing");
-            try {
-              screenStream = await mediaDevices.getUserMedia({
-                video: {
-                  width: { ideal: 1920, min: 720 },
-                  height: { ideal: 1080, min: 480 },
-                  frameRate: { ideal: 30, min: 15 },
-                  facingMode: { ideal: "environment" }, // Back camera typically better quality
-                },
-                audio: false,
-              });
-              console.log("[Android] Camera fallback successful");
-            } catch (cameraError) {
+            } catch (error) {
               console.error(
-                "[Android] All screen sharing methods failed:",
-                cameraError.message
-              );
-              throw new Error(
-                `Screen sharing not available: ${cameraError.message}`
+                `Error adding screen share tracks to peer ${peerId}:`,
+                error
               );
             }
           }
-
-          if (!screenStream) {
-            throw new Error(
-              "Failed to obtain screen capture stream on Android"
-            );
-          }
-
-          const streamId = `screen_${this.screenStreamCounter++}`;
-          this.screenStreams[streamId] = screenStream;
-
-          // Add screen share tracks to all peer connections
-          for (const [peerId, pc] of Object.entries(this.peerConnections)) {
-            if (
-              pc.connectionState === "connected" ||
-              pc.connectionState === "connecting"
-            ) {
-              try {
-                screenStream.getTracks().forEach((track) => {
-                  // Mark track with metadata for proper identification
-                  track.streamId = streamId;
-                  track.streamType = "screenshare";
-                  track.label = `screen-share-${streamId}`;
-                  pc.addTrack(track, screenStream);
-                });
-              } catch (error) {
-                console.error(
-                  `Error adding screen share tracks to peer ${peerId}:`,
-                  error
-                );
-              }
+        }        // Handle stream end event
+        screenStream.getVideoTracks().forEach((track) => {
+          track.onended = async () => {
+            console.log(`[Android] Screen share track ended: ${streamId}`);
+            // Call API to stop screen share
+            try {
+              await APIMethods.stopScreenShare(this.chatId, streamId);
+            } catch (error) {
+              console.error("Error calling stopScreenShare API:", error);
             }
-          }
+            this.removeScreenShareStream(streamId);
+          };
+        });
 
-          // Handle stream end event
-          screenStream.getVideoTracks().forEach((track) => {
-            track.onended = () => {
-              console.log(`[Android] Screen share track ended: ${streamId}`);
-              this.removeScreenShareStream(streamId);
-            };
-          });
-
-          console.log(
-            `[Android] Screen share stream ${streamId} started successfully`
-          );
-
-          // Send signaling message to notify other participants
-          if (this.chatId && WebSocketMethods.sendScreenShareStarted) {
-            await WebSocketMethods.sendScreenShareStarted(
-              this.chatId,
-              this.myId,
-              streamId
-            );
-          }
-
-          this.notifyStreamUpdate();
-
-          // Renegotiate with all peers after a short delay
-          setTimeout(async () => {
-            await this.renegotiateWithAllPeers();
-          }, 100);
-
-          return { streamId, stream: screenStream };
-        } catch (error) {
-          console.error("[Android] Error starting screen share:", error);
-          throw new Error(`Android screen sharing failed: ${error.message}`);
-        }
+        console.log(
+          `[Android] Screen share stream ${streamId} started successfully`
+        );
       }
+
+      // Send signaling message to notify other participants
+      if (this.chatId && WebSocketMethods.sendScreenShareStarted) {
+        await WebSocketMethods.sendScreenShareStarted(
+          this.chatId,
+          this.myId,
+          streamId
+        );
+      }
+
+      // Notify UI components
+      this.notifyStreamUpdate();
+
+      // Renegotiate with all peers
+      setTimeout(async () => {
+        await this.renegotiateWithAllPeers();
+      }, 100);
+
+      return { streamId, stream: screenStream };
     } catch (error) {
       console.error("Error starting screen share:", error);
       throw error;
@@ -2738,8 +2776,7 @@ class MultiPeerWebRTCManager {
     // 1. User IDs (participant IDs)
     // 2. Screen share IDs (from any user)
     // 3. Local user ID (self)
-    if (rectangleId !== null) {
-      const isValidRectangle = 
+    if (rectangleId !== null) {      const isValidRectangle = 
         // Check if it's a regular user ID in the chat
         this.userData[rectangleId] ||
         // Check if it's the local user ID (self)
@@ -2753,7 +2790,9 @@ class MultiPeerWebRTCManager {
         // Check if it's a remote screen share ID
         Object.values(this.remoteScreenStreams || {}).some(userScreenShares =>
           Object.keys(userScreenShares).includes(rectangleId)
-        );
+        ) ||
+        // Allow screen share IDs that look like screen share format (more permissive for placeholders)
+        (typeof rectangleId === 'string' && rectangleId.includes('screen_'));
       
       if (!isValidRectangle) {
         console.warn(`Cannot pin rectangle ${rectangleId}: not found in current chat or screen shares`);

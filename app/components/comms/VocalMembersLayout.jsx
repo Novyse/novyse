@@ -85,7 +85,6 @@ const VocalMembersLayout = ({
     },
     [isTogglingPin, pinnedUserId]
   );
-
   // Calcolo ottimizzato del layout considerando anche le screen share
   const calculateLayout = useCallback(() => {
     // Se c'è un utente pinnato, calcola layout per un singolo elemento
@@ -112,18 +111,13 @@ const VocalMembersLayout = ({
       }
 
       return { numColumns: 1, rectWidth, rectHeight, margin: MARGIN };
-    }
+    }    // Count screen shares from activeStreams
+    const screenShareCount = Object.keys(activeStreams).filter(key => 
+      activeStreams[key].streamType === 'screenshare'
+    ).length;
 
     // Calcola il numero totale di elementi da visualizzare (utenti + screen shares)
-    let totalElements = profiles.length;
-    profiles.forEach((profile) => {
-      if (
-        profile.active_screen_share &&
-        Array.isArray(profile.active_screen_share)
-      ) {
-        totalElements += profile.active_screen_share.length;
-      }
-    });
+    let totalElements = profiles.length + screenShareCount;
 
     if (
       !containerDimensions.width ||
@@ -177,43 +171,45 @@ const VocalMembersLayout = ({
     } else {
       rectWidth = maxRectWidth;
       rectHeight = rectWidth * (1 / ASPECT_RATIO);
-    }
-    rectWidth = Math.max(50, rectWidth * WIDTH_MULTIPLYER);
+    }    rectWidth = Math.max(50, rectWidth * WIDTH_MULTIPLYER);
     rectHeight = Math.max(50 / ASPECT_RATIO, rectHeight * HEIGHT_MULTIPLYER);
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
-  }, [containerDimensions, profiles, pinnedUserId]);
+  }, [containerDimensions, profiles, pinnedUserId, activeStreams]);
 
-  const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();
-
-  // Render function for screen shares
-  const renderScreenShare = (profile, shareId) => {
+  const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();  // Render function for screen shares
+  const renderScreenShare = (streamKey, streamData) => {
     // Se c'è un utente pinnato e non è questo screen share, non renderizzarlo
-    if (pinnedUserId && pinnedUserId !== shareId) {
+    if (pinnedUserId && pinnedUserId !== streamKey) {
       return null;
     }
 
-    const activeStream = activeStreams[shareId];
-
-    // Crea un profilo temporaneo per lo screen share
+    // Get user info from streamData.userData
+    const userProfile = streamData.userData;
+    if (!userProfile) {
+      console.warn(`[VocalMembersLayout] No userData found for screen share ${streamKey}`);
+      return null;
+    }
+    
+    // Create a screen share profile
     const screenShareProfile = {
-      ...profile,
-      from: shareId,
-      handle: profile.handle || profile.from || "Unknown",
+      ...userProfile,
+      from: streamKey, // Use streamId as the identifier
+      handle: userProfile?.handle ? `${userProfile.handle} (Screen)` : `Screen Share`,
     };
 
     return (
       <UserCard
-        key={shareId}
+        key={streamKey}
         profile={screenShareProfile}
-        activeStream={activeStream}
+        activeStream={streamData}
         isSpeaking={false} // Screen share non ha speaking status
         width={rectWidth}
         height={rectHeight}
         margin={margin}
         isScreenShare={true}
-        videoStreamKey={videoStreamKeys[shareId]}
-        isPinned={pinnedUserId === shareId}
-        onPin={() => handlePinUser(shareId)}
+        videoStreamKey={videoStreamKeys[streamKey]}
+        isPinned={pinnedUserId === streamKey}
+        onPin={() => handlePinUser(streamKey)}
         pinDisabled={!check.isInComms()} // Disabilita il pin se non sei in comms
       />
     );
@@ -257,21 +253,13 @@ const VocalMembersLayout = ({
             width: containerDimensions.width,
           },
         ]}
-      >
-        {profiles.length > 0 ? (
+      >        {profiles.length > 0 || Object.values(activeStreams).some(streamData => streamData.streamType === 'screenshare') ? (
           <>
             {profiles.map(renderProfile)}
-            {profiles.map((profile) => {
-              if (
-                profile.active_screen_share &&
-                Array.isArray(profile.active_screen_share)
-              ) {
-                return profile.active_screen_share.map((shareId) =>
-                  renderScreenShare(profile, shareId)
-                );
-              }
-              return null;
-            })}
+            {Object.entries(activeStreams)
+              .filter(([key, streamData]) => streamData.streamType === 'screenshare')
+              .map(([key, streamData]) => renderScreenShare(key, streamData))
+            }
           </>
         ) : (
           <Text style={styles.emptyChatText}>Nessun utente nella chat</Text>

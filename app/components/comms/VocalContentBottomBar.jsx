@@ -92,9 +92,18 @@ const VocalContentBottomBar = ({ chatId }) => {
       }
     }
   };
-
   const handleScreenShare = async () => {
-    await self.addScreenShare();
+    try {
+      const result = await self.addScreenShare();
+      if (result === null) {
+        // Permission was denied, do nothing (stay in previous state)
+        console.log("Screen share permission denied - staying in current state");
+      }
+      // If result is truthy, screen share started successfully
+    } catch (error) {
+      console.error("Error starting screen share:", error);
+      // Handle other errors if needed, but permission denial is already handled
+    }
   };
 
   const handleMicrophoneSelect = () => {
@@ -159,9 +168,12 @@ const VocalContentBottomBar = ({ chatId }) => {
           height: { ideal: 720 },
           aspectRatio: { ideal: 16 / 9 },
         },
-      };
-
-      await self.switchMobileCamera(constraints, newFacingMode);
+      };      const result = await self.switchMobileCamera(constraints, newFacingMode);
+      if (result === false) {
+        // Permission was denied or switch failed, do nothing
+        console.log("Mobile camera switch failed or permission denied - staying in current state");
+        return;
+      }
       setCurrentFacingMode(newFacingMode);
     } catch (error) {
       console.error("Failed to switch mobile camera:", error);
@@ -178,10 +190,13 @@ const VocalContentBottomBar = ({ chatId }) => {
           `Camera device preference saved: ${deviceId} (video disabled)`
         );
         return;
+      }      // Video is enabled, apply the change immediately
+      const result = await self.switchCamera(deviceId);
+      if (result === false) {
+        // Permission was denied or switch failed, do nothing
+        console.log("Camera switch failed or permission denied - staying in current state");
+        return;
       }
-
-      // Video is enabled, apply the change immediately
-      await self.switchCamera(deviceId);
       setCurrentCameraId(deviceId);
     } catch (error) {
       console.error("Failed to switch camera:", error);
