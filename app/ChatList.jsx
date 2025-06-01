@@ -211,9 +211,11 @@ const ChatList = () => {
   }, [selectedChat, isSmallScreen]);
   // Event-based comms state change detection
   useEffect(() => {
-    const handleCommsStateChange = () => {
+    const handleCommsStateChange = (data) => {
       // Force re-render when someone joins or leaves comms
-      setForceUpdate(prev => prev + 1);
+      if(data.from === get.myPartecipantId()) {
+        setForceUpdate(prev => prev + 1);
+      }
     };
 
     // Listen to comms events
