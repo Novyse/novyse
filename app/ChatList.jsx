@@ -44,6 +44,9 @@ import {
   Logout03Icon,
   ArrowLeft02Icon,
   MoreVerticalCircle01Icon,
+  Message02Icon,
+  AudioWave01Icon,
+  Layout2ColumnIcon,
 } from "@hugeicons/core-free-icons";
 
 const ChatList = () => {
@@ -66,7 +69,7 @@ const ChatList = () => {
   const [userId, setUserId] = useState("");
   const [chatDetails, setChatDetails] = useState({});
   const [contentView, setContentView] = useState("chat");
-  
+
   // Force re-render when comms state changes
   const [forceUpdate, setForceUpdate] = useState(0);
 
@@ -213,8 +216,8 @@ const ChatList = () => {
   useEffect(() => {
     const handleCommsStateChange = (data) => {
       // Force re-render when someone joins or leaves comms
-      if(data.from === get.myPartecipantId()) {
-        setForceUpdate(prev => prev + 1);
+      if (data.from === get.myPartecipantId()) {
+        setForceUpdate((prev) => prev + 1);
       }
     };
 
@@ -317,8 +320,8 @@ const ChatList = () => {
   const handleScreenShare = () => {
     console.log("Screen share");
     // Add your screen share logic here
-  };  
-  
+  };
+
   // Optimized function to determine when to show BigFloatingCommsMenu
   const shouldShowBigFloatingCommsMenu = useCallback(() => {
     if (isSmallScreen) return false;
@@ -327,17 +330,17 @@ const ChatList = () => {
 
     if (isInComms) {
       const commsId = get.commsId();
-      
+
       // If we're in a different chat than the comms chat, always show the menu
       if (selectedChat !== commsId) {
         return true;
       }
-      
+
       // If we're in the same chat as comms but in "chat" view, show the menu
       if (selectedChat === commsId && contentView === "chat") {
         return true;
       }
-      
+
       // If we're in the same chat as comms and in "vocal" or "both" view, don't show
       return false;
     } else {
@@ -564,6 +567,52 @@ const ChatList = () => {
         <Text style={[styles.headerTitle, styles.chatHeaderTitle]}>
           {chatName}
         </Text>
+
+        <Pressable
+        style={styles.moreButton}
+          onPress={() => {
+            setContentView("chat");
+            setIsMenuVisible(false);
+          }}
+        >
+          <HugeiconsIcon
+            icon={Message02Icon}
+            size={24}
+            color={theme.icon}
+            strokeWidth={1.5}
+          />
+        </Pressable>
+
+        <Pressable
+        style={styles.moreButton}
+          onPress={() => {
+            setContentView("vocal");
+            setIsMenuVisible(false);
+          }}
+        >
+          <HugeiconsIcon
+            icon={AudioWave01Icon}
+            size={24}
+            color={theme.icon}
+            strokeWidth={1.5}
+          />
+        </Pressable>
+
+        <Pressable
+        style={styles.moreButton}
+          onPress={() => {
+            setContentView("both");
+            setIsMenuVisible(false);
+          }}
+        >
+          <HugeiconsIcon
+            icon={Layout2ColumnIcon}
+            size={24}
+            color={theme.icon}
+            strokeWidth={1.5}
+          />
+        </Pressable>
+
         <Pressable
           style={styles.moreButton}
           onPress={() => setIsMenuVisible(!isMenuVisible)}
@@ -791,7 +840,7 @@ function createStyle(theme, colorScheme) {
       marginLeft: "auto",
     },
     moreButton: {
-      padding: 5,
+      marginLeft: 15
     },
     headerTitle: {
       color: theme.text,
