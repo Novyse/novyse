@@ -11,6 +11,7 @@ import {
   Animated,
   BackHandler,
   Alert,
+  Platform,
 } from "react-native";
 import moment from "moment";
 import { StatusBar } from "expo-status-bar";
@@ -19,8 +20,8 @@ import NetInfo from "@react-native-community/netinfo";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import utils from "./utils/webrtc/utils";
-const { get, check } = utils;
+import methods from "./utils/webrtc/methods";
+const { get, check } = methods;
 
 import CreateGroupModal from "./components/CreateGroupModal";
 import SidebarItem from "./components/SidebarItem";
@@ -28,7 +29,7 @@ import BigFloatingCommsMenu from "./components/comms/BigFloatingCommsMenu";
 
 import Search from "./Search";
 import APIMethods from "./utils/APImethods";
-import eventEmitter from "./utils/EventEmitter";
+import eventEmitter from "./utils/EventEmitter";  
 import WebSocketMethods from "./utils/webSocketMethods";
 import localDatabase from "./utils/localDatabaseMethods";
 import ChatContainer from "./ChatContainer";
@@ -604,13 +605,17 @@ const ChatList = () => {
             setContentView("both");
             setIsMenuVisible(false);
           }}
-        >
+        > 
+        {Platform.OS === 'web' ? (
           <HugeiconsIcon
             icon={Layout2ColumnIcon}
             size={24}
             color={theme.icon}
             strokeWidth={1.5}
           />
+        ) : (
+          <></>
+        )}
         </Pressable>
 
         <Pressable

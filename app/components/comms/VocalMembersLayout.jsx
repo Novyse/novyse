@@ -3,8 +3,8 @@ import { View, StyleSheet, Text, Platform } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserCard from "./UserCard";
 
-import utils from "../../utils/webrtc/utils";
-const { get, check, pin } = utils;
+import methods from "../../utils/webrtc/methods";
+const { get, check, pin } = methods;
 
 let RTCView;
 if (Platform.OS === "web") {

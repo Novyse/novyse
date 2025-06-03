@@ -16,8 +16,8 @@ import {
   VideoOffIcon,
   ComputerScreenShareIcon,
 } from "@hugeicons/core-free-icons";
-import utils from "../../utils/webrtc/utils";
-const { self, check } = utils;
+import methods from "../../utils/webrtc/methods";
+const { self, check } = methods;
 
 const BigFloatingCommsMenu = ({
   onScreenShare = () => {},

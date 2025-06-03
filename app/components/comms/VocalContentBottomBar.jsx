@@ -24,8 +24,8 @@ import {
   Call02Icon,
 } from "@hugeicons/core-free-icons";
 
-import utils from "../../utils/webrtc/utils";
-const { get, self, check } = utils;
+import methods from "../../utils/webrtc/methods";
+const { get, self, check } = methods;
 
 const VocalContentBottomBar = ({ chatId }) => {
   const { theme } = useContext(ThemeContext);

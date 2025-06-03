@@ -7,8 +7,8 @@ import eventEmitter from "./utils/EventEmitter";
 import { Platform } from "react-native";
 import VocalMembersLayout from "./components/comms/VocalMembersLayout";
 
-import utils from "./utils/webrtc/utils";
-const { get, check, set } = utils;
+import methods from "./utils/webrtc/methods";
+const { get, check, set } = methods;
 
 const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);

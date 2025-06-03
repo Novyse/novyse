@@ -261,23 +261,81 @@ const WebSocketMethods = {
 
     return "return of socket.io receiver function";
   },
-
   // quando voglio entrare in una vocal chat
   IceCandidate: async (data) => {
     socket.emit("candidate", data);
   },
 
-  // quando voglio entrare in una vocal chat
   RTCOffer: async (data) => {
-    socket.emit("offer", data);
-  },
+    if (!socket || !socket.connected) {
+      console.error("Cannot send RTC offer: Socket not connected", {
+        socketExists: !!socket,
+        socketConnected: socket?.connected,
+        data
+      });
+      return false;
+    }
 
+    try {
+      console.log("Sending RTC offer via WebSocket", {
+        to: data.to,
+        from: data.from,
+        hasOffer: !!data.offer
+      });
+      
+      socket.emit("offer", data);
+      
+      console.log("RTC offer sent successfully", {
+        to: data.to,
+        from: data.from
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Error sending RTC offer", {
+        error: error.message,
+        data
+      });
+      return false;
+    }
+  },
   // quando voglio entrare in una vocal chat
   RTCAnswer: async (data) => {
-    socket.emit("answer", data);
+    if (!socket || !socket.connected) {
+      console.error("Cannot send RTC answer: Socket not connected", {
+        socketExists: !!socket,
+        socketConnected: socket?.connected,
+        data
+      });
+      return false;
+    }
+
+    try {
+      console.log("Sending RTC answer via WebSocket", {
+        to: data.to,
+        from: data.from,
+        hasAnswer: !!data.answer
+      });
+      
+      socket.emit("answer", data);
+      
+      console.log("RTC answer sent successfully", {
+        to: data.to,
+        from: data.from
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Error sending RTC answer", {
+        error: error.message,
+        data
+      });
+      return false;
+    }
   },
   // Voice Activity Detection signaling methods
   sendSpeakingStatus: async (commsId, partecipantId, isSpeaking) => {
+    
     if (!socket || !socket.connected) {
       console.log("Cannot send speaking status: Socket not connected");
       return;
@@ -288,7 +346,6 @@ const WebSocketMethods = {
       to: commsId,
       from: partecipantId,
     };
-
     // Send to server
     socket.emit(eventType, data);
   },

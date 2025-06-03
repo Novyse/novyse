@@ -1,12 +1,11 @@
-import APIMethods from "../APImethods";
-import multiPeerWebRTCManager from "../webrtcMethods";
-import eventEmitter from "../EventEmitter";
-import localDatabase from "../localDatabaseMethods";
-import SoundPlayer from "../sounds/SoundPlayer";
-import VAD from "./VAD/utils.js";
+import APIMethods from "../APImethods.js";
+import WebRTCManager from "./index.js";
+import eventEmitter from "../EventEmitter.js";
+import localDatabase from "../localDatabaseMethods.js";
+import SoundPlayer from "../sounds/SoundPlayer.js";
 import { Platform } from "react-native";
 
-const WebRTC = multiPeerWebRTCManager;
+const WebRTC = WebRTCManager;
 
 // Import mediaDevices from react-native-webrtc
 let mediaDevices;
@@ -22,15 +21,11 @@ const self = {
   // quando io entro in una room
   async join(chatId) {
     // Start local stream
-    const stream = await WebRTC.startLocalStream(); // audio only for now
+    const stream = WebRTC.startLocalStream(); // audio only for now
     if (!stream) {
       throw new Error("Failed to get audio stream");
-    }
-
-    await VAD.initializeVoiceActivityDetection(stream);
-
-    // Check if already in a vocal chat
-    if (WebRTC.chatId != chatId) {
+    }    // Check if already in a vocal chat
+    if (WebRTC.getChatId() != chatId) {
       await APIMethods.commsLeave(chatId);
     }
     // Join vocal chat
@@ -40,7 +35,7 @@ const self = {
     }
 
     // Rigenero
-    await WebRTC.regenerate(data.from, chatId, null, null, null);
+    await WebRTC.regenerate(data.from, chatId, null);
     // Aggiungi il chat_id ai dati prima di emettere l'evento
     // e includi anche i dati dell'utente locale
     const localUserHandle = await localDatabase.fetchLocalUserHandle();
@@ -70,17 +65,14 @@ const self = {
     await handle.memberLeft(data);
 
     // Close all peer connections and local stream
-    WebRTC.closeAllConnections();
+    await WebRTC.closeAllConnections();
     WebRTC.closeLocalStream();
 
-    // Stop voice activity detection when leaving vocal chat
-    VAD.stopVoiceActivityDetection();
   },
-
   // quando premo pulsante microfono
   async toggleAudio() {
-    if (WebRTC.localStream) {
-      const audioTrack = WebRTC.localStream.getAudioTracks()[0];
+    if (WebRTC.getLocalStream()) {
+      const audioTrack = WebRTC.getLocalStream().getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
         return audioTrack.enabled;
@@ -89,16 +81,16 @@ const self = {
     return false;
   },
 
-  // Switch microphone device
+  // Switch microphone device  // Switch microphone device
   async switchMicrophone(deviceId) {
     try {
-      if (!WebRTC.localStream) {
+      if (!WebRTC.getLocalStream()) {
         console.warn("No local stream available for microphone switching");
         return false;
       }
 
       // Store current audio enabled state
-      const currentAudioTrack = WebRTC.localStream.getAudioTracks()[0];
+      const currentAudioTrack = WebRTC.getLocalStream().getAudioTracks()[0];
       const wasAudioEnabled = currentAudioTrack
         ? currentAudioTrack.enabled
         : true;
@@ -121,10 +113,8 @@ const self = {
       }
 
       // Set the same enabled state as the previous track
-      newAudioTrack.enabled = wasAudioEnabled;
-
-      // Replace the audio track in all peer connections
-      for (const [peerId, pc] of Object.entries(WebRTC.peerConnections)) {
+      newAudioTrack.enabled = wasAudioEnabled;      // Replace the audio track in all peer connections
+      for (const [peerId, pc] of Object.entries(WebRTC.getPeerConnections())) {
         const senders = pc.getSenders();
         const audioSender = senders.find(
           (sender) => sender.track && sender.track.kind === "audio"
@@ -134,19 +124,13 @@ const self = {
           await audioSender.replaceTrack(newAudioTrack);
           console.log(`Replaced audio track for peer ${peerId}`);
         }
-      }
-
-      // Replace the track in the local stream
+      }      // Replace the track in the local stream
       if (currentAudioTrack) {
-        WebRTC.localStream.removeTrack(currentAudioTrack);
+        WebRTC.getLocalStream().removeTrack(currentAudioTrack);
         currentAudioTrack.stop();
       }
 
-      WebRTC.localStream.addTrack(newAudioTrack);
-
-      // Reinitialize VAD with new stream
-      VAD.stopVoiceActivityDetection();
-      await VAD.initializeVoiceActivityDetection(WebRTC.localStream);
+      WebRTC.getLocalStream().addTrack(newAudioTrack);
 
       console.log(
         `Successfully switched to microphone device: ${deviceId || "default"}`
@@ -157,17 +141,16 @@ const self = {
       throw error;
     }
   },
-
   // Switch camera device
   async switchCamera(deviceId) {
     try {
-      if (!WebRTC.localStream) {
+      if (!WebRTC.getLocalStream()) {
         console.warn("No local stream available for camera switching");
         return false;
       }
 
       // Check if video is currently enabled
-      const currentVideoTrack = WebRTC.localStream.getVideoTracks()[0];
+      const currentVideoTrack = WebRTC.getLocalStream().getVideoTracks()[0];
       if (!currentVideoTrack) {
         console.warn("No video track available for camera switching");
         return false;
@@ -201,13 +184,11 @@ const self = {
           return false; // Return false instead of throwing, so the UI can stay in previous state
         }
         throw permissionError; // Re-throw other errors
-      }
-
-      // Set the same enabled state as the previous track
+      }      // Set the same enabled state as the previous track
       newVideoTrack.enabled = wasVideoEnabled;
 
       // Replace the video track in all peer connections
-      for (const [peerId, pc] of Object.entries(WebRTC.peerConnections)) {
+      for (const [peerId, pc] of Object.entries(WebRTC.getPeerConnections())) {
         const senders = pc.getSenders();
         const videoSender = senders.find(
           (sender) => sender.track && sender.track.kind === "video"
@@ -217,26 +198,17 @@ const self = {
           await videoSender.replaceTrack(newVideoTrack);
           console.log(`Replaced video track for peer ${peerId}`);
         }
-      }
-
-      // Replace the track in the local stream
+      }      // Replace the track in the local stream
       if (currentVideoTrack) {
-        WebRTC.localStream.removeTrack(currentVideoTrack);
+        WebRTC.getLocalStream().removeTrack(currentVideoTrack);
         currentVideoTrack.stop();
-      }
-
-      WebRTC.localStream.addTrack(newVideoTrack); // Notify UI of the stream update
+      }      WebRTC.getLocalStream().addTrack(newVideoTrack); // Notify UI of the stream update
       WebRTC.notifyStreamUpdate();
-
       // Also emit event for local stream update so VocalContent updates local video preview
-      if (WebRTC.onLocalStreamReady) {
-        WebRTC.onLocalStreamReady(WebRTC.localStream);
-      }
-
-      // Emit stream_added_or_updated event for local user
+      WebRTC.executeCallback('onLocalStreamReady', WebRTC.getLocalStream());      // Emit stream_added_or_updated event for local user
       eventEmitter.emit("stream_added_or_updated", {
-        participantId: WebRTC.myId,
-        stream: WebRTC.localStream,
+        participantId: WebRTC.getMyId(),
+        stream: WebRTC.getLocalStream(),
         streamType: "webcam",
         userData: { handle: "You" }, // Local user identifier
       });
@@ -250,17 +222,16 @@ const self = {
       throw error;
     }
   },
-
   // Switch mobile camera with facingMode (for mobile platforms)
   async switchMobileCamera(constraints, facingMode) {
     try {
-      if (!WebRTC.localStream) {
+      if (!WebRTC.getLocalStream()) {
         console.warn("No local stream available for mobile camera switching");
         return false;
       }
 
       // Get current video track
-      const currentVideoTrack = WebRTC.localStream.getVideoTracks()[0];
+      const currentVideoTrack = WebRTC.getLocalStream().getVideoTracks()[0];
       let wasVideoEnabled = false;
 
       if (currentVideoTrack) {
@@ -341,13 +312,11 @@ const self = {
 
       if (!newVideoTrack) {
         throw new Error("Failed to get video track from new mobile camera");
-      }
-
-      // Set the same enabled state as the previous track
+      }      // Set the same enabled state as the previous track
       newVideoTrack.enabled = wasVideoEnabled;
 
       // Replace the video track in all peer connections
-      for (const [peerId, pc] of Object.entries(WebRTC.peerConnections)) {
+      for (const [peerId, pc] of Object.entries(WebRTC.getPeerConnections())) {
         const senders = pc.getSenders();
         const videoSender = senders.find(
           (sender) => sender.track && sender.track.kind === "video"
@@ -359,39 +328,30 @@ const self = {
             `Replaced mobile video track for peer ${peerId} with facingMode: ${facingMode}`
           );
         }
-      }
-
-      // Replace the track in the local stream
+      }      // Replace the track in the local stream
       if (currentVideoTrack) {
-        WebRTC.localStream.removeTrack(currentVideoTrack);
+        WebRTC.getLocalStream().removeTrack(currentVideoTrack);
         currentVideoTrack.stop();
       }
 
-      WebRTC.localStream.addTrack(newVideoTrack);
+      WebRTC.getLocalStream().addTrack(newVideoTrack);
 
       // Notify UI of the stream update
-      WebRTC.notifyStreamUpdate();
-
-      // Force local stream update for mobile platforms with delay
+      WebRTC.notifyStreamUpdate();      // Force local stream update for mobile platforms with delay
       setTimeout(() => {
-        if (WebRTC.onLocalStreamReady) {
-          WebRTC.onLocalStreamReady(WebRTC.localStream);
-        }
-
+        WebRTC.executeCallback('onLocalStreamReady', WebRTC.getLocalStream());
         // Emit a more specific event for mobile camera switching
         eventEmitter.emit("mobile_camera_switched", {
-          participantId: WebRTC.myId,
-          stream: WebRTC.localStream,
+          participantId: WebRTC.getMyId(),
+          stream: WebRTC.getLocalStream(),
           streamType: "webcam",
           facingMode: facingMode,
           timestamp: Date.now(), // Add timestamp to force re-render
           userData: { handle: "You" },
-        });
-
-        // Also emit the standard stream update event
+        });        // Also emit the standard stream update event
         eventEmitter.emit("stream_added_or_updated", {
-          participantId: WebRTC.myId,
-          stream: WebRTC.localStream,
+          participantId: WebRTC.getMyId(),
+          stream: WebRTC.getLocalStream(),
           streamType: "webcam",
           timestamp: Date.now(), // Add timestamp to force re-render
           userData: { handle: "You" },
@@ -407,15 +367,14 @@ const self = {
       throw error;
     }
   },
-
   // quando premo pulsante video
   async toggleVideo() {
     try {
-      if (!WebRTC.isVideoEnabled) {
+      if (!WebRTC.isVideoEnabled()) {
         // Attiva video
         const videoTrack = await WebRTC.addVideoTrack();
         if (videoTrack) {
-          WebRTC.isVideoEnabled = true;
+          WebRTC.setVideoEnabled(true);
           return true;
         } else {
           // Permission was denied or failed to get video track, stay disabled
@@ -425,17 +384,16 @@ const self = {
       } else {
         // Disattiva video
         await WebRTC.removeVideoTracks();
-        WebRTC.isVideoEnabled = false;
+        WebRTC.setVideoEnabled(false);
         return false;
       }
     } catch (err) {
       console.error("Errore nel toggle video:", err);
       // Don't throw error for permission denied cases
       if (err.name === "NotAllowedError" || 
-          err.message.includes("Permission denied") ||
-          err.message.includes("cancelled by user")) {
+          err.message.includes("Permission denied") ||          err.message.includes("cancelled by user")) {
         console.log("Video permission denied - staying in current state");
-        return WebRTC.isVideoEnabled; // Return current state
+        return WebRTC.isVideoEnabled(); // Return current state
       }
       throw new Error("Errore nel toggle video: " + err.message);
     }
@@ -549,10 +507,8 @@ const self = {
 
       if (!screenStream) {
         throw new Error("Failed to get screen share permission or stream");
-      }
-
-      // Now that we have permission and the stream, get the screen share ID from API
-      const data = await APIMethods.startScreenShare(WebRTC.chatId);
+      }      // Now that we have permission and the stream, get the screen share ID from API
+      const data = await APIMethods.startScreenShare(WebRTC.getChatId());
 
       if (data.screen_share_started) {
         const screenShareId = data.screen_share_id;
@@ -587,10 +543,9 @@ const self = {
   },
   // quando premo x per fermare lo screen share
 
-  async stopScreenShare(screenShareId) {
-    try {
+  async stopScreenShare(screenShareId) {    try {
       const data = await APIMethods.stopScreenShare(
-        WebRTC.chatId,
+        WebRTC.getChatId(),
         screenShareId
       );
 
@@ -608,42 +563,38 @@ const self = {
   }
 };
 
-const handle = {
+const handle = {  
   // quando un nuovo membro entra in una room
   async memberJoined(data) {
     // Solo se il membro che entra è nella stessa chat vocale
-    if (WebRTC.chatId == data.chat_id) {
+    if (WebRTC.getChatId() === data.chat_id) {
       SoundPlayer.getInstance().playSound("comms_join_vocal");
     }
-
     eventEmitter.emit("member_joined_comms", data);
 
-    await multiPeerWebRTCManager.userJoined(data);
-  },
+    await WebRTC.handleUserJoined(data);
+  },  
   // quando un membro esce da una room
   async memberLeft(data) {
     // Solo se il membro che esce è nella stessa chat vocale
-    if (WebRTC.chatId == data.chat_id) {
+    if (WebRTC.getChatId() === data.chat_id) {
       SoundPlayer.getInstance().playSound("comms_leave_vocal");
     }
-
     eventEmitter.emit("member_left_comms", data);
 
-    await multiPeerWebRTCManager.userLeft(data);
+    await WebRTC.handleUserLeft(data);
   },
-
   async screenShareStarted(data) {
     // Solo se il membro che ha iniziato lo screen share è nella stessa chat vocale
-    if (WebRTC.chatId == data.chat_id) {
+    if (WebRTC.getChatId() == data.chat_id) {
       SoundPlayer.getInstance().playSound("comms_stream_started");
     }
 
     eventEmitter.emit("screen_share_started", data);
   },
-
   async screenShareStopped(data) {
     // Solo se il membro che ha fermato lo screen share è nella stessa chat vocale
-    if (WebRTC.chatId == data.chat_id) {
+    if (WebRTC.getChatId() == data.chat_id) {
       SoundPlayer.getInstance().playSound("comms_stream_stopped");
     }
 
@@ -653,25 +604,24 @@ const handle = {
 
 const check = {
   isInComms: () => {
-    return WebRTC.chatId != null && WebRTC.chatId !== "";
+    return WebRTC.getChatId() != null && WebRTC.getChatId() !== "";
   },
 };
 
 const get = {
   commsId: () => {
-    return WebRTC.chatId;
+    return WebRTC.getChatId();
   },
   myPartecipantId: () => {
-    return WebRTC.myId;
-  },
-  commsMembers: async (chatId) => {
+    return WebRTC.getMyId();
+  },  commsMembers: async (chatId) => {
     let usersList = [];
 
-    if (chatId != WebRTC.chatId) {
+    if (chatId != WebRTC.getChatId()) {
       usersList = await APIMethods.retrieveVocalUsers(chatId);
     } else {
       // Fetch WebRTC users data
-      usersList = Object.values(WebRTC.userData);
+      usersList = Object.values(WebRTC.getUserData());
 
       // Fetch local user handle and data
       const localUserHandle = await localDatabase.fetchLocalUserHandle();
@@ -679,7 +629,7 @@ const get = {
 
       usersList.push({
         handle: localUserHandle,
-        from: WebRTC.myId,
+        from: WebRTC.getMyId(),
         profileImage: localUserData?.profileImage || null,
       });
     }
@@ -688,18 +638,17 @@ const get = {
   },
   pinnedUser: () => {
     return WebRTC.getPinnedUser();
-  },
-  microphoneStatus: () => {
-    return WebRTC.localStream && WebRTC.localStream.getAudioTracks()[0]?.enabled;
+  },  microphoneStatus: () => {
+    return WebRTC.getLocalStream() && WebRTC.getLocalStream().getAudioTracks()[0]?.enabled;
   },
   videoStatus: () => {
-    return WebRTC.localStream && WebRTC.localStream.getVideoTracks()[0]?.enabled;
+    return WebRTC.getLocalStream() && WebRTC.getLocalStream().getVideoTracks()[0]?.enabled;
   },
   localStream: () => {
-    return WebRTC.localStream;
+    return WebRTC.getLocalStream();
   },
   remoteStreams: () => {
-    return WebRTC.remoteStreams;
+    return WebRTC.getRemoteStreams();
   },
 };
 

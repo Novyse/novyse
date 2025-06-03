@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 import voiceActivityDetection from "./lib/voiceActivityDetection";
-import eventEmitter from "../../EventEmitter";
+import eventEmitter from "../../../EventEmitter";
 
 const VAD = {
   async initializeVoiceActivityDetection(localStream) {
@@ -9,16 +9,17 @@ const VAD = {
       platform: Platform.OS,
     });
 
-    if (!this.localStream) {
+    if (!localStream) {
       console.warn("Cannot initialize VAD: missing stream", {
         hasLocalStream: !!localStream,
       });
     }
 
+    
     const success = await voiceActivityDetection.initialize(
       localStream,
       (isSpeaking) => {
-        this.handleSpeakingStatusChange(isSpeaking);
+        VAD.handleSpeakingStatusChange(isSpeaking);
       }
     );
 
@@ -43,6 +44,6 @@ const VAD = {
   stopVoiceActivityDetection() {
     voiceActivityDetection.cleanup();
   },
-};
+}
 
 export default VAD;

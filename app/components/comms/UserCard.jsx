@@ -6,8 +6,8 @@ import UserProfileAvatar from "./UserProfileAvatar";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { PinIcon, PinOffIcon } from "@hugeicons/core-free-icons";
 
-import utils from "../../utils/webrtc/utils";
-const { get, check } = utils;
+import methods from "../../utils/webrtc/methods";
+const { get, check } = methods;
 
 let RTCView;
 if (Platform.OS === "web") {
