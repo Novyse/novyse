@@ -237,6 +237,7 @@ const WebSocketMethods = {
       // Emit event to notify components
       eventEmitter.emit("screen_share_started", {
         from: data.from,
+        chatId: data.to,
         streamId: data.screen_share_id
       });
     });
@@ -253,6 +254,7 @@ const WebSocketMethods = {
       // Emit event to notify components
       eventEmitter.emit("screen_share_stopped", {
         from: data.from,
+        chatId: data.to,
         streamId: data.screen_share_id
       });
     });

@@ -308,7 +308,6 @@ class MultiPeerWebRTCManager {
       // The actual stream will be handled in ontrack when the media arrives
     }
   }
-
   /**
    * Handle remote screen share stopped events
    */
@@ -316,6 +315,9 @@ class MultiPeerWebRTCManager {
     const { from, streamId } = data;
     if (from && from !== this.myId) {
       console.log(`Remote screen share stopped: ${from}/${streamId}`);
+
+      // Clear pin if this screen share was pinned
+      this.clearPinIfUser(streamId);
 
       // Remove from metadata
       if (this.remoteStreamMetadata[from]) {
@@ -2676,7 +2678,6 @@ class MultiPeerWebRTCManager {
       throw error;
     }
   }
-
   /**
    * Remove a specific screen sharing stream
    * @param {string} streamId - The ID of the screen share stream to remove
@@ -2689,6 +2690,9 @@ class MultiPeerWebRTCManager {
     }
 
     try {
+      // Clear pin if this screen share was pinned
+      this.clearPinIfUser(streamId);
+
       // Stop all tracks in the screen stream
       screenStream.getTracks().forEach((track) => {
         track.stop();

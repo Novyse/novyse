@@ -695,7 +695,19 @@ const get = {
   videoStatus: () => {
     return WebRTC.localStream && WebRTC.localStream.getVideoTracks()[0]?.enabled;
   },
+  localStream: () => {
+    return WebRTC.localStream;
+  },
+  remoteStreams: () => {
+    return WebRTC.remoteStreams;
+  },
 };
+
+const set = {
+  audioContext: (audioContext) => {
+    WebRTC.setAudioContext(audioContext);
+  },
+}
 
 const pin = {
   toggle: (rectangleId) => {
@@ -709,4 +721,4 @@ const pin = {
   },
 };
 
-export default { self, check, get, pin };
+export default { self, check, get, set, pin };

@@ -3,7 +3,6 @@ import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
 import { BlurView } from "expo-blur";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
-import multiPeerWebRTCManager from "../../utils/webrtcMethods";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { PinIcon, PinOffIcon } from "@hugeicons/core-free-icons";
 
@@ -198,12 +197,12 @@ const UserCard = memo(
     // Determina quale stream utilizzare - solo se l'utente è in comms
     let streamToRender = null;
     if (userIsInComms) {
-      if (isLocalUser && multiPeerWebRTCManager.localStream) {
-        streamToRender = multiPeerWebRTCManager.localStream;
+      if (isLocalUser && get.localStream()) {
+        streamToRender = get.localStream();
       } else if (activeStream?.stream) {
         streamToRender = activeStream.stream;
-      } else if (multiPeerWebRTCManager.remoteStreams[profile.from]) {
-        streamToRender = multiPeerWebRTCManager.remoteStreams[profile.from];
+      } else if (get.remoteStreams()[profile.from]) {
+        streamToRender = get.remoteStreams()[profile.from];
       }
     }
     const hasVideo =

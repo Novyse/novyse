@@ -6,10 +6,9 @@ import VocalContentBottomBar from "./components/comms/VocalContentBottomBar";
 import eventEmitter from "./utils/EventEmitter";
 import { Platform } from "react-native";
 import VocalMembersLayout from "./components/comms/VocalMembersLayout";
-import multiPeerWebRTCManager from "./utils/webrtcMethods";
 
 import utils from "./utils/webrtc/utils";
-const { get, check } = utils;
+const { get, check, set } = utils;
 
 const VocalContent = ({ selectedChat, chatId }) => {
   const { theme } = useContext(ThemeContext);
@@ -22,8 +21,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   useEffect(() => {
     // Set audio context reference in WebRTC manager when component mounts
-    multiPeerWebRTCManager.setAudioContext(audioContext);
-  }, [audioContext]); // da capire se questa parte si può far esplodere @SamueleOrazioDurante @Matt3opower
+    set.audioContext(audioContext);
+  }, [audioContext]); 
 
   useEffect(() => {
     // Registra i listeners
@@ -256,7 +255,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
   // Screen sharing handlers
   const handleScreenShareStarted = (data) => {
-    if (!check.isInComms()) {
+    if (!check.isInComms() && data.chatId !== chatId ) {
       console.log(
         "[VocalContent] User not in comms or in the wrong comms view, ignoring screen share start"
       );
@@ -324,7 +323,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   const handleScreenShareStopped = (data) => {
-    if (!check.isInComms()) {
+    if (!check.isInComms() && data.chatId !== chatId) {
       console.log(
         "[VocalContent] User not in comms or in the wrong comms view, ignoring screen share stop"
       );
