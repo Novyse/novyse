@@ -186,7 +186,6 @@ export class StreamManager {
       this.logger.info('StreamManager', 'Local stream closed successfully');
     }
   }
-  
   /**
    * Handle incoming remote stream track
    * @param {string} participantId - The participant ID
@@ -194,7 +193,7 @@ export class StreamManager {
    */
   handleRemoteTrack(participantId, event) {
     this.logger.info('StreamManager', 
-      `Received remote track from ${participantId}: ${event.track.kind}`);
+      `Received remote track from ${participantId}: ${event.track.kind} with label: ${event.track.label}`);
     
     const track = event.track;
     const streams = event.streams;
@@ -205,13 +204,45 @@ export class StreamManager {
       trackKind: track.kind,
       streamIds: streams.map(s => s.id)
     });
+
+    // Check userData for active screen shares FIRST (this data is set by EventReceiver)
+    const hasActiveScreenShare = 
+      this.globalState.userData[participantId] && 
+      this.globalState.userData[participantId].active_screen_share && 
+      Array.isArray(this.globalState.userData[participantId].active_screen_share) && 
+      this.globalState.userData[participantId].active_screen_share.length > 0;
     
-    // Determine if this is a screen share track
+    // Early detection of potential screen share tracks by examining track properties
+    const looksLikeScreenShare = 
+      track.label.includes("screen") || 
+      track.label.includes("Screen") || 
+      track.id.includes("screen") ||
+      (streams.length > 0 && streams[0].id && streams[0].id.includes("screen"));
+    
+    // Log screen share detection status for debugging
+    if (hasActiveScreenShare) {  
+      this.logger.info('StreamManager', `User ${participantId} has active screen shares in userData: ${JSON.stringify(this.globalState.userData[participantId].active_screen_share)}`);
+      this.logger.info('StreamManager', `Track appears to be screen share: ${looksLikeScreenShare ? 'YES' : 'NO'}`);
+    }
+    
+    // CRITICAL PART: If this user has active_screen_share entries AND this looks like a screen share track,
+    // bypass regular identification and directly handle it as a screen share
+    if (hasActiveScreenShare && looksLikeScreenShare) {
+      const activeScreenShareId = this.globalState.userData[participantId].active_screen_share[0];
+      this.logger.info('StreamManager', `FAST PATH: Handling as screen share track with id: ${activeScreenShareId}`);
+      this._handleScreenShareTrack(participantId, track, activeScreenShareId, streams);
+      this._setupTrackEventHandlers(participantId, track);
+      return;
+    }
+    
+    // Standard path: Use _identifyTrackType for normal classification
     const { isScreenShare, streamId } = this._identifyTrackType(participantId, track, streams);
     
     if (isScreenShare) {
+      this.logger.info('StreamManager', `Identified as screen share track, forwarding to _handleScreenShareTrack with streamId: ${streamId}`);
       this._handleScreenShareTrack(participantId, track, streamId, streams);
     } else {
+      this.logger.info('StreamManager', `Identified as webcam track, forwarding to _handleWebcamTrack`);
       this._handleWebcamTrack(participantId, track, streams);
     }
     
@@ -344,8 +375,7 @@ export class StreamManager {
       await this.renegotiateCallback();
     }
   }
-  
-  /**
+    /**
    * Identify track type (webcam vs screen share)
    * @param {string} participantId - The participant ID
    * @param {MediaStreamTrack} track - The track
@@ -356,21 +386,48 @@ export class StreamManager {
     let isScreenShare = false;
     let streamId = null;
     
-    // Check metadata first
-    if (this.globalState.remoteStreamMetadata[participantId]) {
+    // Get the event stream ID for reference
+    const eventStreamId = streams.length > 0 ? streams[0].id : track.id;
+    
+    // STEP 1: Check userData.active_screen_share first (this is set by EventReceiver)
+    if (this.globalState.userData[participantId] && 
+        this.globalState.userData[participantId].active_screen_share && 
+        Array.isArray(this.globalState.userData[participantId].active_screen_share) && 
+        this.globalState.userData[participantId].active_screen_share.length > 0) {
+      
+      this.logger.info('StreamManager', `User ${participantId} has active screen shares in userData: ${JSON.stringify(this.globalState.userData[participantId].active_screen_share)}`);
+      
+      // If the track has "screen" markers in the ID or labels, and the user has active screen shares,
+      // we can safely assume this is a screen share track
+      const isLikelyScreenShare = 
+        track.label.includes("screen") ||
+        track.label.includes("Screen") ||
+        track.id.includes("screen") ||
+        eventStreamId.includes("screen");
+      
+      if (isLikelyScreenShare) {
+        isScreenShare = true;
+        // Use the first active screen share ID from userData as our streamId
+        streamId = this.globalState.userData[participantId].active_screen_share[0];
+        this.logger.info('StreamManager', `Identified as screen share track from userData for ${participantId}: ${streamId}`);
+      }
+    }
+    
+    // STEP 2: Check metadata if not identified yet
+    if (!isScreenShare && this.globalState.remoteStreamMetadata[participantId]) {
       for (const [metaStreamId, streamType] of Object.entries(this.globalState.remoteStreamMetadata[participantId])) {
         if (streamType === "screenshare") {
-          const eventStreamId = streams.length > 0 ? streams[0].id : track.id;
           if (eventStreamId.includes(metaStreamId) || metaStreamId.includes("screen")) {
             isScreenShare = true;
             streamId = metaStreamId;
+            this.logger.info('StreamManager', `Identified as screen share track from metadata for ${participantId}: ${streamId}`);
             break;
           }
         }
       }
     }
     
-    // Fallback: identify by track/stream labels
+    // STEP 3: Fallback: identify by track/stream labels
     if (!isScreenShare) {
       const isScreenShareFallback = 
         track.label.includes("screen") ||
@@ -381,6 +438,7 @@ export class StreamManager {
       if (isScreenShareFallback) {
         isScreenShare = true;
         streamId = streams.length > 0 ? streams[0].id : `screen_${Date.now()}`;
+        this.logger.info('StreamManager', `Identified as screen share track from label for ${participantId}: ${streamId}`);
         
         // Update metadata
         if (!this.globalState.remoteStreamMetadata[participantId]) {
@@ -390,17 +448,29 @@ export class StreamManager {
       }
     }
     
-    return { isScreenShare, streamId };
-  }
-  
-  /**
+    // If we identified this as a screen share, make sure the information is consistent
+    if (isScreenShare && streamId) {
+      // Make sure this streamId is also registered in userData.active_screen_share
+      if (this.globalState.userData[participantId]) {
+        if (!this.globalState.userData[participantId].active_screen_share) {
+          this.globalState.userData[participantId].active_screen_share = [];
+        }
+        
+        if (!this.globalState.userData[participantId].active_screen_share.includes(streamId)) {
+          this.globalState.userData[participantId].active_screen_share.push(streamId);
+          this.logger.info('StreamManager', `Added ${streamId} to userData.active_screen_share for ${participantId}`);
+        }
+      }
+    }
+      return { isScreenShare, streamId };
+  };/**
    * Handle screen share track
    * @param {string} participantId - The participant ID
    * @param {MediaStreamTrack} track - The track
    * @param {string} streamId - The stream ID
    * @param {MediaStream[]} streams - The streams
    */
-  _handleScreenShareTrack(participantId, track, streamId) {
+  _handleScreenShareTrack(participantId, track, streamId, streams) {
     this.logger.info('StreamManager', `Handling screen share track: ${participantId}/${streamId}`);
     
     // Initialize screen streams structure
@@ -410,33 +480,135 @@ export class StreamManager {
     
     // Create or get screen share stream
     if (!this.globalState.remoteScreenStreams[participantId][streamId]) {
-      this.globalState.remoteScreenStreams[participantId][streamId] = new WebRTC.MediaStream();
+      // If stream was provided in the event, use it
+      const eventStream = streams && streams.length > 0 ? streams[0] : null;
+      
+      if (eventStream) {
+        this.logger.info('StreamManager', `Using existing stream from event for ${streamId}`);
+        this.globalState.remoteScreenStreams[participantId][streamId] = eventStream;
+      } else {
+        // Create a new MediaStream
+        this.logger.info('StreamManager', `Creating new MediaStream for ${streamId}`);
+        this.globalState.remoteScreenStreams[participantId][streamId] = new WebRTC.MediaStream();
+      }
     }
     
-    this.globalState.remoteScreenStreams[participantId][streamId].addTrack(track);
+    const stream = this.globalState.remoteScreenStreams[participantId][streamId];
     
-    this.logger.info('StreamManager', `Screen share track added: ${participantId}/${streamId}`);
+    // Check if track is already in stream to avoid duplicates
+    const hasTrack = stream.getTracks().some(t => t.id === track.id);
+    if (!hasTrack) {
+      stream.addTrack(track);
+      this.logger.info('StreamManager', `Screen share track added: ${participantId}/${streamId} (${track.kind})`);
+    } else {
+      this.logger.info('StreamManager', `Track already exists in stream, not adding again: ${track.id}`);
+    }
     
-    // Emit event for UI
+    // Get user data from multiple sources to ensure consistency
+    let userData = this.globalState.userData[participantId];
+    
+    // If userData not found in globalState, try to get it from active screen shares
+    if (!userData && this.globalState.screenShares && this.globalState.screenShares[participantId]) {
+      userData = this.globalState.screenShares[participantId].userData;
+      this.logger.info('StreamManager', 'Using userData from screenShares state:', userData);
+    }
+    
+    // If still no userData, create a minimal one to prevent errors
+    if (!userData) {
+      this.logger.warn('StreamManager', 'No user data found for participant, creating minimal userData:', participantId);
+      userData = {
+        userId: participantId,
+        username: `User ${participantId}`,
+        profilePicture: null
+      };
+    }
+
+    // CRITICAL FIX: Add the screen share to userData if not already present
+    // This ensures the metadata and stream are properly linked
+    if (!this.globalState.userData[participantId]) {
+      this.globalState.userData[participantId] = userData;
+    }
+    
+    // Add screen share to userData and ensure it has active_screen_share array
+    if (!this.globalState.userData[participantId].active_screen_share) {
+      this.globalState.userData[participantId].active_screen_share = [];
+    }
+    
+    // Add to active_screen_share if not already present
+    if (!this.globalState.userData[participantId].active_screen_share.includes(streamId)) {
+      this.globalState.userData[participantId].active_screen_share.push(streamId);
+    }
+    
+    // Add screen share to globalState using the correct method
+    this.globalState.addScreenShare(participantId, streamId, stream);
+    
+    // Also add to remoteStreamMetadata for consistency
+    if (!this.globalState.remoteStreamMetadata[participantId]) {
+      this.globalState.remoteStreamMetadata[participantId] = {};
+    }
+    this.globalState.remoteStreamMetadata[participantId][streamId] = "screenshare";
+    
+    this.logger.info('StreamManager', `Screen share added to all required state objects for ${participantId}/${streamId}`);
+
+    // Store consistent stream info for UI consumption
+    const streamInfo = {
+      participantId,
+      stream: stream,
+      streamType: "screenshare", // Explicitly mark as screen share
+      streamId: streamId,
+      userData: { ...this.globalState.userData[participantId] }, // Use updated userData
+      trackInfo: {
+        kind: track.kind,
+        id: track.id,
+        label: track.label
+      }
+    };
+
+    // Store the stream info in globalState for consistency checking
+    if (!this.globalState.remoteStreamInfo) {
+      this.globalState.remoteStreamInfo = {};
+    }
+    this.globalState.remoteStreamInfo[streamId] = streamInfo;
+    
+    // Emit event for UI with the actual stream
     if (this.globalState.eventEmitter) {
-      this.globalState.eventEmitter.emit("stream_added_or_updated", {
-        participantId,
-        stream: this.globalState.remoteScreenStreams[participantId][streamId],
-        streamType: "screenshare",
-        streamId: streamId,
-        userData: this.globalState.userData[participantId],
-      });
+      this.logger.info('StreamManager', `Emitting stream_added_or_updated event for screen share: ${participantId}/${streamId}`);
+      this.globalState.eventEmitter.emit("stream_added_or_updated", streamInfo);
     }
   }
-  
-  /**
+    /**
    * Handle webcam track
    * @param {string} participantId - The participant ID
    * @param {MediaStreamTrack} track - The track
    * @param {MediaStream[]} streams - The streams
    */
-  _handleWebcamTrack(participantId, track) {
+  _handleWebcamTrack(participantId, track, streams) {
     this.logger.info('StreamManager', `Handling webcam track: ${participantId} (${track.kind})`);
+    
+    // Double-check this isn't a screen share track that got misrouted
+    // Even though _identifyTrackType should have caught this, we'll check again just to be safe
+    const userData = this.globalState.userData[participantId];
+    const isScreenShareUser = userData && userData.active_screen_share && 
+                             Array.isArray(userData.active_screen_share) && 
+                             userData.active_screen_share.length > 0;
+                             
+    // If the track looks like a screen share and the user has active screen shares, handle as screen share
+    const isScreenShareTrack = 
+      track.label.includes("screen") || 
+      track.label.includes("Screen") || 
+      track.id.includes("screen") ||
+      (streams.length > 0 && streams[0].id.includes("screen"));
+      
+    if (isScreenShareUser && isScreenShareTrack) {
+      this.logger.warn('StreamManager', `Track appears to be a screen share but was routed to _handleWebcamTrack, redirecting: ${participantId} (${track.kind})`);
+      
+      // Get the screen share ID from userData
+      const streamId = userData.active_screen_share[0];
+      
+      // Handle as a screen share track instead
+      this._handleScreenShareTrack(participantId, track, streamId, streams);
+      return;
+    }
     
     // Initialize remote stream if needed
     if (!this.globalState.remoteStreams[participantId]) {
@@ -444,16 +616,21 @@ export class StreamManager {
     }
     
     const stream = this.globalState.remoteStreams[participantId];
-    stream.addTrack(track);
+    
+    // Check if track is already in stream to avoid duplicates
+    const hasTrack = stream.getTracks().some(t => t.id === track.id);
+    if (!hasTrack) {
+      stream.addTrack(track);
+      this.logger.info('StreamManager', `Webcam track added: ${participantId} (${track.kind})`);
+    } else {
+      this.logger.info('StreamManager', `Track already exists in stream, not adding again: ${track.id}`);
+    }
     
     // Handle audio through audio context
     if (this.globalState.audioContextRef && stream.getAudioTracks().length > 0) {
       this.globalState.audioContextRef.addAudio(participantId, stream);
     }
-    
-    this.logger.info('StreamManager', `Webcam track added: ${participantId} (${track.kind})`);
-    
-    // Emit event for UI
+      // Emit event for UI
     if (this.globalState.eventEmitter) {
       this.globalState.eventEmitter.emit("stream_added_or_updated", {
         participantId,

@@ -68,7 +68,7 @@ export class PinManager {
      * @param {string} rectangleId - The rectangle ID to toggle pin for (user ID or screen share ID)
      * @returns {boolean} True if now pinned, false if unpinned
      */
-    togglePinUser(rectangleId) {
+    togglePinById(rectangleId) {
         if (!rectangleId) {
             this.logger.warn('PinManager', 'Cannot toggle pin for empty rectangle ID');
             return false;
@@ -94,7 +94,7 @@ export class PinManager {
      * @param {string} rectangleId - The rectangle ID to check
      * @returns {boolean} True if pin was cleared
      */
-    clearPinIfUser(rectangleId) {
+    clearPinIfId(rectangleId) {
         if (this.pinnedRectangleId === rectangleId) {
             this.setPinnedUser(null);
             this.logger.debug('PinManager', `Cleared pin for rectangle ${rectangleId}`);

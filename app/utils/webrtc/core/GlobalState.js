@@ -102,6 +102,23 @@ class GlobalState {
   }
 
   /**
+   * Get a specific callback function
+   * @param {string} callbackName - Name of the callback
+   * @returns {Function|null} Callback function or null
+   */
+  getCallback(callbackName) {
+    return this.callbacks[callbackName] || null;
+  }
+
+  /**
+   * Get chat ID
+   * @returns {string|null} Chat ID
+   */
+  getChatId() {
+    return this.chatId;
+  }
+
+  /**
    * Get my participant ID
    * @returns {string|null} My participant ID
    */
@@ -110,14 +127,6 @@ class GlobalState {
   }
 
     /**
-   * Get my participant ID
-   * @returns {string|null} Active chat ID
-   */
-  getChatId() {
-    return this.chatId;
-  }
-
-  /**
    * Pulisce completamente lo stato
    */
   cleanup() {
@@ -228,15 +237,90 @@ class GlobalState {
     delete this.remoteStreams[participantId];
     logger.debug('GlobalState', `Remote stream rimosso per ${participantId}`);
   }
-
-  addScreenShare(streamId, stream) {
-    this.screenStreams[streamId] = stream;
-    logger.debug('GlobalState', `Screen share aggiunto: ${streamId}`);
+  /**
+   * Add screen share - supports both old and new signatures
+   * Old signature: addScreenShare(streamId, stream) - only adds to screenStreams
+   * New signature: addScreenShare(participantId, streamId, stream) - adds to userData.active_screen_share and screenStreams
+   */
+  addScreenShare(participantIdOrStreamId, streamIdOrStream, stream = null) {
+    // Determine which signature is being used
+    if (arguments.length === 2) {
+      // Old signature: addScreenShare(streamId, stream)
+      const streamId = participantIdOrStreamId;
+      const streamObj = streamIdOrStream;
+      this.screenStreams[streamId] = streamObj;
+      logger.debug('GlobalState', `Screen share added to screenStreams: ${streamId}`);
+    } else if (arguments.length === 3) {
+      // New signature: addScreenShare(participantId, streamId, stream)
+      const participantId = participantIdOrStreamId;
+      const streamId = streamIdOrStream;
+      
+      // Add to screenStreams
+      this.screenStreams[streamId] = stream;
+      
+      // Add to userData active_screen_share array
+      if (!this.userData[participantId]) {
+        this.userData[participantId] = {
+          from: participantId,
+          active_screen_share: []
+        };
+      }
+      
+      if (!Array.isArray(this.userData[participantId].active_screen_share)) {
+        this.userData[participantId].active_screen_share = [];
+      }
+      
+      // Add to active_screen_share if not already present
+      if (!this.userData[participantId].active_screen_share.includes(streamId)) {
+        this.userData[participantId].active_screen_share.push(streamId);
+      }
+      
+      logger.debug('GlobalState', `Screen share added for participant ${participantId}: ${streamId}`);
+    } else {
+      logger.error('GlobalState', 'Invalid addScreenShare arguments');
+    }
   }
 
-  removeScreenShare(streamId) {
-    delete this.screenStreams[streamId];
-    logger.debug('GlobalState', `Screen share rimosso: ${streamId}`);
+  /**
+   * Remove screen share - supports both streamId only and participantId + streamId
+   */
+  removeScreenShare(participantIdOrStreamId, streamId = null) {
+    if (arguments.length === 1) {
+      // Old signature: removeScreenShare(streamId)
+      const streamIdToRemove = participantIdOrStreamId;
+      delete this.screenStreams[streamIdToRemove];
+      logger.debug('GlobalState', `Screen share removed from screenStreams: ${streamIdToRemove}`);
+    } else if (arguments.length === 2) {
+      // New signature: removeScreenShare(participantId, streamId)
+      const participantId = participantIdOrStreamId;
+      
+      // Remove from screenStreams
+      delete this.screenStreams[streamId];
+      
+      // Remove from userData active_screen_share array
+      if (this.userData[participantId] && Array.isArray(this.userData[participantId].active_screen_share)) {
+        const index = this.userData[participantId].active_screen_share.indexOf(streamId);
+        if (index !== -1) {
+          this.userData[participantId].active_screen_share.splice(index, 1);
+        }
+      }
+      
+      logger.debug('GlobalState', `Screen share removed for participant ${participantId}: ${streamId}`);
+    } else {
+      logger.error('GlobalState', 'Invalid removeScreenShare arguments');
+    }
+  }
+
+  /**
+   * Get active screen shares for a participant
+   * @param {string} participantId - Participant ID
+   * @returns {Array<string>} Array of screen share stream IDs
+   */
+  getActiveScreenShares(participantId) {
+    if (!this.userData[participantId] || !Array.isArray(this.userData[participantId].active_screen_share)) {
+      return [];
+    }
+    return [...this.userData[participantId].active_screen_share];
   }
 
   /**
@@ -244,6 +328,136 @@ class GlobalState {
    */
   getAllScreenStreams() {
     return { ...this.screenStreams };
+  }
+
+  /**
+   * Set a specific screen stream
+   * @param {string} streamId - Stream ID
+   * @param {MediaStream} stream - The screen stream
+   */
+  setScreenStream(streamId, stream) {
+    this.screenStreams[streamId] = stream;
+    logger.debug('GlobalState', `Screen stream impostato: ${streamId}`);
+  }
+
+  /**
+   * Get a specific screen stream
+   * @param {string} streamId - Stream ID
+   * @returns {MediaStream|null} The screen stream or null if not found
+   */
+  getScreenStream(streamId) {
+    return this.screenStreams[streamId] || null;
+  }
+
+  /**
+   * Remove a specific screen stream
+   * @param {string} streamId - Stream ID
+   */
+  removeScreenStream(streamId) {
+    delete this.screenStreams[streamId];
+    logger.debug('GlobalState', `Screen stream rimosso: ${streamId}`);
+  }
+
+  // ===== REMOTE SCREEN STREAMS METHODS =====
+
+  /**
+   * Get remote screen streams for a participant
+   * @param {string} participantId - Participant ID
+   * @returns {Object|null} Object containing screen streams or null
+   */
+  getRemoteScreenStreams(participantId) {
+    return this.remoteScreenStreams[participantId] || null;
+  }
+
+  /**
+   * Set remote screen streams for a participant
+   * @param {string} participantId - Participant ID
+   * @param {Object} screenStreams - Object containing screen streams
+   */
+  setRemoteScreenStreams(participantId, screenStreams) {
+    this.remoteScreenStreams[participantId] = screenStreams;
+    logger.debug('GlobalState', `Remote screen streams impostati per ${participantId}`);
+  }
+
+  /**
+   * Remove a specific remote screen stream
+   * @param {string} participantId - Participant ID
+   * @param {string} streamId - Stream ID
+   */
+  removeRemoteScreenStream(participantId, streamId) {
+    if (this.remoteScreenStreams[participantId] && this.remoteScreenStreams[participantId][streamId]) {
+      delete this.remoteScreenStreams[participantId][streamId];
+      logger.debug('GlobalState', `Remote screen stream ${streamId} rimosso per ${participantId}`);
+      
+      // Remove participant entry if no more streams
+      if (Object.keys(this.remoteScreenStreams[participantId]).length === 0) {
+        delete this.remoteScreenStreams[participantId];
+      }
+    }
+  }
+
+  // ===== STREAM METADATA METHODS =====
+
+  /**
+   * Set stream metadata for a participant
+   * @param {string} participantId - Participant ID
+   * @param {string} streamId - Stream ID
+   * @param {string} streamType - Stream type ('webcam' or 'screenshare')
+   */
+  setStreamMetadata(participantId, streamId, streamType) {
+    if (!this.remoteStreamMetadata[participantId]) {
+      this.remoteStreamMetadata[participantId] = {};
+    }
+    this.remoteStreamMetadata[participantId][streamId] = streamType;
+    logger.debug('GlobalState', `Stream metadata impostato: ${participantId}/${streamId} = ${streamType}`);
+  }
+
+  /**
+   * Get stream metadata for a participant
+   * @param {string} participantId - Participant ID
+   * @returns {Object|null} Stream metadata object or null
+   */
+  getStreamMetadata(participantId) {
+    return this.remoteStreamMetadata[participantId] || null;
+  }
+
+  /**
+   * Remove stream metadata for a participant
+   * @param {string} participantId - Participant ID
+   * @param {string} streamId - Stream ID
+   */
+  removeStreamMetadata(participantId, streamId) {
+    if (this.remoteStreamMetadata[participantId] && this.remoteStreamMetadata[participantId][streamId]) {
+      delete this.remoteStreamMetadata[participantId][streamId];
+      logger.debug('GlobalState', `Stream metadata rimosso: ${participantId}/${streamId}`);
+      
+      // Remove participant entry if no more metadata
+      if (Object.keys(this.remoteStreamMetadata[participantId]).length === 0) {
+        delete this.remoteStreamMetadata[participantId];
+      }
+    }
+  }
+
+  /**
+   * Remove all stream metadata for a participant (overloaded version)
+   * @param {string} participantId - Participant ID
+   */
+  removeAllStreamMetadata(participantId) {
+    if (this.remoteStreamMetadata[participantId]) {
+      delete this.remoteStreamMetadata[participantId];
+      logger.debug('GlobalState', `All stream metadata rimosso per ${participantId}`);
+    }
+  }
+
+  /**
+   * Remove all remote screen streams for a participant
+   * @param {string} participantId - Participant ID
+   */
+  removeAllRemoteScreenStreams(participantId) {
+    if (this.remoteScreenStreams[participantId]) {
+      delete this.remoteScreenStreams[participantId];
+      logger.debug('GlobalState', `All remote screen streams rimossi per ${participantId}`);
+    }
   }
 
   // ===== METODI PER SPEAKING USERS =====
@@ -536,15 +750,6 @@ class GlobalState {
   }
 
   /**
-   * Get callback by name
-   * @param {string} callbackName - Nome del callback da ottenere
-   * @returns {Function|null} Il callback se esiste, null altrimenti
-   */
-  getCallback(callbackName) {
-    return this.callbacks[callbackName] || null;
-  }
-
-  /**
    * Execute callback if it exists
    * @param {string} callbackName - Nome del callback da eseguire
    * @param {...any} args - Argomenti da passare al callback
@@ -618,6 +823,144 @@ class GlobalState {
       delete this.iceGatheringTimeouts[participantId];
     }
   }
+
+  // ===== ADDITIONAL ACCESSOR METHODS =====
+
+  /**
+   * Get all peer connection IDs
+   * @returns {Array<string>} Array of participant IDs
+   */
+  getAllPeerConnectionIds() {
+    return Object.keys(this.peerConnections);
+  }
+
+  /**
+   * Get user data for a participant
+   * @param {string} participantId - Participant ID
+   * @returns {Object|null} User data or null
+   */
+  getUserData(participantId) {
+    return this.userData[participantId] || null;
+  }
+
+  /**
+   * Get local stream
+   * @returns {MediaStream|null} Local stream or null
+   */
+  getLocalStream() {
+    return this.localStream;
+  }
+
+  /**
+   * Get remote stream for a participant
+   * @param {string} participantId - Participant ID
+   * @returns {MediaStream|null} Remote stream or null
+   */
+  getRemoteStream(participantId) {
+    return this.remoteStreams[participantId] || null;
+  }
+
+  /**
+   * Get pinned user ID
+   * @returns {string|null} Pinned user ID or null
+   */
+  getPinnedUser() {
+    return this.pinnedUserId;
+  }
+
+  // ===== METODI PER INIZIALIZZARE I DATI UTENTE =====
+
+  /**
+   * Initialize local user data in userData
+   * @param {string} myId - Local user ID
+   * @param {string} handle - Local user handle
+   * @param {Object} additionalData - Additional user data
+   */
+  initializeLocalUserData(myId, handle, additionalData = {}) {
+    if (!this.userData[myId]) {
+      this.userData[myId] = {
+        from: myId,
+        handle: handle,
+        is_speaking: false,
+        active_screen_share: [],
+        ...additionalData
+      };
+      
+      logger.info('GlobalState', `Local user data initialized for ${myId} (${handle})`);
+    } else {
+      // Update existing data without overwriting active_screen_share
+      this.userData[myId] = {
+        ...this.userData[myId],
+        handle: handle,
+        ...additionalData
+      };
+      
+      // Ensure active_screen_share exists as array
+      if (!Array.isArray(this.userData[myId].active_screen_share)) {
+        this.userData[myId].active_screen_share = [];
+      }
+      
+      logger.debug('GlobalState', `Local user data updated for ${myId} (${handle})`);
+    }
+  }
+
+  // ===== MANAGER ACCESSOR METHODS =====
+  // These methods will be implemented when the managers are properly integrated
+
+  /**
+   * Get API methods instance (placeholder)
+   * @returns {Object|null} API methods instance or null
+   */
+  getAPIMethods() {
+    // This will be implemented when API methods are properly integrated
+    return null;
+  }
+
+  /**
+   * Get recovery manager instance (placeholder)
+   * @returns {Object|null} Recovery manager instance or null
+   */
+  getRecoveryManager() {
+    // This will be implemented when recovery manager is properly integrated
+    return null;
+  }
+
+  /**
+   * Get signaling manager instance (placeholder)
+   * @returns {Object|null} Signaling manager instance or null
+   */
+  getSignalingManager() {
+    // This will be implemented when signaling manager is properly integrated
+    return null;
+  }
+
+  /**
+   * Get peer connection manager instance (placeholder)
+   * @returns {Object|null} Peer connection manager instance or null
+   */
+  getPeerConnectionManager() {
+    // This will be implemented when peer connection manager is properly integrated
+    return null;
+  }
+
+  /**
+   * Get pin manager instance (placeholder)
+   * @returns {Object|null} Pin manager instance or null
+   */
+  getPinManager() {
+    // This will be implemented when pin manager is properly integrated
+    return null;
+  }
+
+  /**
+   * Get event emitter instance (placeholder)
+   * @returns {Object|null} Event emitter instance or null
+   */
+  getEventEmitter() {
+    // This will be implemented when event emitter is properly integrated
+    return null;
+  }
+
 }
 
 export { GlobalState };

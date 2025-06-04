@@ -60,16 +60,13 @@ class WebRTCManager {
    */
   _initialize() {
     
-  this.logger.info('WebRTCManager', 'Initializing WebRTC Manager...');
+    this.logger.info('WebRTCManager', 'Initializing WebRTC Manager...');
 
-    // Initialize event receiver
-    this.eventReceiver = new EventReceiver(this.logger,this.globalState);
-    // Setup component cross-references
-    this._setupComponentReferences();
     
     // Initialize utilities
     this.webrtcUtils = new WebRTCUtils(this.logger);
-    this.mediaUtils = new MediaUtils(this.logger);    // Initialize core components
+    this.mediaUtils = new MediaUtils(this.logger);    
+    // Initialize core components
     this.peerConnectionManager = PeerConnectionManager;
     this.peerConnectionManager.globalState = this.globalState;
     this.streamManager = new StreamManager(this.globalState, this.logger);
@@ -83,9 +80,9 @@ class WebRTCManager {
     this.peerConnectionManager.iceManager = this.iceManager;
     
     // Initialize features
-    this.screenShareManager = new ScreenShareManager(this.globalState, this.logger);
-    this.voiceActivityDetection = new VoiceActivityDetection(this.globalState, this.logger);
     this.pinManager = new PinManager(this.globalState, this.logger);
+    this.screenShareManager = new ScreenShareManager(this.globalState, this.logger, this.pinManager);
+    this.voiceActivityDetection = new VoiceActivityDetection(this.globalState, this.logger);
     
     // Initialize health monitoring
     this.healthChecker = new HealthChecker(this.globalState, this.logger);
@@ -94,6 +91,10 @@ class WebRTCManager {
     // Initialize voice activity detection
     this.voiceActivityDetection.initialize(this.globalState);
 
+    // Initialize event receiver
+    this.eventReceiver = new EventReceiver(this.logger,this.globalState);
+    // Setup component cross-references
+    this._setupComponentReferences();
     
     this.logger.info('WebRTCManager', 'All components initialized');
   }
@@ -273,6 +274,13 @@ class WebRTCManager {
   }
   
   /**
+   * Get a specific screen stream by ID
+   */
+  getScreenStream(streamId) {
+    return this.globalState.getScreenStream(streamId);
+  }
+  
+  /**
    * Check if any screen sharing is active
    */
   hasActiveScreenShare() {
@@ -280,13 +288,6 @@ class WebRTCManager {
   }
   
   // ===== PIN MANAGEMENT API =====
-  
-  /**
-   * Set pinned user/rectangle
-   */
-  setPinnedUser(rectangleId) {
-    return this.pinManager.setPinnedUser(rectangleId);
-  }
   
   /**
    * Get pinned user/rectangle
@@ -298,15 +299,15 @@ class WebRTCManager {
   /**
    * Toggle pin for user/rectangle
    */
-  togglePinUser(rectangleId) {
-    return this.pinManager.togglePinUser(rectangleId);
+  togglePinById(rectangleId) {
+    return this.pinManager.togglePinById(rectangleId);
   }
   
   /**
    * Clear pin if matches specified ID
    */
-  clearPinIfUser(rectangleId) {
-    this.pinManager.clearPinIfUser(rectangleId);
+  clearPinIfId(rectangleId) {
+    this.pinManager.clearPinIfId(rectangleId);
   }
   
   // ===== SIGNALING API =====
@@ -483,6 +484,14 @@ class WebRTCManager {
   }
   
   // ===== PIN MANAGEMENT API =====
+
+  /** 
+   * Pin a track by ID
+   */
+
+  togglePinById(rectangleId) {
+    return this.pinManager.togglePinById(rectangleId);
+  }
   
   /**
    * Pin a user
@@ -655,6 +664,24 @@ class WebRTCManager {
   setVideoEnabled(enabled) {
     this.globalState.isVideoEnabled = enabled;
     this.logger.info('WebRTCManager', `Video enabled state set to: ${enabled}`);
+  }
+  
+  /**
+   * Get active screen shares for a participant
+   * @param {string} participantId - Participant ID
+   * @returns {string[]} Array of active screen share IDs
+   */
+  getActiveScreenShares(participantId) {
+    return this.globalState.getActiveScreenShares(participantId);
+  }
+  
+  /**
+   * Initialize local user data
+   * @param {string} handle - Local user handle
+   * @param {Object} additionalData - Additional user data
+   */
+  initializeLocalUserData(handle, additionalData = {}) {
+    return this.globalState.initializeLocalUserData(this.globalState.myId, handle, additionalData);
   }
 }
 

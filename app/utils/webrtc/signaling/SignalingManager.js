@@ -5,6 +5,7 @@ import { SDP_OPTIONS } from '../config/mediaConstraints.js';
 import Compatibility from '../utils/compatibility.js';
 import { Helpers } from '../utils/helpers.js';
 import webSocketMethods from '../../webSocketMethods.js';
+import { relativeTimeThreshold } from 'moment';
 
 const { RTCSessionDescription } = Compatibility.getWebRTCLib();
 
@@ -15,8 +16,8 @@ const { RTCSessionDescription } = Compatibility.getWebRTCLib();
 export class SignalingManager {
   constructor(globalState, logger, webRTCManager) {
     this.peerConnectionManager = webRTCManager.peerConnectionManager || null;
-    this.pinManager = webRTCManager.pinManager || null;
     this.voiceActivityDetection = webRTCManager.voiceActivityDetection || null;
+    this.webRTCManager = webRTCManager || null;
     this.iceManager = webRTCManager.iceManager || null;
     this.logger = logger || WebRTCLogger;
     this.globalState = globalState || new GlobalState();
@@ -470,8 +471,9 @@ export class SignalingManager {
       this.globalState.removeRemoteStream(participantId);
 
       // Pulisci pin se era pinnato
-      if (this.pinManager) {
-        this.pinManager.clearPinIfUser(participantId);
+      if (this.webRTCManager) {
+        this.webRTCManager.clearPinIfId(participantId);
+        this.logger.debug(`Pin rimosso per utente uscito ${participantId}`);
       }
 
       this.logger.info(`Pulizia completata per utente uscito ${participantId}`, {

@@ -4,7 +4,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import UserCard from "./UserCard";
 
 import methods from "../../utils/webrtc/methods";
-const { get, check, pin } = methods;
+const { get, check, pin, handle } = methods;
 
 let RTCView;
 if (Platform.OS === "web") {

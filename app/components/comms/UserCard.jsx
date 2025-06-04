@@ -4,10 +4,10 @@ import { BlurView } from "expo-blur";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { PinIcon, PinOffIcon } from "@hugeicons/core-free-icons";
+import { PinIcon, PinOffIcon, ComputerRemoveIcon } from "@hugeicons/core-free-icons";
 
 import methods from "../../utils/webrtc/methods";
-const { get, check } = methods;
+const { get, check, self } = methods;
 
 let RTCView;
 if (Platform.OS === "web") {
@@ -66,7 +66,10 @@ const VideoContent = memo(
     width,
     height,
     videoStreamKey,
+    userData,
+    streamType,
   }) => {
+    
     return (
       <View style={styles.videoContainer}>
         {hasVideo && streamToRender ? (
@@ -186,18 +189,19 @@ const UserCard = memo(
     // Add CSS animation on component mount for web
     useEffect(() => {
       addPulseAnimation();
-    }, []);
-
-    // Determina se è l'utente locale
-    const isLocalUser = profile.from === get.myPartecipantId();
+    }, []);    // Determina se è l'utente locale
+    const isLocalUser = isScreenShare 
+      ? profile.from.includes(get.myPartecipantId()) // Per screen share, controlla se l'ID contiene il nostro ID
+      : profile.from === get.myPartecipantId();
 
     // Check if current user is in comms - only render video and speaking if in comms
-    const userIsInComms = check.isInComms();
-
-    // Determina quale stream utilizzare - solo se l'utente è in comms
+    const userIsInComms = check.isInComms();    // Determina quale stream utilizzare - solo se l'utente è in comms
     let streamToRender = null;
     if (userIsInComms) {
-      if (isLocalUser && get.localStream()) {
+      if (isScreenShare && activeStream?.stream) {
+        // For screen shares, ALWAYS use the activeStream.stream if available
+        streamToRender = activeStream.stream;
+      } else if (isLocalUser && get.localStream()) {
         streamToRender = get.localStream();
       } else if (activeStream?.stream) {
         streamToRender = activeStream.stream;
@@ -206,9 +210,7 @@ const UserCard = memo(
       }
     }
     const hasVideo =
-      userIsInComms && streamToRender?.getVideoTracks().length > 0;
-
-    // Memoizza i valori per il componente VideoContent per prevenire re-render
+      userIsInComms && streamToRender?.getVideoTracks().length > 0;    // Memoizza i valori per il componente VideoContent per prevenire re-render
     const videoProps = useMemo(
       () => ({
         hasVideo,
@@ -223,6 +225,8 @@ const UserCard = memo(
         width,
         height,
         videoStreamKey,
+        userData: activeStream?.userData || profile,
+        streamType: activeStream?.streamType || (isScreenShare ? 'screenshare' : 'webcam'),
       }),
       [
         hasVideo,
@@ -279,9 +283,36 @@ const UserCard = memo(
           strokeWidth={1.5}
         />
       </TouchableOpacity>
-    );
+    );    
+    // Componente del pulsante stop screen share (solo per screen share locali)
+    const StopScreenShareButton = () => {
+      const handleStopScreenShare = async () => {
+        try {
+          if (activeStream?.streamId) {
+            await self.stopScreenShare(activeStream.streamId);
+          }
+        } catch (error) {
+          console.error('Error stopping screen share:', error);
+        }
+      };
 
-    return (
+      return (
+        <TouchableOpacity
+          style={styles.stopButton}
+          onPress={handleStopScreenShare}
+          activeOpacity={0.7}
+        > 
+          <HugeiconsIcon
+            icon={ComputerRemoveIcon}
+            size={20}
+            color="#fff"
+          />
+        </TouchableOpacity>
+      );
+    };// Determina se mostrare il pulsante stop screen share
+    const shouldShowStopButton = isScreenShare && isLocalUser && !!activeStream?.streamId;
+
+   return (
       <View
         style={[
           styles.profile,
@@ -295,8 +326,8 @@ const UserCard = memo(
         <View style={styles.videoContainer}>
           <VideoContent {...videoProps} />
           <View style={speakingOverlayStyle} />
-          {onPin && !pinDisabled && <PinButton />}
-          {/* Mostra il pulsante solo se onPin è presente e pinDisabled è false */}
+          {onPin && check.isInComms() && <PinButton />}
+          {shouldShowStopButton && <StopScreenShareButton />}
         </View>
       </View>
     );
@@ -426,6 +457,18 @@ const styles = StyleSheet.create({
   },
   pinIconPinned: {
     backgroundColor: "#000",
+  },
+  stopButton: {
+    position: "absolute",
+    top: 8,
+    right: 56,
+    zIndex: 20,
+    backgroundColor: "rgba(255, 0, 0, 0.7)", // Rosso traslucido
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

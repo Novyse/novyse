@@ -10,10 +10,10 @@ const { mediaDevices } = Compatibility.getWebRTCLib();
  * ScreenShareManager - Gestisce la condivisione schermo
  * Include avvio, arresto, gestione permessi e compatibilità multi-piattaforma
  */
-export class ScreenShareManager {  constructor(globalState, logger) {
+export class ScreenShareManager {  constructor(globalState, logger, pinManager) {
     this.logger = logger || WebRTCLogger;
     this.globalState = globalState || new GlobalState();
-    
+    this.pinManager = pinManager;
     // Contatore per ID univoci degli stream
     this.screenStreamCounter = 0;
     
@@ -42,11 +42,10 @@ export class ScreenShareManager {  constructor(globalState, logger) {
       platform: Platform.OS
     });
   }
-
   /**
    * Avvia una nuova condivisione schermo
-   * @param {string} screenShareId - ID screen share dal server API
-   * @param {MediaStream} existingStream - Stream esistente opzionale
+   * @param {string} screenShareId - ID screen share dal server API (used as streamId)
+   * @param {MediaStream} existingStream - Stream esistente OBBLIGATORIO
    * @returns {Promise<Object|null>} { streamId, stream } o null se fallisce
    */
   async startScreenShare(screenShareId, existingStream = null) {
@@ -58,51 +57,57 @@ export class ScreenShareManager {  constructor(globalState, logger) {
     });
 
     try {
-      let screenStream = existingStream;
-      
-      // Se non c'è stream esistente, acquisiscine uno nuovo
-      if (!screenStream) {
-        screenStream = await this._acquireScreenStream();
-        
-        if (!screenStream) {
-          this.logger.warning('Impossibile acquisire stream screen share', {
-            component: 'ScreenShareManager'
-          });
-          return null;
-        }
+      // CRITICAL: We must have an existing stream - never regenerate
+      if (!existingStream) {
+        this.logger.error('No existing stream provided - screen share cannot start without stream', {
+          component: 'ScreenShareManager',
+          screenShareId
+        });
+        return null;
       }
 
-      // Genera ID univoco per lo stream
-      const streamId = `screen_${this.screenStreamCounter++}_${Date.now()}`;
+      // Use the API-provided screenShareId as the actual streamId (no generation)
+      const streamId = screenShareId;
       
-      // Salva stream negli stati globali
-      this.globalState.setScreenStream(streamId, screenStream);
+      // Check if this screen share already exists
+      const existingScreenStream = this.globalState.getScreenStream(streamId);
+      if (existingScreenStream) {
+        this.logger.warning('Screen share already exists, not recreating', {
+          component: 'ScreenShareManager',
+          streamId
+        });
+        return { streamId, stream: existingScreenStream };
+      }
 
-      this.logger.info(`Stream screen share creato con ID: ${streamId}`, {
+      // Add to userData using the new addScreenShare method
+      const myParticipantId = this.globalState.myId;
+      this.globalState.addScreenShare(myParticipantId, streamId, existingStream);
+
+      this.logger.info(`Screen share added to userData with ID: ${streamId}`, {
         component: 'ScreenShareManager',
         streamId,
-        screenShareId,
-        tracks: screenStream.getTracks().length
+        participantId: myParticipantId,
+        tracks: existingStream.getTracks().length
       });
 
       // Configura gestori eventi per fine condivisione
-      this._setupStreamEndHandlers(screenStream, streamId);
+      this._setupStreamEndHandlers(existingStream, streamId);
 
       // Aggiungi stream a tutte le connessioni peer
-      await this._addScreenStreamToAllPeers(screenStream, streamId);
+      await this._addScreenStreamToAllPeers(existingStream, streamId);
 
       // Invia notifica signaling se WebSocket disponibile
       await this._notifyScreenShareStarted(streamId);
 
-      // Notifica UI components
-      this._notifyStreamUpdate();
+      // Notify local UI about screen share addition for rectangle creation
+      this._notifyLocalScreenShareStarted(streamId, existingStream);
 
       // Rinegozia con tutti i peer dopo un breve delay
       setTimeout(() => {
         this._renegotiateWithAllPeers();
       }, 100);
 
-      return { streamId, stream: screenStream };
+      return { streamId, stream: existingStream };
 
     } catch (error) {
       this.logger.error('Errore avvio condivisione schermo', {
@@ -128,6 +133,16 @@ export class ScreenShareManager {  constructor(globalState, logger) {
     }
   }
 
+  /**
+   * Aggiunge un nuovo stream screen share - metodo wrapper per startScreenShare
+   * Chiamato dal WebRTCManager per compatibilità API
+   * @param {string} screenShareId - ID screen share dal server API
+   * @param {MediaStream} existingStream - Stream esistente opzionale
+   * @returns {Promise<Object|null>} { streamId, stream } o null se fallisce
+   */
+  async addScreenShareStream(screenShareId, existingStream = null) {
+    return await this.startScreenShare(screenShareId, existingStream);
+  }
   /**
    * Ferma una condivisione schermo specifica
    * @param {string} streamId - ID dello stream da fermare
@@ -164,17 +179,18 @@ export class ScreenShareManager {  constructor(globalState, logger) {
         });
       });
 
-      // Rimuovi dallo stato globale
-      this.globalState.removeScreenStream(streamId);
+      // Remove from userData using the new removeScreenShare method
+      const myParticipantId = this.globalState.getMyId();
+      this.globalState.removeScreenShare(myParticipantId, streamId);
 
       // Invia notifica signaling se WebSocket disponibile
       await this._notifyScreenShareStopped(streamId);
 
       // Pulisci pin se questo stream era pinnato
-      this._clearPinIfStreamId(streamId);
+      this.pinManager.clearPinIfId(streamId);
 
-      // Notifica UI components
-      this._notifyStreamUpdate();
+      // Notifica UI components about screen share removal
+      this._notifyLocalScreenShareStopped(streamId);
 
       // Rinegozia con tutti i peer
       setTimeout(() => {
@@ -689,6 +705,83 @@ export class ScreenShareManager {  constructor(globalState, logger) {
    */
   getScreenShareStreams() {
     return this.globalState.getAllScreenStreams();
+  }
+
+  /**
+   * Notify local UI about screen share started for creating rectangles in VocalContent
+   * @param {string} streamId - Stream ID
+   * @param {MediaStream} stream - The screen stream
+   * @returns {void}
+   * @private
+   */
+  _notifyLocalScreenShareStarted(streamId, stream) {
+    try {
+      // Import EventEmitter to notify VocalContent
+      const eventEmitter = require('../../EventEmitter.js').default;
+      
+      const myParticipantId = this.globalState.getMyId();
+      const userData = this.globalState.getUserData(myParticipantId) || {
+        from: myParticipantId,
+        handle: 'You',
+        is_speaking: false
+      };
+
+      // Emit stream_added_or_updated event for local screen share
+      eventEmitter.emit('stream_added_or_updated', {
+        participantId: myParticipantId,
+        stream: stream,
+        streamType: 'screenshare',
+        userData: userData,
+        timestamp: Date.now(),
+        streamId: streamId
+      });
+
+      this.logger.debug('Local screen share notification sent to UI', {
+        component: 'ScreenShareManager',
+        streamId,
+        participantId: myParticipantId
+      });
+    } catch (error) {
+      this.logger.error('Error notifying local UI about screen share', {
+        component: 'ScreenShareManager',
+        streamId,
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Notify local UI about screen share stopped for removing rectangles in VocalContent
+   * @param {string} streamId - Stream ID
+   * @returns {void}
+   * @private
+   */
+  _notifyLocalScreenShareStopped(streamId) {
+    try {
+      // Import EventEmitter to notify VocalContent
+      const eventEmitter = require('../../EventEmitter.js').default;
+      
+      const myParticipantId = this.globalState.getMyId();
+
+      // Emit screen_share_stopped event for local screen share
+      eventEmitter.emit('screen_share_stopped', {
+        from: myParticipantId,
+        streamId: streamId,
+        chatId: this.globalState.getChatId()
+      });
+
+      this.logger.debug('Local screen share stopped notification sent to UI', {
+        component: 'ScreenShareManager',
+        streamId,
+        participantId: myParticipantId
+      });
+    } catch (error) {
+      this.logger.error('Error notifying local UI about screen share stop', {
+        component: 'ScreenShareManager',
+        streamId,
+        error: error.message
+      });
+    }
   }
 }
 

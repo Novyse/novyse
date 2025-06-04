@@ -359,9 +359,8 @@ export class StreamManager {
       });
       this.globalState.removeAllRemoteScreenStreams(participantId);
     }
-
     // Pulisci metadata stream
-    this.globalState.removeStreamMetadata(participantId);
+    this.globalState.removeAllStreamMetadata(participantId);
   }
 
   /**

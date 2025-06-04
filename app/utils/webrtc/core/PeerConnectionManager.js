@@ -167,7 +167,6 @@ class PeerConnectionManager {
       (streams.length > 0 && streams[0].id.includes("screen"))
     );
   }
-
   /**
    * Gestisce tracce di screen sharing
    */
@@ -180,10 +179,16 @@ class PeerConnectionManager {
 
     if (!this.globalState.remoteScreenStreams[participantId][streamId]) {
       this.globalState.remoteScreenStreams[participantId][streamId] = new MediaStream();
-    }
-
-    this.globalState.remoteScreenStreams[participantId][streamId].addTrack(event.track);
+    }    this.globalState.remoteScreenStreams[participantId][streamId].addTrack(event.track);
     logger.info('PeerConnectionManager', `Screen share track aggiunta: ${participantId}/${streamId}`);
+
+    // IMPORTANT: Also update userData to include this screen share in active_screen_share array
+    this.globalState.addScreenShare(participantId, streamId, this.globalState.remoteScreenStreams[participantId][streamId]);
+    
+    logger.info('PeerConnectionManager', `Added screen share ${streamId} to userData for participant ${participantId}`);
+
+    // Setup track event handlers with screen share info
+    this._setupTrackEventHandlers(event.track, participantId, 'screenshare', streamId);
 
     // Emetti evento per UI
     this._emitStreamEvent(participantId, this.globalState.remoteScreenStreams[participantId][streamId], 'screenshare', streamId);
@@ -205,13 +210,11 @@ class PeerConnectionManager {
       this.globalState.audioContextRef.addAudio(participantId, stream);
     }
 
-    logger.info('PeerConnectionManager', `Webcam track aggiunta per ${participantId}`);
-
-    // Emetti evento per UI
+    logger.info('PeerConnectionManager', `Webcam track aggiunta per ${participantId}`);    // Emetti evento per UI
     this._emitStreamEvent(participantId, stream, 'webcam');
 
     // Setup track event handlers
-    this._setupTrackEventHandlers(event.track);
+    this._setupTrackEventHandlers(event.track, participantId, 'webcam');
   }
 
   /**
@@ -234,13 +237,24 @@ class PeerConnectionManager {
       this.globalState.onStreamUpdate();
     }
   }
-
   /**
    * Configura event handlers per le tracce
    */
-  _setupTrackEventHandlers(track) {
+  _setupTrackEventHandlers(track, participantId = null, streamType = null, streamId = null) {
     track.onended = () => {
-      logger.debug('PeerConnectionManager', 'Traccia remota terminata:', track.id);
+      logger.debug('PeerConnectionManager', 'Traccia remota terminata:', {
+        trackId: track.id,
+        participantId,
+        streamType,
+        streamId
+      });
+      
+      // If it's a screen share track that ended, remove it from userData
+      if (streamType === 'screenshare' && participantId && streamId) {
+        this.globalState.removeScreenShare(participantId, streamId);
+        logger.info('PeerConnectionManager', `Removed ended screen share ${streamId} from userData for participant ${participantId}`);
+      }
+      
       if (this.globalState.onStreamUpdate) {
         this.globalState.onStreamUpdate();
       }
@@ -328,23 +342,37 @@ class PeerConnectionManager {
     const state = pc.iceGatheringState;
     logger.debug('PeerConnectionManager', `ICE gathering state per ${participantId}: ${state}`);
   }
-
   /**
    * Aggiunge tracce locali a una peer connection
    * @param {RTCPeerConnection} pc 
    */
   _addLocalTracksIfAvailable(pc) {
-    if (!this.globalState.localStream) {
+    // Add local stream tracks (audio/video)
+    if (this.globalState.localStream) {
+      this.globalState.localStream.getTracks().forEach((track) => {
+        // Evita duplicati
+        const already = pc.getSenders().find((s) => s.track && s.track.id === track.id);
+        if (!already) {
+          pc.addTrack(track, this.globalState.localStream);
+          logger.debug('PeerConnectionManager', `Traccia locale aggiunta: ${track.kind}`);
+        }
+      });
+    } else {
       logger.debug('PeerConnectionManager', 'Nessun local stream disponibile per aggiungere tracce');
-      return;
     }
 
-    this.globalState.localStream.getTracks().forEach((track) => {
-      // Evita duplicati
-      const already = pc.getSenders().find((s) => s.track && s.track.id === track.id);
-      if (!already) {
-        pc.addTrack(track, this.globalState.localStream);
-        logger.debug('PeerConnectionManager', `Traccia locale aggiunta: ${track.kind}`);
+    // Add screen share tracks
+    const allScreenStreams = this.globalState.getAllScreenStreams();
+    Object.entries(allScreenStreams).forEach(([streamId, screenStream]) => {
+      if (screenStream && screenStream.getTracks) {
+        screenStream.getTracks().forEach((track) => {
+          // Evita duplicati
+          const already = pc.getSenders().find((s) => s.track && s.track.id === track.id);
+          if (!already) {
+            pc.addTrack(track, screenStream);
+            logger.debug('PeerConnectionManager', `Screen share track aggiunta: ${streamId}/${track.kind}`);
+          }
+        });
       }
     });
   }

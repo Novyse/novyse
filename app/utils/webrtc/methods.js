@@ -32,14 +32,19 @@ const self = {
     const data = await APIMethods.commsJoin(chatId);
     if (!data.comms_joined) {
       throw new Error("Failed to join vocal chat");
-    }
-
-    // Rigenero
+    }    // Rigenero
     await WebRTC.regenerate(data.from, chatId, null);
+    
     // Aggiungi il chat_id ai dati prima di emettere l'evento
     // e includi anche i dati dell'utente locale
     const localUserHandle = await localDatabase.fetchLocalUserHandle();
     const localUserData = await localDatabase.fetchLocalUserData();
+
+    // Initialize local user data in GlobalState to ensure it includes screen shares
+    WebRTC.initializeLocalUserData(localUserHandle, {
+      profileImage: localUserData?.profileImage || null,
+      profileImageUri: localUserData?.profileImage || null,
+    });
 
     const dataWithChatId = {
       ...data,
@@ -616,31 +621,67 @@ const get = {
   },
   myPartecipantId: () => {
     return WebRTC.getMyId();
-  },  commsMembers: async (chatId) => {
+  },   commsMembers: async (chatId) => {
     let usersList = [];
 
     if (chatId != WebRTC.getChatId()) {
+      // Different chat - always fetch from API
       usersList = await APIMethods.retrieveVocalUsers(chatId);
     } else {
-      // Fetch WebRTC users data
-      usersList = Object.values(WebRTC.getUserData());
+      // Same chat - check if we have sufficient remote user data
+      const webrtcUserData = Object.values(WebRTC.getUserData());
+      const myParticipantId = WebRTC.getMyId();
+      
+      // Filter out local user to count remote users
+      const remoteUsers = webrtcUserData.filter(user => user.from !== myParticipantId);
+      
+      // If we have remote users in WebRTC userData, use it; otherwise fetch from API
+      if (remoteUsers.length > 0) {
+        console.log('[methods] Using WebRTC userData (has remote users):', remoteUsers.length);
+        usersList = webrtcUserData;
+      } else {
+        console.log('[methods] No remote users in WebRTC userData, fetching from API');
+        usersList = await APIMethods.retrieveVocalUsers(chatId);
+      }
 
-      // Fetch local user handle and data
-      const localUserHandle = await localDatabase.fetchLocalUserHandle();
-      const localUserData = await localDatabase.fetchLocalUserData();
+      // Ensure local user is in the list with current screen shares
+      const localUserExists = usersList.some(user => user.from === myParticipantId);
 
-      usersList.push({
-        handle: localUserHandle,
-        from: WebRTC.getMyId(),
-        profileImage: localUserData?.profileImage || null,
-      });
+      if (!localUserExists) {
+        // Fetch local user handle and data only if not already present
+        const localUserHandle = await localDatabase.fetchLocalUserHandle();
+        const localUserData = await localDatabase.fetchLocalUserData();
+
+        // Build local user object with active screen shares
+        const activeScreenShares = WebRTC.getActiveScreenShares(myParticipantId);
+
+        const localUser = {
+          handle: localUserHandle,
+          from: myParticipantId,
+          profileImage: localUserData?.profileImage || null,
+          active_screen_share: activeScreenShares || []  // Include active screen shares
+        };
+
+        usersList.push(localUser);
+      } else {
+        // Update existing local user with current screen shares
+        const localUserIndex = usersList.findIndex(user => user.from === myParticipantId);
+        if (localUserIndex !== -1) {
+          const activeScreenShares = WebRTC.getActiveScreenShares(myParticipantId);
+          usersList[localUserIndex].active_screen_share = activeScreenShares || [];
+        }
+      }
     }
 
     return usersList;
   },
   pinnedUser: () => {
-    return WebRTC.getPinnedUser();
-  },  microphoneStatus: () => {
+    if(check.isInComms()) {
+      return WebRTC.getPinnedUser();
+    }
+    return null;
+  },  
+  microphoneStatus: () => {
     return WebRTC.getLocalStream() && WebRTC.getLocalStream().getAudioTracks()[0]?.enabled;
   },
   videoStatus: () => {
@@ -662,10 +703,7 @@ const set = {
 
 const pin = {
   toggle: (rectangleId) => {
-    return WebRTC.togglePinUser(rectangleId);
-  },
-  set: (rectangleId) => {
-    return WebRTC.setPinnedUser(rectangleId);
+    return WebRTC.togglePinById(rectangleId);
   },
   clear: () => {
     return WebRTC.setPinnedUser(null);

@@ -109,36 +109,44 @@ class WebRTCEventReceiver {
                     this.voiceActivityDetection.setSpeakingState(data.from, false);
                 }
         }
-    }
-
-    // Screen Sharing Handlers
+    }    // Screen Sharing Handlers
     async handleScreenShareStarted(data) {
         if (
             data.from !== this.globalState.myId &&
             this.globalState.myId !== undefined
         ) {
-            this.logger?.info(`[EventReceiver] Screen share started:+ ${data}`);
-            if (this.webrtcManager && this.webrtcManager.screenShareManager) {
-                await this.webrtcManager.screenShareManager.startScreenShare();
-                if (this.globalState.getChatId() === data.chat_id) {
-                    SoundPlayer.getInstance().playSound("comms_stream_started");
-                }
+            this.logger?.info(`[EventReceiver] Remote screen share started:`, data);
+            
+            // For remote screen shares, we don't need to create a stream,
+            // just update the userData to indicate the remote user has an active screen share
+            if (data.streamId && data.from) {
+                // Add the screen share to remote user's userData
+                this.globalState.addScreenShare(data.from, data.streamId, null);
+                
+                this.logger?.info(`[EventReceiver] Added remote screen share ${data.streamId} for user ${data.from}`);
+            }
+            
+            if (this.globalState.getChatId() === data.chat_id) {
+                SoundPlayer.getInstance().playSound("comms_stream_started");
             }
         }
-    }
-
-    async handleScreenShareStopped(data) {
+    }    async handleScreenShareStopped(data) {
         if (
             data.from !== this.globalState.myId &&
             this.globalState.myId !== undefined
         ) {
-            this.logger?.info(`[EventReceiver] Screen share stopped:+ ${data}`);
+            this.logger?.info(`[EventReceiver] Remote screen share stopped:`, data);
             
-            if (this.webrtcManager && this.webrtcManager.screenShareManager) {
-                this.webrtcManager.screenShareManager.stopScreenShare();
-                if (this.globalState.getChatId() === data.chat_id) {
-                    SoundPlayer.getInstance().playSound("comms_stream_stopped");
-                }
+            // For remote screen shares, remove from userData
+            if (data.streamId && data.from) {
+                this.pinManager.clearPinIfId(data.streamId);
+                this.globalState.removeScreenShare(data.from, data.streamId);
+                
+                this.logger?.info(`[EventReceiver] Removed remote screen share ${data.streamId} for user ${data.from}`);
+            }
+            
+            if (this.globalState.getChatId() === data.chat_id) {
+                SoundPlayer.getInstance().playSound("comms_stream_stopped");
             }
         }
     }
