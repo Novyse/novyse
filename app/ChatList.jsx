@@ -307,22 +307,6 @@ const ChatList = () => {
     setSelectedChat(newChatId);
   };
 
-  // Handlers for BigFloatingCommsMenu actions
-  const handleVoiceCall = () => {
-    console.log("Voice call");
-    // Add your voice call logic here
-  };
-
-  const handleVideoCall = () => {
-    console.log("Video call");
-    // Add your video call logic here
-  };
-
-  const handleScreenShare = () => {
-    console.log("Screen share");
-    // Add your screen share logic here
-  };
-
   // Optimized function to determine when to show BigFloatingCommsMenu
   const shouldShowBigFloatingCommsMenu = useCallback(() => {
     if (isSmallScreen) return false;
@@ -356,9 +340,6 @@ const ChatList = () => {
 
     return (
       <BigFloatingCommsMenu
-        onVoiceCall={handleVoiceCall}
-        onVideoCall={handleVideoCall}
-        onScreenShare={handleScreenShare}
       />
     );
   };

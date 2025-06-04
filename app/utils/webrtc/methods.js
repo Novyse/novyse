@@ -21,7 +21,7 @@ const self = {
   // quando io entro in una room
   async join(chatId) {
     // Start local stream
-    const stream = WebRTC.startLocalStream(); // audio only for now
+    const stream = WebRTC.startLocalStream(true); // audio only for now
     if (!stream) {
       throw new Error("Failed to get audio stream");
     }    // Check if already in a vocal chat
@@ -682,9 +682,15 @@ const get = {
     return null;
   },  
   microphoneStatus: () => {
+    if(!check.isInComms()) {
+      return true; // Da fixare con un pull dei dati dai settings @SamueleOrazioDurante
+    }
     return WebRTC.getLocalStream() && WebRTC.getLocalStream().getAudioTracks()[0]?.enabled;
   },
   videoStatus: () => {
+    if(!check.isInComms()) {
+      return false; // Da fixare con un pull dei dati dai settings  @SamueleOrazioDurante
+    }
     return WebRTC.getLocalStream() && WebRTC.getLocalStream().getVideoTracks()[0]?.enabled;
   },
   localStream: () => {

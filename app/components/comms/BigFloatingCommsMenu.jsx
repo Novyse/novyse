@@ -14,14 +14,13 @@ import {
   MicOff02Icon,
   Video02Icon,
   VideoOffIcon,
-  ComputerScreenShareIcon,
+  Call02Icon,
 } from "@hugeicons/core-free-icons";
-import methods from "../../utils/webrtc/methods";
-const { self, check } = methods;
 
-const BigFloatingCommsMenu = ({
-  onScreenShare = () => {},
-}) => {
+import methods from "../../utils/webrtc/methods";
+const { self, get } = methods;
+
+const BigFloatingCommsMenu = () => {
   const { colorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
 
@@ -31,8 +30,8 @@ const BigFloatingCommsMenu = ({
   const translateY = useSharedValue(50);
 
   // Stato per audio/video
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(get.microphoneStatus());
+  const [isVideoEnabled, setIsVideoEnabled] = useState(get.videoStatus());
 
   useEffect(() => {
     // Trigger entrance animation when component mounts
@@ -70,6 +69,10 @@ const BigFloatingCommsMenu = ({
     setIsVideoEnabled(await self.toggleVideo());
   };
 
+  const leaveComms = async () => {  
+    self.left();
+  };
+
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
       <Animated.View style={styles.menuItems}>
@@ -84,9 +87,9 @@ const BigFloatingCommsMenu = ({
           iconColor="#fff"
         />
         <VocalBottomBarButton
-          onPress={onScreenShare}
-          iconName={ComputerScreenShareIcon}
-          iconColor="#fff"
+          onPress={leaveComms}
+          iconName={Call02Icon}
+          iconColor="red"
         />
       </Animated.View>
     </Animated.View>

@@ -30,8 +30,8 @@ const { get, self, check } = methods;
 const VocalContentBottomBar = ({ chatId }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true); // SETTINGS PARTE 2
-  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(get.microphoneStatus());
+  const [isVideoEnabled, setIsVideoEnabled] = useState(get.videoStatus());
   const [isLoading, setIsLoading] = useState(false); // State for microphone and camera selectors
   const [showMicrophoneSelector, setShowMicrophoneSelector] = useState(false);
   const [currentMicrophoneId, setCurrentMicrophoneId] = useState(null);
@@ -44,6 +44,11 @@ const VocalContentBottomBar = ({ chatId }) => {
   const handleJoinVocal = async () => {
     try {
       setIsLoading(true);
+
+      // Update current status from settings
+      setIsAudioEnabled(get.microphoneStatus());
+      setIsVideoEnabled(get.videoStatus());
+
       await self.join(chatId);
     } catch (error) {
       console.error("Error joining comms:", error);
@@ -248,8 +253,6 @@ const VocalContentBottomBar = ({ chatId }) => {
           <VocalBottomBarButton
             onPress={async () => {
               self.left(chatId);
-              setIsVideoEnabled(false); //TEMPORARY, NEED TO BE FIXED WITH SETTINGS (dette settinghe in italiano)
-              setIsAudioEnabled(true);
             }}
             iconName={Call02Icon}
             iconColor="red"
