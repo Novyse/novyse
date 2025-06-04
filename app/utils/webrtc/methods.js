@@ -391,11 +391,11 @@ const self = {
       console.error("Errore nel toggle video:", err);
       // Don't throw error for permission denied cases
       if (err.name === "NotAllowedError" || 
-          err.message.includes("Permission denied") ||          err.message.includes("cancelled by user")) {
+          err.message.includes("Permission denied") ||          
+          err.message.includes("cancelled by user")) {
         console.log("Video permission denied - staying in current state");
         return WebRTC.isVideoEnabled(); // Return current state
       }
-      throw new Error("Errore nel toggle video: " + err.message);
     }
   },
   // quando premo pulsante screen share
@@ -541,9 +541,11 @@ const self = {
       throw new Error("Error starting screen share: " + error.message);
     }
   },
+
   // quando premo x per fermare lo screen share
 
-  async stopScreenShare(screenShareId) {    try {
+  async stopScreenShare(screenShareId) {   
+     try {
       const data = await APIMethods.stopScreenShare(
         WebRTC.getChatId(),
         screenShareId

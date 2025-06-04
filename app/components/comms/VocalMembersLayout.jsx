@@ -15,7 +15,7 @@ if (Platform.OS === "web") {
 
 // Costanti
 const ASPECT_RATIO = 16 / 9;
-const MARGIN = 10;
+const MARGIN = 4;
 const HEIGHT_MULTIPLYER = 1;
 const WIDTH_MULTIPLYER = 1;
 
@@ -111,7 +111,9 @@ const VocalMembersLayout = ({
       }
 
       return { numColumns: 1, rectWidth, rectHeight, margin: MARGIN };
-    }    // Count screen shares from activeStreams
+    }
+
+    // Count screen shares from activeStreams
     const screenShareCount = Object.keys(activeStreams).filter(key => 
       activeStreams[key].streamType === 'screenshare'
     ).length;
@@ -131,9 +133,10 @@ const VocalMembersLayout = ({
     const isPortrait = height > width;
 
     let numColumns, numRows;
+
     // Logica specifica per 2 persone
     if (totalElements === 2) {
-      // Su schermi piccoli (mobile) o Android, metti 2 persone in colonna
+      // Su schermi piccoli (mobile) o portrait, metti 2 persone in colonna
       if (Platform.OS === "android" || isPortrait || width < 600) {
         numColumns = 1;
         numRows = 2;
@@ -147,16 +150,19 @@ const VocalMembersLayout = ({
       numColumns = 1;
       numRows = totalElements;
     } else {
+      // Per altri casi, usa un layout bilanciato
       numColumns = Math.ceil(Math.sqrt(totalElements));
       numRows = Math.ceil(totalElements / numColumns);
+      // In portrait, se ci sono poche righe, riduci il numero di colonne per sfruttare l'altezza
       if (isPortrait && numRows < 3 && numColumns > 1) {
         numColumns = Math.max(1, Math.floor(numColumns / 2));
         numRows = Math.ceil(totalElements / numColumns);
       }
     }
-    // Calcola lo spazio disponibile con margini generosi per evitare overflow
-    const availableWidth = width - MARGIN;
-    const availableHeight = height - MARGIN;
+
+    // Calcola lo spazio disponibile (tenendo conto di margini)
+    const availableWidth = width - (numColumns + 1) * MARGIN;
+    const availableHeight = height - (numRows + 1) * MARGIN;
 
     // Calcola la larghezza e altezza dei rettangoli rispettando il rapporto 16:9
     const maxRectWidth = availableWidth / numColumns;
@@ -164,6 +170,7 @@ const VocalMembersLayout = ({
     const rectWidthByHeight = maxRectHeight * ASPECT_RATIO;
     const rectHeightByWidth = maxRectWidth * (1 / ASPECT_RATIO);
 
+    // Scegli la dimensione che rispetta il rapporto e massimizza lo spazio
     let rectWidth, rectHeight;
     if (rectWidthByHeight <= maxRectWidth) {
       rectHeight = maxRectHeight;
@@ -171,7 +178,9 @@ const VocalMembersLayout = ({
     } else {
       rectWidth = maxRectWidth;
       rectHeight = rectWidth * (1 / ASPECT_RATIO);
-    }    rectWidth = Math.max(50, rectWidth * WIDTH_MULTIPLYER);
+    }
+
+    rectWidth = Math.max(50, rectWidth * WIDTH_MULTIPLYER);
     rectHeight = Math.max(50 / ASPECT_RATIO, rectHeight * HEIGHT_MULTIPLYER);
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
   }, [containerDimensions, profiles, pinnedUserId, activeStreams]);
@@ -278,9 +287,9 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: Platform.OS === "web" ? "center" : "space-around", // Su web ora centrato
-    alignItems: "flex-start",
-    padding: 0, // Nessun padding per la griglia
+    justifyContent: "center",
+    alignContent: "center",
+    padding: 0,
     rowGap: 0,
     columnGap: 0,
   },
