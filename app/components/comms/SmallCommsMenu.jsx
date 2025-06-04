@@ -20,7 +20,7 @@ import {
 import methods from "../../utils/webrtc/methods";
 const { self, get } = methods;
 
-const BigFloatingCommsMenu = () => {
+const SmallCommsMenu = () => {
   const { colorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
 
@@ -116,16 +116,12 @@ const BigFloatingCommsMenu = () => {
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
     container: {
-      position: "absolute",
-      zIndex: 999,
       alignItems: "center",
-      bottom: 10,
-      left: 10,
-      right: 10,
       backgroundColor: theme.bigFloatingCommsMenu,
       paddingHorizontal: 10,
-      paddingVertical: 30,
+      paddingVertical: 10,
       borderRadius: 13,
+      margin: 10,
     },
     menuItems: {
       flexDirection: "row",
@@ -135,4 +131,4 @@ function createStyle(theme, colorScheme) {
   });
 }
 
-export default BigFloatingCommsMenu;
+export default SmallCommsMenu;

@@ -26,6 +26,7 @@ const { get, check } = methods;
 import CreateGroupModal from "./components/CreateGroupModal";
 import SidebarItem from "./components/SidebarItem";
 import BigFloatingCommsMenu from "./components/comms/BigFloatingCommsMenu";
+import SmallCommsMenu from "./components/comms/SmallCommsMenu";
 
 import Search from "./Search";
 import APIMethods from "./utils/APImethods";
@@ -341,6 +342,41 @@ const ChatList = () => {
     return (
       <BigFloatingCommsMenu
       />
+    );
+  };
+
+  // Aggiungi questa funzione accanto a shouldShowBigFloatingCommsMenu
+  const shouldShowSmallCommsMenu = useCallback(() => {
+    if (!isSmallScreen) return false;
+
+    const isInComms = check.isInComms();
+
+    if (isInComms) {
+      const commsId = get.commsId();
+
+      // Se siamo in una chat diversa da quella della chiamata
+      if (selectedChat !== commsId) {
+        return true;
+      }
+
+      // Se siamo nella stessa chat della chiamata ma in vista chat
+      if (selectedChat === commsId && contentView === "chat") {
+        return true;
+      }
+
+      return false;
+    } else {
+      // Mostra il menu se non siamo in chiamata e non c'è chat selezionata
+      return !selectedChat;
+    }
+  }, [isSmallScreen, selectedChat, contentView, forceUpdate]);
+
+  // Aggiungi questa funzione accanto a renderBigFloatingCommsMenu
+  const renderSmallCommsMenu = () => {
+    if (!shouldShowSmallCommsMenu()) return null;
+
+    return (
+      <SmallCommsMenu />
     );
   };
 
@@ -717,6 +753,7 @@ const ChatList = () => {
           {isSmallScreen ? (
             <>
               <View style={styles.chatList}>
+                {renderSmallCommsMenu()}
                 {!isToggleSearchChats ? renderChatList() : <Search />}
               </View>
               {selectedChat && (
