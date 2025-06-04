@@ -46,7 +46,11 @@ const ChatContainer = ({
     switch (contentView) {
       case "vocal":
         return (
-          <VocalContent chatId={chatId} userId={userId} chatData={chatData} />
+          <VocalContent
+            chatId={chatId}
+            userId={userId}
+            chatData={chatData}
+          />
         );
       case "chat":
       default:
@@ -59,6 +63,7 @@ const ChatContainer = ({
             chatData={chatData}
             onBack={onBack}
             onJoinSuccess={onJoinSuccess}
+            contentView={contentView}
           />
         );
     }

@@ -550,67 +550,74 @@ const ChatList = () => {
           {chatName}
         </Text>
 
-        <Pressable
-        style={styles.moreButton}
-          onPress={() => {
-            setContentView("chat");
-            setIsMenuVisible(false);
-          }}
-        >
-          <HugeiconsIcon
-            icon={Message02Icon}
-            size={24}
-            color={theme.icon}
-            strokeWidth={1.5}
-          />
-        </Pressable>
+        {/* Mostra i pulsanti solo se chatJoined è true */}
+        {chatJoined && (
+          <>
+            <Pressable
+              style={styles.moreButton}
+              onPress={() => {
+                setContentView("chat");
+                setIsMenuVisible(false);
+              }}
+            >
+              <HugeiconsIcon
+                icon={Message02Icon}
+                size={24}
+                color={theme.icon}
+                strokeWidth={1.5}
+              />
+            </Pressable>
 
-        <Pressable
-        style={styles.moreButton}
-          onPress={() => {
-            setContentView("vocal");
-            setIsMenuVisible(false);
-          }}
-        >
-          <HugeiconsIcon
-            icon={AudioWave01Icon}
-            size={24}
-            color={theme.icon}
-            strokeWidth={1.5}
-          />
-        </Pressable>
+            <Pressable
+              style={styles.moreButton}
+              onPress={() => {
+                setContentView("vocal");
+                setIsMenuVisible(false);
+              }}
+            >
+              <HugeiconsIcon
+                icon={AudioWave01Icon}
+                size={24}
+                color={theme.icon}
+                strokeWidth={1.5}
+              />
+            </Pressable>
 
-        <Pressable
-        style={styles.moreButton}
-          onPress={() => {
-            setContentView("both");
-            setIsMenuVisible(false);
-          }}
-        > 
-        {Platform.OS === 'web' ? (
-          <HugeiconsIcon
-            icon={Layout2ColumnIcon}
-            size={24}
-            color={theme.icon}
-            strokeWidth={1.5}
-          />
-        ) : (
-          <></>
+            <Pressable
+              style={styles.moreButton}
+              onPress={() => {
+                setContentView("both");
+                setIsMenuVisible(false);
+              }}
+            >
+              {Platform.OS === 'web' ? (
+                <HugeiconsIcon
+                  icon={Layout2ColumnIcon}
+                  size={24}
+                  color={theme.icon}
+                  strokeWidth={1.5}
+                />
+              ) : (
+                <></>
+              )}
+            </Pressable>
+
+            <Pressable
+              style={styles.moreButton}
+              onPress={() => setIsMenuVisible(!isMenuVisible)}
+            >
+              <HugeiconsIcon
+                icon={MoreVerticalCircle01Icon}
+                size={24}
+                color={theme.icon}
+                strokeWidth={1.5}
+              />
+            </Pressable>
+          </>
         )}
-        </Pressable>
 
-        <Pressable
-          style={styles.moreButton}
-          onPress={() => setIsMenuVisible(!isMenuVisible)}
-        >
-          <HugeiconsIcon
-            icon={MoreVerticalCircle01Icon}
-            size={24}
-            color={theme.icon}
-            strokeWidth={1.5}
-          />
-        </Pressable>
-        {isMenuVisible && (
+        {/* Anche il dropdown menu deve essere condizionale */}
+        {isMenuVisible && chatJoined && (
           <View style={styles.dropdownMenu}>
             <Pressable
               onPress={() => {
@@ -677,7 +684,7 @@ const ChatList = () => {
                   chatId={selectedChat}
                   userId={userId}
                   chatName={chatName}
-                  contentView="chat"
+                  contentView="both"
                   onBack={() => setSelectedChat(null)}
                   onJoinSuccess={handleSuccessfulJoin}
                 />

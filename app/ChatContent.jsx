@@ -34,7 +34,7 @@ import {
   Clock01Icon
 } from "@hugeicons/core-free-icons";
 
-const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
+const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess, contentView }) => {
   const messagesRef = useRef([]);
   const [messages, setMessages] = useState([]);
   const { theme } = useContext(ThemeContext);
@@ -502,9 +502,11 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
     </View>
   );
 
-  const renderBottomBar = () => (
+  const renderBottomBar = () =>{
+    console.log("Rendering bottom bar with chatJoined:", chatJoined, "contentView:", contentView);
+    return (
     <View style={styles.bottomBarContainer}>
-      {chatJoined ? (
+      {chatJoined || contentView === "both" ? (
         <View
           style={{
             paddingBottom: 10,
@@ -571,7 +573,7 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess }) => {
       )}
     </View>
   );
-
+  }
   return (
     <SafeAreaView
       ref={containerRef}
