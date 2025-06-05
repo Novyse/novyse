@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import moment from "moment";
 import { StatusBar } from "expo-status-bar";
+import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "@/context/ThemeContext";
 import NetInfo from "@react-native-community/netinfo";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -30,7 +31,7 @@ import SmallCommsMenu from "./components/comms/SmallCommsMenu";
 
 import Search from "./Search";
 import APIMethods from "./utils/APImethods";
-import eventEmitter from "./utils/EventEmitter";  
+import eventEmitter from "./utils/EventEmitter";
 import WebSocketMethods from "./utils/webSocketMethods";
 import localDatabase from "./utils/localDatabaseMethods";
 import ChatContainer from "./ChatContainer";
@@ -339,10 +340,7 @@ const ChatList = () => {
   const renderBigFloatingCommsMenu = () => {
     if (!shouldShowBigFloatingCommsMenu()) return null;
 
-    return (
-      <BigFloatingCommsMenu
-      />
-    );
+    return <BigFloatingCommsMenu />;
   };
 
   // Aggiungi questa funzione accanto a shouldShowBigFloatingCommsMenu
@@ -375,11 +373,8 @@ const ChatList = () => {
   const renderSmallCommsMenu = () => {
     if (!shouldShowSmallCommsMenu()) return null;
 
-    return (
-      <SmallCommsMenu />
-    );
+    return <SmallCommsMenu />;
   };
-
   const renderSidebar = () => (
     <>
       {overlayVisible && (
@@ -391,55 +386,66 @@ const ChatList = () => {
           { transform: [{ translateX: sidebarPosition }] },
         ]}
       >
-        <View style={styles.profileContainer}>
-          <View style={styles.avatar} />
-          <View style={styles.profileTextContainer}>
-            <Text style={styles.profileName}>Nome Cognome</Text>
-            <Text style={styles.profilePhone}>+39 1234567890</Text>
+        <LinearGradient
+          colors={theme?.sideBarGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.sidebarContent}
+        >
+          <View style={styles.profileContainer}>
+            <View style={styles.avatar} />
+            <View style={styles.profileTextContainer}>
+              <Text style={styles.profileName}>Nome Cognome</Text>
+              <Text style={styles.profilePhone}>+39 1234567890</Text>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.menuContainer}>
-          <SidebarItem
-            text="Profile"
-            iconName={User03Icon}
-            onPress={() => {
-              toggleSidebar();
-            }}
-          />
-          <SidebarItem
-            text="Settings"
-            iconName={Settings02Icon}
-            onPress={() => {
-              toggleSidebar();
-              handleSettingsPress();
-            }}
-          />
-          <SidebarItem
-            text="Nuovo Gruppo"
-            iconName={UserGroup03Icon}
-            onPress={() => {
-              toggleSidebar();
-              setIsCreateGroupModalVisible(true);
-            }}
-          />
-          <SidebarItem
-            text="Logout"
-            iconName={Logout03Icon}
-            onPress={() => {
-              toggleSidebar();
-              AsyncStorage.setItem("isLoggedIn", "false");
-              logout();
-            }}
-          />
-        </View>
+          <View style={styles.menuContainer}>
+            <SidebarItem
+              text="Profile"
+              iconName={User03Icon}
+              onPress={() => {
+                toggleSidebar();
+              }}
+            />
+            <SidebarItem
+              text="Settings"
+              iconName={Settings02Icon}
+              onPress={() => {
+                toggleSidebar();
+                handleSettingsPress();
+              }}
+            />
+            <SidebarItem
+              text="Nuovo Gruppo"
+              iconName={UserGroup03Icon}
+              onPress={() => {
+                toggleSidebar();
+                setIsCreateGroupModalVisible(true);
+              }}
+            />{" "}
+            <SidebarItem
+              text="Logout"
+              iconName={Logout03Icon}
+              onPress={() => {
+                toggleSidebar();
+                AsyncStorage.setItem("isLoggedIn", "false");
+                logout();
+              }}
+            />
+          </View>
+        </LinearGradient>
       </Animated.View>
     </>
   );
-
   const renderHeader = () => {
     return (
-      <View style={styles.header}>
+      <LinearGradient
+        colors={theme?.backgroundHeaderGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
+      >
         <Pressable onPress={toggleSidebar} style={styles.menuButton}>
           <HugeiconsIcon
             icon={Menu02Icon}
@@ -465,12 +471,16 @@ const ChatList = () => {
             strokeWidth={1.5}
           />
         </Pressable>
-      </View>
+      </LinearGradient>
     );
   };
-
   const renderChatList = () => (
-    <View style={[styles.chatListContainer]}>
+    <LinearGradient
+      colors={theme?.backgroundChatListGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.chatListContainer]}
+    >
       <FlatList
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
@@ -486,70 +496,80 @@ const ChatList = () => {
           const chatName =
             details.group_channel_name || user.handle || "Unknown User";
 
+          const isSelected = selectedChat === item.chat_id;
+
           return (
-            <Pressable
-              style={[
-                styles.chatItem,
-                selectedChat === item.chat_id && styles.selected,
-              ]}
-              onPress={() => handleChatPress(item.chat_id)}
+            <LinearGradient
+              colors={
+                isSelected
+                  ? theme?.backgroundChatSelectedInsideListGradient
+                  : theme?.backgroundChatInsideListGradient
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.chatItem}
             >
-              <Image
-                source={{ uri: "https://picsum.photos/200" }}
-                style={styles.avatar}
-              />
-              <View style={styles.chatItemGrid}>
-                <View style={styles.leftContainer}>
-                  <Text
-                    style={[
-                      styles.chatTitle,
-                      styles.gridText,
-                      { marginBottom: 5 },
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {chatName}
-                  </Text>
-                  <Text
-                    style={[styles.chatSubtitle, styles.gridText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {lastMessage.text || "No messages yet"}
-                  </Text>
+              <Pressable
+                style={styles.chatItemPressable}
+                onPress={() => handleChatPress(item.chat_id)}
+              >
+                <Image
+                  source={{ uri: "https://picsum.photos/200" }}
+                  style={styles.avatar}
+                />
+                <View style={styles.chatItemGrid}>
+                  <View style={styles.leftContainer}>
+                    <Text
+                      style={[
+                        styles.chatTitle,
+                        styles.gridText,
+                        { marginBottom: 5 },
+                      ]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {chatName}
+                    </Text>
+                    <Text
+                      style={[styles.chatSubtitle, styles.gridText]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {lastMessage.text || "No messages yet"}
+                    </Text>
+                  </View>
+                  <View style={styles.rightContainer}>
+                    <Text
+                      style={[
+                        styles.chatDate,
+                        styles.gridText,
+                        { marginBottom: 5 },
+                      ]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {lastMessageDate === "" ? (
+                        <HugeiconsIcon
+                          icon={Clock01Icon}
+                          size={14}
+                          color={theme.icon}
+                          strokeWidth={1.5}
+                        />
+                      ) : (
+                        lastMessageDate
+                      )}
+                    </Text>
+                    <Text style={[styles.staticNumber, styles.gridText]}>
+                      123
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.rightContainer}>
-                  <Text
-                    style={[
-                      styles.chatDate,
-                      styles.gridText,
-                      { marginBottom: 5 },
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {lastMessageDate === "" ? (
-                      <HugeiconsIcon
-                        icon={Clock01Icon}
-                        size={14}
-                        color={theme.icon}
-                        strokeWidth={1.5}
-                      />
-                    ) : (
-                      lastMessageDate
-                    )}
-                  </Text>
-                  <Text style={[styles.staticNumber, styles.gridText]}>
-                    123
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
+              </Pressable>
+            </LinearGradient>
           );
         }}
       />
-    </View>
+    </LinearGradient>
   );
 
   const renderChatHeaderAndContent = () => {
@@ -562,9 +582,13 @@ const ChatList = () => {
       user.handle ||
       params.creatingChatWith ||
       "Unknown Name";
-
     const renderChatHeader = (
-      <View style={[styles.header, styles.chatHeader]}>
+      <LinearGradient
+        colors={theme?.backgroundHeaderGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.header, styles.chatHeader]}
+      >
         {isSmallScreen && (
           <Pressable
             onPress={() => setSelectedChat(null)}
@@ -626,7 +650,7 @@ const ChatList = () => {
                 setIsMenuVisible(false);
               }}
             >
-              {Platform.OS === 'web' ? (
+              {Platform.OS === "web" ? (
                 <HugeiconsIcon
                   icon={Layout2ColumnIcon}
                   size={24}
@@ -683,15 +707,18 @@ const ChatList = () => {
             )}
           </View>
         )}
-      </View>
-    );
-
-    // In renderChatHeaderAndContent:
+      </LinearGradient>
+    ); // In renderChatHeaderAndContent:
     switch (contentView) {
       case "vocal":
       case "chat":
         return (
-          <View style={styles.chatContent}>
+          <LinearGradient
+            colors={theme?.backgroundChatGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.chatContent}
+          >
             {renderChatHeader}
             <ChatContainer
               chatJoined={chatJoined}
@@ -702,11 +729,16 @@ const ChatList = () => {
               onBack={() => setSelectedChat(null)}
               onJoinSuccess={handleSuccessfulJoin}
             />
-          </View>
+          </LinearGradient>
         );
       case "both":
         return (
-          <View style={styles.chatContent}>
+          <LinearGradient
+            colors={theme?.backgroundChatGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.chatContent}
+          >
             {renderChatHeader}
             <View style={{ flex: 1, flexDirection: "row" }}>
               <View
@@ -736,7 +768,7 @@ const ChatList = () => {
                 />
               </View>
             </View>
-          </View>
+          </LinearGradient>
         );
     }
   };
@@ -748,14 +780,19 @@ const ChatList = () => {
         {renderSidebar()}
         {!isSmallScreen || (isSmallScreen && !selectedChat)
           ? renderHeader()
-          : null}
+          : null}{" "}
         <View style={styles.container}>
           {isSmallScreen ? (
             <>
-              <View style={styles.chatList}>
+              <LinearGradient
+                colors={theme?.backgroundChatListGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.chatList}
+              >
                 {renderSmallCommsMenu()}
                 {!isToggleSearchChats ? renderChatList() : <Search />}
-              </View>
+              </LinearGradient>
               {selectedChat && (
                 <Animated.View
                   style={[
@@ -777,12 +814,17 @@ const ChatList = () => {
             </>
           ) : (
             <>
-              <View style={[styles.chatList, styles.largeScreenChatList]}>
+              <LinearGradient
+                colors={theme?.backgroundChatListGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.chatList, styles.largeScreenChatList]}
+              >
                 <View style={styles.chatListWrapper}>
                   {!isToggleSearchChats ? renderChatList() : <Search />}
                   {renderBigFloatingCommsMenu()}
                 </View>
-              </View>
+              </LinearGradient>
               {renderChatHeaderAndContent()}
             </>
           )}
@@ -825,14 +867,16 @@ function createStyle(theme, colorScheme) {
       width: 330, // Fixed width for large screens
       borderRightWidth: 1,
       borderRightColor: theme.chatDivider,
+    },    chatItem: {
+      borderRadius: 13,
+      marginBottom: 10,
     },
-    chatItem: {
+    chatItemPressable: {
       flexDirection: "row",
       alignItems: "center",
       padding: 10,
-      backgroundColor: theme.backgroundChatInsideList,
-      borderRadius: 13,
-      marginBottom: 10,
+      width: "100%",
+      flex: 1,
     },
     selected: {
       backgroundColor: theme.chatListSelected,
@@ -870,7 +914,7 @@ function createStyle(theme, colorScheme) {
       marginLeft: "auto",
     },
     moreButton: {
-      marginLeft: 15
+      marginLeft: 15,
     },
     headerTitle: {
       color: theme.text,
@@ -945,21 +989,21 @@ function createStyle(theme, colorScheme) {
     },
     chatDate: {
       textAlign: "right",
-    },
-    staticNumber: {
+    },    staticNumber: {
       textAlign: "right",
     },
-
     // sidebar
-
     sidebar: {
       position: "absolute",
       top: 0,
       left: 0,
       bottom: 0,
       width: 250,
-      backgroundColor: "#405770", // Dark blue/gray color from the image
       zIndex: 2,
+      borderTopRightRadius: 15,
+    },
+    sidebarContent: {
+      flex: 1,
       padding: 20,
       borderTopRightRadius: 15,
     },

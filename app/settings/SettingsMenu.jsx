@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native"; // Aggiungi ScrollView
+import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "@/context/ThemeContext";
 import SettingsMenuItem from "../components/SettingsMenuItem";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
@@ -11,9 +12,13 @@ import appJson from "../../app.json";
 const SettingsMenu = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={theme.settingPagesGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
       <HeaderWithBackArrow goBackTo="/messages"/>
 
       {/* Avvolgi i menu items in uno ScrollView */}
@@ -35,7 +40,7 @@ const SettingsMenu = () => {
       <Text style={{ fontSize: 12, color: "#426080", textAlign: "center" }}>
         Versione: {appJson.expo.version}
       </Text>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -43,7 +48,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.backgroundClassic,
       padding: 10,
     },
   });

@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import DatabaseSizeChart from "../components/DatabaseSizeChart";
@@ -9,12 +10,17 @@ const StoragePage = () => {
   const styles = createStyle(theme);
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={theme.settingPagesGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
       <HeaderWithBackArrow 
         goBackTo="./SettingsMenu"
       />
       <DatabaseSizeChart/>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -22,7 +28,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.backgroundClassic,
       padding: 10,
     },
   });

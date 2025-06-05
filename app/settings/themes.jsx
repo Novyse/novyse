@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, Pressable, Text } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import { Colors } from "../../constants/Colors";
@@ -12,7 +13,12 @@ const Themes = () => {
   const availableThemes = Object.keys(Colors);
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={theme.settingPagesGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
       <HeaderWithBackArrow goBackTo="./SettingsMenu" />
 
       {availableThemes.map((themeName) => (
@@ -26,7 +32,7 @@ const Themes = () => {
           </Text>
         </Pressable>
       ))}
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -34,7 +40,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.backgroundClassic,
       padding: 10,
     },
     themeButton: {

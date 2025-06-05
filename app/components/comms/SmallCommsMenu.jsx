@@ -7,6 +7,7 @@ import Animated, {
   useSharedValue,
   Easing
 } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import VocalBottomBarButton from "./VocalBottomBarButton";
 import { ThemeContext } from "@/context/ThemeContext";
 import {
@@ -87,28 +88,34 @@ const SmallCommsMenu = () => {
     await animateOut();  // Prima anima l'uscita
     self.left();         // Poi esci dalla chiamata
   };
-
   if (!isVisible) return null;
 
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
-      <Animated.View style={styles.menuItems}>
-        <VocalBottomBarButton
-          onPress={toggleAudio}
-          iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
-          iconColor="#fff"
-        />
-        <VocalBottomBarButton
-          onPress={toggleVideo}
-          iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
-          iconColor="#fff"
-        />
-        <VocalBottomBarButton
-          onPress={leaveComms}
-          iconName={Call02Icon}
-          iconColor="red"
-        />
-      </Animated.View>
+      <LinearGradient
+        colors={theme?.floatingBarComponentsGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBackground}
+      >
+        <Animated.View style={styles.menuItems}>
+          <VocalBottomBarButton
+            onPress={toggleAudio}
+            iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
+            iconColor="#fff"
+          />
+          <VocalBottomBarButton
+            onPress={toggleVideo}
+            iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
+            iconColor="#fff"
+          />
+          <VocalBottomBarButton
+            onPress={leaveComms}
+            iconName={Call02Icon}
+            iconColor="red"
+          />
+        </Animated.View>
+      </LinearGradient>
     </Animated.View>
   );
 };
@@ -117,11 +124,15 @@ function createStyle(theme, colorScheme) {
   return StyleSheet.create({
     container: {
       alignItems: "center",
-      backgroundColor: theme.bigFloatingCommsMenu,
+      borderRadius: 13,
+      margin: 10,
+    },
+    gradientBackground: {
       paddingHorizontal: 10,
       paddingVertical: 10,
       borderRadius: 13,
-      margin: 10,
+      width: '100%',
+      alignItems: 'center',
     },
     menuItems: {
       flexDirection: "row",

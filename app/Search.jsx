@@ -11,6 +11,7 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -111,7 +112,12 @@ const Search = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={theme.searchSideBarGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
       <TextInput
         placeholder="Search"
         placeholderTextColor="gray"
@@ -133,7 +139,7 @@ const Search = () => {
           style={styles.results}
         />
       )}
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -143,7 +149,6 @@ function createStyle(theme) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.backgroundClassic,
       padding: 10,
       paddingTop: 0,
     },

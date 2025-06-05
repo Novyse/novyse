@@ -31,10 +31,18 @@ import {
   Mic02Icon,
   SmileIcon,
   SentIcon,
-  Clock01Icon
+  Clock01Icon,
 } from "@hugeicons/core-free-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
-const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess, contentView }) => {
+const ChatContent = ({
+  chatJoined,
+  chatId,
+  userId,
+  onBack,
+  onJoinSuccess,
+  contentView,
+}) => {
   const messagesRef = useRef([]);
   const [messages, setMessages] = useState([]);
   const { theme } = useContext(ThemeContext);
@@ -465,32 +473,39 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess, conten
           } else {
             const message = item.data;
             return (
-              <Pressable
-                onLongPress={(e) => handleLongPress(e, message)}
+              <LinearGradient
+                colors={theme.messageContainerGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
                 style={
                   message.sender == userId
                     ? styles.msgSender
                     : styles.msgReceiver
                 }
               >
-                {/* Usa il componente LinkedText */}
-                <LinkedText
-                  text={message.text}
-                  style={styles.textMessageContent}
-                />
-                <Text style={styles.timeText}>
-                  {message.date_time === "" ? (
-                    <HugeiconsIcon
-                      icon={Clock01Icon}
-                      size={14}
-                      color="#fff"
-                      strokeWidth={1.5}
-                    />
-                  ) : (
-                    parseTime(message.date_time)
-                  )}
-                </Text>
-              </Pressable>
+                <Pressable
+                  onLongPress={(e) => handleLongPress(e, message)}
+                  style={styles.messagePressable}
+                >
+                  {/* Usa il componente LinkedText */}
+                  <LinkedText
+                    text={message.text}
+                    style={styles.textMessageContent}
+                  />
+                  <Text style={styles.timeText}>
+                    {message.date_time === "" ? (
+                      <HugeiconsIcon
+                        icon={Clock01Icon}
+                        size={14}
+                        color="#fff"
+                        strokeWidth={1.5}
+                      />
+                    ) : (
+                      parseTime(message.date_time)
+                    )}
+                  </Text>
+                </Pressable>
+              </LinearGradient>
             );
           }
         }}
@@ -502,104 +517,124 @@ const ChatContent = ({ chatJoined, chatId, userId, onBack, onJoinSuccess, conten
     </View>
   );
 
-  const renderBottomBar = () =>{
-    console.log("Rendering bottom bar with chatJoined:", chatJoined, "contentView:", contentView);
+  const renderBottomBar = () => {
+    console.log(
+      "Rendering bottom bar with chatJoined:",
+      chatJoined,
+      "contentView:",
+      contentView
+    );
     return (
-    <View style={styles.bottomBarContainer}>
-      {chatJoined || contentView === "both" ? (
-        <View
-          style={{
-            paddingBottom: 10,
-            flexDirection: "row",
-            width: "100%",
-            alignItems: "center",
-          }}
-        >
-          <Pressable style={styles.iconButton}>
-            <HugeiconsIcon
-              icon={PlusSignIcon}
-              size={24}
-              color="#fff"
-              strokeWidth={1.5}
-            />
-          </Pressable>
-          <View style={styles.bottomTextBarContainer}>
-            <TextInput
-              style={styles.bottomBarTextInput}
-              placeholder="New message"
-              placeholderTextColor="gray"
-              value={newMessageText}
-              maxLength={2000}
-              onChangeText={handleTextChanging}
-              returnKeyType="send"
-              onSubmitEditing={
-                Platform.OS === "web" ? handleSendMessage : undefined
-              }
-            />
+      <View style={styles.bottomBarContainer}>
+        {chatJoined || contentView === "both" ? (
+          <View
+            style={{
+              paddingBottom: 10,
+              flexDirection: "row",
+              width: "100%",
+              alignItems: "center",
+            }}
+          >
             <Pressable style={styles.iconButton}>
               <HugeiconsIcon
-                icon={SmileIcon}
+                icon={PlusSignIcon}
                 size={24}
                 color="#fff"
                 strokeWidth={1.5}
               />
             </Pressable>
-          </View>
+            <LinearGradient
+              colors={theme.backgroundChatTextInputGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.bottomTextBarContainer}
+            >
+              <TextInput
+                style={styles.bottomBarTextInput}
+                placeholder="New message"
+                placeholderTextColor="gray"
+                value={newMessageText}
+                maxLength={2000}
+                onChangeText={handleTextChanging}
+                returnKeyType="send"
+                onSubmitEditing={
+                  Platform.OS === "web" ? handleSendMessage : undefined
+                }
+              />
+              <Pressable style={styles.iconButton}>
+                <HugeiconsIcon
+                  icon={SmileIcon}
+                  size={24}
+                  color="#fff"
+                  strokeWidth={1.5}
+                />{" "}
+              </Pressable>
+            </LinearGradient>
 
-          {isVoiceMessage ? (
-            <Pressable onPress={handleVoiceMessage} style={styles.iconButton}>
-              <HugeiconsIcon
-                icon={Mic02Icon}
-                size={24}
-                color="#fff"
-                strokeWidth={1.5}
-              />
-            </Pressable>
-          ) : (
-            <Pressable onPress={handleSendMessage} style={styles.iconButton}>
-              <HugeiconsIcon
-                icon={SentIcon}
-                size={24}
-                color="#fff"
-                strokeWidth={1.5}
-              />
-            </Pressable>
-          )}
-        </View>
-      ) : (
-        <Pressable onPress={handleJoinGroup} style={styles.joinGroupButton}>
-          <Text style={styles.joinGroupButtonText}>Join</Text>
-        </Pressable>
-      )}
-    </View>
-  );
-  }
+            {isVoiceMessage ? (
+              <Pressable onPress={handleVoiceMessage} style={styles.iconButton}>
+                <HugeiconsIcon
+                  icon={Mic02Icon}
+                  size={24}
+                  color="#fff"
+                  strokeWidth={1.5}
+                />
+              </Pressable>
+            ) : (
+              <Pressable onPress={handleSendMessage} style={styles.iconButton}>
+                <HugeiconsIcon
+                  icon={SentIcon}
+                  size={24}
+                  color="#fff"
+                  strokeWidth={1.5}
+                />
+              </Pressable>
+            )}
+          </View>
+        ) : (
+          <Pressable onPress={handleJoinGroup} style={styles.joinGroupButton}>
+            {" "}
+            <Text style={styles.joinGroupButtonText}>Join</Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  };
+
   return (
-    <SafeAreaView
-      ref={containerRef}
+    <LinearGradient
+      colors={theme.backgroundChatGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
       style={styles.container}
-      onStartShouldSetResponder={() => true}
-      onResponderRelease={hideDropdown}
-      onLayout={(event) => {
-        setContainerLayout({
-          width: event.nativeEvent.layout.width,
-          height: event.nativeEvent.layout.height,
-        });
-      }}
     >
-      {renderMessagesList()}
-      {renderBottomBar()}
-      {dropdownInfo.visible && (
-        <View style={getDropdownStyle()}>
-          <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
-          <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
-          <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
-          <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
-          <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
-          <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
-        </View>
-      )}
-    </SafeAreaView>
+      <SafeAreaView
+        ref={containerRef}
+        style={styles.safeAreaContainer}
+        onStartShouldSetResponder={() => true}
+        onResponderRelease={hideDropdown}
+        onLayout={(event) => {
+          setContainerLayout({
+            width: event.nativeEvent.layout.width,
+            height: event.nativeEvent.layout.height,
+          });
+        }}
+      >
+        {" "}
+        {renderMessagesList()}
+        {renderBottomBar()}
+        {dropdownInfo.visible && (
+          <View style={getDropdownStyle()}>
+            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
+            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
+            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
+            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
+            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
+            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
+          </View>
+        )}
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
@@ -609,7 +644,9 @@ function createStyle(theme) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.backgroundChat,
+    },
+    safeAreaContainer: {
+      flex: 1,
     },
     textMessageContent: {
       color: theme.text,
@@ -630,38 +667,29 @@ function createStyle(theme) {
       textAlign: "right",
     },
     msgSender: {
-      backgroundColor: "#2b5278",
       marginVertical: 5,
       padding: 10,
       maxWidth: "70%",
       borderRadius: 10,
       borderBottomRightRadius: 0,
       alignSelf: "flex-end",
-      flexDirection: "row",
-      flexWrap: "wrap",
-      alignItems: "flex-end",
-      justifyContent: "flex-end",
-      gap: 4,
       marginRight: 8,
-      ...(Platform.OS === "web" && {
-        wordBreak: "break-word",
-        overflowWrap: "break-word",
-      }),
     },
     msgReceiver: {
-      backgroundColor: "#2b5278",
       marginVertical: 5,
       padding: 10,
       maxWidth: "70%",
       borderRadius: 10,
       borderBottomLeftRadius: 0,
       alignSelf: "flex-start",
+      marginLeft: 8,
+    },
+    messagePressable: {
       flexDirection: "row",
       flexWrap: "wrap",
       alignItems: "flex-end",
       justifyContent: "flex-end",
       gap: 4,
-      marginLeft: 8,
       ...(Platform.OS === "web" && {
         wordBreak: "break-word",
         overflowWrap: "break-word",
@@ -704,15 +732,11 @@ function createStyle(theme) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor: theme.backgroundChatTextInput,
       borderRadius: 15,
       padding: 8,
     },
     bottomBarTextInput: {
       flex: 1,
-      // backgroundColor: theme.backgroundChatTextInput,
-      // borderRadius: 15,
-
       fontSize: 18,
       minWidth: 20,
       color: theme.text,
