@@ -21,10 +21,10 @@ const self = {
   // quando io entro in una room
   async join(chatId) {
     // Start local stream
-    const stream = WebRTC.startLocalStream(true); // audio only for now
+    const stream = await WebRTC.startLocalStream(true); // audio only for now
     if (!stream) {
       throw new Error("Failed to get audio stream");
-    }    // Check if already in a vocal chat
+    } // Check if already in a vocal chat
     if (WebRTC.getChatId() != chatId) {
       await APIMethods.commsLeave(chatId);
     }
@@ -32,9 +32,9 @@ const self = {
     const data = await APIMethods.commsJoin(chatId);
     if (!data.comms_joined) {
       throw new Error("Failed to join vocal chat");
-    }    // Rigenero
+    } // Rigenero
     await WebRTC.regenerate(data.from, chatId, null);
-    
+
     // Aggiungi il chat_id ai dati prima di emettere l'evento
     // e includi anche i dati dell'utente locale
     const localUserHandle = await localDatabase.fetchLocalUserHandle();
@@ -72,7 +72,6 @@ const self = {
     // Close all peer connections and local stream
     await WebRTC.closeAllConnections();
     WebRTC.closeLocalStream();
-
   },
   // quando premo pulsante microfono
   async toggleAudio() {
@@ -118,7 +117,7 @@ const self = {
       }
 
       // Set the same enabled state as the previous track
-      newAudioTrack.enabled = wasAudioEnabled;      // Replace the audio track in all peer connections
+      newAudioTrack.enabled = wasAudioEnabled; // Replace the audio track in all peer connections
       for (const [peerId, pc] of Object.entries(WebRTC.getPeerConnections())) {
         const senders = pc.getSenders();
         const audioSender = senders.find(
@@ -129,7 +128,7 @@ const self = {
           await audioSender.replaceTrack(newAudioTrack);
           console.log(`Replaced audio track for peer ${peerId}`);
         }
-      }      // Replace the track in the local stream
+      } // Replace the track in the local stream
       if (currentAudioTrack) {
         WebRTC.getLocalStream().removeTrack(currentAudioTrack);
         currentAudioTrack.stop();
@@ -172,7 +171,8 @@ const self = {
           aspectRatio: { ideal: 16 / 9 },
           facingMode: deviceId ? undefined : "user",
         },
-      };      let newVideoStream, newVideoTrack;
+      };
+      let newVideoStream, newVideoTrack;
       try {
         newVideoStream = await mediaDevices.getUserMedia(newConstraints);
         newVideoTrack = newVideoStream.getVideoTracks()[0];
@@ -182,14 +182,16 @@ const self = {
         }
       } catch (permissionError) {
         // Handle permission denied gracefully
-        if (permissionError.name === "NotAllowedError" || 
-            permissionError.message.includes("Permission denied") ||
-            permissionError.message.includes("cancelled by user")) {
+        if (
+          permissionError.name === "NotAllowedError" ||
+          permissionError.message.includes("Permission denied") ||
+          permissionError.message.includes("cancelled by user")
+        ) {
           console.log("Camera permission denied by user - silently ignoring");
           return false; // Return false instead of throwing, so the UI can stay in previous state
         }
         throw permissionError; // Re-throw other errors
-      }      // Set the same enabled state as the previous track
+      } // Set the same enabled state as the previous track
       newVideoTrack.enabled = wasVideoEnabled;
 
       // Replace the video track in all peer connections
@@ -203,14 +205,15 @@ const self = {
           await videoSender.replaceTrack(newVideoTrack);
           console.log(`Replaced video track for peer ${peerId}`);
         }
-      }      // Replace the track in the local stream
+      } // Replace the track in the local stream
       if (currentVideoTrack) {
         WebRTC.getLocalStream().removeTrack(currentVideoTrack);
         currentVideoTrack.stop();
-      }      WebRTC.getLocalStream().addTrack(newVideoTrack); // Notify UI of the stream update
+      }
+      WebRTC.getLocalStream().addTrack(newVideoTrack); // Notify UI of the stream update
       WebRTC.notifyStreamUpdate();
       // Also emit event for local stream update so VocalContent updates local video preview
-      WebRTC.executeCallback('onLocalStreamReady', WebRTC.getLocalStream());      // Emit stream_added_or_updated event for local user
+      WebRTC.executeCallback("onLocalStreamReady", WebRTC.getLocalStream()); // Emit stream_added_or_updated event for local user
       eventEmitter.emit("stream_added_or_updated", {
         participantId: WebRTC.getMyId(),
         stream: WebRTC.getLocalStream(),
@@ -246,20 +249,24 @@ const self = {
           "No current video track available for mobile camera switching"
         );
         return false;
-      }      // Try different constraint approaches for better mobile compatibility
+      } // Try different constraint approaches for better mobile compatibility
       let newVideoStream;
       try {
         // First try with exact facingMode
         newVideoStream = await mediaDevices.getUserMedia(constraints);
       } catch (exactError) {
         // Handle permission denied gracefully even in exact mode
-        if (exactError.name === "NotAllowedError" || 
-            exactError.message.includes("Permission denied") ||
-            exactError.message.includes("cancelled by user")) {
-          console.log("Mobile camera permission denied by user - silently ignoring");
+        if (
+          exactError.name === "NotAllowedError" ||
+          exactError.message.includes("Permission denied") ||
+          exactError.message.includes("cancelled by user")
+        ) {
+          console.log(
+            "Mobile camera permission denied by user - silently ignoring"
+          );
           return false; // Return false instead of throwing, so the UI can stay in previous state
         }
-        
+
         console.warn(
           "Exact facingMode failed, trying ideal:",
           exactError.message
@@ -278,13 +285,17 @@ const self = {
           newVideoStream = await mediaDevices.getUserMedia(fallbackConstraints);
         } catch (idealError) {
           // Handle permission denied gracefully in ideal mode
-          if (idealError.name === "NotAllowedError" || 
-              idealError.message.includes("Permission denied") ||
-              idealError.message.includes("cancelled by user")) {
-            console.log("Mobile camera permission denied by user - silently ignoring");
+          if (
+            idealError.name === "NotAllowedError" ||
+            idealError.message.includes("Permission denied") ||
+            idealError.message.includes("cancelled by user")
+          ) {
+            console.log(
+              "Mobile camera permission denied by user - silently ignoring"
+            );
             return false;
           }
-          
+
           console.warn(
             "Ideal facingMode failed, trying basic:",
             idealError.message
@@ -302,10 +313,14 @@ const self = {
             newVideoStream = await mediaDevices.getUserMedia(basicConstraints);
           } catch (basicError) {
             // Handle permission denied gracefully in basic mode
-            if (basicError.name === "NotAllowedError" || 
-                basicError.message.includes("Permission denied") ||
-                basicError.message.includes("cancelled by user")) {
-              console.log("Mobile camera permission denied by user - silently ignoring");
+            if (
+              basicError.name === "NotAllowedError" ||
+              basicError.message.includes("Permission denied") ||
+              basicError.message.includes("cancelled by user")
+            ) {
+              console.log(
+                "Mobile camera permission denied by user - silently ignoring"
+              );
               return false;
             }
             throw basicError; // Re-throw other errors
@@ -317,7 +332,7 @@ const self = {
 
       if (!newVideoTrack) {
         throw new Error("Failed to get video track from new mobile camera");
-      }      // Set the same enabled state as the previous track
+      } // Set the same enabled state as the previous track
       newVideoTrack.enabled = wasVideoEnabled;
 
       // Replace the video track in all peer connections
@@ -333,7 +348,7 @@ const self = {
             `Replaced mobile video track for peer ${peerId} with facingMode: ${facingMode}`
           );
         }
-      }      // Replace the track in the local stream
+      } // Replace the track in the local stream
       if (currentVideoTrack) {
         WebRTC.getLocalStream().removeTrack(currentVideoTrack);
         currentVideoTrack.stop();
@@ -342,9 +357,9 @@ const self = {
       WebRTC.getLocalStream().addTrack(newVideoTrack);
 
       // Notify UI of the stream update
-      WebRTC.notifyStreamUpdate();      // Force local stream update for mobile platforms with delay
+      WebRTC.notifyStreamUpdate(); // Force local stream update for mobile platforms with delay
       setTimeout(() => {
-        WebRTC.executeCallback('onLocalStreamReady', WebRTC.getLocalStream());
+        WebRTC.executeCallback("onLocalStreamReady", WebRTC.getLocalStream());
         // Emit a more specific event for mobile camera switching
         eventEmitter.emit("mobile_camera_switched", {
           participantId: WebRTC.getMyId(),
@@ -353,7 +368,7 @@ const self = {
           facingMode: facingMode,
           timestamp: Date.now(), // Add timestamp to force re-render
           userData: { handle: "You" },
-        });        // Also emit the standard stream update event
+        }); // Also emit the standard stream update event
         eventEmitter.emit("stream_added_or_updated", {
           participantId: WebRTC.getMyId(),
           stream: WebRTC.getLocalStream(),
@@ -383,7 +398,9 @@ const self = {
           return true;
         } else {
           // Permission was denied or failed to get video track, stay disabled
-          console.log("Video track permission denied or failed - staying disabled");
+          console.log(
+            "Video track permission denied or failed - staying disabled"
+          );
           return false;
         }
       } else {
@@ -395,9 +412,11 @@ const self = {
     } catch (err) {
       console.error("Errore nel toggle video:", err);
       // Don't throw error for permission denied cases
-      if (err.name === "NotAllowedError" || 
-          err.message.includes("Permission denied") ||          
-          err.message.includes("cancelled by user")) {
+      if (
+        err.name === "NotAllowedError" ||
+        err.message.includes("Permission denied") ||
+        err.message.includes("cancelled by user")
+      ) {
         console.log("Video permission denied - staying in current state");
         return WebRTC.isVideoEnabled(); // Return current state
       }
@@ -420,11 +439,15 @@ const self = {
           });
         } catch (permissionError) {
           // Handle permission denied gracefully for web
-          if (permissionError.name === "NotAllowedError" || 
-              permissionError.message.includes("Permission denied") ||
-              permissionError.message.includes("cancelled by user") ||
-              permissionError.message.includes("Permission dismissed")) {
-            console.log("Screen share permission denied by user - silently ignoring");
+          if (
+            permissionError.name === "NotAllowedError" ||
+            permissionError.message.includes("Permission denied") ||
+            permissionError.message.includes("cancelled by user") ||
+            permissionError.message.includes("Permission dismissed")
+          ) {
+            console.log(
+              "Screen share permission denied by user - silently ignoring"
+            );
             return null; // Return null instead of throwing, so the UI can stay in previous state
           }
           throw permissionError; // Re-throw other errors
@@ -444,10 +467,14 @@ const self = {
               });
             } catch (displayError) {
               // Handle permission denied gracefully for mobile getDisplayMedia
-              if (displayError.name === "NotAllowedError" || 
-                  displayError.message.includes("Permission denied") ||
-                  displayError.message.includes("cancelled by user")) {
-                console.log("Mobile screen share permission denied by user - silently ignoring");
+              if (
+                displayError.name === "NotAllowedError" ||
+                displayError.message.includes("Permission denied") ||
+                displayError.message.includes("cancelled by user")
+              ) {
+                console.log(
+                  "Mobile screen share permission denied by user - silently ignoring"
+                );
                 return null;
               }
               throw displayError;
@@ -468,10 +495,14 @@ const self = {
               });
             } catch (screenError) {
               // Handle permission denied gracefully for getUserMedia with screen source
-              if (screenError.name === "NotAllowedError" || 
-                  screenError.message.includes("Permission denied") ||
-                  screenError.message.includes("cancelled by user")) {
-                console.log("Mobile screen share permission denied by user - silently ignoring");
+              if (
+                screenError.name === "NotAllowedError" ||
+                screenError.message.includes("Permission denied") ||
+                screenError.message.includes("cancelled by user")
+              ) {
+                console.log(
+                  "Mobile screen share permission denied by user - silently ignoring"
+                );
                 return null;
               }
               throw screenError;
@@ -479,14 +510,21 @@ const self = {
           }
         } catch (mobileError) {
           // Handle permission denied gracefully even in mobile error handling
-          if (mobileError.name === "NotAllowedError" || 
-              mobileError.message.includes("Permission denied") ||
-              mobileError.message.includes("cancelled by user")) {
-            console.log("Mobile screen share permission denied by user - silently ignoring");
+          if (
+            mobileError.name === "NotAllowedError" ||
+            mobileError.message.includes("Permission denied") ||
+            mobileError.message.includes("cancelled by user")
+          ) {
+            console.log(
+              "Mobile screen share permission denied by user - silently ignoring"
+            );
             return null;
           }
-          
-          console.warn("Mobile screen capture failed, using camera fallback:", mobileError.message);
+
+          console.warn(
+            "Mobile screen capture failed, using camera fallback:",
+            mobileError.message
+          );
           try {
             screenStream = await mediaDevices.getUserMedia({
               video: {
@@ -499,10 +537,14 @@ const self = {
             });
           } catch (cameraError) {
             // Handle permission denied gracefully for camera fallback
-            if (cameraError.name === "NotAllowedError" || 
-                cameraError.message.includes("Permission denied") ||
-                cameraError.message.includes("cancelled by user")) {
-              console.log("Camera fallback permission denied by user - silently ignoring");
+            if (
+              cameraError.name === "NotAllowedError" ||
+              cameraError.message.includes("Permission denied") ||
+              cameraError.message.includes("cancelled by user")
+            ) {
+              console.log(
+                "Camera fallback permission denied by user - silently ignoring"
+              );
               return null;
             }
             throw cameraError;
@@ -512,12 +554,12 @@ const self = {
 
       if (!screenStream) {
         throw new Error("Failed to get screen share permission or stream");
-      }      // Now that we have permission and the stream, get the screen share ID from API
+      } // Now that we have permission and the stream, get the screen share ID from API
       const data = await APIMethods.startScreenShare(WebRTC.getChatId());
 
       if (data.screen_share_started) {
         const screenShareId = data.screen_share_id;
-      
+
         const result = WebRTC.addScreenShareStream(screenShareId, screenStream);
         if (result) {
           console.log(
@@ -527,21 +569,26 @@ const self = {
         } else {
           console.warn("[ScreenShare] Failed to start screen share");
           // Clean up the stream if we failed to add it
-          screenStream.getTracks().forEach(track => track.stop());
+          screenStream.getTracks().forEach((track) => track.stop());
           throw new Error("Failed to start screen share");
         }
       } else {
         throw new Error("Screen share couldnt be started");
-      }    } catch (error) {
+      }
+    } catch (error) {
       // Handle permission denied gracefully at the top level
-      if (error.name === "NotAllowedError" || 
-          error.message.includes("Permission denied") ||
-          error.message.includes("cancelled by user") ||
-          error.message.includes("Permission dismissed")) {
-        console.log("Screen share permission denied by user - silently ignoring");
+      if (
+        error.name === "NotAllowedError" ||
+        error.message.includes("Permission denied") ||
+        error.message.includes("cancelled by user") ||
+        error.message.includes("Permission dismissed")
+      ) {
+        console.log(
+          "Screen share permission denied by user - silently ignoring"
+        );
         return null; // Return null instead of throwing, so the UI can stay in previous state
       }
-      
+
       console.error("[ScreenShare] Error starting screen share:", error);
       throw new Error("Error starting screen share: " + error.message);
     }
@@ -549,8 +596,8 @@ const self = {
 
   // quando premo x per fermare lo screen share
 
-  async stopScreenShare(screenShareId) {   
-     try {
+  async stopScreenShare(screenShareId) {
+    try {
       const data = await APIMethods.stopScreenShare(
         WebRTC.getChatId(),
         screenShareId
@@ -567,10 +614,10 @@ const self = {
       console.error("[ScreenShare] Error stopping screen share:", error);
       throw new Error("Error stopping screen share: " + error.message);
     }
-  }
+  },
 };
 
-const handle = {  
+const handle = {
   // quando un nuovo membro entra in una room
   async memberJoined(data) {
     // Solo se il membro che entra è nella stessa chat vocale
@@ -580,7 +627,7 @@ const handle = {
     eventEmitter.emit("member_joined_comms", data);
 
     await WebRTC.handleUserJoined(data);
-  },  
+  },
   // quando un membro esce da una room
   async memberLeft(data) {
     // Solo se il membro che esce è nella stessa chat vocale
@@ -621,7 +668,8 @@ const get = {
   },
   myPartecipantId: () => {
     return WebRTC.getMyId();
-  },   commsMembers: async (chatId) => {
+  },
+  commsMembers: async (chatId) => {
     let usersList = [];
 
     if (chatId != WebRTC.getChatId()) {
@@ -631,21 +679,30 @@ const get = {
       // Same chat - check if we have sufficient remote user data
       const webrtcUserData = Object.values(WebRTC.getUserData());
       const myParticipantId = WebRTC.getMyId();
-      
+
       // Filter out local user to count remote users
-      const remoteUsers = webrtcUserData.filter(user => user.from !== myParticipantId);
-      
+      const remoteUsers = webrtcUserData.filter(
+        (user) => user.from !== myParticipantId
+      );
+
       // If we have remote users in WebRTC userData, use it; otherwise fetch from API
       if (remoteUsers.length > 0) {
-        console.log('[methods] Using WebRTC userData (has remote users):', remoteUsers.length);
+        console.log(
+          "[methods] Using WebRTC userData (has remote users):",
+          remoteUsers.length
+        );
         usersList = webrtcUserData;
       } else {
-        console.log('[methods] No remote users in WebRTC userData, fetching from API');
+        console.log(
+          "[methods] No remote users in WebRTC userData, fetching from API"
+        );
         usersList = await APIMethods.retrieveVocalUsers(chatId);
       }
 
       // Ensure local user is in the list with current screen shares
-      const localUserExists = usersList.some(user => user.from === myParticipantId);
+      const localUserExists = usersList.some(
+        (user) => user.from === myParticipantId
+      );
 
       if (!localUserExists) {
         // Fetch local user handle and data only if not already present
@@ -653,22 +710,27 @@ const get = {
         const localUserData = await localDatabase.fetchLocalUserData();
 
         // Build local user object with active screen shares
-        const activeScreenShares = WebRTC.getActiveScreenShares(myParticipantId);
+        const activeScreenShares =
+          WebRTC.getActiveScreenShares(myParticipantId);
 
         const localUser = {
           handle: localUserHandle,
           from: myParticipantId,
           profileImage: localUserData?.profileImage || null,
-          active_screen_share: activeScreenShares || []  // Include active screen shares
+          active_screen_share: activeScreenShares || [], // Include active screen shares
         };
 
         usersList.push(localUser);
       } else {
         // Update existing local user with current screen shares
-        const localUserIndex = usersList.findIndex(user => user.from === myParticipantId);
+        const localUserIndex = usersList.findIndex(
+          (user) => user.from === myParticipantId
+        );
         if (localUserIndex !== -1) {
-          const activeScreenShares = WebRTC.getActiveScreenShares(myParticipantId);
-          usersList[localUserIndex].active_screen_share = activeScreenShares || [];
+          const activeScreenShares =
+            WebRTC.getActiveScreenShares(myParticipantId);
+          usersList[localUserIndex].active_screen_share =
+            activeScreenShares || [];
         }
       }
     }
@@ -676,22 +738,28 @@ const get = {
     return usersList;
   },
   pinnedUser: () => {
-    if(check.isInComms()) {
+    if (check.isInComms()) {
       return WebRTC.getPinnedUser();
     }
     return null;
-  },  
+  },
   microphoneStatus: () => {
-    if(!check.isInComms()) {
+    if (!check.isInComms()) {
       return true; // Da fixare con un pull dei dati dai settings @SamueleOrazioDurante
     }
-    return WebRTC.getLocalStream() && WebRTC.getLocalStream().getAudioTracks()[0]?.enabled;
+    return (
+      WebRTC.getLocalStream() &&
+      WebRTC.getLocalStream().getAudioTracks()[0]?.enabled
+    );
   },
   videoStatus: () => {
-    if(!check.isInComms()) {
+    if (!check.isInComms()) {
       return false; // Da fixare con un pull dei dati dai settings  @SamueleOrazioDurante
     }
-    return WebRTC.getLocalStream() && WebRTC.getLocalStream().getVideoTracks()[0]?.enabled;
+    return (
+      WebRTC.getLocalStream() &&
+      WebRTC.getLocalStream().getVideoTracks()[0]?.enabled
+    );
   },
   localStream: () => {
     return WebRTC.getLocalStream();
@@ -705,7 +773,7 @@ const set = {
   audioContext: (audioContext) => {
     WebRTC.setAudioContext(audioContext);
   },
-}
+};
 
 const pin = {
   toggle: (rectangleId) => {

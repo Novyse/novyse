@@ -113,7 +113,7 @@ function createStyle(theme, colorScheme) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: 'transparent', // Ensure container is transparent to show gradient
+      backgroundColor: 'transparent',
     },
     welcomeText: {
       color: theme.text,

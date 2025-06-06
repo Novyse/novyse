@@ -332,7 +332,7 @@ const ChatList = () => {
       return false;
     } else {
       // Show menu if we're not in a call and no chat is selected
-      return !selectedChat;
+      return false;
     }
   }, [isSmallScreen, selectedChat, contentView, forceUpdate]);
 
@@ -365,7 +365,7 @@ const ChatList = () => {
       return false;
     } else {
       // Mostra il menu se non siamo in chiamata e non c'è chat selezionata
-      return !selectedChat;
+      return false;
     }
   }, [isSmallScreen, selectedChat, contentView, forceUpdate]);
 
@@ -767,7 +767,7 @@ const ChatList = () => {
     <SafeAreaProvider>
       <StatusBar
         style="light"
-        backgroundColor={theme.statusBar || "#1b2734"}
+        backgroundColor={theme.statusBar}
         translucent={false}
       />
       <SafeAreaView style={styles.safeArea}>

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { StyleSheet, Pressable, Text, View } from "react-native";
 import SmartBackground from "../components/SmartBackground";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -11,6 +11,13 @@ const Themes = () => {
 
   // Ottieni la lista dei temi disponibili
   const availableThemes = Object.keys(Colors);
+
+  // Se nessun tema è selezionato, seleziona "Default"
+  useEffect(() => {
+    if (!colorScheme || !availableThemes.includes(colorScheme)) {
+      setColorScheme("Default");
+    }
+  }, [colorScheme, setColorScheme]);
 
   return (
     <SmartBackground

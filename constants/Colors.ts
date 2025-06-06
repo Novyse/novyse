@@ -32,6 +32,7 @@ export const Colors = {
     borderColor: "#000000",
     settingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.65)",
+    statusBar: "#416a90", // StatusBar scura per Dark Mode
     // Gradients
     backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#165376", "#2899cf", "#4fb3e1"],
@@ -79,6 +80,7 @@ export const Colors = {
     borderColor: "#cccccc",
     settingsDivider: "rgba(0, 0, 0, 0.1)",
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.1)",
+    statusBar: "#ffffff", // StatusBar chiara per Light Mode
     // Gradients
     backgroundMainGradient: ["#ffffff", "#f5f5f5"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#e3f2fd", "#bbdefb", "#90caf9"],
@@ -126,6 +128,7 @@ export const Colors = {
     borderColor: "#555555",
     settingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.15)",
+    statusBar: "#121212", // StatusBar scura per Dark Mode
     // Gradients
     backgroundMainGradient: ["#0a0a0a", "#1e1e1e"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#2d2d2d", "#404040", "#525252"],
@@ -173,6 +176,7 @@ export const Colors = {
     borderColor: "#333333",
     settingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.1)",
+    statusBar: "#000000", // StatusBar completamente nera per AMOLED
     // Gradients
     backgroundMainGradient: ["#000000", "#000000"], // Gradiente principale dell'app AMOLED (puro nero)
     floatingBarComponentsGradient: ["#000000", "#0d0d0d", "#1a1a1a"],
@@ -187,7 +191,55 @@ export const Colors = {
     searchSideBarGradient: ["#000000", "#0d0d0d"],
     settingPagesGradient: ["#000000", "#000000", "#0d0d0d"],
   },
-  test: {
+  "Amoled Extreme": {
+    text: "white",
+    textTime: "#888888",
+    backgroundClassic: "#000000",
+    backgroundChatList: "#000000",
+    backgroundChat: "#000000",
+    backgroundChatInsideList: "#000000",
+    backgroundHeader: "#000000",
+    backgroundChatTextInput: "#000000",
+    backgroundChatListCheckNetwork: "#000000",
+    buttonBackground: "#000000",
+    floatingBigButton: "#0a0a0a",
+    floatingLittleButton: "#0a0a0a",
+    chatDivider: "#000000",
+    chatListSelected: "#0a0a0a",
+    icon: "white",
+    iconSecondary: "#777777",
+    button: "#00ff88",
+    sideBarBackground: "#000000",
+    modalsBackground: "#000000",
+    messagesLink: "#00ff88",
+    bigFloatingCommsMenu: "#0a0a0a",
+    // Colori aggiuntivi per componenti
+    modalBackground: "#000000",
+    modalBorder: "#222222",
+    modalText: "#ffffff",
+    placeholderText: "#555555",
+    dateSeparatorBackground: "#000000",
+    joinGroupButtonBackground: "#000000",
+    shadowColor: "#000000",
+    borderColor: "#222222",
+    settingsDivider: "rgba(255, 255, 255, 0.05)",
+    floatingBarButtonBackground: "rgba(255, 255, 255, 0.05)",
+    statusBar: "#000000",
+    // Gradients
+    backgroundMainGradient: ["#000000", "#000000"],
+    floatingBarComponentsGradient: ["#000000", "#000000", "#0a0a0a"],
+    backgroundChatGradient: ["#000000", "#000000"],
+    backgroundChatListGradient: ["#000000", "#000000"],
+    backgroundChatInsideListGradient: ["#000000", "#000000"],
+    backgroundChatSelectedInsideListGradient: ["#000000", "#0a0a0a"],
+    backgroundHeaderGradient: ["#000000", "#000000"],
+    backgroundChatTextInputGradient: ["#000000", "#000000"],
+    sideBarGradient: ["#000000", "#000000", "#0a0a0a"],
+    messageContainerGradient: ["#000000", "#000000"],
+    searchSideBarGradient: ["#000000", "#000000"],
+    settingPagesGradient: ["#000000", "#000000", "#000000"],
+    },
+    "unifi(experimental)": {
     text: "white",
     textTime: "#c9d1d9",
     backgroundClassic: "transparent",
@@ -216,9 +268,11 @@ export const Colors = {
     placeholderText: "#bfbfbf", // Placeholder visibile
     dateSeparatorBackground: "#17212b", // Separatore date visibile
     joinGroupButtonBackground: "#1b2734", // Pulsante join visibile
-    shadowColor: "#000000", // Ombra visibile    borderColor: "#000000", // Bordi visibili
+    shadowColor: "#000000", // Ombra visibile    
+    borderColor: "#000000", // Bordi visibili
     settingsDivider: "rgba(255, 255, 255, 0.1)", // Divisore visibile
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.65)", // Pulsanti floating visibili
+    statusBar: "#416a90", // StatusBar scura per Dark Mode
     // Gradients - tutto trasparente per vedere il gradiente globale, eccetto componenti specifici
     backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale unificato per l'intera app
     floatingBarComponentsGradient: ["#165376", "#2899cf", "#4fb3e1"], // Componenti floating devono avere gradiente
