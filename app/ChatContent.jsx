@@ -35,6 +35,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import SmartBackground from "./components/SmartBackground";
+import EmojiPicker from "./components/EmojiPicker";
 
 const ChatContent = ({
   chatJoined,
@@ -47,9 +48,9 @@ const ChatContent = ({
   const messagesRef = useRef([]);
   const [messages, setMessages] = useState([]);
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
-  const [newMessageText, setNewMessageText] = useState("");
+  const styles = createStyle(theme);  const [newMessageText, setNewMessageText] = useState("");
   const [isVoiceMessage, setVoiceMessage] = useState(true);
+  const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
 
   const params = useLocalSearchParams();
 
@@ -298,13 +299,30 @@ const ChatContent = ({
       console.error("Errore nell'invio del messaggio:", error);
     }
   };
-
   // gestisco quando il microfono viene premuto
   // non ci sono ancora i messaggi vocali, ma intanto l'ho fatto
   const handleVoiceMessage = () => {
     console.log("Voice message button pressed");
     setIsMicClicked(true);
     setVoiceMessage(false);
+  };
+
+  // gestisco quando viene premuto il pulsante emoji
+  const handleEmojiPress = () => {
+    console.log("Emoji button pressed");
+    setIsEmojiPickerVisible(true);
+  };
+
+  // gestisco quando viene selezionato un emoji
+  const handleEmojiSelected = (emoji) => {
+    console.log("Emoji selected:", emoji);
+    setNewMessageText(prevText => prevText + emoji);
+    setVoiceMessage(false); // Switch to send button when emoji is added
+  };
+
+  // gestisco quando viene chiuso l'emoji picker
+  const handleEmojiPickerClose = () => {
+    setIsEmojiPickerVisible(false);
   };
 
   // gestisco quando l'utente tiene premuto su un messaggio nella chat
@@ -559,7 +577,7 @@ const ChatContent = ({
                 onSubmitEditing={
                   Platform.OS === "web" ? handleSendMessage : undefined
                 }
-              />              <Pressable style={styles.iconButton}>
+              />              <Pressable style={styles.iconButton} onPress={handleEmojiPress}>
                 <HugeiconsIcon
                   icon={SmileIcon}
                   size={24}
@@ -636,9 +654,15 @@ const ChatContent = ({
             <Text style={{ color: theme.modalText }}>
               Informazioni sul messaggio
             </Text>
-          </View>
-        )}
+          </View>        )}
       </SafeAreaView>
+      
+      {/* EmojiPicker Modal */}
+      <EmojiPicker
+        visible={isEmojiPickerVisible}
+        onClose={handleEmojiPickerClose}
+        onEmojiSelected={handleEmojiSelected}
+      />
     </SmartBackground>
   );
 };
