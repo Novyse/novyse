@@ -157,7 +157,7 @@ const LoginPassword = () => {
               <AntDesign
                 name={secureTextEntry ? "eyeo" : "eye"}
                 size={17}
-                color="white"
+                color={theme.icon}
               />
             </TouchableOpacity>
           </View>
@@ -169,7 +169,7 @@ const LoginPassword = () => {
           >
             
             {isLoading ? (
-              <ActivityIndicator size="small" color="#fff"/>
+              <ActivityIndicator size="small" color={theme.icon}/>
             ) : (
               <Text style={styles.containerButtonText}>Invia</Text>
             )}
@@ -208,7 +208,7 @@ function createStyle(theme, colorScheme) {
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: "white",
+      borderColor: theme.borderColor || theme.icon,
       borderRadius: 12,
       padding: 10,
       marginBottom: 16,
@@ -216,7 +216,7 @@ function createStyle(theme, colorScheme) {
     },
     input: {
       outlineStyle: "none",
-      color: "white",
+      color: theme.text,
       pointerEvents: "auto",
       width: 250,
     },

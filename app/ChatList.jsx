@@ -15,8 +15,8 @@ import {
 } from "react-native";
 import moment from "moment";
 import { StatusBar } from "expo-status-bar";
-import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "@/context/ThemeContext";
+import SmartBackground from "./components/SmartBackground";
 import NetInfo from "@react-native-community/netinfo";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -386,10 +386,8 @@ const ChatList = () => {
           { transform: [{ translateX: sidebarPosition }] },
         ]}
       >
-        <LinearGradient
+        <SmartBackground
           colors={theme?.sideBarGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
           style={styles.sidebarContent}
         >
           <View style={styles.profileContainer}>
@@ -423,7 +421,7 @@ const ChatList = () => {
                 toggleSidebar();
                 setIsCreateGroupModalVisible(true);
               }}
-            />{" "}
+            />
             <SidebarItem
               text="Logout"
               iconName={Logout03Icon}
@@ -434,16 +432,15 @@ const ChatList = () => {
               }}
             />
           </View>
-        </LinearGradient>
+        </SmartBackground>
       </Animated.View>
     </>
   );
+
   const renderHeader = () => {
     return (
-      <LinearGradient
+      <SmartBackground
         colors={theme?.backgroundHeaderGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
         style={styles.header}
       >
         <Pressable onPress={toggleSidebar} style={styles.menuButton}>
@@ -471,14 +468,13 @@ const ChatList = () => {
             strokeWidth={1.5}
           />
         </Pressable>
-      </LinearGradient>
+      </SmartBackground>
     );
   };
+
   const renderChatList = () => (
-    <LinearGradient
+    <SmartBackground
       colors={theme?.backgroundChatListGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
       style={[styles.chatListContainer]}
     >
       <FlatList
@@ -499,14 +495,12 @@ const ChatList = () => {
           const isSelected = selectedChat === item.chat_id;
 
           return (
-            <LinearGradient
+            <SmartBackground
               colors={
                 isSelected
                   ? theme?.backgroundChatSelectedInsideListGradient
                   : theme?.backgroundChatInsideListGradient
               }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
               style={styles.chatItem}
             >
               <Pressable
@@ -565,11 +559,11 @@ const ChatList = () => {
                   </View>
                 </View>
               </Pressable>
-            </LinearGradient>
+            </SmartBackground>
           );
         }}
       />
-    </LinearGradient>
+    </SmartBackground>
   );
 
   const renderChatHeaderAndContent = () => {
@@ -583,10 +577,8 @@ const ChatList = () => {
       params.creatingChatWith ||
       "Unknown Name";
     const renderChatHeader = (
-      <LinearGradient
+      <SmartBackground
         colors={theme?.backgroundHeaderGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
         style={[styles.header, styles.chatHeader]}
       >
         {isSmallScreen && (
@@ -707,16 +699,16 @@ const ChatList = () => {
             )}
           </View>
         )}
-      </LinearGradient>
-    ); // In renderChatHeaderAndContent:
+      </SmartBackground>
+    );
+
+    // In renderChatHeaderAndContent:
     switch (contentView) {
       case "vocal":
       case "chat":
         return (
-          <LinearGradient
+          <SmartBackground
             colors={theme?.backgroundChatGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
             style={styles.chatContent}
           >
             {renderChatHeader}
@@ -729,14 +721,12 @@ const ChatList = () => {
               onBack={() => setSelectedChat(null)}
               onJoinSuccess={handleSuccessfulJoin}
             />
-          </LinearGradient>
+          </SmartBackground>
         );
       case "both":
         return (
-          <LinearGradient
+          <SmartBackground
             colors={theme?.backgroundChatGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
             style={styles.chatContent}
           >
             {renderChatHeader}
@@ -768,31 +758,33 @@ const ChatList = () => {
                 />
               </View>
             </View>
-          </LinearGradient>
+          </SmartBackground>
         );
     }
   };
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" backgroundColor="#1b2734" translucent={false} />
+      <StatusBar
+        style="light"
+        backgroundColor={theme.statusBar || "#1b2734"}
+        translucent={false}
+      />
       <SafeAreaView style={styles.safeArea}>
         {renderSidebar()}
         {!isSmallScreen || (isSmallScreen && !selectedChat)
           ? renderHeader()
-          : null}{" "}
+          : null}
         <View style={styles.container}>
           {isSmallScreen ? (
             <>
-              <LinearGradient
+              <SmartBackground
                 colors={theme?.backgroundChatListGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
                 style={styles.chatList}
               >
                 {renderSmallCommsMenu()}
                 {!isToggleSearchChats ? renderChatList() : <Search />}
-              </LinearGradient>
+              </SmartBackground>
               {selectedChat && (
                 <Animated.View
                   style={[
@@ -814,17 +806,15 @@ const ChatList = () => {
             </>
           ) : (
             <>
-              <LinearGradient
+              <SmartBackground
                 colors={theme?.backgroundChatListGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
                 style={[styles.chatList, styles.largeScreenChatList]}
               >
                 <View style={styles.chatListWrapper}>
                   {!isToggleSearchChats ? renderChatList() : <Search />}
                   {renderBigFloatingCommsMenu()}
                 </View>
-              </LinearGradient>
+              </SmartBackground>
               {renderChatHeaderAndContent()}
             </>
           )}
@@ -867,7 +857,8 @@ function createStyle(theme, colorScheme) {
       width: 330, // Fixed width for large screens
       borderRightWidth: 1,
       borderRightColor: theme.chatDivider,
-    },    chatItem: {
+    },
+    chatItem: {
       borderRadius: 13,
       marginBottom: 10,
     },
@@ -948,18 +939,18 @@ function createStyle(theme, colorScheme) {
       padding: 10,
       margin: 10,
       borderRadius: 8,
-      color: "white",
+      color: theme.text,
     },
     dropdownMenu: {
       position: "absolute",
       top: 50,
       right: 10,
-      backgroundColor: "#17212b",
+      backgroundColor: theme.modalBackground,
       borderRadius: 8,
       padding: 15,
       zIndex: 20,
       elevation: 5,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.3,
       shadowRadius: 4,
@@ -989,7 +980,8 @@ function createStyle(theme, colorScheme) {
     },
     chatDate: {
       textAlign: "right",
-    },    staticNumber: {
+    },
+    staticNumber: {
       textAlign: "right",
     },
     // sidebar
@@ -1024,12 +1016,12 @@ function createStyle(theme, colorScheme) {
       flexDirection: "column",
     },
     profileName: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "bold",
     },
     profilePhone: {
-      color: "#ccc",
+      color: theme.placeholderText,
       fontSize: 14,
     },
     menuContainer: {

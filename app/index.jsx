@@ -90,12 +90,11 @@ export default function Index() {
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.containerStart}>
-          <Text style={styles.welcomeText}>BENVENUTO</Text>
-          <Pressable
+          <Text style={styles.welcomeText}>BENVENUTO</Text>          <Pressable
             style={styles.containerStartButton}
             onPress={() => router.navigate(`/loginSignup/EmailCheckForm`)}
           >
-            <MaterialIcons name="arrow-forward" size={52} color="white" />
+            <MaterialIcons name="arrow-forward" size={52} color={theme.icon} />
           </Pressable>
         </View>
         <StatusBar style="light" backgroundColor={theme.backgroundClassic} />
@@ -114,6 +113,7 @@ function createStyle(theme, colorScheme) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
+      backgroundColor: 'transparent', // Ensure container is transparent to show gradient
     },
     welcomeText: {
       color: theme.text,

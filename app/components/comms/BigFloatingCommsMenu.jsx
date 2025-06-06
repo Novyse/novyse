@@ -1,13 +1,13 @@
 import React, { useContext, useState, useEffect } from "react";
 import { StyleSheet } from "react-native";
-import Animated, { 
-  useAnimatedStyle, 
-  withSpring, 
+import Animated, {
+  useAnimatedStyle,
+  withSpring,
   withTiming,
   useSharedValue,
-  Easing
-} from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
+  Easing,
+} from "react-native-reanimated";
+import SmartBackground from "../SmartBackground";
 import VocalBottomBarButton from "./VocalBottomBarButton";
 import { ThemeContext } from "@/context/ThemeContext";
 import {
@@ -56,10 +56,7 @@ const BigFloatingCommsMenu = () => {
   const animatedStyle = useAnimatedStyle(() => {
     return {
       opacity: opacity.value,
-      transform: [
-        { scale: scale.value },
-        { translateY: translateY.value }
-      ],
+      transform: [{ scale: scale.value }, { translateY: translateY.value }],
     };
   });
 
@@ -80,42 +77,40 @@ const BigFloatingCommsMenu = () => {
     translateY.value = withSpring(50);
 
     // Aspetta che l'animazione finisca
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     setIsVisible(false);
   };
 
   const leaveComms = async () => {
-    await animateOut();  // Prima anima l'uscita
-    self.left();         // Poi esci dalla chiamata
+    await animateOut(); // Prima anima l'uscita
+    self.left(); // Poi esci dalla chiamata
   };
   if (!isVisible) return null;
-
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
-      <LinearGradient
+      <SmartBackground
         colors={theme?.floatingBarComponentsGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
         style={styles.gradientBackground}
       >
         <Animated.View style={styles.menuItems}>
+          
           <VocalBottomBarButton
             onPress={toggleAudio}
             iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
-            iconColor="#fff"
+            iconColor={theme.icon}
           />
           <VocalBottomBarButton
             onPress={toggleVideo}
             iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
-            iconColor="#fff"
+            iconColor={theme.icon}
           />
           <VocalBottomBarButton
             onPress={leaveComms}
             iconName={Call02Icon}
-            iconColor="red"
+            iconColor={theme.error || "red"}
           />
         </Animated.View>
-      </LinearGradient>
+      </SmartBackground>
     </Animated.View>
   );
 };
@@ -135,8 +130,8 @@ function createStyle(theme, colorScheme) {
       paddingHorizontal: 10,
       paddingVertical: 30,
       borderRadius: 13,
-      width: '100%',
-      alignItems: 'center',
+      width: "100%",
+      alignItems: "center",
     },
     menuItems: {
       flexDirection: "row",

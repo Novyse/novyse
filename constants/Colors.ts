@@ -15,12 +15,25 @@ export const Colors = {
     chatDivider: "#101921",
     chatListSelected: "#2b5278",
     icon: "white",
+    iconSecondary: "#c9d1d9", // Icone secondarie, più chiare del testo principale
     button: "#2399C3",
     sideBarBackground: "#405770", //sideBar - ChatList
     modalsBackground: "#416a90",
     messagesLink: "#61abe6",
     bigFloatingCommsMenu: "#53709a",
+    // Colori aggiuntivi per componenti
+    modalBackground: "#ffffff",
+    modalBorder: "#000000",
+    modalText: "#000000",
+    placeholderText: "#bfbfbf",
+    dateSeparatorBackground: "#17212b",
+    joinGroupButtonBackground: "#1b2734",
+    shadowColor: "#000000",
+    borderColor: "#000000",
+    settingsDivider: "rgba(255, 255, 255, 0.1)",
+    floatingBarButtonBackground: "rgba(0, 0, 0, 0.65)",
     // Gradients
+    backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#165376", "#2899cf", "#4fb3e1"],
     backgroundChatGradient: ["#0e283a", "#16638e"],
     backgroundChatListGradient: ["#0e283a", "#16638e"],
@@ -49,12 +62,25 @@ export const Colors = {
     chatDivider: "#d0d0d0",
     chatListSelected: "#d4edda",
     icon: "black",
+    iconSecondary: "#666666", // Icone secondarie, più chiare del testo principale
     button: "#2399C3",
     sideBarBackground: "#f8f9fa",
     modalsBackground: "#ffffff",
     messagesLink: "#2399C3",
     bigFloatingCommsMenu: "#f0f0f0",
+    // Colori aggiuntivi per componenti
+    modalBackground: "#ffffff",
+    modalBorder: "#cccccc",
+    modalText: "#000000",
+    placeholderText: "#999999",
+    dateSeparatorBackground: "#e9ecef",
+    joinGroupButtonBackground: "#f8f9fa",
+    shadowColor: "#000000",
+    borderColor: "#cccccc",
+    settingsDivider: "rgba(0, 0, 0, 0.1)",
+    floatingBarButtonBackground: "rgba(0, 0, 0, 0.1)",
     // Gradients
+    backgroundMainGradient: ["#ffffff", "#f5f5f5"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#e3f2fd", "#bbdefb", "#90caf9"],
     backgroundChatGradient: ["#ffffff", "#f5f5f5"],
     backgroundChatListGradient: ["#f8f9fa", "#e9ecef"],
@@ -83,12 +109,25 @@ export const Colors = {
     chatDivider: "#0a0a0a",
     chatListSelected: "#404040",
     icon: "white",
+    iconSecondary: "#cccccc", // Icone secondarie, più chiare del testo principale
     button: "#bb86fc",
     sideBarBackground: "#1e1e1e",
     modalsBackground: "#2d2d2d",
     messagesLink: "#bb86fc",
     bigFloatingCommsMenu: "#3a3a3a",
+    // Colori aggiuntivi per componenti
+    modalBackground: "#2d2d2d",
+    modalBorder: "#555555",
+    modalText: "#ffffff",
+    placeholderText: "#999999",
+    dateSeparatorBackground: "#252525",
+    joinGroupButtonBackground: "#1e1e1e",
+    shadowColor: "#000000",
+    borderColor: "#555555",
+    settingsDivider: "rgba(255, 255, 255, 0.1)",
+    floatingBarButtonBackground: "rgba(255, 255, 255, 0.15)",
     // Gradients
+    backgroundMainGradient: ["#0a0a0a", "#1e1e1e"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#2d2d2d", "#404040", "#525252"],
     backgroundChatGradient: ["#0a0a0a", "#1e1e1e"],
     backgroundChatListGradient: ["#121212", "#1e1e1e"],
@@ -117,12 +156,25 @@ export const Colors = {
     chatDivider: "#000000",
     chatListSelected: "#1a1a1a",
     icon: "white",
+    iconSecondary: "#aaaaaa", // Icone secondarie, più chiare del testo principale
     button: "#00ff88",
     sideBarBackground: "#000000",
     modalsBackground: "#0d0d0d",
     messagesLink: "#00ff88",
     bigFloatingCommsMenu: "#1a1a1a",
+    // Colori aggiuntivi per componenti
+    modalBackground: "#000000",
+    modalBorder: "#333333",
+    modalText: "#ffffff",
+    placeholderText: "#666666",
+    dateSeparatorBackground: "#000000",
+    joinGroupButtonBackground: "#000000",
+    shadowColor: "#000000",
+    borderColor: "#333333",
+    settingsDivider: "rgba(255, 255, 255, 0.1)",
+    floatingBarButtonBackground: "rgba(255, 255, 255, 0.1)",
     // Gradients
+    backgroundMainGradient: ["#000000", "#000000"], // Gradiente principale dell'app AMOLED (puro nero)
     floatingBarComponentsGradient: ["#000000", "#0d0d0d", "#1a1a1a"],
     backgroundChatGradient: ["#000000", "#000000"],
     backgroundChatListGradient: ["#000000", "#000000"],
@@ -134,5 +186,51 @@ export const Colors = {
     messageContainerGradient: ["#000000", "#222222"],
     searchSideBarGradient: ["#000000", "#0d0d0d"],
     settingPagesGradient: ["#000000", "#000000", "#0d0d0d"],
+  },
+  test: {
+    text: "white",
+    textTime: "#c9d1d9",
+    backgroundClassic: "transparent",
+    backgroundChatList: "transparent", // Completamente trasparente per vedere il gradiente globale
+    backgroundChat: "transparent", // Completamente trasparente per vedere il gradiente globale
+    backgroundChatInsideList: "#2b3e51", // Manteniamo visibili le chat nella lista
+    backgroundHeader: "transparent", // Header trasparente per vedere il gradiente globale
+    backgroundChatTextInput: "#374e68", // TextBar deve avere il suo sfondo
+    backgroundChatListCheckNetwork: "transparent",
+    buttonBackground: "transparent",
+    floatingBigButton: "#39546d", // BigComps deve avere sfondo
+    floatingLittleButton: "#39546d", // TinyComps deve avere sfondo
+    chatDivider: "transparent",
+    chatListSelected: "#2b5278", // Manteniamo visibili le chat selezionate
+    icon: "white",
+    iconSecondary: "#c9d1d9", // Icone secondarie, più chiare del testo principale
+    button: "#2399C3",
+    sideBarBackground: "#405770", // Sidebar deve avere sfondoF
+    modalsBackground: "transparent",
+    messagesLink: "#61abe6",
+    bigFloatingCommsMenu: "#53709a", // BigFloatingCommsMenu deve avere sfondo
+    // Colori aggiuntivi per componenti
+    modalBackground: "transparent", // Modale trasparente per vedere il gradiente globale
+    modalBorder: "#000000", // Bordo visibile per definire i modali
+    modalText: "white", // Testo visibile
+    placeholderText: "#bfbfbf", // Placeholder visibile
+    dateSeparatorBackground: "#17212b", // Separatore date visibile
+    joinGroupButtonBackground: "#1b2734", // Pulsante join visibile
+    shadowColor: "#000000", // Ombra visibile    borderColor: "#000000", // Bordi visibili
+    settingsDivider: "rgba(255, 255, 255, 0.1)", // Divisore visibile
+    floatingBarButtonBackground: "rgba(0, 0, 0, 0.65)", // Pulsanti floating visibili
+    // Gradients - tutto trasparente per vedere il gradiente globale, eccetto componenti specifici
+    backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale unificato per l'intera app
+    floatingBarComponentsGradient: ["#165376", "#2899cf", "#4fb3e1"], // Componenti floating devono avere gradiente
+    backgroundChatGradient: ["transparent", "transparent"], // Completamente trasparente per vedere il gradiente globale
+    backgroundChatListGradient: ["transparent", "transparent"], // Completamente trasparente per vedere il gradiente globale
+    backgroundChatInsideListGradient: ["#16638e", "#197bb0"], // Manteniamo per le chat nella lista
+    backgroundChatSelectedInsideListGradient: ["#2899cf", "#4fb3e1"], // Manteniamo per le chat selezionate
+    backgroundHeaderGradient: ["transparent", "transparent"], // Header trasparente per vedere il gradiente globale
+    backgroundChatTextInputGradient: ["#16638e", "#2899cf"], // TextBar deve avere gradiente
+    sideBarGradient: ["#2b5278", "#405770", "#53709a"], // Sidebar deve avere gradiente
+    messageContainerGradient: ["#0e283a", "#2b5278"], // Manteniamo per i messaggi
+    searchSideBarGradient: ["transparent", "transparent"], // Trasparente per vedere il gradiente globale
+    settingPagesGradient: ["#0e283a", "#16638e"], // Settings devono avere gradiente per essere visibili
   },
 };

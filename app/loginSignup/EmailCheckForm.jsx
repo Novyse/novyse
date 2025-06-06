@@ -132,15 +132,14 @@ function createStyle(theme, colorScheme) {
     formContainer: {
       justifyContent: "center",
       alignItems: "center",
-    },
-    input: {
+    },    input: {
       outlineStyle: "none",
       width: 250,
       borderWidth: 1,
-      borderColor: "white",
+      borderColor: theme.borderColor || theme.icon,
       borderRadius: 12,
       padding: 10,
-      color: "white",
+      color: theme.text,
       marginBottom: 16,
       pointerEvents: "auto",
     },

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 import { StyleSheet, Pressable } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { ThemeContext } from "@/context/ThemeContext";
 import {
   Mic02Icon,
   MicOff02Icon,
@@ -13,6 +14,9 @@ import {
 } from "@hugeicons/core-free-icons";
 
 const VocalBottomBarButton = ({ onPress, iconName, iconColor }) => {
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyle(theme);
+
   return (
     <Pressable style={styles.iconButton} onPress={onPress}>
       <HugeiconsIcon
@@ -25,15 +29,17 @@ const VocalBottomBarButton = ({ onPress, iconName, iconColor }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  iconButton: {
-    backgroundColor: "rgba(0, 0, 0, 0.65)",
-    borderRadius: 100,
-    height: 45,
-    width: 45,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+const createStyle = (theme) =>
+  StyleSheet.create({
+    iconButton: {
+      backgroundColor:
+        theme.floatingBarButtonBackground || "rgba(0, 0, 0, 0.65)",
+      borderRadius: 100,
+      height: 45,
+      width: 45,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  });
 
 export default VocalBottomBarButton;

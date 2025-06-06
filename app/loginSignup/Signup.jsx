@@ -156,7 +156,7 @@ const Signup = () => {
                       <AntDesign
                         name={showPassword[field] ? "eyeo" : "eye"}
                         size={17}
-                        color="white"
+                        color={theme.icon}
                       />
                     </TouchableOpacity>
                   )}
@@ -177,7 +177,7 @@ const Signup = () => {
             onPress={handleSignup}
           >
             {isLoading ? (
-              <ActivityIndicator size="small" color="#ffffff" />
+              <ActivityIndicator size="small" color={theme.icon} />
             ) : (
               <Text style={styles.buttonText}>Submit</Text>
             )}
@@ -216,7 +216,7 @@ function createStyle(theme, colorScheme, width) {
       minWidth: 250, // Larghezza minima per evitare che i campi siano troppo stretti
     },
     label: {
-      color: "#ffffff",
+      color: theme.text,
       fontSize: 16,
       marginBottom: 5,
     },
@@ -224,14 +224,14 @@ function createStyle(theme, colorScheme, width) {
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: "white",
+      borderColor: theme.borderColor || theme.icon,
       borderRadius: 12,
       padding: 10,
     },
     input: {
       outlineStyle: "none",
       flex: 1,
-      color: "#ffffff",
+      color: theme.text,
     },
     button: {
       marginTop: 20,
@@ -242,7 +242,7 @@ function createStyle(theme, colorScheme, width) {
       alignSelf: "center",
     },
     buttonText: {
-      color: "#ffffff",
+      color: theme.text,
       fontSize: 16,
 
     },

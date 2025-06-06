@@ -1,22 +1,20 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Pressable, Text } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { StyleSheet, Pressable, Text, View } from "react-native";
+import SmartBackground from "../components/SmartBackground";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import { Colors } from "../../constants/Colors";
 
 const Themes = () => {
-  const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
+  const { setColorScheme, theme, colorScheme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   // Ottieni la lista dei temi disponibili
   const availableThemes = Object.keys(Colors);
 
   return (
-    <LinearGradient
+    <SmartBackground
       colors={theme.settingPagesGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
       style={styles.container}
     >
       <HeaderWithBackArrow goBackTo="./SettingsMenu" />
@@ -25,14 +23,22 @@ const Themes = () => {
         <Pressable
           key={themeName}
           onPress={() => setColorScheme(themeName)}
-          style={styles.themeButton}
+          style={[
+            styles.themeButton,
+            colorScheme === themeName && styles.activeThemeButton
+          ]}
         >
-          <Text style={styles.themeText}>
-            {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
-          </Text>
+          <View style={styles.themeButtonContent}>
+            <Text style={styles.themeText}>
+              {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
+            </Text>
+            {colorScheme === themeName && (
+              <View style={styles.activeIndicator} />
+            )}
+          </View>
         </Pressable>
       ))}
-    </LinearGradient>
+    </SmartBackground>
   );
 };
 
@@ -45,11 +51,27 @@ const createStyle = (theme) =>
     themeButton: {
       padding: 10,
       marginVertical: 5,
-      backgroundColor: theme.buttonBackground || "#e0e0e0", // Personalizzabile
+      backgroundColor: theme.buttonBackground || theme.backgroundChatInsideList,
+      borderRadius: 8,
+    },
+    activeThemeButton: {
+      borderWidth: 2,
+      borderColor: theme.primary || theme.text,
+    },
+    themeButtonContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
     themeText: {
-      color: theme.text || "#000000",
+      color: theme.text,
       fontSize: 16,
+    },
+    activeIndicator: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: theme.primary || theme.text,
     },
   });
 

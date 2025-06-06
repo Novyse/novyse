@@ -1,36 +1,44 @@
-import React from "react";
+import React, { useContext } from "react";
 import { StyleSheet, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { PaintBoardIcon, Folder01Icon } from "@hugeicons/core-free-icons";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
   const router = useRouter();
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyle(theme);
 
   return (
     <Pressable
       style={styles.menuItem}
       onPress={() => router.navigate(`/settings/${navToPage}`)}
     >
-      <HugeiconsIcon icon={iconName} size={24} color="#fff" strokeWidth={1.5} />
+      <HugeiconsIcon
+        icon={iconName}
+        size={24}
+        color={theme.icon}
+        strokeWidth={1.5}
+      />
       <Text style={styles.menuItemText}>{pageName}</Text>
     </Pressable>
   );
 };
 
-const styles = StyleSheet.create({
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.1)", // Subtle divider
-  },
-  menuItemText: {
-    color: "#fff",
-    fontSize: 16,
-    marginLeft: 15,
-  },
-});
+const createStyle = (theme) =>
+  StyleSheet.create({
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.settingsDivider,
+    },
+    menuItemText: {
+      color: theme.text,
+      fontSize: 16,
+      marginLeft: 15,
+    },
+  });
 
 export default SettingsMenuItem;

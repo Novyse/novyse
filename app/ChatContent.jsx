@@ -34,6 +34,7 @@ import {
   Clock01Icon,
 } from "@hugeicons/core-free-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import SmartBackground from "./components/SmartBackground";
 
 const ChatContent = ({
   chatJoined,
@@ -348,15 +349,14 @@ const ChatContent = ({
       if (x < 0) x = 0;
       if (y < 0) y = 0;
     }
-
     return {
       position: "absolute",
       left: x,
       top: y,
       width: menuWidth,
       height: menuHeight,
-      backgroundColor: "#ffffff",
-      borderColor: "#000",
+      backgroundColor: theme.modalBackground,
+      borderColor: theme.modalBorder,
       borderWidth: 1,
       borderRadius: 5,
       justifyContent: "center",
@@ -491,13 +491,12 @@ const ChatContent = ({
                   <LinkedText
                     text={message.text}
                     style={styles.textMessageContent}
-                  />
-                  <Text style={styles.timeText}>
+                  />                  <Text style={styles.timeText}>
                     {message.date_time === "" ? (
                       <HugeiconsIcon
                         icon={Clock01Icon}
                         size={14}
-                        color="#fff"
+                        color={theme.icon}
                         strokeWidth={1.5}
                       />
                     ) : (
@@ -535,11 +534,12 @@ const ChatContent = ({
               alignItems: "center",
             }}
           >
+            
             <Pressable style={styles.iconButton}>
               <HugeiconsIcon
                 icon={PlusSignIcon}
                 size={24}
-                color="#fff"
+                color={theme.icon}
                 strokeWidth={1.5}
               />
             </Pressable>
@@ -548,11 +548,10 @@ const ChatContent = ({
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.bottomTextBarContainer}
-            >
-              <TextInput
+            >              <TextInput
                 style={styles.bottomBarTextInput}
                 placeholder="New message"
-                placeholderTextColor="gray"
+                placeholderTextColor={theme.placeholderText}
                 value={newMessageText}
                 maxLength={2000}
                 onChangeText={handleTextChanging}
@@ -560,23 +559,20 @@ const ChatContent = ({
                 onSubmitEditing={
                   Platform.OS === "web" ? handleSendMessage : undefined
                 }
-              />
-              <Pressable style={styles.iconButton}>
+              />              <Pressable style={styles.iconButton}>
                 <HugeiconsIcon
                   icon={SmileIcon}
                   size={24}
-                  color="#fff"
+                  color={theme.icon}
                   strokeWidth={1.5}
-                />{" "}
+                />
               </Pressable>
-            </LinearGradient>
-
-            {isVoiceMessage ? (
+            </LinearGradient>            {isVoiceMessage ? (
               <Pressable onPress={handleVoiceMessage} style={styles.iconButton}>
                 <HugeiconsIcon
                   icon={Mic02Icon}
                   size={24}
-                  color="#fff"
+                  color={theme.icon}
                   strokeWidth={1.5}
                 />
               </Pressable>
@@ -585,7 +581,7 @@ const ChatContent = ({
                 <HugeiconsIcon
                   icon={SentIcon}
                   size={24}
-                  color="#fff"
+                  color={theme.icon}
                   strokeWidth={1.5}
                 />
               </Pressable>
@@ -593,19 +589,16 @@ const ChatContent = ({
           </View>
         ) : (
           <Pressable onPress={handleJoinGroup} style={styles.joinGroupButton}>
-            {" "}
+            
             <Text style={styles.joinGroupButtonText}>Join</Text>
           </Pressable>
         )}
       </View>
     );
   };
-
   return (
-    <LinearGradient
-      colors={theme.backgroundChatGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+    <SmartBackground
+      backgroundKey="backgroundChatGradient"
       style={styles.container}
     >
       <SafeAreaView
@@ -620,21 +613,33 @@ const ChatContent = ({
           });
         }}
       >
-        {" "}
+        
         {renderMessagesList()}
         {renderBottomBar()}
         {dropdownInfo.visible && (
           <View style={getDropdownStyle()}>
-            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
-            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
-            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
-            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
-            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
-            <Text style={{ color: "#000" }}>Informazioni sul messaggio</Text>
+            <Text style={{ color: theme.modalText }}>
+              Informazioni sul messaggio
+            </Text>
+            <Text style={{ color: theme.modalText }}>
+              Informazioni sul messaggio
+            </Text>
+            <Text style={{ color: theme.modalText }}>
+              Informazioni sul messaggio
+            </Text>
+            <Text style={{ color: theme.modalText }}>
+              Informazioni sul messaggio
+            </Text>
+            <Text style={{ color: theme.modalText }}>
+              Informazioni sul messaggio
+            </Text>
+            <Text style={{ color: theme.modalText }}>
+              Informazioni sul messaggio
+            </Text>
           </View>
         )}
       </SafeAreaView>
-    </LinearGradient>
+    </SmartBackground>
   );
 };
 
@@ -700,10 +705,9 @@ function createStyle(theme) {
     },
     flatList: {
       flex: 1,
-      position: "relative",
-      ...(Platform.OS === "web" && {
+      position: "relative",      ...(Platform.OS === "web" && {
         scrollbarWidth: "thin",
-        scrollbarColor: "#000000 transparent",
+        scrollbarColor: `${theme.icon} transparent`,
         "::-webkit-scrollbar": {
           width: 8,
           backgroundColor: "transparent",
@@ -711,7 +715,7 @@ function createStyle(theme) {
           right: 0,
         },
         "::-webkit-scrollbar-thumb": {
-          backgroundColor: "#000000",
+          backgroundColor: theme.icon,
           borderRadius: 4,
         },
         "::-webkit-scrollbar-track": {
@@ -740,7 +744,7 @@ function createStyle(theme) {
       fontSize: 18,
       minWidth: 20,
       color: theme.text,
-      placeholderTextColor: "#bfbfbf",
+      placeholderTextColor: theme.placeholderText,
       outlineStyle: "none",
       maxHeight: 45,
     },
@@ -755,7 +759,7 @@ function createStyle(theme) {
     },
     dateSeparator: {
       alignSelf: "center",
-      backgroundColor: "#17212b",
+      backgroundColor: theme.dateSeparatorBackground,
       paddingHorizontal: 10,
       paddingVertical: 5,
       borderRadius: 10,
@@ -767,7 +771,7 @@ function createStyle(theme) {
       fontWeight: "bold",
     },
     joinGroupButton: {
-      backgroundColor: "#1b2734",
+      backgroundColor: theme.joinGroupButtonBackground,
       width: "100%",
       height: "100%",
       padding: 12,
