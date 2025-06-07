@@ -55,7 +55,6 @@ const VocalMembersLayout = ({
   }, []); // Funzione per pinnare/unpinnare un utente
   const handlePinUser = useCallback(
     (userId) => {
-      
       // Controlla se l'utente è nella chat vocale
       if (!check.isInComms()) {
         console.log("Non puoi pinnare utenti se non sei nella chat vocale");
@@ -114,8 +113,8 @@ const VocalMembersLayout = ({
     }
 
     // Count screen shares from activeStreams
-    const screenShareCount = Object.keys(activeStreams).filter(key => 
-      activeStreams[key].streamType === 'screenshare'
+    const screenShareCount = Object.keys(activeStreams).filter(
+      (key) => activeStreams[key].streamType === "screenshare"
     ).length;
 
     // Calcola il numero totale di elementi da visualizzare (utenti + screen shares)
@@ -185,7 +184,7 @@ const VocalMembersLayout = ({
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
   }, [containerDimensions, profiles, pinnedUserId, activeStreams]);
 
-  const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();  // Render function for screen shares
+  const { numColumns, rectWidth, rectHeight, margin } = calculateLayout(); // Render function for screen shares
   const renderScreenShare = (streamKey, streamData) => {
     // Se c'è un utente pinnato e non è questo screen share, non renderizzarlo
     if (pinnedUserId && pinnedUserId !== streamKey) {
@@ -195,15 +194,19 @@ const VocalMembersLayout = ({
     // Get user info from streamData.userData
     const userProfile = streamData.userData;
     if (!userProfile) {
-      console.warn(`[VocalMembersLayout] No userData found for screen share ${streamKey}`);
+      console.warn(
+        `[VocalMembersLayout] No userData found for screen share ${streamKey}`
+      );
       return null;
     }
-    
+
     // Create a screen share profile
     const screenShareProfile = {
       ...userProfile,
       from: streamKey, // Use streamId as the identifier
-      handle: userProfile?.handle ? `${userProfile.handle} (Screen)` : `Screen Share`,
+      handle: userProfile?.handle
+        ? `${userProfile.handle} (Screen)`
+        : `Screen Share`,
     };
 
     return (
@@ -262,13 +265,19 @@ const VocalMembersLayout = ({
             width: containerDimensions.width,
           },
         ]}
-      >        {profiles.length > 0 || Object.values(activeStreams).some(streamData => streamData.streamType === 'screenshare') ? (
+      >
+        
+        {profiles.length > 0 ||
+        Object.values(activeStreams).some(
+          (streamData) => streamData.streamType === "screenshare"
+        ) ? (
           <>
             {profiles.map(renderProfile)}
             {Object.entries(activeStreams)
-              .filter(([key, streamData]) => streamData.streamType === 'screenshare')
-              .map(([key, streamData]) => renderScreenShare(key, streamData))
-            }
+              .filter(
+                ([key, streamData]) => streamData.streamType === "screenshare"
+              )
+              .map(([key, streamData]) => renderScreenShare(key, streamData))}
           </>
         ) : (
           <Text style={styles.emptyChatText}>Nessun utente nella chat</Text>

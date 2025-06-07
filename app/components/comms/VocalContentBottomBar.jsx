@@ -39,7 +39,8 @@ const VocalContentBottomBar = ({ chatId }) => {
   const [currentCameraId, setCurrentCameraId] = useState(null);
   // State for mobile camera facing mode and preferences
   const [currentFacingMode, setCurrentFacingMode] = useState("user"); // 'user' for front, 'environment' for back
-  const [pendingCameraPreferences, setPendingCameraPreferences] = useState(null); // Store camera preferences when video is off
+  const [pendingCameraPreferences, setPendingCameraPreferences] =
+    useState(null); // Store camera preferences when video is off
 
   const handleJoinVocal = async () => {
     try {
@@ -102,7 +103,9 @@ const VocalContentBottomBar = ({ chatId }) => {
       const result = await self.addScreenShare();
       if (result === null) {
         // Permission was denied, do nothing (stay in previous state)
-        console.log("Screen share permission denied - staying in current state");
+        console.log(
+          "Screen share permission denied - staying in current state"
+        );
       }
       // If result is truthy, screen share started successfully
     } catch (error) {
@@ -173,11 +176,13 @@ const VocalContentBottomBar = ({ chatId }) => {
           height: { ideal: 720 },
           aspectRatio: { ideal: 16 / 9 },
         },
-      };      
+      };
       const result = await self.switchMobileCamera(constraints, newFacingMode);
       if (result === false) {
         // Permission was denied or switch failed, do nothing
-        console.log("Mobile camera switch failed or permission denied - staying in current state");
+        console.log(
+          "Mobile camera switch failed or permission denied - staying in current state"
+        );
         return;
       }
       setCurrentFacingMode(newFacingMode);
@@ -196,11 +201,13 @@ const VocalContentBottomBar = ({ chatId }) => {
           `Camera device preference saved: ${deviceId} (video disabled)`
         );
         return;
-      }      // Video is enabled, apply the change immediately
+      } // Video is enabled, apply the change immediately
       const result = await self.switchCamera(deviceId);
       if (result === false) {
         // Permission was denied or switch failed, do nothing
-        console.log("Camera switch failed or permission denied - staying in current state");
+        console.log(
+          "Camera switch failed or permission denied - staying in current state"
+        );
         return;
       }
       setCurrentCameraId(deviceId);
@@ -212,7 +219,7 @@ const VocalContentBottomBar = ({ chatId }) => {
 
   return (
     <View style={styles.container}>
-      {(!check.isInComms() || get.commsId() !== chatId) ? (
+      {!check.isInComms() || get.commsId() !== chatId ? (
         isLoading ? (
           <View style={styles.iconButton}>
             <ActivityIndicator color={theme.icon} size="small" />

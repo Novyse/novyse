@@ -4,7 +4,11 @@ import { BlurView } from "expo-blur";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { PinIcon, PinOffIcon, ComputerRemoveIcon } from "@hugeicons/core-free-icons";
+import {
+  PinIcon,
+  PinOffIcon,
+  ComputerRemoveIcon,
+} from "@hugeicons/core-free-icons";
 
 import methods from "../../utils/webrtc/methods";
 const { get, check, self } = methods;
@@ -69,7 +73,6 @@ const VideoContent = memo(
     userData,
     streamType,
   }) => {
-    
     return (
       <View style={styles.videoContainer}>
         {hasVideo && streamToRender ? (
@@ -189,13 +192,13 @@ const UserCard = memo(
     // Add CSS animation on component mount for web
     useEffect(() => {
       addPulseAnimation();
-    }, []);    // Determina se è l'utente locale
-    const isLocalUser = isScreenShare 
+    }, []); // Determina se è l'utente locale
+    const isLocalUser = isScreenShare
       ? profile.from.includes(get.myPartecipantId()) // Per screen share, controlla se l'ID contiene il nostro ID
       : profile.from === get.myPartecipantId();
 
     // Check if current user is in comms - only render video and speaking if in comms
-    const userIsInComms = check.isInComms();    // Determina quale stream utilizzare - solo se l'utente è in comms
+    const userIsInComms = check.isInComms(); // Determina quale stream utilizzare - solo se l'utente è in comms
     let streamToRender = null;
     if (userIsInComms) {
       if (isScreenShare && activeStream?.stream) {
@@ -210,7 +213,7 @@ const UserCard = memo(
       }
     }
     const hasVideo =
-      userIsInComms && streamToRender?.getVideoTracks().length > 0;    // Memoizza i valori per il componente VideoContent per prevenire re-render
+      userIsInComms && streamToRender?.getVideoTracks().length > 0; // Memoizza i valori per il componente VideoContent per prevenire re-render
     const videoProps = useMemo(
       () => ({
         hasVideo,
@@ -226,7 +229,9 @@ const UserCard = memo(
         height,
         videoStreamKey,
         userData: activeStream?.userData || profile,
-        streamType: activeStream?.streamType || (isScreenShare ? 'screenshare' : 'webcam'),
+        streamType:
+          activeStream?.streamType ||
+          (isScreenShare ? "screenshare" : "webcam"),
       }),
       [
         hasVideo,
@@ -283,7 +288,7 @@ const UserCard = memo(
           strokeWidth={1.5}
         />
       </TouchableOpacity>
-    );    
+    );
     // Componente del pulsante stop screen share (solo per screen share locali)
     const StopScreenShareButton = () => {
       const handleStopScreenShare = async () => {
@@ -292,7 +297,7 @@ const UserCard = memo(
             await self.stopScreenShare(activeStream.streamId);
           }
         } catch (error) {
-          console.error('Error stopping screen share:', error);
+          console.error("Error stopping screen share:", error);
         }
       };
 
@@ -301,18 +306,15 @@ const UserCard = memo(
           style={styles.stopButton}
           onPress={handleStopScreenShare}
           activeOpacity={0.7}
-        > 
-          <HugeiconsIcon
-            icon={ComputerRemoveIcon}
-            size={20}
-            color="#fff"
-          />
+        >
+          <HugeiconsIcon icon={ComputerRemoveIcon} size={20} color="#fff" />
         </TouchableOpacity>
       );
-    };// Determina se mostrare il pulsante stop screen share
-    const shouldShowStopButton = isScreenShare && isLocalUser && !!activeStream?.streamId;
+    }; // Determina se mostrare il pulsante stop screen share
+    const shouldShowStopButton =
+      isScreenShare && isLocalUser && !!activeStream?.streamId;
 
-   return (
+    return (
       <View
         style={[
           styles.profile,

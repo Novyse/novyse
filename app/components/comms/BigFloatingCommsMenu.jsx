@@ -93,7 +93,6 @@ const BigFloatingCommsMenu = () => {
         style={styles.gradientBackground}
       >
         <Animated.View style={styles.menuItems}>
-          
           <VocalBottomBarButton
             onPress={toggleAudio}
             iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
