@@ -127,53 +127,49 @@ const LoginPassword = () => {
   return (
     <ScreenLayout>
       <View style={styles.formContainer}>
-          <Text
-            style={{
-              color: theme.text,
-              fontSize: 56,
-              marginBottom: 20,
-              fontWeight: 700,
-              top: -176,
-            }}
-          >
-            {emailValue}
-          </Text>
-          {/* <Text style={styles.email}>{emailValue}</Text> */}
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[styles.input, error ? styles.inputError : null]}
-              placeholder="Password"
-              placeholderTextColor="#ccc"
-              secureTextEntry={secureTextEntry}
-              value={password}
-              onChangeText={setPassword}
-              onSubmitEditing={Platform.OS === "web" ? handleLogin : undefined}
+        <Text
+          style={{
+            color: theme.text,
+            fontSize: 56,
+            marginBottom: 20,
+            fontWeight: 700,
+            top: -176,
+          }}
+        >
+          {emailValue}
+        </Text>
+        {/* <Text style={styles.email}>{emailValue}</Text> */}
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[styles.input, error ? styles.inputError : null]}
+            placeholder="Password"
+            placeholderTextColor="#ccc"
+            secureTextEntry={secureTextEntry}
+            value={password}
+            onChangeText={setPassword}
+            onSubmitEditing={Platform.OS === "web" ? handleLogin : undefined}
+          />
+          <TouchableOpacity style={styles.eyeIcon} onPress={toggleSecureEntry}>
+            <AntDesign
+              name={secureTextEntry ? "eyeo" : "eye"}
+              size={17}
+              color={theme.icon}
             />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={toggleSecureEntry}
-            >
-              <AntDesign
-                name={secureTextEntry ? "eyeo" : "eye"}
-                size={17}
-                color={theme.icon}
-              />
-            </TouchableOpacity>
-          </View>
-          {error && <Text style={styles.errorText}>{error}</Text>}
-          <Pressable
-            style={styles.containerButton}
-            onPress={handleLogin}
-            disabled={isLoading}
-          >
-            
-            {isLoading ? (
-              <ActivityIndicator size="small" color={theme.icon}/>
-            ) : (
-              <Text style={styles.containerButtonText}>Invia</Text>
-            )}
-          </Pressable>
+          </TouchableOpacity>
         </View>
+        {error && <Text style={styles.errorText}>{error}</Text>}
+        <Pressable
+          style={styles.containerButton}
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color={theme.icon} />
+          ) : (
+            <Text style={styles.containerButtonText}>Invia</Text>
+          )}
+        </Pressable>
+      </View>
     </ScreenLayout>
   );
 };

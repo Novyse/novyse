@@ -14,7 +14,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import AntDesign from '@expo/vector-icons/AntDesign';
+import AntDesign from "@expo/vector-icons/AntDesign";
 import ScreenLayout from "../components/ScreenLayout";
 
 const Signup = () => {
@@ -54,7 +54,10 @@ const Signup = () => {
       router.navigate("/loginSignup/EmailCheckForm");
       return true;
     };
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
     return () => backHandler.remove();
   }, []);
 
@@ -131,9 +134,6 @@ const Signup = () => {
               <View key={index} style={styles.inputGroup}>
                 <Text style={styles.label}>{label}</Text>
                 <View style={styles.inputContainer}>
-
-
-
                   <TextInput
                     style={[
                       styles.input,
@@ -149,8 +149,6 @@ const Signup = () => {
                     placeholderTextColor="#ccc"
                   />
 
-                  
-
                   {field.includes("password") && (
                     <TouchableOpacity onPress={() => toggleShowPassword(field)}>
                       <AntDesign
@@ -162,7 +160,9 @@ const Signup = () => {
                   )}
                 </View>
                 {field === "handle" && handleAvailable === false && (
-                  <Text style={styles.handleTextError}>Handle già in utilizzo</Text>
+                  <Text style={styles.handleTextError}>
+                    Handle già in utilizzo
+                  </Text>
                 )}
               </View>
             ))}
@@ -252,7 +252,6 @@ function createStyle(theme, colorScheme, width) {
     buttonText: {
       color: theme.text,
       fontSize: 16,
-
     },
     handleInputError: {
       borderBottomColor: "red",

@@ -32,7 +32,7 @@ const Themes = () => {
           onPress={() => setColorScheme(themeName)}
           style={[
             styles.themeButton,
-            colorScheme === themeName && styles.activeThemeButton
+            colorScheme === themeName && styles.activeThemeButton,
           ]}
         >
           <View style={styles.themeButtonContent}>
@@ -66,9 +66,9 @@ const createStyle = (theme) =>
       borderColor: theme.primary || theme.text,
     },
     themeButtonContent: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
     },
     themeText: {
       color: theme.text,

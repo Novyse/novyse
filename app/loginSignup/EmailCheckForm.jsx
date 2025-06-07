@@ -84,33 +84,32 @@ const EmailCheckForm = () => {
   return (
     <ScreenLayout>
       <View style={styles.formContainer}>
-          <Text
-            style={{
-              color: theme.text,
-              fontSize: 56,
-              marginBottom: 20,
-              fontWeight: 700,
-              top: -176,
-            }}
-          >
-            EMAIL
-          </Text>
-          <TextInput
-            style={[styles.input, error ? styles.inputError : null]}
-            placeholder="Email"
-            placeholderTextColor="#ccc"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            onSubmitEditing={
-              Platform.OS === "web" ? handleSubmit : undefined
-            }
-          />
-          {error && <Text style={styles.errorText}>{error}</Text>}          <Pressable style={styles.containerStartButton} onPress={handleSubmit}>
-            <Text style={styles.containerStartButtonText}>Invia</Text>
-          </Pressable>
-        </View>
+        <Text
+          style={{
+            color: theme.text,
+            fontSize: 56,
+            marginBottom: 20,
+            fontWeight: 700,
+            top: -176,
+          }}
+        >
+          EMAIL
+        </Text>
+        <TextInput
+          style={[styles.input, error ? styles.inputError : null]}
+          placeholder="Email"
+          placeholderTextColor="#ccc"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          onSubmitEditing={Platform.OS === "web" ? handleSubmit : undefined}
+        />
+        {error && <Text style={styles.errorText}>{error}</Text>}
+        <Pressable style={styles.containerStartButton} onPress={handleSubmit}>
+          <Text style={styles.containerStartButtonText}>Invia</Text>
+        </Pressable>
+      </View>
     </ScreenLayout>
   );
 };
@@ -124,11 +123,13 @@ function createStyle(theme, colorScheme) {
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: theme.backgroundClassic,
-    },    formContainer: {
+    },
+    formContainer: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-    },input: {
+    },
+    input: {
       outlineStyle: "none",
       width: 250,
       borderWidth: 1,

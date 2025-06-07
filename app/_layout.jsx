@@ -5,13 +5,14 @@ import { ThemeProvider } from "../context/ThemeContext";
 
 import SetupGlobalEventReceiver from "./utils/global/EventReceiver";
 
-
 function Components() {
   return (
-    <Stack screenOptions={{ 
-      headerShown: false,
-      contentStyle: { backgroundColor: 'transparent' }
-    }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: "transparent" },
+      }}
+    >
       {/* Schermata principale */}
       <Stack.Screen
         name="index"

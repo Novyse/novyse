@@ -48,7 +48,8 @@ const ChatContent = ({
   const messagesRef = useRef([]);
   const [messages, setMessages] = useState([]);
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);  const [newMessageText, setNewMessageText] = useState("");
+  const styles = createStyle(theme);
+  const [newMessageText, setNewMessageText] = useState("");
   const [isVoiceMessage, setVoiceMessage] = useState(true);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
 
@@ -316,7 +317,7 @@ const ChatContent = ({
   // gestisco quando viene selezionato un emoji
   const handleEmojiSelected = (emoji) => {
     console.log("Emoji selected:", emoji);
-    setNewMessageText(prevText => prevText + emoji);
+    setNewMessageText((prevText) => prevText + emoji);
     setVoiceMessage(false); // Switch to send button when emoji is added
   };
 
@@ -509,7 +510,8 @@ const ChatContent = ({
                   <LinkedText
                     text={message.text}
                     style={styles.textMessageContent}
-                  />                  <Text style={styles.timeText}>
+                  />
+                  <Text style={styles.timeText}>
                     {message.date_time === "" ? (
                       <HugeiconsIcon
                         icon={Clock01Icon}
@@ -552,7 +554,6 @@ const ChatContent = ({
               alignItems: "center",
             }}
           >
-            
             <Pressable style={styles.iconButton}>
               <HugeiconsIcon
                 icon={PlusSignIcon}
@@ -566,7 +567,9 @@ const ChatContent = ({
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.bottomTextBarContainer}
-            >              <TextInput
+            >
+              
+              <TextInput
                 style={styles.bottomBarTextInput}
                 placeholder="New message"
                 placeholderTextColor={theme.placeholderText}
@@ -577,7 +580,8 @@ const ChatContent = ({
                 onSubmitEditing={
                   Platform.OS === "web" ? handleSendMessage : undefined
                 }
-              />              <Pressable style={styles.iconButton} onPress={handleEmojiPress}>
+              />
+              <Pressable style={styles.iconButton} onPress={handleEmojiPress}>
                 <HugeiconsIcon
                   icon={SmileIcon}
                   size={24}
@@ -585,7 +589,8 @@ const ChatContent = ({
                   strokeWidth={1.5}
                 />
               </Pressable>
-            </LinearGradient>            {isVoiceMessage ? (
+            </LinearGradient>
+            {isVoiceMessage ? (
               <Pressable onPress={handleVoiceMessage} style={styles.iconButton}>
                 <HugeiconsIcon
                   icon={Mic02Icon}
@@ -607,7 +612,6 @@ const ChatContent = ({
           </View>
         ) : (
           <Pressable onPress={handleJoinGroup} style={styles.joinGroupButton}>
-            
             <Text style={styles.joinGroupButtonText}>Join</Text>
           </Pressable>
         )}
@@ -631,7 +635,6 @@ const ChatContent = ({
           });
         }}
       >
-        
         {renderMessagesList()}
         {renderBottomBar()}
         {dropdownInfo.visible && (
@@ -654,9 +657,10 @@ const ChatContent = ({
             <Text style={{ color: theme.modalText }}>
               Informazioni sul messaggio
             </Text>
-          </View>        )}
+          </View>
+        )}
       </SafeAreaView>
-      
+
       {/* EmojiPicker Modal */}
       <EmojiPicker
         visible={isEmojiPickerVisible}
@@ -729,7 +733,8 @@ function createStyle(theme) {
     },
     flatList: {
       flex: 1,
-      position: "relative",      ...(Platform.OS === "web" && {
+      position: "relative",
+      ...(Platform.OS === "web" && {
         scrollbarWidth: "thin",
         scrollbarColor: `${theme.icon} transparent`,
         "::-webkit-scrollbar": {

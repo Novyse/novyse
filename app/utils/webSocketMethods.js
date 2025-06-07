@@ -230,15 +230,13 @@ const WebSocketMethods = {
         console.error("Invalid screen_share_started data received:", data);
         return;
       }
-      console.log(
-        `streamId: ${data.screen_share_id}`
-      );
+      console.log(`streamId: ${data.screen_share_id}`);
 
       // Emit event to notify components
       eventEmitter.emit("screen_share_started", {
         from: data.from,
         chatId: data.to,
-        streamId: data.screen_share_id
+        streamId: data.screen_share_id,
       });
     });
 
@@ -247,15 +245,13 @@ const WebSocketMethods = {
         console.error("Invalid screen_share_stopped data received:", data);
         return;
       }
-      console.log(
-        `streamId: ${data.screen_share_id}`
-      );
+      console.log(`streamId: ${data.screen_share_id}`);
 
       // Emit event to notify components
       eventEmitter.emit("screen_share_stopped", {
         from: data.from,
         chatId: data.to,
-        streamId: data.screen_share_id
+        streamId: data.screen_share_id,
       });
     });
 
@@ -271,7 +267,7 @@ const WebSocketMethods = {
       console.error("Cannot send RTC offer: Socket not connected", {
         socketExists: !!socket,
         socketConnected: socket?.connected,
-        data
+        data,
       });
       return false;
     }
@@ -280,21 +276,21 @@ const WebSocketMethods = {
       console.log("Sending RTC offer via WebSocket", {
         to: data.to,
         from: data.from,
-        hasOffer: !!data.offer
+        hasOffer: !!data.offer,
       });
-      
+
       socket.emit("offer", data);
-      
+
       console.log("RTC offer sent successfully", {
         to: data.to,
-        from: data.from
+        from: data.from,
       });
-      
+
       return true;
     } catch (error) {
       console.error("Error sending RTC offer", {
         error: error.message,
-        data
+        data,
       });
       return false;
     }
@@ -305,7 +301,7 @@ const WebSocketMethods = {
       console.error("Cannot send RTC answer: Socket not connected", {
         socketExists: !!socket,
         socketConnected: socket?.connected,
-        data
+        data,
       });
       return false;
     }
@@ -314,28 +310,27 @@ const WebSocketMethods = {
       console.log("Sending RTC answer via WebSocket", {
         to: data.to,
         from: data.from,
-        hasAnswer: !!data.answer
+        hasAnswer: !!data.answer,
       });
-      
+
       socket.emit("answer", data);
-      
+
       console.log("RTC answer sent successfully", {
         to: data.to,
-        from: data.from
+        from: data.from,
       });
-      
+
       return true;
     } catch (error) {
       console.error("Error sending RTC answer", {
         error: error.message,
-        data
+        data,
       });
       return false;
     }
   },
   // Voice Activity Detection signaling methods
   sendSpeakingStatus: async (commsId, partecipantId, isSpeaking) => {
-    
     if (!socket || !socket.connected) {
       console.log("Cannot send speaking status: Socket not connected");
       return;

@@ -46,11 +46,7 @@ const ChatContainer = ({
     switch (contentView) {
       case "vocal":
         return (
-          <VocalContent
-            chatId={chatId}
-            userId={userId}
-            chatData={chatData}
-          />
+          <VocalContent chatId={chatId} userId={userId} chatData={chatData} />
         );
       case "chat":
       default:

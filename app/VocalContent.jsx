@@ -22,48 +22,63 @@ const VocalContent = ({ selectedChat, chatId }) => {
   useEffect(() => {
     // Set audio context reference in WebRTC manager when component mounts
     set.audioContext(audioContext);
-  }, [audioContext]);  // Helper function to get existing stream for a screen share
+  }, [audioContext]); // Helper function to get existing stream for a screen share
   const getExistingScreenShareStream = (streamId, participantId = null) => {
     try {
       // Try to get the stream from WebRTC
-      const webrtcManager = require('./utils/webrtc/index.js').default;
-      
+      const webrtcManager = require("./utils/webrtc/index.js").default;
+
       // First try local screen streams
       let stream = webrtcManager.getScreenStream(streamId);
-      
+
       // If not found in local streams and we have participantId, try remote screen streams
       if (!stream && participantId) {
         const remoteScreenStreams = webrtcManager.getRemoteScreenStreams();
-        if (remoteScreenStreams[participantId] && remoteScreenStreams[participantId][streamId]) {
+        if (
+          remoteScreenStreams[participantId] &&
+          remoteScreenStreams[participantId][streamId]
+        ) {
           stream = remoteScreenStreams[participantId][streamId];
-          console.log(`[VocalContent] Found remote screen stream for ${participantId}/${streamId}`);
+          console.log(
+            `[VocalContent] Found remote screen stream for ${participantId}/${streamId}`
+          );
         }
       }
-      
+
       if (stream) {
         console.log(`[VocalContent] Found existing stream for ${streamId}:`, {
           id: stream.id,
           tracks: stream.getTracks().length,
           hasVideo: stream.getVideoTracks().length > 0,
           hasAudio: stream.getAudioTracks().length > 0,
-          participantId
+          participantId,
         });
       } else {
-        console.log(`[VocalContent] No existing stream found for ${streamId} (participant: ${participantId})`);
-        
+        console.log(
+          `[VocalContent] No existing stream found for ${streamId} (participant: ${participantId})`
+        );
+
         // Debug: Check what's actually in the screenStreams
         const allScreenStreams = webrtcManager.getScreenShareStreams();
         const remoteScreenStreams = webrtcManager.getRemoteScreenStreams();
-        console.log(`[VocalContent] All available local screen streams:`, Object.keys(allScreenStreams));
-        console.log(`[VocalContent] All available remote screen streams:`, remoteScreenStreams);
+        console.log(
+          `[VocalContent] All available local screen streams:`,
+          Object.keys(allScreenStreams)
+        );
+        console.log(
+          `[VocalContent] All available remote screen streams:`,
+          remoteScreenStreams
+        );
       }
       return stream;
     } catch (error) {
-      console.log(`[VocalContent] Error getting existing stream for ${streamId}:`, error.message);
+      console.log(
+        `[VocalContent] Error getting existing stream for ${streamId}:`,
+        error.message
+      );
       return null;
     }
   };
-
 
   useEffect(() => {
     // Registra i listeners
@@ -92,33 +107,47 @@ const VocalContent = ({ selectedChat, chatId }) => {
     const getMembers = async () => {
       const members = await get.commsMembers(chatId);
       console.log("[VocalContent] All profiles for debugging:", members);
-      setProfilesInCommsChat(members);      // Process any existing screen shares from the profiles
+      setProfilesInCommsChat(members); // Process any existing screen shares from the profiles
       members.forEach((profile) => {
         if (
           profile.active_screen_share &&
           Array.isArray(profile.active_screen_share)
-        ) {          profile.active_screen_share.forEach((streamId) => {
+        ) {
+          profile.active_screen_share.forEach((streamId) => {
             console.log(
               `[VocalContent] Creating screen share rectangle from existing profile for ${profile.from}, streamId: ${streamId}`
-            );            // Try to get existing stream for this screen share
-            const existingStream = getExistingScreenShareStream(streamId, profile.from);
-            
-            console.log(`[VocalContent] Screen share processing for ${profile.from}:`, {
+            ); // Try to get existing stream for this screen share
+            const existingStream = getExistingScreenShareStream(
               streamId,
-              hasExistingStream: !!existingStream,
-              isLocalUser: profile.from === get.myPartecipantId(),
-              streamTracks: existingStream ? existingStream.getTracks().length : 0
-            });
-            
+              profile.from
+            );
+
+            console.log(
+              `[VocalContent] Screen share processing for ${profile.from}:`,
+              {
+                streamId,
+                hasExistingStream: !!existingStream,
+                isLocalUser: profile.from === get.myPartecipantId(),
+                streamTracks: existingStream
+                  ? existingStream.getTracks().length
+                  : 0,
+              }
+            );
+
             // If we have an existing stream but it's not in the profiles being displayed,
             // it means we need to restore it to the WebRTC manager's screenStreams
             if (existingStream && profile.from === get.myPartecipantId()) {
-              console.log(`[VocalContent] Restoring local screen share to WebRTC manager: ${streamId}`);
-              const webrtcManager = require('./utils/webrtc/index.js').default;
+              console.log(
+                `[VocalContent] Restoring local screen share to WebRTC manager: ${streamId}`
+              );
+              const webrtcManager = require("./utils/webrtc/index.js").default;
               // Ensure the stream is also in the WebRTC manager's screenStreams
-              webrtcManager.globalState.setScreenStream(streamId, existingStream);
+              webrtcManager.globalState.setScreenStream(
+                streamId,
+                existingStream
+              );
             }
-            
+
             setActiveStreams((prevStreams) => ({
               ...prevStreams,
               [streamId]: {
@@ -162,7 +191,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
       eventEmitter.off("mobile_camera_switched", handleStreamUpdate);
     };
-  }, [chatId]);  // Gestione globale degli stream
+  }, [chatId]); // Gestione globale degli stream
   const handleStreamUpdate = (data) => {
     // Only update streams if the user is still in comms
     if (!check.isInComms()) {
@@ -177,7 +206,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       streamType,
       hasAudio: stream?.getAudioTracks().length > 0,
       hasVideo: stream?.getVideoTracks().length > 0,
-      streamId
+      streamId,
     });
 
     // Handle screen sharing streams differently
@@ -193,7 +222,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
           streamId,
           hasAudio: stream?.getAudioTracks().length > 0,
           hasVideo: stream?.getVideoTracks().length > 0,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         },
       }));
 
@@ -206,8 +235,10 @@ const VocalContent = ({ selectedChat, chatId }) => {
       }
     } else {
       // Handle regular webcam streams
-      console.log(`[VocalContent] Processing webcam stream for ${participantId}`);
-      
+      console.log(
+        `[VocalContent] Processing webcam stream for ${participantId}`
+      );
+
       setActiveStreams((prev) => ({
         ...prev,
         [participantId]: {
@@ -216,7 +247,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
           streamType,
           hasAudio: stream?.getAudioTracks().length > 0,
           hasVideo: stream?.getVideoTracks().length > 0,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         },
       }));
 
@@ -303,9 +334,9 @@ const VocalContent = ({ selectedChat, chatId }) => {
         )
       );
     }
-  };  // Screen sharing handlers
+  }; // Screen sharing handlers
   const handleScreenShareStarted = (data) => {
-    if (!check.isInComms() && data.chatId !== chatId ) {
+    if (!check.isInComms() && data.chatId !== chatId) {
       console.log(
         "[VocalContent] User not in comms or in the wrong comms view, ignoring screen share start"
       );
@@ -354,24 +385,28 @@ const VocalContent = ({ selectedChat, chatId }) => {
       // Check if we already have a stream for this streamId
       const existingStream = getExistingScreenShareStream(streamId, from);
       let hasExistingActiveStream = false;
-      
+
       setActiveStreams((prevStreams) => {
         // Check if this streamId already exists in activeStreams
         hasExistingActiveStream = !!prevStreams[streamId];
-        
+
         if (hasExistingActiveStream) {
-          console.log(`[VocalContent] Stream ${streamId} already exists in activeStreams, updating userData`);
+          console.log(
+            `[VocalContent] Stream ${streamId} already exists in activeStreams, updating userData`
+          );
           // Update existing stream entry with correct userData
           return {
             ...prevStreams,
             [streamId]: {
               ...prevStreams[streamId],
               userData: userProfile,
-              timestamp: Date.now()
-            }
+              timestamp: Date.now(),
+            },
           };
         } else {
-          console.log(`[VocalContent] Creating new activeStreams entry for ${streamId}`);
+          console.log(
+            `[VocalContent] Creating new activeStreams entry for ${streamId}`
+          );
           // Create new stream entry
           return {
             ...prevStreams,
@@ -383,14 +418,16 @@ const VocalContent = ({ selectedChat, chatId }) => {
               hasAudio: existingStream?.getAudioTracks().length > 0 || false,
               hasVideo: existingStream?.getVideoTracks().length > 0 || false,
               isPlaceholder: !existingStream, // Only placeholder if no existing stream
-              timestamp: Date.now()
+              timestamp: Date.now(),
             },
           };
         }
       });
 
       console.log(
-        `[VocalContent] ${hasExistingActiveStream ? 'Updated' : 'Created'} screen share rectangle with streamId: ${streamId}`
+        `[VocalContent] ${
+          hasExistingActiveStream ? "Updated" : "Created"
+        } screen share rectangle with streamId: ${streamId}`
       );
 
       // Return the same profiles (no modification needed)
@@ -422,14 +459,16 @@ const VocalContent = ({ selectedChat, chatId }) => {
     // Also update profilesInCommsChat to remove from active_screen_share array
     setProfilesInCommsChat((prev) =>
       prev.map((profile) => {
-        if (profile.from === from && 
-            Array.isArray(profile.active_screen_share)) {
+        if (
+          profile.from === from &&
+          Array.isArray(profile.active_screen_share)
+        ) {
           const updatedScreenShares = profile.active_screen_share.filter(
             (id) => id !== streamId
           );
           return {
             ...profile,
-            active_screen_share: updatedScreenShares
+            active_screen_share: updatedScreenShares,
           };
         }
         return profile;
@@ -466,14 +505,15 @@ const VocalContent = ({ selectedChat, chatId }) => {
         if (
           data.active_screen_share &&
           Array.isArray(data.active_screen_share)
-        ) {          data.active_screen_share.forEach((streamId) => {
+        ) {
+          data.active_screen_share.forEach((streamId) => {
             console.log(
               `[VocalContent] Creating screen share rectangle for ${data.from}, streamId: ${streamId}`
             );
-            
+
             // Try to get existing stream for this screen share
             const existingStream = getExistingScreenShareStream(streamId);
-            
+
             setActiveStreams((prevStreams) => ({
               ...prevStreams,
               [streamId]: {
@@ -574,10 +614,14 @@ const VocalContent = ({ selectedChat, chatId }) => {
           }
         });
       }
-    }  };
+    }
+  };
 
   return (
-    <SmartBackground backgroundKey="backgroundChatGradient" style={styles.container}>
+    <SmartBackground
+      backgroundKey="backgroundChatGradient"
+      style={styles.container}
+    >
       <VocalMembersLayout
         profiles={profilesInCommsChat}
         activeStreams={activeStreams}

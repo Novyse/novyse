@@ -106,7 +106,7 @@ function createStyle(theme, colorScheme) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: 'transparent',
+      backgroundColor: "transparent",
     },
     welcomeText: {
       color: theme.text,

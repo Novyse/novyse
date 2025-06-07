@@ -775,57 +775,58 @@ const ChatList = () => {
         ? renderHeader()
         : null}
       <View style={styles.container}>
-          {isSmallScreen ? (
-            <>
-              <SmartBackground
-                colors={theme?.backgroundChatListGradient}
-                style={styles.chatList}
+        {isSmallScreen ? (
+          <>
+            <SmartBackground
+              colors={theme?.backgroundChatListGradient}
+              style={styles.chatList}
+            >
+              {renderSmallCommsMenu()}
+              {!isToggleSearchChats ? renderChatList() : <Search />}
+            </SmartBackground>
+            {selectedChat && (
+              <Animated.View
+                style={[
+                  styles.chatContent,
+                  {
+                    transform: [{ translateX: chatContentPosition }],
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 1,
+                  },
+                ]}
               >
-                {renderSmallCommsMenu()}
+                {renderChatHeaderAndContent()}
+              </Animated.View>
+            )}
+          </>
+        ) : (
+          <>
+            <SmartBackground
+              colors={theme?.backgroundChatListGradient}
+              style={[styles.chatList, styles.largeScreenChatList]}
+            >
+              <View style={styles.chatListWrapper}>
                 {!isToggleSearchChats ? renderChatList() : <Search />}
-              </SmartBackground>
-              {selectedChat && (
-                <Animated.View
-                  style={[
-                    styles.chatContent,
-                    {
-                      transform: [{ translateX: chatContentPosition }],
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      zIndex: 1,
-                    },
-                  ]}
-                >
-                  {renderChatHeaderAndContent()}
-                </Animated.View>
-              )}
-            </>
-          ) : (
-            <>
-              <SmartBackground
-                colors={theme?.backgroundChatListGradient}
-                style={[styles.chatList, styles.largeScreenChatList]}
-              >
-                <View style={styles.chatListWrapper}>
-                  {!isToggleSearchChats ? renderChatList() : <Search />}
-                  {renderBigFloatingCommsMenu()}
-                </View>
-              </SmartBackground>
-              {renderChatHeaderAndContent()}
-            </>          )}
-        </View>
-        <CreateGroupModal
-          visible={isCreateGroupModalVisible}
-          onClose={() => setIsCreateGroupModalVisible(false)}
-        />
-        {!networkAvailable && (
-          <Text style={styles.connectionInfoContainer}>
-            Network Status: Not Connected
-          </Text>
+                {renderBigFloatingCommsMenu()}
+              </View>
+            </SmartBackground>
+            {renderChatHeaderAndContent()}
+          </>
         )}
+      </View>
+      <CreateGroupModal
+        visible={isCreateGroupModalVisible}
+        onClose={() => setIsCreateGroupModalVisible(false)}
+      />
+      {!networkAvailable && (
+        <Text style={styles.connectionInfoContainer}>
+          Network Status: Not Connected
+        </Text>
+      )}
     </ScreenLayout>
   );
 };
