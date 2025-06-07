@@ -8,7 +8,6 @@ import {
   Alert,
   Image,
 } from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -17,6 +16,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import JsonParser from "./utils/JsonParser";
 import { SplashScreen } from "expo-router";
 import bpup_logo from "../assets/images/bpup_logo.png";
+import ScreenLayout from "./components/ScreenLayout";
 
 // Impedisce la rimozione automatica dello splash screen
 SplashScreen.preventAutoHideAsync();
@@ -68,47 +68,40 @@ export default function Index() {
     );
     return () => backHandler.remove();
   }, []);
-
   // Mostra un indicatore di caricamento finché lo splash screen è attivo
   if (!isReady) {
     return (
-      <SafeAreaProvider>
-        <SafeAreaView
+      <ScreenLayout>
+        <View
           style={[
-            styles.safeArea,
+            styles.containerStart,
             { justifyContent: "center", alignItems: "center" },
           ]}
         >
           <Image source={bpup_logo} style={{ width: 100, height: 100 }} />
           {/* <Text style={{ color: theme.text }}>Caricamento...</Text> */}
-        </SafeAreaView>
-      </SafeAreaProvider>
+        </View>
+      </ScreenLayout>
     );
   }
-
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.containerStart}>
-          <Text style={styles.welcomeText}>BENVENUTO</Text>          <Pressable
-            style={styles.containerStartButton}
-            onPress={() => router.navigate(`/loginSignup/EmailCheckForm`)}
-          >
-            <MaterialIcons name="arrow-forward" size={52} color={theme.icon} />
-          </Pressable>
-        </View>
-        <StatusBar style="light" backgroundColor={theme.backgroundClassic} />
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <ScreenLayout>
+      <View style={styles.containerStart}>
+        <Text style={styles.welcomeText}>BENVENUTO</Text>
+        <Pressable
+          style={styles.containerStartButton}
+          onPress={() => router.navigate(`/loginSignup/EmailCheckForm`)}
+        >
+          <MaterialIcons name="arrow-forward" size={52} color={theme.icon} />
+        </Pressable>
+      </View>
+      <StatusBar style="light" backgroundColor={theme.backgroundClassic} />
+    </ScreenLayout>
   );
 }
 
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor: theme.backgroundClassic,
-    },
     containerStart: {
       flex: 1,
       justifyContent: "center",

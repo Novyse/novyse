@@ -239,7 +239,7 @@ export const Colors = {
     searchSideBarGradient: ["#000000", "#000000"],
     settingPagesGradient: ["#000000", "#000000", "#000000"],
     },
-    "unifi(experimental)": {
+    "unifi": {
     text: "white",
     textTime: "#c9d1d9",
     backgroundClassic: "transparent",

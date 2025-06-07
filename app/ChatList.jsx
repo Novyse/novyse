@@ -4,7 +4,6 @@ import {
   Text,
   Pressable,
   StyleSheet,
-  SafeAreaView,
   Dimensions,
   FlatList,
   Image,
@@ -19,8 +18,8 @@ import { ThemeContext } from "@/context/ThemeContext";
 import SmartBackground from "./components/SmartBackground";
 import NetInfo from "@react-native-community/netinfo";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ScreenLayout from "./components/ScreenLayout";
 import methods from "./utils/webrtc/methods";
 const { get, check } = methods;
 
@@ -762,20 +761,18 @@ const ChatList = () => {
         );
     }
   };
-
   return (
-    <SafeAreaProvider>
+    <ScreenLayout>
       <StatusBar
         style="light"
         backgroundColor={theme.statusBar}
         translucent={false}
       />
-      <SafeAreaView style={styles.safeArea}>
-        {renderSidebar()}
-        {!isSmallScreen || (isSmallScreen && !selectedChat)
-          ? renderHeader()
-          : null}
-        <View style={styles.container}>
+      {renderSidebar()}
+      {!isSmallScreen || (isSmallScreen && !selectedChat)
+        ? renderHeader()
+        : null}
+      <View style={styles.container}>
           {isSmallScreen ? (
             <>
               <SmartBackground
@@ -816,8 +813,7 @@ const ChatList = () => {
                 </View>
               </SmartBackground>
               {renderChatHeaderAndContent()}
-            </>
-          )}
+            </>          )}
         </View>
         <CreateGroupModal
           visible={isCreateGroupModalVisible}
@@ -828,8 +824,7 @@ const ChatList = () => {
             Network Status: Not Connected
           </Text>
         )}
-      </SafeAreaView>
-    </SafeAreaProvider>
+    </ScreenLayout>
   );
 };
 
@@ -837,11 +832,6 @@ export default ChatList;
 
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
-    safeArea: {
-      backgroundColor: theme.backgroundClassic,
-      flex: 1,
-      overflow: "hidden", // Important: Add this to the SafeAreaView
-    },
     container: {
       flex: 1,
       flexDirection: "row",

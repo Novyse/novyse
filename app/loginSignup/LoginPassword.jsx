@@ -10,13 +10,13 @@ import {
   TouchableOpacity,
   Platform,
 } from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
 import JsonParser from "../utils/JsonParser";
 import localDatabase from "../utils/localDatabaseMethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import ScreenLayout from "../components/ScreenLayout";
 
 const LoginPassword = () => {
   const router = useRouter();
@@ -125,9 +125,8 @@ const LoginPassword = () => {
   };
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.formContainer}>
+    <ScreenLayout>
+      <View style={styles.formContainer}>
           <Text
             style={{
               color: theme.text,
@@ -175,8 +174,7 @@ const LoginPassword = () => {
             )}
           </Pressable>
         </View>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    </ScreenLayout>
   );
 };
 
@@ -191,6 +189,7 @@ function createStyle(theme, colorScheme) {
       backgroundColor: theme.backgroundClassic,
     },
     formContainer: {
+      flex: 1,
       justifyContent: "center",
       alignItems: "center",
     },

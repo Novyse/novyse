@@ -8,11 +8,11 @@ import {
   BackHandler,
   Platform,
 } from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import JsonParser from "../utils/JsonParser";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useContext } from "react";
+import ScreenLayout from "../components/ScreenLayout";
 
 const EmailCheckForm = () => {
   const [email, setEmail] = useState("");
@@ -81,11 +81,9 @@ const EmailCheckForm = () => {
       console.error("Errore durante la verifica email:", error);
     }
   };
-
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.formContainer}>
+    <ScreenLayout>
+      <View style={styles.formContainer}>
           <Text
             style={{
               color: theme.text,
@@ -109,13 +107,11 @@ const EmailCheckForm = () => {
               Platform.OS === "web" ? handleSubmit : undefined
             }
           />
-          {error && <Text style={styles.errorText}>{error}</Text>}
-          <Pressable style={styles.containerStartButton} onPress={handleSubmit}>
+          {error && <Text style={styles.errorText}>{error}</Text>}          <Pressable style={styles.containerStartButton} onPress={handleSubmit}>
             <Text style={styles.containerStartButtonText}>Invia</Text>
           </Pressable>
         </View>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    </ScreenLayout>
   );
 };
 
@@ -128,11 +124,11 @@ function createStyle(theme, colorScheme) {
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: theme.backgroundClassic,
-    },
-    formContainer: {
+    },    formContainer: {
+      flex: 1,
       justifyContent: "center",
       alignItems: "center",
-    },    input: {
+    },input: {
       outlineStyle: "none",
       width: 250,
       borderWidth: 1,

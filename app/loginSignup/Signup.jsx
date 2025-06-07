@@ -11,11 +11,11 @@ import {
 } from "react-native";
 import JsonParser from "../utils/JsonParser";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AntDesign from '@expo/vector-icons/AntDesign';
+import ScreenLayout from "../components/ScreenLayout";
 
 const Signup = () => {
   const { emailValue } = useLocalSearchParams();
@@ -117,8 +117,8 @@ const Signup = () => {
   };
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
+    <ScreenLayout>
+      <View style={styles.centeringContainer}>
         <View style={styles.formContainer}>
           <View style={styles.gridContainer}>
             {[
@@ -183,8 +183,8 @@ const Signup = () => {
             )}
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </SafeAreaProvider>
+      </View>
+    </ScreenLayout>
   );
 };
 
@@ -200,7 +200,15 @@ function createStyle(theme, colorScheme, width) {
       alignItems: "center",
       backgroundColor: theme.backgroundClassic,
     },
+    centeringContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      width: "100%",
+    },
     formContainer: {
+      justifyContent: "center",
+      alignItems: "center",
       width: "90%",
       maxWidth: 800, // Limite massimo per schermi molto grandi
       paddingHorizontal: 20,
