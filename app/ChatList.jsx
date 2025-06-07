@@ -767,7 +767,7 @@ const ChatList = () => {
     <ScreenLayout>
       <StatusBar
         style="light"
-        backgroundColor={theme.statusBar}
+        backgroundColor={theme.backgroundStatusBar}
         translucent={false}
       />
       {renderSidebar()}
@@ -841,7 +841,7 @@ function createStyle(theme, colorScheme) {
       overflow: "hidden", // Important: Add this to the container
     },
     chatList: {
-      backgroundColor: theme.backgroundChatList,
+      // backgroundColor: theme.backgroundChatList,
       flex: 1, // For small screens, it takes full width
       minWidth: 330, // Minimum width to prevent shrinking
     },
@@ -883,10 +883,10 @@ function createStyle(theme, colorScheme) {
     chatContent: {
       padding: 0,
       flex: 1,
-      backgroundColor: theme.backgroundChat,
+      // backgroundColor: theme.backgroundChat,
     },
     header: {
-      backgroundColor: theme.backgroundHeader,
+      // backgroundColor: theme.backgroundHeader,
       flexDirection: "row",
       padding: 10,
       alignItems: "center",
@@ -906,7 +906,7 @@ function createStyle(theme, colorScheme) {
       fontWeight: "bold",
     },
     chatHeader: {
-      backgroundColor: theme.backgroundChat,
+      // backgroundColor: theme.backgroundChat,
       borderBottomColor: theme.chatDivider,
       borderBottomWidth: 1,
       padding: 10,
@@ -1027,10 +1027,29 @@ function createStyle(theme, colorScheme) {
     chatListWrapper: {
       flex: 1,
       position: "relative",
-      paddingBottom: 26,
+      paddingBottom: 10,
     },
     flatList: {
       flex: 1,
+      ...(Platform.OS === "web" && {
+        scrollbarWidth: "thin",
+        scrollbarColor: `${theme.icon} transparent`,
+        "::-webkit-scrollbar": {
+          width: 8,
+          backgroundColor: "transparent",
+          position: "absolute",
+          right: 0,
+        },
+        "::-webkit-scrollbar-thumb": {
+          backgroundColor: theme.icon,
+          borderRadius: 4,
+        },
+        "::-webkit-scrollbar-track": {
+          backgroundColor: "transparent",
+          position: "absolute",
+          right: 0,
+        },
+      }),
     },
     flatListContent: {
       padding: 10,

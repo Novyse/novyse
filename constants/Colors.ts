@@ -10,17 +10,13 @@ export const Colors = {
     backgroundChatTextInput: "#374e68",
     backgroundChatListCheckNetwork: "#1d3340",
     buttonBackground: "#1b2734",
-    floatingBigButton: "#39546d",
-    floatingLittleButton: "#39546d",
-    chatDivider: "#101921",
+    chatDivider: "transparent",
     chatListSelected: "#2b5278",
     icon: "white",
-    iconSecondary: "#c9d1d9", // Icone secondarie, più chiare del testo principale
-    button: "#2399C3",
     sideBarBackground: "#405770", //sideBar - ChatList
     modalsBackground: "#416a90",
     messagesLink: "#61abe6",
-    bigFloatingCommsMenu: "#53709a",
+
     // Colori aggiuntivi per componenti
     modalBackground: "#ffffff",
     modalBorder: "#000000",
@@ -32,19 +28,20 @@ export const Colors = {
     borderColor: "#000000",
     settingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.65)",
-    statusBar: "#416a90", // StatusBar scura per Dark Mode
+    backgroundStatusBar: "#416a90", // StatusBar scura per Dark Mode
+    
     // Gradients
     backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#165376", "#2899cf", "#4fb3e1"],
-    backgroundChatGradient: ["#0e283a", "#16638e"],
-    backgroundChatListGradient: ["#0e283a", "#16638e"],
+    backgroundChatGradient: ["transparent"],
+    backgroundChatListGradient: ["transparent"],
     backgroundChatInsideListGradient: ["#16638e", "#197bb0"],
     backgroundChatSelectedInsideListGradient: ["#2899cf", "#4fb3e1"],
-    backgroundHeaderGradient: ["#0e283a", "#16638e"],
+    backgroundHeaderGradient: ["transparent"],
     backgroundChatTextInputGradient: ["#16638e", "#2899cf"],
     sideBarGradient: ["#2b5278", "#405770", "#53709a"],
     messageContainerGradient: ["#0e283a", "#2b5278"],
-    searchSideBarGradient: ["#16638e", "#2899cf"],
+    searchSideBarGradient: ["transparent"],
     settingPagesGradient: ["#0e283a", "#16638e", "#2b5278"],
   },
   light: {
@@ -58,17 +55,12 @@ export const Colors = {
     backgroundChatTextInput: "#ffffff",
     backgroundChatListCheckNetwork: "#e0e0e0",
     buttonBackground: "#f0f0f0",
-    floatingBigButton: "#e0e0e0",
-    floatingLittleButton: "#e0e0e0",
     chatDivider: "#d0d0d0",
     chatListSelected: "#d4edda",
     icon: "black",
-    iconSecondary: "#666666", // Icone secondarie, più chiare del testo principale
-    button: "#2399C3",
     sideBarBackground: "#f8f9fa",
     modalsBackground: "#ffffff",
     messagesLink: "#2399C3",
-    bigFloatingCommsMenu: "#f0f0f0",
     // Colori aggiuntivi per componenti
     modalBackground: "#ffffff",
     modalBorder: "#cccccc",
@@ -80,7 +72,7 @@ export const Colors = {
     borderColor: "#cccccc",
     settingsDivider: "rgba(0, 0, 0, 0.1)",
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.1)",
-    statusBar: "#ffffff", // StatusBar chiara per Light Mode
+    backgroundStatusBar: "#ffffff", // StatusBar chiara per Light Mode
     // Gradients
     backgroundMainGradient: ["#ffffff", "#f5f5f5"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#e3f2fd", "#bbdefb", "#90caf9"],
@@ -106,17 +98,12 @@ export const Colors = {
     backgroundChatTextInput: "#2d2d2d",
     backgroundChatListCheckNetwork: "#252525",
     buttonBackground: "#1e1e1e",
-    floatingBigButton: "#3a3a3a",
-    floatingLittleButton: "#3a3a3a",
     chatDivider: "#0a0a0a",
     chatListSelected: "#404040",
     icon: "white",
-    iconSecondary: "#cccccc", // Icone secondarie, più chiare del testo principale
-    button: "#bb86fc",
     sideBarBackground: "#1e1e1e",
     modalsBackground: "#2d2d2d",
     messagesLink: "#bb86fc",
-    bigFloatingCommsMenu: "#3a3a3a",
     // Colori aggiuntivi per componenti
     modalBackground: "#2d2d2d",
     modalBorder: "#555555",
@@ -128,7 +115,7 @@ export const Colors = {
     borderColor: "#555555",
     settingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.15)",
-    statusBar: "#121212", // StatusBar scura per Dark Mode
+    backgroundStatusBar: "#121212", // StatusBar scura per Dark Mode
     // Gradients
     backgroundMainGradient: ["#0a0a0a", "#1e1e1e"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#2d2d2d", "#404040", "#525252"],
@@ -154,17 +141,13 @@ export const Colors = {
     backgroundChatTextInput: "#0d0d0d",
     backgroundChatListCheckNetwork: "#050505",
     buttonBackground: "#000000",
-    floatingBigButton: "#1a1a1a",
-    floatingLittleButton: "#1a1a1a",
     chatDivider: "#000000",
     chatListSelected: "#1a1a1a",
     icon: "white",
-    iconSecondary: "#aaaaaa", // Icone secondarie, più chiare del testo principale
-    button: "#00ff88",
+    
     sideBarBackground: "#000000",
     modalsBackground: "#0d0d0d",
     messagesLink: "#00ff88",
-    bigFloatingCommsMenu: "#1a1a1a",
     // Colori aggiuntivi per componenti
     modalBackground: "#000000",
     modalBorder: "#333333",
@@ -176,7 +159,7 @@ export const Colors = {
     borderColor: "#333333",
     settingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.1)",
-    statusBar: "#000000", // StatusBar completamente nera per AMOLED
+    backgroundStatusBar: "#000000", // StatusBar completamente nera per AMOLED
     // Gradients
     backgroundMainGradient: ["#000000", "#000000"], // Gradiente principale dell'app AMOLED (puro nero)
     floatingBarComponentsGradient: ["#000000", "#0d0d0d", "#1a1a1a"],
@@ -202,17 +185,12 @@ export const Colors = {
     backgroundChatTextInput: "#000000",
     backgroundChatListCheckNetwork: "#000000",
     buttonBackground: "#000000",
-    floatingBigButton: "#0a0a0a",
-    floatingLittleButton: "#0a0a0a",
     chatDivider: "#000000",
     chatListSelected: "#0a0a0a",
     icon: "white",
-    iconSecondary: "#777777",
-    button: "#00ff88",
     sideBarBackground: "#000000",
     modalsBackground: "#000000",
     messagesLink: "#00ff88",
-    bigFloatingCommsMenu: "#0a0a0a",
     // Colori aggiuntivi per componenti
     modalBackground: "#000000",
     modalBorder: "#222222",
@@ -224,7 +202,7 @@ export const Colors = {
     borderColor: "#222222",
     settingsDivider: "rgba(255, 255, 255, 0.05)",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.05)",
-    statusBar: "#000000",
+    backgroundStatusBar: "#000000",
     // Gradients
     backgroundMainGradient: ["#000000", "#000000"],
     floatingBarComponentsGradient: ["#000000", "#000000", "#0a0a0a"],
@@ -250,17 +228,13 @@ export const Colors = {
     backgroundChatTextInput: "#374e68", // TextBar deve avere il suo sfondo
     backgroundChatListCheckNetwork: "transparent",
     buttonBackground: "transparent",
-    floatingBigButton: "#39546d", // BigComps deve avere sfondo
-    floatingLittleButton: "#39546d", // TinyComps deve avere sfondo
     chatDivider: "transparent",
     chatListSelected: "#2b5278", // Manteniamo visibili le chat selezionate
     icon: "white",
     iconSecondary: "#c9d1d9", // Icone secondarie, più chiare del testo principale
-    button: "#2399C3",
     sideBarBackground: "#405770", // Sidebar deve avere sfondoF
     modalsBackground: "transparent",
     messagesLink: "#61abe6",
-    bigFloatingCommsMenu: "#53709a", // BigFloatingCommsMenu deve avere sfondo
     // Colori aggiuntivi per componenti
     modalBackground: "transparent", // Modale trasparente per vedere il gradiente globale
     modalBorder: "#000000", // Bordo visibile per definire i modali
@@ -272,7 +246,7 @@ export const Colors = {
     borderColor: "#000000", // Bordi visibili
     settingsDivider: "rgba(255, 255, 255, 0.1)", // Divisore visibile
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.65)", // Pulsanti floating visibili
-    statusBar: "#416a90", // StatusBar scura per Dark Mode
+    backgroundStatusBar: "#416a90", // StatusBar scura per Dark Mode
     // Gradients - tutto trasparente per vedere il gradiente globale, eccetto componenti specifici
     backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale unificato per l'intera app
     floatingBarComponentsGradient: ["#165376", "#2899cf", "#4fb3e1"], // Componenti floating devono avere gradiente

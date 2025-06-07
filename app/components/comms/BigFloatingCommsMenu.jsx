@@ -120,9 +120,9 @@ function createStyle(theme, colorScheme) {
       position: "absolute",
       zIndex: 999,
       alignItems: "center",
-      bottom: 10,
-      left: 10,
-      right: 10,
+      bottom: 15,
+      left: 15,
+      right: 15,
       borderRadius: 13,
     },
     gradientBackground: {

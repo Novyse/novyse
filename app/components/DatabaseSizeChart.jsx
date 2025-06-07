@@ -12,7 +12,9 @@ const DatabaseSizeChart = () => {
 
   useEffect(() => {}, []);
 
-  return <View style={styles.container}></View>;
+  return <View style={styles.container}>
+    
+  </View>;
 };
 
 const createStyle = (theme) =>
