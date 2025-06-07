@@ -5,6 +5,7 @@ import { useAudio } from "@/context/AudioContext";
 import VocalContentBottomBar from "./components/comms/VocalContentBottomBar";
 import eventEmitter from "./utils/EventEmitter";
 import { Platform } from "react-native";
+import SmartBackground from "./components/SmartBackground";
 import VocalMembersLayout from "./components/comms/VocalMembersLayout";
 
 import methods from "./utils/webrtc/methods";
@@ -576,14 +577,14 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }  };
 
   return (
-    <View style={styles.container}>
+    <SmartBackground backgroundKey="backgroundChatGradient" style={styles.container}>
       <VocalMembersLayout
         profiles={profilesInCommsChat}
         activeStreams={activeStreams}
         videoStreamKeys={videoStreamKeys}
       />
       <VocalContentBottomBar chatId={chatId} />
-    </View>
+    </SmartBackground>
   );
 };
 

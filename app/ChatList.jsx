@@ -641,7 +641,7 @@ const ChatList = () => {
                 setIsMenuVisible(false);
               }}
             >
-              {Platform.OS === "web" ? (
+              {!isSmallScreen ? (
                 <HugeiconsIcon
                   icon={Layout2ColumnIcon}
                   size={24}
@@ -709,6 +709,7 @@ const ChatList = () => {
           <SmartBackground
             colors={theme?.backgroundChatGradient}
             style={styles.chatContent}
+            isSmallScreen={isSmallScreen}
           >
             {renderChatHeader}
             <ChatContainer
@@ -727,6 +728,7 @@ const ChatList = () => {
           <SmartBackground
             colors={theme?.backgroundChatGradient}
             style={styles.chatContent}
+            isSmallScreen={isSmallScreen}
           >
             {renderChatHeader}
             <View style={{ flex: 1, flexDirection: "row" }}>
