@@ -3,6 +3,7 @@ import { LOG_LEVELS } from '../logging/LogLevels.js';
 import { getConstraintsForPlatform } from '../config/mediaConstraints.js';
 import { WEBRTC_CONSTANTS } from '../config/constants.js';
 import { ERROR_CODES } from '../config/constants.js';
+import { createMediaStream } from '../utils/compatibility.js';
 
 // Import WebRTC based on platform
 let WebRTC;
@@ -95,21 +96,39 @@ export class StreamManager {
       
       if (this.globalState.localStream && videoTrack) {
         this.globalState.localStream.addTrack(videoTrack);
+          this.logger.info('StreamManager', 'Video track added successfully');
         
-        this.logger.info('StreamManager', 'Video track added successfully');
-        
-        // Add track to all peer connections
+        // Add track to all peer connections and wait for completion
         await this._addTrackToAllPeers(videoTrack);
+        this.logger.info('StreamManager', 'Video track added to all peer connections');
         
         // Notify UI
         if (this.globalState.callbacks.onLocalStreamReady) {
           this.globalState.callbacks.onLocalStreamReady(this.globalState.localStream);
         }
         
-        // Trigger renegotiation after a short delay
+        // Emit stream_added_or_updated event for UI synchronization
+        if (this.globalState.eventEmitter) {
+          this.globalState.eventEmitter.emit("stream_added_or_updated", {
+            participantId: this.globalState.myId,
+            stream: this.globalState.localStream,
+            streamType: "webcam",
+            userData: this.globalState.userData[this.globalState.myId] || { handle: "You" },
+            timestamp: Date.now(),
+          });
+          
+          this.logger.info('StreamManager', 'Emitted stream_added_or_updated event for video track addition');
+        }
+        
+        // Trigger renegotiation after all track operations are complete
+        // Use a slightly longer delay for Android to ensure track operations are fully processed
+        const renegotiationDelay = Platform.OS === 'android' ? 200 : WEBRTC_CONSTANTS.RENEGOTIATION_DELAY;
+        this.logger.info('StreamManager', `Scheduling renegotiation in ${renegotiationDelay}ms for ${Platform.OS}`);
+        
         setTimeout(async () => {
+          this.logger.info('StreamManager', 'Starting renegotiation after video track addition');
           await this._renegotiateWithAllPeers();
-        }, WEBRTC_CONSTANTS.RENEGOTIATION_DELAY);
+        }, renegotiationDelay);
         
         return videoTrack;
       }
@@ -149,8 +168,7 @@ export class StreamManager {
     });
     
     this.logger.info('StreamManager', `Removed ${videoTracks.length} video tracks`);
-    
-    // Remove tracks from peer connections
+      // Remove tracks from peer connections
     await this._removeVideoTracksFromAllPeers();
     
     // Notify UI
@@ -158,10 +176,25 @@ export class StreamManager {
       this.globalState.callbacks.onLocalStreamReady(this.globalState.localStream);
     }
     
-    // Trigger renegotiation
+    // Emit stream_added_or_updated event for UI synchronization
+    if (this.globalState.eventEmitter) {
+      this.globalState.eventEmitter.emit("stream_added_or_updated", {
+        participantId: this.globalState.myId,
+        stream: this.globalState.localStream,
+        streamType: "webcam",
+        userData: this.globalState.userData[this.globalState.myId] || { handle: "You" },
+        timestamp: Date.now(),
+      });
+      
+      this.logger.info('StreamManager', 'Emitted stream_added_or_updated event for video tracks removal');
+    }
+    
+    // Trigger renegotiation with appropriate delay for Android
+    const renegotiationDelay = Platform.OS === 'android' ? 200 : WEBRTC_CONSTANTS.RENEGOTIATION_DELAY;
     setTimeout(async () => {
+      this.logger.info('StreamManager', 'Starting renegotiation after video track removal');
       await this._renegotiateWithAllPeers();
-    }, WEBRTC_CONSTANTS.RENEGOTIATION_DELAY);
+    }, renegotiationDelay);
   }
   
   /**
@@ -329,13 +362,44 @@ export class StreamManager {
   /**
    * Add a specific track to all peer connections
    * @param {MediaStreamTrack} track - The track to add
-   */
-  async _addTrackToAllPeers(track) {
+   */  async _addTrackToAllPeers(track) {
     for (const [peerId, pc] of Object.entries(this.globalState.peerConnections)) {
       if (pc.connectionState === "connected" || pc.connectionState === "connecting") {
         try {
-          await pc.addTrack(track, this.globalState.localStream);
-          this.logger.debug('StreamManager', `Added ${track.kind} track to peer ${peerId}`);
+          // For video tracks, check if we should replace existing or add new
+          if (track.kind === 'video') {
+            const existingVideoSender = pc.getSenders().find(sender => 
+              sender.track && sender.track.kind === 'video'
+            );
+            
+            if (existingVideoSender) {
+              // On Android, replaceTrack might not trigger proper renegotiation
+              // So we'll remove the old track and add the new one
+              if (Platform.OS === 'android') {
+                try {
+                  pc.removeTrack(existingVideoSender);
+                  pc.addTrack(track, this.globalState.localStream);
+                  this.logger.debug('StreamManager', `Removed and re-added video track for Android peer ${peerId}`);
+                } catch (androidError) {
+                  this.logger.error('StreamManager', `Android track replacement failed for peer ${peerId}, trying replaceTrack:`, androidError.message);
+                  await existingVideoSender.replaceTrack(track);
+                  this.logger.debug('StreamManager', `Fallback: Replaced video track for peer ${peerId}`);
+                }
+              } else {
+                // For other platforms, use replaceTrack
+                await existingVideoSender.replaceTrack(track);
+                this.logger.debug('StreamManager', `Replaced video track for peer ${peerId}`);
+              }
+            } else {
+              // Add new video track
+              pc.addTrack(track, this.globalState.localStream);
+              this.logger.debug('StreamManager', `Added new video track to peer ${peerId}`);
+            }
+          } else {
+            // For non-video tracks, just add normally
+            pc.addTrack(track, this.globalState.localStream);
+            this.logger.debug('StreamManager', `Added ${track.kind} track to peer ${peerId}`);
+          }
         } catch (error) {
           this.logger.error('StreamManager', `Error adding track to peer ${peerId}:`, error.message);
         }
@@ -363,16 +427,25 @@ export class StreamManager {
       }
     }
   }
-  
-  /**
+    /**
    * Trigger renegotiation with all peers
    */
   async _renegotiateWithAllPeers() {
-    this.logger.debug('StreamManager', 'Triggering renegotiation with all peers');
+    this.logger.info('StreamManager', 'Triggering renegotiation with all peers');
     
-    // This will be called from the main manager
-    if (this.renegotiateCallback) {
+    if (!this.renegotiateCallback) {
+      this.logger.error('StreamManager', 'No renegotiation callback set - cannot renegotiate');
+      return;
+    }
+    
+    const peerCount = Object.keys(this.globalState.peerConnections).length;
+    this.logger.info('StreamManager', `Starting renegotiation with ${peerCount} peers`);
+    
+    try {
       await this.renegotiateCallback();
+      this.logger.info('StreamManager', 'Renegotiation completed successfully');
+    } catch (error) {
+      this.logger.error('StreamManager', 'Error during renegotiation:', error.message);
     }
   }
     /**
@@ -485,11 +558,9 @@ export class StreamManager {
       
       if (eventStream) {
         this.logger.info('StreamManager', `Using existing stream from event for ${streamId}`);
-        this.globalState.remoteScreenStreams[participantId][streamId] = eventStream;
-      } else {
-        // Create a new MediaStream
+        this.globalState.remoteScreenStreams[participantId][streamId] = eventStream;      } else {        // Create a new MediaStream
         this.logger.info('StreamManager', `Creating new MediaStream for ${streamId}`);
-        this.globalState.remoteScreenStreams[participantId][streamId] = new WebRTC.MediaStream();
+        this.globalState.remoteScreenStreams[participantId][streamId] = createMediaStream();
       }
     }
     
@@ -608,11 +679,9 @@ export class StreamManager {
       // Handle as a screen share track instead
       this._handleScreenShareTrack(participantId, track, streamId, streams);
       return;
-    }
-    
-    // Initialize remote stream if needed
+    }      // Initialize remote stream if needed
     if (!this.globalState.remoteStreams[participantId]) {
-      this.globalState.remoteStreams[participantId] = new WebRTC.MediaStream();
+      this.globalState.remoteStreams[participantId] = createMediaStream();
     }
     
     const stream = this.globalState.remoteStreams[participantId];
@@ -625,10 +694,21 @@ export class StreamManager {
     } else {
       this.logger.info('StreamManager', `Track already exists in stream, not adding again: ${track.id}`);
     }
+      // Handle audio through audio context
+    this.logger.info('StreamManager', `Audio context check for ${participantId}:`, {
+      hasAudioContextRef: !!this.globalState.audioContextRef,
+      audioTracksCount: stream.getAudioTracks().length,
+      audioContextRef: this.globalState.audioContextRef ? 'exists' : 'null/undefined'
+    });
     
-    // Handle audio through audio context
     if (this.globalState.audioContextRef && stream.getAudioTracks().length > 0) {
+      this.logger.info('StreamManager', `Adding audio to context for ${participantId}`);
       this.globalState.audioContextRef.addAudio(participantId, stream);
+    } else {
+      this.logger.warning('StreamManager', `Cannot add audio for ${participantId}:`, {
+        hasAudioContextRef: !!this.globalState.audioContextRef,
+        audioTracksCount: stream.getAudioTracks().length
+      });
     }
       // Emit event for UI
     if (this.globalState.eventEmitter) {

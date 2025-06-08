@@ -35,7 +35,73 @@ export const RTCPeerConnection = WebRTC.RTCPeerConnection;
 export const RTCIceCandidate = WebRTC.RTCIceCandidate;
 export const RTCSessionDescription = WebRTC.RTCSessionDescription;
 export const mediaDevices = WebRTC.mediaDevices;
-export const MediaStream = WebRTC.MediaStream;
+// Note: MediaStream might not be available on all Android versions, but we export it anyway
+// Our createMediaStream function will handle the fallback
+export const MediaStream = WebRTC.MediaStream || null;
+
+/**
+ * Platform-safe MediaStream factory
+ * On some Android versions, MediaStream constructor might not be available
+ */
+export function createMediaStream(tracks = []) {
+  try {
+    // First try the standard MediaStream constructor
+    if (MediaStream && typeof MediaStream === 'function') {
+      return new MediaStream(tracks);
+    }
+  } catch (error) {
+    logger.warn("Compatibility", "MediaStream constructor failed:", error.message);
+  }
+  
+  // Fallback: Create a mock MediaStream object that behaves like a real one
+  logger.info("Compatibility", "Using MediaStream polyfill for Android compatibility");
+  
+  const streamTracks = [...(tracks || [])];
+  
+  return {
+    id: `stream_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    
+    // Track management methods
+    getTracks: () => [...streamTracks],
+    getAudioTracks: () => streamTracks.filter(t => t.kind === 'audio'),
+    getVideoTracks: () => streamTracks.filter(t => t.kind === 'video'),
+    
+    addTrack: (track) => {
+      if (!streamTracks.find(t => t.id === track.id)) {
+        streamTracks.push(track);
+      }
+    },
+    
+    removeTrack: (track) => {
+      const index = streamTracks.findIndex(t => t.id === track.id);
+      if (index > -1) {
+        streamTracks.splice(index, 1);
+      }
+    },
+    
+    clone: () => {
+      const clonedTracks = streamTracks.map(track => {
+        try {
+          return track.clone ? track.clone() : track;
+        } catch (e) {
+          return track;
+        }
+      });
+      return createMediaStream(clonedTracks);
+    },
+    
+    // Additional properties for compatibility
+    active: true,
+    
+    // Event handling (simplified)
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+    
+    // Make it look like a real MediaStream
+    toString: () => '[object MediaStream]'
+  };
+}
 
 /**
  * Verifica se le API WebRTC sono disponibili

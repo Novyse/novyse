@@ -15,12 +15,14 @@ export class ConnectionTracker {
   /**
    * Initialize connection tracking for a participant
    * @param {string} participantId - The participant ID
-   */
-  initializeTracking(participantId) {
+   */  initializeTracking(participantId) {
     this.logger.debug('ConnectionTracker', `Initializing tracking for ${participantId}`);
     
     this.globalState.connectionStates[participantId] = "connecting";
-    this.globalState.connectionTimestamps[participantId] = Date.now();
+    this.globalState.connectionTimestamps[participantId] = {
+      initialized: Date.now(),
+      lastSignalingTransition: null
+    };
     this.globalState.reconnectionAttempts[participantId] = 0;
     this.globalState.lastKnownGoodStates[participantId] = null;
     this.globalState.iceCandidateQueues[participantId] = [];
@@ -146,9 +148,12 @@ export class ConnectionTracker {
     if (!pc) {
       return { healthy: false, reason: "NO_CONNECTION" };
     }
-    
-    const currentTime = Date.now();
-    const connectionAge = currentTime - (this.globalState.connectionTimestamps[participantId] || currentTime);
+      const currentTime = Date.now();
+    const timestampObj = this.globalState.connectionTimestamps[participantId];
+    const initTimestamp = timestampObj ? 
+      (typeof timestampObj === 'number' ? timestampObj : timestampObj.initialized) : 
+      currentTime;
+    const connectionAge = currentTime - initTimestamp;
     const timeSinceLastGood = this.globalState.lastKnownGoodStates[participantId]
       ? currentTime - this.globalState.lastKnownGoodStates[participantId]
       : connectionAge;
@@ -229,9 +234,12 @@ export class ConnectionTracker {
       signalingState: pc?.signalingState || "N/A",
       iceGatheringState: pc?.iceGatheringState || "N/A",
       reconnectionAttempts: this.globalState.reconnectionAttempts[participantId] || 0,
-      maxAttempts: WEBRTC_CONSTANTS.MAX_RECONNECTION_ATTEMPTS,
-      connectionAge: this.globalState.connectionTimestamps[participantId]
-        ? Math.round((currentTime - this.globalState.connectionTimestamps[participantId]) / 1000)
+      maxAttempts: WEBRTC_CONSTANTS.MAX_RECONNECTION_ATTEMPTS,      connectionAge: this.globalState.connectionTimestamps[participantId]
+        ? (() => {
+            const timestampObj = this.globalState.connectionTimestamps[participantId];
+            const initTimestamp = typeof timestampObj === 'number' ? timestampObj : timestampObj.initialized;
+            return Math.round((currentTime - initTimestamp) / 1000);
+          })()
         : 0,
       lastGoodConnection: this.globalState.lastKnownGoodStates[participantId]
         ? Math.round((currentTime - this.globalState.lastKnownGoodStates[participantId]) / 1000)

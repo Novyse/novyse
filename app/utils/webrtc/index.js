@@ -79,6 +79,11 @@ class WebRTCManager {
     // Assign ICE manager to peer connection manager
     this.peerConnectionManager.iceManager = this.iceManager;
     
+    // Setup renegotiation callback for StreamManager
+    this.streamManager.setRenegotiateCallback(() => {
+      return this.signalingManager.renegotiateWithAllPeers();
+    });
+    
     // Initialize features
     this.pinManager = new PinManager(this.globalState, this.logger);
     this.screenShareManager = new ScreenShareManager(this.globalState, this.logger, this.pinManager);
@@ -116,21 +121,32 @@ class WebRTCManager {
   getLogLevel() {
     return this.logger.currentLogLevel;
   }
-  
-  /**
+    /**
    * Regenerate WebRTC manager with new parameters
    */
   async regenerate(myId, chatId, callbacks) {
     this.logger.info('WebRTCManager', 'Regenerating WebRTC Manager...');
     
-    // Store existing user data for reconnection
+    // Store existing user data for reconnection and audioContext
     const existingUsers = Object.values(this.globalState.userData);
+    const existingAudioContext = this.globalState.audioContextRef;
+    
+    this.logger.info('WebRTCManager', 'Preserving audioContext during regeneration:', {
+      hasExistingAudioContext: !!existingAudioContext,
+      audioContextType: typeof existingAudioContext
+    });
     
     // Cleanup current state
     await this.closeAllConnections(false);
     
     // Update global state
     this.globalState.regenerate(myId, chatId, callbacks);
+    
+    // Restore audioContext if it existed
+    if (existingAudioContext) {
+      this.logger.info('WebRTCManager', 'Restoring audioContext after regeneration');
+      this.globalState.audioContextRef = existingAudioContext;
+    }
     
     // Reinitialize
     this._initialize();
@@ -358,10 +374,17 @@ class WebRTCManager {
   
   /**
    * Set audio context reference
-   */
-  setAudioContext(audioContext) {
+   */  setAudioContext(audioContext) {
+    this.logger.info('WebRTCManager', 'Setting audio context reference:', {
+      audioContext: !!audioContext,
+      hasAddAudio: audioContext && typeof audioContext.addAudio === 'function',
+      hasRemoveAudio: audioContext && typeof audioContext.removeAudio === 'function',
+      previousAudioContextRef: !!this.globalState.audioContextRef
+    });
+    
     this.globalState.audioContextRef = audioContext;
-    this.logger.info('WebRTCManager', 'Audio context reference set');
+    
+    this.logger.info('WebRTCManager', 'Audio context reference set successfully');
   }
   
   // ===== HEALTH MONITORING API =====

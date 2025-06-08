@@ -67,6 +67,8 @@ const self = {
     //    throw new Error("Failed to leave comms");
     //  }
 
+    WebRTC.setVideoEnabled(false); // Reset video state to enabled on leave
+
     await handle.memberLeft(data);
 
     // Close all peer connections and local stream

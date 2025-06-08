@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import WebRTCLogger from '../logging/WebRTCLogger.js';
 import { GlobalState } from '../core/GlobalState.js';
 import Compatibility from '../utils/compatibility.js';
+import { createMediaStream } from '../utils/compatibility.js';
 import { Helpers } from '../utils/helpers.js';
 
 const { mediaDevices } = Compatibility.getWebRTCLib();
@@ -549,10 +550,8 @@ export class StreamManager {
     let screenShareStreams = this.globalState.getRemoteScreenStreams(participantId);
     if (!screenShareStreams) {
       screenShareStreams = {};
-    }
-
-    if (!screenShareStreams[streamId]) {
-      screenShareStreams[streamId] = new Compatibility.getWebRTCLib().MediaStream();
+    }    if (!screenShareStreams[streamId]) {
+      screenShareStreams[streamId] = createMediaStream();
     }
 
     screenShareStreams[streamId].addTrack(event.track);
@@ -588,12 +587,10 @@ export class StreamManager {
       participantId,
       streamId: stream.id,
       trackKind: event.track.kind
-    });
-
-    // Crea o aggiorna stream webcam
+    });    // Crea o aggiorna stream webcam
     let webcamStream = this.globalState.getRemoteStream(participantId);
     if (!webcamStream) {
-      webcamStream = new Compatibility.getWebRTCLib().MediaStream();
+      webcamStream = createMediaStream();
       this.globalState.setRemoteStream(participantId, webcamStream);
     }
 

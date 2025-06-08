@@ -3,7 +3,7 @@ import WebRTCLogger from '../logging/WebRTCLogger.js';
 import { GlobalState } from '../core/GlobalState.js';
 import { SDP_OPTIONS } from '../config/mediaConstraints.js';
 import Compatibility from '../utils/compatibility.js';
-import { Helpers } from '../utils/helpers.js';
+import helpers from '../utils/helpers.js';
 import webSocketMethods from '../../webSocketMethods.js';
 import { relativeTimeThreshold } from 'moment';
 
@@ -45,17 +45,14 @@ export class SignalingManager {
       return null;
     }
 
-    try {
-      // Verifica che non ci sia già una negoziazione in corso
-      if (this.globalState.isNegotiationInProgress(participantId)) {
+    try {      // Verifica che non ci sia già una negoziazione in corso (atomic check and set)
+      if (!this.globalState.trySetNegotiationInProgress(participantId)) {
         this.logger.warning(`Negoziazione già in corso per ${participantId}`, {
           component: 'SignalingManager',
           participantId
         });
         return null;
       }
-
-      this.globalState.setNegotiationInProgress(participantId, true);
 
       const offer = await pc.createOffer(SDP_OPTIONS.OFFER_OPTIONS);
       await pc.setLocalDescription(offer);
@@ -85,7 +82,6 @@ export class SignalingManager {
       this.globalState.setNegotiationInProgress(participantId, false);
     }
   }
-
   /**
    * Crea una risposta SDP per un partecipante specifico
    * @param {string} participantId - ID del partecipante
@@ -118,13 +114,20 @@ export class SignalingManager {
         return null;
       }
 
+      // Registra la transizione di stato prima della creazione answer
+      this.globalState.recordSignalingStateTransition(participantId, pc.signalingState, 'creating-answer');
+
       const answer = await pc.createAnswer(SDP_OPTIONS.ANSWER_OPTIONS);
       await pc.setLocalDescription(answer);
+
+      // Registra la transizione completata
+      this.globalState.recordSignalingStateTransition(participantId, 'creating-answer', pc.signalingState);
 
       this.logger.info(`Risposta creata e impostata per ${participantId}`, {
         component: 'SignalingManager',
         participantId,
-        sdpType: answer.type
+        sdpType: answer.type,
+        newSignalingState: pc.signalingState
       });      // Invia tramite WebSocket usando direttamente webSocketMethods.RTCAnswer
       await webSocketMethods.RTCAnswer({
         answer: answer.toJSON ? answer.toJSON() : { sdp: answer.sdp, type: answer.type },
@@ -144,7 +147,6 @@ export class SignalingManager {
       return null;
     }
   }
-
   /**
    * Gestisce un messaggio di offerta ricevuto
    * @param {Object} message - Messaggio contenente l'offerta
@@ -170,7 +172,19 @@ export class SignalingManager {
         participantId: senderId
       });
       return false;
-    }    if (!message.offer || !message.offer.sdp) {
+    }
+
+    // Verifica timing safeguards per transizioni di stato signaling
+    if (!this.globalState.canTransitionSignalingState(senderId)) {
+      this.logger.warning(`Transizione signaling state troppo ravvicinata per ${senderId}, ignorando offerta`, {
+        component: 'SignalingManager',
+        participantId: senderId,
+        lastTransition: this.globalState.getLastSignalingStateTransition(senderId)
+      });
+      return false;
+    }
+
+    if (!message.offer || !message.offer.sdp) {
       this.logger.error(`Offerta ricevuta senza SDP da ${senderId}`, {
         component: 'SignalingManager',
         participantId: senderId,
@@ -192,6 +206,9 @@ export class SignalingManager {
         return false;
       }
 
+      // Registra la transizione di stato prima del cambiamento
+      this.globalState.recordSignalingStateTransition(senderId, pc.signalingState, 'setting-remote-offer');
+
       // Imposta remote description
       const remoteDesc = new RTCSessionDescription({ 
         type: 'offer', 
@@ -200,9 +217,13 @@ export class SignalingManager {
       
       await pc.setRemoteDescription(remoteDesc);
 
+      // Registra la transizione completata
+      this.globalState.recordSignalingStateTransition(senderId, 'setting-remote-offer', pc.signalingState);
+
       this.logger.info(`Remote description (offer) impostata per ${senderId}`, {
         component: 'SignalingManager',
-        participantId: senderId
+        participantId: senderId,
+        newSignalingState: pc.signalingState
       });
 
       // Processa candidati ICE in coda se presenti
@@ -222,7 +243,6 @@ export class SignalingManager {
       return false;
     }
   }
-
   /**
    * Gestisce un messaggio di risposta ricevuta
    * @param {Object} message - Messaggio contenente la risposta
@@ -248,7 +268,19 @@ export class SignalingManager {
         participantId: senderId
       });
       return false;
-    }    if (!message.answer || !message.answer.sdp) {
+    }
+
+    // Verifica timing safeguards per transizioni di stato signaling
+    if (!this.globalState.canTransitionSignalingState(senderId)) {
+      this.logger.warning(`Transizione signaling state troppo ravvicinata per ${senderId}, ignorando risposta`, {
+        component: 'SignalingManager',
+        participantId: senderId,
+        lastTransition: this.globalState.getLastSignalingStateTransition(senderId)
+      });
+      return false;
+    }
+
+    if (!message.answer || !message.answer.sdp) {
       this.logger.error(`Risposta ricevuta senza SDP da ${senderId}`, {
         component: 'SignalingManager',
         participantId: senderId,
@@ -270,6 +302,9 @@ export class SignalingManager {
         return false;
       }
 
+      // Registra la transizione di stato prima del cambiamento
+      this.globalState.recordSignalingStateTransition(senderId, pc.signalingState, 'setting-remote-answer');
+
       // Imposta remote description
       const remoteDesc = new RTCSessionDescription({ 
         type: 'answer', 
@@ -278,9 +313,13 @@ export class SignalingManager {
       
       await pc.setRemoteDescription(remoteDesc);
 
+      // Registra la transizione completata
+      this.globalState.recordSignalingStateTransition(senderId, 'setting-remote-answer', pc.signalingState);
+
       this.logger.info(`Remote description (answer) impostata per ${senderId}`, {
         component: 'SignalingManager',
-        participantId: senderId
+        participantId: senderId,
+        newSignalingState: pc.signalingState
       });
 
       // Processa candidati ICE in coda se presenti
@@ -295,6 +334,9 @@ export class SignalingManager {
         stack: error.stack
       });
       return false;
+    } finally {
+      // Assicurati che la negoziazione sia marcata come completata
+      this.globalState.setNegotiationInProgress(senderId, false);
     }
   }
 
@@ -414,11 +456,8 @@ export class SignalingManager {
             component: 'SignalingManager',
             participantId
           });
-          
-          // Avvia negoziazione se siamo noi a dover iniziare
-          setTimeout(async () => {
-            await this.createOffer(participantId);
-          }, 100);
+            // Avvia negoziazione con deterministic ordering per evitare race conditions
+          await this._scheduleOfferCreation(participantId);
           
           return true;
         }
@@ -576,7 +615,7 @@ export class SignalingManager {
       try {
         await this.createOffer(peerId);
         // Piccolo delay tra le offerte per evitare congestione
-        await Helpers.delay(100);
+        await helpers.wait(100);
       } catch (error) {
         this.logger.error(`Errore rinegoziazione con ${peerId}`, {
           component: 'SignalingManager',
@@ -675,6 +714,97 @@ export class SignalingManager {
     // La pulizia delle negoziazioni è gestita dal GlobalState
     // quando vengono chiuse le connessioni peer
   }
+  /**
+   * Schedules offer creation with deterministic timing to prevent race conditions
+   * @param {string} participantId - ID del partecipante
+   * @returns {Promise<void>}
+   * @private
+   */  async _scheduleOfferCreation(participantId) {
+    const myId = this.globalState.getMyId();
+    
+    // Primary strategy: Check if we have video enabled - video-enabled clients initiate
+    const hasVideo = this.globalState.localStream && 
+                     this.globalState.localStream.getVideoTracks().length > 0 &&
+                     this.globalState.localStream.getVideoTracks().some(track => track.enabled);
+    
+    // Secondary strategy: Use deterministic ordering based on string comparison
+    let shouldCreateOffer = hasVideo || myId > participantId;
+    
+    if (myId === participantId) {
+      this.logger.warning(`Self-connection detected for ${participantId}`, {
+        component: 'SignalingManager',
+        participantId,
+        myId
+      });
+      return;
+    }
+    
+    // Additional debug logging to understand the decision
+    this.logger.info(`Offer creation decision for ${participantId}`, {
+      component: 'SignalingManager',
+      participantId,
+      myId,
+      shouldCreateOffer,
+      hasVideo,
+      comparison: `"${myId}" > "${participantId}" = ${myId > participantId}`,
+      strategy: hasVideo ? 'video-priority' : 'lexicographic'
+    });
+    
+    if (shouldCreateOffer) {
+      // Add a small randomized delay to prevent thundering herd
+      const baseDelay = hasVideo ? 10 : 50; // Faster for video-enabled clients
+      const jitterDelay = Math.random() * 50; // 0-50ms jitter
+      const totalDelay = baseDelay + jitterDelay;
+      
+      this.logger.info(`Scheduling offer creation for ${participantId} in ${totalDelay}ms`, {
+        component: 'SignalingManager',
+        participantId,
+        myId,
+        delay: totalDelay,
+        shouldCreateOffer
+      });
+      
+      setTimeout(async () => {
+        try {
+          await this.createOffer(participantId);
+        } catch (error) {
+          this.logger.error(`Error in scheduled offer creation for ${participantId}`, {
+            component: 'SignalingManager',
+            participantId,
+            error: error.message
+          });
+        }
+      }, totalDelay);
+    } else {
+      this.logger.info(`Not creating offer for ${participantId} - waiting for remote offer`, {
+        component: 'SignalingManager',
+        participantId,
+        myId,
+        shouldCreateOffer
+      });
+      
+      // Set a timeout to create offer if we don't receive one within reasonable time
+      setTimeout(async () => {
+        try {
+          const pc = this.globalState.getPeerConnection(participantId);
+          if (pc && pc.signalingState === 'stable' && !pc.remoteDescription) {
+            this.logger.warning(`Timeout waiting for remote offer from ${participantId}, creating offer anyway`, {
+              component: 'SignalingManager',
+              participantId,
+              signalingState: pc.signalingState
+            });
+            await this.createOffer(participantId);
+          }
+        } catch (error) {
+          this.logger.error(`Error in fallback offer creation for ${participantId}`, {
+            component: 'SignalingManager',
+            participantId,
+            error: error.message
+          });
+        }
+      }, 500); // Reduced from 5000ms to 500ms - much faster fallback
+    }
+    }
 }
 
 // Default export for Expo Router compatibility

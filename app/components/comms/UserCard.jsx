@@ -192,58 +192,78 @@ const UserCard = memo(
     // Add CSS animation on component mount for web
     useEffect(() => {
       addPulseAnimation();
-    }, []); // Determina se è l'utente locale
-    const isLocalUser = isScreenShare
-      ? profile.from.includes(get.myPartecipantId()) // Per screen share, controlla se l'ID contiene il nostro ID
-      : profile.from === get.myPartecipantId();
+    }, []);    // Determina se è l'utente locale - memoizzato per evitare re-calcoli
+    const isLocalUser = useMemo(() => {
+      return isScreenShare
+        ? profile.from.includes(get.myPartecipantId()) // Per screen share, controlla se l'ID contiene il nostro ID
+        : profile.from === get.myPartecipantId();
+    }, [isScreenShare, profile.from]);
 
-    // Check if current user is in comms - only render video and speaking if in comms
-    const userIsInComms = check.isInComms(); // Determina quale stream utilizzare - solo se l'utente è in comms
-    let streamToRender = null;
-    if (userIsInComms) {
+    // Check if current user is in comms - memoizzato per evitare re-calcoli
+    const userIsInComms = useMemo(() => check.isInComms(), []);    // Determina quale stream utilizzare - memoizzato per stabilità
+    const streamToRender = useMemo(() => {
+      if (!userIsInComms) return null;
+      
       if (isScreenShare && activeStream?.stream) {
         // For screen shares, ALWAYS use the activeStream.stream if available
-        streamToRender = activeStream.stream;
-      } else if (isLocalUser && get.localStream()) {
-        streamToRender = get.localStream();
+        return activeStream.stream;
+      } else if (isLocalUser) {
+        // For local users, prefer activeStream if available (for better re-rendering), fallback to get.localStream()
+        return activeStream?.stream || get.localStream();
       } else if (activeStream?.stream) {
-        streamToRender = activeStream.stream;
+        return activeStream.stream;
       } else if (get.remoteStreams()[profile.from]) {
-        streamToRender = get.remoteStreams()[profile.from];
+        return get.remoteStreams()[profile.from];
       }
-    }
-    const hasVideo =
-      userIsInComms && streamToRender?.getVideoTracks().length > 0; // Memoizza i valori per il componente VideoContent per prevenire re-render
+      return null;    }, [userIsInComms, isScreenShare, activeStream?.stream, isLocalUser, profile.from, videoStreamKey, activeStream?.timestamp]);
+    
+    // Determina se ha video - memoizzato separatamente
+    const hasVideo = useMemo(() => {
+      return userIsInComms && streamToRender?.getVideoTracks().length > 0;
+    }, [userIsInComms, streamToRender, videoStreamKey]);
+    
+    // Memoizza i dati statici separatamente per evitare che cambino quando speaking cambia
+    const staticDisplayName = useMemo(() => {
+      return isScreenShare
+        ? `${profile.handle || profile.from || "Unknown"} : Screen Share`
+        : activeStream?.userData?.handle || profile.handle || "Loading...";
+    }, [isScreenShare, profile.handle, profile.from, activeStream?.userData?.handle]);
+    
+    const staticProfileImageUri = useMemo(() => {
+      return isScreenShare
+        ? null
+        : activeStream?.userData?.profileImageUri || profile.profileImageUri;
+    }, [isScreenShare, activeStream?.userData?.profileImageUri, profile.profileImageUri]);
+    
+    const staticStreamType = useMemo(() => {
+      return activeStream?.streamType || (isScreenShare ? "screenshare" : "webcam");
+    }, [activeStream?.streamType, isScreenShare]);
+
+    // Memoizza i valori per il componente VideoContent per prevenire re-render
+    // Nota: Escludiamo deliberatamente profile e activeStream dalle dipendenze per evitare re-render quando speaking cambia
     const videoProps = useMemo(
       () => ({
         hasVideo,
         streamToRender,
         isLocalUser,
-        displayName: isScreenShare
-          ? `${profile.handle || profile.from || "Unknown"} : Screen Share`
-          : activeStream?.userData?.handle || profile.handle || "Loading...",
-        profileImageUri: isScreenShare
-          ? null
-          : activeStream?.userData?.profileImageUri || profile.profileImageUri,
+        displayName: staticDisplayName,
+        profileImageUri: staticProfileImageUri,
         width,
         height,
         videoStreamKey,
-        userData: activeStream?.userData || profile,
-        streamType:
-          activeStream?.streamType ||
-          (isScreenShare ? "screenshare" : "webcam"),
-      }),
-      [
+        userData: { ...((activeStream?.userData || profile) || {}) }, // Crea una copia per evitare riferimenti mutabili
+        streamType: staticStreamType,
+      }),      [
         hasVideo,
         streamToRender,
         isLocalUser,
-        profile,
-        activeStream,
-        isScreenShare,
+        staticDisplayName,
+        staticProfileImageUri,
         width,
         height,
-        userIsInComms,
         videoStreamKey,
+        staticStreamType,
+        activeStream?.timestamp, // Add timestamp to force re-render when stream updates
       ]
     );
 

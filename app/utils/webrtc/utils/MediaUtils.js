@@ -4,6 +4,7 @@
  */
 
 import { LogLevels } from '../logging/LogLevels.js';
+import { createMediaStream } from './compatibility.js';
 
 export class MediaUtils {
     constructor(logger) {
@@ -308,11 +309,10 @@ export class MediaUtils {
      * @param {MediaStream} originalStream - Source stream
      * @param {object} options - Cloning options
      * @returns {MediaStream} Cloned stream
-     */
-    cloneStream(originalStream, options = {}) {
+     */    cloneStream(originalStream, options = {}) {
         const { includeAudio = true, includeVideo = true } = options;
         
-        const clonedStream = new MediaStream();
+        const clonedStream = createMediaStream();
         
         for (const track of originalStream.getTracks()) {
             if ((track.kind === 'audio' && includeAudio) ||

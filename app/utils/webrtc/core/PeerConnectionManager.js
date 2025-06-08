@@ -1,4 +1,4 @@
-import { RTCPeerConnection } from '../utils/compatibility.js';
+import { RTCPeerConnection, createMediaStream } from '../utils/compatibility.js';
 import { getWebRTCConfiguration } from '../config/configuration.js';
 import { WEBRTC_CONSTANTS } from '../config/constants.js';
 import { GlobalState } from './GlobalState.js';
@@ -175,11 +175,9 @@ class PeerConnectionManager {
     
     if (!this.globalState.remoteScreenStreams[participantId]) {
       this.globalState.remoteScreenStreams[participantId] = {};
-    }
-
-    if (!this.globalState.remoteScreenStreams[participantId][streamId]) {
-      this.globalState.remoteScreenStreams[participantId][streamId] = new MediaStream();
-    }    this.globalState.remoteScreenStreams[participantId][streamId].addTrack(event.track);
+    }    if (!this.globalState.remoteScreenStreams[participantId][streamId]) {
+      this.globalState.remoteScreenStreams[participantId][streamId] = createMediaStream();
+    }this.globalState.remoteScreenStreams[participantId][streamId].addTrack(event.track);
     logger.info('PeerConnectionManager', `Screen share track aggiunta: ${participantId}/${streamId}`);
 
     // IMPORTANT: Also update userData to include this screen share in active_screen_share array
@@ -196,18 +194,28 @@ class PeerConnectionManager {
 
   /**
    * Gestisce tracce webcam
-   */
-  _handleWebcamTrack(event, participantId) {
+   */  _handleWebcamTrack(event, participantId) {
     if (!this.globalState.remoteStreams[participantId]) {
-      this.globalState.addRemoteStream(participantId, new MediaStream());
+      this.globalState.addRemoteStream(participantId, createMediaStream());
     }
 
     const stream = this.globalState.remoteStreams[participantId];
-    stream.addTrack(event.track);
-
-    // Gestisci audio tramite AudioContext se disponibile
+    stream.addTrack(event.track);    // Gestisci audio tramite AudioContext se disponibile
+    logger.debug('PeerConnectionManager', `Checking audio context for ${participantId}:`, {
+      audioContextRef: !!this.globalState.audioContextRef,
+      audioTracks: stream.getAudioTracks().length,
+      trackKind: event.track.kind
+    });
+    
     if (this.globalState.audioContextRef && stream.getAudioTracks().length > 0) {
+      logger.info('PeerConnectionManager', `Calling addAudio for ${participantId}`);
       this.globalState.audioContextRef.addAudio(participantId, stream);
+    } else {
+      logger.warning('PeerConnectionManager', `Audio not added for ${participantId}:`, {
+        audioContextRef: !!this.globalState.audioContextRef,
+        audioTracks: stream.getAudioTracks().length,
+        reason: !this.globalState.audioContextRef ? 'No audioContextRef' : 'No audio tracks'
+      });
     }
 
     logger.info('PeerConnectionManager', `Webcam track aggiunta per ${participantId}`);    // Emetti evento per UI

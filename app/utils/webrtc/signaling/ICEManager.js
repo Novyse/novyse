@@ -133,7 +133,6 @@ export class ICEManager {
     // Timeout per raccolta ICE
     this._setupICEGatheringTimeout(participantId);
   }
-
   /**
    * Processa tutti i candidati ICE in coda per un partecipante
    * @param {string} participantId - ID del partecipante
@@ -161,20 +160,50 @@ export class ICEManager {
       return;
     }
 
+    // Check if remote description is set before processing
+    if (!pc.remoteDescription) {
+      this.logger.warning(`Remote description still not set for ${participantId}, keeping candidates queued`, {
+        component: 'ICEManager',
+        participantId
+      });
+      return;
+    }
+
+    // Process candidates in chronological order with retry logic
+    let processedCount = 0;
     for (const candidate of queuedCandidates) {
       try {
         await this._addICECandidateWithRetry(participantId, candidate);
+        
+        // Mark candidate as processed to prevent duplicate processing
+        this.globalState.markICECandidateAsProcessed(participantId, candidate);
+        processedCount++;
+        
+        // Small delay between candidates to prevent overwhelming the connection
+        if (processedCount < queuedCandidates.length) {
+          await this._delayBetweenCandidates();
+        }
+        
       } catch (error) {
         this.logger.error(`Errore processando candidato ICE dalla coda per ${participantId}`, {
           component: 'ICEManager',
           participantId,
-          error: error.message
+          error: error.message,
+          candidateIndex: processedCount
         });
+        // Continue processing other candidates even if one fails
       }
     }
 
-    // Pulisci la coda
-    this.globalState.clearQueuedICECandidates(participantId);
+    this.logger.info(`Processati ${processedCount}/${queuedCandidates.length} candidati ICE per ${participantId}`, {
+      component: 'ICEManager',
+      participantId,
+      processedCount,
+      totalCount: queuedCandidates.length
+    });
+
+    // Clear only processed candidates, keeping any new ones that arrived during processing
+    this._cleanupProcessedCandidates(participantId);
   }
 
   /**
@@ -531,7 +560,6 @@ export class ICEManager {
 
     this.globalState.setICEGatheringTimeout(participantId, timeoutId);
   }
-
   /**
    * Pulisce il timeout di raccolta ICE
    * @param {string} participantId - ID del partecipante
@@ -544,6 +572,38 @@ export class ICEManager {
       clearTimeout(timeoutId);
       this.globalState.clearICEGatheringTimeout(participantId);
     }
+  }
+
+  /**
+   * Adds a small delay between ICE candidate processing to prevent overwhelming
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _delayBetweenCandidates() {
+    // Smaller delay for better performance, but prevents overwhelming the connection
+    const delay = Platform.OS === 'android' ? 10 : 5; // ms
+    await new Promise(resolve => setTimeout(resolve, delay));
+  }
+
+  /**
+   * Cleanup processed ICE candidates from queue while preserving new ones
+   * @param {string} participantId - ID del partecipante
+   * @returns {void}
+   * @private
+   */
+  _cleanupProcessedCandidates(participantId) {
+    const allEntries = this.globalState.getQueuedICECandidateEntries(participantId);
+    const unprocessedEntries = allEntries.filter(entry => !entry.processed);
+    
+    // Replace queue with only unprocessed candidates
+    this.globalState.iceCandidateQueues[participantId] = unprocessedEntries;
+    
+    this.logger.debug(`Cleaned up processed ICE candidates for ${participantId}`, {
+      component: 'ICEManager',
+      participantId,
+      totalEntries: allEntries.length,
+      remainingEntries: unprocessedEntries.length
+    });
   }
 
   /**

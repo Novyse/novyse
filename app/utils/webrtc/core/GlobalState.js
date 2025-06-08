@@ -126,10 +126,11 @@ class GlobalState {
     return this.myId;
   }
 
-    /**
+  /**
    * Pulisce completamente lo stato
+   * @param {boolean} preserveAudioContext - Se true, preserva l'audioContextRef durante la pulizia
    */
-  cleanup() {
+  cleanup(preserveAudioContext = false) {
     logger.info('GlobalState', 'Inizio pulizia stato globale');
 
     // Clear timeouts e intervals
@@ -172,8 +173,10 @@ class GlobalState {
     this.pinnedUserId = null;
     this.screenStreamCounter = 0;
 
-    // Reset streams
-    this.audioContextRef = null;
+    // Reset streams (preserve audioContextRef if requested)
+    if (!preserveAudioContext) {
+      this.audioContextRef = null;
+    }
 
     // Reset callbacks
     this.onLocalStreamReady = null;
@@ -216,9 +219,22 @@ class GlobalState {
     this.negotiationInProgress[participantId] = isInProgress;
     logger.debug('GlobalState', `Negotiation in progress per ${participantId}: ${isInProgress}`);
   }
-
   isNegotiationInProgress(participantId) {
     return this.negotiationInProgress[participantId] || false;
+  }
+
+  /**
+   * Atomic check and set for negotiation state to prevent race conditions
+   * @param {string} participantId - ID del partecipante
+   * @returns {boolean} - true if negotiation was successfully set, false if already in progress
+   */
+  trySetNegotiationInProgress(participantId) {
+    if (this.negotiationInProgress[participantId]) {
+      return false; // Already in progress
+    }
+    this.negotiationInProgress[participantId] = true;
+    logger.debug('GlobalState', `Atomic negotiation set for ${participantId}`);
+    return true;
   }
 
   // ===== METODI PER STREAM =====
@@ -498,10 +514,12 @@ class GlobalState {
   }
 
   // ===== METODI PER CONNECTION TRACKING =====
-
   initializeConnectionTracking(participantId) {
     this.connectionStates[participantId] = "connecting";
-    this.connectionTimestamps[participantId] = Date.now();
+    this.connectionTimestamps[participantId] = {
+      initialized: Date.now(),
+      lastSignalingTransition: null
+    };
     this.reconnectionAttempts[participantId] = 0;
     this.lastKnownGoodStates[participantId] = null;
     this.iceCandidateQueues[participantId] = [];
@@ -539,9 +557,8 @@ class GlobalState {
   getQueuedICECandidates(participantId) {
     return this.iceCandidateQueues[participantId] || [];
   }
-
   /**
-   * Queue an ICE candidate for a participant
+   * Queue an ICE candidate for a participant with timestamp for ordered processing
    * @param {string} participantId - ID del partecipante
    * @param {RTCIceCandidate} candidate - Il candidato ICE da accodare
    */
@@ -549,10 +566,59 @@ class GlobalState {
     if (!this.iceCandidateQueues[participantId]) {
       this.iceCandidateQueues[participantId] = [];
     }
-    this.iceCandidateQueues[participantId].push(candidate);
+    
+    // Add timestamp for ordered processing to prevent race conditions
+    const queuedCandidate = {
+      candidate,
+      timestamp: Date.now(),
+      processed: false
+    };
+    
+    this.iceCandidateQueues[participantId].push(queuedCandidate);
     logger.debug('GlobalState', `ICE candidate accodato per ${participantId}. Coda: ${this.iceCandidateQueues[participantId].length}`);
   }
 
+  /**
+   * Get queued ICE candidates for a participant in chronological order
+   * @param {string} participantId - ID del partecipante
+   * @returns {Array} Array of queued ICE candidates sorted by timestamp
+   */
+  getQueuedICECandidates(participantId) {
+    const queue = this.iceCandidateQueues[participantId] || [];
+    // Return only unprocessed candidates, sorted by timestamp
+    return queue.filter(item => !item.processed)
+                .sort((a, b) => a.timestamp - b.timestamp)
+                .map(item => item.candidate);
+  }
+
+  /**
+   * Get all queued ICE candidate entries (with metadata) for a participant
+   * @param {string} participantId - ID del partecipante
+   * @returns {Array} Array of queued ICE candidate entries with metadata
+   */
+  getQueuedICECandidateEntries(participantId) {
+    return this.iceCandidateQueues[participantId] || [];
+  }
+
+  /**
+   * Mark an ICE candidate as processed to prevent duplicate processing
+   * @param {string} participantId - ID del partecipante
+   * @param {RTCIceCandidate} candidate - Il candidato ICE da marcare come processato
+   */
+  markICECandidateAsProcessed(participantId, candidate) {
+    const queue = this.iceCandidateQueues[participantId];
+    if (queue) {
+      const entry = queue.find(item => 
+        !item.processed && 
+        item.candidate.candidate === candidate.candidate &&
+        item.candidate.sdpMLineIndex === candidate.sdpMLineIndex
+      );
+      if (entry) {
+        entry.processed = true;
+        logger.debug('GlobalState', `ICE candidate marcato come processato per ${participantId}`);
+      }
+    }
+  }
   /**
    * Clear all queued ICE candidates for a participant
    * @param {string} participantId - ID del partecipante
@@ -562,6 +628,67 @@ class GlobalState {
       this.iceCandidateQueues[participantId] = [];
       logger.debug('GlobalState', `Coda ICE candidates pulita per ${participantId}`);
     }
+  }
+
+  // ===== METODI PER TIMING SAFEGUARDS =====
+
+  /**
+   * Record signaling state transition timing
+   * @param {string} participantId - ID del partecipante
+   * @param {string} fromState - Stato precedente
+   * @param {string} toState - Nuovo stato
+   */  recordSignalingStateTransition(participantId, fromState, toState) {
+    if (!this.connectionTimestamps[participantId]) {
+      this.connectionTimestamps[participantId] = {
+        initialized: Date.now(),
+        lastSignalingTransition: null
+      };
+    }
+    
+    // Handle legacy format where connectionTimestamps[participantId] might be a number
+    if (typeof this.connectionTimestamps[participantId] === 'number') {
+      const legacyTimestamp = this.connectionTimestamps[participantId];
+      this.connectionTimestamps[participantId] = {
+        initialized: legacyTimestamp,
+        lastSignalingTransition: null
+      };
+    }
+    
+    const timestamp = Date.now();
+    this.connectionTimestamps[participantId].lastSignalingTransition = {
+      fromState,
+      toState,
+      timestamp,
+      transitionId: `${fromState}->${toState}-${timestamp}`
+    };
+    
+    logger.debug('GlobalState', `Signaling state transition recorded for ${participantId}: ${fromState} -> ${toState}`);
+  }
+
+  /**
+   * Check if enough time has passed since last signaling state transition
+   * @param {string} participantId - ID del partecipante
+   * @param {number} minIntervalMs - Intervallo minimo in millisecondi
+   * @returns {boolean} true se è passato abbastanza tempo
+   */
+  canTransitionSignalingState(participantId, minIntervalMs = 1000) {
+    const timestamps = this.connectionTimestamps[participantId];
+    if (!timestamps || !timestamps.lastSignalingTransition) {
+      return true;
+    }
+    
+    const timeSinceLastTransition = Date.now() - timestamps.lastSignalingTransition.timestamp;
+    return timeSinceLastTransition >= minIntervalMs;
+  }
+
+  /**
+   * Get last signaling state transition info
+   * @param {string} participantId - ID del partecipante
+   * @returns {Object|null} Info sulla last transition o null
+   */
+  getLastSignalingStateTransition(participantId) {
+    const timestamps = this.connectionTimestamps[participantId];
+    return timestamps ? timestamps.lastSignalingTransition : null;
   }
 
   // ===== METODI DI STATO E DIAGNOSTICA =====
@@ -764,18 +891,23 @@ class GlobalState {
         logger.error('GlobalState', `Error executing callback ${callbackName}:`, error);
       }
     }
-    return null;
-  }
-  
+    return null;  }
+
   /**
    * Regenerate global state with new parameters
    */
   regenerate(myId, chatId, callbacks = {}) {
-    // Store existing callbacks if no new ones provided
+    // Store existing callbacks for restoration
     const existingCallbacks = { ...this.callbacks };
     
-    // Clean up existing state
-    this.cleanup();
+    logger.info('GlobalState', 'Regenerating global state with preserved audioContext:', {
+      hasAudioContextRef: !!this.audioContextRef,
+      audioContextType: typeof this.audioContextRef,
+      audioContextValue: this.audioContextRef
+    });
+    
+    // Clean up existing state (preserve audioContextRef during cleanup)
+    this.cleanup(true);
     
     // Set new core values
     this.myId = myId;
@@ -958,7 +1090,16 @@ class GlobalState {
    */
   getEventEmitter() {
     // This will be implemented when event emitter is properly integrated
-    return null;
+    return null;  }
+
+  // ===== DEBUG FUNCTIONS =====
+  debugAudioContextState() {
+    console.log('[GlobalState] Audio context state:', {
+      audioContextRef: !!this.audioContextRef,
+      hasAddAudio: this.audioContextRef && typeof this.audioContextRef.addAudio === 'function',
+      hasRemoveAudio: this.audioContextRef && typeof this.audioContextRef.removeAudio === 'function',
+      audioContextType: typeof this.audioContextRef
+    });
   }
 
 }
