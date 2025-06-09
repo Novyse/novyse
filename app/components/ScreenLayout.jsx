@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import SmartBackground from './SmartBackground';
-import { ThemeContext } from '../../context/ThemeContext';
+import React, { useContext } from "react";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import SmartBackground from "./SmartBackground";
+import { ThemeContext } from "../../context/ThemeContext";
 
 /**
  * Layout personalizzato per applicare il gradiente di sfondo a tutte le schermate
@@ -17,9 +17,7 @@ const ScreenLayout = ({ children, style = {} }) => {
         colors={theme.backgroundMainGradient}
         style={[{ flex: 1 }, style]}
       >
-        <SafeAreaView style={{ flex: 1 }}>
-          {children}
-        </SafeAreaView>
+        <SafeAreaView style={{ flex: 1 }}>{children}</SafeAreaView>
       </SmartBackground>
     </SafeAreaProvider>
   );

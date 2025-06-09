@@ -15,7 +15,6 @@ const VAD = {
       });
     }
 
-    
     const success = await voiceActivityDetection.initialize(
       localStream,
       (isSpeaking) => {
@@ -44,6 +43,6 @@ const VAD = {
   stopVoiceActivityDetection() {
     voiceActivityDetection.cleanup();
   },
-}
+};
 
 export default VAD;

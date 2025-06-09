@@ -266,7 +266,6 @@ const VocalMembersLayout = ({
           },
         ]}
       >
-        
         {profiles.length > 0 ||
         Object.values(activeStreams).some(
           (streamData) => streamData.streamType === "screenshare"

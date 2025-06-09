@@ -1,4 +1,3 @@
-
 TEMPORARY DOCUMENTATION!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # WebRTC Modular Architecture
@@ -12,6 +11,7 @@ The WebRTC system is now organized into several specialized modules:
 ### Core Components
 
 #### `index.js` - Main WebRTC Manager
+
 - **Purpose**: Single entry point and coordinator for all WebRTC functionality
 - **Exports**: `WebRTCManager` class (singleton pattern)
 - **Key Features**:
@@ -21,6 +21,7 @@ The WebRTC system is now organized into several specialized modules:
   - Comprehensive cleanup methods
 
 #### `core/GlobalState.js`
+
 - **Purpose**: Centralized state management for all WebRTC data
 - **Key Features**:
   - Single source of truth for all WebRTC state
@@ -29,6 +30,7 @@ The WebRTC system is now organized into several specialized modules:
   - Comprehensive cleanup methods
 
 #### `core/PeerConnectionManager.js`
+
 - **Purpose**: Manages RTCPeerConnection instances and negotiation
 - **Key Features**:
   - Peer connection lifecycle management
@@ -36,6 +38,7 @@ The WebRTC system is now organized into several specialized modules:
   - Connection state tracking
 
 #### `core/StreamManager.js`
+
 - **Purpose**: Manages local and remote media streams
 - **Key Features**:
   - Local stream acquisition with platform-aware constraints
@@ -44,6 +47,7 @@ The WebRTC system is now organized into several specialized modules:
   - Stream quality analysis
 
 #### `core/ConnectionTracker.js`
+
 - **Purpose**: Monitors connection health and provides diagnostics
 - **Key Features**:
   - Real-time connection state monitoring
@@ -53,6 +57,7 @@ The WebRTC system is now organized into several specialized modules:
 ### Signaling Components
 
 #### `signaling/SignalingManager.js`
+
 - **Purpose**: Handles WebRTC signaling protocol
 - **Key Features**:
   - Offer/answer handling
@@ -61,6 +66,7 @@ The WebRTC system is now organized into several specialized modules:
   - Existing users setup
 
 #### `signaling/ICEManager.js`
+
 - **Purpose**: Specialized ICE candidate handling
 - **Key Features**:
   - ICE candidate collection and exchange
@@ -69,6 +75,7 @@ The WebRTC system is now organized into several specialized modules:
 ### Feature Components
 
 #### `features/VoiceActivityDetection.js`
+
 - **Purpose**: Voice activity detection and speaking state management
 - **Key Features**:
   - Local VAD using Web Audio API
@@ -77,6 +84,7 @@ The WebRTC system is now organized into several specialized modules:
   - Signaling integration for remote VAD
 
 #### `features/PinManager.js`
+
 - **Purpose**: UI pin state management for user rectangles
 - **Key Features**:
   - Pin/unpin user functionality
@@ -85,6 +93,7 @@ The WebRTC system is now organized into several specialized modules:
   - Validation and error handling
 
 #### `features/HealthChecker.js`
+
 - **Purpose**: Continuous connection health monitoring
 - **Key Features**:
   - Periodic health checks
@@ -93,6 +102,7 @@ The WebRTC system is now organized into several specialized modules:
   - Recovery triggering
 
 #### `features/RecoveryManager.js`
+
 - **Purpose**: Automatic connection recovery
 - **Key Features**:
   - Multiple recovery strategies (ICE restart, renegotiation, full reconnection)
@@ -101,6 +111,7 @@ The WebRTC system is now organized into several specialized modules:
   - Strategy escalation
 
 #### `features/ScreenShareManager.js`
+
 - **Purpose**: Screen sharing functionality
 - **Key Features**:
   - Screen capture initiation
@@ -110,6 +121,7 @@ The WebRTC system is now organized into several specialized modules:
 ### Utility Components
 
 #### `utils/WebRTCUtils.js`
+
 - **Purpose**: General WebRTC utility functions
 - **Key Features**:
   - Browser compatibility checks
@@ -119,6 +131,7 @@ The WebRTC system is now organized into several specialized modules:
   - Error handling utilities
 
 #### `utils/MediaUtils.js`
+
 - **Purpose**: Media-specific utility functions
 - **Key Features**:
   - Optimal constraint generation
@@ -127,6 +140,7 @@ The WebRTC system is now organized into several specialized modules:
   - Audio filtering capabilities
 
 #### `utils/EventReceiver.js`
+
 - **Purpose**: External event handling and integration
 - **Key Features**:
   - Event routing and processing
@@ -137,6 +151,7 @@ The WebRTC system is now organized into several specialized modules:
 ### Configuration
 
 #### `config/constants.js`
+
 - **Purpose**: WebRTC configuration constants
 - **Key Features**:
   - ICE server configuration
@@ -144,6 +159,7 @@ The WebRTC system is now organized into several specialized modules:
   - Retry policies
 
 #### `config/mediaConstraints.js`
+
 - **Purpose**: Platform-specific media constraints
 - **Key Features**:
   - Web/Android/iOS optimized constraints
@@ -153,6 +169,7 @@ The WebRTC system is now organized into several specialized modules:
 ### Logging System
 
 #### `logging/WebRTCLogger.js`
+
 - **Purpose**: Centralized logging with importance levels
 - **Key Features**:
   - Configurable log levels (CRITICAL, ERROR, WARNING, INFO, DEBUG, VERBOSE)
@@ -161,6 +178,7 @@ The WebRTC system is now organized into several specialized modules:
   - Component-specific logging
 
 #### `logging/LogLevels.js`
+
 - **Purpose**: Log level constants and utilities
 
 ## Usage Examples
@@ -168,14 +186,22 @@ The WebRTC system is now organized into several specialized modules:
 ### Basic Initialization
 
 ```javascript
-import WebRTCManager from './webrtc/index.js';
+import WebRTCManager from "./webrtc/index.js";
 
 // Initialize with user and chat IDs
-const webrtc = new WebRTCManager('user123', 'chat456', {
-  onLocalStreamReady: (stream) => { /* handle stream */ },
-  onPeerConnectionStateChange: (userId, state) => { /* handle state change */ },
-  onParticipantLeft: (userId) => { /* handle participant leave */ },
-  onStreamUpdate: (userId, stream) => { /* handle stream update */ }
+const webrtc = new WebRTCManager("user123", "chat456", {
+  onLocalStreamReady: (stream) => {
+    /* handle stream */
+  },
+  onPeerConnectionStateChange: (userId, state) => {
+    /* handle state change */
+  },
+  onParticipantLeft: (userId) => {
+    /* handle participant leave */
+  },
+  onStreamUpdate: (userId, stream) => {
+    /* handle stream update */
+  },
 });
 
 // Start local media
@@ -183,8 +209,8 @@ await webrtc.startLocalStream(true); // audio only
 
 // Connect to a participant
 await webrtc.connectToNewParticipant({
-  from: 'user789',
-  handle: 'handle123'
+  from: "user789",
+  handle: "handle123",
 });
 ```
 
@@ -198,7 +224,7 @@ const speakingUsers = webrtc.getSpeakingUsers();
 webrtc.setSpeakingThreshold(0.02);
 
 // Listen for speaking events
-webrtc.on('speaking-started', (data) => {
+webrtc.on("speaking-started", (data) => {
   console.log(`User ${data.userId} started speaking`);
 });
 ```
@@ -207,10 +233,10 @@ webrtc.on('speaking-started', (data) => {
 
 ```javascript
 // Pin a user
-webrtc.pinUser('user789');
+webrtc.pinUser("user789");
 
 // Check pin status
-const isPinned = webrtc.isUserPinned('user789');
+const isPinned = webrtc.isUserPinned("user789");
 
 // Get pin history
 const history = webrtc.getPinHistory();
@@ -220,14 +246,14 @@ const history = webrtc.getPinHistory();
 
 ```javascript
 // Register custom event handlers
-webrtc.on('connection-state-change', (data) => {
+webrtc.on("connection-state-change", (data) => {
   console.log(`Connection to ${data.userId} changed to ${data.state}`);
 });
 
 // Process external socket events
 webrtc.processSocketEvent({
-  type: 'webrtc-offer',
-  data: { userId: 'user789', offer: sdpOffer }
+  type: "webrtc-offer",
+  data: { userId: "user789", offer: sdpOffer },
 });
 ```
 

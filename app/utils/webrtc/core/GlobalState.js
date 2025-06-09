@@ -1,4 +1,4 @@
-import logger from '../logging/WebRTCLogger.js';
+import logger from "../logging/WebRTCLogger.js";
 
 /**
  * Oggetto che contiene TUTTI i valori globali per WebRTC
@@ -20,7 +20,7 @@ class GlobalState {
     this.remoteStreams = {}; // { participantId: MediaStream }
     this.remoteScreenStreams = {}; // { participantId: { streamId: MediaStream } }
     this.remoteStreamMetadata = {}; // { participantId: { streamId: 'webcam'|'screenshare' } }
-    
+
     // Screen sharing
     this.screenStreams = {}; // { streamId: MediaStream }
     this.screenStreamCounter = 0;
@@ -39,7 +39,7 @@ class GlobalState {
     this.connectionTimestamps = {}; // Track connection attempt timestamps
     this.negotiationInProgress = {}; // Track ongoing negotiations
     this.reconnectionAttempts = {}; // Track number of reconnection attempts per peer
-    this.reconnectionTimeouts = {}; // Track reconnection timeouts  
+    this.reconnectionTimeouts = {}; // Track reconnection timeouts
     this.connectionHealthCheckers = {}; // Health check intervals per connection
     this.lastKnownGoodStates = {}; // Track last known good connection states
     this.iceCandidateQueues = {}; // Queue ICE candidates for early-arriving candidates
@@ -47,27 +47,28 @@ class GlobalState {
 
     // ===== PIN HISTORY =====
     this.pinHistory = []; // Array to track pin changes
-    
+
     // ===== HEALTH MONITORING =====
     this.healthStatus = {}; // Track health status per peer
     this.healthTimestamps = {}; // Track last health check timestamps
-    
+
     // ===== RECOVERY MANAGEMENT =====
     this.recoveryAttempts = {}; // Track recovery attempts per peer
     this.recoveryStrategies = {}; // Track which recovery strategies were used
-    
+
     // ===== VOICE ACTIVITY DETECTION EXTENDED =====
     this.vadInstances = {}; // Store VAD instances per user
     this.speakingThreshold = 0.01; // Default speaking threshold
     this.speakingHistory = {}; // Track speaking patterns per user
-      // ===== MEDIA CONSTRAINTS =====
+    // ===== MEDIA CONSTRAINTS =====
     this.currentConstraints = null; // Store current media constraints
     this.deviceCapabilities = null; // Store device capabilities
-    
+
     // ===== CALLBACKS =====
     this.callbacks = callbacks || {};
     this.onLocalStreamReady = callbacks.onLocalStreamReady || null;
-    this.onPeerConnectionStateChange = callbacks.onPeerConnectionStateChange || null;
+    this.onPeerConnectionStateChange =
+      callbacks.onPeerConnectionStateChange || null;
     this.onParticipantLeft = callbacks.onParticipantLeft || null;
     this.onStreamUpdate = callbacks.onStreamUpdate || null;
     this.onSpeakingStatusChange = null;
@@ -77,7 +78,7 @@ class GlobalState {
     this.eventHistory = []; // Track recent events for debugging
     this.maxEventHistory = 100; // Limit event history size
 
-    logger.info('GlobalState', 'Stato globale WebRTC inizializzato');
+    logger.info("GlobalState", "Stato globale WebRTC inizializzato");
   }
 
   // ===== METODI DI ACCESSO E MODIFICA =====
@@ -87,18 +88,26 @@ class GlobalState {
   initialize(myId, chatId, callbacks = {}) {
     this.myId = myId;
     this.chatId = chatId;
-    
+
     // Update callbacks object
     this.callbacks = callbacks;
-    
-    // Imposta callbacks se forniti
-    if (callbacks.onLocalStreamReady) this.onLocalStreamReady = callbacks.onLocalStreamReady;
-    if (callbacks.onPeerConnectionStateChange) this.onPeerConnectionStateChange = callbacks.onPeerConnectionStateChange;
-    if (callbacks.onParticipantLeft) this.onParticipantLeft = callbacks.onParticipantLeft;
-    if (callbacks.onStreamUpdate) this.onStreamUpdate = callbacks.onStreamUpdate;
-    if (callbacks.onSpeakingStatusChange) this.onSpeakingStatusChange = callbacks.onSpeakingStatusChange;
 
-    logger.info('GlobalState', `Stato inizializzato per utente ${myId} in chat ${chatId}`);
+    // Imposta callbacks se forniti
+    if (callbacks.onLocalStreamReady)
+      this.onLocalStreamReady = callbacks.onLocalStreamReady;
+    if (callbacks.onPeerConnectionStateChange)
+      this.onPeerConnectionStateChange = callbacks.onPeerConnectionStateChange;
+    if (callbacks.onParticipantLeft)
+      this.onParticipantLeft = callbacks.onParticipantLeft;
+    if (callbacks.onStreamUpdate)
+      this.onStreamUpdate = callbacks.onStreamUpdate;
+    if (callbacks.onSpeakingStatusChange)
+      this.onSpeakingStatusChange = callbacks.onSpeakingStatusChange;
+
+    logger.info(
+      "GlobalState",
+      `Stato inizializzato per utente ${myId} in chat ${chatId}`
+    );
   }
 
   /**
@@ -131,14 +140,14 @@ class GlobalState {
    * @param {boolean} preserveAudioContext - Se true, preserva l'audioContextRef durante la pulizia
    */
   cleanup(preserveAudioContext = false) {
-    logger.info('GlobalState', 'Inizio pulizia stato globale');
+    logger.info("GlobalState", "Inizio pulizia stato globale");
 
     // Clear timeouts e intervals
-    Object.values(this.reconnectionTimeouts).forEach(timeout => {
+    Object.values(this.reconnectionTimeouts).forEach((timeout) => {
       if (timeout) clearTimeout(timeout);
     });
 
-    Object.values(this.connectionHealthCheckers).forEach(checker => {
+    Object.values(this.connectionHealthCheckers).forEach((checker) => {
       if (checker) clearInterval(checker);
     });
 
@@ -189,7 +198,7 @@ class GlobalState {
     this.eventReceiver = null;
     this.eventHistory = [];
 
-    logger.info('GlobalState', 'Pulizia stato globale completata');
+    logger.info("GlobalState", "Pulizia stato globale completata");
   }
 
   // ===== METODI PER PEER CONNECTIONS =====
@@ -197,14 +206,17 @@ class GlobalState {
   addPeerConnection(participantId, peerConnection, userData) {
     this.peerConnections[participantId] = peerConnection;
     this.userData[participantId] = userData;
-    logger.debug('GlobalState', `Aggiunta peer connection per ${participantId}`);
+    logger.debug(
+      "GlobalState",
+      `Aggiunta peer connection per ${participantId}`
+    );
   }
 
   removePeerConnection(participantId) {
     delete this.peerConnections[participantId];
     delete this.userData[participantId];
     delete this.negotiationInProgress[participantId];
-    logger.debug('GlobalState', `Rimossa peer connection per ${participantId}`);
+    logger.debug("GlobalState", `Rimossa peer connection per ${participantId}`);
   }
 
   getPeerConnection(participantId) {
@@ -217,7 +229,10 @@ class GlobalState {
 
   setNegotiationInProgress(participantId, isInProgress) {
     this.negotiationInProgress[participantId] = isInProgress;
-    logger.debug('GlobalState', `Negotiation in progress per ${participantId}: ${isInProgress}`);
+    logger.debug(
+      "GlobalState",
+      `Negotiation in progress per ${participantId}: ${isInProgress}`
+    );
   }
   isNegotiationInProgress(participantId) {
     return this.negotiationInProgress[participantId] || false;
@@ -233,7 +248,7 @@ class GlobalState {
       return false; // Already in progress
     }
     this.negotiationInProgress[participantId] = true;
-    logger.debug('GlobalState', `Atomic negotiation set for ${participantId}`);
+    logger.debug("GlobalState", `Atomic negotiation set for ${participantId}`);
     return true;
   }
 
@@ -241,17 +256,17 @@ class GlobalState {
 
   setLocalStream(stream) {
     this.localStream = stream;
-    logger.debug('GlobalState', 'Local stream impostato');
+    logger.debug("GlobalState", "Local stream impostato");
   }
 
   addRemoteStream(participantId, stream) {
     this.remoteStreams[participantId] = stream;
-    logger.debug('GlobalState', `Remote stream aggiunto per ${participantId}`);
+    logger.debug("GlobalState", `Remote stream aggiunto per ${participantId}`);
   }
 
   removeRemoteStream(participantId) {
     delete this.remoteStreams[participantId];
-    logger.debug('GlobalState', `Remote stream rimosso per ${participantId}`);
+    logger.debug("GlobalState", `Remote stream rimosso per ${participantId}`);
   }
   /**
    * Add screen share - supports both old and new signatures
@@ -265,35 +280,43 @@ class GlobalState {
       const streamId = participantIdOrStreamId;
       const streamObj = streamIdOrStream;
       this.screenStreams[streamId] = streamObj;
-      logger.debug('GlobalState', `Screen share added to screenStreams: ${streamId}`);
+      logger.debug(
+        "GlobalState",
+        `Screen share added to screenStreams: ${streamId}`
+      );
     } else if (arguments.length === 3) {
       // New signature: addScreenShare(participantId, streamId, stream)
       const participantId = participantIdOrStreamId;
       const streamId = streamIdOrStream;
-      
+
       // Add to screenStreams
       this.screenStreams[streamId] = stream;
-      
+
       // Add to userData active_screen_share array
       if (!this.userData[participantId]) {
         this.userData[participantId] = {
           from: participantId,
-          active_screen_share: []
+          active_screen_share: [],
         };
       }
-      
+
       if (!Array.isArray(this.userData[participantId].active_screen_share)) {
         this.userData[participantId].active_screen_share = [];
       }
-      
+
       // Add to active_screen_share if not already present
-      if (!this.userData[participantId].active_screen_share.includes(streamId)) {
+      if (
+        !this.userData[participantId].active_screen_share.includes(streamId)
+      ) {
         this.userData[participantId].active_screen_share.push(streamId);
       }
-      
-      logger.debug('GlobalState', `Screen share added for participant ${participantId}: ${streamId}`);
+
+      logger.debug(
+        "GlobalState",
+        `Screen share added for participant ${participantId}: ${streamId}`
+      );
     } else {
-      logger.error('GlobalState', 'Invalid addScreenShare arguments');
+      logger.error("GlobalState", "Invalid addScreenShare arguments");
     }
   }
 
@@ -305,25 +328,35 @@ class GlobalState {
       // Old signature: removeScreenShare(streamId)
       const streamIdToRemove = participantIdOrStreamId;
       delete this.screenStreams[streamIdToRemove];
-      logger.debug('GlobalState', `Screen share removed from screenStreams: ${streamIdToRemove}`);
+      logger.debug(
+        "GlobalState",
+        `Screen share removed from screenStreams: ${streamIdToRemove}`
+      );
     } else if (arguments.length === 2) {
       // New signature: removeScreenShare(participantId, streamId)
       const participantId = participantIdOrStreamId;
-      
+
       // Remove from screenStreams
       delete this.screenStreams[streamId];
-      
+
       // Remove from userData active_screen_share array
-      if (this.userData[participantId] && Array.isArray(this.userData[participantId].active_screen_share)) {
-        const index = this.userData[participantId].active_screen_share.indexOf(streamId);
+      if (
+        this.userData[participantId] &&
+        Array.isArray(this.userData[participantId].active_screen_share)
+      ) {
+        const index =
+          this.userData[participantId].active_screen_share.indexOf(streamId);
         if (index !== -1) {
           this.userData[participantId].active_screen_share.splice(index, 1);
         }
       }
-      
-      logger.debug('GlobalState', `Screen share removed for participant ${participantId}: ${streamId}`);
+
+      logger.debug(
+        "GlobalState",
+        `Screen share removed for participant ${participantId}: ${streamId}`
+      );
     } else {
-      logger.error('GlobalState', 'Invalid removeScreenShare arguments');
+      logger.error("GlobalState", "Invalid removeScreenShare arguments");
     }
   }
 
@@ -333,7 +366,10 @@ class GlobalState {
    * @returns {Array<string>} Array of screen share stream IDs
    */
   getActiveScreenShares(participantId) {
-    if (!this.userData[participantId] || !Array.isArray(this.userData[participantId].active_screen_share)) {
+    if (
+      !this.userData[participantId] ||
+      !Array.isArray(this.userData[participantId].active_screen_share)
+    ) {
       return [];
     }
     return [...this.userData[participantId].active_screen_share];
@@ -353,7 +389,7 @@ class GlobalState {
    */
   setScreenStream(streamId, stream) {
     this.screenStreams[streamId] = stream;
-    logger.debug('GlobalState', `Screen stream impostato: ${streamId}`);
+    logger.debug("GlobalState", `Screen stream impostato: ${streamId}`);
   }
 
   /**
@@ -371,7 +407,7 @@ class GlobalState {
    */
   removeScreenStream(streamId) {
     delete this.screenStreams[streamId];
-    logger.debug('GlobalState', `Screen stream rimosso: ${streamId}`);
+    logger.debug("GlobalState", `Screen stream rimosso: ${streamId}`);
   }
 
   // ===== REMOTE SCREEN STREAMS METHODS =====
@@ -392,7 +428,10 @@ class GlobalState {
    */
   setRemoteScreenStreams(participantId, screenStreams) {
     this.remoteScreenStreams[participantId] = screenStreams;
-    logger.debug('GlobalState', `Remote screen streams impostati per ${participantId}`);
+    logger.debug(
+      "GlobalState",
+      `Remote screen streams impostati per ${participantId}`
+    );
   }
 
   /**
@@ -401,10 +440,16 @@ class GlobalState {
    * @param {string} streamId - Stream ID
    */
   removeRemoteScreenStream(participantId, streamId) {
-    if (this.remoteScreenStreams[participantId] && this.remoteScreenStreams[participantId][streamId]) {
+    if (
+      this.remoteScreenStreams[participantId] &&
+      this.remoteScreenStreams[participantId][streamId]
+    ) {
       delete this.remoteScreenStreams[participantId][streamId];
-      logger.debug('GlobalState', `Remote screen stream ${streamId} rimosso per ${participantId}`);
-      
+      logger.debug(
+        "GlobalState",
+        `Remote screen stream ${streamId} rimosso per ${participantId}`
+      );
+
       // Remove participant entry if no more streams
       if (Object.keys(this.remoteScreenStreams[participantId]).length === 0) {
         delete this.remoteScreenStreams[participantId];
@@ -425,7 +470,10 @@ class GlobalState {
       this.remoteStreamMetadata[participantId] = {};
     }
     this.remoteStreamMetadata[participantId][streamId] = streamType;
-    logger.debug('GlobalState', `Stream metadata impostato: ${participantId}/${streamId} = ${streamType}`);
+    logger.debug(
+      "GlobalState",
+      `Stream metadata impostato: ${participantId}/${streamId} = ${streamType}`
+    );
   }
 
   /**
@@ -443,10 +491,16 @@ class GlobalState {
    * @param {string} streamId - Stream ID
    */
   removeStreamMetadata(participantId, streamId) {
-    if (this.remoteStreamMetadata[participantId] && this.remoteStreamMetadata[participantId][streamId]) {
+    if (
+      this.remoteStreamMetadata[participantId] &&
+      this.remoteStreamMetadata[participantId][streamId]
+    ) {
       delete this.remoteStreamMetadata[participantId][streamId];
-      logger.debug('GlobalState', `Stream metadata rimosso: ${participantId}/${streamId}`);
-      
+      logger.debug(
+        "GlobalState",
+        `Stream metadata rimosso: ${participantId}/${streamId}`
+      );
+
       // Remove participant entry if no more metadata
       if (Object.keys(this.remoteStreamMetadata[participantId]).length === 0) {
         delete this.remoteStreamMetadata[participantId];
@@ -461,7 +515,10 @@ class GlobalState {
   removeAllStreamMetadata(participantId) {
     if (this.remoteStreamMetadata[participantId]) {
       delete this.remoteStreamMetadata[participantId];
-      logger.debug('GlobalState', `All stream metadata rimosso per ${participantId}`);
+      logger.debug(
+        "GlobalState",
+        `All stream metadata rimosso per ${participantId}`
+      );
     }
   }
 
@@ -472,7 +529,10 @@ class GlobalState {
   removeAllRemoteScreenStreams(participantId) {
     if (this.remoteScreenStreams[participantId]) {
       delete this.remoteScreenStreams[participantId];
-      logger.debug('GlobalState', `All remote screen streams rimossi per ${participantId}`);
+      logger.debug(
+        "GlobalState",
+        `All remote screen streams rimossi per ${participantId}`
+      );
     }
   }
 
@@ -484,13 +544,13 @@ class GlobalState {
     } else {
       this.speakingUsers.delete(userId);
     }
-    
+
     // Update userData if exists
     if (this.userData[userId]) {
       this.userData[userId].is_speaking = isSpeaking;
     }
 
-    logger.verbose('GlobalState', `User ${userId} speaking: ${isSpeaking}`);
+    logger.verbose("GlobalState", `User ${userId} speaking: ${isSpeaking}`);
   }
 
   isUserSpeaking(userId) {
@@ -505,12 +565,12 @@ class GlobalState {
 
   setPinnedUser(userId) {
     this.pinnedUserId = userId;
-    logger.debug('GlobalState', `Pinned user impostato: ${userId}`);
+    logger.debug("GlobalState", `Pinned user impostato: ${userId}`);
   }
 
   clearPin() {
     this.pinnedUserId = null;
-    logger.debug('GlobalState', 'Pin cleared');
+    logger.debug("GlobalState", "Pin cleared");
   }
 
   // ===== METODI PER CONNECTION TRACKING =====
@@ -518,12 +578,15 @@ class GlobalState {
     this.connectionStates[participantId] = "connecting";
     this.connectionTimestamps[participantId] = {
       initialized: Date.now(),
-      lastSignalingTransition: null
+      lastSignalingTransition: null,
     };
     this.reconnectionAttempts[participantId] = 0;
     this.lastKnownGoodStates[participantId] = null;
     this.iceCandidateQueues[participantId] = [];
-    logger.debug('GlobalState', `Connection tracking inizializzato per ${participantId}`);
+    logger.debug(
+      "GlobalState",
+      `Connection tracking inizializzato per ${participantId}`
+    );
   }
 
   clearConnectionTracking(participantId) {
@@ -544,7 +607,10 @@ class GlobalState {
       delete this.connectionHealthCheckers[participantId];
     }
 
-    logger.debug('GlobalState', `Connection tracking pulito per ${participantId}`);
+    logger.debug(
+      "GlobalState",
+      `Connection tracking pulito per ${participantId}`
+    );
   }
 
   // ===== METODI PER ICE CANDIDATE QUEUE =====
@@ -566,16 +632,19 @@ class GlobalState {
     if (!this.iceCandidateQueues[participantId]) {
       this.iceCandidateQueues[participantId] = [];
     }
-    
+
     // Add timestamp for ordered processing to prevent race conditions
     const queuedCandidate = {
       candidate,
       timestamp: Date.now(),
-      processed: false
+      processed: false,
     };
-    
+
     this.iceCandidateQueues[participantId].push(queuedCandidate);
-    logger.debug('GlobalState', `ICE candidate accodato per ${participantId}. Coda: ${this.iceCandidateQueues[participantId].length}`);
+    logger.debug(
+      "GlobalState",
+      `ICE candidate accodato per ${participantId}. Coda: ${this.iceCandidateQueues[participantId].length}`
+    );
   }
 
   /**
@@ -586,9 +655,10 @@ class GlobalState {
   getQueuedICECandidates(participantId) {
     const queue = this.iceCandidateQueues[participantId] || [];
     // Return only unprocessed candidates, sorted by timestamp
-    return queue.filter(item => !item.processed)
-                .sort((a, b) => a.timestamp - b.timestamp)
-                .map(item => item.candidate);
+    return queue
+      .filter((item) => !item.processed)
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .map((item) => item.candidate);
   }
 
   /**
@@ -608,14 +678,18 @@ class GlobalState {
   markICECandidateAsProcessed(participantId, candidate) {
     const queue = this.iceCandidateQueues[participantId];
     if (queue) {
-      const entry = queue.find(item => 
-        !item.processed && 
-        item.candidate.candidate === candidate.candidate &&
-        item.candidate.sdpMLineIndex === candidate.sdpMLineIndex
+      const entry = queue.find(
+        (item) =>
+          !item.processed &&
+          item.candidate.candidate === candidate.candidate &&
+          item.candidate.sdpMLineIndex === candidate.sdpMLineIndex
       );
       if (entry) {
         entry.processed = true;
-        logger.debug('GlobalState', `ICE candidate marcato come processato per ${participantId}`);
+        logger.debug(
+          "GlobalState",
+          `ICE candidate marcato come processato per ${participantId}`
+        );
       }
     }
   }
@@ -626,7 +700,10 @@ class GlobalState {
   clearQueuedICECandidates(participantId) {
     if (this.iceCandidateQueues[participantId]) {
       this.iceCandidateQueues[participantId] = [];
-      logger.debug('GlobalState', `Coda ICE candidates pulita per ${participantId}`);
+      logger.debug(
+        "GlobalState",
+        `Coda ICE candidates pulita per ${participantId}`
+      );
     }
   }
 
@@ -637,32 +714,35 @@ class GlobalState {
    * @param {string} participantId - ID del partecipante
    * @param {string} fromState - Stato precedente
    * @param {string} toState - Nuovo stato
-   */  recordSignalingStateTransition(participantId, fromState, toState) {
+   */ recordSignalingStateTransition(participantId, fromState, toState) {
     if (!this.connectionTimestamps[participantId]) {
       this.connectionTimestamps[participantId] = {
         initialized: Date.now(),
-        lastSignalingTransition: null
+        lastSignalingTransition: null,
       };
     }
-    
+
     // Handle legacy format where connectionTimestamps[participantId] might be a number
-    if (typeof this.connectionTimestamps[participantId] === 'number') {
+    if (typeof this.connectionTimestamps[participantId] === "number") {
       const legacyTimestamp = this.connectionTimestamps[participantId];
       this.connectionTimestamps[participantId] = {
         initialized: legacyTimestamp,
-        lastSignalingTransition: null
+        lastSignalingTransition: null,
       };
     }
-    
+
     const timestamp = Date.now();
     this.connectionTimestamps[participantId].lastSignalingTransition = {
       fromState,
       toState,
       timestamp,
-      transitionId: `${fromState}->${toState}-${timestamp}`
+      transitionId: `${fromState}->${toState}-${timestamp}`,
     };
-    
-    logger.debug('GlobalState', `Signaling state transition recorded for ${participantId}: ${fromState} -> ${toState}`);
+
+    logger.debug(
+      "GlobalState",
+      `Signaling state transition recorded for ${participantId}: ${fromState} -> ${toState}`
+    );
   }
 
   /**
@@ -676,8 +756,9 @@ class GlobalState {
     if (!timestamps || !timestamps.lastSignalingTransition) {
       return true;
     }
-    
-    const timeSinceLastTransition = Date.now() - timestamps.lastSignalingTransition.timestamp;
+
+    const timeSinceLastTransition =
+      Date.now() - timestamps.lastSignalingTransition.timestamp;
     return timeSinceLastTransition >= minIntervalMs;
   }
 
@@ -707,7 +788,7 @@ class GlobalState {
       hasLocalStream: !!this.localStream,
       pinnedUser: this.pinnedUserId,
       reconnectionAttempts: { ...this.reconnectionAttempts },
-      connectionStates: { ...this.connectionStates }
+      connectionStates: { ...this.connectionStates },
     };
   }
 
@@ -716,7 +797,7 @@ class GlobalState {
    */
   printStateReport() {
     const report = this.getStateReport();
-    logger.info('GlobalState', 'Report stato WebRTC:', report);
+    logger.info("GlobalState", "Report stato WebRTC:", report);
   }
 
   /**
@@ -726,24 +807,24 @@ class GlobalState {
     const event = {
       timestamp: Date.now(),
       type: eventType,
-      data: data
+      data: data,
     };
-    
+
     this.eventHistory.push(event);
-    
+
     // Keep only recent events
     if (this.eventHistory.length > this.maxEventHistory) {
       this.eventHistory.shift();
     }
   }
-  
+
   /**
    * Get recent event history
    */
   getEventHistory(limit = 10) {
     return this.eventHistory.slice(-limit);
   }
-  
+
   /**
    * Update health status for a peer
    */
@@ -751,17 +832,17 @@ class GlobalState {
     this.healthStatus[peerId] = status;
     this.healthTimestamps[peerId] = Date.now();
   }
-  
+
   /**
    * Get health status for a peer or all peers
    */
   getHealthStatus(peerId = null) {
     if (peerId) {
-      return this.healthStatus[peerId] || 'unknown';
+      return this.healthStatus[peerId] || "unknown";
     }
     return { ...this.healthStatus };
   }
-  
+
   /**
    * Track recovery attempt
    */
@@ -769,22 +850,22 @@ class GlobalState {
     if (!this.recoveryAttempts[peerId]) {
       this.recoveryAttempts[peerId] = [];
     }
-    
+
     this.recoveryAttempts[peerId].push({
       strategy,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
-    
+
     this.recoveryStrategies[peerId] = strategy;
   }
-  
+
   /**
    * Get recovery attempts for a peer
    */
   getRecoveryAttempts(peerId) {
     return this.recoveryAttempts[peerId] || [];
   }
-  
+
   /**
    * Update speaking history
    */
@@ -792,53 +873,53 @@ class GlobalState {
     if (!this.speakingHistory[userId]) {
       this.speakingHistory[userId] = [];
     }
-    
+
     this.speakingHistory[userId].push({
       isSpeaking,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
-    
+
     // Keep only recent history (last 50 events)
     if (this.speakingHistory[userId].length > 50) {
       this.speakingHistory[userId].shift();
     }
   }
-  
+
   /**
    * Get speaking pattern for a user
    */
   getSpeakingHistory(userId) {
     return this.speakingHistory[userId] || [];
   }
-  
+
   /**
    * Set device capabilities
    */
   setDeviceCapabilities(capabilities) {
     this.deviceCapabilities = capabilities;
   }
-  
+
   /**
    * Get device capabilities
    */
   getDeviceCapabilities() {
     return this.deviceCapabilities;
   }
-  
+
   /**
    * Set current media constraints
    */
   setCurrentConstraints(constraints) {
     this.currentConstraints = constraints;
   }
-  
+
   /**
    * Get current media constraints
    */
   getCurrentConstraints() {
     return this.currentConstraints;
   }
-  
+
   /**
    * Enhanced state report including new components
    */
@@ -847,32 +928,32 @@ class GlobalState {
       // Basic state
       myId: this.myId,
       chatId: this.chatId,
-      
+
       // Connections
       activeConnections: Object.keys(this.peerConnections).length,
       connectionStates: { ...this.connectionStates },
       healthStatus: { ...this.healthStatus },
-      
+
       // Streams
       hasLocalStream: !!this.localStream,
       remoteStreamCount: Object.keys(this.remoteStreams).length,
       screenStreamCount: Object.keys(this.screenStreams).length,
-      
+
       // Voice Activity
       speakingUsers: Array.from(this.speakingUsers),
       speakingThreshold: this.speakingThreshold,
-      
+
       // Pin Management
       pinnedUser: this.pinnedUserId,
       pinHistoryLength: this.pinHistory.length,
-      
+
       // System Health
       recoveryAttempts: Object.keys(this.recoveryAttempts).length,
       recentEvents: this.eventHistory.length,
-      
+
       // Capabilities
       deviceCapabilities: this.deviceCapabilities,
-      currentConstraints: this.currentConstraints
+      currentConstraints: this.currentConstraints,
     };
   }
 
@@ -884,14 +965,19 @@ class GlobalState {
    */
   executeCallback(callbackName, ...args) {
     const callback = this.getCallback(callbackName);
-    if (callback && typeof callback === 'function') {
+    if (callback && typeof callback === "function") {
       try {
         return callback(...args);
       } catch (error) {
-        logger.error('GlobalState', `Error executing callback ${callbackName}:`, error);
+        logger.error(
+          "GlobalState",
+          `Error executing callback ${callbackName}:`,
+          error
+        );
       }
     }
-    return null;  }
+    return null;
+  }
 
   /**
    * Regenerate global state with new parameters
@@ -899,32 +985,39 @@ class GlobalState {
   regenerate(myId, chatId, callbacks = {}) {
     // Store existing callbacks for restoration
     const existingCallbacks = { ...this.callbacks };
-    
-    logger.info('GlobalState', 'Regenerating global state with preserved audioContext:', {
-      hasAudioContextRef: !!this.audioContextRef,
-      audioContextType: typeof this.audioContextRef,
-      audioContextValue: this.audioContextRef
-    });
-    
+
+    logger.info(
+      "GlobalState",
+      "Regenerating global state with preserved audioContext:",
+      {
+        hasAudioContextRef: !!this.audioContextRef,
+        audioContextType: typeof this.audioContextRef,
+        audioContextValue: this.audioContextRef,
+      }
+    );
+
     // Clean up existing state (preserve audioContextRef during cleanup)
     this.cleanup(true);
-    
+
     // Set new core values
     this.myId = myId;
     this.chatId = chatId;
-    
+
     // Update callbacks if provided, otherwise restore existing
     if (callbacks && Object.keys(callbacks).length > 0) {
       this.callbacks = { ...callbacks };
     } else {
       this.callbacks = existingCallbacks;
     }
-    
-    logger.info('GlobalState', `Global state regenerated for user ${myId} in chat ${chatId}`);
+
+    logger.info(
+      "GlobalState",
+      `Global state regenerated for user ${myId} in chat ${chatId}`
+    );
   }
-  
+
   // ===== ICE TIMEOUT MANAGEMENT =====
-  
+
   /**
    * Set ICE gathering timeout for a participant
    * @param {string} participantId - ID del partecipante
@@ -1015,24 +1108,30 @@ class GlobalState {
         handle: handle,
         is_speaking: false,
         active_screen_share: [],
-        ...additionalData
+        ...additionalData,
       };
-      
-      logger.info('GlobalState', `Local user data initialized for ${myId} (${handle})`);
+
+      logger.info(
+        "GlobalState",
+        `Local user data initialized for ${myId} (${handle})`
+      );
     } else {
       // Update existing data without overwriting active_screen_share
       this.userData[myId] = {
         ...this.userData[myId],
         handle: handle,
-        ...additionalData
+        ...additionalData,
       };
-      
+
       // Ensure active_screen_share exists as array
       if (!Array.isArray(this.userData[myId].active_screen_share)) {
         this.userData[myId].active_screen_share = [];
       }
-      
-      logger.debug('GlobalState', `Local user data updated for ${myId} (${handle})`);
+
+      logger.debug(
+        "GlobalState",
+        `Local user data updated for ${myId} (${handle})`
+      );
     }
   }
 
@@ -1090,18 +1189,22 @@ class GlobalState {
    */
   getEventEmitter() {
     // This will be implemented when event emitter is properly integrated
-    return null;  }
+    return null;
+  }
 
   // ===== DEBUG FUNCTIONS =====
   debugAudioContextState() {
-    console.log('[GlobalState] Audio context state:', {
+    console.log("[GlobalState] Audio context state:", {
       audioContextRef: !!this.audioContextRef,
-      hasAddAudio: this.audioContextRef && typeof this.audioContextRef.addAudio === 'function',
-      hasRemoveAudio: this.audioContextRef && typeof this.audioContextRef.removeAudio === 'function',
-      audioContextType: typeof this.audioContextRef
+      hasAddAudio:
+        this.audioContextRef &&
+        typeof this.audioContextRef.addAudio === "function",
+      hasRemoveAudio:
+        this.audioContextRef &&
+        typeof this.audioContextRef.removeAudio === "function",
+      audioContextType: typeof this.audioContextRef,
     });
   }
-
 }
 
 export { GlobalState };

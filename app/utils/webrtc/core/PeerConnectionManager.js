@@ -1,9 +1,16 @@
-import { RTCPeerConnection, createMediaStream } from '../utils/compatibility.js';
-import { getWebRTCConfiguration } from '../config/configuration.js';
-import { WEBRTC_CONSTANTS } from '../config/constants.js';
-import { GlobalState } from './GlobalState.js';
-import logger from '../logging/WebRTCLogger.js';
-import { getPeerConnectionInfo, isConnectionHealthy, isConnectionFailed } from '../utils/helpers.js';
+import {
+  RTCPeerConnection,
+  createMediaStream,
+} from "../utils/compatibility.js";
+import { getWebRTCConfiguration } from "../config/configuration.js";
+import { WEBRTC_CONSTANTS } from "../config/constants.js";
+import { GlobalState } from "./GlobalState.js";
+import logger from "../logging/WebRTCLogger.js";
+import {
+  getPeerConnectionInfo,
+  isConnectionHealthy,
+  isConnectionFailed,
+} from "../utils/helpers.js";
 
 /**
  * Gestisce la creazione, configurazione e chiusura delle peer connections
@@ -12,7 +19,10 @@ class PeerConnectionManager {
   constructor(globalState) {
     this.configuration = getWebRTCConfiguration();
     this.globalState = globalState || new GlobalState();
-    logger.info('PeerConnectionManager', 'Inizializzato con configurazione WebRTC');
+    logger.info(
+      "PeerConnectionManager",
+      "Inizializzato con configurazione WebRTC"
+    );
   }
 
   /**
@@ -24,18 +34,24 @@ class PeerConnectionManager {
     const participantId = participant.from;
 
     if (this.globalState.getPeerConnection(participantId)) {
-      logger.warning('PeerConnectionManager', `Connessione peer per ${participantId} esiste già`);
+      logger.warning(
+        "PeerConnectionManager",
+        `Connessione peer per ${participantId} esiste già`
+      );
       return this.globalState.getPeerConnection(participantId);
     }
 
-    logger.info('PeerConnectionManager', `Creazione PeerConnection per ${participantId}`);
-    
+    logger.info(
+      "PeerConnectionManager",
+      `Creazione PeerConnection per ${participantId}`
+    );
+
     try {
       const pc = new RTCPeerConnection(this.configuration);
-      const userData = { 
-        handle: participant.handle, 
+      const userData = {
+        handle: participant.handle,
         from: participantId,
-        is_speaking: false
+        is_speaking: false,
       };
 
       // Salva nel global state
@@ -48,11 +64,17 @@ class PeerConnectionManager {
       // Aggiungi tracce locali se disponibili
       this._addLocalTracksIfAvailable(pc);
 
-      logger.info('PeerConnectionManager', `PeerConnection per ${participantId} creata con successo`);
+      logger.info(
+        "PeerConnectionManager",
+        `PeerConnection per ${participantId} creata con successo`
+      );
       return pc;
-
     } catch (error) {
-      logger.error('PeerConnectionManager', `Errore creazione PeerConnection per ${participantId}:`, error);
+      logger.error(
+        "PeerConnectionManager",
+        `Errore creazione PeerConnection per ${participantId}:`,
+        error
+      );
       this.globalState.removePeerConnection(participantId);
       return null;
     }
@@ -60,9 +82,9 @@ class PeerConnectionManager {
 
   /**
    * Configura gli event handlers per una peer connection
-   * @param {RTCPeerConnection} pc 
-   * @param {string} participantId 
-   */  _setupPeerConnectionEventHandlers(pc, participantId) {
+   * @param {RTCPeerConnection} pc
+   * @param {string} participantId
+   */ _setupPeerConnectionEventHandlers(pc, participantId) {
     // Use ICEManager for ICE-related events if available
     if (this.iceManager) {
       this.iceManager.setupICEEventHandlers(pc, participantId);
@@ -95,7 +117,10 @@ class PeerConnectionManager {
       this._handleSignalingStateChange(pc, participantId);
     };
 
-    logger.debug('PeerConnectionManager', `Event handlers configurati per ${participantId}`);
+    logger.debug(
+      "PeerConnectionManager",
+      `Event handlers configurati per ${participantId}`
+    );
   }
 
   /**
@@ -103,20 +128,27 @@ class PeerConnectionManager {
    */
   async _handleIceCandidate(event, participantId) {
     if (event.candidate) {
-      logger.debug('PeerConnectionManager', `ICE candidate generato per ${participantId}:`, {
-        type: event.candidate.type,
-        protocol: event.candidate.protocol
-      });
+      logger.debug(
+        "PeerConnectionManager",
+        `ICE candidate generato per ${participantId}:`,
+        {
+          type: event.candidate.type,
+          protocol: event.candidate.protocol,
+        }
+      );
 
       // Chiamata diretta a webSocketMethods.IceCandidate
-      const webSocketMethods = await import('../../webSocketMethods.js');
+      const webSocketMethods = await import("../../webSocketMethods.js");
       await webSocketMethods.default.IceCandidate({
         candidate: event.candidate.toJSON(),
         to: participantId,
         from: this.globalState.myId,
       });
     } else {
-      logger.debug('PeerConnectionManager', `ICE gathering completato per ${participantId}`);
+      logger.debug(
+        "PeerConnectionManager",
+        `ICE gathering completato per ${participantId}`
+      );
     }
   }
 
@@ -124,16 +156,20 @@ class PeerConnectionManager {
    * Gestisce tracce remote ricevute
    */
   _handleRemoteTrack(event, participantId) {
-    logger.info('PeerConnectionManager', `Traccia remota ricevuta da ${participantId}:`, {
-      kind: event.track.kind,
-      label: event.track.label,
-      id: event.track.id,
-      streams: event.streams.map(s => s.id)
-    });
+    logger.info(
+      "PeerConnectionManager",
+      `Traccia remota ricevuta da ${participantId}:`,
+      {
+        kind: event.track.kind,
+        label: event.track.label,
+        id: event.track.id,
+        streams: event.streams.map((s) => s.id),
+      }
+    );
 
     // Determina se è screen share o webcam
     const isScreenShare = this._isScreenShareTrack(event.track, event.streams);
-    
+
     if (isScreenShare) {
       this._handleScreenShareTrack(event, participantId);
     } else {
@@ -146,13 +182,18 @@ class PeerConnectionManager {
    */
   _isScreenShareTrack(track, streams) {
     const participantId = this._getCurrentParticipantFromTrack(track, streams);
-    
+
     // Controlla metadata
     if (this.globalState.remoteStreamMetadata[participantId]) {
-      for (const [metaStreamId, streamType] of Object.entries(this.globalState.remoteStreamMetadata[participantId])) {
+      for (const [metaStreamId, streamType] of Object.entries(
+        this.globalState.remoteStreamMetadata[participantId]
+      )) {
         if (streamType === "screenshare") {
           const eventStreamId = streams.length > 0 ? streams[0].id : track.id;
-          if (eventStreamId.includes(metaStreamId) || metaStreamId.includes("screen")) {
+          if (
+            eventStreamId.includes(metaStreamId) ||
+            metaStreamId.includes("screen")
+          ) {
             return true;
           }
         }
@@ -171,58 +212,103 @@ class PeerConnectionManager {
    * Gestisce tracce di screen sharing
    */
   _handleScreenShareTrack(event, participantId) {
-    const streamId = event.streams.length > 0 ? event.streams[0].id : `screen_${Date.now()}`;
-    
+    const streamId =
+      event.streams.length > 0 ? event.streams[0].id : `screen_${Date.now()}`;
+
     if (!this.globalState.remoteScreenStreams[participantId]) {
       this.globalState.remoteScreenStreams[participantId] = {};
-    }    if (!this.globalState.remoteScreenStreams[participantId][streamId]) {
-      this.globalState.remoteScreenStreams[participantId][streamId] = createMediaStream();
-    }this.globalState.remoteScreenStreams[participantId][streamId].addTrack(event.track);
-    logger.info('PeerConnectionManager', `Screen share track aggiunta: ${participantId}/${streamId}`);
+    }
+    if (!this.globalState.remoteScreenStreams[participantId][streamId]) {
+      this.globalState.remoteScreenStreams[participantId][streamId] =
+        createMediaStream();
+    }
+    this.globalState.remoteScreenStreams[participantId][streamId].addTrack(
+      event.track
+    );
+    logger.info(
+      "PeerConnectionManager",
+      `Screen share track aggiunta: ${participantId}/${streamId}`
+    );
 
     // IMPORTANT: Also update userData to include this screen share in active_screen_share array
-    this.globalState.addScreenShare(participantId, streamId, this.globalState.remoteScreenStreams[participantId][streamId]);
-    
-    logger.info('PeerConnectionManager', `Added screen share ${streamId} to userData for participant ${participantId}`);
+    this.globalState.addScreenShare(
+      participantId,
+      streamId,
+      this.globalState.remoteScreenStreams[participantId][streamId]
+    );
+
+    logger.info(
+      "PeerConnectionManager",
+      `Added screen share ${streamId} to userData for participant ${participantId}`
+    );
 
     // Setup track event handlers with screen share info
-    this._setupTrackEventHandlers(event.track, participantId, 'screenshare', streamId);
+    this._setupTrackEventHandlers(
+      event.track,
+      participantId,
+      "screenshare",
+      streamId
+    );
 
     // Emetti evento per UI
-    this._emitStreamEvent(participantId, this.globalState.remoteScreenStreams[participantId][streamId], 'screenshare', streamId);
+    this._emitStreamEvent(
+      participantId,
+      this.globalState.remoteScreenStreams[participantId][streamId],
+      "screenshare",
+      streamId
+    );
   }
 
   /**
    * Gestisce tracce webcam
-   */  _handleWebcamTrack(event, participantId) {
+   */ _handleWebcamTrack(event, participantId) {
     if (!this.globalState.remoteStreams[participantId]) {
       this.globalState.addRemoteStream(participantId, createMediaStream());
     }
 
     const stream = this.globalState.remoteStreams[participantId];
-    stream.addTrack(event.track);    // Gestisci audio tramite AudioContext se disponibile
-    logger.debug('PeerConnectionManager', `Checking audio context for ${participantId}:`, {
-      audioContextRef: !!this.globalState.audioContextRef,
-      audioTracks: stream.getAudioTracks().length,
-      trackKind: event.track.kind
-    });
-    
-    if (this.globalState.audioContextRef && stream.getAudioTracks().length > 0) {
-      logger.info('PeerConnectionManager', `Calling addAudio for ${participantId}`);
-      this.globalState.audioContextRef.addAudio(participantId, stream);
-    } else {
-      logger.warning('PeerConnectionManager', `Audio not added for ${participantId}:`, {
+    stream.addTrack(event.track); // Gestisci audio tramite AudioContext se disponibile
+    logger.debug(
+      "PeerConnectionManager",
+      `Checking audio context for ${participantId}:`,
+      {
         audioContextRef: !!this.globalState.audioContextRef,
         audioTracks: stream.getAudioTracks().length,
-        reason: !this.globalState.audioContextRef ? 'No audioContextRef' : 'No audio tracks'
-      });
+        trackKind: event.track.kind,
+      }
+    );
+
+    if (
+      this.globalState.audioContextRef &&
+      stream.getAudioTracks().length > 0
+    ) {
+      logger.info(
+        "PeerConnectionManager",
+        `Calling addAudio for ${participantId}`
+      );
+      this.globalState.audioContextRef.addAudio(participantId, stream);
+    } else {
+      logger.warning(
+        "PeerConnectionManager",
+        `Audio not added for ${participantId}:`,
+        {
+          audioContextRef: !!this.globalState.audioContextRef,
+          audioTracks: stream.getAudioTracks().length,
+          reason: !this.globalState.audioContextRef
+            ? "No audioContextRef"
+            : "No audio tracks",
+        }
+      );
     }
 
-    logger.info('PeerConnectionManager', `Webcam track aggiunta per ${participantId}`);    // Emetti evento per UI
-    this._emitStreamEvent(participantId, stream, 'webcam');
+    logger.info(
+      "PeerConnectionManager",
+      `Webcam track aggiunta per ${participantId}`
+    ); // Emetti evento per UI
+    this._emitStreamEvent(participantId, stream, "webcam");
 
     // Setup track event handlers
-    this._setupTrackEventHandlers(event.track, participantId, 'webcam');
+    this._setupTrackEventHandlers(event.track, participantId, "webcam");
   }
 
   /**
@@ -230,7 +316,7 @@ class PeerConnectionManager {
    */
   _emitStreamEvent(participantId, stream, streamType, streamId = null) {
     // Importa eventEmitter qui per evitare circular imports
-    import('../../EventEmitter.js').then(({ default: eventEmitter }) => {
+    import("../../EventEmitter.js").then(({ default: eventEmitter }) => {
       eventEmitter.emit("stream_added_or_updated", {
         participantId,
         stream,
@@ -248,35 +334,47 @@ class PeerConnectionManager {
   /**
    * Configura event handlers per le tracce
    */
-  _setupTrackEventHandlers(track, participantId = null, streamType = null, streamId = null) {
+  _setupTrackEventHandlers(
+    track,
+    participantId = null,
+    streamType = null,
+    streamId = null
+  ) {
     track.onended = () => {
-      logger.debug('PeerConnectionManager', 'Traccia remota terminata:', {
+      logger.debug("PeerConnectionManager", "Traccia remota terminata:", {
         trackId: track.id,
         participantId,
         streamType,
-        streamId
+        streamId,
       });
-      
+
       // If it's a screen share track that ended, remove it from userData
-      if (streamType === 'screenshare' && participantId && streamId) {
+      if (streamType === "screenshare" && participantId && streamId) {
         this.globalState.removeScreenShare(participantId, streamId);
-        logger.info('PeerConnectionManager', `Removed ended screen share ${streamId} from userData for participant ${participantId}`);
+        logger.info(
+          "PeerConnectionManager",
+          `Removed ended screen share ${streamId} from userData for participant ${participantId}`
+        );
       }
-      
+
       if (this.globalState.onStreamUpdate) {
         this.globalState.onStreamUpdate();
       }
     };
 
     track.onmute = () => {
-      logger.debug('PeerConnectionManager', 'Traccia remota mutata:', track.id);
+      logger.debug("PeerConnectionManager", "Traccia remota mutata:", track.id);
       if (this.globalState.onStreamUpdate) {
         this.globalState.onStreamUpdate();
       }
     };
 
     track.onunmute = () => {
-      logger.debug('PeerConnectionManager', 'Traccia remota smutata:', track.id);
+      logger.debug(
+        "PeerConnectionManager",
+        "Traccia remota smutata:",
+        track.id
+      );
       if (this.globalState.onStreamUpdate) {
         this.globalState.onStreamUpdate();
       }
@@ -288,7 +386,10 @@ class PeerConnectionManager {
    */
   _handleIceConnectionStateChange(pc, participantId) {
     const state = pc.iceConnectionState;
-    logger.info('PeerConnectionManager', `ICE connection state per ${participantId}: ${state}`);
+    logger.info(
+      "PeerConnectionManager",
+      `ICE connection state per ${participantId}: ${state}`
+    );
 
     // Aggiorna stato globale
     this.globalState.connectionStates[participantId] = state;
@@ -302,18 +403,27 @@ class PeerConnectionManager {
     switch (state) {
       case "connected":
       case "completed":
-        logger.info('PeerConnectionManager', `✅ Connessione a ${participantId} stabilita`);
+        logger.info(
+          "PeerConnectionManager",
+          `✅ Connessione a ${participantId} stabilita`
+        );
         this.globalState.lastKnownGoodStates[participantId] = Date.now();
         this.globalState.reconnectionAttempts[participantId] = 0;
         break;
 
       case "failed":
-        logger.warning('PeerConnectionManager', `❌ Connessione a ${participantId} fallita`);
+        logger.warning(
+          "PeerConnectionManager",
+          `❌ Connessione a ${participantId} fallita`
+        );
         this._triggerConnectionRecovery(participantId);
         break;
 
       case "disconnected":
-        logger.warning('PeerConnectionManager', `⚠️ Connessione a ${participantId} disconnessa`);
+        logger.warning(
+          "PeerConnectionManager",
+          `⚠️ Connessione a ${participantId} disconnessa`
+        );
         setTimeout(() => {
           if (pc.iceConnectionState === "disconnected") {
             this._triggerConnectionRecovery(participantId);
@@ -328,7 +438,10 @@ class PeerConnectionManager {
    */
   _handleConnectionStateChange(pc, participantId) {
     const state = pc.connectionState;
-    logger.debug('PeerConnectionManager', `Connection state per ${participantId}: ${state}`);
+    logger.debug(
+      "PeerConnectionManager",
+      `Connection state per ${participantId}: ${state}`
+    );
 
     if (state === "failed") {
       this._triggerConnectionRecovery(participantId);
@@ -340,7 +453,10 @@ class PeerConnectionManager {
    */
   _handleSignalingStateChange(pc, participantId) {
     const state = pc.signalingState;
-    logger.debug('PeerConnectionManager', `Signaling state per ${participantId}: ${state}`);
+    logger.debug(
+      "PeerConnectionManager",
+      `Signaling state per ${participantId}: ${state}`
+    );
   }
 
   /**
@@ -348,25 +464,36 @@ class PeerConnectionManager {
    */
   _handleIceGatheringStateChange(pc, participantId) {
     const state = pc.iceGatheringState;
-    logger.debug('PeerConnectionManager', `ICE gathering state per ${participantId}: ${state}`);
+    logger.debug(
+      "PeerConnectionManager",
+      `ICE gathering state per ${participantId}: ${state}`
+    );
   }
   /**
    * Aggiunge tracce locali a una peer connection
-   * @param {RTCPeerConnection} pc 
+   * @param {RTCPeerConnection} pc
    */
   _addLocalTracksIfAvailable(pc) {
     // Add local stream tracks (audio/video)
     if (this.globalState.localStream) {
       this.globalState.localStream.getTracks().forEach((track) => {
         // Evita duplicati
-        const already = pc.getSenders().find((s) => s.track && s.track.id === track.id);
+        const already = pc
+          .getSenders()
+          .find((s) => s.track && s.track.id === track.id);
         if (!already) {
           pc.addTrack(track, this.globalState.localStream);
-          logger.debug('PeerConnectionManager', `Traccia locale aggiunta: ${track.kind}`);
+          logger.debug(
+            "PeerConnectionManager",
+            `Traccia locale aggiunta: ${track.kind}`
+          );
         }
       });
     } else {
-      logger.debug('PeerConnectionManager', 'Nessun local stream disponibile per aggiungere tracce');
+      logger.debug(
+        "PeerConnectionManager",
+        "Nessun local stream disponibile per aggiungere tracce"
+      );
     }
 
     // Add screen share tracks
@@ -375,10 +502,15 @@ class PeerConnectionManager {
       if (screenStream && screenStream.getTracks) {
         screenStream.getTracks().forEach((track) => {
           // Evita duplicati
-          const already = pc.getSenders().find((s) => s.track && s.track.id === track.id);
+          const already = pc
+            .getSenders()
+            .find((s) => s.track && s.track.id === track.id);
           if (!already) {
             pc.addTrack(track, screenStream);
-            logger.debug('PeerConnectionManager', `Screen share track aggiunta: ${streamId}/${track.kind}`);
+            logger.debug(
+              "PeerConnectionManager",
+              `Screen share track aggiunta: ${streamId}/${track.kind}`
+            );
           }
         });
       }
@@ -387,10 +519,13 @@ class PeerConnectionManager {
 
   /**
    * Trigger per recovery della connessione
-   */  _triggerConnectionRecovery(participantId) {
+   */ _triggerConnectionRecovery(participantId) {
     // Importa RecoveryManager qui per evitare circular imports
-    import('../features/RecoveryManager.js').then(({ RecoveryManager }) => {
-      const recoveryManager = new RecoveryManager(this.globalState, this.logger);
+    import("../features/RecoveryManager.js").then(({ RecoveryManager }) => {
+      const recoveryManager = new RecoveryManager(
+        this.globalState,
+        this.logger
+      );
       recoveryManager.attemptConnectionRecovery(participantId);
     });
   }
@@ -405,19 +540,26 @@ class PeerConnectionManager {
 
   /**
    * Chiude una peer connection specifica
-   * @param {string} participantId 
+   * @param {string} participantId
    */
   closePeerConnection(participantId) {
     const pc = this.globalState.getPeerConnection(participantId);
     if (pc) {
-      logger.info('PeerConnectionManager', `Chiusura connessione con ${participantId}`);
-      
+      logger.info(
+        "PeerConnectionManager",
+        `Chiusura connessione con ${participantId}`
+      );
+
       try {
         pc.close();
       } catch (error) {
-        logger.error('PeerConnectionManager', `Errore chiusura peer connection per ${participantId}:`, error);
+        logger.error(
+          "PeerConnectionManager",
+          `Errore chiusura peer connection per ${participantId}:`,
+          error
+        );
       }
-      
+
       // Pulisci stream remoti
       const remoteStream = this.globalState.remoteStreams[participantId];
       if (remoteStream) {
@@ -434,7 +576,10 @@ class PeerConnectionManager {
         this.globalState.onParticipantLeft(participantId);
       }
 
-      logger.info('PeerConnectionManager', `Connessione con ${participantId} chiusa`);
+      logger.info(
+        "PeerConnectionManager",
+        `Connessione con ${participantId} chiusa`
+      );
     }
   }
 
@@ -442,13 +587,18 @@ class PeerConnectionManager {
    * Chiude tutte le peer connections
    */
   closeAllPeerConnections() {
-    logger.info('PeerConnectionManager', 'Chiusura di tutte le connessioni peer');    
-    const participantIds = Object.keys(this.globalState.getAllPeerConnections());
-    participantIds.forEach(participantId => {
+    logger.info(
+      "PeerConnectionManager",
+      "Chiusura di tutte le connessioni peer"
+    );
+    const participantIds = Object.keys(
+      this.globalState.getAllPeerConnections()
+    );
+    participantIds.forEach((participantId) => {
       this.closePeerConnection(participantId);
     });
 
-    logger.info('PeerConnectionManager', 'Tutte le connessioni peer chiuse');
+    logger.info("PeerConnectionManager", "Tutte le connessioni peer chiuse");
   }
 
   /**
@@ -458,10 +608,10 @@ class PeerConnectionManager {
     const connections = this.globalState.getAllPeerConnections();
     const report = {
       totalConnections: Object.keys(connections).length,
-      connections: {}
+      connections: {},
     };
 
-    Object.keys(connections).forEach(participantId => {
+    Object.keys(connections).forEach((participantId) => {
       report.connections[participantId] = this.getConnectionInfo(participantId);
     });
 
@@ -475,20 +625,22 @@ class PeerConnectionManager {
     // Questa è una implementazione semplificata
     // In una implementazione reale potresti aver bisogno di più logica
     // per determinare il participantId dalla traccia
-    
+
     // Per ora, cerca negli userData per corrispondenze di stream
-    for (const [participantId, userData] of Object.entries(this.globalState.userData)) {
+    for (const [participantId, userData] of Object.entries(
+      this.globalState.userData
+    )) {
       if (streams.length > 0) {
         // Potresti aver bisogno di logica più sofisticata qui
         return participantId;
       }
     }
-    
-    return 'unknown';
+
+    return "unknown";
   }
 }
 
 // Istanza singleton
-const peerConnectionManager = new PeerConnectionManager();  
+const peerConnectionManager = new PeerConnectionManager();
 
 export default peerConnectionManager;

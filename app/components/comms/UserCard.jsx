@@ -192,7 +192,7 @@ const UserCard = memo(
     // Add CSS animation on component mount for web
     useEffect(() => {
       addPulseAnimation();
-    }, []);    // Determina se è l'utente locale - memoizzato per evitare re-calcoli
+    }, []); // Determina se è l'utente locale - memoizzato per evitare re-calcoli
     const isLocalUser = useMemo(() => {
       return isScreenShare
         ? profile.from.includes(get.myPartecipantId()) // Per screen share, controlla se l'ID contiene il nostro ID
@@ -200,10 +200,10 @@ const UserCard = memo(
     }, [isScreenShare, profile.from]);
 
     // Check if current user is in comms - memoizzato per evitare re-calcoli
-    const userIsInComms = useMemo(() => check.isInComms(), []);    // Determina quale stream utilizzare - memoizzato per stabilità
+    const userIsInComms = useMemo(() => check.isInComms(), []); // Determina quale stream utilizzare - memoizzato per stabilità
     const streamToRender = useMemo(() => {
       if (!userIsInComms) return null;
-      
+
       if (isScreenShare && activeStream?.stream) {
         // For screen shares, ALWAYS use the activeStream.stream if available
         return activeStream.stream;
@@ -215,28 +215,48 @@ const UserCard = memo(
       } else if (get.remoteStreams()[profile.from]) {
         return get.remoteStreams()[profile.from];
       }
-      return null;    }, [userIsInComms, isScreenShare, activeStream?.stream, isLocalUser, profile.from, videoStreamKey, activeStream?.timestamp]);
-    
+      return null;
+    }, [
+      userIsInComms,
+      isScreenShare,
+      activeStream?.stream,
+      isLocalUser,
+      profile.from,
+      videoStreamKey,
+      activeStream?.timestamp,
+    ]);
+
     // Determina se ha video - memoizzato separatamente
     const hasVideo = useMemo(() => {
       return userIsInComms && streamToRender?.getVideoTracks().length > 0;
     }, [userIsInComms, streamToRender, videoStreamKey]);
-    
+
     // Memoizza i dati statici separatamente per evitare che cambino quando speaking cambia
     const staticDisplayName = useMemo(() => {
       return isScreenShare
         ? `${profile.handle || profile.from || "Unknown"} : Screen Share`
         : activeStream?.userData?.handle || profile.handle || "Loading...";
-    }, [isScreenShare, profile.handle, profile.from, activeStream?.userData?.handle]);
-    
+    }, [
+      isScreenShare,
+      profile.handle,
+      profile.from,
+      activeStream?.userData?.handle,
+    ]);
+
     const staticProfileImageUri = useMemo(() => {
       return isScreenShare
         ? null
         : activeStream?.userData?.profileImageUri || profile.profileImageUri;
-    }, [isScreenShare, activeStream?.userData?.profileImageUri, profile.profileImageUri]);
-    
+    }, [
+      isScreenShare,
+      activeStream?.userData?.profileImageUri,
+      profile.profileImageUri,
+    ]);
+
     const staticStreamType = useMemo(() => {
-      return activeStream?.streamType || (isScreenShare ? "screenshare" : "webcam");
+      return (
+        activeStream?.streamType || (isScreenShare ? "screenshare" : "webcam")
+      );
     }, [activeStream?.streamType, isScreenShare]);
 
     // Memoizza i valori per il componente VideoContent per prevenire re-render
@@ -251,9 +271,10 @@ const UserCard = memo(
         width,
         height,
         videoStreamKey,
-        userData: { ...((activeStream?.userData || profile) || {}) }, // Crea una copia per evitare riferimenti mutabili
+        userData: { ...(activeStream?.userData || profile || {}) }, // Crea una copia per evitare riferimenti mutabili
         streamType: staticStreamType,
-      }),      [
+      }),
+      [
         hasVideo,
         streamToRender,
         isLocalUser,

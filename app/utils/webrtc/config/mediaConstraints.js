@@ -1,4 +1,4 @@
-import { WEBRTC_CONSTANTS } from './constants.js';
+import { WEBRTC_CONSTANTS } from "./constants.js";
 
 /**
  * Media constraints for different scenarios
@@ -14,7 +14,7 @@ export const AUDIO_CONSTRAINTS = {
     channelCount: 1,
     sampleRate: 48000,
   },
-  
+
   // High quality audio
   HIGH_QUALITY: {
     echoCancellation: true,
@@ -24,7 +24,7 @@ export const AUDIO_CONSTRAINTS = {
     sampleRate: 48000,
     latency: 0.01, // 10ms latency
   },
-  
+
   // Audio only (no video)
   AUDIO_ONLY: {
     echoCancellation: true,
@@ -45,7 +45,7 @@ export const VIDEO_CONSTRAINTS = {
     aspectRatio: { ideal: 16 / 9 },
     frameRate: { ideal: 30, max: 30 },
   },
-  
+
   // High quality webcam
   WEBCAM_HD: {
     facingMode: "user",
@@ -54,7 +54,7 @@ export const VIDEO_CONSTRAINTS = {
     aspectRatio: { ideal: 16 / 9 },
     frameRate: { ideal: 30, max: 60 },
   },
-  
+
   // Low bandwidth video
   WEBCAM_LOW_BANDWIDTH: {
     facingMode: "user",
@@ -63,7 +63,7 @@ export const VIDEO_CONSTRAINTS = {
     aspectRatio: { ideal: 4 / 3 },
     frameRate: { ideal: 15, max: 24 },
   },
-  
+
   // Mobile optimized
   WEBCAM_MOBILE: {
     facingMode: "user",
@@ -82,22 +82,28 @@ export const SCREEN_SHARE_CONSTRAINTS = {
       width: { ideal: WEBRTC_CONSTANTS.SCREEN_SHARE_MAX_WIDTH },
       height: { ideal: WEBRTC_CONSTANTS.SCREEN_SHARE_MAX_HEIGHT },
       aspectRatio: { ideal: 16 / 9 },
-      frameRate: { ideal: WEBRTC_CONSTANTS.SCREEN_SHARE_MAX_FRAMERATE, max: 60 },
+      frameRate: {
+        ideal: WEBRTC_CONSTANTS.SCREEN_SHARE_MAX_FRAMERATE,
+        max: 60,
+      },
     },
     audio: true, // Include system audio if available
   },
-  
+
   // Android screen sharing (fallback to camera)
   ANDROID_FALLBACK: {
     video: {
       width: { ideal: 1920, min: 720 },
       height: { ideal: 1080, min: 480 },
-      frameRate: { ideal: WEBRTC_CONSTANTS.SCREEN_SHARE_MIN_FRAMERATE, min: 15 },
+      frameRate: {
+        ideal: WEBRTC_CONSTANTS.SCREEN_SHARE_MIN_FRAMERATE,
+        min: 15,
+      },
       facingMode: { ideal: "environment" }, // Back camera
     },
     audio: false, // Audio often causes issues on Android
   },
-  
+
   // Android native screen capture
   ANDROID_NATIVE: {
     video: {
@@ -110,7 +116,7 @@ export const SCREEN_SHARE_CONSTRAINTS = {
     },
     audio: false,
   },
-  
+
   // Low bandwidth screen sharing
   LOW_BANDWIDTH: {
     video: {
@@ -129,25 +135,25 @@ export const MEDIA_CONSTRAINTS = {
     audio: AUDIO_CONSTRAINTS.STANDARD,
     video: false,
   },
-  
+
   // Standard video call
   VIDEO_CALL_STANDARD: {
     audio: AUDIO_CONSTRAINTS.STANDARD,
     video: VIDEO_CONSTRAINTS.WEBCAM_STANDARD,
   },
-  
+
   // High quality video call
   VIDEO_CALL_HD: {
     audio: AUDIO_CONSTRAINTS.HIGH_QUALITY,
     video: VIDEO_CONSTRAINTS.WEBCAM_HD,
   },
-  
+
   // Mobile video call
   VIDEO_CALL_MOBILE: {
     audio: AUDIO_CONSTRAINTS.STANDARD,
     video: VIDEO_CONSTRAINTS.WEBCAM_MOBILE,
   },
-  
+
   // Low bandwidth call
   VIDEO_CALL_LOW_BANDWIDTH: {
     audio: AUDIO_CONSTRAINTS.AUDIO_ONLY,
@@ -164,7 +170,7 @@ export const SDP_OPTIONS = {
     voiceActivityDetection: true,
     iceRestart: false,
   },
-  
+
   // Offer with ICE restart
   OFFER_OPTIONS_ICE_RESTART: {
     offerToReceiveAudio: true,
@@ -172,7 +178,7 @@ export const SDP_OPTIONS = {
     voiceActivityDetection: true,
     iceRestart: true,
   },
-  
+
   // Answer options
   ANSWER_OPTIONS: {
     voiceActivityDetection: true,
@@ -182,36 +188,36 @@ export const SDP_OPTIONS = {
 /**
  * Get appropriate constraints based on platform and scenario
  */
-export function getConstraintsForPlatform(platform, scenario = 'standard') {
-  const isAndroid = platform === 'android';
-  const isWeb = platform === 'web';
-  const isIOS = platform === 'ios';
-  
+export function getConstraintsForPlatform(platform, scenario = "standard") {
+  const isAndroid = platform === "android";
+  const isWeb = platform === "web";
+  const isIOS = platform === "ios";
+
   switch (scenario) {
-    case 'audio_only':
+    case "audio_only":
       return MEDIA_CONSTRAINTS.AUDIO_ONLY;
-      
-    case 'video_standard':
+
+    case "video_standard":
       if (isAndroid) {
         return MEDIA_CONSTRAINTS.VIDEO_CALL_MOBILE;
       }
       return MEDIA_CONSTRAINTS.VIDEO_CALL_STANDARD;
-      
-    case 'video_hd':
+
+    case "video_hd":
       if (isAndroid) {
         return MEDIA_CONSTRAINTS.VIDEO_CALL_STANDARD;
       }
       return MEDIA_CONSTRAINTS.VIDEO_CALL_HD;
-      
-    case 'low_bandwidth':
+
+    case "low_bandwidth":
       return MEDIA_CONSTRAINTS.VIDEO_CALL_LOW_BANDWIDTH;
-      
-    case 'screen_share':
+
+    case "screen_share":
       if (isAndroid) {
         return SCREEN_SHARE_CONSTRAINTS.ANDROID_NATIVE;
       }
       return SCREEN_SHARE_CONSTRAINTS.WEB_STANDARD;
-      
+
     default:
       return MEDIA_CONSTRAINTS.AUDIO_ONLY;
   }
@@ -221,13 +227,13 @@ export function getConstraintsForPlatform(platform, scenario = 'standard') {
  * Get screen share constraints for platform
  */
 export function getScreenShareConstraints(platform) {
-  if (platform === 'android') {
+  if (platform === "android") {
     return {
       native: SCREEN_SHARE_CONSTRAINTS.ANDROID_NATIVE,
       fallback: SCREEN_SHARE_CONSTRAINTS.ANDROID_FALLBACK,
     };
   }
-  
+
   return {
     standard: SCREEN_SHARE_CONSTRAINTS.WEB_STANDARD,
     lowBandwidth: SCREEN_SHARE_CONSTRAINTS.LOW_BANDWIDTH,
@@ -242,5 +248,5 @@ export default {
   MEDIA_CONSTRAINTS,
   SDP_OPTIONS,
   getConstraintsForPlatform,
-  getScreenShareConstraints
+  getScreenShareConstraints,
 };

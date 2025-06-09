@@ -95,7 +95,7 @@ export default function Index() {
           <MaterialIcons name="arrow-forward" size={52} color={theme.icon} />
         </Pressable>
       </View>
-      <StatusBar style="light" backgroundColor={theme.backgroundClassic}/>
+      <StatusBar style="light" backgroundColor={theme.backgroundClassic} />
     </ScreenLayout>
   );
 }

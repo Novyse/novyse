@@ -38,7 +38,7 @@ export function getRTCOfferOptions() {
     offerToReceiveAudio: true,
     offerToReceiveVideo: true,
     iceRestart: false,
-    voiceActivityDetection: true
+    voiceActivityDetection: true,
   };
 }
 

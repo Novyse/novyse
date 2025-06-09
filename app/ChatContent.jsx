@@ -568,7 +568,6 @@ const ChatContent = ({
               end={{ x: 1, y: 1 }}
               style={styles.bottomTextBarContainer}
             >
-              
               <TextInput
                 style={styles.bottomBarTextInput}
                 placeholder="New message"

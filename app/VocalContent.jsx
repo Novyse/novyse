@@ -25,15 +25,21 @@ const VocalContent = ({ selectedChat, chatId }) => {
       audioContext: audioContext,
       hasAudioContext: !!audioContext,
       audioContextType: typeof audioContext,
-      addAudioExists: audioContext && typeof audioContext.addAudio === 'function',
-      removeAudioExists: audioContext && typeof audioContext.removeAudio === 'function'
+      addAudioExists:
+        audioContext && typeof audioContext.addAudio === "function",
+      removeAudioExists:
+        audioContext && typeof audioContext.removeAudio === "function",
     });
-    
+
     if (audioContext) {
-      console.log("[VocalContent] Calling set.audioContext with valid audioContext");
+      console.log(
+        "[VocalContent] Calling set.audioContext with valid audioContext"
+      );
       set.audioContext(audioContext);
     } else {
-      console.warn("[VocalContent] audioContext is null/undefined, not setting in WebRTC");
+      console.warn(
+        "[VocalContent] audioContext is null/undefined, not setting in WebRTC"
+      );
     }
   }, [audioContext]);
 
@@ -226,7 +232,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
     // Handle screen sharing streams differently
     if (streamType === "screenshare" && streamId) {
-      console.log(`[VocalContent] Processing screen share stream: ${streamId}`);      setActiveStreams((prev) => ({
+      console.log(`[VocalContent] Processing screen share stream: ${streamId}`);
+      setActiveStreams((prev) => ({
         ...prev,
         [streamId]: {
           stream,
@@ -240,7 +247,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       }));
 
       // For Android: Update video stream keys for screen shares
-      // IMPORTANT: Update for both video enabled AND disabled to force re-render  
+      // IMPORTANT: Update for both video enabled AND disabled to force re-render
       if (Platform.OS === "android") {
         setVideoStreamKeys((prev) => ({
           ...prev,
@@ -251,7 +258,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
       // Handle regular webcam streams
       console.log(
         `[VocalContent] Processing webcam stream for ${participantId}`
-      );      setActiveStreams((prev) => ({
+      );
+      setActiveStreams((prev) => ({
         ...prev,
         [participantId]: {
           stream,
@@ -263,7 +271,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
         },
       }));
 
-      // For Android: Update video stream keys for webcam streams 
+      // For Android: Update video stream keys for webcam streams
       // IMPORTANT: Update for both video enabled AND disabled to force re-render
       if (Platform.OS === "android") {
         setVideoStreamKeys((prev) => ({
