@@ -64,7 +64,7 @@ const VideoContent = memo(
   ({
     hasVideo,
     streamToRender,
-    isLocalUser,
+    isLocal,
     displayName,
     profileImageUri,
     width,
@@ -72,7 +72,11 @@ const VideoContent = memo(
     videoStreamKey,
     userData,
     streamType,
+    streamUUID,
   }) => {
+    // Use streamUUID for better key generation if available
+    const effectiveKey = videoStreamKey || streamUUID || "default";
+
     return (
       <View style={styles.videoContainer}>
         {hasVideo && streamToRender ? (
@@ -81,14 +85,14 @@ const VideoContent = memo(
             {Platform.OS === "web" ? (
               <>
                 <RTCView
-                  key={`bg-${videoStreamKey || "default"}`}
+                  key={`bg-${effectiveKey}`}
                   stream={streamToRender}
                   style={[
                     styles.videoStream,
                     styles.blurredBackground,
                     { objectFit: "cover" },
                   ]}
-                  muted={isLocalUser}
+                  muted={isLocal}
                 />
                 {/* Overlay per migliorare il contrasto del blur su web */}
                 <View
@@ -108,10 +112,10 @@ const VideoContent = memo(
               <View style={styles.blurredBackground}>
                 <>
                   <RTCView
-                    key={`bg-mobile-${videoStreamKey || "default"}`}
+                    key={`bg-mobile-${effectiveKey}`}
                     streamURL={streamToRender.toURL()}
                     style={[styles.videoStream, { objectFit: "cover" }]}
-                    muted={isLocalUser}
+                    muted={isLocal}
                   />
                   <BlurView
                     experimentalBlurMethod="dimezisBlurView"
@@ -142,17 +146,17 @@ const VideoContent = memo(
             )}
             {Platform.OS === "web" ? (
               <RTCView
-                key={`main-${videoStreamKey || "default"}`}
+                key={`main-${effectiveKey}`}
                 stream={streamToRender}
                 style={[styles.videoStreamMain, { objectFit: "contain" }]}
-                muted={isLocalUser}
+                muted={isLocal}
               />
             ) : (
               <RTCView
-                key={`main-mobile-${videoStreamKey || "default"}`}
+                key={`main-mobile-${effectiveKey}`}
                 streamURL={streamToRender.toURL()}
                 style={[styles.videoStreamMain, { objectFit: "contain" }]}
-                muted={isLocalUser}
+                muted={isLocal}
               />
             )}
           </View>
@@ -175,7 +179,9 @@ VideoContent.displayName = "VideoContent";
 // Usa React.memo per evitare re-render se le sue prop non cambiano
 const UserCard = memo(
   ({
+    streamUUID,
     profile,
+    isLocal = false,
     activeStream,
     isSpeaking = false,
     width,
@@ -187,17 +193,26 @@ const UserCard = memo(
     onPin,
     pinDisabled,
   }) => {
-    const { theme } = useContext(ThemeContext);
-
-    // Add CSS animation on component mount for web
+    const { theme } = useContext(ThemeContext); // Add CSS animation on component mount for web
     useEffect(() => {
       addPulseAnimation();
-    }, []); // Determina se è l'utente locale - memoizzato per evitare re-calcoli
-    const isLocalUser = useMemo(() => {
-      return isScreenShare
-        ? profile.from.includes(get.myPartecipantId()) // Per screen share, controlla se l'ID contiene il nostro ID
-        : profile.from === get.myPartecipantId();
-    }, [isScreenShare, profile.from]);
+    }, []);
+
+    // Debug logging for streamUUID tracking
+    useEffect(() => {
+      if (streamUUID) {
+        console.log(
+          `[UserCard] Rendering component for streamUUID: ${streamUUID}`,
+          {
+            isScreenShare,
+            isLocal,
+            hasActiveStream: !!activeStream,
+            profileFrom: profile?.from,
+            streamType: activeStream?.streamType,
+          }
+        );
+      }
+    }, [streamUUID, isScreenShare, isLocal, activeStream, profile?.from]);
 
     // Check if current user is in comms - memoizzato per evitare re-calcoli
     const userIsInComms = useMemo(() => check.isInComms(), []); // Determina quale stream utilizzare - memoizzato per stabilità
@@ -207,7 +222,7 @@ const UserCard = memo(
       if (isScreenShare && activeStream?.stream) {
         // For screen shares, ALWAYS use the activeStream.stream if available
         return activeStream.stream;
-      } else if (isLocalUser) {
+      } else if (isLocal) {
         // For local users, prefer activeStream if available (for better re-rendering), fallback to get.localStream()
         return activeStream?.stream || get.localStream();
       } else if (activeStream?.stream) {
@@ -220,7 +235,7 @@ const UserCard = memo(
       userIsInComms,
       isScreenShare,
       activeStream?.stream,
-      isLocalUser,
+      isLocal,
       profile.from,
       videoStreamKey,
       activeStream?.timestamp,
@@ -257,32 +272,32 @@ const UserCard = memo(
       return (
         activeStream?.streamType || (isScreenShare ? "screenshare" : "webcam")
       );
-    }, [activeStream?.streamType, isScreenShare]);
-
-    // Memoizza i valori per il componente VideoContent per prevenire re-render
+    }, [activeStream?.streamType, isScreenShare]); // Memoizza i valori per il componente VideoContent per prevenire re-render
     // Nota: Escludiamo deliberatamente profile e activeStream dalle dipendenze per evitare re-render quando speaking cambia
     const videoProps = useMemo(
       () => ({
         hasVideo,
         streamToRender,
-        isLocalUser,
+        isLocal,
         displayName: staticDisplayName,
         profileImageUri: staticProfileImageUri,
         width,
         height,
-        videoStreamKey,
+        videoStreamKey: videoStreamKey || streamUUID, // Use streamUUID as fallback for videoStreamKey
         userData: { ...(activeStream?.userData || profile || {}) }, // Crea una copia per evitare riferimenti mutabili
         streamType: staticStreamType,
+        streamUUID, // Pass streamUUID to VideoContent for debugging
       }),
       [
         hasVideo,
         streamToRender,
-        isLocalUser,
+        isLocal,
         staticDisplayName,
         staticProfileImageUri,
         width,
         height,
         videoStreamKey,
+        streamUUID,
         staticStreamType,
         activeStream?.timestamp, // Add timestamp to force re-render when stream updates
       ]
@@ -329,13 +344,21 @@ const UserCard = memo(
           strokeWidth={1.5}
         />
       </TouchableOpacity>
-    );
-    // Componente del pulsante stop screen share (solo per screen share locali)
+    ); // Componente del pulsante stop screen share (solo per screen share locali)
     const StopScreenShareButton = () => {
       const handleStopScreenShare = async () => {
         try {
-          if (activeStream?.streamId) {
-            await self.stopScreenShare(activeStream.streamId);
+          // Use the streamUUID prop first, fallback to activeStream.streamUUID
+          const uuidToStop = streamUUID || activeStream?.streamUUID;
+          if (uuidToStop) {
+            console.log(
+              `[UserCard] Stopping screen share with UUID: ${uuidToStop}`
+            );
+            await self.stopScreenShare(uuidToStop);
+          } else {
+            console.error(
+              "[UserCard] No streamUUID available to stop screen share"
+            );
           }
         } catch (error) {
           console.error("Error stopping screen share:", error);
@@ -353,8 +376,11 @@ const UserCard = memo(
       );
     }; // Determina se mostrare il pulsante stop screen share
     const shouldShowStopButton =
-      isScreenShare && isLocalUser && !!activeStream?.streamId;
+      isLocal && isScreenShare && (!!streamUUID || !!activeStream?.streamUUID);
 
+    console.log(
+      `[UserCard] shouldShowStopButton: ${shouldShowStopButton}, isLocal: ${isLocal}, isScreenShare: ${isScreenShare}, streamUUID: ${streamUUID}, activeStreamUUID: ${activeStream?.streamUUID}`
+    );
     return (
       <View
         style={[

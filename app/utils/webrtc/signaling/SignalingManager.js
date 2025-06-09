@@ -59,20 +59,37 @@ export class SignalingManager {
 
       const offer = await pc.createOffer(SDP_OPTIONS.OFFER_OPTIONS);
       await pc.setLocalDescription(offer);
-
       this.logger.info(`Offerta creata e impostata per ${participantId}`, {
         component: "SignalingManager",
         participantId,
         sdpType: offer.type,
-      }); // Invia tramite Socket usando direttamente webSocketMethods.RTCOffer
-      await webSocketMethods.RTCOffer({
-        offer: offer.toJSON
-          ? offer.toJSON()
-          : { sdp: offer.sdp, type: offer.type },
-        to: participantId,
-        from: this.globalState.getMyId(),
-        chat: this.globalState.getChatId(),
       });
+
+      // Invia tramite Socket con retry mechanism
+      const success = await this._sendWithRetry(
+        () =>
+          webSocketMethods.RTCOffer({
+            offer: offer.toJSON
+              ? offer.toJSON()
+              : { sdp: offer.sdp, type: offer.type },
+            to: participantId,
+            from: this.globalState.getMyId(),
+            chat: this.globalState.getChatId(),
+          }),
+        `RTCOffer to ${participantId}`,
+        3
+      );
+
+      if (!success) {
+        this.logger.error(
+          `Failed to send offer to ${participantId} after retries`,
+          {
+            component: "SignalingManager",
+            participantId,
+          }
+        );
+        throw new Error(`Failed to send offer to ${participantId}`);
+      }
 
       return offer;
     } catch (error) {
@@ -138,21 +155,38 @@ export class SignalingManager {
         "creating-answer",
         pc.signalingState
       );
-
       this.logger.info(`Risposta creata e impostata per ${participantId}`, {
         component: "SignalingManager",
         participantId,
         sdpType: answer.type,
         newSignalingState: pc.signalingState,
-      }); // Invia tramite WebSocket usando direttamente webSocketMethods.RTCAnswer
-      await webSocketMethods.RTCAnswer({
-        answer: answer.toJSON
-          ? answer.toJSON()
-          : { sdp: answer.sdp, type: answer.type },
-        to: participantId,
-        from: this.globalState.getMyId(),
-        chat: this.globalState.getChatId(),
       });
+
+      // Invia tramite WebSocket con retry mechanism
+      const success = await this._sendWithRetry(
+        () =>
+          webSocketMethods.RTCAnswer({
+            answer: answer.toJSON
+              ? answer.toJSON()
+              : { sdp: answer.sdp, type: answer.type },
+            to: participantId,
+            from: this.globalState.getMyId(),
+            chat: this.globalState.getChatId(),
+          }),
+        `RTCAnswer to ${participantId}`,
+        3
+      );
+
+      if (!success) {
+        this.logger.error(
+          `Failed to send answer to ${participantId} after retries`,
+          {
+            component: "SignalingManager",
+            participantId,
+          }
+        );
+        throw new Error(`Failed to send answer to ${participantId}`);
+      }
 
       return answer;
     } catch (error) {
@@ -634,10 +668,11 @@ export class SignalingManager {
           continue;
         }
 
-        // Crea connessione peer per utente esistente
+        // Crea connessione peer per utente esistente, passando l'intero oggetto 'user' come userData
         const pc = this.peerConnectionManager.createPeerConnection({
           from: participantId,
           handle: user.handle || participantId,
+          userData: user, // Passa l'intero oggetto user come userData
         });
 
         if (pc) {
@@ -648,11 +683,53 @@ export class SignalingManager {
               participantId,
             }
           );
+
+          // Processa active_screen_share dall'oggetto user (ora in globalState.userData[participantId])
+          // Questo è analogo a come VocalContent identifica gli screen share esistenti
+          if (
+            user.active_screen_share &&
+            Array.isArray(user.active_screen_share)
+          ) {
+            user.active_screen_share.forEach((screenShareUUID) => {
+              if (
+                typeof screenShareUUID === "string" &&
+                screenShareUUID.length > 0
+              ) {
+                // Set metadata
+                this.globalState.setStreamMetadata(
+                  participantId,
+                  screenShareUUID,
+                  "screenshare"
+                );
+
+                // IMPORTANT: Also add to userData.active_screen_share array
+                this.globalState.addScreenShare(participantId, screenShareUUID);
+
+                this.logger.info(
+                  `Registrato screen share ${screenShareUUID} preesistente per l'utente ${participantId}.`,
+                  {
+                    component: "SignalingManager",
+                    participantId,
+                    screenShareUUID,
+                  }
+                );
+              } else {
+                this.logger.warn(
+                  `Trovato screenShareUUID non valido nei dati utente preesistente per ${participantId}`,
+                  {
+                    component: "SignalingManager",
+                    participantId,
+                    screenShareUUID_received: screenShareUUID,
+                  }
+                );
+              }
+            });
+          }
         }
       }
 
       this.logger.info(
-        `Connessioni create per ${existingUsers.length} utenti esistenti`,
+        `Connessioni create e screen share preesistenti processati per ${existingUsers.length} utenti.`,
         {
           component: "SignalingManager",
           usersCount: existingUsers.length,
@@ -780,9 +857,97 @@ export class SignalingManager {
         }
       }
 
-      // Pulisci la coda
-      this.globalState.clearQueuedICECandidates(participantId);
+      // Pulisci la coda    this.globalState.clearQueuedICECandidates(participantId);
     }
+  }
+
+  /**
+   * Sends a WebSocket message with retry mechanism
+   * @param {Function} sendFunction - Function that performs the send operation
+   * @param {string} operationName - Name of the operation for logging
+   * @param {number} maxRetries - Maximum number of retry attempts
+   * @returns {Promise<boolean>} True if message sent successfully
+   * @private
+   */
+  async _sendWithRetry(sendFunction, operationName, maxRetries = 3) {
+    const webSocketMethods = await import("../../webSocketMethods.js");
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Check if WebSocket is connected
+        if (!webSocketMethods.default.isWebSocketOpen()) {
+          this.logger.warn(
+            `WebSocket not connected for ${operationName}, attempt ${attempt}/${maxRetries}`,
+            {
+              component: "SignalingManager",
+              operation: operationName,
+              attempt,
+            }
+          );
+
+          // Wait for a short time before retrying
+          if (attempt < maxRetries) {
+            await this._wait(Math.min(1000 * attempt, 5000)); // Exponential backoff, max 5s
+            continue;
+          } else {
+            return false;
+          }
+        }
+
+        // Try to send the message
+        const result = await sendFunction();
+
+        // If webSocketMethods returns false, treat as failure
+        if (result === false) {
+          throw new Error("WebSocket send returned false");
+        }
+
+        this.logger.debug(
+          `${operationName} sent successfully on attempt ${attempt}`,
+          {
+            component: "SignalingManager",
+            operation: operationName,
+            attempt,
+          }
+        );
+
+        return true;
+      } catch (error) {
+        this.logger.warn(
+          `${operationName} failed on attempt ${attempt}/${maxRetries}: ${error.message}`,
+          {
+            component: "SignalingManager",
+            operation: operationName,
+            attempt,
+            error: error.message,
+          }
+        );
+
+        if (attempt < maxRetries) {
+          // Wait before retrying with exponential backoff
+          const backoffTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+          await this._wait(backoffTime);
+        }
+      }
+    }
+
+    this.logger.error(`${operationName} failed after ${maxRetries} attempts`, {
+      component: "SignalingManager",
+      operation: operationName,
+      maxRetries,
+    });
+
+    return false;
+  }
+
+  /**
+   * Wait utility function
+   * @param {number} ms - Milliseconds to wait
+   * @returns {Promise<void>}
+   * @private
+   */
+  _wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**

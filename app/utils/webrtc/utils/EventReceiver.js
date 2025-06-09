@@ -132,7 +132,7 @@ class WebRTCEventReceiver {
         this.voiceActivityDetection.setSpeakingState(data.from, false);
       }
     }
-  } // Screen Sharing Handlers
+  }  // Screen Sharing Handlers
   async handleScreenShareStarted(data) {
     if (
       data.from !== this.globalState.myId &&
@@ -142,13 +142,27 @@ class WebRTCEventReceiver {
 
       // For remote screen shares, we don't need to create a stream,
       // just update the userData to indicate the remote user has an active screen share
-      if (data.streamId && data.from) {
+      if (data.screenShareUUID && data.from) {
         // Add the screen share to remote user's userData
-        this.globalState.addScreenShare(data.from, data.streamId, null);
+        this.globalState.addScreenShare(data.from, data.screenShareUUID, null);
 
         this.logger?.info(
-          `[EventReceiver] Added remote screen share ${data.streamId} for user ${data.from}`
+          `[EventReceiver] Added remote screen share ${data.screenShareUUID} for user ${data.from}`
         );
+
+        // Also emit the screen_share_started event for VocalContent to handle UI creation
+        // This ensures the placeholder rectangle is created even before the media track arrives
+        if (this.globalState.eventEmitter) {
+          this.globalState.eventEmitter.emit("screen_share_started", {
+            from: data.from,
+            screenShareUUID: data.screenShareUUID,
+            chatId: data.chat_id,
+          });
+          
+          this.logger?.info(
+            `[EventReceiver] Emitted screen_share_started event for ${data.from}/${data.screenShareUUID}`
+          );
+        }
       }
 
       if (this.globalState.getChatId() === data.chat_id) {
@@ -156,6 +170,7 @@ class WebRTCEventReceiver {
       }
     }
   }
+  
   async handleScreenShareStopped(data) {
     if (
       data.from !== this.globalState.myId &&
@@ -164,12 +179,39 @@ class WebRTCEventReceiver {
       this.logger?.info(`[EventReceiver] Remote screen share stopped:`, data);
 
       // For remote screen shares, remove from userData
-      if (data.streamId && data.from) {
-        this.pinManager.clearPinIfId(data.streamId);
-        this.globalState.removeScreenShare(data.from, data.streamId);
+      if (data.screenShareUUID && data.from) {
+        this.pinManager.clearPinIfId(data.screenShareUUID);
+        this.globalState.removeScreenShare(data.from, data.screenShareUUID);
+
+        // Also remove the actual stream if it exists
+        if (this.globalState.remoteScreenStreams[data.from] && 
+            this.globalState.remoteScreenStreams[data.from][data.screenShareUUID]) {
+          const stream = this.globalState.remoteScreenStreams[data.from][data.screenShareUUID];
+          if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+          }
+          delete this.globalState.remoteScreenStreams[data.from][data.screenShareUUID];
+          
+          this.logger?.info(
+            `[EventReceiver] Cleaned up remote screen stream for ${data.from}/${data.screenShareUUID}`
+          );
+        }
+
+        // Emit the screen_share_stopped event for VocalContent to handle UI cleanup
+        if (this.globalState.eventEmitter) {
+          this.globalState.eventEmitter.emit("screen_share_stopped", {
+            from: data.from,
+            screenShareUUID: data.screenShareUUID,
+            chatId: data.chat_id,
+          });
+          
+          this.logger?.info(
+            `[EventReceiver] Emitted screen_share_stopped event for ${data.from}/${data.screenShareUUID}`
+          );
+        }
 
         this.logger?.info(
-          `[EventReceiver] Removed remote screen share ${data.streamId} for user ${data.from}`
+          `[EventReceiver] Removed remote screen share ${data.screenShareUUID} for user ${data.from}`
         );
       }
 

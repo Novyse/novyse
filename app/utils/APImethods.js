@@ -235,17 +235,17 @@ const APIMethods = {
       const response = await api.get(
         `/comms/screen_share/start?chat_id=${chatId}`
       );
-      return response.data; // ritorna screen_share_started : true/false e screen_share_id : response.data.screen_share_id
+      return response.data; // ritorna screen_share_started : true/false e screen_share_uuid
     } catch (error) {
       console.error("Error in startStream:", error);
       throw error;
     }
   },
 
-  async stopScreenShare(chatId, screenShareId) {
+  async stopScreenShare(chatId, screenShareUUID) {
     try {
       const response = await api.get(
-        `/comms/screen_share/stop?chat_id=${chatId}&screen_share_id=${screenShareId}`
+        `/comms/screen_share/stop?chat_id=${chatId}&screen_share_uuid=${screenShareUUID}`
       );
       return response.data; // ritorna screen_share_stopped : true/false
     } catch (error) {

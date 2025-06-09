@@ -316,9 +316,7 @@ export class StreamManager {
       track.label.includes("screen") ||
       track.label.includes("Screen") ||
       track.id.includes("screen") ||
-      (streams.length > 0 && streams[0].id && streams[0].id.includes("screen"));
-
-    // Log screen share detection status for debugging
+      (streams.length > 0 && streams[0].id && streams[0].id.includes("screen")); // Log screen share detection status for debugging
     if (hasActiveScreenShare) {
       this.logger.info(
         "StreamManager",
@@ -334,14 +332,28 @@ export class StreamManager {
       );
     }
 
-    // CRITICAL PART: If this user has active_screen_share entries AND this looks like a screen share track,
-    // bypass regular identification and directly handle it as a screen share
+    // FIXED LOGIC: Only treat as screen share if track CLEARLY looks like screen share
+    // AND user has active screen shares. Don't force webcam tracks to be screen shares!
     if (hasActiveScreenShare && looksLikeScreenShare) {
-      const activeScreenShareId =
-        this.globalState.userData[participantId].active_screen_share[0];
       this.logger.info(
         "StreamManager",
-        `FAST PATH: Handling as screen share track with id: ${activeScreenShareId}`
+        `Track clearly looks like screen share and user has active shares - using screen share path`
+      );
+
+      const possibleStreamIds =
+        this.globalState.userData[participantId].active_screen_share;
+      const eventStreamId = streams.length > 0 ? streams[0].id : track.id;
+
+      // Try to find a matching streamId, default to the first one if no match
+      const activeScreenShareId = eventStreamId.includes("screen")
+        ? eventStreamId
+        : possibleStreamIds[0];
+
+      this.logger.info(
+        "StreamManager",
+        `Handling as screen share track with id: ${activeScreenShareId}, available: ${JSON.stringify(
+          possibleStreamIds
+        )}`
       );
       this._handleScreenShareTrack(
         participantId,
@@ -630,9 +642,7 @@ export class StreamManager {
     let streamId = null;
 
     // Get the event stream ID for reference
-    const eventStreamId = streams.length > 0 ? streams[0].id : track.id;
-
-    // STEP 1: Check userData.active_screen_share first (this is set by EventReceiver)
+    const eventStreamId = streams.length > 0 ? streams[0].id : track.id; // STEP 1: Check userData.active_screen_share first (this is set by EventReceiver)
     if (
       this.globalState.userData[participantId] &&
       this.globalState.userData[participantId].active_screen_share &&
@@ -648,22 +658,54 @@ export class StreamManager {
         )}`
       );
 
-      // If the track has "screen" markers in the ID or labels, and the user has active screen shares,
-      // we can safely assume this is a screen share track
+      // Enhanced screen share detection - includes more checks
       const isLikelyScreenShare =
         track.label.includes("screen") ||
         track.label.includes("Screen") ||
         track.id.includes("screen") ||
-        eventStreamId.includes("screen");
+        eventStreamId.includes("screen") ||
+        // Additional check: if this user already has a webcam stream and this is a video track,
+        // it's likely a screen share
+        (track.kind === "video" &&
+          this.globalState.remoteStreams[participantId] &&
+          this.globalState.remoteStreams[participantId]
+            .getTracks()
+            .some((t) => t.kind === "video"));
 
       if (isLikelyScreenShare) {
         isScreenShare = true;
-        // Use the first active screen share ID from userData as our streamId
-        streamId =
-          this.globalState.userData[participantId].active_screen_share[0];
+        // CRITICAL FIX: Don't always use active_screen_share[0]!
+        // Instead, try to match the stream with existing screen shares
+        // or create a new one if needed
+
+        // Try to find a matching streamId by looking at stream characteristics
+        const possibleStreamIds =
+          this.globalState.userData[participantId].active_screen_share;
+
+        // Enhanced matching logic
+        if (eventStreamId.includes("screen")) {
+          // If event stream ID clearly indicates screen share, use it
+          streamId = eventStreamId;
+        } else {
+          // Check if we need to use the first available screen share ID
+          // This handles the case where the first screen share doesn't have obvious markers
+          streamId = possibleStreamIds[0];
+        }
+
         this.logger.info(
           "StreamManager",
-          `Identified as screen share track from userData for ${participantId}: ${streamId}`
+          `Identified as screen share track from userData for ${participantId}: ${streamId}, available: ${JSON.stringify(
+            possibleStreamIds
+          )}, hasExistingWebcam: ${!!this.globalState.remoteStreams[
+            participantId
+          ]
+            ?.getTracks()
+            .some((t) => t.kind === "video")}`
+        );
+      } else {
+        this.logger.info(
+          "StreamManager",
+          `User has active screen shares but track doesn't look like screen share - track.label: ${track.label}, track.id: ${track.id}, eventStreamId: ${eventStreamId}`
         );
       }
     }
@@ -868,14 +910,14 @@ export class StreamManager {
     this.logger.info(
       "StreamManager",
       `Screen share added to all required state objects for ${participantId}/${streamId}`
-    );
-
-    // Store consistent stream info for UI consumption
+    ); // Store consistent stream info for UI consumption
+    const streamUUID = `${participantId}_${streamId}`; // Create full streamUUID in participantId_streamId format
     const streamInfo = {
       participantId,
       stream: stream,
       streamType: "screenshare", // Explicitly mark as screen share
-      streamId: streamId,
+      streamId: streamId, // Keep original streamId for internal tracking
+      streamUUID: streamUUID, // Use full format for UI consistency
       userData: { ...this.globalState.userData[participantId] }, // Use updated userData
       trackInfo: {
         kind: track.kind,
@@ -888,15 +930,69 @@ export class StreamManager {
     if (!this.globalState.remoteStreamInfo) {
       this.globalState.remoteStreamInfo = {};
     }
-    this.globalState.remoteStreamInfo[streamId] = streamInfo;
-
-    // Emit event for UI with the actual stream
+    this.globalState.remoteStreamInfo[streamId] = streamInfo; // Emit event for UI with the actual stream - CRITICAL FIX
     if (this.globalState.eventEmitter) {
       this.logger.info(
         "StreamManager",
-        `Emitting stream_added_or_updated event for screen share: ${participantId}/${streamId}`
+        `Emitting stream_added_or_updated event for screen share: ${participantId}/${streamId} (streamUUID: ${streamUUID})`
       );
-      this.globalState.eventEmitter.emit("stream_added_or_updated", streamInfo);
+
+      // Enhanced validation before emitting
+      if (stream && stream.getTracks().length > 0) {
+        // Additional checks for track readiness
+        const activeTracks = stream
+          .getTracks()
+          .filter((track) => track.readyState === "live");
+        const videoTracks = stream.getVideoTracks();
+        const audioTracks = stream.getAudioTracks();
+
+        this.logger.info(
+          "StreamManager",
+          `Stream validation for ${streamUUID}: total tracks=${
+            stream.getTracks().length
+          }, active tracks=${activeTracks.length}, video=${
+            videoTracks.length
+          }, audio=${audioTracks.length}`
+        );
+
+        if (activeTracks.length > 0) {
+          // Emit the event with enhanced stream info
+          const enhancedStreamInfo = {
+            ...streamInfo,
+            hasVideo: videoTracks.length > 0,
+            hasAudio: audioTracks.length > 0,
+            isPlaceholder: false, // This is a real stream with tracks
+            timestamp: Date.now(),
+          };
+
+          this.globalState.eventEmitter.emit(
+            "stream_added_or_updated",
+            enhancedStreamInfo
+          );
+
+          this.logger.info(
+            "StreamManager",
+            `Successfully emitted stream event with ${activeTracks.length} active tracks for ${streamUUID}`
+          );
+        } else {
+          this.logger.warning(
+            "StreamManager",
+            `Stream has tracks but none are active (readyState !== 'live') for ${streamUUID}`
+          );
+        }
+      } else {
+        this.logger.warning(
+          "StreamManager",
+          `Stream has no tracks, not emitting event for ${streamUUID}. Stream: ${!!stream}, tracks: ${
+            stream ? stream.getTracks().length : 0
+          }`
+        );
+      }
+    } else {
+      this.logger.error(
+        "StreamManager",
+        "EventEmitter not available, cannot notify UI about remote screen share"
+      );
     }
   }
   /**
@@ -909,10 +1005,8 @@ export class StreamManager {
     this.logger.info(
       "StreamManager",
       `Handling webcam track: ${participantId} (${track.kind})`
-    );
-
-    // Double-check this isn't a screen share track that got misrouted
-    // Even though _identifyTrackType should have caught this, we'll check again just to be safe
+    ); // Enhanced double-check for misrouted screen share tracks
+    // This is critical for fixing the "first screen share goes to webcam" issue
     const userData = this.globalState.userData[participantId];
     const isScreenShareUser =
       userData &&
@@ -920,21 +1014,65 @@ export class StreamManager {
       Array.isArray(userData.active_screen_share) &&
       userData.active_screen_share.length > 0;
 
-    // If the track looks like a screen share and the user has active screen shares, handle as screen share
+    // Enhanced detection for screen share tracks that might have been misrouted
     const isScreenShareTrack =
       track.label.includes("screen") ||
       track.label.includes("Screen") ||
       track.id.includes("screen") ||
       (streams.length > 0 && streams[0].id.includes("screen"));
 
-    if (isScreenShareUser && isScreenShareTrack) {
+    // Additional check: if this user has active screen shares and this is a video track,
+    // AND we already have a webcam stream, this is likely a misrouted screen share
+    const hasExistingWebcam =
+      this.globalState.remoteStreams[participantId] &&
+      this.globalState.remoteStreams[participantId]
+        .getTracks()
+        .some((t) => t.kind === "video");
+
+    const likelyMisroutedScreenShare =
+      isScreenShareUser && track.kind === "video" && hasExistingWebcam;
+
+    if (
+      isScreenShareUser &&
+      (isScreenShareTrack || likelyMisroutedScreenShare)
+    ) {
       this.logger.warn(
         "StreamManager",
-        `Track appears to be a screen share but was routed to _handleWebcamTrack, redirecting: ${participantId} (${track.kind})`
+        `Track appears to be a screen share but was routed to _handleWebcamTrack, redirecting: ${participantId} (${
+          track.kind
+        }). Detected by: ${
+          isScreenShareTrack ? "track markers" : "existing webcam + video track"
+        }`
       );
 
-      // Get the screen share ID from userData
-      const streamId = userData.active_screen_share[0];
+      // CRITICAL FIX: Don't always use active_screen_share[0]!
+      // Try to match the stream with existing screen shares or use event stream info
+      const possibleStreamIds = userData.active_screen_share;
+      const eventStreamId = streams.length > 0 ? streams[0].id : track.id;
+
+      // Enhanced matching logic
+      let streamId;
+      if (eventStreamId.includes("screen")) {
+        streamId = eventStreamId;
+      } else {
+        // Find the first screen share ID that doesn't already have a stream
+        streamId =
+          possibleStreamIds.find((id) => {
+            return (
+              !this.globalState.remoteScreenStreams[participantId] ||
+              !this.globalState.remoteScreenStreams[participantId][id] ||
+              this.globalState.remoteScreenStreams[participantId][
+                id
+              ].getTracks().length === 0
+            );
+          }) || possibleStreamIds[0];
+      }
+      this.logger.info(
+        "StreamManager",
+        `Redirecting webcam track to screen share handler: ${participantId}, streamId: ${streamId}, available: ${JSON.stringify(
+          possibleStreamIds
+        )}, hasExistingWebcam: ${hasExistingWebcam}`
+      );
 
       // Handle as a screen share track instead
       this._handleScreenShareTrack(participantId, track, streamId, streams);

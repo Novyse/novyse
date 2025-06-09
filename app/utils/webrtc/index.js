@@ -1,6 +1,7 @@
 import { GlobalState } from "./core/GlobalState.js";
 import PeerConnectionManager from "./core/PeerConnectionManager.js";
 import { StreamManager } from "./core/StreamManager.js";
+import { StreamMappingManager } from "./core/StreamMappingManager.js";
 import { ConnectionTracker } from "./core/ConnectionTracker.js";
 import { SignalingManager } from "./signaling/SignalingManager.js";
 import { ICEManager } from "./signaling/ICEManager.js";
@@ -55,6 +56,7 @@ class WebRTCManager {
       signalingManager: this.signalingManager,
       peerConnectionManager: this.peerConnectionManager,
       streamManager: this.streamManager,
+      streamMappingManager: this.streamMappingManager,
       voiceActivityDetection: this.voiceActivityDetection,
       pinManager: this.pinManager,
       healthChecker: this.healthChecker,
@@ -66,15 +68,25 @@ class WebRTCManager {
    * Initialize WebRTC components
    */
   _initialize() {
-    this.logger.info("WebRTCManager", "Initializing WebRTC Manager...");
-
-    // Initialize utilities
+    this.logger.info("WebRTCManager", "Initializing WebRTC Manager..."); // Initialize utilities
     this.webrtcUtils = new WebRTCUtils(this.logger);
     this.mediaUtils = new MediaUtils(this.logger);
-    // Initialize core components
-    this.peerConnectionManager = PeerConnectionManager;
-    this.peerConnectionManager.globalState = this.globalState;
+    // Initialize stream mapping manager first
+    this.streamMappingManager = new StreamMappingManager(
+      this.globalState,
+      this.logger
+    );
+
+    // Set the StreamMappingManager in GlobalState for cross-component access
+    this.globalState.setStreamMappingManager(this.streamMappingManager);
+
+    // Initialize core components with streamMappingManager
+    this.peerConnectionManager = new PeerConnectionManager(
+      this.globalState,
+      this.streamMappingManager
+    );
     this.streamManager = new StreamManager(this.globalState, this.logger);
+
     this.connectionTracker = new ConnectionTracker(
       this.globalState,
       this.logger
@@ -301,9 +313,9 @@ class WebRTCManager {
   /**
    * Start screen sharing
    */
-  async addScreenShareStream(screenShareId, existingStream = null) {
+  async addScreenShareStream(screenShareUUID, existingStream = null) {
     return await this.screenShareManager.addScreenShareStream(
-      screenShareId,
+      screenShareUUID,
       existingStream
     );
   }
@@ -320,6 +332,9 @@ class WebRTCManager {
     return await this.screenShareManager.stopAllScreenShares();
   }
 
+  isScreenShare(streamId) {
+    return this.globalState.isScreenShare(streamId);
+  }
   /**
    * Get screen share streams
    */

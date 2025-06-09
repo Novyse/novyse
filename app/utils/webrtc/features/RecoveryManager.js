@@ -219,7 +219,6 @@ export class RecoveryManager {
       return false;
     }
   }
-
   /**
    * Perform ICE restart recovery
    * @param {string} participantId - Participant ID
@@ -236,34 +235,67 @@ export class RecoveryManager {
     if (!pc) return false;
 
     try {
-      // Create offer with ICE restart
-      const offer = await pc.createOffer({ iceRestart: true });
-      await pc.setLocalDescription(offer);
+      // Use SignalingManager for reliable offer sending with retry
+      const signalingManager = this.globalState.getSignalingManager();
+      if (signalingManager) {
+        // Create offer with ICE restart using signaling manager
+        const offer = await pc.createOffer({ iceRestart: true });
+        await pc.setLocalDescription(offer);
 
-      // Send offer via signaling usando direttamente webSocketMethods
-      const myId = this.globalState.getMyId();
-
-      // Importa e usa il modulo direttamente
-      const webSocketMethods = await import("../../webSocketMethods.js");
-      await webSocketMethods.default.RTCOffer({
-        offer: offer.toJSON
-          ? offer.toJSON()
-          : { sdp: offer.sdp, type: offer.type },
-        to: participantId,
-        from: myId,
-      });
-
-      // Wait for connection stabilization
-      const success = await this._waitForConnectionStabilization(participantId);
-
-      if (success) {
-        this.logger.info(
-          "RecoveryManager",
-          `ICE restart successful for ${participantId}`
+        // Send via signaling manager which has retry mechanisms
+        const success = await this._sendOfferWithRetry(
+          signalingManager,
+          participantId,
+          offer
         );
-      }
 
-      return success;
+        if (!success) {
+          throw new Error("Failed to send ICE restart offer after retries");
+        }
+
+        // Wait for connection stabilization
+        const stabilized = await this._waitForConnectionStabilization(
+          participantId
+        );
+
+        if (stabilized) {
+          this.logger.info(
+            "RecoveryManager",
+            `ICE restart successful for ${participantId}`
+          );
+        }
+
+        return stabilized;
+      } else {
+        // Fallback to direct WebSocket if no signaling manager
+        this.logger.warn(
+          "RecoveryManager",
+          `No signaling manager available, using direct WebSocket for ${participantId}`
+        );
+
+        const offer = await pc.createOffer({ iceRestart: true });
+        await pc.setLocalDescription(offer);
+
+        const webSocketMethods = await import("../../webSocketMethods.js");
+        const success = await this._sendWithRetry(
+          () =>
+            webSocketMethods.default.RTCOffer({
+              offer: offer.toJSON
+                ? offer.toJSON()
+                : { sdp: offer.sdp, type: offer.type },
+              to: participantId,
+              from: this.globalState.getMyId(),
+            }),
+          `ICE restart offer to ${participantId}`,
+          3
+        );
+
+        if (!success) {
+          throw new Error("Failed to send ICE restart offer via WebSocket");
+        }
+
+        return await this._waitForConnectionStabilization(participantId);
+      }
     } catch (error) {
       this.logger.warn(
         "RecoveryManager",
@@ -442,7 +474,6 @@ export class RecoveryManager {
       checkConnection();
     });
   }
-
   /**
    * Wait utility function
    * @param {number} ms - Milliseconds to wait
@@ -451,6 +482,112 @@ export class RecoveryManager {
    */
   _wait(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Send offer with retry mechanism via SignalingManager
+   * @param {Object} signalingManager - SignalingManager instance
+   * @param {string} participantId - Target participant ID
+   * @param {RTCSessionDescription} offer - Offer to send
+   * @returns {Promise<boolean>} True if sent successfully
+   * @private
+   */
+  async _sendOfferWithRetry(signalingManager, participantId, offer) {
+    const maxRetries = 3;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Use signaling manager's retry mechanism
+        const webSocketMethods = await import("../../webSocketMethods.js");
+
+        if (!webSocketMethods.default.isWebSocketOpen()) {
+          this.logger.warn(
+            "RecoveryManager",
+            `WebSocket not connected for offer to ${participantId}, attempt ${attempt}/${maxRetries}`
+          );
+
+          if (attempt < maxRetries) {
+            await this._wait(Math.min(1000 * attempt, 5000));
+            continue;
+          }
+          return false;
+        }
+
+        await webSocketMethods.default.RTCOffer({
+          offer: offer.toJSON
+            ? offer.toJSON()
+            : { sdp: offer.sdp, type: offer.type },
+          to: participantId,
+          from: this.globalState.getMyId(),
+          chat: this.globalState.getChatId(),
+        });
+
+        this.logger.debug(
+          "RecoveryManager",
+          `Offer sent successfully to ${participantId} on attempt ${attempt}`
+        );
+        return true;
+      } catch (error) {
+        this.logger.warn(
+          "RecoveryManager",
+          `Offer send failed to ${participantId} on attempt ${attempt}/${maxRetries}: ${error.message}`
+        );
+
+        if (attempt < maxRetries) {
+          await this._wait(Math.min(1000 * Math.pow(2, attempt - 1), 5000));
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Generic retry mechanism for WebSocket operations
+   * @param {Function} sendFunction - Function that performs the send operation
+   * @param {string} operationName - Name of the operation for logging
+   * @param {number} maxRetries - Maximum number of retry attempts
+   * @returns {Promise<boolean>} True if operation succeeded
+   * @private
+   */
+  async _sendWithRetry(sendFunction, operationName, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const webSocketMethods = await import("../../webSocketMethods.js");
+
+        if (!webSocketMethods.default.isWebSocketOpen()) {
+          this.logger.warn(
+            "RecoveryManager",
+            `WebSocket not connected for ${operationName}, attempt ${attempt}/${maxRetries}`
+          );
+
+          if (attempt < maxRetries) {
+            await this._wait(Math.min(1000 * attempt, 5000));
+            continue;
+          }
+          return false;
+        }
+
+        const result = await sendFunction();
+        if (result === false) {
+          throw new Error("WebSocket send returned false");
+        }
+
+        this.logger.debug(
+          "RecoveryManager",
+          `${operationName} sent successfully on attempt ${attempt}`
+        );
+        return true;
+      } catch (error) {
+        this.logger.warn(
+          "RecoveryManager",
+          `${operationName} failed on attempt ${attempt}/${maxRetries}: ${error.message}`
+        );
+
+        if (attempt < maxRetries) {
+          await this._wait(Math.min(1000 * Math.pow(2, attempt - 1), 5000));
+        }
+      }
+    }
+    return false;
   }
 
   /**

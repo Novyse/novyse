@@ -114,7 +114,7 @@ const VocalMembersLayout = ({
 
     // Count screen shares from activeStreams
     const screenShareCount = Object.keys(activeStreams).filter(
-      (key) => activeStreams[key].streamType === "screenshare"
+      (streamUUID) => activeStreams[streamUUID].streamType === "screenshare"
     ).length;
 
     // Calcola il numero totale di elementi da visualizzare (utenti + screen shares)
@@ -185,9 +185,22 @@ const VocalMembersLayout = ({
   }, [containerDimensions, profiles, pinnedUserId, activeStreams]);
 
   const { numColumns, rectWidth, rectHeight, margin } = calculateLayout(); // Render function for screen shares
-  const renderScreenShare = (streamKey, streamData) => {
-    // Se c'è un utente pinnato e non è questo screen share, non renderizzarlo
-    if (pinnedUserId && pinnedUserId !== streamKey) {
+  const renderScreenShare = (streamKey, streamUUID, streamData) => {
+    // Debug logging for screen share rendering
+    console.log(`[VocalMembersLayout] renderScreenShare called with:`, {
+      streamKey, // Should be the user's original from ID
+      streamUUID, // Should be the processed screen share UUID
+      streamKeyLength: streamKey ? streamKey.length : 0,
+      streamUUIDLength: streamUUID ? streamUUID.length : 0,
+      streamKeyType: typeof streamKey,
+      streamUUIDType: typeof streamUUID,
+      hasStreamData: !!streamData,
+      streamType: streamData?.streamType,
+      hasUserData: !!streamData?.userData,
+      userDataFrom: streamData?.userData?.from,
+      areKeysEqual: streamKey === streamUUID, // This should be FALSE
+    }); // Se c'è un utente pinnato e non è questo screen share, non renderizzarlo
+    if (pinnedUserId && pinnedUserId !== streamUUID) {
       return null;
     }
 
@@ -198,12 +211,11 @@ const VocalMembersLayout = ({
         `[VocalMembersLayout] No userData found for screen share ${streamKey}`
       );
       return null;
-    }
-
-    // Create a screen share profile
+    } // Create a screen share profile
     const screenShareProfile = {
       ...userProfile,
-      from: streamKey, // Use streamId as the identifier
+      from: streamKey, // Use the original user ID (from) as the identifier
+      streamUUID: streamUUID, // Keep the processed streamUUID
       handle: userProfile?.handle
         ? `${userProfile.handle} (Screen)`
         : `Screen Share`,
@@ -211,17 +223,18 @@ const VocalMembersLayout = ({
 
     return (
       <UserCard
-        key={streamKey}
+        streamUUID={streamUUID} // Pass the processed streamUUID
         profile={screenShareProfile}
+        isLocal={userProfile.from === get.myPartecipantId()}
         activeStream={streamData}
         isSpeaking={false} // Screen share non ha speaking status
         width={rectWidth}
         height={rectHeight}
         margin={margin}
         isScreenShare={true}
-        videoStreamKey={videoStreamKeys[streamKey]}
-        isPinned={pinnedUserId === streamKey}
-        onPin={() => handlePinUser(streamKey)}
+        videoStreamKey={videoStreamKeys[streamUUID]} // Use streamUUID for video key
+        isPinned={pinnedUserId === streamUUID} // Use streamUUID for pin check
+        onPin={() => handlePinUser(streamUUID)} // Use streamUUID for pin action
         pinDisabled={!check.isInComms()} // Disabilita il pin se non sei in comms
       />
     );
@@ -240,8 +253,9 @@ const VocalMembersLayout = ({
 
     return (
       <UserCard
-        key={participantId}
+        streamUUID={participantId}
         profile={profile}
+        isLocal={participantId === get.myPartecipantId()}
         activeStream={activeStream}
         isSpeaking={isSpeaking}
         width={rectWidth}
@@ -271,12 +285,43 @@ const VocalMembersLayout = ({
           (streamData) => streamData.streamType === "screenshare"
         ) ? (
           <>
-            {profiles.map(renderProfile)}
-            {Object.entries(activeStreams)
-              .filter(
-                ([key, streamData]) => streamData.streamType === "screenshare"
-              )
-              .map(([key, streamData]) => renderScreenShare(key, streamData))}
+            {profiles.map((profile) => (
+              <React.Fragment key={`profile-${profile.from}`}>
+                {renderProfile(profile)}
+              </React.Fragment>
+            ))}
+            {(() => {
+              // Debug logging for activeStreams
+              const screenShareEntries = Object.entries(activeStreams).filter(
+                ([streamUUID, streamData]) =>
+                  streamData.streamType === "screenshare"
+              );
+
+              console.log(`[VocalMembersLayout] Screen share entries:`, {
+                totalActiveStreams: Object.keys(activeStreams).length,
+                screenShareCount: screenShareEntries.length,
+                allStreamKeys: Object.keys(activeStreams),
+                screenShareEntries: screenShareEntries.map(([key, data]) => ({
+                  key,
+                  keyLength: key ? key.length : 0,
+                  keyType: typeof key,
+                  streamType: data?.streamType,
+                  hasUserData: !!data?.userData,
+                })),
+              });
+              return screenShareEntries.map(([streamUUID, streamData]) => {
+                // Use streamUUID as the unique key for screen shares, not the user's from ID
+                return (
+                  <React.Fragment key={`screenshare-${streamUUID}`}>
+                    {renderScreenShare(
+                      streamData.userData?.from,
+                      streamUUID,
+                      streamData
+                    )}
+                  </React.Fragment>
+                );
+              });
+            })()}
           </>
         ) : (
           <Text style={styles.emptyChatText}>Nessun utente nella chat</Text>

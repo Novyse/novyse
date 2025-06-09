@@ -5,6 +5,7 @@ import {
 import { getWebRTCConfiguration } from "../config/configuration.js";
 import { WEBRTC_CONSTANTS } from "../config/constants.js";
 import { GlobalState } from "./GlobalState.js";
+import { StreamMappingManager } from "./StreamMappingManager.js";
 import logger from "../logging/WebRTCLogger.js";
 import {
   getPeerConnectionInfo,
@@ -16,9 +17,13 @@ import {
  * Gestisce la creazione, configurazione e chiusura delle peer connections
  */
 class PeerConnectionManager {
-  constructor(globalState) {
+  constructor(globalState, streamMappingManager = null) {
     this.configuration = getWebRTCConfiguration();
     this.globalState = globalState || new GlobalState();
+    this.streamMappingManager =
+      streamMappingManager ||
+      new StreamMappingManager(this.globalState, logger);
+    this.midToScreenShareMap = new Map();
     logger.info(
       "PeerConnectionManager",
       "Inizializzato con configurazione WebRTC"
@@ -122,7 +127,6 @@ class PeerConnectionManager {
       `Event handlers configurati per ${participantId}`
     );
   }
-
   /**
    * Gestisce ICE candidates
    */
@@ -137,13 +141,19 @@ class PeerConnectionManager {
         }
       );
 
-      // Chiamata diretta a webSocketMethods.IceCandidate
-      const webSocketMethods = await import("../../webSocketMethods.js");
-      await webSocketMethods.default.IceCandidate({
-        candidate: event.candidate.toJSON(),
-        to: participantId,
-        from: this.globalState.myId,
-      });
+      // Retry mechanism for ICE candidate sending
+      const success = await this._sendICECandidateWithRetry(
+        event.candidate,
+        participantId,
+        3
+      );
+
+      if (!success) {
+        logger.warn(
+          "PeerConnectionManager",
+          `Failed to send ICE candidate to ${participantId} after retries`
+        );
+      }
     } else {
       logger.debug(
         "PeerConnectionManager",
@@ -152,6 +162,15 @@ class PeerConnectionManager {
     }
   }
 
+  // Add method to register a mid mapping
+  registerScreenShareMid(participantId, mid, screenShareUUID) {
+    const key = `${participantId}_${mid}`;
+    this.midToScreenShareMap.set(key, screenShareUUID);
+    logger.debug(
+      "PeerConnectionManager",
+      `Registered screen share mapping: ${key} → ${screenShareUUID}`
+    );
+  }
   /**
    * Gestisce tracce remote ricevute
    */
@@ -167,79 +186,150 @@ class PeerConnectionManager {
       }
     );
 
-    // Determina se è screen share o webcam
-    const isScreenShare = this._isScreenShareTrack(event.track, event.streams);
+    // Try to get mapping from StreamMappingManager first
+    let streamUUID = null;
+    let trackType = null;
 
-    if (isScreenShare) {
-      this._handleScreenShareTrack(event, participantId);
-    } else {
+    if (
+      this.streamMappingManager &&
+      event.transceiver &&
+      event.transceiver.mid
+    ) {
+      const mapping = this.streamMappingManager.getStreamUUIDByMid(
+        event.transceiver.mid
+      );
+      if (mapping) {
+        streamUUID = mapping.streamUUID;
+        trackType = mapping.trackType;
+        logger.info(
+          "PeerConnectionManager",
+          `Found mapping for MID ${event.transceiver.mid}: ${streamUUID} (${trackType})`
+        );
+      } else {
+        logger.debug(
+          "PeerConnectionManager",
+          `No mapping found for MID ${event.transceiver.mid}, using fallback detection`
+        );
+      }
+    }
+
+    // If we have mapping, use it directly
+    if (streamUUID && trackType) {
+      if (trackType === "screenshare") {
+        // Extract streamId from streamUUID (format: participantId_StreamID)
+        const streamId = streamUUID.split("_").slice(1).join("_");
+        this._handleScreenShareTrack(
+          event,
+          participantId,
+          event.track,
+          streamId
+        );
+      } else {
+        this._handleWebcamTrack(event, participantId);
+      }
+
+      // Register remote track mapping for future reference
+      this.streamMappingManager.registerRemoteTrackMapping(
+        participantId,
+        event.track.id,
+        streamUUID,
+        trackType
+      );
+      return;
+    }
+
+    // Fallback to original heuristic method if no mapping found
+    if (event.track.kind === "video") {
+      const isScreenShare = this._isScreenShareTrack(
+        event.track,
+        participantId
+      );
+
+      if (isScreenShare) {
+        logger.debug(
+          "PeerConnectionManager",
+          `Traccia identificata come screen share da ${participantId} (fallback)`
+        );
+        this._handleScreenShareTrack(event, participantId, event.track);
+      } else {
+        logger.debug(
+          "PeerConnectionManager",
+          `Traccia identificata come webcam video da ${participantId} (fallback)`
+        );
+        this._handleWebcamTrack(event, participantId);
+      }
+    } else if (event.track.kind === "audio") {
+      logger.debug(
+        "PeerConnectionManager",
+        `Traccia audio ricevuta da ${participantId}:`,
+        {
+          trackId: event.track.id,
+          trackLabel: event.track.label,
+          streams: event.streams.map((s) => s.id),
+        }
+      );
       this._handleWebcamTrack(event, participantId);
+    } else {
+      logger.warn(
+        "PeerConnectionManager",
+        `Ricevuta traccia remota di tipo sconosciuto: ${event.track.kind} da ${participantId}`
+      );
     }
   }
 
   /**
    * Verifica se una traccia è di screen sharing
    */
-  _isScreenShareTrack(track, streams) {
-    const participantId = this._getCurrentParticipantFromTrack(track, streams);
-
-    // Controlla metadata
-    if (this.globalState.remoteStreamMetadata[participantId]) {
-      for (const [metaStreamId, streamType] of Object.entries(
-        this.globalState.remoteStreamMetadata[participantId]
-      )) {
-        if (streamType === "screenshare") {
-          const eventStreamId = streams.length > 0 ? streams[0].id : track.id;
-          if (
-            eventStreamId.includes(metaStreamId) ||
-            metaStreamId.includes("screen")
-          ) {
-            return true;
-          }
-        }
-      }
-    }
-
-    // Fallback: controlla label o ID
-    return (
-      track.label.includes("screen") ||
-      track.label.includes("Screen") ||
-      track.id.includes("screen") ||
-      (streams.length > 0 && streams[0].id.includes("screen"))
+  _isScreenShareTrack(track, participantId) {
+    const screenShareUUID = participantId + "_" + track.id;
+    const isScreenShare = this.globalState.isScreenShare(
+      participantId,
+      screenShareUUID
     );
+    logger.debug(
+      "PeerConnectionManager",
+      `Verifica screen share per ${participantId}/${track.id} - IsScreenShare: ${isScreenShare}`
+    );
+    console.log(
+      "PeerConnectionManager",
+      `Verifica screen share per ${participantId}/${track.id} - IsScreenShare: ${isScreenShare}`
+    );
+    return isScreenShare;
   }
   /**
    * Gestisce tracce di screen sharing
    */
-  _handleScreenShareTrack(event, participantId) {
-    const streamId =
-      event.streams.length > 0 ? event.streams[0].id : `screen_${Date.now()}`;
+  _handleScreenShareTrack(event, participantId, track, streamId = null) {
+    // If streamId not provided, generate it from track.id (fallback)
+    const screenShareUUID = streamId
+      ? `${participantId}_${streamId}`
+      : `${participantId}_${track.id}`;
 
     if (!this.globalState.remoteScreenStreams[participantId]) {
       this.globalState.remoteScreenStreams[participantId] = {};
     }
-    if (!this.globalState.remoteScreenStreams[participantId][streamId]) {
-      this.globalState.remoteScreenStreams[participantId][streamId] =
+    if (!this.globalState.remoteScreenStreams[participantId][screenShareUUID]) {
+      this.globalState.remoteScreenStreams[participantId][screenShareUUID] =
         createMediaStream();
     }
-    this.globalState.remoteScreenStreams[participantId][streamId].addTrack(
-      event.track
-    );
+    this.globalState.remoteScreenStreams[participantId][
+      screenShareUUID
+    ].addTrack(event.track);
     logger.info(
       "PeerConnectionManager",
-      `Screen share track aggiunta: ${participantId}/${streamId}`
+      `Screen share track aggiunta: ${participantId}/${screenShareUUID}`
     );
 
     // IMPORTANT: Also update userData to include this screen share in active_screen_share array
     this.globalState.addScreenShare(
       participantId,
-      streamId,
-      this.globalState.remoteScreenStreams[participantId][streamId]
+      screenShareUUID,
+      this.globalState.remoteScreenStreams[participantId][screenShareUUID]
     );
 
     logger.info(
       "PeerConnectionManager",
-      `Added screen share ${streamId} to userData for participant ${participantId}`
+      `Added screen share ${screenShareUUID} to userData for participant ${participantId}`
     );
 
     // Setup track event handlers with screen share info
@@ -247,15 +337,15 @@ class PeerConnectionManager {
       event.track,
       participantId,
       "screenshare",
-      streamId
+      screenShareUUID
     );
 
     // Emetti evento per UI
     this._emitStreamEvent(
       participantId,
-      this.globalState.remoteScreenStreams[participantId][streamId],
+      this.globalState.remoteScreenStreams[participantId][screenShareUUID],
       "screenshare",
-      streamId
+      screenShareUUID
     );
   }
 
@@ -482,10 +572,60 @@ class PeerConnectionManager {
           .getSenders()
           .find((s) => s.track && s.track.id === track.id);
         if (!already) {
-          pc.addTrack(track, this.globalState.localStream);
+          // Use addTransceiver instead of addTrack to get MID access
+          const transceiver = pc.addTransceiver(track, {
+            direction: "sendrecv",
+            streams: [this.globalState.localStream],
+          });
+
+          // Register mapping with StreamMappingManager for webcam tracks
+          const registerMapping = () => {
+            if (this.streamMappingManager && transceiver.mid) {
+              const streamUUID = this.streamMappingManager.generateStreamUUID(
+                this.globalState.myId,
+                "webcam" // normal tracks use participantId
+              );
+
+              this.streamMappingManager.registerLocalTransceiverMapping(
+                transceiver,
+                streamUUID,
+                "webcam",
+                this.globalState.myId
+              );
+
+              logger.debug(
+                "PeerConnectionManager",
+                `Webcam mapping registered: MID ${transceiver.mid} -> ${streamUUID}`
+              );
+              return true;
+            }
+            return false;
+          };
+
+          // Try to register immediately, if it fails, set up a delayed retry
+          if (!registerMapping()) {
+            // MID not available yet, set up a check in the next event loop cycles
+            let retryCount = 0;
+            const maxRetries = 10;
+            const retryInterval = setInterval(() => {
+              if (registerMapping() || retryCount >= maxRetries) {
+                clearInterval(retryInterval);
+                if (retryCount >= maxRetries) {
+                  logger.warning(
+                    "PeerConnectionManager",
+                    `Failed to register webcam mapping after ${maxRetries} retries`
+                  );
+                }
+              }
+              retryCount++;
+            }, 50); // Check every 50ms
+          }
+
           logger.debug(
             "PeerConnectionManager",
-            `Traccia locale aggiunta: ${track.kind}`
+            `Traccia locale aggiunta: ${track.kind}, MID: ${
+              transceiver.mid || "pending"
+            }`
           );
         }
       });
@@ -506,10 +646,62 @@ class PeerConnectionManager {
             .getSenders()
             .find((s) => s.track && s.track.id === track.id);
           if (!already) {
-            pc.addTrack(track, screenStream);
+            // Use addTransceiver for screen share tracks
+            const transceiver = pc.addTransceiver(track, {
+              direction: "sendrecv",
+              streams: [screenStream],
+            });
+
+            // Register mapping with StreamMappingManager for screen share
+            // The MID might not be available immediately, so we'll use a delayed approach
+            const registerMapping = () => {
+              if (this.streamMappingManager && transceiver.mid) {
+                const streamUUID = this.streamMappingManager.generateStreamUUID(
+                  this.globalState.myId,
+                  "screenshare",
+                  streamId // screen share tracks use participantId_StreamID format
+                );
+
+                this.streamMappingManager.registerLocalTransceiverMapping(
+                  transceiver,
+                  streamUUID,
+                  "screenshare",
+                  this.globalState.myId
+                );
+
+                logger.debug(
+                  "PeerConnectionManager",
+                  `Screen share mapping registered: MID ${transceiver.mid} -> ${streamUUID}`
+                );
+                return true;
+              }
+              return false;
+            };
+
+            // Try to register immediately, if it fails, set up a delayed retry
+            if (!registerMapping()) {
+              // MID not available yet, set up a check in the next event loop cycles
+              let retryCount = 0;
+              const maxRetries = 10;
+              const retryInterval = setInterval(() => {
+                if (registerMapping() || retryCount >= maxRetries) {
+                  clearInterval(retryInterval);
+                  if (retryCount >= maxRetries) {
+                    logger.warning(
+                      "PeerConnectionManager",
+                      `Failed to register screen share mapping after ${maxRetries} retries for ${streamId}`
+                    );
+                  }
+                }
+                retryCount++;
+              }, 50); // Check every 50ms
+            }
+
             logger.debug(
               "PeerConnectionManager",
-              `Screen share track aggiunta: ${streamId}/${track.kind}`
+              `Screen share track aggiunta: ${streamId}/${track.kind}, MID: ${
+                transceiver.mid || "pending"
+              }`
             );
           }
         });
@@ -584,6 +776,80 @@ class PeerConnectionManager {
   }
 
   /**
+   * Sends ICE candidate with retry mechanism
+   * @param {RTCIceCandidate} candidate - ICE candidate to send
+   * @param {string} participantId - Target participant ID
+   * @param {number} maxRetries - Maximum number of retry attempts
+   * @returns {Promise<boolean>} True if sent successfully
+   * @private
+   */
+  async _sendICECandidateWithRetry(candidate, participantId, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const webSocketMethods = await import("../../webSocketMethods.js");
+
+        // Check if WebSocket is connected
+        if (!webSocketMethods.default.isWebSocketOpen()) {
+          logger.warn(
+            "PeerConnectionManager",
+            `WebSocket not connected for ICE candidate to ${participantId}, attempt ${attempt}/${maxRetries}`
+          );
+
+          // Wait for a short time before retrying
+          if (attempt < maxRetries) {
+            await this._wait(Math.min(500 * attempt, 2000)); // Shorter backoff for ICE candidates
+            continue;
+          } else {
+            return false;
+          }
+        }
+
+        // Try to send the ICE candidate
+        await webSocketMethods.default.IceCandidate({
+          candidate: candidate.toJSON(),
+          to: participantId,
+          from: this.globalState.myId,
+        });
+
+        logger.debug(
+          "PeerConnectionManager",
+          `ICE candidate sent successfully to ${participantId} on attempt ${attempt}`
+        );
+
+        return true;
+      } catch (error) {
+        logger.warn(
+          "PeerConnectionManager",
+          `ICE candidate send failed to ${participantId} on attempt ${attempt}/${maxRetries}: ${error.message}`
+        );
+
+        if (attempt < maxRetries) {
+          // Wait before retrying
+          const backoffTime = Math.min(500 * attempt, 2000);
+          await this._wait(backoffTime);
+        }
+      }
+    }
+
+    logger.error(
+      "PeerConnectionManager",
+      `ICE candidate send failed to ${participantId} after ${maxRetries} attempts`
+    );
+
+    return false;
+  }
+
+  /**
+   * Wait utility function
+   * @param {number} ms - Milliseconds to wait
+   * @returns {Promise<void>}
+   * @private
+   */
+  _wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
    * Chiude tutte le peer connections
    */
   closeAllPeerConnections() {
@@ -640,7 +906,5 @@ class PeerConnectionManager {
   }
 }
 
-// Istanza singleton
-const peerConnectionManager = new PeerConnectionManager();
-
-export default peerConnectionManager;
+// Export the class instead of singleton
+export default PeerConnectionManager;

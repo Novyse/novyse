@@ -285,7 +285,7 @@ export class StreamManager {
    * @returns {void}
    */
   handleRemoteTrack(event, participantId) {
-    this.logger.info(`Traccia remota ricevuta da ${participantId}`, {
+    this.logger.info(`Traccia remota ricevuta daaaa ${participantId}`, {
       component: "StreamManager",
       participantId,
       trackKind: event.track.kind,

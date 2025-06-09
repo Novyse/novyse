@@ -221,6 +221,7 @@ const self = {
         stream: WebRTC.getLocalStream(),
         streamType: "webcam",
         userData: { handle: "You" }, // Local user identifier
+        streamUUID: WebRTC.getMyId(),
       });
 
       console.log(
@@ -370,6 +371,7 @@ const self = {
           facingMode: facingMode,
           timestamp: Date.now(), // Add timestamp to force re-render
           userData: { handle: "You" },
+          streamUUID: WebRTC.getMyId(),
         }); // Also emit the standard stream update event
         eventEmitter.emit("stream_added_or_updated", {
           participantId: WebRTC.getMyId(),
@@ -377,6 +379,7 @@ const self = {
           streamType: "webcam",
           timestamp: Date.now(), // Add timestamp to force re-render
           userData: { handle: "You" },
+          streamUUID: WebRTC.getMyId(),
         });
       }, 200); // Increased delay for Android compatibility
 
@@ -557,25 +560,32 @@ const self = {
       if (!screenStream) {
         throw new Error("Failed to get screen share permission or stream");
       } // Now that we have permission and the stream, get the screen share ID from API
+
       const data = await APIMethods.startScreenShare(WebRTC.getChatId());
 
       if (data.screen_share_started) {
-        const screenShareId = data.screen_share_id;
+        const screenShareUUID = data.screen_share_uuid
+          .split("_")
+          .slice(1)
+          .join("_");
 
-        const result = WebRTC.addScreenShareStream(screenShareId, screenStream);
-        if (result) {
-          console.log(
-            `[ScreenShare] Screen share started with ID: ${screenShareId}`
-          );
-          return result;
-        } else {
-          console.warn("[ScreenShare] Failed to start screen share");
-          // Clean up the stream if we failed to add it
-          screenStream.getTracks().forEach((track) => track.stop());
-          throw new Error("Failed to start screen share");
+        const result = await WebRTC.addScreenShareStream(
+          screenShareUUID,
+          screenStream
+        );
+        if (!result) {
+          console.warn("[ScreenShare] Failed to add screen share stream");
+          return null; // Return null if we couldn't add the stream
         }
+        console.log(
+          `[ScreenShare] Screen share started with UUID: ${screenShareUUID}`
+        );
+        return result;
       } else {
-        throw new Error("Screen share couldnt be started");
+        console.warn("[ScreenShare] Failed to start screen share");
+        // Clean up the stream if we failed to add it
+        screenStream.getTracks().forEach((track) => track.stop());
+        throw new Error("Failed to start screen share");
       }
     } catch (error) {
       // Handle permission denied gracefully at the top level
@@ -598,11 +608,11 @@ const self = {
 
   // quando premo x per fermare lo screen share
 
-  async stopScreenShare(screenShareId) {
+  async stopScreenShare(screenShareUUID) {
     try {
       const data = await APIMethods.stopScreenShare(
         WebRTC.getChatId(),
-        screenShareId
+        screenShareUUID
       );
 
       if (!data.screen_share_stopped) {
@@ -610,7 +620,7 @@ const self = {
         throw new Error("Failed to stop screen share");
       }
 
-      WebRTC.removeScreenShareStream(screenShareId);
+      WebRTC.removeScreenShareStream(screenShareUUID);
       console.log("[ScreenShare] Screen share stopped successfully");
     } catch (error) {
       console.error("[ScreenShare] Error stopping screen share:", error);
@@ -661,6 +671,9 @@ const handle = {
 const check = {
   isInComms: () => {
     return WebRTC.getChatId() != null && WebRTC.getChatId() !== "";
+  },
+  isScreenShare: (participantId, streamUUID) => {
+    return WebRTC.isScreenShare(participantId, streamUUID);
   },
 };
 
