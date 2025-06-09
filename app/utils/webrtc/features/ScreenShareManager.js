@@ -2,6 +2,7 @@ import { Platform } from "react-native";
 import WebRTCLogger from "../logging/WebRTCLogger.js";
 import { GlobalState } from "../core/GlobalState.js";
 import Compatibility from "../utils/compatibility.js";
+import APIMethods from "../../APImethods.js";
 import { Helpers } from "../utils/helpers.js";
 
 const { mediaDevices } = Compatibility.getWebRTCLib();
@@ -525,13 +526,17 @@ export class ScreenShareManager {
 
         // Chiama API per fermare screen share
         try {
-          const apiMethods = this.globalState.getAPIMethods();
-          if (apiMethods) {
-            await apiMethods.stopScreenShare(
-              this.globalState.getChatId(),
-              streamId
-            );
-          }
+          await APIMethods.stopScreenShare(
+            this.globalState.getChatId(),
+            streamId
+          );
+          this.logger.debug(
+            "API stopScreenShare chiamata con successo",
+            {
+              component: "ScreenShareManager",
+              streamId,
+            }
+          );
         } catch (error) {
           this.logger.error("Errore chiamando API stopScreenShare", {
             component: "ScreenShareManager",
