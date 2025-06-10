@@ -223,7 +223,27 @@ const APIMethods = {
   async retrieveVocalUsers(chatId) {
     try {
       const response = await api.get(`/comms/get/members?chat_id=${chatId}`);
-      return response.data.comms_members_list;
+      const commsData = {};
+      
+      response.data.comms_members_list.forEach(member => {
+        if (!commsData[member.from]) {
+          commsData[member.from] = {
+        userData: {
+          handle: member.handle,
+          isSpeaking: member.is_speaking
+        },
+        activeScreenShares: []
+          };
+        }
+        
+        if (member.active_screen_share) {
+          commsData[member.from].activeScreenShares.push(...member.active_screen_share);
+        }
+      });
+
+      
+      
+      return commsData;
     } catch (error) {
       console.error("Error in updateAll:", error);
       throw error;

@@ -52,7 +52,8 @@ class VoiceActivityDetection {
       return false;
     }
 
-    if (!this.globalState.localStream) {
+    const localStream = this.globalState.getLocalStream();
+    if (!localStream) {
       this.logger.warn(
         "VoiceActivityDetection",
         "No local stream available for VAD"
@@ -66,7 +67,7 @@ class VoiceActivityDetection {
     }
 
     try {
-      await VAD.initializeVoiceActivityDetection(this.globalState.localStream);
+      await VAD.initializeVoiceActivityDetection(localStream);
       this.vadActive = true;
       this.logger.info("VoiceActivityDetection", "VAD started successfully");
       return true;

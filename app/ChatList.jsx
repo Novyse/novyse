@@ -841,11 +841,12 @@ function createStyle(theme, colorScheme) {
       overflow: "hidden", // Important: Add this to the container
     },
     chatList: {
-      // backgroundColor: theme.backgroundChatList,
+      
       flex: 1, // For small screens, it takes full width
       minWidth: 330, // Minimum width to prevent shrinking
     },
     largeScreenChatList: {
+      
       flex: 0, // Override flex: 1 for large screens
       width: 330, // Fixed width for large screens
       borderRightWidth: 1,

@@ -132,7 +132,7 @@ class WebRTCEventReceiver {
         this.voiceActivityDetection.setSpeakingState(data.from, false);
       }
     }
-  }  // Screen Sharing Handlers
+  } // Screen Sharing Handlers
   async handleScreenShareStarted(data) {
     if (
       data.from !== this.globalState.myId &&
@@ -158,7 +158,7 @@ class WebRTCEventReceiver {
             screenShareUUID: data.screenShareUUID,
             chatId: data.chat_id,
           });
-          
+
           this.logger?.info(
             `[EventReceiver] Emitted screen_share_started event for ${data.from}/${data.screenShareUUID}`
           );
@@ -170,7 +170,7 @@ class WebRTCEventReceiver {
       }
     }
   }
-  
+
   async handleScreenShareStopped(data) {
     if (
       data.from !== this.globalState.myId &&
@@ -183,20 +183,6 @@ class WebRTCEventReceiver {
         this.pinManager.clearPinIfId(data.screenShareUUID);
         this.globalState.removeScreenShare(data.from, data.screenShareUUID);
 
-        // Also remove the actual stream if it exists
-        if (this.globalState.remoteScreenStreams[data.from] && 
-            this.globalState.remoteScreenStreams[data.from][data.screenShareUUID]) {
-          const stream = this.globalState.remoteScreenStreams[data.from][data.screenShareUUID];
-          if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-          }
-          delete this.globalState.remoteScreenStreams[data.from][data.screenShareUUID];
-          
-          this.logger?.info(
-            `[EventReceiver] Cleaned up remote screen stream for ${data.from}/${data.screenShareUUID}`
-          );
-        }
-
         // Emit the screen_share_stopped event for VocalContent to handle UI cleanup
         if (this.globalState.eventEmitter) {
           this.globalState.eventEmitter.emit("screen_share_stopped", {
@@ -204,7 +190,7 @@ class WebRTCEventReceiver {
             screenShareUUID: data.screenShareUUID,
             chatId: data.chat_id,
           });
-          
+
           this.logger?.info(
             `[EventReceiver] Emitted screen_share_stopped event for ${data.from}/${data.screenShareUUID}`
           );
@@ -229,7 +215,8 @@ class WebRTCEventReceiver {
     if (
       !this.initialized ||
       !this.globalState ||
-      this.globalState.myId === undefined
+      this.globalState.myId === undefined ||
+      this.globalState.myId === null
     ) {
       this.logger?.info(
         `[EventReceiver] handleMemberJoined: Instance not ready, globalState is null, or myId is undefined. Initialized: ${
@@ -243,7 +230,7 @@ class WebRTCEventReceiver {
       data.from !== this.globalState.myId &&
       this.globalState.myId !== undefined
     ) {
-      this.logger?.info(`[EventReceiver] Member joined comms:+ ${data}`);
+      this.logger?.info("[EventReceiver] Member joined comms:", data);
 
       if (this.signalingManager) {
         await this.signalingManager.handleUserJoined(data);

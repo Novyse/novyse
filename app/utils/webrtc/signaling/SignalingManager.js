@@ -32,6 +32,18 @@ export class SignalingManager {
    * @returns {Promise<RTCSessionDescription|null>}
    */
   async createOffer(participantId) {
+    const myId = this.globalState.getMyId();
+    if (!myId) {
+      this.logger.error(
+        "Cannot create offer: myId is null - GlobalState not properly initialized",
+        {
+          component: "SignalingManager",
+          participantId,
+        }
+      );
+      return null;
+    }
+
     this.logger.info(`Creazione offerta per ${participantId}`, {
       component: "SignalingManager",
       participantId,
@@ -307,6 +319,7 @@ export class SignalingManager {
       return false;
     }
   }
+
   /**
    * Gestisce un messaggio di risposta ricevuta
    * @param {Object} message - Messaggio contenente la risposta
@@ -407,6 +420,9 @@ export class SignalingManager {
       // Processa candidati ICE in coda se presenti
       await this._processQueuedICECandidates(senderId);
 
+      // Add verification that remote stream is being handled
+      this._verifyRemoteStreamHandling(senderId);
+
       return true;
     } catch (error) {
       this.logger.error(`Errore gestione risposta da ${senderId}`, {
@@ -421,7 +437,44 @@ export class SignalingManager {
       this.globalState.setNegotiationInProgress(senderId, false);
     }
   }
+  /**
+   * Verifies that remote stream handling is working correctly
+   * @param {string} participantId - ID del partecipante
+   * @private
+   */
+  _verifyRemoteStreamHandling(participantId) {
+    const pc = this.globalState.getPeerConnection(participantId);
+    if (!pc) return;
 
+    // Check if we have remote streams
+    const remoteStreams = pc.getRemoteStreams ? pc.getRemoteStreams() : [];
+    const receivers = pc.getReceivers ? pc.getReceivers() : [];
+
+    this.logger.info(`Remote stream verification for ${participantId}`, {
+      component: "SignalingManager",
+      participantId,
+      remoteStreamsCount: remoteStreams.length,
+      receiversCount: receivers.length,
+      connectionState: pc.connectionState,
+      iceConnectionState: pc.iceConnectionState,
+      signalingState: pc.signalingState,
+    });
+
+    // If no remote streams, check receivers for tracks
+    if (remoteStreams.length === 0 && receivers.length > 0) {
+      receivers.forEach((receiver, index) => {
+        if (receiver.track) {
+          this.logger.info(`Found remote track via receiver ${index}`, {
+            component: "SignalingManager",
+            participantId,
+            trackKind: receiver.track.kind,
+            trackEnabled: receiver.track.enabled,
+            trackReadyState: receiver.track.readyState,
+          });
+        }
+      });
+    }
+  }
   /**
    * Gestisce un messaggio di candidato ICE ricevuto
    * @param {Object} message - Messaggio contenente il candidato ICE
@@ -529,7 +582,21 @@ export class SignalingManager {
       action: "handleUserJoined",
     });
     const participantId = message.from;
-    const myId = this.globalState.myId;
+    const myId = this.globalState.getMyId();
+
+    // Check if GlobalState is properly initialized
+    if (!myId) {
+      this.logger.error(
+        "Cannot handle user joined: GlobalState not properly initialized (myId is null)",
+        {
+          component: "SignalingManager",
+          participantId,
+          globalStateMyId: this.globalState.myId,
+          globalStateChatId: this.globalState.getChatId(),
+        }
+      );
+      return false;
+    }
 
     if (participantId === myId) {
       // Ignora il proprio join
@@ -603,7 +670,7 @@ export class SignalingManager {
 
       // Rimuovi da global state
       this.globalState.removePeerConnection(participantId);
-      this.globalState.removeRemoteStream(participantId);
+      this.globalState.removeAllUserActiveStreams(participantId);
 
       // Pulisci pin se era pinnato
       if (this.webRTCManager) {
@@ -636,19 +703,12 @@ export class SignalingManager {
    * @returns {Promise<boolean>}
    */
   async setExistingUsers(existingUsers) {
+    const count = existingUsers && typeof existingUsers === 'object' ? Object.keys(existingUsers).length : 0;
     this.logger.info("Impostazione utenti esistenti", {
       component: "SignalingManager",
-      usersCount: existingUsers.length,
+      usersCount: count,
       action: "setExistingUsers",
     });
-
-    if (!Array.isArray(existingUsers)) {
-      this.logger.error("Lista utenti esistenti non valida", {
-        component: "SignalingManager",
-        existingUsers,
-      });
-      return false;
-    }
 
     const myId = this.globalState.getMyId();
 
@@ -660,19 +720,16 @@ export class SignalingManager {
     }
 
     try {
-      for (const user of existingUsers) {
-        const participantId = user.id || user.from;
-
+      for (const [participantId, userData] of Object.entries(existingUsers)) {
         if (participantId === myId) {
           // Ignora se stesso
           continue;
         }
 
-        // Crea connessione peer per utente esistente, passando l'intero oggetto 'user' come userData
+        // Crea connessione peer per utente esistente, passando l'intero oggetto 'userData' come userData
         const pc = this.peerConnectionManager.createPeerConnection({
           from: participantId,
-          handle: user.handle || participantId,
-          userData: user, // Passa l'intero oggetto user come userData
+          handle: userData.handle,
         });
 
         if (pc) {
@@ -683,59 +740,16 @@ export class SignalingManager {
               participantId,
             }
           );
+        }
 
-          // Processa active_screen_share dall'oggetto user (ora in globalState.userData[participantId])
-          // Questo è analogo a come VocalContent identifica gli screen share esistenti
-          if (
-            user.active_screen_share &&
-            Array.isArray(user.active_screen_share)
-          ) {
-            user.active_screen_share.forEach((screenShareUUID) => {
-              if (
-                typeof screenShareUUID === "string" &&
-                screenShareUUID.length > 0
-              ) {
-                // Set metadata
-                this.globalState.setStreamMetadata(
-                  participantId,
-                  screenShareUUID,
-                  "screenshare"
-                );
-
-                // IMPORTANT: Also add to userData.active_screen_share array
-                this.globalState.addScreenShare(participantId, screenShareUUID);
-
-                this.logger.info(
-                  `Registrato screen share ${screenShareUUID} preesistente per l'utente ${participantId}.`,
-                  {
-                    component: "SignalingManager",
-                    participantId,
-                    screenShareUUID,
-                  }
-                );
-              } else {
-                this.logger.warn(
-                  `Trovato screenShareUUID non valido nei dati utente preesistente per ${participantId}`,
-                  {
-                    component: "SignalingManager",
-                    participantId,
-                    screenShareUUID_received: screenShareUUID,
-                  }
-                );
-              }
-            });
+        this.logger.info(
+          `Connessioni create e screen share preesistenti processati per ${count} utenti.`,
+          {
+            component: "SignalingManager",
+            usersCount: count,
           }
-        }
+        );
       }
-
-      this.logger.info(
-        `Connessioni create e screen share preesistenti processati per ${existingUsers.length} utenti.`,
-        {
-          component: "SignalingManager",
-          usersCount: existingUsers.length,
-        }
-      );
-
       return true;
     } catch (error) {
       this.logger.error("Errore impostazione utenti esistenti", {
@@ -968,8 +982,29 @@ export class SignalingManager {
    * @param {string} participantId - ID del partecipante
    * @returns {Promise<void>}
    * @private
-   */ async _scheduleOfferCreation(participantId) {
+   */
+  async _scheduleOfferCreation(participantId) {
     const myId = this.globalState.getMyId();
+
+    // Validate that we have a valid myId
+    if (!myId) {
+      this.logger.error(`Cannot schedule offer creation: myId is null`, {
+        component: "SignalingManager",
+        participantId,
+        myId,
+        globalStateInitialized: !!this.globalState,
+      });
+      return;
+    }
+
+    if (myId === participantId) {
+      this.logger.warning(`Self-connection detected for ${participantId}`, {
+        component: "SignalingManager",
+        participantId,
+        myId,
+      });
+      return;
+    }
 
     // Primary strategy: Check if we have video enabled - video-enabled clients initiate
     const hasVideo =

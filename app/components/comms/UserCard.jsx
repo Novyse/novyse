@@ -20,175 +20,19 @@ if (Platform.OS === "web") {
   RTCView = require("react-native-webrtc").RTCView;
 }
 
-// CSS Animation template per web
-const PULSE_ANIMATION = `
-  @keyframes pulse-speaking {
-    0% {
-      box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.6);
-      border-color: #00FF00;
-    }
-    50% {
-      box-shadow: inset 0 0 25px rgba(0, 255, 0, 1), 0 0 30px rgba(0, 255, 0, 0.8);
-      border-color: #22FF22;
-    }
-    100% {
-      box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.6);
-      border-color: #00FF00;
-    }
-  }
-`;
-
-// Add CSS animation for web platform - only once per session
-let animationAdded = false;
-const addPulseAnimation = () => {
-  if (
-    Platform.OS === "web" &&
-    typeof document !== "undefined" &&
-    !animationAdded
-  ) {
-    const existingStyle = document.getElementById(
-      "user-card-speaking-animation"
-    );
-    if (!existingStyle) {
-      const style = document.createElement("style");
-      style.id = "user-card-speaking-animation";
-      style.textContent = PULSE_ANIMATION;
-      document.head.appendChild(style);
-      animationAdded = true;
-    }
-  }
-};
-
-// Componente separato per il contenuto video memoizzato
-const VideoContent = memo(
-  ({
-    hasVideo,
-    streamToRender,
-    isLocal,
-    displayName,
-    profileImageUri,
-    width,
-    height,
-    videoStreamKey,
-    userData,
-    streamType,
-    streamUUID,
-  }) => {
-    // Use streamUUID for better key generation if available
-    const effectiveKey = videoStreamKey || streamUUID || "default";
-
-    return (
-      <View style={styles.videoContainer}>
-        {hasVideo && streamToRender ? (
-          <View style={styles.videoWrapper}>
-            {/* Sfondo sfocato - usa lo stesso stream ma ingrandito e sfocato */}
-            {Platform.OS === "web" ? (
-              <>
-                <RTCView
-                  key={`bg-${effectiveKey}`}
-                  stream={streamToRender}
-                  style={[
-                    styles.videoStream,
-                    styles.blurredBackground,
-                    { objectFit: "cover" },
-                  ]}
-                  muted={isLocal}
-                />
-                {/* Overlay per migliorare il contrasto del blur su web */}
-                <View
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    backgroundColor: "rgba(0,0,0,0.10)",
-                    borderRadius: 8,
-                    zIndex: 2,
-                  }}
-                />
-              </>
-            ) : (
-              <View style={styles.blurredBackground}>
-                <>
-                  <RTCView
-                    key={`bg-mobile-${effectiveKey}`}
-                    streamURL={streamToRender.toURL()}
-                    style={[styles.videoStream, { objectFit: "cover" }]}
-                    muted={isLocal}
-                  />
-                  <BlurView
-                    experimentalBlurMethod="dimezisBlurView"
-                    intensity={100}
-                    tint="dark"
-                    style={{
-                      ...StyleSheet.absoluteFillObject,
-                      borderRadius: 20,
-                      zIndex: 2,
-                    }}
-                  />
-                  <View
-                    pointerEvents="none"
-                    style={{
-                      ...StyleSheet.absoluteFillObject,
-                      borderRadius: 20,
-                      zIndex: 3,
-                      backgroundColor: "rgba(10,10,10,0.45)", // molto più scuro
-                      // Simula "fumo" con un gradiente verticale scuro
-                      ...(Platform.OS === "android" &&
-                        {
-                          // Il supporto ai gradienti inline su React Native è limitato, quindi usiamo un overlay molto scuro
-                        }),
-                    }}
-                  />
-                </>
-              </View>
-            )}
-            {Platform.OS === "web" ? (
-              <RTCView
-                key={`main-${effectiveKey}`}
-                stream={streamToRender}
-                style={[styles.videoStreamMain, { objectFit: "contain" }]}
-                muted={isLocal}
-              />
-            ) : (
-              <RTCView
-                key={`main-mobile-${effectiveKey}`}
-                streamURL={streamToRender.toURL()}
-                style={[styles.videoStreamMain, { objectFit: "contain" }]}
-                muted={isLocal}
-              />
-            )}
-          </View>
-        ) : (
-          <UserProfileAvatar
-            userHandle={displayName}
-            profileImageUri={profileImageUri}
-            containerWidth={width}
-            containerHeight={height}
-          />
-        )}
-      </View>
-    );
-  }
-);
-
-VideoContent.displayName = "VideoContent";
-
 // UserCard component - Rappresenta la singola card di un utente o screen share
 // Usa React.memo per evitare re-render se le sue prop non cambiano
 const UserCard = memo(
   ({
     streamUUID,
-    profile,
     isLocal = false,
-    activeStream,
     isSpeaking = false,
     width,
     height,
     margin,
+    handle,
     isScreenShare = false,
-    videoStreamKey,
+    stream = null,
     isPinned = false,
     onPin,
     pinDisabled,
@@ -198,97 +42,48 @@ const UserCard = memo(
       addPulseAnimation();
     }, []);
 
-    // Debug logging for streamUUID tracking
-    useEffect(() => {
-      if (streamUUID) {
-        console.log(
-          `[UserCard] Rendering component for streamUUID: ${streamUUID}`,
-          {
-            isScreenShare,
-            isLocal,
-            hasActiveStream: !!activeStream,
-            profileFrom: profile?.from,
-            streamType: activeStream?.streamType,
-          }
-        );
-      }
-    }, [streamUUID, isScreenShare, isLocal, activeStream, profile?.from]);
-
     // Check if current user is in comms - memoizzato per evitare re-calcoli
-    const userIsInComms = useMemo(() => check.isInComms(), []); // Determina quale stream utilizzare - memoizzato per stabilità
+    const userIsInComms = useMemo(() => check.isInComms(), []);
+    // Determina quale stream utilizzare - memoizzato per stabilità
     const streamToRender = useMemo(() => {
       if (!userIsInComms) return null;
-
-      if (isScreenShare && activeStream?.stream) {
-        // For screen shares, ALWAYS use the activeStream.stream if available
-        return activeStream.stream;
-      } else if (isLocal) {
-        // For local users, prefer activeStream if available (for better re-rendering), fallback to get.localStream()
-        return activeStream?.stream || get.localStream();
-      } else if (activeStream?.stream) {
-        return activeStream.stream;
-      } else if (get.remoteStreams()[profile.from]) {
-        return get.remoteStreams()[profile.from];
-      }
-      return null;
-    }, [
-      userIsInComms,
-      isScreenShare,
-      activeStream?.stream,
-      isLocal,
-      profile.from,
-      videoStreamKey,
-      activeStream?.timestamp,
-    ]);
+      return stream;
+    }, [stream]);
 
     // Determina se ha video - memoizzato separatamente
     const hasVideo = useMemo(() => {
-      return userIsInComms && streamToRender?.getVideoTracks().length > 0;
-    }, [userIsInComms, streamToRender, videoStreamKey]);
+      if(!stream || stream == null) {
+        return false;
+      }
+      return stream.getVideoTracks().length > 0;
+    }, [stream]);
 
     // Memoizza i dati statici separatamente per evitare che cambino quando speaking cambia
     const staticDisplayName = useMemo(() => {
       return isScreenShare
-        ? `${profile.handle || profile.from || "Unknown"} : Screen Share`
-        : activeStream?.userData?.handle || profile.handle || "Loading...";
-    }, [
-      isScreenShare,
-      profile.handle,
-      profile.from,
-      activeStream?.userData?.handle,
-    ]);
+        ? `${handle || "Unknown"} : Screen Share`
+        : handle || "Unknown";
+    }, [isScreenShare, handle]);
 
     const staticProfileImageUri = useMemo(() => {
-      return isScreenShare
-        ? null
-        : activeStream?.userData?.profileImageUri || profile.profileImageUri;
-    }, [
-      isScreenShare,
-      activeStream?.userData?.profileImageUri,
-      profile.profileImageUri,
-    ]);
+      return null;
+    }, []);
 
-    const staticStreamType = useMemo(() => {
-      return (
-        activeStream?.streamType || (isScreenShare ? "screenshare" : "webcam")
-      );
-    }, [activeStream?.streamType, isScreenShare]); // Memoizza i valori per il componente VideoContent per prevenire re-render
-    // Nota: Escludiamo deliberatamente profile e activeStream dalle dipendenze per evitare re-render quando speaking cambia
     const videoProps = useMemo(
       () => ({
+        streamUUID,
+        isScreenShare,
         hasVideo,
-        streamToRender,
+        stream: streamToRender,
         isLocal,
         displayName: staticDisplayName,
         profileImageUri: staticProfileImageUri,
         width,
         height,
-        videoStreamKey: videoStreamKey || streamUUID, // Use streamUUID as fallback for videoStreamKey
-        userData: { ...(activeStream?.userData || profile || {}) }, // Crea una copia per evitare riferimenti mutabili
-        streamType: staticStreamType,
-        streamUUID, // Pass streamUUID to VideoContent for debugging
       }),
       [
+        streamUUID,
+        isScreenShare,
         hasVideo,
         streamToRender,
         isLocal,
@@ -296,10 +91,6 @@ const UserCard = memo(
         staticProfileImageUri,
         width,
         height,
-        videoStreamKey,
-        streamUUID,
-        staticStreamType,
-        activeStream?.timestamp, // Add timestamp to force re-render when stream updates
       ]
     );
 
@@ -344,12 +135,14 @@ const UserCard = memo(
           strokeWidth={1.5}
         />
       </TouchableOpacity>
-    ); // Componente del pulsante stop screen share (solo per screen share locali)
+    );
+
+    // Componente del pulsante stop screen share (solo per screen share locali)
     const StopScreenShareButton = () => {
       const handleStopScreenShare = async () => {
         try {
           // Use the streamUUID prop first, fallback to activeStream.streamUUID
-          const uuidToStop = streamUUID || activeStream?.streamUUID;
+          const uuidToStop = streamUUID;
           if (uuidToStop) {
             console.log(
               `[UserCard] Stopping screen share with UUID: ${uuidToStop}`
@@ -375,12 +168,7 @@ const UserCard = memo(
         </TouchableOpacity>
       );
     }; // Determina se mostrare il pulsante stop screen share
-    const shouldShowStopButton =
-      isLocal && isScreenShare && (!!streamUUID || !!activeStream?.streamUUID);
-
-    console.log(
-      `[UserCard] shouldShowStopButton: ${shouldShowStopButton}, isLocal: ${isLocal}, isScreenShare: ${isScreenShare}, streamUUID: ${streamUUID}, activeStreamUUID: ${activeStream?.streamUUID}`
-    );
+    const shouldShowStopButton = isLocal && isScreenShare && !!streamUUID;
     return (
       <View
         style={[
@@ -403,6 +191,159 @@ const UserCard = memo(
   }
 );
 
+// ------- SPEECH DETECTION ANIMATION -------
+
+// CSS Animation template per web
+const PULSE_ANIMATION = `
+  @keyframes pulse-speaking {
+    0% {
+      box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.6);
+      border-color: #00FF00;
+    }
+    50% {
+      box-shadow: inset 0 0 25px rgba(0, 255, 0, 1), 0 0 30px rgba(0, 255, 0, 0.8);
+      border-color: #22FF22;
+    }
+    100% {
+      box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.6);
+      border-color: #00FF00;
+    }
+  }
+`;
+
+// Add CSS animation for web platform - only once per session
+let animationAdded = false;
+const addPulseAnimation = () => {
+  if (
+    Platform.OS === "web" &&
+    typeof document !== "undefined" &&
+    !animationAdded
+  ) {
+    const existingStyle = document.getElementById(
+      "user-card-speaking-animation"
+    );
+    if (!existingStyle) {
+      const style = document.createElement("style");
+      style.id = "user-card-speaking-animation";
+      style.textContent = PULSE_ANIMATION;
+      document.head.appendChild(style);
+      animationAdded = true;
+    }
+  }
+};
+
+// ------- SPEECH DETECTION ANIMATION -------
+
+// Componente separato per il contenuto video memoizzato
+const VideoContent = memo(
+  ({
+    streamUUID,
+    isScreenShare,
+    hasVideo,
+    stream,
+    isLocal,
+    displayName,
+    profileImageUri,
+    width,
+    height,
+  }) => {
+    return (
+      <View style={styles.videoContainer}>
+        {hasVideo && stream ? (
+          <View style={styles.videoWrapper}>
+            {/* Sfondo sfocato - usa lo stesso stream ma ingrandito e sfocato */}
+            {Platform.OS === "web" ? (
+              <>
+                <RTCView
+                  key={`bg-${streamUUID}`}
+                  stream={stream}
+                  style={[
+                    styles.videoStream,
+                    styles.blurredBackground,
+                    { objectFit: "cover" },
+                  ]}
+                  muted={isLocal}
+                />
+                {/* Overlay per migliorare il contrasto del blur su web */}
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    backgroundColor: "rgba(0,0,0,0.10)",
+                    borderRadius: 8,
+                    zIndex: 2,
+                  }}
+                />
+              </>
+            ) : (
+              <View style={styles.blurredBackground}>
+                <>
+                  <RTCView
+                    key={`bg-mobile-${streamUUID}`}
+                    streamURL={stream.toURL()}
+                    style={[styles.videoStream, { objectFit: "cover" }]}
+                    muted={isLocal}
+                  />
+                  <BlurView
+                    experimentalBlurMethod="dimezisBlurView"
+                    intensity={100}
+                    tint="dark"
+                    style={{
+                      ...StyleSheet.absoluteFillObject,
+                      borderRadius: 20,
+                      zIndex: 2,
+                    }}
+                  />
+                  <View
+                    pointerEvents="none"
+                    style={{
+                      ...StyleSheet.absoluteFillObject,
+                      borderRadius: 20,
+                      zIndex: 3,
+                      backgroundColor: "rgba(10,10,10,0.45)", // molto più scuro
+                      // Simula "fumo" con un gradiente verticale scuro
+                      ...(Platform.OS === "android" &&
+                        {
+                          // Il supporto ai gradienti inline su React Native è limitato, quindi usiamo un overlay molto scuro
+                        }),
+                    }}
+                  />
+                </>
+              </View>
+            )}
+            {Platform.OS === "web" ? (
+              <RTCView
+                key={`main-${streamUUID}`}
+                stream={stream}
+                style={[styles.videoStreamMain, { objectFit: "contain" }]}
+                muted={isLocal}
+              />
+            ) : (
+              <RTCView
+                key={`main-mobile-${streamUUID}`}
+                streamURL={stream.toURL()}
+                style={[styles.videoStreamMain, { objectFit: "contain" }]}
+                muted={isLocal}
+              />
+            )}
+          </View>
+        ) : (
+          <UserProfileAvatar
+            userHandle={displayName}
+            profileImageUri={profileImageUri}
+            containerWidth={width}
+            containerHeight={height}
+          />
+        )}
+      </View>
+    );
+  }
+);
+
+VideoContent.displayName = "VideoContent";
 UserCard.displayName = "UserCard";
 
 const styles = StyleSheet.create({

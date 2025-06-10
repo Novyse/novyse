@@ -155,54 +155,17 @@ class WebRTCManager {
   /**
    * Regenerate WebRTC manager with new parameters
    */
-  async regenerate(myId, chatId, callbacks) {
+  async regenerate(myId, chatId, stream) {
     this.logger.info("WebRTCManager", "Regenerating WebRTC Manager...");
-
-    // Store existing user data for reconnection and audioContext
-    const existingUsers = Object.values(this.globalState.userData);
-    const existingAudioContext = this.globalState.audioContextRef;
-
-    this.logger.info(
-      "WebRTCManager",
-      "Preserving audioContext during regeneration:",
-      {
-        hasExistingAudioContext: !!existingAudioContext,
-        audioContextType: typeof existingAudioContext,
-      }
-    );
 
     // Cleanup current state
     await this.closeAllConnections(false);
-
     // Update global state
-    this.globalState.regenerate(myId, chatId, callbacks);
+    this.globalState.regenerate(myId, chatId, stream);
 
-    // Restore audioContext if it existed
-    if (existingAudioContext) {
-      this.logger.info(
-        "WebRTCManager",
-        "Restoring audioContext after regeneration"
-      );
-      this.globalState.audioContextRef = existingAudioContext;
-    }
 
     // Reinitialize
     this._initialize();
-
-    // Reconnect with existing users
-    if (existingUsers.length > 0) {
-      this.logger.info(
-        "WebRTCManager",
-        `Reconnecting with ${existingUsers.length} existing users`
-      );
-      setTimeout(async () => {
-        for (const userData of existingUsers) {
-          if (userData.from !== myId) {
-            this.connectToNewParticipant(userData);
-          }
-        }
-      }, 500);
-    }
 
     this.logger.info(
       "WebRTCManager",
@@ -244,21 +207,7 @@ class WebRTCManager {
    * Get local stream
    */
   getLocalStream() {
-    return this.globalState.localStream;
-  }
-
-  /**
-   * Get remote streams
-   */
-  getRemoteStreams() {
-    return this.globalState.remoteStreams;
-  }
-
-  /**
-   * Get remote screen streams
-   */
-  getRemoteScreenStreams() {
-    return this.globalState.remoteScreenStreams;
+    return this.globalState.getLocalStream();
   }
 
   // ===== CONNECTION MANAGEMENT API =====
@@ -300,7 +249,7 @@ class WebRTCManager {
     this.eventReceiver.destroy();
 
     // Reset global state
-    this.globalState.cleanup();
+    this.globalState.cleanup(true);
 
     this.logger.info(
       "WebRTCManager",
@@ -416,10 +365,35 @@ class WebRTCManager {
     return await this.signalingManager.handleUserLeft(message);
   }
 
+  async setcommsData(commsData) {
+    this.globalState.setCommsData(commsData);
+    const userData = {};
+    for (const participantUUID in commsData) {
+      if (commsData[participantUUID] && commsData[participantUUID].userData) {
+        userData[participantUUID] = commsData[participantUUID].userData;
+      }
+    }
+    return await this.signalingManager.setExistingUsers(userData);
+  }
+
+  getActiveStreams(){
+    return this.globalState.getAllActiveStreams();
+  }
+
   /**
    * Set existing users in chat
    */
   async setExistingUsers(existingUsers) {
+    console.log("DEBUG setExistingUsers - Input data:", existingUsers);
+    console.log("DEBUG setExistingUsers - Keys:", Object.keys(existingUsers));
+    console.log("DEBUG setExistingUsers - MyId:", this.globalState.getMyId());
+    // Aggiungi questo per vedere ogni utente
+    for (const [participantId, userData] of Object.entries(existingUsers)) {
+      console.log(
+        `DEBUG setExistingUsers - Processing user ${participantId}:`,
+        userData
+      );
+    }
     return await this.signalingManager.setExistingUsers(existingUsers);
   }
 
@@ -427,7 +401,8 @@ class WebRTCManager {
 
   /**
    * Set audio context reference
-   */ setAudioContext(audioContext) {
+   */ 
+  setAudioContext(audioContext) {
     this.logger.info("WebRTCManager", "Setting audio context reference:", {
       audioContext: !!audioContext,
       hasAddAudio: audioContext && typeof audioContext.addAudio === "function",
@@ -442,6 +417,17 @@ class WebRTCManager {
       "WebRTCManager",
       "Audio context reference set successfully"
     );
+  }
+
+  getAudioContext() {
+    if (!this.globalState.audioContextRef) {
+      this.logger.warn(
+        "WebRTCManager",
+        "Audio context reference is not set. Please call setAudioContext() first."
+      );
+      return null;
+    }
+    return this.globalState.audioContextRef;
   }
 
   // ===== HEALTH MONITORING API =====
@@ -528,6 +514,13 @@ class WebRTCManager {
       return this.globalState.userData[participantId];
     }
     return this.globalState.userData;
+  }
+
+  /**
+   * Get comms data
+   */
+  getCommsData(participantId) {
+    return this.globalState.getCommsData(participantId);
   }
 
   /**

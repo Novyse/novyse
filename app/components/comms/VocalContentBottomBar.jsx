@@ -12,6 +12,7 @@ import MicrophoneSelector from "./MicrophoneSelector";
 import MicrophoneArrowButton from "./MicrophoneArrowButton";
 import CameraSelector from "./CameraSelector";
 import CameraArrowButton from "./CameraArrowButton";
+import { BlurView } from "expo-blur";
 
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
@@ -232,39 +233,41 @@ const VocalContentBottomBar = ({ chatId }) => {
           />
         )
       ) : (
-        <View style={styles.container}>
-          <View style={styles.microphoneButtonContainer}>
+        <BlurView intensity={30} tint="light" style={styles.blurContainer}>
+          <View style={styles.container}>
+            <View style={styles.microphoneButtonContainer}>
+              <VocalBottomBarButton
+                onPress={toggleAudio}
+                iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
+                iconColor={theme.icon}
+              />
+              <MicrophoneArrowButton
+                onPress={handleMicrophoneSelect}
+                theme={theme}
+              />
+            </View>
+            <View style={styles.cameraButtonContainer}>
+              <VocalBottomBarButton
+                onPress={toggleVideo}
+                iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
+                iconColor={theme.icon}
+              />
+              <CameraArrowButton onPress={handleCameraSelect} theme={theme} />
+            </View>
             <VocalBottomBarButton
-              onPress={toggleAudio}
-              iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
+              onPress={handleScreenShare}
+              iconName={ComputerScreenShareIcon}
               iconColor={theme.icon}
             />
-            <MicrophoneArrowButton
-              onPress={handleMicrophoneSelect}
-              theme={theme}
-            />
-          </View>
-          <View style={styles.cameraButtonContainer}>
             <VocalBottomBarButton
-              onPress={toggleVideo}
-              iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
-              iconColor={theme.icon}
+              onPress={async () => {
+                self.left(chatId);
+              }}
+              iconName={Call02Icon}
+              iconColor="red"
             />
-            <CameraArrowButton onPress={handleCameraSelect} theme={theme} />
           </View>
-          <VocalBottomBarButton
-            onPress={handleScreenShare}
-            iconName={ComputerScreenShareIcon}
-            iconColor={theme.icon}
-          />
-          <VocalBottomBarButton
-            onPress={async () => {
-              self.left(chatId);
-            }}
-            iconName={Call02Icon}
-            iconColor="red"
-          />
-        </View>
+        </BlurView>
       )}
       {showMicrophoneSelector && (
         <MicrophoneSelector
@@ -307,6 +310,12 @@ const createStyle = (theme) =>
       width: 45,
       alignItems: "center",
       justifyContent: "center",
+    },
+    blurContainer: {
+      padding: 10,
+      textAlign: "center",
+      justifyContent: "center",
+      borderRadius: 20,
     },
   });
 

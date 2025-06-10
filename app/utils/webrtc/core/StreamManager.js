@@ -4,6 +4,7 @@ import { getConstraintsForPlatform } from "../config/mediaConstraints.js";
 import { WEBRTC_CONSTANTS } from "../config/constants.js";
 import { ERROR_CODES } from "../config/constants.js";
 import { createMediaStream } from "../utils/compatibility.js";
+import eventEmitter from "../../EventEmitter.js";
 
 // Import WebRTC based on platform
 let WebRTC;
@@ -37,9 +38,10 @@ export class StreamManager {
       `Starting local stream (audioOnly: ${audioOnly})`
     );
 
-    if (this.globalState.localStream) {
+    let localStream = this.globalState.getLocalStream();
+    if (localStream) {
       this.logger.warning("StreamManager", "Local stream already active");
-      return this.globalState.localStream;
+      return localStream;
     }
 
     try {
@@ -49,25 +51,27 @@ export class StreamManager {
 
       this.logger.debug("StreamManager", "Using constraints:", constraints);
 
-      const stream = await mediaDevices.getUserMedia(constraints);
+      localStream = await mediaDevices.getUserMedia(constraints);
 
       this.logger.info("StreamManager", "Local stream obtained successfully");
       this.logger.debug(
         "StreamManager",
-        `Stream tracks: ${stream.getTracks().length}`
+        `Stream tracks: ${localStream.getTracks().length}`
       );
 
-      this.globalState.localStream = stream;
+      this.globalState.setLocalStream(localStream);
 
-      // Notify UI callback
-      if (this.globalState.callbacks.onLocalStreamReady) {
-        this.globalState.callbacks.onLocalStreamReady(stream);
-      }
+      eventEmitter.emit("stream_added_or_updated", {
+        participantUUID: this.globalState.getMyId(),
+        stream: localStream,
+        streamUUID: this.globalState.getMyId(),
+        timestamp: Date.now(),
+      });
 
       // Add stream to existing peer connections
       this._addLocalStreamToAllPeers();
 
-      return stream;
+      return localStream;
     } catch (error) {
       this.logger.error(
         "StreamManager",
@@ -109,8 +113,10 @@ export class StreamManager {
       const videoStream = await mediaDevices.getUserMedia(videoConstraints);
       const videoTrack = videoStream.getVideoTracks()[0];
 
-      if (this.globalState.localStream && videoTrack) {
-        this.globalState.localStream.addTrack(videoTrack);
+      const localStream = this.globalState.getLocalStream();
+      if (localStream && videoTrack) {
+        localStream.addTrack(videoTrack);
+        this.globalState.setLocalStream(localStream);
         this.logger.info("StreamManager", "Video track added successfully");
 
         // Add track to all peer connections and wait for completion
@@ -131,7 +137,7 @@ export class StreamManager {
         if (this.globalState.eventEmitter) {
           this.globalState.eventEmitter.emit("stream_added_or_updated", {
             participantId: this.globalState.myId,
-            stream: this.globalState.localStream,
+            stream: this.globalState.getLocalStream(),
             streamType: "webcam",
             userData: this.globalState.userData[this.globalState.myId] || {
               handle: "You",
@@ -143,6 +149,8 @@ export class StreamManager {
             "StreamManager",
             "Emitted stream_added_or_updated event for video track addition"
           );
+
+          return videoTrack;
         }
 
         // Trigger renegotiation after all track operations are complete
@@ -199,7 +207,9 @@ export class StreamManager {
       "Removing video tracks from local stream"
     );
 
-    if (!this.globalState.localStream) {
+    const localStream = this.globalState.getLocalStream()
+
+    if (!localStream) {
       this.logger.warning(
         "StreamManager",
         "No local stream to remove video tracks from"
@@ -207,12 +217,12 @@ export class StreamManager {
       return;
     }
 
-    const videoTracks = this.globalState.localStream.getVideoTracks();
 
     // Stop and remove tracks from local stream
-    videoTracks.forEach((track) => {
+    const videoTracks = localStream.getVideoTracks();
+    videoTracks.forEach(track => {
       track.stop();
-      this.globalState.localStream.removeTrack(track);
+      localStream.removeTrack(track);
     });
 
     this.logger.info(
@@ -222,22 +232,13 @@ export class StreamManager {
     // Remove tracks from peer connections
     await this._removeVideoTracksFromAllPeers();
 
-    // Notify UI
-    if (this.globalState.callbacks.onLocalStreamReady) {
-      this.globalState.callbacks.onLocalStreamReady(
-        this.globalState.localStream
-      );
-    }
 
     // Emit stream_added_or_updated event for UI synchronization
     if (this.globalState.eventEmitter) {
       this.globalState.eventEmitter.emit("stream_added_or_updated", {
-        participantId: this.globalState.myId,
+        participantUUID: this.globalState.getMyId(),
         stream: this.globalState.localStream,
-        streamType: "webcam",
-        userData: this.globalState.userData[this.globalState.myId] || {
-          handle: "You",
-        },
+        streamUUID: this.globalState.getMyId(),
         timestamp: Date.now(),
       });
 
@@ -471,15 +472,16 @@ export class StreamManager {
    * @param {RTCPeerConnection} pc - The peer connection
    */
   _addLocalTracksToPeerConnection(pc) {
-    if (!this.globalState.localStream) return;
+    const localStream = this.globalState.getLocalStream();
+    if (!localStream) return;
 
-    this.globalState.localStream.getTracks().forEach((track) => {
+    localStream.getTracks().forEach((track) => {
       // Avoid duplicates
       const existingSender = pc
         .getSenders()
         .find((s) => s.track && s.track.id === track.id);
       if (!existingSender) {
-        pc.addTrack(track, this.globalState.localStream);
+        pc.addTrack(track, localStream);
         this.logger.debug(
           "StreamManager",
           `Added ${track.kind} track to peer connection`
@@ -491,7 +493,8 @@ export class StreamManager {
   /**
    * Add a specific track to all peer connections
    * @param {MediaStreamTrack} track - The track to add
-   */ async _addTrackToAllPeers(track) {
+   */
+  async _addTrackToAllPeers(track) {
     for (const [peerId, pc] of Object.entries(
       this.globalState.peerConnections
     )) {
@@ -500,6 +503,7 @@ export class StreamManager {
         pc.connectionState === "connecting"
       ) {
         try {
+          const localStream = this.globalState.getLocalStream();
           // For video tracks, check if we should replace existing or add new
           if (track.kind === "video") {
             const existingVideoSender = pc
@@ -512,7 +516,7 @@ export class StreamManager {
               if (Platform.OS === "android") {
                 try {
                   pc.removeTrack(existingVideoSender);
-                  pc.addTrack(track, this.globalState.localStream);
+                  pc.addTrack(track, localStream);
                   this.logger.debug(
                     "StreamManager",
                     `Removed and re-added video track for Android peer ${peerId}`
@@ -539,7 +543,7 @@ export class StreamManager {
               }
             } else {
               // Add new video track
-              pc.addTrack(track, this.globalState.localStream);
+              pc.addTrack(track, localStream);
               this.logger.debug(
                 "StreamManager",
                 `Added new video track to peer ${peerId}`
@@ -547,7 +551,7 @@ export class StreamManager {
             }
           } else {
             // For non-video tracks, just add normally
-            pc.addTrack(track, this.globalState.localStream);
+            pc.addTrack(track, localStream);
             this.logger.debug(
               "StreamManager",
               `Added ${track.kind} track to peer ${peerId}`
@@ -1133,10 +1137,9 @@ export class StreamManager {
     // Emit event for UI
     if (this.globalState.eventEmitter) {
       this.globalState.eventEmitter.emit("stream_added_or_updated", {
-        participantId,
+        participantUUID: participantId,
         stream,
-        streamType: "webcam",
-        userData: this.globalState.userData[participantId],
+        streamUUID: participantId,
       });
     }
   }

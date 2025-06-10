@@ -12,18 +12,10 @@ class GlobalState {
 
     // ===== PEER CONNECTIONS =====
     this.peerConnections = {}; // { participantId: RTCPeerConnection }
-    this.userData = {}; // { participantId: { handle, from, is_speaking, etc. } }
+    this.commsData = {}; // { participantId: { commsData: {handle, is_speaking}, activeScreenShares: [streamUUID,streamUUID2] } }
+    this.activeStreams = {}; // { participantId: { partecipantUUID : { streamUUID: MediaStream, streamUUID2: MediaStream, ... } }
+
     this.negotiationInProgress = {}; // { participantId: boolean }
-
-    // ===== STREAM MANAGEMENT =====
-    this.localStream = null;
-    this.remoteStreams = {}; // { participantId: MediaStream }
-    this.remoteScreenStreams = {}; // { participantId: { screenShareUUID: MediaStream } }
-    this.remoteStreamMetadata = {}; // { participantId: { screenShareUUID: 'webcam'|'screenshare' } }
-
-    // Screen sharing
-    this.screenStreams = {}; // { screenShareUUID: MediaStream }
-    this.screenStreamCounter = 0;
 
     // ===== VOICE ACTIVITY DETECTION =====
     this.speakingUsers = new Set();
@@ -92,17 +84,10 @@ class GlobalState {
     // Update callbacks object
     this.callbacks = callbacks;
 
-    // Imposta callbacks se forniti
-    if (callbacks.onLocalStreamReady)
-      this.onLocalStreamReady = callbacks.onLocalStreamReady;
-    if (callbacks.onPeerConnectionStateChange)
-      this.onPeerConnectionStateChange = callbacks.onPeerConnectionStateChange;
-    if (callbacks.onParticipantLeft)
-      this.onParticipantLeft = callbacks.onParticipantLeft;
-    if (callbacks.onStreamUpdate)
-      this.onStreamUpdate = callbacks.onStreamUpdate;
-    if (callbacks.onSpeakingStatusChange)
-      this.onSpeakingStatusChange = callbacks.onSpeakingStatusChange;
+    // Initialize activeStreams for this user
+    if (!this.activeStreams[myId]) {
+      this.activeStreams[myId] = {};
+    }
 
     logger.info(
       "GlobalState",
@@ -153,12 +138,9 @@ class GlobalState {
 
     // Reset arrays e objects
     this.peerConnections = {};
-    this.userData = {};
+    this.commsData = {};
     this.negotiationInProgress = {};
-    this.remoteStreams = {};
-    this.remoteScreenStreams = {};
-    this.remoteStreamMetadata = {};
-    this.screenStreams = {};
+    this.activeStreams = {};
     this.speakingUsers.clear();
     this.connectionStates = {};
     this.connectionTimestamps = {};
@@ -203,9 +185,25 @@ class GlobalState {
 
   // ===== METODI PER PEER CONNECTIONS =====
 
-  addPeerConnection(participantId, peerConnection, userData) {
+  addPeerConnection(participantId, peerConnection, commData) {
     this.peerConnections[participantId] = peerConnection;
-    this.userData[participantId] = userData;
+
+    // Initialize commsData if it doesn't exist, otherwise preserve existing data
+    if (!this.commsData[participantId]) {
+      this.commsData[participantId] = {
+        activeScreenShares: [],
+        userData: {
+          ...commData,
+        },
+      };
+    } else {
+      // Update existing userData while preserving other properties
+      this.commsData[participantId].userData = {
+        ...this.commsData[participantId].userData,
+        ...commData,
+      };
+    }
+
     logger.debug(
       "GlobalState",
       `Aggiunta peer connection per ${participantId}`
@@ -214,7 +212,7 @@ class GlobalState {
 
   removePeerConnection(participantId) {
     delete this.peerConnections[participantId];
-    delete this.userData[participantId];
+    delete this.commsData[participantId];
     delete this.negotiationInProgress[participantId];
     logger.debug("GlobalState", `Rimossa peer connection per ${participantId}`);
   }
@@ -225,6 +223,18 @@ class GlobalState {
 
   getAllPeerConnections() {
     return { ...this.peerConnections };
+  }
+
+  getLocalStream() {
+    return this.getActiveStream(this.myId, this.myId);
+  }
+
+  setLocalStream(localStream) {
+    this.addActiveStream(this.myId, this.myId, localStream);
+  }
+
+  getAllActiveStreams() {
+    return { ...this.activeStreams };
   }
 
   setNegotiationInProgress(participantId, isInProgress) {
@@ -254,15 +264,65 @@ class GlobalState {
 
   // ===== METODI PER STREAM =====
 
-  setLocalStream(stream) {
-    this.localStream = stream;
-    logger.debug("GlobalState", "Local stream impostato");
+  addActiveStream(participantId, streamUUID, stream) {
+    if (!this.activeStreams[participantId]) {
+      this.activeStreams[participantId] = {};
+    }
+    this.activeStreams[participantId][streamUUID] = stream;
+    logger.debug(
+      "GlobalState",
+      `Active stream aggiunto per ${participantId}: ${streamUUID}`
+    );
+  }
+  getActiveStream(participantId,streamUUID) {
+    const activeStreams = this.activeStreams[participantId];
+    if (!activeStreams) {
+      logger.debug(
+        "GlobalState",
+        `Nessun active stream trovato per ${participantId}`
+      );
+      return null;
+    }
+    return activeStreams[streamUUID];
   }
 
-  addRemoteStream(participantId, stream) {
-    this.remoteStreams[participantId] = stream;
-    logger.debug("GlobalState", `Remote stream aggiunto per ${participantId}`);
+  getAllUserActiveStreams(participantId) {
+    if (!this.activeStreams[participantId]) {
+      logger.debug(
+        "GlobalState",
+        `Nessun active stream trovato per ${participantId}`
+      );
+      return {};
+    }
+    return { ...this.activeStreams[participantId] };
   }
+
+  removeAllUserActiveStreams(participantId) {
+    if (this.activeStreams[participantId]) {
+      delete this.activeStreams[participantId];
+      logger.debug(
+        "GlobalState",
+        `Tutti gli active streams rimossi per ${participantId}`
+      );
+    }
+  }
+
+
+  removeActiveStream(participantId, streamUUID) {
+    if (this.activeStreams[participantId]) {
+      delete this.activeStreams[participantId][streamUUID];
+      logger.debug(
+        "GlobalState",
+        `Active stream rimosso per ${participantId}: ${streamUUID}`
+      );
+
+      // Remove participant entry if no more streams
+      if (Object.keys(this.activeStreams[participantId]).length === 0) {
+        delete this.activeStreams[participantId];
+      }
+    }
+  }
+  
 
   removeRemoteStream(participantId) {
     delete this.remoteStreams[participantId];
@@ -270,32 +330,29 @@ class GlobalState {
   }
   /**
    * Add screen share - supports both old and new signatures
-   * addScreenShare(participantId, screenShareUUID, stream) - adds to userData.active_screen_share and screenStreams
+   * addScreenShare(participantId, screenShareUUID, stream) - adds to commsData.activeScreenShares and screenStreams
    */
   addScreenShare(partecipantUUID, screenShareUUID, stream = null) {
-    // Add to screenStreams
-    this.screenStreams[screenShareUUID] = stream;
 
-    // Add to userData active_screen_share array
-    if (!this.userData[partecipantUUID]) {
-      this.userData[partecipantUUID] = {
-        from: partecipantUUID,
-        active_screen_share: [],
+    // Add to activeStreams
+    this.addActiveStream(partecipantUUID, screenShareUUID, stream);
+
+    // Add to commsData activeScreenShares array
+    if (!this.commsData[partecipantUUID]) {
+      this.commsData[partecipantUUID] = {
+        activeScreenShares: [],
       };
     }
 
-    if (!Array.isArray(this.userData[partecipantUUID].active_screen_share)) {
-      this.userData[partecipantUUID].active_screen_share = [];
-    }
-
-    // Add to active_screen_share if not already present
+    // Add to activeScreenShares if not already present
     if (
-      !this.userData[partecipantUUID].active_screen_share.includes(
+      !this.commsData[partecipantUUID].activeScreenShares.includes(
         screenShareUUID
       )
     ) {
-      this.userData[partecipantUUID].active_screen_share.push(screenShareUUID);
+      this.commsData[partecipantUUID].activeScreenShares.push(screenShareUUID);
     }
+
 
     logger.debug(
       "GlobalState",
@@ -307,22 +364,18 @@ class GlobalState {
    * Remove screen share - supports both screenShareUUID only and partecipantUUID + screenShareUUID
    */
   removeScreenShare(partecipantUUID, screenShareUUID = null) {
-    // Remove from screenStreams
-    delete this.screenStreams[screenShareUUID];
 
-    // Remove from userData active_screen_share array
-    if (
-      this.userData[partecipantUUID] &&
-      Array.isArray(this.userData[partecipantUUID].active_screen_share)
-    ) {
-      const index =
-        this.userData[partecipantUUID].active_screen_share.indexOf(
-          screenShareUUID
-        );
-      if (index !== -1) {
-        this.userData[partecipantUUID].active_screen_share.splice(index, 1);
+    // Remove from commsData activeScreenShares array
+    if (this.commsData[partecipantUUID] && 
+      Array.isArray(this.commsData[partecipantUUID].activeScreenShares)) {
+      const index = this.commsData[partecipantUUID].activeScreenShares.indexOf(screenShareUUID);
+      if (index > -1) {
+      this.commsData[partecipantUUID].activeScreenShares.splice(index, 1);
       }
     }
+
+    // Remove from activeStreams
+    this.removeActiveStream(partecipantUUID, screenShareUUID);
 
     logger.debug(
       "GlobalState",
@@ -337,12 +390,12 @@ class GlobalState {
    */
   getActiveScreenShares(participantId) {
     if (
-      !this.userData[participantId] ||
-      !Array.isArray(this.userData[participantId].active_screen_share)
+      !this.commsData[participantId] ||
+      !Array.isArray(this.commsData[participantId].activeScreenShares)
     ) {
       return [];
     }
-    return [...this.userData[participantId].active_screen_share];
+    return [...this.commsData[participantId].activeScreenShares];
   }
 
   isScreenShare(participantId, streamUUID) {
@@ -350,12 +403,12 @@ class GlobalState {
       "GlobalState",
       `Checking if stream ${streamUUID} is a screen share for participant ${participantId}`
     );
-    console.log("💞💞💕💕cuoricini", this.userData);
+    console.log("💞💞💕💕cuoricini", this.commsData);
     // Check if the streamUUID exists in screenStreams
-    if (!this.userData[participantId]) return false;
-    if (!Array.isArray(this.userData[participantId].active_screen_share))
+    if (!this.commsData[participantId]) return false;
+    if (!Array.isArray(this.commsData[participantId].activeScreenShares))
       return false;
-    return this.userData[participantId].active_screen_share.includes(
+    return this.commsData[participantId].activeScreenShares.includes(
       streamUUID
     );
   }
@@ -377,14 +430,6 @@ class GlobalState {
     logger.debug("GlobalState", `Screen stream impostato: ${screenShareUUID}`);
   }
 
-  /**
-   * Get a specific screen stream
-   * @param {string} screenShareUUID - Stream ID
-   * @returns {MediaStream|null} The screen stream or null if not found
-   */
-  getScreenStream(screenShareUUID) {
-    return this.screenStreams[screenShareUUID] || null;
-  }
 
   /**
    * Remove a specific screen stream
@@ -530,9 +575,9 @@ class GlobalState {
       this.speakingUsers.delete(userId);
     }
 
-    // Update userData if exists
-    if (this.userData[userId]) {
-      this.userData[userId].is_speaking = isSpeaking;
+    // Update commsData if exists
+    if (this.commsData[userId]) {
+      this.commsData[userId].is_speaking = isSpeaking;
     }
 
     logger.verbose("GlobalState", `User ${userId} speaking: ${isSpeaking}`);
@@ -967,33 +1012,16 @@ class GlobalState {
   /**
    * Regenerate global state with new parameters
    */
-  regenerate(myId, chatId, callbacks = {}) {
-    // Store existing callbacks for restoration
-    const existingCallbacks = { ...this.callbacks };
+  async regenerate(myId, chatId, stream = null) {
 
-    logger.info(
-      "GlobalState",
-      "Regenerating global state with preserved audioContext:",
-      {
-        hasAudioContextRef: !!this.audioContextRef,
-        audioContextType: typeof this.audioContextRef,
-        audioContextValue: this.audioContextRef,
-      }
-    );
 
     // Clean up existing state (preserve audioContextRef during cleanup)
     this.cleanup(true);
-
     // Set new core values
     this.myId = myId;
     this.chatId = chatId;
 
-    // Update callbacks if provided, otherwise restore existing
-    if (callbacks && Object.keys(callbacks).length > 0) {
-      this.callbacks = { ...callbacks };
-    } else {
-      this.callbacks = existingCallbacks;
-    }
+    this.setLocalStream(stream);
 
     logger.info(
       "GlobalState",
@@ -1044,13 +1072,22 @@ class GlobalState {
     return Object.keys(this.peerConnections);
   }
 
-  /**
-   * Get user data for a participant
-   * @param {string} participantId - Participant ID
-   * @returns {Object|null} User data or null
-   */
-  getUserData(participantId) {
-    return this.userData[participantId] || null;
+  setCommsData(commsData) {
+    // Set commsData for all participants
+    this.commsData = commsData;
+    logger.debug("GlobalState", "Comms data updated for all participants");
+  }
+
+  getCommsData(participantId = null) {
+    // Placeholder for comms data, to be implemented when needed
+    if (participantId === null) {
+      return { ...this.commsData };
+    }
+    return this.commsData[participantId];
+  }
+
+  getActiveStreams(participantId) {
+    return this.activeStreams[participantId] || null;
   }
 
   /**
@@ -1058,7 +1095,7 @@ class GlobalState {
    * @returns {MediaStream|null} Local stream or null
    */
   getLocalStream() {
-    return this.localStream;
+    return this.getActiveStream(this.myId, this.myId) || null;
   }
 
   /**
@@ -1081,18 +1118,18 @@ class GlobalState {
   // ===== METODI PER INIZIALIZZARE I DATI UTENTE =====
 
   /**
-   * Initialize local user data in userData
+   * Initialize local user data in commsData
    * @param {string} myId - Local user ID
    * @param {string} handle - Local user handle
    * @param {Object} additionalData - Additional user data
    */
-  initializeLocalUserData(myId, handle, additionalData = {}) {
-    if (!this.userData[myId]) {
-      this.userData[myId] = {
+  initializeLocalcommsData(myId, handle, additionalData = {}) {
+    if (!this.commsData[myId]) {
+      this.commsData[myId] = {
         from: myId,
         handle: handle,
         is_speaking: false,
-        active_screen_share: [],
+        activeScreenShares: [],
         ...additionalData,
       };
 
@@ -1101,16 +1138,16 @@ class GlobalState {
         `Local user data initialized for ${myId} (${handle})`
       );
     } else {
-      // Update existing data without overwriting active_screen_share
-      this.userData[myId] = {
-        ...this.userData[myId],
+      // Update existing data without overwriting activeScreenShares
+      this.commsData[myId] = {
+        ...this.commsData[myId],
         handle: handle,
         ...additionalData,
       };
 
-      // Ensure active_screen_share exists as array
-      if (!Array.isArray(this.userData[myId].active_screen_share)) {
-        this.userData[myId].active_screen_share = [];
+      // Ensure activeScreenShares exists as array
+      if (!Array.isArray(this.commsData[myId].activeScreenShares)) {
+        this.commsData[myId].activeScreenShares = [];
       }
 
       logger.debug(

@@ -4,7 +4,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import UserCard from "./UserCard";
 
 import methods from "../../utils/webrtc/methods";
-const { get, check, pin, handle } = methods;
+const { get, check, self } = methods;
 
 let RTCView;
 if (Platform.OS === "web") {
@@ -19,15 +19,15 @@ const MARGIN = 4;
 const HEIGHT_MULTIPLYER = 1;
 const WIDTH_MULTIPLYER = 1;
 
-const VocalMembersLayout = ({
-  profiles,
-  activeStreams = {},
-  videoStreamKeys = {},
-}) => {
+const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
     height: 0,
   });
+
+  const { theme } = useContext(ThemeContext);
+
+  // ---- Pinning State ----
   // State to track pin changes
   const [pinnedUserId, setPinnedUserId] = useState(null);
   const [isTogglingPin, setIsTogglingPin] = useState(false);
@@ -44,9 +44,7 @@ const VocalMembersLayout = ({
   useEffect(() => {
     const currentPinnedUser = get.pinnedUser();
     setPinnedUserId(currentPinnedUser);
-  }, [profiles]);
-
-  const { theme } = useContext(ThemeContext);
+  }, [commsData]);
 
   // Handler per il layout
   const onContainerLayout = useCallback((event) => {
@@ -57,33 +55,35 @@ const VocalMembersLayout = ({
     (userId) => {
       // Controlla se l'utente è nella chat vocale
       if (!check.isInComms()) {
-        console.log("Non puoi pinnare utenti se non sei nella chat vocale");
+        console.info("Non puoi pinnare utenti se non sei nella chat vocale");
         return;
       }
 
       setIsTogglingPin(true);
-      console.log(
+      console.debug(
         `Toggling pin for user ${userId}, current pinned: ${pinnedUserId}`
       );
 
       // Use pin utils to toggle pin state
-      const success = pin.toggle(userId);
+      const success = self.togglePin(userId);
       if (!success) {
         console.warn(`Failed to toggle pin for user ${userId}`);
       } else {
         // Update local state to reflect the change immediately
         const newPinnedUser = get.pinnedUser();
-        console.log(`Pin toggle successful, new pinned user: ${newPinnedUser}`);
+        console.info(
+          `Pin toggle successful, new pinned user: ${newPinnedUser}`
+        );
         setPinnedUserId(newPinnedUser);
       }
-
-      // Reset the toggle flag after a short delay to prevent rapid clicks
-      setTimeout(() => {
-        setIsTogglingPin(false);
-      }, 200);
     },
     [isTogglingPin, pinnedUserId]
   );
+
+  // ---- Pinning State ----
+
+  // ---- LAYOUT CALCULATION ----
+
   // Calcolo ottimizzato del layout considerando anche le screen share
   const calculateLayout = useCallback(() => {
     // Se c'è un utente pinnato, calcola layout per un singolo elemento
@@ -112,14 +112,17 @@ const VocalMembersLayout = ({
       return { numColumns: 1, rectWidth, rectHeight, margin: MARGIN };
     }
 
-    // Count screen shares from activeStreams
-    const screenShareCount = Object.keys(activeStreams).filter(
-      (streamUUID) => activeStreams[streamUUID].streamType === "screenshare"
-    ).length;
+    let totalElements = Object.keys(commsData).length; // Fix: usa Object.keys().length
 
-    // Calcola il numero totale di elementi da visualizzare (utenti + screen shares)
-    let totalElements = profiles.length + screenShareCount;
-
+    // Conta anche le screen shares
+    Object.values(commsData).forEach((userData) => {
+      if (
+        userData.activeScreenShares &&
+        userData.activeScreenShares.length > 0
+      ) {
+        totalElements += userData.activeScreenShares.length;
+      }
+    });
     if (
       !containerDimensions.width ||
       !containerDimensions.height ||
@@ -182,89 +185,37 @@ const VocalMembersLayout = ({
     rectWidth = Math.max(50, rectWidth * WIDTH_MULTIPLYER);
     rectHeight = Math.max(50 / ASPECT_RATIO, rectHeight * HEIGHT_MULTIPLYER);
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
-  }, [containerDimensions, profiles, pinnedUserId, activeStreams]);
+  }, [containerDimensions, commsData, pinnedUserId, activeStreams]);
 
-  const { numColumns, rectWidth, rectHeight, margin } = calculateLayout(); // Render function for screen shares
-  const renderScreenShare = (streamKey, streamUUID, streamData) => {
-    // Debug logging for screen share rendering
-    console.log(`[VocalMembersLayout] renderScreenShare called with:`, {
-      streamKey, // Should be the user's original from ID
-      streamUUID, // Should be the processed screen share UUID
-      streamKeyLength: streamKey ? streamKey.length : 0,
-      streamUUIDLength: streamUUID ? streamUUID.length : 0,
-      streamKeyType: typeof streamKey,
-      streamUUIDType: typeof streamUUID,
-      hasStreamData: !!streamData,
-      streamType: streamData?.streamType,
-      hasUserData: !!streamData?.userData,
-      userDataFrom: streamData?.userData?.from,
-      areKeysEqual: streamKey === streamUUID, // This should be FALSE
-    }); // Se c'è un utente pinnato e non è questo screen share, non renderizzarlo
-    if (pinnedUserId && pinnedUserId !== streamUUID) {
-      return null;
-    }
+  const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();
 
-    // Get user info from streamData.userData
-    const userProfile = streamData.userData;
-    if (!userProfile) {
-      console.warn(
-        `[VocalMembersLayout] No userData found for screen share ${streamKey}`
-      );
-      return null;
-    } // Create a screen share profile
-    const screenShareProfile = {
-      ...userProfile,
-      from: streamKey, // Use the original user ID (from) as the identifier
-      streamUUID: streamUUID, // Keep the processed streamUUID
-      handle: userProfile?.handle
-        ? `${userProfile.handle} (Screen)`
-        : `Screen Share`,
-    };
+  // ---- LAYOUT CALCULATION ----
 
+  const renderRectangle = (
+    participantUUID,
+    streamUUID,
+    isSpeaking,
+    handle,
+    isScreenShare,
+    stream
+  ) => {
     return (
       <UserCard
-        streamUUID={streamUUID} // Pass the processed streamUUID
-        profile={screenShareProfile}
-        isLocal={userProfile.from === get.myPartecipantId()}
-        activeStream={streamData}
-        isSpeaking={false} // Screen share non ha speaking status
-        width={rectWidth}
-        height={rectHeight}
-        margin={margin}
-        isScreenShare={true}
-        videoStreamKey={videoStreamKeys[streamUUID]} // Use streamUUID for video key
-        isPinned={pinnedUserId === streamUUID} // Use streamUUID for pin check
-        onPin={() => handlePinUser(streamUUID)} // Use streamUUID for pin action
-        pinDisabled={!check.isInComms()} // Disabilita il pin se non sei in comms
-      />
-    );
-  };
-
-  // Render function for user profiles
-  const renderProfile = (profile) => {
-    const participantId = profile.from;
-    // Se c'è un utente pinnato e non è questo utente, non renderizzarlo
-    if (pinnedUserId && pinnedUserId !== participantId) {
-      return null;
-    }
-
-    const activeStream = activeStreams[participantId];
-    const isSpeaking = profile.is_speaking || false; // Usa il parametro is_speaking dal profilo
-
-    return (
-      <UserCard
-        streamUUID={participantId}
-        profile={profile}
-        isLocal={participantId === get.myPartecipantId()}
-        activeStream={activeStream}
+        streamUUID={streamUUID}
+        isLocal={participantUUID === get.myPartecipantId()}
         isSpeaking={isSpeaking}
         width={rectWidth}
         height={rectHeight}
         margin={margin}
-        isScreenShare={false}
-        videoStreamKey={videoStreamKeys[participantId]}
-        isPinned={pinnedUserId === participantId}
-        onPin={() => handlePinUser(participantId)}
+        handle={handle}
+        isScreenShare={isScreenShare}
+        stream={stream}
+        isPinned={
+          pinnedUserId === (isScreenShare ? streamUUID : participantUUID)
+        }
+        onPin={() =>
+          handlePinUser(isScreenShare ? streamUUID : participantUUID)
+        }
         pinDisabled={!check.isInComms()} // Disabilita il pin se non sei in comms
       />
     );
@@ -280,51 +231,79 @@ const VocalMembersLayout = ({
           },
         ]}
       >
-        {profiles.length > 0 ||
-        Object.values(activeStreams).some(
-          (streamData) => streamData.streamType === "screenshare"
-        ) ? (
+        {Object.keys(commsData).length > 0 ? (
           <>
-            {profiles.map((profile) => (
-              <React.Fragment key={`profile-${profile.from}`}>
-                {renderProfile(profile)}
-              </React.Fragment>
-            ))}
-            {(() => {
-              // Debug logging for activeStreams
-              const screenShareEntries = Object.entries(activeStreams).filter(
-                ([streamUUID, streamData]) =>
-                  streamData.streamType === "screenshare"
-              );
+            {console.log("comms data: ", commsData, "activeStreams: ", activeStreams)}
+            {Object.entries(commsData).map(([participantUUID, commData]) => {
+              const components = [];
 
-              console.log(`[VocalMembersLayout] Screen share entries:`, {
-                totalActiveStreams: Object.keys(activeStreams).length,
-                screenShareCount: screenShareEntries.length,
-                allStreamKeys: Object.keys(activeStreams),
-                screenShareEntries: screenShareEntries.map(([key, data]) => ({
-                  key,
-                  keyLength: key ? key.length : 0,
-                  keyType: typeof key,
-                  streamType: data?.streamType,
-                  hasUserData: !!data?.userData,
-                })),
-              });
-              return screenShareEntries.map(([streamUUID, streamData]) => {
-                // Use streamUUID as the unique key for screen shares, not the user's from ID
-                return (
-                  <React.Fragment key={`screenshare-${streamUUID}`}>
-                    {renderScreenShare(
-                      streamData.userData?.from,
-                      streamUUID,
-                      streamData
+              // Estrae i dati richiesti del partecipante
+              const handle = commData.userData?.handle;
+              const isSpeaking = commData.userData?.isSpeaking;
+
+              if (!activeStreams) {
+                activeStreams = {};
+              }
+
+              const userActiveStream = activeStreams[participantUUID] || {};
+              let mainStream = null;
+
+              if (Object.keys(userActiveStream).length > 0) {
+                const streamKeys = Object.keys(userActiveStream);
+                const firstStreamKey = streamKeys[0];
+
+                if (firstStreamKey) {
+                  mainStream = userActiveStream[firstStreamKey];
+                }
+              }
+
+              // Main profile object - solo se non c'è pin o se questo è quello pinnato
+              if (!pinnedUserId || pinnedUserId === participantUUID) {
+                components.push(
+                  <View key={`main-${participantUUID}`}>
+                    {renderRectangle(
+                      participantUUID,
+                      participantUUID,
+                      isSpeaking,
+                      handle,
+                      false,
+                      mainStream
                     )}
-                  </React.Fragment>
+                  </View>
                 );
-              });
-            })()}
+              }
+
+              // Estrae gli stream UIDs dagli activeScreenShares
+              const streamUIDs = commData.activeScreenShares;
+
+              if (streamUIDs && streamUIDs.length > 0) {
+                streamUIDs.forEach((streamUUID) => {
+                  if (!pinnedUserId || pinnedUserId === streamUUID) {
+                    const screenShareStream =
+                      userActiveStream[streamUUID] || null;
+
+                    components.push(
+                      <View
+                        key={`screenShare-${participantUUID}-${streamUUID}`}
+                      >
+                        {renderRectangle(
+                          participantUUID,
+                          streamUUID,
+                          false,
+                          handle,
+                          true,
+                          screenShareStream
+                        )}
+                      </View>
+                    );
+                  }
+                });
+              }
+              return components;
+            })}
           </>
         ) : (
-          <Text style={styles.emptyChatText}>Nessun utente nella chat</Text>
+          <Text style={styles.emptyChatText}>Non c'è nessuno qui</Text>
         )}
       </View>
     </View>

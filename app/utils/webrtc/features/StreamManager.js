@@ -641,11 +641,9 @@ export class StreamManager {
     const eventEmitter = this.globalState.getEventEmitter();
     if (eventEmitter) {
       eventEmitter.emit("stream_added_or_updated", {
-        participantId,
+        participantUUID: participantId,
         stream: webcamStream,
-        streamType: "webcam",
-        streamId: stream.id,
-        userData: this.globalState.getUserData(participantId),
+        streamUUID: participantId,
       });
     }
   }
