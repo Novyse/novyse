@@ -7,6 +7,7 @@ import { SignalingManager } from "./signaling/SignalingManager.js";
 import { ICEManager } from "./signaling/ICEManager.js";
 import { ScreenShareManager } from "./features/ScreenShareManager.js";
 import VoiceActivityDetection from "./features/VAD/VoiceActivityDetection.js";
+import { streamMappingManager } from "./core/StreamMappingManager.js";
 import { PinManager } from "./features/PinManager.js";
 import { HealthChecker } from "./features/HealthChecker.js";
 import { RecoveryManager } from "./features/RecoveryManager.js";
@@ -83,7 +84,7 @@ class WebRTCManager {
     // Initialize core components with streamMappingManager
     this.peerConnectionManager = new PeerConnectionManager(
       this.globalState,
-      this.streamMappingManager
+      this.streamMappingManager,
     );
     this.streamManager = new StreamManager(this.globalState, this.logger);
 
@@ -247,6 +248,9 @@ class WebRTCManager {
     this.healthChecker.cleanup();
     // Cleanup event receiver
     this.eventReceiver.destroy();
+
+    // Reset mapping manager
+    this.streamMappingManager.cleanup();
 
     // Reset global state
     this.globalState.cleanup(true);

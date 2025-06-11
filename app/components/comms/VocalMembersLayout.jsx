@@ -93,8 +93,8 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
       }
 
       const { width, height } = containerDimensions;
-      const availableWidth = width - MARGIN;
-      const availableHeight = height - MARGIN;
+      const availableWidth = width - 2 * MARGIN;
+      const availableHeight = height - 2 * MARGIN;
 
       // Calcola dimensioni per occupare tutto lo spazio disponibile rispettando il rapporto 16:9
       const rectWidthByHeight = availableHeight * ASPECT_RATIO;
@@ -112,7 +112,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
       return { numColumns: 1, rectWidth, rectHeight, margin: MARGIN };
     }
 
-    let totalElements = Object.keys(commsData).length; // Fix: usa Object.keys().length
+    let totalElements = Object.keys(commsData).length;
 
     // Conta anche le screen shares
     Object.values(commsData).forEach((userData) => {
@@ -123,6 +123,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
         totalElements += userData.activeScreenShares.length;
       }
     });
+
     if (
       !containerDimensions.width ||
       !containerDimensions.height ||
@@ -133,16 +134,38 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
 
     const { width, height } = containerDimensions;
     const isPortrait = height > width;
+    const isSmallScreen = Platform.OS === "android" || width < 600;
 
     let numColumns, numRows;
 
-    // Logica specifica per 2 persone
+    // Caso speciale: un solo utente (stesso comportamento del pinned)
+    if (totalElements === 1) {
+      const availableWidth = width - 2 * MARGIN;
+      const availableHeight = height - 2 * MARGIN;
+
+      const rectWidthByHeight = availableHeight * ASPECT_RATIO;
+      const rectHeightByWidth = availableWidth * (1 / ASPECT_RATIO);
+
+      let rectWidth, rectHeight;
+      if (rectWidthByHeight <= availableWidth) {
+        rectHeight = availableHeight;
+        rectWidth = rectHeight * ASPECT_RATIO;
+      } else {
+        rectWidth = availableWidth;
+        rectHeight = rectWidth * (1 / ASPECT_RATIO);
+      }
+
+      return { numColumns: 1, rectWidth, rectHeight, margin: MARGIN };
+    }
+
+    // Logica per 2 utenti
     if (totalElements === 2) {
-      // Su schermi piccoli (mobile) o portrait, metti 2 persone in colonna
-      if (Platform.OS === "android" || isPortrait || width < 600) {
+      if (isSmallScreen || isPortrait) {
+        // Schermo piccolo o portrait: uno sopra l'altro
         numColumns = 1;
         numRows = 2;
       } else {
+        // Schermo grande in landscape: uno accanto all'altro
         numColumns = 2;
         numRows = 1;
       }

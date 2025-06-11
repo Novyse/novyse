@@ -84,7 +84,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
       const tempActiveStreams = get.activeStreams();
       setActiveStreams(tempActiveStreams);
-      console.debug("[VocalContent] All profiles for debugging:", commsData);
+      console.debug("[VocalContent] All profiles for debugging:", commsData,tempActiveStreams );
 
       setCommsData(commsData);
     };

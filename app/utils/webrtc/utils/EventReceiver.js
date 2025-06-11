@@ -12,6 +12,7 @@ class WebRTCEventReceiver {
     this.signalingManager = null;
     this.peerConnectionManager = null;
     this.streamManager = null;
+    this.streamMappingManager = null;
     this.voiceActivityDetection = null;
     this.pinManager = null;
     this.healthChecker = null;
@@ -33,6 +34,7 @@ class WebRTCEventReceiver {
       offer: this.handleOffer.bind(this),
       answer: this.handleAnswer.bind(this),
       iceCandidate: this.handleICECandidate.bind(this),
+      midtoStreamUUIDMapping: this.handleMidtoStreamUUIDMapping.bind(this),
     };
   }
 
@@ -84,6 +86,12 @@ class WebRTCEventReceiver {
     eventEmitter.on("offer", this.boundHandlers.offer);
     eventEmitter.on("answer", this.boundHandlers.answer);
     eventEmitter.on("candidate", this.boundHandlers.iceCandidate);
+
+    // Mid to Stream UUID Mapping Event
+    eventEmitter.on(
+      "mid_to_uuid_mapping",
+      this.boundHandlers.midtoStreamUUIDMapping
+    );
   }
 
   // Voice Activity Detection Handlers
@@ -150,23 +158,9 @@ class WebRTCEventReceiver {
           `[EventReceiver] Added remote screen share ${data.screenShareUUID} for user ${data.from}`
         );
 
-        // Also emit the screen_share_started event for VocalContent to handle UI creation
-        // This ensures the placeholder rectangle is created even before the media track arrives
-        if (this.globalState.eventEmitter) {
-          this.globalState.eventEmitter.emit("screen_share_started", {
-            from: data.from,
-            screenShareUUID: data.screenShareUUID,
-            chatId: data.chat_id,
-          });
-
-          this.logger?.info(
-            `[EventReceiver] Emitted screen_share_started event for ${data.from}/${data.screenShareUUID}`
-          );
+        if (this.globalState.getChatId() === data.chatId) {
+          SoundPlayer.getInstance().playSound("comms_stream_started");
         }
-      }
-
-      if (this.globalState.getChatId() === data.chat_id) {
-        SoundPlayer.getInstance().playSound("comms_stream_started");
       }
     }
   }
@@ -183,25 +177,12 @@ class WebRTCEventReceiver {
         this.pinManager.clearPinIfId(data.screenShareUUID);
         this.globalState.removeScreenShare(data.from, data.screenShareUUID);
 
-        // Emit the screen_share_stopped event for VocalContent to handle UI cleanup
-        if (this.globalState.eventEmitter) {
-          this.globalState.eventEmitter.emit("screen_share_stopped", {
-            from: data.from,
-            screenShareUUID: data.screenShareUUID,
-            chatId: data.chat_id,
-          });
-
-          this.logger?.info(
-            `[EventReceiver] Emitted screen_share_stopped event for ${data.from}/${data.screenShareUUID}`
-          );
-        }
-
         this.logger?.info(
           `[EventReceiver] Removed remote screen share ${data.screenShareUUID} for user ${data.from}`
         );
       }
 
-      if (this.globalState.getChatId() === data.chat_id) {
+      if (this.globalState.getChatId() === data.chatId) {
         SoundPlayer.getInstance().playSound("comms_stream_stopped");
       }
     }
@@ -215,8 +196,8 @@ class WebRTCEventReceiver {
     if (
       !this.initialized ||
       !this.globalState ||
-      this.globalState.myId === undefined ||
-      this.globalState.myId === null
+      this.globalState.getMyId() === undefined ||
+      this.globalState.getMyId() === null
     ) {
       this.logger?.info(
         `[EventReceiver] handleMemberJoined: Instance not ready, globalState is null, or myId is undefined. Initialized: ${
@@ -286,6 +267,21 @@ class WebRTCEventReceiver {
     }
   }
 
+  async handleMidtoStreamUUIDMapping(data) {
+    const { from, mid, streamUUID } = data;
+    this.logger?.debug(
+      `Received mid to stream UUID mapping for participant ${from}, mid ${mid}, streamUUID ${streamUUID}`
+    );
+
+    if (this.streamMappingManager) {
+      this.streamMappingManager.addStreamMapping(from, streamUUID, mid);
+    } else {
+      this.logger?.warn(
+        `[EventReceiver] StreamManager not initialized, cannot handle mid to stream UUID mapping`
+      );
+    }
+  }
+
   // Cleanup method
   removeEventListeners() {
     // Voice Activity Detection Events
@@ -323,6 +319,12 @@ class WebRTCEventReceiver {
     eventEmitter.off("offer", this.boundHandlers.offer);
     eventEmitter.off("answer", this.boundHandlers.answer);
     eventEmitter.off("candidate", this.boundHandlers.iceCandidate);
+
+    // Mid to Stream UUID Mapping Event
+    eventEmitter.off(
+      "mid_to_uuid_mapping",
+      this.boundHandlers.midtoStreamUUIDMapping
+    );
   }
 
   destroy() {
@@ -335,6 +337,7 @@ class WebRTCEventReceiver {
     this.signalingManager = null;
     this.peerConnectionManager = null;
     this.streamManager = null;
+    this.streamMappingManager = null;
     this.voiceActivityDetection = null;
     this.pinManager = null;
     this.healthChecker = null;

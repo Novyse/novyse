@@ -256,6 +256,24 @@ const WebSocketMethods = {
       });
     });
 
+    socket.on("mid_to_uuid_mapping", async (data) => {
+      if (!data || !data.from || !data.mid || !data.streamUUID) {
+        console.error("Invalid mid_to_uuid_mapping data received:", data);
+        return;
+      }
+      console.log(
+        `[WebSocket] MID to UUID mapping - from: ${data.from}, mid: ${data.mid}, uuid: ${data.streamUUID}, to: ${data.to}`
+      );
+
+      // Emit event to notify components
+      eventEmitter.emit("mid_to_uuid_mapping", {
+        from: data.from,
+        to: data.to,
+        mid: data.mid,
+        streamUUID: data.streamUUID,
+      });
+    });
+
     return "return of socket.io receiver function";
   },
   // quando voglio entrare in una vocal chat
@@ -380,6 +398,25 @@ const WebSocketMethods = {
       `[WebSocket] Sending screen_share_stopped - from: ${from}, streamId: ${streamId}, chatId: ${chatId}`
     );
     socket.emit("screen_share_stopped", data);
+  },
+
+  sendMIDtoUUIDMapping: async (toPartecipantUUID, from, streamUUID, mid) => {
+    if (!socket || !socket.connected) {
+      console.log("Cannot send MID to UUID mapping: Socket not connected");
+      return;
+    }
+
+    const data = {
+      to: toPartecipantUUID,
+      from: from,
+      streamUUID: streamUUID,
+      mid: mid,
+    };
+
+    console.log(
+      `[WebSocket] Sending MID to UUID mapping - from: ${from}, mid: ${mid}, streamUUID: ${streamUUID}, to: ${toPartecipantUUID}`
+    );
+    socket.emit("mid_to_uuid_mapping", data);
   },
 
   UpdateLastWebSocketActionDateTime: async (date) => {

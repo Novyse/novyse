@@ -24,6 +24,7 @@ export class SignalingManager {
     this.logger.debug("SignalingManager inizializzato", {
       component: "SignalingManager",
     });
+    this.pendingOffers = new Map(); // 🔥 NUOVO: Cache per offer in arrivo anticipato
   }
 
   /**
@@ -68,9 +69,17 @@ export class SignalingManager {
         });
         return null;
       }
+      if (this.peerConnectionManager) {
+        this.peerConnectionManager._addLocalTracksIfAvailable(
+          pc,
+          participantId,
+          false
+        );
+      }
 
       const offer = await pc.createOffer(SDP_OPTIONS.OFFER_OPTIONS);
       await pc.setLocalDescription(offer);
+      this.peerConnectionManager?.processPendingMappingsAfterOffer?.(pc);
       this.logger.info(`Offerta creata e impostata per ${participantId}`, {
         component: "SignalingManager",
         participantId,
@@ -161,12 +170,16 @@ export class SignalingManager {
       const answer = await pc.createAnswer(SDP_OPTIONS.ANSWER_OPTIONS);
       await pc.setLocalDescription(answer);
 
-      // Registra la transizione completata
+      // 🔥 ORA PROCESSA I MAPPING
+      this.peerConnectionManager?.processPendingMappingsAfterOffer?.(pc);
+
+      // Registra la transizione di stato prima della creazione answer
       this.globalState.recordSignalingStateTransition(
         participantId,
-        "creating-answer",
-        pc.signalingState
+        pc.signalingState,
+        "creating-answer"
       );
+
       this.logger.info(`Risposta creata e impostata per ${participantId}`, {
         component: "SignalingManager",
         participantId,
@@ -211,67 +224,150 @@ export class SignalingManager {
       return null;
     }
   }
-  /**
-   * Gestisce un messaggio di offerta ricevuto
-   * @param {Object} message - Messaggio contenente l'offerta
-   * @returns {Promise<boolean>}
-   */
   async handleOfferMessage(message) {
+    // 🔥 AGGIUNGI QUESTO DEBUG ALL'INIZIO
+    console.log("📥 HANDLING OFFER MESSAGE - DETAILED DEBUG:", {
+      participantId: message.from,
+      offerType: message.offer?.type,
+      sdpLength: message.offer?.sdp?.length,
+      // 🔥 ANALISI SDP PER TRACCE VIDEO
+      hasVideoInSDP: message.offer?.sdp?.includes("m=video"),
+      hasAudioInSDP: message.offer?.sdp?.includes("m=audio"),
+      videoMLines: (message.offer?.sdp?.match(/m=video/g) || []).length,
+      audioMLines: (message.offer?.sdp?.match(/m=audio/g) || []).length,
+      // 🔥 CONTEGGIO MID
+      midsInSDP: (message.offer?.sdp?.match(/a=mid:/g) || []).length,
+    });
+
     this.logger.info("Gestione messaggio offerta ricevuto", {
       component: "SignalingManager",
       from: message.from,
       action: "handleOffer",
     });
 
-    if (!this._isMessageForMe(message)) {
+    // 🔥 DEBUG SPECIFICO PER _isMessageForMe
+    const isForMe = this._isMessageForMe(message);
+    console.log("🔍 _isMessageForMe CHECK:", {
+      isForMe,
+      messageFrom: message.from,
+      messageTo: message.to,
+      messageChat: message.chat,
+      myId: this.globalState.getMyId(),
+      myChatId: this.globalState.getChatId(),
+    });
+
+    if (!isForMe) {
+      console.log("❌ MESSAGE NOT FOR ME - EARLY RETURN");
       return false;
     }
+
+    console.log("✅ MESSAGE IS FOR ME - CONTINUING...");
 
     const senderId = message.from;
-    const pc = this.globalState.getPeerConnection(senderId);
+    let pc = this.globalState.getPeerConnection(senderId);
 
+    // 🔥 DEBUG PEERCONNECTION
+    console.log("🔗 PEERCONNECTION CHECK:", {
+      senderId,
+      hasPeerConnection: !!pc,
+      peerConnectionState: pc?.signalingState,
+    });
+
+    // 🔥 SE NON ESISTE LA PEERCONNECTION, CREALA E RIPROVA
     if (!pc) {
-      this.logger.error(`PeerConnection non trovata per ${senderId}`, {
-        component: "SignalingManager",
-        participantId: senderId,
-      });
-      return false;
-    }
-
-    // Verifica timing safeguards per transizioni di stato signaling
-    if (!this.globalState.canTransitionSignalingState(senderId)) {
+      console.log("⚠️ NO PEERCONNECTION FOUND - ATTEMPTING TO CREATE...");
       this.logger.warning(
-        `Transizione signaling state troppo ravvicinata per ${senderId}, ignorando offerta`,
+        "SignalingManager",
+        `⚠️ PeerConnection non trovata per ${senderId}, creo e riprovo`,
         {
-          component: "SignalingManager",
           participantId: senderId,
-          lastTransition:
-            this.globalState.getLastSignalingStateTransition(senderId),
         }
       );
-      return false;
+
+      // 🔥 FIX: Usa l'offer.from se participantId è undefined
+      const actualParticipantId = senderId || message.from;
+
+      if (!actualParticipantId) {
+        this.logger.error(
+          "SignalingManager",
+          "❌ CANNOT CREATE PEER CONNECTION - NO PARTICIPANT ID",
+          { participantId: senderId, offerFrom: message.from }
+        );
+        return false;
+      }
+
+      const participant = { from: actualParticipantId };
+      pc = this.peerConnectionManager.createPeerConnection(participant);
+
+      if (!pc) {
+        this.logger.error(
+          "SignalingManager",
+          `❌ Impossibile creare PeerConnection per ${actualParticipantId}`
+        );
+        return false;
+      }
     }
 
-    if (!message.offer || !message.offer.sdp) {
-      this.logger.error(`Offerta ricevuta senza SDP da ${senderId}`, {
-        component: "SignalingManager",
-        participantId: senderId,
-        messageStructure: Object.keys(message),
-        hasOffer: !!message.offer,
-        offerStructure: message.offer ? Object.keys(message.offer) : null,
-      });
-      return false;
-    }
+    // 🔥 RIMUOVI DALLA CACHE SE PRESENTE
+    this.pendingOffers.delete(senderId);
+
+    // 🔥 MARCA CHE STIAMO PROCESSANDO UNA OFFER
+    pc._isRenegotiating = true;
+
+    console.log("🚀 STARTING OFFER PROCESSING:", {
+      senderId,
+      signalingState: pc.signalingState,
+      hasRemoteDescription: !!pc.remoteDescription,
+      hasLocalDescription: !!pc.localDescription,
+    });
 
     try {
+      // 🔥 DEBUG STATO PRIMA DELLA RINEGOZIAZIONE
+      console.log("🔄 RENEGOTIATION DEBUG - BEFORE setRemoteDescription:", {
+        participantId: senderId,
+        currentSignalingState: pc.signalingState,
+        hasRemoteDescription: !!pc.remoteDescription,
+        hasLocalDescription: !!pc.localDescription,
+        connectionState: pc.connectionState,
+        iceConnectionState: pc.iceConnectionState,
+        existingTransceivers: pc.getTransceivers ? pc.getTransceivers().length : 0,
+        existingReceivers: pc.getReceivers ? pc.getReceivers().length : 0,
+        existingSenders: pc.getSenders ? pc.getSenders().length : 0,
+      });
+
       // Verifica stato della connessione
       if (pc.signalingState === "closed") {
+        console.log("❌ PEERCONNECTION IS CLOSED - ABORTING");
         this.logger.warning("Impossibile gestire offerta, connessione chiusa", {
           component: "SignalingManager",
           participantId: senderId,
           signalingState: pc.signalingState,
         });
         return false;
+      }
+
+      // 🔥 GESTIONE SPECIALE PER RINEGOZIAZIONE
+      if (pc.signalingState === "stable" && pc.remoteDescription) {
+        console.log(
+          "🔄 RENEGOTIATION DETECTED - Current state before setRemoteDescription:",
+          {
+            participantId: senderId,
+            signalingState: pc.signalingState,
+            hasRemoteDescription: !!pc.remoteDescription,
+            hasLocalDescription: !!pc.localDescription,
+            remoteDescriptionType: pc.remoteDescription?.type,
+            localDescriptionType: pc.localDescription?.type,
+          }
+        );
+      }
+
+      // 🔥 AGGIUNGI LE TRACCE LOCALI PRIMA DI setRemoteDescription
+      if (this.peerConnectionManager) {
+        this.peerConnectionManager._addLocalTracksIfAvailable(
+          pc,
+          senderId,
+          true
+        );
       }
 
       // Registra la transizione di stato prima del cambiamento
@@ -287,7 +383,33 @@ export class SignalingManager {
         sdp: message.offer.sdp,
       });
 
+      console.log("🎯 CALLING setRemoteDescription...");
       await pc.setRemoteDescription(remoteDesc);
+      console.log("✅ setRemoteDescription COMPLETED");
+
+      // 🔥 DEBUG STATO DOPO setRemoteDescription
+      console.log("🔄 RENEGOTIATION DEBUG - AFTER setRemoteDescription:", {
+        participantId: senderId,
+        newSignalingState: pc.signalingState,
+        hasRemoteDescription: !!pc.remoteDescription,
+        hasLocalDescription: !!pc.localDescription,
+        newTransceivers: pc.getTransceivers ? pc.getTransceivers().length : 0,
+        newReceivers: pc.getReceivers ? pc.getReceivers().length : 0,
+        newSenders: pc.getSenders ? pc.getSenders().length : 0,
+        // 🔥 ANALISI DETTAGLIATA TRANSCEIVERS
+        transceiverDetails: pc.getTransceivers
+          ? pc.getTransceivers().map((t) => ({
+              mid: t.mid,
+              direction: t.direction,
+              currentDirection: t.currentDirection,
+              hasReceiver: !!t.receiver,
+              hasReceiverTrack: !!t.receiver?.track,
+              receiverTrackKind: t.receiver?.track?.kind,
+              receiverTrackEnabled: t.receiver?.track?.enabled,
+              receiverTrackReadyState: t.receiver?.track?.readyState,
+            }))
+          : [],
+      });
 
       // Registra la transizione completata
       this.globalState.recordSignalingStateTransition(
@@ -308,18 +430,21 @@ export class SignalingManager {
       // Crea e invia risposta
       await this.createAnswer(senderId);
 
+      console.log("🎉 OFFER PROCESSING COMPLETED SUCCESSFULLY");
       return true;
     } catch (error) {
-      this.logger.error(`Errore gestione offerta da ${senderId}`, {
+      console.log("❌ ERROR DURING OFFER PROCESSING:", error);
+      this.logger.error(`Errore gestione offerta da ${senderId}:`, error, {
         component: "SignalingManager",
         participantId: senderId,
-        error: error.message,
-        stack: error.stack,
+        errorMessage: error.message,
       });
       return false;
+    } finally {
+      // 🔥 RESET FLAG SEMPRE
+      pc._isRenegotiating = false;
     }
   }
-
   /**
    * Gestisce un messaggio di risposta ricevuta
    * @param {Object} message - Messaggio contenente la risposta
@@ -347,32 +472,35 @@ export class SignalingManager {
       return false;
     }
 
-    // Verifica timing safeguards per transizioni di stato signaling
-    if (!this.globalState.canTransitionSignalingState(senderId)) {
-      this.logger.warning(
-        `Transizione signaling state troppo ravvicinata per ${senderId}, ignorando risposta`,
-        {
-          component: "SignalingManager",
-          participantId: senderId,
-          lastTransition:
-            this.globalState.getLastSignalingStateTransition(senderId),
-        }
-      );
-      return false;
-    }
-
-    if (!message.answer || !message.answer.sdp) {
-      this.logger.error(`Risposta ricevuta senza SDP da ${senderId}`, {
-        component: "SignalingManager",
-        participantId: senderId,
-        messageStructure: Object.keys(message),
-        hasAnswer: !!message.answer,
-        answerStructure: message.answer ? Object.keys(message.answer) : null,
-      });
-      return false;
-    }
+    // 🔥 MARCA CHE STIAMO PROCESSANDO UNA ANSWER
+    pc._isRenegotiating = true;
 
     try {
+      // Verifica timing safeguards per transizioni di stato signaling
+      if (!this.globalState.canTransitionSignalingState(senderId)) {
+        this.logger.warning(
+          `Transizione signaling state troppo ravvicinata per ${senderId}, ignorando risposta`,
+          {
+            component: "SignalingManager",
+            participantId: senderId,
+            lastTransition:
+              this.globalState.getLastSignalingStateTransition(senderId),
+          }
+        );
+        return false;
+      }
+
+      if (!message.answer || !message.answer.sdp) {
+        this.logger.error(`Risposta ricevuta senza SDP da ${senderId}`, {
+          component: "SignalingManager",
+          participantId: senderId,
+          messageStructure: Object.keys(message),
+          hasAnswer: !!message.answer,
+          answerStructure: message.answer ? Object.keys(message.answer) : null,
+        });
+        return false;
+      }
+
       // Verifica stato del signaling
       if (pc.signalingState !== "have-local-offer") {
         this.logger.warning(
@@ -433,6 +561,8 @@ export class SignalingManager {
       });
       return false;
     } finally {
+      // 🔥 RESET FLAG SEMPRE
+      pc._isRenegotiating = false;
       // Assicurati che la negoziazione sia marcata come completata
       this.globalState.setNegotiationInProgress(senderId, false);
     }
@@ -703,7 +833,10 @@ export class SignalingManager {
    * @returns {Promise<boolean>}
    */
   async setExistingUsers(existingUsers) {
-    const count = existingUsers && typeof existingUsers === 'object' ? Object.keys(existingUsers).length : 0;
+    const count =
+      existingUsers && typeof existingUsers === "object"
+        ? Object.keys(existingUsers).length
+        : 0;
     this.logger.info("Impostazione utenti esistenti", {
       component: "SignalingManager",
       usersCount: count,
@@ -798,7 +931,11 @@ export class SignalingManager {
     const myId = this.globalState.getMyId();
     const chatId = this.globalState.getChatId();
 
-    const isForMe = message.to === myId && message.chat === chatId;
+    // 🔥 FIX: message.to può essere myId (singlecast) o chatId (broadcast)
+    const isAddressedToMe = message.to === myId; // Messaggio diretto a me
+    const isBroadcastToMyChat = message.to === chatId; // Messaggio broadcast alla mia chat
+
+    const isForMe = isAddressedToMe || isBroadcastToMyChat;
 
     if (!isForMe) {
       this.logger.debug("Messaggio non destinato a questo client", {
@@ -808,6 +945,9 @@ export class SignalingManager {
         messageChat: message.chat,
         myId,
         myChatId: chatId,
+        isAddressedToMe,
+        isBroadcastToMyChat,
+        reason: "neither_direct_nor_broadcast",
       });
     }
 

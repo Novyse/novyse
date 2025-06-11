@@ -66,7 +66,10 @@ export class ScreenShareManager {
       action: "stopScreenShare",
     });
 
-    const screenStream = this.globalState.getActiveStream(this.globalState.getMyId(),screenShareUUID);
+    const screenStream = this.globalState.getActiveStream(
+      this.globalState.getMyId(),
+      screenShareUUID
+    );
     if (!screenStream) {
       this.logger.warning(
         `Stream screen share non trovato: ${screenShareUUID}`,
@@ -480,51 +483,73 @@ export class ScreenShareManager {
       ) {
         try {
           stream.getTracks().forEach((track) => {
-            // Add custom properties for identification - keep full screenShareUUID
-            track.screenShareUUID = screenShareUUID; // Keep full participantId_streamId format
-            track.streamType = "screenshare";
-
             // Use addTransceiver instead of addTrack for better control and MID registration
             const transceiver = pc.addTransceiver(track, {
               direction: "sendrecv",
               streams: [stream],
             });
-            // Register the mapping in StreamMappingManager if available
+
+            // 🔥 AGGIUNGI IL MAPPING AI PENDING INVECE CHE REGISTRARE SUBITO!
             const streamMappingManager =
               this.globalState.getStreamMappingManager?.();
-            if (streamMappingManager && transceiver.mid) {
+            if (streamMappingManager) {
               const myParticipantId = this.globalState.getMyId();
 
-              // Extract the screen share ID from the full screenShareUUID for mapping generation
-              // screenShareUUID format: participantId_screenShareId
-              const screenShareId = screenShareUUID.includes("_")
-                ? screenShareUUID.split("_").slice(1).join("_")
-                : screenShareUUID;
+              // ❌ NON FARE QUESTO - il MID è null!
+              // streamMappingManager.registerLocalTransceiverMapping(...)
 
-              const streamUUID = streamMappingManager.generateStreamUUID(
-                myParticipantId,
-                "screenshare",
-                screenShareId // Use extracted screen share ID
-              );
+              // ✅ INVECE: Aggiungi ai pending mappings della peer connection
+              if (!pc._pendingMappings) {
+                pc._pendingMappings = [];
+              }
 
-              streamMappingManager.registerLocalTransceiverMapping(
+              pc._pendingMappings.push({
                 transceiver,
-                streamUUID,
-                "screenshare",
-                myParticipantId
-              );
+                remoteParticipantUUID: peerId,
+                streamUUID: screenShareUUID,
+              });
 
               this.logger.debug(
-                `Registered screen share mapping: MID ${transceiver.mid} -> ${streamUUID}`,
+                "🔥 SCREEN SHARE MAPPING AGGIUNTO AI PENDING:",
                 {
                   component: "ScreenShareManager",
-                  mid: transceiver.mid,
-                  streamUUID,
+                  peerId,
                   screenShareUUID,
+                  trackKind: track.kind,
+                  pendingCount: pc._pendingMappings.length,
                 }
               );
             }
           });
+
+          // 🔥 FORZA LA RINEGOZIAZIONE IMMEDIATA PER QUESTA PEER CONNECTION
+          if (pc.signalingState === "stable") {
+            this.logger.debug(
+              "🔥 FORCING IMMEDIATE RENEGOTIATION FOR SCREEN SHARE:",
+              {
+                component: "ScreenShareManager",
+                peerId,
+                screenShareUUID,
+              }
+            );
+
+            // Ottieni il PeerConnectionManager per gestire la rinegoziazione
+            const peerConnectionManager =
+              this.globalState.getPeerConnectionManager?.();
+            if (peerConnectionManager) {
+              // Chiama il metodo di rinegoziazione diretta
+              await peerConnectionManager._performDirectRenegotiation(
+                pc,
+                peerId
+              );
+
+              this.logger.debug("🎉 SCREEN SHARE RENEGOTIATION COMPLETED:", {
+                component: "ScreenShareManager",
+                peerId,
+                screenShareUUID,
+              });
+            }
+          }
 
           this.logger.debug(
             `Stream screen share aggiunto alla connessione con ${peerId}`,
@@ -715,8 +740,8 @@ export class ScreenShareManager {
 
       // Emit stream_added_or_updated event for local screen share
       eventEmitter.emit("stream_added_or_updated", {
-        participantUUID: myParticipantId, 
-        stream, 
+        participantUUID: myParticipantId,
+        stream,
         streamUUID: screenShareUUID,
         timestamp: Date.now(),
       });
@@ -815,7 +840,6 @@ export class ScreenShareManager {
    * @returns {Promise<Object|null>} - Returns screen share info or null if failed
    */
   async startScreenShare(screenShareUUID, existingStream = null) {
-    
     const partecipantUUID = this.globalState.getMyId();
 
     this.logger.info("Avvio condivisione schermo", {
@@ -839,8 +863,10 @@ export class ScreenShareManager {
       }
 
       // Check if this screen share already exists
-      const existingScreenStream =
-        this.globalState.getActiveStream(partecipantUUID,screenShareUUID);
+      const existingScreenStream = this.globalState.getActiveStream(
+        partecipantUUID,
+        screenShareUUID
+      );
 
       if (existingScreenStream) {
         this.logger.warning("Screen share already exists, not recreating", {
@@ -848,15 +874,13 @@ export class ScreenShareManager {
           screenShareUUID,
         });
         return { screenShareUUID, stream: existingScreenStream };
-      } 
-
+      }
 
       this.globalState.addScreenShare(
         partecipantUUID,
         screenShareUUID,
         existingStream
       );
-
 
       this.logger.info(
         `Screen share added to userData with ID: ${partecipantUUID}`,
@@ -872,19 +896,13 @@ export class ScreenShareManager {
       this._setupStreamEndHandlers(existingStream, partecipantUUID);
 
       // Aggiungi stream a tutte le connessioni peer
-      await this._addScreenStreamToAllPeers(
-        existingStream,
-        screenShareUUID
-      );
+      await this._addScreenStreamToAllPeers(existingStream, screenShareUUID);
 
       // Invia notifica signaling se WebSocket disponibile
       await this._notifyScreenShareStarted(screenShareUUID);
 
       // Notify local UI about screen share addition for rectangle creation
-      this._notifyLocalScreenShareStarted(
-        screenShareUUID,
-        existingStream
-      );
+      this._notifyLocalScreenShareStarted(screenShareUUID, existingStream);
 
       // Rinegozia con tutti i peer dopo un breve delay
       setTimeout(() => {

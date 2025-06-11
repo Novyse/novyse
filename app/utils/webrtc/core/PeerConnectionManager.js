@@ -5,7 +5,6 @@ import {
 import { getWebRTCConfiguration } from "../config/configuration.js";
 import { WEBRTC_CONSTANTS } from "../config/constants.js";
 import { GlobalState } from "./GlobalState.js";
-import { StreamMappingManager } from "./StreamMappingManager.js";
 import logger from "../logging/WebRTCLogger.js";
 import {
   getPeerConnectionInfo,
@@ -17,12 +16,10 @@ import {
  * Gestisce la creazione, configurazione e chiusura delle peer connections
  */
 class PeerConnectionManager {
-  constructor(globalState, streamMappingManager = null) {
+  constructor(globalState, streamMappingManager) {
     this.configuration = getWebRTCConfiguration();
     this.globalState = globalState || new GlobalState();
-    this.streamMappingManager =
-      streamMappingManager ||
-      new StreamMappingManager(this.globalState, logger);
+    this.streamMappingManager = streamMappingManager;
     this.midToScreenShareMap = new Map();
     logger.info(
       "PeerConnectionManager",
@@ -66,9 +63,6 @@ class PeerConnectionManager {
       // Configura event handlers
       this._setupPeerConnectionEventHandlers(pc, participantId);
 
-      // Aggiungi tracce locali se disponibili
-      this._addLocalTracksIfAvailable(pc);
-
       logger.info(
         "PeerConnectionManager",
         `PeerConnection per ${participantId} creata con successo`
@@ -107,6 +101,69 @@ class PeerConnectionManager {
         this._handleIceGatheringStateChange(pc, participantId);
       };
     }
+
+pc.onnegotiationneeded = async (event) => {
+      console.log("🔄 NEGOTIATION NEEDED!", {
+        participantId,
+        signalingState: pc.signalingState,
+        iceConnectionState: pc.iceConnectionState,
+        connectionState: pc.connectionState,
+        transceivers: pc.getTransceivers().length,
+        senders: pc.getSenders().length,
+        sendersWithTracks: pc.getSenders().filter(s => s.track).length,
+        sendersTrackTypes: pc.getSenders().filter(s => s.track).map(s => s.track.kind),
+        // 🔥 AGGIUNGI CONTROLLO STATO RINEGOZIAZIONE
+        isRenegotiating: pc._isRenegotiating || false
+      });
+
+      logger.info(
+        "PeerConnectionManager",
+        `🔄 Negotiation needed for ${participantId}`,
+        {
+          signalingState: pc.signalingState,
+          transceivers: pc.getTransceivers().length,
+          senders: pc.getSenders().length,
+          sendersWithTracks: pc.getSenders().filter(s => s.track).length
+        }
+      );
+
+      // 🔥 FIX PRINCIPALE: Non fare rinegoziazione se stiamo già processando offer/answer
+      if (pc._isRenegotiating) {
+        console.log("⏭️ SKIPPING RENEGOTIATION - already in progress:", {
+          participantId,
+          signalingState: pc.signalingState
+        });
+        return;
+      }
+
+      // Se siamo in stato stabile e non stiamo già negoziando
+      if (pc.signalingState === "stable") {
+        try {
+          console.log("🚀 CREATING RENEGOTIATION OFFER DIRECTLY:", { participantId });
+          
+          // 🔥 MARCA CHE STIAMO RINEGOZIANDO
+          pc._isRenegotiating = true;
+          
+          await this._performDirectRenegotiation(pc, participantId);
+          
+        } catch (error) {
+          logger.error(
+            "PeerConnectionManager",
+            `Error during renegotiation for ${participantId}:`,
+            error
+          );
+          console.error("❌ RENEGOTIATION ERROR:", { participantId, error });
+        } finally {
+          // 🔥 RESET FLAG ANCHE IN CASO DI ERRORE
+          pc._isRenegotiating = false;
+        }
+      } else {
+        console.log("⏳ SKIPPING RENEGOTIATION - not in stable state:", {
+          participantId,
+          signalingState: pc.signalingState
+        });
+      }
+    };
 
     // Track handler per stream remoti
     pc.ontrack = (event) => {
@@ -162,6 +219,85 @@ class PeerConnectionManager {
     }
   }
 
+  /**
+   * Esegue rinegoziazione direttamente senza SignalingManager
+   */
+  async _performDirectRenegotiation(pc, participantId) {
+    try {
+      console.log("📝 STARTING DIRECT RENEGOTIATION:", {
+        participantId,
+        currentSignalingState: pc.signalingState,
+        currentTransceivers: pc.getTransceivers().length,
+        currentSenders: pc.getSenders().length,
+      });
+
+      // 1. Aggiungi tutte le tracce locali che non sono ancora state aggiunte
+      this._addLocalTracksIfAvailable(pc, participantId, false);
+
+      // 2. Crea nuova offer
+      console.log("🎯 CREATING NEW OFFER FOR RENEGOTIATION...");
+      const offer = await pc.createOffer();
+
+      console.log("✅ OFFER CREATED:", {
+        participantId,
+        hasOffer: !!offer,
+        offerType: offer?.type,
+        sdpLength: offer?.sdp?.length || 0,
+      });
+
+      // 3. Imposta local description
+      await pc.setLocalDescription(offer);
+
+      console.log("✅ LOCAL DESCRIPTION SET:", {
+        participantId,
+        newSignalingState: pc.signalingState,
+        hasLocalDescription: !!pc.localDescription,
+      });
+
+      // 4. Processa mapping dopo aver impostato la local description
+      this.processPendingMappingsAfterOffer(pc);
+
+      // 5. Invia offer via WebSocket
+      console.log("📡 SENDING RENEGOTIATION OFFER VIA WEBSOCKET...");
+
+      const webSocketMethods = await import("../../webSocketMethods.js");
+      await webSocketMethods.default.RTCOffer({
+        offer: offer,
+        to: participantId,
+        from: this.globalState.getMyId(),
+      });
+
+      console.log("🎉 RENEGOTIATION OFFER SENT SUCCESSFULLY:", {
+        participantId,
+        from: this.globalState.getMyId(),
+      });
+
+      logger.info(
+        "PeerConnectionManager",
+        `✅ Renegotiation offer sent for ${participantId}`,
+        {
+          signalingState: pc.signalingState,
+          transceivers: pc.getTransceivers().length,
+          senders: pc.getSenders().length,
+        }
+      );
+    } catch (error) {
+      console.error("❌ DIRECT RENEGOTIATION FAILED:", {
+        participantId,
+        error: error.message,
+        stack: error.stack,
+      });
+
+      logger.error(
+        "PeerConnectionManager",
+        `❌ Direct renegotiation failed for ${participantId}:`,
+        error
+      );
+
+      throw error;
+    }
+  }
+
   // Add method to register a mid mapping
   registerScreenShareMid(participantId, mid, screenShareUUID) {
     const key = `${participantId}_${mid}`;
@@ -172,284 +308,460 @@ class PeerConnectionManager {
     );
   }
   /**
-   * Gestisce tracce remote ricevute
+   * Gestisce tracce remote ricevute - VERSIONE CON MAPPING MANAGER
    */
   _handleRemoteTrack(event, participantId) {
-    // Add validation for participantId
+      console.log("🎯 _handleRemoteTrack CHIAMATO!", {
+      participantId,
+      trackKind: event.track.kind,
+      trackId: event.track.id,
+      hasTransceiver: !!event.transceiver,
+      transceiverMid: event.transceiver?.mid,
+      transceiverDirection: event.transceiver?.direction,
+      // 🔥 AGGIUNGI QUESTI DEBUG
+      allStreams: event.streams?.length || 0,
+      streamIds: event.streams?.map(s => s.id) || [],
+      trackReadyState: event.track.readyState,
+      trackEnabled: event.track.enabled,
+      trackMuted: event.track.muted
+    });
+
+    // 🔥 DEBUG AGGIUNTIVO: Log di tutti i mapping disponibili
+    console.log("🗺️ CURRENT MAPPING STATE:", {
+      participantId,
+      allMappings: this.streamMappingManager?.getAllMappings(),
+      availableMidsForThisParticipant: this.streamMappingManager?.getAllMappings()?.[participantId] || {}
+    });
+
     if (!participantId) {
+      logger.error("PeerConnectionManager", "❌ ParticipantId mancante");
+      return;
+    }
+
+    if (!event.transceiver || !event.transceiver.mid) {
+      logger.error("PeerConnectionManager", "❌ Transceiver o MID mancante", {
+        hasTransceiver: !!event.transceiver,
+        mid: event.transceiver?.mid,
+      });
+      return;
+    }
+
+    logger.info(
+      "PeerConnectionManager",
+      `🎯 Traccia ricevuta da ${participantId}`,
+      {
+        trackKind: event.track.kind,
+        trackId: event.track.id,
+        transceiverMid: event.transceiver.mid,
+      }
+    );
+
+    // 🔥 CERCA IL MAPPING NEL StreamMappingManager
+    const streamUUID = this.streamMappingManager?.getStreamUUIDByMid(
+      participantId,
+      event.transceiver.mid
+    );
+
+    if (streamUUID) {
+      // 3.1 - MAPPING TROVATO: Processa subito la traccia
+      console.log("✅ MAPPING TROVATO SUBITO!", {
+        participantId,
+        mid: event.transceiver.mid,
+        streamUUID,
+        trackKind: event.track.kind,
+      });
+
+      logger.info(
+        "PeerConnectionManager",
+        `✅ Mapping trovato per MID ${event.transceiver.mid}`,
+        {
+          participantId,
+          streamUUID,
+          trackKind: event.track.kind,
+        }
+      );
+
+      // Processa la traccia con lo streamUUID trovato
+      this._processTrackWithStreamUUID(event, participantId, streamUUID);
+    } else {
+      // 3.2 - MAPPING NON TROVATO: Aspetta e riprova
+      console.log("⏳ MAPPING NON TROVATO, ASPETTO...", {
+        participantId,
+        mid: event.transceiver.mid,
+        trackKind: event.track.kind,
+        availableMappings: this.streamMappingManager?.getAllMappings(),
+      });
+
+      logger.warning(
+        "PeerConnectionManager",
+        `⏳ Mapping non trovato per MID ${event.transceiver.mid}, aspetto signaling...`,
+        {
+          participantId,
+          transceiverMid: event.transceiver.mid,
+          trackKind: event.track.kind,
+        }
+      );
+
+      // Aspetta che il mapping arrivi via signaling WebSocket
+      this._waitForMappingFromSignaling(event, participantId, 0);
+    }
+  }
+
+  /**
+   * Aspetta che il mapping arrivi via signaling WebSocket
+   */
+  _waitForMappingFromSignaling(event, participantId, attemptCount) {
+    const maxAttempts = 200; // 10 secondi (200 x 50ms) - più tempo per il signaling
+
+    if (attemptCount >= maxAttempts) {
       logger.error(
         "PeerConnectionManager",
-        "Cannot handle remote track: participantId is null or undefined",
+        `❌ Mapping non arrivato dopo ${maxAttempts * 50}ms via signaling`,
         {
-          trackId: event.track?.id,
-          trackKind: event.track?.kind,
-          streams: event.streams?.map((s) => s.id) || [],
+          participantId,
+          transceiverMid: event.transceiver.mid,
+          trackKind: event.track.kind,
+          finalMappings: this.streamMappingManager?.getAllMappings(),
         }
       );
+
+      console.log("❌ TIMEOUT MAPPING!", {
+        participantId,
+        mid: event.transceiver.mid,
+        waitedMs: maxAttempts * 50,
+        finalMappings: this.streamMappingManager?.getAllMappings(),
+      });
       return;
     }
-    logger.info(
-      "PeerConnectionManager",
-      `Traccia remota ricevuta da ${participantId}:`,
-      {
-        kind: event.track.kind,
-        label: event.track.label,
-        id: event.track.id,
-        streams: event.streams.map((s) => s.id),
-      }
-    );
 
-    // Try to get mapping from StreamMappingManager first
-    let streamUUID = null;
-    let trackType = null;
-
-    if (
-      this.streamMappingManager &&
-      event.transceiver &&
-      event.transceiver.mid
-    ) {
-      const mapping = this.streamMappingManager.getStreamUUIDByMid(
+    setTimeout(() => {
+      // Ricontrolla se il mapping è arrivato via WebSocket
+      const streamUUID = this.streamMappingManager?.getStreamUUIDByMid(
+        participantId,
         event.transceiver.mid
       );
-      if (mapping) {
-        streamUUID = mapping.streamUUID;
-        trackType = mapping.trackType;
+
+      if (streamUUID) {
+        // MAPPING FINALMENTE ARRIVATO!
+        console.log("🎉 MAPPING ARRIVATO DOPO ATTESA!", {
+          participantId,
+          mid: event.transceiver.mid,
+          streamUUID,
+          waitedMs: attemptCount * 50,
+          attempts: attemptCount + 1,
+        });
+
         logger.info(
           "PeerConnectionManager",
-          `Found mapping for MID ${event.transceiver.mid}: ${streamUUID} (${trackType})`
+          `✅ Mapping ricevuto via signaling dopo ${attemptCount * 50}ms`,
+          {
+            participantId,
+            streamUUID,
+            transceiverMid: event.transceiver.mid,
+            attempts: attemptCount + 1,
+          }
         );
-      } else {
-        logger.debug(
-          "PeerConnectionManager",
-          `No mapping found for MID ${event.transceiver.mid}, using fallback detection`
-        );
-      }
-    }
 
-    // If we have mapping, use it directly
-    if (streamUUID && trackType) {
-      if (trackType === "screenshare") {
-        // Extract streamId from streamUUID (format: participantId_StreamID)
-        this._handleScreenShareTrack(
+        // Processa la traccia con il mapping ricevuto
+        this._processTrackWithStreamUUID(event, participantId, streamUUID);
+      } else {
+        // Continua ad aspettare
+        if (attemptCount % 20 === 0) {
+          // Log ogni secondo
+          console.log("⏳ ANCORA IN ATTESA MAPPING...", {
+            participantId,
+            mid: event.transceiver.mid,
+            attemptCount: attemptCount + 1,
+            waitedMs: (attemptCount + 1) * 50,
+          });
+        }
+
+        this._waitForMappingFromSignaling(
           event,
           participantId,
-          event.track,
-          streamUUID
+          attemptCount + 1
         );
-      } else {
-        this._handleWebcamTrack(event, participantId);
       }
+    }, 50);
+  }
 
-      // Register remote track mapping for future reference
-      this.streamMappingManager.registerRemoteTrackMapping(
+  /**
+   * Processa la traccia con lo streamUUID
+   */
+  _processTrackWithStreamUUID(event, participantId, streamUUID) {
+    logger.info(
+      "PeerConnectionManager",
+      `🔄 Processing track con streamUUID ${streamUUID}`,
+      {
         participantId,
-        event.track.id,
         streamUUID,
-        trackType
-      );
-      return;
-    }
-
-    // Fallback to original heuristic method if no mapping found
-    if (event.track.kind === "video") {
-      const isScreenShare = this._isScreenShareTrack(
-        event.track,
-        participantId
-      );
-
-      if (isScreenShare) {
-        logger.debug(
-          "PeerConnectionManager",
-          `Traccia identificata come screen share da ${participantId} (fallback)`
-        );
-        this._handleScreenShareTrack(event, participantId, event.track);
-      } else {
-        logger.debug(
-          "PeerConnectionManager",
-          `Traccia identificata come webcam video da ${participantId} (fallback)`
-        );
-        this._handleWebcamTrack(event, participantId);
+        trackKind: event.track.kind,
+        trackId: event.track.id,
       }
-    } else if (event.track.kind === "audio") {
-      logger.debug(
+    );
+
+    // Controlla se esiste già uno stream con questo UID
+    let existingStream = this.globalState.getActiveStream(
+      participantId,
+      streamUUID
+    );
+
+    if (existingStream) {
+      logger.info(
         "PeerConnectionManager",
-        `Traccia audio ricevuta da ${participantId}:`,
+        `🔗 Aggiunta traccia a stream esistente`,
         {
-          trackId: event.track.id,
-          trackLabel: event.track.label,
-          streams: event.streams.map((s) => s.id),
+          participantId,
+          streamUUID,
+          trackKind: event.track.kind,
+          existingTracks: existingStream.getTracks().length,
         }
       );
-      this._handleWebcamTrack(event, participantId);
+
+      // Verifica che la traccia non sia già presente
+      const trackExists = existingStream
+        .getTracks()
+        .find((t) => t.id === event.track.id);
+      if (!trackExists) {
+        existingStream.addTrack(event.track);
+      }
     } else {
-      logger.warn(
+      logger.info(
         "PeerConnectionManager",
-        `Ricevuta traccia remota di tipo sconosciuto: ${event.track.kind} da ${participantId}`
+        `✨ Creazione nuovo stream per streamUUID ${streamUUID}`,
+        {
+          participantId,
+          streamUUID,
+          trackKind: event.track.kind,
+        }
+      );
+
+      // Crea nuovo stream
+      const newStream = createMediaStream();
+      newStream.addTrack(event.track);
+      this.globalState.addActiveStream(participantId, streamUUID, newStream);
+      existingStream = newStream;
+    }
+
+    // 🔥 FIX: Determina il tipo di stream basandosi sul streamUUID
+    const isScreenShare = streamUUID !== participantId;
+
+    if (isScreenShare) {
+      // È uno screen share - aggiorna anche userData per includerlo
+      this.globalState.addScreenShare(
+        participantId,
+        streamUUID,
+        existingStream
+      );
+      logger.info(
+        "PeerConnectionManager",
+        `🖥️ Screen share stream aggiornato`,
+        {
+          participantId,
+          streamUUID,
+          trackKind: event.track.kind,
+          totalTracks: existingStream.getTracks().length,
+        }
+      );
+    } else {
+      // È stream principale (audio/video webcam)
+      // Se è audio, aggiungilo all'AudioContext
+      if (event.track.kind === "audio") {
+        if (this.globalState.audioContextRef) {
+          logger.info(
+            "PeerConnectionManager",
+            `🔊 Aggiunta audio all'AudioContext`,
+            {
+              participantId,
+              streamUUID,
+            }
+          );
+          this.globalState.audioContextRef.addAudio(
+            participantId,
+            existingStream
+          );
+        }
+      }
+    }
+
+    // Setup event handlers per la traccia
+    this._setupTrackEventHandlers(
+      event.track,
+      participantId,
+      isScreenShare ? "screenshare" : "webcam",
+      streamUUID
+    );
+
+    // Emetti evento per UI
+    this._emitStreamEvent(participantId, existingStream, streamUUID);
+
+    // 🔥 FINAL DEBUG: Verifica stato finale
+    const finalVerifyStream = this.globalState.getActiveStream(
+      participantId,
+      streamUUID
+    );
+    console.log("🔍 FINAL VERIFICATION:", {
+      participantId,
+      streamUUID,
+      isScreenShare,
+      finalStreamExists: !!finalVerifyStream,
+      finalTracks: finalVerifyStream ? finalVerifyStream.getTracks().length : 0,
+      finalTrackTypes: finalVerifyStream
+        ? finalVerifyStream.getTracks().map((t) => t.kind)
+        : [],
+    });
+
+    logger.info("PeerConnectionManager", `✅ Traccia elaborata con successo`, {
+      participantId,
+      streamUUID,
+      trackKind: event.track.kind,
+      streamType: isScreenShare ? "screenshare" : "webcam",
+      totalTracks: existingStream.getTracks().length,
+      audioTracks: existingStream.getAudioTracks().length,
+      videoTracks: existingStream.getVideoTracks().length,
+    });
+  }
+  /**
+   * Gestisce tracce webcam/audio (stesso stream)
+   */
+  _handleWebcamTrack(event, participantId, streamUUID = null) {
+    const finalStreamUUID = streamUUID || participantId;
+
+    logger.info(
+      "PeerConnectionManager",
+      `🎥 Gestione traccia webcam/audio per ${participantId}`,
+      {
+        streamUUID: finalStreamUUID,
+        trackKind: event.track.kind,
+        trackId: event.track.id,
+      }
+    );
+
+    // Ottieni o crea lo stream principale per questo partecipante
+    let mainStream = this.globalState.getActiveStream(
+      participantId,
+      finalStreamUUID
+    );
+
+    if (!mainStream) {
+      mainStream = createMediaStream();
+      this.globalState.addActiveStream(
+        participantId,
+        finalStreamUUID,
+        mainStream
+      );
+      logger.info(
+        "PeerConnectionManager",
+        `✨ Nuovo stream principale creato per ${participantId}`,
+        {
+          streamUUID: finalStreamUUID,
+        }
       );
     }
-  }
 
-  /**
-   * Verifica se una traccia è di screen sharing
-   */
-  _isScreenShareTrack(track, participantId) {
-    const screenShareUUID = participantId + "_" + track.id;
-    const isScreenShare = this.globalState.isScreenShare(
-      participantId,
-      screenShareUUID
-    );
-    logger.debug(
-      "PeerConnectionManager",
-      `Verifica screen share per ${participantId}/${track.id} - IsScreenShare: ${isScreenShare}`
-    );
-    console.log(
-      "PeerConnectionManager",
-      `Verifica screen share per ${participantId}/${track.id} - IsScreenShare: ${isScreenShare}`
-    );
-    return isScreenShare;
-  }
-  /**
-   * Gestisce tracce di screen sharing
-   */
-  _handleScreenShareTrack(event, participantId, track, streamId = null) {
-    // If streamId not provided, generate it from track.id (fallback)
-    const screenShareUUID = streamId
-      ? `${participantId}_${streamId}`
-      : `${participantId}_${track.id}`;
-
-    if (!this.globalState.remoteScreenStreams[participantId]) {
-      this.globalState.remoteScreenStreams[participantId] = {};
-    }
-    if (!this.globalState.remoteScreenStreams[participantId][screenShareUUID]) {
-      this.globalState.remoteScreenStreams[participantId][screenShareUUID] =
-        createMediaStream();
-    }
-    this.globalState.remoteScreenStreams[participantId][
-      screenShareUUID
-    ].addTrack(event.track);
-    logger.info(
-      "PeerConnectionManager",
-      `Screen share track aggiunta: ${participantId}/${screenShareUUID}`
-    );
-
-    // IMPORTANT: Also update userData to include this screen share in active_screen_share array
-    this.globalState.addScreenShare(
-      participantId,
-      screenShareUUID,
-      this.globalState.remoteScreenStreams[participantId][screenShareUUID]
-    );
+    // Aggiungi la traccia allo stream principale
+    mainStream.addTrack(event.track);
 
     logger.info(
       "PeerConnectionManager",
-      `Added screen share ${screenShareUUID} to userData for participant ${participantId}`
+      `➕ Traccia aggiunta allo stream principale`,
+      {
+        participantId,
+        streamUUID: finalStreamUUID,
+        trackKind: event.track.kind,
+        totalTracks: mainStream.getTracks().length,
+        audioTracks: mainStream.getAudioTracks().length,
+        videoTracks: mainStream.getVideoTracks().length,
+      }
     );
 
-    // Setup track event handlers with screen share info
+    // Se è una traccia audio, aggiungila sempre all'AudioContext
+    if (event.track.kind === "audio") {
+      if (this.globalState.audioContextRef) {
+        logger.info(
+          "PeerConnectionManager",
+          `🔊 Aggiunta audio all'AudioContext per ${participantId}`
+        );
+        this.globalState.audioContextRef.addAudio(participantId, mainStream);
+      } else {
+        logger.warning(
+          "PeerConnectionManager",
+          `⚠️ AudioContext non disponibile per ${participantId}`,
+          {
+            audioContextRef: !!this.globalState.audioContextRef,
+          }
+        );
+      }
+    }
+
+    // Setup event handlers per la traccia
+    this._setupTrackEventHandlers(
+      event.track,
+      participantId,
+      "webcam",
+      finalStreamUUID
+    );
+
+    // Emetti evento per UI
+    this._emitStreamEvent(participantId, mainStream, finalStreamUUID);
+  }
+
+  /**
+   * Gestisce tracce screen share (stream separati)
+   */
+  _handleScreenShareTrack(event, participantId, streamUUID) {
+    logger.info(
+      "PeerConnectionManager",
+      `🖥️ Gestione traccia screen share per ${participantId}`,
+      {
+        streamUUID,
+        trackKind: event.track.kind,
+        trackId: event.track.id,
+      }
+    );
+
+    // Ottieni o crea lo stream screen share
+    let screenStream = this.globalState.getActiveStream(
+      participantId,
+      streamUUID
+    );
+
+    if (!screenStream) {
+      screenStream = createMediaStream();
+      this.globalState.addActiveStream(participantId, streamUUID, screenStream);
+      logger.info(
+        "PeerConnectionManager",
+        `✨ Nuovo stream screen share creato`,
+        {
+          participantId,
+          streamUUID,
+        }
+      );
+    }
+
+    // Aggiungi la traccia allo stream screen share
+    screenStream.addTrack(event.track);
+
+    logger.info("PeerConnectionManager", `➕ Traccia screen share aggiunta`, {
+      participantId,
+      streamUUID,
+      trackKind: event.track.kind,
+      totalTracks: screenStream.getTracks().length,
+    });
+
+    // Aggiorna userData per includere questo screen share
+    this.globalState.addScreenShare(participantId, streamUUID, screenStream);
+
+    // Setup event handlers per la traccia
     this._setupTrackEventHandlers(
       event.track,
       participantId,
       "screenshare",
-      screenShareUUID
+      streamUUID
     );
 
     // Emetti evento per UI
-    this._emitStreamEvent(
-      participantId,
-      this.globalState.getActiveStream(participantId, screenShareUUID),
-      screenShareUUID
-    );
-  }
-
-  /**
-   * Gestisce tracce webcam
-   */
-  _handleWebcamTrack(event, participantId) {
-    if (!participantId) {
-      logger.error(
-        "PeerConnectionManager",
-        "Cannot handle webcam track: participantId is null or undefined"
-      );
-      return;
-    }
-
-    // Create or get existing stream for this participant
-    if (!this.globalState.getActiveStream(participantId, participantId)) {
-      this.globalState.addActiveStream(
-        participantId,
-        participantId,
-        createMediaStream()
-      );
-      logger.debug(
-        "PeerConnectionManager",
-        `Created new stream for ${participantId}`
-      );
-    }
-
-    const stream = this.globalState.getActiveStream(
-      participantId,
-      participantId
-    );
-
-    stream.addTrack(event.track); 
-    // Gestisci audio tramite AudioContext 
-    logger.debug(
-      "PeerConnectionManager",
-      `Checking audio context for ${participantId}:`,
-      {
-        audioContextRef: !!this.globalState.audioContextRef,
-        audioTracks: stream.getAudioTracks().length,
-        trackKind: event.track.kind,
-      }
-    );
-
-    // Debug audio context state
-    logger.debug(
-      "PeerConnectionManager",
-      `Audio context check for ${participantId}:`,
-      {
-        hasAudioContextRef: !!this.globalState.audioContextRef,
-        audioContextType: typeof this.globalState.audioContextRef,
-        audioContextRef: this.globalState.audioContextRef
-          ? "available"
-          : "null",
-        streamAudioTracks: stream.getAudioTracks().length,
-        trackKind: event.track.kind,
-        trackEnabled: event.track.enabled,
-        trackReadyState: event.track.readyState,
-      }
-    );
-
-    if (
-      this.globalState.audioContextRef &&
-      stream.getAudioTracks().length > 0
-    ) {
-      logger.info(
-        "PeerConnectionManager",
-        `Calling addAudio for ${participantId}`
-      );
-      this.globalState.audioContextRef.addAudio(participantId, stream);
-    } else {
-      logger.warning(
-        "PeerConnectionManager",
-        `Audio not added for ${participantId}:`,
-        {
-          audioContextRef: !!this.globalState.audioContextRef,
-          audioTracks: stream.getAudioTracks().length,
-          reason: !this.globalState.audioContextRef
-            ? "No audioContextRef"
-            : "No audio tracks",
-        }
-      );
-    }
-
-    logger.info(
-      "PeerConnectionManager",
-      `Webcam track aggiunta per ${participantId}`
-    ); // Emetti evento per UI
-    this._emitStreamEvent(participantId, stream, participantId);
-
-    // Setup track event handlers
-    this._setupTrackEventHandlers(event.track, participantId, "webcam");
+    this._emitStreamEvent(participantId, screenStream, streamUUID);
   }
 
   /**
@@ -487,13 +799,48 @@ class PeerConnectionManager {
         streamId,
       });
 
-      // If it's a screen share track that ended, remove it from userData
-      if (streamType === "screenshare" && participantId && streamId) {
-        this.globalState.removeScreenShare(participantId, streamId);
-        logger.info(
-          "PeerConnectionManager",
-          `Removed ended screen share ${streamId} from userData for participant ${participantId}`
-        );
+      // 🔥 RIMUOVI MAPPING QUANDO LA TRACCIA TERMINA
+      if (participantId && this.streamMappingManager) {
+        // Trova il MID associato a questa traccia
+        const pc = this.globalState.getPeerConnection(participantId);
+        if (pc) {
+          const transceivers = pc.getTransceivers();
+          const transceiver = transceivers.find(
+            (t) =>
+              t.receiver && t.receiver.track && t.receiver.track.id === track.id
+          );
+
+          if (transceiver && transceiver.mid) {
+            // Rimuovi il mapping per questo MID
+            this.streamMappingManager.removeMappingByMid(
+              participantId,
+              transceiver.mid
+            );
+
+            logger.info(
+              "PeerConnectionManager",
+              "🗑️ Mapping rimosso per traccia terminata",
+              {
+                participantId,
+                trackId: track.id,
+                mid: transceiver.mid,
+                streamType,
+                streamId,
+              }
+            );
+          } else {
+            logger.warning(
+              "PeerConnectionManager",
+              "⚠️ Non trovato transceiver per traccia terminata",
+              {
+                participantId,
+                trackId: track.id,
+                streamType,
+                streamId,
+              }
+            );
+          }
+        }
       }
 
       if (this.globalState.onStreamUpdate) {
@@ -609,151 +956,284 @@ class PeerConnectionManager {
     );
   }
   /**
-   * Aggiunge tracce locali a una peer connection
+   * Aggiunge tracce locali a una peer connection - VERSIONE CORRETTA PER ANSWER
    * @param {RTCPeerConnection} pc
+   * @param {string} remoteParticipantUUID
+   * @param {boolean} isAnswer - Se true, stiamo creando un answer
    */
-  _addLocalTracksIfAvailable(pc) {
+  _addLocalTracksIfAvailable(pc, remoteParticipantUUID, isAnswer = false) {
+    console.log("🔧 _addLocalTracksIfAvailable CHIAMATO!", {
+      myId: this.globalState.getMyId(),
+      hasLocalStream: !!this.globalState.getLocalStream(),
+      remoteParticipantUUID: remoteParticipantUUID,
+      isAnswer,
+      signalingState: pc.signalingState,
+    });
+
     // Add local stream tracks (audio/video)
     const localStream = this.globalState.getLocalStream();
     if (localStream) {
       localStream.getTracks().forEach((track) => {
-        // Evita duplicati
         const already = pc
           .getSenders()
           .find((s) => s.track && s.track.id === track.id);
         if (!already) {
-          // Use addTransceiver instead of addTrack to get MID access
-          const transceiver = pc.addTransceiver(track, {
-            direction: "sendrecv",
-            streams: [localStream],
-          });
+          // 🔥 STRATEGIA DIFFERENTE PER ANSWER VS OFFER
+          let transceiver;
 
-          // Register mapping with StreamMappingManager for webcam tracks
-          const registerMapping = () => {
-            if (this.streamMappingManager && transceiver.mid) {
-              const streamUUID = this.globalState.getMyId();
+          if (isAnswer) {
+            // In ANSWER mode, usa addTrack per forzare inclusione nell'SDP
+            const sender = pc.addTrack(track, localStream);
+            transceiver = pc.getTransceivers().find((t) => t.sender === sender);
 
-              this.streamMappingManager.registerLocalTransceiverMapping(
-                transceiver,
-                streamUUID,
-                "webcam",
-                this.globalState.myId
-              );
+            console.log("📝 TRACK AGGIUNTA IN ANSWER MODE:", {
+              streamUUID: this.globalState.getMyId(),
+              trackKind: track.kind,
+              hasSender: !!sender,
+              hasTransceiver: !!transceiver,
+              transceiverDirection: transceiver?.direction,
+            });
+          } else {
+            // In OFFER mode, usa addTransceiver
+            transceiver = pc.addTransceiver(track, {
+              direction: "sendrecv",
+              streams: [localStream],
+            });
 
-              logger.debug(
-                "PeerConnectionManager",
-                `Webcam mapping registered: MID ${transceiver.mid} -> ${streamUUID}`
-              );
-              return true;
-            }
-            return false;
-          };
-
-          // Try to register immediately, if it fails, set up a delayed retry
-          if (!registerMapping()) {
-            // MID not available yet, set up a check in the next event loop cycles
-            let retryCount = 0;
-            const maxRetries = 10;
-            const retryInterval = setInterval(() => {
-              if (registerMapping() || retryCount >= maxRetries) {
-                clearInterval(retryInterval);
-                if (retryCount >= maxRetries) {
-                  logger.warning(
-                    "PeerConnectionManager",
-                    `Failed to register webcam mapping after ${maxRetries} retries`
-                  );
-                }
-              }
-              retryCount++;
-            }, 50); // Check every 50ms
+            console.log("📝 TRANSCEIVER CREATO IN OFFER MODE:", {
+              streamUUID: this.globalState.getMyId(),
+              trackKind: track.kind,
+              direction: transceiver.direction,
+            });
           }
 
-          logger.debug(
-            "PeerConnectionManager",
-            `Traccia locale aggiunta: ${track.kind}, MID: ${
-              transceiver.mid || "pending"
-            }`
-          );
+          if (transceiver) {
+            const streamUUID = this.globalState.getMyId();
+
+            // Salva per registrazione dopo SDP
+            if (!pc._pendingMappings) {
+              pc._pendingMappings = [];
+            }
+            pc._pendingMappings.push({
+              transceiver,
+              remoteParticipantUUID,
+              streamUUID,
+            });
+
+            logger.debug(
+              "PeerConnectionManager",
+              `${
+                isAnswer ? "Track" : "Transceiver"
+              } locale creato (pending mapping)`,
+              {
+                streamUUID,
+                trackKind: track.kind,
+                direction: transceiver.direction,
+                mode: isAnswer ? "ANSWER" : "OFFER",
+              }
+            );
+          }
         }
       });
-    } else {
-      logger.debug(
-        "PeerConnectionManager",
-        "Nessun local stream disponibile per aggiungere tracce"
-      );
     }
 
-    // Add screen share tracks
+    // Screen share logic remains the same...
     const allScreenStreams = this.globalState.getAllScreenStreams();
-    Object.entries(allScreenStreams).forEach(([streamId, screenStream]) => {
+    Object.entries(allScreenStreams).forEach(([streamUUID, screenStream]) => {
       if (screenStream && screenStream.getTracks) {
         screenStream.getTracks().forEach((track) => {
-          // Evita duplicati
           const already = pc
             .getSenders()
             .find((s) => s.track && s.track.id === track.id);
           if (!already) {
-            // Use addTransceiver for screen share tracks
-            const transceiver = pc.addTransceiver(track, {
-              direction: "sendrecv",
-              streams: [screenStream],
-            });
+            let transceiver;
 
-            // Register mapping with StreamMappingManager for screen share
-            // The MID might not be available immediately, so we'll use a delayed approach
-            const registerMapping = () => {
-              if (this.streamMappingManager && transceiver.mid) {
-                const streamUUID = this.streamMappingManager.generateStreamUUID(
-                  this.globalState.myId,
-                  "screenshare",
-                  streamId // screen share tracks use participantId_StreamID format
-                );
-
-                this.streamMappingManager.registerLocalTransceiverMapping(
-                  transceiver,
-                  streamUUID,
-                  "screenshare",
-                  this.globalState.myId
-                );
-
-                logger.debug(
-                  "PeerConnectionManager",
-                  `Screen share mapping registered: MID ${transceiver.mid} -> ${streamUUID}`
-                );
-                return true;
-              }
-              return false;
-            };
-
-            // Try to register immediately, if it fails, set up a delayed retry
-            if (!registerMapping()) {
-              // MID not available yet, set up a check in the next event loop cycles
-              let retryCount = 0;
-              const maxRetries = 10;
-              const retryInterval = setInterval(() => {
-                if (registerMapping() || retryCount >= maxRetries) {
-                  clearInterval(retryInterval);
-                  if (retryCount >= maxRetries) {
-                    logger.warning(
-                      "PeerConnectionManager",
-                      `Failed to register screen share mapping after ${maxRetries} retries for ${streamId}`
-                    );
-                  }
-                }
-                retryCount++;
-              }, 50); // Check every 50ms
+            if (isAnswer) {
+              const sender = pc.addTrack(track, screenStream);
+              transceiver = pc
+                .getTransceivers()
+                .find((t) => t.sender === sender);
+            } else {
+              transceiver = pc.addTransceiver(track, {
+                direction: "sendrecv",
+                streams: [screenStream],
+              });
             }
 
-            logger.debug(
-              "PeerConnectionManager",
-              `Screen share track aggiunta: ${streamId}/${track.kind}, MID: ${
-                transceiver.mid || "pending"
-              }`
-            );
+            if (transceiver && !pc._pendingMappings) {
+              pc._pendingMappings = [];
+            }
+            if (transceiver) {
+              pc._pendingMappings.push({
+                transceiver,
+                remoteParticipantUUID,
+                streamUUID,
+              });
+            }
           }
         });
       }
     });
+
+    console.log("✅ TRACCE LOCALI AGGIUNTE:", {
+      pendingMappings: pc._pendingMappings?.length || 0,
+      totalTransceivers: pc.getTransceivers().length,
+      mode: isAnswer ? "ANSWER" : "OFFER",
+    });
+  }
+
+  /**
+   * Processa i mapping pending dopo che l'offer è stato creato
+   * @param {RTCPeerConnection} pc
+   */
+  processPendingMappingsAfterOffer(pc) {
+    if (!pc._pendingMappings || pc._pendingMappings.length === 0) {
+      console.log("📝 Nessun mapping pending da processare");
+      return;
+    }
+
+    console.log("📝 PROCESSANDO MAPPING DOPO OFFER:", {
+      count: pc._pendingMappings.length,
+      signalingState: pc.signalingState,
+      localDescription: !!pc.localDescription,
+    });
+
+    pc._pendingMappings.forEach(
+      ({ transceiver, remoteParticipantUUID, streamUUID }) => {
+        if (transceiver.mid) {
+          console.log("✅ MID DISPONIBILE DOPO OFFER:", {
+            mid: transceiver.mid,
+            streamUUID,
+            remoteParticipantUUID,
+          });
+
+          // Registra il mapping e invia via signaling
+          if (this.streamMappingManager) {
+            this.streamMappingManager.addLocalStreamMapping(
+              remoteParticipantUUID,
+              streamUUID,
+              transceiver.mid
+            );
+          }
+        } else {
+          console.log("❌ MID ANCORA NULL DOPO OFFER:", {
+            streamUUID,
+            direction: transceiver.direction,
+            currentDirection: transceiver.currentDirection,
+          });
+        }
+      }
+    );
+
+    // Pulisci pending mappings
+    pc._pendingMappings = [];
+  }
+
+  /**
+   * Aspetta che il MID sia disponibile e poi registra il mapping
+   */
+  _waitForMidAndRegisterMapping(
+    remoteParticipantId,
+    streamUUID,
+    transceiver,
+    attemptCount = 0
+  ) {
+    const maxAttempts = 100; // Riduci a 5 secondi
+
+    if (attemptCount >= maxAttempts) {
+      // 🔥 DEBUG COMPLETO DEL PROBLEMA
+      const pc = this.globalState.getPeerConnection(remoteParticipantId);
+
+      console.log("❌ DEBUG MID TIMEOUT:", {
+        remoteParticipantId,
+        streamUUID,
+        attemptCount,
+        transceiver: {
+          mid: transceiver.mid,
+          direction: transceiver.direction,
+          currentDirection: transceiver.currentDirection,
+        },
+        peerConnection: pc
+          ? {
+              signalingState: pc.signalingState,
+              iceConnectionState: pc.iceConnectionState,
+              iceGatheringState: pc.iceGatheringState,
+              connectionState: pc.connectionState,
+              localDescription: !!pc.localDescription,
+              remoteDescription: !!pc.remoteDescription,
+              transceivers: pc.getTransceivers().map((t) => ({
+                mid: t.mid,
+                direction: t.direction,
+                currentDirection: t.currentDirection,
+              })),
+            }
+          : "NO_PC",
+      });
+
+      logger.error(
+        "PeerConnectionManager",
+        "❌ MID non disponibile dopo 5 secondi",
+        {
+          remoteParticipantId,
+          streamUUID,
+          signalingState: pc?.signalingState,
+          localDescription: !!pc?.localDescription,
+          remoteDescription: !!pc?.remoteDescription,
+          allTransceivers: pc?.getTransceivers().length || 0,
+        }
+      );
+      return;
+    }
+
+    if (transceiver.mid) {
+      // MID disponibile! Registra il mapping
+      console.log("✅ MID DISPONIBILE, REGISTRO MAPPING:", {
+        mid: transceiver.mid,
+        streamUUID,
+        remoteParticipantId,
+        attemptCount,
+      });
+
+      if (this.streamMappingManager) {
+        this.streamMappingManager.addLocalStreamMapping(
+          remoteParticipantId,
+          streamUUID,
+          transceiver.mid
+        );
+      }
+    } else {
+      // 🔥 DEBUG OGNI 20 TENTATIVI (1 secondo)
+      if (attemptCount % 20 === 0) {
+        const pc = this.globalState.getPeerConnection(remoteParticipantId);
+        console.log("⏳ ATTENDO MID, DEBUG STATE:", {
+          attemptCount,
+          remoteParticipantId,
+          streamUUID,
+          transceiver: {
+            mid: transceiver.mid,
+            direction: transceiver.direction,
+          },
+          pc: pc
+            ? {
+                signalingState: pc.signalingState,
+                iceConnectionState: pc.iceConnectionState,
+                localDesc: !!pc.localDescription,
+                remoteDesc: !!pc.remoteDescription,
+              }
+            : "NO_PC",
+        });
+      }
+
+      // MID non ancora disponibile, riprova
+      setTimeout(() => {
+        this._waitForMidAndRegisterMapping(
+          remoteParticipantId,
+          streamUUID,
+          transceiver,
+          attemptCount + 1
+        );
+      }, 50);
+    }
   }
 
   /**
