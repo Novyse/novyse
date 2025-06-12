@@ -362,42 +362,6 @@ const WebSocketMethods = {
     };
     // Send to server
     socket.emit(eventType, data);
-  }, // Screen sharing signaling methods
-  sendScreenShareStarted: async (chatId, from, streamId) => {
-    if (!socket || !socket.connected) {
-      console.log("Cannot send screen share status: Socket not connected");
-      return;
-    }
-
-    const data = {
-      to: chatId,
-      from: from,
-      screen_share_uuid: streamId, // CRITICAL FIX: Use screen_share_uuid to match receiving end
-      streamType: "screenshare",
-    };
-
-    console.log(
-      `[WebSocket] Sending screen_share_started - from: ${from}, streamId: ${streamId}, chatId: ${chatId}`
-    );
-    socket.emit("screen_share_started", data);
-  },
-  sendScreenShareStopped: async (chatId, from, streamId) => {
-    if (!socket || !socket.connected) {
-      console.log("Cannot send screen share status: Socket not connected");
-      return;
-    }
-
-    const data = {
-      to: chatId,
-      from: from,
-      screen_share_uuid: streamId, // CRITICAL FIX: Use screen_share_uuid to match receiving end
-      streamType: "screenshare",
-    };
-
-    console.log(
-      `[WebSocket] Sending screen_share_stopped - from: ${from}, streamId: ${streamId}, chatId: ${chatId}`
-    );
-    socket.emit("screen_share_stopped", data);
   },
 
   sendMIDtoUUIDMapping: async (toPartecipantUUID, from, streamUUID, mid) => {

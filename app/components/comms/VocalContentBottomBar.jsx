@@ -233,7 +233,43 @@ const VocalContentBottomBar = ({ chatId }) => {
           />
         )
       ) : (
-        <BlurView intensity={30} tint="light" style={styles.blurContainer}>
+        Platform.OS === "web" ? (
+          <BlurView intensity={30} tint="light" style={styles.blurContainer}>
+            <View style={styles.container}>
+              <View style={styles.microphoneButtonContainer}>
+                <VocalBottomBarButton
+                  onPress={toggleAudio}
+                  iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
+                  iconColor={theme.icon}
+                />
+                <MicrophoneArrowButton
+                  onPress={handleMicrophoneSelect}
+                  theme={theme}
+                />
+              </View>
+              <View style={styles.cameraButtonContainer}>
+                <VocalBottomBarButton
+                  onPress={toggleVideo}
+                  iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
+                  iconColor={theme.icon}
+                />
+                <CameraArrowButton onPress={handleCameraSelect} theme={theme} />
+              </View>
+              <VocalBottomBarButton
+                onPress={handleScreenShare}
+                iconName={ComputerScreenShareIcon}
+                iconColor={theme.icon}
+              />
+              <VocalBottomBarButton
+                onPress={async () => {
+                  self.left(chatId);
+                }}
+                iconName={Call02Icon}
+                iconColor="red"
+              />
+            </View>
+          </BlurView>
+        ) : (
           <View style={styles.container}>
             <View style={styles.microphoneButtonContainer}>
               <VocalBottomBarButton
@@ -267,7 +303,7 @@ const VocalContentBottomBar = ({ chatId }) => {
               iconColor="red"
             />
           </View>
-        </BlurView>
+        )
       )}
       {showMicrophoneSelector && (
         <MicrophoneSelector

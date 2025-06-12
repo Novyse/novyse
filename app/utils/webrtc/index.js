@@ -197,6 +197,15 @@ class WebRTCManager {
     return await this.streamManager.removeVideoTracks();
   }
 
+   /**
+   * Close local stream
+   */
+  closeAllLocalStream() {
+    this.streamManager.closeLocalStream();
+    this.screenShareManager.stopAllScreenShares();
+  }
+
+
   /**
    * Close local stream
    */
@@ -230,17 +239,21 @@ class WebRTCManager {
    * Close all connections
    */
   async closeAllConnections(closeLocalStream = true) {
-    // Close screen shares first
-    await this.screenShareManager.stopAllScreenShares();
 
-    // Close all peer connections
-    this.peerConnectionManager.closeAllPeerConnections();
+    // Close all local streams
 
     // Close local stream
     if (closeLocalStream) {
       this.streamManager.closeLocalStream();
     }
 
+    // Close all screen shares
+    await this.screenShareManager.stopAllScreenShares();
+
+    // Close all peer connections
+    this.peerConnectionManager.closeAllPeerConnections();
+
+    
     // Close VAD
     this.voiceActivityDetection.cleanup();
 
@@ -266,8 +279,8 @@ class WebRTCManager {
   /**
    * Start screen sharing
    */
-  async addScreenShareStream(screenShareUUID, existingStream = null) {
-    return await this.screenShareManager.addScreenShareStream(
+  async startScreenShare(screenShareUUID, existingStream = null) {
+    return await this.screenShareManager.startScreenShare(
       screenShareUUID,
       existingStream
     );

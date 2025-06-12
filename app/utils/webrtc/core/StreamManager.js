@@ -4,7 +4,7 @@ import { getConstraintsForPlatform } from "../config/mediaConstraints.js";
 import { WEBRTC_CONSTANTS } from "../config/constants.js";
 import { ERROR_CODES } from "../config/constants.js";
 import { createMediaStream } from "../utils/compatibility.js";
-import eventEmitter from "../../EventEmitter.js";
+import EventEmitter from "../utils/EventEmitter.js";
 
 // Import WebRTC based on platform
 let WebRTC;
@@ -61,12 +61,11 @@ export class StreamManager {
 
       this.globalState.setLocalStream(localStream);
 
-      eventEmitter.emit("stream_added_or_updated", {
-        participantUUID: this.globalState.getMyId(),
-        stream: localStream,
-        streamUUID: this.globalState.getMyId(),
-        timestamp: Date.now(),
-      });
+      EventEmitter.sendLocalUpdateNeeded(
+        this.globalState.getMyId(),
+        this.globalState.getMyId(),
+        localStream
+      );
 
       // Add stream to existing peer connections
       this._addLocalStreamToAllPeers();
@@ -126,56 +125,38 @@ export class StreamManager {
           "Video track added to all peer connections"
         );
 
-        // Notify UI
-        if (this.globalState.callbacks.onLocalStreamReady) {
-          this.globalState.callbacks.onLocalStreamReady(
-            this.globalState.localStream
-          );
-        }
-
-        // Emit stream_added_or_updated event for UI synchronization
-        if (this.globalState.eventEmitter) {
-          this.globalState.eventEmitter.emit("stream_added_or_updated", {
-            participantId: this.globalState.myId,
-            stream: this.globalState.getLocalStream(),
-            streamType: "webcam",
-            userData: this.globalState.userData[this.globalState.myId] || {
-              handle: "You",
-            },
-            timestamp: Date.now(),
-          });
-
-          this.logger.info(
-            "StreamManager",
-            "Emitted stream_added_or_updated event for video track addition"
-          );
-
-          return videoTrack;
-        }
-
-        // Trigger renegotiation after all track operations are complete
-        // Use a slightly longer delay for Android to ensure track operations are fully processed
-        const renegotiationDelay =
-          Platform.OS === "android"
-            ? 200
-            : WEBRTC_CONSTANTS.RENEGOTIATION_DELAY;
-        this.logger.info(
-          "StreamManager",
-          `Scheduling renegotiation in ${renegotiationDelay}ms for ${Platform.OS}`
+        EventEmitter.sendLocalUpdateNeeded(
+          this.globalState.getMyId(),
+          this.globalState.getMyId(),
+          localStream
         );
 
-        setTimeout(async () => {
-          this.logger.info(
-            "StreamManager",
-            "Starting renegotiation after video track addition"
-          );
-          await this._renegotiateWithAllPeers();
-        }, renegotiationDelay);
+        this.logger.info(
+          "StreamManager",
+          "Emitted stream_added_or_updated event for video track addition"
+        );
 
         return videoTrack;
       }
 
-      return null;
+      // Trigger renegotiation after all track operations are complete
+      // Use a slightly longer delay for Android to ensure track operations are fully processed
+      const renegotiationDelay =
+        Platform.OS === "android" ? 200 : WEBRTC_CONSTANTS.RENEGOTIATION_DELAY;
+      this.logger.info(
+        "StreamManager",
+        `Scheduling renegotiation in ${renegotiationDelay}ms for ${Platform.OS}`
+      );
+
+      setTimeout(async () => {
+        this.logger.info(
+          "StreamManager",
+          "Starting renegotiation after video track addition"
+        );
+        await this._renegotiateWithAllPeers();
+      }, renegotiationDelay);
+
+      return videoTrack;
     } catch (error) {
       // Handle permission denied gracefully for video
       if (
@@ -207,7 +188,7 @@ export class StreamManager {
       "Removing video tracks from local stream"
     );
 
-    const localStream = this.globalState.getLocalStream()
+    const localStream = this.globalState.getLocalStream();
 
     if (!localStream) {
       this.logger.warning(
@@ -217,13 +198,14 @@ export class StreamManager {
       return;
     }
 
-
     // Stop and remove tracks from local stream
     const videoTracks = localStream.getVideoTracks();
-    videoTracks.forEach(track => {
+    videoTracks.forEach((track) => {
       track.stop();
       localStream.removeTrack(track);
     });
+
+    this.globalState.setLocalStream(localStream);
 
     this.logger.info(
       "StreamManager",
@@ -232,21 +214,11 @@ export class StreamManager {
     // Remove tracks from peer connections
     await this._removeVideoTracksFromAllPeers();
 
-
-    // Emit stream_added_or_updated event for UI synchronization
-    if (this.globalState.eventEmitter) {
-      this.globalState.eventEmitter.emit("stream_added_or_updated", {
-        participantUUID: this.globalState.getMyId(),
-        stream: this.globalState.localStream,
-        streamUUID: this.globalState.getMyId(),
-        timestamp: Date.now(),
-      });
-
-      this.logger.info(
-        "StreamManager",
-        "Emitted stream_added_or_updated event for video tracks removal"
-      );
-    }
+    EventEmitter.sendLocalUpdateNeeded(
+      this.globalState.getMyId(),
+      this.globalState.getMyId(),
+      null
+    );
 
     // Trigger renegotiation with appropriate delay for Android
     const renegotiationDelay =
@@ -266,18 +238,20 @@ export class StreamManager {
   closeLocalStream() {
     this.logger.info("StreamManager", "Closing local stream");
 
-    if (this.globalState.localStream) {
-      this.globalState.localStream.getTracks().forEach((track) => {
+    const localStream = this.globalState.getLocalStream();
+    if (localStream) {
+      localStream.getTracks().forEach((track) => {
         track.stop();
         this.logger.debug("StreamManager", `Stopped ${track.kind} track`);
       });
 
-      this.globalState.localStream = null;
+      this.globalState.setLocalStream(null);
 
-      // Notify UI
-      if (this.globalState.callbacks.onLocalStreamReady) {
-        this.globalState.callbacks.onLocalStreamReady(null);
-      }
+      EventEmitter.sendLocalUpdateNeeded(
+        this.globalState.getMyId(),
+        this.globalState.getMyId(),
+        null // Clear local stream
+      );
 
       this.logger.info("StreamManager", "Local stream closed successfully");
     }
@@ -929,73 +903,57 @@ export class StreamManager {
         label: track.label,
       },
     };
+    EventEmitter.sendLocalUpdateNeeded(participantId, streamUUID, stream);
 
-    // Store the stream info in globalState for consistency checking
-    if (!this.globalState.remoteStreamInfo) {
-      this.globalState.remoteStreamInfo = {};
-    }
-    this.globalState.remoteStreamInfo[streamId] = streamInfo; // Emit event for UI with the actual stream - CRITICAL FIX
-    if (this.globalState.eventEmitter) {
+    // Enhanced validation before emitting
+    if (stream && stream.getTracks().length > 0) {
+      // Additional checks for track readiness
+      const activeTracks = stream
+        .getTracks()
+        .filter((track) => track.readyState === "live");
+      const videoTracks = stream.getVideoTracks();
+      const audioTracks = stream.getAudioTracks();
+
       this.logger.info(
         "StreamManager",
-        `Emitting stream_added_or_updated event for screen share: ${participantId}/${streamId} (streamUUID: ${streamUUID})`
+        `Stream validation for ${streamUUID}: total tracks=${
+          stream.getTracks().length
+        }, active tracks=${activeTracks.length}, video=${
+          videoTracks.length
+        }, audio=${audioTracks.length}`
       );
 
-      // Enhanced validation before emitting
-      if (stream && stream.getTracks().length > 0) {
-        // Additional checks for track readiness
-        const activeTracks = stream
-          .getTracks()
-          .filter((track) => track.readyState === "live");
-        const videoTracks = stream.getVideoTracks();
-        const audioTracks = stream.getAudioTracks();
+      if (activeTracks.length > 0) {
+        // Emit the event with enhanced stream info
+        const enhancedStreamInfo = {
+          ...streamInfo,
+          hasVideo: videoTracks.length > 0,
+          hasAudio: audioTracks.length > 0,
+          isPlaceholder: false, // This is a real stream with tracks
+          timestamp: Date.now(),
+        };
+
+        this.globalState.eventEmitter.emit(
+          "stream_added_or_updated",
+          enhancedStreamInfo
+        );
 
         this.logger.info(
           "StreamManager",
-          `Stream validation for ${streamUUID}: total tracks=${
-            stream.getTracks().length
-          }, active tracks=${activeTracks.length}, video=${
-            videoTracks.length
-          }, audio=${audioTracks.length}`
+          `Successfully emitted stream event with ${activeTracks.length} active tracks for ${streamUUID}`
         );
-
-        if (activeTracks.length > 0) {
-          // Emit the event with enhanced stream info
-          const enhancedStreamInfo = {
-            ...streamInfo,
-            hasVideo: videoTracks.length > 0,
-            hasAudio: audioTracks.length > 0,
-            isPlaceholder: false, // This is a real stream with tracks
-            timestamp: Date.now(),
-          };
-
-          this.globalState.eventEmitter.emit(
-            "stream_added_or_updated",
-            enhancedStreamInfo
-          );
-
-          this.logger.info(
-            "StreamManager",
-            `Successfully emitted stream event with ${activeTracks.length} active tracks for ${streamUUID}`
-          );
-        } else {
-          this.logger.warning(
-            "StreamManager",
-            `Stream has tracks but none are active (readyState !== 'live') for ${streamUUID}`
-          );
-        }
       } else {
         this.logger.warning(
           "StreamManager",
-          `Stream has no tracks, not emitting event for ${streamUUID}. Stream: ${!!stream}, tracks: ${
-            stream ? stream.getTracks().length : 0
-          }`
+          `Stream has tracks but none are active (readyState !== 'live') for ${streamUUID}`
         );
       }
     } else {
-      this.logger.error(
+      this.logger.warning(
         "StreamManager",
-        "EventEmitter not available, cannot notify UI about remote screen share"
+        `Stream has no tracks, not emitting event for ${streamUUID}. Stream: ${!!stream}, tracks: ${
+          stream ? stream.getTracks().length : 0
+        }`
       );
     }
   }
@@ -1134,14 +1092,11 @@ export class StreamManager {
         }
       );
     }
-    // Emit event for UI
-    if (this.globalState.eventEmitter) {
-      this.globalState.eventEmitter.emit("stream_added_or_updated", {
-        participantUUID: participantId,
+      EventEmitter.sendLocalUpdateNeeded(
+        participantId,
+        participantId,
         stream,
-        streamUUID: participantId,
-      });
-    }
+    );
   }
 
   /**

@@ -3,6 +3,9 @@ import WebRTCLogger from "../logging/WebRTCLogger.js";
 import { GlobalState } from "../core/GlobalState.js";
 import Compatibility from "../utils/compatibility.js";
 import { Helpers } from "../utils/helpers.js";
+import APIMethods from "../../APImethods.js";
+import eventEmitter from "../utils/EventEmitter.js";
+import SoundPlayer from "../../sounds/SoundPlayer.js";
 
 const { mediaDevices } = Compatibility.getWebRTCLib();
 
@@ -44,16 +47,6 @@ export class ScreenShareManager {
     });
   }
 
-  /**
-   * Aggiunge un nuovo stream screen share - metodo wrapper per startScreenShare
-   * Chiamato dal WebRTCManager per compatibilità API
-   * @param {string} screenShareUUID - ID screen share dal server API
-   * @param {MediaStream} existingStream - Stream esistente opzionale
-   * @returns {Promise<Object|null>} { screenShareUUID, stream } o null se fallisce
-   */
-  async addScreenShareStream(screenShareUUID, existingStream = null) {
-    return await this.startScreenShare(screenShareUUID, existingStream);
-  }
   /**
    * Ferma una condivisione schermo specifica
    * @param {string} screenShareUUID - ID dello stream da fermare
@@ -100,14 +93,14 @@ export class ScreenShareManager {
       const myParticipantId = this.globalState.getMyId();
       this.globalState.removeScreenShare(myParticipantId, screenShareUUID);
 
-      // Invia notifica signaling se WebSocket disponibile
-      await this._notifyScreenShareStopped(screenShareUUID);
-
       // Pulisci pin se questo stream era pinnato
       this.pinManager.clearPinIfId(screenShareUUID);
 
-      // Notifica UI components about screen share removal
-      this._notifyLocalScreenShareStopped(screenShareUUID);
+      eventEmitter.sendLocalUpdateNeeded(
+        myParticipantId,
+        screenShareUUID,
+        null // Passa null per indicare che lo stream è stato fermato
+      );
 
       // Rinegozia con tutti i peer
       setTimeout(() => {
@@ -136,22 +129,6 @@ export class ScreenShareManager {
       return false;
     }
   }
-  /**
-   * Ottiene tutti gli stream screen share attivi
-   * @returns {Object} Oggetto contenente tutti gli stream screen share
-   */
-  getActiveScreenShares() {
-    return this.getScreenShareStreams();
-  }
-
-  /**
-   * Verifica se ci sono condivisioni schermo attive
-   * @returns {boolean}
-   */
-  hasActiveScreenShare() {
-    const screenStreams = this.getActiveScreenShares();
-    return Object.keys(screenStreams).length > 0;
-  }
 
   /**
    * Ferma tutte le condivisioni schermo
@@ -163,11 +140,21 @@ export class ScreenShareManager {
       action: "stopAllScreenShares",
     });
 
-    const screenStreams = {}; //this.getActiveScreenShares();
-    const screenShareUUIDs = Object.keys(screenStreams);
+    const screenStreams = this.globalState.getAllLocalActiveStreams();
 
+    if (!screenStreams || Object.keys(screenStreams).length === 0) {
+      this.logger.info("Nessuna condivisione schermo attiva da fermare", {
+        component: "ScreenShareManager",
+        action: "stopAllScreenShares",
+      });
+      return;
+    }
+
+    const screenShareUUIDs = Object.keys(screenStreams);
     for (const screenShareUUID of screenShareUUIDs) {
-      await this.stopScreenShare(screenShareUUID);
+      if(screenShareUUID != this.globalState.getMyId() && screenShareUUID != "null") {
+        await this.stopScreenShare(screenShareUUID);
+      }
     }
 
     this.logger.info(
@@ -233,8 +220,11 @@ export class ScreenShareManager {
       // Rimuovi stream
       this.globalState.removeRemoteScreenStream(from, screenShareUUID);
 
-      // Notifica update
-      this._notifyStreamUpdate();
+      eventEmitter.sendLocalUpdateNeeded(
+        from,
+        screenShareUUID,
+        null // Passa null per indicare che lo stream è stato fermato
+      );
     }
   }
 
@@ -444,21 +434,13 @@ export class ScreenShareManager {
         });
 
         // Chiama API per fermare screen share
-        try {
-          const apiMethods = this.globalState.getAPIMethods();
-          if (apiMethods) {
-            await apiMethods.stopScreenShare(
-              this.globalState.getChatId(),
-              screenShareUUID
-            );
-          }
-        } catch (error) {
-          this.logger.error("Errore chiamando API stopScreenShare", {
-            component: "ScreenShareManager",
-            screenShareUUID,
-            error: error.message,
-          });
-        }
+
+        await APIMethods.stopScreenShare(
+          this.globalState.getChatId(),
+          screenShareUUID
+        );
+
+        SoundPlayer.getInstance().playSound("comms_stream_stopped");
 
         // Rimuovi stream
         await this.stopScreenShare(screenShareUUID);
@@ -621,76 +603,6 @@ export class ScreenShareManager {
   }
 
   /**
-   * Invia notifica signaling per screen share avviato
-   * @param {string} screenShareUUID - ID dello stream
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _notifyScreenShareStarted(screenShareUUID) {
-    try {
-      // Usa direttamente webSocketMethods importandolo
-      const webSocketMethods = await import("../../webSocketMethods.js");
-      await webSocketMethods.default.sendScreenShareStarted(
-        this.globalState.getChatId(),
-        this.globalState.getMyId(),
-        screenShareUUID
-      );
-
-      this.logger.debug("Notifica screen share started inviata", {
-        component: "ScreenShareManager",
-        screenShareUUID,
-      });
-    } catch (error) {
-      this.logger.error("Errore inviando notifica screen share started", {
-        component: "ScreenShareManager",
-        screenShareUUID,
-        error: error.message,
-      });
-    }
-  }
-
-  /**
-   * Invia notifica signaling per screen share fermato
-   * @param {string} screenShareUUID - ID dello stream
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _notifyScreenShareStopped(screenShareUUID) {
-    try {
-      // Usa direttamente webSocketMethods importandolo
-      const webSocketMethods = await import("../../webSocketMethods.js");
-      await webSocketMethods.default.sendScreenShareStopped(
-        this.globalState.getChatId(),
-        this.globalState.getMyId(),
-        screenShareUUID
-      );
-
-      this.logger.debug("Notifica screen share stopped inviata", {
-        component: "ScreenShareManager",
-        screenShareUUID,
-      });
-    } catch (error) {
-      this.logger.error("Errore inviando notifica screen share stopped", {
-        component: "ScreenShareManager",
-        screenShareUUID,
-        error: error.message,
-      });
-    }
-  }
-
-  /**
-   * Notifica update degli stream all'UI
-   * @returns {void}
-   * @private
-   */
-  _notifyStreamUpdate() {
-    const callback = this.globalState.getCallback("onStreamUpdate");
-    if (callback) {
-      callback();
-    }
-  }
-
-  /**
    * Rinegozia con tutti i peer
    * @returns {Promise<void>}
    * @private
@@ -714,123 +626,6 @@ export class ScreenShareManager {
     if (pinManager) {
       pinManager.clearPinIfUser(screenShareUUID);
     }
-  }
-
-  /**
-   * Get all screen share streams
-   * @returns {Object} Object containing all screen share streams
-   */
-  getScreenShareStreams() {
-    return this.globalState.getAllScreenStreams();
-  }
-
-  /**
-   * Notify local UI about screen share started for creating rectangles in VocalContent
-   * @param {string} screenShareUUID - Stream ID
-   * @param {MediaStream} stream - The screen stream
-   * @returns {void}
-   * @private
-   */
-  _notifyLocalScreenShareStarted(screenShareUUID, stream) {
-    try {
-      // Import EventEmitter to notify VocalContent
-      const eventEmitter = require("../../EventEmitter.js").default;
-
-      const myParticipantId = this.globalState.getMyId();
-
-      // Emit stream_added_or_updated event for local screen share
-      eventEmitter.emit("stream_added_or_updated", {
-        participantUUID: myParticipantId,
-        stream,
-        streamUUID: screenShareUUID,
-        timestamp: Date.now(),
-      });
-
-      this.logger.debug("Local screen share notification sent to UI", {
-        component: "ScreenShareManager",
-        screenShareUUID,
-        participantId: myParticipantId,
-      });
-    } catch (error) {
-      this.logger.error("Error notifying local UI about screen share", {
-        component: "ScreenShareManager",
-        screenShareUUID,
-        error: error.message,
-      });
-    }
-  }
-
-  /**
-   * Notify local UI about screen share stopped for removing rectangles in VocalContent
-   * @param {string} screenShareUUID - Stream ID
-   * @returns {void}
-   * @private
-   */
-  _notifyLocalScreenShareStopped(screenShareUUID) {
-    try {
-      // Import EventEmitter to notify VocalContent
-      const eventEmitter = require("../../EventEmitter.js").default;
-
-      const myParticipantId = this.globalState.getMyId();
-
-      // Emit screen_share_stopped event for local screen share
-      eventEmitter.emit("screen_share_stopped", {
-        from: myParticipantId,
-        screenShareUUID: screenShareUUID,
-        chatId: this.globalState.getChatId(),
-      });
-
-      this.logger.debug("Local screen share stopped notification sent to UI", {
-        component: "ScreenShareManager",
-        screenShareUUID,
-        participantId: myParticipantId,
-      });
-    } catch (error) {
-      this.logger.error("Error notifying local UI about screen share stop", {
-        component: "ScreenShareManager",
-        screenShareUUID,
-        error: error.message,
-      });
-    }
-  }
-
-  /**
-   * Resolve UUID conflicts for concurrent screen shares
-   * @param {string} baseScreenShareUUID - Base UUID to check for conflicts
-   * @returns {string} - Unique UUID that doesn't conflict
-   * @private
-   */
-  _resolveUUIDConflicts(baseScreenShareUUID) {
-    const existingScreenStreams = this.globalState.getAllScreenStreams();
-    let uniqueUUID = baseScreenShareUUID;
-    let counter = 1;
-
-    // Keep checking until we find a unique UUID
-    while (existingScreenStreams[uniqueUUID]) {
-      uniqueUUID = `${baseScreenShareUUID}_${counter}`;
-      counter++;
-
-      // Safety check to prevent infinite loops
-      if (counter > 100) {
-        this.logger.warning("UUID conflict resolution reached max attempts", {
-          component: "ScreenShareManager",
-          baseUUID: baseScreenShareUUID,
-          finalUUID: uniqueUUID,
-        });
-        break;
-      }
-    }
-
-    if (uniqueUUID !== baseScreenShareUUID) {
-      this.logger.info("UUID conflict resolved", {
-        component: "ScreenShareManager",
-        originalUUID: baseScreenShareUUID,
-        resolvedUUID: uniqueUUID,
-        conflictCounter: counter - 1,
-      });
-    }
-
-    return uniqueUUID;
   }
 
   /**
@@ -893,16 +688,16 @@ export class ScreenShareManager {
       );
 
       // Configura gestori eventi per fine condivisione usando resolved UUID
-      this._setupStreamEndHandlers(existingStream, partecipantUUID);
+      this._setupStreamEndHandlers(existingStream, screenShareUUID);
 
       // Aggiungi stream a tutte le connessioni peer
       await this._addScreenStreamToAllPeers(existingStream, screenShareUUID);
 
-      // Invia notifica signaling se WebSocket disponibile
-      await this._notifyScreenShareStarted(screenShareUUID);
-
-      // Notify local UI about screen share addition for rectangle creation
-      this._notifyLocalScreenShareStarted(screenShareUUID, existingStream);
+      eventEmitter.sendLocalUpdateNeeded(
+        partecipantUUID,
+        screenShareUUID,
+        existingStream
+      );
 
       // Rinegozia con tutti i peer dopo un breve delay
       setTimeout(() => {
@@ -939,6 +734,8 @@ export class ScreenShareManager {
     }
   }
 }
+
+
 
 // Default export for Expo Router compatibility
 export default ScreenShareManager;

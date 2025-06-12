@@ -233,6 +233,22 @@ class GlobalState {
     this.addActiveStream(this.myId, this.myId, localStream);
   }
 
+  getAllLocalActiveStreams() {
+    return this.getAllUserActiveStreams(this.getMyId());
+  }
+
+  getAllScreenStreams() {
+    const myId = this.getMyId();
+    const myStreams = this.activeStreams[myId] || {};
+    
+    // Create a copy without the stream that has UUID equal to myId
+    const filteredStreams = Object.fromEntries(
+      Object.entries(myStreams).filter(([streamUUID]) => streamUUID !== myId)
+    );
+    
+    return filteredStreams;
+  }
+
   getAllActiveStreams() {
     return { ...this.activeStreams };
   }
@@ -413,12 +429,6 @@ class GlobalState {
     );
   }
 
-  /**
-   * Get all screen share streams
-   */
-  getAllScreenStreams() {
-    return { ...this.screenStreams };
-  }
 
   /**
    * Set a specific screen stream

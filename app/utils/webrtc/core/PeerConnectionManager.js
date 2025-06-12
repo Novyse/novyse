@@ -11,6 +11,7 @@ import {
   isConnectionHealthy,
   isConnectionFailed,
 } from "../utils/helpers.js";
+import EventEmitter from "../utils/EventEmitter.js";
 
 /**
  * Gestisce la creazione, configurazione e chiusura delle peer connections
@@ -102,7 +103,7 @@ class PeerConnectionManager {
       };
     }
 
-pc.onnegotiationneeded = async (event) => {
+    pc.onnegotiationneeded = async (event) => {
       console.log("🔄 NEGOTIATION NEEDED!", {
         participantId,
         signalingState: pc.signalingState,
@@ -110,10 +111,13 @@ pc.onnegotiationneeded = async (event) => {
         connectionState: pc.connectionState,
         transceivers: pc.getTransceivers().length,
         senders: pc.getSenders().length,
-        sendersWithTracks: pc.getSenders().filter(s => s.track).length,
-        sendersTrackTypes: pc.getSenders().filter(s => s.track).map(s => s.track.kind),
+        sendersWithTracks: pc.getSenders().filter((s) => s.track).length,
+        sendersTrackTypes: pc
+          .getSenders()
+          .filter((s) => s.track)
+          .map((s) => s.track.kind),
         // 🔥 AGGIUNGI CONTROLLO STATO RINEGOZIAZIONE
-        isRenegotiating: pc._isRenegotiating || false
+        isRenegotiating: pc._isRenegotiating || false,
       });
 
       logger.info(
@@ -123,7 +127,7 @@ pc.onnegotiationneeded = async (event) => {
           signalingState: pc.signalingState,
           transceivers: pc.getTransceivers().length,
           senders: pc.getSenders().length,
-          sendersWithTracks: pc.getSenders().filter(s => s.track).length
+          sendersWithTracks: pc.getSenders().filter((s) => s.track).length,
         }
       );
 
@@ -131,7 +135,7 @@ pc.onnegotiationneeded = async (event) => {
       if (pc._isRenegotiating) {
         console.log("⏭️ SKIPPING RENEGOTIATION - already in progress:", {
           participantId,
-          signalingState: pc.signalingState
+          signalingState: pc.signalingState,
         });
         return;
       }
@@ -139,13 +143,14 @@ pc.onnegotiationneeded = async (event) => {
       // Se siamo in stato stabile e non stiamo già negoziando
       if (pc.signalingState === "stable") {
         try {
-          console.log("🚀 CREATING RENEGOTIATION OFFER DIRECTLY:", { participantId });
-          
+          console.log("🚀 CREATING RENEGOTIATION OFFER DIRECTLY:", {
+            participantId,
+          });
+
           // 🔥 MARCA CHE STIAMO RINEGOZIANDO
           pc._isRenegotiating = true;
-          
+
           await this._performDirectRenegotiation(pc, participantId);
-          
         } catch (error) {
           logger.error(
             "PeerConnectionManager",
@@ -160,7 +165,7 @@ pc.onnegotiationneeded = async (event) => {
       } else {
         console.log("⏳ SKIPPING RENEGOTIATION - not in stable state:", {
           participantId,
-          signalingState: pc.signalingState
+          signalingState: pc.signalingState,
         });
       }
     };
@@ -311,7 +316,7 @@ pc.onnegotiationneeded = async (event) => {
    * Gestisce tracce remote ricevute - VERSIONE CON MAPPING MANAGER
    */
   _handleRemoteTrack(event, participantId) {
-      console.log("🎯 _handleRemoteTrack CHIAMATO!", {
+    console.log("🎯 _handleRemoteTrack CHIAMATO!", {
       participantId,
       trackKind: event.track.kind,
       trackId: event.track.id,
@@ -320,17 +325,18 @@ pc.onnegotiationneeded = async (event) => {
       transceiverDirection: event.transceiver?.direction,
       // 🔥 AGGIUNGI QUESTI DEBUG
       allStreams: event.streams?.length || 0,
-      streamIds: event.streams?.map(s => s.id) || [],
+      streamIds: event.streams?.map((s) => s.id) || [],
       trackReadyState: event.track.readyState,
       trackEnabled: event.track.enabled,
-      trackMuted: event.track.muted
+      trackMuted: event.track.muted,
     });
 
     // 🔥 DEBUG AGGIUNTIVO: Log di tutti i mapping disponibili
     console.log("🗺️ CURRENT MAPPING STATE:", {
       participantId,
       allMappings: this.streamMappingManager?.getAllMappings(),
-      availableMidsForThisParticipant: this.streamMappingManager?.getAllMappings()?.[participantId] || {}
+      availableMidsForThisParticipant:
+        this.streamMappingManager?.getAllMappings()?.[participantId] || {},
     });
 
     if (!participantId) {
@@ -568,17 +574,53 @@ pc.onnegotiationneeded = async (event) => {
       // Se è audio, aggiungilo all'AudioContext
       if (event.track.kind === "audio") {
         if (this.globalState.audioContextRef) {
-          logger.info(
-            "PeerConnectionManager",
-            `🔊 Aggiunta audio all'AudioContext`,
-            {
-              participantId,
-              streamUUID,
-            }
+          const audioElement = document.getElementById(
+            `audio-${participantId}`
           );
-          this.globalState.audioContextRef.addAudio(
-            participantId,
-            existingStream
+          if (!audioElement) {
+            logger.info(
+              "PeerConnectionManager",
+              `🔊 Aggiunta NUOVO audio all'AudioContext`,
+              {
+                participantId,
+                streamUUID,
+              }
+            );
+            this.globalState.audioContextRef.addAudio(
+              participantId,
+              existingStream
+            );
+          } else {
+            logger.info(
+              "PeerConnectionManager",
+              `🔊 Aggiornamento audio esistente nell'AudioContext`,
+              {
+                participantId,
+                streamUUID,
+                elementExists: true,
+              }
+            );
+
+            // 🔥 AGGIORNA SOLO LO STREAM SENZA RICREARE L'ELEMENTO
+            audioElement.srcObject = existingStream;
+            audioElement.volume = 1.0; // 🔥 ASSICURATI CHE IL VOLUME SIA MASSIMO
+            audioElement.muted = false; // 🔥 ASSICURATI CHE NON SIA MUTATO
+
+            // 🔥 FORZA LA RIPRODUZIONE
+            audioElement.play().catch((error) => {
+              logger.warning(
+                "PeerConnectionManager",
+                `⚠️ Autoplay audio fallito per ${participantId}: ${error.message}`
+              );
+            });
+          }
+        } else {
+          logger.error(
+            "PeerConnectionManager",
+            `❌ AudioContext NON DISPONIBILE per ${participantId}`,
+            {
+              audioContextRef: !!this.globalState.audioContextRef,
+            }
           );
         }
       }
@@ -592,8 +634,11 @@ pc.onnegotiationneeded = async (event) => {
       streamUUID
     );
 
-    // Emetti evento per UI
-    this._emitStreamEvent(participantId, existingStream, streamUUID);
+    EventEmitter.sendLocalUpdateNeeded(
+      participantId,
+      streamUUID,
+      existingStream
+    );
 
     // 🔥 FINAL DEBUG: Verifica stato finale
     const finalVerifyStream = this.globalState.getActiveStream(
@@ -625,7 +670,7 @@ pc.onnegotiationneeded = async (event) => {
    * Gestisce tracce webcam/audio (stesso stream)
    */
   _handleWebcamTrack(event, participantId, streamUUID = null) {
-    const finalStreamUUID = streamUUID || participantId;
+    const finalStreamUUID = participantId;
 
     logger.info(
       "PeerConnectionManager",
@@ -702,8 +747,12 @@ pc.onnegotiationneeded = async (event) => {
       finalStreamUUID
     );
 
-    // Emetti evento per UI
-    this._emitStreamEvent(participantId, mainStream, finalStreamUUID);
+    // Notifica che lo stream è stato aggiornato
+    EventEmitter.sendLocalUpdateNeeded(
+      participantId,
+      finalStreamUUID,
+      mainStream
+    );
   }
 
   /**
@@ -760,28 +809,9 @@ pc.onnegotiationneeded = async (event) => {
       streamUUID
     );
 
-    // Emetti evento per UI
-    this._emitStreamEvent(participantId, screenStream, streamUUID);
+    EventEmitter.sendLocalUpdateNeeded(participantId, streamUUID, screenStream);
   }
 
-  /**
-   * Emette eventi per aggiornamenti stream
-   */
-  _emitStreamEvent(participantId, stream, streamId = null) {
-    // Importa eventEmitter qui per evitare circular imports
-    import("../../EventEmitter.js").then(({ default: eventEmitter }) => {
-      eventEmitter.emit("stream_added_or_updated", {
-        participantUUID: participantId,
-        stream: stream,
-        streamUUID: streamId,
-      });
-    });
-
-    // Notifica UI update
-    if (this.globalState.onStreamUpdate) {
-      this.globalState.onStreamUpdate();
-    }
-  }
   /**
    * Configura event handlers per le tracce
    */
@@ -843,9 +873,11 @@ pc.onnegotiationneeded = async (event) => {
         }
       }
 
-      if (this.globalState.onStreamUpdate) {
-        this.globalState.onStreamUpdate();
-      }
+      EventEmitter.sendLocalUpdateNeeded(
+        participantId,
+        streamId,
+        this.globalState.getActiveStream(participantId, streamId)
+      );
     };
 
     track.onmute = () => {
@@ -861,9 +893,6 @@ pc.onnegotiationneeded = async (event) => {
         "Traccia remota smutata:",
         track.id
       );
-      if (this.globalState.onStreamUpdate) {
-        this.globalState.onStreamUpdate();
-      }
     };
   }
 

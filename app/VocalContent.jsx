@@ -84,7 +84,11 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
       const tempActiveStreams = get.activeStreams();
       setActiveStreams(tempActiveStreams);
-      console.debug("[VocalContent] All profiles for debugging:", commsData,tempActiveStreams );
+      console.debug(
+        "[VocalContent] All profiles for debugging:",
+        commsData,
+        tempActiveStreams
+      );
 
       setCommsData(commsData);
     };
@@ -122,9 +126,9 @@ const VocalContent = ({ selectedChat, chatId }) => {
       return;
     }
 
-    let { participantUUID, stream, streamUUID } = data;
+    let { participantUUID, stream = null, streamUUID } = data;
 
-    if (!stream || !participantUUID || !streamUUID) {
+    if (!participantUUID || !streamUUID) {
       console.warn(
         "[VocalContent] Invalid stream update data, missing participantUUID, stream or streamUUID",
         data
@@ -143,6 +147,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       // Add or update the stream
       updatedStreams[participantUUID][streamUUID] = stream;
 
+      console.log("petaloso3", updatedStreams);
       return updatedStreams;
     });
   };

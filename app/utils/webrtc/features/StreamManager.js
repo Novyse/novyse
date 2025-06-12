@@ -591,17 +591,11 @@ export class StreamManager {
     // Aggiorna metadata
     this.globalState.setStreamMetadata(participantId, streamId, "screenshare");
 
-    // Emetti evento per UI
-    const eventEmitter = this.globalState.getEventEmitter();
-    if (eventEmitter) {
-      eventEmitter.emit("stream_added_or_updated", {
-        participantId,
-        stream: screenShareStreams[streamId],
-        streamType: "screenshare",
-        streamId,
-        userData: this.globalState.getUserData(participantId),
-      });
-    }
+    EventEmitter.sendLocalUpdateNeeded(
+      participantId,
+      streamId,
+      screenShareStreams[streamId]
+    );
   }
 
   /**

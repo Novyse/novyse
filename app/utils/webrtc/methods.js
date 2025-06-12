@@ -68,9 +68,8 @@ const self = {
 
     await handle.memberLeft(data);
 
-    // Close all peer connections and local stream
+    // Close all peer connections and all local stream (both webcam and screen shares)
     await WebRTC.closeAllConnections();
-    WebRTC.closeLocalStream();
   },
   // quando premo pulsante microfono
   async toggleAudio() {
@@ -565,9 +564,10 @@ const self = {
       const data = await APIMethods.startScreenShare(WebRTC.getChatId());
 
       if (data.screen_share_started) {
+        SoundPlayer.getInstance().playSound("comms_stream_started");
         const screenShareUUID = data.screen_share_uuid;
 
-        const result = await WebRTC.addScreenShareStream(
+        const result = await WebRTC.startScreenShare(
           screenShareUUID,
           screenStream
         );
@@ -578,6 +578,7 @@ const self = {
         console.log(
           `[ScreenShare] Screen share started with UUID: ${screenShareUUID}`
         );
+
         return result;
       } else {
         console.warn("[ScreenShare] Failed to start screen share");
@@ -617,7 +618,6 @@ const self = {
         console.warn("[ScreenShare] Failed to stop screen share");
         throw new Error("Failed to stop screen share");
       }
-
       WebRTC.removeScreenShareStream(screenShareUUID);
       console.log("[ScreenShare] Screen share stopped successfully");
     } catch (error) {
