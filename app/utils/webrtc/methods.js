@@ -212,17 +212,10 @@ const self = {
         WebRTC.getLocalStream().removeTrack(currentVideoTrack);
         currentVideoTrack.stop();
       }
-      WebRTC.getLocalStream().addTrack(newVideoTrack); // Notify UI of the stream update
-      WebRTC.notifyStreamUpdate();
-      // Also emit event for local stream update so VocalContent updates local video preview
-      WebRTC.executeCallback("onLocalStreamReady", WebRTC.getLocalStream()); // Emit stream_added_or_updated event for local user
-      eventEmitter.emit("stream_added_or_updated", {
-        participantId: WebRTC.getMyId(),
-        stream: WebRTC.getLocalStream(),
-        streamType: "webcam",
-        userData: { handle: "You" }, // Local user identifier
-        streamUUID: WebRTC.getMyId(),
-      });
+      WebRTC.notifyLocalStreamUpdate(
+        get.myPartecipantId(),
+        WebRTC.getLocalStream()
+      );
 
       console.log(
         `Successfully switched to camera device: ${deviceId || "default"}`
@@ -360,28 +353,10 @@ const self = {
       WebRTC.getLocalStream().addTrack(newVideoTrack);
 
       // Notify UI of the stream update
-      WebRTC.notifyStreamUpdate(); // Force local stream update for mobile platforms with delay
-      setTimeout(() => {
-        WebRTC.executeCallback("onLocalStreamReady", WebRTC.getLocalStream());
-        // Emit a more specific event for mobile camera switching
-        eventEmitter.emit("mobile_camera_switched", {
-          participantId: WebRTC.getMyId(),
-          stream: WebRTC.getLocalStream(),
-          streamType: "webcam",
-          facingMode: facingMode,
-          timestamp: Date.now(), // Add timestamp to force re-render
-          userData: { handle: "You" },
-          streamUUID: WebRTC.getMyId(),
-        }); // Also emit the standard stream update event
-        eventEmitter.emit("stream_added_or_updated", {
-          participantId: WebRTC.getMyId(),
-          stream: WebRTC.getLocalStream(),
-          streamType: "webcam",
-          timestamp: Date.now(), // Add timestamp to force re-render
-          userData: { handle: "You" },
-          streamUUID: WebRTC.getMyId(),
-        });
-      }, 200); // Increased delay for Android compatibility
+      WebRTC.notifyLocalStreamUpdate(
+        get.myPartecipantId(),
+        WebRTC.getLocalStream()
+      ); // Force local stream update for mobile platforms with delay
 
       console.log(
         `Successfully switched to mobile camera with facingMode: ${facingMode}`

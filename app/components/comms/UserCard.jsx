@@ -52,7 +52,7 @@ const UserCard = memo(
 
     // Determina se ha video - memoizzato separatamente
     const hasVideo = useMemo(() => {
-      if(!stream || stream == null) {
+      if(!stream || stream == null || typeof stream.getVideoTracks !== 'function') {
         return false;
       }
       return stream.getVideoTracks().length > 0;

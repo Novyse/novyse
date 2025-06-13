@@ -855,7 +855,8 @@ class PeerConnectionManager {
       EventEmitter.sendLocalUpdateNeeded(
         participantId,
         streamId,
-        this.globalState.getActiveStream(participantId, streamId)
+        this.globalState.getActiveStream(participantId, streamId),
+        'remove',
       );
     };
 

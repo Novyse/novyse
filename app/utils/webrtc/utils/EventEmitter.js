@@ -26,7 +26,7 @@ const EventEmitter = {
     );
   },
 
-  sendLocalUpdateNeeded: (partecipantUUID, streamUUID, stream = null) => {
+  sendLocalUpdateNeeded: (partecipantUUID, streamUUID, stream = null, action = 'add_or_update') => {
     if (!partecipantUUID || !streamUUID) {
       console.error("sendLocalUpdateNeeded: Missing parameters", {
         partecipantUUID,
@@ -36,11 +36,11 @@ const EventEmitter = {
       return;
     }
 
-    eventEmitter.emit("stream_added_or_updated", {
+    eventEmitter.emit("ui_update", {
       participantUUID: partecipantUUID,
       stream,
       streamUUID: streamUUID,
-      timestamp: Date.now(),
+      action: action,
     });
   },
 };

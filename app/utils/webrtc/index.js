@@ -16,6 +16,7 @@ import { LOG_LEVELS } from "./logging/LogLevels.js";
 import EventReceiver from "./utils/EventReceiver.js";
 import { WebRTCUtils } from "./utils/WebRTCUtils.js";
 import { MediaUtils } from "./utils/MediaUtils.js";
+import EventEmitter from "./utils/EventEmitter.js";
 
 /**
  * Main WebRTC Manager - Single point of access for all WebRTC functionality
@@ -520,10 +521,12 @@ class WebRTCManager {
   /**
    * Notify UI components of stream updates
    */
-  notifyStreamUpdate() {
-    if (this.globalState.callbacks.onStreamUpdate) {
-      this.globalState.callbacks.onStreamUpdate();
-    }
+  notifyLocalStreamUpdate(stream,streamUUID = this.globalState.getMyId()) {
+    EventEmitter.sendLocalUpdateNeeded(
+      this.globalState.getMyId(),
+      streamUUID,
+      stream
+    );
   }
 
   /**

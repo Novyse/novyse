@@ -99,7 +99,8 @@ export class ScreenShareManager {
       eventEmitter.sendLocalUpdateNeeded(
         myParticipantId,
         screenShareUUID,
-        null // Passa null per indicare che lo stream è stato fermato
+        null, // Passa null per indicare che lo stream è stato fermato
+        'remove'
       );
 
       // Rinegozia con tutti i peer
@@ -226,7 +227,8 @@ export class ScreenShareManager {
       eventEmitter.sendLocalUpdateNeeded(
         from,
         screenShareUUID,
-        null // Passa null per indicare che lo stream è stato fermato
+        null, // Passa null per indicare che lo stream è stato fermato
+        'remove'
       );
     }
   }

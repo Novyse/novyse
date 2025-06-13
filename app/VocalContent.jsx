@@ -42,6 +42,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       ...
   }
   */
+
   useEffect(() => {
     // Set audio context reference in WebRTC manager when component mounts
     set.audioContext(audioContext);
@@ -51,7 +52,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
     // Registra i listeners
     eventEmitter.on("member_joined_comms", handleMemberJoined);
     eventEmitter.on("member_left_comms", handleMemberLeft);
-    eventEmitter.on("stream_added_or_updated", handleStreamUpdate);
+    eventEmitter.on("ui_update", handleStreamUpdate);
 
     eventEmitter.on("user_started_speaking", handleUserStartedSpeaking);
     eventEmitter.on("user_stopped_speaking", handleUserStoppedSpeaking);
@@ -67,9 +68,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
     // Screen sharing events
     eventEmitter.on("screen_share_started", handleScreenShareStarted);
     eventEmitter.on("screen_share_stopped", handleScreenShareStopped);
-
-    // Listen for mobile camera switch events specifically for Android compatibility
-    eventEmitter.on("mobile_camera_switched", handleStreamUpdate);
 
     const getCommsData = async () => {
       const commsData = await get.commsData(chatId);
@@ -90,7 +88,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       eventEmitter.off("member_joined_comms", handleMemberJoined);
       eventEmitter.off("member_left_comms", handleMemberLeft);
 
-      eventEmitter.off("stream_added_or_updated", handleStreamUpdate);
+      eventEmitter.off("ui_update", handleStreamUpdate);
 
       eventEmitter.off("user_started_speaking", handleUserStartedSpeaking);
       eventEmitter.off("user_stopped_speaking", handleUserStoppedSpeaking);
@@ -107,7 +105,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
       // Screen sharing events cleanup
       eventEmitter.off("screen_share_started", handleScreenShareStarted);
       eventEmitter.off("screen_share_stopped", handleScreenShareStopped);
-      eventEmitter.off("mobile_camera_switched", handleStreamUpdate);
     };
   }, [chatId]);
 
@@ -118,7 +115,12 @@ const VocalContent = ({ selectedChat, chatId }) => {
       return;
     }
 
-    let { participantUUID, stream = null, streamUUID } = data;
+    let {
+      participantUUID,
+      stream = null,
+      streamUUID,
+      action = "add_or_update",
+    } = data;
 
     if (!participantUUID || !streamUUID) {
       console.warn(
@@ -126,6 +128,54 @@ const VocalContent = ({ selectedChat, chatId }) => {
         data
       );
       return;
+    }
+
+    if (action === "add_or_update") {
+      // Check if this is a screen share (when participantUUID != streamUUID)
+      if (participantUUID !== streamUUID) {
+        // Add screen share data to commsData if it doesn't exist
+        setCommsData((prev) => {
+          const updated = { ...prev };
+
+          if (updated[participantUUID]) {
+            const activeScreenShares =
+              updated[participantUUID].activeScreenShares || [];
+
+            // Add streamUUID to activeScreenShares if it doesn't exist
+            if (!activeScreenShares.includes(streamUUID)) {
+              updated[participantUUID] = {
+                ...updated[participantUUID],
+                activeScreenShares: [...activeScreenShares, streamUUID],
+              };
+            }
+          }
+
+          return updated;
+        });
+      }
+    } else {
+      // Check if this is a screen share (when participantUUID != streamUUID)
+      if (participantUUID !== streamUUID) {
+        // Remove screen share data from commsData if it exists
+        setCommsData((prev) => {
+          const updated = { ...prev };
+
+          if (updated[participantUUID]) {
+            const activeScreenShares =
+              updated[participantUUID].activeScreenShares || [];
+
+            // Remove streamUUID from activeScreenShares if it exists
+            updated[participantUUID] = {
+              ...updated[participantUUID],
+              activeScreenShares: activeScreenShares.filter(
+                (id) => id !== streamUUID
+              ),
+            };
+          }
+
+          return updated;
+        });
+      }
     }
 
     setActiveStreams((prevStreams) => {
@@ -254,13 +304,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // Screen sharing handlers
   const handleScreenShareStarted = (data) => {
-    if (!check.isInComms() && data.chatId !== chatId) {
-      console.debug(
-        "[VocalContent] User not in comms or in the wrong comms view, ignoring screen share start"
-      );
-      return;
-    }
-
     console.debug("[VocalContent] Screen share started:", data);
     const { from, screenShareUUID } = data;
 
@@ -272,7 +315,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
     setCommsData((prev) => {
       const updated = { ...prev };
-      const participantUUID = data.id;
+      const participantUUID = from;
 
       if (updated[participantUUID]) {
         updated[participantUUID] = {
@@ -288,12 +331,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   const handleScreenShareStopped = (data) => {
-    if (!check.isInComms() && data.chatId !== chatId) {
-      console.debug(
-        "[VocalContent] User not in comms or in the wrong comms view, ignoring screen share stop"
-      );
-      return;
-    }
+
     console.debug("[VocalContent] Screen share stopped:", data);
 
     const { from, screenShareUUID } = data;
@@ -308,7 +346,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
     setCommsData((prev) => {
       const updated = { ...prev };
-      const participantUUID = data.id;
+      const participantUUID = data.from;
       if (updated[participantUUID]) {
         updated[participantUUID] = {
           ...updated[participantUUID],
@@ -326,14 +364,11 @@ const VocalContent = ({ selectedChat, chatId }) => {
     setActiveStreams((prev) => {
       const newStreams = { ...prev };
 
-      if (newStreams[screenShareUUID]) {
-        delete newStreams[screenShareUUID];
+      if(newStreams[from]) {
+        // Remove the screen share stream for the participant
+        delete newStreams[from][screenShareUUID];
         console.log(
-          `[VocalContent] Removed screen share stream: ${screenShareUUID}`
-        );
-      } else {
-        console.warn(
-          `[VocalContent] Attempted to remove non-existent screen share stream: ${screenShareUUID}`
+          `[VocalContent] Removed screen share stream for ${from}: ${screenShareUUID}`
         );
       }
       return newStreams;

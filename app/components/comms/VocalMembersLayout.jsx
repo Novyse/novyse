@@ -19,7 +19,7 @@ const MARGIN = 4;
 const HEIGHT_MULTIPLYER = 1;
 const WIDTH_MULTIPLYER = 1;
 
-const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
+const VocalMembersLayout = ({ commsData = {}, activeStreams = {}}) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
     height: 0,
@@ -180,13 +180,9 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
     else if (isSmallScreen) {
       if (totalElements <= 4) {
         // Per 3-4 elementi su schermi piccoli, preferisci layout verticali
-        if (totalElements === 3) {
-          numColumns = isPortrait ? 1 : 2;
-          numRows = isPortrait ? 3 : 2;
-        } else {
-          // 4 elementi
-          numColumns = 2;
-          numRows = 2;
+        if (totalElements === 3 || totalElements === 4) {
+          numColumns = 1;
+          numRows = totalElements;
         }
       } else {
         // Per più di 4 elementi, usa un layout più compatto
@@ -248,7 +244,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
     isSpeaking,
     handle,
     isScreenShare,
-    stream
+    stream,
   ) => {
     return (
       <UserCard
@@ -288,6 +284,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
             {Object.entries(commsData).map(([participantUUID, commData]) => {
               const components = [];
 
+
               // Estrae i dati richiesti del partecipante
               const handle = commData.userData?.handle;
               const isSpeaking = commData.userData?.isSpeaking;
@@ -295,7 +292,6 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
               if (!activeStreams) {
                 activeStreams = {};
               }
-
               const userActiveStream = activeStreams[participantUUID] || {};
               let mainStream = null;
 
@@ -303,7 +299,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
                 const streamKeys = Object.keys(userActiveStream);
                 const firstStreamKey = streamKeys[0];
 
-                if (firstStreamKey) {
+                if (firstStreamKey == participantUUID && firstStreamKey) {
                   mainStream = userActiveStream[firstStreamKey];
                 }
               }
@@ -318,7 +314,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
                       isSpeaking,
                       handle,
                       false,
-                      mainStream
+                      mainStream,
                     )}
                   </View>
                 );
@@ -375,6 +371,12 @@ const styles = StyleSheet.create({
     padding: 0,
     rowGap: 0,
     columnGap: 0,
+    overflow: "hidden", // Previene lo sconfinamento degli elementi
+    ...(Platform.OS === "android" && {
+      // Fix specifico per Android
+      position: "relative",
+      zIndex: 1,
+    }),
   },
   emptyChatText: {
     color: "white",
