@@ -15,7 +15,7 @@ import { StatusBar } from "expo-status-bar";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import JsonParser from "./utils/JsonParser";
 import { SplashScreen } from "expo-router";
-import bpup_logo from "../assets/images/bpup_logo.png";
+import logo_novyse_bg from "../assets/images/logo-novyse-bg.png";
 import ScreenLayout from "./components/ScreenLayout";
 
 // Impedisce la rimozione automatica dello splash screen
@@ -78,7 +78,7 @@ export default function Index() {
             { justifyContent: "center", alignItems: "center" },
           ]}
         >
-          <Image source={bpup_logo} style={{ width: 100, height: 100 }} />
+          <Image source={logo_novyse_bg} style={{ width: 100, height: 100 }} />
           {/* <Text style={{ color: theme.text }}>Caricamento...</Text> */}
         </View>
       </ScreenLayout>

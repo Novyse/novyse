@@ -285,6 +285,16 @@ class WebRTCManager {
       existingStream
     );
   }
+
+  /**
+   * Get media stream for screen sharing
+   * @param {string} platform - Platform type (e.g., 'web', 'mobile')
+   * @returns {Promise<MediaStream>} Media stream for screen sharing
+   * */
+
+  async acquireScreenStream(platform){
+    return await this.screenShareManager.acquireScreenStream(platform);
+  }
   /**
    * Stop screen sharing
    */

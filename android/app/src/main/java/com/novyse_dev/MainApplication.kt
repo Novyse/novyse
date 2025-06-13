@@ -1,4 +1,4 @@
-package com.novyse
+package com.novyse_dev
 
 import android.app.Application
 import android.content.res.Configuration
@@ -15,10 +15,6 @@ import com.facebook.soloader.SoLoader
 
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
-
-import com.oney.WebRTCModule.WebRTCModuleOptions;
-import android.media.AudioAttributes
-import org.webrtc.audio.JavaAudioDeviceModule;
 
 class MainApplication : Application(), ReactApplication {
 
@@ -46,16 +42,6 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
-
-    val options = WebRTCModuleOptions.getInstance()
-    val audioAttributes = AudioAttributes.Builder()
-          .setUsage(AudioAttributes.USAGE_MEDIA)
-          .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-          .build()
-        options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
-          .setAudioAttributes(audioAttributes)
-          .createAudioDeviceModule()
-
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.

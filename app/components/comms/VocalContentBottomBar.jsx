@@ -289,12 +289,7 @@ const VocalContentBottomBar = ({ chatId }) => {
                 iconColor={theme.icon}
               />
               <CameraArrowButton onPress={handleCameraSelect} theme={theme} />
-            </View>
-            <VocalBottomBarButton
-              onPress={handleScreenShare}
-              iconName={ComputerScreenShareIcon}
-              iconColor={theme.icon}
-            />
+            </View> 
             <VocalBottomBarButton
               onPress={async () => {
                 self.left(chatId);

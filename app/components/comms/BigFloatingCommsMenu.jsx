@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Pressable } from "react-native";
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -17,6 +17,7 @@ import {
   VideoOffIcon,
   Call02Icon,
 } from "@hugeicons/core-free-icons";
+import { useRouter } from "expo-router";
 
 import methods from "../../utils/webrtc/methods";
 const { self, get } = methods;
@@ -24,6 +25,7 @@ const { self, get } = methods;
 const BigFloatingCommsMenu = () => {
   const { colorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
+  const router = useRouter();
 
   // Animated values
   const opacity = useSharedValue(0);
@@ -85,31 +87,53 @@ const BigFloatingCommsMenu = () => {
     await animateOut(); // Prima anima l'uscita
     self.left(); // Poi esci dalla chiamata
   };
+
+  const navigateToVocalView = () => {
+    const commsId = get.commsId();
+    if (commsId) {
+      // Usa setParams per non ricaricare la pagina
+      router.setParams({ chatId: commsId });
+      
+      // Imposta direttamente la vista vocal
+      setTimeout(() => {
+        if (window.setContentView) {
+          window.setContentView("vocal");
+        }
+      }, 50);
+    }
+  };
+
   if (!isVisible) return null;
+
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
-      <SmartBackground
-        colors={theme?.floatingBarComponentsGradient}
-        style={styles.gradientBackground}
+      <Pressable
+        onPress={navigateToVocalView}
+        style={styles.pressableContainer}
       >
-        <Animated.View style={styles.menuItems}>
-          <VocalBottomBarButton
-            onPress={toggleAudio}
-            iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
-            iconColor={theme.icon}
-          />
-          <VocalBottomBarButton
-            onPress={toggleVideo}
-            iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
-            iconColor={theme.icon}
-          />
-          <VocalBottomBarButton
-            onPress={leaveComms}
-            iconName={Call02Icon}
-            iconColor={theme.error || "red"}
-          />
-        </Animated.View>
-      </SmartBackground>
+        <SmartBackground
+          colors={theme?.floatingBarComponentsGradient}
+          style={styles.gradientBackground}
+        >
+          <Animated.View style={styles.menuItems}>
+            <VocalBottomBarButton
+              onPress={toggleAudio}
+              iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
+              iconColor={theme.icon}
+            />
+            <VocalBottomBarButton
+              onPress={toggleVideo}
+              iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
+              iconColor={theme.icon}
+            />
+            <VocalBottomBarButton
+              onPress={leaveComms}
+              iconName={Call02Icon}
+              iconColor={theme.error || "red"}
+            />
+          </Animated.View>
+        </SmartBackground>
+      </Pressable>
     </Animated.View>
   );
 };
@@ -123,6 +147,10 @@ function createStyle(theme, colorScheme) {
       bottom: 15,
       left: 15,
       right: 15,
+      borderRadius: 13,
+    },
+    pressableContainer: {
+      width: "100%",
       borderRadius: 13,
     },
     gradientBackground: {

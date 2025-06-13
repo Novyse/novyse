@@ -134,7 +134,8 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
 
     const { width, height } = containerDimensions;
     const isPortrait = height > width;
-    const isSmallScreen = Platform.OS === "android" || width < 600;
+    // Migliorata la rilevazione di schermi piccoli
+    const isSmallScreen = width < 700 || Platform.OS === "android";
 
     let numColumns, numRows;
 
@@ -158,24 +159,47 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
       return { numColumns: 1, rectWidth, rectHeight, margin: MARGIN };
     }
 
-    // Logica per 2 utenti
+    // Logica per 2 utenti - sempre uno sopra l'altro per schermi piccoli
     if (totalElements === 2) {
-      if (isSmallScreen || isPortrait) {
-        // Schermo piccolo o portrait: uno sopra l'altro
+      if (isSmallScreen) {
+        // Schermi piccoli: sempre uno sopra l'altro
         numColumns = 1;
         numRows = 2;
       } else {
-        // Schermo grande in landscape: uno accanto all'altro
-        numColumns = 2;
-        numRows = 1;
+        // Schermi grandi: comportamento precedente
+        if (isPortrait) {
+          numColumns = 1;
+          numRows = 2;
+        } else {
+          numColumns = 2;
+          numRows = 1;
+        }
       }
     }
-    // Logica per l'orientamento verticale (portrait) con più di 2 elementi
+    // Logica migliorata per schermi piccoli con più elementi
+    else if (isSmallScreen) {
+      if (totalElements <= 4) {
+        // Per 3-4 elementi su schermi piccoli, preferisci layout verticali
+        if (totalElements === 3) {
+          numColumns = isPortrait ? 1 : 2;
+          numRows = isPortrait ? 3 : 2;
+        } else {
+          // 4 elementi
+          numColumns = 2;
+          numRows = 2;
+        }
+      } else {
+        // Per più di 4 elementi, usa un layout più compatto
+        numColumns = isPortrait ? 2 : 3;
+        numRows = Math.ceil(totalElements / numColumns);
+      }
+    }
+    // Logica per l'orientamento verticale (portrait) con più di 2 elementi su schermi grandi
     else if (isPortrait && totalElements <= 3) {
       numColumns = 1;
       numRows = totalElements;
     } else {
-      // Per altri casi, usa un layout bilanciato
+      // Per altri casi (schermi grandi), usa un layout bilanciato
       numColumns = Math.ceil(Math.sqrt(totalElements));
       numRows = Math.ceil(totalElements / numColumns);
       // In portrait, se ci sono poche righe, riduci il numero di colonne per sfruttare l'altezza
@@ -205,8 +229,12 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
       rectHeight = rectWidth * (1 / ASPECT_RATIO);
     }
 
-    rectWidth = Math.max(50, rectWidth * WIDTH_MULTIPLYER);
-    rectHeight = Math.max(50 / ASPECT_RATIO, rectHeight * HEIGHT_MULTIPLYER);
+    // Dimensioni minime più adatte per schermi piccoli
+    const minWidth = isSmallScreen ? 80 : 50;
+    const minHeight = isSmallScreen ? 80 / ASPECT_RATIO : 50 / ASPECT_RATIO;
+
+    rectWidth = Math.max(minWidth, rectWidth * WIDTH_MULTIPLYER);
+    rectHeight = Math.max(minHeight, rectHeight * HEIGHT_MULTIPLYER);
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
   }, [containerDimensions, commsData, pinnedUserId, activeStreams]);
 

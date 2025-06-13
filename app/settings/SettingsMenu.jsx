@@ -1,16 +1,19 @@
 import React, { useContext } from "react";
 import { Text, StyleSheet, ScrollView } from "react-native"; // Aggiungi ScrollView
+import Constants from 'expo-constants'; 
 import SmartBackground from "../components/SmartBackground";
 import { ThemeContext } from "@/context/ThemeContext";
 import SettingsMenuItem from "../components/SettingsMenuItem";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { PaintBoardIcon, Folder01Icon } from "@hugeicons/core-free-icons";
-import appJson from "../../app.json";
 
 const SettingsMenu = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+
+  // Accedi alla versione tramite Constants
+  const appVersion = Constants.expoConfig?.version || "Unknown";
   return (
     <SmartBackground
       colors={theme.settingPagesGradient}
@@ -41,7 +44,7 @@ const SettingsMenu = () => {
           textAlign: "center",
         }}
       >
-        Versione: {appJson.expo.version}
+        Versione: {appVersion}
       </Text>
     </SmartBackground>
   );

@@ -86,18 +86,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    compileOptions {
-	    sourceCompatibility JavaVersion.VERSION_1_8
-	    targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    namespace 'com.novyse'
+    namespace 'com.novyse_dev'
     defaultConfig {
-        applicationId 'com.novyse'
+        applicationId 'com.novyse_dev'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "0.0.6"
+        versionName "0.0.6.9"
     }
     signingConfigs {
         debug {

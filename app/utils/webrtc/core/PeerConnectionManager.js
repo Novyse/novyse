@@ -12,6 +12,7 @@ import {
   isConnectionFailed,
 } from "../utils/helpers.js";
 import EventEmitter from "../utils/EventEmitter.js";
+import { Platform } from "react-native";
 
 /**
  * Gestisce la creazione, configurazione e chiusura delle peer connections
@@ -316,28 +317,6 @@ class PeerConnectionManager {
    * Gestisce tracce remote ricevute - VERSIONE CON MAPPING MANAGER
    */
   _handleRemoteTrack(event, participantId) {
-    console.log("🎯 _handleRemoteTrack CHIAMATO!", {
-      participantId,
-      trackKind: event.track.kind,
-      trackId: event.track.id,
-      hasTransceiver: !!event.transceiver,
-      transceiverMid: event.transceiver?.mid,
-      transceiverDirection: event.transceiver?.direction,
-      // 🔥 AGGIUNGI QUESTI DEBUG
-      allStreams: event.streams?.length || 0,
-      streamIds: event.streams?.map((s) => s.id) || [],
-      trackReadyState: event.track.readyState,
-      trackEnabled: event.track.enabled,
-      trackMuted: event.track.muted,
-    });
-
-    // 🔥 DEBUG AGGIUNTIVO: Log di tutti i mapping disponibili
-    console.log("🗺️ CURRENT MAPPING STATE:", {
-      participantId,
-      allMappings: this.streamMappingManager?.getAllMappings(),
-      availableMidsForThisParticipant:
-        this.streamMappingManager?.getAllMappings()?.[participantId] || {},
-    });
 
     if (!participantId) {
       logger.error("PeerConnectionManager", "❌ ParticipantId mancante");
@@ -573,7 +552,7 @@ class PeerConnectionManager {
       // È stream principale (audio/video webcam)
       // Se è audio, aggiungilo all'AudioContext
       if (event.track.kind === "audio") {
-        if (this.globalState.audioContextRef) {
+        if (this.globalState.audioContextRef && Platform.OS === "web") {
           const audioElement = document.getElementById(
             `audio-${participantId}`
           );

@@ -84,6 +84,15 @@ const ChatList = () => {
     new Animated.Value(Dimensions.get("window").width)
   );
 
+    useEffect(() => {
+    // Esponi setContentView globalmente per BigFloatingCommsMenu
+    window.setContentView = setContentView;
+    
+    return () => {
+      delete window.setContentView;
+    };
+  }, [setContentView]);
+
   // First useEffect - runs only once for initialization
   useEffect(() => {
     const checkLogged = async () => {
@@ -653,7 +662,8 @@ const ChatList = () => {
               )}
             </Pressable>
 
-            <Pressable
+            {/* Menù 3 puntini, per ora rimosso e sostituito dalle icone */}
+            {/* <Pressable
               style={styles.moreButton}
               onPress={() => setIsMenuVisible(!isMenuVisible)}
             >
@@ -663,7 +673,12 @@ const ChatList = () => {
                 color={theme.icon}
                 strokeWidth={1.5}
               />
-            </Pressable>
+            </Pressable> */}
+            {!isSmallScreen && (
+              <View style={styles.moreButton}>
+                {/* Spazio vuoto per sostituire il menù a tre puntini */}
+              </View>
+            )}
           </>
         )}
 
@@ -841,12 +856,10 @@ function createStyle(theme, colorScheme) {
       overflow: "hidden", // Important: Add this to the container
     },
     chatList: {
-      
       flex: 1, // For small screens, it takes full width
       minWidth: 330, // Minimum width to prevent shrinking
     },
     largeScreenChatList: {
-      
       flex: 0, // Override flex: 1 for large screens
       width: 330, // Fixed width for large screens
       borderRightWidth: 1,

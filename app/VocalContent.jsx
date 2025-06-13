@@ -35,16 +35,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
   /* Structure of activeStreams:
     { 
       participantUUID: {
-        streamUUID1: {
-          stream: MediaStream, // The actual MediaStream object for screen share
-          hasAudio: true/false, // Whether the screen share has audio
-          hasVideo: true/false, // Whether the screen share has video
-        },
-        streamUUID2: {
-          stream: MediaStream, // The actual MediaStream object for screen share
-          hasAudio: true/false, // Whether the screen share has audio
-          hasVideo: true/false, // Whether the screen share has video
-        },
+        streamUUID1: stream: MediaStream, // The actual MediaStream object for screen share
+        streamUUID2: stream: MediaStream, // The actual MediaStream object for screen share
         ...
       },
       ...
@@ -147,7 +139,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
       // Add or update the stream
       updatedStreams[participantUUID][streamUUID] = stream;
 
-      console.log("petaloso3", updatedStreams);
       return updatedStreams;
     });
   };

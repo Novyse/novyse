@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'Novyse'
+rootProject.name = 'Novyse_dev'
 
 dependencyResolutionManagement {
   versionCatalogs {

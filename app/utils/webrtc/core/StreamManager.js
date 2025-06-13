@@ -61,11 +61,11 @@ export class StreamManager {
 
       this.globalState.setLocalStream(localStream);
 
-      EventEmitter.sendLocalUpdateNeeded(
-        this.globalState.getMyId(),
-        this.globalState.getMyId(),
-        localStream
-      );
+      // EventEmitter.sendLocalUpdateNeeded(
+      //   this.globalState.getMyId(),
+      //   this.globalState.getMyId(),
+      //   localStream
+      // );
 
       // Add stream to existing peer connections
       this._addLocalStreamToAllPeers();
