@@ -54,8 +54,7 @@ class PeerConnectionManager {
       const pc = new RTCPeerConnection(this.configuration);
       const userData = {
         handle: participant.handle,
-        from: participantId,
-        is_speaking: false,
+        isSpeaking: false,
       };
 
       // Salva nel global state
@@ -317,7 +316,6 @@ class PeerConnectionManager {
    * Gestisce tracce remote ricevute - VERSIONE CON MAPPING MANAGER
    */
   _handleRemoteTrack(event, participantId) {
-
     if (!participantId) {
       logger.error("PeerConnectionManager", "❌ ParticipantId mancante");
       return;
@@ -552,55 +550,57 @@ class PeerConnectionManager {
       // È stream principale (audio/video webcam)
       // Se è audio, aggiungilo all'AudioContext
       if (event.track.kind === "audio") {
-        if (this.globalState.audioContextRef && Platform.OS === "web") {
-          const audioElement = document.getElementById(
-            `audio-${participantId}`
-          );
-          if (!audioElement) {
-            logger.info(
-              "PeerConnectionManager",
-              `🔊 Aggiunta NUOVO audio all'AudioContext`,
-              {
-                participantId,
-                streamUUID,
-              }
+        if (Platform.OS === "web") {
+          if (this.globalState.audioContextRef) {
+            const audioElement = document.getElementById(
+              `audio-${participantId}`
             );
-            this.globalState.audioContextRef.addAudio(
-              participantId,
-              existingStream
-            );
-          } else {
-            logger.info(
-              "PeerConnectionManager",
-              `🔊 Aggiornamento audio esistente nell'AudioContext`,
-              {
-                participantId,
-                streamUUID,
-                elementExists: true,
-              }
-            );
-
-            // 🔥 AGGIORNA SOLO LO STREAM SENZA RICREARE L'ELEMENTO
-            audioElement.srcObject = existingStream;
-            audioElement.volume = 1.0; // 🔥 ASSICURATI CHE IL VOLUME SIA MASSIMO
-            audioElement.muted = false; // 🔥 ASSICURATI CHE NON SIA MUTATO
-
-            // 🔥 FORZA LA RIPRODUZIONE
-            audioElement.play().catch((error) => {
-              logger.warning(
+            if (!audioElement) {
+              logger.info(
                 "PeerConnectionManager",
-                `⚠️ Autoplay audio fallito per ${participantId}: ${error.message}`
+                `🔊 Aggiunta NUOVO audio all'AudioContext`,
+                {
+                  participantId,
+                  streamUUID,
+                }
               );
-            });
-          }
-        } else {
-          logger.error(
-            "PeerConnectionManager",
-            `❌ AudioContext NON DISPONIBILE per ${participantId}`,
-            {
-              audioContextRef: !!this.globalState.audioContextRef,
+              this.globalState.audioContextRef.addAudio(
+                participantId,
+                existingStream
+              );
+            } else {
+              logger.info(
+                "PeerConnectionManager",
+                `🔊 Aggiornamento audio esistente nell'AudioContext`,
+                {
+                  participantId,
+                  streamUUID,
+                  elementExists: true,
+                }
+              );
+
+              // 🔥 AGGIORNA SOLO LO STREAM SENZA RICREARE L'ELEMENTO
+              audioElement.srcObject = existingStream;
+              audioElement.volume = 1.0; // 🔥 ASSICURATI CHE IL VOLUME SIA MASSIMO
+              audioElement.muted = false; // 🔥 ASSICURATI CHE NON SIA MUTATO
+
+              // 🔥 FORZA LA RIPRODUZIONE
+              audioElement.play().catch((error) => {
+                logger.warning(
+                  "PeerConnectionManager",
+                  `⚠️ Autoplay audio fallito per ${participantId}: ${error.message}`
+                );
+              });
             }
-          );
+          } else {
+            logger.error(
+              "PeerConnectionManager",
+              `❌ AudioContext NON DISPONIBILE per ${participantId}`,
+              {
+                audioContextRef: !!this.globalState.audioContextRef,
+              }
+            );
+          }
         }
       }
     }
@@ -856,7 +856,7 @@ class PeerConnectionManager {
         participantId,
         streamId,
         this.globalState.getActiveStream(participantId, streamId),
-        'remove',
+        "remove"
       );
     };
 

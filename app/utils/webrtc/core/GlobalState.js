@@ -12,7 +12,7 @@ class GlobalState {
 
     // ===== PEER CONNECTIONS =====
     this.peerConnections = {}; // { participantId: RTCPeerConnection }
-    this.commsData = {}; // { participantId: { commsData: {handle, is_speaking}, activeScreenShares: [streamUUID,streamUUID2] } }
+    this.commsData = {}; // { participantId: { userData: {handle, isSpeaking}, activeScreenShares: [streamUUID,streamUUID2] } }
     this.activeStreams = {}; // { participantId: { partecipantUUID : { streamUUID: MediaStream, streamUUID2: MediaStream, ... } }
 
     this.negotiationInProgress = {}; // { participantId: boolean }
@@ -578,27 +578,43 @@ class GlobalState {
 
   // ===== METODI PER SPEAKING USERS =====
 
-  setUserSpeaking(userId, isSpeaking) {
+  setUserSpeaking(partecipantUUID, isSpeaking) {
     if (isSpeaking) {
-      this.speakingUsers.add(userId);
+      this.speakingUsers.add(partecipantUUID);
     } else {
-      this.speakingUsers.delete(userId);
+      this.speakingUsers.delete(partecipantUUID);
     }
 
-    // Update commsData if exists
-    if (this.commsData[userId]) {
-      this.commsData[userId].is_speaking = isSpeaking;
+    // Update commsData if exists - isSpeaking is now inside userData
+    if (this.commsData[partecipantUUID]) {
+      if (!this.commsData[partecipantUUID].userData) {
+        this.commsData[partecipantUUID].userData = {};
+      }
+      this.commsData[partecipantUUID].userData.isSpeaking = isSpeaking;
     }
 
-    logger.verbose("GlobalState", `User ${userId} speaking: ${isSpeaking}`);
+    logger.verbose("GlobalState", `User ${partecipantUUID} speaking: ${isSpeaking}`);
   }
 
-  isUserSpeaking(userId) {
-    return this.speakingUsers.has(userId);
+  isUserSpeaking(partecipantUUID) {
+    // Check both speakingUsers set and commsData for consistency
+    const isInSet = this.speakingUsers.has(partecipantUUID);
+    const isInCommsData = this.commsData[partecipantUUID]?.userData?.isSpeaking || false;
+    
+    // Return true if either source indicates the user is speaking
+    return isInSet || isInCommsData;
   }
 
   getSpeakingUsers() {
-    return Array.from(this.speakingUsers);
+    // Get users from both sources and merge them
+    const fromSet = Array.from(this.speakingUsers);
+    const fromCommsData = Object.keys(this.commsData).filter(
+      partecipantUUID => this.commsData[partecipantUUID]?.userData?.isSpeaking
+    );
+    
+    // Merge and deduplicate
+    const allSpeaking = [...new Set([...fromSet, ...fromCommsData])];
+    return allSpeaking;
   }
 
   // ===== METODI PER PIN MANAGEMENT =====
@@ -1127,45 +1143,6 @@ class GlobalState {
 
   // ===== METODI PER INIZIALIZZARE I DATI UTENTE =====
 
-  /**
-   * Initialize local user data in commsData
-   * @param {string} myId - Local user ID
-   * @param {string} handle - Local user handle
-   * @param {Object} additionalData - Additional user data
-   */
-  initializeLocalcommsData(myId, handle, additionalData = {}) {
-    if (!this.commsData[myId]) {
-      this.commsData[myId] = {
-        from: myId,
-        handle: handle,
-        is_speaking: false,
-        activeScreenShares: [],
-        ...additionalData,
-      };
-
-      logger.info(
-        "GlobalState",
-        `Local user data initialized for ${myId} (${handle})`
-      );
-    } else {
-      // Update existing data without overwriting activeScreenShares
-      this.commsData[myId] = {
-        ...this.commsData[myId],
-        handle: handle,
-        ...additionalData,
-      };
-
-      // Ensure activeScreenShares exists as array
-      if (!Array.isArray(this.commsData[myId].activeScreenShares)) {
-        this.commsData[myId].activeScreenShares = [];
-      }
-
-      logger.debug(
-        "GlobalState",
-        `Local user data updated for ${myId} (${handle})`
-      );
-    }
-  }
 
   // ===== MANAGER ACCESSOR METHODS =====
   // These methods will be implemented when the managers are properly integrated

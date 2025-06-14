@@ -221,6 +221,12 @@ class WebRTCManager {
     return this.globalState.getLocalStream();
   }
 
+  setLocalStream(stream) {
+    this.globalState.setLocalStream(stream);
+    this.logger.info("WebRTCManager", "Local stream set successfully");
+  }
+
+
   // ===== CONNECTION MANAGEMENT API =====
 
   /**
@@ -521,7 +527,7 @@ class WebRTCManager {
   /**
    * Notify UI components of stream updates
    */
-  notifyLocalStreamUpdate(stream,streamUUID = this.globalState.getMyId()) {
+  notifyLocalStreamUpdate(streamUUID = this.globalState.getMyId,stream) {
     EventEmitter.sendLocalUpdateNeeded(
       this.globalState.getMyId(),
       streamUUID,
@@ -588,6 +594,18 @@ class WebRTCManager {
    */
   setSpeakingThreshold(threshold) {
     this.voiceActivityDetection.setSpeakingThreshold(threshold);
+  }
+
+  async updateVAD(){
+    if (!this.voiceActivityDetection) {
+      this.logger.warn(
+        "WebRTCManager",
+        "VoiceActivityDetection is not initialized. Cannot update VAD."
+      );
+      return;
+    }
+    this.voiceActivityDetection.stopVAD();
+    return await this.voiceActivityDetection.startVAD();
   }
 
   // ===== PIN MANAGEMENT API =====

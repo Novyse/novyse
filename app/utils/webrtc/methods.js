@@ -15,6 +15,7 @@ if (Platform.OS === "web") {
 } else {
   const WebRTCLib = require("react-native-webrtc");
   mediaDevices = WebRTCLib.mediaDevices;
+  MediaStream = WebRTCLib.MediaStream;
 }
 
 const self = {
@@ -137,6 +138,8 @@ const self = {
       }
 
       WebRTC.getLocalStream().addTrack(newAudioTrack);
+
+      await WebRTC.updateVAD();
 
       console.log(
         `Successfully switched to microphone device: ${deviceId || "default"}`
@@ -345,12 +348,22 @@ const self = {
           );
         }
       } // Replace the track in the local stream
+
+      const localStream = WebRTC.getLocalStream();
+
       if (currentVideoTrack) {
-        WebRTC.getLocalStream().removeTrack(currentVideoTrack);
+        localStream.removeTrack(currentVideoTrack);
         currentVideoTrack.stop();
       }
 
-      WebRTC.getLocalStream().addTrack(newVideoTrack);
+      localStream.addTrack(newVideoTrack);
+
+      const updatedStream = new MediaStream([
+        ...localStream.getAudioTracks(),
+        newVideoTrack,
+      ]);
+
+      WebRTC.setLocalStream(updatedStream);
 
       // Notify UI of the stream update
       WebRTC.notifyLocalStreamUpdate(
@@ -607,6 +620,46 @@ const get = {
       WebRTC.getLocalStream() &&
       WebRTC.getLocalStream().getVideoTracks()[0]?.enabled
     );
+  },
+  microphoneDeviceId: () => {
+    try {
+      if (!WebRTC.getLocalStream()) {
+        return null;
+      }
+
+      const audioTrack = WebRTC.getLocalStream().getAudioTracks()[0];
+      if (!audioTrack) {
+        return null;
+      }
+
+      // Ottieni le settings del track che contengono il deviceId
+      const settings = audioTrack.getSettings();
+      return settings.deviceId || null;
+    } catch (error) {
+      console.error("Error getting current microphone device ID:", error);
+      return null;
+    }
+  },
+
+  // Ottieni il device ID della camera attualmente in uso
+  videoDeviceId: () => {
+    try {
+      if (!WebRTC.getLocalStream()) {
+        return null;
+      }
+
+      const videoTrack = WebRTC.getLocalStream().getVideoTracks()[0];
+      if (!videoTrack) {
+        return null;
+      }
+
+      // Ottieni le settings del track che contengono il deviceId
+      const settings = videoTrack.getSettings();
+      return settings.deviceId || null;
+    } catch (error) {
+      console.error("Error getting current camera device ID:", error);
+      return null;
+    }
   },
 };
 

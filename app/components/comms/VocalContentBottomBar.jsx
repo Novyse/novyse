@@ -35,13 +35,11 @@ const VocalContentBottomBar = ({ chatId }) => {
   const [isVideoEnabled, setIsVideoEnabled] = useState(get.videoStatus());
   const [isLoading, setIsLoading] = useState(false); // State for microphone and camera selectors
   const [showMicrophoneSelector, setShowMicrophoneSelector] = useState(false);
-  const [currentMicrophoneId, setCurrentMicrophoneId] = useState(null);
+  const [currentMicrophoneId, setCurrentMicrophoneId] = useState(get.microphoneDeviceId());
   const [showCameraSelector, setShowCameraSelector] = useState(false);
-  const [currentCameraId, setCurrentCameraId] = useState(null);
+  const [currentCameraId, setCurrentCameraId] = useState(get.videoDeviceId());
   // State for mobile camera facing mode and preferences
   const [currentFacingMode, setCurrentFacingMode] = useState("user"); // 'user' for front, 'environment' for back
-  const [pendingCameraPreferences, setPendingCameraPreferences] =
-    useState(null); // Store camera preferences when video is off
 
   const handleJoinVocal = async () => {
     try {
@@ -52,6 +50,9 @@ const VocalContentBottomBar = ({ chatId }) => {
       setIsVideoEnabled(get.videoStatus());
 
       await self.join(chatId);
+
+      setCurrentMicrophoneId(get.microphoneDeviceId());
+      setCurrentCameraId(get.videoDeviceId());
     } catch (error) {
       console.error("Error joining comms:", error);
       alert("Could not join comms.");
@@ -67,37 +68,9 @@ const VocalContentBottomBar = ({ chatId }) => {
   const toggleVideo = async () => {
     const newVideoState = await self.toggleVideo();
     setIsVideoEnabled(newVideoState);
+    setCurrentCameraId(get.videoDeviceId());
 
-    // If video was just enabled and we have pending camera preferences, apply them
-    if (newVideoState && pendingCameraPreferences) {
-      try {
-        if (Platform.OS !== "web") {
-          // Mobile: apply facingMode preference
-          const constraints = {
-            video: {
-              facingMode: { exact: pendingCameraPreferences.facingMode },
-              width: { ideal: 1920 },
-              height: { ideal: 1080 },
-              aspectRatio: { ideal: 16 / 9 },
-            },
-          };
-          await self.switchMobileCamera(
-            constraints,
-            pendingCameraPreferences.facingMode
-          );
-          setCurrentFacingMode(pendingCameraPreferences.facingMode);
-        } else {
-          // Web: apply deviceId preference
-          if (pendingCameraPreferences.deviceId) {
-            await self.switchCamera(pendingCameraPreferences.deviceId);
-            setCurrentCameraId(pendingCameraPreferences.deviceId);
-          }
-        }
-        setPendingCameraPreferences(null); // Clear preferences after applying
-      } catch (error) {
-        console.error("Failed to apply pending camera preferences:", error);
-      }
-    }
+    setCurrentFacingMode("user");
   };
   const handleScreenShare = async () => {
     try {
@@ -232,44 +205,8 @@ const VocalContentBottomBar = ({ chatId }) => {
             iconColor="green"
           />
         )
-      ) : (
-        Platform.OS === "web" ? (
-          <BlurView intensity={30} tint="light" style={styles.blurContainer}>
-            <View style={styles.container}>
-              <View style={styles.microphoneButtonContainer}>
-                <VocalBottomBarButton
-                  onPress={toggleAudio}
-                  iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
-                  iconColor={theme.icon}
-                />
-                <MicrophoneArrowButton
-                  onPress={handleMicrophoneSelect}
-                  theme={theme}
-                />
-              </View>
-              <View style={styles.cameraButtonContainer}>
-                <VocalBottomBarButton
-                  onPress={toggleVideo}
-                  iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
-                  iconColor={theme.icon}
-                />
-                <CameraArrowButton onPress={handleCameraSelect} theme={theme} />
-              </View>
-              <VocalBottomBarButton
-                onPress={handleScreenShare}
-                iconName={ComputerScreenShareIcon}
-                iconColor={theme.icon}
-              />
-              <VocalBottomBarButton
-                onPress={async () => {
-                  self.left(chatId);
-                }}
-                iconName={Call02Icon}
-                iconColor="red"
-              />
-            </View>
-          </BlurView>
-        ) : (
+      ) : Platform.OS === "web" ? (
+        <BlurView intensity={30} tint="light" style={styles.blurContainer}>
           <View style={styles.container}>
             <View style={styles.microphoneButtonContainer}>
               <VocalBottomBarButton
@@ -288,8 +225,14 @@ const VocalContentBottomBar = ({ chatId }) => {
                 iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
                 iconColor={theme.icon}
               />
+
               <CameraArrowButton onPress={handleCameraSelect} theme={theme} />
-            </View> 
+            </View>
+            <VocalBottomBarButton
+              onPress={handleScreenShare}
+              iconName={ComputerScreenShareIcon}
+              iconColor={theme.icon}
+            />
             <VocalBottomBarButton
               onPress={async () => {
                 self.left(chatId);
@@ -298,7 +241,38 @@ const VocalContentBottomBar = ({ chatId }) => {
               iconColor="red"
             />
           </View>
-        )
+        </BlurView>
+      ) : (
+        <View style={styles.container}>
+          <View style={styles.microphoneButtonContainer}>
+            <VocalBottomBarButton
+              onPress={toggleAudio}
+              iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
+              iconColor={theme.icon}
+            />
+            <MicrophoneArrowButton
+              onPress={handleMicrophoneSelect}
+              theme={theme}
+            />
+          </View>
+          <View style={styles.cameraButtonContainer}>
+            <VocalBottomBarButton
+              onPress={toggleVideo}
+              iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
+              iconColor={theme.icon}
+            />
+            {isVideoEnabled && (
+              <CameraArrowButton onPress={handleCameraSelect} theme={theme} />
+            )}
+          </View>
+          <VocalBottomBarButton
+            onPress={async () => {
+              self.left(chatId);
+            }}
+            iconName={Call02Icon}
+            iconColor="red"
+          />
+        </View>
       )}
       {showMicrophoneSelector && (
         <MicrophoneSelector
