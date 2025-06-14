@@ -7,7 +7,6 @@ import { SignalingManager } from "./signaling/SignalingManager.js";
 import { ICEManager } from "./signaling/ICEManager.js";
 import { ScreenShareManager } from "./features/ScreenShareManager.js";
 import VoiceActivityDetection from "./features/VAD/VoiceActivityDetection.js";
-import { streamMappingManager } from "./core/StreamMappingManager.js";
 import { PinManager } from "./features/PinManager.js";
 import { HealthChecker } from "./features/HealthChecker.js";
 import { RecoveryManager } from "./features/RecoveryManager.js";
@@ -594,6 +593,17 @@ class WebRTCManager {
    */
   setSpeakingThreshold(threshold) {
     this.voiceActivityDetection.setSpeakingThreshold(threshold);
+  }
+
+  applyAudioProcessing(stream,options = {}) {
+    if(!this.streamManager) {
+      this.logger.warn(
+        "WebRTCManager",
+        "StreamManager is not initialized. Cannot apply audio processing."
+      );
+      return;
+    }
+    return this.streamManager.applyAudioProcessing(stream, options);
   }
 
   async updateVAD(){

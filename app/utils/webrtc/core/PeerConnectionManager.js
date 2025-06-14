@@ -796,22 +796,22 @@ class PeerConnectionManager {
    */
   _setupTrackEventHandlers(
     track,
-    participantId = null,
+    participantUUID = null,
     streamType = null,
-    streamId = null
+    streamUUID = null
   ) {
     track.onended = () => {
       logger.debug("PeerConnectionManager", "Traccia remota terminata:", {
         trackId: track.id,
-        participantId,
+        participantUUID,
         streamType,
-        streamId,
+        streamUUID,
       });
 
       // 🔥 RIMUOVI MAPPING QUANDO LA TRACCIA TERMINA
-      if (participantId && this.streamMappingManager) {
+      if (participantUUID && this.streamMappingManager) {
         // Trova il MID associato a questa traccia
-        const pc = this.globalState.getPeerConnection(participantId);
+        const pc = this.globalState.getPeerConnection(participantUUID);
         if (pc) {
           const transceivers = pc.getTransceivers();
           const transceiver = transceivers.find(
@@ -822,7 +822,7 @@ class PeerConnectionManager {
           if (transceiver && transceiver.mid) {
             // Rimuovi il mapping per questo MID
             this.streamMappingManager.removeMappingByMid(
-              participantId,
+              participantUUID,
               transceiver.mid
             );
 
@@ -830,11 +830,11 @@ class PeerConnectionManager {
               "PeerConnectionManager",
               "🗑️ Mapping rimosso per traccia terminata",
               {
-                participantId,
+                participantUUID,
                 trackId: track.id,
                 mid: transceiver.mid,
                 streamType,
-                streamId,
+                streamUUID,
               }
             );
           } else {
@@ -842,10 +842,10 @@ class PeerConnectionManager {
               "PeerConnectionManager",
               "⚠️ Non trovato transceiver per traccia terminata",
               {
-                participantId,
+                participantUUID,
                 trackId: track.id,
                 streamType,
-                streamId,
+                streamUUID,
               }
             );
           }
@@ -853,18 +853,20 @@ class PeerConnectionManager {
       }
 
       EventEmitter.sendLocalUpdateNeeded(
-        participantId,
-        streamId,
-        this.globalState.getActiveStream(participantId, streamId),
+        participantUUID,
+        streamUUID,
+        this.globalState.getActiveStream(participantUUID, streamUUID),
         "remove"
       );
     };
 
     track.onmute = () => {
       logger.debug("PeerConnectionManager", "Traccia remota mutata:", track.id);
-      if (this.globalState.onStreamUpdate) {
-        this.globalState.onStreamUpdate();
-      }
+      EventEmitter.sendLocalUpdateNeeded(
+        participantUUID,
+        streamUUID,
+        this.globalState.getActiveStream(participantUUID, streamUUID)
+      );
     };
 
     track.onunmute = () => {
@@ -872,6 +874,11 @@ class PeerConnectionManager {
         "PeerConnectionManager",
         "Traccia remota smutata:",
         track.id
+      );
+      EventEmitter.sendLocalUpdateNeeded(
+        participantUUID,
+        streamUUID,
+        this.globalState.getActiveStream(participantUUID, streamUUID)
       );
     };
   }

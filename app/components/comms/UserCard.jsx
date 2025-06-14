@@ -50,13 +50,19 @@ const UserCard = memo(
       return stream;
     }, [stream]);
 
-    // Determina se ha video - memoizzato separatamente
-    const hasVideo = useMemo(() => {
-      if(!stream || stream == null || typeof stream.getVideoTracks !== 'function') {
-        return false;
+    let hasVideo = false;
+
+    if (stream && stream.getVideoTracks) {
+      const videoTracks = stream.getVideoTracks();
+      if (videoTracks && videoTracks.length > 0) {
+        hasVideo = videoTracks.some(
+          (track) =>
+            track.readyState === "live" &&
+            track.enabled === true &&
+            !track.muted
+        );
       }
-      return stream.getVideoTracks().length > 0;
-    }, [stream]);
+    }
 
     // Memoizza i dati statici separatamente per evitare che cambino quando speaking cambia
     const staticDisplayName = useMemo(() => {

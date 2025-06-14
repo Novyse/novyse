@@ -5,6 +5,7 @@ import { WEBRTC_CONSTANTS } from "../config/constants.js";
 import { ERROR_CODES } from "../config/constants.js";
 import { createMediaStream } from "../utils/compatibility.js";
 import EventEmitter from "../utils/EventEmitter.js";
+import methods from "../methods.js";
 
 // Import WebRTC based on platform
 let WebRTC;
@@ -23,7 +24,6 @@ export class StreamManager {
   constructor(globalState, logger) {
     this.globalState = globalState;
     this.logger = logger;
-
     this.logger.info("StreamManager", "StreamManager initialized");
   }
 
@@ -32,7 +32,14 @@ export class StreamManager {
    * @param {boolean} audioOnly - Whether to capture only audio
    * @returns {MediaStream|null} The local stream or null if failed
    */
-  async startLocalStream(audioOnly = true) {
+  async startLocalStream(audioOnly = true, audioProcessingOptions = {}) {
+    this.logger.info("Avvio acquisizione stream locale", {
+      component: "StreamManager",
+      audioOnly,
+      action: "startLocalStream",
+      audioProcessing: /*!!audioProcessingOptions*/ true,
+    });
+
     this.logger.info(
       "StreamManager",
       `Starting local stream (audioOnly: ${audioOnly})`
@@ -58,6 +65,22 @@ export class StreamManager {
         "StreamManager",
         `Stream tracks: ${localStream.getTracks().length}`
       );
+
+      // Applica audio processing se richiesto
+      if (/*audioProcessingOptions &&*/ Platform.OS === "web") {
+        localStream = this.applyAudioProcessing(
+          localStream,
+          audioProcessingOptions
+        );
+      } else if (audioProcessingOptions) {
+        this.logger.warning(
+          "Audio processing non supportato su questa piattaforma",
+          {
+            component: "StreamManager",
+            platform: Platform.OS,
+          }
+        );
+      }
 
       this.globalState.setLocalStream(localStream);
 
@@ -94,6 +117,13 @@ export class StreamManager {
     }
   }
 
+  applyAudioProcessing(stream) {
+    if (!stream || Platform.OS !== "web") {
+      return stream;
+    }
+    return stream;
+  }
+
   /**
    * Add video track to existing local stream
    * @returns {MediaStreamTrack|null} The added video track or null if failed
@@ -112,7 +142,7 @@ export class StreamManager {
       const videoStream = await mediaDevices.getUserMedia(videoConstraints);
       const videoTrack = videoStream.getVideoTracks()[0];
 
-      const localStream = this.globalState.getLocalStream();
+      let localStream = this.globalState.getLocalStream();
       if (localStream && videoTrack) {
         localStream.addTrack(videoTrack);
         this.globalState.setLocalStream(localStream);
@@ -124,6 +154,14 @@ export class StreamManager {
           "StreamManager",
           "Video track added to all peer connections"
         );
+
+        const updatedStream = new MediaStream([
+          ...localStream.getAudioTracks(),
+          ...localStream.getVideoTracks(),
+        ]);
+
+        localStream = updatedStream;
+
 
         EventEmitter.sendLocalUpdateNeeded(
           this.globalState.getMyId(),
@@ -188,7 +226,7 @@ export class StreamManager {
       "Removing video tracks from local stream"
     );
 
-    const localStream = this.globalState.getLocalStream();
+    let localStream = this.globalState.getLocalStream();
 
     if (!localStream) {
       this.logger.warning(
@@ -205,6 +243,13 @@ export class StreamManager {
       localStream.removeTrack(track);
     });
 
+    const updatedStream = new MediaStream([
+      ...localStream.getAudioTracks(),
+      ...localStream.getVideoTracks(),
+    ]);
+
+    localStream = updatedStream;
+
     this.globalState.setLocalStream(localStream);
 
     this.logger.info(
@@ -217,7 +262,7 @@ export class StreamManager {
     EventEmitter.sendLocalUpdateNeeded(
       this.globalState.getMyId(),
       this.globalState.getMyId(),
-      null
+      localStream
     );
 
     // Trigger renegotiation with appropriate delay for Android
@@ -256,173 +301,6 @@ export class StreamManager {
       this.logger.info("StreamManager", "Local stream closed successfully");
     }
   }
-  /**
-   * Handle incoming remote stream track
-   * @param {string} participantId - The participant ID
-   * @param {RTCTrackEvent} event - The track event
-   */
-  handleRemoteTrack(participantId, event) {
-    this.logger.info(
-      "StreamManager",
-      `Received remote track from ${participantId}: ${event.track.kind} with label: ${event.track.label}`
-    );
-
-    const track = event.track;
-    const streams = event.streams;
-
-    this.logger.debug("StreamManager", {
-      trackId: track.id,
-      trackLabel: track.label,
-      trackKind: track.kind,
-      streamIds: streams.map((s) => s.id),
-    });
-
-    // Check userData for active screen shares FIRST (this data is set by EventReceiver)
-    const hasActiveScreenShare =
-      this.globalState.userData[participantId] &&
-      this.globalState.userData[participantId].active_screen_share &&
-      Array.isArray(
-        this.globalState.userData[participantId].active_screen_share
-      ) &&
-      this.globalState.userData[participantId].active_screen_share.length > 0;
-
-    // Early detection of potential screen share tracks by examining track properties
-    const looksLikeScreenShare =
-      track.label.includes("screen") ||
-      track.label.includes("Screen") ||
-      track.id.includes("screen") ||
-      (streams.length > 0 && streams[0].id && streams[0].id.includes("screen")); // Log screen share detection status for debugging
-    if (hasActiveScreenShare) {
-      this.logger.info(
-        "StreamManager",
-        `User ${participantId} has active screen shares in userData: ${JSON.stringify(
-          this.globalState.userData[participantId].active_screen_share
-        )}`
-      );
-      this.logger.info(
-        "StreamManager",
-        `Track appears to be screen share: ${
-          looksLikeScreenShare ? "YES" : "NO"
-        }`
-      );
-    }
-
-    // FIXED LOGIC: Only treat as screen share if track CLEARLY looks like screen share
-    // AND user has active screen shares. Don't force webcam tracks to be screen shares!
-    if (hasActiveScreenShare && looksLikeScreenShare) {
-      this.logger.info(
-        "StreamManager",
-        `Track clearly looks like screen share and user has active shares - using screen share path`
-      );
-
-      const possibleStreamIds =
-        this.globalState.userData[participantId].active_screen_share;
-      const eventStreamId = streams.length > 0 ? streams[0].id : track.id;
-
-      // Try to find a matching streamId, default to the first one if no match
-      const activeScreenShareId = eventStreamId.includes("screen")
-        ? eventStreamId
-        : possibleStreamIds[0];
-
-      this.logger.info(
-        "StreamManager",
-        `Handling as screen share track with id: ${activeScreenShareId}, available: ${JSON.stringify(
-          possibleStreamIds
-        )}`
-      );
-      this._handleScreenShareTrack(
-        participantId,
-        track,
-        activeScreenShareId,
-        streams
-      );
-      this._setupTrackEventHandlers(participantId, track);
-      return;
-    }
-
-    // Standard path: Use _identifyTrackType for normal classification
-    const { isScreenShare, streamId } = this._identifyTrackType(
-      participantId,
-      track,
-      streams
-    );
-
-    if (isScreenShare) {
-      this.logger.info(
-        "StreamManager",
-        `Identified as screen share track, forwarding to _handleScreenShareTrack with streamId: ${streamId}`
-      );
-      this._handleScreenShareTrack(participantId, track, streamId, streams);
-    } else {
-      this.logger.info(
-        "StreamManager",
-        `Identified as webcam track, forwarding to _handleWebcamTrack`
-      );
-      this._handleWebcamTrack(participantId, track, streams);
-    }
-
-    // Setup track event handlers
-    this._setupTrackEventHandlers(participantId, track);
-
-    // Notify UI
-    this._notifyStreamUpdate();
-  }
-
-  /**
-   * Remove remote stream for participant
-   * @param {string} participantId - The participant ID
-   */
-  removeRemoteStream(participantId) {
-    this.logger.info(
-      "StreamManager",
-      `Removing remote stream for ${participantId}`
-    );
-
-    // Remove regular stream
-    if (this.globalState.remoteStreams[participantId]) {
-      const stream = this.globalState.remoteStreams[participantId];
-      stream.getTracks().forEach((track) => {
-        track.stop();
-        this.logger.debug(
-          "StreamManager",
-          `Stopped remote ${track.kind} track`
-        );
-      });
-
-      delete this.globalState.remoteStreams[participantId];
-    }
-
-    // Remove screen share streams
-    if (this.globalState.remoteScreenStreams[participantId]) {
-      Object.values(
-        this.globalState.remoteScreenStreams[participantId]
-      ).forEach((stream) => {
-        stream.getTracks().forEach((track) => track.stop());
-      });
-      delete this.globalState.remoteScreenStreams[participantId];
-    }
-
-    // Remove metadata
-    if (this.globalState.remoteStreamMetadata[participantId]) {
-      delete this.globalState.remoteStreamMetadata[participantId];
-    }
-
-    // Remove from audio context if applicable
-    if (
-      this.globalState.audioContextRef &&
-      this.globalState.audioContextRef.removeAudio
-    ) {
-      this.globalState.audioContextRef.removeAudio(participantId);
-    }
-
-    this.logger.info(
-      "StreamManager",
-      `Remote stream for ${participantId} removed successfully`
-    );
-
-    this._notifyStreamUpdate();
-  }
-
   // ===== PRIVATE METHODS =====
 
   /**
@@ -465,82 +343,156 @@ export class StreamManager {
   }
 
   /**
-   * Add a specific track to all peer connections
-   * @param {MediaStreamTrack} track - The track to add
-   */
-  async _addTrackToAllPeers(track) {
-    for (const [peerId, pc] of Object.entries(
-      this.globalState.peerConnections
-    )) {
-      if (
-        pc.connectionState === "connected" ||
-        pc.connectionState === "connecting"
-      ) {
-        try {
-          const localStream = this.globalState.getLocalStream();
-          // For video tracks, check if we should replace existing or add new
-          if (track.kind === "video") {
-            const existingVideoSender = pc
-              .getSenders()
-              .find((sender) => sender.track && sender.track.kind === "video");
+ * Add a specific track to all peer connections
+ * @param {MediaStreamTrack} track - The track to add
+ */
+async _addTrackToAllPeers(track) {
+  const peerConnections = this.globalState.getAllPeerConnections();
+  const localStream = this.globalState.getLocalStream();
 
-            if (existingVideoSender) {
-              // On Android, replaceTrack might not trigger proper renegotiation
-              // So we'll remove the old track and add the new one
-              if (Platform.OS === "android") {
-                try {
-                  pc.removeTrack(existingVideoSender);
-                  pc.addTrack(track, localStream);
-                  this.logger.debug(
-                    "StreamManager",
-                    `Removed and re-added video track for Android peer ${peerId}`
-                  );
-                } catch (androidError) {
-                  this.logger.error(
-                    "StreamManager",
-                    `Android track replacement failed for peer ${peerId}, trying replaceTrack:`,
-                    androidError.message
-                  );
-                  await existingVideoSender.replaceTrack(track);
-                  this.logger.debug(
-                    "StreamManager",
-                    `Fallback: Replaced video track for peer ${peerId}`
-                  );
-                }
-              } else {
-                // For other platforms, use replaceTrack
-                await existingVideoSender.replaceTrack(track);
-                this.logger.debug(
-                  "StreamManager",
-                  `Replaced video track for peer ${peerId}`
-                );
-              }
-            } else {
-              // Add new video track
-              pc.addTrack(track, localStream);
+  if (!localStream) {
+    this.logger.warning(
+      "StreamManager",
+      "No local stream available to add track to peers"
+    );
+    return;
+  }
+
+  // Get the webcam streamUUID (which is the participant's UUID)
+  const myParticipantId = this.globalState.getMyId();
+  const webcamStreamUUID = myParticipantId; // For webcam, streamUUID = participantUUID
+
+  for (const [peerId, pc] of Object.entries(peerConnections)) {
+    if (pc.connectionState === "connected" || pc.connectionState === "connecting") {
+      try {
+        if (track.kind === "video") {
+          // Handle video track replacement logic
+          const existingVideoSenders = pc.getSenders().filter(
+            (sender) => sender.track && sender.track.kind === "video"
+          );
+
+          if (existingVideoSenders.length > 0) {
+            // Replace existing video track
+            for (const existingVideoSender of existingVideoSenders) {
+              await existingVideoSender.replaceTrack(track);
               this.logger.debug(
                 "StreamManager",
-                `Added new video track to peer ${peerId}`
+                `Replaced video track for peer ${peerId}`
               );
             }
           } else {
-            // For non-video tracks, just add normally
-            pc.addTrack(track, localStream);
+            // Use addTransceiver for better control and MID registration
+            const transceiver = pc.addTransceiver(track, {
+              direction: "sendrecv",
+              streams: [localStream],
+            });
+
+            // 🔥 AGGIUNGI IL MAPPING AI PENDING COME PER SCREEN SHARE!
+            const streamMappingManager = this.globalState.getStreamMappingManager?.();
+            if (streamMappingManager) {
+              // ✅ Aggiungi ai pending mappings della peer connection
+              if (!pc._pendingMappings) {
+                pc._pendingMappings = [];
+              }
+
+              pc._pendingMappings.push({
+                transceiver,
+                remoteParticipantUUID: peerId,
+                streamUUID: webcamStreamUUID,
+              });
+
+              this.logger.debug(
+                "🔥 WEBCAM MAPPING AGGIUNTO AI PENDING:",
+                {
+                  component: "StreamManager",
+                  peerId,
+                  streamUUID: webcamStreamUUID,
+                  trackKind: track.kind,
+                  pendingCount: pc._pendingMappings.length,
+                }
+              );
+            }
+
             this.logger.debug(
               "StreamManager",
-              `Added ${track.kind} track to peer ${peerId}`
+              `Added new video track to peer ${peerId}`
             );
           }
-        } catch (error) {
-          this.logger.error(
+        } else {
+          // For non-video tracks (audio), use addTransceiver
+          const transceiver = pc.addTransceiver(track, {
+            direction: "sendrecv",
+            streams: [localStream],
+          });
+
+          // 🔥 AGGIUNGI IL MAPPING AI PENDING ANCHE PER AUDIO!
+          const streamMappingManager = this.globalState.getStreamMappingManager?.();
+          if (streamMappingManager) {
+            // ✅ Aggiungi ai pending mappings della peer connection
+            if (!pc._pendingMappings) {
+              pc._pendingMappings = [];
+            }
+
+            pc._pendingMappings.push({
+              transceiver,
+              remoteParticipantUUID: peerId,
+              streamUUID: webcamStreamUUID,
+            });
+
+            this.logger.debug(
+              "🔥 WEBCAM AUDIO MAPPING AGGIUNTO AI PENDING:",
+              {
+                component: "StreamManager",
+                peerId,
+                streamUUID: webcamStreamUUID,
+                trackKind: track.kind,
+                pendingCount: pc._pendingMappings.length,
+              }
+            );
+          }
+
+          this.logger.debug(
             "StreamManager",
-            `Error adding track to peer ${peerId}:`,
-            error.message
+            `Added ${track.kind} track to peer ${peerId}`
           );
         }
+
+        // 🔥 FORZA LA RINEGOZIAZIONE IMMEDIATA PER QUESTA PEER CONNECTION
+        if (pc.signalingState === "stable") {
+          this.logger.debug(
+            "🔥 FORCING IMMEDIATE RENEGOTIATION FOR WEBCAM:",
+            {
+              component: "StreamManager",
+              peerId,
+              streamUUID: webcamStreamUUID,
+              trackKind: track.kind,
+            }
+          );
+
+          // Ottieni il PeerConnectionManager per gestire la rinegoziazione
+          const peerConnectionManager = this.globalState.getPeerConnectionManager?.();
+          if (peerConnectionManager) {
+            // Chiama il metodo di rinegoziazione diretta
+            await peerConnectionManager._performDirectRenegotiation(pc, peerId);
+
+            this.logger.debug("🎉 WEBCAM RENEGOTIATION COMPLETED:", {
+              component: "StreamManager",
+              peerId,
+              streamUUID: webcamStreamUUID,
+              trackKind: track.kind,
+            });
+          }
+        }
+
+      } catch (error) {
+        this.logger.error(
+          "StreamManager",
+          `Error adding ${track.kind} track to peer ${peerId}: ${error.message}`
+        );
       }
     }
   }
+}
 
   /**
    * Remove video tracks from all peer connections
@@ -1092,52 +1044,9 @@ export class StreamManager {
         }
       );
     }
-      EventEmitter.sendLocalUpdateNeeded(
-        participantId,
-        participantId,
-        stream,
-    );
+    EventEmitter.sendLocalUpdateNeeded(participantId, participantId, stream);
   }
 
-  /**
-   * Setup event handlers for track
-   * @param {string} participantId - The participant ID
-   * @param {MediaStreamTrack} track - The track
-   */
-  _setupTrackEventHandlers(participantId, track) {
-    track.onended = () => {
-      this.logger.info(
-        "StreamManager",
-        `Remote track ended: ${participantId} (${track.kind})`
-      );
-      this._notifyStreamUpdate();
-    };
-
-    track.onmute = () => {
-      this.logger.debug(
-        "StreamManager",
-        `Remote track muted: ${participantId} (${track.kind})`
-      );
-      this._notifyStreamUpdate();
-    };
-
-    track.onunmute = () => {
-      this.logger.debug(
-        "StreamManager",
-        `Remote track unmuted: ${participantId} (${track.kind})`
-      );
-      this._notifyStreamUpdate();
-    };
-  }
-
-  /**
-   * Notify UI of stream updates
-   */
-  _notifyStreamUpdate() {
-    if (this.globalState.callbacks.onStreamUpdate) {
-      this.globalState.callbacks.onStreamUpdate();
-    }
-  }
 
   /**
    * Set renegotiation callback (called from main manager)

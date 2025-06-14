@@ -153,13 +153,14 @@ const self = {
   // Switch camera device
   async switchCamera(deviceId) {
     try {
-      if (!WebRTC.getLocalStream()) {
+      let localStream = WebRTC.getLocalStream();
+      if (!localStream) {
         console.warn("No local stream available for camera switching");
         return false;
       }
 
       // Check if video is currently enabled
-      const currentVideoTrack = WebRTC.getLocalStream().getVideoTracks()[0];
+      const currentVideoTrack = localStream.getVideoTracks()[0];
       if (!currentVideoTrack) {
         console.warn("No video track available for camera switching");
         return false;
@@ -212,13 +213,19 @@ const self = {
         }
       } // Replace the track in the local stream
       if (currentVideoTrack) {
-        WebRTC.getLocalStream().removeTrack(currentVideoTrack);
+        localStream.removeTrack(currentVideoTrack);
         currentVideoTrack.stop();
       }
-      WebRTC.notifyLocalStreamUpdate(
-        get.myPartecipantId(),
-        WebRTC.getLocalStream()
-      );
+
+      const updatedStream = new MediaStream([
+        ...localStream.getAudioTracks(),
+        newVideoTrack,
+      ]);
+      localStream = updatedStream; // Update localStream reference
+
+      WebRTC.setLocalStream(localStream);
+
+      WebRTC.notifyLocalStreamUpdate(get.myPartecipantId(), localStream);
 
       console.log(
         `Successfully switched to camera device: ${deviceId || "default"}`
