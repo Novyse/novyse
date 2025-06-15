@@ -218,64 +218,63 @@ export class StreamManager {
   }
 
   /**
-   * Remove all video tracks from local stream
-   */
-  async removeVideoTracks() {
-    this.logger.info(
-      "StreamManager",
-      "Removing video tracks from local stream"
-    );
-
-    let localStream = this.globalState.getLocalStream();
-
+ * Remove video tracks from local stream and all peer connections
+ * @returns {Promise<void>}
+ */
+async removeVideoTracks() {
+  try {
+    const localStream = this.globalState.getLocalStream();
     if (!localStream) {
-      this.logger.warning(
-        "StreamManager",
-        "No local stream to remove video tracks from"
-      );
+      this.logger.warning("StreamManager", "No local stream to remove video from");
       return;
     }
 
-    // Stop and remove tracks from local stream
+    // 🔥 STEP 1: Ferma le tracce video locali
     const videoTracks = localStream.getVideoTracks();
-    videoTracks.forEach((track) => {
+    for (const track of videoTracks) {
+      this.logger.debug("StreamManager", `Stopping video track: ${track.id}`);
       track.stop();
       localStream.removeTrack(track);
-    });
+    }
 
-    const updatedStream = new MediaStream([
-      ...localStream.getAudioTracks(),
-      ...localStream.getVideoTracks(),
-    ]);
+    // 🔥 STEP 2: USA replaceTrack(null) INVECE DI RIMUOVERE I SENDER
+    const peerConnections = this.globalState.getAllPeerConnections();
+    for (const [peerId, pc] of Object.entries(peerConnections)) {
+      const videoSenders = pc.getSenders().filter(
+        sender => sender.track && sender.track.kind === "video"
+      );
 
-    localStream = updatedStream;
+      for (const sender of videoSenders) {
+        this.logger.debug(
+          "🔄 REPLACING video track with null (maintaining sender)",
+          {
+            component: "StreamManager",
+            peerId,
+            trackId: sender.track?.id,
+          }
+        );
 
+        // 🔥 USA replaceTrack(null) PER MANTENERE IL SENDER ATTIVO
+        await sender.replaceTrack(null);
+      }
+    }
+
+    // Update local stream reference
     this.globalState.setLocalStream(localStream);
 
-    this.logger.info(
-      "StreamManager",
-      `Removed ${videoTracks.length} video tracks`
-    );
-    // Remove tracks from peer connections
-    await this._removeVideoTracksFromAllPeers();
-
+    // Notifica UI
     EventEmitter.sendLocalUpdateNeeded(
       this.globalState.getMyId(),
       this.globalState.getMyId(),
-      localStream
+      localStream,
     );
 
-    // Trigger renegotiation with appropriate delay for Android
-    const renegotiationDelay =
-      Platform.OS === "android" ? 200 : WEBRTC_CONSTANTS.RENEGOTIATION_DELAY;
-    setTimeout(async () => {
-      this.logger.info(
-        "StreamManager",
-        "Starting renegotiation after video track removal"
-      );
-      await this._renegotiateWithAllPeers();
-    }, renegotiationDelay);
+    this.logger.info("StreamManager", "Video tracks removed successfully");
+  } catch (error) {
+    this.logger.error("StreamManager", "Error removing video tracks:", error);
+    throw error;
   }
+}
 
   /**
    * Close local stream and stop all tracks
@@ -347,88 +346,97 @@ export class StreamManager {
  * @param {MediaStreamTrack} track - The track to add
  */
 async _addTrackToAllPeers(track) {
-  const peerConnections = this.globalState.getAllPeerConnections();
-  const localStream = this.globalState.getLocalStream();
+  try {
+    const localStream = this.globalState.getLocalStream();
+    if (!localStream) {
+      this.logger.error("StreamManager", "Local stream not available");
+      return;
+    }
 
-  if (!localStream) {
-    this.logger.warning(
-      "StreamManager",
-      "No local stream available to add track to peers"
-    );
-    return;
-  }
+    const peerConnections = this.globalState.getAllPeerConnections();
+    const webcamStreamUUID = this.globalState.getMyId();
 
-  // Get the webcam streamUUID (which is the participant's UUID)
-  const myParticipantId = this.globalState.getMyId();
-  const webcamStreamUUID = myParticipantId; // For webcam, streamUUID = participantUUID
+    for (const [peerId, pc] of Object.entries(peerConnections)) {
+      // 🔥 PRIMA VERIFICA SE ESISTE GIÀ UN SENDER PER QUESTO TIPO DI TRACCIA
+      if (track.kind === "video") {
+        const existingVideoSender = pc.getSenders().find(
+          sender => sender.track && sender.track.kind === "video"
+        );
 
-  for (const [peerId, pc] of Object.entries(peerConnections)) {
-    if (pc.connectionState === "connected" || pc.connectionState === "connecting") {
-      try {
-        if (track.kind === "video") {
-          // Handle video track replacement logic
-          const existingVideoSenders = pc.getSenders().filter(
-            (sender) => sender.track && sender.track.kind === "video"
+        if (existingVideoSender) {
+          // 🔥 USA replaceTrack INVECE DI CREARE UN NUOVO TRANSCEIVER
+          this.logger.debug(
+            "🔄 REPLACING existing video track instead of adding new one",
+            {
+              component: "StreamManager",
+              peerId,
+              oldTrackId: existingVideoSender.track?.id,
+              newTrackId: track.id,
+            }
           );
 
-          if (existingVideoSenders.length > 0) {
-            // Replace existing video track
-            for (const existingVideoSender of existingVideoSenders) {
-              await existingVideoSender.replaceTrack(track);
-              this.logger.debug(
-                "StreamManager",
-                `Replaced video track for peer ${peerId}`
-              );
+          await existingVideoSender.replaceTrack(track);
+          
+          // Non serve rinegoziazione quando usiamo replaceTrack
+          this.logger.debug(
+            "✅ Video track replaced successfully",
+            {
+              component: "StreamManager",
+              peerId,
+              trackKind: track.kind,
             }
-          } else {
-            // Use addTransceiver for better control and MID registration
-            const transceiver = pc.addTransceiver(track, {
-              direction: "sendrecv",
-              streams: [localStream],
-            });
+          );
+          continue; // Passa al prossimo peer
+        }
+      }
 
-            // 🔥 AGGIUNGI IL MAPPING AI PENDING COME PER SCREEN SHARE!
-            const streamMappingManager = this.globalState.getStreamMappingManager?.();
-            if (streamMappingManager) {
-              // ✅ Aggiungi ai pending mappings della peer connection
-              if (!pc._pendingMappings) {
-                pc._pendingMappings = [];
-              }
-
-              pc._pendingMappings.push({
-                transceiver,
-                remoteParticipantUUID: peerId,
-                streamUUID: webcamStreamUUID,
-              });
-
-              this.logger.debug(
-                "🔥 WEBCAM MAPPING AGGIUNTO AI PENDING:",
-                {
-                  component: "StreamManager",
-                  peerId,
-                  streamUUID: webcamStreamUUID,
-                  trackKind: track.kind,
-                  pendingCount: pc._pendingMappings.length,
-                }
-              );
-            }
-
-            this.logger.debug(
-              "StreamManager",
-              `Added new video track to peer ${peerId}`
-            );
-          }
-        } else {
-          // For non-video tracks (audio), use addTransceiver
+      // Se non esiste un sender per video, crea nuovo transceiver (solo per la prima volta)
+      const already = pc.getSenders().find((s) => s.track && s.track.id === track.id);
+      if (!already) {
+        if (track.kind === "video") {
+          // Per video, usa addTransceiver per controllo completo
           const transceiver = pc.addTransceiver(track, {
             direction: "sendrecv",
             streams: [localStream],
           });
 
-          // 🔥 AGGIUNGI IL MAPPING AI PENDING ANCHE PER AUDIO!
           const streamMappingManager = this.globalState.getStreamMappingManager?.();
           if (streamMappingManager) {
-            // ✅ Aggiungi ai pending mappings della peer connection
+            if (!pc._pendingMappings) {
+              pc._pendingMappings = [];
+            }
+
+            pc._pendingMappings.push({
+              transceiver,
+              remoteParticipantUUID: peerId,
+              streamUUID: webcamStreamUUID,
+            });
+
+            this.logger.debug(
+              "🔥 WEBCAM MAPPING AGGIUNTO AI PENDING:",
+              {
+                component: "StreamManager",
+                peerId,
+                streamUUID: webcamStreamUUID,
+                trackKind: track.kind,
+                pendingCount: pc._pendingMappings.length,
+              }
+            );
+          }
+
+          this.logger.debug(
+            "StreamManager",
+            `Added new video track to peer ${peerId}`
+          );
+        } else {
+          // Per audio, usa addTransceiver come prima
+          const transceiver = pc.addTransceiver(track, {
+            direction: "sendrecv",
+            streams: [localStream],
+          });
+
+          const streamMappingManager = this.globalState.getStreamMappingManager?.();
+          if (streamMappingManager) {
             if (!pc._pendingMappings) {
               pc._pendingMappings = [];
             }
@@ -457,10 +465,10 @@ async _addTrackToAllPeers(track) {
           );
         }
 
-        // 🔥 FORZA LA RINEGOZIAZIONE IMMEDIATA PER QUESTA PEER CONNECTION
+        // 🔥 FORZA RINEGOZIAZIONE SOLO SE ABBIAMO CREATO UN NUOVO TRANSCEIVER
         if (pc.signalingState === "stable") {
           this.logger.debug(
-            "🔥 FORCING IMMEDIATE RENEGOTIATION FOR WEBCAM:",
+            "🔥 FORCING IMMEDIATE RENEGOTIATION FOR NEW TRANSCEIVER:",
             {
               component: "StreamManager",
               peerId,
@@ -469,31 +477,18 @@ async _addTrackToAllPeers(track) {
             }
           );
 
-          // Ottieni il PeerConnectionManager per gestire la rinegoziazione
           const peerConnectionManager = this.globalState.getPeerConnectionManager?.();
           if (peerConnectionManager) {
-            // Chiama il metodo di rinegoziazione diretta
             await peerConnectionManager._performDirectRenegotiation(pc, peerId);
-
-            this.logger.debug("🎉 WEBCAM RENEGOTIATION COMPLETED:", {
-              component: "StreamManager",
-              peerId,
-              streamUUID: webcamStreamUUID,
-              trackKind: track.kind,
-            });
           }
         }
-
-      } catch (error) {
-        this.logger.error(
-          "StreamManager",
-          `Error adding ${track.kind} track to peer ${peerId}: ${error.message}`
-        );
       }
     }
+  } catch (error) {
+    this.logger.error("StreamManager", "Error adding track to peers:", error);
+    throw error;
   }
 }
-
   /**
    * Remove video tracks from all peer connections
    */

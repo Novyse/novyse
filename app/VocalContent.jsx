@@ -109,6 +109,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   }, [chatId]);
 
   const handleStreamUpdate = (data) => {
+    console.log("banaa",data);
     // Only update streams if the user is still in comms
     if (!check.isInComms()) {
       console.info("[VocalContent] User not in comms, ignoring stream update");

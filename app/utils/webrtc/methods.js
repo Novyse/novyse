@@ -418,7 +418,9 @@ const self = {
         err.message.includes("cancelled by user")
       ) {
         console.log("Video permission denied - staying in current state");
-        return WebRTC.isVideoEnabled(); // Return current state
+        return false;
+      } else {
+        throw err;
       }
     }
   },

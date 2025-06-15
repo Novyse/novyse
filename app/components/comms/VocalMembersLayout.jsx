@@ -280,7 +280,6 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {}}) => {
       >
         {Object.keys(commsData).length > 0 ? (
           <>
-            {console.log("comms data: ", commsData, "activeStreams: ", activeStreams)}
             {Object.entries(commsData).map(([participantUUID, commData]) => {
               const components = [];
 

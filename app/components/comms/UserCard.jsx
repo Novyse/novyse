@@ -1,4 +1,4 @@
-import React, { memo, useContext, useMemo, useEffect } from "react";
+import React, { memo, useContext, useMemo, useEffect, useState } from "react";
 import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
 import { BlurView } from "expo-blur";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -55,12 +55,26 @@ const UserCard = memo(
     if (stream && stream.getVideoTracks) {
       const videoTracks = stream.getVideoTracks();
       if (videoTracks && videoTracks.length > 0) {
-        hasVideo = videoTracks.some(
-          (track) =>
-            track.readyState === "live" &&
-            track.enabled === true &&
-            !track.muted
-        );
+        const videoTrack = videoTracks[0];
+
+        // Controlli base
+        const isLive = videoTrack.readyState === "live";
+        const isEnabled = videoTrack.enabled === true;
+
+        if (isLive && isEnabled) {
+          // Il controllo definitivo: NON muted E frameRate > 0
+          const isNotMuted = !videoTrack.muted;
+
+          let hasActiveFrameRate = false;
+          if (videoTrack.getSettings) {
+            const settings = videoTrack.getSettings();
+            hasActiveFrameRate =
+              settings.frameRate !== undefined && settings.frameRate > 10;
+          }
+
+          // Video è attivo SE: non è muted E ha frameRate > 0
+          hasVideo = isNotMuted && hasActiveFrameRate;
+        }
       }
     }
 

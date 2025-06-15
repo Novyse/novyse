@@ -469,182 +469,199 @@ class PeerConnectionManager {
   }
 
   /**
-   * Processa la traccia con lo streamUUID
-   */
-  _processTrackWithStreamUUID(event, participantId, streamUUID) {
+ * Processa la traccia con lo streamUUID
+ */
+_processTrackWithStreamUUID(event, participantId, streamUUID) {
+  logger.info(
+    "PeerConnectionManager",
+    `🔄 Processing track con streamUUID ${streamUUID}`,
+    {
+      participantId,
+      streamUUID,
+      trackKind: event.track.kind,
+      trackId: event.track.id,
+    }
+  );
+
+  // Controlla se esiste già uno stream con questo UID
+  let existingStream = this.globalState.getActiveStream(
+    participantId,
+    streamUUID
+  );
+
+  if (existingStream) {
     logger.info(
       "PeerConnectionManager",
-      `🔄 Processing track con streamUUID ${streamUUID}`,
+      `🔗 Aggiunta traccia a stream esistente`,
       {
         participantId,
         streamUUID,
         trackKind: event.track.kind,
-        trackId: event.track.id,
+        existingTracks: existingStream.getTracks().length,
       }
     );
 
-    // Controlla se esiste già uno stream con questo UID
-    let existingStream = this.globalState.getActiveStream(
-      participantId,
-      streamUUID
-    );
-
-    if (existingStream) {
-      logger.info(
-        "PeerConnectionManager",
-        `🔗 Aggiunta traccia a stream esistente`,
-        {
-          participantId,
-          streamUUID,
-          trackKind: event.track.kind,
-          existingTracks: existingStream.getTracks().length,
-        }
-      );
-
-      // Verifica che la traccia non sia già presente
-      const trackExists = existingStream
-        .getTracks()
-        .find((t) => t.id === event.track.id);
-      if (!trackExists) {
-        existingStream.addTrack(event.track);
+    // 🔥 SE È UNA TRACCIA VIDEO E ESISTE GIÀ UNA TRACCIA VIDEO, SOSTITUISCILA
+    if (event.track.kind === "video") {
+      const existingVideoTracks = existingStream.getVideoTracks();
+      if (existingVideoTracks.length > 0) {
+        logger.info(
+          "PeerConnectionManager",
+          `🔄 Replacing existing video track with new one`,
+          {
+            participantId,
+            streamUUID,
+            oldTrackId: existingVideoTracks[0].id,
+            newTrackId: event.track.id,
+          }
+        );
+        
+        // Rimuovi la vecchia traccia video
+        existingVideoTracks.forEach(track => {
+          existingStream.removeTrack(track);
+          track.stop(); // Ferma la vecchia traccia
+        });
       }
-    } else {
-      logger.info(
-        "PeerConnectionManager",
-        `✨ Creazione nuovo stream per streamUUID ${streamUUID}`,
-        {
-          participantId,
-          streamUUID,
-          trackKind: event.track.kind,
-        }
-      );
-
-      // Crea nuovo stream
-      const newStream = createMediaStream();
-      newStream.addTrack(event.track);
-      this.globalState.addActiveStream(participantId, streamUUID, newStream);
-      existingStream = newStream;
     }
 
-    // 🔥 FIX: Determina il tipo di stream basandosi sul streamUUID
-    const isScreenShare = streamUUID !== participantId;
+    // Verifica che la traccia non sia già presente
+    const trackExists = existingStream
+      .getTracks()
+      .find((t) => t.id === event.track.id);
+    if (!trackExists) {
+      existingStream.addTrack(event.track);
+    }
+  } else {
+    logger.info(
+      "PeerConnectionManager",
+      `✨ Creazione nuovo stream per streamUUID ${streamUUID}`,
+      {
+        participantId,
+        streamUUID,
+        trackKind: event.track.kind,
+      }
+    );
 
-    if (isScreenShare) {
-      // È uno screen share - aggiorna anche userData per includerlo
-      this.globalState.addScreenShare(
+    // Crea nuovo stream
+    const newStream = createMediaStream();
+    newStream.addTrack(event.track);
+    this.globalState.addActiveStream(participantId, streamUUID, newStream);
+    existingStream = newStream;
+  }
+
+  // Determina il tipo di stream basandosi sul streamUUID
+  const isScreenShare = streamUUID !== participantId;
+
+  if (isScreenShare) {
+    // È uno screen share - aggiorna anche userData per includerlo
+    this.globalState.addScreenShare(
+      participantId,
+      streamUUID,
+      existingStream
+    );
+    logger.info(
+      "PeerConnectionManager",
+      `🖥️ Screen share stream aggiornato`,
+      {
+        participantId,
+        streamUUID,
+        trackKind: event.track.kind,
+        totalTracks: existingStream.getTracks().length,
+      }
+    );
+  } else {
+    // È stream principale (audio/video webcam)
+    // Se è audio, aggiungilo all'AudioContext
+    if (event.track.kind === "audio") {
+      if (Platform.OS === "web") {
+        if (this.globalState.audioContextRef) {
+          const audioElement = document.getElementById(
+            `audio-${participantId}`
+          );
+          if (!audioElement) {
+            logger.info(
+              "PeerConnectionManager",
+              `🔊 Aggiunta NUOVO audio all'AudioContext`,
+              {
+                participantId,
+                streamUUID,
+              }
+            );
+            this.globalState.audioContextRef.addAudio(
+              participantId,
+              existingStream
+            );
+          } else {
+            logger.info(
+              "PeerConnectionManager",
+              `🔊 Aggiornamento audio esistente nell'AudioContext`,
+              {
+                participantId,
+                streamUUID,
+                elementExists: true,
+              }
+            );
+
+            // 🔥 AGGIORNA SOLO LO STREAM SENZA RICREARE L'ELEMENTO
+            audioElement.srcObject = existingStream;
+            audioElement.volume = 1.0;
+            audioElement.muted = false;
+
+            audioElement.play().catch((error) => {
+              logger.warning(
+                "PeerConnectionManager",
+                `⚠️ Autoplay audio fallito per ${participantId}: ${error.message}`
+              );
+            });
+          }
+        } else {
+          logger.error(
+            "PeerConnectionManager",
+            `❌ AudioContext NON DISPONIBILE per ${participantId}`,
+            {
+              audioContextRef: !!this.globalState.audioContextRef,
+            }
+          );
+        }
+      }
+    }
+  }
+
+  // Setup event handlers per la traccia
+  this._setupTrackEventHandlers(
+    event.track,
+    participantId,
+    isScreenShare ? "screenshare" : "webcam",
+    streamUUID
+  );
+
+  // 🔥 FORZA L'AGGIORNAMENTO DELL'UI QUANDO È UNA TRACCIA VIDEO
+  if (event.track.kind === "video") {
+    setTimeout(() => {
+      EventEmitter.sendLocalUpdateNeeded(
         participantId,
         streamUUID,
         existingStream
       );
-      logger.info(
-        "PeerConnectionManager",
-        `🖥️ Screen share stream aggiornato`,
-        {
-          participantId,
-          streamUUID,
-          trackKind: event.track.kind,
-          totalTracks: existingStream.getTracks().length,
-        }
-      );
-    } else {
-      // È stream principale (audio/video webcam)
-      // Se è audio, aggiungilo all'AudioContext
-      if (event.track.kind === "audio") {
-        if (Platform.OS === "web") {
-          if (this.globalState.audioContextRef) {
-            const audioElement = document.getElementById(
-              `audio-${participantId}`
-            );
-            if (!audioElement) {
-              logger.info(
-                "PeerConnectionManager",
-                `🔊 Aggiunta NUOVO audio all'AudioContext`,
-                {
-                  participantId,
-                  streamUUID,
-                }
-              );
-              this.globalState.audioContextRef.addAudio(
-                participantId,
-                existingStream
-              );
-            } else {
-              logger.info(
-                "PeerConnectionManager",
-                `🔊 Aggiornamento audio esistente nell'AudioContext`,
-                {
-                  participantId,
-                  streamUUID,
-                  elementExists: true,
-                }
-              );
-
-              // 🔥 AGGIORNA SOLO LO STREAM SENZA RICREARE L'ELEMENTO
-              audioElement.srcObject = existingStream;
-              audioElement.volume = 1.0; // 🔥 ASSICURATI CHE IL VOLUME SIA MASSIMO
-              audioElement.muted = false; // 🔥 ASSICURATI CHE NON SIA MUTATO
-
-              // 🔥 FORZA LA RIPRODUZIONE
-              audioElement.play().catch((error) => {
-                logger.warning(
-                  "PeerConnectionManager",
-                  `⚠️ Autoplay audio fallito per ${participantId}: ${error.message}`
-                );
-              });
-            }
-          } else {
-            logger.error(
-              "PeerConnectionManager",
-              `❌ AudioContext NON DISPONIBILE per ${participantId}`,
-              {
-                audioContextRef: !!this.globalState.audioContextRef,
-              }
-            );
-          }
-        }
-      }
-    }
-
-    // Setup event handlers per la traccia
-    this._setupTrackEventHandlers(
-      event.track,
-      participantId,
-      isScreenShare ? "screenshare" : "webcam",
-      streamUUID
-    );
-
+    }, 100); // Piccolo delay per assicurare che tutto sia pronto
+  } else {
     EventEmitter.sendLocalUpdateNeeded(
       participantId,
       streamUUID,
       existingStream
     );
-
-    // 🔥 FINAL DEBUG: Verifica stato finale
-    const finalVerifyStream = this.globalState.getActiveStream(
-      participantId,
-      streamUUID
-    );
-    console.log("🔍 FINAL VERIFICATION:", {
-      participantId,
-      streamUUID,
-      isScreenShare,
-      finalStreamExists: !!finalVerifyStream,
-      finalTracks: finalVerifyStream ? finalVerifyStream.getTracks().length : 0,
-      finalTrackTypes: finalVerifyStream
-        ? finalVerifyStream.getTracks().map((t) => t.kind)
-        : [],
-    });
-
-    logger.info("PeerConnectionManager", `✅ Traccia elaborata con successo`, {
-      participantId,
-      streamUUID,
-      trackKind: event.track.kind,
-      streamType: isScreenShare ? "screenshare" : "webcam",
-      totalTracks: existingStream.getTracks().length,
-      audioTracks: existingStream.getAudioTracks().length,
-      videoTracks: existingStream.getVideoTracks().length,
-    });
   }
+
+  logger.info("PeerConnectionManager", `✅ Traccia elaborata con successo`, {
+    participantId,
+    streamUUID,
+    trackKind: event.track.kind,
+    streamType: isScreenShare ? "screenshare" : "webcam",
+    totalTracks: existingStream.getTracks().length,
+    audioTracks: existingStream.getAudioTracks().length,
+    videoTracks: existingStream.getVideoTracks().length,
+  });
+}
   /**
    * Gestisce tracce webcam/audio (stesso stream)
    */
