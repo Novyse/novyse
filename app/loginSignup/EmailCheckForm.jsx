@@ -133,7 +133,7 @@ function createStyle(theme, colorScheme) {
       outlineStyle: "none",
       width: 250,
       borderWidth: 1,
-      borderColor: theme.borderColor || theme.icon,
+      borderColor: theme.borderColor,
       borderRadius: 12,
       padding: 10,
       color: theme.text,

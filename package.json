@@ -76,7 +76,8 @@
     "readable-stream": "^1.0.33",
     "socket.io-client": "^4.8.1",
     "stream-browserify": "^1.0.0",
-    "util": "^0.10.4"
+    "util": "^0.10.4",
+    "expo-video": "~2.0.6"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -1,5 +1,5 @@
-import React, { memo, useContext, useMemo, useEffect, useState } from "react";
-import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
+import React, { memo, useContext, useMemo, useEffect, useState, useRef } from "react";
+import { View, StyleSheet, Platform, TouchableOpacity, Dimensions } from "react-native";
 import { BlurView } from "expo-blur";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
@@ -8,11 +8,13 @@ import {
   PinIcon,
   PinOffIcon,
   ComputerRemoveIcon,
+  ArrowExpand01Icon,
+  ArrowShrink02Icon,
 } from "@hugeicons/core-free-icons";
+// Importazioni native di expo-video
+import { VideoView, useVideoPlayer, FullscreenMode } from 'expo-video';
 
-import methods from "../../utils/webrtc/methods";
-const { get, check, self } = methods;
-
+// RTCView per la compatibilità web (VideoView non è per web)
 let RTCView;
 if (Platform.OS === "web") {
   RTCView = require("react-native-webrtc-web-shim").RTCView;
@@ -20,15 +22,19 @@ if (Platform.OS === "web") {
   RTCView = require("react-native-webrtc").RTCView;
 }
 
-// UserCard component - Rappresenta la singola card di un utente o screen share
-// Usa React.memo per evitare re-render se le sue prop non cambiano
+import methods from "../../utils/webrtc/methods";
+const { get, check, self } = methods;
+
+// Ottieni le dimensioni dell'intera finestra del dispositivo una sola volta (non usate direttamente per fullscreen di expo-video)
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 const UserCard = memo(
   ({
     streamUUID,
     isLocal = false,
     isSpeaking = false,
-    width,
-    height,
+    width, // Larghezza normale della card (quando non è fullscreen)
+    height, // Altezza normale della card (quando non è fullscreen)
     margin,
     handle,
     isScreenShare = false,
@@ -37,95 +43,104 @@ const UserCard = memo(
     onPin,
     pinDisabled,
   }) => {
-    const { theme } = useContext(ThemeContext); // Add CSS animation on component mount for web
+    const { theme } = useContext(ThemeContext);
+    const videoRef = useRef(null); // Ref per VideoView
+    const player = useVideoPlayer(null); // Hook per controllare il player
+    const [isFullscreen, setIsFullscreen] = useState(false); // Stato per l'icona del pulsante e logica UI
+
     useEffect(() => {
       addPulseAnimation();
-    }, []);
 
-    // Check if current user is in comms - memoizzato per evitare re-calcoli
+      // Collega il player al ref della VideoView SOLO su piattaforme native
+      if (Platform.OS !== 'web' && videoRef.current && player) {
+        player.attachPlayer(videoRef.current);
+      }
+
+      // Cleanup: Scollega il player e esci dal fullscreen SOLO su piattaforme native
+      return () => {
+        if (Platform.OS !== 'web' && player) { // Applica solo su native
+          player.pause();
+          player.setFullscreen(false); // Assicurati di uscire dal fullscreen
+          player.detachPlayer();
+        }
+      };
+    }, [player]);
+
+    // Ascolta i cambiamenti di stato del fullscreen dal player SOLO su piattaforme native
+    useEffect(() => {
+        if (Platform.OS !== 'web') { // Applica solo su native
+            const unsubscribe = player?.addListener('fullscreenupdate', ({ fullscreenEnter, fullscreenExit }) => {
+                if (fullscreenEnter) {
+                    setIsFullscreen(true);
+                } else if (fullscreenExit) {
+                    setIsFullscreen(false);
+                }
+            });
+
+            return () => {
+                if (unsubscribe) {
+                    unsubscribe();
+                }
+            };
+        }
+    }, [player]);
+
+    // Metodo per entrare/uscire dal fullscreen usando l'API nativa di expo-video
+    const toggleFullscreen = async () => {
+      // Questa funzione sarà chiamata solo su piattaforme native grazie alla logica nel JSX
+      if (!player) {
+        console.warn("Video player non inizializzato.");
+        return;
+      }
+
+      if (isFullscreen) {
+        player.setFullscreen(false);
+      } else {
+        // Usa FullscreenMode.OVER_CURRENT_CONTEXT per sovrapporsi alla UI
+        player.setFullscreen(true, FullscreenMode.OVER_CURRENT_CONTEXT);
+      }
+    };
+
     const userIsInComms = useMemo(() => check.isInComms(), []);
-    // Determina quale stream utilizzare - memoizzato per stabilità
     const streamToRender = useMemo(() => {
       if (!userIsInComms) return null;
       return stream;
-    }, [stream]);
+    }, [stream, userIsInComms]);
 
     let hasVideo = false;
-
     if (stream && stream.getVideoTracks) {
-      const videoTracks = stream.getVideoTracks();
-      if (videoTracks && videoTracks.length > 0) {
-        const videoTrack = videoTracks[0];
+        const videoTracks = stream.getVideoTracks();
+        if (videoTracks && videoTracks.length > 0) {
+            const videoTrack = videoTracks[0];
+            const isLive = videoTrack.readyState === "live";
+            const isEnabled = videoTrack.enabled === true;
 
-        // Controlli base
-        const isLive = videoTrack.readyState === "live";
-        const isEnabled = videoTrack.enabled === true;
-
-        if (isLive && isEnabled) {
-          // Il controllo definitivo: NON muted E frameRate > 0
-          const isNotMuted = !videoTrack.muted;
-
-          let hasActiveFrameRate = false;
-          if (videoTrack.getSettings) {
-            const settings = videoTrack.getSettings();
-            hasActiveFrameRate =
-              settings.frameRate !== undefined && settings.frameRate > 10;
-          }
-
-          // Video è attivo SE: non è muted E ha frameRate > 0
-          hasVideo = isNotMuted && hasActiveFrameRate;
+            if (isLive && isEnabled) {
+                const isNotMuted = !videoTrack.muted;
+                let hasActiveFrameRate = false;
+                if (videoTrack.getSettings) {
+                    const settings = videoTrack.getSettings();
+                    hasActiveFrameRate = settings.frameRate !== undefined && settings.frameRate > 10;
+                }
+                hasVideo = isNotMuted && hasActiveFrameRate;
+            }
         }
-      }
     }
 
-    // Memoizza i dati statici separatamente per evitare che cambino quando speaking cambia
     const staticDisplayName = useMemo(() => {
       return isScreenShare
         ? `${handle || "Unknown"} : Screen Share`
         : handle || "Unknown";
     }, [isScreenShare, handle]);
 
-    const staticProfileImageUri = useMemo(() => {
-      return null;
-    }, []);
+    const staticProfileImageUri = useMemo(() => null, []);
 
-    const videoProps = useMemo(
-      () => ({
-        streamUUID,
-        isScreenShare,
-        hasVideo,
-        stream: streamToRender,
-        isLocal,
-        displayName: staticDisplayName,
-        profileImageUri: staticProfileImageUri,
-        width,
-        height,
-      }),
-      [
-        streamUUID,
-        isScreenShare,
-        hasVideo,
-        streamToRender,
-        isLocal,
-        staticDisplayName,
-        staticProfileImageUri,
-        width,
-        height,
-      ]
-    );
-
-    // Calcola lo stile del bordo speaking overlay dinamicamente
     const speakingOverlayStyle = useMemo(() => {
       const baseStyle = [styles.speakingOverlayContainer];
-
-      // Non mostrare il bordo speaking se l'utente non è in comms, è uno screen share, o non sta parlando
       if (!userIsInComms || isScreenShare || !isSpeaking) {
         return baseStyle;
       }
-
       baseStyle.push(styles.speakingOverlay);
-
-      // Aggiungi animazione solo su web
       if (Platform.OS === "web") {
         baseStyle.push({
           animationName: "pulse-speaking",
@@ -133,35 +148,28 @@ const UserCard = memo(
           animationIterationCount: "infinite",
         });
       }
-
       return baseStyle;
-    }, [userIsInComms, isScreenShare, isSpeaking, isPinned]);
+    }, [userIsInComms, isScreenShare, isSpeaking]);
 
-    // Componente del pulsante pin
     const PinButton = () => (
-      <TouchableOpacity
-        style={[
-          styles.pinButton,
-          pinDisabled && styles.pinButtonDisabled, // Aggiungi stile disabled
-        ]}
-        onPress={onPin}
-        disabled={pinDisabled} // Disabilita il pulsante
-        activeOpacity={pinDisabled ? 1 : 0.7}
-      >
-        <HugeiconsIcon
-          icon={isPinned ? PinOffIcon : PinIcon}
-          size={24}
-          color={pinDisabled ? "#666" : "#fff"} // Colore grigio se disabilitato
-          strokeWidth={1.5}
-        />
-      </TouchableOpacity>
+        <TouchableOpacity
+            style={[styles.buttonBase, styles.pinButton, pinDisabled && styles.pinButtonDisabled]}
+            onPress={onPin}
+            disabled={pinDisabled}
+            activeOpacity={pinDisabled ? 1 : 0.7}
+        >
+            <HugeiconsIcon
+                icon={isPinned ? PinOffIcon : PinIcon}
+                size={24}
+                color={pinDisabled ? "#666" : "#fff"}
+                strokeWidth={1.5}
+            />
+        </TouchableOpacity>
     );
 
-    // Componente del pulsante stop screen share (solo per screen share locali)
     const StopScreenShareButton = () => {
       const handleStopScreenShare = async () => {
         try {
-          // Use the streamUUID prop first, fallback to activeStream.streamUUID
           const uuidToStop = streamUUID;
           if (uuidToStop) {
             console.log(
@@ -180,40 +188,108 @@ const UserCard = memo(
 
       return (
         <TouchableOpacity
-          style={styles.stopButton}
+          style={[styles.buttonBase, styles.stopButton]}
           onPress={handleStopScreenShare}
           activeOpacity={0.7}
         >
           <HugeiconsIcon icon={ComputerRemoveIcon} size={20} color="#fff" />
         </TouchableOpacity>
       );
-    }; // Determina se mostrare il pulsante stop screen share
+    };
+
     const shouldShowStopButton = isLocal && isScreenShare && !!streamUUID;
+
     return (
-      <View
-        style={[
-          styles.profile,
-          {
-            width,
-            height,
-            margin: margin / 2,
-          },
-        ]}
-      >
+      <View style={[styles.profile, { width, height, margin: margin / 2 }]}>
         <View style={styles.videoContainer}>
-          <VideoContent {...videoProps} />
+          {/* Mostra VideoView SOLO su piattaforme native se ha video e stream */}
+          {hasVideo && stream && Platform.OS !== "web" ? (
+            <View style={styles.videoWrapper}>
+              <VideoView
+                ref={videoRef}
+                player={player}
+                style={styles.videoStreamMain}
+                contentFit={'contain'} // O 'cover'
+              />
+              <View
+                style={{
+                  ...StyleSheet.absoluteFillObject,
+                  backgroundColor: "rgba(0,0,0,0.10)",
+                  borderRadius: 8,
+                  zIndex: 1,
+                }}
+              />
+            </View>
+          ) : (
+            // Fallback per il web (usiamo RTCView) o se non c'è video o stream compatibile
+            hasVideo && stream && Platform.OS === "web" ? (
+               <View style={styles.videoWrapper}>
+                  <RTCView
+                    key={`bg-${streamUUID}`}
+                    stream={stream}
+                    style={[
+                      styles.videoStream,
+                      styles.blurredBackground,
+                      { objectFit: "cover" },
+                    ]}
+                    muted={isLocal}
+                  />
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      backgroundColor: "rgba(0,0,0,0.10)",
+                      borderRadius: 8,
+                      zIndex: 2,
+                    }}
+                  />
+                  <RTCView
+                      key={`main-${streamUUID}`}
+                      stream={stream}
+                      style={[styles.videoStreamMain, { objectFit: "contain" }]}
+                      muted={isLocal}
+                  />
+               </View>
+            ) : (
+              <UserProfileAvatar
+                userHandle={staticDisplayName}
+                profileImageUri={staticProfileImageUri}
+                containerWidth={width}
+                containerHeight={height}
+              />
+            )
+          )}
           <View style={speakingOverlayStyle} />
-          {onPin && check.isInComms() && <PinButton />}
-          {shouldShowStopButton && <StopScreenShareButton />}
+
+          {/* Pulsanti sempre visibili sopra il video */}
+          <View style={styles.buttonsContainer}>
+            {/* Il pulsante fullscreen è visibile SOLO su piattaforme native */}
+            {hasVideo && stream && Platform.OS !== "web" && (
+              <TouchableOpacity
+                style={styles.buttonBase}
+                onPress={toggleFullscreen}
+              >
+                <HugeiconsIcon
+                  icon={isFullscreen ? ArrowShrink02Icon : ArrowExpand01Icon}
+                  size={24}
+                  color="#fff"
+                  strokeWidth={1.5}
+                />
+              </TouchableOpacity>
+            )}
+            {onPin && check.isInComms() && <PinButton />}
+            {shouldShowStopButton && <StopScreenShareButton />}
+          </View>
         </View>
       </View>
     );
   }
 );
 
-// ------- SPEECH DETECTION ANIMATION -------
-
-// CSS Animation template per web
+// ------- SPEECH DETECTION ANIMATION (Mantenuto per consistenza) -------
 const PULSE_ANIMATION = `
   @keyframes pulse-speaking {
     0% {
@@ -231,7 +307,6 @@ const PULSE_ANIMATION = `
   }
 `;
 
-// Add CSS animation for web platform - only once per session
 let animationAdded = false;
 const addPulseAnimation = () => {
   if (
@@ -251,14 +326,17 @@ const addPulseAnimation = () => {
     }
   }
 };
-
 // ------- SPEECH DETECTION ANIMATION -------
 
 // Componente separato per il contenuto video memoizzato
+// Questo componente è ora ridondante e può essere rimosso per semplicità,
+// dato che la logica di rendering condizionale è già nella UserCard.
+// L'ho mantenuto per ora ma suggerisco di incorporare direttamente la logica
+// di hasVideo e stream all'interno della UserCard.
 const VideoContent = memo(
   ({
     streamUUID,
-    isScreenShare,
+    isScreenShare, // Non usato direttamente qui, ma passato per completezza
     hasVideo,
     stream,
     isLocal,
@@ -266,14 +344,36 @@ const VideoContent = memo(
     profileImageUri,
     width,
     height,
+    videoRef, // Riceve il ref per VideoView
+    player, // Riceve il player instance
   }) => {
+    // La logica videoSource e player.play/setMuted è ora gestita nel `UserCard` stesso
+    // o dalla `VideoView` direttamente con il `player` e `stream` (implicito per RTCView)
+
     return (
       <View style={styles.videoContainer}>
-        {hasVideo && stream ? (
+        {/* Mostra VideoView su mobile se ha videoSource e non è web */}
+        {hasVideo && stream && Platform.OS !== "web" ? (
           <View style={styles.videoWrapper}>
-            {/* Sfondo sfocato - usa lo stesso stream ma ingrandito e sfocato */}
-            {Platform.OS === "web" ? (
-              <>
+            <VideoView
+              ref={videoRef}
+              player={player}
+              style={styles.videoStreamMain}
+              contentFit={'contain'} // O 'cover'
+            />
+            <View
+              style={{
+                ...StyleSheet.absoluteFillObject,
+                backgroundColor: "rgba(0,0,0,0.10)",
+                borderRadius: 8,
+                zIndex: 1,
+              }}
+            />
+          </View>
+        ) : (
+          // Fallback per il web (usiamo RTCView) o se non c'è video o source compatibile
+          hasVideo && stream && Platform.OS === "web" ? (
+             <View style={styles.videoWrapper}>
                 <RTCView
                   key={`bg-${streamUUID}`}
                   stream={stream}
@@ -284,7 +384,6 @@ const VideoContent = memo(
                   ]}
                   muted={isLocal}
                 />
-                {/* Overlay per migliorare il contrasto del blur su web */}
                 <View
                   style={{
                     position: "absolute",
@@ -297,66 +396,21 @@ const VideoContent = memo(
                     zIndex: 2,
                   }}
                 />
-              </>
-            ) : (
-              <View style={styles.blurredBackground}>
-                <>
-                  <RTCView
-                    key={`bg-mobile-${streamUUID}`}
-                    streamURL={stream.toURL()}
-                    style={[styles.videoStream, { objectFit: "cover" }]}
+                <RTCView
+                    key={`main-${streamUUID}`}
+                    stream={stream}
+                    style={[styles.videoStreamMain, { objectFit: "contain" }]}
                     muted={isLocal}
-                  />
-                  <BlurView
-                    experimentalBlurMethod="dimezisBlurView"
-                    intensity={100}
-                    tint="dark"
-                    style={{
-                      ...StyleSheet.absoluteFillObject,
-                      borderRadius: 20,
-                      zIndex: 2,
-                    }}
-                  />
-                  <View
-                    pointerEvents="none"
-                    style={{
-                      ...StyleSheet.absoluteFillObject,
-                      borderRadius: 20,
-                      zIndex: 3,
-                      backgroundColor: "rgba(10,10,10,0.45)", // molto più scuro
-                      // Simula "fumo" con un gradiente verticale scuro
-                      ...(Platform.OS === "android" &&
-                        {
-                          // Il supporto ai gradienti inline su React Native è limitato, quindi usiamo un overlay molto scuro
-                        }),
-                    }}
-                  />
-                </>
-              </View>
-            )}
-            {Platform.OS === "web" ? (
-              <RTCView
-                key={`main-${streamUUID}`}
-                stream={stream}
-                style={[styles.videoStreamMain, { objectFit: "contain" }]}
-                muted={isLocal}
-              />
-            ) : (
-              <RTCView
-                key={`main-mobile-${streamUUID}`}
-                streamURL={stream.toURL()}
-                style={[styles.videoStreamMain, { objectFit: "contain" }]}
-                muted={isLocal}
-              />
-            )}
-          </View>
-        ) : (
-          <UserProfileAvatar
-            userHandle={displayName}
-            profileImageUri={profileImageUri}
-            containerWidth={width}
-            containerHeight={height}
-          />
+                />
+             </View>
+          ) : (
+            <UserProfileAvatar
+              userHandle={displayName}
+              profileImageUri={profileImageUri}
+              containerWidth={width}
+              containerHeight={height}
+            />
+          )
         )}
       </View>
     );
@@ -367,15 +421,6 @@ VideoContent.displayName = "VideoContent";
 UserCard.displayName = "UserCard";
 
 const styles = StyleSheet.create({
-  blurContainer: {
-    flex: 1,
-    padding: 20,
-    margin: 16,
-    textAlign: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-    borderRadius: 20,
-  },
   profile: {
     backgroundColor: "transparent",
     borderRadius: 10,
@@ -409,11 +454,7 @@ const styles = StyleSheet.create({
       shadowOpacity: 0.8,
       shadowRadius: 8,
     }),
-    // Android: solo bordo semplice, nessun effetto shadow/elevation
-    ...(Platform.OS === "android" &&
-      {
-        // Nessun effetto aggiuntivo per Android
-      }),
+    ...(Platform.OS === "android" && {}),
   },
   videoContainer: {
     width: "100%",
@@ -428,10 +469,11 @@ const styles = StyleSheet.create({
     height: "100%",
     position: "relative",
   },
-  videoStream: {
+  videoStreamMain: {
     width: "100%",
     height: "100%",
     borderRadius: 8,
+    zIndex: 2,
   },
   blurredBackground: {
     position: "absolute",
@@ -442,39 +484,31 @@ const styles = StyleSheet.create({
     zIndex: 1,
     overflow: "hidden",
     borderRadius: 8,
-    // --- BLUR WEB ---
     ...(Platform.OS === "web" && {
-      filter: "blur(32px) saturate(1.5)", // blur più forte e saturazione
-      transform: "scale(1.12)", // leggero zoom per evitare bordi
+      filter: "blur(32px) saturate(1.5)",
+      transform: "scale(1.12)",
       opacity: 1,
-      backgroundColor: "rgba(0,0,0,0.12)", // leggero overlay per contrasto
+      backgroundColor: "rgba(0,0,0,0.12)",
     }),
-    // --- BLUR ANDROID ---
     ...(Platform.OS === "android" && {
       opacity: 1,
       transform: "scale(1.12)",
       backgroundColor: "rgba(0, 0, 0, 0.12)",
     }),
-    // --- BLUR iOS ---
     ...(Platform.OS === "ios" && {
       opacity: 0.7,
       transform: [{ scale: 1.1 }],
     }),
   },
-  videoStreamMain: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    borderRadius: 8,
-    zIndex: 2,
-  },
-  pinButton: {
+  buttonsContainer: {
     position: "absolute",
     top: 8,
     right: 8,
+    flexDirection: "row",
     zIndex: 20,
+    gap: 8,
+  },
+  buttonBase: {
     backgroundColor: "rgba(0, 0, 0, 0.7)",
     borderRadius: 20,
     width: 40,
@@ -482,23 +516,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  pinButton: {},
   pinButtonDisabled: {
     opacity: 0.5,
   },
-  pinIconPinned: {
-    backgroundColor: "#000",
-  },
   stopButton: {
-    position: "absolute",
-    top: 8,
-    right: 56,
-    zIndex: 20,
-    backgroundColor: "rgba(255, 0, 0, 0.7)", // Rosso traslucido
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "rgba(255, 0, 0, 0.7)",
   },
 });
 
