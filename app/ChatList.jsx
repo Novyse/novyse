@@ -45,7 +45,6 @@ import {
   UserGroup03Icon,
   Logout03Icon,
   ArrowLeft02Icon,
-  MoreVerticalCircle01Icon,
   Message02Icon,
   AudioWave01Icon,
   Layout2ColumnIcon,
