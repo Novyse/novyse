@@ -492,8 +492,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
     if (
       data.chatId === chatId &&
-      data.chatId === get.commsId() &&
-      data.from !== get.myPartecipantId()
+      data.chatId === get.commsId()
     ) {
       // Aggiorna lo stato webcamOn per l'utente remoto in commsData
       setCommsData((prev) => {
@@ -524,8 +523,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
     if (
       data.chatId === chatId &&
-      data.chatId === get.commsId() &&
-      data.from !== get.myPartecipantId()
+      data.chatId === get.commsId()
     ) {
       // Aggiorna lo stato webcamOn per l'utente remoto in commsData
       setCommsData((prev) => {
