@@ -468,7 +468,7 @@ class PeerConnectionManager {
     }, 50);
   }
 
-  /**
+/**
  * Processa la traccia con lo streamUUID
  */
 _processTrackWithStreamUUID(event, participantId, streamUUID) {
@@ -501,35 +501,34 @@ _processTrackWithStreamUUID(event, participantId, streamUUID) {
       }
     );
 
-    // 🔥 SE È UNA TRACCIA VIDEO E ESISTE GIÀ UNA TRACCIA VIDEO, SOSTITUISCILA
-    if (event.track.kind === "video") {
-      const existingVideoTracks = existingStream.getVideoTracks();
-      if (existingVideoTracks.length > 0) {
-        logger.info(
-          "PeerConnectionManager",
-          `🔄 Replacing existing video track with new one`,
-          {
-            participantId,
-            streamUUID,
-            oldTrackId: existingVideoTracks[0].id,
-            newTrackId: event.track.id,
-          }
-        );
-        
-        // Rimuovi la vecchia traccia video
-        existingVideoTracks.forEach(track => {
-          existingStream.removeTrack(track);
-          track.stop(); // Ferma la vecchia traccia
-        });
-      }
-    }
-
-    // Verifica che la traccia non sia già presente
+    // Verifica che la traccia non sia già presente nello stream
     const trackExists = existingStream
       .getTracks()
       .find((t) => t.id === event.track.id);
+    
     if (!trackExists) {
       existingStream.addTrack(event.track);
+      
+      logger.info(
+        "PeerConnectionManager",
+        `✅ Traccia aggiunta a stream esistente`,
+        {
+          participantId,
+          streamUUID,
+          trackKind: event.track.kind,
+          totalTracks: existingStream.getTracks().length
+        }
+      );
+    } else {
+      logger.info(
+        "PeerConnectionManager",
+        `⚠️ Traccia già presente nello stream`,
+        {
+          participantId,
+          streamUUID,
+          trackId: event.track.id
+        }
+      );
     }
   } else {
     logger.info(
@@ -542,125 +541,84 @@ _processTrackWithStreamUUID(event, participantId, streamUUID) {
       }
     );
 
-    // Crea nuovo stream
+    // Crea nuovo stream con la traccia
     const newStream = createMediaStream();
     newStream.addTrack(event.track);
-    this.globalState.addActiveStream(participantId, streamUUID, newStream);
     existingStream = newStream;
-  }
 
-  // Determina il tipo di stream basandosi sul streamUUID
-  const isScreenShare = streamUUID !== participantId;
-
-  if (isScreenShare) {
-    // È uno screen share - aggiorna anche userData per includerlo
-    this.globalState.addScreenShare(
-      participantId,
-      streamUUID,
-      existingStream
-    );
-    logger.info(
-      "PeerConnectionManager",
-      `🖥️ Screen share stream aggiornato`,
-      {
-        participantId,
-        streamUUID,
-        trackKind: event.track.kind,
-        totalTracks: existingStream.getTracks().length,
-      }
-    );
-  } else {
-    // È stream principale (audio/video webcam)
-    // Se è audio, aggiungilo all'AudioContext
-    if (event.track.kind === "audio") {
-      if (Platform.OS === "web") {
-        if (this.globalState.audioContextRef) {
-          const audioElement = document.getElementById(
-            `audio-${participantId}`
-          );
-          if (!audioElement) {
-            logger.info(
-              "PeerConnectionManager",
-              `🔊 Aggiunta NUOVO audio all'AudioContext`,
-              {
-                participantId,
-                streamUUID,
-              }
-            );
-            this.globalState.audioContextRef.addAudio(
-              participantId,
-              existingStream
-            );
-          } else {
-            logger.info(
-              "PeerConnectionManager",
-              `🔊 Aggiornamento audio esistente nell'AudioContext`,
-              {
-                participantId,
-                streamUUID,
-                elementExists: true,
-              }
-            );
-
-            // 🔥 AGGIORNA SOLO LO STREAM SENZA RICREARE L'ELEMENTO
-            audioElement.srcObject = existingStream;
-            audioElement.volume = 1.0;
-            audioElement.muted = false;
-
-            audioElement.play().catch((error) => {
-              logger.warning(
-                "PeerConnectionManager",
-                `⚠️ Autoplay audio fallito per ${participantId}: ${error.message}`
-              );
-            });
-          }
-        } else {
-          logger.error(
-            "PeerConnectionManager",
-            `❌ AudioContext NON DISPONIBILE per ${participantId}`,
-            {
-              audioContextRef: !!this.globalState.audioContextRef,
-            }
-          );
+    // Determina il tipo di stream e aggiungilo al globalState
+    if (streamUUID !== participantId) {
+      // È uno screen share (streamUUID diverso dal participantId)
+      this.globalState.addScreenShare(participantId, streamUUID, existingStream);
+      
+      logger.info(
+        "PeerConnectionManager",
+        `🖥️ Screen share stream creato`,
+        {
+          participantId,
+          streamUUID,
+          trackKind: event.track.kind
         }
-      }
+      );
+    } else {
+      // È stream principale (webcam/audio)
+      this.globalState.addActiveStream(participantId, streamUUID, existingStream);
+      
+      logger.info(
+        "PeerConnectionManager",
+        `📹 Stream principale creato`,
+        {
+          participantId,
+          streamUUID,
+          trackKind: event.track.kind
+        }
+      );
     }
   }
 
-  // Setup event handlers per la traccia
-  this._setupTrackEventHandlers(
-    event.track,
-    participantId,
-    isScreenShare ? "screenshare" : "webcam",
-    streamUUID
-  );
-
-  // 🔥 FORZA L'AGGIORNAMENTO DELL'UI QUANDO È UNA TRACCIA VIDEO
-  if (event.track.kind === "video") {
-    setTimeout(() => {
-      EventEmitter.sendLocalUpdateNeeded(
+  // Gestisci audio context per tracce audio
+  if (event.track.kind === "audio") {
+    logger.info(
+      "PeerConnectionManager",
+      `🔊 Aggiunta audio all'AudioContext`,
+      {
         participantId,
         streamUUID,
-        existingStream
-      );
-    }, 100); // Piccolo delay per assicurare che tutto sia pronto
-  } else {
-    EventEmitter.sendLocalUpdateNeeded(
-      participantId,
-      streamUUID,
-      existingStream
+      }
     );
+
+    if (this.audioContextRef && this.audioContextRef.addAudio) {
+      this.audioContextRef.addAudio(participantId, existingStream);
+    }
   }
 
-  logger.info("PeerConnectionManager", `✅ Traccia elaborata con successo`, {
+  // Emetti evento per notificare l'aggiornamento dello stream
+  EventEmitter.sendLocalUpdateNeeded(
     participantId,
     streamUUID,
-    trackKind: event.track.kind,
-    streamType: isScreenShare ? "screenshare" : "webcam",
-    totalTracks: existingStream.getTracks().length,
-    audioTracks: existingStream.getAudioTracks().length,
-    videoTracks: existingStream.getVideoTracks().length,
-  });
+    existingStream,
+    "add_or_update"
+  );
+
+
+  // Determina il tipo di stream per il log finale
+  const streamType = streamUUID !== participantId ? "screenshare" : "webcam";
+  const audioTracks = existingStream.getAudioTracks().length;
+  const videoTracks = existingStream.getVideoTracks().length;
+
+  logger.info(
+    "PeerConnectionManager",
+    `✅ Traccia elaborata con successo`,
+    {
+      participantId,
+      streamUUID,
+      trackKind: event.track.kind,
+      streamType,
+      totalTracks: existingStream.getTracks().length,
+      audioTracks,
+      videoTracks,
+    }
+  );
 }
   /**
    * Gestisce tracce webcam/audio (stesso stream)
@@ -804,7 +762,6 @@ _processTrackWithStreamUUID(event, participantId, streamUUID) {
       "screenshare",
       streamUUID
     );
-
     EventEmitter.sendLocalUpdateNeeded(participantId, streamUUID, screenStream);
   }
 
@@ -868,7 +825,6 @@ _processTrackWithStreamUUID(event, participantId, streamUUID) {
           }
         }
       }
-
       EventEmitter.sendLocalUpdateNeeded(
         participantUUID,
         streamUUID,
@@ -879,11 +835,6 @@ _processTrackWithStreamUUID(event, participantId, streamUUID) {
 
     track.onmute = () => {
       logger.debug("PeerConnectionManager", "Traccia remota mutata:", track.id);
-      EventEmitter.sendLocalUpdateNeeded(
-        participantUUID,
-        streamUUID,
-        this.globalState.getActiveStream(participantUUID, streamUUID)
-      );
     };
 
     track.onunmute = () => {
@@ -891,11 +842,6 @@ _processTrackWithStreamUUID(event, participantId, streamUUID) {
         "PeerConnectionManager",
         "Traccia remota smutata:",
         track.id
-      );
-      EventEmitter.sendLocalUpdateNeeded(
-        participantUUID,
-        streamUUID,
-        this.globalState.getActiveStream(participantUUID, streamUUID)
       );
     };
   }

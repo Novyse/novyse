@@ -73,7 +73,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       const commsData = await get.commsData(chatId);
 
       const tempActiveStreams = get.activeStreams();
-      setActiveStreams(tempActiveStreams);
+
       console.debug(
         "[VocalContent] All profiles for debugging:",
         commsData,
@@ -81,6 +81,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       );
 
       setCommsData(commsData);
+      setActiveStreams(tempActiveStreams);
     };
 
     getCommsData();
@@ -109,7 +110,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   }, [chatId]);
 
   const handleStreamUpdate = (data) => {
-    console.log("banaa",data);
+    console.log("banaa", data);
     // Only update streams if the user is still in comms
     if (!check.isInComms()) {
       console.info("[VocalContent] User not in comms, ignoring stream update");
@@ -154,7 +155,20 @@ const VocalContent = ({ selectedChat, chatId }) => {
           return updated;
         });
       }
-    } else {
+      setActiveStreams((prevStreams) => {
+        const updatedStreams = { ...prevStreams };
+
+        // Ensure participant object exists
+        if (!updatedStreams[participantUUID]) {
+          updatedStreams[participantUUID] = {};
+        }
+
+        // Add or update the stream
+        updatedStreams[participantUUID][streamUUID] = stream;
+
+        return updatedStreams;
+      });
+    } else if (action === "remove") {
       // Check if this is a screen share (when participantUUID != streamUUID)
       if (participantUUID !== streamUUID) {
         // Remove screen share data from commsData if it exists
@@ -176,22 +190,29 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
           return updated;
         });
+
+        setActiveStreams((prevStreams) => {
+          const updatedStreams = { ...prevStreams };
+          if (
+            updatedStreams[participantUUID] &&
+            updatedStreams[participantUUID][streamUUID]
+          ) {
+            delete updatedStreams[participantUUID][streamUUID];
+            // Se non ci sono più stream per questo partecipante, rimuovi l'oggetto
+            if (Object.keys(updatedStreams[participantUUID]).length === 0) {
+              delete updatedStreams[participantUUID];
+            }
+          }
+          return updatedStreams;
+        });
       }
+    } else {
+      console.warn(
+        "[VocalContent] Invalid action for stream update, expected 'add_or_update' or 'remove', got",
+        action
+      );
+      return;
     }
-
-    setActiveStreams((prevStreams) => {
-      const updatedStreams = { ...prevStreams };
-
-      // Ensure participant object exists
-      if (!updatedStreams[participantUUID]) {
-        updatedStreams[participantUUID] = {};
-      }
-
-      // Add or update the stream
-      updatedStreams[participantUUID][streamUUID] = stream;
-
-      return updatedStreams;
-    });
   };
 
   // Speech detection handlers
@@ -317,22 +338,24 @@ const VocalContent = ({ selectedChat, chatId }) => {
     setCommsData((prev) => {
       const updated = { ...prev };
       const participantUUID = from;
-
       if (updated[participantUUID]) {
-        updated[participantUUID] = {
-          ...updated[participantUUID],
-          activeScreenShares: [
-            ...(updated[participantUUID].activeScreenShares || []),
-            screenShareUUID, // Add the new screen share UUID
-          ],
-        };
+        const existingScreenShares =
+          updated[participantUUID].activeScreenShares || [];
+        if (!existingScreenShares.includes(screenShareUUID)) {
+          updated[participantUUID] = {
+            ...updated[participantUUID],
+            activeScreenShares: [
+              ...existingScreenShares,
+              screenShareUUID, // Add the new screen share UUID
+            ],
+          };
+        }
       }
       return updated;
     });
   };
 
   const handleScreenShareStopped = (data) => {
-
     console.debug("[VocalContent] Screen share stopped:", data);
 
     const { from, screenShareUUID } = data;
@@ -365,7 +388,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
     setActiveStreams((prev) => {
       const newStreams = { ...prev };
 
-      if(newStreams[from]) {
+      if (newStreams[from]) {
         // Remove the screen share stream for the participant
         delete newStreams[from][screenShareUUID];
         console.log(
