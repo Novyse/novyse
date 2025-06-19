@@ -32,6 +32,7 @@ const UserCard = memo(
     margin,
     handle,
     isScreenShare = false,
+    webcamOn = true,
     stream = null,
     isPinned = false,
     onPin,
@@ -52,46 +53,20 @@ const UserCard = memo(
 
     let hasVideo = false;
 
-    if (stream && stream.getVideoTracks) {
-      const videoTracks = stream.getVideoTracks();
-      if (videoTracks && videoTracks.length > 0) {
-        const videoTrack = videoTracks[0];
+    if (isScreenShare) {
+      if (stream && stream.getVideoTracks) {
+        const videoTracks = stream.getVideoTracks();
+        if (videoTracks && videoTracks.length > 0) {
+          const videoTrack = videoTracks[0];
 
-        // Controlli base
-        const isLive = videoTrack.readyState === "live";
-        const isEnabled = videoTrack.enabled === true;
-
-        console.log("banana", {
-          trackId: videoTrack.id,
-          kind: videoTrack.kind,
-          label: videoTrack.label,
-          readyState: videoTrack.readyState,
-          enabled: videoTrack.enabled,
-          muted: videoTrack.muted,
-          remote: videoTrack.remote,
-          contentHint: videoTrack.contentHint,
-          constraints: videoTrack.getConstraints
-            ? videoTrack.getConstraints()
-            : "N/A",
-          capabilities: videoTrack.getCapabilities
-            ? videoTrack.getCapabilities()
-            : "N/A",
-          settings: videoTrack.getSettings ? videoTrack.getSettings() : "N/A",
-          stats: videoTrack.getStats ? "Available" : "N/A",
-          streamId: stream.id,
-          streamActive: stream.active,
-          totalVideoTracks: videoTracks.length,
-          isLive,
-          isEnabled,
-          hasVideo: isLive && isEnabled,
-        });
-
-        if(isScreenShare) {
-          hasVideo = isLive && isEnabled;
-        }else{
+          // Controlli base
+          const isLive = videoTrack.readyState === "live";
+          const isEnabled = videoTrack.enabled === true;
           hasVideo = isLive && isEnabled;
         }
       }
+    } else {
+      hasVideo = webcamOn; // Se è uno screen share, non controlliamo webcamOn
     }
 
     // Memoizza i dati statici separatamente per evitare che cambino quando speaking cambia
@@ -127,6 +102,7 @@ const UserCard = memo(
         staticProfileImageUri,
         width,
         height,
+        webcamOn
       ]
     );
 

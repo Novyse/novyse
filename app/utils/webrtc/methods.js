@@ -395,6 +395,7 @@ const self = {
         const videoTrack = await WebRTC.addVideoTrack();
         if (videoTrack) {
           WebRTC.setVideoEnabled(true);
+          
           return true;
         } else {
           // Permission was denied or failed to get video track, stay disabled

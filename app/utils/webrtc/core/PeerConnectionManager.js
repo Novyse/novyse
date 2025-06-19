@@ -468,148 +468,149 @@ class PeerConnectionManager {
     }, 50);
   }
 
-/**
- * Processa la traccia con lo streamUUID
- */
-_processTrackWithStreamUUID(event, participantId, streamUUID) {
-  logger.info(
-    "PeerConnectionManager",
-    `🔄 Processing track con streamUUID ${streamUUID}`,
-    {
-      participantId,
-      streamUUID,
-      trackKind: event.track.kind,
-      trackId: event.track.id,
-    }
-  );
-
-  // Controlla se esiste già uno stream con questo UID
-  let existingStream = this.globalState.getActiveStream(
-    participantId,
-    streamUUID
-  );
-
-  if (existingStream) {
+  /**
+   * Processa la traccia con lo streamUUID
+   */
+  _processTrackWithStreamUUID(event, participantId, streamUUID) {
     logger.info(
       "PeerConnectionManager",
-      `🔗 Aggiunta traccia a stream esistente`,
+      `🔄 Processing track con streamUUID ${streamUUID}`,
       {
         participantId,
         streamUUID,
         trackKind: event.track.kind,
-        existingTracks: existingStream.getTracks().length,
+        trackId: event.track.id,
       }
     );
 
-    // Verifica che la traccia non sia già presente nello stream
-    const trackExists = existingStream
-      .getTracks()
-      .find((t) => t.id === event.track.id);
-    
-    if (!trackExists) {
-      existingStream.addTrack(event.track);
-      
+    // Controlla se esiste già uno stream con questo UID
+    let existingStream = this.globalState.getActiveStream(
+      participantId,
+      streamUUID
+    );
+
+    if (existingStream) {
       logger.info(
         "PeerConnectionManager",
-        `✅ Traccia aggiunta a stream esistente`,
+        `🔗 Aggiunta traccia a stream esistente`,
         {
           participantId,
           streamUUID,
           trackKind: event.track.kind,
-          totalTracks: existingStream.getTracks().length
+          existingTracks: existingStream.getTracks().length,
         }
       );
+
+      // Verifica che la traccia non sia già presente nello stream
+      const trackExists = existingStream
+        .getTracks()
+        .find((t) => t.id === event.track.id);
+
+      if (!trackExists) {
+        existingStream.addTrack(event.track);
+
+        logger.info(
+          "PeerConnectionManager",
+          `✅ Traccia aggiunta a stream esistente`,
+          {
+            participantId,
+            streamUUID,
+            trackKind: event.track.kind,
+            totalTracks: existingStream.getTracks().length,
+          }
+        );
+      } else {
+        logger.info(
+          "PeerConnectionManager",
+          `⚠️ Traccia già presente nello stream`,
+          {
+            participantId,
+            streamUUID,
+            trackId: event.track.id,
+          }
+        );
+      }
     } else {
       logger.info(
         "PeerConnectionManager",
-        `⚠️ Traccia già presente nello stream`,
+        `✨ Creazione nuovo stream per streamUUID ${streamUUID}`,
         {
           participantId,
           streamUUID,
-          trackId: event.track.id
+          trackKind: event.track.kind,
         }
       );
-    }
-  } else {
-    logger.info(
-      "PeerConnectionManager",
-      `✨ Creazione nuovo stream per streamUUID ${streamUUID}`,
-      {
-        participantId,
-        streamUUID,
-        trackKind: event.track.kind,
+
+      // Crea nuovo stream con la traccia
+      const newStream = createMediaStream();
+      newStream.addTrack(event.track);
+      existingStream = newStream;
+
+      // Determina il tipo di stream e aggiungilo al globalState
+      if (streamUUID !== participantId) {
+        // È uno screen share (streamUUID diverso dal participantId)
+        this.globalState.addScreenShare(
+          participantId,
+          streamUUID,
+          existingStream
+        );
+
+        logger.info("PeerConnectionManager", `🖥️ Screen share stream creato`, {
+          participantId,
+          streamUUID,
+          trackKind: event.track.kind,
+        });
+      } else {
+        // È stream principale (webcam/audio)
+        this.globalState.addActiveStream(
+          participantId,
+          streamUUID,
+          existingStream
+        );
+
+        logger.info("PeerConnectionManager", `📹 Stream principale creato`, {
+          participantId,
+          streamUUID,
+          trackKind: event.track.kind,
+        });
       }
-    );
+    }
 
-    // Crea nuovo stream con la traccia
-    const newStream = createMediaStream();
-    newStream.addTrack(event.track);
-    existingStream = newStream;
-
-    // Determina il tipo di stream e aggiungilo al globalState
-    if (streamUUID !== participantId) {
-      // È uno screen share (streamUUID diverso dal participantId)
-      this.globalState.addScreenShare(participantId, streamUUID, existingStream);
-      
+    // Gestisci audio context per tracce audio
+    if (event.track.kind === "audio") {
       logger.info(
         "PeerConnectionManager",
-        `🖥️ Screen share stream creato`,
+        `🔊 Aggiunta audio all'AudioContext`,
         {
           participantId,
           streamUUID,
-          trackKind: event.track.kind
         }
       );
-    } else {
-      // È stream principale (webcam/audio)
-      this.globalState.addActiveStream(participantId, streamUUID, existingStream);
-      
-      logger.info(
-        "PeerConnectionManager",
-        `📹 Stream principale creato`,
-        {
-          participantId,
-          streamUUID,
-          trackKind: event.track.kind
-        }
-      );
-    }
-  }
 
-  // Gestisci audio context per tracce audio
-  if (event.track.kind === "audio") {
-    logger.info(
-      "PeerConnectionManager",
-      `🔊 Aggiunta audio all'AudioContext`,
-      {
-        participantId,
-        streamUUID,
+      if (Platform.OS === "web") {
+        if (this.globalState.audioContextRef) {
+          this.globalState.audioContextRef.addAudio(
+            participantId,
+            existingStream
+          );
+        }
       }
+    }
+
+    // Emetti evento per notificare l'aggiornamento dello stream
+    EventEmitter.sendLocalUpdateNeeded(
+      participantId,
+      streamUUID,
+      existingStream,
+      "add_or_update"
     );
 
-    if (this.audioContextRef && this.audioContextRef.addAudio) {
-      this.audioContextRef.addAudio(participantId, existingStream);
-    }
-  }
+    // Determina il tipo di stream per il log finale
+    const streamType = streamUUID !== participantId ? "screenshare" : "webcam";
+    const audioTracks = existingStream.getAudioTracks().length;
+    const videoTracks = existingStream.getVideoTracks().length;
 
-  // Emetti evento per notificare l'aggiornamento dello stream
-  EventEmitter.sendLocalUpdateNeeded(
-    participantId,
-    streamUUID,
-    existingStream,
-    "add_or_update"
-  );
-
-
-  // Determina il tipo di stream per il log finale
-  const streamType = streamUUID !== participantId ? "screenshare" : "webcam";
-  const audioTracks = existingStream.getAudioTracks().length;
-  const videoTracks = existingStream.getVideoTracks().length;
-
-  logger.info(
-    "PeerConnectionManager",
-    `✅ Traccia elaborata con successo`,
-    {
+    logger.info("PeerConnectionManager", `✅ Traccia elaborata con successo`, {
       participantId,
       streamUUID,
       trackKind: event.track.kind,
@@ -617,9 +618,8 @@ _processTrackWithStreamUUID(event, participantId, streamUUID) {
       totalTracks: existingStream.getTracks().length,
       audioTracks,
       videoTracks,
-    }
-  );
-}
+    });
+  }
   /**
    * Gestisce tracce webcam/audio (stesso stream)
    */
@@ -941,13 +941,15 @@ _processTrackWithStreamUUID(event, participantId, streamUUID) {
    * @param {boolean} isAnswer - Se true, stiamo creando un answer
    */
   _addLocalTracksIfAvailable(pc, remoteParticipantUUID, isAnswer = false) {
-    console.log("🔧 _addLocalTracksIfAvailable CHIAMATO!", {
-      myId: this.globalState.getMyId(),
-      hasLocalStream: !!this.globalState.getLocalStream(),
-      remoteParticipantUUID: remoteParticipantUUID,
-      isAnswer,
-      signalingState: pc.signalingState,
-    });
+  console.log(`🔧 _addLocalTracksIfAvailable CHIAMATO!`, {
+    myId: this.globalState.getMyId(),
+    hasLocalStream: !!this.globalState.getLocalStream(),
+    remoteParticipantUUID,
+    isAnswer,
+    signalingState: pc.signalingState,
+    existingMappings: this.streamMappingManager?.getAllMappings(),
+    existingTransceivers: pc.getTransceivers().length
+  });
 
     // Add local stream tracks (audio/video)
     const localStream = this.globalState.getLocalStream();

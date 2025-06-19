@@ -19,7 +19,7 @@ const MARGIN = 4;
 const HEIGHT_MULTIPLYER = 1;
 const WIDTH_MULTIPLYER = 1;
 
-const VocalMembersLayout = ({ commsData = {}, activeStreams = {}}) => {
+const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
     height: 0,
@@ -244,7 +244,8 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {}}) => {
     isSpeaking,
     handle,
     isScreenShare,
-    stream,
+    webcamOn = false,
+    stream
   ) => {
     return (
       <UserCard
@@ -256,6 +257,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {}}) => {
         margin={margin}
         handle={handle}
         isScreenShare={isScreenShare}
+        webcamOn={webcamOn}
         stream={stream}
         isPinned={
           pinnedUserId === (isScreenShare ? streamUUID : participantUUID)
@@ -283,10 +285,10 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {}}) => {
             {Object.entries(commsData).map(([participantUUID, commData]) => {
               const components = [];
 
-
               // Estrae i dati richiesti del partecipante
               const handle = commData.userData?.handle;
               const isSpeaking = commData.userData?.isSpeaking;
+              const webcamOn = commData.userData?.webcamOn;
 
               if (!activeStreams) {
                 activeStreams = {};
@@ -294,12 +296,18 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {}}) => {
               const userActiveStream = activeStreams[participantUUID] || {};
               let mainStream = null;
 
-              if (Object.keys(userActiveStream).length > 0) {
-                const streamKeys = Object.keys(userActiveStream);
-                const firstStreamKey = streamKeys[0];
+              console.log("🎬 ACTIVE STREAMS DEBUG:", {
+                participantUUID,
+                userActiveStream,
+                allActiveStreams: activeStreams,
+                mainStreamExists: !!userActiveStream[participantUUID],
+                allStreamKeys: Object.keys(userActiveStream),
+                commsDataForUser: commData,
+              });
 
-                if (firstStreamKey == participantUUID && firstStreamKey) {
-                  mainStream = userActiveStream[firstStreamKey];
+              if (Object.keys(userActiveStream).length > 0) {
+                if (userActiveStream[participantUUID]) {
+                  mainStream = userActiveStream[participantUUID];
                 }
               }
 
@@ -313,7 +321,8 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {}}) => {
                       isSpeaking,
                       handle,
                       false,
-                      mainStream,
+                      webcamOn,
+                      mainStream
                     )}
                   </View>
                 );
@@ -337,6 +346,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {}}) => {
                           streamUUID,
                           false,
                           handle,
+                          true,
                           true,
                           screenShareStream
                         )}

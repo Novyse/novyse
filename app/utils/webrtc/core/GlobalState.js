@@ -240,12 +240,12 @@ class GlobalState {
   getAllScreenStreams() {
     const myId = this.getMyId();
     const myStreams = this.activeStreams[myId] || {};
-    
+
     // Create a copy without the stream that has UUID equal to myId
     const filteredStreams = Object.fromEntries(
       Object.entries(myStreams).filter(([streamUUID]) => streamUUID !== myId)
     );
-    
+
     return filteredStreams;
   }
 
@@ -290,7 +290,7 @@ class GlobalState {
       `Active stream aggiunto per ${participantId}: ${streamUUID}`
     );
   }
-  getActiveStream(participantId,streamUUID) {
+  getActiveStream(participantId, streamUUID) {
     const activeStreams = this.activeStreams[participantId];
     if (!activeStreams) {
       logger.debug(
@@ -323,6 +323,16 @@ class GlobalState {
     }
   }
 
+  setWebcamStatus(participantId, status) {
+    if (!this.commsData[participantId]) {
+      this.commsData[participantId] = { userData: {} };
+    }
+    this.commsData[participantId].userData.webcamOn = status;
+    logger.debug(
+      "GlobalState",
+      `Webcam status inviato per ${participantId}: ${status}`
+    );
+  }
 
   removeActiveStream(participantId, streamUUID) {
     if (this.activeStreams[participantId]) {
@@ -338,7 +348,6 @@ class GlobalState {
       }
     }
   }
-  
 
   removeRemoteStream(participantId) {
     delete this.remoteStreams[participantId];
@@ -349,7 +358,6 @@ class GlobalState {
    * addScreenShare(participantId, screenShareUUID, stream) - adds to commsData.activeScreenShares and screenStreams
    */
   addScreenShare(partecipantUUID, screenShareUUID, stream = null) {
-
     // Add to activeStreams
     this.addActiveStream(partecipantUUID, screenShareUUID, stream);
 
@@ -369,7 +377,6 @@ class GlobalState {
       this.commsData[partecipantUUID].activeScreenShares.push(screenShareUUID);
     }
 
-
     logger.debug(
       "GlobalState",
       `Screen share added for participant ${partecipantUUID}: ${screenShareUUID}`
@@ -380,13 +387,17 @@ class GlobalState {
    * Remove screen share - supports both screenShareUUID only and partecipantUUID + screenShareUUID
    */
   removeScreenShare(partecipantUUID, screenShareUUID = null) {
-
     // Remove from commsData activeScreenShares array
-    if (this.commsData[partecipantUUID] && 
-      Array.isArray(this.commsData[partecipantUUID].activeScreenShares)) {
-      const index = this.commsData[partecipantUUID].activeScreenShares.indexOf(screenShareUUID);
+    if (
+      this.commsData[partecipantUUID] &&
+      Array.isArray(this.commsData[partecipantUUID].activeScreenShares)
+    ) {
+      const index =
+        this.commsData[partecipantUUID].activeScreenShares.indexOf(
+          screenShareUUID
+        );
       if (index > -1) {
-      this.commsData[partecipantUUID].activeScreenShares.splice(index, 1);
+        this.commsData[partecipantUUID].activeScreenShares.splice(index, 1);
       }
     }
 
@@ -429,7 +440,6 @@ class GlobalState {
     );
   }
 
-
   /**
    * Set a specific screen stream
    * @param {string} screenShareUUID - Stream ID
@@ -439,7 +449,6 @@ class GlobalState {
     this.screenStreams[screenShareUUID] = stream;
     logger.debug("GlobalState", `Screen stream impostato: ${screenShareUUID}`);
   }
-
 
   /**
    * Remove a specific screen stream
@@ -593,14 +602,18 @@ class GlobalState {
       this.commsData[partecipantUUID].userData.isSpeaking = isSpeaking;
     }
 
-    logger.verbose("GlobalState", `User ${partecipantUUID} speaking: ${isSpeaking}`);
+    logger.verbose(
+      "GlobalState",
+      `User ${partecipantUUID} speaking: ${isSpeaking}`
+    );
   }
 
   isUserSpeaking(partecipantUUID) {
     // Check both speakingUsers set and commsData for consistency
     const isInSet = this.speakingUsers.has(partecipantUUID);
-    const isInCommsData = this.commsData[partecipantUUID]?.userData?.isSpeaking || false;
-    
+    const isInCommsData =
+      this.commsData[partecipantUUID]?.userData?.isSpeaking || false;
+
     // Return true if either source indicates the user is speaking
     return isInSet || isInCommsData;
   }
@@ -609,9 +622,9 @@ class GlobalState {
     // Get users from both sources and merge them
     const fromSet = Array.from(this.speakingUsers);
     const fromCommsData = Object.keys(this.commsData).filter(
-      partecipantUUID => this.commsData[partecipantUUID]?.userData?.isSpeaking
+      (partecipantUUID) => this.commsData[partecipantUUID]?.userData?.isSpeaking
     );
-    
+
     // Merge and deduplicate
     const allSpeaking = [...new Set([...fromSet, ...fromCommsData])];
     return allSpeaking;
@@ -1039,8 +1052,6 @@ class GlobalState {
    * Regenerate global state with new parameters
    */
   async regenerate(myId, chatId, stream = null) {
-
-
     // Clean up existing state (preserve audioContextRef during cleanup)
     this.cleanup(true);
     // Set new core values
@@ -1142,7 +1153,6 @@ class GlobalState {
   }
 
   // ===== METODI PER INIZIALIZZARE I DATI UTENTE =====
-
 
   // ===== MANAGER ACCESSOR METHODS =====
   // These methods will be implemented when the managers are properly integrated

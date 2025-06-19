@@ -274,6 +274,36 @@ const WebSocketMethods = {
       });
     });
 
+    socket.on("webcam_on", async (data) => {
+      if (!data || !data.from) {
+        console.error("Invalid webcam_on data received:", data);
+        return;
+      }
+      console.log(
+        `[WebSocket] Webcam turned on - from: ${data.from}, chatId: ${data.to}`
+      );
+      // Emit event to notify components
+      eventEmitter.emit("webcam_on", {
+        from: data.from,
+        chatId: data.to,
+      });
+    });
+
+    socket.on("webcam_off", async (data) => {
+      if (!data || !data.from) {
+        console.error("Invalid webcam_on data received:", data);
+        return;
+      }
+      console.log(
+        `[WebSocket] Webcam turned off - from: ${data.from}, chatId: ${data.to}`
+      );
+      // Emit event to notify components
+      eventEmitter.emit("webcam_off", {
+        from: data.from,
+        chatId: data.to,
+      });
+    });
+
     return "return of socket.io receiver function";
   },
   // quando voglio entrare in una vocal chat
@@ -386,6 +416,23 @@ const WebSocketMethods = {
   UpdateLastWebSocketActionDateTime: async (date) => {
     await AsyncStorage.setItem("lastUpdateDateTime", date);
     console.log("lastUpdateDateTime: ", date);
+  },
+  sendWebcamStatus: async (from,chatId, isOn) => {
+    if (!socket || !socket.connected) {
+      console.error("Cannot send webcam status: Socket not connected");
+      return;
+    }
+
+    const eventType = isOn ? "webcam_on" : "webcam_off";
+    const data = {
+      to: chatId,
+      from: from,
+    };
+
+    console.log(
+      `[WebSocket] Sending webcam status - from: ${from}, chatId: ${chatId}, isOn: ${isOn}`
+    );
+    socket.emit(eventType, data);
   },
 };
 

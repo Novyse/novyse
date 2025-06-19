@@ -43,6 +43,23 @@ const EventEmitter = {
       action: action,
     });
   },
+
+  sendWebcamStatus: async (partecipantUUID, chatId, status = false) => {
+    if (!partecipantUUID || !chatId) {
+      console.error("sendWebcamStatus: Missing parameters", {
+        partecipantUUID,
+        chatId,
+        status,
+      });
+      return;
+    }
+
+    await WebSocketMethods.sendWebcamStatus(
+      partecipantUUID,
+      chatId,
+      status
+    );
+  }
 };
 
 export default EventEmitter;

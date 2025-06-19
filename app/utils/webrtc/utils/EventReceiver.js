@@ -35,6 +35,8 @@ class WebRTCEventReceiver {
       answer: this.handleAnswer.bind(this),
       iceCandidate: this.handleICECandidate.bind(this),
       midtoStreamUUIDMapping: this.handleMidtoStreamUUIDMapping.bind(this),
+      webcam_on: this.handleWebcamOn.bind(this),
+      webcam_off: this.handleWebcamOff.bind(this),
     };
   }
 
@@ -92,6 +94,10 @@ class WebRTCEventReceiver {
       "mid_to_uuid_mapping",
       this.boundHandlers.midtoStreamUUIDMapping
     );
+
+    // Webcam Status Events
+    eventEmitter.on("webcam_on", this.boundHandlers.webcam_on);
+    eventEmitter.on("webcam_off", this.boundHandlers.webcam_off);
   }
 
   // Voice Activity Detection Handlers
@@ -282,6 +288,31 @@ class WebRTCEventReceiver {
     }
   }
 
+  handleWebcamOn(data) {
+    const { from } = data;
+    this.logger?.info(`Webcam turned on for user ${from}`);
+
+    if (this.globalState) {
+      this.globalState.setWebcamStatus(from,true);
+    } else {
+      this.logger?.warn(
+        `[EventReceiver] globalState not initialized, cannot handle webcam on event`
+      );
+    }
+  }
+
+  handleWebcamOff(data) {
+    const { from } = data;
+    this.logger?.info(`Webcam turned off for user ${from}`);
+    if (this.globalState) {
+      this.globalState.setWebcamStatus(from, false);
+    } else {
+      this.logger?.warn(
+        `[EventReceiver] globalState not initialized, cannot handle webcam off event`
+      );
+    }
+  }
+
   // Cleanup method
   removeEventListeners() {
     // Voice Activity Detection Events
@@ -325,6 +356,10 @@ class WebRTCEventReceiver {
       "mid_to_uuid_mapping",
       this.boundHandlers.midtoStreamUUIDMapping
     );
+
+    // Webcam Status Events
+    eventEmitter.off("webcam_on", this.boundHandlers.webcam_on);
+    eventEmitter.off("webcam_off", this.boundHandlers.webcam_off);
   }
 
   destroy() {

@@ -230,7 +230,8 @@ const APIMethods = {
           commsData[member.from] = {
         userData: {
           handle: member.handle,
-          isSpeaking: member.is_speaking
+          isSpeaking: member.is_speaking,
+          webcamOn: member.webcam_on,
         },
         activeScreenShares: []
           };

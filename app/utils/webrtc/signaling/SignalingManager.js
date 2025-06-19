@@ -330,7 +330,9 @@ export class SignalingManager {
         hasLocalDescription: !!pc.localDescription,
         connectionState: pc.connectionState,
         iceConnectionState: pc.iceConnectionState,
-        existingTransceivers: pc.getTransceivers ? pc.getTransceivers().length : 0,
+        existingTransceivers: pc.getTransceivers
+          ? pc.getTransceivers().length
+          : 0,
         existingReceivers: pc.getReceivers ? pc.getReceivers().length : 0,
         existingSenders: pc.getSenders ? pc.getSenders().length : 0,
       });
@@ -384,6 +386,17 @@ export class SignalingManager {
       });
 
       console.log("🎯 CALLING setRemoteDescription...");
+      console.log(`🔄 PRE-RENEGOTIATION MAPPING STATE:`, {
+        participantId: senderId,
+        allMappings:
+          this.streamMappingManager?.getAllMappingsForParticipant?.(senderId) ||
+          "N/A",
+        transceivers: pc.getTransceivers().map((t) => ({
+          mid: t.mid,
+          direction: t.direction,
+          hasTrack: !!t.receiver?.track,
+        })),
+      });
       await pc.setRemoteDescription(remoteDesc);
       console.log("✅ setRemoteDescription COMPLETED");
 
