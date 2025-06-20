@@ -74,7 +74,6 @@ const VocalContent = ({ selectedChat, chatId }) => {
     eventEmitter.on("webcam_on", handleWebcamOn);
     eventEmitter.on("webcam_off", handleWebcamOff);
 
-
     const getCommsData = async () => {
       const commsData = await get.commsData(chatId);
 
@@ -425,12 +424,23 @@ const VocalContent = ({ selectedChat, chatId }) => {
             userData: {
               handle: data.handle || "Unknown User",
               isSpeaking: false,
+              webcamOn: false, // Default webcam status
             },
             activeScreenShares: [],
           };
         }
         return updated;
       });
+
+      // Se è il mio join event, sincronizza subito gli stream esistenti
+      if (data.from === get.myPartecipantId()) {
+        const updatedActiveStreams = get.activeStreams();
+        console.debug(
+          "[VocalContent] Syncing existing streams after my join:",
+          updatedActiveStreams
+        );
+        setActiveStreams(updatedActiveStreams);
+      }
     } else {
       console.debug(
         "[VocalContent] View incorrect, ignored member join event for different chat"
@@ -490,10 +500,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }
 
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
-    if (
-      data.chatId === chatId &&
-      data.chatId === get.commsId()
-    ) {
+    if (data.chatId === chatId && data.chatId === get.commsId()) {
       // Aggiorna lo stato webcamOn per l'utente remoto in commsData
       setCommsData((prev) => {
         const updated = { ...prev };
@@ -511,20 +518,19 @@ const VocalContent = ({ selectedChat, chatId }) => {
         return updated;
       });
     }
-  }
+  };
 
   const handleWebcamOff = (data) => {
     // Only process if user is in comms and event is for the correct chat
     if (!check.isInComms()) {
-      console.log("[VocalContent] User not in comms, ignoring webcam off event");
+      console.log(
+        "[VocalContent] User not in comms, ignoring webcam off event"
+      );
       return;
     }
 
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
-    if (
-      data.chatId === chatId &&
-      data.chatId === get.commsId()
-    ) {
+    if (data.chatId === chatId && data.chatId === get.commsId()) {
       // Aggiorna lo stato webcamOn per l'utente remoto in commsData
       setCommsData((prev) => {
         const updated = { ...prev };
@@ -542,7 +548,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
         return updated;
       });
     }
-  }
+  };
 
   return (
     <SmartBackground

@@ -1,4 +1,4 @@
-import React, { memo, useContext, useMemo, useEffect, useState } from "react";
+import React, { memo, useContext, useMemo, useEffect, useState, useRef } from "react";
 import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
 import { BlurView } from "expo-blur";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -8,6 +8,7 @@ import {
   PinIcon,
   PinOffIcon,
   ComputerRemoveIcon,
+  FullScreenIcon,
 } from "@hugeicons/core-free-icons";
 
 import methods from "../../utils/webrtc/methods";
@@ -36,12 +37,44 @@ const UserCard = memo(
     stream = null,
     isPinned = false,
     onPin,
-    pinDisabled,
+    isFullScreen = false,
+    onFullScreen,
+    buttonsDisabled,
   }) => {
-    const { theme } = useContext(ThemeContext); // Add CSS animation on component mount for web
+    const { theme } = useContext(ThemeContext); 
+    const userCardRef = useRef(null);
+
     useEffect(() => {
       addPulseAnimation();
     }, []);
+
+    // Handle fullscreen effect when isFullScreen changes
+    useEffect(() => {
+      if (Platform.OS === "web" && isFullScreen && userCardRef.current) {
+        if (userCardRef.current.requestFullscreen) {
+          userCardRef.current.requestFullscreen().catch(console.error);
+        }
+      }
+    }, [isFullScreen]);
+
+    // Listen for fullscreen changes to sync state
+    useEffect(() => {
+      if (Platform.OS === "web") {
+        const handleFullscreenChange = () => {
+          const isCurrentlyFullscreen = !!document.fullscreenElement;
+          
+          // If we exit fullscreen but isFullScreen is still true, call onFullScreen with streamUUID to toggle off
+          if (!isCurrentlyFullscreen && isFullScreen && onFullScreen) {
+            onFullScreen(streamUUID);
+          }
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => {
+          document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+      }
+    }, [isFullScreen, onFullScreen, streamUUID]);
 
     // Check if current user is in comms - memoizzato per evitare re-calcoli
     const userIsInComms = useMemo(() => check.isInComms(), []);
@@ -69,6 +102,8 @@ const UserCard = memo(
       hasVideo = webcamOn; // Se è uno screen share, non controlliamo webcamOn
     }
 
+    hasVideo = hasVideo && check.isInComms(); // Assicura che l'utente sia in comms
+
     // Memoizza i dati statici separatamente per evitare che cambino quando speaking cambia
     const staticDisplayName = useMemo(() => {
       return isScreenShare
@@ -91,6 +126,7 @@ const UserCard = memo(
         profileImageUri: staticProfileImageUri,
         width,
         height,
+        isFullScreen,
       }),
       [
         streamUUID,
@@ -102,7 +138,8 @@ const UserCard = memo(
         staticProfileImageUri,
         width,
         height,
-        webcamOn
+        webcamOn,
+        isFullScreen,
       ]
     );
 
@@ -132,18 +169,15 @@ const UserCard = memo(
     // Componente del pulsante pin
     const PinButton = () => (
       <TouchableOpacity
-        style={[
-          styles.pinButton,
-          pinDisabled && styles.pinButtonDisabled, // Aggiungi stile disabled
-        ]}
+        style={[styles.buttonBase, buttonsDisabled && styles.pinButtonDisabled]}
         onPress={onPin}
-        disabled={pinDisabled} // Disabilita il pulsante
-        activeOpacity={pinDisabled ? 1 : 0.7}
+        disabled={buttonsDisabled}
+        activeOpacity={buttonsDisabled ? 1 : 0.7}
       >
         <HugeiconsIcon
           icon={isPinned ? PinOffIcon : PinIcon}
           size={24}
-          color={pinDisabled ? "#666" : "#fff"} // Colore grigio se disabilitato
+          color={buttonsDisabled ? "#666" : "#fff"}
           strokeWidth={1.5}
         />
       </TouchableOpacity>
@@ -172,17 +206,43 @@ const UserCard = memo(
 
       return (
         <TouchableOpacity
-          style={styles.stopButton}
+          style={[styles.buttonBase, styles.stopButton]}
           onPress={handleStopScreenShare}
           activeOpacity={0.7}
         >
           <HugeiconsIcon icon={ComputerRemoveIcon} size={20} color="#fff" />
         </TouchableOpacity>
       );
-    }; // Determina se mostrare il pulsante stop screen share
-    const shouldShowStopButton = isLocal && isScreenShare && !!streamUUID;
+    };
+
+    // Componente del pulsante full screen
+    const FullScreenButton = () => (
+      <TouchableOpacity
+        style={[styles.buttonBase, buttonsDisabled && styles.pinButtonDisabled]}
+        onPress={onFullScreen}
+        disabled={buttonsDisabled}
+        activeOpacity={buttonsDisabled ? 1 : 0.7}
+      >
+        <HugeiconsIcon
+          icon={isFullScreen ? PinOffIcon : FullScreenIcon}
+          size={24}
+          color={buttonsDisabled ? "#666" : "#fff"}
+          strokeWidth={1.5}
+        />
+      </TouchableOpacity>
+    );
+
+    // Determina se mostrare il pulsante stop screen share
+    const shouldShowStopButton =
+      isLocal && isScreenShare && !!streamUUID && !buttonsDisabled;
+    const shouldShowPinButton = onPin && !buttonsDisabled;
+
+    const shouldShowFullScreenButton =
+      onFullScreen && !isFullScreen && hasVideo && !buttonsDisabled;
+
     return (
       <View
+        ref={userCardRef}
         style={[
           styles.profile,
           {
@@ -190,13 +250,18 @@ const UserCard = memo(
             height,
             margin: margin / 2,
           },
+          isFullScreen && styles.fullScreenProfile,
         ]}
       >
         <View style={styles.videoContainer}>
           <VideoContent {...videoProps} />
           <View style={speakingOverlayStyle} />
-          {onPin && check.isInComms() && <PinButton />}
-          {shouldShowStopButton && <StopScreenShareButton />}
+          {/* Pulsanti sempre visibili sopra il video */}
+          <View style={styles.buttonsContainer}>
+            {shouldShowPinButton && <PinButton />}
+            {shouldShowStopButton && <StopScreenShareButton />}
+            {shouldShowFullScreenButton && <FullScreenButton />}
+          </View>
         </View>
       </View>
     );
@@ -258,6 +323,7 @@ const VideoContent = memo(
     profileImageUri,
     width,
     height,
+    isFullScreen,
   }) => {
     return (
       <View style={styles.videoContainer}>
@@ -330,14 +396,22 @@ const VideoContent = memo(
               <RTCView
                 key={`main-${streamUUID}`}
                 stream={stream}
-                style={[styles.videoStreamMain, { objectFit: "contain" }]}
+                style={[
+                  styles.videoStreamMain, 
+                  { objectFit: "contain" },
+                  isFullScreen && styles.fullScreenVideo
+                ]}
                 muted={isLocal}
               />
             ) : (
               <RTCView
                 key={`main-mobile-${streamUUID}`}
                 streamURL={stream.toURL()}
-                style={[styles.videoStreamMain, { objectFit: "contain" }]}
+                style={[
+                  styles.videoStreamMain, 
+                  { objectFit: "contain" },
+                  isFullScreen && styles.fullScreenVideo
+                ]}
                 muted={isLocal}
               />
             )}
@@ -462,11 +536,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     zIndex: 2,
   },
-  pinButton: {
+  pinButtonDisabled: {
+    opacity: 0.5,
+  },
+  pinIconPinned: {
+    backgroundColor: "#000",
+  },
+  buttonsContainer: {
     position: "absolute",
     top: 8,
     right: 8,
+    flexDirection: "row",
     zIndex: 20,
+    gap: 8,
+  },
+  buttonBase: {
     backgroundColor: "rgba(0, 0, 0, 0.7)",
     borderRadius: 20,
     width: 40,
@@ -474,23 +558,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  pinButtonDisabled: {
-    opacity: 0.5,
-  },
-  pinIconPinned: {
-    backgroundColor: "#000",
-  },
   stopButton: {
-    position: "absolute",
-    top: 8,
-    right: 56,
-    zIndex: 20,
-    backgroundColor: "rgba(255, 0, 0, 0.7)", // Rosso traslucido
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "rgba(255, 0, 0, 0.7)",
+  },
+  fullScreenProfile: {
+    ...(Platform.OS === "web" && {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      zIndex: 9999,
+      margin: 0,
+    }),
+  },
+  fullScreenVideo: {
+    ...(Platform.OS === "web" && {
+      width: "100%",
+      height: "100%",
+    }),
   },
 });
 

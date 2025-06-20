@@ -29,28 +29,31 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
 
   // ---- Pinning State ----
   // State to track pin changes
-  const [pinnedUserId, setPinnedUserId] = useState(null);
+  const [pinnedUUID, setPinnedUUID] = useState(null);
+  const [fullScreenUUID, setfullScreenUUID] = useState(null);
   const [isTogglingPin, setIsTogglingPin] = useState(false);
 
   // Sync pin state from WebRTC manager
   useEffect(() => {
     const currentPinnedUser = get.pinnedUser();
-    if (currentPinnedUser !== pinnedUserId) {
-      setPinnedUserId(currentPinnedUser);
+    if (currentPinnedUser !== pinnedUUID) {
+      setPinnedUUID(currentPinnedUser);
     }
-  }, [pinnedUserId]);
+  }, [pinnedUUID]);
 
   // Update pin state when profiles change (new users join/leave)
   useEffect(() => {
     const currentPinnedUser = get.pinnedUser();
-    setPinnedUserId(currentPinnedUser);
+    setPinnedUUID(currentPinnedUser);
   }, [commsData]);
 
   // Handler per il layout
   const onContainerLayout = useCallback((event) => {
     const { width, height } = event.nativeEvent.layout;
     setContainerDimensions({ width, height });
-  }, []); // Funzione per pinnare/unpinnare un utente
+  }, []);
+
+  // Funzione per pinnare/unpinnare un utente
   const handlePinUser = useCallback(
     (userId) => {
       // Controlla se l'utente è nella chat vocale
@@ -61,7 +64,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
 
       setIsTogglingPin(true);
       console.debug(
-        `Toggling pin for user ${userId}, current pinned: ${pinnedUserId}`
+        `Toggling pin for user ${userId}, current pinned: ${pinnedUUID}`
       );
 
       // Use pin utils to toggle pin state
@@ -74,20 +77,45 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
         console.info(
           `Pin toggle successful, new pinned user: ${newPinnedUser}`
         );
-        setPinnedUserId(newPinnedUser);
+        setPinnedUUID(newPinnedUser);
       }
     },
-    [isTogglingPin, pinnedUserId]
+    [isTogglingPin, pinnedUUID]
   );
 
   // ---- Pinning State ----
+
+  // ---- Fullscreen State ----
+  // Funzione per gestire il fullscreen
+  const handleFullScreenUser = useCallback((streamUUID) => {
+    // Controlla se l'utente è nella chat vocale
+    if (!check.isInComms()) {
+      console.info(
+        "Non puoi mettere utenti in fullscreen se non sei nella chat vocale"
+      );
+      return;
+    }
+    console.debug(
+      `Toggling fullscreen for user ${streamUUID}, current fullscreen: ${fullScreenUUID}`
+    );
+
+    if (streamUUID === fullScreenUUID) {
+      // Se l'utente è già in fullscreen, rimuovi il fullscreen
+      setfullScreenUUID(null);
+      console.info(`Removed fullscreen for user ${streamUUID}`);
+    } else {
+      // Altrimenti, imposta l'utente in fullscreen
+      setfullScreenUUID(streamUUID);
+      console.info(`Setting fullscreen for user ${streamUUID}`);
+    }
+  });
 
   // ---- LAYOUT CALCULATION ----
 
   // Calcolo ottimizzato del layout considerando anche le screen share
   const calculateLayout = useCallback(() => {
     // Se c'è un utente pinnato, calcola layout per un singolo elemento
-    if (pinnedUserId) {
+    if (pinnedUUID) {
       if (!containerDimensions.width || !containerDimensions.height) {
         return { numColumns: 1, rectWidth: 0, rectHeight: 0, margin: MARGIN };
       }
@@ -232,7 +260,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
     rectWidth = Math.max(minWidth, rectWidth * WIDTH_MULTIPLYER);
     rectHeight = Math.max(minHeight, rectHeight * HEIGHT_MULTIPLYER);
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
-  }, [containerDimensions, commsData, pinnedUserId, activeStreams]);
+  }, [containerDimensions, commsData, pinnedUUID, activeStreams]);
 
   const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();
 
@@ -259,13 +287,17 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
         isScreenShare={isScreenShare}
         webcamOn={webcamOn}
         stream={stream}
-        isPinned={
-          pinnedUserId === (isScreenShare ? streamUUID : participantUUID)
-        }
+        isPinned={pinnedUUID === (isScreenShare ? streamUUID : participantUUID)}
         onPin={() =>
           handlePinUser(isScreenShare ? streamUUID : participantUUID)
         }
-        pinDisabled={!check.isInComms()} // Disabilita il pin se non sei in comms
+        isFullScreen={
+          fullScreenUUID === (isScreenShare ? streamUUID : participantUUID)
+        }
+        onFullScreen={() => {
+          handleFullScreenUser(isScreenShare ? streamUUID : participantUUID);
+        }}
+        buttonsDisabled={!check.isInComms()} // Disabilita il pin se non sei in comms
       />
     );
   };
@@ -297,10 +329,10 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
               let mainStream = null;
 
               console.log("🎬 ACTIVE STREAMS DEBUG:", {
+                handle: commData.userData?.handle,
                 participantUUID,
                 userActiveStream,
                 allActiveStreams: activeStreams,
-                mainStreamExists: !!userActiveStream[participantUUID],
                 allStreamKeys: Object.keys(userActiveStream),
                 commsDataForUser: commData,
               });
@@ -312,7 +344,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
               }
 
               // Main profile object - solo se non c'è pin o se questo è quello pinnato
-              if (!pinnedUserId || pinnedUserId === participantUUID) {
+              if (!pinnedUUID || pinnedUUID === participantUUID) {
                 components.push(
                   <View key={`main-${participantUUID}`}>
                     {renderRectangle(
@@ -333,7 +365,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
 
               if (streamUIDs && streamUIDs.length > 0) {
                 streamUIDs.forEach((streamUUID) => {
-                  if (!pinnedUserId || pinnedUserId === streamUUID) {
+                  if (!pinnedUUID || pinnedUUID === streamUUID) {
                     const screenShareStream =
                       userActiveStream[streamUUID] || null;
 

@@ -1,4 +1,5 @@
 import logger from "../logging/WebRTCLogger.js";
+import EventEmitter from "../utils/EventEmitter.js";
 
 /**
  * Oggetto che contiene TUTTI i valori globali per WebRTC
@@ -656,6 +657,24 @@ class GlobalState {
       "GlobalState",
       `Connection tracking inizializzato per ${participantId}`
     );
+  }
+
+  forceReloadStreams(participantUUID) {
+    // Clear all active streams for the participant
+    if (this.activeStreams[participantUUID]) {
+      Object.keys(this.activeStreams[participantUUID]).forEach((streamUUID) => {
+        EventEmitter.sendLocalUpdateNeeded(
+          participantUUID,
+          streamUUID,
+          this.activeStreams[participantUUID][streamUUID],
+          "add_or_update"
+        );
+      });
+      logger.debug(
+        "GlobalState",
+        `Tutti gli active streams sono stati riaggiornati per ${participantUUID}`
+      );
+    }
   }
 
   clearConnectionTracking(participantId) {
