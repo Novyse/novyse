@@ -83,10 +83,10 @@ const ChatList = () => {
     new Animated.Value(Dimensions.get("window").width)
   );
 
-    useEffect(() => {
+  useEffect(() => {
     // Esponi setContentView globalmente per BigFloatingCommsMenu
     window.setContentView = setContentView;
-    
+
     return () => {
       delete window.setContentView;
     };
@@ -289,8 +289,11 @@ const ChatList = () => {
     setContentView("chat");
     if (!isSmallScreen) {
       router.setParams({ chatId });
+      router.setParams({ chatId: chatId, creatingChatWith: undefined });
+    } else {
+      // Su schermi piccoli, naviga a una nuova schermata
+      router.push(`/messages?chatId=${chatId}`);
     }
-    router.setParams({ chatId: chatId, creatingChatWith: undefined });
   };
 
   // trasforma la data in un formato HH:MM
@@ -799,22 +802,22 @@ const ChatList = () => {
               {!isToggleSearchChats ? renderChatList() : <Search />}
             </SmartBackground>
             {selectedChat && (
-              <Animated.View
+              <View
                 style={[
                   styles.chatContent,
                   {
-                    transform: [{ translateX: chatContentPosition }],
                     position: "absolute",
                     top: 0,
                     left: 0,
                     right: 0,
                     bottom: 0,
                     zIndex: 1,
+                    backgroundColor: theme.backgroundChat, // aggiungi se serve
                   },
                 ]}
               >
                 {renderChatHeaderAndContent()}
-              </Animated.View>
+              </View>
             )}
           </>
         ) : (
