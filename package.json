@@ -109,5 +109,8 @@
     "_stream_duplex": "readable-stream/duplex",
     "_stream_passthrough": "readable-stream/passthrough",
     "stream": "stream-browserify"
+  },
+  "overrides": {
+    "brace-expansion": "^2.0.2"
   }
 }
