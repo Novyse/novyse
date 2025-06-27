@@ -1,11 +1,10 @@
 import { Platform } from "react-native";
-import { LOG_LEVELS } from "../logging/LogLevels.js";
 import { getConstraintsForPlatform } from "../config/mediaConstraints.js";
 import { WEBRTC_CONSTANTS } from "../config/constants.js";
 import { ERROR_CODES } from "../config/constants.js";
 import { createMediaStream } from "../utils/compatibility.js";
 import EventEmitter from "../utils/EventEmitter.js";
-import methods from "../methods.js";
+import AudioUtils from "../utils/AudioUtils.js";
 
 // Import WebRTC based on platform
 let WebRTC;
@@ -68,7 +67,7 @@ export class StreamManager {
 
       // Applica audio processing se richiesto
       if (/*audioProcessingOptions &&*/ Platform.OS === "web") {
-        localStream = this.applyAudioProcessing(
+        localStream = await this.applyAudioProcessing(
           localStream,
           audioProcessingOptions
         );
@@ -111,11 +110,38 @@ export class StreamManager {
     }
   }
 
-  applyAudioProcessing(stream) {
+  async applyAudioProcessing(stream) {
     if (!stream || Platform.OS !== "web") {
       return stream;
     }
-    return stream;
+
+    const audioUtils = new AudioUtils();
+    let filteredStream = stream;
+
+    filteredStream = audioUtils.noiseReduction(filteredStream, {
+      threshold: -50, // Lower threshold (less aggressive)
+      reduction: -12, // Moderate reduction
+      cutoffFreq: 80, // Remove only very low frequencies
+    });
+
+    // Noise gate con gestione interna di static/adaptive/hybrid
+    filteredStream = audioUtils.noiseGate(filteredStream, {
+      type: "hybrid",
+      threshold: -20, // Threshold iniziale
+      adaptationSpeed: 0.1,
+    });
+
+    filteredStream = audioUtils.typingAttenuation(filteredStream, {
+      cutoffFreq: 8000, // Much higher cutoff (preserve voice clarity)
+      threshold: -25, // More reasonable threshold
+    });
+
+    if (!filteredStream) {
+      this.logger.error("StreamManager", "Failed to apply audio processing");
+      return stream; // Return original stream if processing fails
+    }
+    this.logger.info("StreamManager", "Audio processing applied successfully");
+    return filteredStream;
   }
 
   /**
@@ -327,10 +353,7 @@ export class StreamManager {
         false
       );
 
-      this.globalState.setWebcamStatus(
-        this.globalState.getMyId(),
-        false
-      );
+      this.globalState.setWebcamStatus(this.globalState.getMyId(), false);
 
       this.logger.info("StreamManager", "Video tracks removed successfully");
     } catch (error) {

@@ -27,11 +27,15 @@ export const AUDIO_CONSTRAINTS = {
 
   // Audio only (no video)
   AUDIO_ONLY: {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true,
-    channelCount: 1,
-    sampleRate: 44100,
+    sampleRate: { ideal: 48000 }, // Higher sample rate
+    channelCount: { ideal: 2 }, // Stereo if possible
+    latency: { ideal: 0.01 }, // Low latency (10ms)
+    // Advanced constraints
+    googEchoCancellation: true,
+    googAutoGainControl: true,
+    googNoiseSuppression: true,
+    googHighpassFilter: true,
+    googTypingNoiseDetection: true,
   },
 };
 
@@ -132,7 +136,7 @@ export const SCREEN_SHARE_CONSTRAINTS = {
 export const MEDIA_CONSTRAINTS = {
   // Audio only call
   AUDIO_ONLY: {
-    audio: AUDIO_CONSTRAINTS.STANDARD,
+    audio: AUDIO_CONSTRAINTS.AUDIO_ONLY,
     video: false,
   },
 
@@ -188,7 +192,7 @@ export const SDP_OPTIONS = {
 /**
  * Get appropriate constraints based on platform and scenario
  */
-export function getConstraintsForPlatform(platform, scenario = "standard") {
+export function getConstraintsForPlatform(platform, scenario = "audio_only") {
   const isAndroid = platform === "android";
   const isWeb = platform === "web";
   const isIOS = platform === "ios";

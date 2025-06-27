@@ -3,7 +3,6 @@
  * Provides media-specific utility functions for WebRTC operations
  */
 
-import { LogLevels } from "../logging/LogLevels.js";
 import { createMediaStream } from "./compatibility.js";
 
 export class MediaUtils {
@@ -423,10 +422,10 @@ export class MediaUtils {
         outputStream.addTrack(videoTrack.clone());
       }
 
-      this.logger?.log(LogLevels.DEBUG, "Audio filters applied", filters);
+      this.logger.debug("MediaUtils", "Audio filters applied", filters);
       return outputStream;
     } catch (error) {
-      this.logger?.log(LogLevels.ERROR, "Failed to apply audio filters", error);
+      this.logger.error("MediaUtils", "Failed to apply audio filters", error);
       return stream; // Return original stream on error
     }
   }

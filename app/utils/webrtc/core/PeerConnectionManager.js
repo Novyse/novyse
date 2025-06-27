@@ -57,6 +57,9 @@ class PeerConnectionManager {
         isSpeaking: false,
       };
 
+      // Specifica codec
+      this._setAudioCodec(pc);
+
       // Salva nel global state
       this.globalState.addPeerConnection(participantId, pc, userData);
       this.globalState.initializeConnectionTracking(participantId);
@@ -77,6 +80,29 @@ class PeerConnectionManager {
       );
       this.globalState.removePeerConnection(participantId);
       return null;
+    }
+  }
+
+  _setAudioCodec(pc) {
+    try {
+      const transceivers = pc.getTransceivers();
+      transceivers.forEach((transceiver) => {
+        if (transceiver.sender?.track?.kind === "audio") {
+          const capabilities = RTCRtpSender.getCapabilities("audio");
+          if (capabilities) {
+            // Metti Opus primo (migliore qualità)
+            const codecs = capabilities.codecs.sort((a, b) => {
+              if (a.mimeType === "audio/opus") return -1;
+              if (b.mimeType === "audio/opus") return 1;
+              return 0;
+            });
+            transceiver.setCodecPreferences(codecs);
+          }
+        }
+      });
+    } catch (error) {
+      // Se non funziona, pazienza - il browser usa quello di default
+      console.log("Codec preference non supportato:", error);
     }
   }
 
@@ -941,15 +967,15 @@ class PeerConnectionManager {
    * @param {boolean} isAnswer - Se true, stiamo creando un answer
    */
   _addLocalTracksIfAvailable(pc, remoteParticipantUUID, isAnswer = false) {
-  console.log(`🔧 _addLocalTracksIfAvailable CHIAMATO!`, {
-    myId: this.globalState.getMyId(),
-    hasLocalStream: !!this.globalState.getLocalStream(),
-    remoteParticipantUUID,
-    isAnswer,
-    signalingState: pc.signalingState,
-    existingMappings: this.streamMappingManager?.getAllMappings(),
-    existingTransceivers: pc.getTransceivers().length
-  });
+    console.log(`🔧 _addLocalTracksIfAvailable CHIAMATO!`, {
+      myId: this.globalState.getMyId(),
+      hasLocalStream: !!this.globalState.getLocalStream(),
+      remoteParticipantUUID,
+      isAnswer,
+      signalingState: pc.signalingState,
+      existingMappings: this.streamMappingManager?.getAllMappings(),
+      existingTransceivers: pc.getTransceivers().length,
+    });
 
     // Add local stream tracks (audio/video)
     const localStream = this.globalState.getLocalStream();
