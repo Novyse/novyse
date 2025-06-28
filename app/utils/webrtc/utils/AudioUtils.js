@@ -14,7 +14,7 @@ class AudioUtils {
    * @param {number} options.cutoffFreq - High-pass filter cutoff frequency (default: 80)
    * @returns {MediaStream} Filtered audio stream
    */
-  noiseReduction(inputStream, options = {}) {
+  noiseSuppression(inputStream, options = {}) {
     const { threshold = -50, reduction = -20, cutoffFreq = 80 } = options;
 
     try {
@@ -56,9 +56,10 @@ class AudioUtils {
       source.connect(highPassFilter);
       highPassFilter.connect(compressor);
       compressor.connect(outputGain);
-      outputGain.connect(outputDestination);
 
+      outputGain.connect(outputDestination);
       return outputDestination.stream;
+
     } catch (error) {
       console.error("Error in noise reduction:", error);
       return inputStream; // Return original stream if processing fails
@@ -66,6 +67,125 @@ class AudioUtils {
   }
 
   /**
+   * Applies audio expansion to increase dynamic range and reduce noise
+   * @param {MediaStream} inputStream - Input media stream
+   * @param {Object} options - Configuration options
+   * @param {number} options.threshold - Expansion threshold in dB (default: -40)
+   * @param {number} options.ratio - Expansion ratio (default: 2)
+   * @param {number} options.attack - Attack time in seconds (default: 0.001)
+   * @param {number} options.release - Release time in seconds (default: 0.1)
+   * @param {number} options.makeupGain - Makeup gain in dB (default: 0)
+   * @param {number} options.knee - Knee width in dB (default: 5)
+   * @returns {MediaStream} Expanded audio stream
+   */
+  expander(inputStream, options = {}) {
+    const {
+      threshold = -40,
+      ratio = 2,
+      attack = 0.001,
+      release = 0.1,
+      makeupGain = 0,
+      knee = 5,
+    } = options;
+
+    console.log(
+      `📈 Expander attivo: threshold ${threshold} dB, ratio ${ratio}:1`
+    );
+
+    try {
+      const source = this.audioContext.createMediaStreamSource(inputStream);
+      const analyser = this.audioContext.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.3;
+
+      const expanderGain = this.audioContext.createGain();
+      expanderGain.gain.setValueAtTime(1, this.audioContext.currentTime);
+
+      // Makeup gain node
+      const makeupGainNode = this.audioContext.createGain();
+      makeupGainNode.gain.setValueAtTime(
+        Math.pow(10, makeupGain / 20),
+        this.audioContext.currentTime
+      );
+
+      const outputDestination =
+        this.audioContext.createMediaStreamDestination();
+
+      // Connect audio graph
+      source.connect(analyser);
+      source.connect(expanderGain);
+      expanderGain.connect(makeupGainNode);
+      makeupGainNode.connect(outputDestination);
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      let currentGain = 1;
+      let envelope = 0;
+
+      const expanderLoop = () => {
+        analyser.getByteFrequencyData(dataArray);
+
+        // Calculate RMS level
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i] * dataArray[i];
+        }
+        const rms = Math.sqrt(sum / dataArray.length);
+        const dbLevel = rms > 0 ? 20 * Math.log10(rms / 255) : -100;
+
+        // Calculate expansion
+        let targetGain = 1;
+
+        if (dbLevel < threshold) {
+          // Below threshold: apply expansion
+          const deltaDb = threshold - dbLevel;
+
+          // Soft knee calculation
+          let expansionDb;
+          if (deltaDb < knee / 2) {
+            // In knee region
+            const kneeRatio = deltaDb / (knee / 2);
+            expansionDb = deltaDb * (1 + kneeRatio * (ratio - 1));
+          } else {
+            // Full expansion
+            expansionDb = deltaDb * ratio;
+          }
+
+          // Convert to gain (negative gain for expansion)
+          targetGain = Math.pow(10, -expansionDb / 20);
+
+          // Clamp to reasonable values
+          targetGain = Math.max(0.01, Math.min(1, targetGain));
+        }
+
+        // Smooth gain changes with attack/release
+        const currentTime = this.audioContext.currentTime;
+        const timeDelta = 1 / 60; // Assuming 60fps
+
+        if (targetGain < currentGain) {
+          // Attack phase
+          const attackCoeff = Math.exp(-timeDelta / attack);
+          currentGain = targetGain + (currentGain - targetGain) * attackCoeff;
+        } else {
+          // Release phase
+          const releaseCoeff = Math.exp(-timeDelta / release);
+          currentGain = targetGain + (currentGain - targetGain) * releaseCoeff;
+        }
+
+        // Apply gain
+        expanderGain.gain.setTargetAtTime(currentGain, currentTime, 0.01);
+
+        requestAnimationFrame(expanderLoop);
+      };
+
+      expanderLoop();
+      return outputDestination.stream;
+    } catch (error) {
+      console.error("Error in expander:", error);
+      return inputStream;
+    }
+  }
+
+    /**
    * Applies noise gate to an audio stream with different strategies
    * @param {MediaStream} inputStream - Input media stream
    * @param {Object} options - Configuration options
@@ -74,6 +194,7 @@ class AudioUtils {
    * @param {number} options.ratio - Gate ratio (default: 12)
    * @param {number} options.attack - Attack time (default: 0.002)
    * @param {number} options.release - Release time (default: 0.15)
+   * @param {number} options.holdTime - Hold time in seconds (default: 0.1)
    * @param {number} options.adaptationSpeed - Adaptation speed for adaptive/hybrid (default: 0.1)
    * @param {number} options.minThreshold - Min threshold for adaptive (default: -50)
    * @param {number} options.maxThreshold - Max threshold for adaptive (default: -15)
@@ -87,6 +208,7 @@ class AudioUtils {
       ratio = 12,
       attack = 0.002,
       release = 0.15,
+      holdTime = 0.1,
       adaptationSpeed = 0.1,
       minThreshold = -50,
       maxThreshold = -15,
@@ -94,7 +216,7 @@ class AudioUtils {
     } = options;
 
     console.log(
-      `🎯 Noise gate tipo: ${type.toUpperCase()} (threshold: ${threshold} dB)`
+      `🎯 Noise gate tipo: ${type.toUpperCase()} (threshold: ${threshold} dB, hold: ${holdTime}s)`
     );
 
     try {
@@ -123,6 +245,12 @@ class AudioUtils {
       let lastLogTime = 0;
       let silenceStart = null;
       let voiceStart = null;
+      
+      // Variabili per smooth gating
+      let gateOpen = false;
+      let lastGateOpenTime = 0;
+      let currentGainValue = 0;
+      let targetGainValue = 0;
 
       const gateLoop = () => {
         analyser.getByteFrequencyData(dataArray);
@@ -136,11 +264,15 @@ class AudioUtils {
         const dbLevel = rms > 0 ? 20 * Math.log10(rms / 255) : -100;
 
         const now = Date.now();
+        const nowSeconds = now / 1000;
         const isAboveThreshold = dbLevel > currentThreshold;
 
-        // === GESTIONE DEL GATE ===
+        // === GESTIONE DEL GATE CON HOLD TIME ===
         if (isAboveThreshold) {
-          gateGain.gain.setValueAtTime(1, this.audioContext.currentTime);
+          // Segnale sopra threshold - apri il gate
+          gateOpen = true;
+          lastGateOpenTime = nowSeconds;
+          targetGainValue = 1;
 
           // Traccia periodo di voce per adaptive/hybrid
           if ((type === "adaptive" || type === "hybrid") && !voiceStart) {
@@ -149,27 +281,53 @@ class AudioUtils {
           }
 
           if (voiceStart && now - voiceStart < 1000) {
-            // 1 secondo di voce
             voiceSamples.push(dbLevel);
           }
         } else {
-          gateGain.gain.setValueAtTime(0, this.audioContext.currentTime);
+          // Segnale sotto threshold
+          // Controlla se siamo ancora nel periodo di hold
+          const timeSinceLastOpen = nowSeconds - lastGateOpenTime;
+          
+          if (timeSinceLastOpen > holdTime) {
+            // Hold time scaduto - chiudi il gate
+            gateOpen = false;
+            targetGainValue = 0;
+          }
+          // Altrimenti mantieni il gate aperto (hold time attivo)
 
           // Traccia periodo di silenzio per adaptive/hybrid
-          if ((type === "adaptive" || type === "hybrid") && !silenceStart) {
+          if ((type === "adaptive" || type === "hybrid") && !silenceStart && !gateOpen) {
             silenceStart = now;
             voiceStart = null;
           }
 
           if (silenceStart && now - silenceStart < 2000) {
-            // 2 secondi di silenzio
             noiseSamples.push(dbLevel);
           }
         }
 
+        // === SMOOTH GAIN TRANSITION ===
+        const timeDelta = 1 / 60; // 60fps
+        
+        if (targetGainValue > currentGainValue) {
+          // Attack phase - aprire il gate rapidamente
+          const attackCoeff = Math.exp(-timeDelta / attack);
+          currentGainValue = targetGainValue + (currentGainValue - targetGainValue) * attackCoeff;
+        } else if (targetGainValue < currentGainValue) {
+          // Release phase - chiudere il gate gradualmente
+          const releaseCoeff = Math.exp(-timeDelta / release);
+          currentGainValue = targetGainValue + (currentGainValue - targetGainValue) * releaseCoeff;
+        }
+
+        // Applica il gain con transizione smooth
+        gateGain.gain.setTargetAtTime(
+          currentGainValue, 
+          this.audioContext.currentTime, 
+          0.005 // Transizione molto smooth
+        );
+
         // === ADATTAMENTO BASATO SUL TIPO ===
         if (type === "adaptive" && noiseSamples.length > 50) {
-          // ADAPTIVE: Usa solo il threshold calcolato dinamicamente
           const avgNoise =
             noiseSamples.reduce((a, b) => a + b, 0) / noiseSamples.length;
           const maxNoise = Math.max(...noiseSamples);
@@ -194,20 +352,18 @@ class AudioUtils {
 
           noiseSamples = noiseSamples.slice(-20);
         } else if (type === "hybrid" && noiseSamples.length > 50) {
-          // HYBRID: Combina threshold statico con quello adattivo
           const avgNoise =
             noiseSamples.reduce((a, b) => a + b, 0) / noiseSamples.length;
 
           const calculatedThreshold = Math.max(
             avgNoise + 8,
-            threshold - 10 // Non andare più di 10dB sotto il threshold statico
+            threshold - 10
           );
 
-          // Mix tra statico e adattivo
           const targetThreshold =
             threshold * (1 - hybridWeight) + calculatedThreshold * hybridWeight;
 
-          const conservativeMin = Math.max(minThreshold, threshold - 15); // Non più di 15dB sotto lo statico
+          const conservativeMin = Math.max(minThreshold, threshold - 15);
           const clampedThreshold = Math.max(
             conservativeMin,
             Math.min(maxThreshold, targetThreshold)
@@ -220,9 +376,7 @@ class AudioUtils {
             console.log(
               `🔄 Threshold ibrido: ${currentThreshold.toFixed(
                 1
-              )} dB (statico: ${threshold} dB, adattivo: ${calculatedThreshold.toFixed(
-                1
-              )} dB, conservativeMin: ${conservativeMin.toFixed(1)} dB)`
+              )} dB (hold: ${holdTime}s)`
             );
             lastLogTime = now;
           }
@@ -230,9 +384,7 @@ class AudioUtils {
           noiseSamples = noiseSamples.slice(-20);
         }
 
-        // STATIC: currentThreshold rimane sempre uguale a threshold iniziale
-
-        // Calibrazione fine con campioni di voce (per adaptive e hybrid)
+        // Calibrazione fine con campioni di voce
         if (
           (type === "adaptive" || type === "hybrid") &&
           voiceSamples.length > 30
@@ -244,17 +396,11 @@ class AudioUtils {
             avgVoice - currentThreshold < 8 &&
             currentThreshold > minThreshold + 5
           ) {
-            const adjustment = (avgVoice - 5 - currentThreshold) * 0.02; // MOLTO più conservativo
+            const adjustment = (avgVoice - 5 - currentThreshold) * 0.02;
             currentThreshold += adjustment;
             currentThreshold = Math.max(
               minThreshold,
               Math.min(maxThreshold, currentThreshold)
-            );
-
-            console.log(
-              `🎤 Threshold calibrato per voce: ${currentThreshold.toFixed(
-                1
-              )} dB (voce media: ${avgVoice.toFixed(1)} dB)`
             );
           }
 

@@ -113,7 +113,15 @@ const self = {
       };
 
       const newAudioStream = await mediaDevices.getUserMedia(newConstraints);
-      const newAudioTrack = newAudioStream.getAudioTracks()[0];
+      // Apply audio processing using StreamManager
+      let processedStream = newAudioStream;
+      if (Platform.OS === "web") {
+        processedStream = await WebRTC.streamManager.applyAudioProcessing(
+          newAudioStream
+        );
+      }
+
+      const newAudioTrack = processedStream.getAudioTracks()[0];
 
       if (!newAudioTrack) {
         throw new Error("Failed to get audio track from new device");
@@ -395,7 +403,7 @@ const self = {
         const videoTrack = await WebRTC.addVideoTrack();
         if (videoTrack) {
           WebRTC.setVideoEnabled(true);
-          
+
           return true;
         } else {
           // Permission was denied or failed to get video track, stay disabled
