@@ -1,8 +1,11 @@
 import axios from "axios";
 import eventEmitter from "./EventEmitter";
+import 'dotenv/config';
+
+const path =  process.env.BRANCH === "dev" ? "/test" : "/v1";
 
 const domain = "https://api.novyse.com";
-const APIlink = domain + "/test";
+const APIlink = domain + path
 const api = axios.create({
   baseURL: APIlink,
   withCredentials: true, // IMPORTANTE: Mantiene i cookie
