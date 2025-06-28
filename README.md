@@ -1,3 +1,9 @@
+
+
+Note:
+1) Build web: npx expo export -p web
+2) ...
+
 # Messanger Client
 
 I principali componenti dell'applicazione si trovano in:
