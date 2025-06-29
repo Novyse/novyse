@@ -3,10 +3,15 @@ import eventEmitter from "./EventEmitter";
 import { io } from "socket.io-client";
 import APIMethods from "./APImethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import 'dotenv/config';
 
-const path =  process.env.BRANCH === "dev" ? "/test/io" : "/v1/io";
+import { BRANCH, IO_BASE_URL } from "../../app.config.js";
 
+const path = BRANCH === "dev" ? "/test/io" : "/v1/io";
+console.log(
+  "LE BANANE SONO TANTE MILIONI DI MILIONI DIOCANE I NEGROI",
+  path,
+  BRANCH
+);
 let socket = null;
 let localUserHandle = null;
 
@@ -30,7 +35,7 @@ const WebSocketMethods = {
         socket = null;
       }
 
-      socket = io("wss://io.novyse.com", {
+      socket = io(IO_BASE_URL, {
         path: path,
         transports: ["websocket"],
         autoConnect: true,
@@ -420,7 +425,7 @@ const WebSocketMethods = {
     await AsyncStorage.setItem("lastUpdateDateTime", date);
     console.log("lastUpdateDateTime: ", date);
   },
-  sendWebcamStatus: async (from,chatId, isOn) => {
+  sendWebcamStatus: async (from, chatId, isOn) => {
     if (!socket || !socket.connected) {
       console.error("Cannot send webcam status: Socket not connected");
       return;

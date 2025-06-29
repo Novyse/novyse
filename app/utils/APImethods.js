@@ -1,11 +1,11 @@
 import axios from "axios";
 import eventEmitter from "./EventEmitter";
-import 'dotenv/config';
+import { BRANCH, API_BASE_URL } from "../../app.config.js";
 
-const path =  process.env.BRANCH === "dev" ? "/test" : "/v1";
+const path = BRANCH === "dev" ? "/test" : "/v1";
 
-const domain = "https://api.novyse.com";
-const APIlink = domain + path
+const domain = API_BASE_URL;
+const APIlink = domain + path;
 const api = axios.create({
   baseURL: APIlink,
   withCredentials: true, // IMPORTANTE: Mantiene i cookie
@@ -227,26 +227,26 @@ const APIMethods = {
     try {
       const response = await api.get(`/comms/get/members?chat_id=${chatId}`);
       const commsData = {};
-      
-      response.data.comms_members_list.forEach(member => {
+
+      response.data.comms_members_list.forEach((member) => {
         if (!commsData[member.from]) {
           commsData[member.from] = {
-        userData: {
-          handle: member.handle,
-          isSpeaking: member.is_speaking,
-          webcamOn: member.webcam_on,
-        },
-        activeScreenShares: []
+            userData: {
+              handle: member.handle,
+              isSpeaking: member.is_speaking,
+              webcamOn: member.webcam_on,
+            },
+            activeScreenShares: [],
           };
         }
-        
+
         if (member.active_screen_share) {
-          commsData[member.from].activeScreenShares.push(...member.active_screen_share);
+          commsData[member.from].activeScreenShares.push(
+            ...member.active_screen_share
+          );
         }
       });
 
-      
-      
       return commsData;
     } catch (error) {
       console.error("Error in updateAll:", error);
