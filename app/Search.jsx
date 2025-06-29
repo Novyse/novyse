@@ -32,7 +32,7 @@ const Search = () => {
     const checkLogged = async () => {
       const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
       if (isLoggedIn !== "true") {
-        router.navigate("/loginSignup/EmailCheckForm");
+        router.navigate("/welcome/emailcheck");
       }
     };
     checkLogged();

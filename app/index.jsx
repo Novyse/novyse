@@ -18,6 +18,8 @@ import { SplashScreen } from "expo-router";
 import logo_novyse_bg from "../assets/images/logo-novyse-bg.png";
 import ScreenLayout from "./components/ScreenLayout";
 
+import EmailCheckForm from "./welcome/emailcheck";
+
 // Impedisce la rimozione automatica dello splash screen
 SplashScreen.preventAutoHideAsync();
 
@@ -85,18 +87,20 @@ export default function Index() {
     );
   }
   return (
-    <ScreenLayout>
-      <View style={styles.containerStart}>
-        <Text style={styles.welcomeText}>BENVENUTO</Text>
-        <Pressable
-          style={styles.containerStartButton}
-          onPress={() => router.navigate(`/loginSignup/EmailCheckForm`)}
-        >
-          <MaterialIcons name="arrow-forward" size={52} color={theme.icon} />
-        </Pressable>
-      </View>
-      <StatusBar style="light" backgroundColor={theme.backgroundClassic} />
-    </ScreenLayout>
+    // <ScreenLayout>
+    //   <View style={styles.containerStart}>
+    //     <Text style={styles.welcomeText}>BENVENUTO</Text>
+    //     <Pressable
+    //       style={styles.containerStartButton}
+    //       onPress={() => router.navigate(`/welcome/EmailCheckForm`)}
+    //     >
+    //       <MaterialIcons name="arrow-forward" size={52} color={theme.icon} />
+    //     </Pressable>
+
+    //   </View>
+    //   <StatusBar style="light" backgroundColor={theme.backgroundClassic} />
+    // </ScreenLayout>
+    <EmailCheckForm />
   );
 }
 

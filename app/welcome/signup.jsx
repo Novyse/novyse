@@ -51,7 +51,7 @@ const Signup = () => {
     // checkLogged();
 
     const backAction = () => {
-      router.navigate("/loginSignup/EmailCheckForm");
+      router.navigate("/welcome/emailcheck");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -113,7 +113,7 @@ const Signup = () => {
     );
 
     if (signupResponse) {
-      router.navigate("/loginSignup/EmailCheckForm");
+      router.navigate("/welcome/emailcheck");
     } else {
       console.log("Signup Failed", "Please try again.");
     }

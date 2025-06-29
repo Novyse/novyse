@@ -79,7 +79,7 @@ const APIMethods = {
   },
 
   // chiede il login all'API
-  async loginPasswordAPI(email, password) {
+  async loginAPI(email, password) {
     try {
       const response = await api.get(
         `/user/auth/login?email=${email}&password=${password}`
@@ -87,7 +87,7 @@ const APIMethods = {
 
       return response;
     } catch (error) {
-      console.error("Error in loginPasswordAPI:", error);
+      console.error("Error in loginAPI:", error);
       throw error;
     }
   },
