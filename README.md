@@ -27,7 +27,7 @@ Serve per expo-router, non tocchiamola gentilmente
 ## ChatContent
 Si tratta della pagina che effettivamente si occupa di gestire e mostrare il contenuto effettivo di una chat. Viene integrata dentro ChatList per il lato responsive
 
-## /loginSignup/EmailCheckForm
+## /welcome/EmailCheckForm
 Questa pagina permette di inserire una email all'utente, se questa email risulta:
 
  - già presente nel DB: si passerà al login
@@ -35,11 +35,11 @@ Questa pagina permette di inserire una email all'utente, se questa email risulta
 
 È inoltre presente un controllo che verifica se il testo inserito corrisponde effettivamente ad una email.
 
-## /loginSignup/LoginPassword
+## /welcome/LoginPassword
 Questa pagina permette ad un utente che ha già effettuato un signup di loggarsi nell'app.
 Se il login avviene con successo verrà salvata una variabile nel DB locale tramite AsyncStorage che mantiene la sessione. Viene inoltre pulito il DB locale e aperta una connessione websocket.
 
-## /loginSignup/Signup
+## /welcome/Signup
 Questa pagina React Native implementa un modulo di registrazione utente con campi per password, conferma password, nome, cognome e handle univoco. Gestisce la visibilità della password tramite icone interattive, verifica automaticamente la disponibilità dell'handle tramite una chiamata API, e include la validazione del form prima dell'invio. Se l'utente è già loggato, viene reindirizzato automaticamente alla schermata dei messaggi.
 
 ## /messages

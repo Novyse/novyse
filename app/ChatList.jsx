@@ -248,7 +248,7 @@ const ChatList = () => {
     if (loggedOutFromAPI) {
       console.log("Logout dall'API completato");
     }
-    router.navigate("/loginSignup/EmailCheckForm");
+    router.navigate("/welcome/emailcheck");
   };
 
   // viene richiamata nello useEffect, serve per ottenere le chat dal DB locale
@@ -780,12 +780,15 @@ const ChatList = () => {
         );
     }
   };
+
+  
   return (
     <ScreenLayout>
       <StatusBar
         style="light"
         backgroundColor={theme.backgroundStatusBar}
         translucent={false}
+        hidden={false}
       />
       {renderSidebar()}
       {!isSmallScreen || (isSmallScreen && !selectedChat)

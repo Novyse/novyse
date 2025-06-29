@@ -46,7 +46,7 @@ const LoginPassword = () => {
     });
 
     const backAction = () => {
-      router.navigate("/loginSignup/EmailCheckForm");
+      router.navigate("/welcome/emailcheck");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -75,7 +75,7 @@ const LoginPassword = () => {
     setIsLoading(true);
     
     try {
-      const loginSuccess = await JsonParser.loginPasswordJson(
+      const loginSuccess = await JsonParser.loginJson(
         emailValue,
         password
       );

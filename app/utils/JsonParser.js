@@ -49,9 +49,9 @@ class JsonParser {
   }
 
   // Metodo per effettuare il login e restituire l'API Key
-  static async loginPasswordJson(email, password) {
+  static async loginJson(email, password) {
     try {
-      const response = await APIMethods.loginPasswordAPI(email, password);
+      const response = await APIMethods.loginAPI(email, password);
 
       if (response.status === 200) {
         const jsonResponse = response.data;
