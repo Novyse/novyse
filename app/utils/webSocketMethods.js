@@ -3,6 +3,9 @@ import eventEmitter from "./EventEmitter";
 import { io } from "socket.io-client";
 import APIMethods from "./APImethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import 'dotenv/config';
+
+const path =  process.env.BRANCH === "dev" ? "/test/io" : "/v1/io";
 
 let socket = null;
 let localUserHandle = null;
@@ -28,7 +31,7 @@ const WebSocketMethods = {
       }
 
       socket = io("wss://io.novyse.com", {
-        path: "/test/io",
+        path: path,
         transports: ["websocket"],
         autoConnect: true,
         reconnectionAttempts: -1,
