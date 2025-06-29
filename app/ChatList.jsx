@@ -786,8 +786,8 @@ const ChatList = () => {
     <ScreenLayout>
       <StatusBar
         style="light"
-        backgroundColor={theme.backgroundStatusBar}
-        translucent={false}
+        backgroundColor={"transparent"}
+        translucent={true}
         hidden={false}
       />
       {renderSidebar()}
@@ -1004,12 +1004,11 @@ function createStyle(theme, colorScheme) {
       bottom: 0,
       width: 250,
       zIndex: 2,
-      borderTopRightRadius: 15,
     },
     sidebarContent: {
       flex: 1,
       padding: 20,
-      borderTopRightRadius: 15,
+      paddingTop: 60
     },
     overlay: {
       position: "absolute",
