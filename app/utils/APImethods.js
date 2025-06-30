@@ -95,6 +95,55 @@ const APIMethods = {
     }
   },
 
+  // chiedi all'API di generare il token per il QR Code
+  async generateQRCodeTokenAPI() {
+    try {
+      const response = await api.get("/user/auth/qr_code/generate");
+
+      const data = response.data;
+      if (!data || !data.qr_code_generated) {
+        console.error("QR Code generation failed:", data);
+        return null;
+      }
+      return data.qr_token;
+    } catch (error) {
+      console.error("Error in generateQRCodeTokenAPI:", error);
+      throw error;
+    }
+  },
+
+  // chiede all'API di scansionare il QR Code
+  async scanQRCodeAPI(qr_token) {
+    try {
+      const response = await api.get(
+        `/user/auth/qr_code/scan?qr_token=${qr_token}`
+      );
+      return response.data.qr_code_scanned;
+    } catch (error) {
+      console.error("Error in scanQRCodeAPI:", error);
+      throw error;
+    }
+  },
+
+  // chiede all'API di verificare se il token del QR Code è stato scansionato
+  async checkQRCodeScannedAPI(qr_token) {
+    try {
+      const response = await api.get(
+        `/user/auth/qr_code/check?qr_token=${qr_token}`
+      );
+
+      const data = response.data;
+      if (!data || !data.qr_code_checked) {
+        console.error("QR Code check failed:", data);
+        return null;
+      }
+      return response.data.token;
+    } catch (error) {
+      console.error("Error in checkQRCodeScannedAPI:", error);
+      throw error;
+    }
+  },
+
   //chiede init all'API
   async initAPI() {
     try {

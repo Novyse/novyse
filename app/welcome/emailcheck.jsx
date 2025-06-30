@@ -15,10 +15,13 @@ import JsonParser from "../utils/JsonParser";
 import { useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
+import APIMethods from "../utils/APImethods";
+import QRCode from "react-native-qrcode-svg";
 
 const EmailCheckForm = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState(null);
+  const [qrToken, setQrToken] = useState("");
   const loginTheme = "default";
 
   // 2. Ottieni la larghezza dello schermo e definisci il breakpoint
@@ -27,6 +30,16 @@ const EmailCheckForm = () => {
 
   // Passa la variabile isSmallScreen per creare stili dinamici
   const styles = createStyle(loginTheme, isSmallScreen);
+
+  const logoForQR = require("../../assets/images/logo-novyse-nobg-less-margin.png");
+
+  useEffect(() => {
+    const fetchQrToken = async () => {
+      const token = await APIMethods.generateQRCodeTokenAPI();
+      setQrToken(token);
+    };
+    fetchQrToken();
+  }, []);
 
   const router = useRouter();
 
@@ -155,7 +168,15 @@ const EmailCheckForm = () => {
 
             {/* QR Code Block */}
             <View style={styles.cardContent}>
-              <View style={styles.qrcodeContainer} />
+              <View style={styles.qrcodeContainer}>
+                {qrToken ? (
+                  <QRCode value={qrToken} logo={logoForQR} size={200}/> // ti prego di perdornarmi, ma non so come si fa
+                ) : (
+                  <Text style={{ textAlign: "center", marginTop: 100 }}>
+                    Loading QR...
+                  </Text>
+                )}
+              </View>
               <Text style={styles.qrcodeSubtitle}>Scan QR to login</Text>
             </View>
           </>
@@ -234,7 +255,7 @@ function createStyle(loginTheme, isSmallScreen) {
       outlineStyle: "none",
       backgroundColor: "white",
       borderColor: LoginColors[loginTheme].borderTextInput,
-      borderWidth: 1.5
+      borderWidth: 1.5,
     },
     submitButton: {
       flexDirection: "row",
