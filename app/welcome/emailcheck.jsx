@@ -31,16 +31,6 @@ const EmailCheckForm = () => {
   // Passa la variabile isSmallScreen per creare stili dinamici
   const styles = createStyle(loginTheme, isSmallScreen);
 
-  const logoForQR = require("../../assets/images/logo-novyse-nobg-less-margin.png");
-
-  useEffect(() => {
-    const fetchQrToken = async () => {
-      const token = await APIMethods.generateQRCodeTokenAPI();
-      setQrToken(token);
-    };
-    fetchQrToken();
-  }, []);
-
   const router = useRouter();
 
   useEffect(() => {
@@ -53,6 +43,53 @@ const EmailCheckForm = () => {
       backAction
     );
     return () => backHandler.remove();
+  }, []);
+
+  const logoForQR = require("../../assets/images/logo-novyse-nobg-less-margin.png");
+
+  useEffect(() => {
+    let pollingInterval;
+    let isMounted = true;
+
+    const fetchQrToken = async () => {
+      const token = await APIMethods.generateQRCodeTokenAPI();
+      if (isMounted) setQrToken(token);
+
+      // Avvia il polling solo se il token è valido
+      if (token) {
+        pollingInterval = setInterval(async () => {
+          try {
+            const response = await APIMethods.checkQRCodeScannedAPI(token);
+
+            if (response.status === 200) {
+              // QR scansionato, salva il token
+              const token = response.data.token;
+              // DA FARE LOGICA PER IL LOGIN
+              clearInterval(pollingInterval);
+              // Naviga o aggiorna stato
+            } else if (response.status === 202) {
+              // QR valido ma non ancora scansionato: continua polling
+            }
+          } catch (error) {
+            if (error.response?.status === 401) {
+              // QR scaduto: rigenera
+              setQrToken(null); // Used to trigger reload of QR code
+              clearInterval(pollingInterval);
+              fetchQrToken();
+            } else {
+              clearInterval(pollingInterval);
+            }
+          }
+        }, 5000);
+      }
+    };
+
+    fetchQrToken();
+
+    return () => {
+      isMounted = false;
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
   }, []);
 
   const validateEmail = (value) => {
@@ -170,11 +207,15 @@ const EmailCheckForm = () => {
             <View style={styles.cardContent}>
               <View style={styles.qrcodeContainer}>
                 {qrToken ? (
-                  <QRCode value={qrToken} logo={logoForQR} size={200}/> // ti prego di perdornarmi, ma non so come si fa
+                  <QRCode
+                    value={qrToken}
+                    logo={logoForQR}
+                    size={styles.qrcodeContainer.width - 10}
+                  /> // ti prego di perdornarmi, ma non so come si fa
                 ) : (
                   <Text style={{ textAlign: "center", marginTop: 100 }}>
                     Loading QR...
-                  </Text>
+                  </Text>// qua ci andrebbe il cerchio di caricamento così anche quando fa la rigenerazione lo vedo
                 )}
               </View>
               <Text style={styles.qrcodeSubtitle}>Scan QR to login</Text>

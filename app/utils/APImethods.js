@@ -132,12 +132,7 @@ const APIMethods = {
         `/user/auth/qr_code/check?qr_token=${qr_token}`
       );
 
-      const data = response.data;
-      if (!data || !data.qr_code_checked) {
-        console.error("QR Code check failed:", data);
-        return null;
-      }
-      return response.data.token;
+      return response;
     } catch (error) {
       console.error("Error in checkQRCodeScannedAPI:", error);
       throw error;
