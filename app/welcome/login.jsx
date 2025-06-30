@@ -15,11 +15,16 @@ import { BlurView } from "expo-blur";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
 import JsonParser from "../utils/JsonParser";
-import localDatabase from "../utils/localDatabaseMethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ArrowRight02Icon, ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
+import {
+  ArrowRight02Icon,
+  ViewIcon,
+  ViewOffIcon,
+} from "@hugeicons/core-free-icons";
 import ScreenLayout from "../components/ScreenLayout";
+
+import { clearDBAddTokenInit } from "../utils/welcome/auth";
 
 const { width, height } = Dimensions.get("window");
 
@@ -56,15 +61,6 @@ const LoginPassword = () => {
     return () => backHandler.remove();
   }, []);
 
-  const storeSetIsLoggedIn = async (value) => {
-    try {
-      await AsyncStorage.setItem("isLoggedIn", value);
-      console.log("storeSetIsLoggedIn: ", value);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
   const handleLogin = async () => {
     if (!password) {
       setError("Per favore inserisci la tua password");
@@ -73,12 +69,9 @@ const LoginPassword = () => {
 
     setError(null);
     setIsLoading(true);
-    
+
     try {
-      const loginSuccess = await JsonParser.loginJson(
-        emailValue,
-        password
-      );
+      const loginSuccess = await JsonParser.loginJson(emailValue, password);
       console.log("Login Success?", loginSuccess);
 
       if (!loginSuccess) {
@@ -87,31 +80,12 @@ const LoginPassword = () => {
         setIsLoading(false);
         return;
       } else {
-        await new Promise((resolve) => {
-          const checklocalDatabase = setInterval(() => {
-            if (localDatabase.db) {
-              clearInterval(checklocalDatabase);
-              resolve();
-            }
-          }, 50);
-        });
+        const success = await clearDBAddTokenInit(loginSuccess);
 
-        await localDatabase.clearDatabase();
-
-        const exists = await localDatabase.checkDatabaseExistence();
-        console.log("Database exists:", exists);
-
-        await AsyncStorage.setItem("sessionIdToken", loginSuccess);
-        console.log("⭐⭐⭐", await AsyncStorage.getItem("sessionIdToken"));
-
-        const initSuccess = await JsonParser.initJson();
-
-        if (initSuccess) {
-          console.log("Init Success ⭐");
-          await storeSetIsLoggedIn("true");
+        if (success) {
           router.replace("/messages");
         } else {
-          console.log("Init Error");
+          console.error("Error clearing DB, adding token or during init");
         }
       }
     } catch (error) {
@@ -157,9 +131,11 @@ const LoginPassword = () => {
                   placeholder="Inserisci la tua password"
                   placeholderTextColor="rgba(255,255,255,0.5)"
                   secureTextEntry={secureTextEntry}
-                  onSubmitEditing={Platform.OS === "web" ? handleLogin : undefined}
+                  onSubmitEditing={
+                    Platform.OS === "web" ? handleLogin : undefined
+                  }
                 />
-                
+
                 {/* Eye Icon */}
                 <TouchableOpacity
                   style={styles.eyeButton}

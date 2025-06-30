@@ -8,7 +8,8 @@ import {
   Platform,
   TouchableOpacity,
   Image,
-  useWindowDimensions, // 1. Importa l'hook per le dimensioni dello schermo
+  useWindowDimensions,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import JsonParser from "../utils/JsonParser";
@@ -17,6 +18,8 @@ import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import APIMethods from "../utils/APImethods";
 import QRCode from "react-native-qrcode-svg";
+
+import { clearDBAddTokenInit } from "../utils/welcome/auth";
 
 const EmailCheckForm = () => {
   const [email, setEmail] = useState("");
@@ -64,7 +67,13 @@ const EmailCheckForm = () => {
             if (response.status === 200) {
               // QR scansionato, salva il token
               const token = response.data.token;
-              // DA FARE LOGICA PER IL LOGIN
+              const success = await clearDBAddTokenInit(token);
+
+              if (success) {
+                router.replace("/messages");
+              }
+
+              setQrToken(null); // Used to trigger reload of QR code
               clearInterval(pollingInterval);
               // Naviga o aggiorna stato
             } else if (response.status === 202) {
@@ -210,12 +219,18 @@ const EmailCheckForm = () => {
                   <QRCode
                     value={qrToken}
                     logo={logoForQR}
-                    size={styles.qrcodeContainer.width - 10}
-                  /> // ti prego di perdornarmi, ma non so come si fa
+                    size={styles.qrcodeContainer.width}
+                    enableLinearGradient={true}
+                    linearGradient={["#013480", "#177FC0"]}
+                    logoBorderRadius={100}
+                    logoMargin={5}
+                    logoBackgroundColor={"black"}
+                  />
                 ) : (
-                  <Text style={{ textAlign: "center", marginTop: 100 }}>
-                    Loading QR...
-                  </Text>// qua ci andrebbe il cerchio di caricamento così anche quando fa la rigenerazione lo vedo
+                  <ActivityIndicator
+                    size="large"
+                    color={LoginColors[loginTheme].iconLoading}
+                  />
                 )}
               </View>
               <Text style={styles.qrcodeSubtitle}>Scan QR to login</Text>
@@ -318,12 +333,15 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     qrcodeContainer: {
       alignSelf: "center",
+      alignItems: "center",
+      justifyContent: "center",
       height: 250,
       width: 250,
       backgroundColor: LoginColors[loginTheme].backgroundQRCode,
       borderRadius: 12,
       borderColor: LoginColors[loginTheme].borderQRCode,
-      borderWidth: 2,
+      borderWidth: 1.5,
+      padding: 10,
     },
     logo: {
       alignSelf: "center",

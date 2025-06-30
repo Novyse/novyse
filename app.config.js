@@ -10,7 +10,7 @@ const IO_BASE_URL = "wss://io.novyse.com";
 const BRANCH = "dev";
 //.ENV
 
-export { BRANCH, API_BASE_URL, IO_BASE_URL, APP_VERSION, };
+export { BRANCH, API_BASE_URL, IO_BASE_URL, APP_VERSION };
 
 // Genera suffisso per dev mode
 const getDevSuffix = () => {
@@ -71,6 +71,15 @@ export default {
       "expo-sqlite",
       "expo-audio",
       "expo-video",
+      [
+        "expo-camera",
+        {
+          cameraPermission: "Allow $(PRODUCT_NAME) to access your camera",
+          microphonePermission:
+            "Allow $(PRODUCT_NAME) to access your microphone",
+          recordAudioAndroid: true,
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,

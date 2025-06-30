@@ -13,7 +13,6 @@ import JsonParser from "../utils/JsonParser";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import ScreenLayout from "../components/ScreenLayout";
 

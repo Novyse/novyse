@@ -34,6 +34,7 @@ import eventEmitter from "./utils/EventEmitter";
 import WebSocketMethods from "./utils/webSocketMethods";
 import localDatabase from "./utils/localDatabaseMethods";
 import ChatContainer from "./ChatContainer";
+import QRCodeReader from "./components/QRCodeReader";
 
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
@@ -379,12 +380,34 @@ const ChatList = () => {
     }
   }, [isSmallScreen, selectedChat, contentView, forceUpdate]);
 
+  // QR Code Scanner
+  const handleCodeScanned = async (content) => {
+    try {
+      console.log("QR Code content:", content);
+      const success = await APIMethods.scanQRCodeAPI(content);
+
+      if(!success) {
+        Alert.alert("Errore", "Impossibile gestire il codice QR. Riprova.");
+        return;
+      }
+
+      // Se la scansione è andata a buon fine, fai apparire un messaggio di successo
+      Alert.alert("Successo", "Codice QR scansionato con successo!");
+
+    } catch (error) {
+      console.error("Error handling QR code scan:", error);
+      Alert.alert("Errore", "Impossibile gestire la scansione del codice QR.");
+    }
+  };
+
   // Aggiungi questa funzione accanto a renderBigFloatingCommsMenu
   const renderSmallCommsMenu = () => {
     if (!shouldShowSmallCommsMenu()) return null;
 
     return <SmallCommsMenu />;
   };
+
+  // sidebar
   const renderSidebar = () => (
     <>
       {overlayVisible && (
@@ -442,6 +465,11 @@ const ChatList = () => {
               }}
             />
           </View>
+
+          <QRCodeReader
+            onCodeScanned={handleCodeScanned}
+            style={styles.qrReaderText}
+          />
         </SmartBackground>
       </Animated.View>
     </>
@@ -781,7 +809,6 @@ const ChatList = () => {
     }
   };
 
-  
   return (
     <ScreenLayout>
       <StatusBar
@@ -1008,7 +1035,7 @@ function createStyle(theme, colorScheme) {
     sidebarContent: {
       flex: 1,
       padding: 20,
-      paddingTop: 60
+      paddingTop: 60,
     },
     overlay: {
       position: "absolute",
