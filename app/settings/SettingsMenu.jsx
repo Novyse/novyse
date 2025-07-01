@@ -26,20 +26,18 @@ const SettingsMenu = () => {
         {/* Avvolgi i menu items in uno ScrollView */}
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <SettingsMenuItem
-            navToPage="themes"
+            navToPage="/settings/themes"
             pageName="Temi"
             iconName={PaintBoardIcon}
           />
-
           <SettingsMenuItem
-            navToPage="storage"
+            navToPage="/settings/storage"
             pageName="Archiviazione"
             iconName={Folder01Icon}
           />
-
           {Platform.OS === "android" && (
             <SettingsMenuItem
-              navToPage="qrscanner"
+              navToPage="/settings/qrscanner"
               pageName="QR Scanner"
               iconName={QrCode01Icon}
             />

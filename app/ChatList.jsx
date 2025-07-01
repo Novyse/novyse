@@ -288,10 +288,10 @@ const ChatList = () => {
     setSelectedChat(chatId);
     setContentView("chat");
     if (!isSmallScreen) {
-      router.setParams({ chatId });
-      router.setParams({ chatId: chatId, creatingChatWith: undefined });
+      // Desktop/tablet: aggiorna solo lo stato
+      router.setParams({ chatId, creatingChatWith: undefined });
     } else {
-      // Su schermi piccoli, naviga a una nuova schermata
+      // Mobile: naviga a una nuova schermata
       router.push(`/messages?chatId=${chatId}`);
     }
   };
@@ -379,8 +379,6 @@ const ChatList = () => {
     }
   }, [isSmallScreen, selectedChat, contentView, forceUpdate]);
 
-  
-
   // Aggiungi questa funzione accanto a renderBigFloatingCommsMenu
   const renderSmallCommsMenu = () => {
     if (!shouldShowSmallCommsMenu()) return null;
@@ -446,8 +444,6 @@ const ChatList = () => {
               }}
             />
           </View>
-
-          
         </SmartBackground>
       </Animated.View>
     </>

@@ -66,7 +66,7 @@ const QRScanner = () => {
         hidden={true}
       />
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
-        <HeaderWithBackArrow goBackTo="./SettingsMenu" />
+        <HeaderWithBackArrow goBackTo="/settings/SettingsMenu" />
       </View>
       <QRCodeReader onCodeScanned={handleCodeScanned} />
     </View>
