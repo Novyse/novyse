@@ -82,7 +82,8 @@ const styles = StyleSheet.create({
   camera: {
     flex: 1,
     width: "100%",
-    justifyContent: "flex-end", // Align button at the bottom
+    justifyContent: "flex-end",
+    height: "100%"
   },
   buttonContainer: {
     flexDirection: "row",
