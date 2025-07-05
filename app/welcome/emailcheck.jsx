@@ -108,7 +108,7 @@ const EmailCheckForm = () => {
 
   const handleSubmit = async () => {
     if (!email) {
-      setError("Per favore inserisci la tua email");
+      setError("Email cannot be empty");
       return;
     }
 
@@ -147,6 +147,13 @@ const EmailCheckForm = () => {
     }
   };
 
+
+
+
+
+
+
+  
   return (
     <LinearGradient
       colors={
@@ -266,9 +273,9 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     cardContent: {
       width: isSmallScreen ? "100%" : 400, // Larghezza piena su mobile
-      height: isSmallScreen ? 600 : 400, // Altezza automatica su mobile
       justifyContent: isSmallScreen ? "" : "center",
       alignContent: "center",
+      
     },
     title: {
       fontSize: 42,
@@ -299,6 +306,7 @@ function createStyle(loginTheme, isSmallScreen) {
       alignSelf: "center",
       width: isSmallScreen ? "100%" : 350,
       alignItems: "center", // <-- LA SOLUZIONE! Centra i figli orizzontalmente.
+      
     },
     textInput: {
       padding: 10,
@@ -345,8 +353,9 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     logo: {
       alignSelf: "center",
-      height: 180,
-      width: 180,
+      height: 150,
+      width: 150,
+      marginBottom: 20,
     },
     errorText: {
       color: "rgba(255, 99, 99, 0.9)",

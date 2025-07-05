@@ -8,24 +8,31 @@ import {
   ActivityIndicator,
   BackHandler,
   useWindowDimensions,
+  Image,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import JsonParser from "../utils/JsonParser";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import ScreenLayout from "../components/ScreenLayout";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
+import { LoginColors } from "@/constants/LoginColors";
+import { StatusBar } from "expo-status-bar";
 
 const Signup = () => {
   const { emailValue } = useLocalSearchParams();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
-  const styles = createStyle(theme, colorScheme, width);
+  const loginTheme = "default";
+
+  // Ottieni la larghezza dello schermo e definisci il breakpoint
+  const isSmallScreen = width < 936;
+  const styles = createStyle(loginTheme, isSmallScreen);
 
   const [form, setForm] = useState({
     password: "",
-    confirmpassword: "",
     name: "",
     surname: "",
     handle: "",
@@ -33,22 +40,15 @@ const Signup = () => {
 
   const [showPassword, setShowPassword] = useState({
     password: true,
-    confirmpassword: true,
   });
 
   const [handleAvailable, setHandleAvailable] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [handleTimer, setHandleTimer] = useState(null);
+  const [error, setError] = useState(null);
+  const [isFormValid, setIsFormValid] = useState(false); // New state for form validity
 
   useEffect(() => {
-    // const checkLogged = async () => {
-    //   const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-    //   if (storeGetIsLoggedIn === "true") {
-    //     router.navigate("/messages");
-    //   }
-    // };
-    // checkLogged();
-
     const backAction = () => {
       router.navigate("/welcome/emailcheck");
       return true;
@@ -60,11 +60,21 @@ const Signup = () => {
     return () => backHandler.remove();
   }, []);
 
+  // Effect to check form validity whenever 'form' or 'handleAvailable' changes
+  useEffect(() => {
+    const { password, name, surname, handle } = form;
+    // Check if all fields are filled AND handle is available AND not currently checking handle availability
+    const allFieldsFilled = password !== "" && name !== "" && surname !== "" && handle !== "";
+    setIsFormValid(allFieldsFilled && handleAvailable === true && !isLoading);
+  }, [form, handleAvailable, isLoading]);
+
   const handleChange = (field, value) => {
     setForm({ ...form, [field]: value });
+    if (error) setError(null);
+
     if (field === "handle") {
       setIsLoading(true);
-      setHandleAvailable(null);
+      setHandleAvailable(null); // Reset handle availability when handle changes
       if (handleTimer) clearTimeout(handleTimer);
 
       const timer = setTimeout(async () => {
@@ -85,179 +95,284 @@ const Signup = () => {
   };
 
   const validateForm = () => {
-    const { password, confirmpassword, name, surname, handle } = form;
+    const { password, name, surname, handle } = form;
     if (!password) return "Please enter your password.";
-    if (password !== confirmpassword) return "Passwords do not match.";
     if (!name) return "Please enter your name.";
     if (!surname) return "Please enter your surname.";
     if (!handle) return "Please enter your handle.";
-    if (!handleAvailable) return "Handle is already in use.";
+    if (handleAvailable === false) return "Handle is already in use."; // Use '=== false' for explicit check
     return null;
   };
 
+  const inputFields = [
+    { label: "Name", field: "name", placeholder: "Name" },
+    { label: "Surname", field: "surname", placeholder: "Surname" },
+    { label: "Password", field: "password", placeholder: "Password" },
+    { label: "Handle", field: "handle", placeholder: "Handle" },
+  ];
+
   const handleSignup = async () => {
-    const error = validateForm();
-    if (error) {
-      console.log("Validation Error", error);
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
-    const { password, name, surname, handle } = form;
-    const signupResponse = await JsonParser.signupJson(
-      emailValue,
-      name,
-      surname,
-      handle,
-      password
-    );
+    setError(null);
+    setIsLoading(true);
 
-    if (signupResponse) {
-      router.navigate("/welcome/emailcheck");
-    } else {
-      console.log("Signup Failed", "Please try again.");
+    try {
+      const { password, name, surname, handle } = form;
+      const signupResponse = await JsonParser.signupJson(
+        emailValue,
+        name,
+        surname,
+        handle,
+        password
+      );
+
+      if (signupResponse) {
+        router.navigate("/welcome/emailcheck");
+      } else {
+        setError("Signup failed. Please try again.");
+      }
+    } catch (error) {
+      console.error(error);
+      setError("An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return (
-    <ScreenLayout>
-      <View style={styles.centeringContainer}>
-        <View style={styles.formContainer}>
-          <View style={styles.gridContainer}>
-            {[
-              { label: "Password", field: "password" },
-              { label: "Confirm Password", field: "confirmpassword" },
-              { label: "Name", field: "name" },
-              { label: "Surname", field: "surname" },
-              { label: "Handle", field: "handle" },
-            ].map(({ label, field }, index) => (
-              <View key={index} style={styles.inputGroup}>
-                <Text style={styles.label}>{label}</Text>
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      field === "handle" && handleAvailable === false
-                        ? styles.handleInputError
-                        : null,
-                    ]}
-                    secureTextEntry={
-                      field.includes("password") && showPassword[field]
-                    }
-                    onChangeText={(text) => handleChange(field, text)}
-                    placeholder={label}
-                    placeholderTextColor="#ccc"
-                  />
+  const renderInputField = ({ label, field, placeholder }) => (
+    <View key={field} style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <View
+        style={[
+          styles.inputContainer,
+          field === "handle" && handleAvailable === false
+            ? styles.inputError
+            : null,
+          field === "handle" && handleAvailable === true
+            ? styles.inputSuccess // Apply success style
+            : null,
+        ]}
+      >
+        <TextInput
+          style={styles.textInput}
+          secureTextEntry={field.includes("password") && showPassword[field]}
+          onChangeText={(text) => handleChange(field, text)}
+          placeholder={placeholder || label}
+          placeholderTextColor={LoginColors[loginTheme].placeholderTextInput}
+          value={form[field]}
+        />
 
-                  {field.includes("password") && (
-                    <TouchableOpacity onPress={() => toggleShowPassword(field)}>
-                      <AntDesign
-                        name={showPassword[field] ? "eyeo" : "eye"}
-                        size={17}
-                        color={theme.icon}
-                      />
-                    </TouchableOpacity>
-                  )}
-                </View>
-                {field === "handle" && handleAvailable === false && (
-                  <Text style={styles.handleTextError}>
-                    Handle già in utilizzo
-                  </Text>
-                )}
-              </View>
-            ))}
-          </View>
-
+        {field.includes("password") && (
           <TouchableOpacity
-            style={[
-              styles.button,
-              { backgroundColor: handleAvailable ? "#2399C3" : "#999" },
-            ]}
-            disabled={!handleAvailable}
-            onPress={handleSignup}
+            style={styles.eyeButton}
+            onPress={() => toggleShowPassword(field)}
           >
-            {isLoading ? (
-              <ActivityIndicator size="small" color={theme.icon} />
-            ) : (
-              <Text style={styles.buttonText}>Submit</Text>
-            )}
+            <HugeiconsIcon
+              icon={showPassword[field] ? ViewOffIcon : ViewIcon}
+              size={20}
+              color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
+              strokeWidth={1.5}
+            />
           </TouchableOpacity>
+        )}
+      </View>
+
+      {field === "handle" && handleAvailable === false && (
+        <Text style={styles.handleErrorText}>Handle already in use</Text>
+      )}
+    </View>
+  );
+
+  return (
+    <LinearGradient
+      colors={
+        isSmallScreen
+          ? ["transparent", "transparent"]
+          : LoginColors[loginTheme].background
+      }
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <StatusBar
+        style="dark"
+        backgroundColor={LoginColors[loginTheme].backgroundCard}
+        translucent={false}
+        hidden={false}
+      />
+
+      {/* Card */}
+      <View style={styles.card}>
+        <View style={styles.cardContent}>
+          <Image
+            style={styles.logo}
+            source={require("../../assets/images/logo-novyse-nobg-less-margin.png")}
+          />
+
+          <Text style={styles.title}>Sign Up</Text>
+
+          <View style={styles.formWrapper}>
+            <View style={styles.gridContainer}>
+              {inputFields.map(renderInputField)}
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                { opacity: isFormValid ? 1 : 0.6 }, // Use isFormValid for opacity
+              ]}
+              disabled={!isFormValid || isLoading} // Use isFormValid for disabled
+              onPress={handleSignup}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text style={styles.submitButtonText}>Create Account</Text>
+              )}
+            </TouchableOpacity>
+
+            {error && <Text style={styles.errorText}>{error}</Text>}
+          </View>
         </View>
       </View>
-    </ScreenLayout>
+    </LinearGradient>
   );
 };
 
 export default Signup;
 
-function createStyle(theme, colorScheme, width) {
-  const isLargeScreen = width > 600;
-
+function createStyle(loginTheme, isSmallScreen) {
   return StyleSheet.create({
     container: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: theme.backgroundClassic,
+      padding: isSmallScreen ? 0 : 24,
     },
-    centeringContainer: {
-      flex: 1,
+    card: {
+      padding: isSmallScreen ? 16 : 24,
+      borderRadius: isSmallScreen ? 0 : 20,
+      overflow: "hidden",
+      backgroundColor: LoginColors[loginTheme].backgroundCard,
+      width: isSmallScreen ? "100%" : "auto",
+      minWidth: isSmallScreen ? "100%" : 600,
+      maxWidth: isSmallScreen ? "100%" : 800,
+      height: isSmallScreen ? "100%" : "auto",
       justifyContent: "center",
-      alignItems: "center",
+    },
+    cardContent: {
       width: "100%",
-    },
-    formContainer: {
       justifyContent: "center",
+      alignContent: "center",
       alignItems: "center",
-      width: "90%",
-      maxWidth: 800, // Limite massimo per schermi molto grandi
+    },
+    logo: {
+      alignSelf: "center",
+      height: 150,
+      width: 150,
+      marginBottom: 20,
+    },
+    title: {
+      fontSize: 42,
+      fontWeight: "600",
+      color: LoginColors[loginTheme].title,
+      textAlign: "center",
+      marginBottom: 16,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: LoginColors[loginTheme].subtitle,
+      textAlign: "center",
+      marginBottom: 40,
+      lineHeight: 20,
       paddingHorizontal: 20,
     },
+    formWrapper: {
+      width: "100%",
+      maxWidth: 700,
+      alignItems: "center",
+    },
     gridContainer: {
-      flexDirection: isLargeScreen ? "row" : "column",
-      flexWrap: isLargeScreen ? "wrap" : "nowrap",
+      width: "100%",
+      flexDirection: isSmallScreen ? "column" : "row",
+      flexWrap: isSmallScreen ? "nowrap" : "wrap",
       justifyContent: "space-between",
+      alignItems: "flex-start",
     },
     inputGroup: {
-      marginVertical: 10,
-      width: isLargeScreen ? "48%" : "100%", // 48% per lasciare spazio tra le colonne
-      minWidth: 250, // Larghezza minima per evitare che i campi siano troppo stretti
+      marginBottom: 20,
+      width: isSmallScreen ? "100%" : "48%",
+      minWidth: isSmallScreen ? "100%" : 280,
     },
     label: {
-      color: theme.text,
-      fontSize: 16,
-      marginBottom: 5,
+      fontSize: 14,
+      color: LoginColors[loginTheme].subtitle,
+      marginBottom: 8,
+      fontWeight: "500",
     },
     inputContainer: {
       flexDirection: "row",
       alignItems: "center",
-      borderWidth: 1,
-      borderColor: theme.borderColor || theme.icon,
-      borderRadius: 12,
-      padding: 10,
+      borderRadius: 6,
+      backgroundColor: "white",
+      borderColor: LoginColors[loginTheme].borderTextInput,
+      borderWidth: 1.5,
+      minHeight: 44,
     },
-    input: {
-      outlineStyle: "none",
+    inputError: {
+      borderColor: "rgba(255, 99, 99, 0.8)",
+      backgroundColor: "rgba(255, 99, 99, 0.1)",
+    },
+    inputSuccess: { // New style for success
+      borderColor: "rgba(0, 128, 0, 0.8)", // Green color
+      backgroundColor: "rgba(0, 128, 0, 0.1)", // Light green background
+    },
+    textInput: {
       flex: 1,
-      color: theme.text,
+      padding: 10,
+      fontSize: 16,
+      color: LoginColors[loginTheme].text,
+      outlineStyle: "none",
     },
-    button: {
-      marginTop: 20,
-      padding: 15,
-      borderRadius: 10,
+    eyeButton: {
+      width: 40,
+      height: 44,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 4,
+    },
+    submitButton: {
+      flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      alignSelf: "center",
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 6,
+      width: isSmallScreen ? "100%" : 300,
+      backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
+      marginTop: 20,
     },
-    buttonText: {
-      color: theme.text,
+    submitButtonText: {
       fontSize: 16,
+      color: "white",
+      fontWeight: "500",
     },
-    handleInputError: {
-      borderBottomColor: "red",
+    handleErrorText: {
+      color: "rgba(255, 99, 99, 0.9)",
+      fontSize: 12,
+      marginTop: 4,
     },
-    handleTextError: {
-      color: "red",
-      marginTop: 5,
+    errorText: {
+      color: "rgba(255, 99, 99, 0.9)",
+      fontSize: 14,
+      marginTop: 16,
+      textAlign: "center",
+      paddingHorizontal: 8,
     },
   });
 }

@@ -8,10 +8,10 @@ import {
   BackHandler,
   TouchableOpacity,
   Platform,
-  Dimensions,
+  Image,
+  useWindowDimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
 import JsonParser from "../utils/JsonParser";
@@ -22,11 +22,10 @@ import {
   ViewIcon,
   ViewOffIcon,
 } from "@hugeicons/core-free-icons";
-import ScreenLayout from "../components/ScreenLayout";
+import { LoginColors } from "@/constants/LoginColors";
+import { StatusBar } from "expo-status-bar";
 
 import { clearDBAddTokenInit } from "../utils/welcome/auth";
-
-const { width, height } = Dimensions.get("window");
 
 const LoginPassword = () => {
   const router = useRouter();
@@ -36,6 +35,14 @@ const LoginPassword = () => {
   const [error, setError] = useState(null);
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const loginTheme = "default";
+
+  // Ottieni la larghezza dello schermo e definisci il breakpoint
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 936;
+
+  // Passa la variabile isSmallScreen per creare stili dinamici
+  const styles = createStyle(loginTheme, isSmallScreen);
 
   useEffect(() => {
     const checkLogged = async () => {
@@ -63,7 +70,7 @@ const LoginPassword = () => {
 
   const handleLogin = async () => {
     if (!password) {
-      setError("Per favore inserisci la tua password");
+      setError("Password cannot be empty");
       return;
     }
 
@@ -76,7 +83,7 @@ const LoginPassword = () => {
 
       if (!loginSuccess) {
         console.log("Error", "Incorrect password.");
-        setError("Password non corretta");
+        setError("Incorrect Password");
         setIsLoading(false);
         return;
       } else {
@@ -90,7 +97,7 @@ const LoginPassword = () => {
       }
     } catch (error) {
       console.error(error);
-      setError("Si è verificato un errore imprevisto");
+      setError("Error");
     } finally {
       setIsLoading(false);
     }
@@ -101,165 +108,197 @@ const LoginPassword = () => {
   };
 
   return (
-    <ScreenLayout>
-      <View style={styles.formContainer}>
-        {/* Glass Card */}
-        <BlurView intensity={20} tint="dark" style={styles.card}>
-          <LinearGradient
-            colors={["rgba(255,255,255,0.15)", "rgba(255,255,255,0.05)"]}
-            style={styles.cardGradient}
-          >
-            {/* Header */}
-            <Text style={styles.title}>ACCEDI</Text>
-            <Text style={styles.email}>{emailValue}</Text>
-            <Text style={styles.subtitle}>
-              Inserisci la tua password per accedere al tuo account.
-            </Text>
+    <LinearGradient
+      colors={
+        isSmallScreen
+          ? ["transparent", "transparent"]
+          : LoginColors[loginTheme].background
+      }
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <StatusBar
+        style="dark"
+        backgroundColor={LoginColors[loginTheme].backgroundCard}
+        translucent={false}
+        hidden={false}
+      />
 
+      {/* Card */}
+      <View style={styles.card}>
+        <View style={styles.cardContent}>
+          <Image
+            style={styles.logo}
+            source={require("../../assets/images/logo-novyse-nobg-less-margin.png")}
+          />
+
+          <Text style={styles.title}>Login</Text>
+          <Text style={styles.subtitle}>Enter your password to login</Text>
+
+          <View style={styles.inputWrapper}>
             {/* Password Input */}
-            <View>
-              <View
-                style={[styles.inputWrapper, error ? styles.inputError : null]}
+            <View
+              style={[
+                styles.passwordInputContainer,
+                error ? styles.inputError : null,
+              ]}
+            >
+              <TextInput
+                style={styles.textInput}
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (error) setError(null);
+                }}
+                placeholder="Password"
+                placeholderTextColor={
+                  LoginColors[loginTheme].placeholderTextInput
+                }
+                secureTextEntry={secureTextEntry}
+                onSubmitEditing={
+                  Platform.OS === "web" ? handleLogin : undefined
+                }
+              />
+
+              {/* Eye Icon */}
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={toggleSecureEntry}
               >
-                <TextInput
-                  style={styles.textInput}
-                  value={password}
-                  onChangeText={(text) => {
-                    setPassword(text);
-                    if (error) setError(null);
-                  }}
-                  placeholder="Inserisci la tua password"
-                  placeholderTextColor="rgba(255,255,255,0.5)"
-                  secureTextEntry={secureTextEntry}
-                  onSubmitEditing={
-                    Platform.OS === "web" ? handleLogin : undefined
-                  }
+                <HugeiconsIcon
+                  icon={secureTextEntry ? ViewOffIcon : ViewIcon}
+                  size={20}
+                  color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
+                  strokeWidth={1.5}
                 />
-
-                {/* Eye Icon */}
-                <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={toggleSecureEntry}
-                >
-                  <HugeiconsIcon
-                    icon={secureTextEntry ? ViewOffIcon : ViewIcon}
-                    size={20}
-                    color="rgba(255,255,255,0.6)"
-                    strokeWidth={1.5}
-                  />
-                </TouchableOpacity>
-
-                {/* Submit Button */}
-                <TouchableOpacity
-                  style={styles.arrowButton}
-                  onPress={handleLogin}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color="white" />
-                  ) : (
-                    <HugeiconsIcon
-                      icon={ArrowRight02Icon}
-                      size={30}
-                      color={theme.icon}
-                      strokeWidth={1.5}
-                    />
-                  )}
-                </TouchableOpacity>
-              </View>
-              {error && <Text style={styles.errorText}>{error}</Text>}
+              </TouchableOpacity>
             </View>
-          </LinearGradient>
-        </BlurView>
+
+            {/* Submit Button */}
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text style={styles.submitButtonText}>Login</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {error && <Text style={styles.errorText}>{error}</Text>}
+        </View>
       </View>
-    </ScreenLayout>
+    </LinearGradient>
   );
 };
 
 export default LoginPassword;
 
-const styles = StyleSheet.create({
-  formContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  card: {
-    maxWidth: 500,
-    minHeight: 100,
-    borderRadius: 20,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
-  cardGradient: {
-    padding: 25,
-    height: "100%",
-  },
-  title: {
-    fontSize: 56,
-    fontWeight: "700",
-    color: "white",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  email: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.9)",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: "rgba(255,255,255,0.7)",
-    textAlign: "center",
-    marginBottom: 56,
-    lineHeight: 24,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-    minHeight: 56,
-  },
-  inputError: {
-    borderColor: "rgba(255, 99, 99, 0.8)",
-    backgroundColor: "rgba(255, 99, 99, 0.1)",
-  },
-  textInput: {
-    flex: 1,
-    padding: 16,
-    fontSize: 16,
-    color: "white",
-    outlineStyle: "none",
-  },
-  eyeButton: {
-    width: 40,
-    height: 44,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 4,
-  },
-  arrowButton: {
-    width: 44,
-    height: 44,
-    backgroundColor: "transparent",
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 4,
-  },
-  errorText: {
-    color: "rgba(255, 99, 99, 0.9)",
-    fontSize: width > 480 ? 14 : 13,
-    marginTop: 8,
-    textAlign: "center",
-    paddingHorizontal: 8,
-  },
-});
+// Funzione per creare stili dinamici
+function createStyle(loginTheme, isSmallScreen) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: isSmallScreen ? 0 : 24,
+    },
+    card: {
+      padding: isSmallScreen ? 16 : 24,
+      borderRadius: isSmallScreen ? 0 : 20,
+      overflow: "hidden",
+      backgroundColor: LoginColors[loginTheme].backgroundCard,
+      width: isSmallScreen ? "100%" : "auto",
+      height: isSmallScreen ? "100%" : "auto",
+      justifyContent: "center",
+    },
+    cardContent: {
+      width: isSmallScreen ? "100%" : 400,
+      // height: isSmallScreen ? 600 : 400,
+      justifyContent: isSmallScreen ? "" : "center",
+      alignContent: "center",
+    },
+    logo: {
+      alignSelf: "center",
+      height: 150,
+      width: 150,
+      marginBottom: 20,
+    },
+    title: {
+      fontSize: 42,
+      fontWeight: "600",
+      color: LoginColors[loginTheme].title,
+      textAlign: "center",
+      marginBottom: 24,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: LoginColors[loginTheme].subtitle,
+      textAlign: "center",
+      marginBottom: 40,
+      lineHeight: 20,
+      paddingHorizontal: 20,
+    },
+    inputWrapper: {
+      alignSelf: "center",
+      width: isSmallScreen ? "100%" : 350,
+      alignItems: "center",
+    },
+    passwordInputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      width: "100%",
+      maxWidth: 300,
+      marginBottom: 16,
+      borderRadius: 6,
+      backgroundColor: "white",
+      borderColor: LoginColors[loginTheme].borderTextInput,
+      borderWidth: 1.5,
+    },
+    inputError: {
+      borderColor: "rgba(255, 99, 99, 0.8)",
+      backgroundColor: "rgba(255, 99, 99, 0.1)",
+    },
+    textInput: {
+      flex: 1,
+      padding: 10,
+      fontSize: 16,
+      color: LoginColors[loginTheme].text,
+      outlineStyle: "none",
+    },
+    eyeButton: {
+      width: 40,
+      height: 44,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 4,
+    },
+    submitButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 6,
+      maxWidth: 300,
+      width: "100%",
+      backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
+    },
+    submitButtonText: {
+      fontSize: 16,
+      color: "white",
+      fontWeight: "500",
+    },
+    errorText: {
+      color: "rgba(255, 99, 99, 0.9)",
+      fontSize: 14,
+      marginTop: 24,
+      textAlign: "center",
+      paddingHorizontal: 8,
+    },
+  });
+}
