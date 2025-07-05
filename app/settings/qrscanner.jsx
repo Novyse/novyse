@@ -9,6 +9,8 @@ import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import QRCodeReader from "../components/QRCodeReader";
 
+import APIMethods from "../utils/APImethods";
+
 const QRScanner = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -49,10 +51,16 @@ const QRScanner = () => {
   const handleCodeScanned = async (content) => {
     try {
       console.log("QR Code content:", content);
-      // Logica API...
-      Alert.alert("Successo", "Codice QR scansionato con successo!");
+      
+      const success = await APIMethods.scanQRCodeAPI(content);
+
+      if (!success) {
+        Alert.alert("Errore", "QR Code non valido o già scansionato.");
+        return;
+      }
+
+      Alert.alert("Successo", "L'accesso verrà eseguito a breve, attendi quale istante...");
     } catch (error) {
-      console.error("Error handling QR code scan:", error);
       Alert.alert("Errore", "Impossibile gestire la scansione del codice QR.");
     }
   };

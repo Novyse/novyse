@@ -27,6 +27,7 @@ api.interceptors.response.use(
       eventEmitter.emit("invalidSession");
       console.error("Invalid session - 401");
     }
+    return Promise.reject(error);
   }
 );
 
@@ -120,8 +121,17 @@ const APIMethods = {
       );
       return response.data.qr_code_scanned;
     } catch (error) {
-      console.error("Error in scanQRCodeAPI:", error);
-      throw error;
+      if (error.response && error.response.data) {
+        // QR Code non valido o già scansionato
+        return false;
+      } else {
+        // Errore di rete, timeout, o risposta completamente assente
+        console.error(
+          "Error in scanQRCodeAPI: Nessuna risposta dal server",
+          error.message
+        );
+        throw error; // Rilancia l'errore per gestirlo a livello superiore
+      }
     }
   },
 

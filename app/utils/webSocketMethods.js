@@ -7,11 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BRANCH, IO_BASE_URL } from "../../app.config.js";
 
 const path = BRANCH === "dev" ? "/test/io" : "/v1/io";
-console.log(
-  "LE BANANE SONO TANTE MILIONI DI MILIONI DIOCANE I NEGROI",
-  path,
-  BRANCH
-);
+
 let socket = null;
 let localUserHandle = null;
 
