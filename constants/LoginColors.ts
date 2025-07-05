@@ -14,6 +14,7 @@ export const LoginColors = {
         borderQRCode: "#013480",
 
         text: "#2D2D2D",
+        link: "#013480",
         title: "#013480",
         subtitle: "#2D2D2D",
         icon: "#fff",

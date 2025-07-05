@@ -1,23 +1,24 @@
-import React, { useContext, useEffect } from "react";
-import { StyleSheet, Pressable, Text, View } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import { StyleSheet, Pressable, Text, View, TextInput } from "react-native";
 import SmartBackground from "../components/SmartBackground";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import { Colors } from "../../constants/Colors";
+import APIMethods from "../utils/APImethods";
 
-const Themes = () => {
+const PrivacyAndSecurity = () => {
   const { setColorScheme, theme, colorScheme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
-  // Ottieni la lista dei temi disponibili
-  const availableThemes = Object.keys(Colors);
-
-  // Se nessun tema è selezionato, seleziona "Default"
-  useEffect(() => {
-    if (!colorScheme || !availableThemes.includes(colorScheme)) {
-      setColorScheme("Default");
-    }
-  }, [colorScheme, setColorScheme]);
+  const handleChangePassword = async () => {
+    const changePassword = await APIMethods.changePassword(
+      oldPassword,
+      newPassword
+    );
+    console.log("Change password", changePassword);
+  };
 
   return (
     <SmartBackground
@@ -25,26 +26,21 @@ const Themes = () => {
       style={styles.container}
     >
       <HeaderWithBackArrow goBackTo="./menu" />
-
-      {availableThemes.map((themeName) => (
-        <Pressable
-          key={themeName}
-          onPress={() => setColorScheme(themeName)}
-          style={[
-            styles.themeButton,
-            colorScheme === themeName && styles.activeThemeButton,
-          ]}
-        >
-          <View style={styles.themeButtonContent}>
-            <Text style={styles.themeText}>
-              {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
-            </Text>
-            {colorScheme === themeName && (
-              <View style={styles.activeIndicator} />
-            )}
-          </View>
-        </Pressable>
-      ))}
+      <TextInput
+        placeholder={"Old Password"}
+        value={oldPassword}
+        onChangeText={(text) => {
+          setOldPassword(text);
+        }}
+      ></TextInput>
+      <TextInput
+        placeholder={"New Password"}
+        value={newPassword}
+        onChangeText={(text) => {
+          setNewPassword(text);
+        }}
+      ></TextInput>
+      <Pressable style={styles.themeButton} onPress={handleChangePassword}></Pressable>
     </SmartBackground>
   );
 };
@@ -58,8 +54,8 @@ const createStyle = (theme) =>
     themeButton: {
       padding: 10,
       marginVertical: 5,
-      backgroundColor: theme.buttonBackground || theme.backgroundChatInsideList,
       borderRadius: 8,
+      backgroundColor: "green"
     },
     activeThemeButton: {
       borderWidth: 2,
@@ -82,4 +78,4 @@ const createStyle = (theme) =>
     },
   });
 
-export default Themes;
+export default PrivacyAndSecurity;

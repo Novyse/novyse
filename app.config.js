@@ -51,6 +51,17 @@ export default {
         backgroundColor: "#ffffff",
       },
       package: `com.${APP_SLUG}${devSuffix}`,
+      intentFilters: [
+        {
+          action: "VIEW",
+          data: {
+            scheme: "https",
+            host: "web.novyse.com",
+            pathPrefix: "/",
+          },
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+      ],
     },
     web: {
       bundler: "metro",

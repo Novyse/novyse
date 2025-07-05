@@ -44,10 +44,18 @@ const APIMethods = {
   },
 
   // chiede registrazione all'API
-  async signupAPI(email, name, surname, handle, password) {
+  async signupAPI(
+    email,
+    name,
+    surname,
+    handle,
+    password,
+    privacy_policy_accepted,
+    terms_of_service_accepted
+  ) {
     try {
       const response = await api.get(
-        `/user/auth/signup?email=${email}&name=${name}&surname=${surname}&handle=${handle}&password=${password}`
+        `/user/auth/signup?email=${email}&name=${name}&surname=${surname}&handle=${handle}&password=${password}&privacy_policy_accepted=${privacy_policy_accepted}&terms_of_service_accepted=${terms_of_service_accepted}`
       );
       return response;
     } catch (error) {
@@ -331,6 +339,44 @@ const APIMethods = {
       throw error;
     }
   },
+
+  async forgotPassword(email) {
+    try {
+      const response = await api.get(
+        `/user/auth/forgot-password?email=${email}`
+      );
+      return response.data.forgot_password; // ritorna forgot_password : true/false
+    } catch (error) {
+      console.error("Error in forgotPassword:", error);
+      throw error;
+    }
+  },
+
+  async resetPassword(email, token, password) {
+    try {
+      const response = await api.get(
+        `/user/auth/reset-password?email=${email}&token=${token}&password=${password}`
+      );
+      return response.data.reset_password; // ritorna reset_password : true/false
+    } catch (error) {
+      console.error("Error in resetPassword:", error);
+      throw error;
+    }
+  },
+
+  async changePassword(old_password, new_password) {
+    try {
+      const response = await api.get(
+        `/user/auth/change-password?old_password=${old_password}&new_password=${new_password}`
+      );
+      return response.data.change_password; // ritorna change_password : true/false
+    } catch (error) {
+      console.error("Error in changePassword:", error);
+      throw error;
+    }
+  },
+
+
 };
 
 export default APIMethods;

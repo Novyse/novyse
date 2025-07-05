@@ -305,7 +305,7 @@ const ChatList = () => {
 
   //Setting Menu
   const handleSettingsPress = () => {
-    router.navigate("/settings/SettingsMenu");
+    router.navigate("/settings/menu");
   };
 
   //gestisce se mostrare join oppure bottomBar in ChatContent

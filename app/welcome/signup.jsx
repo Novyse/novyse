@@ -9,23 +9,34 @@ import {
   BackHandler,
   useWindowDimensions,
   Image,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import JsonParser from "../utils/JsonParser";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, Link } from "expo-router";
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
+import * as Linking from "expo-linking";
 
 const Signup = () => {
   const { emailValue } = useLocalSearchParams();
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
   const loginTheme = "default";
+  const privacyPolicyLink = "https://www.novyse.com/legal/privacy-policy";
+  const tosLink = "https://www.novyse.com/legal/terms-of-service";
+  const [privacy_policy_accepted, SetPrivacy_policy_accepted] = useState(false);
+  const [terms_of_service_accepted, setTerms_of_service_accepted] =
+    useState(false);
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$#@!?])[^\s]{8,32}$/;
+
+  const isPasswordValid = (pwd) => passwordRegex.test(pwd);
 
   // Ottieni la larghezza dello schermo e definisci il breakpoint
   const isSmallScreen = width < 936;
@@ -64,7 +75,8 @@ const Signup = () => {
   useEffect(() => {
     const { password, name, surname, handle } = form;
     // Check if all fields are filled AND handle is available AND not currently checking handle availability
-    const allFieldsFilled = password !== "" && name !== "" && surname !== "" && handle !== "";
+    const allFieldsFilled =
+      password !== "" && name !== "" && surname !== "" && handle !== "";
     setIsFormValid(allFieldsFilled && handleAvailable === true && !isLoading);
   }, [form, handleAvailable, isLoading]);
 
@@ -97,10 +109,13 @@ const Signup = () => {
   const validateForm = () => {
     const { password, name, surname, handle } = form;
     if (!password) return "Please enter your password.";
+    if (!isPasswordValid(password)) {
+      return "Password must be 8-32 chars, include upper/lowercase, a number and a special character ($#@!?)";
+    }
     if (!name) return "Please enter your name.";
     if (!surname) return "Please enter your surname.";
     if (!handle) return "Please enter your handle.";
-    if (handleAvailable === false) return "Handle is already in use."; // Use '=== false' for explicit check
+    if (handleAvailable === false) return "Handle is already in use.";
     return null;
   };
 
@@ -128,7 +143,9 @@ const Signup = () => {
         name,
         surname,
         handle,
-        password
+        password,
+        privacy_policy_accepted,
+        terms_of_service_accepted
       );
 
       if (signupResponse) {
@@ -221,12 +238,115 @@ const Signup = () => {
               {inputFields.map(renderInputField)}
             </View>
 
+            <View style={{ marginBottom: 16 }}>
+              {/* Privacy Policy */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 8,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => SetPrivacy_policy_accepted((prev) => !prev)}
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 4,
+                    borderWidth: 2,
+                    borderColor: privacy_policy_accepted
+                      ? LoginColors[loginTheme].backgroundSubmitButton
+                      : "#ccc",
+                    backgroundColor: privacy_policy_accepted
+                      ? LoginColors[loginTheme].backgroundSubmitButton
+                      : "#fff",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginRight: 8,
+                  }}
+                >
+                  {privacy_policy_accepted && (
+                    <Text style={{ color: "#fff", fontWeight: "bold" }}>✓</Text>
+                  )}
+                </TouchableOpacity>
+                <Text>
+                  I accept{" "}
+                  <Text
+                    style={[styles.link, { textDecorationLine: "underline" }]}
+                    onPress={() =>
+                      Platform.OS === "web"
+                        ? window.open(privacyPolicyLink, "_blank")
+                        : Linking.openURL(privacyPolicyLink)
+                    }
+                  >
+                    privacy policy
+                  </Text>
+                </Text>
+              </View>
+
+              {/* Terms of Service */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => setTerms_of_service_accepted((prev) => !prev)}
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 4,
+                    borderWidth: 2,
+                    borderColor: terms_of_service_accepted
+                      ? LoginColors[loginTheme].backgroundSubmitButton
+                      : "#ccc",
+                    backgroundColor: terms_of_service_accepted
+                      ? LoginColors[loginTheme].backgroundSubmitButton
+                      : "#fff",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginRight: 8,
+                  }}
+                >
+                  {terms_of_service_accepted && (
+                    <Text style={{ color: "#fff", fontWeight: "bold" }}>✓</Text>
+                  )}
+                </TouchableOpacity>
+                <Text>
+                  I accept{" "}
+                  <Text
+                    style={[styles.link, { textDecorationLine: "underline" }]}
+                    onPress={() =>
+                      Platform.OS === "web"
+                        ? window.open(tosLink, "_blank")
+                        : Linking.openURL(tosLink)
+                    }
+                  >
+                    terms of service
+                  </Text>
+                </Text>
+              </View>
+            </View>
+
             <TouchableOpacity
               style={[
                 styles.submitButton,
-                { opacity: isFormValid ? 1 : 0.6 }, // Use isFormValid for opacity
+                {
+                  opacity:
+                    isFormValid &&
+                    privacy_policy_accepted &&
+                    terms_of_service_accepted
+                      ? 1
+                      : 0.6,
+                },
               ]}
-              disabled={!isFormValid || isLoading} // Use isFormValid for disabled
+              disabled={
+                !isFormValid ||
+                !privacy_policy_accepted ||
+                !terms_of_service_accepted ||
+                isLoading
+              }
               onPress={handleSignup}
             >
               {isLoading ? (
@@ -328,7 +448,8 @@ function createStyle(loginTheme, isSmallScreen) {
       borderColor: "rgba(255, 99, 99, 0.8)",
       backgroundColor: "rgba(255, 99, 99, 0.1)",
     },
-    inputSuccess: { // New style for success
+    inputSuccess: {
+      // New style for success
       borderColor: "rgba(0, 128, 0, 0.8)", // Green color
       backgroundColor: "rgba(0, 128, 0, 0.1)", // Light green background
     },
@@ -373,6 +494,9 @@ function createStyle(loginTheme, isSmallScreen) {
       marginTop: 16,
       textAlign: "center",
       paddingHorizontal: 8,
+    },
+    link: {
+      color: LoginColors[loginTheme].link,
     },
   });
 }

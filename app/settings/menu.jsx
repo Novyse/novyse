@@ -9,6 +9,7 @@ import {
   PaintBoardIcon,
   Folder01Icon,
   QrCode01Icon,
+  BlockedIcon
 } from "@hugeicons/core-free-icons";
 import { APP_VERSION } from "../../app.config.js";
 import ScreenLayout from "../components/ScreenLayout";
@@ -27,13 +28,18 @@ const SettingsMenu = () => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <SettingsMenuItem
             navToPage="/settings/themes"
-            pageName="Temi"
+            pageName="Themes"
             iconName={PaintBoardIcon}
           />
           <SettingsMenuItem
             navToPage="/settings/storage"
-            pageName="Archiviazione"
+            pageName="Storage"
             iconName={Folder01Icon}
+          />
+          <SettingsMenuItem
+            navToPage="/settings/privacy-and-security"
+            pageName="Privacy and Security"
+            iconName={BlockedIcon}
           />
           {Platform.OS === "android" && (
             <SettingsMenuItem

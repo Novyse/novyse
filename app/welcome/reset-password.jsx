@@ -10,40 +10,34 @@ import {
   Platform,
   Image,
   useWindowDimensions,
-  Alert
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
-import JsonParser from "../utils/JsonParser";
+import APIMethods from "../utils/APImethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import {
-  ViewIcon,
-  ViewOffIcon,
-} from "@hugeicons/core-free-icons";
+import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 
-import { clearDBAddTokenInit } from "../utils/welcome/auth";
-import APIMethods from "../utils/APImethods";
-
-const LoginPassword = () => {
+const ResetPassword = () => {
   const router = useRouter();
-  const { emailValue } = useLocalSearchParams();
+  const { email, token } = useLocalSearchParams();
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const loginTheme = "default";
-
-  // Ottieni la larghezza dello schermo e definisci il breakpoint
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 936;
-
-  // Passa la variabile isSmallScreen per creare stili dinamici
   const styles = createStyle(loginTheme, isSmallScreen);
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$#@!?])[^\s]{8,32}$/;
+  const isPasswordValid = (pwd) => passwordRegex.test(pwd);
 
+
+  
   useEffect(() => {
     const checkLogged = async () => {
       const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
@@ -68,9 +62,15 @@ const LoginPassword = () => {
     return () => backHandler.remove();
   }, []);
 
-  const handleLogin = async () => {
+  const handleResetPassword = async () => {
     if (!password) {
       setError("Password cannot be empty");
+      return;
+    }
+    if (!isPasswordValid(password)) {
+      setError(
+        "Password must be 8-32 chars, include upper/lowercase, a number and a special character ($ # @ ! ?)"
+      );
       return;
     }
 
@@ -78,21 +78,23 @@ const LoginPassword = () => {
     setIsLoading(true);
 
     try {
-      const loginSuccess = await JsonParser.loginJson(emailValue, password);
-      console.log("Login Success?", loginSuccess);
+      const resetPasswordSuccess = await APIMethods.resetPassword(
+        email,
+        token,
+        password
+      );
+      console.log("Reset Password Success?", resetPasswordSuccess);
 
-      if (!loginSuccess) {
-        console.log("Error", "Incorrect password.");
-        setError("Incorrect Password");
+      if (!resetPasswordSuccess) {
+        console.log("Error", "Password Reset Error");
+        setError("Error");
         setIsLoading(false);
         return;
       } else {
-        const success = await clearDBAddTokenInit(loginSuccess);
-
-        if (success) {
-          router.replace("/messages");
+        if (resetPasswordSuccess) {
+          router.replace("/welcome/emailcheck");
         } else {
-          console.error("Error clearing DB, adding token or during init");
+          console.error("Error");
         }
       }
     } catch (error) {
@@ -100,26 +102,6 @@ const LoginPassword = () => {
       setError("Error");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleResetPassword = async () => {
-    try {
-      const resetPassword = await APIMethods.forgotPassword(emailValue);
-      console.log("Password forgot Success?", resetPassword);
-
-      if (resetPassword) {
-        Alert.alert(
-          "Reset Password",
-          "If the email exists, you will receive instructions to reset your password.",
-          [{ text: "OK" }]
-        );
-      } else {
-        setError("Unable to send reset instructions.");
-      }
-    } catch (error) {
-      console.error(error);
-      setError("Error");
     }
   };
 
@@ -153,8 +135,8 @@ const LoginPassword = () => {
             source={require("../../assets/images/logo-novyse-nobg-less-margin.png")}
           />
 
-          <Text style={styles.title}>Login</Text>
-          <Text style={styles.subtitle}>Enter your password to login</Text>
+          <Text style={styles.title}>Reset Password</Text>
+          <Text style={styles.subtitle}>Enter your new password</Text>
 
           <View style={styles.inputWrapper}>
             {/* Password Input */}
@@ -171,13 +153,13 @@ const LoginPassword = () => {
                   setPassword(text);
                   if (error) setError(null);
                 }}
-                placeholder="Password"
+                placeholder="New Password"
                 placeholderTextColor={
                   LoginColors[loginTheme].placeholderTextInput
                 }
                 secureTextEntry={secureTextEntry}
                 onSubmitEditing={
-                  Platform.OS === "web" ? handleLogin : undefined
+                  Platform.OS === "web" ? handleResetPassword : undefined
                 }
               />
 
@@ -198,32 +180,25 @@ const LoginPassword = () => {
             {/* Submit Button */}
             <TouchableOpacity
               style={styles.submitButton}
-              onPress={handleLogin}
+              onPress={handleResetPassword}
               disabled={isLoading}
             >
               {isLoading ? (
                 <ActivityIndicator size="small" color="white" />
               ) : (
-                <Text style={styles.submitButtonText}>Login</Text>
+                <Text style={styles.submitButtonText}>Continue</Text>
               )}
             </TouchableOpacity>
           </View>
 
           {error && <Text style={styles.errorText}>{error}</Text>}
-
-          <Text
-            style={styles.resetPasswordText}
-            onPress={handleResetPassword}
-          >
-            Reset Password
-          </Text>
         </View>
       </View>
     </LinearGradient>
   );
 };
 
-export default LoginPassword;
+export default ResetPassword;
 
 // Funzione per creare stili dinamici
 function createStyle(loginTheme, isSmallScreen) {
@@ -326,14 +301,6 @@ function createStyle(loginTheme, isSmallScreen) {
       marginTop: 24,
       textAlign: "center",
       paddingHorizontal: 8,
-    },
-    resetPasswordText: {
-      fontSize: 14,
-      marginTop: 24,
-      textAlign: "center",
-      paddingHorizontal: 8,
-      color: LoginColors[loginTheme].link,
-      textDecorationLine: "underline",
     },
   });
 }
