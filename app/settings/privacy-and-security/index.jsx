@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 import { StyleSheet, Pressable, Text, View, TextInput } from "react-native";
-import SmartBackground from "../components/SmartBackground";
+import SmartBackground from "../../components/SmartBackground";
 import { ThemeContext } from "@/context/ThemeContext";
-import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
-import { Colors } from "../../constants/Colors";
-import APIMethods from "../utils/APImethods";
+import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
+import { Colors } from "../../../constants/Colors";
+import APIMethods from "../../utils/APImethods";
 
 const PrivacyAndSecurity = () => {
   const { setColorScheme, theme, colorScheme } = useContext(ThemeContext);
@@ -25,7 +25,7 @@ const PrivacyAndSecurity = () => {
       colors={theme.settingPagesGradient}
       style={styles.container}
     >
-      <HeaderWithBackArrow goBackTo="./menu" />
+      <HeaderWithBackArrow goBackTo="./" />
       <TextInput
         placeholder={"Old Password"}
         value={oldPassword}

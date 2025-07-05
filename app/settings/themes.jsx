@@ -24,7 +24,7 @@ const Themes = () => {
       colors={theme.settingPagesGradient}
       style={styles.container}
     >
-      <HeaderWithBackArrow goBackTo="./menu" />
+      <HeaderWithBackArrow goBackTo="./" />
 
       {availableThemes.map((themeName) => (
         <Pressable

@@ -14,7 +14,7 @@ const StoragePage = () => {
       colors={theme.settingPagesGradient}
       style={styles.container}
     >
-      <HeaderWithBackArrow goBackTo="./menu" />
+      <HeaderWithBackArrow goBackTo="./" />
       <DatabaseSizeChart />
     </SmartBackground>
   );
