@@ -49,24 +49,24 @@ class JsonParser {
   }
 
   // Metodo per effettuare il login e restituire l'API Key
-  static async loginJson(email, password) {
-    try {
-      const response = await APIMethods.loginAPI(email, password);
+  // static async loginJson(email, password) {
+  //   try {
+  //     const response = await APIMethods.loginAPI(email, password);
 
-      if (response.status === 200) {
-        const jsonResponse = response.data;
-        const loginResponseToken = jsonResponse["token"];
+  //     if (response.status === 200) {
+  //       const jsonResponse = response.data;
+  //       const loginResponseToken = jsonResponse["token"];
 
-        return loginResponseToken;
-      } else {
-        console.error(`Errore nella richiesta: ${response.status}`);
-        return false;
-      }
-    } catch (error) {
-      console.error("Errore durante il login:", error);
-      return false;
-    }
-  }
+  //       return loginResponseToken;
+  //     } else {
+  //       console.error(`Errore nella richiesta: ${response.status}`);
+  //       return false;
+  //     }
+  //   } catch (error) {
+  //     console.error("Errore durante il login:", error);
+  //     return false;
+  //   }
+  // }
 
   // Metodo per verificare la disponibilità di un handle
   static async handleAvailability(handle) {

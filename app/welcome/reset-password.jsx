@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { ThemeContext } from "@/context/ThemeContext";
 import APIMethods from "../utils/APImethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -37,7 +36,7 @@ const ResetPassword = () => {
   const isPasswordValid = (pwd) => passwordRegex.test(pwd);
 
 
-  
+
   useEffect(() => {
     const checkLogged = async () => {
       const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");

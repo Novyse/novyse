@@ -10,7 +10,7 @@ import {
   Platform,
   Image,
   useWindowDimensions,
-  Alert
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -18,10 +18,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import JsonParser from "../utils/JsonParser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import {
-  ViewIcon,
-  ViewOffIcon,
-} from "@hugeicons/core-free-icons";
+import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 
@@ -78,26 +75,45 @@ const LoginPassword = () => {
     setIsLoading(true);
 
     try {
-      const loginSuccess = await JsonParser.loginJson(emailValue, password);
-      console.log("Login Success?", loginSuccess);
-
-      if (!loginSuccess) {
+      const loginData = await APIMethods.loginAPI(emailValue, password);
+      console.log("✨✨✨", loginData);
+      const token = loginData.token;
+      if (!loginData.logged_in) {
         console.log("Error", "Incorrect password.");
         setError("Incorrect Password");
         setIsLoading(false);
         return;
       } else {
-        const success = await clearDBAddTokenInit(loginSuccess);
+        const twofamethods = loginData.two_fa_methods;
+        if (twofamethods.length == 0) {
+          const success = await clearDBAddTokenInit(token);
 
-        if (success) {
-          router.replace("/messages");
+          if (success) {
+            router.replace("/messages");
+          } else {
+            console.error("Error clearing DB, adding token or during init");
+          }
+        } else if (twofamethods.length == 1) {
+          router.navigate({
+            pathname: "/welcome/verify",
+            params: {
+              verificationType: twofamethods[0],
+              token: token,
+            },
+          });
         } else {
-          console.error("Error clearing DB, adding token or during init");
+          router.navigate({
+            pathname: "/welcome/choose-verify",
+            params: {
+              verificationTypeList: twofamethods,
+              token: token,
+            },
+          });
         }
       }
     } catch (error) {
       console.error(error);
-      setError("Error");
+      setError("Incorrect Password");
     } finally {
       setIsLoading(false);
     }
@@ -211,10 +227,7 @@ const LoginPassword = () => {
 
           {error && <Text style={styles.errorText}>{error}</Text>}
 
-          <Text
-            style={styles.resetPasswordText}
-            onPress={handleResetPassword}
-          >
+          <Text style={styles.resetPasswordText} onPress={handleResetPassword}>
             Reset Password
           </Text>
         </View>

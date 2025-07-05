@@ -9,7 +9,8 @@ import {
   PaintBoardIcon,
   Folder01Icon,
   QrCode01Icon,
-  BlockedIcon
+  BlockedIcon,
+  InformationCircleIcon
 } from "@hugeicons/core-free-icons";
 import { APP_VERSION } from "../../app.config.js";
 import ScreenLayout from "../components/ScreenLayout";
@@ -40,6 +41,11 @@ const SettingsMenu = () => {
             navToPage="/settings/privacy-and-security"
             pageName="Privacy and Security"
             iconName={BlockedIcon}
+          />
+          <SettingsMenuItem
+            navToPage="/settings/info"
+            pageName="Info"
+            iconName={InformationCircleIcon}
           />
           {Platform.OS === "android" && (
             <SettingsMenuItem

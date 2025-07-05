@@ -97,7 +97,7 @@ const APIMethods = {
         `/user/auth/login?email=${email}&password=${password}`
       );
 
-      return response;
+      return response.data;
     } catch (error) {
       console.error("Error in loginAPI:", error);
       throw error;
@@ -376,7 +376,17 @@ const APIMethods = {
     }
   },
 
-
+  async twoFactorsAuth(method, token, code) {
+    try {
+      const response = await api.get(
+        `/user/auth/2fa?method=${method}&token=${token}&code=${code}`
+      );
+      return response.data; // ritorna data : token sessione e authenticated true/false
+    } catch (error) {
+      console.error("Error in changePassword:", error);
+      throw error;
+    }
+  },
 };
 
 export default APIMethods;
