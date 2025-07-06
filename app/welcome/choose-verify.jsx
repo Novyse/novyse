@@ -14,6 +14,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
+import APIMethods from "../utils/APImethods";
 
 const ChooseVerify = () => {
   const router = useRouter();
@@ -24,13 +25,9 @@ const ChooseVerify = () => {
   const isSmallScreen = width < 936;
   const styles = createStyle(loginTheme, isSmallScreen);
 
-  
   const { email, token, verificationTypeList } = useLocalSearchParams();
 
-  
-  const methods = Array.isArray(verificationTypeList)
-    ? verificationTypeList
-    : JSON.parse(verificationTypeList || "[]");
+  const methods = verificationTypeList ? verificationTypeList.split(",") : [];
 
   useEffect(() => {
     const checkLogged = async () => {
@@ -41,28 +38,28 @@ const ChooseVerify = () => {
         console.log("Utente non loggato in ChooseVerify");
       }
     };
-    checkLogged(); // Non è necessario .then() qui
+    checkLogged();
   }, []);
 
   const handleChooseMethod = (method) => {
     setSelectedMethod(method);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (selectedMethod) {
       setIsLoading(true);
-      // Naviga alla pagina Verify, passando il metodo scelto come verificationType
-      router.navigate({
-        pathname: "/verify", // Assicurati che questo sia il percorso corretto per la tua pagina Verify
-        params: {
-          email: email,
-          token: token,
-        },
-        state: {
-          verificationType: selectedMethod,
-        },
-      });
-      setIsLoading(false);
+      const successChoose = await APIMethods.twofaSelect(token, selectedMethod);
+      if (successChoose) {
+        // Naviga alla pagina Verify, passando il metodo scelto come verificationType
+        router.navigate({
+          pathname: "./verify", // Assicurati che questo sia il percorso corretto per la tua pagina Verify
+          params: {
+            verificationType: selectedMethod,
+            token: token,
+          },
+        });
+        setIsLoading(false);
+      }
     } else {
       // Potresti voler mostrare un messaggio di errore se nessun metodo è selezionato
       alert("Please choose a verification method.");
@@ -112,14 +109,13 @@ const ChooseVerify = () => {
                 <Text
                   style={[
                     styles.optionButtonText,
-                    selectedMethod === method && styles.selectedOptionButtonText,
+                    selectedMethod === method &&
+                      styles.selectedOptionButtonText,
                   ]}
                 >
-                  {/* Formatta il testo in base al metodo */}
                   {method === "email" && "Email"}
                   {method === "sms" && "SMS"}
                   {method === "authenticator" && "Authenticator App"}
-                  {/* Aggiungi altri casi se hai più metodi */}
                 </Text>
               </TouchableOpacity>
             ))}

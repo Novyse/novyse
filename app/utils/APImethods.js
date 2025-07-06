@@ -379,11 +379,59 @@ const APIMethods = {
   async twoFactorsAuth(method, token, code) {
     try {
       const response = await api.get(
-        `/user/auth/2fa?method=${method}&token=${token}&code=${code}`
+        `/user/auth/2fa/verify?method=${method}&token=${token}&code=${code}`
       );
       return response.data; // ritorna data : token sessione e authenticated true/false
     } catch (error) {
-      console.error("Error in changePassword:", error);
+      console.error("Error in twoFactorsAuth:", error);
+      throw error;
+    }
+  },
+
+  async getTwofaMethods() {
+    try {
+      const response = await api.get(
+        `/user/auth/2fa/get`
+      );
+      return response.data; // ritorna data : two_fa_active_methods, two_fa_methods
+    } catch (error) {
+      console.error("Error in get 2fa methods:", error);
+      throw error;
+    }
+  },
+
+  async removeTwofaMethod(method) {
+    try {
+      const response = await api.get(
+        `/user/auth/2fa/remove?method=${method}`
+      );
+      return response.data; // ritorna data : two_fa_remove_method true/false, token
+    } catch (error) {
+      console.error("Error in get 2fa remove method:", error);
+      throw error;
+    }
+  },
+
+  async addTwofaMethod(method) {
+    try {
+      const response = await api.get(
+        `/user/auth/2fa/add?method=${method}`
+      );
+      return response.data; // ritorna data : two_fa_add_method true/false, token
+    } catch (error) {
+      console.error("Error in get 2fa remove method:", error);
+      throw error;
+    }
+  },
+
+  async twofaSelect(token, method) {
+    try {
+      const response = await api.get(
+        `/user/auth/2fa/select?method=${method}&token=${token}`
+      );
+      return response.data; // ritorna data : two_fa_select true/false
+    } catch (error) {
+      console.error("Error in get twofaSelect:", error);
       throw error;
     }
   },

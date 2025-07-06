@@ -1,47 +1,37 @@
-import React, { useContext, useEffect, useState } from "react";
-import { StyleSheet, Pressable, Text, View, TextInput } from "react-native";
-import SmartBackground from "../../components/SmartBackground";
+import React, { useContext } from "react";
+import { StyleSheet, ScrollView, View} from "react-native"; // Aggiungi ScrollView
 import { ThemeContext } from "@/context/ThemeContext";
+import SettingsMenuItem from "../../components/SettingsMenuItem";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
-import { Colors } from "../../../constants/Colors";
-import APIMethods from "../../utils/APImethods";
+import {
+  Key01Icon,
+  TwoFactorAccessIcon
+} from "@hugeicons/core-free-icons";
+import ScreenLayout from "../../components/ScreenLayout";
 
-const PrivacyAndSecurity = () => {
-  const { setColorScheme, theme, colorScheme } = useContext(ThemeContext);
+const PrivacyAndSecurityMenu = () => {
+  const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-
-  const handleChangePassword = async () => {
-    const changePassword = await APIMethods.changePassword(
-      oldPassword,
-      newPassword
-    );
-    console.log("Change password", changePassword);
-  };
 
   return (
-    <SmartBackground
-      colors={theme.settingPagesGradient}
-      style={styles.container}
-    >
-      <HeaderWithBackArrow goBackTo="./" />
-      <TextInput
-        placeholder={"Old Password"}
-        value={oldPassword}
-        onChangeText={(text) => {
-          setOldPassword(text);
-        }}
-      ></TextInput>
-      <TextInput
-        placeholder={"New Password"}
-        value={newPassword}
-        onChangeText={(text) => {
-          setNewPassword(text);
-        }}
-      ></TextInput>
-      <Pressable style={styles.themeButton} onPress={handleChangePassword}></Pressable>
-    </SmartBackground>
+    <ScreenLayout>
+      <View style={styles.container}>
+        <HeaderWithBackArrow goBackTo="./" />
+
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <SettingsMenuItem
+            navToPage="./privacy-and-security/change-password"
+            pageName="Change Password"
+            iconName={Key01Icon}
+          />
+          <SettingsMenuItem
+            navToPage="./privacy-and-security/twofa-methods"
+            pageName="2FA Methods"
+            iconName={TwoFactorAccessIcon}
+          />
+        </ScrollView>
+      </View>
+    </ScreenLayout>
   );
 };
 
@@ -51,31 +41,6 @@ const createStyle = (theme) =>
       flex: 1,
       padding: 10,
     },
-    themeButton: {
-      padding: 10,
-      marginVertical: 5,
-      borderRadius: 8,
-      backgroundColor: "green"
-    },
-    activeThemeButton: {
-      borderWidth: 2,
-      borderColor: theme.primary || theme.text,
-    },
-    themeButtonContent: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-    themeText: {
-      color: theme.text,
-      fontSize: 16,
-    },
-    activeIndicator: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      backgroundColor: theme.primary || theme.text,
-    },
   });
 
-export default PrivacyAndSecurity;
+export default PrivacyAndSecurityMenu;

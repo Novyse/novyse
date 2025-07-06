@@ -10,7 +10,6 @@ import {
   Platform,
   Image,
   useWindowDimensions,
-  // Rimosse: NativeSyntheticEvent, TextInputKeyPressEventData
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -19,6 +18,7 @@ import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import APIMethods from "../utils/APImethods";
 import { clearDBAddTokenInit } from "../utils/welcome/auth";
+import OtpDigitsInput from "../components/OtpDigitsInput";
 
 const Verify = ({}) => {
   const router = useRouter();
@@ -30,7 +30,7 @@ const Verify = ({}) => {
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const otpTextInputRefs = useRef([]);
+  
 
   const { token, verificationType } = useLocalSearchParams();
 
@@ -71,68 +71,6 @@ const Verify = ({}) => {
         return "Authenticator App";
       default:
         return "Verify Code";
-    }
-  };
-
-  const handleOtpChange = (text, index) => {
-    // Rimosse le annotazioni di tipo
-    // Rimuove qualsiasi carattere che non sia una cifra
-    const numericText = text.replace(/[^0-9]/g, "");
-
-    const newOtp = [...otp];
-
-    if (numericText.length === 1) {
-      newOtp[index] = numericText;
-      setOtp(newOtp);
-      setError(null);
-      // Sposta il focus al campo successivo
-      if (index < otp.length - 1) {
-        otpTextInputRefs.current[index + 1]?.focus();
-      }
-    } else if (numericText.length > 1) {
-      // Se l'utente incolla più cifre, distribuiscile
-      for (let i = 0; i < numericText.length && index + i < otp.length; i++) {
-        newOtp[index + i] = numericText.charAt(i);
-      }
-      setOtp(newOtp);
-      setError(null);
-      // Sposta il focus all'ultimo campo riempito o all'ultimo in generale
-      const lastFilledIndex = Math.min(
-        index + numericText.length - 1,
-        otp.length - 1
-      );
-      otpTextInputRefs.current[lastFilledIndex]?.focus();
-    } else {
-      // Se il campo viene svuotato (anche con backspace), resetta il suo valore a stringa vuota
-      newOtp[index] = "";
-      setOtp(newOtp);
-      setError(null);
-    }
-  };
-
-  const handleKeyPress = (e, index) => {
-    // Rimosse le annotazioni di tipo
-    // Gestione tasto Backspace
-    if (e.nativeEvent.key === "Backspace") {
-      // Se il campo corrente è vuoto e non siamo il primo campo, sposta il focus indietro e cancella il campo precedente
-      if (otp[index] === "" && index > 0) {
-        otpTextInputRefs.current[index - 1]?.focus();
-        const newOtp = [...otp];
-        newOtp[index - 1] = ""; // Cancella il carattere precedente
-        setOtp(newOtp);
-      }
-    }
-    // Gestione tasto freccia destra
-    else if (e.nativeEvent.key === "ArrowRight") {
-      if (index < otp.length - 1) {
-        otpTextInputRefs.current[index + 1]?.focus();
-      }
-    }
-    // Gestione tasto freccia sinistra
-    else if (e.nativeEvent.key === "ArrowLeft") {
-      if (index > 0) {
-        otpTextInputRefs.current[index - 1]?.focus();
-      }
     }
   };
 
@@ -207,24 +145,12 @@ const Verify = ({}) => {
           </Text>
 
           <View style={styles.inputWrapper}>
-            <View style={styles.otpContainer}>
-              {otp.map((digit, index) => (
-                <TextInput
-                  key={index}
-                  style={[styles.otpInput, error ? styles.inputError : null]}
-                  value={digit}
-                  onChangeText={(text) => handleOtpChange(text, index)}
-                  onKeyPress={(e) => handleKeyPress(e, index)}
-                  keyboardType="numeric"
-                  maxLength={1}
-                  ref={(el) => (otpTextInputRefs.current[index] = el)}
-                  onSubmitEditing={
-                    index === otp.length - 1 ? handleVerifyOtp : undefined
-                  }
-                  caretHidden={false}
-                />
-              ))}
-            </View>
+            <OtpDigitsInput
+              value={otp}
+              onChange={setOtp}
+              error={!!error}
+              inputCount={6}
+            />
 
             <TouchableOpacity
               style={styles.submitButton}

@@ -76,7 +76,6 @@ const LoginPassword = () => {
 
     try {
       const loginData = await APIMethods.loginAPI(emailValue, password);
-      console.log("✨✨✨", loginData);
       const token = loginData.token;
       if (!loginData.logged_in) {
         console.log("Error", "Incorrect password.");

@@ -19,7 +19,6 @@ const SettingsMenu = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  // Accedi alla versione tramite Constants
   return (
     <ScreenLayout>
       <View style={styles.container}>
