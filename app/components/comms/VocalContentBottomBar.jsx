@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -190,6 +190,20 @@ const VocalContentBottomBar = ({ chatId }) => {
       Alert.alert("Camera Error", "Failed to switch camera. Please try again.");
     }
   };
+
+  // Shortcut: Ctrl+F12 per mutare il microfono (solo web)
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.key === "F12") {
+        e.preventDefault();
+        toggleAudio();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isAudioEnabled]);
 
   return (
     <View style={styles.container}>
