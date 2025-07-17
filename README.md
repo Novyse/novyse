@@ -61,8 +61,57 @@ Contiene metodi di supporto alle chiamate API. Permette al codice di interfaccia
 Contiene i metodi per gestire le websocket (apertura, chiusura, invio e ricezione messaggi da esse)
 
 ## /utils/EventEmitter
-<<<<<<< HEAD
 Contiene dei metodi che permettono di aggiornare dei campi nelle varie pagine dell'applicazione quando avviene un determinato evento (ad esempio quando si riceve un messaggio aggiorna l'ultimo messaggio ricevuto da questa chat nel riquadro nella lista delle chat)
-=======
-Contiene dei metodi che permettono di aggiornare dei campi nelle varie pagine dell'applicazione quando avviene un determinato evento (ad esempio quando si riceve un messaggio aggiorna l'ultimo messaggio ricevuto da questa chat nel riquadro nella lista delle chat)
->>>>>>> 02241ce73b39b6ca34732943404cf29c146371aa
+
+# Build guide
+
+## Android
+
+```
+npx expo install --fix
+npx expo prebuild --clean
+
+Sistema AndroidManifest.xml
+Crea local.properties dentro cartella android/ 
+   con questo contenuto: sdk.dir=C:\\Users\\ISRaiken\\AppData\\Local\\Android\\Sdk
+
+npx expo run:android --clear-build-cache OR npx expo run:android
+```
+
+e in caso di problemi
+
+```
+sudo apt install openjdk-17-jdk -y
+
+nano ~/.bashrc
+
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH="$JAVA_HOME/bin:$PATH"
+
+export PATH=$PATH:/mnt/c/Users/ISRaiken/AppData/Local/Android/Sdk/cmake/3.22.1/bin
+
+# Android SDK Configuration
+# Set the base path (adjust if your Windows path is different)
+export ANDROID_HOME=/mnt/c/Users/ISRaiken/AppData/Local/Android/Sdk
+
+# Add essential tools to PATH based on your Windows setup
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+export PATH=$PATH:$ANDROID_HOME/emulator
+
+# Add command-line tools (usually preferred over older 'tools')
+# Check the actual folder name inside C:\Users\ISRaiken\AppData\Local\Android\Sdk\cmdline-tools
+# It might be 'latest' or a version number like '11.0'
+export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin #<-- Adjust 'latest' if needed
+
+# Add build tools (dynamically finds the latest installed version)
+export PATH=$PATH:$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -r | head -n 1)
+
+# Add older tools directories (less likely needed, but included based on your list)
+# export PATH=$PATH:$ANDROID_HOME/tools
+# export PATH=$PATH:$ANDROID_HOME/tools/bin
+
+source ~/.bashrc
+
+npm install
+npx expo run:android
+```
