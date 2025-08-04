@@ -10,7 +10,8 @@ import {
   Folder01Icon,
   QrCode01Icon,
   BlockedIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  KeyboardIcon
 } from "@hugeicons/core-free-icons";
 import { APP_VERSION } from "../../app.config.js";
 import ScreenLayout from "../components/ScreenLayout";
@@ -51,6 +52,13 @@ const SettingsMenu = () => {
               navToPage="/settings/qrscanner"
               pageName="QR Scanner"
               iconName={QrCode01Icon}
+            />
+          )}
+          {Platform.OS === "web" && (
+            <SettingsMenuItem
+              navToPage="/settings/shortcuts"
+              pageName="Shortcuts"
+              iconName={KeyboardIcon}
             />
           )}
         </ScrollView>
