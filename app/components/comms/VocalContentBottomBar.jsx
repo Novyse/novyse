@@ -13,8 +13,8 @@ import MicrophoneArrowButton from "./MicrophoneArrowButton";
 import CameraSelector from "./CameraSelector";
 import CameraArrowButton from "./CameraArrowButton";
 import { BlurView } from "expo-blur";
+import { useRouter } from "expo-router";
 
-import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   Mic02Icon,
   MicOff02Icon,
@@ -22,6 +22,7 @@ import {
   VideoOffIcon,
   ComputerScreenShareIcon,
   ComputerRemoveIcon,
+  Settings02Icon,
   Call02Icon,
 } from "@hugeicons/core-free-icons";
 
@@ -40,6 +41,8 @@ const VocalContentBottomBar = ({ chatId }) => {
   const [currentCameraId, setCurrentCameraId] = useState(get.videoDeviceId());
   // State for mobile camera facing mode and preferences
   const [currentFacingMode, setCurrentFacingMode] = useState("user"); // 'user' for front, 'environment' for back
+
+  const router = useRouter();
 
   const handleJoinVocal = async () => {
     try {
@@ -245,6 +248,11 @@ const VocalContentBottomBar = ({ chatId }) => {
             <VocalBottomBarButton
               onPress={handleScreenShare}
               iconName={ComputerScreenShareIcon}
+              iconColor={theme.icon}
+            />
+            <VocalBottomBarButton
+              onPress={() => router.push("settings/vocal-chat")}
+              iconName={Settings02Icon}
               iconColor={theme.icon}
             />
             <VocalBottomBarButton

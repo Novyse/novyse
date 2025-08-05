@@ -1,17 +1,16 @@
 import React, { useContext } from "react";
 import { Text, StyleSheet, ScrollView, View, Platform } from "react-native"; // Aggiungi ScrollView
-import SmartBackground from "../components/SmartBackground";
 import { ThemeContext } from "@/context/ThemeContext";
 import SettingsMenuItem from "../components/SettingsMenuItem";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
-import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   PaintBoardIcon,
   Folder01Icon,
   QrCode01Icon,
   BlockedIcon,
   InformationCircleIcon,
-  KeyboardIcon
+  KeyboardIcon,
+  VolumeHighIcon
 } from "@hugeicons/core-free-icons";
 import { APP_VERSION } from "../../app.config.js";
 import ScreenLayout from "../components/ScreenLayout";
@@ -43,9 +42,9 @@ const SettingsMenu = () => {
             iconName={BlockedIcon}
           />
           <SettingsMenuItem
-            navToPage="/settings/info"
-            pageName="Info"
-            iconName={InformationCircleIcon}
+            navToPage="/settings/vocal-chat"
+            pageName="Vocal Chat"
+            iconName={VolumeHighIcon}
           />
           {Platform.OS === "android" && (
             <SettingsMenuItem
@@ -61,6 +60,11 @@ const SettingsMenu = () => {
               iconName={KeyboardIcon}
             />
           )}
+          <SettingsMenuItem
+            navToPage="/settings/info"
+            pageName="Info"
+            iconName={InformationCircleIcon}
+          />
         </ScrollView>
 
         {/* Testo della versione fuori dallo ScrollView per mantenerlo fisso */}
