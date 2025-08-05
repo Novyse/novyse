@@ -6,7 +6,7 @@ import {
   View,
   TouchableOpacity,
 } from "react-native";
-import SmartBackground from "../../components/SmartBackground";
+import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
 import APIMethods from "@/app/utils/APImethods";
@@ -96,51 +96,52 @@ const TwoFAMethods = () => {
   };
 
   return (
-    <SmartBackground
-      colors={theme.settingPagesGradient}
-      style={styles.container}
-    >
-      <HeaderWithBackArrow goBackTo="/settings/privacy-and-security" />
+    <ScreenLayout>
+      <View style={styles.container}>
+        <HeaderWithBackArrow goBackTo="/settings/privacy-and-security" />
 
-      <View style={styles.methodsContainer}>
-        {methods.map((method) => {
-          const isActive = activeMethods.includes(method);
-          return (
-            <Pressable key={method} style={styles.themeButton}>
-              <View style={styles.themeButtonContent}>
-                <Text style={styles.themeText}>{method}</Text>
-                {isActive ? (
-                  <>
-                    <Text style={{ color: "lime", marginLeft: 8 }}>Attivo</Text>
+        <View style={styles.methodsContainer}>
+          {methods.map((method) => {
+            const isActive = activeMethods.includes(method);
+            return (
+              <Pressable key={method} style={styles.themeButton}>
+                <View style={styles.themeButtonContent}>
+                  <Text style={styles.themeText}>{method}</Text>
+                  {isActive ? (
+                    <>
+                      <Text style={{ color: "lime", marginLeft: 8 }}>
+                        Attivo
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteMethod(method)}
+                        style={{
+                          backgroundColor: "gray",
+                          borderRadius: 5,
+                          padding: 3,
+                        }}
+                      >
+                        <HugeiconsIcon icon={Delete02Icon} />
+                      </TouchableOpacity>
+                    </>
+                  ) : (
                     <TouchableOpacity
-                      onPress={() => handleDeleteMethod(method)}
+                      onPress={() => handleAddMethod(method)}
                       style={{
                         backgroundColor: "gray",
                         borderRadius: 5,
                         padding: 3,
                       }}
                     >
-                      <HugeiconsIcon icon={Delete02Icon} />
+                      <HugeiconsIcon icon={PlusSignCircleIcon} />
                     </TouchableOpacity>
-                  </>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => handleAddMethod(method)}
-                    style={{
-                      backgroundColor: "gray",
-                      borderRadius: 5,
-                      padding: 3,
-                    }}
-                  >
-                    <HugeiconsIcon icon={PlusSignCircleIcon} />
-                  </TouchableOpacity>
-                )}
-              </View>
-            </Pressable>
-          );
-        })}
+                  )}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
-    </SmartBackground>
+    </ScreenLayout>
   );
 };
 

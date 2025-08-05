@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import { StyleSheet, Pressable, Text, View } from "react-native";
-import SmartBackground from "../components/SmartBackground";
+import ScreenLayout from "../components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import { Colors } from "../../constants/Colors";
@@ -20,32 +20,31 @@ const Themes = () => {
   }, [colorScheme, setColorScheme]);
 
   return (
-    <SmartBackground
-      colors={theme.settingPagesGradient}
-      style={styles.container}
-    >
-      <HeaderWithBackArrow goBackTo="./" />
+    <ScreenLayout>
+      <View style={styles.container}>
+        <HeaderWithBackArrow goBackTo="./" />
 
-      {availableThemes.map((themeName) => (
-        <Pressable
-          key={themeName}
-          onPress={() => setColorScheme(themeName)}
-          style={[
-            styles.themeButton,
-            colorScheme === themeName && styles.activeThemeButton,
-          ]}
-        >
-          <View style={styles.themeButtonContent}>
-            <Text style={styles.themeText}>
-              {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
-            </Text>
-            {colorScheme === themeName && (
-              <View style={styles.activeIndicator} />
-            )}
-          </View>
-        </Pressable>
-      ))}
-    </SmartBackground>
+        {availableThemes.map((themeName) => (
+          <Pressable
+            key={themeName}
+            onPress={() => setColorScheme(themeName)}
+            style={[
+              styles.themeButton,
+              colorScheme === themeName && styles.activeThemeButton,
+            ]}
+          >
+            <View style={styles.themeButtonContent}>
+              <Text style={styles.themeText}>
+                {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
+              </Text>
+              {colorScheme === themeName && (
+                <View style={styles.activeIndicator} />
+              )}
+            </View>
+          </Pressable>
+        ))}
+      </View>
+    </ScreenLayout>
   );
 };
 

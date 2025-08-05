@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
-import { StyleSheet } from "react-native";
-import SmartBackground from "../components/SmartBackground";
+import { StyleSheet, View } from "react-native";
+import ScreenLayout from "../components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import DatabaseSizeChart from "../components/DatabaseSizeChart";
@@ -10,13 +10,12 @@ const StoragePage = () => {
   const styles = createStyle(theme);
 
   return (
-    <SmartBackground
-      colors={theme.settingPagesGradient}
-      style={styles.container}
-    >
-      <HeaderWithBackArrow goBackTo="./" />
-      <DatabaseSizeChart />
-    </SmartBackground>
+    <ScreenLayout>
+      <View style={styles.container}>
+        <HeaderWithBackArrow goBackTo="./" />
+        <DatabaseSizeChart />
+      </View>
+    </ScreenLayout>
   );
 };
 

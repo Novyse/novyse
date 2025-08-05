@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { StyleSheet, Pressable, Text, View, TextInput } from "react-native";
-import SmartBackground from "../../components/SmartBackground";
+import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
 import APIMethods from "../../utils/APImethods";
@@ -20,27 +20,29 @@ const ChangePassword = () => {
   };
 
   return (
-    <SmartBackground
-      colors={theme.settingPagesGradient}
-      style={styles.container}
-    >
-      <HeaderWithBackArrow goBackTo="./" />
-      <TextInput
-        placeholder={"Old Password"}
-        value={oldPassword}
-        onChangeText={(text) => {
-          setOldPassword(text);
-        }}
-      ></TextInput>
-      <TextInput
-        placeholder={"New Password"}
-        value={newPassword}
-        onChangeText={(text) => {
-          setNewPassword(text);
-        }}
-      ></TextInput>
-      <Pressable style={styles.themeButton} onPress={handleChangePassword}></Pressable>
-    </SmartBackground>
+    <ScreenLayout>
+      <View style={styles.container}>
+        <HeaderWithBackArrow goBackTo="./" />
+        <TextInput
+          placeholder={"Old Password"}
+          value={oldPassword}
+          onChangeText={(text) => {
+            setOldPassword(text);
+          }}
+        ></TextInput>
+        <TextInput
+          placeholder={"New Password"}
+          value={newPassword}
+          onChangeText={(text) => {
+            setNewPassword(text);
+          }}
+        ></TextInput>
+        <Pressable
+          style={styles.themeButton}
+          onPress={handleChangePassword}
+        ></Pressable>
+      </View>
+    </ScreenLayout>
   );
 };
 
@@ -54,7 +56,7 @@ const createStyle = (theme) =>
       padding: 10,
       marginVertical: 5,
       borderRadius: 8,
-      backgroundColor: "green"
+      backgroundColor: "green",
     },
     activeThemeButton: {
       borderWidth: 2,
