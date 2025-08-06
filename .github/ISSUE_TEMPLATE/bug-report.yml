@@ -1,1 +1,126 @@
-Added temp bug issue template for teating purpouse
+name: Bug Report
+description: Report a reproducible bug in the application
+title: "[BUG] <Brief description>"
+labels: [bug]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 Bug Report
+
+        Please fill out the following information to help us investigate the issue.
+
+  - type: input
+    id: expected_behavior
+    attributes:
+      label: 📝 Expected Behavior
+      description: What did you expect to happen?
+      placeholder: e.g., The "Submit" button should save the form and redirect to the dashboard.
+    validations:
+      required: true
+
+  - type: input
+    id: actual_behavior
+    attributes:
+      label: ❌ Actual Behavior
+      description: What actually happened?
+      placeholder: e.g., The "Submit" button does nothing when clicked.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: 📍 Steps to Reproduce
+      description: Step-by-step instructions to reproduce the issue.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Observe '...'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 📱 Platform
+      description: On which platform did you experience the issue?
+      options:
+        - Web
+        - Android
+        - iOS
+        - Desktop (Windows/macOS/Linux)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: browser_info
+    attributes:
+      label: 🌐 Browser Info (if Web)
+      description: Browser name and version (e.g., Chrome 120.0.0.0)
+      placeholder: "You can find this info at: https://www.whatismybrowser.com/"
+  
+  - type: input
+    id: user_agent
+    attributes:
+      label: 🧾 User Agent (if Web)
+      description: Paste your user agent string
+      placeholder: Find it here: https://www.whatismybrowser.com/
+  
+  - type: input
+    id: device_info
+    attributes:
+      label: 📱 Device Info (if Mobile)
+      description: Device model and OS version (e.g., iPhone 13, iOS 17.0.3 or Samsung Galaxy S23, Android 14)
+  
+  - type: input
+    id: app_version
+    attributes:
+      label: 🏷️ App Version (if applicable)
+      description: Version number of the app (if not applicable, leave blank)
+
+  - type: textarea
+    id: client_logs
+    attributes:
+      label: 📄 Client Logs
+      description: Paste any relevant client-side error logs or messages. Console logs, etc.
+      placeholder: |
+        - To get logs in a browser: Right-click > "Inspect" > "Console"
+        - For mobile apps: Use Logcat (Android) or Xcode (iOS)
+      render: shell
+
+  - type: textarea
+    id: server_logs
+    attributes:
+      label: 🖥️ Server Logs (if available)
+      description: Include relevant backend/server logs here.
+      placeholder: |
+        - To retrieve logs, use: `docker logs <container>` or `tail -n 100 /var/log/app.log`
+      render: shell
+
+  - type: textarea
+    id: media
+    attributes:
+      label: 📸 Screenshots / Recordings
+      description: Add any screenshots, screen recordings, or GIFs that demonstrate the issue.
+  
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: 🔁 Is this issue reproducible?
+      options:
+        - Always
+        - Sometimes
+        - Rarely
+        - Cannot reproduce
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: 🧩 Additional Notes
+      description: Anything else that might help us understand the issue better.
