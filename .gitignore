@@ -40,3 +40,5 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+pnpm-lock.yaml
+.gitignore

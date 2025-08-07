@@ -31,12 +31,12 @@ export class StreamManager {
    * @param {boolean} audioOnly - Whether to capture only audio
    * @returns {MediaStream|null} The local stream or null if failed
    */
-  async startLocalStream(audioOnly = true, audioProcessingOptions = {}) {
+  async startLocalStream(audioOnly = true, audioSettings = {}) {
     this.logger.info("Avvio acquisizione stream locale", {
       component: "StreamManager",
       audioOnly,
       action: "startLocalStream",
-      audioProcessing: /*!!audioProcessingOptions*/ true,
+      audioSettings: !!audioSettings,
     });
 
     this.logger.info(
@@ -66,12 +66,12 @@ export class StreamManager {
       );
 
       // Applica audio processing se richiesto
-      if (/*audioProcessingOptions &&*/ Platform.OS === "web") {
+      if (Platform.OS === "web") {
         localStream = await this.applyAudioProcessing(
           localStream,
-          audioProcessingOptions
+          audioSettings
         );
-      } else if (audioProcessingOptions) {
+      } else{
         this.logger.warning(
           "Audio processing non supportato su questa piattaforma",
           {
@@ -110,7 +110,7 @@ export class StreamManager {
     }
   }
 
-  async applyAudioProcessing(stream) {
+  async applyAudioProcessing(stream, audioSettings = {}) {
     if (!stream || Platform.OS !== "web") {
       return stream;
     }
@@ -118,34 +118,25 @@ export class StreamManager {
     const audioUtils = new AudioUtils();
     let filteredStream = stream;
 
-    filteredStream = audioUtils.noiseSuppression(filteredStream, {
-      threshold: -50, // Lower threshold (less aggressive)
-      reduction: -12, // Moderate reduction
-      cutoffFreq: 80, // Remove only very low frequencies
-    });
+    // Pulls from audioSettings
+    const noiseSuppressionMode = audioSettings.noiseSuppressionMode || "MEDIUM";
+    const expanderMode = audioSettings.expanderMode || "MEDIUM";
+    const noiseGateMode = audioSettings.noiseGateMode || "ADAPTIVE";
+    const noiseGateThreshold = audioSettings.noiseGateThreshold || -10;
+    const typingAttenuationMode = audioSettings.typingAttenuationMode || "MEDIUM";
 
-    // Apply expander if available
-    filteredStream = audioUtils.expander(filteredStream, {
-      threshold: -30, // Higher threshold for expander
-      ratio: 2, // Moderate ratio
-      attack: 0.01, // Short attack time
-      release: 0.1, // Longer release time
-    });
 
-    // Noise gate con gestione interna di static/adaptive/hybrid
-    filteredStream = audioUtils.noiseGate(filteredStream, {
-      type: "hybrid",
-      threshold: -20, // Threshold iniziale
-      attack: 0.005,
-      release: 0.2, 
-      holdTime: 0.15,
-      adaptationSpeed: 0.1,
-    });
+    if(noiseSuppressionMode != "OFF")
+      filteredStream = audioUtils.noiseSuppression(filteredStream, audioUtils._getNoiseSuppressionParams(noiseSuppressionMode));
 
-    filteredStream = audioUtils.typingAttenuation(filteredStream, {
-      cutoffFreq: 8000, // Much higher cutoff (preserve voice clarity)
-      threshold: -25, // More reasonable threshold
-    });
+    if(expanderMode != "OFF")
+      filteredStream = audioUtils.expander(filteredStream, audioUtils._getExpanderParams(expanderMode));
+
+    if(noiseGateMode != "OFF")
+      filteredStream = audioUtils.noiseGate(filteredStream, audioUtils._getNoiseGateParams(noiseGateMode,noiseGateThreshold));
+
+    if(typingAttenuationMode != "OFF")
+      filteredStream = audioUtils.typingAttenuation(filteredStream, audioUtils._getTypingAttenuationParams(typingAttenuationMode));
 
     if (!filteredStream) {
       this.logger.error("StreamManager", "Failed to apply audio processing");

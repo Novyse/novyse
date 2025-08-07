@@ -4,6 +4,136 @@ class AudioUtils {
       window.webkitAudioContext)();
   }
 
+  // PARAMETERS
+  /**
+   * Get noise suppression parameters based on preset level
+   * @param {string} level - "LOW", "MEDIUM", "HIGH"
+   * @returns {Object} Noise suppression parameters
+   */
+  _getNoiseSuppressionParams(level = "MEDIUM") {
+    const presets = {
+      LOW: {
+        threshold: -40,
+        reduction: -8,
+        cutoffFreq: 60,
+      },
+      MEDIUM: {
+        threshold: -50,
+        reduction: -12,
+        cutoffFreq: 80,
+      },
+      HIGH: {
+        threshold: -60,
+        reduction: -18,
+        cutoffFreq: 100,
+      }
+    };
+
+    return presets[level] || presets.MEDIUM;
+  }
+
+  /**
+   * Get expander parameters based on preset level
+   * @param {string} level - "LOW", "MEDIUM", "HIGH"
+   * @returns {Object} Expander parameters
+   */
+  _getExpanderParams(level = "MEDIUM") {
+    const presets = {
+      LOW: {
+        threshold: -25,
+        ratio: 1.5,
+        attack: 0.02,
+        release: 0.15,
+      },
+      MEDIUM: {
+        threshold: -30,
+        ratio: 2,
+        attack: 0.01,
+        release: 0.1,
+      },
+      HIGH: {
+        threshold: -35,
+        ratio: 3,
+        attack: 0.005,
+        release: 0.05,
+      }
+    };
+
+    return presets[level] || presets.MEDIUM;
+  }
+
+  /**
+   * Get noise gate parameters based on type and optional custom threshold
+   * @param {string} type - "ADAPTIVE", "HYBRID", "MANUAL"
+   * @param {number} customThreshold - Custom threshold for HYBRID and MANUAL types
+   * @returns {Object} Noise gate parameters
+   */
+  _getNoiseGateParams(type = "HYBRID", customThreshold = null) {
+    const baseParams = {
+      attack: 0.005,
+      release: 0.2,
+      holdTime: 0.15,
+    };
+
+    switch (type) {
+
+      case "ADAPTIVE":
+        return {
+          ...baseParams,
+          type: "adaptive",
+          threshold: -20,
+          adaptationSpeed: 0.1,
+        };
+
+      case "HYBRID":
+        return {
+          ...baseParams,
+          type: "hybrid",
+          threshold: customThreshold !== null ? customThreshold : -20,
+          adaptationSpeed: 0.1,
+        };
+
+      case "MANUAL":
+        return {
+          ...baseParams,
+          type: "static",
+          threshold: customThreshold !== null ? customThreshold : -30,
+        };
+
+      default:
+        return {
+          ...baseParams,
+          type: "hybrid",
+          threshold: -20,
+          adaptationSpeed: 0.1,
+        };
+    }
+  }
+
+  /**
+   * Get typing attenuation parameters based on preset level
+   * @param {string} level - "LOW", "MEDIUM", "HIGH"
+   * @returns {Object} Typing attenuation parameters
+   */
+  _getTypingAttenuationParams(level = "MEDIUM") {
+    const presets = {
+      LOW: {
+        cutoffFreq: 6000,
+        threshold: -30,
+      },
+      MEDIUM: {
+        cutoffFreq: 8000,
+        threshold: -25,
+      },
+      HIGH: {
+        cutoffFreq: 10000,
+        threshold: -20,
+      }
+    };
+
+    return presets[level] || presets.MEDIUM;
+  }
+
   /**
    * Applies noise reduction to an audio stream using a combination of high-pass filtering
    * and dynamic range compression
