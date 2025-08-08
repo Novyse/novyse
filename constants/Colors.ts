@@ -29,6 +29,7 @@ export const Colors = {
     settingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.65)",
     backgroundStatusBar: "#416a90", // StatusBar scura per Dark Mode
+    cardBackground: "#416a90",
     
     // Gradients
     backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale dell'app

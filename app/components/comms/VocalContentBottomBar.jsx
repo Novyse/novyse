@@ -251,7 +251,7 @@ const VocalContentBottomBar = ({ chatId }) => {
               iconColor={theme.icon}
             />
             <VocalBottomBarButton
-              onPress={() => router.push("settings/vocal-chat")}
+              onPress={() => router.push("settings/comms")}
               iconName={Settings02Icon}
               iconColor={theme.icon}
             />
