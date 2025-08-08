@@ -31,17 +31,18 @@ export class StreamManager {
    * @param {boolean} audioOnly - Whether to capture only audio
    * @returns {MediaStream|null} The local stream or null if failed
    */
-  async startLocalStream(audioOnly = true, audioSettings = {}) {
+  async startLocalStream(commsSettings = {}) {
     this.logger.info("Avvio acquisizione stream locale", {
       component: "StreamManager",
-      audioOnly,
       action: "startLocalStream",
-      audioSettings: audioSettings,
+      commsSettings: commsSettings,
     });
+
+    const entryMode = commsSettings.entryMode;
 
     this.logger.info(
       "StreamManager",
-      `Starting local stream (audioOnly: ${audioOnly})`
+      `Starting local stream (mode: ${entryMode})`
     );
 
     let localStream = this.globalState.getLocalStream();
@@ -51,9 +52,11 @@ export class StreamManager {
     }
 
     try {
-      // Get appropriate constraints for platform and scenario
-      const scenario = audioOnly ? "audio_only" : "video_standard";
-      const constraints = getConstraintsForPlatform(Platform.OS, scenario);
+      // Get appropriate constraints for platform and entry mode + fps, quality
+      const fps = commsSettings.webcamFPS
+      const quality = commsSettings.webcamQuality
+
+      const constraints = getConstraintsForPlatform(Platform.OS, entryMode, quality, fps);
 
       this.logger.debug("StreamManager", "Using constraints:", constraints);
 
@@ -69,7 +72,7 @@ export class StreamManager {
       if (Platform.OS === "web") {
         localStream = await this.applyAudioProcessing(
           localStream,
-          audioSettings
+          commsSettings
         );
       } else{
         this.logger.warning(
@@ -150,14 +153,19 @@ export class StreamManager {
    * Add video track to existing local stream
    * @returns {MediaStreamTrack|null} The added video track or null if failed
    */
-  async addVideoTrack() {
+  async addVideoTrack(commsSettings = {}) {
     this.logger.info("StreamManager", "Adding video track to local stream");
 
     try {
-      // Get video constraints for current platform
+      // Get video constraints for current platform and other parameters
+      const quality = commsSettings.webcamQuality;
+      const fps = commsSettings.webcamFPS;
+
       const constraints = getConstraintsForPlatform(
         Platform.OS,
-        "video_standard"
+        "VIDEO_ONLY",
+        quality,
+        fps
       );
       const videoConstraints = { video: constraints.video };
 

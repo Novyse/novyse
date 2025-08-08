@@ -179,15 +179,15 @@ class WebRTCManager {
   /**
    * Start local media stream
    */
-  async startLocalStream(audioOnly = true, audioSettings = {}) {
-    return await this.streamManager.startLocalStream(audioOnly,audioSettings);
+  async startLocalStream(audioSettings = {}) {
+    return await this.streamManager.startLocalStream(audioSettings);
   }
 
   /**
    * Add video track to local stream
    */
-  async addVideoTrack() {
-    return await this.streamManager.addVideoTrack();
+  async addVideoTrack(commsSettings = {}) {
+    return await this.streamManager.addVideoTrack(commsSettings);
   }
 
   /**

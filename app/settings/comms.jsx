@@ -7,7 +7,7 @@ import AudioDropdown from "../components/settings/vocal-chat/AudioDropdown";
 import ThresholdSlider from "../components/settings/vocal-chat/ThresholdSlider";
 import settingsManager from "../utils/global/SettingsManager";
 
-const VocalChatPage = () => {
+const CommsPage = () => {
   const { theme } = useContext(ThemeContext);
   const [audioSettings, setAudioSettings] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +21,7 @@ const VocalChatPage = () => {
   const loadSettings = async () => {
     try {
       setIsLoading(true);
-      const settings = await settingsManager.getPageParameters('settings.vocalChat');
+      const settings = await settingsManager.getPageParameters('settings.comms');
       setAudioSettings(settings);
     } catch (error) {
       console.error('Error loading vocal chat settings:', error);
@@ -32,7 +32,7 @@ const VocalChatPage = () => {
 
   const updateSetting = async (key, value) => {
     try {
-      const success = await settingsManager.setSingleParameter(`settings.vocalChat.${key}`, value);
+      const success = await settingsManager.setSingleParameter(`settings.comms.${key}`, value);
       if (success) {
         // Aggiorna lo stato locale immediatamente per UI reattiva
         setAudioSettings(prev => ({
@@ -47,7 +47,31 @@ const VocalChatPage = () => {
     }
   };
 
-  // Dropdown options
+  // Options for webcam and microphone settings
+  const entryModeOptions = [
+    { label: "OFF", value: "OFF" },
+    { label: "Audio Only", value: "AUDIO_ONLY" },
+    { label: "Video Only", value: "VIDEO_ONLY" },
+    { label: "Both", value: "BOTH" },
+  ];
+
+  const qualityOptions = [
+    { label: "HD (720p)", value: "HD" },
+    { label: "Full HD (1080p)", value: "FULL_HD" },
+    { label: "2K (1440p)", value: "2K" },
+    { label: "4K (2160p)", value: "4K" },
+  ];
+
+  // FPS options (common values)
+  const fpsOptions = [
+    { label: "15 FPS", value: 15 },
+    { label: "24 FPS", value: 24 },
+    { label: "30 FPS", value: 30 },
+    { label: "60 FPS", value: 60 },
+    { label: "120 FPS", value: 120 },
+  ];
+
+    // Audio modifiers options
   const noiseSuppressionOptions = [
     { label: "Disabled", value: "OFF" },
     { label: "Low", value: "LOW" },
@@ -75,7 +99,8 @@ const VocalChatPage = () => {
     { label: "Medium", value: "MEDIUM" },
     { label: "High", value: "HIGH" },
   ];
-if (isLoading) {
+
+  if (isLoading) {
     return (
       <ScreenLayout>
         <View style={styles.container}>
@@ -105,10 +130,77 @@ if (isLoading) {
     <ScreenLayout>
       <ScrollView style={styles.container}>
         <HeaderWithBackArrow goBackTo="./" />
-        
 
-        {/* settings section */}
+        {/* Device Settings Section */}
         <View style={styles.settingsSection}>
+          <Text style={styles.sectionTitle}>Device Settings</Text>
+
+          {/* Microphone - Disabled field */}
+          <View style={styles.disabledField}>
+            <Text style={styles.label}>Microphone</Text>
+            <Text style={styles.disabledValue}>DEFAULT</Text>
+          </View>
+
+          {/* Webcam - Disabled field */}
+          <View style={styles.disabledField}>
+            <Text style={styles.label}>Webcam</Text>
+            <Text style={styles.disabledValue}>DEFAULT</Text>
+          </View>
+
+          <AudioDropdown
+            label="Entry Mode"
+            value={audioSettings.entryMode || "AUDIO_ONLY"}
+            options={entryModeOptions}
+            onValueChange={(value) => updateSetting('entryMode', value)}
+            theme={theme}
+          />
+        </View>
+
+        {/* Video Settings Section */}
+        <View style={styles.settingsSection}>
+          <Text style={styles.sectionTitle}>Video Settings</Text>
+
+          <AudioDropdown
+            label="Webcam Quality"
+            value={audioSettings.vebcamQuality || "HD"}
+            options={qualityOptions}
+            onValueChange={(value) => updateSetting('webcamQuality', value)}
+            theme={theme}
+          />
+
+          <AudioDropdown
+            label="Webcam FPS"
+            value={audioSettings.vebcamFPS || 30}
+            options={fpsOptions}
+            onValueChange={(value) => updateSetting('webcamFPS', value)}
+            theme={theme}
+          />
+        </View>
+
+        {/* Screen Share Settings Section */}
+        <View style={styles.settingsSection}>
+          <Text style={styles.sectionTitle}>Screen Share Settings</Text>
+
+          <AudioDropdown
+            label="Screen Share Quality"
+            value={audioSettings.screenShareQuality || "HD"}
+            options={qualityOptions}
+            onValueChange={(value) => updateSetting('screenShareQuality', value)}
+            theme={theme}
+          />
+
+          <AudioDropdown
+            label="Screen Share FPS"
+            value={audioSettings.screenShareFPS || 30}
+            options={fpsOptions}
+            onValueChange={(value) => updateSetting('screenShareFPS', value)}
+            theme={theme}
+          />
+        </View>
+
+        {/* Audio Processing Section */}
+        <View style={styles.settingsSection}>
+          <Text style={styles.sectionTitle}>Audio Processing</Text>
 
           <AudioDropdown
             label="Noise Suppression"
@@ -154,7 +246,6 @@ if (isLoading) {
             options={typingAttenuationOptions}
             onValueChange={(value) => updateSetting('typingAttenuationLevel', value)}
             theme={theme}
-            
           />
         </View>
 
@@ -251,6 +342,22 @@ const createStyle = (theme) =>
       marginBottom: 15,
       marginTop: 10,
     },
+    disabledField: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 15,
+      paddingHorizontal: 15,
+      marginVertical: 5,
+      backgroundColor: theme.cardBackground || "gray",
+      borderRadius: 10,
+      opacity: 0.6,
+    },
+    disabledValue: {
+      color: theme.textSecondary || '#666',
+      fontSize: 16,
+      fontStyle: 'italic',
+    },
     debugSection: {
       marginTop: 20,
       padding: 10,
@@ -270,4 +377,4 @@ const createStyle = (theme) =>
     },
   });
 
-export default VocalChatPage;
+export default CommsPage;

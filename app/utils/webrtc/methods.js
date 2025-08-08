@@ -23,8 +23,8 @@ const self = {
   // quando io entro in una room
   async join(chatId) {
     // Start local stream using settings parameters
-    const audioSettings = await settingsManager.getPageParameters('settings.vocalChat');
-    const stream = await WebRTC.startLocalStream(true,audioSettings); // audio only for now
+    const commsSettings = await settingsManager.getPageParameters('settings.comms');
+    const stream = await WebRTC.startLocalStream(commsSettings);
     if (!stream) {
       throw new Error("Failed to get audio stream");
     } // Check if already in a vocal chat
@@ -401,8 +401,9 @@ const self = {
   async toggleVideo() {
     try {
       if (!WebRTC.isVideoEnabled()) {
-        // Attiva video
-        const videoTrack = await WebRTC.addVideoTrack();
+        // Attiva video con parametri specifici
+        const commsSettings = await settingsManager.getPageParameters('settings.comms');
+        const videoTrack = await WebRTC.addVideoTrack(commsSettings);
         if (videoTrack) {
           WebRTC.setVideoEnabled(true);
 

@@ -7,12 +7,24 @@ class SettingsManager {
     this.defaultSettings = {
       lastUpdated: null,
       settings: {
-        vocalChat: {
-          noiseSuppressionLevel: "MEDIUM",
-          expanderLevel: "MEDIUM",
-          noiseGateType: "ADAPTIVE",
-          noiseGateThreshold: -20,
-          typingAttenuationLevel: "MEDIUM"
+        comms: {
+          microphone: "DEFAULT",
+          webcam: "DEFAULT",
+          entryMode: "AUDIO_ONLY", // OFF, AUDIO_ONLY, VIDEO_ONLY, BOTH
+
+          webcamQuality: "HD", // HD, FULL_HD, 2K, 4K
+          webcamFPS: 30, // from 1 to 120
+
+          screenShareQuality: "HD", // HD, FULL_HD, 2K, 4K
+          screenShareFPS: 30, // from 1 to 120
+
+          noiseSuppressionLevel: "MEDIUM", // OFF, LOW, MEDIUM, HIGH
+          expanderLevel: "MEDIUM", // OFF, LOW, MEDIUM, HIGH
+          noiseGateType: "ADAPTIVE", // OFF, MANUAL, HYBRYD, ADAPTIVE
+          noiseGateThreshold: -20, // ONLY IF TYPE = MANUAL | HYBRYD
+          typingAttenuationLevel: "MEDIUM", // OFF, LOW, MEDIUM, HIGH
+
+
         }
       }
     };

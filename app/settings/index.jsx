@@ -42,8 +42,8 @@ const SettingsMenu = () => {
             iconName={BlockedIcon}
           />
           <SettingsMenuItem
-            navToPage="/settings/vocal-chat"
-            pageName="Vocal Chat"
+            navToPage="/settings/comms"
+            pageName="Comms"
             iconName={VolumeHighIcon}
           />
           {Platform.OS === "android" && (
