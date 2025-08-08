@@ -3,6 +3,7 @@ import WebRTCManager from "./index.js";
 import eventEmitter from "../EventEmitter.js";
 import localDatabase from "../localDatabaseMethods.js";
 import SoundPlayer from "../sounds/SoundPlayer.js";
+import settingsManager from "../global/SettingsManager.js";
 import { Platform } from "react-native";
 
 const WebRTC = WebRTCManager;
@@ -20,9 +21,10 @@ if (Platform.OS === "web") {
 
 const self = {
   // quando io entro in una room
-  async join(chatId, audioContext = null) {
-    // Start local stream
-    const stream = await WebRTC.startLocalStream(true); // audio only for now
+  async join(chatId) {
+    // Start local stream using settings parameters
+    const audioSettings = await settingsManager.getPageParameters('settings.vocalChat');
+    const stream = await WebRTC.startLocalStream(true,audioSettings); // audio only for now
     if (!stream) {
       throw new Error("Failed to get audio stream");
     } // Check if already in a vocal chat

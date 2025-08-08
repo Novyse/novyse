@@ -179,8 +179,8 @@ class WebRTCManager {
   /**
    * Start local media stream
    */
-  async startLocalStream(audioOnly = true) {
-    return await this.streamManager.startLocalStream(audioOnly);
+  async startLocalStream(audioOnly = true, audioSettings = {}) {
+    return await this.streamManager.startLocalStream(audioOnly,audioSettings);
   }
 
   /**

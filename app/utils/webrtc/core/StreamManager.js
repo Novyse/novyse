@@ -36,7 +36,7 @@ export class StreamManager {
       component: "StreamManager",
       audioOnly,
       action: "startLocalStream",
-      audioSettings: !!audioSettings,
+      audioSettings: audioSettings,
     });
 
     this.logger.info(

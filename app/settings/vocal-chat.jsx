@@ -1,15 +1,51 @@
-import React, { useContext } from "react";
-import { StyleSheet, View, Text, Switch, ScrollView } from "react-native";
+import React, { useContext, useState, useEffect } from "react";
+import { StyleSheet, View, Text, Switch, ScrollView , TouchableOpacity} from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import ScreenLayout from "../components/ScreenLayout";
 import AudioDropdown from "../components/settings/vocal-chat/AudioDropdown";
 import ThresholdSlider from "../components/settings/vocal-chat/ThresholdSlider";
+import settingsManager from "../utils/global/SettingsManager";
 
 const VocalChatPage = () => {
   const { theme } = useContext(ThemeContext);
-  const { audioSettings, updateSetting, isLoading } = {}; // need the json method
+  const [audioSettings, setAudioSettings] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const styles = createStyle(theme);
+
+  // Carica le impostazioni al mount del componente
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      setIsLoading(true);
+      const settings = await settingsManager.getPageParameters('settings.vocalChat');
+      setAudioSettings(settings);
+    } catch (error) {
+      console.error('Error loading vocal chat settings:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateSetting = async (key, value) => {
+    try {
+      const success = await settingsManager.setSingleParameter(`settings.vocalChat.${key}`, value);
+      if (success) {
+        // Aggiorna lo stato locale immediatamente per UI reattiva
+        setAudioSettings(prev => ({
+          ...prev,
+          [key]: value
+        }));
+      }
+    } catch (error) {
+      console.error('Error updating setting:', error);
+      // In caso di errore, ricarica le impostazioni
+      await loadSettings();
+    }
+  };
 
   // Dropdown options
   const noiseSuppressionOptions = [
@@ -39,8 +75,7 @@ const VocalChatPage = () => {
     { label: "Medium", value: "MEDIUM" },
     { label: "High", value: "HIGH" },
   ];
-
-  if (isLoading) {
+if (isLoading) {
     return (
       <ScreenLayout>
         <View style={styles.container}>
@@ -51,64 +86,59 @@ const VocalChatPage = () => {
     );
   }
 
+  // Se audioSettings è null o undefined, mostra un messaggio di errore
+  if (!audioSettings) {
+    return (
+      <ScreenLayout>
+        <View style={styles.container}>
+          <HeaderWithBackArrow goBackTo="./" />
+          <Text style={styles.errorText}>Error loading settings</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadSettings}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenLayout>
+    );
+  }
+
   return (
     <ScreenLayout>
       <ScrollView style={styles.container}>
         <HeaderWithBackArrow goBackTo="./" />
         
-        {/* Main switch to enable/disable audio processing */}
-        <View style={styles.switchContainer}>
-          <Text style={styles.label}>Audio Processing</Text>
-          <Switch
-            trackColor={{ false: "#767577", true: theme.primary || "#81b0ff" }}
-            thumbColor={
-              audioSettings.isAudioProcessingEnabled 
-                ? theme.accent || "#f5dd4b" 
-                : "#f4f3f4"
-            }
-            ios_backgroundColor="#3e3e3e"
-            onValueChange={(value) => updateSetting('isAudioProcessingEnabled', value)}
-            value={audioSettings.isAudioProcessingEnabled}
-          />
-        </View>
 
-        {/* Detailed settings section */}
+        {/* settings section */}
         <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Advanced Settings</Text>
-          
+
           <AudioDropdown
             label="Noise Suppression"
-            value={audioSettings.noiseSuppressionLevel}
+            value={audioSettings.noiseSuppressionLevel || "MEDIUM"}
             options={noiseSuppressionOptions}
             onValueChange={(value) => updateSetting('noiseSuppressionLevel', value)}
             theme={theme}
-            disabled={!audioSettings.isAudioProcessingEnabled}
           />
 
           <AudioDropdown
             label="Expander"
-            value={audioSettings.expanderLevel}
+            value={audioSettings.expanderLevel || "MEDIUM"}
             options={expanderOptions}
             onValueChange={(value) => updateSetting('expanderLevel', value)}
             theme={theme}
-            disabled={!audioSettings.isAudioProcessingEnabled}
           />
 
           <AudioDropdown
             label="Noise Gate"
-            value={audioSettings.noiseGateType}
+            value={audioSettings.noiseGateType || "ADAPTIVE"}
             options={noiseGateOptions}
             onValueChange={(value) => updateSetting('noiseGateType', value)}
             theme={theme}
-            disabled={!audioSettings.isAudioProcessingEnabled}
           />
 
           {/* Noise gate threshold slider - visible only for HYBRID and MANUAL */}
-          {(audioSettings.noiseGateType === 'HYBRID' || audioSettings.noiseGateType === 'MANUAL') && 
-           audioSettings.isAudioProcessingEnabled && (
+          {(audioSettings.noiseGateType === 'HYBRID' || audioSettings.noiseGateType === 'MANUAL') && (
             <ThresholdSlider
               label="Noise Gate Threshold"
-              value={audioSettings.noiseGateThreshold}
+              value={audioSettings.noiseGateThreshold || -20}
               onValueChange={(value) => updateSetting('noiseGateThreshold', Math.round(value))}
               theme={theme}
               min={-60}
@@ -120,13 +150,23 @@ const VocalChatPage = () => {
 
           <AudioDropdown
             label="Typing Attenuation"
-            value={audioSettings.typingAttenuationLevel}
+            value={audioSettings.typingAttenuationLevel || "MEDIUM"}
             options={typingAttenuationOptions}
             onValueChange={(value) => updateSetting('typingAttenuationLevel', value)}
             theme={theme}
-            disabled={!audioSettings.isAudioProcessingEnabled}
+            
           />
         </View>
+
+        {/* Debug section */}
+        {__DEV__ && (
+          <View style={styles.debugSection}>
+            <Text style={styles.debugTitle}>Current Settings:</Text>
+            <Text style={styles.debugText}>
+              {JSON.stringify(audioSettings, null, 2)}
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </ScreenLayout>
   );
@@ -138,11 +178,52 @@ const createStyle = (theme) =>
       flex: 1,
       padding: 10,
     },
+    headerContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    pageTitle: {
+      color: theme.text,
+      fontSize: 20,
+      fontWeight: '700',
+    },
+    resetButton: {
+      backgroundColor: theme.danger || '#ff4444',
+      paddingHorizontal: 15,
+      paddingVertical: 8,
+      borderRadius: 5,
+    },
+    resetButtonText: {
+      color: '#fff',
+      fontSize: 14,
+      fontWeight: '600',
+    },
     loadingText: {
       color: theme.text,
       fontSize: 16,
       textAlign: 'center',
       marginTop: 50,
+    },
+    errorText: {
+      color: theme.danger || '#ff4444',
+      fontSize: 16,
+      textAlign: 'center',
+      marginTop: 50,
+    },
+    retryButton: {
+      backgroundColor: theme.primary || '#007AFF',
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: 5,
+      alignSelf: 'center',
+      marginTop: 20,
+    },
+    retryButtonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '600',
     },
     switchContainer: {
       flexDirection: "row",
@@ -169,6 +250,23 @@ const createStyle = (theme) =>
       fontWeight: '700',
       marginBottom: 15,
       marginTop: 10,
+    },
+    debugSection: {
+      marginTop: 20,
+      padding: 10,
+      backgroundColor: theme.cardBackground,
+      borderRadius: 5,
+    },
+    debugTitle: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: 'bold',
+      marginBottom: 5,
+    },
+    debugText: {
+      color: theme.textSecondary || '#666',
+      fontSize: 12,
+      fontFamily: 'monospace',
     },
   });
 
