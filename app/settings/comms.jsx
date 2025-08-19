@@ -162,7 +162,7 @@ const CommsPage = () => {
 
           <AudioDropdown
             label="Webcam Quality"
-            value={audioSettings.vebcamQuality || "HD"}
+            value={audioSettings.webcamQuality || "HD"}
             options={qualityOptions}
             onValueChange={(value) => updateSetting('webcamQuality', value)}
             theme={theme}
@@ -170,7 +170,7 @@ const CommsPage = () => {
 
           <AudioDropdown
             label="Webcam FPS"
-            value={audioSettings.vebcamFPS || 30}
+            value={audioSettings.webcamFPS || 30}
             options={fpsOptions}
             onValueChange={(value) => updateSetting('webcamFPS', value)}
             theme={theme}
