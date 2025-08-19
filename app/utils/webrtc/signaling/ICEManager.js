@@ -401,8 +401,8 @@ export class ICEManager {
       });
 
       // Invia candidato tramite WebSocket utilizzando direttamente IceCandidate
-      const webSocketMethods = require("../../webSocketMethods.js").default;
-      webSocketMethods.IceCandidate({
+      const SocketMethods = require("../../socketMethods.js").default;
+      SocketMethods.IceCandidate({
         candidate: event.candidate.toJSON(),
         to: participantId,
         from: this.globalState.getMyId(),

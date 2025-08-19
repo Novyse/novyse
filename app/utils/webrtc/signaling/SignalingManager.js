@@ -4,8 +4,6 @@ import { GlobalState } from "../core/GlobalState.js";
 import { SDP_OPTIONS } from "../config/mediaConstraints.js";
 import Compatibility from "../utils/compatibility.js";
 import helpers from "../utils/helpers.js";
-import webSocketMethods from "../../webSocketMethods.js";
-import { relativeTimeThreshold } from "moment";
 
 const { RTCSessionDescription } = Compatibility.getWebRTCLib();
 
@@ -1037,12 +1035,12 @@ export class SignalingManager {
    * @private
    */
   async _sendWithRetry(sendFunction, operationName, maxRetries = 3) {
-    const webSocketMethods = await import("../../webSocketMethods.js");
+    const SocketMethods = await import("../../socketMethods.js");
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         // Check if WebSocket is connected
-        if (!webSocketMethods.default.isWebSocketOpen()) {
+        if (!SocketMethods.default.isSocketOpen()) {
           this.logger.warn(
             `WebSocket not connected for ${operationName}, attempt ${attempt}/${maxRetries}`,
             {

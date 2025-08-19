@@ -276,10 +276,10 @@ export class RecoveryManager {
         const offer = await pc.createOffer({ iceRestart: true });
         await pc.setLocalDescription(offer);
 
-        const webSocketMethods = await import("../../webSocketMethods.js");
+        const SocketMethods = await import("../../socketMethods.js");
         const success = await this._sendWithRetry(
           () =>
-            webSocketMethods.default.RTCOffer({
+            SocketMethods.default.RTCOffer({
               offer: offer.toJSON
                 ? offer.toJSON()
                 : { sdp: offer.sdp, type: offer.type },
@@ -497,9 +497,9 @@ export class RecoveryManager {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         // Use signaling manager's retry mechanism
-        const webSocketMethods = await import("../../webSocketMethods.js");
+        const SocketMethods = await import("../../socketMethods.js");
 
-        if (!webSocketMethods.default.isWebSocketOpen()) {
+        if (!SocketMethods.default.isWebSocketOpen()) {
           this.logger.warn(
             "RecoveryManager",
             `WebSocket not connected for offer to ${participantId}, attempt ${attempt}/${maxRetries}`
@@ -512,7 +512,7 @@ export class RecoveryManager {
           return false;
         }
 
-        await webSocketMethods.default.RTCOffer({
+        await SocketMethods.default.RTCOffer({
           offer: offer.toJSON
             ? offer.toJSON()
             : { sdp: offer.sdp, type: offer.type },
@@ -551,9 +551,9 @@ export class RecoveryManager {
   async _sendWithRetry(sendFunction, operationName, maxRetries = 3) {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const webSocketMethods = await import("../../webSocketMethods.js");
+        const SocketMethods = await import("../../socketMethods.js");
 
-        if (!webSocketMethods.default.isWebSocketOpen()) {
+        if (!SocketMethods.default.isWebSocketOpen()) {
           this.logger.warn(
             "RecoveryManager",
             `WebSocket not connected for ${operationName}, attempt ${attempt}/${maxRetries}`

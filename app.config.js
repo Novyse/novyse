@@ -2,15 +2,15 @@
 const APP_NAME = "Novyse"; // Novyse-dev Novyse
 const APP_NAME_LOWERCASE = "novyse";
 const APP_SLUG = "novyse";
-const APP_VERSION = "0.0.7.2";
+const APP_VERSION = "0.7.2";
 const EXPO_OWNER = "novyse";
 const EAS_PROJECT_ID = "6f29bfad-6db3-491f-9bbf-d97664dac861";
 const API_BASE_URL = "https://api.novyse.com";
-const IO_BASE_URL = "wss://io.novyse.com";
+const SOCKET_BASE_URL = "wss://io.novyse.com";
 const BRANCH = "dev";
 //.ENV
 
-export { BRANCH, API_BASE_URL, IO_BASE_URL, APP_VERSION };
+export { BRANCH, API_BASE_URL, SOCKET_BASE_URL, APP_VERSION };
 
 // Genera suffisso per dev mode
 const getDevSuffix = () => {

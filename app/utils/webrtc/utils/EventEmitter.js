@@ -1,5 +1,5 @@
 import eventEmitter from "../../EventEmitter";
-import WebSocketMethods from "../../webSocketMethods";
+import SocketMethods from "../../socketMethods";
 
 const EventEmitter = {
   sendMIDtoStreamUUIDMapping: (
@@ -18,7 +18,7 @@ const EventEmitter = {
       return;
     }
 
-    WebSocketMethods.sendMIDtoUUIDMapping(
+    SocketMethods.sendMIDtoUUIDMapping(
       toPartecipantUUID,
       partecipantUUID,
       streamUUID,
@@ -54,7 +54,7 @@ const EventEmitter = {
       return;
     }
 
-    await WebSocketMethods.sendWebcamStatus(
+    await SocketMethods.sendWebcamStatus(
       partecipantUUID,
       chatId,
       status

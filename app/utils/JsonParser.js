@@ -1,7 +1,7 @@
 import APIMethods from "./APImethods"; // Importa la classe API esistente
 import localDatabase from "../utils/localDatabaseMethods";
 import eventEmitter from "../utils/EventEmitter";
-import WebSocketMethods from "./webSocketMethods";
+import SocketMethods from "./socketMethods";
 
 class JsonParser {
   // Metodo per controllare l'email e restituire "login" o "signup"
@@ -141,13 +141,13 @@ class JsonParser {
         if (data.init) {
           console.log("🟢Init Successo:", data);
 
-          await WebSocketMethods.UpdateLastWebSocketActionDateTime(data.date);
+          await SocketMethods.UpdateLastWebSocketActionDateTime(data.date);
 
           const { email, handle, name, surname, user_id } = data.localUser;
           await localDatabase.insertLocalUser(
             user_id,
             email,
-            handle,
+            handle, 
             name,
             surname
           );

@@ -31,7 +31,7 @@ import SmallCommsMenu from "./components/comms/SmallCommsMenu";
 import Search from "./Search";
 import APIMethods from "./utils/APImethods";
 import eventEmitter from "./utils/EventEmitter";
-import WebSocketMethods from "./utils/webSocketMethods";
+import SocketMethods from "./utils/socketMethods";
 import localDatabase from "./utils/localDatabaseMethods";
 import ChatContainer from "./ChatContainer";
 
@@ -105,8 +105,8 @@ const ChatList = () => {
     };
     checkLogged();
 
-    // Initialize WebSocket
-    WebSocketMethods.openWebSocketConnection();
+    // Initialize socket
+    SocketMethods.openSocketConnection();
 
     // Set up event listeners
     const handleNewMessageSent = (data) => {

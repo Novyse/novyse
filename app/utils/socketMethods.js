@@ -1,37 +1,36 @@
-import localDatabase from "../utils/localDatabaseMethods";
-import eventEmitter from "./EventEmitter";
+import localDatabase from "./localDatabaseMethods.js";
+import eventEmitter from "./EventEmitter.js";
 import { io } from "socket.io-client";
-import APIMethods from "./APImethods";
+import APIMethods from "./APImethods.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { BRANCH, IO_BASE_URL } from "../../app.config.js";
-
+import { BRANCH, SOCKET_BASE_URL } from "../../app.config.js";
 const path = BRANCH === "dev" ? "/test/io" : "/v1/io";
 
 let socket = null;
-let localUserHandle = null;
 
-const WebSocketMethods = {
-  isWebSocketOpen: () => {
+// Global local parameters
+let userHandle = null;
+
+const SocketMethods = {
+  isSocketOpen: () => {
     return socket && socket.connected;
   },
 
-  openWebSocketConnection: async () => {
-    const sessionId = await AsyncStorage.getItem("sessionIdToken");
+  openSocketConnection: async () => {
 
-    localUserHandle = await localDatabase.fetchLocalUserHandle();
-    console.log("Session ID: ", sessionId);
+    userHandle = await localDatabase.fetchLocalUserHandle();
+
+    const sessionId = await AsyncStorage.getItem("sessionIdToken");
+    console.info("Session ID: ", sessionId);
 
     try {
-      if (socket && socket.connected) {
-        console.log("Una connessione Socket.IO era già aperta");
-        return;
-      } else if (socket) {
-        socket.disconnect();
-        socket = null;
+      if (SocketMethods.isSocketOpen()) {
+        console.warn("Una connessione Socket.IO era già aperta");
+        return socket;
       }
 
-      socket = io(IO_BASE_URL, {
+      socket = io(SOCKET_BASE_URL, {
         path: path,
         transports: ["websocket"],
         autoConnect: true,
@@ -42,21 +41,31 @@ const WebSocketMethods = {
       });
 
       socket.on("connect", async () => {
-        console.log("Connessione Socket.IO aperta");
-        await WebSocketMethods.socketReceiver();
-        eventEmitter.emit("webSocketOpen");
+        console.info("Socket.IO connection opened!");
+        await SocketMethods.socketReceiver();
       });
 
-      socket.on("connect_error", (error) => {
-        console.log("Socket.IO connection error:", error);
-        if (error.data.status === 401) {
-          eventEmitter.emit("invalidSession");
-          console.log("Sessione scaduta");
+      socket.on("error", async (error) => {
+        console.error("Socket.IO connection error:", error);
+  
+        if (error.status === 401) {
+          console.error("Invalid session - retrying pulling new sessionId");
+          
+          // Close current socket before reconnecting
+          if (socket) {
+            socket.disconnect();
+            socket = null;
+          }
+          
+          // Wait before reconnecting to avoid rapid retry loops
+          setTimeout(async () => {
+            await SocketMethods.openSocketConnection();
+          }, 2000); 
         }
       });
 
       socket.on("disconnect", () => {
-        console.log("Connessione Socket.IO chiusa");
+        console.info("Closed Socket.IO connection");
       });
     } catch (error) {
       console.error("Socket.IO initialization error:", error);
@@ -73,7 +82,7 @@ const WebSocketMethods = {
     socket.on("receive_message", async (data) => {
       const { message_id, chat_id, text, sender, date } = data;
 
-      await WebSocketMethods.UpdateLastWebSocketActionDateTime(date);
+      await SocketMethods.UpdateLastWebSocketActionDateTime(date);
 
       const ChatAlreadyInDatabaseawait = await localDatabase.insertChat(
         chat_id,
@@ -83,7 +92,7 @@ const WebSocketMethods = {
       if (!ChatAlreadyInDatabaseawait) {
         const users = await APIMethods.getChatMembers(chat_id);
         for (const user of users) {
-          if (user != localUserHandle) {
+          if (user != userHandle) {
             await localDatabase.insertChatAndUsers(chat_id, user);
             await localDatabase.insertUsers(user);
           }
@@ -110,14 +119,14 @@ const WebSocketMethods = {
     socket.on("group_created", async (data) => {
       const { chat_id, name, description, members, admins, date } = data;
 
-      await WebSocketMethods.UpdateLastWebSocketActionDateTime(date);
+      await SocketMethods.UpdateLastWebSocketActionDateTime(date);
 
       //fare un metodo per favore
       await localDatabase.insertChat(chat_id, name);
       console.log(`Database insertChat for chat_id ${chat_id} completed`);
 
       for (const user of members) {
-        if (user.handle != localUserHandle) {
+        if (user.handle != userHandle) {
           await localDatabase.insertChatAndUsers(chat_id, user.handle);
           await localDatabase.insertUsers(user.handle);
         }
@@ -136,7 +145,7 @@ const WebSocketMethods = {
     socket.on("group_member_joined", async (data) => {
       const { chat_id, handle, date } = data;
 
-      await WebSocketMethods.UpdateLastWebSocketActionDateTime(date);
+      await SocketMethods.UpdateLastWebSocketActionDateTime(date);
 
       await localDatabase.insertChatAndUsers(chat_id, handle);
       console.log("🟢 Group member joined");
@@ -146,13 +155,13 @@ const WebSocketMethods = {
     socket.on("member_joined_group", async (data) => {
       const { group_name, chat_id, members, messages, date } = data;
 
-      await WebSocketMethods.UpdateLastWebSocketActionDateTime(date);
+      await SocketMethods.UpdateLastWebSocketActionDateTime(date);
 
       await localDatabase.insertChat(chat_id, group_name);
       console.log(`Database insertChat for chat_id ${chat_id} completed`);
 
       for (const user of members) {
-        if (user.handle != localUserHandle) {
+        if (user.handle != userHandle) {
           await localDatabase.insertChatAndUsers(chat_id, user.handle);
           await localDatabase.insertUsers(user.handle);
         }
@@ -440,4 +449,4 @@ const WebSocketMethods = {
   },
 };
 
-export default WebSocketMethods;
+export default SocketMethods;
