@@ -33,8 +33,8 @@ const SettingsMenu = () => {
             iconName={UserIcon}
           />
           <SettingsMenuItem
-            navToPage="/settings/personalization"
-            pageName="Personalization"
+            navToPage="/settings/customization"
+            pageName="Customization"
             iconName={PencilEdit01Icon}
           />
           <SettingsMenuItem

@@ -19,7 +19,7 @@ const PrivacyAndSecurityMenu = () => {
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <SettingsMenuItem
-            navToPage="./personalization/themes"
+            navToPage="./customization/themes"
             pageName="Themes"
             iconName={PaintBoardIcon}
           />
