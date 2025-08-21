@@ -1,5 +1,6 @@
 export const Colors = {
   default: {
+    primary: "#4f8cff",
     text: "white",
     textTime: "#c9d1d9",
     backgroundClassic: "#1b2734",
@@ -46,6 +47,7 @@ export const Colors = {
     settingPagesGradient: ["#0e283a", "#16638e", "#2b5278"],
   },
   light: {
+    primary: "#f5f5f5",
     text: "black",
     textTime: "#666666",
     backgroundClassic: "white",
@@ -74,6 +76,7 @@ export const Colors = {
     settingsDivider: "rgba(0, 0, 0, 0.1)",
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.1)",
     backgroundStatusBar: "#ffffff", // StatusBar chiara per Light Mode
+    cardBackground: "#ffffff",
     // Gradients
     backgroundMainGradient: ["#ffffff", "#f5f5f5"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#e3f2fd", "#bbdefb", "#90caf9"],
@@ -89,6 +92,7 @@ export const Colors = {
     settingPagesGradient: ["#ffffff", "#f8f9fa", "#e9ecef"],
   },
   dark: {
+    primary: "#2d2d2d",
     text: "white",
     textTime: "#b0b0b0",
     backgroundClassic: "#121212",
@@ -117,6 +121,7 @@ export const Colors = {
     settingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.15)",
     backgroundStatusBar: "#121212", // StatusBar scura per Dark Mode
+    cardBackground: "#2d2d2d",
     // Gradients
     backgroundMainGradient: ["#0a0a0a", "#1e1e1e"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#2d2d2d", "#404040", "#525252"],
@@ -132,6 +137,7 @@ export const Colors = {
     settingPagesGradient: ["#121212", "#1e1e1e", "#2d2d2d"],
   },
   amoled: {
+    primary: "#0d0d0d",
     text: "white",
     textTime: "#b0b0b0",
     backgroundClassic: "#000000",
@@ -145,7 +151,6 @@ export const Colors = {
     chatDivider: "#000000",
     chatListSelected: "#1a1a1a",
     icon: "white",
-    
     sideBarBackground: "#000000",
     modalsBackground: "#0d0d0d",
     messagesLink: "#00ff88",
@@ -161,6 +166,7 @@ export const Colors = {
     settingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.1)",
     backgroundStatusBar: "#000000", // StatusBar completamente nera per AMOLED
+    cardBackground: "#0d0d0d",
     // Gradients
     backgroundMainGradient: ["#000000", "#000000"], // Gradiente principale dell'app AMOLED (puro nero)
     floatingBarComponentsGradient: ["#000000", "#0d0d0d", "#1a1a1a"],
@@ -176,6 +182,7 @@ export const Colors = {
     settingPagesGradient: ["#000000", "#000000", "#0d0d0d"],
   },
   "Amoled Extreme": {
+    primary: "#000000",
     text: "white",
     textTime: "#888888",
     backgroundClassic: "#000000",
@@ -204,6 +211,7 @@ export const Colors = {
     settingsDivider: "rgba(255, 255, 255, 0.05)",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.05)",
     backgroundStatusBar: "#000000",
+    cardBackground: "#000000",
     // Gradients
     backgroundMainGradient: ["#000000", "#000000"],
     floatingBarComponentsGradient: ["#000000", "#000000", "#0a0a0a"],
@@ -219,6 +227,7 @@ export const Colors = {
     settingPagesGradient: ["#000000", "#000000", "#000000"],
     },
     "unifi": {
+    primary: "#4fb3e1",
     text: "white",
     textTime: "#c9d1d9",
     backgroundClassic: "transparent",
@@ -248,6 +257,7 @@ export const Colors = {
     settingsDivider: "rgba(255, 255, 255, 0.1)", // Divisore visibile
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.65)", // Pulsanti floating visibili
     backgroundStatusBar: "#416a90", // StatusBar scura per Dark Mode
+    cardBackground: "#416a90",
     // Gradients - tutto trasparente per vedere il gradiente globale, eccetto componenti specifici
     backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale unificato per l'intera app
     floatingBarComponentsGradient: ["#165376", "#2899cf", "#4fb3e1"], // Componenti floating devono avere gradiente
