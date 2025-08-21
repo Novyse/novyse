@@ -71,6 +71,14 @@ const ChatList = () => {
   const [chatDetails, setChatDetails] = useState({});
   const [contentView, setContentView] = useState("chat");
 
+  // Add state for user data
+  const [userData, setUserData] = useState({
+    name: "",
+    surname: "",
+    handle: "",
+    email: "",
+  });
+
   // Force re-render when comms state changes
   const [forceUpdate, setForceUpdate] = useState(0);
 
@@ -99,6 +107,21 @@ const ChatList = () => {
       if (isLoggedIn === "true") {
         const localUserId = await localDatabase.fetchLocalUserID();
         setUserId(localUserId);
+
+        // Fetch user data from database
+        try {
+          const localUserData = await localDatabase.fetchLocalUserData();
+          if (localUserData) {
+            setUserData({
+              name: localUserData.name || "",
+              surname: localUserData.surname || "",
+              handle: localUserData.handle || "",
+              email: localUserData.user_email || "",
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
       } else {
         logout();
       }
@@ -405,8 +428,14 @@ const ChatList = () => {
           <View style={styles.profileContainer}>
             <View style={styles.avatar} />
             <View style={styles.profileTextContainer}>
-              <Text style={styles.profileName}>Nome Cognome</Text>
-              <Text style={styles.profilePhone}>+39 1234567890</Text>
+              <Text style={styles.profileName}>
+                {userData.name && userData.surname
+                  ? `${userData.name} ${userData.surname}`
+                  : "Loading..."}
+              </Text>
+              <Text style={styles.profileHandle}>
+                {userData.handle ? `@${userData.handle}` : "@loading..."}
+              </Text>
             </View>
           </View>
 
@@ -1032,7 +1061,7 @@ function createStyle(theme, colorScheme) {
       fontSize: 16,
       fontWeight: "bold",
     },
-    profilePhone: {
+    profileHandle: {
       color: theme.placeholderText,
       fontSize: 14,
     },
