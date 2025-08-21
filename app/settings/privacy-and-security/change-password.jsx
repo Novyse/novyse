@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { StyleSheet, Pressable, Text, View, TextInput, Alert } from "react-native";
+import { StyleSheet, Pressable, Text, View, TextInput, ScrollView } from "react-native";
 import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
@@ -14,20 +14,38 @@ const ChangePassword = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChangePassword = async () => {
-    if (!oldPassword || !newPassword || !confirmPassword) {
-      Alert.alert("Error", "Please fill in all fields");
+
+    // TODO
+    /*
+
+      - togliere alert, che skif
+      - metti i veri parametri necessari per dichiarare che una pass è valida che sicuramente non è >6 la lenght e basta
+    */
+
+      const showAlert = (title, message) => {
+      if (typeof window !== 'undefined') {
+        window.alert(`${title}: ${message}`);
+      } else {
+        console.log(`${title}: ${message}`);
+      }
+    };
+
+    
+if (!oldPassword || !newPassword || !confirmPassword) {
+      showAlert("Error", "Please fill in all fields");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert("Error", "New passwords don't match");
+      showAlert("Error", "New passwords don't match");
       return;
     }
 
     if (newPassword.length < 6) {
-      Alert.alert("Error", "New password must be at least 6 characters long");
+      showAlert("Error", "New password must be at least 6 characters long");
       return;
     }
+
 
     try {
       setIsLoading(true);
@@ -42,7 +60,12 @@ const ChangePassword = () => {
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
-      Alert.alert("Error", "Failed to change password. Please try again.");
+      console.error("Error changing password:", error);
+      if (error.response && error.response.data) {
+        showAlert("Error", error.response.data.message || "Failed to change password");
+      } else {
+        showAlert("Error", "An unexpected error occurred");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +73,7 @@ const ChangePassword = () => {
 
   return (
     <ScreenLayout>
-      <View style={styles.container}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <HeaderWithBackArrow goBackTo="./" />
         
         <View style={styles.content}>
@@ -104,6 +127,7 @@ const ChangePassword = () => {
               ]}
               onPress={handleChangePassword}
               disabled={isLoading}
+              android_ripple={{ color: 'rgba(255,255,255,0.1)' }}
             >
               <Text style={styles.buttonText}>
                 {isLoading ? "Changing Password..." : "Change Password"}
@@ -113,13 +137,13 @@ const ChangePassword = () => {
 
           <View style={styles.securityNote}>
             <Text style={styles.noteText}>
-              • Password must be at least 8 characters long, have 1 symbol, 1 number, 1 uppercase letter and 1 lowercase letter{"\n"}
+              • Password must be at least 6 characters long{"\n"}
               • Use a combination of letters, numbers, and symbols{"\n"}
               • Don't reuse old passwords
             </Text>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </ScreenLayout>
   );
 };
@@ -131,8 +155,8 @@ const createStyle = (theme) =>
       padding: 10,
     },
     content: {
-      flex: 1,
       paddingTop: 20,
+      paddingBottom: 40, // Added bottom padding
     },
     title: {
       color: theme.text,
@@ -178,7 +202,13 @@ const createStyle = (theme) =>
       borderRadius: 12,
       paddingVertical: 16,
       alignItems: "center",
+      justifyContent: "center",
       marginTop: 20,
+      elevation: 2, // Android shadow
+      shadowColor: "#000", // iOS shadow
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
     },
     disabledButton: {
       opacity: 0.6,
