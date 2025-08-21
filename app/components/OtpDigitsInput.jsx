@@ -14,29 +14,26 @@ const OtpDigitsInput = ({
   const refs = useRef([]);
 
   const handleChange = (text, index) => {
-    const numericText = text.replace(/[^0-9]/g, "");
     const newOtp = [...value];
 
-    if (numericText.length === 1) {
-      newOtp[index] = numericText;
+    if (text.length === 1 && /^\d$/.test(text)) {
+      newOtp[index] = text;
       onChange(newOtp);
       if (index < inputCount - 1) {
         refs.current[index + 1]?.focus();
       }
-    } else if (numericText.length > 1) {
-      for (let i = 0; i < numericText.length && index + i < inputCount; i++) {
-        newOtp[index + i] = numericText.charAt(i);
+    } else if (text.length === 6 && /^\d{6}$/.test(text)) {
+      for (let i = 0; i < inputCount; i++) {
+        newOtp[i] = text.charAt(i);
       }
       onChange(newOtp);
-      const lastFilledIndex = Math.min(
-        index + numericText.length - 1,
-        inputCount - 1
-      );
+      const lastFilledIndex = inputCount - 1;
       refs.current[lastFilledIndex]?.focus();
-    } else {
+    } else if (text.length === 0) {
       newOtp[index] = "";
       onChange(newOtp);
     }
+    // Ignora qualsiasi altro input senza fare nulla
   };
 
   const handleKeyPress = (e, index) => {
@@ -68,7 +65,7 @@ const OtpDigitsInput = ({
           onChangeText={(text) => handleChange(text, index)}
           onKeyPress={(e) => handleKeyPress(e, index)}
           keyboardType="numeric"
-          maxLength={1}
+          maxLength={inputCount}
           ref={(el) => (refs.current[index] = el)}
           autoFocus={autoFocus && index === 0}
           caretHidden={false}

@@ -59,6 +59,21 @@ const VerifyMethod = ({}) => {
     }
   };
 
+  const getSubtitleText = () => {
+    if (!verificationType) {
+      return "Enter the verification code.";
+    }
+    switch (verificationType) {
+      case "email":
+      case "email_verification":
+        return "Enter the code you received in your email.";
+      case "authenticator":
+        return "Enter the code from your authenticator app.";
+      default:
+        return "Enter the verification code.";
+    }
+  };
+
   const handleVerifyOtp = async () => {
     const fullOtp = otp.join("");
     if (fullOtp.length !== 6 || !/^\d+$/.test(fullOtp)) {
@@ -106,9 +121,7 @@ const VerifyMethod = ({}) => {
         <View style={styles.card}>
           <View style={styles.cardContent}>
             <Text style={styles.title}>{getFormattedVerificationType()}</Text>
-            <Text style={styles.subtitle}>
-              Enter the code you received in your email.
-            </Text>
+            <Text style={styles.subtitle}>{getSubtitleText()}</Text>
 
             <View style={styles.inputWrapper}>
               {secret && otpauth && (
