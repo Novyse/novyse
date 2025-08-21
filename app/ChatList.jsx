@@ -426,7 +426,12 @@ const ChatList = () => {
           style={styles.sidebarContent}
         >
           <View style={styles.profileContainer}>
-            <View style={styles.avatar} />
+            <View style={styles.avatar}>
+              <Image
+                source={{ uri: "https://picsum.photos/200" }}
+                style={styles.avatar}
+              />
+            </View>
             <View style={styles.profileTextContainer}>
               <Text style={styles.profileName}>
                 {userData.name && userData.surname
