@@ -1,9 +1,16 @@
 import React, { useContext, useState, useEffect } from "react";
-import { StyleSheet, View, Text, Switch, ScrollView , TouchableOpacity} from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Switch,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import ScreenLayout from "../components/ScreenLayout";
-import AudioDropdown from "../components/settings/vocal-chat/AudioDropdown";
+import SegmentedSelector from "../components/settings/vocal-chat/SegmentedSelector";
 import ThresholdSlider from "../components/settings/vocal-chat/ThresholdSlider";
 import settingsManager from "../utils/global/SettingsManager";
 
@@ -21,10 +28,12 @@ const CommsPage = () => {
   const loadSettings = async () => {
     try {
       setIsLoading(true);
-      const settings = await settingsManager.getPageParameters('settings.comms');
+      const settings = await settingsManager.getPageParameters(
+        "settings.comms"
+      );
       setAudioSettings(settings);
     } catch (error) {
-      console.error('Error loading vocal chat settings:', error);
+      console.error("Error loading vocal chat settings:", error);
     } finally {
       setIsLoading(false);
     }
@@ -32,16 +41,19 @@ const CommsPage = () => {
 
   const updateSetting = async (key, value) => {
     try {
-      const success = await settingsManager.setSingleParameter(`settings.comms.${key}`, value);
+      const success = await settingsManager.setSingleParameter(
+        `settings.comms.${key}`,
+        value
+      );
       if (success) {
         // Aggiorna lo stato locale immediatamente per UI reattiva
-        setAudioSettings(prev => ({
+        setAudioSettings((prev) => ({
           ...prev,
-          [key]: value
+          [key]: value,
         }));
       }
     } catch (error) {
-      console.error('Error updating setting:', error);
+      console.error("Error updating setting:", error);
       // In caso di errore, ricarica le impostazioni
       await loadSettings();
     }
@@ -71,7 +83,7 @@ const CommsPage = () => {
     { label: "120 FPS", value: 120 },
   ];
 
-    // Audio modifiers options
+  // Audio modifiers options
   const noiseSuppressionOptions = [
     { label: "Disabled", value: "OFF" },
     { label: "Low", value: "LOW" },
@@ -131,107 +143,102 @@ const CommsPage = () => {
       <ScrollView style={styles.container}>
         <HeaderWithBackArrow goBackTo="./" />
 
-        {/* Device Settings Section */}
-        <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Device Settings</Text>
-
-          {/* Microphone - Disabled field */}
+        {/* Input Devices Category */}
+        <View style={styles.categoryContainer}>
+          <Text style={styles.sectionTitle}>Input Devices</Text>
           <View style={styles.disabledField}>
             <Text style={styles.label}>Microphone</Text>
             <Text style={styles.disabledValue}>DEFAULT</Text>
           </View>
-
-          {/* Webcam - Disabled field */}
           <View style={styles.disabledField}>
             <Text style={styles.label}>Webcam</Text>
             <Text style={styles.disabledValue}>DEFAULT</Text>
           </View>
-
-          <AudioDropdown
+          <SegmentedSelector
             label="Entry Mode"
             value={audioSettings.entryMode || "AUDIO_ONLY"}
             options={entryModeOptions}
-            onValueChange={(value) => updateSetting('entryMode', value)}
+            onValueChange={(value) => updateSetting("entryMode", value)}
             theme={theme}
           />
         </View>
 
-        {/* Video Settings Section */}
-        <View style={styles.settingsSection}>
+        {/* Video Settings Category */}
+        <View style={styles.categoryContainer}>
           <Text style={styles.sectionTitle}>Video Settings</Text>
-
-          <AudioDropdown
+          <SegmentedSelector
             label="Webcam Quality"
             value={audioSettings.webcamQuality || "HD"}
             options={qualityOptions}
-            onValueChange={(value) => updateSetting('webcamQuality', value)}
+            onValueChange={(value) => updateSetting("webcamQuality", value)}
             theme={theme}
           />
-
-          <AudioDropdown
+          <SegmentedSelector
             label="Webcam FPS"
             value={audioSettings.webcamFPS || 30}
             options={fpsOptions}
-            onValueChange={(value) => updateSetting('webcamFPS', value)}
+            onValueChange={(value) => updateSetting("webcamFPS", value)}
             theme={theme}
           />
         </View>
 
-        {/* Screen Share Settings Section */}
-        <View style={styles.settingsSection}>
+        {/* Screen Share Category */}
+        <View style={styles.categoryContainer}>
           <Text style={styles.sectionTitle}>Screen Share Settings</Text>
-
-          <AudioDropdown
+          <SegmentedSelector
             label="Screen Share Quality"
             value={audioSettings.screenShareQuality || "HD"}
             options={qualityOptions}
-            onValueChange={(value) => updateSetting('screenShareQuality', value)}
+            onValueChange={(value) => updateSetting("screenShareQuality", value)}
             theme={theme}
           />
-
-          <AudioDropdown
+          <SegmentedSelector
             label="Screen Share FPS"
             value={audioSettings.screenShareFPS || 30}
             options={fpsOptions}
-            onValueChange={(value) => updateSetting('screenShareFPS', value)}
+            onValueChange={(value) => updateSetting("screenShareFPS", value)}
             theme={theme}
           />
         </View>
 
-        {/* Audio Processing Section */}
-        <View style={styles.settingsSection}>
+        {/* Audio Processing Category */}
+        <View style={styles.categoryContainer}>
           <Text style={styles.sectionTitle}>Audio Processing</Text>
-
-          <AudioDropdown
+          <SegmentedSelector
             label="Noise Suppression"
             value={audioSettings.noiseSuppressionLevel || "MEDIUM"}
             options={noiseSuppressionOptions}
-            onValueChange={(value) => updateSetting('noiseSuppressionLevel', value)}
+            onValueChange={(value) =>
+              updateSetting("noiseSuppressionLevel", value)
+            }
             theme={theme}
           />
 
-          <AudioDropdown
+          <SegmentedSelector
             label="Expander"
             value={audioSettings.expanderLevel || "MEDIUM"}
             options={expanderOptions}
-            onValueChange={(value) => updateSetting('expanderLevel', value)}
+            onValueChange={(value) => updateSetting("expanderLevel", value)}
             theme={theme}
           />
 
-          <AudioDropdown
+          <SegmentedSelector
             label="Noise Gate"
             value={audioSettings.noiseGateType || "ADAPTIVE"}
             options={noiseGateOptions}
-            onValueChange={(value) => updateSetting('noiseGateType', value)}
+            onValueChange={(value) => updateSetting("noiseGateType", value)}
             theme={theme}
           />
 
           {/* Noise gate threshold slider - visible only for HYBRID and MANUAL */}
-          {(audioSettings.noiseGateType === 'HYBRID' || audioSettings.noiseGateType === 'MANUAL') && (
+          {(audioSettings.noiseGateType === "HYBRID" ||
+            audioSettings.noiseGateType === "MANUAL") && (
             <ThresholdSlider
               label="Noise Gate Threshold"
               value={audioSettings.noiseGateThreshold || -20}
-              onValueChange={(value) => updateSetting('noiseGateThreshold', Math.round(value))}
+              onValueChange={(value) =>
+                updateSetting("noiseGateThreshold", Math.round(value))
+              }
               theme={theme}
               min={-60}
               max={0}
@@ -240,18 +247,20 @@ const CommsPage = () => {
             />
           )}
 
-          <AudioDropdown
+          <SegmentedSelector
             label="Typing Attenuation"
             value={audioSettings.typingAttenuationLevel || "MEDIUM"}
             options={typingAttenuationOptions}
-            onValueChange={(value) => updateSetting('typingAttenuationLevel', value)}
+            onValueChange={(value) =>
+              updateSetting("typingAttenuationLevel", value)
+            }
             theme={theme}
           />
         </View>
 
         {/* Debug section */}
         {__DEV__ && (
-          <View style={styles.debugSection}>
+          <View style={[styles.debugSection, styles.categoryContainer]}>
             <Text style={styles.debugTitle}>Current Settings:</Text>
             <Text style={styles.debugText}>
               {JSON.stringify(audioSettings, null, 2)}
@@ -270,51 +279,51 @@ const createStyle = (theme) =>
       padding: 10,
     },
     headerContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       marginBottom: 20,
     },
     pageTitle: {
       color: theme.text,
       fontSize: 20,
-      fontWeight: '700',
+      fontWeight: "700",
     },
     resetButton: {
-      backgroundColor: theme.danger || '#ff4444',
+      backgroundColor: theme.danger || "#ff4444",
       paddingHorizontal: 15,
       paddingVertical: 8,
       borderRadius: 5,
     },
     resetButtonText: {
-      color: '#fff',
+      color: "#fff",
       fontSize: 14,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     loadingText: {
       color: theme.text,
       fontSize: 16,
-      textAlign: 'center',
+      textAlign: "center",
       marginTop: 50,
     },
     errorText: {
-      color: theme.danger || '#ff4444',
+      color: theme.danger || "#ff4444",
       fontSize: 16,
-      textAlign: 'center',
+      textAlign: "center",
       marginTop: 50,
     },
     retryButton: {
-      backgroundColor: theme.primary || '#007AFF',
+      backgroundColor: theme.primary || "#007AFF",
       paddingHorizontal: 20,
       paddingVertical: 10,
       borderRadius: 5,
-      alignSelf: 'center',
+      alignSelf: "center",
       marginTop: 20,
     },
     retryButtonText: {
-      color: '#fff',
+      color: "#fff",
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     switchContainer: {
       flexDirection: "row",
@@ -329,7 +338,7 @@ const createStyle = (theme) =>
     label: {
       color: theme.text,
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     settingsSection: {
       marginTop: 10,
@@ -338,7 +347,7 @@ const createStyle = (theme) =>
     sectionTitle: {
       color: theme.text,
       fontSize: 18,
-      fontWeight: '700',
+      fontWeight: "700",
       marginBottom: 15,
       marginTop: 10,
     },
@@ -354,9 +363,9 @@ const createStyle = (theme) =>
       opacity: 0.6,
     },
     disabledValue: {
-      color: theme.textSecondary || '#666',
+      color: theme.textSecondary || "#666",
       fontSize: 16,
-      fontStyle: 'italic',
+      fontStyle: "italic",
     },
     debugSection: {
       marginTop: 20,
@@ -367,13 +376,19 @@ const createStyle = (theme) =>
     debugTitle: {
       color: theme.text,
       fontSize: 14,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       marginBottom: 5,
     },
     debugText: {
-      color: theme.textSecondary || '#666',
+      color: theme.textSecondary || "#666",
       fontSize: 12,
-      fontFamily: 'monospace',
+      fontFamily: "monospace",
+    },
+    categoryContainer: {
+      backgroundColor: "#1c2539",
+      borderRadius: 12,
+      padding: 15,
+      marginBottom: 20,
     },
   });
 

@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
-  Modal,
-  FlatList,
+  Animated,
+  ScrollView,
+  Dimensions,
 } from "react-native";
 
 const AudioDropdown = ({
@@ -16,11 +17,25 @@ const AudioDropdown = ({
   theme,
   disabled = false,
 }) => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownHeight = useRef(new Animated.Value(0)).current;
+  const maxHeight = Math.min(options.length * 50, 200); // Max height for dropdown
+
+  const toggleDropdown = () => {
+    if (disabled) return;
+
+    const toValue = isOpen ? 0 : maxHeight;
+    setIsOpen(!isOpen);
+    Animated.timing(dropdownHeight, {
+      toValue,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
 
   const handleSelect = (selectedValue) => {
     onValueChange(selectedValue);
-    setIsVisible(false);
+    toggleDropdown();
   };
 
   const getDisplayText = () => {
@@ -35,52 +50,66 @@ const AudioDropdown = ({
       <Text style={styles.label}>{label}</Text>
 
       <TouchableOpacity
-        style={[styles.dropdown, disabled && styles.dropdownDisabled]}
-        onPress={() => !disabled && setIsVisible(true)}
+        style={[
+          styles.dropdownHeader,
+          disabled && styles.dropdownDisabled,
+          isOpen && styles.dropdownHeaderOpen,
+        ]}
+        onPress={toggleDropdown}
         disabled={disabled}
       >
         <Text style={[styles.dropdownText, disabled && styles.disabledText]}>
           {getDisplayText()}
         </Text>
-        <Text style={[styles.arrow, disabled && styles.disabledText]}>▼</Text>
+        <Text
+          style={[
+            styles.arrow,
+            disabled && styles.disabledText,
+            isOpen && styles.arrowUp,
+          ]}
+        >
+          ▼
+        </Text>
       </TouchableOpacity>
 
-      <Modal
-        visible={isVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setIsVisible(false)}
+      <Animated.View
+        style={[
+          styles.dropdownListContainer,
+          {
+            height: dropdownHeight,
+            opacity: dropdownHeight.interpolate({
+              inputRange: [0, maxHeight],
+              outputRange: [0, 1],
+            }),
+          },
+        ]}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          onPress={() => setIsVisible(false)}
+        <ScrollView
+          style={styles.dropdownList}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
         >
-          <View style={styles.modalContent}>
-            <FlatList
-              data={options}
-              keyExtractor={(item) => item.value}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.option,
-                    item.value === value && styles.selectedOption,
-                  ]}
-                  onPress={() => handleSelect(item.value)}
-                >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      item.value === value && styles.selectedOptionText,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
+          {options.map((item) => (
+            <TouchableOpacity
+              key={item.value}
+              style={[
+                styles.option,
+                item.value === value && styles.selectedOption,
+              ]}
+              onPress={() => handleSelect(item.value)}
+            >
+              <Text
+                style={[
+                  styles.optionText,
+                  item.value === value && styles.selectedOptionText,
+                ]}
+              >
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </Animated.View>
     </View>
   );
 };
@@ -89,6 +118,7 @@ const createStyles = (theme) =>
   StyleSheet.create({
     container: {
       marginVertical: 10,
+      zIndex: 1,
     },
     label: {
       color: theme.text,
@@ -96,15 +126,20 @@ const createStyles = (theme) =>
       marginBottom: 8,
       fontWeight: "500",
     },
-    dropdown: {
+    dropdownHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-
       borderRadius: 10,
       padding: 15,
       borderWidth: 1,
       borderColor: theme.border || "#ddd",
+      backgroundColor: theme.cardBackground || "#fff",
+    },
+    dropdownHeaderOpen: {
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
+      borderBottomWidth: 0,
     },
     dropdownDisabled: {
       opacity: 0.5,
@@ -120,31 +155,37 @@ const createStyles = (theme) =>
     arrow: {
       color: theme.text,
       fontSize: 12,
+      transform: [{ rotate: "0deg" }],
     },
-    modalOverlay: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
+    arrowUp: {
+      transform: [{ rotate: "180deg" }],
     },
-    modalContent: {
-      backgroundColor: theme.cardBackground,
-      borderRadius: 10,
-      maxHeight: 300,
-      width: "80%",
-      maxWidth: 300,
+    dropdownListContainer: {
+      overflow: "hidden",
+      backgroundColor: theme.cardBackground || "#fff",
+      borderBottomLeftRadius: 10,
+      borderBottomRightRadius: 10,
+      borderWidth: 1,
+      borderTopWidth: 0,
+      borderColor: theme.border || "#ddd",
+    },
+    dropdownList: {
+      width: "100%",
     },
     option: {
       padding: 15,
+      borderTopWidth: 1,
+      borderTopColor: theme.border || "#eee",
     },
     selectedOption: {
-      backgroundColor: theme.primary || "#007AFF",
+      backgroundColor: `${theme.primary}20` || "#007AFF20",
     },
     optionText: {
       color: theme.text,
       fontSize: 16,
     },
     selectedOptionText: {
-      color: "#fff",
+      color: theme.primary || "#007AFF",
       fontWeight: "600",
     },
   });
