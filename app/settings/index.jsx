@@ -4,7 +4,8 @@ import { ThemeContext } from "@/context/ThemeContext";
 import SettingsMenuItem from "../components/SettingsMenuItem";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import {
-  PaintBoardIcon,
+  UserIcon,
+  PencilEdit01Icon,
   Folder01Icon,
   QrCode01Icon,
   BlockedIcon,
@@ -27,9 +28,14 @@ const SettingsMenu = () => {
         {/* Avvolgi i menu items in uno ScrollView */}
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <SettingsMenuItem
-            navToPage="/settings/themes"
-            pageName="Themes"
-            iconName={PaintBoardIcon}
+            navToPage="/settings/account"
+            pageName="Account"
+            iconName={UserIcon}
+          />
+          <SettingsMenuItem
+            navToPage="/settings/personalization"
+            pageName="Personalization"
+            iconName={PencilEdit01Icon}
           />
           <SettingsMenuItem
             navToPage="/settings/storage"

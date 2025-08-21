@@ -1,9 +1,9 @@
 import React, { useContext, useEffect } from "react";
 import { StyleSheet, Pressable, Text, View } from "react-native";
-import ScreenLayout from "../components/ScreenLayout";
+import ScreenLayout from "../../components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
-import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
-import { Colors } from "../../constants/Colors";
+import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
+import { Colors } from "../../../constants/Colors";
 
 const Themes = () => {
   const { setColorScheme, theme, colorScheme } = useContext(ThemeContext);
