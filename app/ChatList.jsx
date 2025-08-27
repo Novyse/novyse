@@ -443,7 +443,6 @@ const ChatList = () => {
               </Text>
             </View>
           </View>
-
           <View style={styles.menuContainer}>
             <SidebarItem
               text="Profile"
