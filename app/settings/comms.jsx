@@ -7,22 +7,28 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import ScreenLayout from "../components/ScreenLayout";
 import SegmentedSelector from "../components/settings/vocal-chat/SegmentedSelector";
 import ThresholdSlider from "../components/settings/vocal-chat/ThresholdSlider";
 import settingsManager from "../utils/global/SettingsManager";
+import commsUtils from "../utils/webrtc/methods";
 
 const CommsPage = () => {
   const { theme } = useContext(ThemeContext);
   const [audioSettings, setAudioSettings] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [audioDevices, setAudioDevices] = useState([]);
+  const [videoDevices, setVideoDevices] = useState([]);
+  const [devicesLoading, setDevicesLoading] = useState(true);
   const styles = createStyle(theme);
 
   // Carica le impostazioni al mount del componente
   useEffect(() => {
     loadSettings();
+    loadDevices();
   }, []);
 
   const loadSettings = async () => {
@@ -58,6 +64,37 @@ const CommsPage = () => {
       await loadSettings();
     }
   };
+
+  // Options for Video/Audio device
+
+    const loadDevices = async () => {
+    try {
+      setDevicesLoading(true);
+      const [audioDevs, videoDevs] = await Promise.all([
+        commsUtils.get.audioDevices(),
+        commsUtils.get.videoDevices()
+      ]);
+      console.log(audioDevs,videoDevs);
+      setAudioDevices(audioDevs);
+      setVideoDevices(videoDevs);
+    } catch (error) {
+      console.error("Error loading devices:", error);
+    } finally {
+      setDevicesLoading(false);
+    }
+  };
+
+  // Device transformation for selector
+
+  const audioDeviceOptions = audioDevices.map(device => ({
+    label: device.label || `Microphone ${device.deviceId.substring(0, 8)}`,
+    value: device.deviceId
+  }));
+
+  const videoDeviceOptions = videoDevices.map(device => ({
+    label: device.label || `Camera ${device.deviceId.substring(0, 8)}`,
+    value: device.deviceId
+  }));
 
   // Options for webcam and microphone settings
   const entryModeOptions = [
@@ -146,14 +183,62 @@ const CommsPage = () => {
         {/* Input Devices Category */}
         <View style={styles.categoryContainer}>
           <Text style={styles.sectionTitle}>Input Devices</Text>
-          <View style={styles.disabledField}>
+          
+      {devicesLoading ? (
+        <View style={styles.disabledField}>
+          <Text style={styles.label}>Loading devices...</Text>
+        </View>
+      ) : (
+        <>
+          {/* Dropdown Microfono */}
+          <View style={styles.pickerContainer}>
             <Text style={styles.label}>Microphone</Text>
-            <Text style={styles.disabledValue}>DEFAULT</Text>
+            <Picker
+              selectedValue={audioSettings.microphoneDeviceId || (audioDeviceOptions.length > 0 ? audioDeviceOptions[0].value : "")}
+              style={styles.picker}
+              onValueChange={(value) => updateSetting("microphoneDeviceId", value)}
+              dropdownIconColor={theme.text}
+            >
+              {audioDeviceOptions.length > 0 ? (
+                audioDeviceOptions.map((option) => (
+                  <Picker.Item
+                    key={option.value}
+                    label={option.label}
+                    value={option.value}
+                    color={theme.text}
+                  />
+                ))
+              ) : (
+                <Picker.Item label="No microphones found" value="" color={theme.text} />
+              )}
+            </Picker>
           </View>
-          <View style={styles.disabledField}>
+
+          {/* Dropdown Camera */}
+          <View style={styles.pickerContainer}>
             <Text style={styles.label}>Webcam</Text>
-            <Text style={styles.disabledValue}>DEFAULT</Text>
+            <Picker
+              selectedValue={audioSettings.webcamDeviceId || (videoDeviceOptions.length > 0 ? videoDeviceOptions[0].value : "")}
+              style={styles.picker}
+              onValueChange={(value) => updateSetting("webcamDeviceId", value)}
+              dropdownIconColor={theme.text}
+            >
+              {videoDeviceOptions.length > 0 ? (
+                videoDeviceOptions.map((option) => (
+                  <Picker.Item
+                    key={option.value}
+                    label={option.label}
+                    value={option.value}
+                    color={theme.text}
+                  />
+                ))
+              ) : (
+                <Picker.Item label="No cameras found" value="" color={theme.text} />
+              )}
+            </Picker>
           </View>
+        </>
+      )}
           <SegmentedSelector
             label="Entry Mode"
             value={audioSettings.entryMode || "AUDIO_ONLY"}
@@ -389,6 +474,18 @@ const createStyle = (theme) =>
       borderRadius: 12,
       padding: 15,
       marginBottom: 20,
+    },
+    pickerContainer: {
+      marginBottom: 20,
+    },
+    picker: {
+      backgroundColor: theme.inputBackground || "#1a1d29",
+      borderRadius: 12,
+      color: theme.text,
+      borderWidth: 1,
+      borderColor: theme.borderColor || "#333",
+      paddingHorizontal: 16,
+      height: 50,
     },
   });
 

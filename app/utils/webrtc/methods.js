@@ -682,6 +682,27 @@ const get = {
       return null;
     }
   },
+
+    audioDevices: async () => {
+    try {
+      const devices = await mediaDevices.enumerateDevices();
+      return devices.filter(device => device.kind === 'audioinput');
+    } catch (error) {
+      console.error("Error getting audio devices:", error);
+      return [];
+    }
+  },
+
+  // Ottieni tutti i dispositivi video disponibili  
+  videoDevices: async () => {
+    try {
+      const devices = await mediaDevices.enumerateDevices();
+      return devices.filter(device => device.kind === 'videoinput');
+    } catch (error) {
+      console.error("Error getting video devices:", error);
+      return [];
+    }
+  },
 };
 
 const set = {
