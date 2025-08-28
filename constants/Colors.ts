@@ -19,7 +19,7 @@ export const Colors = {
     messagesLink: "#61abe6",
 
     // Colori aggiuntivi per componenti
-    modalBackground: "#ffffff",
+    modalBackground: "#1c89e3ff",
     modalBorder: "#000000",
     modalText: "#000000",
     placeholderText: "#bfbfbf",
@@ -31,6 +31,8 @@ export const Colors = {
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.65)",
     backgroundStatusBar: "#416a90", // StatusBar scura per Dark Mode
     cardBackground: "#416a90",
+    ChatIconsPickerModalBorderColor: "#ffffffff",
+    ChatIconsPickerModalTabInactiveText: "#b1b1b1ff",
     
     // Gradients
     backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale dell'app

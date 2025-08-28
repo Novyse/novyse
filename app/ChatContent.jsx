@@ -35,7 +35,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import SmartBackground from "./components/SmartBackground";
-import EmojiPicker from "./components/EmojiPicker";
+import ChatIconsPickerModal from "./components/ChatIconsPickerModal";
 
 const ChatContent = ({
   chatJoined,
@@ -68,6 +68,7 @@ const ChatContent = ({
   const containerRef = useRef(null);
   const router = useRouter();
   const [isMicClicked, setIsMicClicked] = useState(false);
+  const [bottomBarHeight, setBottomBarHeight] = useState(0); // Add state for bottom bar measurements
   const urlRegex =
     /(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])(\S*)/g; //PERFETTO
 
@@ -309,9 +310,8 @@ const ChatContent = ({
   };
 
   // gestisco quando viene premuto il pulsante emoji
-  const handleEmojiPress = () => {
-    console.log("Emoji button pressed");
-    setIsEmojiPickerVisible(true);
+  const toggleEmojiPicker = () => {
+    setIsEmojiPickerVisible(!isEmojiPickerVisible);
   };
 
   // gestisco quando viene selezionato un emoji
@@ -544,7 +544,12 @@ const ChatContent = ({
       contentView
     );
     return (
-      <View style={styles.bottomBarContainer}>
+      <View
+        style={styles.bottomBarContainer}
+        onLayout={(event) => {
+          setBottomBarHeight(event.nativeEvent.layout.height);
+        }}
+      >
         {chatJoined || contentView === "both" ? (
           <View
             style={{
@@ -580,7 +585,7 @@ const ChatContent = ({
                   Platform.OS === "web" ? handleSendMessage : undefined
                 }
               />
-              <Pressable style={styles.iconButton} onPress={handleEmojiPress}>
+              <Pressable style={styles.iconButton} onPress={toggleEmojiPicker}>
                 <HugeiconsIcon
                   icon={SmileIcon}
                   size={24}
@@ -635,6 +640,14 @@ const ChatContent = ({
         }}
       >
         {renderMessagesList()}
+        <ChatIconsPickerModal
+          visible={isEmojiPickerVisible}
+          anchor={{ height: bottomBarHeight }}
+        >
+          <View style={styles.emojiPickerContainer}>
+            <Text style={styles.placeholderText}>Emoji Picker Content</Text>
+          </View>
+        </ChatIconsPickerModal>
         {renderBottomBar()}
         {dropdownInfo.visible && (
           <View style={getDropdownStyle()}>
@@ -659,13 +672,6 @@ const ChatContent = ({
           </View>
         )}
       </SafeAreaView>
-
-      {/* EmojiPicker Modal */}
-      <EmojiPicker
-        visible={isEmojiPickerVisible}
-        onClose={handleEmojiPickerClose}
-        onEmojiSelected={handleEmojiSelected}
-      />
     </SmartBackground>
   );
 };
@@ -822,6 +828,15 @@ function createStyle(theme) {
         whiteSpace: "pre-wrap",
         maxWidth: "100%",
       }),
+    },
+    emojiPickerContainer: {
+      padding: 16,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    placeholderText: {
+      color: theme.text,
+      fontSize: 16,
     },
   });
 }
