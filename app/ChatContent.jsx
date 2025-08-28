@@ -316,9 +316,8 @@ const ChatContent = ({
 
   // gestisco quando viene selezionato un emoji
   const handleEmojiSelected = (emoji) => {
-    console.log("Emoji selected:", emoji);
     setNewMessageText((prevText) => prevText + emoji);
-    setVoiceMessage(false); // Switch to send button when emoji is added
+    setVoiceMessage(false);
   };
 
   // gestisco quando viene chiuso l'emoji picker
@@ -643,6 +642,7 @@ const ChatContent = ({
         <ChatIconsPickerModal
           visible={isEmojiPickerVisible}
           anchor={{ height: bottomBarHeight }}
+          onEmojiSelected={handleEmojiSelected}
         >
           <View style={styles.emojiPickerContainer}>
             <Text style={styles.placeholderText}>Emoji Picker Content</Text>

@@ -1,4 +1,3 @@
-// EmojiPicker.js
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { ThemeContext } from '@/context/ThemeContext';
@@ -22,10 +21,10 @@ const EmojiPicker = ({ onEmojiSelected, onClose }) => {
       <EmojiSelector
         onEmojiSelected={handleEmojiSelected}
         showSearchBar={true}
-        showSectionTitles={true}
+        showSectionTitles={false}
         showTabs={true}
         showHistory={false}
-        columns={isWeb ? 10 : 8}
+        columns={isWeb ? 8 : 6}
         placeholder="Search emoji..."
         style={styles.emojiSelector}
       />
@@ -37,15 +36,7 @@ const createStyle = (theme) => StyleSheet.create({
   container: {
     backgroundColor: theme.modalBackground,
     width: '100%',
-    height: '100%',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.text,
-  },
-  closeButton: {
-    padding: 4,
+    height: '100%'
   },
   emojiSelector: {
     flex: 1,

@@ -117,6 +117,7 @@ const createStyle = (theme) =>
       maxHeight: 500,
       minWidth: 300,
       width: "23%",
+      overflow: "hidden"
     },
     tabsContainer: {
       flexDirection: "row",
