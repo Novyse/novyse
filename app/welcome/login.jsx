@@ -31,6 +31,7 @@ const LoginPassword = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const loginTheme = "default";
 
@@ -120,15 +121,14 @@ const LoginPassword = () => {
 
   const handleResetPassword = async () => {
     try {
+      setError(null);
+      setSuccessMessage(null);
+      
       const resetPassword = await APIMethods.forgotPassword(emailValue);
       console.log("Password forgot Success?", resetPassword);
 
       if (resetPassword) {
-        Alert.alert(
-          "Reset Password",
-          "If the email exists, you will receive instructions to reset your password.",
-          [{ text: "OK" }]
-        );
+        setSuccessMessage("If the email exists, you will receive instructions to reset your password.");
       } else {
         setError("Unable to send reset instructions.");
       }
@@ -225,6 +225,7 @@ const LoginPassword = () => {
           </View>
 
           {error && <Text style={styles.errorText}>{error}</Text>}
+          {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
 
           <Text style={styles.resetPasswordText} onPress={handleResetPassword}>
             Reset Password
@@ -338,6 +339,16 @@ function createStyle(loginTheme, isSmallScreen) {
       marginTop: 24,
       textAlign: "center",
       paddingHorizontal: 8,
+    },
+    successText: {
+      color: "rgba(26, 139, 18, 0.9)",
+      fontSize: 14,
+      marginTop: 24,
+      textAlign: "center",
+      paddingHorizontal: 8,
+      backgroundColor: "rgba(75, 181, 67, 0.1)",
+      padding: 12,
+      borderRadius: 6,
     },
     resetPasswordText: {
       fontSize: 14,

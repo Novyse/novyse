@@ -16,7 +16,7 @@ const Info = () => {
   return (
     <ScreenLayout>
       <View style={styles.container}>
-        <HeaderWithBackArrow goBackTo="../" />
+        <HeaderWithBackArrow goBackTo="./" />
         
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Version Information */}
@@ -101,6 +101,9 @@ const createStyle = (theme) =>
     container: {
       flex: 1,
       padding: 10,
+      alignSelf: "center",
+      width: "100%",
+      maxWidth: 768,
     },
     content: {
       flex: 1,

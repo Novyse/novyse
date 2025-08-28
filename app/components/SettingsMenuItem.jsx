@@ -11,8 +11,13 @@ const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
 
   return (
     <Pressable
-      style={styles.menuItem}
+      style={({ pressed, hovered }) => [
+        styles.menuItem,
+        hovered && styles.menuItemHovered,
+        pressed && styles.menuItemPressed,
+      ]}
       onPress={() => router.push(navToPage)}
+      android_ripple={{ color: theme.rippleColor }}
     >
       <HugeiconsIcon
         icon={iconName}
@@ -33,6 +38,15 @@ const createStyle = (theme) =>
       paddingVertical: 15,
       borderBottomWidth: 1,
       borderBottomColor: theme.settingsDivider,
+      transition: "background-color 0.2s ease",
+    },
+    menuItemHovered: {
+      backgroundColor: theme.hoveredItem || "rgba(0, 0, 0, 0.02)",
+      cursor: "pointer",
+    },
+    menuItemPressed: {
+      backgroundColor: theme.pressedItem || "rgba(0, 0, 0, 0.05)",
+      opacity: 0.9,
     },
     menuItemText: {
       color: theme.text,

@@ -362,28 +362,15 @@ const createStyle = (theme) =>
     container: {
       flex: 1,
       padding: 10,
-    },
-    headerContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 20,
-    },
-    pageTitle: {
-      color: theme.text,
-      fontSize: 20,
-      fontWeight: "700",
+      alignSelf: "center",
+      width: "100%",
+      maxWidth: 768,
     },
     resetButton: {
       backgroundColor: theme.danger || "#ff4444",
       paddingHorizontal: 15,
       paddingVertical: 8,
       borderRadius: 5,
-    },
-    resetButtonText: {
-      color: "#fff",
-      fontSize: 14,
-      fontWeight: "600",
     },
     loadingText: {
       color: theme.text,
@@ -410,24 +397,10 @@ const createStyle = (theme) =>
       fontSize: 16,
       fontWeight: "600",
     },
-    switchContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingVertical: 15,
-      paddingHorizontal: 15,
-      marginVertical: 10,
-      backgroundColor: theme.cardBackground || "gray",
-      borderRadius: 10,
-    },
     label: {
       color: theme.text,
       fontSize: 16,
       fontWeight: "600",
-    },
-    settingsSection: {
-      marginTop: 10,
-      paddingHorizontal: 5,
     },
     sectionTitle: {
       color: theme.text,
@@ -446,11 +419,6 @@ const createStyle = (theme) =>
       backgroundColor: theme.cardBackground || "gray",
       borderRadius: 10,
       opacity: 0.6,
-    },
-    disabledValue: {
-      color: theme.textSecondary || "#666",
-      fontSize: 16,
-      fontStyle: "italic",
     },
     debugSection: {
       marginTop: 20,

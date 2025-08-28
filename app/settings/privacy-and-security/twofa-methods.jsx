@@ -12,7 +12,13 @@ import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
 import APIMethods from "@/app/utils/APImethods";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
-import { Delete02Icon, PlusSignCircleIcon, SmartPhone01Icon, Mail01Icon, SecurityIcon } from "@hugeicons/core-free-icons";
+import {
+  Delete02Icon,
+  PlusSignCircleIcon,
+  SmartPhone01Icon,
+  Mail01Icon,
+  SecurityIcon,
+} from "@hugeicons/core-free-icons";
 
 const TwoFAMethods = () => {
   const { theme } = useContext(ThemeContext);
@@ -98,11 +104,11 @@ const TwoFAMethods = () => {
   // Funzione per ottenere l'icona del metodo
   const getMethodIcon = (method) => {
     switch (method.toLowerCase()) {
-      case 'authenticator':
+      case "authenticator":
         return SecurityIcon;
-      case 'sms':
+      case "sms":
         return SmartPhone01Icon;
-      case 'email':
+      case "email":
         return Mail01Icon;
       default:
         return SecurityIcon;
@@ -130,21 +136,18 @@ const TwoFAMethods = () => {
           {methods.map((method, index) => {
             const isActive = activeMethods.includes(method);
             return (
-              <Pressable 
-                key={method} 
-                style={[
-                  styles.methodCard,
-                  isActive && styles.methodCardActive
-                ]}
-                android_ripple={{ 
-                  color: theme.primary + '20',
-                  borderless: false 
+              <Pressable
+                key={method}
+                style={[styles.methodCard, isActive && styles.methodCardActive]}
+                android_ripple={{
+                  color: theme.primary + "20",
+                  borderless: false,
                 }}
               >
                 <View style={styles.methodHeader}>
                   <View style={styles.methodInfo}>
                     <View style={styles.iconContainer}>
-                      <HugeiconsIcon 
+                      <HugeiconsIcon
                         icon={getMethodIcon(method)}
                         size={24}
                         color="#6366f1"
@@ -155,9 +158,9 @@ const TwoFAMethods = () => {
                         {capitalizeMethod(method)}
                       </Text>
                       <Text style={styles.methodDescription}>
-                        {method === 'authenticator' && 'App di autenticazione'}
-                        {method === 'sms' && 'Codice via SMS'}
-                        {method === 'email' && 'Codice via Email'}
+                        {method === "authenticator" && "App di autenticazione"}
+                        {method === "sms" && "Codice via SMS"}
+                        {method === "email" && "Codice via Email"}
                       </Text>
                     </View>
                   </View>
@@ -173,8 +176,8 @@ const TwoFAMethods = () => {
                           style={styles.deleteButton}
                           activeOpacity={0.7}
                         >
-                          <HugeiconsIcon 
-                            icon={Delete02Icon} 
+                          <HugeiconsIcon
+                            icon={Delete02Icon}
                             size={18}
                             color="#fff"
                           />
@@ -186,8 +189,8 @@ const TwoFAMethods = () => {
                         style={styles.addButton}
                         activeOpacity={0.7}
                       >
-                        <HugeiconsIcon 
-                          icon={PlusSignCircleIcon} 
+                        <HugeiconsIcon
+                          icon={PlusSignCircleIcon}
                           size={20}
                           color="#fff"
                         />
@@ -210,7 +213,9 @@ const createStyle = (theme) =>
     container: {
       flex: 1,
       padding: 10,
-      backgroundColor: theme.background,
+      alignSelf: "center",
+      width: "100%",
+      maxWidth: 768,
     },
     headerSection: {
       marginBottom: 32,
@@ -218,13 +223,13 @@ const createStyle = (theme) =>
     },
     title: {
       fontSize: 28,
-      fontWeight: 'bold',
-      color: '#ffffff',
+      fontWeight: "bold",
+      color: "#ffffff",
       marginBottom: 8,
     },
     subtitle: {
       fontSize: 16,
-      color: '#a0a0a0',
+      color: "#a0a0a0",
       lineHeight: 22,
     },
     methodsContainer: {
@@ -233,12 +238,12 @@ const createStyle = (theme) =>
       alignSelf: "center",
     },
     methodCard: {
-      backgroundColor: theme.cardBackground || '#2A2A2E',
+      backgroundColor: theme.cardBackground || "#2A2A2E",
       borderRadius: 16,
       marginBottom: 16,
       padding: 20,
       elevation: 2,
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: {
         width: 0,
         height: 2,
@@ -246,29 +251,29 @@ const createStyle = (theme) =>
       shadowOpacity: 0.1,
       shadowRadius: 8,
       borderWidth: 1,
-      borderColor: '#2d2d32',
+      borderColor: "#2d2d32",
     },
     methodCardActive: {
-      borderColor: '#00C851',
-      backgroundColor: theme.cardBackground || '#2A2A2E',
+      borderColor: "#00C851",
+      backgroundColor: theme.cardBackground || "#2A2A2E",
     },
     methodHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
     },
     methodInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       flex: 1,
     },
     iconContainer: {
       width: 48,
       height: 48,
       borderRadius: 24,
-      backgroundColor: '#6366f120',
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: "#6366f120",
+      justifyContent: "center",
+      alignItems: "center",
       marginRight: 16,
     },
 
@@ -277,54 +282,54 @@ const createStyle = (theme) =>
     },
     methodName: {
       fontSize: 18,
-      fontWeight: '600',
-      color: '#ffffff',
+      fontWeight: "600",
+      color: "#ffffff",
       marginBottom: 4,
     },
     methodDescription: {
       fontSize: 14,
-      color: '#a0a0a0',
+      color: "#a0a0a0",
     },
     actionContainer: {
-      alignItems: 'center',
+      alignItems: "center",
     },
     activeSection: {
-      alignItems: 'center',
-      flexDirection: 'row',
+      alignItems: "center",
+      flexDirection: "row",
       gap: 12,
     },
     statusBadge: {
-      backgroundColor: '#00C851',
+      backgroundColor: "#00C851",
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 16,
     },
     statusText: {
-      color: '#fff',
+      color: "#fff",
       fontSize: 12,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     deleteButton: {
-      backgroundColor: '#FF4757',
+      backgroundColor: "#FF4757",
       width: 36,
       height: 36,
       borderRadius: 18,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
     },
     addButton: {
-      backgroundColor: '#6366f1',
-      flexDirection: 'row',
-      alignItems: 'center',
+      backgroundColor: "#6366f1",
+      flexDirection: "row",
+      alignItems: "center",
       paddingHorizontal: 16,
       paddingVertical: 10,
       borderRadius: 20,
       gap: 8,
     },
     addButtonText: {
-      color: '#fff',
+      color: "#fff",
       fontSize: 14,
-      fontWeight: '600',
+      fontWeight: "600",
     },
   });
 

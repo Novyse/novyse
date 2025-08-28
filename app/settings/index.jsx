@@ -11,7 +11,7 @@ import {
   BlockedIcon,
   InformationCircleIcon,
   KeyboardIcon,
-  VolumeHighIcon
+  VolumeHighIcon,
 } from "@hugeicons/core-free-icons";
 import { APP_VERSION } from "../../app.config.js";
 import ScreenLayout from "../components/ScreenLayout";
@@ -93,6 +93,9 @@ const createStyle = (theme) =>
     container: {
       flex: 1,
       padding: 10,
+      alignSelf: "center",
+      width: "100%",
+      maxWidth: 768,
     },
   });
 

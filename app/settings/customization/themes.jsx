@@ -69,6 +69,9 @@ const createStyle = (theme) =>
     container: {
       flex: 1,
       padding: 10,
+      alignSelf: "center",
+      width: "100%",
+      maxWidth: 768,
     },
     content: {
       paddingTop: 20,
