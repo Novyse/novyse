@@ -18,6 +18,7 @@ import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import APIMethods from "../utils/APImethods";
 import QRCode from "react-native-qrcode-svg";
+import StatusMessage from '../components/StatusMessage';
 
 import { clearDBAddTokenInit } from "../utils/welcome/auth";
 
@@ -181,9 +182,6 @@ const EmailCheckForm = () => {
           />
           <Text style={styles.title}>Welcome</Text>
           <View style={styles.inputWrapper}>
-            {/* <Text style={styles.emailSubtitle}>
-              Enter email to login or signup
-            </Text> */}
             <TextInput
               style={styles.textInput}
               value={email}
@@ -192,9 +190,7 @@ const EmailCheckForm = () => {
                 if (error) setError(null);
               }}
               placeholder="Email"
-              placeholderTextColor={
-                LoginColors[loginTheme].placeholderTextInput
-              }
+              placeholderTextColor={LoginColors[loginTheme].placeholderTextInput}
               keyboardType="email-address"
               autoCapitalize="none"
               onSubmitEditing={Platform.OS === "web" ? handleSubmit : undefined}
@@ -207,7 +203,7 @@ const EmailCheckForm = () => {
             </TouchableOpacity>
           </View>
 
-          {error && <Text style={styles.errorText}>{error}</Text>}
+          <StatusMessage type="error" text={error} />
         </View>
 
         {/* 3. Esegui il rendering del divider e del QR Code solo se lo schermo NON è piccolo */}
@@ -297,10 +293,6 @@ function createStyle(loginTheme, isSmallScreen) {
       textAlign: "center",
       marginTop: 4,
       fontWeight: "600",
-    },
-    inputError: {
-      borderColor: "rgba(255, 99, 99, 0.8)",
-      backgroundColor: "rgba(255, 99, 99, 0.1)",
     },
     inputWrapper: {
       alignSelf: "center",

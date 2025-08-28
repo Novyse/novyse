@@ -16,6 +16,7 @@ import OtpDigitsInput from "@/app/components/OtpDigitsInput";
 import SmartBackground from "@/app/components/SmartBackground";
 import HeaderWithBackArrow from "@/app/components/HeaderWithBackArrow";
 import QRCode from "react-native-qrcode-svg";
+import StatusMessage from '@/app/components/StatusMessage';
 
 const VerifyMethod = ({}) => {
   const router = useRouter();
@@ -158,7 +159,7 @@ const VerifyMethod = ({}) => {
               </TouchableOpacity>
             </View>
 
-            {error && <Text style={styles.errorText}>{error}</Text>}
+            <StatusMessage type="error" text={error} />
           </View>
         </View>
       </View>
@@ -230,13 +231,6 @@ function createStyle(theme, isSmallScreen) {
       color: "#fff",
       fontWeight: "600",
       fontSize: 16,
-    },
-    errorText: {
-      color: "#e53935",
-      fontSize: 14,
-      marginTop: 18,
-      textAlign: "center",
-      paddingHorizontal: 8,
-    },
+    }
   });
 }

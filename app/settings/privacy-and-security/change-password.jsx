@@ -11,6 +11,7 @@ import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
 import APIMethods from "../../utils/APImethods";
+import StatusMessage from "@/app/components/StatusMessage";
 
 const ChangePassword = () => {
   const { theme } = useContext(ThemeContext);
@@ -21,7 +22,8 @@ const ChangePassword = () => {
   const [isLoading, setIsLoading] = useState("");
   const [error, setError] = useState("");
 
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$#@!?])[^\s]{8,32}$/;
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$#@!?])[^\s]{8,32}$/;
   const isPasswordValid = (pwd) => passwordRegex.test(pwd);
 
   const handleChangePassword = async () => {
@@ -46,7 +48,10 @@ const ChangePassword = () => {
 
     try {
       setIsLoading(true);
-      const changePassword = await APIMethods.changePassword(oldPassword, newPassword);
+      const changePassword = await APIMethods.changePassword(
+        oldPassword,
+        newPassword
+      );
       // Clear fields after success
       setOldPassword("");
       setNewPassword("");
@@ -54,7 +59,10 @@ const ChangePassword = () => {
       setError("");
     } catch (error) {
       console.error("Error changing password:", error);
-      setError(error.response?.data?.message || "An error occurred while changing password");
+      setError(
+        error.response?.data?.message ||
+          "An error occurred while changing password"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +80,7 @@ const ChangePassword = () => {
           </Text>
 
           <View style={styles.formContainer}>
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            <StatusMessage type="error" text={error} />
 
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Current Password</Text>
@@ -129,11 +137,10 @@ const ChangePassword = () => {
 
             <View style={styles.securityNote}>
               <Text style={styles.noteText}>
-                • Password must be 8-32 characters long{"\n"}
-                • Must include uppercase and lowercase letters{"\n"}
-                • Must include at least one number{"\n"}
-                • Must include at least one special character ($ # @ ! ?){"\n"}
-                • Don't reuse old passwords
+                • Password must be 8-32 characters long{"\n"}• Must include
+                uppercase and lowercase letters{"\n"}• Must include at least one
+                number{"\n"}• Must include at least one special character ($ # @
+                ! ?){"\n"}• Don't reuse old passwords
               </Text>
             </View>
           </View>
@@ -154,7 +161,7 @@ const createStyle = (theme) =>
     },
     content: {
       paddingTop: 20,
-      paddingBottom: 40, // Added bottom padding
+      paddingBottom: 40,
     },
     title: {
       color: theme.text,
@@ -202,8 +209,8 @@ const createStyle = (theme) =>
       alignItems: "center",
       justifyContent: "center",
       marginTop: 20,
-      elevation: 2, // Android shadow
-      shadowColor: "#000", // iOS shadow
+      elevation: 2,
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -227,15 +234,6 @@ const createStyle = (theme) =>
       color: theme.subtitle || "#b0b0b0",
       fontSize: 14,
       lineHeight: 20,
-    },
-    errorText: {
-      color: theme.error || '#ff4444',
-      fontSize: 14,
-      marginBottom: 16,
-      textAlign: 'center',
-      padding: 8,
-      backgroundColor: theme.errorBackground || 'rgba(255,68,68,0.1)',
-      borderRadius: 8,
     },
   });
 

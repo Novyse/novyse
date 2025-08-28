@@ -21,6 +21,7 @@ import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
+import StatusMessage from '../components/StatusMessage';
 
 const Signup = () => {
   const { emailValue } = useLocalSearchParams();
@@ -356,7 +357,7 @@ const Signup = () => {
               )}
             </TouchableOpacity>
 
-            {error && <Text style={styles.errorText}>{error}</Text>}
+            <StatusMessage type="error" text={error} />
           </View>
         </View>
       </View>
@@ -487,13 +488,6 @@ function createStyle(loginTheme, isSmallScreen) {
       color: "rgba(255, 99, 99, 0.9)",
       fontSize: 12,
       marginTop: 4,
-    },
-    errorText: {
-      color: "rgba(255, 99, 99, 0.9)",
-      fontSize: 14,
-      marginTop: 16,
-      textAlign: "center",
-      paddingHorizontal: 8,
     },
     link: {
       color: LoginColors[loginTheme].link,

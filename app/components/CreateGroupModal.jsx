@@ -15,6 +15,7 @@ import JsonParser from "../utils/JsonParser";
 import localDatabase from "../utils/localDatabaseMethods";
 import { useRouter } from "expo-router";
 import eventEmitter from "../utils/EventEmitter";
+import StatusMessage from './StatusMessage';
 
 const CreateGroupModal = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
@@ -26,6 +27,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
   const [isPublic, setIsPublic] = useState(false);
   const [isTextError1, setIsTextError1] = useState(false);
   const [isTextError2, setIsTextError2] = useState(false);
+  const [error, setError] = useState(""); // <-- Added error state
 
   // Add new state variables for handle availability check
   const [groupHandleAvailable, setGroupHandleAvailable] = useState(null);
@@ -67,48 +69,49 @@ const CreateGroupModal = ({ visible, onClose }) => {
   };
 
   const handleCreateGroupPress = async () => {
-    setIsTextError1(false);
-    setIsTextError2(false);
+    setError("");
     if (!groupName) {
-      setIsTextError1(true);
-    } else if (!groupHandle && isPublic) {
-      setIsTextError2(true);
-    } else if (isPublic && groupHandleAvailable === false) {
-      setIsTextError2(true);
+      setError("Il nome del gruppo è obbligatorio");
+      return;
+    }
+    if (!groupHandle && isPublic) {
+      setError("L'handle è obbligatorio per i gruppi pubblici");
+      return;
+    }
+    if (isPublic && groupHandleAvailable === false) {
+      setError("Handle già in uso");
+      return;
+    }
+
+    const success = await APIMethods.createNewGroupAPI(groupHandle, groupName);
+    if (success.group_created) {
+      console.log("Gruppo creato con successo", success.group_created);
+
+      resetFields();
+      onClose();
+
+      const newGroupChatId = success.chat_id;
+
+      console.log("🚨Nuovo gruppo ID: ", newGroupChatId);
+
+      // inserisco chat e user nel db locale
+      await localDatabase.insertChat(newGroupChatId, groupName);
+      // await localDatabase.insertChatAndUsers(newGroupChatId, handle);
+      // await localDatabase.insertUsers(handle);
+      // Clear the parameter after handling
+      router.setParams({
+        chatId: newGroupChatId,
+        creatingChatWith: undefined,
+      });
+      router.navigate(`/messages?chatId=${newGroupChatId}`);
+
+      // aggiorno live la lista delle chat
+      eventEmitter.emit("newChat", { newChatId: newGroupChatId });
     } else {
-      const success = await APIMethods.createNewGroupAPI(
-        groupHandle,
-        groupName
+      console.log(
+        "Errore durante la creazione del gruppo",
+        success.group_created
       );
-      if (success.group_created) {
-        console.log("Gruppo creato con successo", success.group_created);
-
-        resetFields();
-        onClose();
-
-        const newGroupChatId = success.chat_id;
-
-        console.log("🚨Nuovo gruppo ID: ", newGroupChatId);
-
-        // inserisco chat e user nel db locale
-        await localDatabase.insertChat(newGroupChatId, groupName);
-        // await localDatabase.insertChatAndUsers(newGroupChatId, handle);
-        // await localDatabase.insertUsers(handle);
-        // Clear the parameter after handling
-        router.setParams({
-          chatId: newGroupChatId,
-          creatingChatWith: undefined,
-        });
-        router.navigate(`/messages?chatId=${newGroupChatId}`);
-
-        // aggiorno live la lista delle chat
-        eventEmitter.emit("newChat", { newChatId: newGroupChatId });
-      } else {
-        console.log(
-          "Errore durante la creazione del gruppo",
-          success.group_created
-        );
-      }
     }
   };
 
@@ -117,10 +120,16 @@ const CreateGroupModal = ({ visible, onClose }) => {
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <Text style={styles.modalTitleText}>Crea un nuovo gruppo</Text>
+          
+          <StatusMessage type="error" text={error} />
+
           <TextInput
-            style={isTextError1 ? styles.textInputError : styles.textInput}
+            style={[
+              styles.textInput,
+              error && styles.textInputError
+            ]}
             placeholder="Nome del gruppo"
-            placeholderTextColor={isTextError1 ? "#red" : "#ccc"}
+            placeholderTextColor="#ccc"
             value={groupName}
             onChangeText={setGroupName}
           />
@@ -210,7 +219,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
   );
 };
 
-function createStyle(theme, colorScheme) {
+function createStyle(theme) {
   return StyleSheet.create({
     centeredView: {
       flex: 1,
@@ -248,10 +257,6 @@ function createStyle(theme, colorScheme) {
       fontWeight: "bold",
       textAlign: "center",
     },
-    modalText: {
-      marginBottom: 15,
-      textAlign: "center",
-    },
     modalTitleText: {
       marginBottom: 15,
       textAlign: "center",
@@ -271,23 +276,11 @@ function createStyle(theme, colorScheme) {
       padding: 10,
     },
     textInputError: {
-      width: "100%",
-      outlineStyle: "none",
       borderColor: "red",
-      borderWidth: 1,
-      borderRadius: 12,
       color: "red",
-      pointerEvents: "auto",
-      marginBottom: 10,
-      padding: 10,
     },
     isPublicText: {
       color: theme.text,
-    },
-    inputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      width: "100%",
     },
     handleInputError: {
       borderColor: "red",
@@ -296,10 +289,6 @@ function createStyle(theme, colorScheme) {
       color: "red",
       marginTop: 5,
       marginBottom: 10,
-    },
-    indicator: {
-      position: "absolute",
-      right: 10,
     },
     buttonDisabled: {
       backgroundColor: "#999",

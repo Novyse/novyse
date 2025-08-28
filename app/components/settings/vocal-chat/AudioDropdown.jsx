@@ -9,7 +9,7 @@ import {
   Dimensions,
 } from "react-native";
 
-const AudioDropdown = ({
+const DropdownMenu = ({
   label,
   value,
   options,
@@ -190,4 +190,4 @@ const createStyles = (theme) =>
     },
   });
 
-export default AudioDropdown;
+export default DropdownMenu;

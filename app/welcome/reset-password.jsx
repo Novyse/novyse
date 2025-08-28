@@ -19,6 +19,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
+import StatusMessage from "../components/StatusMessage";
 
 const ResetPassword = () => {
   const router = useRouter();
@@ -34,8 +35,6 @@ const ResetPassword = () => {
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$#@!?])[^\s]{8,32}$/;
   const isPasswordValid = (pwd) => passwordRegex.test(pwd);
-
-
 
   useEffect(() => {
     const checkLogged = async () => {
@@ -190,7 +189,7 @@ const ResetPassword = () => {
             </TouchableOpacity>
           </View>
 
-          {error && <Text style={styles.errorText}>{error}</Text>}
+          <StatusMessage type="error" text={error} />
         </View>
       </View>
     </LinearGradient>
@@ -293,13 +292,6 @@ function createStyle(loginTheme, isSmallScreen) {
       fontSize: 16,
       color: "white",
       fontWeight: "500",
-    },
-    errorText: {
-      color: "rgba(255, 99, 99, 0.9)",
-      fontSize: 14,
-      marginTop: 24,
-      textAlign: "center",
-      paddingHorizontal: 8,
     },
   });
 }

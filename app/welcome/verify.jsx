@@ -19,6 +19,7 @@ import { StatusBar } from "expo-status-bar";
 import APIMethods from "../utils/APImethods";
 import { clearDBAddTokenInit } from "../utils/welcome/auth";
 import OtpDigitsInput from "../components/OtpDigitsInput";
+import StatusMessage from '../components/StatusMessage';
 
 const Verify = ({}) => {
   const router = useRouter();
@@ -165,7 +166,10 @@ const Verify = ({}) => {
             </TouchableOpacity>
           </View>
 
-          {error && <Text style={styles.errorText}>{error}</Text>}
+          <StatusMessage 
+            type="error" 
+            text={error} 
+          />
         </View>
       </View>
     </LinearGradient>
@@ -242,10 +246,6 @@ function createStyle(loginTheme, isSmallScreen) {
       backgroundColor: "white",
       outlineStyle: "none",
     },
-    inputError: {
-      borderColor: "rgba(255, 99, 99, 0.8)",
-      backgroundColor: "rgba(255, 99, 99, 0.1)",
-    },
     submitButton: {
       flexDirection: "row",
       alignItems: "center",
@@ -261,13 +261,6 @@ function createStyle(loginTheme, isSmallScreen) {
       fontSize: 16,
       color: "white",
       fontWeight: "500",
-    },
-    errorText: {
-      color: "rgba(255, 99, 99, 0.9)",
-      fontSize: 14,
-      marginTop: 24,
-      textAlign: "center",
-      paddingHorizontal: 8,
     },
   });
 }

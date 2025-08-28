@@ -15,11 +15,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import APIMethods from "../utils/APImethods";
+import StatusMessage from "../components/StatusMessage";
 
 const ChooseVerify = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false); // Mantieni per coerenza ma non strettamente necessario qui
   const [selectedMethod, setSelectedMethod] = useState(null);
+  const [error, setError] = useState(""); // Add error state
   const loginTheme = "default";
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 936;
@@ -48,6 +50,7 @@ const ChooseVerify = () => {
   const handleContinue = async () => {
     if (selectedMethod) {
       setIsLoading(true);
+      setError(""); // Clear any previous error
       const successChoose = await APIMethods.twofaSelect(token, selectedMethod);
       if (successChoose) {
         // Naviga alla pagina Verify, passando il metodo scelto come verificationType
@@ -58,11 +61,10 @@ const ChooseVerify = () => {
             token: token,
           },
         });
-        setIsLoading(false);
       }
+      setIsLoading(false);
     } else {
-      // Potresti voler mostrare un messaggio di errore se nessun metodo è selezionato
-      alert("Please choose a verification method.");
+      setError("Please choose a verification method.");
     }
   };
 
@@ -121,6 +123,8 @@ const ChooseVerify = () => {
             ))}
           </View>
 
+          <StatusMessage type="error" text={error} />
+
           <TouchableOpacity
             style={styles.submitButton}
             onPress={handleContinue}
@@ -170,7 +174,7 @@ function createStyle(loginTheme, isSmallScreen) {
       marginBottom: 20,
     },
     title: {
-      fontSize: 32, // Dimensione leggermente ridotta per più spazio
+      fontSize: 32,
       fontWeight: "600",
       color: LoginColors[loginTheme].title,
       textAlign: "center",
@@ -180,7 +184,7 @@ function createStyle(loginTheme, isSmallScreen) {
       fontSize: 14,
       color: LoginColors[loginTheme].subtitle,
       textAlign: "center",
-      marginBottom: 30, // Spazio leggermente ridotto
+      marginBottom: 30,
       lineHeight: 20,
       paddingHorizontal: 20,
     },
@@ -200,7 +204,7 @@ function createStyle(loginTheme, isSmallScreen) {
       backgroundColor: "white",
     },
     selectedOptionButton: {
-      borderColor: LoginColors[loginTheme].backgroundSubmitButton, // Colore per l'opzione selezionata
+      borderColor: LoginColors[loginTheme].backgroundSubmitButton,
       backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
     },
     optionButtonText: {
@@ -209,7 +213,7 @@ function createStyle(loginTheme, isSmallScreen) {
       color: LoginColors[loginTheme].text,
     },
     selectedOptionButtonText: {
-      color: "white", // Testo bianco per l'opzione selezionata
+      color: "white",
     },
     submitButton: {
       flexDirection: "row",
@@ -220,21 +224,14 @@ function createStyle(loginTheme, isSmallScreen) {
       borderRadius: 6,
       maxWidth: 300,
       width: "100%",
-      alignSelf: "center", // Centra il pulsante
+      alignSelf: "center",
       backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
-      marginTop: 20, // Spazio sopra il pulsante
+      marginTop: 20,
     },
     submitButtonText: {
       fontSize: 16,
       color: "white",
       fontWeight: "500",
-    },
-    errorText: {
-      color: "rgba(255, 99, 99, 0.9)",
-      fontSize: 14,
-      marginTop: 24,
-      textAlign: "center",
-      paddingHorizontal: 8,
     },
   });
 }
