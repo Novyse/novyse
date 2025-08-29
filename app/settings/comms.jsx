@@ -67,14 +67,14 @@ const CommsPage = () => {
 
   // Options for Video/Audio device
 
-    const loadDevices = async () => {
+  const loadDevices = async () => {
     try {
       setDevicesLoading(true);
       const [audioDevs, videoDevs] = await Promise.all([
         commsUtils.get.audioDevices(),
-        commsUtils.get.videoDevices()
+        commsUtils.get.videoDevices(),
       ]);
-      console.log(audioDevs,videoDevs);
+      console.log(audioDevs, videoDevs);
       setAudioDevices(audioDevs);
       setVideoDevices(videoDevs);
     } catch (error) {
@@ -86,14 +86,14 @@ const CommsPage = () => {
 
   // Device transformation for selector
 
-  const audioDeviceOptions = audioDevices.map(device => ({
+  const audioDeviceOptions = audioDevices.map((device) => ({
     label: device.label || `Default ${device.deviceId.substring(0, 8)}`,
-    value: device.deviceId
+    value: device.deviceId,
   }));
 
-  const videoDeviceOptions = videoDevices.map(device => ({
+  const videoDeviceOptions = videoDevices.map((device) => ({
     label: device.label || `Default ${device.deviceId.substring(0, 8)}`,
-    value: device.deviceId
+    value: device.deviceId,
   }));
 
   // Options for webcam and microphone settings
@@ -118,6 +118,11 @@ const CommsPage = () => {
     { label: "30 FPS", value: 30 },
     { label: "60 FPS", value: 60 },
     { label: "120 FPS", value: 120 },
+  ];
+
+  const audioOptions = [
+    { label: "OFF", value: "OFF" },
+    { label: "ON", value: "ON" },
   ];
 
   // Audio modifiers options
@@ -183,62 +188,84 @@ const CommsPage = () => {
         {/* Input Devices Category */}
         <View style={styles.categoryContainer}>
           <Text style={styles.sectionTitle}>Input Devices</Text>
-          
-      {devicesLoading ? (
-        <View style={styles.disabledField}>
-          <Text style={styles.label}>Loading devices...</Text>
-        </View>
-      ) : (
-        <>
-          {/* Dropdown Microfono */}
-          <View style={styles.pickerContainer}>
-            <Text style={styles.label}>Microphone</Text>
-            <Picker
-              selectedValue={audioSettings.microphoneDeviceId || (audioDeviceOptions.length > 0 ? audioDeviceOptions[0].value : "")}
-              style={styles.picker}
-              onValueChange={(value) => updateSetting("microphoneDeviceId", value)}
-              dropdownIconColor={theme.text}
-            >
-              {audioDeviceOptions.length > 0 ? (
-                audioDeviceOptions.map((option) => (
-                  <Picker.Item
-                    key={option.value}
-                    label={option.label}
-                    value={option.value}
-                    color={theme.text}
-                  />
-                ))
-              ) : (
-                <Picker.Item label="No microphones found" value="" color={theme.text} />
-              )}
-            </Picker>
-          </View>
 
-          {/* Dropdown Camera */}
-          <View style={styles.pickerContainer}>
-            <Text style={styles.label}>Webcam</Text>
-            <Picker
-              selectedValue={audioSettings.webcamDeviceId || (videoDeviceOptions.length > 0 ? videoDeviceOptions[0].value : "")}
-              style={styles.picker}
-              onValueChange={(value) => updateSetting("webcamDeviceId", value)}
-              dropdownIconColor={theme.text}
-            >
-              {videoDeviceOptions.length > 0 ? (
-                videoDeviceOptions.map((option) => (
-                  <Picker.Item
-                    key={option.value}
-                    label={option.label}
-                    value={option.value}
-                    color={theme.text}
-                  />
-                ))
-              ) : (
-                <Picker.Item label="No cameras found" value="" color={theme.text} />
-              )}
-            </Picker>
-          </View>
-        </>
-      )}
+          {devicesLoading ? (
+            <View style={styles.disabledField}>
+              <Text style={styles.label}>Loading devices...</Text>
+            </View>
+          ) : (
+            <>
+              {/* Dropdown Microfono */}
+              <View style={styles.pickerContainer}>
+                <Text style={styles.label}>Microphone</Text>
+                <Picker
+                  selectedValue={
+                    audioSettings.microphoneDeviceId ||
+                    (audioDeviceOptions.length > 0
+                      ? audioDeviceOptions[0].value
+                      : "")
+                  }
+                  style={styles.picker}
+                  onValueChange={(value) =>
+                    updateSetting("microphoneDeviceId", value)
+                  }
+                  dropdownIconColor={theme.text}
+                >
+                  {audioDeviceOptions.length > 0 ? (
+                    audioDeviceOptions.map((option) => (
+                      <Picker.Item
+                        key={option.value}
+                        label={option.label}
+                        value={option.value}
+                        color={theme.text}
+                      />
+                    ))
+                  ) : (
+                    <Picker.Item
+                      label="No microphones found"
+                      value=""
+                      color={theme.text}
+                    />
+                  )}
+                </Picker>
+              </View>
+
+              {/* Dropdown Camera */}
+              <View style={styles.pickerContainer}>
+                <Text style={styles.label}>Webcam</Text>
+                <Picker
+                  selectedValue={
+                    audioSettings.webcamDeviceId ||
+                    (videoDeviceOptions.length > 0
+                      ? videoDeviceOptions[0].value
+                      : "")
+                  }
+                  style={styles.picker}
+                  onValueChange={(value) =>
+                    updateSetting("webcamDeviceId", value)
+                  }
+                  dropdownIconColor={theme.text}
+                >
+                  {videoDeviceOptions.length > 0 ? (
+                    videoDeviceOptions.map((option) => (
+                      <Picker.Item
+                        key={option.value}
+                        label={option.label}
+                        value={option.value}
+                        color={theme.text}
+                      />
+                    ))
+                  ) : (
+                    <Picker.Item
+                      label="No cameras found"
+                      value=""
+                      color={theme.text}
+                    />
+                  )}
+                </Picker>
+              </View>
+            </>
+          )}
           <SegmentedSelector
             label="Entry Mode"
             value={audioSettings.entryMode || "AUDIO_ONLY"}
@@ -267,26 +294,36 @@ const CommsPage = () => {
           />
         </View>
 
-        {/* Screen Share Category */}
-        <View style={styles.categoryContainer}>
-          <Text style={styles.sectionTitle}>Screen Share Settings</Text>
-          <SegmentedSelector
-            label="Screen Share Quality"
-            value={audioSettings.screenShareQuality || "HD"}
-            options={qualityOptions}
-            onValueChange={(value) => updateSetting("screenShareQuality", value)}
-            theme={theme}
-          />
-          <SegmentedSelector
-            label="Screen Share FPS"
-            value={audioSettings.screenShareFPS || 30}
-            options={fpsOptions}
-            onValueChange={(value) => updateSetting("screenShareFPS", value)}
-            theme={theme}
-          />
-        </View>
+          <View style={styles.categoryContainer}>
+            <Text style={styles.sectionTitle}>Screen Share Settings</Text>
+            <SegmentedSelector
+              label="Screen Share Quality"
+              value={audioSettings.screenShareQuality || "HD"}
+              options={qualityOptions}
+              onValueChange={(value) =>
+                updateSetting("screenShareQuality", value)
+              }
+              theme={theme}
+            />
+            <SegmentedSelector
+              label="Screen Share FPS"
+              value={audioSettings.screenShareFPS || 30}
+              options={fpsOptions}
+              onValueChange={(value) => updateSetting("screenShareFPS", value)}
+              theme={theme}
+            />
+            <SegmentedSelector
+              label="Screen Share Audio"
+              value={audioSettings.screenShareAudio ? "ON" : "OFF"}
+              options={audioOptions}
+              onValueChange={(value) =>
+                updateSetting("screenShareAudio", value === "ON")
+              }
+              theme={theme}
+            />
+          </View>
 
-        {/* Audio Processing Category */}
+          {/* Audio Processing Category */}
         <View style={styles.categoryContainer}>
           <Text style={styles.sectionTitle}>Audio Processing</Text>
           <SegmentedSelector

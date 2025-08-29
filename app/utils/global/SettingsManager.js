@@ -17,6 +17,7 @@ class SettingsManager {
 
           screenShareQuality: "HD", // HD, FULL_HD, 2K, 4K
           screenShareFPS: 30, // from 1 to 120
+          screenShareAudio: false, // true, false
 
           noiseSuppressionLevel: "MEDIUM", // OFF, LOW, MEDIUM, HIGH
           expanderLevel: "MEDIUM", // OFF, LOW, MEDIUM, HIGH

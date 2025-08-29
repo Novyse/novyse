@@ -136,9 +136,9 @@ export const SCREEN_SHARE_CONSTRAINTS = {
 /**
  * Get screen share constraints for platform
  */
-export function getScreenShareConstraints(platform, quality = "FULL_HD", fps = 30) {
+export function getScreenShareConstraints(platform, quality = "FULL_HD", fps = 30, audio = false) {
   const qualitySettings = QUALITY_PRESETS[quality] || QUALITY_PRESETS.FULL_HD;
-  const frameRate = Math.min(Math.max(fps || 30, 1), 60); // Screen share limited to 60fps
+  const frameRate = Math.min(Math.max(fps || 30, 1), 120);
   
   if (platform === "android") {
     return {
@@ -150,7 +150,7 @@ export function getScreenShareConstraints(platform, quality = "FULL_HD", fps = 3
           maxFrameRate: frameRate,
         },
       },
-      audio: false,
+      audio: audio,
     };
   }
 
@@ -161,7 +161,7 @@ export function getScreenShareConstraints(platform, quality = "FULL_HD", fps = 3
       aspectRatio: { ideal: 16 / 9 },
       frameRate: { ideal: frameRate, max: frameRate },
     },
-    audio: true,
+    audio: audio,
   };
 }
 

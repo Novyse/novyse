@@ -6,6 +6,7 @@ import { Helpers } from "../utils/helpers.js";
 import APIMethods from "../../APImethods.js";
 import eventEmitter from "../utils/EventEmitter.js";
 import SoundPlayer from "../../sounds/SoundPlayer.js";
+import { getScreenShareConstraints } from "../config/mediaConstraints.js";
 
 const { mediaDevices } = Compatibility.getWebRTCLib();
 
@@ -20,26 +21,6 @@ export class ScreenShareManager {
     this.pinManager = pinManager;
     // Contatore per ID univoci degli stream
     this.screenStreamCounter = 0;
-
-    // Configurazioni screen share
-    this.SCREEN_SHARE_CONSTRAINTS = {
-      web: {
-        video: {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          aspectRatio: { ideal: 16 / 9 },
-        },
-        audio: true, // Include system audio if available
-      },
-      android: {
-        video: {
-          width: { ideal: 1280, max: 1920, min: 480 }, // Riduci risoluzione iniziale
-          height: { ideal: 720, max: 1080, min: 320 },
-          frameRate: { ideal: 10, max: 15, min: 5 },
-        },
-        audio: false, // Audio capture often causes issues on Android
-      },
-    };
 
     this.logger.debug("ScreenShareManager inizializzato", {
       component: "ScreenShareManager",
@@ -100,7 +81,7 @@ export class ScreenShareManager {
         myParticipantId,
         screenShareUUID,
         null, // Passa null per indicare che lo stream è stato fermato
-        'remove'
+        "remove"
       );
 
       // Rinegozia con tutti i peer
@@ -228,7 +209,7 @@ export class ScreenShareManager {
         from,
         screenShareUUID,
         null, // Passa null per indicare che lo stream è stato fermato
-        'remove'
+        "remove"
       );
     }
   }
@@ -252,16 +233,16 @@ export class ScreenShareManager {
    * @returns {Promise<MediaStream|null>}
    * @private
    */
-  async acquireScreenStream(platform) {
+  async acquireScreenStream(platform, commsSettings = {}) {
     this.logger.debug("Acquisizione stream screen share", {
       component: "ScreenShareManager",
       platform: platform,
     });
 
     if (platform === "web") {
-      return await this._acquireWebScreenStream();
+      return await this._acquireWebScreenStream(commsSettings);
     } else {
-      return await this._acquireAndroidScreenStream();
+      return await this._acquireAndroidScreenStream(commsSettings);
     }
   }
 
@@ -270,15 +251,21 @@ export class ScreenShareManager {
    * @returns {Promise<MediaStream|null>}
    * @private
    */
-  async _acquireWebScreenStream() {
+  async _acquireWebScreenStream(commsSettings = {}) {
     try {
-      const constraints = this.SCREEN_SHARE_CONSTRAINTS.web;
+
+      const quality = commsSettings.screenShareQuality;
+      const fps = commsSettings.screenShareFPS;
+      const audio = commsSettings.screenShareAudio;
+
+      const constraints = getScreenShareConstraints("web",quality, fps, audio);
       const stream = await navigator.mediaDevices.getDisplayMedia(constraints);
 
       this.logger.debug("Stream screen share web acquisito", {
         component: "ScreenShareManager",
         screenShareUUID: stream.id,
         tracks: stream.getTracks().length,
+        constraints: constraints,
       });
 
       return stream;
@@ -300,257 +287,282 @@ export class ScreenShareManager {
   }
 
   /**
- * Acquisisce stream screen share su Android
- * @returns {Promise<MediaStream|null>}
- * @private
- */
-async _acquireAndroidScreenStream() {
-  let screenStream = null;
-  const platform = Platform.OS;
-  
-  this.logger.info("🔍 Tentativo acquisizione screen stream Android", {
-    component: "ScreenShareManager",
-    platform,
-    hasGetDisplayMedia: !!mediaDevices.getDisplayMedia,
-    hasGetUserMedia: !!mediaDevices.getUserMedia,
-  });
+   * Acquisisce stream screen share su Android
+   * @returns {Promise<MediaStream|null>}
+   * @private
+   */
+  async _acquireAndroidScreenStream(commsSettings = {}) {
+    // DA FIXARE CON I CONSTRAI PRESI DA MEDIACONSTRAINTS QUANDO VERRÀ RIFATTA LA FUNZIONE @SamueleOrazioDurante
+    let screenStream = null;
+    const platform = Platform.OS;
 
-  try {
-    // Metodo 1: getDisplayMedia (react-native-webrtc)
-    if (mediaDevices.getDisplayMedia) {
-      try {
-        const constraints = this.SCREEN_SHARE_CONSTRAINTS.android;
-        
-        // AGGIUNGI QUESTI CONSTRAINTS SPECIFICI PER ANDROID
-        const androidConstraints = {
-          video: {
-            mediaSource: 'screen', // Forza sorgente schermo
-            mandatory: {
-              chromeMediaSource: 'screen',
-              chromeMediaSourceId: 'screen:0',
-              maxWidth: 1920,
-              maxHeight: 1080,
-              maxFrameRate: 15,
-            }
-          },
-          audio: false,
-        };
-        
-        this.logger.info("📱 Usando constraints Android specifici:", {
-          component: "ScreenShareManager",
-          constraints: androidConstraints,
-        });
+    this.logger.info("🔍 Tentativo acquisizione screen stream Android", {
+      component: "ScreenShareManager",
+      platform,
+      hasGetDisplayMedia: !!mediaDevices.getDisplayMedia,
+      hasGetUserMedia: !!mediaDevices.getUserMedia,
+    });
 
-        screenStream = await mediaDevices.getDisplayMedia(androidConstraints);
+    try {
+      // Metodo 1: getDisplayMedia (react-native-webrtc)
+      if (mediaDevices.getDisplayMedia) {
+        try {
+          const constraints = this.SCREEN_SHARE_CONSTRAINTS.android;
 
-        // VERIFICA CHE SIA REALMENTE SCREEN SHARE
-        const videoTrack = screenStream.getVideoTracks()[0];
-        if (videoTrack) {
-          this.logger.info("🔍 Analisi dettagliata track video:", {
-            component: "ScreenShareManager",
-            label: videoTrack.label,
-            kind: videoTrack.kind,
-            id: videoTrack.id,
-            settings: videoTrack.getSettings ? videoTrack.getSettings() : 'N/A',
-            capabilities: videoTrack.getCapabilities ? videoTrack.getCapabilities() : 'N/A',
-          });
-          
-          // Se label è vuoto o contiene "camera", non è screen share
-          if (!videoTrack.label || 
-              videoTrack.label.toLowerCase().includes('camera') ||
-              videoTrack.label.toLowerCase().includes('back') ||
-              videoTrack.label.toLowerCase().includes('front')) {
-            
-            this.logger.error("❌ FALSO POSITIVO: getDisplayMedia ha ritornato camera, non screen!", {
-              component: "ScreenShareManager",
-              trackLabel: videoTrack.label,
-            });
-            
-            // Ferma lo stream fasullo
-            screenStream.getTracks().forEach(track => track.stop());
-            throw new Error("getDisplayMedia ha ritornato camera invece di screen share");
-          }
-        }
-        
-        this.logger.info("✅ getDisplayMedia Android riuscito", {
-          component: "ScreenShareManager",
-          streamId: screenStream.id,
-          tracks: screenStream.getTracks().length,
-          tracksInfo: screenStream.getTracks().map(track => ({
-            kind: track.kind,
-            label: track.label,
-            enabled: track.enabled,
-            readyState: track.readyState,
-          })),
-        });
-        return screenStream;
-
-      } catch (displayError) {
-        this.logger.warning("❌ getDisplayMedia Android fallito", {
-          component: "ScreenShareManager",
-          error: displayError.message,
-          errorName: displayError.name,
-          errorCode: displayError.code,
-        });
-
-        if (
-          displayError.name === "NotAllowedError" ||
-          displayError.message.includes("Permission denied") ||
-          displayError.message.includes("cancelled by user")
-        ) {
-          this.logger.info("🚫 Permessi screen share negati", {
-            component: "ScreenShareManager",
-            errorType: "permission_denied",
-          });
-          throw displayError; // Re-throw permission errors
-        }
-
-        screenStream = null;
-      }
-    } else {
-      this.logger.warning("⚠️ getDisplayMedia non disponibile su questo dispositivo", {
-        component: "ScreenShareManager",
-      });
-    }
-
-    // Metodo 2: getUserMedia con source screen
-    if (!screenStream && mediaDevices.getUserMedia) {
-      try {
-        this.logger.info("📱 Tentativo getUserMedia con screen source", {
-          component: "ScreenShareManager",
-        });
-
-        const screenConstraints = {
-          video: {
-            mandatory: {
-              chromeMediaSource: "screen",
-              maxWidth: 1920,
-              maxHeight: 1080,
-              maxFrameRate: 15,
+          // AGGIUNGI QUESTI CONSTRAINTS SPECIFICI PER ANDROID
+          const androidConstraints = {
+            video: {
+              mediaSource: "screen", // Forza sorgente schermo
+              mandatory: {
+                chromeMediaSource: "screen",
+                chromeMediaSourceId: "screen:0",
+                maxWidth: 1920,
+                maxHeight: 1080,
+                maxFrameRate: 15,
+              },
             },
-          },
-          audio: false,
-        };
+            audio: false,
+          };
 
-        this.logger.debug("🎛️ Screen constraints usati:", {
-          component: "ScreenShareManager",
-          constraints: screenConstraints,
-        });
-
-        screenStream = await mediaDevices.getUserMedia(screenConstraints);
-
-        this.logger.info("✅ getUserMedia con screen source riuscito", {
-          component: "ScreenShareManager",
-          streamId: screenStream.id,
-          tracks: screenStream.getTracks().length,
-          tracksInfo: screenStream.getTracks().map(track => ({
-            kind: track.kind,
-            label: track.label,
-            enabled: track.enabled,
-            readyState: track.readyState,
-          })),
-        });
-        return screenStream;
-
-      } catch (screenError) {
-        this.logger.warning("❌ getUserMedia con screen source fallito", {
-          component: "ScreenShareManager",
-          error: screenError.message,
-          errorName: screenError.name,
-          errorCode: screenError.code,
-        });
-
-        if (
-          screenError.name === "NotAllowedError" ||
-          screenError.message.includes("Permission denied") ||
-          screenError.message.includes("cancelled by user")
-        ) {
-          this.logger.info("🚫 Permessi screen share negati", {
+          this.logger.info("📱 Usando constraints Android specifici:", {
             component: "ScreenShareManager",
-            errorType: "permission_denied",
+            constraints: androidConstraints,
           });
-          throw screenError; // Re-throw permission errors
+
+          screenStream = await mediaDevices.getDisplayMedia(androidConstraints);
+
+          // VERIFICA CHE SIA REALMENTE SCREEN SHARE
+          const videoTrack = screenStream.getVideoTracks()[0];
+          if (videoTrack) {
+            this.logger.info("🔍 Analisi dettagliata track video:", {
+              component: "ScreenShareManager",
+              label: videoTrack.label,
+              kind: videoTrack.kind,
+              id: videoTrack.id,
+              settings: videoTrack.getSettings
+                ? videoTrack.getSettings()
+                : "N/A",
+              capabilities: videoTrack.getCapabilities
+                ? videoTrack.getCapabilities()
+                : "N/A",
+            });
+
+            // Se label è vuoto o contiene "camera", non è screen share
+            if (
+              !videoTrack.label ||
+              videoTrack.label.toLowerCase().includes("camera") ||
+              videoTrack.label.toLowerCase().includes("back") ||
+              videoTrack.label.toLowerCase().includes("front")
+            ) {
+              this.logger.error(
+                "❌ FALSO POSITIVO: getDisplayMedia ha ritornato camera, non screen!",
+                {
+                  component: "ScreenShareManager",
+                  trackLabel: videoTrack.label,
+                }
+              );
+
+              // Ferma lo stream fasullo
+              screenStream.getTracks().forEach((track) => track.stop());
+              throw new Error(
+                "getDisplayMedia ha ritornato camera invece di screen share"
+              );
+            }
+          }
+
+          this.logger.info("✅ getDisplayMedia Android riuscito", {
+            component: "ScreenShareManager",
+            streamId: screenStream.id,
+            tracks: screenStream.getTracks().length,
+            tracksInfo: screenStream.getTracks().map((track) => ({
+              kind: track.kind,
+              label: track.label,
+              enabled: track.enabled,
+              readyState: track.readyState,
+            })),
+          });
+          return screenStream;
+        } catch (displayError) {
+          this.logger.warning("❌ getDisplayMedia Android fallito", {
+            component: "ScreenShareManager",
+            error: displayError.message,
+            errorName: displayError.name,
+            errorCode: displayError.code,
+          });
+
+          if (
+            displayError.name === "NotAllowedError" ||
+            displayError.message.includes("Permission denied") ||
+            displayError.message.includes("cancelled by user")
+          ) {
+            this.logger.info("🚫 Permessi screen share negati", {
+              component: "ScreenShareManager",
+              errorType: "permission_denied",
+            });
+            throw displayError; // Re-throw permission errors
+          }
+
+          screenStream = null;
         }
-
-        screenStream = null;
-      }
-    } else if (!mediaDevices.getUserMedia) {
-      this.logger.warning("⚠️ getUserMedia non disponibile su questo dispositivo", {
-        component: "ScreenShareManager",
-      });
-    }
-
-    // Metodo 3: Fallback camera di alta qualità
-    if (!screenStream) {
-      this.logger.warning("⚠️ Screen sharing nativo fallito, usando fallback camera", {
-        component: "ScreenShareManager",
-        message: "ATTENZIONE: Questo NON è screen sharing reale, ma camera posteriore",
-      });
-
-      try {
-        const cameraConstraints = {
-          video: {
-            width: { ideal: 1920, min: 720 },
-            height: { ideal: 1080, min: 480 },
-            frameRate: { ideal: 30, min: 15 },
-            facingMode: { ideal: "environment" }, // Back camera typically better quality
-          },
-          audio: false,
-        };
-
-        this.logger.debug("📷 Camera fallback constraints:", {
-          component: "ScreenShareManager",
-          constraints: cameraConstraints,
-        });
-
-        screenStream = await mediaDevices.getUserMedia(cameraConstraints);
-
-        // Marca le tracce come screen share per identificazione
-        screenStream.getTracks().forEach((track) => {
-          track.label = `screen-share-fallback-${Date.now()}`;
-          track._isScreenShareFallback = true; // Flag personalizzato
-        });
-
-        this.logger.warning("📷 Camera fallback per screen sharing attivata", {
-          component: "ScreenShareManager",
-          streamId: screenStream.id,
-          tracks: screenStream.getTracks().length,
-          message: "ATTENZIONE: Questo è un fallback camera, NON screen sharing reale",
-          tracksInfo: screenStream.getTracks().map(track => ({
-            kind: track.kind,
-            label: track.label,
-            enabled: track.enabled,
-            readyState: track.readyState,
-            isFallback: track._isScreenShareFallback,
-          })),
-        });
-
-        return screenStream;
-
-      } catch (cameraError) {
-        this.logger.error("💥 Anche camera fallback fallita", {
-          component: "ScreenShareManager",
-          error: cameraError.message,
-          errorName: cameraError.name,
-          errorCode: cameraError.code,
-        });
-        throw new Error(
-          "Impossibile ottenere stream per screen sharing su Android"
+      } else {
+        this.logger.warning(
+          "⚠️ getDisplayMedia non disponibile su questo dispositivo",
+          {
+            component: "ScreenShareManager",
+          }
         );
       }
-    }
 
-    return screenStream;
-  } catch (error) {
-    this.logger.error("💥 Errore generale acquisizione screen share Android", {
-      component: "ScreenShareManager",
-      error: error.message,
-      errorName: error.name,
-      stack: error.stack,
-    });
-    throw error;
+      // Metodo 2: getUserMedia con source screen
+      if (!screenStream && mediaDevices.getUserMedia) {
+        try {
+          this.logger.info("📱 Tentativo getUserMedia con screen source", {
+            component: "ScreenShareManager",
+          });
+
+          const screenConstraints = {
+            video: {
+              mandatory: {
+                chromeMediaSource: "screen",
+                maxWidth: 1920,
+                maxHeight: 1080,
+                maxFrameRate: 15,
+              },
+            },
+            audio: false,
+          };
+
+          this.logger.debug("🎛️ Screen constraints usati:", {
+            component: "ScreenShareManager",
+            constraints: screenConstraints,
+          });
+
+          screenStream = await mediaDevices.getUserMedia(screenConstraints);
+
+          this.logger.info("✅ getUserMedia con screen source riuscito", {
+            component: "ScreenShareManager",
+            streamId: screenStream.id,
+            tracks: screenStream.getTracks().length,
+            tracksInfo: screenStream.getTracks().map((track) => ({
+              kind: track.kind,
+              label: track.label,
+              enabled: track.enabled,
+              readyState: track.readyState,
+            })),
+          });
+          return screenStream;
+        } catch (screenError) {
+          this.logger.warning("❌ getUserMedia con screen source fallito", {
+            component: "ScreenShareManager",
+            error: screenError.message,
+            errorName: screenError.name,
+            errorCode: screenError.code,
+          });
+
+          if (
+            screenError.name === "NotAllowedError" ||
+            screenError.message.includes("Permission denied") ||
+            screenError.message.includes("cancelled by user")
+          ) {
+            this.logger.info("🚫 Permessi screen share negati", {
+              component: "ScreenShareManager",
+              errorType: "permission_denied",
+            });
+            throw screenError; // Re-throw permission errors
+          }
+
+          screenStream = null;
+        }
+      } else if (!mediaDevices.getUserMedia) {
+        this.logger.warning(
+          "⚠️ getUserMedia non disponibile su questo dispositivo",
+          {
+            component: "ScreenShareManager",
+          }
+        );
+      }
+
+      // Metodo 3: Fallback camera di alta qualità
+      if (!screenStream) {
+        this.logger.warning(
+          "⚠️ Screen sharing nativo fallito, usando fallback camera",
+          {
+            component: "ScreenShareManager",
+            message:
+              "ATTENZIONE: Questo NON è screen sharing reale, ma camera posteriore",
+          }
+        );
+
+        try {
+          const cameraConstraints = {
+            video: {
+              width: { ideal: 1920, min: 720 },
+              height: { ideal: 1080, min: 480 },
+              frameRate: { ideal: 30, min: 15 },
+              facingMode: { ideal: "environment" }, // Back camera typically better quality
+            },
+            audio: false,
+          };
+
+          this.logger.debug("📷 Camera fallback constraints:", {
+            component: "ScreenShareManager",
+            constraints: cameraConstraints,
+          });
+
+          screenStream = await mediaDevices.getUserMedia(cameraConstraints);
+
+          // Marca le tracce come screen share per identificazione
+          screenStream.getTracks().forEach((track) => {
+            track.label = `screen-share-fallback-${Date.now()}`;
+            track._isScreenShareFallback = true; // Flag personalizzato
+          });
+
+          this.logger.warning(
+            "📷 Camera fallback per screen sharing attivata",
+            {
+              component: "ScreenShareManager",
+              streamId: screenStream.id,
+              tracks: screenStream.getTracks().length,
+              message:
+                "ATTENZIONE: Questo è un fallback camera, NON screen sharing reale",
+              tracksInfo: screenStream.getTracks().map((track) => ({
+                kind: track.kind,
+                label: track.label,
+                enabled: track.enabled,
+                readyState: track.readyState,
+                isFallback: track._isScreenShareFallback,
+              })),
+            }
+          );
+
+          return screenStream;
+        } catch (cameraError) {
+          this.logger.error("💥 Anche camera fallback fallita", {
+            component: "ScreenShareManager",
+            error: cameraError.message,
+            errorName: cameraError.name,
+            errorCode: cameraError.code,
+          });
+          throw new Error(
+            "Impossibile ottenere stream per screen sharing su Android"
+          );
+        }
+      }
+
+      return screenStream;
+    } catch (error) {
+      this.logger.error(
+        "💥 Errore generale acquisizione screen share Android",
+        {
+          component: "ScreenShareManager",
+          error: error.message,
+          errorName: error.name,
+          stack: error.stack,
+        }
+      );
+      throw error;
+    }
   }
-}
 
   /**
    * Configura gestori per la fine dello stream
