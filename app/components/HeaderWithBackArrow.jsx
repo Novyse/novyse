@@ -1,7 +1,6 @@
 import React, { useContext } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import Icon from "react-native-vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowLeft02Icon } from "@hugeicons/core-free-icons";

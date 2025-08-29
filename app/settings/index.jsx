@@ -72,17 +72,6 @@ const SettingsMenu = () => {
             iconName={InformationCircleIcon}
           />
         </ScrollView>
-
-        {/* Testo della versione fuori dallo ScrollView per mantenerlo fisso */}
-        <Text
-          style={{
-            fontSize: 12,
-            color: theme.placeholderText,
-            textAlign: "center",
-          }}
-        >
-          Versione: {APP_VERSION}
-        </Text>
       </View>
     </ScreenLayout>
   );

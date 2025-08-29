@@ -1,9 +1,10 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, View, Linking, TouchableOpacity, ScrollView } from "react-native";
+import { StyleSheet, Text, View, Linking, ScrollView } from "react-native";
 import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import { APP_VERSION } from "../../app.config.js";
+import SettingsButton from "../components/settings/SettingsButton";
 
 const Info = () => {
   const { theme } = useContext(ThemeContext);
@@ -17,7 +18,7 @@ const Info = () => {
     <ScreenLayout>
       <View style={styles.container}>
         <HeaderWithBackArrow goBackTo="./" />
-        
+
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Version Information */}
           <View style={styles.card}>
@@ -31,12 +32,11 @@ const Info = () => {
             <Text style={styles.text}>
               Novyse is an open source application available on GitHub.
             </Text>
-            <TouchableOpacity 
-              style={styles.linkButton}
-              onPress={() => openLink('https://github.com/Novyse/novyse')}
-            >
-              <Text style={styles.linkText}>View on GitHub</Text>
-            </TouchableOpacity>
+            <SettingsButton
+              onPress={() => openLink("https://github.com/Novyse/novyse")}
+              text="View on GitHub"
+              textStyle={styles.linkText}
+            />
           </View>
 
           {/* Development Roadmap */}
@@ -45,12 +45,11 @@ const Info = () => {
             <Text style={styles.text}>
               Follow our development progress and see what's coming next.
             </Text>
-            <TouchableOpacity 
-              style={styles.linkButton}
-              onPress={() => openLink('https://www.novyse.com/roadmap')}
-            >
-              <Text style={styles.linkText}>View Public Roadmap</Text>
-            </TouchableOpacity>
+            <SettingsButton
+              onPress={() => openLink("https://www.novyse.com/roadmap")}
+              text="View Public Roadmap"
+              textStyle={styles.linkText}
+            />
           </View>
 
           {/* Legal Information */}
@@ -59,35 +58,36 @@ const Info = () => {
             <Text style={styles.text}>
               Please review our legal documents and policies.
             </Text>
-            
+
             <View style={styles.linkContainer}>
-              <TouchableOpacity 
-                style={styles.linkButton}
-                onPress={() => openLink('https://www.novyse.com/legal/privacy-policy')}
-              >
-                <Text style={styles.linkText}>Privacy Policy</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.linkButton}
-                onPress={() => openLink('https://www.novyse.com/legal/terms-of-service')}
-              >
-                <Text style={styles.linkText}>Terms of Service</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.linkButton}
-                onPress={() => openLink('https://www.novyse.com/legal/cookie-policy')}
-              >
-                <Text style={styles.linkText}>Cookie Policy</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.linkButton}
-                onPress={() => openLink('https://www.novyse.com/legal/gdpr-compliance')}
-              >
-                <Text style={styles.linkText}>GDPR Compliance</Text>
-              </TouchableOpacity>
+              <SettingsButton
+                onPress={() =>
+                  openLink("https://www.novyse.com/legal/privacy-policy")
+                }
+                text="Privacy Policy"
+                textStyle={styles.linkText}
+              />
+              <SettingsButton
+                onPress={() =>
+                  openLink("https://www.novyse.com/legal/terms-of-service")
+                }
+                text="Terms of Service"
+                textStyle={styles.linkText}
+              />
+              <SettingsButton
+                onPress={() =>
+                  openLink("https://www.novyse.com/legal/cookie-policy")
+                }
+                text="Cookie Policy"
+                textStyle={styles.linkText}
+              />
+              <SettingsButton
+                onPress={() =>
+                  openLink("https://www.novyse.com/legal/gdpr-compliance")
+                }
+                text="GDPR Compliance"
+                textStyle={styles.linkText}
+              />
             </View>
           </View>
         </ScrollView>
@@ -111,7 +111,7 @@ const createStyle = (theme) =>
       paddingBottom: 40,
     },
     card: {
-      backgroundColor: theme.cardBackground || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards || "#23232b",
       borderRadius: 16,
       padding: 24,
       marginBottom: 16,
@@ -147,19 +147,6 @@ const createStyle = (theme) =>
     },
     linkContainer: {
       gap: 8,
-    },
-    linkButton: {
-      backgroundColor: theme.primary || "#4f8cff",
-      borderRadius: 12,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      alignItems: "center",
-      justifyContent: "center",
-      elevation: 1,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
     },
     linkText: {
       color: "#ffffff",

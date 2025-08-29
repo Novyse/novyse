@@ -29,10 +29,15 @@ export const Colors = {
     borderColor: "#000000",
     settingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.65)",
-    backgroundStatusBar: "#416a90", // StatusBar scura per Dark Mode
+    backgroundStatusBar: "#416a90",
     cardBackground: "#416a90",
     ChatIconsPickerModalBorderColor: "#ffffffff",
     ChatIconsPickerModalTabInactiveText: "#b1b1b1ff",
+    backgroundSettingsCards: "#00000045",
+
+    settingsButton: "#4f8cff",
+    settingsHoveredButton: "#4f8dffb9",
+    settingsPressedButton: "#2a68dcff",
     
     // Gradients
     backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale dell'app
@@ -48,6 +53,11 @@ export const Colors = {
     searchSideBarGradient: ["transparent"],
     settingPagesGradient: ["#0e283a", "#16638e", "#2b5278"],
   },
+
+
+
+  
+
   light: {
     primary: "#f5f5f5",
     text: "black",
