@@ -12,9 +12,15 @@ const ShortcutsPage = () => {
     <ScreenLayout>
       <View style={styles.container}>
         <HeaderWithBackArrow goBackTo="./" />
-        <Text style={styles.textTemp}>Implementate per ora solo su VocalContentBottomBar</Text>
-        <Text style={styles.text}>Work in progress</Text>
-        <Text style={styles.text}>Mute: ctrl + F12</Text>
+        
+        <View style={styles.wipContainer}>
+          <Text style={styles.wipText}>🚧 Work in Progress 🚧</Text>
+          <Text style={styles.wipSubtext}>Currently only implemented in VocalContentBottomBar</Text>
+        </View>
+        
+        <View style={styles.shortcutsContainer}>
+          <Text style={styles.shortcutItem}>Mute: ctrl + F12</Text>
+        </View>
       </View>
     </ScreenLayout>
   );
@@ -29,14 +35,36 @@ const createStyle = (theme) =>
       width: "100%",
       maxWidth: 768,
     },
-    text: {
-      color: theme.text
+    wipContainer: {
+      backgroundColor: theme.cardBackground || "#23232b",
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 20,
+      borderLeftWidth: 4,
+      borderLeftColor: "#FFA500",
+      alignItems: "center",
     },
-    textTemp: {
-      color: "red",
-      marginVertical: 10,
-      fontSize: 15
-    }
+    wipText: {
+      color: "#FFA500",
+      fontSize: 18,
+      fontWeight: "700",
+      marginBottom: 5,
+    },
+    wipSubtext: {
+      color: theme.subtitle || "#b0b0b0",
+      fontSize: 14,
+      fontStyle: "italic",
+    },
+    shortcutsContainer: {
+      backgroundColor: theme.cardBackground || "#23232b",
+      borderRadius: 12,
+      padding: 16,
+    },
+    shortcutItem: {
+      color: theme.text,
+      fontSize: 16,
+      marginVertical: 4,
+    },
   });
 
 export default ShortcutsPage;
