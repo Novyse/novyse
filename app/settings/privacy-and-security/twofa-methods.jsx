@@ -1,11 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import {
-  StyleSheet,
-  Pressable,
-  Text,
-  View,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
@@ -101,7 +95,6 @@ const TwoFAMethods = () => {
     }
   };
 
-  // Funzione per ottenere l'icona del metodo
   const getMethodIcon = (method) => {
     switch (method.toLowerCase()) {
       case "authenticator":
@@ -115,7 +108,6 @@ const TwoFAMethods = () => {
     }
   };
 
-  // Funzione per capitalizzare il nome del metodo
   const capitalizeMethod = (method) => {
     return method.charAt(0).toUpperCase() + method.slice(1);
   };
@@ -126,23 +118,19 @@ const TwoFAMethods = () => {
         <HeaderWithBackArrow goBackTo="/settings/privacy-and-security" />
 
         <View style={styles.headerSection}>
-          {/* <Text style={styles.title}>Metodi di Autenticazione</Text>
+          <Text style={styles.title}>Authentication Methods</Text>
           <Text style={styles.subtitle}>
-            Gestisci i tuoi metodi di autenticazione a due fattori
-          </Text> */}
+            Manage your 2FA Authentication methods
+          </Text>
         </View>
 
         <View style={styles.methodsContainer}>
           {methods.map((method, index) => {
             const isActive = activeMethods.includes(method);
             return (
-              <Pressable
+              <View
                 key={method}
                 style={[styles.methodCard, isActive && styles.methodCardActive]}
-                android_ripple={{
-                  color: theme.primary + "20",
-                  borderless: false,
-                }}
               >
                 <View style={styles.methodHeader}>
                   <View style={styles.methodInfo}>
@@ -150,7 +138,7 @@ const TwoFAMethods = () => {
                       <HugeiconsIcon
                         icon={getMethodIcon(method)}
                         size={24}
-                        color="#6366f1"
+                        color="#ffffffff"
                       />
                     </View>
                     <View style={styles.methodDetails}>
@@ -158,9 +146,9 @@ const TwoFAMethods = () => {
                         {capitalizeMethod(method)}
                       </Text>
                       <Text style={styles.methodDescription}>
-                        {method === "authenticator" && "App di autenticazione"}
-                        {method === "sms" && "Codice via SMS"}
-                        {method === "email" && "Codice via Email"}
+                        {method === "authenticator" && "Authentication App"}
+                        {method === "sms" && "Code via SMS"}
+                        {method === "email" && "Code via Email"}
                       </Text>
                     </View>
                   </View>
@@ -169,37 +157,45 @@ const TwoFAMethods = () => {
                     {isActive ? (
                       <View style={styles.activeSection}>
                         <View style={styles.statusBadge}>
-                          <Text style={styles.statusText}>Attivo</Text>
+                          <Text style={styles.statusText}>Active</Text>
                         </View>
-                        <TouchableOpacity
+                        <Pressable
                           onPress={() => handleDeleteMethod(method)}
-                          style={styles.deleteButton}
-                          activeOpacity={0.7}
+                          style={({ pressed, hovered }) => [
+                            styles.deleteButton,
+                            hovered && styles.deleteButtonHovered,
+                            pressed && styles.deleteButtonPressed,
+                          ]}
+                          android_ripple={{ color: theme.rippleColor || "rgba(255, 71, 87, 0.2)" }}
                         >
                           <HugeiconsIcon
                             icon={Delete02Icon}
                             size={18}
                             color="#fff"
                           />
-                        </TouchableOpacity>
+                        </Pressable>
                       </View>
                     ) : (
-                      <TouchableOpacity
+                      <Pressable
                         onPress={() => handleAddMethod(method)}
-                        style={styles.addButton}
-                        activeOpacity={0.7}
+                        style={({ pressed, hovered }) => [
+                          styles.addButton,
+                          hovered && styles.addButtonHovered,
+                          pressed && styles.addButtonPressed,
+                        ]}
+                        android_ripple={{ color: theme.rippleColor || "rgba(99, 102, 241, 0.2)" }}
                       >
                         <HugeiconsIcon
                           icon={PlusSignCircleIcon}
                           size={20}
                           color="#fff"
                         />
-                        <Text style={styles.addButtonText}>Aggiungi</Text>
-                      </TouchableOpacity>
+                        <Text style={styles.addButtonText}>Add</Text>
+                      </Pressable>
                     )}
                   </View>
                 </View>
-              </Pressable>
+              </View>
             );
           })}
         </View>
@@ -220,6 +216,7 @@ const createStyle = (theme) =>
     headerSection: {
       marginBottom: 32,
       paddingTop: 20,
+      alignItems: "center",
     },
     title: {
       fontSize: 28,
@@ -251,7 +248,7 @@ const createStyle = (theme) =>
       shadowOpacity: 0.1,
       shadowRadius: 8,
       borderWidth: 1,
-      borderColor: "#2d2d32",
+      borderColor: "transparent",
     },
     methodCardActive: {
       borderColor: "#00C851",
@@ -271,12 +268,11 @@ const createStyle = (theme) =>
       width: 48,
       height: 48,
       borderRadius: 24,
-      backgroundColor: "#6366f120",
+      backgroundColor: "#6366f1",
       justifyContent: "center",
       alignItems: "center",
       marginRight: 16,
     },
-
     methodDetails: {
       flex: 1,
     },
@@ -316,6 +312,15 @@ const createStyle = (theme) =>
       borderRadius: 18,
       justifyContent: "center",
       alignItems: "center",
+      transition: "background-color 0.2s ease",
+    },
+    deleteButtonHovered: {
+      backgroundColor: theme.deleteHovered || "rgba(184, 28, 41, 0.85)",
+      cursor: "pointer",
+    },
+    deleteButtonPressed: {
+      backgroundColor: theme.deletePressed || "rgba(255, 71, 86, 1)",
+      opacity: 0.9,
     },
     addButton: {
       backgroundColor: "#6366f1",
@@ -325,11 +330,20 @@ const createStyle = (theme) =>
       paddingVertical: 10,
       borderRadius: 20,
       gap: 8,
+      transition: "background-color 0.2s ease",
     },
     addButtonText: {
       color: "#fff",
       fontSize: 14,
       fontWeight: "600",
+    },
+    addButtonHovered: {
+      backgroundColor: theme.addHovered || "rgba(88, 91, 235, 0.85)",
+      cursor: "pointer",
+    },
+    addButtonPressed: {
+      backgroundColor: theme.addPressed || "rgba(99, 102, 241, 0.7)",
+      opacity: 0.9,
     },
   });
 
