@@ -1,11 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  ScrollView,
-} from "react-native";
+import { StyleSheet, Text, View, TextInput, ScrollView } from "react-native";
 import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
@@ -70,9 +64,8 @@ const ChangePassword = () => {
 
   return (
     <ScreenLayout>
+      <HeaderWithBackArrow goBackTo="./" />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <HeaderWithBackArrow goBackTo="./" />
-
         <View style={styles.content}>
           <Text style={styles.title}>Change Password</Text>
           <Text style={styles.subtitle}>
@@ -148,7 +141,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
       alignSelf: "center",
       width: "100%",
       maxWidth: 768,

@@ -62,9 +62,8 @@ const ProfilePage = () => {
 
   return (
     <ScreenLayout>
+      <HeaderWithBackArrow goBackTo="../" />
       <ScrollView style={styles.container}>
-        <HeaderWithBackArrow goBackTo="../" />
-
         {/* Profile Image Section */}
         <View style={styles.profileImageSection}>
           <View style={styles.profileImageContainer}>
@@ -86,7 +85,7 @@ const ProfilePage = () => {
         {/* User Information Section */}
         <View style={styles.infoSection}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
-          
+
           <ProfileField label="Name" value={userData.name} />
           <ProfileField label="Surname" value={userData.surname} />
           <ProfileField label="Handle" value={userData.handle} />
@@ -101,7 +100,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
       alignSelf: "center",
       width: "100%",
       maxWidth: 768,

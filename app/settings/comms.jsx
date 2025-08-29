@@ -158,8 +158,8 @@ const CommsPage = () => {
   if (isLoading) {
     return (
       <ScreenLayout>
+        <HeaderWithBackArrow goBackTo="./" />
         <View style={styles.container}>
-          <HeaderWithBackArrow goBackTo="./" />
           <Text style={styles.loadingText}>Loading settings...</Text>
         </View>
       </ScreenLayout>
@@ -170,8 +170,8 @@ const CommsPage = () => {
   if (!audioSettings) {
     return (
       <ScreenLayout>
+        <HeaderWithBackArrow goBackTo="./" />
         <View style={styles.container}>
-          <HeaderWithBackArrow goBackTo="./" />
           <Text style={styles.errorText}>Error loading settings</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadSettings}>
             <Text style={styles.retryButtonText}>Retry</Text>
@@ -183,16 +183,15 @@ const CommsPage = () => {
 
   return (
     <ScreenLayout>
+      <HeaderWithBackArrow goBackTo="./" />
       <ScrollView style={styles.container}>
-        <HeaderWithBackArrow goBackTo="./" />
-
         {/* Input Devices Category */}
         <View style={styles.categoryContainer}>
           <Text style={styles.sectionTitle}>Input Devices</Text>
 
           {/* Warning for input devices */}
           <View style={styles.warningContainer}>
-            <Text style={[styles.warningText, { color: 'yellow' }]}>
+            <Text style={[styles.warningText, { color: "yellow" }]}>
               ⚠️ Warning: Changes to input devices will not affect chat
               functionality at the moment.
             </Text>
@@ -212,9 +211,11 @@ const CommsPage = () => {
                     ? audioDeviceOptions[0].value
                     : "")
                 }
-                options={audioDeviceOptions.length > 0 ? audioDeviceOptions : [
-                  { label: "No microphones found", value: "" }
-                ]}
+                options={
+                  audioDeviceOptions.length > 0
+                    ? audioDeviceOptions
+                    : [{ label: "No microphones found", value: "" }]
+                }
                 onValueChange={(value) =>
                   updateSetting("microphoneDeviceId", value)
                 }
@@ -230,9 +231,11 @@ const CommsPage = () => {
                     ? videoDeviceOptions[0].value
                     : "")
                 }
-                options={videoDeviceOptions.length > 0 ? videoDeviceOptions : [
-                  { label: "No cameras found", value: "" }
-                ]}
+                options={
+                  videoDeviceOptions.length > 0
+                    ? videoDeviceOptions
+                    : [{ label: "No cameras found", value: "" }]
+                }
                 onValueChange={(value) =>
                   updateSetting("webcamDeviceId", value)
                 }
@@ -373,7 +376,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
       alignSelf: "center",
       width: "100%",
       maxWidth: 768,
@@ -455,20 +457,20 @@ const createStyle = (theme) =>
       padding: 15,
       marginBottom: 20,
     },
-    
+
     warningContainer: {
-      backgroundColor: 'rgba(255, 193, 7, 0.1)',
+      backgroundColor: "rgba(255, 193, 7, 0.1)",
       borderRadius: 8,
       padding: 12,
       marginBottom: 15,
       borderLeftWidth: 4,
-      borderLeftColor: '#ffc107',
+      borderLeftColor: "#ffc107",
     },
     warningText: {
       fontSize: 14,
       lineHeight: 20,
     },
-    
+
     // ...rest of existing styles...
   });
 

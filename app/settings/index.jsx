@@ -22,9 +22,8 @@ const SettingsMenu = () => {
 
   return (
     <ScreenLayout>
+      <HeaderWithBackArrow goBackTo="/messages" />
       <View style={styles.container}>
-        <HeaderWithBackArrow goBackTo="/messages" />
-
         {/* Avvolgi i menu items in uno ScrollView */}
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <SettingsMenuItem
@@ -81,7 +80,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
       alignSelf: "center",
       width: "100%",
       maxWidth: 768,

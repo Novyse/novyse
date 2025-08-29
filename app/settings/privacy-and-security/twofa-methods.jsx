@@ -114,9 +114,8 @@ const TwoFAMethods = () => {
 
   return (
     <ScreenLayout>
+      <HeaderWithBackArrow goBackTo="/settings/privacy-and-security" />
       <View style={styles.container}>
-        <HeaderWithBackArrow goBackTo="/settings/privacy-and-security" />
-
         <View style={styles.headerSection}>
           <Text style={styles.title}>Authentication Methods</Text>
           <Text style={styles.subtitle}>
@@ -166,7 +165,10 @@ const TwoFAMethods = () => {
                             hovered && styles.deleteButtonHovered,
                             pressed && styles.deleteButtonPressed,
                           ]}
-                          android_ripple={{ color: theme.rippleColor || "rgba(255, 71, 87, 0.2)" }}
+                          android_ripple={{
+                            color:
+                              theme.rippleColor || "rgba(255, 71, 87, 0.2)",
+                          }}
                         >
                           <HugeiconsIcon
                             icon={Delete02Icon}
@@ -183,7 +185,9 @@ const TwoFAMethods = () => {
                           hovered && styles.addButtonHovered,
                           pressed && styles.addButtonPressed,
                         ]}
-                        android_ripple={{ color: theme.rippleColor || "rgba(99, 102, 241, 0.2)" }}
+                        android_ripple={{
+                          color: theme.rippleColor || "rgba(99, 102, 241, 0.2)",
+                        }}
                       >
                         <HugeiconsIcon
                           icon={PlusSignCircleIcon}
@@ -208,7 +212,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
       alignSelf: "center",
       width: "100%",
       maxWidth: 768,

@@ -1,12 +1,9 @@
 import React, { useContext } from "react";
-import { StyleSheet, ScrollView, View} from "react-native"; // Aggiungi ScrollView
+import { StyleSheet, ScrollView, View } from "react-native"; // Aggiungi ScrollView
 import { ThemeContext } from "@/context/ThemeContext";
 import SettingsMenuItem from "../../components/SettingsMenuItem";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
-import {
-  Key01Icon,
-  TwoFactorAccessIcon
-} from "@hugeicons/core-free-icons";
+import { Key01Icon, TwoFactorAccessIcon } from "@hugeicons/core-free-icons";
 import ScreenLayout from "../../components/ScreenLayout";
 
 const PrivacyAndSecurityMenu = () => {
@@ -15,9 +12,8 @@ const PrivacyAndSecurityMenu = () => {
 
   return (
     <ScreenLayout>
+      <HeaderWithBackArrow goBackTo="./" />
       <View style={styles.container}>
-        <HeaderWithBackArrow goBackTo="./" />
-
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <SettingsMenuItem
             navToPage="./privacy-and-security/change-password"
@@ -39,7 +35,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
       alignSelf: "center",
       width: "100%",
       maxWidth: 768,

@@ -10,9 +10,11 @@ const ShortcutsPage = () => {
 
   return (
     <ScreenLayout>
+      <HeaderWithBackArrow goBackTo="./" />
       <View style={styles.container}>
-        <HeaderWithBackArrow goBackTo="./" />
-        <Text style={styles.textTemp}>Implementate per ora solo su VocalContentBottomBar</Text>
+        <Text style={styles.textTemp}>
+          Implementate per ora solo su VocalContentBottomBar
+        </Text>
         <Text style={styles.text}>Work in progress</Text>
         <Text style={styles.text}>Mute: ctrl + F12</Text>
       </View>
@@ -24,19 +26,18 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
       alignSelf: "center",
       width: "100%",
       maxWidth: 768,
     },
     text: {
-      color: theme.text
+      color: theme.text,
     },
     textTemp: {
       color: "red",
       marginVertical: 10,
-      fontSize: 15
-    }
+      fontSize: 15,
+    },
   });
 
 export default ShortcutsPage;

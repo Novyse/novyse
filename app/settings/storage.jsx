@@ -11,17 +11,18 @@ const StoragePage = () => {
 
   return (
     <ScreenLayout>
+      <HeaderWithBackArrow goBackTo="./" />
       <View style={styles.container}>
-        <HeaderWithBackArrow goBackTo="./" />
-        
         <View style={styles.wipContainer}>
           <Text style={styles.wipText}>🚧 Work in Progress 🚧</Text>
-          <Text style={styles.wipSubtext}>This feature is under development</Text>
+          <Text style={styles.wipSubtext}>
+            This feature is under development
+          </Text>
         </View>
-        
-        {//<DatabaseSizeChart />
-        } {/* Uncomment this line when DatabaseSizeChart is ready, cioè quando rifaremo il db, cioè tra la 0.8 e la 0.9 */}
-
+        {
+          //<DatabaseSizeChart />
+        }{" "}
+        {/* Uncomment this line when DatabaseSizeChart is ready, cioè quando rifaremo il db, cioè tra la 0.8 e la 0.9 */}
       </View>
     </ScreenLayout>
   );
@@ -31,7 +32,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
       alignSelf: "center",
       width: "100%",
       maxWidth: 768,

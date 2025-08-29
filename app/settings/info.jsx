@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Linking, ScrollView } from "react-native";
 import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
-import { APP_VERSION } from "../../app.config.js";
+import { APP_VERSION, BUILD_NUMBER, BUILD_DATE } from "../../app.config.js";
 import SettingsButton from "../components/settings/SettingsButton";
 
 const Info = () => {
@@ -14,16 +14,27 @@ const Info = () => {
     Linking.openURL(url);
   };
 
+  // Componente helper riutilizzabile per visualizzare una riga di informazioni
+  const InfoRow = ({ label, value }) => (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+
   return (
     <ScreenLayout>
+      <HeaderWithBackArrow goBackTo="./" />
       <View style={styles.container}>
-        <HeaderWithBackArrow goBackTo="./" />
-
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Version Information */}
+          {/* Sezione Informazioni Versione */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Version</Text>
-            <Text style={styles.versionText}>{APP_VERSION}</Text>
+            <View style={styles.infoContainer}>
+              <InfoRow label="App Version" value={APP_VERSION} />
+              <InfoRow label="Build Number" value={BUILD_NUMBER} />
+              <InfoRow label="Build Date" value={BUILD_DATE} />
+            </View>
           </View>
 
           {/* Open Source Information */}
@@ -100,7 +111,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
       alignSelf: "center",
       width: "100%",
       maxWidth: 768,
@@ -125,7 +135,7 @@ const createStyle = (theme) =>
       color: theme.text,
       fontSize: 20,
       fontWeight: "700",
-      marginBottom: 12,
+      marginBottom: 16,
     },
     text: {
       color: theme.subtitle || "#b0b0b0",
@@ -133,17 +143,22 @@ const createStyle = (theme) =>
       lineHeight: 24,
       marginBottom: 16,
     },
-    versionText: {
+    infoContainer: {
+      gap: 12, // Spazio tra le righe
+    },
+    infoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between", // Allinea gli elementi ai lati opposti
+      alignItems: "center",
+    },
+    infoLabel: {
+      color: theme.subtitle || "#b0b0b0",
+      fontSize: 16,
+    },
+    infoValue: {
       color: theme.text,
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: "600",
-      textAlign: "center",
-      backgroundColor: theme.inputBackground || "#1a1d29",
-      borderRadius: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderWidth: 1,
-      borderColor: theme.borderColor || "#333",
     },
     linkContainer: {
       gap: 8,

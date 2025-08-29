@@ -21,12 +21,13 @@ const Themes = () => {
 
   return (
     <ScreenLayout>
+      <HeaderWithBackArrow goBackTo="./" />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <HeaderWithBackArrow goBackTo="./" />
-        
         <View style={styles.content}>
           <Text style={styles.title}>Themes</Text>
-          <Text style={styles.subtitle}>Choose your preferred color scheme</Text>
+          <Text style={styles.subtitle}>
+            Choose your preferred color scheme
+          </Text>
 
           <View style={styles.themesContainer}>
             {availableThemes.map((themeName) => (
@@ -37,14 +38,19 @@ const Themes = () => {
                   styles.themeButton,
                   colorScheme === themeName && styles.activeThemeButton,
                 ]}
-                android_ripple={{ color: 'rgba(255,255,255,0.1)' }}
+                android_ripple={{ color: "rgba(255,255,255,0.1)" }}
               >
                 <View style={styles.themeButtonContent}>
                   <View style={styles.themeInfo}>
-                    <View style={[
-                      styles.themePreview,
-                      { backgroundColor: Colors[themeName]?.primary || "#4f8cff" }
-                    ]} />
+                    <View
+                      style={[
+                        styles.themePreview,
+                        {
+                          backgroundColor:
+                            Colors[themeName]?.primary || "#4f8cff",
+                        },
+                      ]}
+                    />
                     <Text style={styles.themeText}>
                       {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
                     </Text>
@@ -68,7 +74,6 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
       alignSelf: "center",
       width: "100%",
       maxWidth: 768,

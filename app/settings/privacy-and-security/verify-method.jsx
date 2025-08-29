@@ -161,11 +161,11 @@ const VerifyMethod = () => {
 
   return (
     <ScreenLayout>
+      <HeaderWithBackArrow goBackTo="/settings/privacy-and-security/twofa-methods" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
       >
-        <HeaderWithBackArrow goBackTo="/settings/privacy-and-security/twofa-methods" />
         <StatusBar style="dark" />
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.card}>
@@ -227,7 +227,6 @@ function createStyle(theme, isSmallScreen) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
       alignSelf: "center",
       width: "100%",
       maxWidth: 768,

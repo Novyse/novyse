@@ -7,11 +7,14 @@ import { ArrowLeft02Icon } from "@hugeicons/core-free-icons";
 
 const HeaderWithBackArrow = ({ goBackTo }) => {
   const { theme } = useContext(ThemeContext);
-  //   const styles = createStyle(theme);
+  const styles = createStyle(theme);
   const router = useRouter();
 
   return (
-    <Pressable onPress={() => router.replace(goBackTo)}>
+    <Pressable
+      style={styles.container}
+      onPress={() => router.replace(goBackTo)}
+    >
       <HugeiconsIcon
         icon={ArrowLeft02Icon}
         size={24}
@@ -22,8 +25,12 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
   );
 };
 
-// const createStyle = (theme) =>
-//   StyleSheet.create({
-//   });
+const createStyle = (theme) =>
+  StyleSheet.create({
+    container: {
+      padding: 15,
+      // backgroundColor: "#647444"
+    },
+  });
 
 export default HeaderWithBackArrow;
