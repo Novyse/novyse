@@ -3,6 +3,8 @@ import { Pressable, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { ArrowLeft02Icon } from "@hugeicons/core-free-icons";
 
 const HeaderWithBackArrow = ({ goBackTo }) => {
   const { theme } = useContext(ThemeContext);
@@ -11,7 +13,12 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
 
   return (
     <Pressable onPress={() => router.replace(goBackTo)}>
-      <Icon name="arrow-back" size={24} color={theme.icon}/>
+      <HugeiconsIcon
+        icon={ArrowLeft02Icon}
+        size={24}
+        color={theme.icon}
+        strokeWidth={1.5}
+      />
     </Pressable>
   );
 };
