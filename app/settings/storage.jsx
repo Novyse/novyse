@@ -21,7 +21,7 @@ const StoragePage = () => {
         </View>
         {
           //<DatabaseSizeChart />
-        }{" "}
+        }
         {/* Uncomment this line when DatabaseSizeChart is ready, cioè quando rifaremo il db, cioè tra la 0.8 e la 0.9 */}
       </View>
     </ScreenLayout>

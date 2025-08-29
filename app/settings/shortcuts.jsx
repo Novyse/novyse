@@ -12,12 +12,13 @@ const ShortcutsPage = () => {
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="./" />
       <View style={styles.container}>
-        
         <View style={styles.wipContainer}>
           <Text style={styles.wipText}>🚧 Work in Progress 🚧</Text>
-          <Text style={styles.wipSubtext}>Currently only implemented in VocalContentBottomBar</Text>
+          <Text style={styles.wipSubtext}>
+            Currently only implemented in VocalContentBottomBar
+          </Text>
         </View>
-        
+
         <View style={styles.shortcutsContainer}>
           <Text style={styles.shortcutItem}>Mute: ctrl + F12</Text>
         </View>
