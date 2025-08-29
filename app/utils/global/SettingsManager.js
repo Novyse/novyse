@@ -99,7 +99,7 @@ class SettingsManager {
    * @param {string} pagePath - Percorso della pagina (default: "settings.vocalChat")
    * @returns {Object} I parametri della pagina vocalChat
    */
-  async getPageParameters(pagePath) {
+   async getPageParameters(pagePath) {
     try {
       const settings = await this.loadSettings();
       const pageSettings = this._getValueByPath(settings, pagePath);

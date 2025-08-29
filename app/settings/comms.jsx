@@ -87,12 +87,12 @@ const CommsPage = () => {
   // Device transformation for selector
 
   const audioDeviceOptions = audioDevices.map(device => ({
-    label: device.label || `Microphone ${device.deviceId.substring(0, 8)}`,
+    label: device.label || `Default ${device.deviceId.substring(0, 8)}`,
     value: device.deviceId
   }));
 
   const videoDeviceOptions = videoDevices.map(device => ({
-    label: device.label || `Camera ${device.deviceId.substring(0, 8)}`,
+    label: device.label || `Default ${device.deviceId.substring(0, 8)}`,
     value: device.deviceId
   }));
 

@@ -424,7 +424,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
             userData: {
               handle: data.handle || "Unknown User",
               isSpeaking: false,
-              webcamOn: false, // Default webcam status
+              webcamOn: data.webcamOn || false, // Default webcam status
             },
             activeScreenShares: [],
           };

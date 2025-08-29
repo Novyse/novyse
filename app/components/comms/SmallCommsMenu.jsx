@@ -34,10 +34,18 @@ const SmallCommsMenu = () => {
   const [isVisible, setIsVisible] = useState(true);
 
   // Stato per audio/video
-  const [isAudioEnabled, setIsAudioEnabled] = useState(get.microphoneStatus());
-  const [isVideoEnabled, setIsVideoEnabled] = useState(get.videoStatus());
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
 
   useEffect(() => {
+    // Load initial audio/video status
+    const loadInitialStatus = async () => {
+      setIsAudioEnabled(await get.microphoneStatus());
+      setIsVideoEnabled(await get.videoStatus());
+    };
+
+    loadInitialStatus();
+
     // Trigger entrance animation when component mounts
     opacity.value = withTiming(1, {
       duration: 300,

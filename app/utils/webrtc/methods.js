@@ -23,11 +23,14 @@ const self = {
   // quando io entro in una room
   async join(chatId) {
     // Start local stream using settings parameters
-    const commsSettings = await settingsManager.getPageParameters('settings.comms');
+    const commsSettings = await settingsManager.getPageParameters(
+      "settings.comms"
+    );
     const stream = await WebRTC.startLocalStream(commsSettings);
     if (!stream) {
-      throw new Error("Failed to get audio stream");
-    } // Check if already in a vocal chat
+      console.warn("Entry without stream");
+    }
+    // Check if already in a vocal chat
     if (WebRTC.getChatId() != chatId) {
       await APIMethods.commsLeave(chatId);
     }
@@ -41,6 +44,12 @@ const self = {
 
     await WebRTC.regenerate(data.from, chatId, stream);
 
+    if(commsSettings.entryMode === "VIDEO_ONLY" || commsSettings.entryMode === "BOTH") {
+      WebRTC.setVideoEnabled(true); // Set video state to enabled on join if entry mode includes video
+    }else{
+      WebRTC.setVideoEnabled(false); // Set video state to disabled on join if entry mode is audio only or off
+    }
+
     // Aggiungi il chat_id ai dati prima di emettere l'evento
     // e includi anche i dati dell'utente locale
     const localUserHandle = await localDatabase.fetchLocalUserHandle();
@@ -52,6 +61,7 @@ const self = {
       handle: localUserHandle,
       profileImage: localUserData?.profileImage || null,
       profileImageUri: localUserData?.profileImage || null,
+      webcamOn: WebRTC.isVideoEnabled(),
     };
     await handle.memberJoined(dataWithChatId);
 
@@ -76,11 +86,36 @@ const self = {
   },
   // quando premo pulsante microfono
   async toggleAudio() {
-    if (WebRTC.getLocalStream()) {
+    let localStream = WebRTC.getLocalStream();
+
+    if (!localStream) {
+      console.warn("No local stream available for toggle audio, creating...");
+      const commsSettings = await settingsManager.getPageParameters(
+        "settings.comms"
+      );
+      commsSettings.entryMode = "AUDIO_ONLY"; // Force audio only for initial stream if none
+      localStream = await WebRTC.startLocalStream(commsSettings);
+      await WebRTC.updateVAD();
+      console.info("Local stream created for toggle audio");
+      return true;
+    }
+
+    if (localStream) {
       const audioTrack = WebRTC.getLocalStream().getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
+        await WebRTC.updateVAD();
         return audioTrack.enabled;
+      } else {
+        // add audio track if none
+        const commsSettings = await settingsManager.getPageParameters(
+          "settings.comms"
+        );
+        const newAudioTrack = await WebRTC.addAudioTrack(commsSettings);
+        if (newAudioTrack) {
+          await WebRTC.updateVAD();
+          return true;
+        }
       }
     }
     return false;
@@ -400,9 +435,24 @@ const self = {
   // quando premo pulsante video
   async toggleVideo() {
     try {
+      let localStream = WebRTC.getLocalStream();
+
+      if (!localStream) {
+        console.warn("No local stream available for toggle video, creating...");
+        const commsSettings = await settingsManager.getPageParameters(
+          "settings.comms"
+        );
+        commsSettings.entryMode = "VIDEO_ONLY"; // Force video only for initial stream if none
+        localStream = await WebRTC.startLocalStream(commsSettings);
+      }
+
+      WebRTC.setLocalStream(localStream);
+
       if (!WebRTC.isVideoEnabled()) {
         // Attiva video con parametri specifici
-        const commsSettings = await settingsManager.getPageParameters('settings.comms');
+        const commsSettings = await settingsManager.getPageParameters(
+          "settings.comms"
+        );
         const videoTrack = await WebRTC.addVideoTrack(commsSettings);
         if (videoTrack) {
           WebRTC.setVideoEnabled(true);
@@ -624,18 +674,33 @@ const get = {
     }
     return null;
   },
-  microphoneStatus: () => {
+  microphoneStatus: async () => {
     if (!check.isInComms()) {
-      return true; // Da fixare con un pull dei dati dai settings @SamueleOrazioDurante
+      const entryMode = await settingsManager.getSingleParameter("settings.comms.entryMode");
+      console.info("Entry mode:", entryMode);
+      if (
+        entryMode === "AUDIO_ONLY" ||
+        entryMode === "BOTH"
+      ) {
+        return true;
+      }
+      return false;
     }
     return (
       WebRTC.getLocalStream() &&
       WebRTC.getLocalStream().getAudioTracks()[0]?.enabled
     );
   },
-  videoStatus: () => {
+  videoStatus: async () => {
     if (!check.isInComms()) {
-      return false; // Da fixare con un pull dei dati dai settings  @SamueleOrazioDurante
+      const entryMode = await settingsManager.getSingleParameter("settings.comms.entryMode");
+      if (
+        entryMode === "VIDEO_ONLY" ||
+        entryMode === "BOTH"
+      ) {
+        return true;
+      }
+      return false;
     }
     return (
       WebRTC.getLocalStream() &&
@@ -683,21 +748,21 @@ const get = {
     }
   },
 
-    audioDevices: async () => {
+  audioDevices: async () => {
     try {
       const devices = await mediaDevices.enumerateDevices();
-      return devices.filter(device => device.kind === 'audioinput');
+      return devices.filter((device) => device.kind === "audioinput");
     } catch (error) {
       console.error("Error getting audio devices:", error);
       return [];
     }
   },
 
-  // Ottieni tutti i dispositivi video disponibili  
+  // Ottieni tutti i dispositivi video disponibili
   videoDevices: async () => {
     try {
       const devices = await mediaDevices.enumerateDevices();
-      return devices.filter(device => device.kind === 'videoinput');
+      return devices.filter((device) => device.kind === "videoinput");
     } catch (error) {
       console.error("Error getting video devices:", error);
       return [];

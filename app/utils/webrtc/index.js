@@ -184,6 +184,14 @@ class WebRTCManager {
   }
 
   /**
+   * Add audio track to local stream
+   */
+
+  async addAudioTrack(commsSettings = {}) {
+    return await this.streamManager.addAudioTrack(commsSettings);
+  }
+
+  /**
    * Add video track to local stream
    */
   async addVideoTrack(commsSettings = {}) {

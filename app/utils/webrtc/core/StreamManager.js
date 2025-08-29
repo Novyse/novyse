@@ -53,35 +53,51 @@ export class StreamManager {
 
     try {
       // Get appropriate constraints for platform and entry mode + fps, quality
-      const fps = commsSettings.webcamFPS
-      const quality = commsSettings.webcamQuality
+      const fps = commsSettings.webcamFPS;
+      const quality = commsSettings.webcamQuality;
 
-      const constraints = getConstraintsForPlatform(Platform.OS, entryMode, quality, fps);
+      const constraints = getConstraintsForPlatform(
+        Platform.OS,
+        entryMode,
+        quality,
+        fps
+      );
 
       this.logger.debug("StreamManager", "Using constraints:", constraints);
 
-      localStream = await mediaDevices.getUserMedia(constraints);
+      if (constraints !== null) {
+        try {
+          localStream = await navigator.mediaDevices.getUserMedia(constraints);
+          this.logger.info(
+            "StreamManager",
+            "Local stream obtained successfully"
+          );
+          this.logger.debug(
+            "StreamManager",
+            `Stream tracks: ${localStream.getTracks().length}`
+          );
 
-      this.logger.info("StreamManager", "Local stream obtained successfully");
-      this.logger.debug(
-        "StreamManager",
-        `Stream tracks: ${localStream.getTracks().length}`
-      );
-
-      // Applica audio processing se richiesto
-      if (Platform.OS === "web") {
-        localStream = await this.applyAudioProcessing(
-          localStream,
-          commsSettings
-        );
-      } else{
-        this.logger.warning(
-          "Audio processing non supportato su questa piattaforma",
-          {
-            component: "StreamManager",
-            platform: Platform.OS,
+          // Applica audio processing se richiesto
+          if (Platform.OS === "web") {
+            localStream = await this.applyAudioProcessing(
+              localStream,
+              commsSettings
+            );
+          } else {
+            this.logger.warning(
+              "Audio processing non supportato su questa piattaforma",
+              {
+                component: "StreamManager",
+                platform: Platform.OS,
+              }
+            );
           }
-        );
+        } catch (error) {
+          console.error("Errore nel recuperare lo stream:", error);
+        }
+      } else {
+        // Scenario "OFF" - crea una connessione senza stream locale
+        console.log("Modalità OFF: nessuno stream richiesto");
       }
 
       this.globalState.setLocalStream(localStream);
@@ -119,34 +135,153 @@ export class StreamManager {
     }
 
     const audioUtils = new AudioUtils();
-    let filteredStream = stream;
+
+    // Separa le tracce audio e video
+    const audioTracks = stream.getAudioTracks();
+    const videoTracks = stream.getVideoTracks();
+
+    // Se non ci sono tracce audio, ritorna lo stream originale
+    if (audioTracks.length === 0) {
+      this.logger.info(
+        "StreamManager",
+        "No audio tracks found, skipping audio processing"
+      );
+      return stream;
+    }
+
+    // Crea un nuovo stream solo con le tracce audio per il processing
+    const audioOnlyStream = new MediaStream(audioTracks);
 
     // Pulls from audioSettings
     const noiseSuppressionMode = audioSettings.noiseSuppressionMode || "MEDIUM";
     const expanderMode = audioSettings.expanderMode || "MEDIUM";
     const noiseGateMode = audioSettings.noiseGateMode || "ADAPTIVE";
     const noiseGateThreshold = audioSettings.noiseGateThreshold || -10;
-    const typingAttenuationMode = audioSettings.typingAttenuationMode || "MEDIUM";
+    const typingAttenuationMode =
+      audioSettings.typingAttenuationMode || "MEDIUM";
 
+    let filteredAudioStream = audioOnlyStream;
 
-    if(noiseSuppressionMode != "OFF")
-      filteredStream = audioUtils.noiseSuppression(filteredStream, audioUtils._getNoiseSuppressionParams(noiseSuppressionMode));
+    try {
+      if (noiseSuppressionMode != "OFF") {
+        filteredAudioStream = audioUtils.noiseSuppression(
+          filteredAudioStream,
+          audioUtils._getNoiseSuppressionParams(noiseSuppressionMode)
+        );
+      }
 
-    if(expanderMode != "OFF")
-      filteredStream = audioUtils.expander(filteredStream, audioUtils._getExpanderParams(expanderMode));
+      if (expanderMode != "OFF") {
+        filteredAudioStream = audioUtils.expander(
+          filteredAudioStream,
+          audioUtils._getExpanderParams(expanderMode)
+        );
+      }
 
-    if(noiseGateMode != "OFF")
-      filteredStream = audioUtils.noiseGate(filteredStream, audioUtils._getNoiseGateParams(noiseGateMode,noiseGateThreshold));
+      if (noiseGateMode != "OFF") {
+        filteredAudioStream = audioUtils.noiseGate(
+          filteredAudioStream,
+          audioUtils._getNoiseGateParams(noiseGateMode, noiseGateThreshold)
+        );
+      }
 
-    if(typingAttenuationMode != "OFF")
-      filteredStream = audioUtils.typingAttenuation(filteredStream, audioUtils._getTypingAttenuationParams(typingAttenuationMode));
+      if (typingAttenuationMode != "OFF") {
+        filteredAudioStream = audioUtils.typingAttenuation(
+          filteredAudioStream,
+          audioUtils._getTypingAttenuationParams(typingAttenuationMode)
+        );
+      }
 
-    if (!filteredStream) {
-      this.logger.error("StreamManager", "Failed to apply audio processing");
-      return stream; // Return original stream if processing fails
+      if (!filteredAudioStream) {
+        this.logger.error("StreamManager", "Failed to apply audio processing");
+        return stream; // Return original stream if processing fails
+      }
+
+      // Combina le tracce audio processate con quelle video originali
+      const processedAudioTracks = filteredAudioStream.getAudioTracks();
+      const finalStream = new MediaStream([
+        ...processedAudioTracks,
+        ...videoTracks, // Mantiene le tracce video originali intatte
+      ]);
+
+      this.logger.info(
+        "StreamManager",
+        "Audio processing applied successfully",
+        {
+          originalAudioTracks: audioTracks.length,
+          processedAudioTracks: processedAudioTracks.length,
+          videoTracks: videoTracks.length,
+          finalTracks: finalStream.getTracks().length,
+        }
+      );
+
+      return finalStream;
+    } catch (error) {
+      this.logger.error(
+        "StreamManager",
+        "Error during audio processing:",
+        error
+      );
+      // In caso di errore, ritorna lo stream originale
+      return stream;
     }
-    this.logger.info("StreamManager", "Audio processing applied successfully");
-    return filteredStream;
+  }
+
+  /**
+   * Add audio track to existing local stream
+   * @returns {MediaStreamTrack|null} The added audio track or null if failed
+   */
+
+  async addAudioTrack(commsSettings = {}) {
+    this.logger.info("StreamManager", "Adding audio track to local stream");
+    try {
+      // Get audio constraints for current platform and other parameters
+      const constraints = getConstraintsForPlatform(Platform.OS, "AUDIO_ONLY");
+      const audioStream = await mediaDevices.getUserMedia(constraints);
+      const audioTrack = audioStream.getAudioTracks()[0];
+      let localStream = this.globalState.getLocalStream();
+      if (localStream && audioTrack) {
+        localStream.addTrack(audioTrack);
+        this.globalState.setLocalStream(localStream);
+        this.logger.info("StreamManager", "Audio track added successfully");
+        // Add track to all peer connections and wait for completion
+        await this._addTrackToAllPeers(audioTrack);
+        this.logger.info(
+          "StreamManager",
+          "Audio track added to all peer connections"
+        );
+        const updatedStream = new MediaStream([
+          ...localStream.getAudioTracks(),
+          ...localStream.getVideoTracks(),
+        ]);
+        localStream = updatedStream;
+        this.globalState.setLocalStream(localStream);
+        return audioTrack;
+      } else {
+        this.logger.error(
+          "StreamManager",
+          "Local stream not available or failed to get audio track"
+        );
+        return null;
+      }
+    } catch (error) {
+      // Handle permission denied gracefully for audio
+      if (
+        error.name === ERROR_CODES.PERMISSION_DENIED ||
+        error.message.includes("Permission denied")
+      ) {
+        this.logger.info(
+          "StreamManager",
+          "Audio permission denied by user - silently ignoring"
+        );
+        return null; // Return null instead of throwing
+      }
+      this.logger.error(
+        "StreamManager",
+        "Error adding audio track:",
+        error.message
+      );
+      throw error;
+    }
   }
 
   /**

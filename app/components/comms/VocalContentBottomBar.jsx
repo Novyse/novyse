@@ -32,11 +32,13 @@ const { get, self, check } = methods;
 const VocalContentBottomBar = ({ chatId }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(get.microphoneStatus());
-  const [isVideoEnabled, setIsVideoEnabled] = useState(get.videoStatus());
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // State for microphone and camera selectors
   const [showMicrophoneSelector, setShowMicrophoneSelector] = useState(false);
-  const [currentMicrophoneId, setCurrentMicrophoneId] = useState(get.microphoneDeviceId());
+  const [currentMicrophoneId, setCurrentMicrophoneId] = useState(
+    get.microphoneDeviceId()
+  );
   const [showCameraSelector, setShowCameraSelector] = useState(false);
   const [currentCameraId, setCurrentCameraId] = useState(get.videoDeviceId());
   // State for mobile camera facing mode and preferences
@@ -44,13 +46,23 @@ const VocalContentBottomBar = ({ chatId }) => {
 
   const router = useRouter();
 
+  useEffect(() => {
+    // Load initial audio/video status
+    const loadInitialStatus = async () => {
+      setIsAudioEnabled(await get.microphoneStatus());
+      setIsVideoEnabled(await get.videoStatus());
+    };
+
+    loadInitialStatus();
+  }, []);
+
   const handleJoinVocal = async () => {
     try {
       setIsLoading(true);
 
       // Update current status from settings
-      setIsAudioEnabled(get.microphoneStatus());
-      setIsVideoEnabled(get.videoStatus());
+      setIsAudioEnabled(await get.microphoneStatus());
+      setIsVideoEnabled(await get.videoStatus());
 
       await self.join(chatId);
 

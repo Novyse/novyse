@@ -76,10 +76,7 @@ export function getConstraintsForPlatform(platform, scenario = "AUDIO_ONLY", qua
   
   switch (scenario) {
     case "OFF":
-      return {
-        audio: false,
-        video: false
-      };
+      return null;
 
     case "AUDIO_ONLY":
       return {

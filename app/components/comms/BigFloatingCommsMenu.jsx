@@ -34,10 +34,18 @@ const BigFloatingCommsMenu = () => {
   const [isVisible, setIsVisible] = useState(true);
 
   // Stato per audio/video
-  const [isAudioEnabled, setIsAudioEnabled] = useState(get.microphoneStatus());
-  const [isVideoEnabled, setIsVideoEnabled] = useState(get.videoStatus());
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
 
   useEffect(() => {
+    // Load initial audio/video status
+    const loadInitialStatus = async () => {
+      setIsAudioEnabled(await get.microphoneStatus());
+      setIsVideoEnabled(await get.videoStatus());
+    };
+
+    loadInitialStatus();
+
     // Trigger entrance animation when component mounts
     opacity.value = withTiming(1, {
       duration: 300,
@@ -93,7 +101,7 @@ const BigFloatingCommsMenu = () => {
     if (commsId) {
       // Usa setParams per non ricaricare la pagina
       router.setParams({ chatId: commsId });
-      
+
       // Imposta direttamente la vista vocal
       setTimeout(() => {
         if (window.setContentView) {
