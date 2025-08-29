@@ -133,8 +133,8 @@ const createStyles = (theme) =>
       borderRadius: 10,
       padding: 15,
       borderWidth: 1,
-      borderColor: theme.border || "#ddd",
-      backgroundColor: theme.cardBackground || "#fff",
+      borderColor: theme.borderColor || "#ddd",
+      backgroundColor: theme.backgroundChatTextInput || "#fff",
     },
     dropdownHeaderOpen: {
       borderBottomLeftRadius: 0,
@@ -150,7 +150,7 @@ const createStyles = (theme) =>
       flex: 1,
     },
     disabledText: {
-      color: theme.textSecondary || "#999",
+      color: theme.textTime || "#999",
     },
     arrow: {
       color: theme.text,
@@ -162,12 +162,12 @@ const createStyles = (theme) =>
     },
     dropdownListContainer: {
       overflow: "hidden",
-      backgroundColor: theme.cardBackground || "#fff",
+      backgroundColor: theme.backgroundChatTextInput || "#fff",
       borderBottomLeftRadius: 10,
       borderBottomRightRadius: 10,
       borderWidth: 1,
       borderTopWidth: 0,
-      borderColor: theme.border || "#ddd",
+      borderColor: theme.borderColor || "#ddd",
     },
     dropdownList: {
       width: "100%",
@@ -175,10 +175,10 @@ const createStyles = (theme) =>
     option: {
       padding: 15,
       borderTopWidth: 1,
-      borderTopColor: theme.border || "#eee",
+      borderTopColor: theme.borderColor || "#eee",
     },
     selectedOption: {
-      backgroundColor: `${theme.primary}20` || "#007AFF20",
+      backgroundColor: theme.chatListSelected || "#007AFF20",
     },
     optionText: {
       color: theme.text,

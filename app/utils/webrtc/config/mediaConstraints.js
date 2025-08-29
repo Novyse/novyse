@@ -71,7 +71,7 @@ function buildVideoConstraints(quality, fps, platform) {
 /**
  * Get appropriate constraints based on platform, scenario ( OFF, AUDIO_ONLY, VIDEO_ONLY, BOTH ), quality ( HD, FULL_HD, 2K, 4K ) and fps (from 1 to 120)
  */
-export function getConstraintsForPlatform(platform, scenario = "AUDIO_ONLY", quality = "HD", fps = 30) {
+export function getConstraintsForPlatform(platform, scenario = "AUDIO_ONLY", quality = "HD", fps = 30, audioDeviceId = null, videoDeviceId = null) {
   const validFps = Math.min(Math.max(fps || 30, 1), 120);
   
   switch (scenario) {
@@ -79,27 +79,49 @@ export function getConstraintsForPlatform(platform, scenario = "AUDIO_ONLY", qua
       return null;
 
     case "AUDIO_ONLY":
+      const audioConstraints = { ...AUDIO_CONSTRAINTS.HIGH_QUALITY };
+      if (audioDeviceId) {
+        audioConstraints.deviceId = { exact: audioDeviceId };
+      }
       return {
-        audio: AUDIO_CONSTRAINTS.HIGH_QUALITY,
+        audio: audioConstraints,
         video: false
       };
 
     case "VIDEO_ONLY":
+      const videoConstraints = buildVideoConstraints(quality, validFps, platform);
+      if (videoDeviceId) {
+        videoConstraints.deviceId = { exact: videoDeviceId };
+      }
       return {
         audio: false,
-        video: buildVideoConstraints(quality, validFps, platform)
+        video: videoConstraints
       };
 
     case "BOTH":
+      const bothAudioConstraints = { ...AUDIO_CONSTRAINTS.STANDARD };
+      if (audioDeviceId) {
+        bothAudioConstraints.deviceId = { exact: audioDeviceId };
+      }
+      
+      const bothVideoConstraints = buildVideoConstraints(quality, validFps, platform);
+      if (videoDeviceId) {
+        bothVideoConstraints.deviceId = { exact: videoDeviceId };
+      }
+      
       return {
-        audio: AUDIO_CONSTRAINTS.STANDARD,
-        video: buildVideoConstraints(quality, validFps, platform)
+        audio: bothAudioConstraints,
+        video: bothVideoConstraints
       };
 
     default:
       // Default to audio only for unknown scenarios
+      const defaultAudioConstraints = { ...AUDIO_CONSTRAINTS.STANDARD };
+      if (audioDeviceId) {
+        defaultAudioConstraints.deviceId = { exact: audioDeviceId };
+      }
       return {
-        audio: AUDIO_CONSTRAINTS.STANDARD,
+        audio: defaultAudioConstraints,
         video: false
       };
   }

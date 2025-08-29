@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const ThresholdSlider = ({ 
   label, 
@@ -15,6 +16,23 @@ const ThresholdSlider = ({
 }) => {
   const styles = createStyles(theme);
 
+  // Funzione per calcolare il colore in base alla posizione (simile a SegmentedSelector)
+  const getColorAt = (pos) => {
+    const startColor = { r: 255, g: 0, b: 255 };
+    const endColor = { r: 0, g: 255, b: 255 };
+    const r = Math.round(startColor.r * (1 - pos) + endColor.r * pos);
+    const g = Math.round(startColor.g * (1 - pos) + endColor.g * pos);
+    const b = Math.round(startColor.b * (1 - pos) + endColor.b * pos);
+    return `rgb(${r},${g},${b})`;
+  };
+
+  // Genera i colori del gradiente per il track
+  const gradientColors = [];
+  const numSteps = 10;
+  for (let i = 0; i <= numSteps; i++) {
+    gradientColors.push(getColorAt(i / numSteps));
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.labelContainer}>
@@ -26,18 +44,32 @@ const ThresholdSlider = ({
         </Text>
       </View>
       
-      <Slider
-        style={styles.slider}
-        minimumValue={min}
-        maximumValue={max}
-        value={value}
-        onValueChange={onValueChange}
-        step={step}
-        disabled={disabled}
-        minimumTrackTintColor={disabled ? '#ccc' : (theme.primary || '#007AFF')}
-        maximumTrackTintColor={disabled ? '#eee' : (theme.border || '#ddd')}
-        thumbStyle={disabled ? styles.disabledThumb : styles.thumb}
-      />
+      {/* Custom track con gradiente */}
+      <View style={styles.sliderContainer}>
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[styles.gradientTrack, disabled && styles.disabledTrack]}
+        />
+        
+        <Slider
+          style={styles.slider}
+          minimumValue={min}
+          maximumValue={max}
+          value={value}
+          onValueChange={onValueChange}
+          step={step}
+          disabled={disabled}
+          minimumTrackTintColor="transparent"
+          maximumTrackTintColor="transparent"
+          thumbStyle={[
+            styles.thumb,
+            { backgroundColor: theme.text || 'white' },
+            disabled && styles.disabledThumb
+          ]}
+        />
+      </View>
       
       <View style={styles.rangeContainer}>
         <Text style={[styles.rangeText, disabled && styles.disabledText]}>
@@ -67,18 +99,45 @@ const createStyles = (theme) => StyleSheet.create({
     fontWeight: '500',
   },
   value: {
-    color: theme.primary || '#007AFF',
+    color: theme.text,
     fontSize: 16,
     fontWeight: '600',
   },
   disabledText: {
-    color: theme.textSecondary || '#999',
+    color: theme.textTime || '#999',
+  },
+  sliderContainer: {
+    position: 'relative',
+    height: 40,
+    justifyContent: 'center',
+  },
+  gradientTrack: {
+    position: 'absolute',
+    height: 4,
+    width: '100%',
+    borderRadius: 2,
+    top: '50%',
+    marginTop: -2,
+  },
+  disabledTrack: {
+    opacity: 0.3,
   },
   slider: {
     height: 40,
+    width: '100%',
   },
   thumb: {
-    backgroundColor: theme.primary || '#007AFF',
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   disabledThumb: {
     backgroundColor: '#ccc',
@@ -89,7 +148,7 @@ const createStyles = (theme) => StyleSheet.create({
     marginTop: 5,
   },
   rangeText: {
-    color: theme.textSecondary || '#666',
+    color: theme.textTime || '#666',
     fontSize: 12,
   },
 });

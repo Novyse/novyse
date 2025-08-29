@@ -7,12 +7,13 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import ScreenLayout from "../components/ScreenLayout";
 import SegmentedSelector from "../components/settings/vocal-chat/SegmentedSelector";
 import ThresholdSlider from "../components/settings/vocal-chat/ThresholdSlider";
+import InputDeviceDropdown from "../components/settings/vocal-chat/InputDeviceDropdown";
 import settingsManager from "../utils/global/SettingsManager";
 import commsUtils from "../utils/webrtc/methods";
 
@@ -189,81 +190,55 @@ const CommsPage = () => {
         <View style={styles.categoryContainer}>
           <Text style={styles.sectionTitle}>Input Devices</Text>
 
+          {/* Warning for input devices */}
+          <View style={styles.warningContainer}>
+            <Text style={[styles.warningText, { color: 'yellow' }]}>
+              ⚠️ Warning: Changes to input devices will not affect chat
+              functionality at the moment.
+            </Text>
+          </View>
+
           {devicesLoading ? (
             <View style={styles.disabledField}>
               <Text style={styles.label}>Loading devices...</Text>
             </View>
           ) : (
             <>
-              {/* Dropdown Microfono */}
-              <View style={styles.pickerContainer}>
-                <Text style={styles.label}>Microphone</Text>
-                <Picker
-                  selectedValue={
-                    audioSettings.microphoneDeviceId ||
-                    (audioDeviceOptions.length > 0
-                      ? audioDeviceOptions[0].value
-                      : "")
-                  }
-                  style={styles.picker}
-                  onValueChange={(value) =>
-                    updateSetting("microphoneDeviceId", value)
-                  }
-                  dropdownIconColor={theme.text}
-                >
-                  {audioDeviceOptions.length > 0 ? (
-                    audioDeviceOptions.map((option) => (
-                      <Picker.Item
-                        key={option.value}
-                        label={option.label}
-                        value={option.value}
-                        color={theme.text}
-                      />
-                    ))
-                  ) : (
-                    <Picker.Item
-                      label="No microphones found"
-                      value=""
-                      color={theme.text}
-                    />
-                  )}
-                </Picker>
-              </View>
+              <InputDeviceDropdown
+                label="Microphone"
+                value={
+                  audioSettings.microphoneDeviceId ||
+                  (audioDeviceOptions.length > 0
+                    ? audioDeviceOptions[0].value
+                    : "")
+                }
+                options={audioDeviceOptions.length > 0 ? audioDeviceOptions : [
+                  { label: "No microphones found", value: "" }
+                ]}
+                onValueChange={(value) =>
+                  updateSetting("microphoneDeviceId", value)
+                }
+                theme={theme}
+                disabled={audioDeviceOptions.length === 0}
+              />
 
-              {/* Dropdown Camera */}
-              <View style={styles.pickerContainer}>
-                <Text style={styles.label}>Webcam</Text>
-                <Picker
-                  selectedValue={
-                    audioSettings.webcamDeviceId ||
-                    (videoDeviceOptions.length > 0
-                      ? videoDeviceOptions[0].value
-                      : "")
-                  }
-                  style={styles.picker}
-                  onValueChange={(value) =>
-                    updateSetting("webcamDeviceId", value)
-                  }
-                  dropdownIconColor={theme.text}
-                >
-                  {videoDeviceOptions.length > 0 ? (
-                    videoDeviceOptions.map((option) => (
-                      <Picker.Item
-                        key={option.value}
-                        label={option.label}
-                        value={option.value}
-                        color={theme.text}
-                      />
-                    ))
-                  ) : (
-                    <Picker.Item
-                      label="No cameras found"
-                      value=""
-                      color={theme.text}
-                    />
-                  )}
-                </Picker>
-              </View>
+              <InputDeviceDropdown
+                label="Webcam"
+                value={
+                  audioSettings.webcamDeviceId ||
+                  (videoDeviceOptions.length > 0
+                    ? videoDeviceOptions[0].value
+                    : "")
+                }
+                options={videoDeviceOptions.length > 0 ? videoDeviceOptions : [
+                  { label: "No cameras found", value: "" }
+                ]}
+                onValueChange={(value) =>
+                  updateSetting("webcamDeviceId", value)
+                }
+                theme={theme}
+                disabled={videoDeviceOptions.length === 0}
+              />
             </>
           )}
           <SegmentedSelector
@@ -294,36 +269,36 @@ const CommsPage = () => {
           />
         </View>
 
-          <View style={styles.categoryContainer}>
-            <Text style={styles.sectionTitle}>Screen Share Settings</Text>
-            <SegmentedSelector
-              label="Screen Share Quality"
-              value={audioSettings.screenShareQuality || "HD"}
-              options={qualityOptions}
-              onValueChange={(value) =>
-                updateSetting("screenShareQuality", value)
-              }
-              theme={theme}
-            />
-            <SegmentedSelector
-              label="Screen Share FPS"
-              value={audioSettings.screenShareFPS || 30}
-              options={fpsOptions}
-              onValueChange={(value) => updateSetting("screenShareFPS", value)}
-              theme={theme}
-            />
-            <SegmentedSelector
-              label="Screen Share Audio"
-              value={audioSettings.screenShareAudio ? "ON" : "OFF"}
-              options={audioOptions}
-              onValueChange={(value) =>
-                updateSetting("screenShareAudio", value === "ON")
-              }
-              theme={theme}
-            />
-          </View>
+        <View style={styles.categoryContainer}>
+          <Text style={styles.sectionTitle}>Screen Share Settings</Text>
+          <SegmentedSelector
+            label="Screen Share Quality"
+            value={audioSettings.screenShareQuality || "HD"}
+            options={qualityOptions}
+            onValueChange={(value) =>
+              updateSetting("screenShareQuality", value)
+            }
+            theme={theme}
+          />
+          <SegmentedSelector
+            label="Screen Share FPS"
+            value={audioSettings.screenShareFPS || 30}
+            options={fpsOptions}
+            onValueChange={(value) => updateSetting("screenShareFPS", value)}
+            theme={theme}
+          />
+          <SegmentedSelector
+            label="Screen Share Audio"
+            value={audioSettings.screenShareAudio ? "ON" : "OFF"}
+            options={audioOptions}
+            onValueChange={(value) =>
+              updateSetting("screenShareAudio", value === "ON")
+            }
+            theme={theme}
+          />
+        </View>
 
-          {/* Audio Processing Category */}
+        {/* Audio Processing Category */}
         <View style={styles.categoryContainer}>
           <Text style={styles.sectionTitle}>Audio Processing</Text>
           <SegmentedSelector
@@ -480,18 +455,21 @@ const createStyle = (theme) =>
       padding: 15,
       marginBottom: 20,
     },
-    pickerContainer: {
-      marginBottom: 20,
+    
+    warningContainer: {
+      backgroundColor: 'rgba(255, 193, 7, 0.1)',
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 15,
+      borderLeftWidth: 4,
+      borderLeftColor: '#ffc107',
     },
-    picker: {
-      backgroundColor: theme.inputBackground || "#1a1d29",
-      borderRadius: 12,
-      color: theme.text,
-      borderWidth: 1,
-      borderColor: theme.borderColor || "#333",
-      paddingHorizontal: 16,
-      height: 50,
+    warningText: {
+      fontSize: 14,
+      lineHeight: 20,
     },
+    
+    // ...rest of existing styles...
   });
 
 export default CommsPage;
