@@ -1,0 +1,60 @@
+{
+  "name": "novyse",
+  "version": "0.7.1",
+  "description": "Novyse Desktop Application",
+  "main": "main.js",
+  "homepage": "./",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --mac --linux",
+    "dist": "npm run build:all"
+  },
+  "keywords": [
+    "electron",
+    "webapp"
+  ],
+  "author": "Novyse",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "build": {
+    "appId": "com.novyse",
+    "productName": "Novyse",
+    "directories": {
+      "output": "build"
+    },
+    "files": [
+      "main.js",
+      "renderer.js",
+      "webapp/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/images/logo-novyse-nobg-less-margin.png"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/images/logo-novyse-nobg-less-margin.png",
+      "category": "public.app-category.communication"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/images/logo-novyse-nobg-less-margin.png",
+      "category": "Network;InstantMessaging;"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

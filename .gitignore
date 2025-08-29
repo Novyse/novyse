@@ -42,3 +42,7 @@ yarn-error.*
 app-example
 pnpm-lock.yaml
 .gitignore
+
+# electron
+electron/webapp
+electron/assets
