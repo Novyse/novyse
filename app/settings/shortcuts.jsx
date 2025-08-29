@@ -12,12 +12,6 @@ const ShortcutsPage = () => {
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="./" />
       <View style={styles.container}>
-        <Text style={styles.textTemp}>
-          Implementate per ora solo su VocalContentBottomBar
-        </Text>
-        <Text style={styles.text}>Work in progress</Text>
-        <Text style={styles.text}>Mute: ctrl + F12</Text>
-        <HeaderWithBackArrow goBackTo="./" />
         
         <View style={styles.wipContainer}>
           <Text style={styles.wipText}>🚧 Work in Progress 🚧</Text>
@@ -40,7 +34,6 @@ const createStyle = (theme) =>
       width: "100%",
       maxWidth: 768,
     },
-<<<<<<< HEAD
     text: {
       color: theme.text,
     },
@@ -49,7 +42,6 @@ const createStyle = (theme) =>
       marginVertical: 10,
       fontSize: 15,
     },
-=======
     wipContainer: {
       backgroundColor: theme.cardBackground || "#23232b",
       borderRadius: 12,
@@ -80,7 +72,6 @@ const createStyle = (theme) =>
       fontSize: 16,
       marginVertical: 4,
     },
->>>>>>> d77a796765c5833a85b34c0f4474b5862957b7da
   });
 
 export default ShortcutsPage;
