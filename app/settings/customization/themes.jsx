@@ -95,7 +95,7 @@ const createStyle = (theme) =>
       gap: 12,
     },
     themeButton: {
-      backgroundColor: theme.cardBackground || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards || "#23232b",
       borderRadius: 16,
       padding: 20,
       borderWidth: 2,
@@ -108,7 +108,7 @@ const createStyle = (theme) =>
     },
     activeThemeButton: {
       borderColor: theme.primary || "#4f8cff",
-      backgroundColor: theme.cardBackground || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards || "#23232b",
       elevation: 4,
       shadowOpacity: 0.2,
     },

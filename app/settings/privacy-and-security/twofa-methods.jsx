@@ -235,7 +235,7 @@ const createStyle = (theme) =>
       alignSelf: "center",
     },
     methodCard: {
-      backgroundColor: theme.cardBackground || "#2A2A2E",
+      backgroundColor: theme.backgroundSettingsCards || "#2A2A2E",
       borderRadius: 16,
       marginBottom: 16,
       padding: 20,
@@ -252,7 +252,7 @@ const createStyle = (theme) =>
     },
     methodCardActive: {
       borderColor: "#00C851",
-      backgroundColor: theme.cardBackground || "#2A2A2E",
+      backgroundColor: theme.backgroundSettingsCards || "#2A2A2E",
     },
     methodHeader: {
       flexDirection: "row",

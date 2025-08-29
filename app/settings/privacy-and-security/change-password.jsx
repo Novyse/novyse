@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
   StyleSheet,
-  Pressable,
   Text,
   View,
   TextInput,
@@ -12,6 +11,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
 import APIMethods from "../../utils/APImethods";
 import StatusMessage from "@/app/components/StatusMessage";
+import SettingsButton from "@/app/components/settings/SettingsButton";
 
 const ChangePassword = () => {
   const { theme } = useContext(ThemeContext);
@@ -19,7 +19,7 @@ const ChangePassword = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Fixed typo in initialization
   const [error, setError] = useState("");
 
   const passwordRegex =
@@ -121,19 +121,13 @@ const ChangePassword = () => {
               />
             </View>
 
-            <Pressable
-              style={[
-                styles.changePasswordButton,
-                isLoading && styles.disabledButton,
-              ]}
+            <SettingsButton
               onPress={handleChangePassword}
+              text={isLoading ? "Changing Password..." : "Change Password"}
+              style={[isLoading && styles.disabledButton]}
+              textStyle={styles.buttonText}
               disabled={isLoading}
-              android_ripple={{ color: "rgba(255,255,255,0.1)" }}
-            >
-              <Text style={styles.buttonText}>
-                {isLoading ? "Changing Password..." : "Change Password"}
-              </Text>
-            </Pressable>
+            />
 
             <View style={styles.securityNote}>
               <Text style={styles.noteText}>
@@ -178,7 +172,7 @@ const createStyle = (theme) =>
       lineHeight: 22,
     },
     formContainer: {
-      backgroundColor: theme.cardBackground || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards || "#23232b",
       borderRadius: 16,
       padding: 24,
       marginBottom: 24,
@@ -202,19 +196,6 @@ const createStyle = (theme) =>
       borderWidth: 1,
       borderColor: theme.borderColor || "#333",
     },
-    changePasswordButton: {
-      backgroundColor: theme.primary || "#4f8cff",
-      borderRadius: 12,
-      paddingVertical: 16,
-      alignItems: "center",
-      justifyContent: "center",
-      marginTop: 20,
-      elevation: 2,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-    },
     disabledButton: {
       opacity: 0.6,
     },
@@ -224,11 +205,12 @@ const createStyle = (theme) =>
       fontWeight: "600",
     },
     securityNote: {
-      backgroundColor: theme.cardBackground || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards || "#23232b",
       borderRadius: 12,
       padding: 16,
       borderLeftWidth: 4,
       borderLeftColor: theme.primary || "#4f8cff",
+      marginTop: 24,
     },
     noteText: {
       color: theme.subtitle || "#b0b0b0",

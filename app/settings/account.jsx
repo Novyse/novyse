@@ -121,7 +121,7 @@ const createStyle = (theme) =>
       width: 120,
       height: 120,
       borderRadius: 60,
-      backgroundColor: theme.cardBackground || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards || "#23232b",
       justifyContent: "center",
       alignItems: "center",
       marginBottom: 15,
@@ -147,7 +147,7 @@ const createStyle = (theme) =>
       textAlign: "center",
     },
     infoSection: {
-      backgroundColor: theme.cardBackground || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards || "#23232b",
       borderRadius: 12,
       padding: 20,
       marginBottom: 20,
