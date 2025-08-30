@@ -82,7 +82,9 @@ const VerifyMethod = () => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [copied, setCopied] = useState(false);
 
-  const { token, verificationType, secret, otpauth } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const { token, verificationType, secret } = params;
+  const otpauth = params.otpauth ? decodeURIComponent(params.otpauth) : params.otpauth;
 
   const isSmallScreen = width < 768;
   const styles = createStyle(theme, isSmallScreen);
