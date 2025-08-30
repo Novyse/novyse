@@ -15,7 +15,8 @@ import JsonParser from "../utils/JsonParser";
 import localDatabase from "../utils/localDatabaseMethods";
 import { useRouter } from "expo-router";
 import eventEmitter from "../utils/EventEmitter";
-import StatusMessage from './StatusMessage';
+import StatusMessage from "./StatusMessage";
+import { setGestureState } from "react-native-reanimated";
 
 const CreateGroupModal = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
@@ -82,8 +83,13 @@ const CreateGroupModal = ({ visible, onClose }) => {
       setError("Handle già in uso");
       return;
     }
+    let success = null;
+    if (isPublic) {
+      success = await APIMethods.createNewGroupAPI(groupHandle, groupName);
+    } else {
+      success = await APIMethods.createNewGroupAPI("", groupName);
+    }
 
-    const success = await APIMethods.createNewGroupAPI(groupHandle, groupName);
     if (success.group_created) {
       console.log("Gruppo creato con successo", success.group_created);
 
@@ -120,14 +126,11 @@ const CreateGroupModal = ({ visible, onClose }) => {
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <Text style={styles.modalTitleText}>Crea un nuovo gruppo</Text>
-          
+
           <StatusMessage type="error" text={error} />
 
           <TextInput
-            style={[
-              styles.textInput,
-              error && styles.textInputError
-            ]}
+            style={[styles.textInput, error && styles.textInputError]}
             placeholder="Nome del gruppo"
             placeholderTextColor="#ccc"
             value={groupName}
