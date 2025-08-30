@@ -18,7 +18,7 @@ import { SplashScreen } from "expo-router";
 import logo_novyse_bg from "../assets/images/logo-novyse-bg.png";
 import ScreenLayout from "./components/ScreenLayout";
 
-import EmailCheckForm from "./welcome/emailcheck";
+import EmailCheckForm from "./welcome/email-check";
 
 // Impedisce la rimozione automatica dello splash screen
 SplashScreen.preventAutoHideAsync();
