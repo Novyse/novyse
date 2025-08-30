@@ -1038,12 +1038,13 @@ function createStyle(theme, colorScheme) {
       bottom: 0,
       width: 250,
       zIndex: 2,
-      overflow: "hidden"
+      // inserire overflow hidden in questa riga crea potenziali artefatti grafici quando si chiude la sidebar
     },
     sidebarContent: {
       flex: 1,
       padding: 20,
       paddingTop: 60,
+      overflow: "hidden",
     },
     overlay: {
       position: "absolute",
@@ -1060,7 +1061,7 @@ function createStyle(theme, colorScheme) {
     },
     profileTextContainer: {
       flexDirection: "column",
-      flex: 1
+      flex: 1,
     },
     profileName: {
       color: theme.text,
