@@ -4,7 +4,7 @@ import { GlobalState } from "../core/GlobalState.js";
 import { SDP_OPTIONS } from "../config/mediaConstraints.js";
 import Compatibility from "../utils/compatibility.js";
 import helpers from "../utils/helpers.js";
-import SocketMethods from "../websocket/socketMethods.js";
+import SocketMethods from "../../socketMethods.js";
 
 const { RTCSessionDescription } = Compatibility.getWebRTCLib();
 
