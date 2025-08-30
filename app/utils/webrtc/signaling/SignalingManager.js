@@ -4,6 +4,7 @@ import { GlobalState } from "../core/GlobalState.js";
 import { SDP_OPTIONS } from "../config/mediaConstraints.js";
 import Compatibility from "../utils/compatibility.js";
 import helpers from "../utils/helpers.js";
+import SocketMethods from "../websocket/socketMethods.js";
 
 const { RTCSessionDescription } = Compatibility.getWebRTCLib();
 
@@ -87,7 +88,7 @@ export class SignalingManager {
       // Invia tramite Socket con retry mechanism
       const success = await this._sendWithRetry(
         () =>
-          webSocketMethods.RTCOffer({
+          SocketMethods.RTCOffer({
             offer: offer.toJSON
               ? offer.toJSON()
               : { sdp: offer.sdp, type: offer.type },
@@ -188,7 +189,7 @@ export class SignalingManager {
       // Invia tramite WebSocket con retry mechanism
       const success = await this._sendWithRetry(
         () =>
-          webSocketMethods.RTCAnswer({
+          SocketMethods.RTCAnswer({
             answer: answer.toJSON
               ? answer.toJSON()
               : { sdp: answer.sdp, type: answer.type },
@@ -1062,7 +1063,7 @@ export class SignalingManager {
         // Try to send the message
         const result = await sendFunction();
 
-        // If webSocketMethods returns false, treat as failure
+        // If SocketMethods returns false, treat as failure
         if (result === false) {
           throw new Error("WebSocket send returned false");
         }

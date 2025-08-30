@@ -57,7 +57,7 @@ Contiene i metodi per gestire il DB locale
 ## /utils/JsonParser
 Contiene metodi di supporto alle chiamate API. Permette al codice di interfacciarsi correttamente ai risultati delle chiamate API
 
-## /utils/webSocketMethods
+## /utils/SocketMethods
 Contiene i metodi per gestire le websocket (apertura, chiusura, invio e ricezione messaggi da esse)
 
 ## /utils/EventEmitter
