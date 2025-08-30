@@ -15,7 +15,7 @@ export default function SetupGlobalEventReceiver() {
       // da qui tocca chiamare metodo per il logout, per ora faccio a manina dopo è da sistemare
       await localDatabase.clearDatabase();
       await AsyncStorage.setItem("isLoggedIn", "false");
-      router.navigate("/welcome/emailcheck");
+      router.navigate("/welcome/email-check");
     };
 
     // ------------------> global event listeners

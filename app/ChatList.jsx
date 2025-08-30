@@ -271,7 +271,7 @@ const ChatList = () => {
     if (loggedOutFromAPI) {
       console.log("Logout dall'API completato");
     }
-    router.navigate("/welcome/emailcheck");
+    router.navigate("/welcome/email-check");
   };
 
   // viene richiamata nello useEffect, serve per ottenere le chat dal DB locale

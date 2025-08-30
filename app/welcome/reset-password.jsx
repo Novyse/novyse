@@ -50,7 +50,7 @@ const ResetPassword = () => {
     });
 
     const backAction = () => {
-      router.navigate("/welcome/emailcheck");
+      router.navigate("/welcome/email-check");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -90,7 +90,7 @@ const ResetPassword = () => {
         return;
       } else {
         if (resetPasswordSuccess) {
-          router.replace("/welcome/emailcheck");
+          router.replace("/welcome/email-check");
         } else {
           console.error("Error");
         }

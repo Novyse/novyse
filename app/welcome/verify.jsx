@@ -49,7 +49,7 @@ const Verify = ({}) => {
     });
 
     const backAction = () => {
-      router.navigate("/welcome/emailcheck");
+      router.navigate("/welcome/email-check");
       return true;
     };
     const backHandler = BackHandler.addEventListener(

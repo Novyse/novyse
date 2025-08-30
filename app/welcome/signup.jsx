@@ -62,7 +62,7 @@ const Signup = () => {
 
   useEffect(() => {
     const backAction = () => {
-      router.navigate("/welcome/emailcheck");
+      router.navigate("/welcome/email-check");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -150,7 +150,7 @@ const Signup = () => {
       );
 
       if (signupResponse) {
-        router.navigate("/welcome/emailcheck");
+        router.navigate("/welcome/email-check");
       } else {
         setError("Signup failed. Please try again.");
       }
