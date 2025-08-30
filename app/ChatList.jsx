@@ -24,7 +24,6 @@ import methods from "./utils/webrtc/methods";
 const { get, check } = methods;
 
 import CreateGroupModal from "./components/CreateGroupModal";
-import SidebarItem from "./components/SidebarItem";
 import BigFloatingCommsMenu from "./components/comms/BigFloatingCommsMenu";
 import SmallCommsMenu from "./components/comms/SmallCommsMenu";
 
@@ -34,6 +33,7 @@ import eventEmitter from "./utils/EventEmitter";
 import SocketMethods from "./utils/socketMethods";
 import localDatabase from "./utils/localDatabaseMethods";
 import ChatContainer from "./ChatContainer";
+import Sidebar from "./components/Sidebar";
 
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
@@ -409,78 +409,6 @@ const ChatList = () => {
     return <SmallCommsMenu />;
   };
 
-  // sidebar
-  const renderSidebar = () => (
-    <>
-      {overlayVisible && (
-        <Pressable style={styles.overlay} onPress={toggleSidebar} />
-      )}
-      <Animated.View
-        style={[
-          styles.sidebar,
-          { transform: [{ translateX: sidebarPosition }] },
-        ]}
-      >
-        <SmartBackground
-          colors={theme?.sideBarGradient}
-          style={styles.sidebarContent}
-        >
-          <View style={styles.profileContainer}>
-            <View style={styles.avatar}>
-              <Image
-                source={{ uri: "https://picsum.photos/200" }}
-                style={styles.avatar}
-              />
-            </View>
-            <View style={styles.profileTextContainer}>
-              <Text style={styles.profileName}>
-                {userData.name && userData.surname
-                  ? `${userData.name} ${userData.surname}`
-                  : "Loading..."}
-              </Text>
-              <Text style={styles.profileHandle}>
-                {userData.handle ? `@${userData.handle}` : "@loading..."}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.menuContainer}>
-            <SidebarItem
-              text="Profile"
-              iconName={User03Icon}
-              onPress={() => {
-                toggleSidebar();
-              }}
-            />
-            <SidebarItem
-              text="Settings"
-              iconName={Settings02Icon}
-              onPress={() => {
-                toggleSidebar();
-                handleSettingsPress();
-              }}
-            />
-            <SidebarItem
-              text="Nuovo Gruppo"
-              iconName={UserGroup03Icon}
-              onPress={() => {
-                toggleSidebar();
-                setIsCreateGroupModalVisible(true);
-              }}
-            />
-            <SidebarItem
-              text="Logout"
-              iconName={Logout03Icon}
-              onPress={() => {
-                toggleSidebar();
-                AsyncStorage.setItem("isLoggedIn", "false");
-                logout();
-              }}
-            />
-          </View>
-        </SmartBackground>
-      </Animated.View>
-    </>
-  );
 
   const renderHeader = () => {
     return (
@@ -698,57 +626,7 @@ const ChatList = () => {
                 <></>
               )}
             </Pressable>
-
-            {/* Menù 3 puntini, per ora rimosso e sostituito dalle icone */}
-            {/* <Pressable
-              style={styles.moreButton}
-              onPress={() => setIsMenuVisible(!isMenuVisible)}
-            >
-              <HugeiconsIcon
-                icon={MoreVerticalCircle01Icon}
-                size={24}
-                color={theme.icon}
-                strokeWidth={1.5}
-              />
-            </Pressable> */}
-            {!isSmallScreen && (
-              <View style={styles.moreButton}>
-                {/* Spazio vuoto per sostituire il menù a tre puntini */}
-              </View>
-            )}
           </>
-        )}
-
-        {/* Anche il dropdown menu deve essere condizionale */}
-        {isMenuVisible && chatJoined && (
-          <View style={styles.dropdownMenu}>
-            <Pressable
-              onPress={() => {
-                setContentView("chat");
-                setIsMenuVisible(false);
-              }}
-            >
-              <Text style={styles.dropdownItem}>Chat View</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                setContentView("vocal");
-                setIsMenuVisible(false);
-              }}
-            >
-              <Text style={styles.dropdownItem}>Vocal View</Text>
-            </Pressable>
-            {!isSmallScreen && (
-              <Pressable
-                onPress={() => {
-                  setContentView("both");
-                  setIsMenuVisible(false);
-                }}
-              >
-                <Text style={styles.dropdownItem}>Split View</Text>
-              </Pressable>
-            )}
-          </View>
         )}
       </SmartBackground>
     );
@@ -824,7 +702,16 @@ const ChatList = () => {
         translucent={true}
         hidden={false}
       />
-      {renderSidebar()}
+      <Sidebar
+        isSidebarVisible={isSidebarVisible}
+        toggleSidebar={toggleSidebar}
+        setIsCreateGroupModalVisible={setIsCreateGroupModalVisible}
+        handleSettingsPress={handleSettingsPress}
+        logout={logout}
+        userData={userData}
+        sidebarPosition={sidebarPosition}
+        theme={theme}
+      />
       {!isSmallScreen || (isSmallScreen && !selectedChat)
         ? renderHeader()
         : null}
@@ -915,9 +802,6 @@ function createStyle(theme, colorScheme) {
       width: "100%",
       flex: 1,
     },
-    selected: {
-      backgroundColor: theme.chatListSelected,
-    },
     avatar: {
       width: 40,
       height: 40,
@@ -987,26 +871,6 @@ function createStyle(theme, colorScheme) {
       borderRadius: 8,
       color: theme.text,
     },
-    dropdownMenu: {
-      position: "absolute",
-      top: 50,
-      right: 10,
-      backgroundColor: theme.modalBackground,
-      borderRadius: 8,
-      padding: 15,
-      zIndex: 20,
-      elevation: 5,
-      shadowColor: theme.shadowColor,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-      minWidth: 150,
-    },
-    dropdownItem: {
-      color: theme.text,
-      marginVertical: 8,
-      fontSize: 16,
-    },
     chatItemGrid: {
       flexDirection: "row",
       flex: 1,
@@ -1029,51 +893,6 @@ function createStyle(theme, colorScheme) {
     },
     staticNumber: {
       textAlign: "right",
-    },
-    // sidebar
-    sidebar: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      bottom: 0,
-      width: 250,
-      zIndex: 2,
-      // inserire overflow hidden in questa riga crea potenziali artefatti grafici quando si chiude la sidebar
-    },
-    sidebarContent: {
-      flex: 1,
-      padding: 20,
-      paddingTop: 60,
-      overflow: "hidden",
-    },
-    overlay: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 1,
-    },
-    profileContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 30,
-    },
-    profileTextContainer: {
-      flexDirection: "column",
-      flex: 1,
-    },
-    profileName: {
-      color: theme.text,
-      fontSize: 16,
-      fontWeight: "bold",
-    },
-    profileHandle: {
-      color: theme.placeholderText,
-      fontSize: 14,
-    },
-    menuContainer: {
-      flex: 1,
     },
     chatListContainer: {
       flex: 1,
