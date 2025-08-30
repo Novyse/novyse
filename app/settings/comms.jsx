@@ -452,7 +452,7 @@ const createStyle = (theme) =>
       fontFamily: "monospace",
     },
     categoryContainer: {
-      backgroundColor: "#1c2539",
+      backgroundColor: theme.backgroundSettingsCards,
       borderRadius: 12,
       padding: 15,
       marginBottom: 20,

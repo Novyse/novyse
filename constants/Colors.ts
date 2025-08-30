@@ -33,8 +33,8 @@ export const Colors = {
     cardBackground: "#416a90",
     ChatIconsPickerModalBorderColor: "#ffffffff",
     ChatIconsPickerModalTabInactiveText: "#b1b1b1ff",
-    backgroundSettingsCards: "#00000045",
 
+    backgroundSettingsCards: "#00000045",
     settingsButton: "#4f8cff",
     settingsHoveredButton: "#4f8dffb9",
     settingsPressedButton: "#2a68dcff",
@@ -56,7 +56,7 @@ export const Colors = {
 
 
 
-  
+
 
   light: {
     primary: "#f5f5f5",
