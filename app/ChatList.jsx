@@ -1038,6 +1038,7 @@ function createStyle(theme, colorScheme) {
       bottom: 0,
       width: 250,
       zIndex: 2,
+      overflow: "hidden"
     },
     sidebarContent: {
       flex: 1,
@@ -1059,6 +1060,7 @@ function createStyle(theme, colorScheme) {
     },
     profileTextContainer: {
       flexDirection: "column",
+      flex: 1
     },
     profileName: {
       color: theme.text,
