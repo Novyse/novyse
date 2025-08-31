@@ -21,7 +21,7 @@ import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
-import StatusMessage from '../components/StatusMessage';
+import StatusMessage from "../components/StatusMessage";
 
 const Signup = () => {
   const { emailValue } = useLocalSearchParams();
@@ -35,7 +35,7 @@ const Signup = () => {
     useState(false);
 
   const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$#@!?])[^\s]{8,32}$/;
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[^\s]{8,128}$/;
 
   // Regex per l'handle: non permette doppi underscore e non può finire con un underscore.
   const handleRegex = /^(?!.*_{2,})[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$/;
@@ -63,7 +63,7 @@ const Signup = () => {
   const [handleTimer, setHandleTimer] = useState(null);
   const [error, setError] = useState(null);
   const [isFormValid, setIsFormValid] = useState(false);
-  
+
   // Nuovo stato per l'errore specifico dell'handle (feedback UI immediato)
   const [handleError, setHandleError] = useState(null);
 
@@ -85,7 +85,10 @@ const Signup = () => {
     const allFieldsFilled = password && name && surname && handle;
     // Il form è valido se tutti i campi sono pieni, l'handle è disponibile e non ci sono errori.
     setIsFormValid(
-      !!allFieldsFilled && handleAvailable === true && !handleError && !isLoading
+      !!allFieldsFilled &&
+        handleAvailable === true &&
+        !handleError &&
+        !isLoading
     );
   }, [form, handleAvailable, isLoading, handleError]);
 
@@ -93,12 +96,12 @@ const Signup = () => {
     // Forza il minuscolo per l'handle per evitare errori
     const processedValue = field === "handle" ? value.toLowerCase() : value;
     setForm({ ...form, [field]: processedValue });
-    
+
     if (error) setError(null); // Pulisce l'errore generale del form
 
     if (field === "handle") {
       setHandleAvailable(null); // Resetta la disponibilità
-      setHandleError(null);     // Pulisce l'errore specifico dell'handle
+      setHandleError(null); // Pulisce l'errore specifico dell'handle
       if (handleTimer) clearTimeout(handleTimer);
 
       // Se il campo è vuoto, fermati qui.
@@ -140,18 +143,18 @@ const Signup = () => {
     const { password, name, surname, handle } = form;
     if (!password) return "Please enter your password.";
     if (!isPasswordValid(password)) {
-      return "Password must be 8-32 chars, include upper/lowercase, a number and a special character ($#@!?)";
+      return "Password must be 8-128 chars, include upper/lowercase, a number and a special character (@, $, !, %, *, ?, &)";
     }
     if (!name) return "Please enter your name.";
     if (!surname) return "Please enter your surname.";
     if (!handle) return "Please enter your handle.";
-    
+
     // Aggiunta la validazione della regex prima del submit
     if (!isHandleValid(handle)) {
       return "Handle format is invalid. Use a-z, 0-9, and single '_'.";
     }
     if (handleAvailable === false) return "Handle is already in use.";
-    
+
     return null;
   };
 
@@ -220,12 +223,16 @@ const Signup = () => {
           placeholderTextColor={LoginColors[loginTheme].placeholderTextInput}
           value={form[field]}
           // Impedisce l'inserimento di maiuscole nell'handle
-          autoCapitalize={field === 'handle' ? 'none' : 'sentences'}
+          autoCapitalize={field === "handle" ? "none" : "sentences"}
         />
 
         {/* Mostra l'indicatore di caricamento durante il controllo dell'handle */}
         {field === "handle" && isLoading && (
-            <ActivityIndicator size="small" color="#999" style={{ marginRight: 10 }} />
+          <ActivityIndicator
+            size="small"
+            color="#999"
+            style={{ marginRight: 10 }}
+          />
         )}
 
         {field.includes("password") && (
@@ -495,8 +502,8 @@ function createStyle(loginTheme, isSmallScreen) {
       backgroundColor: "rgba(255, 99, 99, 0.1)",
     },
     inputSuccess: {
-      borderColor: "rgba(0, 128, 0, 0.8)", 
-      backgroundColor: "rgba(0, 128, 0, 0.1)", 
+      borderColor: "rgba(0, 128, 0, 0.8)",
+      backgroundColor: "rgba(0, 128, 0, 0.1)",
     },
     textInput: {
       flex: 1,
