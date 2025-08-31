@@ -37,9 +37,13 @@ const Signup = () => {
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$#@!?])[^\s]{8,32}$/;
 
-  const isPasswordValid = (pwd) => passwordRegex.test(pwd);
+  // Regex per l'handle: non permette doppi underscore e non può finire con un underscore.
+  const handleRegex = /^(?!.*_{2,})[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$/;
 
-  // Ottieni la larghezza dello schermo e definisci il breakpoint
+  const isPasswordValid = (pwd) => passwordRegex.test(pwd);
+  // Funzione helper per validare l'handle
+  const isHandleValid = (handle) => handleRegex.test(handle);
+
   const isSmallScreen = width < 936;
   const styles = createStyle(loginTheme, isSmallScreen);
 
@@ -58,7 +62,10 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [handleTimer, setHandleTimer] = useState(null);
   const [error, setError] = useState(null);
-  const [isFormValid, setIsFormValid] = useState(false); // New state for form validity
+  const [isFormValid, setIsFormValid] = useState(false);
+  
+  // Nuovo stato per l'errore specifico dell'handle (feedback UI immediato)
+  const [handleError, setHandleError] = useState(null);
 
   useEffect(() => {
     const backAction = () => {
@@ -72,29 +79,51 @@ const Signup = () => {
     return () => backHandler.remove();
   }, []);
 
-  // Effect to check form validity whenever 'form' or 'handleAvailable' changes
+  // Effect per controllare la validità del form
   useEffect(() => {
     const { password, name, surname, handle } = form;
-    // Check if all fields are filled AND handle is available AND not currently checking handle availability
-    const allFieldsFilled =
-      password !== "" && name !== "" && surname !== "" && handle !== "";
-    setIsFormValid(allFieldsFilled && handleAvailable === true && !isLoading);
-  }, [form, handleAvailable, isLoading]);
+    const allFieldsFilled = password && name && surname && handle;
+    // Il form è valido se tutti i campi sono pieni, l'handle è disponibile e non ci sono errori.
+    setIsFormValid(
+      !!allFieldsFilled && handleAvailable === true && !handleError && !isLoading
+    );
+  }, [form, handleAvailable, isLoading, handleError]);
 
   const handleChange = (field, value) => {
-    setForm({ ...form, [field]: value });
-    if (error) setError(null);
+    // Forza il minuscolo per l'handle per evitare errori
+    const processedValue = field === "handle" ? value.toLowerCase() : value;
+    setForm({ ...form, [field]: processedValue });
+    
+    if (error) setError(null); // Pulisce l'errore generale del form
 
     if (field === "handle") {
-      setIsLoading(true);
-      setHandleAvailable(null); // Reset handle availability when handle changes
+      setHandleAvailable(null); // Resetta la disponibilità
+      setHandleError(null);     // Pulisce l'errore specifico dell'handle
       if (handleTimer) clearTimeout(handleTimer);
 
-      const timer = setTimeout(async () => {
-        const available = await JsonParser.handleAvailability(value);
-        setHandleAvailable(available);
+      // Se il campo è vuoto, fermati qui.
+      if (!processedValue.trim()) {
         setIsLoading(false);
-      }, 3000);
+        return;
+      }
+
+      // 1. Validazione del formato in tempo reale
+      if (!isHandleValid(processedValue)) {
+        setHandleError("Invalid format. Use a-z, 0-9, and single '_'.");
+        setIsLoading(false);
+        return; // Interrompe l'esecuzione se il formato non è valido
+      }
+
+      // 2. Se il formato è valido, controlla la disponibilità dopo un ritardo
+      setIsLoading(true);
+      const timer = setTimeout(async () => {
+        const available = await JsonParser.handleAvailability(processedValue);
+        setHandleAvailable(available);
+        if (!available) {
+          setHandleError("This handle is already in use.");
+        }
+        setIsLoading(false);
+      }, 1000); // Delay ridotto per una migliore UX
 
       setHandleTimer(timer);
     }
@@ -116,7 +145,13 @@ const Signup = () => {
     if (!name) return "Please enter your name.";
     if (!surname) return "Please enter your surname.";
     if (!handle) return "Please enter your handle.";
+    
+    // Aggiunta la validazione della regex prima del submit
+    if (!isHandleValid(handle)) {
+      return "Handle format is invalid. Use a-z, 0-9, and single '_'.";
+    }
     if (handleAvailable === false) return "Handle is already in use.";
+    
     return null;
   };
 
@@ -130,6 +165,7 @@ const Signup = () => {
   const handleSignup = async () => {
     const validationError = validateForm();
     if (validationError) {
+      // Imposta l'errore che sarà mostrato da StatusMessage
       setError(validationError);
       return;
     }
@@ -168,11 +204,11 @@ const Signup = () => {
       <View
         style={[
           styles.inputContainer,
-          field === "handle" && handleAvailable === false
-            ? styles.inputError
-            : null,
-          field === "handle" && handleAvailable === true
-            ? styles.inputSuccess // Apply success style
+          // Applica stile di errore se c'è un handleError specifico
+          field === "handle" && handleError ? styles.inputError : null,
+          // Applica stile di successo se l'handle è disponibile e senza errori
+          field === "handle" && handleAvailable === true && !handleError
+            ? styles.inputSuccess
             : null,
         ]}
       >
@@ -183,7 +219,14 @@ const Signup = () => {
           placeholder={placeholder || label}
           placeholderTextColor={LoginColors[loginTheme].placeholderTextInput}
           value={form[field]}
+          // Impedisce l'inserimento di maiuscole nell'handle
+          autoCapitalize={field === 'handle' ? 'none' : 'sentences'}
         />
+
+        {/* Mostra l'indicatore di caricamento durante il controllo dell'handle */}
+        {field === "handle" && isLoading && (
+            <ActivityIndicator size="small" color="#999" style={{ marginRight: 10 }} />
+        )}
 
         {field.includes("password") && (
           <TouchableOpacity
@@ -200,8 +243,9 @@ const Signup = () => {
         )}
       </View>
 
-      {field === "handle" && handleAvailable === false && (
-        <Text style={styles.handleErrorText}>Handle already in use</Text>
+      {/* Mostra il messaggio di errore specifico per l'handle sotto l'input */}
+      {field === "handle" && handleError && (
+        <Text style={styles.handleErrorText}>{handleError}</Text>
       )}
     </View>
   );
@@ -224,7 +268,6 @@ const Signup = () => {
         hidden={false}
       />
 
-      {/* Card */}
       <View style={styles.card}>
         <View style={styles.cardContent}>
           <Image
@@ -350,13 +393,14 @@ const Signup = () => {
               }
               onPress={handleSignup}
             >
-              {isLoading ? (
+              {isLoading && !handleTimer ? ( // Mostra l'indicatore solo durante il submit finale
                 <ActivityIndicator size="small" color="white" />
               ) : (
                 <Text style={styles.submitButtonText}>Create Account</Text>
               )}
             </TouchableOpacity>
 
+            {/* StatusMessage mostrerà gli errori di validazione finali */}
             <StatusMessage type="error" text={error} />
           </View>
         </View>
@@ -367,6 +411,7 @@ const Signup = () => {
 
 export default Signup;
 
+// ... Stili (invariati)
 function createStyle(loginTheme, isSmallScreen) {
   return StyleSheet.create({
     container: {
@@ -450,9 +495,8 @@ function createStyle(loginTheme, isSmallScreen) {
       backgroundColor: "rgba(255, 99, 99, 0.1)",
     },
     inputSuccess: {
-      // New style for success
-      borderColor: "rgba(0, 128, 0, 0.8)", // Green color
-      backgroundColor: "rgba(0, 128, 0, 0.1)", // Light green background
+      borderColor: "rgba(0, 128, 0, 0.8)", 
+      backgroundColor: "rgba(0, 128, 0, 0.1)", 
     },
     textInput: {
       flex: 1,
@@ -463,7 +507,7 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     eyeButton: {
       width: 40,
-      height: 44,
+      height: 40,
       justifyContent: "center",
       alignItems: "center",
       marginRight: 4,
