@@ -477,7 +477,11 @@ const ChatList = () => {
               style={styles.chatItem}
             >
               <Pressable
-                style={styles.chatItemPressable}
+                // style={styles.chatItemPressable}
+                style={({ hovered }) => [
+                  styles.chatItemPressable,
+                  hovered && styles.chatItemHovered
+                ]}
                 onPress={() => handleChatPress(item.chat_id)}
               >
                 <Image
@@ -801,6 +805,7 @@ function createStyle(theme, colorScheme) {
       padding: 10,
       width: "100%",
       flex: 1,
+      borderRadius: 13,
     },
     avatar: {
       width: 40,
@@ -929,5 +934,8 @@ function createStyle(theme, colorScheme) {
       padding: 10,
       paddingTop: 0,
     },
+    chatItemHovered: {
+      backgroundColor: theme.chatItemHovered
+    }
   });
 }
