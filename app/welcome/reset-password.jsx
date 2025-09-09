@@ -33,7 +33,7 @@ const ResetPassword = () => {
   const isSmallScreen = width < 936;
   const styles = createStyle(loginTheme, isSmallScreen);
   const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$#@!?])[^\s]{8,32}$/;
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[^\s]{8,128}$/;
   const isPasswordValid = (pwd) => passwordRegex.test(pwd);
 
   useEffect(() => {
@@ -67,7 +67,7 @@ const ResetPassword = () => {
     }
     if (!isPasswordValid(password)) {
       setError(
-        "Password must be 8-32 chars, include upper/lowercase, a number and a special character ($ # @ ! ?)"
+        "Password must be 8-128 chars, include upper/lowercase, a number and a special character (@, $, !, %, *, ?, &)"
       );
       return;
     }

@@ -17,7 +17,7 @@ const ChangePassword = () => {
   const [error, setError] = useState("");
 
   const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$#@!?])[^\s]{8,32}$/;
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[^\s]{8,128}$/;
   const isPasswordValid = (pwd) => passwordRegex.test(pwd);
 
   const handleChangePassword = async () => {
@@ -35,7 +35,7 @@ const ChangePassword = () => {
 
     if (!isPasswordValid(newPassword)) {
       setError(
-        "Password must be 8-32 chars, include upper/lowercase, a number and a special character ($ # @ ! ?)"
+        "Password must be 8-128 chars, include upper/lowercase, a number and a special character (@, $, !, %, *, ?, &)"
       );
       return;
     }
@@ -124,10 +124,10 @@ const ChangePassword = () => {
 
             <View style={styles.securityNote}>
               <Text style={styles.noteText}>
-                • Password must be 8-32 characters long{"\n"}• Must include
+                • Password must be 8-128 characters long{"\n"}• Must include
                 uppercase and lowercase letters{"\n"}• Must include at least one
-                number{"\n"}• Must include at least one special character ($ # @
-                ! ?){"\n"}• Don't reuse old passwords
+                number{"\n"}• Must include at least one special character (@, $,
+                !, %, *, ?, &){"\n"}• Don't reuse old passwords
               </Text>
             </View>
           </View>

@@ -38,6 +38,8 @@ export const Colors = {
     settingsButton: "#4f8cff",
     settingsHoveredButton: "#4f8dffb9",
     settingsPressedButton: "#2a68dcff",
+
+    chatItemHovered: "#1e8de7ff",
     
     // Gradients
     backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale dell'app
