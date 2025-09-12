@@ -88,7 +88,7 @@ const VerifyMethod = () => {
 
   const isSmallScreen = width < 768;
   const styles = createStyle(theme, isSmallScreen);
-  const logoForQR = require("../../../assets/images/logo-novyse-nobg-less-margin.png");
+  const logoForQR = require("../../../assets/images/logo-novyse.png");
 
   useEffect(() => {
     const backAction = () => {

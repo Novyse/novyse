@@ -37,16 +37,16 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "assets/images/logo-novyse-nobg-less-margin.png"
+      "icon": "assets/images/logo-novyse.png"
     },
     "mac": {
       "target": "dmg",
-      "icon": "assets/images/logo-novyse-nobg-less-margin.png",
+      "icon": "assets/images/logo-novyse.png",
       "category": "public.app-category.communication"
     },
     "linux": {
       "target": "AppImage",
-      "icon": "assets/images/logo-novyse-nobg-less-margin.png",
+      "icon": "assets/images/logo-novyse.png",
       "category": "Network;InstantMessaging;"
     },
     "nsis": {

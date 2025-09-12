@@ -49,7 +49,7 @@ const EmailCheckForm = () => {
     return () => backHandler.remove();
   }, []);
 
-  const logoForQR = require("../../assets/images/logo-novyse-nobg-less-margin.png");
+  const logoForQR = require("../../assets/images/logo-novyse.png");
 
   useEffect(() => {
     let pollingInterval;
@@ -178,7 +178,7 @@ const EmailCheckForm = () => {
         <View style={styles.cardContent}>
           <Image
             style={styles.logo}
-            source={require("../../assets/images/logo-novyse-nobg-less-margin.png")}
+            source={require("../../assets/images/logo-novyse.png")}
           />
           <Text style={styles.title}>Welcome</Text>
           <View style={styles.inputWrapper}>
@@ -224,10 +224,10 @@ const EmailCheckForm = () => {
                     logo={logoForQR}
                     size={styles.qrcodeContainer.width}
                     enableLinearGradient={true}
-                    linearGradient={["#013480", "#177FC0"]}
+                    linearGradient={["#2241d3", "#1fa6d3ff"]}
                     logoBorderRadius={100}
-                    logoMargin={5}
-                    logoBackgroundColor={"black"}
+                    logoMargin={7}
+                    logoBackgroundColor={"white"}
                   />
                 ) : (
                   <ActivityIndicator

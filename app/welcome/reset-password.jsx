@@ -130,7 +130,7 @@ const ResetPassword = () => {
         <View style={styles.cardContent}>
           <Image
             style={styles.logo}
-            source={require("../../assets/images/logo-novyse-nobg-less-margin.png")}
+            source={require("../../assets/images/logo-novyse.png")}
           />
 
           <Text style={styles.title}>Reset Password</Text>

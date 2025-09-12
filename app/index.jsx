@@ -1,26 +1,25 @@
 import React, { useState, useContext, useEffect } from "react";
 import {
-  Text,
   View,
   StyleSheet,
-  Pressable,
-  BackHandler,
-  Alert,
   Image,
+  Alert,
+  BackHandler,
+  ActivityIndicator,
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import JsonParser from "./utils/JsonParser";
-import { SplashScreen } from "expo-router";
-import logo_novyse_bg from "../assets/images/logo-novyse-bg.png";
+import * as SplashScreen from "expo-splash-screen";
+import logo_novyse from "../assets/images/logo-novyse.png";
 import ScreenLayout from "./components/ScreenLayout";
-
 import EmailCheckForm from "./welcome/email-check";
+import JsonParser from "./utils/JsonParser";
+import { LinearGradient } from "expo-linear-gradient";
+import { LoginColors } from "@/constants/LoginColors";
 
-// Impedisce la rimozione automatica dello splash screen
+// Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 export default function Index() {
@@ -29,36 +28,46 @@ export default function Index() {
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
 
+  const loginTheme = "default";
+
   useEffect(() => {
+    let isMounted = true;
+
     const checkLogged = async () => {
       try {
         console.log("Controllo in corso 🟡");
-        // Leggi più chiavi in parallelo per ottimizzare
         const [[, isLoggedIn], [, lastUpdateDateTime]] =
           await AsyncStorage.multiGet(["isLoggedIn", "lastUpdateDateTime"]);
-        if (isLoggedIn === "true") {
+
+        if (isLoggedIn === "true" && isMounted) {
           console.log("Controllo positivo 🟢");
-          // Esegui updateAll in background
           JsonParser.updateAll(lastUpdateDateTime).catch((error) =>
             console.error("Errore in updateAll:", error)
           );
-          // Usa replace per una navigazione pulita
-          router.navigate("/messages");
+          router.replace("/messages");
         }
       } catch (error) {
         console.error("Errore durante il controllo login:", error);
       } finally {
-        setIsReady(true);
-        // Nasconde lo splash screen solo quando il controllo è completato
-        await SplashScreen.hideAsync();
+        if (isMounted) {
+          setIsReady(true);
+          try {
+            await SplashScreen.hideAsync();
+          } catch (error) {
+            console.error(
+              "Errore durante la rimozione dello splash screen:",
+              error
+            );
+          }
+        }
       }
     };
+
     checkLogged();
 
-    // Gestione del tasto indietro
     const backAction = () => {
       Alert.alert("Hold on!", "Are you sure you want to go back? 😥", [
-        { text: "Cancel", onPress: () => null, style: "cancel" },
+        { text: "Cancel", style: "cancel" },
         { text: "YES", onPress: () => BackHandler.exitApp() },
       ]);
       return true;
@@ -68,39 +77,42 @@ export default function Index() {
       "hardwareBackPress",
       backAction
     );
-    return () => backHandler.remove();
-  }, []);
-  // Mostra un indicatore di caricamento finché lo splash screen è attivo
+    return () => {
+      isMounted = false;
+      backHandler.remove();
+    };
+  }, [router]);
+
   if (!isReady) {
     return (
-      <ScreenLayout>
+      <LinearGradient
+        colors={LoginColors[loginTheme].background}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.containerStart}
+      >
         <View
           style={[
             styles.containerStart,
             { justifyContent: "center", alignItems: "center" },
           ]}
         >
-          <Image source={logo_novyse_bg} style={{ width: 100, height: 100 }} />
-          {/* <Text style={{ color: theme.text }}>Caricamento...</Text> */}
+          <Image source={logo_novyse} style={styles.logo} />
+          <ActivityIndicator
+            size="large"
+            color={theme.primary || "#6cadd8ff"} // Fallback to blue if theme.primary is undefined
+            style={styles.loader}
+          />
         </View>
-      </ScreenLayout>
+      </LinearGradient>
     );
   }
-  return (
-    // <ScreenLayout>
-    //   <View style={styles.containerStart}>
-    //     <Text style={styles.welcomeText}>BENVENUTO</Text>
-    //     <Pressable
-    //       style={styles.containerStartButton}
-    //       onPress={() => router.navigate(`/welcome/EmailCheckForm`)}
-    //     >
-    //       <MaterialIcons name="arrow-forward" size={52} color={theme.icon} />
-    //     </Pressable>
 
-    //   </View>
-    //   <StatusBar style="light" backgroundColor={theme.backgroundClassic} />
-    // </ScreenLayout>
-    <EmailCheckForm />
+  return (
+    <ScreenLayout>
+      <EmailCheckForm />
+      <StatusBar style="light" backgroundColor={theme.backgroundClassic} />
+    </ScreenLayout>
   );
 }
 
@@ -112,13 +124,13 @@ function createStyle(theme, colorScheme) {
       alignItems: "center",
       backgroundColor: "transparent",
     },
-    welcomeText: {
-      color: theme.text,
-      fontSize: 56,
-      marginBottom: 20,
-      fontWeight: "700",
-      top: -200,
+    logo: {
+      width: 100,
+      height: 100,
+      marginBottom: 20, // Space between logo and loader
     },
-    containerStartButton: {},
+    loader: {
+      marginTop: 10,
+    },
   });
 }
