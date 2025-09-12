@@ -3,6 +3,7 @@ import { StyleSheet, Text, Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ThemeContext } from "../../context/ThemeContext";
+import HoverAndPressedButton from "./HoverAndPressedButton";
 
 const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
   const router = useRouter();
@@ -10,14 +11,18 @@ const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
   const styles = createStyle(theme);
 
   return (
-    <Pressable
-      style={({ pressed, hovered }) => [
-        styles.menuItem,
-        hovered && styles.menuItemHovered,
-        pressed && styles.menuItemPressed,
-      ]}
+    // <Pressable
+    //   style={({ pressed, hovered }) => [
+    //     styles.menuItem,
+    //     hovered && styles.menuItemHovered,
+    //     pressed && styles.menuItemPressed,
+    //   ]}
+    //   onPress={() => router.push(navToPage)}
+    //   android_ripple={{ color: theme.rippleColor }}
+    // >
+    <HoverAndPressedButton
       onPress={() => router.push(navToPage)}
-      android_ripple={{ color: theme.rippleColor }}
+      containerStyle={styles.menuItem}
     >
       <View style={styles.menuItemIcon}>
         <HugeiconsIcon
@@ -28,7 +33,7 @@ const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
         />
       </View>
       <Text style={styles.menuItemText}>{pageName}</Text>
-    </Pressable>
+    </HoverAndPressedButton>
   );
 };
 
@@ -42,21 +47,13 @@ const createStyle = (theme) =>
       borderBottomColor: theme.settingsDivider,
       transition: "background-color 0.2s ease",
     },
-    menuItemHovered: {
-      backgroundColor: "rgba(0, 0, 0, 0.02)",
-      cursor: "pointer",
-    },
-    menuItemPressed: {
-      backgroundColor: "rgba(0, 0, 0, 0.05)",
-      opacity: 0.9,
-    },
     menuItemText: {
       color: theme.text,
       fontSize: 16,
     },
     menuItemIcon: {
-      marginHorizontal: 15
-    }
+      marginHorizontal: 15,
+    },
   });
 
 export default SettingsMenuItem;

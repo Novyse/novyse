@@ -13,7 +13,6 @@ import {
   KeyboardIcon,
   VolumeHighIcon,
 } from "@hugeicons/core-free-icons";
-import { APP_VERSION } from "../../app.config.js";
 import ScreenLayout from "../components/ScreenLayout";
 
 const SettingsMenu = () => {

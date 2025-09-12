@@ -1,9 +1,10 @@
 import React, { useContext } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowLeft02Icon } from "@hugeicons/core-free-icons";
+import HoverAndPressedButton from "./HoverAndPressedButton"; // Importa il nuovo componente
 
 const HeaderWithBackArrow = ({ goBackTo }) => {
   const { theme } = useContext(ThemeContext);
@@ -12,13 +13,9 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
 
   return (
     <View style={styles.container}>
-      <Pressable
-        style={({ pressed, hovered }) => [
-          styles.iconContainer,
-          hovered && styles.arrowHovered,
-          pressed && styles.arrowPressed,
-        ]}
+      <HoverAndPressedButton
         onPress={() => router.replace(goBackTo)}
+        containerStyle={styles.iconContainer}
       >
         <HugeiconsIcon
           icon={ArrowLeft02Icon}
@@ -26,7 +23,7 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
           color={theme.icon}
           strokeWidth={1.5}
         />
-      </Pressable>
+      </HoverAndPressedButton>
     </View>
   );
 };
@@ -36,20 +33,11 @@ const createStyle = (theme) =>
     container: {
       padding: 15,
       alignItems: "flex-start",
-      // backgroundColor: "#647444"
     },
     iconContainer: {
       padding: 5,
-      borderRadius: "50%"
-    },
-    arrowHovered: {
-      backgroundColor: "rgba(0, 0, 0, 0.1)",
-      cursor: "pointer",
-    },
-    arrowPressed: {
-      backgroundColor: "rgba(0, 0, 0, 0.3)",
-      opacity: 0.9,
-    },
+      borderRadius: "50%",
+    }
   });
 
 export default HeaderWithBackArrow;
