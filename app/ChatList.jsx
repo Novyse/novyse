@@ -34,16 +34,17 @@ import SocketMethods from "./utils/socketMethods";
 import localDatabase from "./utils/localDatabaseMethods";
 import ChatContainer from "./ChatContainer";
 import Sidebar from "./components/Sidebar";
+import HoverAndPressedButton from "./components/HoverAndPressedButton";
 
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   Menu02Icon,
   Search02Icon,
   Clock01Icon,
-  User03Icon,
-  Settings02Icon,
-  UserGroup03Icon,
-  Logout03Icon,
+  // User03Icon,
+  // Settings02Icon,
+  // UserGroup03Icon,
+  // Logout03Icon,
   ArrowLeft02Icon,
   Message02Icon,
   AudioWave01Icon,
@@ -409,7 +410,6 @@ const ChatList = () => {
     return <SmallCommsMenu />;
   };
 
-
   const renderHeader = () => {
     return (
       <SmartBackground
@@ -476,13 +476,9 @@ const ChatList = () => {
               }
               style={styles.chatItem}
             >
-              <Pressable
-                // style={styles.chatItemPressable}
-                style={({ hovered }) => [
-                  styles.chatItemPressable,
-                  hovered && styles.chatItemHovered
-                ]}
+              <HoverAndPressedButton
                 onPress={() => handleChatPress(item.chat_id)}
+                containerStyle={styles.chatItemPressable}
               >
                 <Image
                   source={{ uri: "https://picsum.photos/200" }}
@@ -535,7 +531,7 @@ const ChatList = () => {
                     </Text>
                   </View>
                 </View>
-              </Pressable>
+              </HoverAndPressedButton>
             </SmartBackground>
           );
         }}
@@ -582,8 +578,8 @@ const ChatList = () => {
         {/* Mostra i pulsanti solo se chatJoined è true */}
         {chatJoined && (
           <>
-            <Pressable
-              style={styles.moreButton}
+            <HoverAndPressedButton
+              containerStyle={styles.moreButton}
               onPress={() => {
                 setContentView("chat");
                 setIsMenuVisible(false);
@@ -591,14 +587,14 @@ const ChatList = () => {
             >
               <HugeiconsIcon
                 icon={Message02Icon}
-                size={24}
+                size={26}
                 color={theme.icon}
                 strokeWidth={1.5}
               />
-            </Pressable>
+            </HoverAndPressedButton>
 
-            <Pressable
-              style={styles.moreButton}
+            <HoverAndPressedButton
+              containerStyle={styles.moreButton}
               onPress={() => {
                 setContentView("vocal");
                 setIsMenuVisible(false);
@@ -606,14 +602,14 @@ const ChatList = () => {
             >
               <HugeiconsIcon
                 icon={AudioWave01Icon}
-                size={24}
+                size={26}
                 color={theme.icon}
                 strokeWidth={1.5}
               />
-            </Pressable>
+            </HoverAndPressedButton>
 
-            <Pressable
-              style={styles.moreButton}
+            <HoverAndPressedButton
+              containerStyle={styles.moreButton}
               onPress={() => {
                 setContentView("both");
                 setIsMenuVisible(false);
@@ -622,14 +618,14 @@ const ChatList = () => {
               {!isSmallScreen ? (
                 <HugeiconsIcon
                   icon={Layout2ColumnIcon}
-                  size={24}
+                  size={26}
                   color={theme.icon}
                   strokeWidth={1.5}
                 />
               ) : (
                 <></>
               )}
-            </Pressable>
+            </HoverAndPressedButton>
           </>
         )}
       </SmartBackground>
@@ -840,7 +836,9 @@ function createStyle(theme, colorScheme) {
       marginLeft: "auto",
     },
     moreButton: {
-      marginLeft: 15,
+      marginLeft: 12,
+      padding: 7,
+      borderRadius: "50%"
     },
     headerTitle: {
       color: theme.text,
@@ -935,7 +933,7 @@ function createStyle(theme, colorScheme) {
       paddingTop: 0,
     },
     chatItemHovered: {
-      backgroundColor: theme.chatItemHovered
-    }
+      backgroundColor: theme.chatItemHovered,
+    },
   });
 }
