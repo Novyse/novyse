@@ -14,8 +14,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import JsonParser from "../utils/JsonParser";
 import { useRouter, useLocalSearchParams, Link } from "expo-router";
-import { useContext } from "react";
-import { ThemeContext } from "@/context/ThemeContext";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { LoginColors } from "@/constants/LoginColors";
@@ -36,12 +34,9 @@ const Signup = () => {
 
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[^\s]{8,128}$/;
-
-  // Regex per l'handle: non permette doppi underscore e non può finire con un underscore.
   const handleRegex = /^(?!.*_{2,})[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$/;
 
   const isPasswordValid = (pwd) => passwordRegex.test(pwd);
-  // Funzione helper per validare l'handle
   const isHandleValid = (handle) => handleRegex.test(handle);
 
   const isSmallScreen = width < 936;
@@ -63,8 +58,6 @@ const Signup = () => {
   const [handleTimer, setHandleTimer] = useState(null);
   const [error, setError] = useState(null);
   const [isFormValid, setIsFormValid] = useState(false);
-
-  // Nuovo stato per l'errore specifico dell'handle (feedback UI immediato)
   const [handleError, setHandleError] = useState(null);
 
   useEffect(() => {
@@ -79,11 +72,9 @@ const Signup = () => {
     return () => backHandler.remove();
   }, []);
 
-  // Effect per controllare la validità del form
   useEffect(() => {
     const { password, name, surname, handle } = form;
     const allFieldsFilled = password && name && surname && handle;
-    // Il form è valido se tutti i campi sono pieni, l'handle è disponibile e non ci sono errori.
     setIsFormValid(
       !!allFieldsFilled &&
         handleAvailable === true &&
@@ -93,31 +84,27 @@ const Signup = () => {
   }, [form, handleAvailable, isLoading, handleError]);
 
   const handleChange = (field, value) => {
-    // Forza il minuscolo per l'handle per evitare errori
     const processedValue = field === "handle" ? value.toLowerCase() : value;
     setForm({ ...form, [field]: processedValue });
 
-    if (error) setError(null); // Pulisce l'errore generale del form
+    if (error) setError(null);
 
     if (field === "handle") {
-      setHandleAvailable(null); // Resetta la disponibilità
-      setHandleError(null); // Pulisce l'errore specifico dell'handle
+      setHandleAvailable(null);
+      setHandleError(null);
       if (handleTimer) clearTimeout(handleTimer);
 
-      // Se il campo è vuoto, fermati qui.
       if (!processedValue.trim()) {
         setIsLoading(false);
         return;
       }
 
-      // 1. Validazione del formato in tempo reale
       if (!isHandleValid(processedValue)) {
         setHandleError("Invalid format. Use a-z, 0-9, and single '_'.");
         setIsLoading(false);
-        return; // Interrompe l'esecuzione se il formato non è valido
+        return;
       }
 
-      // 2. Se il formato è valido, controlla la disponibilità dopo un ritardo
       setIsLoading(true);
       const timer = setTimeout(async () => {
         const available = await JsonParser.handleAvailability(processedValue);
@@ -126,7 +113,7 @@ const Signup = () => {
           setHandleError("This handle is already in use.");
         }
         setIsLoading(false);
-      }, 1000); // Delay ridotto per una migliore UX
+      }, 1000);
 
       setHandleTimer(timer);
     }
@@ -148,8 +135,6 @@ const Signup = () => {
     if (!name) return "Please enter your name.";
     if (!surname) return "Please enter your surname.";
     if (!handle) return "Please enter your handle.";
-
-    // Aggiunta la validazione della regex prima del submit
     if (!isHandleValid(handle)) {
       return "Handle format is invalid. Use a-z, 0-9, and single '_'.";
     }
@@ -168,7 +153,6 @@ const Signup = () => {
   const handleSignup = async () => {
     const validationError = validateForm();
     if (validationError) {
-      // Imposta l'errore che sarà mostrato da StatusMessage
       setError(validationError);
       return;
     }
@@ -207,9 +191,7 @@ const Signup = () => {
       <View
         style={[
           styles.inputContainer,
-          // Applica stile di errore se c'è un handleError specifico
           field === "handle" && handleError ? styles.inputError : null,
-          // Applica stile di successo se l'handle è disponibile e senza errori
           field === "handle" && handleAvailable === true && !handleError
             ? styles.inputSuccess
             : null,
@@ -222,11 +204,9 @@ const Signup = () => {
           placeholder={placeholder || label}
           placeholderTextColor={LoginColors[loginTheme].placeholderTextInput}
           value={form[field]}
-          // Impedisce l'inserimento di maiuscole nell'handle
           autoCapitalize={field === "handle" ? "none" : "sentences"}
         />
 
-        {/* Mostra l'indicatore di caricamento durante il controllo dell'handle */}
         {field === "handle" && isLoading && (
           <ActivityIndicator
             size="small"
@@ -250,7 +230,6 @@ const Signup = () => {
         )}
       </View>
 
-      {/* Mostra il messaggio di errore specifico per l'handle sotto l'input */}
       {field === "handle" && handleError && (
         <Text style={styles.handleErrorText}>{handleError}</Text>
       )}
@@ -380,34 +359,42 @@ const Signup = () => {
               </View>
             </View>
 
-            <TouchableOpacity
-              style={[
-                styles.submitButton,
-                {
-                  opacity:
-                    isFormValid &&
-                    privacy_policy_accepted &&
-                    terms_of_service_accepted
-                      ? 1
-                      : 0.6,
-                },
-              ]}
-              disabled={
-                !isFormValid ||
-                !privacy_policy_accepted ||
-                !terms_of_service_accepted ||
-                isLoading
-              }
-              onPress={handleSignup}
-            >
-              {isLoading && !handleTimer ? ( // Mostra l'indicatore solo durante il submit finale
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text style={styles.submitButtonText}>Create Account</Text>
-              )}
-            </TouchableOpacity>
+            {/* Container per i pulsanti Back e Create Account */}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.navigate("/welcome/email-check")}
+              >
+                <Text style={styles.backButtonText}>Back</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.submitButton,
+                  {
+                    opacity:
+                      isFormValid &&
+                      privacy_policy_accepted &&
+                      terms_of_service_accepted
+                        ? 1
+                        : 0.6,
+                  },
+                ]}
+                disabled={
+                  !isFormValid ||
+                  !privacy_policy_accepted ||
+                  !terms_of_service_accepted ||
+                  isLoading
+                }
+                onPress={handleSignup}
+              >
+                {isLoading && !handleTimer ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.submitButtonText}>Create Account</Text>
+                )}
+              </TouchableOpacity>
+            </View>
 
-            {/* StatusMessage mostrerà gli errori di validazione finali */}
             <StatusMessage type="error" text={error} />
           </View>
         </View>
@@ -418,7 +405,7 @@ const Signup = () => {
 
 export default Signup;
 
-// ... Stili (invariati)
+// Funzione per creare stili dinamici
 function createStyle(loginTheme, isSmallScreen) {
   return StyleSheet.create({
     container: {
@@ -456,14 +443,6 @@ function createStyle(loginTheme, isSmallScreen) {
       color: LoginColors[loginTheme].title,
       textAlign: "center",
       marginBottom: 16,
-    },
-    subtitle: {
-      fontSize: 14,
-      color: LoginColors[loginTheme].subtitle,
-      textAlign: "center",
-      marginBottom: 40,
-      lineHeight: 20,
-      paddingHorizontal: 20,
     },
     formWrapper: {
       width: "100%",
@@ -519,16 +498,37 @@ function createStyle(loginTheme, isSmallScreen) {
       alignItems: "center",
       marginRight: 4,
     },
+    buttonContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      width: "100%",
+      maxWidth: 300,
+      marginTop: 20,
+    },
+    backButton: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 6,
+      backgroundColor: LoginColors[loginTheme].backgroundBackButton || "#b8b8b8ff",
+      marginRight: 8,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    backButtonText: {
+      fontSize: 16,
+      color: LoginColors[loginTheme].backButtonTextColor || "#000",
+      fontWeight: "500",
+    },
     submitButton: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
       paddingVertical: 12,
       borderRadius: 6,
-      width: isSmallScreen ? "100%" : 300,
       backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
-      marginTop: 20,
     },
     submitButtonText: {
       fontSize: 16,

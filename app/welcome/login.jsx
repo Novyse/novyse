@@ -142,6 +142,10 @@ const LoginPassword = () => {
     setSecureTextEntry(!secureTextEntry);
   };
 
+  const handleBack = () => {
+    router.navigate("/welcome/email-check");
+  };
+
   return (
     <LinearGradient
       colors={
@@ -210,18 +214,29 @@ const LoginPassword = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Submit Button */}
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleLogin}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text style={styles.submitButtonText}>Login</Text>
-              )}
-            </TouchableOpacity>
+            {/* Container per i pulsanti Back e Login */}
+            <View style={styles.buttonContainer}>
+              {/* Pulsante Back */}
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={handleBack}
+              >
+                <Text style={styles.backButtonText}>Back</Text>
+              </TouchableOpacity>
+
+              {/* Pulsante Login */}
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.submitButtonText}>Login</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Sostituisci i vecchi messaggi di error e success con il nuovo componente */}
@@ -324,15 +339,35 @@ function createStyle(loginTheme, isSmallScreen) {
       alignItems: "center",
       marginRight: 4,
     },
+    buttonContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      width: "100%",
+      maxWidth: 300,
+    },
+    backButton: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 6,
+      backgroundColor: LoginColors[loginTheme].backgroundBackButton || "#b8b8b8ff",
+      marginRight: 8,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    backButtonText: {
+      fontSize: 16,
+      color: LoginColors[loginTheme].backButtonTextColor || "#000",
+      fontWeight: "500",
+    },
     submitButton: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: 16,
       paddingVertical: 12,
       borderRadius: 6,
-      maxWidth: 300,
-      width: "100%",
       backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
     },
     submitButtonText: {
