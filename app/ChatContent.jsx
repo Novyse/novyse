@@ -369,8 +369,8 @@ const ChatContent = ({
     }
     return {
       position: "absolute",
-      left: x,
-      top: y,
+      left: x-10,
+      top: y-10,
       width: menuWidth,
       height: menuHeight,
       backgroundColor: theme.modalBackground,

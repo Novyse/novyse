@@ -51,7 +51,7 @@ export const Colors = {
     backgroundHeaderGradient: ["transparent"],
     backgroundChatTextInputGradient: ["#16638e", "#2899cf"],
     sideBarGradient: ["#2b5278", "#405770", "#53709a"],
-    messageContainerGradient: ["#0e283a", "#2b5278"],
+    messageContainerGradient: ["#0b273cff"],
     searchSideBarGradient: ["transparent"],
     settingPagesGradient: ["#0e283a", "#16638e", "#2b5278"],
   },

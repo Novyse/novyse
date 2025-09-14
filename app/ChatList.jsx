@@ -427,10 +427,7 @@ const ChatList = () => {
         <Text style={styles.headerTitle}>Chats</Text>
         <Pressable
           onPress={() => {
-            // router.navigate("/Search");
-            isToggleSearchChats
-              ? setIsToggleSearchChats(false)
-              : setIsToggleSearchChats(true);
+            setIsToggleSearchChats(!isToggleSearchChats);
           }}
           style={styles.searchButton}
         >
@@ -539,7 +536,7 @@ const ChatList = () => {
     </SmartBackground>
   );
 
-  const renderChatHeaderAndContent = () => {
+  const renderChatHeaderAndContent = ({ showHeader = true }) => {
     if (!selectedChat) return null;
     const selectedDetails = chatDetails[selectedChat] || {};
     const user = selectedDetails.user || {};
@@ -549,6 +546,8 @@ const ChatList = () => {
       user.handle ||
       params.creatingChatWith ||
       "Unknown Name";
+
+    // La logica per l'header rimane qui
     const renderChatHeader = (
       <SmartBackground
         colors={theme?.backgroundHeaderGradient}
@@ -575,7 +574,6 @@ const ChatList = () => {
           {chatName}
         </Text>
 
-        {/* Mostra i pulsanti solo se chatJoined è true */}
         {chatJoined && (
           <>
             <HoverAndPressedButton
@@ -631,7 +629,7 @@ const ChatList = () => {
       </SmartBackground>
     );
 
-    // In renderChatHeaderAndContent:
+    // Lo switch ora renderizza l'header solo se showHeader è true
     switch (contentView) {
       case "vocal":
       case "chat":
@@ -641,7 +639,7 @@ const ChatList = () => {
             style={styles.chatContent}
             isSmallScreen={isSmallScreen}
           >
-            {renderChatHeader}
+            {showHeader && renderChatHeader}
             <ChatContainer
               chatJoined={chatJoined}
               chatId={selectedChat}
@@ -660,7 +658,7 @@ const ChatList = () => {
             style={styles.chatContent}
             isSmallScreen={isSmallScreen}
           >
-            {renderChatHeader}
+            {showHeader && renderChatHeader}
             <View style={{ flex: 1, flexDirection: "row" }}>
               <View
                 style={{
@@ -712,12 +710,12 @@ const ChatList = () => {
         sidebarPosition={sidebarPosition}
         theme={theme}
       />
-      {!isSmallScreen || (isSmallScreen && !selectedChat)
-        ? renderHeader()
-        : null}
-      <View style={styles.container}>
-        {isSmallScreen ? (
-          <>
+
+      {isSmallScreen ? (
+        // --- LAYOUT SCHERMI PICCOLI (RIMANE UGUALE) ---
+        <>
+          {!selectedChat && renderHeader()}
+          <View style={styles.container}>
             <SmartBackground
               colors={theme?.backgroundChatListGradient}
               style={styles.chatList}
@@ -736,29 +734,41 @@ const ChatList = () => {
                     right: 0,
                     bottom: 0,
                     zIndex: 1,
-                    backgroundColor: theme.backgroundChat, // aggiungi se serve
+                    backgroundColor: theme.backgroundChat,
                   },
                 ]}
               >
-                {renderChatHeaderAndContent()}
+                {renderChatHeaderAndContent({ showHeader: true })}
               </View>
             )}
-          </>
-        ) : (
-          <>
-            <SmartBackground
-              colors={theme?.backgroundChatListGradient}
-              style={[styles.chatList, styles.largeScreenChatList]}
-            >
-              <View style={styles.chatListWrapper}>
-                {!isToggleSearchChats ? renderChatList() : <Search />}
-                {renderBigFloatingCommsMenu()}
-              </View>
-            </SmartBackground>
-            {renderChatHeaderAndContent()}
-          </>
-        )}
-      </View>
+          </View>
+        </>
+      ) : (
+        // --- NUOVO LAYOUT SEMPLIFICATO PER SCHERMI GRANDI ---
+        <View style={{ flex: 1, flexDirection: "row" }}>
+          {/* COLONNA SINISTRA (LISTA CHAT) */}
+          <View
+            style={[
+              styles.chatList,
+              styles.largeScreenChatList,
+              { flexDirection: "column" },
+            ]}
+          >
+            {renderHeader()}
+            <View style={styles.chatListWrapper}>
+              {!isToggleSearchChats ? renderChatList() : <Search />}
+              {renderBigFloatingCommsMenu()}
+            </View>
+          </View>
+
+          {/* COLONNA DESTRA (CHAT ATTIVA) */}
+          <View style={{ flex: 1, flexDirection: "column" }}>
+            {/* La funzione ora renderizza header e contenuto insieme, come prima, ma all'interno della colonna destra */}
+            {renderChatHeaderAndContent({ showHeader: true })}
+          </View>
+        </View>
+      )}
+
       <CreateGroupModal
         visible={isCreateGroupModalVisible}
         onClose={() => setIsCreateGroupModalVisible(false)}
@@ -828,6 +838,7 @@ function createStyle(theme, colorScheme) {
       flexDirection: "row",
       padding: 10,
       alignItems: "center",
+      height: 60,
     },
     menuButton: {
       marginRight: 10,
@@ -838,7 +849,7 @@ function createStyle(theme, colorScheme) {
     moreButton: {
       marginLeft: 12,
       padding: 7,
-      borderRadius: "50%"
+      borderRadius: "50%",
     },
     headerTitle: {
       color: theme.text,
@@ -849,12 +860,11 @@ function createStyle(theme, colorScheme) {
       // backgroundColor: theme.backgroundChat,
       borderBottomColor: theme.chatDivider,
       borderBottomWidth: 1,
-      padding: 10,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       width: "100%",
-      zIndex: 10,
+      // zIndex: 10,
     },
     chatHeaderTitle: {
       color: theme.text,

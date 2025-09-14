@@ -46,7 +46,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
-        <data android:scheme="com.BPUP.Messanger"/>
+        <data android:scheme="com.Novyse.Messanger"/>
         <data android:scheme="exp+messanger"/>
         <data android:scheme="com.novyse"/>
         <data android:scheme="exp+novyse"/>
