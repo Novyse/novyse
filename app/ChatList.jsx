@@ -606,24 +606,22 @@ const ChatList = () => {
               />
             </HoverAndPressedButton>
 
-            <HoverAndPressedButton
-              containerStyle={styles.moreButton}
-              onPress={() => {
-                setContentView("both");
-                setIsMenuVisible(false);
-              }}
-            >
-              {!isSmallScreen ? (
+            {!isSmallScreen ? (
+              <HoverAndPressedButton
+                containerStyle={styles.moreButton}
+                onPress={() => {
+                  setContentView("both");
+                  setIsMenuVisible(false);
+                }}
+              >
                 <HugeiconsIcon
                   icon={Layout2ColumnIcon}
                   size={26}
                   color={theme.icon}
                   strokeWidth={1.5}
                 />
-              ) : (
-                <></>
-              )}
-            </HoverAndPressedButton>
+              </HoverAndPressedButton>
+            ) : null}
           </>
         )}
       </SmartBackground>

@@ -36,6 +36,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import SmartBackground from "./components/SmartBackground";
 import ChatIconsPickerModal from "./components/ChatIconsPickerModal";
+import MessageBubble from "./components/messages/MessageBubble";
 
 const ChatContent = ({
   chatJoined,
@@ -77,7 +78,12 @@ const ChatContent = ({
     const loadMessages = async () => {
       try {
         const msgs = await localDatabase.fetchAllChatMessages(chatId);
-        const reversedMsgs = msgs.reverse();
+        // --- MODIFICA: Adattiamo i messaggi alla nuova struttura ---
+        const adaptedMsgs = msgs.map((msg) => ({
+          ...msg,
+          content: { text: msg.text }, // In futuro qui ci saranno anche images, etc.
+        }));
+        const reversedMsgs = adaptedMsgs.reverse();
         setMessages(reversedMsgs);
         messagesRef.current = reversedMsgs;
       } catch (error) {
@@ -93,19 +99,15 @@ const ChatContent = ({
     // gestisco quando ricevo un messaggio da un utente
     const handleReceiveMessage = (data) => {
       if (data.chat_id === chatId) {
+        // --- MODIFICA: Creiamo il messaggio con la nuova struttura ---
         const newMessage = {
-          message_id: data.message_id || data.hash, // Nota: l'hash non è più usato, al suo posto ci va un numero random
+          message_id: data.message_id || data.hash,
           sender: data.sender,
-          text: data.text,
           date_time: data.date,
           hash: data.hash,
+          content: { text: data.text },
         };
-
-        setMessages((currentMessages) => {
-          const updatedMessages = [newMessage, ...currentMessages];
-          messagesRef.current = updatedMessages;
-          return updatedMessages;
-        });
+        setMessages((currentMessages) => [newMessage, ...currentMessages]);
       }
     };
     eventEmitter.on("newMessage", handleReceiveMessage);
@@ -114,14 +116,14 @@ const ChatContent = ({
     const handleUpdateMessage = (data) => {
       setMessages((currentMessages) => {
         return currentMessages.map((item) => {
-          // Check if this is our temporary message that needs updating
           if (item.hash === data.hash) {
+            // --- MODIFICA: Aggiorniamo il messaggio con la nuova struttura ---
             return {
               message_id: data.message_id,
               sender: data.sender,
-              text: data.text,
               date_time: data.date,
               hash: data.hash,
+              content: { text: data.text },
             };
           }
           return item;
@@ -156,67 +158,6 @@ const ChatContent = ({
     if (!dateTimeMessage) return "";
     const timeMoment = moment(dateTimeMessage);
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
-  };
-
-  // capisco se una parte del messaggio è un link oppure no
-  const LinkedText = ({ text, style }) => {
-    if (!text) return null;
-
-    // Trova tutte le corrispondenze
-    const parts = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = urlRegex.exec(text)) !== null) {
-      // Aggiungi testo prima del link
-      if (match.index > lastIndex) {
-        parts.push(
-          <Text key={`t-${lastIndex}`} style={style}>
-            {text.substring(lastIndex, match.index)}
-          </Text>
-        );
-      }
-
-      // Prepara URL per il click
-      const linkUrl = match[0].startsWith("http")
-        ? match[0]
-        : `https://${match[0]}`;
-
-      // Aggiungi il link
-      parts.push(
-        <Text
-          key={`l-${match.index}`}
-          style={[
-            styles.messagesLink,
-            Platform.OS === "web" && {
-              wordBreak: "break-all",
-              overflowWrap: "break-word",
-              whiteSpace: "pre-wrap",
-            },
-          ]}
-          onPress={() =>
-            Platform.OS === "web"
-              ? window.open(linkUrl, "_blank")
-              : Linking.openURL(linkUrl)
-          }
-        >
-          {match[0]}
-        </Text>
-      );
-
-      lastIndex = match.index + match[0].length;
-    }
-
-    // Aggiungi testo rimanente
-    if (lastIndex < text.length) {
-      parts.push(
-        <Text key={`t-last`} style={style}>
-          {text.substring(lastIndex)}
-        </Text>
-      );
-    }
-
-    return parts.length ? parts : <Text style={style}>{text}</Text>;
   };
 
   // quando voglio inviare il primo messaggio per avviare una chat
@@ -279,9 +220,9 @@ const ChatContent = ({
         const tempMessage = {
           message_id: randomNumberPlusDate,
           sender: userId,
-          text: newMessageText,
-          date_time: "",
+          date_time: "", // Vuoto per mostrare l'orologio
           hash: randomNumberPlusDate,
+          content: { text: newMessageText },
         };
 
         setMessages((currentMessages) => [tempMessage, ...currentMessages]);
@@ -369,8 +310,8 @@ const ChatContent = ({
     }
     return {
       position: "absolute",
-      left: x-10,
-      top: y-10,
+      left: x - 10,
+      top: y - 10,
       width: menuWidth,
       height: menuHeight,
       backgroundColor: theme.modalBackground,
@@ -491,39 +432,11 @@ const ChatContent = ({
           } else {
             const message = item.data;
             return (
-              <LinearGradient
-                colors={theme.messageContainerGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={
-                  message.sender == userId
-                    ? styles.msgSender
-                    : styles.msgReceiver
-                }
-              >
-                <Pressable
-                  onLongPress={(e) => handleLongPress(e, message)}
-                  style={styles.messagePressable}
-                >
-                  {/* Usa il componente LinkedText */}
-                  <LinkedText
-                    text={message.text}
-                    style={styles.textMessageContent}
-                  />
-                  <Text style={styles.timeText}>
-                    {message.date_time === "" ? (
-                      <HugeiconsIcon
-                        icon={Clock01Icon}
-                        size={14}
-                        color={theme.icon}
-                        strokeWidth={1.5}
-                      />
-                    ) : (
-                      parseTime(message.date_time)
-                    )}
-                  </Text>
-                </Pressable>
-              </LinearGradient>
+              <MessageBubble
+                message={message}
+                isSender={message.sender === userId}
+                onLongPress={(e) => handleLongPress(e, message)}
+              />
             );
           }
         }}
