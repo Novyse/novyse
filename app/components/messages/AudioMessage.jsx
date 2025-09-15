@@ -77,9 +77,7 @@ const AudioMessage = () => {
   const formatTime = (timeInSeconds) => {
     if (isNaN(timeInSeconds) || timeInSeconds === null) return "00:00";
     const seconds = Math.floor(timeInSeconds);
-    const minutes = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
+    const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
     const remainingSeconds = (seconds % 60).toString().padStart(2, "0");
     return `${minutes}:${remainingSeconds}`;
   };
@@ -123,8 +121,7 @@ function createStyle(theme) {
     container: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 7,
-      marginVertical: 5,
+      paddingVertical: 5,
       width: "100%",
     },
     playPauseButton: {

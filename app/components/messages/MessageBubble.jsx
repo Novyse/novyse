@@ -23,7 +23,7 @@ const MessageBubble = ({ message, isSender, onLongPress }) => {
       style={isSender ? styles.msgSender : styles.msgReceiver}
     >
       <Pressable onLongPress={onLongPress} style={styles.pressable}>
-        <View style={styles.content(isSender)}>
+        {/* <View style={styles.content(isSender)}> */}
           {/* Renderizza la griglia di immagini se presenti */}
           {content.images && content.images.length > 0 && (
             <ImageGrid imageUrls={content.images} />
@@ -34,7 +34,7 @@ const MessageBubble = ({ message, isSender, onLongPress }) => {
           <AudioMessage />
           {/* Orario e stato del messaggio */}
           <MessageTimestamp time={date_time} />
-        </View>
+        {/* </View> */}
       </Pressable>
     </LinearGradient>
   );
@@ -44,7 +44,7 @@ const createStyle = (theme) =>
   StyleSheet.create({
     msgSender: {
       marginVertical: 5,
-      maxWidth: "70%",
+      maxWidth: "60%",
       borderRadius: 10,
       borderBottomRightRadius: 0,
       alignSelf: "flex-end",
@@ -52,17 +52,17 @@ const createStyle = (theme) =>
     },
     msgReceiver: {
       marginVertical: 5,
-      maxWidth: "70%",
+      maxWidth: "60%",
       borderRadius: 10,
       borderBottomLeftRadius: 0,
       alignSelf: "flex-start",
       marginLeft: 8,
     },
-    content: (isSender) => ({
-      flexDirection: "column",
-      alignItems: isSender ? "flex-end" : "flex-start",
-      width: "100%"
-    }),
+    // content: (isSender) => ({
+    //   flexDirection: "column",
+    //   alignItems: isSender ? "flex-end" : "flex-start",
+    //   width: "100%"
+    // }),
     pressable: {
       padding: 10,
       flexDirection: "row",
