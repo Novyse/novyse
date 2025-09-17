@@ -32,6 +32,7 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       padding: 15,
+      height: 60,
       alignItems: "flex-start",
     },
     iconContainer: {

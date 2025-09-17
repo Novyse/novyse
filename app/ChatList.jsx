@@ -296,14 +296,7 @@ const ChatList = () => {
 
   // apre / chiude la sidebar
   const toggleSidebar = () => {
-    Animated.timing(sidebarPosition, {
-      toValue: isSidebarVisible ? -250 : 0,
-      duration: 250,
-      useNativeDriver: true,
-    }).start(() => {
-      setIsSidebarVisible(!isSidebarVisible);
-      setOverlayVisible(!isSidebarVisible);
-    });
+    setIsSidebarVisible(!isSidebarVisible);
   };
 
   // Quando una chat nella lista di quelle salvate viene premuta

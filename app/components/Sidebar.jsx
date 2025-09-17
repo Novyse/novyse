@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -25,17 +25,58 @@ const Sidebar = ({
   handleSettingsPress,
   logout,
   userData,
-  sidebarPosition,
   theme,
 }) => {
   const { colorScheme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
 
+  // 1. Definisci i valori animati all'interno del componente
+  const sidebarPosition = useRef(new Animated.Value(-250)).current;
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
+
+  const SIDEBAR_OVERLAY_SPEED = 175;
+
+  // 2. Sincronizza le animazioni con il cambio di isSidebarVisible
+  useEffect(() => {
+    if (isSidebarVisible) {
+      // Apertura: avvia le due animazioni in parallelo
+      Animated.parallel([
+        Animated.timing(sidebarPosition, {
+          toValue: 0,
+          duration: SIDEBAR_OVERLAY_SPEED,
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayOpacity, {
+          toValue: 0.7,
+          duration: SIDEBAR_OVERLAY_SPEED,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      // Chiusura: avvia le due animazioni in parallelo
+      Animated.parallel([
+        Animated.timing(sidebarPosition, {
+          toValue: -250,
+          duration: SIDEBAR_OVERLAY_SPEED,
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayOpacity, {
+          toValue: 0,
+          duration: SIDEBAR_OVERLAY_SPEED,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isSidebarVisible]);
+
   return (
     <>
-      {isSidebarVisible && (
-        <Pressable style={styles.overlay} onPress={toggleSidebar} />
-      )}
+      <Animated.View
+        style={[styles.overlay, { opacity: overlayOpacity }]}
+        pointerEvents={isSidebarVisible ? "auto" : "none"}
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={toggleSidebar} />
+      </Animated.View>
       <Animated.View
         style={[
           styles.sidebar,
@@ -46,6 +87,9 @@ const Sidebar = ({
           colors={theme?.sideBarGradient}
           style={styles.sidebarContent}
         >
+
+
+
           <View style={styles.profileContainer}>
             <View style={styles.avatar}>
               <Image
@@ -59,11 +103,14 @@ const Sidebar = ({
                   ? `${userData.name} ${userData.surname}`
                   : "Loading..."}
               </Text>
-              <Text style={styles.profileHandle}>
+              {/* <Text style={styles.profileHandle}>
                 {userData.handle ? `@${userData.handle}` : "@loading..."}
-              </Text>
+              </Text> */}
             </View>
           </View>
+
+
+
           <View style={styles.menuContainer}>
             <SidebarItem
               text="Profile"
@@ -96,6 +143,9 @@ const Sidebar = ({
               }}
             />
           </View>
+
+
+
         </SmartBackground>
       </Animated.View>
     </>
@@ -116,8 +166,6 @@ function createStyle(theme, colorScheme) {
     },
     sidebarContent: {
       flex: 1,
-      padding: 20,
-      paddingTop: 60,
       overflow: "hidden",
     },
     overlay: {
@@ -126,16 +174,18 @@ function createStyle(theme, colorScheme) {
       left: 0,
       right: 0,
       bottom: 0,
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
       zIndex: 1,
     },
     profileContainer: {
-      flexDirection: "row",
+      flexDirection: "column",
       alignItems: "center",
-      marginBottom: 30,
+      paddingHorizontal: 15,
+      marginTop: 50,
+      marginBottom: 25
     },
     profileTextContainer: {
-      flexDirection: "column",
-      flex: 1,
+      width: "100%",
     },
     profileName: {
       color: theme.text,
@@ -150,10 +200,11 @@ function createStyle(theme, colorScheme) {
       flex: 1,
     },
     avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 10,
+      width: 50,
+      height: 50,
+      marginBottom: 15,
+      borderRadius: "50%",
+      alignSelf: "flex-start"
     },
   });
 }

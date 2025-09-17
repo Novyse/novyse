@@ -15,7 +15,7 @@ import { PlayIcon, PauseIcon } from "@hugeicons/core-free-icons";
 
 const audioSource = require("../../../assets/audio/vocalMessagesTest.mp3");
 
-const AudioMessage = () => {
+const MessageAudio = () => {
   const playerRef = useRef(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -44,7 +44,7 @@ const AudioMessage = () => {
         }
       }
       if (status.error) {
-        console.error("[AudioMessage] Errore di riproduzione:", status.error);
+        console.error("[MessageAudio] Errore di riproduzione:", status.error);
       }
     });
 
@@ -65,7 +65,7 @@ const AudioMessage = () => {
         playerRef.current.play();
       }
     } catch (error) {
-      console.error("[AudioMessage] Errore play/pause:", error);
+      console.error("[MessageAudio] Errore play/pause:", error);
     }
   }, [isPlaying]);
 
@@ -150,4 +150,4 @@ function createStyle(theme) {
   });
 }
 
-export default React.memo(AudioMessage);
+export default React.memo(MessageAudio);

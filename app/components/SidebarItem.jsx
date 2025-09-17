@@ -32,6 +32,7 @@ const createStyle = (theme) =>
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: 15,
+      paddingHorizontal: 15,
       borderBottomWidth: 1,
       borderBottomColor: theme.settingsDivider,
     },

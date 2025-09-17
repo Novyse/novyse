@@ -1,15 +1,15 @@
-// components/messages/MessageBubble.js
+// components/messages/MessageBase.js
 import React, { useContext } from "react";
 import { View, Pressable, StyleSheet, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "@/context/ThemeContext";
-import AudioMessage from "./AudioMessage";
+import MessageAudio from "./MessageAudio";
 
 // Importa i componenti di contenuto
-import TextMessage from "./TextMessage";
+import MessageText from "./MessageText";
 import MessageTimestamp from "./MessageTimestamp";
 
-const MessageBubble = ({ message, isSender, onLongPress }) => {
+const MessageBase = ({ message, isSender, onLongPress }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -29,9 +29,9 @@ const MessageBubble = ({ message, isSender, onLongPress }) => {
             <ImageGrid imageUrls={content.images} />
           )}
           {/* Renderizza il testo se presente */}
-          {content.text && <TextMessage text={content.text} />}
+          {content.text && <MessageText text={content.text} />}
           {/* Audio */}
-          <AudioMessage />
+          <MessageAudio />
           {/* Orario e stato del messaggio */}
           <MessageTimestamp time={date_time} />
         {/* </View> */}
@@ -77,4 +77,4 @@ const createStyle = (theme) =>
     },
   });
 
-export default MessageBubble;
+export default MessageBase;

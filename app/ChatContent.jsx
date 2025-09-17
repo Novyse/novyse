@@ -36,7 +36,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import SmartBackground from "./components/SmartBackground";
 import ChatIconsPickerModal from "./components/ChatIconsPickerModal";
-import MessageBubble from "./components/messages/MessageBubble";
+import MessageBase from "./components/messages/MessageBase";
 
 const ChatContent = ({
   chatJoined,
@@ -432,7 +432,7 @@ const ChatContent = ({
           } else {
             const message = item.data;
             return (
-              <MessageBubble
+              <MessageBase
                 message={message}
                 isSender={message.sender === userId}
                 onLongPress={(e) => handleLongPress(e, message)}
@@ -599,7 +599,7 @@ function createStyle(theme) {
     safeAreaContainer: {
       flex: 1,
     },
-    textMessageContent: {
+    MessageTextContent: {
       color: theme.text,
       fontSize: 18,
       maxWidth: "100%",
