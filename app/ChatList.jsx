@@ -35,6 +35,7 @@ import localDatabase from "./utils/localDatabaseMethods";
 import ChatContainer from "./ChatContainer";
 import Sidebar from "./components/Sidebar";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
+import HeaderBase from "./components/HeaderBase";
 
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
@@ -405,10 +406,7 @@ const ChatList = () => {
 
   const renderHeader = () => {
     return (
-      <SmartBackground
-        colors={theme?.backgroundHeaderGradient}
-        style={styles.header}
-      >
+      <HeaderBase>
         <Pressable onPress={toggleSidebar} style={styles.menuButton}>
           <HugeiconsIcon
             icon={Menu02Icon}
@@ -431,7 +429,7 @@ const ChatList = () => {
             strokeWidth={1.5}
           />
         </Pressable>
-      </SmartBackground>
+      </HeaderBase>
     );
   };
 
@@ -542,10 +540,7 @@ const ChatList = () => {
 
     // La logica per l'header rimane qui
     const renderChatHeader = (
-      <SmartBackground
-        colors={theme?.backgroundHeaderGradient}
-        style={[styles.header, styles.chatHeader]}
-      >
+      <HeaderBase>
         {isSmallScreen && (
           <Pressable
             onPress={() => setSelectedChat(null)}
@@ -566,7 +561,6 @@ const ChatList = () => {
         <Text style={[styles.headerTitle, styles.chatHeaderTitle]}>
           {chatName}
         </Text>
-
         {chatJoined && (
           <>
             <HoverAndPressedButton
@@ -583,7 +577,6 @@ const ChatList = () => {
                 strokeWidth={1.5}
               />
             </HoverAndPressedButton>
-
             <HoverAndPressedButton
               containerStyle={styles.moreButton}
               onPress={() => {
@@ -598,7 +591,6 @@ const ChatList = () => {
                 strokeWidth={1.5}
               />
             </HoverAndPressedButton>
-
             {!isSmallScreen ? (
               <HoverAndPressedButton
                 containerStyle={styles.moreButton}
@@ -617,7 +609,7 @@ const ChatList = () => {
             ) : null}
           </>
         )}
-      </SmartBackground>
+      </HeaderBase>
     );
 
     // Lo switch ora renderizza l'header solo se showHeader è true
@@ -823,13 +815,6 @@ function createStyle(theme, colorScheme) {
       padding: 0,
       flex: 1,
       // backgroundColor: theme.backgroundChat,
-    },
-    header: {
-      // backgroundColor: theme.backgroundHeader,
-      flexDirection: "row",
-      padding: 10,
-      alignItems: "center",
-      height: 60,
     },
     menuButton: {
       marginRight: 10,

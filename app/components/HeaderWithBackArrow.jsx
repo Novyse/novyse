@@ -4,7 +4,8 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowLeft02Icon } from "@hugeicons/core-free-icons";
-import HoverAndPressedButton from "./HoverAndPressedButton"; // Importa il nuovo componente
+import HoverAndPressedButton from "./HoverAndPressedButton";
+import HeaderBase from "./HeaderBase";
 
 const HeaderWithBackArrow = ({ goBackTo }) => {
   const { theme } = useContext(ThemeContext);
@@ -12,7 +13,7 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
+    <HeaderBase>
       <HoverAndPressedButton
         onPress={() => router.replace(goBackTo)}
         containerStyle={styles.iconContainer}
@@ -24,21 +25,16 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
           strokeWidth={1.5}
         />
       </HoverAndPressedButton>
-    </View>
+    </HeaderBase>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    container: {
-      padding: 15,
-      height: 60,
-      alignItems: "flex-start",
-    },
     iconContainer: {
       padding: 5,
       borderRadius: "50%",
-    }
+    },
   });
 
 export default HeaderWithBackArrow;

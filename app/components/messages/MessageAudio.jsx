@@ -17,18 +17,19 @@ const audioSource = require("../../../assets/audio/vocalMessagesTest.mp3");
 
 const MessageAudio = () => {
   const playerRef = useRef(null);
-
   const [isPlaying, setIsPlaying] = useState(false);
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isPlayerReady, setPlayerReady] = useState(false);
+  // Add state for playback rate
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const playbackRates = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3];
 
   const { theme } = useContext(ThemeContext);
   const styles = useMemo(() => createStyle(theme), [theme]);
 
   useEffect(() => {
     const newPlayer = createAudioPlayer(audioSource);
-    // Salva l'istanza nel ref per farla sopravvivere ai re-render
     playerRef.current = newPlayer;
 
     const listener = newPlayer.addListener("playbackStatusUpdate", (status) => {
@@ -39,7 +40,6 @@ const MessageAudio = () => {
         setIsPlaying(status.playing);
 
         if (status.didJustFinish) {
-          // Quando finisce, torna all'inizio senza scaricare
           playerRef.current?.seekTo(0);
         }
       }
@@ -48,13 +48,25 @@ const MessageAudio = () => {
       }
     });
 
-    // Funzione di cleanup
     return () => {
-      // Rimuovi il listener e il player quando il componente viene smontato
       listener.remove();
       playerRef.current?.remove();
     };
-  }, []); // L'array vuoto assicura che venga eseguito solo una volta
+  }, []);
+
+  // Function to handle playback rate change
+  const handlePlaybackRateChange = useCallback(() => {
+    if (!playerRef.current) return;
+    try {
+      const currentIndex = playbackRates.indexOf(playbackRate);
+      const nextIndex = (currentIndex + 1) % playbackRates.length;
+      const newRate = playbackRates[nextIndex];
+      setPlaybackRate(newRate);
+      playerRef.current.setPlaybackRate(newRate);
+    } catch (error) {
+      console.error("[MessageAudio] Errore cambio playback rate:", error);
+    }
+  }, [playbackRate]);
 
   const handlePlayPause = useCallback(() => {
     if (!playerRef.current) return;
@@ -108,9 +120,18 @@ const MessageAudio = () => {
           maximumTrackTintColor="#d3d3d3"
           thumbTintColor="#0088cc"
         />
-        <Text style={styles.durationText}>
-          {formatTime(position)} / {formatTime(duration)}
-        </Text>
+        <View style={styles.textContainer}>
+          <Text style={styles.durationText}>
+            {formatTime(position)} / {formatTime(duration)}
+          </Text>
+          <TouchableOpacity
+            onPress={handlePlaybackRateChange}
+            disabled={!isPlayerReady}
+            style={styles.playbackRateButton}
+          >
+            <Text style={styles.playbackRateText}>{playbackRate}x</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -141,11 +162,27 @@ function createStyle(theme) {
       flex: 1,
       height: 30,
     },
+    textContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 4,
+    },
     durationText: {
       fontSize: 12,
       color: theme.text,
       textAlign: "left",
-      marginTop: 4,
+    },
+    playbackRateButton: {
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      borderRadius: 12,
+      backgroundColor: "#0088cc",
+    },
+    playbackRateText: {
+      fontSize: 12,
+      color: "#fff",
+      fontWeight: "bold",
     },
   });
 }

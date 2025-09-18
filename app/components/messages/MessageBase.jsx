@@ -31,7 +31,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
           {/* Renderizza il testo se presente */}
           {content.text && <MessageText text={content.text} />}
           {/* Audio */}
-          <MessageAudio />
+          {/* <MessageAudio /> */}
           {/* Orario e stato del messaggio */}
           <MessageTimestamp time={date_time} />
         {/* </View> */}
