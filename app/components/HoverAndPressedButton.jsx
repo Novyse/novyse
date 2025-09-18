@@ -31,7 +31,8 @@ const HoverAndPressedButton = ({
 const createStyle = (theme) =>
   StyleSheet.create({
     baseContainer: {
-      // stile di base
+      padding: 5,
+      borderRadius: "50%",
     },
     baseHovered: {
       backgroundColor: "rgba(0, 0, 0, 0.1)",

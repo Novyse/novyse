@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { Platform } from "react-native";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Icon from "../Icon";
 
 // Import mediaDevices from react-native-webrtc
 let mediaDevices;
@@ -76,11 +76,7 @@ const CameraSelector = ({
       ]}
       onPress={() => handleCameraSelect(item)}
     >
-      <MaterialIcons
-        name="videocam"
-        size={24}
-        color={item.deviceId === currentDeviceId ? "#4CAF50" : "#666"}
-      />
+      <Icon name={"Video02Icon"} color={item.deviceId === currentDeviceId ? "#4CAF50" : "#666"}/>
       <View style={styles.cameraInfo}>
         <Text
           style={[
@@ -95,7 +91,7 @@ const CameraSelector = ({
         )}
       </View>
       {item.deviceId === currentDeviceId && (
-        <MaterialIcons name="check" size={20} color="#4CAF50" />
+        <Icon name={"Tick02Icon"} color="#4CAF50"/>
       )}
     </TouchableOpacity>
   );
@@ -112,7 +108,7 @@ const CameraSelector = ({
           <View style={styles.header}>
             <Text style={styles.title}>Select Camera</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <MaterialIcons name="close" size={24} color="#666" />
+              <Icon name={"Cancel01Icon"} color="#666"/>
             </TouchableOpacity>
           </View>
 

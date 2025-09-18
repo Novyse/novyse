@@ -17,5 +17,5 @@
     "app/index.jsx",
     "context/ThemeContext.js", 
     "app/_app.js"
-  ]
+, "app/components/Icon.jsx"  ]
 }

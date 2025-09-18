@@ -37,27 +37,13 @@ import Sidebar from "./components/Sidebar";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
 import HeaderBase from "./components/HeaderBase";
 
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import {
-  Menu02Icon,
-  Search02Icon,
-  Clock01Icon,
-  // User03Icon,
-  // Settings02Icon,
-  // UserGroup03Icon,
-  // Logout03Icon,
-  ArrowLeft02Icon,
-  Message02Icon,
-  AudioWave01Icon,
-  Layout2ColumnIcon,
-} from "@hugeicons/core-free-icons";
+import Icon from "./components/Icon";
 
 const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
 
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const [overlayVisible, setOverlayVisible] = useState(false);
   const [networkAvailable, setNetworkAvailable] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
@@ -407,28 +393,21 @@ const ChatList = () => {
   const renderHeader = () => {
     return (
       <HeaderBase>
-        <Pressable onPress={toggleSidebar} style={styles.menuButton}>
-          <HugeiconsIcon
-            icon={Menu02Icon}
-            size={36}
-            color={theme.icon}
-            strokeWidth={1.5}
-          />
-        </Pressable>
+        <HoverAndPressedButton
+          onPress={toggleSidebar}
+          style={styles.menuButton}
+        >
+          <Icon name={"Menu02Icon"} size={32}/>
+        </HoverAndPressedButton>
         <Text style={styles.headerTitle}>Chats</Text>
-        <Pressable
+        <HoverAndPressedButton
           onPress={() => {
             setIsToggleSearchChats(!isToggleSearchChats);
           }}
           style={styles.searchButton}
         >
-          <HugeiconsIcon
-            icon={Search02Icon}
-            size={36}
-            color={theme.icon}
-            strokeWidth={1.5}
-          />
-        </Pressable>
+          <Icon name={"Search02Icon"} size={32}/>
+        </HoverAndPressedButton>
       </HeaderBase>
     );
   };
@@ -504,12 +483,7 @@ const ChatList = () => {
                       ellipsizeMode="tail"
                     >
                       {lastMessageDate === "" ? (
-                        <HugeiconsIcon
-                          icon={Clock01Icon}
-                          size={14}
-                          color={theme.icon}
-                          strokeWidth={1.5}
-                        />
+                        <Icon name={"Clock01Icon"} size={15}/>
                       ) : (
                         lastMessageDate
                       )}
@@ -546,12 +520,7 @@ const ChatList = () => {
             onPress={() => setSelectedChat(null)}
             style={styles.backButton}
           >
-            <HugeiconsIcon
-              icon={ArrowLeft02Icon}
-              size={24}
-              color={theme.icon}
-              strokeWidth={1.5}
-            />
+            <Icon name={"ArrowLeft02Icon"} />
           </Pressable>
         )}
         <Image
@@ -570,12 +539,7 @@ const ChatList = () => {
                 setIsMenuVisible(false);
               }}
             >
-              <HugeiconsIcon
-                icon={Message02Icon}
-                size={26}
-                color={theme.icon}
-                strokeWidth={1.5}
-              />
+              <Icon name={"Message02Icon"} />
             </HoverAndPressedButton>
             <HoverAndPressedButton
               containerStyle={styles.moreButton}
@@ -584,12 +548,7 @@ const ChatList = () => {
                 setIsMenuVisible(false);
               }}
             >
-              <HugeiconsIcon
-                icon={AudioWave01Icon}
-                size={26}
-                color={theme.icon}
-                strokeWidth={1.5}
-              />
+              <Icon name={"AudioWave01Icon"} />
             </HoverAndPressedButton>
             {!isSmallScreen ? (
               <HoverAndPressedButton
@@ -599,12 +558,7 @@ const ChatList = () => {
                   setIsMenuVisible(false);
                 }}
               >
-                <HugeiconsIcon
-                  icon={Layout2ColumnIcon}
-                  size={26}
-                  color={theme.icon}
-                  strokeWidth={1.5}
-                />
+                <Icon name={"Layout2ColumnIcon"} />
               </HoverAndPressedButton>
             ) : null}
           </>
@@ -824,8 +778,6 @@ function createStyle(theme, colorScheme) {
     },
     moreButton: {
       marginLeft: 12,
-      padding: 7,
-      borderRadius: "50%",
     },
     headerTitle: {
       color: theme.text,

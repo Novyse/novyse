@@ -1,17 +1,7 @@
 import React, { useContext } from "react";
 import { StyleSheet, Pressable } from "react-native";
-import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import {
-  Mic02Icon,
-  MicOff02Icon,
-  Video02Icon,
-  VideoOffIcon,
-  ComputerScreenShareIcon,
-  ComputerRemoveIcon,
-  Call02Icon,
-  Close02Icon,
-} from "@hugeicons/core-free-icons";
+import Icon from "../Icon";
 
 const VocalBottomBarButton = ({ onPress, iconName, iconColor }) => {
   const { theme } = useContext(ThemeContext);
@@ -19,12 +9,7 @@ const VocalBottomBarButton = ({ onPress, iconName, iconColor }) => {
 
   return (
     <Pressable style={styles.iconButton} onPress={onPress}>
-      <HugeiconsIcon
-        icon={iconName}
-        size={24}
-        color={iconColor}
-        strokeWidth={1.5}
-      />
+      <Icon name={iconName} color={iconColor}/>
     </Pressable>
   );
 };

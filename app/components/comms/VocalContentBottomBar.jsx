@@ -15,17 +15,6 @@ import CameraArrowButton from "./CameraArrowButton";
 import { BlurView } from "expo-blur";
 import { useRouter } from "expo-router";
 
-import {
-  Mic02Icon,
-  MicOff02Icon,
-  Video02Icon,
-  VideoOffIcon,
-  ComputerScreenShareIcon,
-  ComputerRemoveIcon,
-  Settings02Icon,
-  Call02Icon,
-} from "@hugeicons/core-free-icons";
-
 import methods from "../../utils/webrtc/methods";
 const { get, self, check } = methods;
 
@@ -230,7 +219,7 @@ const VocalContentBottomBar = ({ chatId }) => {
         ) : (
           <VocalBottomBarButton
             onPress={handleJoinVocal}
-            iconName={Call02Icon}
+            iconName={"Call02Icon"}
             iconColor="green"
           />
         )
@@ -240,8 +229,7 @@ const VocalContentBottomBar = ({ chatId }) => {
             <View style={styles.microphoneButtonContainer}>
               <VocalBottomBarButton
                 onPress={toggleAudio}
-                iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
-                iconColor={theme.icon}
+                iconName={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
               />
               <MicrophoneArrowButton
                 onPress={handleMicrophoneSelect}
@@ -251,27 +239,24 @@ const VocalContentBottomBar = ({ chatId }) => {
             <View style={styles.cameraButtonContainer}>
               <VocalBottomBarButton
                 onPress={toggleVideo}
-                iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
-                iconColor={theme.icon}
+                iconName={isVideoEnabled ? "Video02Icon" : "VideoOffIcon"}
               />
 
               <CameraArrowButton onPress={handleCameraSelect} theme={theme} />
             </View>
             <VocalBottomBarButton
               onPress={handleScreenShare}
-              iconName={ComputerScreenShareIcon}
-              iconColor={theme.icon}
+              iconName={"ComputerScreenShareIcon"}
             />
             <VocalBottomBarButton
               onPress={() => router.push("settings/comms")}
-              iconName={Settings02Icon}
-              iconColor={theme.icon}
+              iconName={"Settings02Icon"}
             />
             <VocalBottomBarButton
               onPress={async () => {
                 self.left(chatId);
               }}
-              iconName={Call02Icon}
+              iconName={"Call02Icon"}
               iconColor="red"
             />
           </View>
@@ -281,8 +266,7 @@ const VocalContentBottomBar = ({ chatId }) => {
           <View style={styles.microphoneButtonContainer}>
             <VocalBottomBarButton
               onPress={toggleAudio}
-              iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
-              iconColor={theme.icon}
+              iconName={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
             />
             <MicrophoneArrowButton
               onPress={handleMicrophoneSelect}
@@ -292,8 +276,7 @@ const VocalContentBottomBar = ({ chatId }) => {
           <View style={styles.cameraButtonContainer}>
             <VocalBottomBarButton
               onPress={toggleVideo}
-              iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
-              iconColor={theme.icon}
+              iconName={isVideoEnabled ? "Video02Icon" : "VideoOffIcon"}
             />
             {isVideoEnabled && (
               <CameraArrowButton onPress={handleCameraSelect} theme={theme} />

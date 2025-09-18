@@ -1,15 +1,16 @@
-import React, { memo, useContext, useMemo, useEffect, useState, useRef } from "react";
+import React, {
+  memo,
+  useContext,
+  useMemo,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
 import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
 import { BlurView } from "expo-blur";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import {
-  PinIcon,
-  PinOffIcon,
-  ComputerRemoveIcon,
-  FullScreenIcon,
-} from "@hugeicons/core-free-icons";
+import Icon from "../Icon";
 
 import methods from "../../utils/webrtc/methods";
 const { get, check, self } = methods;
@@ -41,7 +42,7 @@ const UserCard = memo(
     onFullScreen,
     buttonsDisabled,
   }) => {
-    const { theme } = useContext(ThemeContext); 
+    const { theme } = useContext(ThemeContext);
     const userCardRef = useRef(null);
 
     useEffect(() => {
@@ -62,16 +63,19 @@ const UserCard = memo(
       if (Platform.OS === "web") {
         const handleFullscreenChange = () => {
           const isCurrentlyFullscreen = !!document.fullscreenElement;
-          
+
           // If we exit fullscreen but isFullScreen is still true, call onFullScreen with streamUUID to toggle off
           if (!isCurrentlyFullscreen && isFullScreen && onFullScreen) {
             onFullScreen(streamUUID);
           }
         };
 
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
         return () => {
-          document.removeEventListener('fullscreenchange', handleFullscreenChange);
+          document.removeEventListener(
+            "fullscreenchange",
+            handleFullscreenChange
+          );
         };
       }
     }, [isFullScreen, onFullScreen, streamUUID]);
@@ -174,11 +178,9 @@ const UserCard = memo(
         disabled={buttonsDisabled}
         activeOpacity={buttonsDisabled ? 1 : 0.7}
       >
-        <HugeiconsIcon
-          icon={isPinned ? PinOffIcon : PinIcon}
-          size={24}
+        <Icon
+          name={isPinned ? "PinOffIcon" : "PinIcon"}
           color={buttonsDisabled ? "#666" : "#fff"}
-          strokeWidth={1.5}
         />
       </TouchableOpacity>
     );
@@ -210,7 +212,7 @@ const UserCard = memo(
           onPress={handleStopScreenShare}
           activeOpacity={0.7}
         >
-          <HugeiconsIcon icon={ComputerRemoveIcon} size={20} color="#fff" />
+          <Icon name={"ComputerRemoveIcon"} />
         </TouchableOpacity>
       );
     };
@@ -223,11 +225,9 @@ const UserCard = memo(
         disabled={buttonsDisabled}
         activeOpacity={buttonsDisabled ? 1 : 0.7}
       >
-        <HugeiconsIcon
-          icon={isFullScreen ? PinOffIcon : FullScreenIcon}
-          size={24}
+        <Icon
+          name={isFullScreen ? "PinOffIcon" : "FullScreenIcon"}
           color={buttonsDisabled ? "#666" : "#fff"}
-          strokeWidth={1.5}
         />
       </TouchableOpacity>
     );
@@ -397,9 +397,9 @@ const VideoContent = memo(
                 key={`main-${streamUUID}`}
                 stream={stream}
                 style={[
-                  styles.videoStreamMain, 
+                  styles.videoStreamMain,
                   { objectFit: "contain" },
-                  isFullScreen && styles.fullScreenVideo
+                  isFullScreen && styles.fullScreenVideo,
                 ]}
                 muted={isLocal}
               />
@@ -408,9 +408,9 @@ const VideoContent = memo(
                 key={`main-mobile-${streamUUID}`}
                 streamURL={stream.toURL()}
                 style={[
-                  styles.videoStreamMain, 
+                  styles.videoStreamMain,
                   { objectFit: "contain" },
-                  isFullScreen && styles.fullScreenVideo
+                  isFullScreen && styles.fullScreenVideo,
                 ]}
                 muted={isLocal}
               />

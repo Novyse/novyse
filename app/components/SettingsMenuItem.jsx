@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { StyleSheet, Text, Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import Icon from "./Icon";
 import { ThemeContext } from "../../context/ThemeContext";
 import HoverAndPressedButton from "./HoverAndPressedButton";
 
@@ -25,12 +25,7 @@ const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
       containerStyle={styles.menuItem}
     >
       <View style={styles.menuItemIcon}>
-        <HugeiconsIcon
-          icon={iconName}
-          size={24}
-          color={theme.icon}
-          strokeWidth={1.5}
-        />
+        <Icon name={iconName} />
       </View>
       <Text style={styles.menuItemText}>{pageName}</Text>
     </HoverAndPressedButton>

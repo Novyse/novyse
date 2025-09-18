@@ -10,13 +10,6 @@ import Animated, {
 import SmartBackground from "../SmartBackground";
 import VocalBottomBarButton from "./VocalBottomBarButton";
 import { ThemeContext } from "@/context/ThemeContext";
-import {
-  Mic02Icon,
-  MicOff02Icon,
-  Video02Icon,
-  VideoOffIcon,
-  Call02Icon,
-} from "@hugeicons/core-free-icons";
 import { useRouter } from "expo-router";
 
 import methods from "../../utils/webrtc/methods";
@@ -123,17 +116,17 @@ const SmallCommsMenu = () => {
           <Animated.View style={styles.menuItems}>
             <VocalBottomBarButton
               onPress={toggleAudio}
-              iconName={isAudioEnabled ? Mic02Icon : MicOff02Icon}
+              iconName={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
               iconColor={theme.icon}
             />
             <VocalBottomBarButton
               onPress={toggleVideo}
-              iconName={isVideoEnabled ? Video02Icon : VideoOffIcon}
+              iconName={isVideoEnabled ? "Video02Icon" : "VideoOffIcon"}
               iconColor={theme.icon}
             />
             <VocalBottomBarButton
               onPress={leaveComms}
-              iconName={Call02Icon}
+              iconName={"Call02Icon"}
               iconColor={theme.error || "red"}
             />
           </Animated.View>

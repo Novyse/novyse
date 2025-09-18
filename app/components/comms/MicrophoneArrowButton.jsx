@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Pressable } from "react-native";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Icon from "../Icon";
 
 const MicrophoneArrowButton = ({ onPress, theme }) => {
   return (
@@ -11,11 +11,7 @@ const MicrophoneArrowButton = ({ onPress, theme }) => {
       ]}
       onPress={onPress}
     >
-      <MaterialIcons
-        name="keyboard-arrow-down"
-        size={14}
-        color={theme?.icon || "white"}
-      />
+      <Icon name={"ArrowDown01Icon"} />
     </Pressable>
   );
 };

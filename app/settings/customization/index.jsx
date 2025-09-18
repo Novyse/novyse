@@ -3,7 +3,6 @@ import { StyleSheet, ScrollView, View } from "react-native"; // Aggiungi ScrollV
 import { ThemeContext } from "@/context/ThemeContext";
 import SettingsMenuItem from "../../components/SettingsMenuItem";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
-import { PaintBoardIcon } from "@hugeicons/core-free-icons";
 import ScreenLayout from "../../components/ScreenLayout";
 
 const PrivacyAndSecurityMenu = () => {
@@ -18,7 +17,7 @@ const PrivacyAndSecurityMenu = () => {
           <SettingsMenuItem
             navToPage="./customization/themes"
             pageName="Themes"
-            iconName={PaintBoardIcon}
+            iconName={"PaintBoardIcon"}
           />
         </ScrollView>
       </View>

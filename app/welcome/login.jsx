@@ -14,16 +14,14 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { ThemeContext } from "@/context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 
 import { clearDBAddTokenInit } from "../utils/welcome/auth";
 import APIMethods from "../utils/APImethods";
-import StatusMessage from '../components/StatusMessage';
+import StatusMessage from "../components/StatusMessage";
+import Icon from "../components/Icon";
 
 const LoginPassword = () => {
   const router = useRouter();
@@ -123,12 +121,14 @@ const LoginPassword = () => {
     try {
       setError(null);
       setSuccessMessage(null);
-      
+
       const resetPassword = await APIMethods.forgotPassword(emailValue);
       console.log("Password forgot Success?", resetPassword);
 
       if (resetPassword) {
-        setSuccessMessage("If the email exists, you will receive instructions to reset your password.");
+        setSuccessMessage(
+          "If the email exists, you will receive instructions to reset your password."
+        );
       } else {
         setError("Unable to send reset instructions.");
       }
@@ -205,11 +205,9 @@ const LoginPassword = () => {
                 style={styles.eyeButton}
                 onPress={toggleSecureEntry}
               >
-                <HugeiconsIcon
-                  icon={secureTextEntry ? ViewOffIcon : ViewIcon}
-                  size={20}
+                <Icon
+                  name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
                   color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
-                  strokeWidth={1.5}
                 />
               </TouchableOpacity>
             </View>
@@ -217,10 +215,7 @@ const LoginPassword = () => {
             {/* Container per i pulsanti Back e Login */}
             <View style={styles.buttonContainer}>
               {/* Pulsante Back */}
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={handleBack}
-              >
+              <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                 <Text style={styles.backButtonText}>Back</Text>
               </TouchableOpacity>
 
@@ -240,14 +235,8 @@ const LoginPassword = () => {
           </View>
 
           {/* Sostituisci i vecchi messaggi di error e success con il nuovo componente */}
-          <StatusMessage 
-            type="error" 
-            text={error} 
-          />
-          <StatusMessage 
-            type="success" 
-            text={successMessage} 
-          />
+          <StatusMessage type="error" text={error} />
+          <StatusMessage type="success" text={successMessage} />
 
           <Text style={styles.resetPasswordText} onPress={handleResetPassword}>
             Reset Password
@@ -350,7 +339,8 @@ function createStyle(loginTheme, isSmallScreen) {
       paddingHorizontal: 16,
       paddingVertical: 12,
       borderRadius: 6,
-      backgroundColor: LoginColors[loginTheme].backgroundBackButton || "#b8b8b8ff",
+      backgroundColor:
+        LoginColors[loginTheme].backgroundBackButton || "#b8b8b8ff",
       marginRight: 8,
       justifyContent: "center",
       alignItems: "center",

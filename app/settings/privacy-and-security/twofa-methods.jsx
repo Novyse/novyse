@@ -4,15 +4,8 @@ import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
 import APIMethods from "@/app/utils/APImethods";
-import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
-import {
-  Delete02Icon,
-  PlusSignCircleIcon,
-  SmartPhone01Icon,
-  Mail01Icon,
-  SecurityIcon,
-} from "@hugeicons/core-free-icons";
+import Icon from "@/app/components/Icon";
 
 const TwoFAMethods = () => {
   const { theme } = useContext(ThemeContext);
@@ -98,13 +91,13 @@ const TwoFAMethods = () => {
   const getMethodIcon = (method) => {
     switch (method.toLowerCase()) {
       case "authenticator":
-        return SecurityIcon;
+        return "SecurityIcon";
       case "sms":
-        return SmartPhone01Icon;
+        return "SmartPhone01Icon";
       case "email":
-        return Mail01Icon;
+        return "Mail01Icon";
       default:
-        return SecurityIcon;
+        return "SecurityIcon";
     }
   };
 
@@ -134,11 +127,7 @@ const TwoFAMethods = () => {
                 <View style={styles.methodHeader}>
                   <View style={styles.methodInfo}>
                     <View style={styles.iconContainer}>
-                      <HugeiconsIcon
-                        icon={getMethodIcon(method)}
-                        size={24}
-                        color="#ffffffff"
-                      />
+                      <Icon name={getMethodIcon(method)} color={"#fff"} />
                     </View>
                     <View style={styles.methodDetails}>
                       <Text style={styles.methodName}>
@@ -170,11 +159,7 @@ const TwoFAMethods = () => {
                               theme.rippleColor || "rgba(255, 71, 87, 0.2)",
                           }}
                         >
-                          <HugeiconsIcon
-                            icon={Delete02Icon}
-                            size={18}
-                            color="#fff"
-                          />
+                          <Icon name={"Delete02Icon"} color={"#fff"} />
                         </Pressable>
                       </View>
                     ) : (
@@ -189,11 +174,7 @@ const TwoFAMethods = () => {
                           color: theme.rippleColor || "rgba(99, 102, 241, 0.2)",
                         }}
                       >
-                        <HugeiconsIcon
-                          icon={PlusSignCircleIcon}
-                          size={20}
-                          color="#fff"
-                        />
+                        <Icon name={"PlusSignCircleIcon"} color={"#fff"} />
                         <Text style={styles.addButtonText}>Add</Text>
                       </Pressable>
                     )}

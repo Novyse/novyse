@@ -14,7 +14,6 @@ import {
 import SmartBackground from "./components/SmartBackground";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
-import Icon from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import JsonParser from "./utils/JsonParser";
 import eventEmitter from "./utils/EventEmitter";

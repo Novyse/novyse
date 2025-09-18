@@ -15,11 +15,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import APIMethods from "../utils/APImethods";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import StatusMessage from "../components/StatusMessage";
+import Icon from "../components/Icon";
 
 const ResetPassword = () => {
   const router = useRouter();
@@ -166,11 +165,9 @@ const ResetPassword = () => {
                 style={styles.eyeButton}
                 onPress={toggleSecureEntry}
               >
-                <HugeiconsIcon
-                  icon={secureTextEntry ? ViewOffIcon : ViewIcon}
-                  size={20}
+                <Icon
+                  name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
                   color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
-                  strokeWidth={1.5}
                 />
               </TouchableOpacity>
             </View>

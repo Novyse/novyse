@@ -3,7 +3,6 @@ import { StyleSheet, ScrollView, View } from "react-native"; // Aggiungi ScrollV
 import { ThemeContext } from "@/context/ThemeContext";
 import SettingsMenuItem from "../../components/SettingsMenuItem";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
-import { Key01Icon, TwoFactorAccessIcon } from "@hugeicons/core-free-icons";
 import ScreenLayout from "../../components/ScreenLayout";
 
 const PrivacyAndSecurityMenu = () => {
@@ -18,12 +17,12 @@ const PrivacyAndSecurityMenu = () => {
           <SettingsMenuItem
             navToPage="./privacy-and-security/change-password"
             pageName="Change Password"
-            iconName={Key01Icon}
+            iconName={"Key01Icon"}
           />
           <SettingsMenuItem
             navToPage="./privacy-and-security/twofa-methods"
             pageName="2FA Methods"
-            iconName={TwoFactorAccessIcon}
+            iconName={"TwoFactorAccessIcon"}
           />
         </ScrollView>
       </View>

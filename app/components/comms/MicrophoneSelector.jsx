@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { Platform } from "react-native";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Icon from "../Icon";
 
 // Import mediaDevices from react-native-webrtc
 let mediaDevices;
@@ -75,11 +75,7 @@ const MicrophoneSelector = ({
       ]}
       onPress={() => handleMicrophoneSelect(item)}
     >
-      <MaterialIcons
-        name="mic"
-        size={24}
-        color={item.deviceId === currentDeviceId ? "#4CAF50" : "#666"}
-      />
+      <Icon name={"Mic02Icon"} color={item.deviceId === currentDeviceId ? "#4CAF50" : "#666"}/>
       <View style={styles.microphoneInfo}>
         <Text
           style={[
@@ -94,7 +90,7 @@ const MicrophoneSelector = ({
         )}
       </View>
       {item.deviceId === currentDeviceId && (
-        <MaterialIcons name="check" size={20} color="#4CAF50" />
+        <Icon name={"Tick02Icon"} color="#4CAF50"/>
       )}
     </TouchableOpacity>
   );
@@ -111,7 +107,7 @@ const MicrophoneSelector = ({
           <View style={styles.header}>
             <Text style={styles.title}>Select Microphone</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <MaterialIcons name="close" size={24} color="#666" />
+              <Icon name={"Cancel01Icon"} color="#666"/>
             </TouchableOpacity>
           </View>
 

@@ -2,8 +2,7 @@ import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ArrowLeft02Icon } from "@hugeicons/core-free-icons";
+import Icon from "./Icon";
 import HoverAndPressedButton from "./HoverAndPressedButton";
 import HeaderBase from "./HeaderBase";
 
@@ -18,12 +17,7 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
         onPress={() => router.replace(goBackTo)}
         containerStyle={styles.iconContainer}
       >
-        <HugeiconsIcon
-          icon={ArrowLeft02Icon}
-          size={24}
-          color={theme.icon}
-          strokeWidth={1.5}
-        />
+        <Icon name={"ArrowLeft02Icon"} />
       </HoverAndPressedButton>
     </HeaderBase>
   );

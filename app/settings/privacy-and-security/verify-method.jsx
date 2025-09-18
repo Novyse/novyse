@@ -21,8 +21,7 @@ import HeaderWithBackArrow from "@/app/components/HeaderWithBackArrow";
 import QRCode from "react-native-qrcode-svg";
 import StatusMessage from "@/app/components/StatusMessage";
 import * as Clipboard from "expo-clipboard";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Copy01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
+import Icon from "@/app/components/Icon";
 
 const AuthenticatorSection = ({
   secret,
@@ -42,7 +41,7 @@ const AuthenticatorSection = ({
         linearGradient={["#013480", "#177FC0"]}
         logoBorderRadius={100}
         logoMargin={5}
-        logoBackgroundColor={"black"}
+        logoBackgroundColor={"#fff"}
       />
     </View>
     <View style={styles.secretKeyContainer}>
@@ -50,21 +49,10 @@ const AuthenticatorSection = ({
         {secret}
       </Text>
       <TouchableOpacity style={styles.copyButton} onPress={onCopy}>
-        {copied ? (
-          <HugeiconsIcon
-            icon={Tick01Icon}
-            size={24}
-            color={"green"}
-            strokeWidth={1.5}
-          />
-        ) : (
-          <HugeiconsIcon
-            icon={Copy01Icon}
-            size={24}
-            color={"white"}
-            strokeWidth={1.5}
-          />
-        )}
+        <Icon
+          name={copied ? "Tick01Icon" : "Copy01Icon"}
+          color={copied ? "green" : "white"}
+        />
       </TouchableOpacity>
     </View>
   </View>
@@ -84,7 +72,9 @@ const VerifyMethod = () => {
 
   const params = useLocalSearchParams();
   const { token, verificationType, secret } = params;
-  const otpauth = params.otpauth ? decodeURIComponent(params.otpauth) : params.otpauth;
+  const otpauth = params.otpauth
+    ? decodeURIComponent(params.otpauth)
+    : params.otpauth;
 
   const isSmallScreen = width < 768;
   const styles = createStyle(theme, isSmallScreen);

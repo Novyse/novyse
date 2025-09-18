@@ -1,14 +1,12 @@
 import React from "react";
 import { Pressable, StyleSheet, Platform } from "react-native";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Icon from "../Icon";
 
 const CameraArrowButton = ({
   onPress,
   theme,
   isMobile = Platform.OS !== "web",
 }) => {
-  const iconName = isMobile ? "cameraswitch" : "keyboard-arrow-down";
-  const iconSize = isMobile ? 14 : 14;
 
   return (
     <Pressable
@@ -18,11 +16,7 @@ const CameraArrowButton = ({
       ]}
       onPress={onPress}
     >
-      <MaterialIcons
-        name={iconName}
-        size={iconSize}
-        color={theme?.icon || "white"}
-      />
+      <Icon name={isMobile ? "CameraRotated01Icon" : "ArrowDown01Icon"} />
     </Pressable>
   );
 };

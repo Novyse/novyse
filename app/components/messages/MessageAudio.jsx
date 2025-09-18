@@ -10,8 +10,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { createAudioPlayer } from "expo-audio";
 import { ThemeContext } from "@/context/ThemeContext";
 import Slider from "@react-native-community/slider";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { PlayIcon, PauseIcon } from "@hugeicons/core-free-icons";
+import Icon from "../Icon";
 
 const audioSource = require("../../../assets/audio/vocalMessagesTest.mp3");
 
@@ -101,12 +100,7 @@ const MessageAudio = () => {
         disabled={!isPlayerReady}
         style={styles.playPauseButton}
       >
-        <HugeiconsIcon
-          icon={isPlaying ? PauseIcon : PlayIcon}
-          size={24}
-          color={isPlayerReady ? theme.icon : "#a9a9a9"}
-          strokeWidth={1.5}
-        />
+        <Icon name={isPlaying ? "PauseIcon" : "PlayIcon"} />
       </TouchableOpacity>
       <View style={styles.progressContainer}>
         <Slider

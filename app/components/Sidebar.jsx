@@ -10,13 +10,8 @@ import {
 import { ThemeContext } from "@/context/ThemeContext";
 import SmartBackground from "./SmartBackground";
 import SidebarItem from "./SidebarItem";
-import {
-  User03Icon,
-  Settings02Icon,
-  UserGroup03Icon,
-  Logout03Icon,
-} from "@hugeicons/core-free-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 const Sidebar = ({
   isSidebarVisible,
@@ -114,12 +109,12 @@ const Sidebar = ({
           <View style={styles.menuContainer}>
             <SidebarItem
               text="Profile"
-              iconName={User03Icon}
+              iconName={"User03Icon"}
               onPress={toggleSidebar}
             />
             <SidebarItem
               text="Settings"
-              iconName={Settings02Icon}
+              iconName={"Settings02Icon"}
               onPress={() => {
                 toggleSidebar();
                 handleSettingsPress();
@@ -127,7 +122,7 @@ const Sidebar = ({
             />
             <SidebarItem
               text="Nuovo Gruppo"
-              iconName={UserGroup03Icon}
+              iconName={"UserGroup03Icon"}
               onPress={() => {
                 toggleSidebar();
                 setIsCreateGroupModalVisible(true);
@@ -135,7 +130,7 @@ const Sidebar = ({
             />
             <SidebarItem
               text="Logout"
-              iconName={Logout03Icon}
+              iconName={"Logout03Icon"}
               onPress={() => {
                 toggleSidebar();
                 AsyncStorage.setItem("isLoggedIn", "false");

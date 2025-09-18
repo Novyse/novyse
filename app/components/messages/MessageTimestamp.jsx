@@ -2,8 +2,7 @@
 import React, { useContext } from "react";
 import { Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Clock01Icon } from "@hugeicons/core-free-icons";
+import Icon from "../Icon";
 import moment from "moment";
 
 const MessageTimestamp = ({ time }) => {
@@ -17,14 +16,7 @@ const MessageTimestamp = ({ time }) => {
   };
 
   if (time === "") {
-    return (
-      <HugeiconsIcon
-        icon={Clock01Icon}
-        size={14}
-        color={theme.icon}
-        strokeWidth={1.5}
-      />
-    );
+    return <Icon name={"Clock01Icon"} />;
   }
 
   return <Text style={styles.timeText}>{parseTime(time)}</Text>;

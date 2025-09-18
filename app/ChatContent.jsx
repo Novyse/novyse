@@ -24,15 +24,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import "react-native-get-random-values";
 import JsonParser from "./utils/JsonParser";
 import APIMethods from "./utils/APImethods";
-import * as Linking from "expo-linking";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import {
-  PlusSignIcon,
-  Mic02Icon,
-  SmileIcon,
-  SentIcon,
-  Clock01Icon,
-} from "@hugeicons/core-free-icons";
+import Icon from "./components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import SmartBackground from "./components/SmartBackground";
 import ChatIconsPickerModal from "./components/ChatIconsPickerModal";
@@ -472,12 +464,7 @@ const ChatContent = ({
             }}
           >
             <Pressable style={styles.iconButton}>
-              <HugeiconsIcon
-                icon={PlusSignIcon}
-                size={24}
-                color={theme.icon}
-                strokeWidth={1.5}
-              />
+              <Icon name="PlusSignIcon" />
             </Pressable>
             <LinearGradient
               colors={theme.backgroundChatTextInputGradient}
@@ -498,31 +485,16 @@ const ChatContent = ({
                 }
               />
               <Pressable style={styles.iconButton} onPress={toggleEmojiPicker}>
-                <HugeiconsIcon
-                  icon={SmileIcon}
-                  size={24}
-                  color={theme.icon}
-                  strokeWidth={1.5}
-                />
+                <Icon name="SmileIcon" />
               </Pressable>
             </LinearGradient>
             {isVoiceMessage ? (
               <Pressable onPress={handleVoiceMessage} style={styles.iconButton}>
-                <HugeiconsIcon
-                  icon={Mic02Icon}
-                  size={24}
-                  color={theme.icon}
-                  strokeWidth={1.5}
-                />
+                <Icon name="Mic02Icon" />
               </Pressable>
             ) : (
               <Pressable onPress={handleSendMessage} style={styles.iconButton}>
-                <HugeiconsIcon
-                  icon={SentIcon}
-                  size={24}
-                  color={theme.icon}
-                  strokeWidth={1.5}
-                />
+                <Icon name="SentIcon" />
               </Pressable>
             )}
           </View>

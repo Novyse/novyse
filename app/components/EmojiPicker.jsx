@@ -1,8 +1,6 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { ThemeContext } from '@/context/ThemeContext';
-import { HugeiconsIcon } from '@hugeicons/react-native';
-import { Cancel01Icon } from '@hugeicons/core-free-icons';
 import EmojiSelector from 'react-native-emoji-selector';
 
 const EmojiPicker = ({ onEmojiSelected, onClose }) => {

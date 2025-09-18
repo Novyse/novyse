@@ -1,13 +1,7 @@
 import React, { useContext } from "react";
 import { StyleSheet, Text, Pressable } from "react-native";
-import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import {
-  User03Icon,
-  Settings02Icon,
-  UserGroup03Icon,
-  Logout03Icon,
-} from "@hugeicons/core-free-icons";
+import Icon from "./Icon";
 
 const SidebarItem = (props) => {
   const { theme } = useContext(ThemeContext);
@@ -15,12 +9,7 @@ const SidebarItem = (props) => {
 
   return (
     <Pressable style={styles.menuItem} onPress={props.onPress}>
-      <HugeiconsIcon
-        icon={props.iconName}
-        size={24}
-        color={theme.icon}
-        strokeWidth={1.5}
-      />
+      <Icon name={props.iconName} />
       <Text style={styles.sidebarText}>{props.text}</Text>
     </Pressable>
   );

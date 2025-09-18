@@ -226,8 +226,8 @@ const EmailCheckForm = () => {
                     enableLinearGradient={true}
                     linearGradient={["#2241d3", "#1fa6d3ff"]}
                     logoBorderRadius={100}
-                    logoMargin={7}
-                    logoBackgroundColor={"white"}
+                    logoMargin={5}
+                    logoBackgroundColor={"#fff"}
                   />
                 ) : (
                   <ActivityIndicator

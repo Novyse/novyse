@@ -14,12 +14,11 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import JsonParser from "../utils/JsonParser";
 import { useRouter, useLocalSearchParams, Link } from "expo-router";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
 import StatusMessage from "../components/StatusMessage";
+import Icon from "../components/Icon";
 
 const Signup = () => {
   const { emailValue } = useLocalSearchParams();
@@ -220,11 +219,9 @@ const Signup = () => {
             style={styles.eyeButton}
             onPress={() => toggleShowPassword(field)}
           >
-            <HugeiconsIcon
-              icon={showPassword[field] ? ViewOffIcon : ViewIcon}
-              size={20}
+            <Icon
+              name={showPassword[field] ? "ViewIcon" : "ViewOffIcon"}
               color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
-              strokeWidth={1.5}
             />
           </TouchableOpacity>
         )}
@@ -510,7 +507,8 @@ function createStyle(loginTheme, isSmallScreen) {
       paddingHorizontal: 16,
       paddingVertical: 12,
       borderRadius: 6,
-      backgroundColor: LoginColors[loginTheme].backgroundBackButton || "#b8b8b8ff",
+      backgroundColor:
+        LoginColors[loginTheme].backgroundBackButton || "#b8b8b8ff",
       marginRight: 8,
       justifyContent: "center",
       alignItems: "center",
