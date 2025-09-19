@@ -393,12 +393,7 @@ const ChatList = () => {
   const renderHeader = () => {
     return (
       <HeaderBase>
-        <HoverAndPressedButton
-          onPress={toggleSidebar}
-          style={styles.menuButton}
-        >
-          <Icon name={"Menu02Icon"} size={32}/>
-        </HoverAndPressedButton>
+        <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
         <Text style={styles.headerTitle}>Chats</Text>
         <HoverAndPressedButton
           onPress={() => {
@@ -406,7 +401,7 @@ const ChatList = () => {
           }}
           style={styles.searchButton}
         >
-          <Icon name={"Search02Icon"} size={32}/>
+          <Icon name={"Search02Icon"} size={32} />
         </HoverAndPressedButton>
       </HeaderBase>
     );
@@ -483,7 +478,7 @@ const ChatList = () => {
                       ellipsizeMode="tail"
                     >
                       {lastMessageDate === "" ? (
-                        <Icon name={"Clock01Icon"} size={15}/>
+                        <Icon name={"Clock01Icon"} size={15} />
                       ) : (
                         lastMessageDate
                       )}
