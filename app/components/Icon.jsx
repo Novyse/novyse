@@ -28,6 +28,7 @@ const Icon = ({
   name,
   size = 24,
   color,
+  hoverColor,
   strokeWidth = 1.5,
   style,
   onPress,
@@ -40,9 +41,14 @@ const Icon = ({
     importIcon(name).then(setIconComponent);
   }, [name]);
 
-  // Determina il colore dell'icona
-  const iconColor = ({ pressed }) =>
-    onPress && (pressed || isHovered) ? "#bcbcbcff" : color || theme.icon;
+  // Determina il colore dell'icona in hover/pressed
+  const iconColor = ({ pressed }) => {
+    const isActive = onPress && (pressed || isHovered);
+    if (isActive) {
+      return hoverColor || theme.iconHover;
+    }
+    return color || theme.icon;
+  };
 
   if (!IconComponent) {
     return null; // Puoi sostituire con un loader: <ActivityIndicator size="small" />
@@ -69,7 +75,7 @@ const Icon = ({
         style={({ pressed }) => [
           style,
           {
-            backgroundColor: pressed ? "rgba(0, 0, 0, 0.3)" : "transparent", // Colore di sfondo quando premuto
+            backgroundColor: pressed ? theme.iconPressed : "transparent", // Colore di sfondo quando premuto
             padding: 5, // Padding per migliorare l'area di tocco e l'effetto visivo
             borderRadius: "50%", // Bordi arrotondati per l'effetto ripple
           },

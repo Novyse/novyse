@@ -120,17 +120,16 @@ const BigFloatingCommsMenu = () => {
             <VocalBottomBarButton
               onPress={toggleAudio}
               iconName={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
-              iconColor={theme.icon}
             />
             <VocalBottomBarButton
               onPress={toggleVideo}
               iconName={isVideoEnabled ? "Video02Icon" : "VideoOffIcon"}
-              iconColor={theme.icon}
             />
             <VocalBottomBarButton
               onPress={leaveComms}
               iconName={"Call02Icon"}
-              iconColor={theme.error || "red"}
+              iconColor={"red"}
+              hoverColor={theme.iconCommsOutHover}
             />
           </Animated.View>
         </SmartBackground>

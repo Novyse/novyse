@@ -6,7 +6,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 const HoverAndPressedButton = ({
   children,
   onPress,
-  containerStyle = {}, // Stili base per il container
+  style = {}, // Stili base per il container
   hoveredStyle = {}, // Stili per stato hovered
   pressedStyle = {}, // Stili per stato pressed
 }) => {
@@ -17,7 +17,7 @@ const HoverAndPressedButton = ({
     <Pressable
       style={({ pressed, hovered }) => [
         styles.baseContainer,
-        containerStyle, // Stili personalizzati passati come prop
+        style, // Stili personalizzati passati come prop
         hovered && { ...styles.baseHovered, ...hoveredStyle },
         pressed && { ...styles.basePressed, ...pressedStyle },
       ]}

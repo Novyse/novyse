@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { createAudioPlayer } from "expo-audio";
 import { ThemeContext } from "@/context/ThemeContext";
 import Slider from "@react-native-community/slider";
@@ -88,20 +88,22 @@ const MessageAudio = () => {
   const formatTime = (timeInSeconds) => {
     if (isNaN(timeInSeconds) || timeInSeconds === null) return "00:00";
     const seconds = Math.floor(timeInSeconds);
-    const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const minutes = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
     const remainingSeconds = (seconds % 60).toString().padStart(2, "0");
     return `${minutes}:${remainingSeconds}`;
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
+      <Pressable
         onPress={handlePlayPause}
         disabled={!isPlayerReady}
         style={styles.playPauseButton}
       >
         <Icon name={isPlaying ? "PauseIcon" : "PlayIcon"} />
-      </TouchableOpacity>
+      </Pressable>
       <View style={styles.progressContainer}>
         <Slider
           style={styles.slider}
@@ -118,13 +120,13 @@ const MessageAudio = () => {
           <Text style={styles.durationText}>
             {formatTime(position)} / {formatTime(duration)}
           </Text>
-          <TouchableOpacity
+          <Pressable
             onPress={handlePlaybackRateChange}
             disabled={!isPlayerReady}
             style={styles.playbackRateButton}
           >
             <Text style={styles.playbackRateText}>{playbackRate}x</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </View>

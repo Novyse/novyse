@@ -154,10 +154,6 @@ const TwoFAMethods = () => {
                             hovered && styles.deleteButtonHovered,
                             pressed && styles.deleteButtonPressed,
                           ]}
-                          android_ripple={{
-                            color:
-                              theme.rippleColor || "rgba(255, 71, 87, 0.2)",
-                          }}
                         >
                           <Icon name={"Delete02Icon"} color={"#fff"} />
                         </Pressable>

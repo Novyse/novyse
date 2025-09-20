@@ -221,6 +221,7 @@ const VocalContentBottomBar = ({ chatId }) => {
             onPress={handleJoinVocal}
             iconName={"Call02Icon"}
             iconColor="green"
+            hoverColor={theme.iconCommsInHover}
           />
         )
       ) : Platform.OS === "web" ? (
@@ -258,6 +259,7 @@ const VocalContentBottomBar = ({ chatId }) => {
               }}
               iconName={"Call02Icon"}
               iconColor="red"
+              hoverColor={theme.iconCommsOutHover}
             />
           </View>
         </BlurView>
@@ -288,6 +290,7 @@ const VocalContentBottomBar = ({ chatId }) => {
             }}
             iconName={Call02Icon}
             iconColor="red"
+            hoverColor={theme.iconCommsOutHover}
           />
         </View>
       )}

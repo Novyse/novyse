@@ -13,7 +13,7 @@ const PrivacyAndSecurityMenu = () => {
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="./" />
       <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentstyle={styles.scrollContent}>
           <SettingsMenuItem
             navToPage="./privacy-and-security/change-password"
             pageName="Change Password"

@@ -1,12 +1,5 @@
-import React, {
-  memo,
-  useContext,
-  useMemo,
-  useEffect,
-  useState,
-  useRef,
-} from "react";
-import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
+import React, { memo, useContext, useMemo, useEffect, useRef } from "react";
+import { View, StyleSheet, Platform } from "react-native";
 import { BlurView } from "expo-blur";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
@@ -172,17 +165,13 @@ const UserCard = memo(
 
     // Componente del pulsante pin
     const PinButton = () => (
-      <TouchableOpacity
+      <Icon
+        name={isPinned ? "PinOffIcon" : "PinIcon"}
+        color={buttonsDisabled ? "#666" : "#fff"}
         style={[styles.buttonBase, buttonsDisabled && styles.pinButtonDisabled]}
         onPress={onPin}
         disabled={buttonsDisabled}
-        activeOpacity={buttonsDisabled ? 1 : 0.7}
-      >
-        <Icon
-          name={isPinned ? "PinOffIcon" : "PinIcon"}
-          color={buttonsDisabled ? "#666" : "#fff"}
-        />
-      </TouchableOpacity>
+      />
     );
 
     // Componente del pulsante stop screen share (solo per screen share locali)
@@ -207,29 +196,23 @@ const UserCard = memo(
       };
 
       return (
-        <TouchableOpacity
+        <Icon
+          name={"ComputerRemoveIcon"}
           style={[styles.buttonBase, styles.stopButton]}
           onPress={handleStopScreenShare}
-          activeOpacity={0.7}
-        >
-          <Icon name={"ComputerRemoveIcon"} />
-        </TouchableOpacity>
+        />
       );
     };
 
     // Componente del pulsante full screen
     const FullScreenButton = () => (
-      <TouchableOpacity
+      <Icon
+        name={isFullScreen ? "PinOffIcon" : "FullScreenIcon"}
+        color={buttonsDisabled ? "#666" : "#fff"}
         style={[styles.buttonBase, buttonsDisabled && styles.pinButtonDisabled]}
         onPress={onFullScreen}
         disabled={buttonsDisabled}
-        activeOpacity={buttonsDisabled ? 1 : 0.7}
-      >
-        <Icon
-          name={isFullScreen ? "PinOffIcon" : "FullScreenIcon"}
-          color={buttonsDisabled ? "#666" : "#fff"}
-        />
-      </TouchableOpacity>
+      />
     );
 
     // Determina se mostrare il pulsante stop screen share

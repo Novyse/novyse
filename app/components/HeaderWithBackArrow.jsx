@@ -13,12 +13,11 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
 
   return (
     <HeaderBase>
-      <HoverAndPressedButton
+      <Icon
+        name={"ArrowLeft02Icon"}
         onPress={() => router.replace(goBackTo)}
-        containerStyle={styles.iconContainer}
-      >
-        <Icon name={"ArrowLeft02Icon"} />
-      </HoverAndPressedButton>
+        style={styles.iconContainer}
+      />
     </HeaderBase>
   );
 };

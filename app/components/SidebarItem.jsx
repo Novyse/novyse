@@ -1,17 +1,18 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, Pressable } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "./Icon";
+import HoverAndPressedButton from "./HoverAndPressedButton";
 
 const SidebarItem = (props) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   return (
-    <Pressable style={styles.menuItem} onPress={props.onPress}>
+    <HoverAndPressedButton style={styles.menuItem} onPress={props.onPress}>
       <Icon name={props.iconName} />
       <Text style={styles.sidebarText}>{props.text}</Text>
-    </Pressable>
+    </HoverAndPressedButton>
   );
 };
 
@@ -24,6 +25,7 @@ const createStyle = (theme) =>
       paddingHorizontal: 15,
       borderBottomWidth: 1,
       borderBottomColor: theme.settingsDivider,
+      borderRadius: 0,
     },
     sidebarText: {
       color: theme.text,

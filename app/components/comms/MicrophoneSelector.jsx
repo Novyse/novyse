@@ -3,7 +3,7 @@ import {
   View,
   Text,
   Modal,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   FlatList,
   Alert,
@@ -68,14 +68,17 @@ const MicrophoneSelector = ({
   };
 
   const renderMicrophoneItem = ({ item }) => (
-    <TouchableOpacity
+    <Pressable
       style={[
         styles.microphoneItem,
         item.deviceId === currentDeviceId && styles.selectedMicrophone,
       ]}
       onPress={() => handleMicrophoneSelect(item)}
     >
-      <Icon name={"Mic02Icon"} color={item.deviceId === currentDeviceId ? "#4CAF50" : "#666"}/>
+      <Icon
+        name={"Mic02Icon"}
+        color={item.deviceId === currentDeviceId ? "#4CAF50" : "#666"}
+      />
       <View style={styles.microphoneInfo}>
         <Text
           style={[
@@ -90,9 +93,9 @@ const MicrophoneSelector = ({
         )}
       </View>
       {item.deviceId === currentDeviceId && (
-        <Icon name={"Tick02Icon"} color="#4CAF50"/>
+        <Icon name={"Tick02Icon"} color="#4CAF50" />
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (
@@ -106,9 +109,12 @@ const MicrophoneSelector = ({
         <View style={styles.modalContent}>
           <View style={styles.header}>
             <Text style={styles.title}>Select Microphone</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Icon name={"Cancel01Icon"} color="#666"/>
-            </TouchableOpacity>
+            <Icon
+              name={"Cancel01Icon"}
+              color="#666"
+              onPress={onClose}
+              style={styles.closeButton}
+            />
           </View>
 
           {loading ? (
@@ -126,9 +132,9 @@ const MicrophoneSelector = ({
           )}
 
           <View style={styles.footer}>
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+            <Pressable style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </View>

@@ -3,14 +3,18 @@ import { StyleSheet, Pressable } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "../Icon";
 
-const VocalBottomBarButton = ({ onPress, iconName, iconColor }) => {
+const VocalBottomBarButton = ({ onPress, iconName, iconColor, hoverColor }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   return (
-    <Pressable style={styles.iconButton} onPress={onPress}>
-      <Icon name={iconName} color={iconColor}/>
-    </Pressable>
+    <Icon
+      name={iconName}
+      color={iconColor}
+      style={styles.iconButton}
+      onPress={onPress}
+      hoverColor={hoverColor}
+    />
   );
 };
 
@@ -18,7 +22,7 @@ const createStyle = (theme) =>
   StyleSheet.create({
     iconButton: {
       backgroundColor:
-        theme.floatingBarButtonBackground || "rgba(0, 0, 0, 0.65)",
+        "rgba(0, 0, 0, 0.1)",
       borderRadius: 100,
       height: 45,
       width: 45,

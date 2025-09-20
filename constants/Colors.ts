@@ -34,13 +34,18 @@ export const Colors = {
     ChatIconsPickerModalBorderColor: "#ffffffff",
     ChatIconsPickerModalTabInactiveText: "#b1b1b1ff",
 
+    iconHover: "#d4d4d4ff",
+    iconPressed: "rgba(0, 0, 0, 0.3)",
+    iconCommsOutHover: "#eb4444ff",
+    iconCommsInHover: "#44b244ff",
+
     backgroundSettingsCards: "#00000045",
     settingsButton: "#4f8cff",
     settingsHoveredButton: "#4f8dffb9",
     settingsPressedButton: "#2a68dcff",
 
     chatItemHovered: "#1e8de7ff",
-    
+
     // Gradients
     backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale dell'app
     floatingBarComponentsGradient: ["#165376", "#2899cf", "#4fb3e1"],
@@ -55,10 +60,6 @@ export const Colors = {
     searchSideBarGradient: ["transparent"],
     settingPagesGradient: ["#0e283a", "#16638e", "#2b5278"],
   },
-
-
-
-
 
   light: {
     primary: "#f5f5f5",
@@ -239,8 +240,8 @@ export const Colors = {
     messageContainerGradient: ["#000000", "#000000"],
     searchSideBarGradient: ["#000000", "#000000"],
     settingPagesGradient: ["#000000", "#000000", "#000000"],
-    },
-    "unifi": {
+  },
+  unifi: {
     primary: "#4fb3e1",
     text: "white",
     textTime: "#c9d1d9",
@@ -266,7 +267,7 @@ export const Colors = {
     placeholderText: "#bfbfbf", // Placeholder visibile
     dateSeparatorBackground: "#17212b", // Separatore date visibile
     joinGroupButtonBackground: "#1b2734", // Pulsante join visibile
-    shadowColor: "#000000", // Ombra visibile    
+    shadowColor: "#000000", // Ombra visibile
     borderColor: "#000000", // Bordi visibili
     settingsDivider: "rgba(255, 255, 255, 0.1)", // Divisore visibile
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.65)", // Pulsanti floating visibili

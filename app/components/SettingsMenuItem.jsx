@@ -22,7 +22,7 @@ const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
     // >
     <HoverAndPressedButton
       onPress={() => router.push(navToPage)}
-      containerStyle={styles.menuItem}
+      style={styles.menuItem}
     >
       <View style={styles.menuItemIcon}>
         <Icon name={iconName} />
@@ -41,6 +41,7 @@ const createStyle = (theme) =>
       borderBottomWidth: 1,
       borderBottomColor: theme.settingsDivider,
       transition: "background-color 0.2s ease",
+      borderRadius: 0
     },
     menuItemText: {
       color: theme.text,

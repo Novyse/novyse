@@ -395,14 +395,14 @@ const ChatList = () => {
       <HeaderBase>
         <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
         <Text style={styles.headerTitle}>Chats</Text>
-        <HoverAndPressedButton
+        <Icon
+          name={"Search02Icon"}
+          size={32}
           onPress={() => {
             setIsToggleSearchChats(!isToggleSearchChats);
           }}
           style={styles.searchButton}
-        >
-          <Icon name={"Search02Icon"} size={32} />
-        </HoverAndPressedButton>
+        />
       </HeaderBase>
     );
   };
@@ -440,7 +440,7 @@ const ChatList = () => {
             >
               <HoverAndPressedButton
                 onPress={() => handleChatPress(item.chat_id)}
-                containerStyle={styles.chatItemPressable}
+                style={styles.chatItemPressable}
               >
                 <Image
                   source={{ uri: "https://picsum.photos/200" }}
@@ -511,12 +511,11 @@ const ChatList = () => {
     const renderChatHeader = (
       <HeaderBase>
         {isSmallScreen && (
-          <Pressable
+          <Icon
+            name={"ArrowLeft02Icon"}
             onPress={() => setSelectedChat(null)}
             style={styles.backButton}
-          >
-            <Icon name={"ArrowLeft02Icon"} />
-          </Pressable>
+          />
         )}
         <Image
           source={{ uri: "https://picsum.photos/200" }}
@@ -527,34 +526,31 @@ const ChatList = () => {
         </Text>
         {chatJoined && (
           <>
-            <HoverAndPressedButton
-              containerStyle={styles.moreButton}
+            <Icon
+              name={"Message02Icon"}
+              style={styles.moreButton}
               onPress={() => {
                 setContentView("chat");
                 setIsMenuVisible(false);
               }}
-            >
-              <Icon name={"Message02Icon"} />
-            </HoverAndPressedButton>
-            <HoverAndPressedButton
-              containerStyle={styles.moreButton}
+            />
+            <Icon
+              name={"AudioWave01Icon"}
+              style={styles.moreButton}
               onPress={() => {
                 setContentView("vocal");
                 setIsMenuVisible(false);
               }}
-            >
-              <Icon name={"AudioWave01Icon"} />
-            </HoverAndPressedButton>
+            />
             {!isSmallScreen ? (
-              <HoverAndPressedButton
-                containerStyle={styles.moreButton}
+              <Icon
+                name={"Layout2ColumnIcon"}
+                style={styles.moreButton}
                 onPress={() => {
                   setContentView("both");
                   setIsMenuVisible(false);
                 }}
-              >
-                <Icon name={"Layout2ColumnIcon"} />
-              </HoverAndPressedButton>
+              />
             ) : null}
           </>
         )}

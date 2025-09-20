@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   BackHandler,
-  TouchableOpacity,
+  Pressable,
   Platform,
   Image,
   useWindowDimensions,
@@ -159,21 +159,16 @@ const ResetPassword = () => {
                   Platform.OS === "web" ? handleResetPassword : undefined
                 }
               />
-
-              {/* Eye Icon */}
-              <TouchableOpacity
+              <Icon
+                name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
+                color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
                 style={styles.eyeButton}
                 onPress={toggleSecureEntry}
-              >
-                <Icon
-                  name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
-                  color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
-                />
-              </TouchableOpacity>
+              />
             </View>
 
             {/* Submit Button */}
-            <TouchableOpacity
+            <Pressable
               style={styles.submitButton}
               onPress={handleResetPassword}
               disabled={isLoading}
@@ -183,7 +178,7 @@ const ResetPassword = () => {
               ) : (
                 <Text style={styles.submitButtonText}>Continue</Text>
               )}
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           <StatusMessage type="error" text={error} />

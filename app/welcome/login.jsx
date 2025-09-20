@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,11 +6,10 @@ import {
   StyleSheet,
   ActivityIndicator,
   BackHandler,
-  TouchableOpacity,
+  Pressable,
   Platform,
   Image,
   useWindowDimensions,
-  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -199,28 +198,23 @@ const LoginPassword = () => {
                   Platform.OS === "web" ? handleLogin : undefined
                 }
               />
-
-              {/* Eye Icon */}
-              <TouchableOpacity
+              <Icon
+                name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
+                color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
                 style={styles.eyeButton}
                 onPress={toggleSecureEntry}
-              >
-                <Icon
-                  name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
-                  color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
-                />
-              </TouchableOpacity>
+              />
             </View>
 
             {/* Container per i pulsanti Back e Login */}
             <View style={styles.buttonContainer}>
               {/* Pulsante Back */}
-              <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <Pressable style={styles.backButton} onPress={handleBack}>
                 <Text style={styles.backButtonText}>Back</Text>
-              </TouchableOpacity>
+              </Pressable>
 
               {/* Pulsante Login */}
-              <TouchableOpacity
+              <Pressable
                 style={styles.submitButton}
                 onPress={handleLogin}
                 disabled={isLoading}
@@ -230,7 +224,7 @@ const LoginPassword = () => {
                 ) : (
                   <Text style={styles.submitButtonText}>Login</Text>
                 )}
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
 

@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   BackHandler,
-  TouchableOpacity,
+  Pressable,
   useWindowDimensions,
   ScrollView,
   KeyboardAvoidingView,
@@ -48,12 +48,12 @@ const AuthenticatorSection = ({
       <Text style={styles.secretText} numberOfLines={1} ellipsizeMode="middle">
         {secret}
       </Text>
-      <TouchableOpacity style={styles.copyButton} onPress={onCopy}>
-        <Icon
-          name={copied ? "Tick01Icon" : "Copy01Icon"}
-          color={copied ? "green" : "white"}
-        />
-      </TouchableOpacity>
+      <Icon
+        name={copied ? "Tick01Icon" : "Copy01Icon"}
+        color={copied ? "green" : "white"}
+        style={styles.copyButton}
+        onPress={onCopy}
+      />
     </View>
   </View>
 );
@@ -159,7 +159,7 @@ const VerifyMethod = () => {
         style={styles.container}
       >
         <StatusBar style="dark" />
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <ScrollView contentstyle={styles.scrollContainer}>
           <View style={styles.card}>
             <View style={styles.cardContent}>
               <Text style={styles.title}>{getFormattedVerificationType()}</Text>
@@ -183,7 +183,7 @@ const VerifyMethod = () => {
                   error={!!error}
                   inputCount={6}
                 />
-                <TouchableOpacity
+                <Pressable
                   style={[
                     styles.submitButton,
                     isLoading && styles.submitButtonDisabled,
@@ -199,7 +199,7 @@ const VerifyMethod = () => {
                   ) : (
                     <Text style={styles.submitButtonText}>Verifica Codice</Text>
                   )}
-                </TouchableOpacity>
+                </Pressable>
               </View>
 
               <StatusMessage type="error" text={error} />

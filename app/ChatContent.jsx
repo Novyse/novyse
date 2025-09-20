@@ -463,9 +463,11 @@ const ChatContent = ({
               alignItems: "center",
             }}
           >
-            <Pressable style={styles.iconButton}>
-              <Icon name="PlusSignIcon" />
-            </Pressable>
+            <Icon
+              name="PlusSignIcon"
+              style={styles.iconButton}
+              onPress={() => {}}
+            />
             <LinearGradient
               colors={theme.backgroundChatTextInputGradient}
               start={{ x: 0, y: 0 }}
@@ -484,18 +486,24 @@ const ChatContent = ({
                   Platform.OS === "web" ? handleSendMessage : undefined
                 }
               />
-              <Pressable style={styles.iconButton} onPress={toggleEmojiPicker}>
-                <Icon name="SmileIcon" />
-              </Pressable>
+              <Icon
+                name="SmileIcon"
+                style={styles.iconButton}
+                onPress={toggleEmojiPicker}
+              />
             </LinearGradient>
             {isVoiceMessage ? (
-              <Pressable onPress={handleVoiceMessage} style={styles.iconButton}>
-                <Icon name="Mic02Icon" />
-              </Pressable>
+              <Icon
+                name="Mic02Icon"
+                onPress={handleVoiceMessage}
+                style={styles.iconButton}
+              />
             ) : (
-              <Pressable onPress={handleSendMessage} style={styles.iconButton}>
-                <Icon name="SentIcon" />
-              </Pressable>
+              <Icon
+                name="SentIcon"
+                onPress={handleSendMessage}
+                style={styles.iconButton}
+              />
             )}
           </View>
         ) : (

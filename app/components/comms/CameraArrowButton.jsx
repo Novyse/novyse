@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import Icon from "../Icon";
 
 const CameraArrowButton = ({
@@ -7,17 +7,15 @@ const CameraArrowButton = ({
   theme,
   isMobile = Platform.OS !== "web",
 }) => {
-
   return (
-    <Pressable
-      style={[
-        styles.arrowButton,
-        { backgroundColor: theme?.background || "rgba(0, 0, 0, 0.75)" },
-      ]}
-      onPress={onPress}
-    >
-      <Icon name={isMobile ? "CameraRotated01Icon" : "ArrowDown01Icon"} />
-    </Pressable>
+      <Icon
+        name={isMobile ? "CameraRotated01Icon" : "ArrowDown01Icon"}
+        style={[
+          styles.arrowButton,
+          { backgroundColor: theme?.background || "rgba(0, 0, 0, 0.75)" },
+        ]}
+        onPress={onPress}
+      />
   );
 };
 

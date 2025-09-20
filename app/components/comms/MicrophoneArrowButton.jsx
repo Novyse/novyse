@@ -1,18 +1,17 @@
 import React from "react";
-import { StyleSheet, Pressable } from "react-native";
+import { StyleSheet } from "react-native";
 import Icon from "../Icon";
 
 const MicrophoneArrowButton = ({ onPress, theme }) => {
   return (
-    <Pressable
+    <Icon
+      name={"ArrowDown01Icon"}
       style={[
         styles.arrowButton,
         { backgroundColor: theme?.background || "rgba(0, 0, 0, 0.75)" },
       ]}
       onPress={onPress}
-    >
-      <Icon name={"ArrowDown01Icon"} />
-    </Pressable>
+    />
   );
 };
 

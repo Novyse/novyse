@@ -3,7 +3,7 @@ import {
   View,
   Text,
   Modal,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   FlatList,
   Alert,
@@ -69,14 +69,17 @@ const CameraSelector = ({
   };
 
   const renderCameraItem = ({ item }) => (
-    <TouchableOpacity
+    <Pressable
       style={[
         styles.cameraItem,
         item.deviceId === currentDeviceId && styles.selectedCamera,
       ]}
       onPress={() => handleCameraSelect(item)}
     >
-      <Icon name={"Video02Icon"} color={item.deviceId === currentDeviceId ? "#4CAF50" : "#666"}/>
+      <Icon
+        name={"Video02Icon"}
+        color={item.deviceId === currentDeviceId ? "#4CAF50" : "#666"}
+      />
       <View style={styles.cameraInfo}>
         <Text
           style={[
@@ -91,9 +94,9 @@ const CameraSelector = ({
         )}
       </View>
       {item.deviceId === currentDeviceId && (
-        <Icon name={"Tick02Icon"} color="#4CAF50"/>
+        <Icon name={"Tick02Icon"} color="#4CAF50" />
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (
@@ -107,9 +110,12 @@ const CameraSelector = ({
         <View style={styles.modalContent}>
           <View style={styles.header}>
             <Text style={styles.title}>Select Camera</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Icon name={"Cancel01Icon"} color="#666"/>
-            </TouchableOpacity>
+              <Icon
+                name={"Cancel01Icon"}
+                color="#666"
+                onPress={onClose}
+                style={styles.closeButton}
+              />
           </View>
 
           {loading ? (
@@ -127,9 +133,9 @@ const CameraSelector = ({
           )}
 
           <View style={styles.footer}>
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+            <Pressable style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </View>

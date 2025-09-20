@@ -14,7 +14,7 @@ const SettingsMenu = () => {
       <HeaderWithBackArrow goBackTo="/messages" />
       <View style={styles.container}>
         {/* Avvolgi i menu items in uno ScrollView */}
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentstyle={styles.scrollContent}>
           <SettingsMenuItem
             navToPage="/settings/account"
             pageName="Account"

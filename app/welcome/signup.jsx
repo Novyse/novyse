@@ -215,15 +215,12 @@ const Signup = () => {
         )}
 
         {field.includes("password") && (
-          <TouchableOpacity
-            style={styles.eyeButton}
-            onPress={() => toggleShowPassword(field)}
-          >
             <Icon
               name={showPassword[field] ? "ViewIcon" : "ViewOffIcon"}
               color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
+              style={styles.eyeButton}
+              onPress={() => toggleShowPassword(field)}
             />
-          </TouchableOpacity>
         )}
       </View>
 
