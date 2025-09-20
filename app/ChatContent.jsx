@@ -29,6 +29,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import SmartBackground from "./components/SmartBackground";
 import ChatIconsPickerModal from "./components/ChatIconsPickerModal";
 import MessageBase from "./components/messages/MessageBase";
+import MessageSystem from "./components/messages/MessageSystem";
 
 const ChatContent = ({
   chatJoined,
@@ -416,11 +417,7 @@ const ChatContent = ({
         keyExtractor={(item) => item.uniqueKey}
         renderItem={({ item }) => {
           if (item.type === "separator") {
-            return (
-              <View style={styles.dateSeparator}>
-                <Text style={styles.dateSeparatorText}>{item.data}</Text>
-              </View>
-            );
+            return <MessageSystem type={"date"} data={item.data} />;  // oppure tipo type={item.systemType}
           } else {
             const message = item.data;
             return (
@@ -683,19 +680,6 @@ function createStyle(theme) {
       justifyContent: "center",
       alignItems: "center",
       marginHorizontal: 5,
-    },
-    dateSeparator: {
-      alignSelf: "center",
-      backgroundColor: theme.dateSeparatorBackground,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 10,
-      marginVertical: 10,
-    },
-    dateSeparatorText: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "bold",
     },
     joinGroupButton: {
       backgroundColor: theme.joinGroupButtonBackground,
