@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TextInput, ScrollView } from "react-native";
 import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
-import APIMethods from "../../utils/APImethods";
+import gateway from "../../utils/backend-services/api-gateway";
 import StatusMessage from "@/app/components/StatusMessage";
 import SettingsButton from "@/app/components/settings/SettingsButton";
 
@@ -42,7 +42,7 @@ const ChangePassword = () => {
 
     try {
       setIsLoading(true);
-      const changePassword = await APIMethods.changePassword(
+      const changePassword = await gateway.changePassword(
         oldPassword,
         newPassword
       );

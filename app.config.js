@@ -9,7 +9,7 @@ const EXPO_OWNER = "novyse";
 const EAS_PROJECT_ID = "6f29bfad-6db3-491f-9bbf-d97664dac861";
 const API_BASE_URL = "https://api.novyse.com";
 const SOCKET_BASE_URL = "wss://io.novyse.com";
-const BRANCH = "dev";
+const BRANCH = "development";
 //.ENV
 
 export { BRANCH, API_BASE_URL, SOCKET_BASE_URL, APP_VERSION, BUILD_NUMBER, BUILD_DATE };
@@ -17,15 +17,15 @@ export { BRANCH, API_BASE_URL, SOCKET_BASE_URL, APP_VERSION, BUILD_NUMBER, BUILD
 // Genera suffisso per dev mode
 const getDevSuffix = () => {
   const branch = BRANCH || "main";
-  return branch === "dev" ? "_dev" : "";
+  return branch === "development" ? "_dev" : "";
 };
 
 // Genera il percorso base delle immagini in base al BRANCH
 const getImagePath = (imageName) => {
   const branch = BRANCH || "main";
   const basePath =
-    branch === "dev"
-      ? `./assets/images/dev/logo-${APP_NAME_LOWERCASE}-${imageName}.png`
+    branch === "development"
+      ? `./assets/images/development/logo-${APP_NAME_LOWERCASE}-${imageName}.png`
       : `./assets/images/logo-${APP_NAME_LOWERCASE}-${imageName}.png`;
   return basePath;
 };

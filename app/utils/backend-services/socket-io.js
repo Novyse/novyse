@@ -1,11 +1,21 @@
-import localDatabase from "./localDatabaseMethods.js";
-import eventEmitter from "./EventEmitter.js";
+import localDatabase from "../localDatabaseMethods.js";
+import eventEmitter from "../EventEmitter.js";
 import { io } from "socket.io-client";
-import APIMethods from "./APImethods.js";
+import gateway from "./api-gateway.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { BRANCH, SOCKET_BASE_URL } from "../../app.config.js";
-const path = BRANCH === "dev" ? "/test/io" : "/v1/io";
+import { BRANCH, SOCKET_BASE_URL } from "../../../app.config.js";
+let path;
+
+switch (BRANCH) {
+  case "development":
+    path = "/development";
+  case "preview":
+    path = "/preview";
+  default:
+    path = "/production";
+    break;
+}
 
 let socket = null;
 
@@ -18,7 +28,6 @@ const SocketMethods = {
   },
 
   openSocketConnection: async () => {
-
     userHandle = await localDatabase.fetchLocalUserHandle();
 
     const sessionId = await AsyncStorage.getItem("sessionIdToken");
@@ -47,20 +56,20 @@ const SocketMethods = {
 
       socket.on("error", async (error) => {
         console.error("Socket.IO connection error:", error);
-  
+
         if (error.status === 401) {
           console.error("Invalid session - retrying pulling new sessionId");
-          
+
           // Close current socket before reconnecting
           if (socket) {
             socket.disconnect();
             socket = null;
           }
-          
+
           // Wait before reconnecting to avoid rapid retry loops
           setTimeout(async () => {
             await SocketMethods.openSocketConnection();
-          }, 2000); 
+          }, 2000);
         }
       });
 
@@ -90,7 +99,7 @@ const SocketMethods = {
       );
 
       if (!ChatAlreadyInDatabaseawait) {
-        const users = await APIMethods.getChatMembers(chat_id);
+        const users = await gateway.getChatMembers(chat_id);
         for (const user of users) {
           if (user != userHandle) {
             await localDatabase.insertChatAndUsers(chat_id, user);

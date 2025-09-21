@@ -9,7 +9,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import QRCodeReader from "../components/QRCodeReader";
 
-import APIMethods from "../utils/APImethods";
+import gateway from "../utils/backend-services/api-gateway";
 
 const QRScanner = () => {
   const { theme } = useContext(ThemeContext);
@@ -52,7 +52,7 @@ const QRScanner = () => {
     try {
       console.log("QR Code content:", content);
       
-      const success = await APIMethods.scanQRCodeAPI(content);
+      const success = await gateway.scanQRCodeAPI(content);
 
       if (!success) {
         Alert.alert("Errore", "QR Code non valido o già scansionato.");

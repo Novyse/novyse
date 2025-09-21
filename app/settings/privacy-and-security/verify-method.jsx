@@ -14,7 +14,7 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ThemeContext } from "@/context/ThemeContext";
-import APIMethods from "@/app/utils/APImethods";
+import gateway from "@/app/utils/backend-services/api-gateway";
 import OtpDigitsInput from "@/app/components/OtpDigitsInput";
 import ScreenLayout from "@/app/components/ScreenLayout";
 import HeaderWithBackArrow from "@/app/components/HeaderWithBackArrow";
@@ -126,7 +126,7 @@ const VerifyMethod = () => {
     setError(null);
     setIsLoading(true);
     try {
-      const data = await APIMethods.twoFactorsAuth(
+      const data = await gateway.twoFactorsAuth(
         verificationType,
         token,
         fullOtp

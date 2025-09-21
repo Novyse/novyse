@@ -12,7 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import JsonParser from "../utils/JsonParser";
+import gateway from "../utils/backend-services/api-gateway";
 import { useRouter, useLocalSearchParams, Link } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
@@ -106,9 +106,9 @@ const Signup = () => {
 
       setIsLoading(true);
       const timer = setTimeout(async () => {
-        const available = await JsonParser.handleAvailability(processedValue);
-        setHandleAvailable(available);
-        if (!available) {
+        const { success, free } = await gateway.check.handle(processedValue);
+        setHandleAvailable(free);
+        if (!free) {
           setHandleError("This handle is already in use.");
         }
         setIsLoading(false);
@@ -161,12 +161,12 @@ const Signup = () => {
 
     try {
       const { password, name, surname, handle } = form;
-      const signupResponse = await JsonParser.signupJson(
+      const signupResponse = await gateway.auth.register(
         emailValue,
+        password,
         name,
         surname,
         handle,
-        password,
         privacy_policy_accepted,
         terms_of_service_accepted
       );
@@ -215,12 +215,12 @@ const Signup = () => {
         )}
 
         {field.includes("password") && (
-            <Icon
-              name={showPassword[field] ? "ViewIcon" : "ViewOffIcon"}
-              color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
-              style={styles.eyeButton}
-              onPress={() => toggleShowPassword(field)}
-            />
+          <Icon
+            name={showPassword[field] ? "ViewIcon" : "ViewOffIcon"}
+            color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
+            style={styles.eyeButton}
+            onPress={() => toggleShowPassword(field)}
+          />
         )}
       </View>
 

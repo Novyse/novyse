@@ -1,4 +1,4 @@
-import APIMethods from "../APImethods.js";
+import gateway from "../backend-services/api-gateway.js";
 import WebRTCManager from "./index.js";
 import eventEmitter from "../EventEmitter.js";
 import localDatabase from "../localDatabaseMethods.js";
@@ -32,10 +32,10 @@ const self = {
     }
     // Check if already in a vocal chat
     if (WebRTC.getChatId() != chatId) {
-      await APIMethods.commsLeave(chatId);
+      await gateway.commsLeave(chatId);
     }
     // Join vocal chat
-    const data = await APIMethods.commsJoin(chatId);
+    const data = await gateway.commsJoin(chatId);
     if (!data.comms_joined) {
       throw new Error("Failed to join vocal chat");
     }
@@ -65,13 +65,13 @@ const self = {
     };
     await handle.memberJoined(dataWithChatId);
 
-    const commsData = await APIMethods.retrieveVocalUsers(chatId);
+    const commsData = await gateway.retrieveVocalUsers(chatId);
     WebRTC.setcommsData(commsData);
   },
 
   // quando io esco in una room
   async left() {
-    const data = await APIMethods.commsLeave();
+    const data = await gateway.commsLeave();
 
     //  if (!data.comms_left || false /* Force leave for now */) {
     //    throw new Error("Failed to leave comms");
@@ -496,7 +496,7 @@ const self = {
         throw new Error("Failed to get screen share permission or stream");
       } // Now that we have permission and the stream, get the screen share ID from API
 
-      const data = await APIMethods.startScreenShare(WebRTC.getChatId());
+      const data = await gateway.startScreenShare(WebRTC.getChatId());
 
       if (data.screen_share_started) {
         SoundPlayer.getInstance().playSound("comms_stream_started");
@@ -544,7 +544,7 @@ const self = {
 
   async stopScreenShare(screenShareUUID) {
     try {
-      const data = await APIMethods.stopScreenShare(
+      const data = await gateway.stopScreenShare(
         WebRTC.getChatId(),
         screenShareUUID
       );
@@ -622,7 +622,7 @@ const get = {
 
     if (chatId != WebRTC.getChatId()) {
       // Different comms - always fetch from API
-      commsData = await APIMethods.retrieveVocalUsers(chatId);
+      commsData = await gateway.retrieveVocalUsers(chatId);
     } else {
       // Active comms data
       commsData = WebRTC.getCommsData();

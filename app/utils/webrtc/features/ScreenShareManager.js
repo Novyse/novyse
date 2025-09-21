@@ -3,7 +3,7 @@ import WebRTCLogger from "../logging/WebRTCLogger.js";
 import { GlobalState } from "../core/GlobalState.js";
 import Compatibility from "../utils/compatibility.js";
 import { Helpers } from "../utils/helpers.js";
-import APIMethods from "../../APImethods.js";
+import gateway from "../../backend-services/api-gateway.js";
 import eventEmitter from "../utils/EventEmitter.js";
 import SoundPlayer from "../../sounds/SoundPlayer.js";
 import { getScreenShareConstraints } from "../config/mediaConstraints.js";
@@ -253,12 +253,11 @@ export class ScreenShareManager {
    */
   async _acquireWebScreenStream(commsSettings = {}) {
     try {
-
       const quality = commsSettings.screenShareQuality;
       const fps = commsSettings.screenShareFPS;
       const audio = commsSettings.screenShareAudio;
 
-      const constraints = getScreenShareConstraints("web",quality, fps, audio);
+      const constraints = getScreenShareConstraints("web", quality, fps, audio);
       const stream = await navigator.mediaDevices.getDisplayMedia(constraints);
 
       this.logger.debug("Stream screen share web acquisito", {
@@ -585,7 +584,7 @@ export class ScreenShareManager {
 
         // Chiama API per fermare screen share
 
-        await APIMethods.stopScreenShare(
+        await gateway.stopScreenShare(
           this.globalState.getChatId(),
           screenShareUUID
         );

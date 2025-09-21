@@ -14,7 +14,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
-import APIMethods from "../utils/APImethods";
+import gateway from "../utils/backend-services/api-gateway";
 import StatusMessage from "../components/StatusMessage";
 
 const ChooseVerify = () => {
@@ -51,14 +51,14 @@ const ChooseVerify = () => {
     if (selectedMethod) {
       setIsLoading(true);
       setError(""); // Clear any previous error
-      const successChoose = await APIMethods.twofaSelect(token, selectedMethod);
-      if (successChoose) {
-        // Naviga alla pagina Verify, passando il metodo scelto come verificationType
+      const { success, method, twoFactorToken, expiresIn } =
+        await gateway.auth.chooseTwofaMethod(token, selectedMethod);
+      if (success) {
         router.navigate({
-          pathname: "./verify", // Assicurati che questo sia il percorso corretto per la tua pagina Verify
+          pathname: "./verify",
           params: {
-            verificationType: selectedMethod,
-            token: token,
+            verificationType: method,
+            token: twoFactorToken,
           },
         });
       }

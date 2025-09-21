@@ -276,7 +276,9 @@ export class RecoveryManager {
         const offer = await pc.createOffer({ iceRestart: true });
         await pc.setLocalDescription(offer);
 
-        const SocketMethods = await import("../../socketMethods.js");
+        const SocketMethods = await import(
+          "../../backend-services/socket-io.js"
+        );
         const success = await this._sendWithRetry(
           () =>
             SocketMethods.default.RTCOffer({
@@ -497,7 +499,9 @@ export class RecoveryManager {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         // Use signaling manager's retry mechanism
-        const SocketMethods = await import("../../socketMethods.js");
+        const SocketMethods = await import(
+          "../../backend-services/socket-io.js"
+        );
 
         if (!SocketMethods.default.isWebSocketOpen()) {
           this.logger.warn(
@@ -551,7 +555,9 @@ export class RecoveryManager {
   async _sendWithRetry(sendFunction, operationName, maxRetries = 3) {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const SocketMethods = await import("../../socketMethods.js");
+        const SocketMethods = await import(
+          "../../backend-services/socket-io.js"
+        );
 
         if (!SocketMethods.default.isWebSocketOpen()) {
           this.logger.warn(

@@ -16,10 +16,10 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
-import APIMethods from "../utils/APImethods";
+import gateway from "../utils/backend-services/api-gateway";
 import { clearDBAddTokenInit } from "../utils/welcome/auth";
 import OtpDigitsInput from "../components/OtpDigitsInput";
-import StatusMessage from '../components/StatusMessage';
+import StatusMessage from "../components/StatusMessage";
 
 const Verify = ({}) => {
   const router = useRouter();
@@ -31,7 +31,6 @@ const Verify = ({}) => {
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  
 
   const { token, verificationType } = useLocalSearchParams();
 
@@ -89,17 +88,14 @@ const Verify = ({}) => {
       console.log("Verifying OTP:", fullOtp);
       console.log("Token:", token);
 
-      const data = await APIMethods.twoFactorsAuth(
-        verificationType,
+      const otpVerificationSuccess = await gateway.auth.verifyTwofaCode(
         token,
         fullOtp
       );
-      const otpVerificationSuccess = data.authenticated;
 
       if (otpVerificationSuccess) {
         console.log("OTP verificato con successo!");
-        const token = data.token;
-        const success = await clearDBAddTokenInit(token);
+        const success = await clearDBAddTokenInit();
         if (success) {
           router.replace("/messages");
         }
@@ -166,10 +162,7 @@ const Verify = ({}) => {
             </TouchableOpacity>
           </View>
 
-          <StatusMessage 
-            type="error" 
-            text={error} 
-          />
+          <StatusMessage type="error" text={error} />
         </View>
       </View>
     </LinearGradient>

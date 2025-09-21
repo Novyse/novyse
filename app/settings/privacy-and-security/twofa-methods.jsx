@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Pressable } from "react-native";
 import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
-import APIMethods from "@/app/utils/APImethods";
+import gateway from "@/app/utils/backend-services/api-gateway";
 import { useRouter } from "expo-router";
 import Icon from "@/app/components/Icon";
 
@@ -18,7 +18,7 @@ const TwoFAMethods = () => {
   useEffect(() => {
     const fetchMethods = async () => {
       try {
-        const data = await APIMethods.getTwofaMethods();
+        const data = await gateway.getTwofaMethods();
         setMethods(data.two_fa_methods || []);
         setActiveMethods(data.two_fa_active_methods || []);
         console.log(data);
@@ -30,7 +30,7 @@ const TwoFAMethods = () => {
   }, []);
 
   const handleDeleteMethod = async (method) => {
-    const { two_fa_remove_method, token } = await APIMethods.removeTwofaMethod(
+    const { two_fa_remove_method, token } = await gateway.removeTwofaMethod(
       method
     );
 
@@ -54,7 +54,7 @@ const TwoFAMethods = () => {
 
   const handleAddMethod = async (method) => {
     const { two_fa_add_method, token, secret, otpauth } =
-      await APIMethods.addTwofaMethod(method);
+      await gateway.addTwofaMethod(method);
 
     console.log(method, secret, otpauth);
 

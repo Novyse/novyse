@@ -1,13 +1,13 @@
-import APIMethods from "./APImethods"; // Importa la classe API esistente
+import gateway from "./backend-services/api-gateway"; // Importa la classe API esistente
 import localDatabase from "../utils/localDatabaseMethods";
 import eventEmitter from "../utils/EventEmitter";
-import SocketMethods from "./socketMethods";
+import SocketMethods from "./backend-services/socket-io";
 
 class JsonParser {
   // Metodo per controllare l'email e restituire "login" o "signup"
   static async emailCheckJson(email) {
     try {
-      const response = await APIMethods.emailCheckAPI(email);
+      const response = await gateway.emailCheckAPI(email);
 
       if (response.status === 200) {
         const jsonResponse = response.data;
@@ -26,7 +26,7 @@ class JsonParser {
   // Metodo per effettuare il signup e restituire un booleano
   static async signupJson(email, name, surname, handle, password) {
     try {
-      const response = await APIMethods.signupAPI(
+      const response = await gateway.signupAPI(
         email,
         name,
         surname,
@@ -51,7 +51,7 @@ class JsonParser {
   // Metodo per effettuare il login e restituire l'API Key
   // static async loginJson(email, password) {
   //   try {
-  //     const response = await APIMethods.loginAPI(email, password);
+  //     const response = await gateway.loginAPI(email, password);
 
   //     if (response.status === 200) {
   //       const jsonResponse = response.data;
@@ -71,7 +71,7 @@ class JsonParser {
   // Metodo per verificare la disponibilità di un handle
   static async handleAvailability(handle) {
     try {
-      const response = await APIMethods.handleAvailability(handle);
+      const response = await gateway.handleAvailability(handle);
 
       if (response.status === 200) {
         const jsonResponse = response.data;
@@ -90,7 +90,7 @@ class JsonParser {
   // Metodo per cercare qualsiasi cosa nell'app
   static async searchAll(value) {
     try {
-      const response = await APIMethods.searchAll(value);
+      const response = await gateway.searchAll(value);
 
       if (response.status === 200) {
         const jsonResponse = response.data;
@@ -134,7 +134,7 @@ class JsonParser {
   // Metodo per chiedere init all'API
   static async initJson() {
     try {
-      const response = await APIMethods.initAPI();
+      const response = await gateway.initAPI();
 
       if (response.status === 200) {
         const data = response.data;
@@ -259,7 +259,7 @@ class JsonParser {
   // Update
   static async updateAll(date_time) {
     try {
-      const response = await APIMethods.updateAll(date_time);
+      const response = await gateway.updateAll(date_time);
 
       if (response.status === 200) {
         const data = response.data;
@@ -371,7 +371,7 @@ class JsonParser {
   // quando mando un messaggio aspetto che ritorni le info
   static async sendMessageJson(chat_id, text, randomNumberPlusDate) {
     try {
-      const response = await APIMethods.sendMessageAPI(chat_id, text);
+      const response = await gateway.sendMessageAPI(chat_id, text);
 
       if (response.status === 200) {
         const jsonResponse = response.data;

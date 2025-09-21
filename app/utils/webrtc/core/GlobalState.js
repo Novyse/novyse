@@ -1180,7 +1180,7 @@ class GlobalState {
    * Get API methods instance (placeholder)
    * @returns {Object|null} API methods instance or null
    */
-  getAPIMethods() {
+  getgateway() {
     // This will be implemented when API methods are properly integrated
     return null;
   }

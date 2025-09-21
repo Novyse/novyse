@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import APIMethods from "../utils/APImethods";
+import gateway from "../utils/backend-services/api-gateway";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
@@ -75,7 +75,7 @@ const ResetPassword = () => {
     setIsLoading(true);
 
     try {
-      const resetPasswordSuccess = await APIMethods.resetPassword(
+      const resetPasswordSuccess = await gateway.auth.resetPassword(
         email,
         token,
         password

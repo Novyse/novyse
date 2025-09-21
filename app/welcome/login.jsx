@@ -18,7 +18,7 @@ import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 
 import { clearDBAddTokenInit } from "../utils/welcome/auth";
-import APIMethods from "../utils/APImethods";
+import gateway from "../utils/backend-services/api-gateway";
 import StatusMessage from "../components/StatusMessage";
 import Icon from "../components/Icon";
 
@@ -73,39 +73,50 @@ const LoginPassword = () => {
     setIsLoading(true);
 
     try {
-      const loginData = await APIMethods.loginAPI(emailValue, password);
-      const token = loginData.token;
-      if (!loginData.logged_in) {
+      const {
+        success,
+        twofa,
+        choose,
+        methods,
+        twoFactorToken,
+        chooseTwoFactorToken,
+        expiresIn,
+      } = await gateway.auth.login(emailValue, password);
+
+      if (!success) {
         console.log("Error", "Incorrect password.");
         setError("Incorrect Password");
         setIsLoading(false);
         return;
       } else {
-        const twofamethods = loginData.two_fa_methods;
-        if (twofamethods.length == 0) {
-          const success = await clearDBAddTokenInit(token);
+        if (!twofa) {
+          console.log("Login successful without 2FA");
+          const success = await clearDBAddTokenInit();
 
           if (success) {
             router.replace("/messages");
           } else {
             console.error("Error clearing DB, adding token or during init");
           }
-        } else if (twofamethods.length == 1) {
-          router.navigate({
-            pathname: "/welcome/verify",
-            params: {
-              verificationType: twofamethods[0],
-              token: token,
-            },
-          });
         } else {
-          router.navigate({
-            pathname: "/welcome/choose-verify",
-            params: {
-              verificationTypeList: twofamethods,
-              token: token,
-            },
-          });
+          console.log("Login successful, 2FA required");
+          if (choose) {
+            router.navigate({
+              pathname: "/welcome/choose-verify",
+              params: {
+                verificationTypeList: methods,
+                token: chooseTwoFactorToken,
+              },
+            });
+          } else {
+            router.navigate({
+              pathname: "/welcome/verify",
+              params: {
+                verificationType: methods[0],
+                token: twoFactorToken,
+              },
+            });
+          }
         }
       }
     } catch (error) {
@@ -121,7 +132,7 @@ const LoginPassword = () => {
       setError(null);
       setSuccessMessage(null);
 
-      const resetPassword = await APIMethods.forgotPassword(emailValue);
+      const resetPassword = await gateway.auth.requestPasswordReset(emailValue);
       console.log("Password forgot Success?", resetPassword);
 
       if (resetPassword) {

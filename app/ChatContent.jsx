@@ -23,7 +23,7 @@ import eventEmitter from "./utils/EventEmitter";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import "react-native-get-random-values";
 import JsonParser from "./utils/JsonParser";
-import APIMethods from "./utils/APImethods";
+import gateway from "./utils/backend-services/api-gateway";
 import Icon from "./components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import SmartBackground from "./components/SmartBackground";
@@ -156,7 +156,7 @@ const ChatContent = ({
   // quando voglio inviare il primo messaggio per avviare una chat
   const handleNewChatFirstMessage = async (handle) => {
     //creo nuova chat
-    const newChatChatId = await APIMethods.createNewChatAPI(handle);
+    const newChatChatId = await gateway.createNewChatAPI(handle);
     console.log("🚨Nuova chat ID: ", newChatChatId);
 
     // inserisco chat e user nel db locale
@@ -368,7 +368,7 @@ const ChatContent = ({
 
   // gestisco quando clicco il pulsante per joinare un gruppo
   const handleJoinGroup = async () => {
-    const joinGroup = await APIMethods.joinGroup(params.creatingChatWith);
+    const joinGroup = await gateway.joinGroup(params.creatingChatWith);
 
     if (joinGroup.group_joined) {
       await localDatabase.insertChat(joinGroup.chat_id, joinGroup.group_name);

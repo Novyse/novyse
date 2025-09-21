@@ -16,9 +16,9 @@ import JsonParser from "../utils/JsonParser";
 import { useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
-import APIMethods from "../utils/APImethods";
+import gateway from "../utils/backend-services/api-gateway";
 import QRCode from "react-native-qrcode-svg";
-import StatusMessage from '../components/StatusMessage';
+import StatusMessage from "../components/StatusMessage";
 
 import { clearDBAddTokenInit } from "../utils/welcome/auth";
 
@@ -26,6 +26,7 @@ const EmailCheckForm = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState(null);
   const [qrToken, setQrToken] = useState("");
+  const [isNavigating, setIsNavigating] = useState(false); // Usato per disattivare il polling quando si naviga
   const loginTheme = "default";
 
   // 2. Ottieni la larghezza dello schermo e definisci il breakpoint
@@ -56,32 +57,37 @@ const EmailCheckForm = () => {
     let isMounted = true;
 
     const fetchQrToken = async () => {
-      const token = await APIMethods.generateQRCodeTokenAPI();
-      if (isMounted) setQrToken(token);
+      if (isNavigating) return;
+
+      const { success, qrCodeToken, expiresIn } =
+        await gateway.auth.generateQRCodeToken();
+
+      if (isMounted) setQrToken(qrCodeToken);
 
       // Avvia il polling solo se il token è valido
-      if (token) {
+      if (qrCodeToken) {
         pollingInterval = setInterval(async () => {
           try {
-            const response = await APIMethods.checkQRCodeScannedAPI(token);
+            const response = await gateway.auth.checkQRCodeToken(qrCodeToken);
+            const { success, scanned } = response;
+            if (success) {
+              if (scanned) {
+                // QR code scanned, save tokens and navigate
+                if (await clearDBAddTokenInit()) {
+                  router.replace("/messages");
+                }
 
-            if (response.status === 200) {
-              // QR scansionato, salva il token
-              const token = response.data.token;
-              const success = await clearDBAddTokenInit(token);
-
-              if (success) {
-                router.replace("/messages");
+                setQrToken(null); // Used to trigger reload of QR code
+                clearInterval(pollingInterval);
+                // Naviga o aggiorna stato
+              } else {
+                // Valid QR but not yet scanned
               }
-
-              setQrToken(null); // Used to trigger reload of QR code
-              clearInterval(pollingInterval);
-              // Naviga o aggiorna stato
-            } else if (response.status === 202) {
-              // QR valido ma non ancora scansionato: continua polling
+            } else {
+              throw new Error("Failed to check QR code status");
             }
           } catch (error) {
-            if (error.response?.status === 401) {
+            if (!success) {
               // QR scaduto: rigenera
               setQrToken(null); // Used to trigger reload of QR code
               clearInterval(pollingInterval);
@@ -100,7 +106,7 @@ const EmailCheckForm = () => {
       isMounted = false;
       if (pollingInterval) clearInterval(pollingInterval);
     };
-  }, []);
+  }, [isNavigating]);
 
   const validateEmail = (value) => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -119,12 +125,20 @@ const EmailCheckForm = () => {
     }
 
     setError(null); // Clear previous errors
+    setIsNavigating(true); // Disattiva il polling
     checkEmailAndNavigate(email);
   };
 
   const checkEmailAndNavigate = async (emailValue) => {
     try {
-      const emailResponse = await JsonParser.emailCheckJson(emailValue);
+      const response = gateway.check.email(emailValue);
+
+      let emailResponse = "login";
+      if (response.success) {
+        if (response.free) {
+          emailResponse = "signup";
+        }
+      }
 
       if (emailResponse === "signup") {
         router.navigate({
@@ -148,13 +162,6 @@ const EmailCheckForm = () => {
     }
   };
 
-
-
-
-
-
-
-  
   return (
     <LinearGradient
       colors={
@@ -190,7 +197,9 @@ const EmailCheckForm = () => {
                 if (error) setError(null);
               }}
               placeholder="Email"
-              placeholderTextColor={LoginColors[loginTheme].placeholderTextInput}
+              placeholderTextColor={
+                LoginColors[loginTheme].placeholderTextInput
+              }
               keyboardType="email-address"
               autoCapitalize="none"
               onSubmitEditing={Platform.OS === "web" ? handleSubmit : undefined}
@@ -271,7 +280,6 @@ function createStyle(loginTheme, isSmallScreen) {
       width: isSmallScreen ? "100%" : 400, // Larghezza piena su mobile
       justifyContent: isSmallScreen ? "" : "center",
       alignContent: "center",
-      
     },
     title: {
       fontSize: 42,
@@ -298,7 +306,6 @@ function createStyle(loginTheme, isSmallScreen) {
       alignSelf: "center",
       width: isSmallScreen ? "100%" : 350,
       alignItems: "center", // <-- LA SOLUZIONE! Centra i figli orizzontalmente.
-      
     },
     textInput: {
       padding: 10,

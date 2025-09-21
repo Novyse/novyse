@@ -1,5 +1,5 @@
 import eventEmitter from "../../EventEmitter";
-import SocketMethods from "../../socketMethods";
+import SocketMethods from "../../backend-services/socket-io";
 
 const EventEmitter = {
   sendMIDtoStreamUUIDMapping: (

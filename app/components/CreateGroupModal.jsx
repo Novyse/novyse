@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import APIMethods from "../utils/APImethods";
+import gateway from "../utils/backend-services/api-gateway";
 import JsonParser from "../utils/JsonParser";
 import localDatabase from "../utils/localDatabaseMethods";
 import { useRouter } from "expo-router";
@@ -85,9 +85,9 @@ const CreateGroupModal = ({ visible, onClose }) => {
     }
     let success = null;
     if (isPublic) {
-      success = await APIMethods.createNewGroupAPI(groupHandle, groupName);
+      success = await gateway.createNewGroupAPI(groupHandle, groupName);
     } else {
-      success = await APIMethods.createNewGroupAPI("", groupName);
+      success = await gateway.createNewGroupAPI("", groupName);
     }
 
     if (success.group_created) {

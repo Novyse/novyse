@@ -3,15 +3,15 @@ import localDatabase from "../localDatabaseMethods";
 import JsonParser from "../JsonParser";
 
 async function storeSetIsLoggedIn(value) {
-    try {
-        await AsyncStorage.setItem("isLoggedIn", value);
-        console.log("storeSetIsLoggedIn: ", value);
-    } catch (e) {
-        console.log(e);
-    }
+  try {
+    await AsyncStorage.setItem("isLoggedIn", value);
+    console.log("storeSetIsLoggedIn: ", value);
+  } catch (e) {
+    console.log(e);
+  }
 }
 
-export async function clearDBAddTokenInit(token) {
+export async function clearDBAddTokenInit() {
   // Wait until localDatabase.db is available
   await new Promise((resolve) => {
     const checklocalDatabase = setInterval(() => {
@@ -29,10 +29,6 @@ export async function clearDBAddTokenInit(token) {
   const exists = await localDatabase.checkDatabaseExistence();
   console.log("Database exists:", exists);
 
-  // Store sessionIdToken
-  await AsyncStorage.setItem("sessionIdToken", token);
-  console.log("⭐⭐⭐", await AsyncStorage.getItem("sessionIdToken"));
-
   const initSuccess = await JsonParser.initJson();
 
   if (initSuccess) {
@@ -41,7 +37,7 @@ export async function clearDBAddTokenInit(token) {
   } else {
     console.log("Init Error");
   }
-  
+
   return initSuccess;
 }
 

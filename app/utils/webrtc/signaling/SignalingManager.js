@@ -4,7 +4,7 @@ import { GlobalState } from "../core/GlobalState.js";
 import { SDP_OPTIONS } from "../config/mediaConstraints.js";
 import Compatibility from "../utils/compatibility.js";
 import helpers from "../utils/helpers.js";
-import SocketMethods from "../../socketMethods.js";
+import SocketMethods from "../../backend-services/socket-io.js";
 
 const { RTCSessionDescription } = Compatibility.getWebRTCLib();
 
@@ -1036,7 +1036,7 @@ export class SignalingManager {
    * @private
    */
   async _sendWithRetry(sendFunction, operationName, maxRetries = 3) {
-    const SocketMethods = await import("../../socketMethods.js");
+    const SocketMethods = await import("../../backend-services/socket-io.js");
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {

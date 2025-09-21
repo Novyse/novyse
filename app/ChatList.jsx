@@ -28,9 +28,9 @@ import BigFloatingCommsMenu from "./components/comms/BigFloatingCommsMenu";
 import SmallCommsMenu from "./components/comms/SmallCommsMenu";
 
 import Search from "./Search";
-import APIMethods from "./utils/APImethods";
+import gateway from "./utils/backend-services/api-gateway";
 import eventEmitter from "./utils/EventEmitter";
-import SocketMethods from "./utils/socketMethods";
+import SocketMethods from "./utils/backend-services/socket-io";
 import localDatabase from "./utils/localDatabaseMethods";
 import ChatContainer from "./ChatContainer";
 import Sidebar from "./components/Sidebar";
@@ -255,7 +255,7 @@ const ChatList = () => {
   //logout dall'app sia locale (elimina DB) che remoto (API)
   const logout = async () => {
     await localDatabase.clearDatabase();
-    const loggedOutFromAPI = await APIMethods.logoutAPI();
+    const loggedOutFromAPI = await gateway.logoutAPI();
     if (loggedOutFromAPI) {
       console.log("Logout dall'API completato");
     }
