@@ -1,3 +1,3 @@
-import ChatList from "../ChatList";
+import AppContainer from "../AppContainer";
 
-export default ChatList;
+export default AppContainer;

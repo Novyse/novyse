@@ -169,7 +169,7 @@ function createStyle(theme, colorScheme) {
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: "rgba(0, 0, 0, 0.4)",
+      backgroundColor: theme?.overlay || "rgba(0, 0, 0, 0.4)",
       zIndex: 1,
     },
     profileContainer: {
@@ -198,8 +198,8 @@ function createStyle(theme, colorScheme) {
       width: 50,
       height: 50,
       marginBottom: 15,
-      borderRadius: "50%",
-      alignSelf: "flex-start"
+      borderRadius: 25,
+      alignSelf: "flex-start",
     },
   });
 }

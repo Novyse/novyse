@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useCallback } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -8,261 +8,188 @@ import {
   FlatList,
   Image,
   Animated,
-  BackHandler,
-  Alert,
   Platform,
 } from "react-native";
 import moment from "moment";
-import { StatusBar } from "expo-status-bar";
 import { ThemeContext } from "@/context/ThemeContext";
 import SmartBackground from "./components/SmartBackground";
 import NetInfo from "@react-native-community/netinfo";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import ScreenLayout from "./components/ScreenLayout";
+import localDatabase from "./utils/localDatabaseMethods";
+import Search from "./Search";
+import eventEmitter from "./utils/EventEmitter";
+import HoverAndPressedButton from "./components/HoverAndPressedButton";
+import HeaderBase from "./components/HeaderBase";
+import Icon from "./components/Icon";
+import SmallCommsMenu from "./components/comms/SmallCommsMenu"; // Solo per small screen
 import methods from "./utils/webrtc/methods";
 const { get, check } = methods;
 
-import CreateGroupModal from "./components/CreateGroupModal";
-import BigFloatingCommsMenu from "./components/comms/BigFloatingCommsMenu";
-import SmallCommsMenu from "./components/comms/SmallCommsMenu";
+// Top-level memoized list item to avoid re-creating component on every render
+const ChatListItem = React.memo(
+  ({ itemId, chatName, lastMessageText, lastMessageDate, isSelected, onPress, theme, styles }) => {
+    return (
+      <SmartBackground
+        colors={
+          isSelected
+            ? theme?.backgroundChatSelectedInsideListGradient
+            : theme?.backgroundChatInsideListGradient
+        }
+        style={styles.chatItem}
+      >
+        <HoverAndPressedButton onPress={() => onPress(itemId)} style={styles.chatItemPressable}>
+          <Image source={{ uri: "https://picsum.photos/200" }} style={styles.avatar} />
+          <View style={styles.chatItemGrid}>
+            <View style={styles.leftContainer}>
+              <Text style={[styles.chatTitle, styles.gridText, { marginBottom: 5 }]} numberOfLines={1} ellipsizeMode="tail">
+                {chatName}
+              </Text>
+              <Text style={[styles.chatSubtitle, styles.gridText]} numberOfLines={1} ellipsizeMode="tail">
+                {lastMessageText || "No messages yet"}
+              </Text>
+            </View>
+            <View style={styles.rightContainer}>
+              <Text style={[styles.chatDate, styles.gridText, { marginBottom: 5 }]} numberOfLines={1} ellipsizeMode="tail">
+                {lastMessageDate === "" ? <Icon name={"Clock01Icon"} size={15} /> : lastMessageDate}
+              </Text>
+              <Text style={[styles.staticNumber, styles.gridText]}>123</Text>
+            </View>
+          </View>
+        </HoverAndPressedButton>
+      </SmartBackground>
+    );
+  },
+  (prev, next) => {
+    // shallow compare important primitive props to avoid re-render
+    return (
+      prev.isSelected === next.isSelected &&
+      prev.chatName === next.chatName &&
+      prev.lastMessageDate === next.lastMessageDate &&
+      prev.lastMessageText === next.lastMessageText &&
+      prev.itemId === next.itemId
+    );
+  }
+);
 
-import Search from "./Search";
-import APIMethods from "./utils/APImethods";
-import eventEmitter from "./utils/EventEmitter";
-import SocketMethods from "./utils/socketMethods";
-import localDatabase from "./utils/localDatabaseMethods";
-import ChatContainer from "./ChatContainer";
-import Sidebar from "./components/Sidebar";
-import HoverAndPressedButton from "./components/HoverAndPressedButton";
-import HeaderBase from "./components/HeaderBase";
-
-import Icon from "./components/Icon";
-
-const ChatList = () => {
-  const [selectedChat, setSelectedChat] = useState(null);
-
-  const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const [networkAvailable, setNetworkAvailable] = useState(false);
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-  const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
-  const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] =
-    useState(false);
-  // se un utente ha accesso alla chat/gruppo, quindi per capire se mostrare la barra per mandare i messaggi oppure un pulsante join chat/group
-  const [chatJoined, setChatJoined] = useState(true);
-
-  const router = useRouter();
-  const params = useLocalSearchParams();
+const ChatList = ({
+  selectedChatId,
+  onChatSelect,
+  chatDetails,
+  isToggleSearchChats,
+  setIsToggleSearchChats,
+  theme,
+  colorScheme,
+}) => {
   const [chats, setChats] = useState([]);
+  // local cache for per-chat details to avoid flicker when parent prop is not yet populated
+  const [localDetails, setLocalDetails] = useState({});
   const [userId, setUserId] = useState("");
-  const [chatDetails, setChatDetails] = useState({});
-  const [contentView, setContentView] = useState("chat");
-
-  // Add state for user data
-  const [userData, setUserData] = useState({
-    name: "",
-    surname: "",
-    handle: "",
-    email: "",
-  });
-
-  // Force re-render when comms state changes
+  const [chatJoined, setChatJoined] = useState(true);
   const [forceUpdate, setForceUpdate] = useState(0);
 
-  // importo stile e temi colori
-  const { colorScheme, theme } = useContext(ThemeContext);
+  // Merge details from parent prop and local cache into a stable map
+  const mergedDetails = React.useMemo(() => {
+    const m = {};
+    if (chats && chats.length > 0) {
+      chats.forEach((c) => {
+        const external = chatDetails?.[c.chat_id];
+        const local = localDetails?.[c.chat_id] || {};
+        const hasExternal = external && Object.keys(external).length > 0;
+        // If external exists but misses some fields (e.g. user), merge with local to avoid dropping data
+        m[c.chat_id] = hasExternal ? { ...local, ...external } : local;
+      });
+    }
+    return m;
+  }, [chats, chatDetails, localDetails]);
+
+  // Cache last-known display names to avoid flicker when details temporarily lack user/name
+  const nameCacheRef = React.useRef({});
+
+  const router = useRouter();
   const styles = createStyle(theme, colorScheme);
 
-  const [sidebarPosition] = useState(new Animated.Value(-250));
-  const [chatContentPosition] = useState(
-    new Animated.Value(Dimensions.get("window").width)
-  );
-
+  // Diagnostic: log merged/external/local details when selection changes (helps trace missing names)
   useEffect(() => {
-    // Esponi setContentView globalmente per BigFloatingCommsMenu
-    window.setContentView = setContentView;
+    if (selectedChatId) {
+      const external = chatDetails?.[selectedChatId];
+      const local = localDetails?.[selectedChatId];
+      const merged = mergedDetails[selectedChatId];
+      console.log("[ChatList] selectedChatChanged", selectedChatId, { external, local, merged });
+    }
+  }, [selectedChatId, chatDetails, localDetails, mergedDetails]);
 
-    return () => {
-      delete window.setContentView;
-    };
-  }, [setContentView]);
-
-  // First useEffect - runs only once for initialization
+  // useEffect per init fetch (solo locale per lista)
   useEffect(() => {
     const checkLogged = async () => {
       const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
       if (isLoggedIn === "true") {
         const localUserId = await localDatabase.fetchLocalUserID();
         setUserId(localUserId);
-
-        // Fetch user data from database
-        try {
-          const localUserData = await localDatabase.fetchLocalUserData();
-          if (localUserData) {
-            setUserData({
-              name: localUserData.name || "",
-              surname: localUserData.surname || "",
-              handle: localUserData.handle || "",
-              email: localUserData.user_email || "",
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-      } else {
-        logout();
       }
     };
     checkLogged();
 
-    // Initialize socket
-    SocketMethods.openSocketConnection();
-
-    // Set up event listeners
-    const handleNewMessageSent = (data) => {
-      const { chat_id, text, date } = data;
-      setChatDetails((current) => ({
-        ...current,
-        [chat_id]: {
-          ...current[chat_id],
-          lastMessage: {
-            ...current[chat_id]?.lastMessage,
-            text: text !== null ? text : current[chat_id]?.lastMessage?.text,
-            date_time: date,
-          },
-        },
-      }));
-    };
-
-    const handleSearchResult = (data) => {
-      const { handle, type } = data;
-      const tempChatId = `temp_${handle}_${Date.now()}`;
-      setChatJoined(type !== "group");
-      setSelectedChat(tempChatId);
-    };
-
-    const updateChatsAndDetails = async (data) => {
-      const newChatId = data?.newChatId;
+    const updateChatsAndDetails = async () => {
       try {
         const fetchedChats = await fetchChats();
-        const details = {};
-        for (const chat of fetchedChats) {
-          const user = await fetchUser(chat.chat_id);
-          const lastMessage = await fetchLastMessage(chat.chat_id);
-          details[chat.chat_id] = {
-            user,
-            lastMessage,
-            group_channel_name: chat.group_channel_name,
-          };
-        }
-
         setChats(fetchedChats);
-        setChatDetails(details);
-        if (newChatId) {
-          setSelectedChat(newChatId);
+
+        // Prefetch missing details (user + lastMessage) for smoother UI
+        const missing = fetchedChats.filter((c) => !chatDetails?.[c.chat_id]);
+        if (missing.length > 0) {
+          const fetchedDetails = {};
+          await Promise.all(
+            missing.map(async (c) => {
+              try {
+                let user = await localDatabase.fetchUser(c.chat_id);
+                if (user === null || typeof user === "string") {
+                  user = { handle: user || "" };
+                }
+                const lastMessage = await localDatabase.fetchLastMessage(
+                  c.chat_id
+                );
+                fetchedDetails[c.chat_id] = {
+                  user,
+                  lastMessage,
+                  group_channel_name: c.group_channel_name,
+                };
+              } catch (err) {
+                // ignore per-chat errors
+              }
+            })
+          );
+          setLocalDetails((prev) => ({ ...prev, ...fetchedDetails }));
         }
       } catch (error) {
         console.error("Error updating chats:", error);
       }
     };
 
-    // Add event listeners
-    eventEmitter.on("updateNewLastMessage", handleNewMessageSent);
     eventEmitter.on("newChat", updateChatsAndDetails);
-    eventEmitter.on("searchResultSelected", handleSearchResult);
-
-    // Initial fetch
     updateChatsAndDetails();
 
-    // Cleanup function
     return () => {
-      eventEmitter.off("updateNewLastMessage", handleNewMessageSent);
       eventEmitter.off("newChat", updateChatsAndDetails);
-      eventEmitter.off("searchResultSelected", handleSearchResult);
     };
-  }, []); // Empty dependency array means it runs only once
+  }, []);
 
-  // Second useEffect - handles network status and back button
-  useEffect(() => {
-    const checkConnection = NetInfo.addEventListener((state) => {
-      setNetworkAvailable(state.isConnected);
-    });
-
-    const backAction = () => {
-      if (isSmallScreen && selectedChat) {
-        setSelectedChat(null);
-        return true;
-      }
-      Alert.alert("Attenzione", "Sei sicuro di voler uscire?", [
-        { text: "No", style: "cancel" },
-        { text: "Sì", onPress: () => BackHandler.exitApp() },
-      ]);
-      return true;
-    };
-
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-
-    return () => {
-      backHandler.remove();
-      checkConnection();
-    };
-  }, [isSmallScreen, selectedChat]); // Only re-run when these values change
-
-  useEffect(() => {
-    const updateScreenSize = () => {
-      const { width } = Dimensions.get("window");
-      setIsSmallScreen(width <= 768);
-    };
-    Dimensions.addEventListener("change", updateScreenSize);
-    updateScreenSize();
-
-    if (!isSmallScreen && params.chatId) {
-      setSelectedChat(params.chatId);
-    }
-  }, [params.chatId]);
-  useEffect(() => {
-    if (isSmallScreen) {
-      Animated.timing(chatContentPosition, {
-        toValue: selectedChat ? 0 : Dimensions.get("window").width,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [selectedChat, isSmallScreen]);
-  // Event-based comms state change detection
+  // useEffect per comms events (locale per forceUpdate)
   useEffect(() => {
     const handleCommsStateChange = (data) => {
-      // Force re-render when someone joins or leaves comms
       if (data.from === get.myPartecipantId()) {
         setForceUpdate((prev) => prev + 1);
       }
     };
-
-    // Listen to comms events
     eventEmitter.on("member_joined_comms", handleCommsStateChange);
     eventEmitter.on("member_left_comms", handleCommsStateChange);
-
     return () => {
       eventEmitter.off("member_joined_comms", handleCommsStateChange);
       eventEmitter.off("member_left_comms", handleCommsStateChange);
     };
   }, []);
 
-  //logout dall'app sia locale (elimina DB) che remoto (API)
-  const logout = async () => {
-    await localDatabase.clearDatabase();
-    const loggedOutFromAPI = await APIMethods.logoutAPI();
-    if (loggedOutFromAPI) {
-      console.log("Logout dall'API completato");
-    }
-    router.navigate("/welcome/email-check");
-  };
-
-  // viene richiamata nello useEffect, serve per ottenere le chat dal DB locale
+  // Funzioni fetch (invariate)
   const fetchChats = () =>
     localDatabase.fetchChats().then((chats) =>
       chats.map((chat) => ({
@@ -271,561 +198,118 @@ const ChatList = () => {
       }))
     );
 
-  // viene richiamata nello useEffect, serve per ottenere gli user dal DB locale
   const fetchUser = (chatId) =>
     localDatabase.fetchUser(chatId).then((handle) => ({ handle }));
 
-  // viene richiamata nello useEffect, serve per ottenere l'ultimo messaggio dal DB locale
   const fetchLastMessage = (chatId) =>
-    localDatabase.fetchLastMessage(chatId).then((row) => {
-      return row;
-    });
+    localDatabase.fetchLastMessage(chatId).then((row) => row);
 
-  // apre / chiude la sidebar
-  const toggleSidebar = () => {
-    setIsSidebarVisible(!isSidebarVisible);
-  };
+  // handleChatPress semplificato (stable reference)
+  const handleChatPress = React.useCallback(
+    (chatId) => {
+      setChatJoined(true);
+      onChatSelect(chatId);
+    },
+    [onChatSelect]
+  );
 
-  // Quando una chat nella lista di quelle salvate viene premuta
-  const handleChatPress = (chatId) => {
-    setChatJoined(true);
-    setSelectedChat(chatId);
-    setContentView("chat");
-    if (!isSmallScreen) {
-      // Desktop/tablet: aggiorna solo lo stato
-      router.setParams({ chatId, creatingChatWith: undefined });
-    } else {
-      // Mobile: naviga a una nuova schermata
-      router.push(`/messages?chatId=${chatId}`);
-    }
-  };
-
-  // trasforma la data in un formato HH:MM
+  // parseTime invariato
   const parseTime = (dateTimeMessage) => {
     if (!dateTimeMessage) return "";
     const timeMoment = moment(dateTimeMessage);
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
 
-  //Setting Menu
-  const handleSettingsPress = () => {
-    router.navigate("/settings");
+  // Helper to derive a display name for a chat; never returns a loading string
+  const getDisplayName = (item, details = {}) => {
+    // Prefer group name from item (fresh from chats) or details
+    if (item?.group_channel_name) return item.group_channel_name;
+    if (details.group_channel_name) return details.group_channel_name;
+
+    const user = details.user || {};
+    // If user is a primitive (string handle), return that
+    if (typeof user === "string") return user || item?.chat_id || "";
+    // If we have a name + surname, prefer that
+    if (user.name && user.surname) return `${user.name} ${user.surname}`;
+    // Fallback to handle or other display fields
+    if (user.handle) return user.handle;
+    if (user.displayName) return user.displayName;
+    // Last resort: show chat id (shortened) so there's always something stable
+    if (item?.chat_id) return item.chat_id;
+    return "";
   };
 
-  //gestisce se mostrare join oppure bottomBar in ChatContent
-  const handleSuccessfulJoin = (newChatId) => {
-    console.log(
-      `ChatList: Gruppo ${newChatId} joinato con successo. Aggiorno lo stato.`
-    );
-    setChatJoined(true);
-    // Potrebbe essere utile anche aggiornare selectedChat qui,
-    // se la navigazione non lo fa già implicitamente
-    setSelectedChat(newChatId);
-  };
-
-  // Optimized function to determine when to show BigFloatingCommsMenu
-  const shouldShowBigFloatingCommsMenu = useCallback(() => {
-    if (isSmallScreen) return false;
-
+  // shouldShowSmallCommsMenu (locale per small screen)
+  const shouldShowSmallCommsMenu = () => {
+    if (isToggleSearchChats) return false; // Non mostrare se search attiva
     const isInComms = check.isInComms();
-
     if (isInComms) {
       const commsId = get.commsId();
-
-      // If we're in a different chat than the comms chat, always show the menu
-      if (selectedChat !== commsId) {
-        return true;
-      }
-
-      // If we're in the same chat as comms but in "chat" view, show the menu
-      if (selectedChat === commsId && contentView === "chat") {
-        return true;
-      }
-
-      // If we're in the same chat as comms and in "vocal" or "both" view, don't show
-      return false;
-    } else {
-      // Show menu if we're not in a call and no chat is selected
-      return false;
+      if (selectedChatId !== commsId) return true;
+      // Assumi "chat" view per default, poiché contentView è in ChatContainer
+      return true;
     }
-  }, [isSmallScreen, selectedChat, contentView, forceUpdate]);
-
-  // Render BigFloatingCommsMenu with consistent props
-  const renderBigFloatingCommsMenu = () => {
-    if (!shouldShowBigFloatingCommsMenu()) return null;
-
-    return <BigFloatingCommsMenu />;
+    return false;
   };
 
-  // Aggiungi questa funzione accanto a shouldShowBigFloatingCommsMenu
-  const shouldShowSmallCommsMenu = useCallback(() => {
-    if (!isSmallScreen) return false;
+  const renderSmallCommsMenu = () =>
+    shouldShowSmallCommsMenu() ? <SmallCommsMenu /> : null;
 
-    const isInComms = check.isInComms();
-
-    if (isInComms) {
-      const commsId = get.commsId();
-
-      // Se siamo in una chat diversa da quella della chiamata
-      if (selectedChat !== commsId) {
-        return true;
-      }
-
-      // Se siamo nella stessa chat della chiamata ma in vista chat
-      if (selectedChat === commsId && contentView === "chat") {
-        return true;
-      }
-
-      return false;
-    } else {
-      // Mostra il menu se non siamo in chiamata e non c'è chat selezionata
-      return false;
-    }
-  }, [isSmallScreen, selectedChat, contentView, forceUpdate]);
-
-  // Aggiungi questa funzione accanto a renderBigFloatingCommsMenu
-  const renderSmallCommsMenu = () => {
-    if (!shouldShowSmallCommsMenu()) return null;
-
-    return <SmallCommsMenu />;
-  };
-
-  const renderHeader = () => {
-    return (
-      <HeaderBase>
-        <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
-        <Text style={styles.headerTitle}>Chats</Text>
-        <Icon
-          name={"Search02Icon"}
-          size={32}
-          onPress={() => {
-            setIsToggleSearchChats(!isToggleSearchChats);
-          }}
-          style={styles.searchButton}
-        />
-      </HeaderBase>
-    );
-  };
+  
 
   const renderChatList = () => (
-    <SmartBackground
-      colors={theme?.backgroundChatListGradient}
-      style={[styles.chatListContainer]}
-    >
+    <SmartBackground colors={theme?.backgroundChatListGradient} style={[styles.chatListContainer]}>
       <FlatList
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
+        // extraData ensures items re-render only when selection changes
+        extraData={selectedChatId}
+        // small performance defaults
+        initialNumToRender={12}
+        maxToRenderPerBatch={12}
+        windowSize={7}
         data={chats}
         keyExtractor={(item) => item.chat_id}
         renderItem={({ item }) => {
-          // Usa chatDetails invece di accedere direttamente a item
-          const details = chatDetails[item.chat_id] || {};
-          const user = details.user || {};
-          const lastMessage = details.lastMessage || {};
-          const lastMessageDate = parseTime(lastMessage.date_time);
-          // Priorità a group_channel_name, poi user.handle
-          const chatName =
-            details.group_channel_name || user.handle || "Unknown User";
-
-          const isSelected = selectedChat === item.chat_id;
-
+          const details = mergedDetails[item.chat_id] || {};
+          const isSelected = selectedChatId === item.chat_id;
+          let chatName = getDisplayName(item, details);
+          // update cache when we have a non-empty name
+          if (chatName && chatName.length > 0) {
+            nameCacheRef.current[item.chat_id] = chatName;
+          } else {
+            // fallback to last known name or short chat id
+            chatName = nameCacheRef.current[item.chat_id] || (item.chat_id || "").toString().slice(0, 8);
+          }
+          const lastMessageText = details.lastMessage?.text || "";
+          const lastMessageDate = parseTime(details.lastMessage?.date_time);
           return (
-            <SmartBackground
-              colors={
-                isSelected
-                  ? theme?.backgroundChatSelectedInsideListGradient
-                  : theme?.backgroundChatInsideListGradient
-              }
-              style={styles.chatItem}
-            >
-              <HoverAndPressedButton
-                onPress={() => handleChatPress(item.chat_id)}
-                style={styles.chatItemPressable}
-              >
-                <Image
-                  source={{ uri: "https://picsum.photos/200" }}
-                  style={styles.avatar}
-                />
-                <View style={styles.chatItemGrid}>
-                  <View style={styles.leftContainer}>
-                    <Text
-                      style={[
-                        styles.chatTitle,
-                        styles.gridText,
-                        { marginBottom: 5 },
-                      ]}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                    >
-                      {chatName}
-                    </Text>
-                    <Text
-                      style={[styles.chatSubtitle, styles.gridText]}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                    >
-                      {lastMessage.text || "No messages yet"}
-                    </Text>
-                  </View>
-                  <View style={styles.rightContainer}>
-                    <Text
-                      style={[
-                        styles.chatDate,
-                        styles.gridText,
-                        { marginBottom: 5 },
-                      ]}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                    >
-                      {lastMessageDate === "" ? (
-                        <Icon name={"Clock01Icon"} size={15} />
-                      ) : (
-                        lastMessageDate
-                      )}
-                    </Text>
-                    <Text style={[styles.staticNumber, styles.gridText]}>
-                      123
-                    </Text>
-                  </View>
-                </View>
-              </HoverAndPressedButton>
-            </SmartBackground>
+            <ChatListItem
+              itemId={item.chat_id}
+              chatName={chatName}
+              lastMessageText={lastMessageText}
+              lastMessageDate={lastMessageDate}
+              isSelected={isSelected}
+              onPress={handleChatPress}
+              theme={theme}
+              styles={styles}
+            />
           );
         }}
       />
     </SmartBackground>
   );
-
-  const renderChatHeaderAndContent = ({ showHeader = true }) => {
-    if (!selectedChat) return null;
-    const selectedDetails = chatDetails[selectedChat] || {};
-    const user = selectedDetails.user || {};
-    const group_channel_name = selectedDetails.group_channel_name || "";
-    const chatName =
-      group_channel_name ||
-      user.handle ||
-      params.creatingChatWith ||
-      "Unknown Name";
-
-    // La logica per l'header rimane qui
-    const renderChatHeader = (
-      <HeaderBase>
-        {isSmallScreen && (
-          <Icon
-            name={"ArrowLeft02Icon"}
-            onPress={() => setSelectedChat(null)}
-            style={styles.backButton}
-          />
-        )}
-        <Image
-          source={{ uri: "https://picsum.photos/200" }}
-          style={styles.avatar}
-        />
-        <Text style={[styles.headerTitle, styles.chatHeaderTitle]}>
-          {chatName}
-        </Text>
-        {chatJoined && (
-          <>
-            <Icon
-              name={"Message02Icon"}
-              style={styles.moreButton}
-              onPress={() => {
-                setContentView("chat");
-                setIsMenuVisible(false);
-              }}
-            />
-            <Icon
-              name={"AudioWave01Icon"}
-              style={styles.moreButton}
-              onPress={() => {
-                setContentView("vocal");
-                setIsMenuVisible(false);
-              }}
-            />
-            {!isSmallScreen ? (
-              <Icon
-                name={"Layout2ColumnIcon"}
-                style={styles.moreButton}
-                onPress={() => {
-                  setContentView("both");
-                  setIsMenuVisible(false);
-                }}
-              />
-            ) : null}
-          </>
-        )}
-      </HeaderBase>
-    );
-
-    // Lo switch ora renderizza l'header solo se showHeader è true
-    switch (contentView) {
-      case "vocal":
-      case "chat":
-        return (
-          <SmartBackground
-            colors={theme?.backgroundChatGradient}
-            style={styles.chatContent}
-            isSmallScreen={isSmallScreen}
-          >
-            {showHeader && renderChatHeader}
-            <ChatContainer
-              chatJoined={chatJoined}
-              chatId={selectedChat}
-              userId={userId}
-              chatName={chatName}
-              contentView={contentView}
-              onBack={() => setSelectedChat(null)}
-              onJoinSuccess={handleSuccessfulJoin}
-            />
-          </SmartBackground>
-        );
-      case "both":
-        return (
-          <SmartBackground
-            colors={theme?.backgroundChatGradient}
-            style={styles.chatContent}
-            isSmallScreen={isSmallScreen}
-          >
-            {showHeader && renderChatHeader}
-            <View style={{ flex: 1, flexDirection: "row" }}>
-              <View
-                style={{
-                  flex: 1,
-                  borderRightWidth: 1,
-                  borderColor: theme.chatDivider,
-                }}
-              >
-                <ChatContainer
-                  chatId={selectedChat}
-                  userId={userId}
-                  chatName={chatName}
-                  contentView="both"
-                  onBack={() => setSelectedChat(null)}
-                  onJoinSuccess={handleSuccessfulJoin}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <ChatContainer
-                  chatId={selectedChat}
-                  userId={userId}
-                  chatName={chatName}
-                  contentView="vocal"
-                  onBack={() => setSelectedChat(null)}
-                  onJoinSuccess={handleSuccessfulJoin}
-                />
-              </View>
-            </View>
-          </SmartBackground>
-        );
-    }
-  };
-
+  
   return (
-    <ScreenLayout>
-      <StatusBar
-        style="light"
-        backgroundColor={"transparent"}
-        translucent={true}
-        hidden={false}
-      />
-      <Sidebar
-        isSidebarVisible={isSidebarVisible}
-        toggleSidebar={toggleSidebar}
-        setIsCreateGroupModalVisible={setIsCreateGroupModalVisible}
-        handleSettingsPress={handleSettingsPress}
-        logout={logout}
-        userData={userData}
-        sidebarPosition={sidebarPosition}
-        theme={theme}
-      />
-
-      {isSmallScreen ? (
-        // --- LAYOUT SCHERMI PICCOLI (RIMANE UGUALE) ---
-        <>
-          {!selectedChat && renderHeader()}
-          <View style={styles.container}>
-            <SmartBackground
-              colors={theme?.backgroundChatListGradient}
-              style={styles.chatList}
-            >
-              {renderSmallCommsMenu()}
-              {!isToggleSearchChats ? renderChatList() : <Search />}
-            </SmartBackground>
-            {selectedChat && (
-              <View
-                style={[
-                  styles.chatContent,
-                  {
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 1,
-                    backgroundColor: theme.backgroundChat,
-                  },
-                ]}
-              >
-                {renderChatHeaderAndContent({ showHeader: true })}
-              </View>
-            )}
-          </View>
-        </>
-      ) : (
-        // --- NUOVO LAYOUT SEMPLIFICATO PER SCHERMI GRANDI ---
-        <View style={{ flex: 1, flexDirection: "row" }}>
-          {/* COLONNA SINISTRA (LISTA CHAT) */}
-          <View
-            style={[
-              styles.chatList,
-              styles.largeScreenChatList,
-              { flexDirection: "column" },
-            ]}
-          >
-            {renderHeader()}
-            <View style={styles.chatListWrapper}>
-              {!isToggleSearchChats ? renderChatList() : <Search />}
-              {renderBigFloatingCommsMenu()}
-            </View>
-          </View>
-
-          {/* COLONNA DESTRA (CHAT ATTIVA) */}
-          <View style={{ flex: 1, flexDirection: "column" }}>
-            {/* La funzione ora renderizza header e contenuto insieme, come prima, ma all'interno della colonna destra */}
-            {renderChatHeaderAndContent({ showHeader: true })}
-          </View>
-        </View>
-      )}
-
-      <CreateGroupModal
-        visible={isCreateGroupModalVisible}
-        onClose={() => setIsCreateGroupModalVisible(false)}
-      />
-      {!networkAvailable && (
-        <Text style={styles.connectionInfoContainer}>
-          Network Status: Not Connected
-        </Text>
-      )}
-    </ScreenLayout>
+      <View style={styles.chatListWrapper}>
+        {renderSmallCommsMenu()}
+        {!isToggleSearchChats ? renderChatList() : <Search />}
+      </View>
   );
 };
 
-export default ChatList;
-
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      flexDirection: "row",
-      overflow: "hidden", // Important: Add this to the container
-    },
-    chatList: {
-      flex: 1, // For small screens, it takes full width
-      minWidth: 330, // Minimum width to prevent shrinking
-    },
-    largeScreenChatList: {
-      flex: 0, // Override flex: 1 for large screens
-      width: 330, // Fixed width for large screens
-      borderRightWidth: 1,
-      borderRightColor: theme.chatDivider,
-    },
-    chatItem: {
-      borderRadius: 13,
-      marginBottom: 10,
-    },
-    chatItemPressable: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: 10,
-      width: "100%",
-      flex: 1,
-      borderRadius: 13,
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 10,
-    },
-    chatTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: theme.text,
-    },
-    chatSubtitle: {
-      fontSize: 14,
-      color: theme.text,
-    },
-    chatContent: {
-      padding: 0,
-      flex: 1,
-      // backgroundColor: theme.backgroundChat,
-    },
-    menuButton: {
-      marginRight: 10,
-    },
-    searchButton: {
-      marginLeft: "auto",
-    },
-    moreButton: {
-      marginLeft: 12,
-    },
-    headerTitle: {
-      color: theme.text,
-      fontSize: 18,
-      fontWeight: "bold",
-    },
-    chatHeader: {
-      // backgroundColor: theme.backgroundChat,
-      borderBottomColor: theme.chatDivider,
-      borderBottomWidth: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      width: "100%",
-      // zIndex: 10,
-    },
-    chatHeaderTitle: {
-      color: theme.text,
-      fontSize: 18,
-      fontWeight: "bold",
-      marginLeft: 20,
-      flex: 1,
-      textAlign: "left",
-    },
-    backButton: {
-      marginRight: 10,
-    },
-    connectionInfoContainer: {
-      backgroundColor: theme.backgroundChatListCheckNetwork,
-      padding: 10,
-      margin: 10,
-      borderRadius: 8,
-      color: theme.text,
-    },
-    chatItemGrid: {
-      flexDirection: "row",
-      flex: 1,
-      justifyContent: "space-between",
-    },
-    leftContainer: {
-      flex: 1,
-      flexDirection: "column",
-    },
-    rightContainer: {
-      flexDirection: "column",
-      alignItems: "flex-end",
-    },
-    gridText: {
-      fontSize: 14,
-      color: theme.text,
-    },
-    chatDate: {
-      textAlign: "right",
-    },
-    staticNumber: {
-      textAlign: "right",
-    },
     chatListContainer: {
       flex: 1,
       position: "relative",
@@ -861,8 +345,60 @@ function createStyle(theme, colorScheme) {
       padding: 10,
       paddingTop: 0,
     },
-    chatItemHovered: {
-      backgroundColor: theme.chatItemHovered,
+    chatItem: {
+      borderRadius: 13,
+      marginBottom: 10,
+    },
+    chatItemPressable: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 10,
+      width: "100%",
+      flex: 1,
+      borderRadius: 13,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 10,
+    },
+    chatTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: theme.text,
+    },
+    chatSubtitle: {
+      fontSize: 14,
+      color: theme.text,
+    },
+    chatItemGrid: {
+      flexDirection: "row",
+      flex: 1,
+      justifyContent: "space-between",
+    },
+    leftContainer: {
+      flex: 1,
+      flexDirection: "column",
+    },
+    rightContainer: {
+      flexDirection: "column",
+      alignItems: "flex-end",
+    },
+    gridText: {
+      fontSize: 14,
+      color: theme.text,
+    },
+    chatDate: {
+      textAlign: "right",
+    },
+    staticNumber: {
+      textAlign: "right",
+    },
+    searchButton: {
+      marginLeft: "auto",
     },
   });
 }
+
+export default React.memo(ChatList); // Memo per performance
