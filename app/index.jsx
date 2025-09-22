@@ -115,7 +115,7 @@ export default function Index() {
       <StatusBar style="light" backgroundColor={theme.backgroundClassic} />
     </ScreenLayout>
   );
-}
+};
 
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
