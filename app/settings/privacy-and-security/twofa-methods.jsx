@@ -18,9 +18,10 @@ const TwoFAMethods = () => {
   useEffect(() => {
     const fetchMethods = async () => {
       try {
-        const data = await gateway.getTwofaMethods();
-        setMethods(data.two_fa_methods || []);
-        setActiveMethods(data.two_fa_active_methods || []);
+        const { success, methods, activeMethods } =
+          await gateway.auth.getTwofaMethods();
+        setMethods(methods);
+        setActiveMethods(activeMethods);
         console.log(data);
       } catch (e) {
         // gestisci errore
@@ -30,17 +31,17 @@ const TwoFAMethods = () => {
   }, []);
 
   const handleDeleteMethod = async (method) => {
-    const { two_fa_remove_method, token } = await gateway.removeTwofaMethod(
-      method
-    );
+    const { success, twoFactorToken, expiresIn } =
+      await gateway.auth.removeTwofaMethod(method);
 
     try {
-      if (two_fa_remove_method) {
+      if (success) {
+        console.log("AIUTO", method, twoFactorToken, expiresIn);
         router.navigate({
           pathname: "./verify-method",
           params: {
             verificationType: method,
-            token: token,
+            token: twoFactorToken,
           },
         });
       } else {
@@ -53,19 +54,19 @@ const TwoFAMethods = () => {
   };
 
   const handleAddMethod = async (method) => {
-    const { two_fa_add_method, token, secret, otpauth } =
-      await gateway.addTwofaMethod(method);
+    const { success, twoFactorToken, secret, otpauth } =
+      await gateway.auth.addTwofaMethod(method);
 
     console.log(method, secret, otpauth);
 
     try {
-      if (two_fa_add_method) {
+      if (success) {
         if (method == "authenticator") {
           router.navigate({
             pathname: "./verify-method",
             params: {
               verificationType: method,
-              token: token,
+              token: twoFactorToken,
               secret: secret,
               otpauth: otpauth,
             },
@@ -75,7 +76,7 @@ const TwoFAMethods = () => {
             pathname: "./verify-method",
             params: {
               verificationType: method,
-              token: token,
+              token: twoFactorToken,
             },
           });
         }

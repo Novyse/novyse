@@ -10,8 +10,7 @@ import {
 import { ThemeContext } from "@/context/ThemeContext";
 import SmartBackground from "./SmartBackground";
 import SidebarItem from "./SidebarItem";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { useRouter } from "expo-router";
 
 const Sidebar = ({
   isSidebarVisible,
@@ -30,6 +29,8 @@ const Sidebar = ({
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
   const SIDEBAR_OVERLAY_SPEED = 175;
+
+  const router = useRouter();
 
   // 2. Sincronizza le animazioni con il cambio di isSidebarVisible
   useEffect(() => {
@@ -82,9 +83,6 @@ const Sidebar = ({
           colors={theme?.sideBarGradient}
           style={styles.sidebarContent}
         >
-
-
-
           <View style={styles.profileContainer}>
             <View style={styles.avatar}>
               <Image
@@ -103,8 +101,6 @@ const Sidebar = ({
               </Text> */}
             </View>
           </View>
-
-
 
           <View style={styles.menuContainer}>
             <SidebarItem
@@ -133,14 +129,10 @@ const Sidebar = ({
               iconName={"Logout03Icon"}
               onPress={() => {
                 toggleSidebar();
-                AsyncStorage.setItem("isLoggedIn", "false");
-                logout();
+                logout(router);
               }}
             />
           </View>
-
-
-
         </SmartBackground>
       </Animated.View>
     </>
@@ -177,7 +169,7 @@ function createStyle(theme, colorScheme) {
       alignItems: "center",
       paddingHorizontal: 15,
       marginTop: 50,
-      marginBottom: 25
+      marginBottom: 25,
     },
     profileTextContainer: {
       width: "100%",
@@ -199,7 +191,7 @@ function createStyle(theme, colorScheme) {
       height: 50,
       marginBottom: 15,
       borderRadius: "50%",
-      alignSelf: "flex-start"
+      alignSelf: "flex-start",
     },
   });
 }

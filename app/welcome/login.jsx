@@ -13,11 +13,10 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 
-import { clearDBAddTokenInit } from "../utils/welcome/auth";
+import auth from "../utils/welcome/auth";
 import gateway from "../utils/backend-services/api-gateway";
 import StatusMessage from "../components/StatusMessage";
 import Icon from "../components/Icon";
@@ -40,17 +39,7 @@ const LoginPassword = () => {
   const styles = createStyle(loginTheme, isSmallScreen);
 
   useEffect(() => {
-    const checkLogged = async () => {
-      const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-      if (storeGetIsLoggedIn == "true") {
-        router.navigate("/messages");
-      } else {
-        console.log("Utente non loggato");
-      }
-    };
-    checkLogged().then(() => {
-      console.log("CheckLogged completed");
-    });
+    auth.checkShouldBeHere(router,false);
 
     const backAction = () => {
       router.navigate("/welcome/email-check");
@@ -90,14 +79,7 @@ const LoginPassword = () => {
         return;
       } else {
         if (!twofa) {
-          console.log("Login successful without 2FA");
-          const success = await clearDBAddTokenInit();
-
-          if (success) {
-            router.replace("/messages");
-          } else {
-            console.error("Error clearing DB, adding token or during init");
-          }
+          auth.initializeApp();
         } else {
           console.log("Login successful, 2FA required");
           if (choose) {

@@ -11,11 +11,11 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import gateway from "../utils/backend-services/api-gateway";
 import StatusMessage from "../components/StatusMessage";
+import auth from "../utils/welcome/auth";
 
 const ChooseVerify = () => {
   const router = useRouter();
@@ -32,15 +32,7 @@ const ChooseVerify = () => {
   const methods = verificationTypeList ? verificationTypeList.split(",") : [];
 
   useEffect(() => {
-    const checkLogged = async () => {
-      const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-      if (storeGetIsLoggedIn === "true") {
-        router.navigate("/messages");
-      } else {
-        console.log("Utente non loggato in ChooseVerify");
-      }
-    };
-    checkLogged();
+    auth.checkShouldBeHere(router, true);
   }, []);
 
   const handleChooseMethod = (method) => {

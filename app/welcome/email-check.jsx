@@ -20,7 +20,7 @@ import gateway from "../utils/backend-services/api-gateway";
 import QRCode from "react-native-qrcode-svg";
 import StatusMessage from "../components/StatusMessage";
 
-import { clearDBAddTokenInit } from "../utils/welcome/auth";
+import auth from "../utils/welcome/auth";
 
 const EmailCheckForm = () => {
   const [email, setEmail] = useState("");
@@ -73,7 +73,7 @@ const EmailCheckForm = () => {
             if (success) {
               if (scanned) {
                 // QR code scanned, save tokens and navigate
-                if (await clearDBAddTokenInit()) {
+                if (await auth.initializeApp()) {
                   router.replace("/messages");
                 }
 

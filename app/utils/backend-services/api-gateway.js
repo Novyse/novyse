@@ -2,6 +2,8 @@ import axios from "axios";
 import eventEmitter from "../EventEmitter.js";
 import { Platform } from "react-native";
 
+import token from "../welcome/token.js";
+
 import { BRANCH, API_BASE_URL, APP_VERSION } from "../../../app.config.js";
 
 let path;
@@ -16,8 +18,8 @@ switch (BRANCH) {
   default:
     path = "/production";
 }
-path = "";
-const domain = "http://localhost:3003"; //API_BASE_URL;
+
+const domain = "http://localhost:80"; //API_BASE_URL; @SamueleOrazioDurante per ora in locale, poi metti API_BASE_URL
 const APIlink = domain + path;
 
 const api = axios.create({
@@ -56,6 +58,19 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/**
+ * Attach the access token to every request if available.
+ * This ensures that authenticated endpoints can be accessed without manually adding the token each time.
+ */
+
+api.interceptors.request.use(async (request) => {
+  const accessToken = await token.getAccessToken();
+  if (accessToken) {
+    request.headers["Authorization"] = `Bearer ${accessToken}`;
+  }
+  return request;
+});
 
 /**
  * Logging middleware that logs request and response details.
@@ -173,7 +188,10 @@ const gateway = {
             };
           } else {
             const { accessToken, refreshToken } = response.data.data;
-            // @SamueleOrazioDurante salva in async storage l'access token e refresh token
+            if (accessToken && refreshToken) {
+              // LOGIN SUCCESS WITHOUT 2FA
+              await token.setBothTokens(accessToken, refreshToken);
+            }
           }
         }
         return { success, twofa: false };
@@ -240,7 +258,7 @@ const gateway = {
           const { accessToken, refreshToken } = response.data.data;
           if (accessToken && refreshToken) {
             // Was successful 2FA LOGIN
-            // @SamueleOrazioDurante salva in async storage l'access token e refresh token
+            await token.setBothTokens(accessToken, refreshToken);
           }
         }
         return success;
@@ -285,7 +303,7 @@ const gateway = {
 
     async refresh() {
       try {
-        const refreshToken = null; // @SamueleOrazioDurante prende da async storage il refresh token
+        const refreshToken = await token.getRefreshToken();
 
         if (!refreshToken) {
           console.error("No refresh token available");
@@ -297,7 +315,10 @@ const gateway = {
 
         if (success) {
           const accessToken = response.data.data.accessToken;
-          // @SamueleOrazioDurante salva in async storage l'access token
+          if (accessToken) {
+            await token.setAccessToken(accessToken);
+            return success;
+          }
         }
 
         return success;
@@ -363,7 +384,9 @@ const gateway = {
      * @returns {Object} { success: boolean, method?: String, twoFactorToken?: String, expiresIn?: Number }
      */
     async removeTwofaMethod(method) {
-      const response = await api.remove("/auth/twofa/remove", { method });
+      const response = await api.delete("/auth/twofa/remove", {
+        data: { method },
+      });
       const success = response.data.success;
       if (success) {
         const { method, twoFactorToken, expiresIn } = response.data.data;
@@ -489,7 +512,10 @@ const gateway = {
           return { success, scanned: false };
         } else {
           // QR code was scanned
-          // @SamueleOrazioDurante salva in async storage l'access token e refresh token
+          const { accessToken, refreshToken } = response.data.data;
+          if (accessToken && refreshToken) {
+            await token.setBothTokens(accessToken, refreshToken);
+          }
           return {
             success,
             scanned: true,
@@ -541,8 +567,8 @@ const gateway = {
       const response = await api.get("/user/initialize");
       const success = response.data.success;
       if (success) {
-        // @SamueleOrazioDurante perfavore aggiungi il resto del codice
-        return { success };
+        const { user, device, chats, messages } = response.data.data;
+        return { success, user, device, chats, messages };
       }
       return { success };
     },

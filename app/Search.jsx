@@ -14,7 +14,6 @@ import {
 import SmartBackground from "./components/SmartBackground";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import JsonParser from "./utils/JsonParser";
 import eventEmitter from "./utils/EventEmitter";
 
@@ -28,13 +27,6 @@ const Search = () => {
   const [timer, setTimer] = useState(null);
 
   useEffect(() => {
-    const checkLogged = async () => {
-      const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-      if (isLoggedIn !== "true") {
-        router.navigate("/welcome/email-check");
-      }
-    };
-    checkLogged();
 
     const backAction = () => {
       router.navigate("/messages");

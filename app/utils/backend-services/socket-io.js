@@ -3,6 +3,7 @@ import eventEmitter from "../EventEmitter.js";
 import { io } from "socket.io-client";
 import gateway from "./api-gateway.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Database from "../storage/database.js";
 
 import { BRANCH, SOCKET_BASE_URL } from "../../../app.config.js";
 let path;
@@ -10,12 +11,15 @@ let path;
 switch (BRANCH) {
   case "development":
     path = "/development";
+    break;
   case "preview":
     path = "/preview";
+    break;
   default:
     path = "/production";
-    break;
 }
+
+path += "/socket.io"; // Endpoint per Socket.IO @SamueleOrazioDurante
 
 let socket = null;
 
@@ -30,8 +34,11 @@ const SocketMethods = {
   openSocketConnection: async () => {
     userHandle = await localDatabase.fetchLocalUserHandle();
 
-    const sessionId = await AsyncStorage.getItem("sessionIdToken");
-    console.info("Session ID: ", sessionId);
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    console.info("accessToken: ", accessToken);
+
+    const database = await Database.create();
+    console.log(await database.getAllInfoAllTableEverything());
 
     try {
       if (SocketMethods.isSocketOpen()) {
@@ -39,13 +46,14 @@ const SocketMethods = {
         return socket;
       }
 
-      socket = io(SOCKET_BASE_URL, {
+      socket = io("ws://localhost:80", {
+        //SOCKET_BASE_URL, { @SamueleOrazioDurante per ora in locale, poi metti SOCKET_BASE_URL
         path: path,
         transports: ["websocket"],
         autoConnect: true,
         reconnectionAttempts: -1,
         auth: {
-          sessionId: sessionId,
+          token: accessToken,
         },
       });
 

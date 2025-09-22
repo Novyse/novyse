@@ -36,6 +36,7 @@ import ChatContainer from "./ChatContainer";
 import Sidebar from "./components/Sidebar";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
 import HeaderBase from "./components/HeaderBase";
+import auth from "./utils/welcome/auth";
 
 import Icon from "./components/Icon";
 
@@ -90,32 +91,25 @@ const ChatList = () => {
 
   // First useEffect - runs only once for initialization
   useEffect(() => {
-    const checkLogged = async () => {
-      const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-      if (isLoggedIn === "true") {
-        const localUserId = await localDatabase.fetchLocalUserID();
-        setUserId(localUserId);
+    auth.checkShouldBeHere(router,true);
 
-        // Fetch user data from database
-        try {
-          const localUserData = await localDatabase.fetchLocalUserData();
-          if (localUserData) {
-            setUserData({
-              name: localUserData.name || "",
-              surname: localUserData.surname || "",
-              handle: localUserData.handle || "",
-              email: localUserData.user_email || "",
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
+    const getUserData = async () => {
+      // Fetch user data from database
+      try {
+        const localUserData = await localDatabase.fetchLocalUserData();
+        if (localUserData) {
+          setUserData({
+            name: localUserData.name || "",
+            surname: localUserData.surname || "",
+            handle: localUserData.handle || "",
+            email: localUserData.user_email || "",
+          });
         }
-      } else {
-        logout();
+      } catch (error) {
+        console.error("Error fetching user data:", error);
       }
     };
-    checkLogged();
-
+    getUserData();
     // Initialize socket
     SocketMethods.openSocketConnection();
 
@@ -251,16 +245,6 @@ const ChatList = () => {
       eventEmitter.off("member_left_comms", handleCommsStateChange);
     };
   }, []);
-
-  //logout dall'app sia locale (elimina DB) che remoto (API)
-  const logout = async () => {
-    await localDatabase.clearDatabase();
-    const loggedOutFromAPI = await gateway.logoutAPI();
-    if (loggedOutFromAPI) {
-      console.log("Logout dall'API completato");
-    }
-    router.navigate("/welcome/email-check");
-  };
 
   // viene richiamata nello useEffect, serve per ottenere le chat dal DB locale
   const fetchChats = () =>
@@ -633,7 +617,7 @@ const ChatList = () => {
         toggleSidebar={toggleSidebar}
         setIsCreateGroupModalVisible={setIsCreateGroupModalVisible}
         handleSettingsPress={handleSettingsPress}
-        logout={logout}
+        logout={auth.logout}
         userData={userData}
         sidebarPosition={sidebarPosition}
         theme={theme}

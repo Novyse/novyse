@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import eventEmitter from "../EventEmitter";
 
 import localDatabase from "../localDatabaseMethods";
+import auth from "../welcome/auth";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SetupGlobalEventReceiver() {
   const router = useRouter();
@@ -12,10 +12,7 @@ export default function SetupGlobalEventReceiver() {
   useEffect(() => {
     const handleUserSessionInvalid = async () => {
       console.log("User session became invalid. Taking action... 🍹");
-      // da qui tocca chiamare metodo per il logout, per ora faccio a manina dopo è da sistemare
-      await localDatabase.clearDatabase();
-      await AsyncStorage.setItem("isLoggedIn", "false");
-      router.navigate("/welcome/email-check");
+      auth.logout(router);
     };
 
     // ------------------> global event listeners

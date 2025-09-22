@@ -18,6 +18,7 @@ import EmailCheckForm from "./welcome/email-check";
 import JsonParser from "./utils/JsonParser";
 import { LinearGradient } from "expo-linear-gradient";
 import { LoginColors } from "@/constants/LoginColors";
+import auth from "./utils/welcome/auth";
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -36,10 +37,10 @@ export default function Index() {
     const checkLogged = async () => {
       try {
         console.log("Controllo in corso 🟡");
-        const [[, isLoggedIn], [, lastUpdateDateTime]] =
-          await AsyncStorage.multiGet(["isLoggedIn", "lastUpdateDateTime"]);
+        const lastUpdateDateTime = await auth.getLastUpdateTimestamp();
+        const isLoggedIn = await auth.isLoggedIn();
 
-        if (isLoggedIn === "true" && isMounted) {
+        if (isLoggedIn && isMounted) {
           console.log("Controllo positivo 🟢");
           JsonParser.updateAll(lastUpdateDateTime).catch((error) =>
             console.error("Errore in updateAll:", error)

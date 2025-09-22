@@ -126,12 +126,11 @@ const VerifyMethod = () => {
     setError(null);
     setIsLoading(true);
     try {
-      const data = await gateway.twoFactorsAuth(
-        verificationType,
+      const verified = await gateway.auth.verifyTwofaCode(
         token,
         fullOtp
       );
-      if (data.authenticated) {
+      if (verified) {
         router.replace("/settings/privacy-and-security/twofa-methods");
       } else {
         setError("Codice OTP non valido. Riprova.");

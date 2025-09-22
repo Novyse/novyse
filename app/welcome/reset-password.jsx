@@ -14,7 +14,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import gateway from "../utils/backend-services/api-gateway";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import auth from "../utils/welcome/auth";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import StatusMessage from "../components/StatusMessage";
@@ -36,17 +36,7 @@ const ResetPassword = () => {
   const isPasswordValid = (pwd) => passwordRegex.test(pwd);
 
   useEffect(() => {
-    const checkLogged = async () => {
-      const storeGetIsLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-      if (storeGetIsLoggedIn == "true") {
-        router.navigate("/messages");
-      } else {
-        console.log("Utente non loggato");
-      }
-    };
-    checkLogged().then(() => {
-      console.log("CheckLogged completed");
-    });
+    auth.checkShouldBeHere(router,false);
 
     const backAction = () => {
       router.navigate("/welcome/email-check");
