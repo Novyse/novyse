@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { use, useContext, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import SmartBackground from "./SmartBackground";
 import SidebarItem from "./SidebarItem";
 import { useRouter } from "expo-router";
+import Database from "../utils/storage/database";
 
 const Sidebar = ({
   isSidebarVisible,
@@ -18,7 +19,6 @@ const Sidebar = ({
   setIsCreateGroupModalVisible,
   handleSettingsPress,
   logout,
-  userData,
   theme,
 }) => {
   const { colorScheme } = useContext(ThemeContext);
@@ -31,6 +31,18 @@ const Sidebar = ({
   const SIDEBAR_OVERLAY_SPEED = 175;
 
   const router = useRouter();
+
+  const [userData, setUserData] = useState({});
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const database = await Database.create();
+      const data = await database.getLocalUser();
+      console.log("Fetched user data:", data);
+      setUserData(data);
+    };
+    fetchUserData();
+  }, []);
 
   // 2. Sincronizza le animazioni con il cambio di isSidebarVisible
   useEffect(() => {
@@ -92,13 +104,13 @@ const Sidebar = ({
             </View>
             <View style={styles.profileTextContainer}>
               <Text style={styles.profileName}>
-                {userData.name && userData.surname
-                  ? `${userData.name} ${userData.surname}`
+                {userData?.name && userData?.surname
+                  ? `${userData?.name} ${userData?.surname}`
                   : "Loading..."}
               </Text>
-              {/* <Text style={styles.profileHandle}>
-                {userData.handle ? `@${userData.handle}` : "@loading..."}
-              </Text> */}
+              <Text style={styles.profileHandle}>
+                {userData?.handle ? `@${userData?.handle}` : "@loading..."}
+              </Text>
             </View>
           </View>
 
@@ -106,7 +118,10 @@ const Sidebar = ({
             <SidebarItem
               text="Profile"
               iconName={"User03Icon"}
-              onPress={toggleSidebar}
+              onPress={() => {
+                toggleSidebar();
+                router.push("/settings/account");
+              }}
             />
             <SidebarItem
               text="Settings"

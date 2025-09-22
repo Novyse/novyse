@@ -12,13 +12,15 @@ class Database {
       const db = await adapter.openDatabaseAsync("novyse.sqlite");
       Database.instance = new Database(db);
     }
+    if (!(await Database.instance.exist())) {
+      await Database.instance.initialize();
+    }
     return Database.instance;
   }
 
   async initialize() {
-    // Create tables if they do not exist
     return await this.db.execAsync(`
-            CREATE TABLE chat_type (
+            CREATE TABLE IF NOT EXISTS chat_type (
                 value TEXT PRIMARY KEY,
                 description TEXT NOT NULL
             );
@@ -30,7 +32,7 @@ class Database {
                 ('CHANNEL', 'Broadcast channel.'),
                 ('FORUM', 'Discussion forum.');
 
-            CREATE TABLE user (
+            CREATE TABLE IF NOT EXISTS user (
                 uuid TEXT PRIMARY KEY,
                 email TEXT,
                 name TEXT NOT NULL,
@@ -38,7 +40,7 @@ class Database {
                 profile_picture_uuid TEXT
             );
 
-            CREATE TABLE handle_type (
+            CREATE TABLE IF NOT EXISTS handle_type (
                 value TEXT PRIMARY KEY,
                 description TEXT NOT NULL
             );
@@ -58,7 +60,7 @@ class Database {
                     'The handle refers to a bot.'
                 );
 
-            CREATE TABLE chat (
+            CREATE TABLE IF NOT EXISTS chat (
                 uuid TEXT PRIMARY KEY,
                 type TEXT NOT NULL,
                 name TEXT,
@@ -67,7 +69,7 @@ class Database {
                 FOREIGN KEY (type) REFERENCES chat_type(value)
             );
 
-            CREATE TABLE member (
+            CREATE TABLE IF NOT EXISTS member (
                 user_uuid TEXT NOT NULL,
                 chat_uuid TEXT NOT NULL,
                 PRIMARY KEY (user_uuid, chat_uuid),
@@ -75,7 +77,7 @@ class Database {
                 FOREIGN KEY (chat_uuid) REFERENCES chat(uuid)
             );
 
-            CREATE TABLE file (
+            CREATE TABLE IF NOT EXISTS file (
                 uuid TEXT PRIMARY KEY,
                 path TEXT NOT NULL UNIQUE,
                 file_type TEXT NOT NULL,
@@ -84,7 +86,7 @@ class Database {
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
 
-            CREATE TABLE message (
+            CREATE TABLE IF NOT EXISTS message (
                 id INTEGER PRIMARY KEY,
                 chat_uuid TEXT NOT NULL,
                 sender_uuid TEXT NOT NULL,
@@ -100,7 +102,7 @@ class Database {
             );
 
             
-            CREATE TABLE handle (
+            CREATE TABLE IF NOT EXISTS handle (
                 user_uuid TEXT NULL,
                 chat_uuid TEXT NULL,
                 bot_uuid TEXT NULL,
@@ -114,7 +116,7 @@ class Database {
                 FOREIGN KEY (type) REFERENCES handle_type(value)
             );
 
-            CREATE TABLE bot (
+            CREATE TABLE IF NOT EXISTS bot (
                 uuid TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
                 description TEXT,
@@ -122,7 +124,7 @@ class Database {
                 FOREIGN KEY (profile_picture_uuid) REFERENCES file(uuid)
             );
 
-            CREATE TABLE pinned_chat (
+            CREATE TABLE IF NOT EXISTS pinned_chat (
                 user_uuid TEXT NOT NULL,
                 chat_uuid TEXT NOT NULL,
                 sort_order INTEGER NOT NULL DEFAULT 0,
@@ -132,9 +134,9 @@ class Database {
             );
 
             -- Indexes for performance
-            CREATE INDEX idx_message_chat_uuid ON message(chat_uuid);
-            CREATE INDEX idx_message_sender_uuid ON message(sender_uuid);
-            CREATE INDEX idx_member_chat_uuid ON member(chat_uuid);
+            CREATE INDEX IF NOT EXISTS idx_message_chat_uuid ON message(chat_uuid);
+            CREATE INDEX IF NOT EXISTS idx_message_sender_uuid ON message(sender_uuid);
+            CREATE INDEX IF NOT EXISTS idx_member_chat_uuid ON member(chat_uuid);
 `);
   }
 
@@ -161,7 +163,6 @@ class Database {
       if (dropStatements) {
         await this.db.execAsync(dropStatements);
       }
-      console.log("Database cleared successfully.");
       console.log("Database cleared successfully.");
     } catch (error) {
       console.error("Error clearing database:", error);
@@ -318,6 +319,95 @@ class Database {
     } catch (error) {
       console.error("Error adding message:", error);
       return false;
+    }
+  }
+
+  /**
+   * Fetch all chats from the database.
+   * @returns {Array} array of chat objects
+   */
+
+  async getChats() {
+    try {
+      const chats = await this.db.getAllAsync("SELECT * FROM chat;");
+      console.log("Fetched chats:", chats);
+      return chats;
+    } catch (error) {
+      console.error("Error retrieving chats:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Get the last message for a given chat.
+   * @param {String} chatUUID
+   * @returns {Object|null} last message object or null if not found + sender name
+   */
+
+  async getLastMessage(chatUUID) {
+    try {
+      const message = await this.db.getFirstAsync(
+        `SELECT m.*, u.name as sender_name FROM message m
+             JOIN user u ON m.sender_uuid = u.uuid
+             WHERE m.chat_uuid = ? ORDER BY m.created_at DESC LIMIT 1;`,
+        [chatUUID]
+      );
+      return message || null;
+    } catch (error) {
+      console.error("Error retrieving last message:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Get user by chat UUID (ONLY for DMs)
+   * @param {String} chatUUID
+   * @returns {Object|null} user object or null if not found
+   */
+
+  async getUserByChatUUID(chatUUID) {
+    try {
+      const user = await this.db.getFirstAsync(
+        `
+        SELECT u.* FROM user u
+        JOIN member m ON u.uuid = m.user_uuid
+        WHERE m.chat_uuid = ?
+        LIMIT 1;
+      `,
+        [chatUUID]
+      );
+      return user || null;
+    } catch (error) {
+      console.error("Error retrieving user by chat UUID:", error);
+      return null;
+    }
+  }
+
+  async getUserByUUID(userUUID) {
+    try {
+      const user = await this.db.getFirstAsync(
+        `SELECT * FROM user WHERE uuid = ?;`,
+        [userUUID]
+      );
+      return user || null;
+    } catch (error) {
+      console.error("Error retrieving user by UUID:", error);
+      return null;
+    }
+  }
+
+  async getLocalUser() {
+    try {
+      const user = await this.db.getFirstAsync(`
+            SELECT u.*, h.handle FROM user u
+            LEFT JOIN handle h ON u.uuid = h.user_uuid AND h.type = 'USER'
+            LIMIT 1;
+        `);
+      console.log("Local user from DB:", user);
+      return user || null;
+    } catch (error) {
+      console.error("Error retrieving local user:", error);
+      return null;
     }
   }
 

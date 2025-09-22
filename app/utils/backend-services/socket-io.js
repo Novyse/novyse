@@ -35,10 +35,6 @@ const SocketMethods = {
     userHandle = await localDatabase.fetchLocalUserHandle();
 
     const accessToken = await AsyncStorage.getItem("accessToken");
-    console.info("accessToken: ", accessToken);
-
-    const database = await Database.create();
-    console.log(await database.getAllInfoAllTableEverything());
 
     try {
       if (SocketMethods.isSocketOpen()) {

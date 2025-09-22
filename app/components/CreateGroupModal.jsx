@@ -109,7 +109,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
         chatId: newGroupChatId,
         creatingChatWith: undefined,
       });
-      router.navigate(`/messages?chatId=${newGroupChatId}`);
+      router.navigate(`/chat/${newGroupChatId}`);
 
       // aggiorno live la lista delle chat
       eventEmitter.emit("newChat", { newChatId: newGroupChatId });

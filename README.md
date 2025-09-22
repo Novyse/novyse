@@ -42,11 +42,11 @@ Se il login avviene con successo verrà salvata una variabile nel DB locale tram
 ## /welcome/Signup
 Questa pagina React Native implementa un modulo di registrazione utente con campi per password, conferma password, nome, cognome e handle univoco. Gestisce la visibilità della password tramite icone interattive, verifica automaticamente la disponibilità dell'handle tramite una chiamata API, e include la validazione del form prima dell'invio. Se l'utente è già loggato, viene reindirizzato automaticamente alla schermata dei messaggi.
 
-## /messages
+## /chat
 Le pagine al suo interno sono utilizzate per gestire le route delle varie chat. Permettono di avere quindi:
 
- - lista delle chat: http://localhost:8081/messages
- - chat specifica: http://localhost:8081/messages?chatId=2000000000000000000
+ - lista delle chat: http://localhost:8081/chat
+ - chat specifica: http://localhost:8081/chat?chatId=2000000000000000000
 
 ## /utils/APImethods
 Contiene tutti i metodi per effetturare chiamate all'API

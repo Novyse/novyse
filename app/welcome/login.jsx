@@ -79,7 +79,9 @@ const LoginPassword = () => {
         return;
       } else {
         if (!twofa) {
-          auth.initializeApp();
+          if(await auth.initializeApp()){
+            router.replace("/chat");
+          }
         } else {
           console.log("Login successful, 2FA required");
           if (choose) {

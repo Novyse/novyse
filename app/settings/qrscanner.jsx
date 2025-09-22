@@ -4,7 +4,6 @@ import { StatusBar } from "expo-status-bar";
 import * as NavigationBar from "expo-navigation-bar"; // Importa expo-navigation-bar
 import { useSafeAreaInsets } from "react-native-safe-area-context"; // Importa useSafeAreaInsets
 
-
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import QRCodeReader from "../components/QRCodeReader";
@@ -51,15 +50,18 @@ const QRScanner = () => {
   const handleCodeScanned = async (content) => {
     try {
       console.log("QR Code content:", content);
-      
-      const success = await gateway.scanQRCodeAPI(content);
+
+      const success = await gateway.auth.scanQRCodeToken(content);
 
       if (!success) {
         Alert.alert("Errore", "QR Code non valido o già scansionato.");
         return;
       }
 
-      Alert.alert("Successo", "L'accesso verrà eseguito a breve, attendi quale istante...");
+      Alert.alert(
+        "Successo",
+        "L'accesso verrà eseguito a breve, attendi quale istante..."
+      );
     } catch (error) {
       Alert.alert("Errore", "Impossibile gestire la scansione del codice QR.");
     }

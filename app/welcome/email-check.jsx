@@ -74,7 +74,7 @@ const EmailCheckForm = () => {
               if (scanned) {
                 // QR code scanned, save tokens and navigate
                 if (await auth.initializeApp()) {
-                  router.replace("/messages");
+                  router.replace("/chat");
                 }
 
                 setQrToken(null); // Used to trigger reload of QR code

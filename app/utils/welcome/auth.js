@@ -44,6 +44,16 @@ const isLoggedIn = async () => {
   return token !== null;
 };
 
+const getUserUUID = async () => {
+  const userUUID = await AsyncStorage.getItem("userUUID");
+  return userUUID;
+};
+
+const getDeviceUUID = async () => {
+  const deviceUUID = await AsyncStorage.getItem("deviceUUID");
+  return deviceUUID;
+};
+
 /**
  * Get the last update timestamp from AsyncStorage.
  * @returns {string|null} The last update timestamp or null if not set.
@@ -71,7 +81,7 @@ const checkShouldBeHere = async (router, shouldBeLoggedIn = true) => {
     console.warn(
       "User should not be logged in but is. Redirecting to messages."
     );
-    router.replace("/messages");
+    router.replace("/chat");
     return false;
   }
   return true;
@@ -95,7 +105,6 @@ const initializeApp = async () => {
     await AsyncStorage.setItem("deviceUUID", device.uuid);
 
     const database = await Database.create();
-    await database.initialize();
 
     // Store user
     await database.addUserInfo(user);
@@ -131,6 +140,8 @@ export default {
   clearDBAddTokenInit,
   isLoggedIn,
   getLastUpdateTimestamp,
+  getUserUUID,
+  getDeviceUUID,
   checkShouldBeHere,
   initializeApp,
   logout,

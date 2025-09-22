@@ -94,7 +94,7 @@ const SmallCommsMenu = () => {
     const commsId = get.commsId();
     if (commsId) {
       // Usa setParams per non ricaricare la pagina
-      router.push(`/messages/${commsId}`);
+      router.push(`/chat/${commsId}`);
 
       // Imposta direttamente la vista vocal
       setTimeout(() => {

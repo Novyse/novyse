@@ -42,15 +42,19 @@ const ChangePassword = () => {
 
     try {
       setIsLoading(true);
-      const changePassword = await gateway.changePassword(
+      const success = await gateway.auth.changePassword(
         oldPassword,
         newPassword
       );
-      // Clear fields after success
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setError("");
+      if (success) {
+        // Clear fields after success
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setError("");
+      } else {
+        setError("Failed to change password. Please try again.");
+      }
     } catch (error) {
       console.error("Error changing password:", error);
       setError(

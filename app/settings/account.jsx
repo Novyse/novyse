@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, ScrollView, Image } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import ScreenLayout from "../components/ScreenLayout";
-import localDatabase from "../utils/localDatabaseMethods";
+import Database from "../utils/storage/database";
 
 const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
@@ -24,13 +24,15 @@ const ProfilePage = () => {
   const loadUserData = async () => {
     try {
       setIsLoading(true);
-      const localUserData = await localDatabase.fetchLocalUserData();
-      if (localUserData) {
+      const database = await Database.create();
+      const user = await database.getLocalUser();
+      console.log("Fetched user dataaaa:", user);
+      if (user) {
         setUserData({
-          name: localUserData.name || "",
-          surname: localUserData.surname || "",
-          handle: localUserData.handle || "",
-          email: localUserData.user_email || "",
+          name: user.name || "",
+          surname: user.surname || "",
+          handle: user.handle || "",
+          email: user.email || "",
         });
       }
     } catch (error) {
@@ -44,7 +46,7 @@ const ProfilePage = () => {
     <View style={styles.fieldContainer}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <View style={styles.fieldValueContainer}>
-        <Text style={styles.fieldValue}>{value || "Not set"}</Text>
+        <Text style={styles.fieldValue}>{value || "Loading..."}</Text>
       </View>
     </View>
   );
@@ -75,10 +77,10 @@ const ProfilePage = () => {
           <Text style={styles.profileName}>
             {userData.name && userData.surname
               ? `${userData.name} ${userData.surname}`
-              : "User Profile"}
+              : "Loading..."}
           </Text>
           <Text style={styles.profileHandle}>
-            {userData.handle ? `@${userData.handle}` : "@username"}
+            {userData.handle ? `@${userData.handle}` : "Loading..."}
           </Text>
         </View>
 

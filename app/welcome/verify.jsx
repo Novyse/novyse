@@ -86,7 +86,7 @@ const Verify = ({}) => {
         console.log("OTP verificato con successo!");
         const success = await auth.initializeApp();
         if (success) {
-          router.replace("/messages");
+          router.replace("/chat");
         }
       } else {
         console.log("Errore nella verifica OTP");

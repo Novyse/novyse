@@ -7,47 +7,33 @@ import SmartBackground from "./components/SmartBackground"; // Assumi import da 
 import HeaderBase from "./components/HeaderBase";
 import Icon from "./components/Icon";
 import eventEmitter from "./utils/EventEmitter";
+import Database from "./utils/storage/database";
 
 const ChatContainer = ({
-  chatJoined,
-  chatId,
-  userId,
+  chatUUID,
   chatName,
   onBack,
-  onJoinSuccess,
-  isSmallScreen, // Nuova prop da AppContainer per layout responsive
-  theme, // Da AppContainer per stili
+  isSmallScreen,
+  theme,
 }) => {
-  const [chatData, setChatData] = useState({
-    messages: [],
-    isJoined: false,
-  });
-  const [contentView, setContentView] = useState("chat"); // Gestito internamente ora
+  const [messages, setMessages] = useState([]);
+  const [contentView, setContentView] = useState("chat"); // "chat", "vocal", "both"
 
   const params = useLocalSearchParams();
   const styles = createStyle(theme);
 
-  // useEffect per update chatData (da spostare in useSelectedChat hook)
+  const database = Database.create();
+
+  // da spostare in hook immagino
   useEffect(() => {
-    const updateChatData = async () => {
-      if (chatId) {
-        // Fetch common data used by both views (placeholder: implementa fetch reali)
-        // Es. const messages = await localDatabase.fetchMessages(chatId);
-        // const isJoined = await checkJoinStatus(chatId);
-        setChatData((prev) => ({
-          ...prev,
-          messages: [], // Sostituisci con dati reali
-          isJoined: chatJoined, // Usa prop per ora
-        }));
+    const initMessages = async () => {
+      if (chatUUID) {
+        const messages = await database.getMessagesFromChatUUID(chatUUID);
+        setMessages((prev) => ({ ...prev, messages: messages || [] }));
       }
     };
-
-    updateChatData();
-
-    // Listener EventEmitter (da rimuovere in hook WebSocket)
-    eventEmitter.on("chatDataUpdated", updateChatData);
-    return () => eventEmitter.off("chatDataUpdated", updateChatData);
-  }, [chatId, chatJoined]);
+    initMessages();
+  }, [chatUUID]);
 
   // Render Header con pulsanti per switch view
   const renderChatHeader = () => (
@@ -66,7 +52,7 @@ const ChatContainer = ({
       <Text style={[styles.headerTitle, styles.chatHeaderTitle]}>
         {chatName || params.creatingChatWith || "Unknown Name"}
       </Text>
-      {chatJoined && (
+      {true && (
         <>
           <Icon
             name={"Message02Icon"}
@@ -93,20 +79,15 @@ const ChatContainer = ({
   const renderContent = () => {
     switch (contentView) {
       case "vocal":
-        return (
-          <VocalContent chatId={chatId} userId={userId} chatData={chatData} />
-        );
+        return <VocalContent chatUUID={chatUUID} />;
       case "chat":
       default:
         return (
           <ChatContent
-            chatJoined={chatJoined}
-            chatId={chatId}
-            userId={userId}
+            chatUUID={chatUUID}
             chatName={chatName}
-            chatData={chatData}
+            messages={messages}
             onBack={onBack}
-            onJoinSuccess={onJoinSuccess}
             contentView={contentView}
           />
         );
@@ -121,29 +102,22 @@ const ChatContainer = ({
               }}
             >
               <ChatContent
-                chatJoined={chatJoined}
-                chatId={chatId}
-                userId={userId}
+                chatUUID={chatUUID}
                 chatName={chatName}
-                chatData={chatData}
+                messages={messages}
                 onBack={onBack}
-                onJoinSuccess={onJoinSuccess}
                 contentView="chat"
               />
             </View>
             <View style={{ flex: 1 }}>
-              <VocalContent
-                chatId={chatId}
-                userId={userId}
-                chatData={chatData}
-              />
+              <VocalContent chatUUID={chatUUID} />
             </View>
           </View>
         );
     }
   };
 
-  if (!chatId) return null; // Placeholder se no chat
+  if (!chatUUID) return null; // Placeholder se no chat
 
   return (
     <SmartBackground

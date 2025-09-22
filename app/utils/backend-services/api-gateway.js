@@ -436,7 +436,7 @@ const gateway = {
      * Change the user's password.
      * @param {String} currentPassword
      * @param {String} newPassword
-     * @returns
+     * @returns {boolean} true if the password was successfully changed, false otherwise
      */
     async changePassword(currentPassword, newPassword) {
       const response = await api.post("/auth/password/change", {

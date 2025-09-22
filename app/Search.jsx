@@ -29,7 +29,7 @@ const Search = () => {
   useEffect(() => {
 
     const backAction = () => {
-      router.navigate("/messages");
+      router.navigate("/chat");
       return true;
     };
     const backHandler = BackHandler.addEventListener(

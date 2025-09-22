@@ -21,7 +21,6 @@ import Search from "./Search";
 import gateway from "./utils/backend-services/api-gateway";
 import eventEmitter from "./utils/EventEmitter";
 import SocketMethods from "./utils/backend-services/socket-io";
-import localDatabase from "./utils/localDatabaseMethods";
 import ChatContainer from "./ChatContainer";
 import Sidebar from "./components/Sidebar";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
@@ -35,7 +34,18 @@ const { get, check } = methods;
 
 // Top-level memoized list item to avoid re-creating component on every render
 const ChatListItem = React.memo(
-  ({ itemId, chatName, lastMessageText, lastMessageDate, isSelected, onPress, theme, styles }) => {
+  ({
+    uuid,
+    name,
+    pictureUUID,
+    lastMessageSender,
+    lastMessageText,
+    lastMessageDate,
+    isSelected,
+    onPress,
+    theme,
+    styles,
+  }) => {
     return (
       <SmartBackground
         colors={
@@ -45,20 +55,42 @@ const ChatListItem = React.memo(
         }
         style={styles.chatItem}
       >
-        <HoverAndPressedButton onPress={() => onPress(itemId)} style={styles.chatItemPressable}>
-          <Image source={{ uri: "https://picsum.photos/200" }} style={styles.avatar} />
+        <HoverAndPressedButton
+          onPress={() => onPress(uuid)}
+          style={styles.chatItemPressable}
+        >
+          <Image
+            source={{ uri: "https://picsum.photos/200" }}
+            style={styles.avatar}
+          />
           <View style={styles.chatItemGrid}>
             <View style={styles.leftContainer}>
-              <Text style={[styles.chatTitle, styles.gridText, { marginBottom: 5 }]} numberOfLines={1} ellipsizeMode="tail">
-                {chatName}
+              <Text
+                style={[styles.chatTitle, styles.gridText, { marginBottom: 5 }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {name}
               </Text>
-              <Text style={[styles.chatSubtitle, styles.gridText]} numberOfLines={1} ellipsizeMode="tail">
-                {lastMessageText || "No messages yet"}
+              <Text
+                style={[styles.chatSubtitle, styles.gridText]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {lastMessageText}
               </Text>
             </View>
             <View style={styles.rightContainer}>
-              <Text style={[styles.chatDate, styles.gridText, { marginBottom: 5 }]} numberOfLines={1} ellipsizeMode="tail">
-                {lastMessageDate === "" ? <Icon name={"Clock01Icon"} size={15} /> : lastMessageDate}
+              <Text
+                style={[styles.chatDate, styles.gridText, { marginBottom: 5 }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {lastMessageDate === "" ? (
+                  <Icon name={"Clock01Icon"} size={15} />
+                ) : (
+                  lastMessageDate
+                )}
               </Text>
               <Text style={[styles.staticNumber, styles.gridText]}>123</Text>
             </View>
@@ -80,7 +112,7 @@ const ChatListItem = React.memo(
 );
 
 const ChatList = ({
-  selectedChatId,
+  selectedChatUUID,
   onChatSelect,
   chatDetails,
   isToggleSearchChats,
@@ -89,64 +121,17 @@ const ChatList = ({
   colorScheme,
 }) => {
   const [chats, setChats] = useState([]);
-  // local cache for per-chat details to avoid flicker when parent prop is not yet populated
-  const [localDetails, setLocalDetails] = useState({});
-  const [userId, setUserId] = useState("");
-  const [chatJoined, setChatJoined] = useState(true);
-  const [forceUpdate, setForceUpdate] = useState(0);
-
-  // Merge details from parent prop and local cache into a stable map
-  const mergedDetails = React.useMemo(() => {
-    const m = {};
-    if (chats && chats.length > 0) {
-      chats.forEach((c) => {
-        const external = chatDetails?.[c.chat_id];
-        const local = localDetails?.[c.chat_id] || {};
-        const hasExternal = external && Object.keys(external).length > 0;
-        // If external exists but misses some fields (e.g. user), merge with local to avoid dropping data
-        m[c.chat_id] = hasExternal ? { ...local, ...external } : local;
-      });
-    }
-    return m;
-  }, [chats, chatDetails, localDetails]);
-
-  // Cache last-known display names to avoid flicker when details temporarily lack user/name
-  const nameCacheRef = React.useRef({});
 
   const router = useRouter();
   const styles = createStyle(theme, colorScheme);
 
-  // Diagnostic: log merged/external/local details when selection changes (helps trace missing names)
   useEffect(() => {
-    if (selectedChatId) {
-      const external = chatDetails?.[selectedChatId];
-      const local = localDetails?.[selectedChatId];
-      const merged = mergedDetails[selectedChatId];
-      console.log("[ChatList] selectedChatChanged", selectedChatId, { external, local, merged });
-    }
-  }, [selectedChatId, chatDetails, localDetails, mergedDetails]);
+    setChats(chatDetails);
+  }, [chatDetails]);
 
   // useEffect per init fetch (solo locale per lista)
   useEffect(() => {
-    auth.checkShouldBeHere(router,true);
-
-    const getUserData = async () => {
-      // Fetch user data from database
-      try {
-        const localUserData = await localDatabase.fetchLocalUserData();
-        if (localUserData) {
-          setUserData({
-            name: localUserData.name || "",
-            surname: localUserData.surname || "",
-            handle: localUserData.handle || "",
-            email: localUserData.user_email || "",
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-    getUserData();
+    auth.checkShouldBeHere(router, true);
     // Initialize socket
     SocketMethods.openSocketConnection();
 
@@ -169,14 +154,13 @@ const ChatList = ({
     const handleSearchResult = (data) => {
       const { handle, type } = data;
       const tempChatId = `temp_${handle}_${Date.now()}`;
-      setChatJoined(type !== "group");
       setSelectedChat(tempChatId);
     };
 
     const updateChatsAndDetails = async (data) => {
       const newChatId = data?.newChatId;
       try {
-        const fetchedChats = await fetchChats();
+        const fetchedChats = await localDatabase.getChats();
         setChats(fetchedChats);
 
         // Prefetch missing details (user + lastMessage) for smoother UI
@@ -211,7 +195,6 @@ const ChatList = ({
     };
 
     eventEmitter.on("newChat", updateChatsAndDetails);
-    updateChatsAndDetails();
 
     return () => {
       eventEmitter.off("newChat", updateChatsAndDetails);
@@ -233,26 +216,10 @@ const ChatList = ({
     };
   }, []);
 
-  // viene richiamata nello useEffect, serve per ottenere le chat dal DB locale
-  const fetchChats = () =>
-    localDatabase.fetchChats().then((chats) =>
-      chats.map((chat) => ({
-        chat_id: chat.chat_id,
-        group_channel_name: chat.group_channel_name || "",
-      }))
-    );
-
-  const fetchUser = (chatId) =>
-    localDatabase.fetchUser(chatId).then((handle) => ({ handle }));
-
-  const fetchLastMessage = (chatId) =>
-    localDatabase.fetchLastMessage(chatId).then((row) => row);
-
   // handleChatPress semplificato (stable reference)
   const handleChatPress = React.useCallback(
-    (chatId) => {
-      setChatJoined(true);
-      onChatSelect(chatId);
+    (chatUUID) => {
+      onChatSelect(chatUUID);
     },
     [onChatSelect]
   );
@@ -264,32 +231,13 @@ const ChatList = ({
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
 
-  // Helper to derive a display name for a chat; never returns a loading string
-  const getDisplayName = (item, details = {}) => {
-    // Prefer group name from item (fresh from chats) or details
-    if (item?.group_channel_name) return item.group_channel_name;
-    if (details.group_channel_name) return details.group_channel_name;
-
-    const user = details.user || {};
-    // If user is a primitive (string handle), return that
-    if (typeof user === "string") return user || item?.chat_id || "";
-    // If we have a name + surname, prefer that
-    if (user.name && user.surname) return `${user.name} ${user.surname}`;
-    // Fallback to handle or other display fields
-    if (user.handle) return user.handle;
-    if (user.displayName) return user.displayName;
-    // Last resort: show chat id (shortened) so there's always something stable
-    if (item?.chat_id) return item.chat_id;
-    return "";
-  };
-
   // shouldShowSmallCommsMenu (locale per small screen)
   const shouldShowSmallCommsMenu = () => {
     if (isToggleSearchChats) return false; // Non mostrare se search attiva
     const isInComms = check.isInComms();
     if (isInComms) {
       const commsId = get.commsId();
-      if (selectedChatId !== commsId) return true;
+      if (selectedChatUUID !== commsId) return true;
       // Assumi "chat" view per default, poiché contentView è in ChatContainer
       return true;
     }
@@ -299,40 +247,30 @@ const ChatList = ({
   const renderSmallCommsMenu = () =>
     shouldShowSmallCommsMenu() ? <SmallCommsMenu /> : null;
 
-  
-
   const renderChatList = () => (
-    <SmartBackground colors={theme?.backgroundChatListGradient} style={[styles.chatListContainer]}>
+    <SmartBackground
+      colors={theme?.backgroundChatListGradient}
+      style={[styles.chatListContainer]}
+    >
       <FlatList
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
-        // extraData ensures items re-render only when selection changes
-        extraData={selectedChatId}
-        // small performance defaults
+        extraData={selectedChatUUID}
         initialNumToRender={12}
         maxToRenderPerBatch={12}
         windowSize={7}
-        data={chats}
-        keyExtractor={(item) => item.chat_id}
+        data={Object.values(chats)}
+        keyExtractor={(item) => item.uuid}
         renderItem={({ item }) => {
-          const details = mergedDetails[item.chat_id] || {};
-          const isSelected = selectedChatId === item.chat_id;
-          let chatName = getDisplayName(item, details);
-          // update cache when we have a non-empty name
-          if (chatName && chatName.length > 0) {
-            nameCacheRef.current[item.chat_id] = chatName;
-          } else {
-            // fallback to last known name or short chat id
-            chatName = nameCacheRef.current[item.chat_id] || (item.chat_id || "").toString().slice(0, 8);
-          }
-          const lastMessageText = details.lastMessage?.text || "";
-          const lastMessageDate = parseTime(details.lastMessage?.date_time);
+          const isSelected = selectedChatUUID === item.uuid;
           return (
             <ChatListItem
-              itemId={item.chat_id}
-              chatName={chatName}
-              lastMessageText={lastMessageText}
-              lastMessageDate={lastMessageDate}
+              uuid={item.uuid}
+              name={item.name || "Unknown"}
+              pictureUUID={item.profilePictureUUID}
+              lastMessageSender={item.lastMessage?.name}
+              lastMessageText={item.lastMessage?.text}
+              lastMessageDate={parseTime(item.lastMessage?.date_time)}
               isSelected={isSelected}
               onPress={handleChatPress}
               theme={theme}
@@ -343,12 +281,12 @@ const ChatList = ({
       />
     </SmartBackground>
   );
-  
+
   return (
-      <View style={styles.chatListWrapper}>
-        {renderSmallCommsMenu()}
-        {!isToggleSearchChats ? renderChatList() : <Search />}
-      </View>
+    <View style={styles.chatListWrapper}>
+      {renderSmallCommsMenu()}
+      {!isToggleSearchChats ? renderChatList() : <Search />}
+    </View>
   );
 };
 
@@ -445,4 +383,4 @@ function createStyle(theme, colorScheme) {
   });
 }
 
-export default React.memo(ChatList); // Memo per performance
+export default ChatList;

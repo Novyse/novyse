@@ -1,4 +1,4 @@
-// components/messages/MessageText.js
+
 import React, { useContext } from "react";
 import { Text, StyleSheet, Platform } from "react-native";
 import * as Linking from "expo-linking";

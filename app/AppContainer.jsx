@@ -15,10 +15,10 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ScreenLayout from "./components/ScreenLayout";
 import eventEmitter from "./utils/EventEmitter";
-import SocketMethods from "./utils/socketMethods";
-import localDatabase from "./utils/localDatabaseMethods";
-import APIMethods from "./utils/APImethods";
-import ChatList from "./ChatList"; // Refactorizzato per solo lista
+import SocketMethods from "./utils/backend-services/socket-io";
+import gateway from "./utils/backend-services/api-gateway";
+import auth from "./utils/welcome/auth";
+import ChatList from "./ChatList";
 import ChatContainer from "./ChatContainer";
 import Sidebar from "./components/Sidebar";
 import CreateGroupModal from "./components/CreateGroupModal";
@@ -29,26 +29,19 @@ const { get, check } = methods;
 import Icon from "./components/Icon";
 import SmartBackground from "./components/SmartBackground";
 import HeaderBase from "./components/HeaderBase";
+import Database from "./utils/storage/database";
 
 const AppContainer = () => {
   const [selectedChatId, setSelectedChatId] = useState(null);
-  const [isMenuVisible, setIsMenuVisible] = useState(false); // Da spostare se serve
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [networkAvailable, setNetworkAvailable] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
   const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] =
     useState(false);
-  const [chatJoined, setChatJoined] = useState(true);
-  const [userId, setUserId] = useState("");
-  const [userData, setUserData] = useState({
-    name: "",
-    surname: "",
-    handle: "",
-    email: "",
-  });
+
   const [forceUpdate, setForceUpdate] = useState(0);
-  const [chatDetails, setChatDetails] = useState({}); // Globale per ora
+  const [chatDetails, setChatDetails] = useState({});
 
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -62,18 +55,14 @@ const AppContainer = () => {
 
   // Callback memoizzata per selezione chat
   const onChatSelect = useCallback(
-    (chatId) => {
-      setChatJoined(true);
-      if (!isSmallScreen) {
-        setSelectedChatId(chatId);
-        router.setParams({ chatId, creatingChatWith: undefined });
+    (chatUUID) => {
+      if (isSmallScreen) {
+        setSelectedChatId(chatUUID);
+        router.push(`/chat/${chatUUID}`);
       } else {
-        // On small screens, navigate to the chat route and rely on params effect to set selection
-        console.log(`[AppContainer] onChatSelect small screen - navigating to chatId=${chatId}`);
-        // set selection optimistically so ChatList keeps stable data while navigation completes
-        setSelectedChatId(chatId);
-        // update params only (avoid full navigation push that can remount UI)
-        router.setParams({ chatId, creatingChatWith: undefined });
+        // On large screen render page inside AppContainer
+        setSelectedChatId(chatUUID);
+        router.push(`/chat/${chatUUID}`);
       }
     },
     [isSmallScreen, router]
@@ -81,34 +70,14 @@ const AppContainer = () => {
 
   // useEffect per init (spostato qui)
   useEffect(() => {
-    const checkLogged = async () => {
-      const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-      if (isLoggedIn === "true") {
-        const localUserId = await localDatabase.fetchLocalUserID();
-        setUserId(localUserId);
-        try {
-          const localUserData = await localDatabase.fetchLocalUserData();
-          if (localUserData) {
-            setUserData({
-              name: localUserData.name || "",
-              surname: localUserData.surname || "",
-              handle: localUserData.handle || "",
-              email: localUserData.user_email || "",
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-      } else {
-        logout();
-      }
-    };
-    checkLogged();
+    auth.checkShouldBeHere(router, true);
     SocketMethods.openSocketConnection();
 
     const handleNewMessageSent = (data) => {
       const { chat_id, text, date } = data;
-      console.log(`[AppContainer] updateNewLastMessage for chat ${chat_id} date=${date}`);
+      console.log(
+        `[AppContainer] updateNewLastMessage for chat ${chat_id} date=${date}`
+      );
       setChatDetails((current) => ({
         ...current,
         [chat_id]: {
@@ -122,38 +91,45 @@ const AppContainer = () => {
       }));
     };
 
-    const handleSearchResult = (data) => {
-      const { handle, type } = data;
-      const tempChatId = `temp_${handle}_${Date.now()}`;
-      setChatJoined(type !== "group");
-      setSelectedChatId(tempChatId);
-    };
-
     const updateChatsAndDetails = async () => {
       // Modificato per non dipendere da data
       try {
         // Chiama fetchChats da ChatList? Per ora, assumi che ChatList gestisca setChats, qui solo details
         // In futuro: hook useChats
-        const fetchedChats = await localDatabase.fetchChats(); // Sposta in hook dopo
+        const database = await Database.create();
+        const chats = await database.getChats(); // Sposta in hook dopo
         const details = {};
-        for (const chat of fetchedChats) {
-          let user = await localDatabase.fetchUser(chat.chat_id);
-          // normalize user: localDatabase.fetchUser may return a simple handle string
-          if (user === null || typeof user === "string") {
-            user = { handle: user || "" };
+        for (const chat of chats) {
+          const lastMessage = await database.getLastMessage(chat.uuid);
+
+          let name = chat.name;
+          let profilePictureUUID = chat.profile_picture_uuid;
+
+          if (chat.type == "DM") {
+            const user = await database.getUserByChatUUID(chat.uuid);
+            name = user.name;
+            profilePictureUUID = user.profile_picture_uuid;
+
+            if (user.uuid == (await auth.getUserUUID())) {
+              name = "Saved Messages";
+            }
           }
-          const lastMessage = await localDatabase.fetchLastMessage(
-            chat.chat_id
-          );
-          details[chat.chat_id] = {
-            user,
+
+          details[chat.uuid] = {
+            uuid: chat.uuid,
+            name,
+            profilePictureUUID,
             lastMessage,
-            group_channel_name: chat.group_channel_name,
           };
         }
         // Merge details into existing map to avoid transiently wiping other entries
         setChatDetails((prev) => ({ ...prev, ...details }));
-        console.log("[AppContainer] updateChatsAndDetails: merged details for", Object.keys(details).length, "chats");
+        console.log(
+          "[AppContainer] updateChatsAndDetails: merged details for",
+          details,
+          Object.keys(details).length,
+          "chats"
+        );
       } catch (error) {
         console.error("Error updating chats:", error);
       }
@@ -161,13 +137,11 @@ const AppContainer = () => {
 
     eventEmitter.on("updateNewLastMessage", handleNewMessageSent);
     eventEmitter.on("newChat", updateChatsAndDetails);
-    eventEmitter.on("searchResultSelected", handleSearchResult);
     updateChatsAndDetails();
 
     return () => {
       eventEmitter.off("updateNewLastMessage", handleNewMessageSent);
       eventEmitter.off("newChat", updateChatsAndDetails);
-      eventEmitter.off("searchResultSelected", handleSearchResult);
     };
   }, []);
 
@@ -208,11 +182,11 @@ const AppContainer = () => {
     Dimensions.addEventListener("change", updateScreenSize);
     updateScreenSize();
 
-    // Always set selectedChatId when route params include chatId.
-    if (params.chatId) {
-      setSelectedChatId(params.chatId);
+    // Always set selectedChatId when route params include chatUUID.
+    if (params.chatUUID) {
+      setSelectedChatId(params.chatUUID);
     }
-  }, [params.chatId]);
+  }, [params.chatUUID]);
 
   useEffect(() => {
     if (isSmallScreen) {
@@ -228,7 +202,9 @@ const AppContainer = () => {
   useEffect(() => {
     if (isSmallScreen) {
       // set initial value without animation
-      chatContentPosition.setValue(selectedChatId ? 0 : Dimensions.get("window").width);
+      chatContentPosition.setValue(
+        selectedChatId ? 0 : Dimensions.get("window").width
+      );
     } else {
       // on large screens ensure overlay is off-screen
       chatContentPosition.setValue(Dimensions.get("window").width);
@@ -252,12 +228,7 @@ const AppContainer = () => {
   }, []);
 
   const logout = async () => {
-    await localDatabase.clearDatabase();
-    const loggedOutFromAPI = await APIMethods.logoutAPI();
-    if (loggedOutFromAPI) {
-      console.log("Logout dall'API completato");
-    }
-    router.navigate("/welcome/email-check");
+    await auth.logout(router, false);
   };
 
   const toggleSidebar = () => {
@@ -266,7 +237,6 @@ const AppContainer = () => {
 
   const handleSuccessfulJoin = (newChatId) => {
     console.log(`AppContainer: Gruppo ${newChatId} joinato con successo.`);
-    setChatJoined(true);
     setSelectedChatId(newChatId);
   };
 
@@ -316,25 +286,17 @@ const AppContainer = () => {
   const renderChatView = () => {
     if (!selectedChatId) return null;
     const selectedDetails = chatDetails[selectedChatId] || {};
-    const userRaw = selectedDetails.user || {};
-    const group_channel_name = selectedDetails.group_channel_name || "";
-    // Normalize user shape: could be string handle or object
-    const user = typeof userRaw === "string" ? { handle: userRaw } : userRaw;
-    const chatName =
-      group_channel_name ||
-      (user.name && user.surname ? `${user.name} ${user.surname}` : null) ||
-      user.handle ||
-      params.creatingChatWith ||
-      "Unknown Name";
+
+    const chatUUID = selectedDetails.uuid;
+    const chatName = selectedDetails.name;
+    const chatProfilePictureUUID = selectedDetails.profilePictureUUID;
 
     return (
       <ChatContainer
-        chatJoined={chatJoined}
-        chatId={selectedChatId}
-        userId={userId}
+        chatUUID={chatUUID}
         chatName={chatName}
+        chatProfilePictureUUID={chatProfilePictureUUID}
         onBack={() => setSelectedChatId(null)}
-        onJoinSuccess={handleSuccessfulJoin}
         theme={theme}
         isSmallScreen={isSmallScreen}
       />
@@ -355,7 +317,6 @@ const AppContainer = () => {
         setIsCreateGroupModalVisible={setIsCreateGroupModalVisible}
         handleSettingsPress={() => router.navigate("/settings")}
         logout={logout}
-        userData={userData}
         sidebarPosition={sidebarPosition}
         theme={theme}
       />

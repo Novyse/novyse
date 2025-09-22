@@ -10,7 +10,7 @@ import VocalMembersLayout from "./components/comms/VocalMembersLayout";
 import methods from "./utils/webrtc/methods";
 const { get, check, set } = methods;
 
-const VocalContent = ({ selectedChat, chatId }) => {
+const VocalContent = ({ chatUUID }) => {
   const { theme } = useContext(ThemeContext);
   const audioContext = useAudio();
   const styles = createStyle(theme);
@@ -75,7 +75,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
     eventEmitter.on("webcam_off", handleWebcamOff);
 
     const getCommsData = async () => {
-      const commsData = await get.commsData(chatId);
+      const commsData = await get.commsData(chatUUID);
 
       const tempActiveStreams = get.activeStreams();
 
@@ -116,7 +116,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       eventEmitter.off("webcam_on", handleWebcamOn);
       eventEmitter.off("webcam_off", handleWebcamOff);
     };
-  }, [chatId]);
+  }, [chatUUID]);
 
   const handleStreamUpdate = (data) => {
     console.log("banaa", data);
@@ -226,7 +226,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
   // Speech detection handlers
   const handleUserStartedSpeaking = () => {
-    if (check.isInComms() && chatId === get.commsId()) {
+    if (check.isInComms() && chatUUID === get.commsId()) {
       // Aggiorna lo stato isSpeaking per l'utente corrente in commsData
       setCommsData((prev) => {
         const updated = { ...prev };
@@ -247,7 +247,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   };
 
   const handleUserStoppedSpeaking = () => {
-    if (check.isInComms() && chatId === get.commsId()) {
+    if (check.isInComms() && chatUUID === get.commsId()) {
       // Aggiorna lo stato isSpeaking per l'utente corrente in commsData
       setCommsData((prev) => {
         const updated = { ...prev };
@@ -277,8 +277,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
     if (
-      data.chatId === chatId &&
-      data.chatId === get.commsId() &&
+      data.chatUUID === chatUUID &&
+      data.chatUUID === get.commsId() &&
       data.id !== get.myPartecipantId()
     ) {
       // Aggiorna lo stato isSpeaking per l'utente remoto in commsData
@@ -310,8 +310,8 @@ const VocalContent = ({ selectedChat, chatId }) => {
 
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
     if (
-      data.chatId === chatId &&
-      data.chatId === get.commsId() &&
+      data.chatUUID === chatUUID &&
+      data.chatUUID === get.commsId() &&
       data.id !== get.myPartecipantId()
     ) {
       // Aggiorna lo stato isSpeaking per l'utente remoto in commsData
@@ -410,7 +410,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
     // Solo se la view corretta è aperta
-    if (data.chat_id == chatId) {
+    if (data.chat_id == chatUUID) {
       console.debug("[VocalContent] Member joined comms:", data);
       console.log("[VocalContent] Adding member to profiles");
 
@@ -450,7 +450,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
   // Gestione dell'uscita dalla chat vocale
   const handleMemberLeft = async (data) => {
     // Solo se la view corretta è aperta
-    if (data.chat_id == chatId) {
+    if (data.chat_id == chatUUID) {
       console.log(`[VocalContent] Member left: ${data.from}`);
 
       // Rimuovo il profilo
@@ -500,7 +500,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }
 
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
-    if (data.chatId === chatId && data.chatId === get.commsId()) {
+    if (data.chatUUID === chatUUID && data.chatUUID === get.commsId()) {
       // Aggiorna lo stato webcamOn per l'utente remoto in commsData
       setCommsData((prev) => {
         const updated = { ...prev };
@@ -530,7 +530,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
     }
 
     // Solo se il remote user è nella chat in cui sono e non è l'utente locale
-    if (data.chatId === chatId && data.chatId === get.commsId()) {
+    if (data.chatUUID === chatUUID && data.chatUUID === get.commsId()) {
       // Aggiorna lo stato webcamOn per l'utente remoto in commsData
       setCommsData((prev) => {
         const updated = { ...prev };
@@ -556,7 +556,7 @@ const VocalContent = ({ selectedChat, chatId }) => {
       style={styles.container}
     >
       <VocalMembersLayout commsData={commsData} activeStreams={activeStreams} />
-      <VocalContentBottomBar chatId={chatId} />
+      <VocalContentBottomBar chatUUID={chatUUID} />
     </SmartBackground>
   );
 };

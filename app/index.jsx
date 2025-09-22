@@ -45,7 +45,7 @@ export default function Index() {
           JsonParser.updateAll(lastUpdateDateTime).catch((error) =>
             console.error("Errore in updateAll:", error)
           );
-          router.replace("/messages");
+          router.replace("/chat");
         }
       } catch (error) {
         console.error("Errore durante il controllo login:", error);

@@ -1,4 +1,4 @@
-// components/messages/MessageBase.js
+
 import React, { useContext } from "react";
 import { View, Pressable, StyleSheet, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";

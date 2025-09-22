@@ -1,4 +1,4 @@
-// components/messages/MessageTimestamp.js
+
 import React, { useContext } from "react";
 import { Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
