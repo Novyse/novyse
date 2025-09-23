@@ -32,7 +32,9 @@ import HeaderBase from "./components/HeaderBase";
 import Database from "./utils/storage/database";
 
 const AppContainer = () => {
-  const [selectedChatId, setSelectedChatId] = useState(null);
+  const [selectedChatUUID, setSelectedChatUUID] = useState(null);
+  const [selectedHandle, setSelectedHandle] = useState(null);
+
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [networkAvailable, setNetworkAvailable] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
@@ -56,17 +58,72 @@ const AppContainer = () => {
   // Callback memoizzata per selezione chat
   const onChatSelect = useCallback(
     (chatUUID) => {
-      if (isSmallScreen) {
-        setSelectedChatId(chatUUID);
-        router.push(`/chat/${chatUUID}`);
-      } else {
-        // On large screen render page inside AppContainer
-        setSelectedChatId(chatUUID);
-        router.push(`/chat/${chatUUID}`);
-      }
+      if (selectedChatUUID === chatUUID) return; // No-op if selecting already selected chat
+      setSelectedChatUUID(chatUUID);
+      router.push(`/chat/${chatUUID}`);
     },
-    [isSmallScreen, router]
+    [isSmallScreen, router, selectedChatUUID]
   );
+
+  // useEffect per screen size e params
+  useEffect(() => {
+    const updateScreenSize = () => {
+      const { width } = Dimensions.get("window");
+      setIsSmallScreen(width <= 768);
+    };
+    Dimensions.addEventListener("change", updateScreenSize);
+    updateScreenSize();
+
+    // Always set selectedChatUUID when route params include chatUUID.
+    if (params.chatUUIDorHandle) {
+      if (params.chatUUIDorHandle == selectedChatUUID) return; // no-op if already selected
+
+      // Check if chatUUIDorHandle is handle or UUID
+      if (params.chatUUIDorHandle.length < 33) {
+        setSelectedHandle(params.chatUUIDorHandle);
+        // It's a handle, look up UUID
+        (async () => {
+          const database = await Database.create();
+          const result = await database.getUUIDByHandle(
+            params.chatUUIDorHandle
+          );
+          if (result) {
+            let { uuid, type } = result;
+
+            // If it's a user UUID or a bot UUID, try and get chat UUID
+            if (type === "USER" || type === "BOT") {
+              await database.getChatFromUserUUID(uuid).then((chat) => {
+                if (chat) {
+                  uuid = chat.uuid;
+                } else {
+                  console.warn(
+                    `AppContainer: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a user handle, but no DM chat found.`
+                  );
+                }
+              });
+            } else {
+              // It's a chat, use directly
+              console.log(
+                `AppContainer: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a handle, resolved to UUID ${uuid}, setting selectedChatUUID.`
+              );
+            }
+            setSelectedChatUUID(uuid);
+          } else {
+            console.warn(
+              `AppContainer: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a handle, but no chat found.`
+            );
+            setSelectedChatUUID(null);
+          }
+        })();
+      } else {
+        // It's a UUID, use directly
+        console.log(
+          `AppContainer: route param chatUUID=${params.chatUUIDorHandle}, setting selectedChatUUID.`
+        );
+        setSelectedChatUUID(params.chatUUIDorHandle);
+      }
+    }
+  }, [params.chatUUIDorHandle]);
 
   // useEffect per init (spostato qui)
   useEffect(() => {
@@ -112,12 +169,15 @@ const AppContainer = () => {
 
             if (user.uuid == (await auth.getUserUUID())) {
               name = "Saved Messages";
+              profilePictureUUID = null; // TODO: setta immagine salvate
             }
           }
 
           details[chat.uuid] = {
             uuid: chat.uuid,
             name,
+            handle: chat.handle,
+            type: chat.type,
             profilePictureUUID,
             lastMessage,
           };
@@ -152,14 +212,15 @@ const AppContainer = () => {
     });
 
     const backAction = () => {
-      if (isSmallScreen && selectedChatId) {
-        setSelectedChatId(null);
+      if (isSmallScreen && selectedChatUUID) {
+        setSelectedChatUUID(null);
         return true;
       }
-      Alert.alert("Attenzione", "Sei sicuro di voler uscire?", [
-        { text: "No", style: "cancel" },
-        { text: "Sì", onPress: () => BackHandler.exitApp() },
-      ]);
+      // Alert.alert("Warning", "Are you sure you want to leave?", [
+      //   { text: "No", style: "cancel" },
+      //   { text: "Yes", onPress: () => BackHandler.exitApp() },
+      // ]);
+      BackHandler.exitApp();
       return true;
     };
 
@@ -171,39 +232,24 @@ const AppContainer = () => {
       backHandler.remove();
       checkConnection();
     };
-  }, [isSmallScreen, selectedChatId]);
-
-  // useEffect per screen size e params
-  useEffect(() => {
-    const updateScreenSize = () => {
-      const { width } = Dimensions.get("window");
-      setIsSmallScreen(width <= 768);
-    };
-    Dimensions.addEventListener("change", updateScreenSize);
-    updateScreenSize();
-
-    // Always set selectedChatId when route params include chatUUID.
-    if (params.chatUUID) {
-      setSelectedChatId(params.chatUUID);
-    }
-  }, [params.chatUUID]);
+  }, [isSmallScreen, selectedChatUUID]);
 
   useEffect(() => {
     if (isSmallScreen) {
       Animated.timing(chatContentPosition, {
-        toValue: selectedChatId ? 0 : Dimensions.get("window").width,
+        toValue: selectedChatUUID ? 0 : Dimensions.get("window").width,
         duration: 250,
         useNativeDriver: true,
       }).start();
     }
-  }, [selectedChatId, isSmallScreen, chatContentPosition]);
+  }, [selectedChatUUID, isSmallScreen, chatContentPosition]);
 
   // Ensure overlay is positioned correctly on mount (avoid flash)
   useEffect(() => {
     if (isSmallScreen) {
       // set initial value without animation
       chatContentPosition.setValue(
-        selectedChatId ? 0 : Dimensions.get("window").width
+        selectedChatUUID ? 0 : Dimensions.get("window").width
       );
     } else {
       // on large screens ensure overlay is off-screen
@@ -237,7 +283,7 @@ const AppContainer = () => {
 
   const handleSuccessfulJoin = (newChatId) => {
     console.log(`AppContainer: Gruppo ${newChatId} joinato con successo.`);
-    setSelectedChatId(newChatId);
+    setSelectedChatUUID(newChatId);
   };
 
   // Funzioni per menu comms (memoizzate)
@@ -246,11 +292,11 @@ const AppContainer = () => {
     const isInComms = check.isInComms();
     if (isInComms) {
       const commsId = get.commsId();
-      if (selectedChatId !== commsId) return true;
-      return selectedChatId === commsId && "chat" === "chat"; // contentView da ChatContainer ora
+      if (selectedChatUUID !== commsId) return true;
+      return selectedChatUUID === commsId && "chat" === "chat"; // contentView da ChatContainer ora
     }
     return false;
-  }, [isSmallScreen, selectedChatId, forceUpdate]);
+  }, [isSmallScreen, selectedChatUUID, forceUpdate]);
 
   const renderBigFloatingCommsMenu = () =>
     shouldShowBigFloatingCommsMenu() ? <BigFloatingCommsMenu /> : null;
@@ -260,11 +306,11 @@ const AppContainer = () => {
     const isInComms = check.isInComms();
     if (isInComms) {
       const commsId = get.commsId();
-      if (selectedChatId !== commsId) return true;
-      return selectedChatId === commsId && "chat" === "chat";
+      if (selectedChatUUID !== commsId) return true;
+      return selectedChatUUID === commsId && "chat" === "chat";
     }
     return false;
-  }, [isSmallScreen, selectedChatId, forceUpdate]);
+  }, [isSmallScreen, selectedChatUUID, forceUpdate]);
 
   const renderSmallCommsMenu = () =>
     shouldShowSmallCommsMenu() ? <SmallCommsMenu /> : null;
@@ -284,19 +330,28 @@ const AppContainer = () => {
 
   // Render ChatContainer solo se selezionata
   const renderChatView = () => {
-    if (!selectedChatId) return null;
-    const selectedDetails = chatDetails[selectedChatId] || {};
-
-    const chatUUID = selectedDetails.uuid;
-    const chatName = selectedDetails.name;
-    const chatProfilePictureUUID = selectedDetails.profilePictureUUID;
+    const {
+      uuid: chatUUID,
+      handle: chatHandle,
+      name: chatName,
+      type: chatType,
+      profilePictureUUID: chatProfilePictureUUID,
+    } = selectedChatUUID
+      ? chatDetails[selectedChatUUID] || {}
+      : { handle: selectedHandle };
 
     return (
       <ChatContainer
         chatUUID={chatUUID}
+        chatHandle={chatHandle}
         chatName={chatName}
+        chatType={chatType}
         chatProfilePictureUUID={chatProfilePictureUUID}
-        onBack={() => setSelectedChatId(null)}
+        onBack={() => {
+          setSelectedChatUUID(null);
+          setSelectedHandle(null);
+          router.back();
+        }}
         theme={theme}
         isSmallScreen={isSmallScreen}
       />
@@ -325,10 +380,10 @@ const AppContainer = () => {
         <>
           <View style={styles.container}>
             <View style={styles.chatList}>
-              {/* Passa props a ChatList: selectedChatId e onChatSelect */}
+              {/* Passa props a ChatList: selectedChatUUID e onChatSelect */}
               {renderHeader()}
               <ChatList
-                selectedChatId={selectedChatId}
+                selectedChatUUID={selectedChatUUID}
                 onChatSelect={onChatSelect}
                 chatDetails={chatDetails}
                 isToggleSearchChats={isToggleSearchChats}
@@ -342,7 +397,7 @@ const AppContainer = () => {
                 Visibility is controlled by translateX and pointerEvents so ChatList won't re-render due to
                 subtree mounting changes. */}
             <Animated.View
-              pointerEvents={selectedChatId ? "auto" : "none"}
+              pointerEvents={selectedChatUUID ? "auto" : "none"}
               style={[
                 styles.chatContentOverlay,
                 {
@@ -373,7 +428,7 @@ const AppContainer = () => {
               {renderBigFloatingCommsMenu()}
               {renderHeader()}
               <ChatList
-                selectedChatId={selectedChatId}
+                selectedChatUUID={selectedChatUUID}
                 onChatSelect={onChatSelect}
                 chatDetails={chatDetails}
                 isToggleSearchChats={isToggleSearchChats}

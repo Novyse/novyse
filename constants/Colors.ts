@@ -47,7 +47,7 @@ export const Colors = {
     chatItemHovered: "#1e8de7ff",
 
     // Gradients
-    backgroundMainGradient: ["#0e283a", "#16638e"], // Gradiente principale dell'app
+    backgroundMainGradient: ["#013480", "#177FC0"],
     floatingBarComponentsGradient: ["#165376", "#2899cf", "#4fb3e1"],
     backgroundChatGradient: ["transparent"],
     backgroundChatListGradient: ["transparent"],

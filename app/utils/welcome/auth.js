@@ -105,6 +105,7 @@ const initializeApp = async () => {
     await AsyncStorage.setItem("deviceUUID", device.uuid);
 
     const database = await Database.create();
+    database.clear();
 
     // Store user
     await database.addUserInfo(user);

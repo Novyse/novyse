@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { all } from "axios";
 import eventEmitter from "../EventEmitter.js";
 import { Platform } from "react-native";
 
@@ -45,7 +45,7 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
 
-    if (status === 401) {
+    if (status === 401 || status === 403) {
       if (!gateway.auth.refresh()) {
         // Cant regenerate access token, emit invalid session
         console.error("Session expired and cannot refresh token.");
@@ -574,6 +574,65 @@ const gateway = {
     },
   },
 
+  search: {
+    /**
+     * Search everything (users, chats, bots).
+     * @param {String} query
+     * @returns {Object} { success: boolean, data?: { users?: Array, chats?: Array, bots?: Array } }
+     */
+    async all(query) {
+      const response = await api.get(`/search/all?query=${query}`);
+      const success = response.data.success;
+      if (success) {
+        const data = response.data.data;
+        return { success, data };
+      }
+      return { success };
+    },
+  },
+
+  gather: {
+    /**
+     * Gather information about a user or chat by handle.
+     * @param {String} query
+     * @returns {Object} { success: boolean, data?: { uuid?: String, type?: [USER, CHAT], name?: String, surname?: String, handle?: String, profilePictureUUID?: String, chatType?: [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{user_uuid?: String, role_id?: Int}]} }
+     */
+    async handle(query) {
+      const response = await api.get(`/gather/handle?query=${query}`);
+      const success = response.data.success;
+      if (success) {
+        const data = response.data.data;
+        return { success, data };
+      }
+      return { success };
+    },
+  },
+
+  chat: {
+    async create(type, memberUUIDs = [], name = null, handle = null) {
+      try {
+        if (!type || (type == "DM" && memberUUIDs.length != 1)) {
+          throw new Error("Missing required fields for chat creation");
+        }
+        const response = await api.post("/chat/create", {
+          type,
+          memberUUIDs,
+          name,
+          handle,
+        });
+        const success = response.data.success;
+        if (success) {
+          const chat = response.data.data;
+          return { success, chat };
+        }
+        return { success };
+      } catch (error) {
+        console.error("Error in chat.create:", error);
+        throw error;
+      }
+    },
+  },
+
   // DEPRECATED ------------------------------------
 
   // chiede all'API se l'email è già registrata
@@ -831,6 +890,7 @@ const gateway = {
   // quando lo user richiede chi è in una chat vocale
   async retrieveVocalUsers(chatId) {
     try {
+      return {};
       const response = await api.get(`/comms/get/members?chat_id=${chatId}`);
       const commsData = {};
 

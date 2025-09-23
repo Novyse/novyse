@@ -14,7 +14,7 @@ import {
 import SmartBackground from "./components/SmartBackground";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
-import JsonParser from "./utils/JsonParser";
+import gateway from "./utils/backend-services/api-gateway";
 import eventEmitter from "./utils/EventEmitter";
 
 const Search = () => {
@@ -24,10 +24,10 @@ const Search = () => {
 
   const [responseArray, setResponseArray] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [timer, setTimer] = useState(null);
 
   useEffect(() => {
-
     const backAction = () => {
       router.navigate("/chat");
       return true;
@@ -54,6 +54,7 @@ const Search = () => {
     if (trimmedValue === "") {
       setIsLoading(false);
       setResponseArray([]);
+      setIsSearching(false);
       // Non impostare un nuovo timer e non eseguire la chiamata API
       return;
     }
@@ -62,11 +63,21 @@ const Search = () => {
     // e pianifica la chiamata API dopo un ritardo (debounce)
     setIsLoading(true);
     setResponseArray([]); // Pulisce i risultati precedenti mentre si caricano i nuovi
+    setIsSearching(true);
 
     const timerOnChange = setTimeout(async () => {
       try {
         // Usa trimmedValue per la ricerca
-        const searched_list = await JsonParser.searchAll(trimmedValue);
+        const { success, data } = await gateway.search.all(trimmedValue);
+        if (!success) throw new Error("Search API call failed");
+
+        const { users = [], chats = [], bots = [] } = data;
+        const searched_list = [
+          ...users.map((user) => ({ ...user, type: "USER" })),
+          ...chats.map((chat) => ({ ...chat, type: "CHAT" })),
+          ...bots.map((bot) => ({ ...bot, type: "BOT" })),
+        ];
+
         setResponseArray(searched_list || []);
         console.log("Lista ricerca:", searched_list);
       } catch (error) {
@@ -91,14 +102,21 @@ const Search = () => {
           handle: item.handle,
           type: item.type,
         });
-        router.setParams({ chatId: undefined, creatingChatWith: item.handle });
+        router.navigate(`/chat/${item.handle}`);
       }}
     >
       <Image
         source={{ uri: "https://picsum.photos/200" }}
         style={styles.avatar}
       />
-      <Text style={styles.resultText}>{item.handle}</Text>
+      <View style={styles.textContainer}>
+        <Text style={styles.resultText}>
+          {item.name} {item?.surname ? `${item?.surname}` : null}
+        </Text>
+        <Text style={styles.profileHandle}>
+          {item?.handle ? `@${item?.handle}` : null}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -127,6 +145,9 @@ const Search = () => {
           keyExtractor={(item, index) => index.toString()}
           style={styles.results}
         />
+      )}
+      {isSearching && !isLoading && responseArray.length === 0 && (
+        <Text style={styles.noResults}>No results found</Text>
       )}
     </SmartBackground>
   );
@@ -177,6 +198,18 @@ function createStyle(theme) {
       height: 40,
       borderRadius: 20,
       marginRight: 10,
+    },
+    noResults: {
+      marginTop: 20,
+      textAlign: "center",
+      color: theme.text,
+    },
+    textContainer: {
+      flexDirection: "column",
+    },
+    profileHandle: {
+      color: theme.placeholderText,
+      fontSize: 14,
     },
   });
 }

@@ -11,12 +11,12 @@ import {
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import gateway from "../utils/backend-services/api-gateway";
-import JsonParser from "../utils/JsonParser";
 import localDatabase from "../utils/localDatabaseMethods";
+import Database from "../utils/storage/database";
 import { useRouter } from "expo-router";
 import eventEmitter from "../utils/EventEmitter";
 import StatusMessage from "./StatusMessage";
-import { setGestureState } from "react-native-reanimated";
+import InputDeviceDropdown from "./settings/vocal-chat/InputDeviceDropdown";
 
 const CreateGroupModal = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
@@ -35,6 +35,43 @@ const CreateGroupModal = ({ visible, onClose }) => {
   const [isHandleLoading, setIsHandleLoading] = useState(false);
   const [handleTimer, setHandleTimer] = useState(null);
 
+  // Add state for selected chat type
+  const [selectedChatType, setSelectedChatType] = useState("GROUP");
+
+  // Options for chat type dropdown
+  const chatTypeOptions = [
+    { label: "Group", value: "GROUP" },
+    { label: "Channel", value: "CHANNEL" },
+    { label: "Forum", value: "FORUM" },
+  ];
+
+  // Get dynamic labels based on selected chat type
+  const getNamePlaceholder = () => {
+    switch (selectedChatType) {
+      case "GROUP":
+        return "Group Name";
+      case "CHANNEL":
+        return "Channel Name";
+      case "FORUM":
+        return "Forum Name";
+      default:
+        return "Name";
+    }
+  };
+
+  const getHandlePlaceholder = () => {
+    switch (selectedChatType) {
+      case "GROUP":
+        return "Group Handle";
+      case "CHANNEL":
+        return "Channel Handle";
+      case "FORUM":
+        return "Forum Handle";
+      default:
+        return "Handle";
+    }
+  };
+
   // funzione per resettare tutti i campi (poi magna la gestisci come vuoi, io preferisco così :)  )
   const resetFields = () => {
     setGroupName("");
@@ -44,6 +81,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
     setIsTextError2(false);
     setGroupHandleAvailable(null);
     setIsHandleLoading(false);
+    setSelectedChatType("GROUP");
   };
 
   // Handle change function for group handle with availability check
@@ -51,7 +89,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
     setGroupHandle(value);
     setIsTextError2(false);
 
-    if (value) {
+    if (value.length >= 3) {
       setIsHandleLoading(true);
       setGroupHandleAvailable(null);
 
@@ -60,64 +98,75 @@ const CreateGroupModal = ({ visible, onClose }) => {
 
       // Set new timer to check availability after typing stops
       const timer = setTimeout(async () => {
-        const available = await JsonParser.handleAvailability(value);
-        setGroupHandleAvailable(available);
-        setIsHandleLoading(false);
+        const { success, free } = await gateway.check.handle(value);
+        if (success) {
+          setGroupHandleAvailable(free);
+          setIsHandleLoading(false);
+        } else {
+          setGroupHandleAvailable(false);
+          setIsHandleLoading(false);
+        }
       }, 1000);
 
       setHandleTimer(timer);
+    } else {
+      // Reset if less than 3 characters
+      setGroupHandleAvailable(null);
+      setIsHandleLoading(false);
+      if (handleTimer) clearTimeout(handleTimer);
     }
   };
 
   const handleCreateGroupPress = async () => {
     setError("");
     if (!groupName) {
-      setError("Il nome del gruppo è obbligatorio");
+      setError(`The ${selectedChatType.toLowerCase()} name is required`);
       return;
     }
     if (!groupHandle && isPublic) {
-      setError("L'handle è obbligatorio per i gruppi pubblici");
+      setError(
+        `The ${selectedChatType.toLowerCase()} handle is required for public chats`
+      );
       return;
     }
     if (isPublic && groupHandleAvailable === false) {
-      setError("Handle già in uso");
+      setError("Handle already in use");
       return;
     }
-    let success = null;
+    let response = null;
     if (isPublic) {
-      success = await gateway.createNewGroupAPI(groupHandle, groupName);
+      response = await gateway.chat.create(
+        selectedChatType,
+        [],
+        groupName,
+        groupHandle
+      );
     } else {
-      success = await gateway.createNewGroupAPI("", groupName);
+      response = await gateway.chat.create(
+        selectedChatType,
+        [],
+        groupName,
+        undefined
+      );
     }
 
-    if (success.group_created) {
-      console.log("Gruppo creato con successo", success.group_created);
+    const { success, chat } = response;
+    if (success) {
+      console.log("Chat created successfully", chat);
 
       resetFields();
       onClose();
 
-      const newGroupChatId = success.chat_id;
-
-      console.log("🚨Nuovo gruppo ID: ", newGroupChatId);
-
       // inserisco chat e user nel db locale
-      await localDatabase.insertChat(newGroupChatId, groupName);
-      // await localDatabase.insertChatAndUsers(newGroupChatId, handle);
+      const database = await Database.create();
+      await database.addChat(chat);
       // await localDatabase.insertUsers(handle);
       // Clear the parameter after handling
-      router.setParams({
-        chatId: newGroupChatId,
-        creatingChatWith: undefined,
-      });
-      router.navigate(`/chat/${newGroupChatId}`);
+      router.navigate(`/chat/${chat.uuid}`);
 
-      // aggiorno live la lista delle chat
-      eventEmitter.emit("newChat", { newChatId: newGroupChatId });
+      // Aggiorno lista chat @SamueleOrazioDurante
     } else {
-      console.log(
-        "Errore durante la creazione del gruppo",
-        success.group_created
-      );
+      console.error("Error during chat creation");
     }
   };
 
@@ -125,14 +174,14 @@ const CreateGroupModal = ({ visible, onClose }) => {
     <Modal animationType="slide" transparent={true} visible={visible}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
-          <Text style={styles.modalTitleText}>Crea un nuovo gruppo</Text>
+          <Text style={styles.modalTitleText}>Create a new chat</Text>
 
           <StatusMessage type="error" text={error} />
 
           <TextInput
             style={[styles.textInput, error && styles.textInputError]}
-            placeholder="Nome del gruppo"
-            placeholderTextColor="#ccc"
+            placeholder={getNamePlaceholder()}
+            placeholderTextColor={theme.placeholderText || "#ccc"}
             value={groupName}
             onChangeText={setGroupName}
           />
@@ -147,22 +196,26 @@ const CreateGroupModal = ({ visible, onClose }) => {
                       ? styles.handleInputError
                       : null,
                   ]}
-                  placeholder="Handle del gruppo"
-                  placeholderTextColor={isTextError2 ? "#red" : "#ccc"}
+                  placeholder={getHandlePlaceholder()}
+                  placeholderTextColor={
+                    isTextError2
+                      ? theme.danger || "#red"
+                      : theme.placeholderText || "#ccc"
+                  }
                   value={groupHandle}
                   onChangeText={handleGroupHandleChange}
                 />
                 {isHandleLoading && (
                   <ActivityIndicator
                     size="small"
-                    color="#2399C3"
+                    color={theme.primary || "#2399C3"}
                     style={styles.overlayIndicator}
                   />
                 )}
               </View>
               {groupHandleAvailable === false && (
                 <Text style={styles.handleTextError}>
-                  Handle già in utilizzo
+                  Handle already in use
                 </Text>
               )}
             </View>
@@ -178,7 +231,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
             }}
           >
             <Text style={styles.isPublicText}>
-              {isPublic ? "Pubblico" : "Privato"}
+              {isPublic ? "Public" : "Private"}
             </Text>
             <Switch
               trackColor={{ false: "#767577", true: "#81b0ff" }}
@@ -188,6 +241,15 @@ const CreateGroupModal = ({ visible, onClose }) => {
               value={isPublic}
             />
           </View>
+
+          {/* Add dropdown for chat type */}
+          <InputDeviceDropdown
+            label="Chat Type"
+            value={selectedChatType}
+            options={chatTypeOptions}
+            onValueChange={setSelectedChatType}
+            theme={theme}
+          />
 
           <View
             style={{
@@ -200,7 +262,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
               style={[styles.button, styles.buttonClose]}
               onPress={onClose}
             >
-              <Text style={styles.textStyle}>Indietro</Text>
+              <Text style={styles.textStyle}>Back</Text>
             </Pressable>
             <Pressable
               style={[
@@ -213,7 +275,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
               onPress={handleCreateGroupPress}
               disabled={isPublic && !groupHandleAvailable && groupHandle != ""}
             >
-              <Text style={styles.textStyle}>Crea gruppo</Text>
+              <Text style={styles.textStyle}>Create Chat</Text>
             </Pressable>
           </View>
         </View>
@@ -243,20 +305,23 @@ function createStyle(theme) {
       shadowOpacity: 0.25,
       shadowRadius: 4,
       elevation: 5,
+      width: "90%", // Add width for better responsiveness
+      maxWidth: 400, // Limit max width
     },
     button: {
-      borderRadius: 20,
-      padding: 10,
+      borderRadius: 10, // Uniform with dropdown
+      padding: 15, // Uniform with dropdown
       elevation: 2,
+      backgroundColor: theme.primary || "#007AFF", // Use theme
     },
     buttonOpen: {
       backgroundColor: "#F194FF",
     },
     buttonClose: {
-      backgroundColor: "#2196F3",
+      backgroundColor: theme.primary || "#007AFF", // Use theme
     },
     textStyle: {
-      color: "white",
+      color: theme.text || "white", // Use theme
       fontWeight: "bold",
       textAlign: "center",
     },
@@ -270,31 +335,32 @@ function createStyle(theme) {
     textInput: {
       width: "100%",
       outlineStyle: "none",
-      borderColor: "white",
+      borderRadius: 10, // Uniform with dropdown
+      padding: 15, // Uniform with dropdown
       borderWidth: 1,
-      borderRadius: 12,
-      color: "white",
+      borderColor: theme.borderColor || "#ddd", // Use theme
+      backgroundColor: theme.backgroundChatTextInput || "#fff", // Use theme
+      color: theme.text, // Use theme
       pointerEvents: "auto",
       marginBottom: 10,
-      padding: 10,
     },
     textInputError: {
-      borderColor: "red",
-      color: "red",
+      borderColor: theme.danger || "red", // Use theme
+      color: theme.danger || "red", // Use theme
     },
     isPublicText: {
       color: theme.text,
     },
     handleInputError: {
-      borderColor: "red",
+      borderColor: theme.danger || "red", // Use theme
     },
     handleTextError: {
-      color: "red",
+      color: theme.danger || "red", // Use theme
       marginTop: 5,
       marginBottom: 10,
     },
     buttonDisabled: {
-      backgroundColor: "#999",
+      backgroundColor: theme.textSecondary || "#999", // Use theme
       opacity: 0.7,
     },
     inputWrapperContainer: {

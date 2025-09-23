@@ -31,8 +31,16 @@ import ChatIconsPickerModal from "./components/ChatIconsPickerModal";
 import MessageBase from "./components/messages/MessageBase";
 import MessageSystem from "./components/messages/MessageSystem";
 
-const ChatContent = ({ chatUUID, chatName, messages, onBack, contentView }) => {
-  const messagesRef = useRef([]);
+const ChatContent = ({
+  chatUUID,
+  chatHandle,
+  chatName,
+  chatType,
+  chatProfilePictureUUID,
+  messages,
+  onBack,
+  contentView,
+}) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const [newMessageText, setNewMessageText] = useState("");
@@ -56,57 +64,45 @@ const ChatContent = ({ chatUUID, chatName, messages, onBack, contentView }) => {
   const urlRegex =
     /(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])(\S*)/g; //PERFETTO
 
+  // setNewMessageText("");
+
+  // // gestisco quando ricevo un messaggio da un utente
+  // const handleReceiveMessage = (data) => {
+  //   if (data.chat_id === chatId) {
+  //     // --- MODIFICA: Creiamo il messaggio con la nuova struttura ---
+  //     const newMessage = {
+  //       message_id: data.message_id || data.hash,
+  //       sender: data.sender,
+  //       date_time: data.date,
+  //       hash: data.hash,
+  //       content: { text: data.text },
+  //     };
+  //     setMessages((currentMessages) => [newMessage, ...currentMessages]);
+  //   }
+  // };
+  // eventEmitter.on("newMessage", handleReceiveMessage);
+
+  // // gestisco quando il server ritorna le info del messaggio (il server conferma che ha ricevuto il messaggio)
+  // const handleUpdateMessage = (data) => {
+  //   setMessages((currentMessages) => {
+  //     return currentMessages.map((item) => {
+  //       if (item.hash === data.hash) {
+  //         // --- MODIFICA: Aggiorniamo il messaggio con la nuova struttura ---
+  //         return {
+  //           message_id: data.message_id,
+  //           sender: data.sender,
+  //           date_time: data.date,
+  //           hash: data.hash,
+  //           content: { text: data.text },
+  //         };
+  //       }
+  //       return item;
+  //     });
+  //   });
+  // };
+  // eventEmitter.on("updateMessage", handleUpdateMessage);
+
   useEffect(() => {
-    // carico i messaggi quando apro la pagina
-    const loadMessages = async () => {
-      try {
-        messagesRef.current = messages.reverse();
-      } catch (error) {
-        console.error("Error loading messages:", error);
-        setMessages([]);
-        messagesRef.current = [];
-      }
-    };
-    loadMessages();
-
-    setNewMessageText("");
-
-    // // gestisco quando ricevo un messaggio da un utente
-    // const handleReceiveMessage = (data) => {
-    //   if (data.chat_id === chatId) {
-    //     // --- MODIFICA: Creiamo il messaggio con la nuova struttura ---
-    //     const newMessage = {
-    //       message_id: data.message_id || data.hash,
-    //       sender: data.sender,
-    //       date_time: data.date,
-    //       hash: data.hash,
-    //       content: { text: data.text },
-    //     };
-    //     setMessages((currentMessages) => [newMessage, ...currentMessages]);
-    //   }
-    // };
-    // eventEmitter.on("newMessage", handleReceiveMessage);
-
-    // // gestisco quando il server ritorna le info del messaggio (il server conferma che ha ricevuto il messaggio)
-    // const handleUpdateMessage = (data) => {
-    //   setMessages((currentMessages) => {
-    //     return currentMessages.map((item) => {
-    //       if (item.hash === data.hash) {
-    //         // --- MODIFICA: Aggiorniamo il messaggio con la nuova struttura ---
-    //         return {
-    //           message_id: data.message_id,
-    //           sender: data.sender,
-    //           date_time: data.date,
-    //           hash: data.hash,
-    //           content: { text: data.text },
-    //         };
-    //       }
-    //       return item;
-    //     });
-    //   });
-    // };
-    // eventEmitter.on("updateMessage", handleUpdateMessage);
-
     // gestisco quando l'utente vuole tornare alla pagina precedente
     const backAction = () => {
       if (onBack) {
@@ -127,7 +123,6 @@ const ChatContent = ({ chatUUID, chatName, messages, onBack, contentView }) => {
       backHandler.remove();
     };
   }, [chatUUID, onBack]);
-
 
   // // quando voglio inviare il primo messaggio per avviare una chat
   // const handleNewChatFirstMessage = async (handle) => {
@@ -295,11 +290,15 @@ const ChatContent = ({ chatUUID, chatName, messages, onBack, contentView }) => {
     let currentGroup = [];
     let lastKey = null;
 
-    console.log("Preparing messages:", messages);
+    const msgs = Array.isArray(messages)
+      ? messages.reverse()
+      : messages?.messages.reverse() || [];
 
-    if (messages.length === 0) return prepared;
+    console.log("Preparing messages:", msgs);
 
-    messages.forEach((message) => {
+    if (msgs.length == 0) return prepared;
+
+    msgs.forEach((message) => {
       const key = moment(message.created_at);
 
       if (lastKey && lastKey !== key) {
@@ -409,10 +408,7 @@ const ChatContent = ({ chatUUID, chatName, messages, onBack, contentView }) => {
   );
 
   const renderBottomBar = () => {
-    console.log(
-      "Rendering bottom bar with contentView:",
-      contentView
-    );
+    console.log("Rendering bottom bar with contentView:", contentView);
     return (
       <View
         style={styles.bottomBarContainer}
@@ -420,7 +416,10 @@ const ChatContent = ({ chatUUID, chatName, messages, onBack, contentView }) => {
           setBottomBarHeight(event.nativeEvent.layout.height);
         }}
       >
-        {contentView === "both" ? (
+        {chatUUID ||
+        (chatType != "GROUP" &&
+          chatType != "CHANNEL" &&
+          chatType != "FORUM") ? (
           <View
             style={{
               paddingBottom: 10,
@@ -442,14 +441,14 @@ const ChatContent = ({ chatUUID, chatName, messages, onBack, contentView }) => {
             >
               <TextInput
                 style={styles.bottomBarTextInput}
-                placeholder="New message"
+                placeholder={chatUUID ? "New new message" : "New message"}
                 placeholderTextColor={theme.placeholderText}
                 value={newMessageText}
                 maxLength={2000}
                 onChangeText={handleTextChanging}
                 returnKeyType="send"
                 onSubmitEditing={
-                  Platform.OS === "web" ? handleSendMessage : undefined
+                  Platform.OS === "web" ? handleVoiceMessage : undefined
                 }
               />
               <Icon
@@ -467,16 +466,18 @@ const ChatContent = ({ chatUUID, chatName, messages, onBack, contentView }) => {
             ) : (
               <Icon
                 name="SentIcon"
-                onPress={handleSendMessage}
+                onPress={handleVoiceMessage}
                 style={styles.iconButton}
               />
             )}
           </View>
         ) : (
-          // <Pressable onPress={handleJoinGroup} style={styles.joinGroupButton}>
-          //   <Text style={styles.joinGroupButtonText}>Join</Text>
-          // </Pressable>
-          <Text style={styles.joinGroupButtonText}>Lascia stare per ora</Text>
+          <Pressable
+            onPress={handleVoiceMessage}
+            style={styles.joinGroupButton}
+          >
+            <Text style={styles.joinGroupButtonText}>Join</Text>
+          </Pressable>
         )}
       </View>
     );

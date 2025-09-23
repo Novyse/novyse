@@ -1,13 +1,18 @@
 import React, { useContext } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, Pressable } from "react-native";
 import ScreenLayout from "../components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import DatabaseSizeChart from "../components/DatabaseSizeChart";
+import auth from "../utils/welcome/auth";
 
 const StoragePage = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+
+  const handleResetDatabase = () => {
+    auth.initializeApp();
+  };
 
   return (
     <ScreenLayout>
@@ -19,6 +24,9 @@ const StoragePage = () => {
             This feature is under development
           </Text>
         </View>
+        <Pressable style={styles.resetButton} onPress={handleResetDatabase}>
+          <Text style={styles.resetButtonText}>Reset Database</Text>
+        </Pressable>
         {
           //<DatabaseSizeChart />
         }
@@ -50,6 +58,18 @@ const createStyle = (theme) =>
       fontSize: 18,
       fontWeight: "700",
       marginBottom: 5,
+    },
+    resetButton: {
+      backgroundColor: "#FF0000",
+      padding: 12,
+      borderRadius: 8,
+      alignItems: "center",
+      marginBottom: 20,
+    },
+    resetButtonText: {
+      color: "#FFFFFF",
+      fontSize: 16,
+      fontWeight: "600",
     },
     wipSubtext: {
       color: theme.subtitle || "#b0b0b0",

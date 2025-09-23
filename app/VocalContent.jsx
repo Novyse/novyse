@@ -556,7 +556,8 @@ const VocalContent = ({ chatUUID }) => {
       style={styles.container}
     >
       <VocalMembersLayout commsData={commsData} activeStreams={activeStreams} />
-      <VocalContentBottomBar chatUUID={chatUUID} />
+
+      {chatUUID && <VocalContentBottomBar chatUUID={chatUUID} />}
     </SmartBackground>
   );
 };
