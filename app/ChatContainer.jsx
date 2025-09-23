@@ -1,26 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { View, StyleSheet, Image, Text } from "react-native";
-import { useLocalSearchParams } from "expo-router";
 import ChatContent from "./ChatContent";
 import VocalContent from "./VocalContent";
 import SmartBackground from "./components/SmartBackground"; // Assumi import da path corretto
 import HeaderBase from "./components/HeaderBase";
 import Icon from "./components/Icon";
-import eventEmitter from "./utils/EventEmitter";
-import gateway from "./utils/backend-services/api-gateway";
-import Database from "./utils/storage/database";
 
 // Hooks
 import useChatData from "./hooks/useChatData.js";
 
-const ChatContainer = ({
-  onBack,
-  isSmallScreen,
-  theme,
-  chatUUID,
-  chatHandle,
-}) => {
-  const { chat, messages } = useChatData(chatUUID, chatHandle);
+// Context
+import { ChatContext } from "../context/ChatContext";
+
+const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
+  const { selectedChatUUID, selectedHandle } = useContext(ChatContext);
+
+  const { chat, messages } = useChatData(selectedChatUUID, selectedHandle);
   console.log("Chat data in ChatContainer:", chat);
   console.log("Messages data in ChatContainer:", messages);
 

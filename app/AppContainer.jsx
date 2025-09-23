@@ -4,7 +4,6 @@ import {
   Text,
   Animated,
   BackHandler,
-  Alert,
   Dimensions,
   StyleSheet,
 } from "react-native";
@@ -12,11 +11,8 @@ import { StatusBar } from "expo-status-bar";
 import { ThemeContext } from "@/context/ThemeContext";
 import NetInfo from "@react-native-community/netinfo";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import ScreenLayout from "./components/ScreenLayout";
 import eventEmitter from "./utils/EventEmitter";
-import SocketMethods from "./utils/backend-services/socket-io";
-import gateway from "./utils/backend-services/api-gateway";
 import auth from "./utils/welcome/auth";
 import ChatList from "./ChatList";
 import ChatContainer from "./ChatContainer";
@@ -29,17 +25,22 @@ const { get, check } = methods;
 import Icon from "./components/Icon";
 import SmartBackground from "./components/SmartBackground";
 import HeaderBase from "./components/HeaderBase";
-import Database from "./utils/storage/database";
 import chatUtils from "./utils/chat";
 
 // Hooks
 import useAppInit from "./hooks/useAppInit";
 
+// Context
+import { ChatContext } from "../context/ChatContext";
+
 const AppContainer = () => {
   useAppInit(true);
-
-  const [selectedChatUUID, setSelectedChatUUID] = useState(null);
-  const [selectedHandle, setSelectedHandle] = useState(null);
+  const {
+    selectedChatUUID,
+    setSelectedChatUUID,
+    selectedHandle,
+    setSelectedHandle,
+  } = useContext(ChatContext);
 
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [networkAvailable, setNetworkAvailable] = useState(false);
@@ -225,8 +226,6 @@ const AppContainer = () => {
         }}
         theme={theme}
         isSmallScreen={isSmallScreen}
-        chatUUID={selectedChatUUID}
-        chatHandle={selectedHandle}
       />
     );
   };
@@ -256,7 +255,6 @@ const AppContainer = () => {
               {/* Passa props a ChatList: selectedChatUUID e onChatSelect */}
               {renderHeader()}
               <ChatList
-                selectedChatUUID={selectedChatUUID}
                 onChatSelect={onChatSelect}
                 isToggleSearchChats={isToggleSearchChats}
                 setIsToggleSearchChats={setIsToggleSearchChats}
@@ -300,7 +298,6 @@ const AppContainer = () => {
               {renderBigFloatingCommsMenu()}
               {renderHeader()}
               <ChatList
-                selectedChatUUID={selectedChatUUID}
                 onChatSelect={onChatSelect}
                 isToggleSearchChats={isToggleSearchChats}
                 setIsToggleSearchChats={setIsToggleSearchChats}

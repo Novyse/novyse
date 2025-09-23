@@ -17,13 +17,9 @@ import {
   BackHandler,
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import localDatabase from "./utils/localDatabaseMethods";
 import moment from "moment";
-import eventEmitter from "./utils/EventEmitter";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import "react-native-get-random-values";
-import JsonParser from "./utils/JsonParser";
-import gateway from "./utils/backend-services/api-gateway";
 import Icon from "./components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import SmartBackground from "./components/SmartBackground";

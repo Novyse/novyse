@@ -1,31 +1,17 @@
-import React, { useState, useEffect, useContext, use } from "react";
+import React, { useEffect, useContext } from "react";
 import {
   View,
   Text,
-  Pressable,
   StyleSheet,
-  Dimensions,
   FlatList,
   Image,
-  Animated,
   Platform,
 } from "react-native";
 import moment from "moment";
-import { ThemeContext } from "@/context/ThemeContext";
 import SmartBackground from "./components/SmartBackground";
-import NetInfo from "@react-native-community/netinfo";
-import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import localDatabase from "./utils/localDatabaseMethods";
 import Search from "./Search";
-import gateway from "./utils/backend-services/api-gateway";
 import eventEmitter from "./utils/EventEmitter";
-import SocketMethods from "./utils/backend-services/socket-io";
-import ChatContainer from "./ChatContainer";
-import Sidebar from "./components/Sidebar";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
-import HeaderBase from "./components/HeaderBase";
-import auth from "./utils/welcome/auth";
 import Icon from "./components/Icon";
 import SmallCommsMenu from "./components/comms/SmallCommsMenu"; // Solo per small screen
 import methods from "./utils/webrtc/methods";
@@ -33,6 +19,9 @@ import methods from "./utils/webrtc/methods";
 // Hooks
 import useChats from "./hooks/useChats";
 import useAppInit from "./hooks/useAppInit";
+
+// Context
+import { ChatContext } from "../context/ChatContext";
 
 const { get, check } = methods;
 
@@ -106,17 +95,16 @@ const ChatListItem = React.memo(
   (prev, next) => {
     // shallow compare important primitive props to avoid re-render
     return (
+      prev.name === next.name &&
+      prev.uuid === next.uuid &&
       prev.isSelected === next.isSelected &&
-      prev.chatName === next.chatName &&
-      prev.lastMessageDate === next.lastMessageDate &&
       prev.lastMessageText === next.lastMessageText &&
-      prev.itemId === next.itemId
+      prev.lastMessageDate === next.lastMessageDate
     );
   }
 );
 
 const ChatList = ({
-  selectedChatUUID,
   onChatSelect,
   isToggleSearchChats,
   setIsToggleSearchChats,
@@ -124,9 +112,9 @@ const ChatList = ({
   colorScheme,
 }) => {
   useAppInit(true);
+  const { selectedChatUUID } = useContext(ChatContext);
   const { chatDetails, loading, error } = useChats();
 
-  const router = useRouter();
   const styles = createStyle(theme, colorScheme);
 
   // COMMS ROBA NON TOCCARE
@@ -177,6 +165,30 @@ const ChatList = ({
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
 
+  const renderItem = ({ item }) => {
+    const isSelected = true; //selectedChatUUID === item.uuid;
+    console.log("Rendering chat item:", item.name, "Selected:", isSelected);
+    return (
+      <ChatListItem
+        uuid={item.uuid}
+        name={item.name}
+        pictureUUID={item.profilePictureUUID}
+        lastMessageSender={item.lastMessage?.name}
+        lastMessageText={item.lastMessage?.text}
+        lastMessageDate={parseTime(item.lastMessage?.date_time)}
+        isSelected={isSelected}
+        onPress={handleChatPress}
+        theme={theme}
+        styles={styles}
+      />
+    );
+  };
+
+  const memoizedRenderItem = React.useMemo(
+    () => renderItem,
+    [selectedChatUUID]
+  );
+
   const renderChatList = () => (
     <SmartBackground
       colors={theme?.backgroundChatListGradient}
@@ -191,23 +203,7 @@ const ChatList = ({
         windowSize={7}
         data={Object.values(chatDetails)}
         keyExtractor={(item) => item.uuid}
-        renderItem={({ item }) => {
-          const isSelected = selectedChatUUID === item.uuid;
-          return (
-            <ChatListItem
-              uuid={item.uuid}
-              name={item.name || "Unknown"}
-              pictureUUID={item.profilePictureUUID}
-              lastMessageSender={item.lastMessage?.name}
-              lastMessageText={item.lastMessage?.text}
-              lastMessageDate={parseTime(item.lastMessage?.date_time)}
-              isSelected={isSelected}
-              onPress={handleChatPress}
-              theme={theme}
-              styles={styles}
-            />
-          );
-        }}
+        renderItem={memoizedRenderItem}
       />
     </SmartBackground>
   );
