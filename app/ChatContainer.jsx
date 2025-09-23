@@ -21,6 +21,8 @@ const ChatContainer = ({
   chatHandle,
 }) => {
   const { chat, messages } = useChatData(chatUUID, chatHandle);
+  console.log("Chat data in ChatContainer:", chat);
+  console.log("Messages data in ChatContainer:", messages);
 
   const [contentView, setContentView] = useState("chat"); // "chat", "vocal", "both"
   const styles = createStyle(theme);

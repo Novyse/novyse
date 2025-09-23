@@ -34,17 +34,20 @@ const useChatData = (chatUUID, chatHandle = null) => {
           if (chatHandle) {
             const { success, data } = await gateway.gather.handle(chatHandle);
             if (success) {
-              const { type, profilePictureUUID } = data;
+              const { type, handle, profilePictureUUID } = data;
               let name = "Unknown";
+              let member = [];
 
               switch (type) {
                 case "USER":
                   name = `${data.name} ${data.surname}`;
+                  member = [data.uuid];
                   break;
                 case "GROUP":
                 case "CHANNEL":
                 case "FORUM":
                   name = data.name;
+                  member = data.members || [];
                   setMessages((prev) => ({
                     ...prev,
                     messages: data.messages || [],
@@ -59,20 +62,15 @@ const useChatData = (chatUUID, chatHandle = null) => {
 
               setChat((prev) => ({
                 uuid: null,
-                handle: chatHandle,
+                handle,
                 name,
                 type,
+                member,
                 profilePictureUUID,
               }));
             }
           }
         }
-        console.log("[useChatData] Loaded chat data and messages", {
-          chat,
-          messages,
-          chatUUID,
-          chatHandle,
-        });
       } catch (err) {
         console.error("Error loading messages:", err);
         setError(err);
