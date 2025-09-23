@@ -65,10 +65,17 @@ const AppContainer = () => {
   const onChatSelect = useCallback(
     (chatUUID) => {
       if (selectedChatUUID === chatUUID) return; // No-op if selecting already selected chat
+      
+      // Aggiorniamo prima lo stato locale
       setSelectedChatUUID(chatUUID);
-      router.push(`/chat/${chatUUID}`);
+      
+      // Poi aggiorniamo l'URL senza causare re-render
+      router.setParams({ chatUUIDorHandle: chatUUID });
+      
+      // Infine aggiorniamo il path senza causare una navigazione completa
+      router.navigate(`/chat/${chatUUID}`, { replace: true });
     },
-    [isSmallScreen, router, selectedChatUUID]
+    [router, selectedChatUUID]
   );
 
   // useEffect per screen size e params
@@ -151,9 +158,9 @@ const AppContainer = () => {
     await auth.logout(router, false);
   };
 
-  const toggleSidebar = () => {
-    setIsSidebarVisible(!isSidebarVisible);
-  };
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarVisible(prev => !prev);
+  }, []);
 
   // COMMS ROBA NON TOCCARE
   // useEffect per comms events
@@ -202,33 +209,39 @@ const AppContainer = () => {
 
   // COMMS ROBA NON TOCCARE
 
-  const renderHeader = () => (
+  const toggleSearch = useCallback(() => {
+    setIsToggleSearchChats(prev => !prev);
+  }, []);
+
+  const renderHeader = useCallback(() => (
     <HeaderBase>
       <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
       <Text style={styles.headerTitle}>Chats</Text>
       <Icon
         name={"Search02Icon"}
         size={32}
-        onPress={() => setIsToggleSearchChats(!isToggleSearchChats)}
+        onPress={toggleSearch}
         style={styles.searchButton}
       />
     </HeaderBase>
-  );
+  ), [toggleSidebar, toggleSearch, styles.headerTitle, styles.searchButton]);
+
+  const handleBackPress = useCallback(() => {
+    setSelectedChatUUID(null);
+    setSelectedHandle(null);
+    router.back();
+  }, [router, setSelectedChatUUID, setSelectedHandle]);
 
   // Render ChatContainer solo se selezionata
-  const renderChatView = () => {
+  const renderChatView = useCallback(() => {
     return (
       <ChatContainer
-        onBack={() => {
-          setSelectedChatUUID(null);
-          setSelectedHandle(null);
-          router.back();
-        }}
+        onBack={handleBackPress}
         theme={theme}
         isSmallScreen={isSmallScreen}
       />
     );
-  };
+  }, [handleBackPress, theme, isSmallScreen]);
 
   return (
     <ScreenLayout>
