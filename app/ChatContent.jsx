@@ -26,17 +26,9 @@ import SmartBackground from "./components/SmartBackground";
 import ChatIconsPickerModal from "./components/ChatIconsPickerModal";
 import MessageBase from "./components/messages/MessageBase";
 import MessageSystem from "./components/messages/MessageSystem";
+import gateway from "./utils/backend-services/api-gateway";
 
-const ChatContent = ({
-  chatUUID,
-  chatHandle,
-  chatName,
-  chatType,
-  chatProfilePictureUUID,
-  messages,
-  onBack,
-  contentView,
-}) => {
+const ChatContent = ({ chat, messages, onBack, contentView }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const [newMessageText, setNewMessageText] = useState("");
@@ -118,7 +110,7 @@ const ChatContent = ({
       // eventEmitter.off("updateMessage", handleUpdateMessage);
       backHandler.remove();
     };
-  }, [chatUUID, onBack]);
+  }, [chat.uuid, onBack]);
 
   // // quando voglio inviare il primo messaggio per avviare una chat
   // const handleNewChatFirstMessage = async (handle) => {
@@ -280,6 +272,31 @@ const ChatContent = ({
     };
   };
 
+  const handleSendMessage = async () => {
+    if (chat.uuid) {
+      const { success, message } = await gateway.message.send(
+        chat.uuid,
+        newMessageText,
+        "text"
+      );
+      if (success) {
+        console.log("Message sent successfully:", message);
+      } else {
+        console.error("Failed to send message");
+      }
+    } else if (chat) {
+      console.log("Starting new chat with handle:", chat);
+      // Qui andrebbe la logica per creare una nuova chat e inviare il messaggio
+    }
+    setNewMessageText("");
+    setVoiceMessage(true);
+    setIsMicClicked(false);
+  };
+
+  const handleJoin = () => {
+    console.log("Join button pressed");
+  };
+
   // preparo i messaggi prima che vengano stampati --> aggiungo le date tra messaggi di giorni diversi
   const prepareMessages = useCallback((messages = []) => {
     const prepared = [];
@@ -410,10 +427,10 @@ const ChatContent = ({
           setBottomBarHeight(event.nativeEvent.layout.height);
         }}
       >
-        {chatUUID ||
-        (chatType != "GROUP" &&
-          chatType != "CHANNEL" &&
-          chatType != "FORUM") ? (
+        {chat.uuid ||
+        (chat.chatType != "GROUP" &&
+          chat.chatType != "CHANNEL" &&
+          chat.chatType != "FORUM") ? (
           <View
             style={{
               paddingBottom: 10,
@@ -435,14 +452,14 @@ const ChatContent = ({
             >
               <TextInput
                 style={styles.bottomBarTextInput}
-                placeholder={chatUUID ? "New new message" : "New message"}
+                placeholder={"New message"}
                 placeholderTextColor={theme.placeholderText}
                 value={newMessageText}
                 maxLength={2000}
                 onChangeText={handleTextChanging}
                 returnKeyType="send"
                 onSubmitEditing={
-                  Platform.OS === "web" ? handleVoiceMessage : undefined
+                  Platform.OS === "web" ? handleSendMessage : undefined
                 }
               />
               <Icon
@@ -466,10 +483,7 @@ const ChatContent = ({
             )}
           </View>
         ) : (
-          <Pressable
-            onPress={handleVoiceMessage}
-            style={styles.joinGroupButton}
-          >
+          <Pressable onPress={handleJoin} style={styles.joinGroupButton}>
             <Text style={styles.joinGroupButtonText}>Join</Text>
           </Pressable>
         )}

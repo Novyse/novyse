@@ -71,11 +71,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
       default:
         return (
           <ChatContent
-            chatUUID={chat.uuid}
-            chatHandle={chat.handle}
-            chatName={chat.name}
-            chatType={chat.type}
-            chatProfilePictureUUID={chat.profilePictureUUID}
+            chat={chat}
             messages={messages}
             onBack={onBack}
             contentView={contentView}
@@ -92,11 +88,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
               }}
             >
               <ChatContent
-                chatUUID={chat.uuid}
-                chatHandle={chat.handle}
-                chatName={chat.name}
-                chatType={chat.type}
-                chatProfilePictureUUID={chat.profilePictureUUID}
+                chat={chat}
                 messages={messages}
                 onBack={onBack}
                 contentView="chat"

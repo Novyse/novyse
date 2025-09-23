@@ -131,7 +131,7 @@ const EmailCheckForm = () => {
 
   const checkEmailAndNavigate = async (emailValue) => {
     try {
-      const response = gateway.check.email(emailValue);
+      const response = await gateway.check.email(emailValue);
 
       let emailResponse = "login";
       if (response.success) {
