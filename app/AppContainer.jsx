@@ -30,6 +30,7 @@ import Icon from "./components/Icon";
 import SmartBackground from "./components/SmartBackground";
 import HeaderBase from "./components/HeaderBase";
 import Database from "./utils/storage/database";
+import chatUtils from "./utils/chat";
 
 // Hooks
 import useAppInit from "./hooks/useAppInit";
@@ -48,7 +49,6 @@ const AppContainer = () => {
     useState(false);
 
   const [forceUpdate, setForceUpdate] = useState(0);
-  const [chatDetails, setChatDetails] = useState({});
 
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -83,50 +83,9 @@ const AppContainer = () => {
     if (params.chatUUIDorHandle) {
       if (params.chatUUIDorHandle == selectedChatUUID) return; // no-op if already selected
 
-      // Check if chatUUIDorHandle is handle or UUID
-      if (params.chatUUIDorHandle.length < 33) {
-        setSelectedHandle(params.chatUUIDorHandle);
-        // It's a handle, look up UUID
-        (async () => {
-          const database = await Database.create();
-          const result = await database.getUUIDByHandle(
-            params.chatUUIDorHandle
-          );
-          if (result) {
-            let { uuid, type } = result;
-
-            // If it's a user UUID or a bot UUID, try and get chat UUID
-            if (type === "USER" || type === "BOT") {
-              await database.getChatFromUserUUID(uuid).then((chat) => {
-                if (chat) {
-                  uuid = chat.uuid;
-                } else {
-                  console.warn(
-                    `AppContainer: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a user handle, but no DM chat found.`
-                  );
-                }
-              });
-            } else {
-              // It's a chat, use directly
-              console.log(
-                `AppContainer: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a handle, resolved to UUID ${uuid}, setting selectedChatUUID.`
-              );
-            }
-            setSelectedChatUUID(uuid);
-          } else {
-            console.warn(
-              `AppContainer: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a handle, but no chat found.`
-            );
-            setSelectedChatUUID(null);
-          }
-        })();
-      } else {
-        // It's a UUID, use directly
-        console.log(
-          `AppContainer: route param chatUUID=${params.chatUUIDorHandle}, setting selectedChatUUID.`
-        );
-        setSelectedChatUUID(params.chatUUIDorHandle);
-      }
+      const { chatUUID, chatHandle } = chatUtils.getChatUUIDAndHandle(params);
+      setSelectedChatUUID(chatUUID);
+      setSelectedHandle(chatHandle);
     }
   }, [params.chatUUIDorHandle]);
 
@@ -249,23 +208,8 @@ const AppContainer = () => {
 
   // Render ChatContainer solo se selezionata
   const renderChatView = () => {
-    const {
-      uuid: chatUUID,
-      handle: chatHandle,
-      name: chatName,
-      type: chatType,
-      profilePictureUUID: chatProfilePictureUUID,
-    } = selectedChatUUID
-      ? chatDetails[selectedChatUUID] || {}
-      : { handle: selectedHandle };
-
     return (
       <ChatContainer
-        chatUUID={chatUUID}
-        chatHandle={chatHandle}
-        chatName={chatName}
-        chatType={chatType}
-        chatProfilePictureUUID={chatProfilePictureUUID}
         onBack={() => {
           setSelectedChatUUID(null);
           setSelectedHandle(null);
@@ -273,6 +217,8 @@ const AppContainer = () => {
         }}
         theme={theme}
         isSmallScreen={isSmallScreen}
+        chatUUID={selectedChatUUID}
+        chatHandle={selectedHandle}
       />
     );
   };

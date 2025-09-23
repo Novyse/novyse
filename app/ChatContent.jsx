@@ -285,14 +285,12 @@ const ChatContent = ({
   };
 
   // preparo i messaggi prima che vengano stampati --> aggiungo le date tra messaggi di giorni diversi
-  const prepareMessages = useCallback((messages) => {
+  const prepareMessages = useCallback((messages = []) => {
     const prepared = [];
     let currentGroup = [];
     let lastKey = null;
 
-    const msgs = Array.isArray(messages)
-      ? messages.reverse()
-      : messages?.messages.reverse() || [];
+    const msgs = []; // quando faremo i mesaggi @SamueleOrazioDurante
 
     console.log("Preparing messages:", msgs);
 
@@ -393,7 +391,7 @@ const ChatContent = ({
             return (
               <MessageBase
                 message={message}
-                isSender={message.sender === userId}
+                isSender={message.sender === item.sender}
                 onLongPress={(e) => handleLongPress(e, message)}
               />
             );

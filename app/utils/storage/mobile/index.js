@@ -464,6 +464,19 @@ class Database {
     }
   }
 
+  async getChatByUUID(chatUUID) {
+    try {
+      const chat = await this.db.getFirstAsync(
+        `SELECT * FROM chat WHERE uuid = ?;`,
+        [chatUUID]
+      );
+      return chat || null;
+    } catch (error) {
+      console.error("Error retrieving chat by UUID:", error);
+      return null;
+    }
+  }
+
   // - DEBUGGING ONLY
   async getAllInfoAllTableEverything() {
     try {

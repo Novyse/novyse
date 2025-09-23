@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Database from "../utils/storage/database";
-import auth from "../utils/welcome/auth";
+import utils from "../utils/chat";
 
 const useChats = () => {
   const [chatDetails, setChatDetails] = useState({});
@@ -17,19 +17,8 @@ const useChats = () => {
         for (const chat of chats) {
           const lastMessage = await database.getLastMessage(chat.uuid);
 
-          let name = chat.name;
-          let profilePictureUUID = chat.profile_picture_uuid;
-
-          if (chat.type === "DM") {
-            const user = await database.getUserByChatUUID(chat.uuid);
-            name = user.name;
-            profilePictureUUID = user.profile_picture_uuid;
-
-            if (user.uuid === (await auth.getUserUUID())) {
-              name = "Saved Messages";
-              profilePictureUUID = null;
-            }
-          }
+          const { name, profilePictureUUID } =
+            await utils.getChatNameAndProfilePicture(chat);
 
           details[chat.uuid] = {
             uuid: chat.uuid,
@@ -56,7 +45,6 @@ const useChats = () => {
 
     loadChats();
   }, []);
-  
 
   return { chatDetails, loading, error };
 };

@@ -10,64 +10,20 @@ import eventEmitter from "./utils/EventEmitter";
 import gateway from "./utils/backend-services/api-gateway";
 import Database from "./utils/storage/database";
 
+// Hooks
+import useChatData from "./hooks/useChatData.js";
+
 const ChatContainer = ({
-  chatUUID,
-  chatHandle,
-  chatName,
-  chatType,
-  chatProfilePictureUUID,
   onBack,
   isSmallScreen,
   theme,
+  chatUUID,
+  chatHandle,
 }) => {
+  const { chat, messages } = useChatData(chatUUID, chatHandle);
+
   const [contentView, setContentView] = useState("chat"); // "chat", "vocal", "both"
-  const [messages, setMessages] = useState([]);
   const styles = createStyle(theme);
-
-  // da spostare in hook immagino
-  useEffect(() => {
-    const initMessages = async () => {
-      if (chatUUID) {
-        const database = await Database.create();
-        const messages = await database.getMessagesByChatUUID(chatUUID);
-        setMessages((prev) => ({ ...prev, messages: messages || [] }));
-      } else {
-        if (chatHandle) {
-          const { success, data } = await gateway.gather.handle(chatHandle);
-          if (success) {
-            const { type, profilePictureUUID } = data;
-            let name = "Unknown";
-
-            switch (chatType) {
-              case "USER":
-                name = `${data.name} ${data.surname}`;
-                break;
-              case "GROUP":
-              case "CHANNEL":
-              case "FORUM":
-                name = data.name;
-                setMessages((prev) => ({
-                  ...prev,
-                  messages: data.messages || [],
-                }));
-                break;
-              case "BOT":
-                chatName = data.name;
-                chatType = "BOT";
-                break;
-              default:
-                name = "Unknown";
-            }
-
-            chatName = name;
-            chatType = type;
-            chatProfilePictureUUID = profilePictureUUID;
-          }
-        }
-      }
-    };
-    initMessages();
-  }, [chatUUID]);
 
   // Render Header con pulsanti per switch view
   const renderChatHeader = () => (
@@ -84,7 +40,7 @@ const ChatContainer = ({
         style={styles.avatar}
       />
       <Text style={[styles.headerTitle, styles.chatHeaderTitle]}>
-        {chatName || "Unknown"}
+        {chat.name}
       </Text>
       {true && (
         <>
@@ -113,16 +69,16 @@ const ChatContainer = ({
   const renderContent = () => {
     switch (contentView) {
       case "vocal":
-        return <VocalContent chatUUID={chatUUID} />;
+        return <VocalContent chatUUID={chat.uuid} />;
       case "chat":
       default:
         return (
           <ChatContent
-            chatUUID={chatUUID}
-            chatHandle={chatHandle}
-            chatName={chatName}
-            chatType={chatType}
-            chatProfilePictureUUID={chatProfilePictureUUID}
+            chatUUID={chat.uuid}
+            chatHandle={chat.handle}
+            chatName={chat.name}
+            chatType={chat.type}
+            chatProfilePictureUUID={chat.profilePictureUUID}
             messages={messages}
             onBack={onBack}
             contentView={contentView}
@@ -139,18 +95,18 @@ const ChatContainer = ({
               }}
             >
               <ChatContent
-                chatUUID={chatUUID}
-                chatHandle={chatHandle}
-                chatName={chatName}
-                chatType={chatType}
-                chatProfilePictureUUID={chatProfilePictureUUID}
+                chatUUID={chat.uuid}
+                chatHandle={chat.handle}
+                chatName={chat.name}
+                chatType={chat.type}
+                chatProfilePictureUUID={chat.profilePictureUUID}
                 messages={messages}
                 onBack={onBack}
                 contentView="chat"
               />
             </View>
             <View style={{ flex: 1 }}>
-              <VocalContent chatUUID={chatUUID} />
+              <VocalContent chatUUID={chat.uuid} />
             </View>
           </View>
         );
