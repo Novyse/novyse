@@ -177,7 +177,7 @@ const AppContainer = () => {
     if (isInComms) {
       const commsId = get.commsId();
       if (selectedChatUUID !== commsId) return true;
-      return selectedChatUUID === commsId && "chat" === "chat"; // contentView da ChatContainer ora
+      return selectedChatUUID === commsId && "chat" === "chat";
     }
     return false;
   }, [isSmallScreen, selectedChatUUID, forceUpdate]);

@@ -631,6 +631,29 @@ const gateway = {
         throw error;
       }
     },
+    send: {
+      async message(chatUUID, text, type = "text") {
+        try {
+          if (!chatUUID || !text) {
+            throw new Error("Missing required fields for sending message");
+          }
+          const response = await api.post("/chat/send/message", {
+            chatUUID,
+            text,
+            type,
+          });
+          const success = response.data.success;
+          if (success) {
+            const message = response.data.data;
+            return { success, message };
+          }
+          return { success };
+        } catch (error) {
+          console.error("Error in chat.send.message:", error);
+          throw error;
+        }
+      },
+    },
   },
 
   // DEPRECATED ------------------------------------
