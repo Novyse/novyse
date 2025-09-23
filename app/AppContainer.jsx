@@ -31,7 +31,12 @@ import SmartBackground from "./components/SmartBackground";
 import HeaderBase from "./components/HeaderBase";
 import Database from "./utils/storage/database";
 
+// Hooks
+import useAppInit from "./hooks/useAppInit";
+
 const AppContainer = () => {
+  useAppInit(true);
+
   const [selectedChatUUID, setSelectedChatUUID] = useState(null);
   const [selectedHandle, setSelectedHandle] = useState(null);
 
@@ -125,86 +130,6 @@ const AppContainer = () => {
     }
   }, [params.chatUUIDorHandle]);
 
-  // useEffect per init (spostato qui)
-  useEffect(() => {
-    auth.checkShouldBeHere(router, true);
-    SocketMethods.openSocketConnection();
-
-    const handleNewMessageSent = (data) => {
-      const { chat_id, text, date } = data;
-      console.log(
-        `[AppContainer] updateNewLastMessage for chat ${chat_id} date=${date}`
-      );
-      setChatDetails((current) => ({
-        ...current,
-        [chat_id]: {
-          ...current[chat_id],
-          lastMessage: {
-            ...current[chat_id]?.lastMessage,
-            text: text !== null ? text : current[chat_id]?.lastMessage?.text,
-            date_time: date,
-          },
-        },
-      }));
-    };
-
-    const updateChatsAndDetails = async () => {
-      // Modificato per non dipendere da data
-      try {
-        // Chiama fetchChats da ChatList? Per ora, assumi che ChatList gestisca setChats, qui solo details
-        // In futuro: hook useChats
-        const database = await Database.create();
-        const chats = await database.getChats(); // Sposta in hook dopo
-        const details = {};
-        for (const chat of chats) {
-          const lastMessage = await database.getLastMessage(chat.uuid);
-
-          let name = chat.name;
-          let profilePictureUUID = chat.profile_picture_uuid;
-
-          if (chat.type == "DM") {
-            const user = await database.getUserByChatUUID(chat.uuid);
-            name = user.name;
-            profilePictureUUID = user.profile_picture_uuid;
-
-            if (user.uuid == (await auth.getUserUUID())) {
-              name = "Saved Messages";
-              profilePictureUUID = null; // TODO: setta immagine salvate
-            }
-          }
-
-          details[chat.uuid] = {
-            uuid: chat.uuid,
-            name,
-            handle: chat.handle,
-            type: chat.type,
-            profilePictureUUID,
-            lastMessage,
-          };
-        }
-        // Merge details into existing map to avoid transiently wiping other entries
-        setChatDetails((prev) => ({ ...prev, ...details }));
-        console.log(
-          "[AppContainer] updateChatsAndDetails: merged details for",
-          details,
-          Object.keys(details).length,
-          "chats"
-        );
-      } catch (error) {
-        console.error("Error updating chats:", error);
-      }
-    };
-
-    eventEmitter.on("updateNewLastMessage", handleNewMessageSent);
-    eventEmitter.on("newChat", updateChatsAndDetails);
-    updateChatsAndDetails();
-
-    return () => {
-      eventEmitter.off("updateNewLastMessage", handleNewMessageSent);
-      eventEmitter.off("newChat", updateChatsAndDetails);
-    };
-  }, []);
-
   // useEffect per network e back button
   useEffect(() => {
     const checkConnection = NetInfo.addEventListener((state) => {
@@ -216,10 +141,6 @@ const AppContainer = () => {
         setSelectedChatUUID(null);
         return true;
       }
-      // Alert.alert("Warning", "Are you sure you want to leave?", [
-      //   { text: "No", style: "cancel" },
-      //   { text: "Yes", onPress: () => BackHandler.exitApp() },
-      // ]);
       BackHandler.exitApp();
       return true;
     };
@@ -258,6 +179,15 @@ const AppContainer = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const logout = async () => {
+    await auth.logout(router, false);
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarVisible(!isSidebarVisible);
+  };
+
+  // COMMS ROBA NON TOCCARE
   // useEffect per comms events
   useEffect(() => {
     const handleCommsStateChange = (data) => {
@@ -272,19 +202,6 @@ const AppContainer = () => {
       eventEmitter.off("member_left_comms", handleCommsStateChange);
     };
   }, []);
-
-  const logout = async () => {
-    await auth.logout(router, false);
-  };
-
-  const toggleSidebar = () => {
-    setIsSidebarVisible(!isSidebarVisible);
-  };
-
-  const handleSuccessfulJoin = (newChatId) => {
-    console.log(`AppContainer: Gruppo ${newChatId} joinato con successo.`);
-    setSelectedChatUUID(newChatId);
-  };
 
   // Funzioni per menu comms (memoizzate)
   const shouldShowBigFloatingCommsMenu = useCallback(() => {
@@ -314,6 +231,8 @@ const AppContainer = () => {
 
   const renderSmallCommsMenu = () =>
     shouldShowSmallCommsMenu() ? <SmallCommsMenu /> : null;
+
+  // COMMS ROBA NON TOCCARE
 
   const renderHeader = () => (
     <HeaderBase>
@@ -385,7 +304,6 @@ const AppContainer = () => {
               <ChatList
                 selectedChatUUID={selectedChatUUID}
                 onChatSelect={onChatSelect}
-                chatDetails={chatDetails}
                 isToggleSearchChats={isToggleSearchChats}
                 setIsToggleSearchChats={setIsToggleSearchChats}
                 isSmallScreen={isSmallScreen}
@@ -430,7 +348,6 @@ const AppContainer = () => {
               <ChatList
                 selectedChatUUID={selectedChatUUID}
                 onChatSelect={onChatSelect}
-                chatDetails={chatDetails}
                 isToggleSearchChats={isToggleSearchChats}
                 setIsToggleSearchChats={setIsToggleSearchChats}
                 isSmallScreen={isSmallScreen}

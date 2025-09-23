@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, use } from "react";
 import {
   View,
   Text,
@@ -26,10 +26,14 @@ import Sidebar from "./components/Sidebar";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
 import HeaderBase from "./components/HeaderBase";
 import auth from "./utils/welcome/auth";
-
 import Icon from "./components/Icon";
 import SmallCommsMenu from "./components/comms/SmallCommsMenu"; // Solo per small screen
 import methods from "./utils/webrtc/methods";
+
+// Hooks
+import useChats from "./hooks/useChats";
+import useAppInit from "./hooks/useAppInit";
+
 const { get, check } = methods;
 
 // Top-level memoized list item to avoid re-creating component on every render
@@ -114,93 +118,18 @@ const ChatListItem = React.memo(
 const ChatList = ({
   selectedChatUUID,
   onChatSelect,
-  chatDetails,
   isToggleSearchChats,
   setIsToggleSearchChats,
   theme,
   colorScheme,
 }) => {
-  const [chats, setChats] = useState([]);
+  useAppInit(true);
+  const { chatDetails, loading, error } = useChats();
 
   const router = useRouter();
   const styles = createStyle(theme, colorScheme);
 
-  useEffect(() => {
-    setChats(chatDetails);
-  }, [chatDetails]);
-
-  // useEffect per init fetch (solo locale per lista)
-  useEffect(() => {
-    auth.checkShouldBeHere(router, true);
-    // Initialize socket
-    SocketMethods.openSocketConnection();
-
-    // Set up event listeners
-    const handleNewMessageSent = (data) => {
-      const { chat_id, text, date } = data;
-      setChatDetails((current) => ({
-        ...current,
-        [chat_id]: {
-          ...current[chat_id],
-          lastMessage: {
-            ...current[chat_id]?.lastMessage,
-            text: text !== null ? text : current[chat_id]?.lastMessage?.text,
-            date_time: date,
-          },
-        },
-      }));
-    };
-
-    const handleSearchResult = (data) => {
-      const { handle, type } = data;
-      const tempChatId = `temp_${handle}_${Date.now()}`;
-      setSelectedChat(tempChatId);
-    };
-
-    const updateChatsAndDetails = async (data) => {
-      const newChatId = data?.newChatId;
-      try {
-        const fetchedChats = await localDatabase.getChats();
-        setChats(fetchedChats);
-
-        // Prefetch missing details (user + lastMessage) for smoother UI
-        const missing = fetchedChats.filter((c) => !chatDetails?.[c.chat_id]);
-        if (missing.length > 0) {
-          const fetchedDetails = {};
-          await Promise.all(
-            missing.map(async (c) => {
-              try {
-                let user = await localDatabase.fetchUser(c.chat_id);
-                if (user === null || typeof user === "string") {
-                  user = { handle: user || "" };
-                }
-                const lastMessage = await localDatabase.fetchLastMessage(
-                  c.chat_id
-                );
-                fetchedDetails[c.chat_id] = {
-                  user,
-                  lastMessage,
-                  group_channel_name: c.group_channel_name,
-                };
-              } catch (err) {
-                // ignore per-chat errors
-              }
-            })
-          );
-          setLocalDetails((prev) => ({ ...prev, ...fetchedDetails }));
-        }
-      } catch (error) {
-        console.error("Error updating chats:", error);
-      }
-    };
-
-    eventEmitter.on("newChat", updateChatsAndDetails);
-
-    return () => {
-      eventEmitter.off("newChat", updateChatsAndDetails);
-    };
-  }, []);
-
+  // COMMS ROBA NON TOCCARE
   // useEffect per comms events (locale per forceUpdate)
   useEffect(() => {
     const handleCommsStateChange = (data) => {
@@ -215,21 +144,6 @@ const ChatList = ({
       eventEmitter.off("member_left_comms", handleCommsStateChange);
     };
   }, []);
-
-  // handleChatPress semplificato (stable reference)
-  const handleChatPress = React.useCallback(
-    (chatUUID) => {
-      onChatSelect(chatUUID);
-    },
-    [onChatSelect]
-  );
-
-  // parseTime invariato
-  const parseTime = (dateTimeMessage) => {
-    if (!dateTimeMessage) return "";
-    const timeMoment = moment(dateTimeMessage);
-    return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
-  };
 
   // shouldShowSmallCommsMenu (locale per small screen)
   const shouldShowSmallCommsMenu = () => {
@@ -246,6 +160,22 @@ const ChatList = ({
 
   const renderSmallCommsMenu = () =>
     shouldShowSmallCommsMenu() ? <SmallCommsMenu /> : null;
+  // COMMS ROBA NON TOCCARE
+
+  // callback per onPress chat item
+  const handleChatPress = React.useCallback(
+    (chatUUID) => {
+      onChatSelect(chatUUID);
+    },
+    [onChatSelect]
+  );
+
+  // parseTime invariato
+  const parseTime = (dateTimeMessage) => {
+    if (!dateTimeMessage) return "";
+    const timeMoment = moment(dateTimeMessage);
+    return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
+  };
 
   const renderChatList = () => (
     <SmartBackground
@@ -259,7 +189,7 @@ const ChatList = ({
         initialNumToRender={12}
         maxToRenderPerBatch={12}
         windowSize={7}
-        data={Object.values(chats)}
+        data={Object.values(chatDetails)}
         keyExtractor={(item) => item.uuid}
         renderItem={({ item }) => {
           const isSelected = selectedChatUUID === item.uuid;
@@ -383,4 +313,4 @@ function createStyle(theme, colorScheme) {
   });
 }
 
-export default ChatList;
+export default React.memo(ChatList);
