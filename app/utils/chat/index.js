@@ -1,7 +1,7 @@
 import Database from "../storage/database";
 import auth from "../welcome/auth";
 
-const getChatUUIDAndHandle = (params) => {
+const getChatUUIDAndHandle = async (params) => {
   let chatUUID = null;
   let chatHandle = null;
 
@@ -9,41 +9,38 @@ const getChatUUIDAndHandle = (params) => {
   if (params.chatUUIDorHandle.length < 33) {
     chatHandle = params.chatUUIDorHandle;
     // It's a handle, look up UUID
-    (async () => {
-      const database = await Database.create();
-      const result = await database.getUUIDByHandle(params.chatUUIDorHandle);
-      if (result) {
-        let { uuid, type } = result;
+    const database = await Database.create();
+    const result = await database.getUUIDByHandle(params.chatUUIDorHandle);
+    if (result) {
+      let { uuid, type } = result;
 
-        // If it's a user UUID or a bot UUID, try and get chat UUID
-        if (type === "USER" || type === "BOT") {
-          await database.getChatFromUserUUID(uuid).then((chat) => {
-            if (chat) {
-              uuid = chat.uuid;
-            } else {
-              console.warn(
-                `AppContainer: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a user handle, but no DM chat found.`
-              );
-            }
-          });
+      // If it's a user UUID or a bot UUID, try and get chat UUID
+      if (type === "USER" || type === "BOT") {
+        const chat = await database.getChatFromUserUUID(uuid);
+        if (chat) {
+          uuid = chat.uuid;
         } else {
-          // It's a chat, use directly
-          console.log(
-            `AppContainer: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a handle, resolved to UUID ${uuid}, setting selectedChatUUID.`
+          console.warn(
+            `ChatUtils.js: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a user handle, but no DM chat found.`
           );
         }
-        chatUUID = uuid;
       } else {
-        console.warn(
-          `AppContainer: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a handle, but no chat found.`
+        // It's a chat, use directly
+        console.log(
+          `ChatUtils.js: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a handle, resolved to UUID ${uuid}, setting selectedChatUUID.`
         );
-        chatUUID = null;
+        chatUUID = uuid;
       }
-    })();
+    } else {
+      console.warn(
+        `ChatUtils.js: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a handle, but no chat found.`
+      );
+      chatUUID = null;
+    }
   } else {
     // It's a UUID, use directly
     console.log(
-      `AppContainer: route param chatUUID=${params.chatUUIDorHandle}, setting selectedChatUUID.`
+      `ChatUtils.js: route param chatUUID=${params.chatUUIDorHandle}, setting selectedChatUUID.`
     );
     chatUUID = params.chatUUIDorHandle;
   }

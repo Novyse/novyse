@@ -80,13 +80,21 @@ const AppContainer = () => {
     updateScreenSize();
 
     // Always set selectedChatUUID when route params include chatUUID.
-    if (params.chatUUIDorHandle) {
-      if (params.chatUUIDorHandle == selectedChatUUID) return; // no-op if already selected
+    const handleParams = async () => {
+      if (params.chatUUIDorHandle) {
+        if (
+          params.chatUUIDorHandle == selectedChatUUID ||
+          params.chatUUIDorHandle == selectedHandle
+        )
+          return; // no-op if already selected
 
-      const { chatUUID, chatHandle } = chatUtils.getChatUUIDAndHandle(params);
-      setSelectedChatUUID(chatUUID);
-      setSelectedHandle(chatHandle);
-    }
+        const { chatUUID, chatHandle } =
+          await chatUtils.getChatUUIDAndHandle(params);
+        setSelectedChatUUID(chatUUID);
+        setSelectedHandle(chatHandle);
+      }
+    };
+    handleParams();
   }, [params.chatUUIDorHandle]);
 
   // useEffect per network e back button
