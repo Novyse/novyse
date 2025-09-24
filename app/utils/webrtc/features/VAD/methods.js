@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 import voiceActivityDetection from "./lib/voiceActivityDetection";
-import eventEmitter from "../../../EventEmitter";
+import eventEmitter from "../../../global/Events/lib/EventEmitter";
 
 const VAD = {
   async initializeVoiceActivityDetection(localStream) {

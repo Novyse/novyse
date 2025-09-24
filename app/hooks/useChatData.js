@@ -5,7 +5,7 @@ import chatUtils from "../utils/chat";
 
 const useChatData = (chatUUID, chatHandle = null) => {
   const [chat, setChat] = useState({});
-  const [messages, setMessages] = useState({});
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -14,7 +14,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
       try {
         setLoading(true);
         setChat({});
-        setMessages({});
+        setMessages([]);
 
         if (chatUUID) {
           const database = await Database.create();
@@ -29,7 +29,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
             type: chat.type,
             profilePictureUUID,
           }));
-          setMessages((prev) => ({ messages }));
+          setMessages((prev) => messages.reverse());
         } else {
           if (chatHandle) {
             const { success, data } = await gateway.gather.handle(
@@ -51,10 +51,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
                 case "FORUM":
                   name = data.name;
                   member = data.members || [];
-                  setMessages((prev) => ({
-                    ...prev,
-                    messages: data.messages || [],
-                  }));
+                  setMessages(data.messages.reverse() || []);
                   break;
                 case "BOT":
                   name = data.name;

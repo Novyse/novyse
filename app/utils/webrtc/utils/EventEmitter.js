@@ -1,4 +1,4 @@
-import eventEmitter from "../../EventEmitter";
+import eventEmitter from "../../global/Events/lib/EventEmitter";
 import SocketMethods from "../../backend-services/socket-io";
 
 const EventEmitter = {

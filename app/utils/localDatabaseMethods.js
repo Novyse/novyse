@@ -1,5 +1,5 @@
 import localforage from "localforage";
-import eventEmitter from "./EventEmitter";
+import eventEmitter from "./global/Events/lib/EventEmitter";
 import { Platform } from "react-native";
 
 const isWeb = Platform.OS === "web";

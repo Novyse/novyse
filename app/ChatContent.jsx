@@ -31,6 +31,8 @@ import auth from "./utils/welcome/auth";
 import Database from "./utils/storage/database";
 import gateway from "./utils/backend-services/api-gateway";
 
+import eventEmitter from "./utils/global/Events/EventEmitter.js";
+
 // Hooks
 import useChatData from "./hooks/useChatData.js";
 
@@ -39,12 +41,14 @@ import { ChatContext } from "../context/ChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 
 const ChatContent = ({ onBack, contentView }) => {
+  const router = useRouter();
   const { theme } = useContext(ThemeContext);
 
   const styles = createStyle(theme);
   const [newMessageText, setNewMessageText] = useState("");
   const [isVoiceMessage, setVoiceMessage] = useState(true);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
+  const [isMicClicked, setIsMicClicked] = useState(false);
 
   const { selectedChatUUID, selectedHandle } = useContext(ChatContext);
   const { chat, messages, setMessages, loading } = useChatData(
@@ -63,11 +67,7 @@ const ChatContent = ({ onBack, contentView }) => {
     height: 0,
   });
   const containerRef = useRef(null);
-  const router = useRouter();
-  const [isMicClicked, setIsMicClicked] = useState(false);
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
-  const urlRegex =
-    /(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])(\S*)/g; //PERFETTO
 
   // setNewMessageText("");
 
@@ -118,11 +118,6 @@ const ChatContent = ({ onBack, contentView }) => {
   }, []);
 
   useEffect(() => {
-    console.log("chat", chat);
-    console.log("messages", messages);
-  }, [chat, messages]);
-
-  useEffect(() => {
     // gestisco quando l'utente vuole tornare alla pagina precedente
     const backAction = () => {
       if (onBack) {
@@ -136,10 +131,7 @@ const ChatContent = ({ onBack, contentView }) => {
       "hardwareBackPress",
       backAction
     );
-
     return () => {
-      // eventEmitter.off("newMessage", handleReceiveMessage);
-      // eventEmitter.off("updateMessage", handleUpdateMessage);
       backHandler.remove();
     };
   }, [chat.uuid, onBack]);
@@ -222,6 +214,7 @@ const ChatContent = ({ onBack, contentView }) => {
   //     console.error("Errore nell'invio del messaggio:", error);
   //   }
   // };
+
   // gestisco quando il microfono viene premuto
   // non ci sono ancora i messaggi vocali, ma intanto l'ho fatto
   const handleVoiceMessage = () => {
@@ -307,6 +300,21 @@ const ChatContent = ({ onBack, contentView }) => {
   const handleSendMessage = async () => {
     const database = await Database.create();
     if (chat.uuid) {
+
+      // Messaggio temporaneo da storare nel database, da aggiungere a messages e poi da cambiare con quello che arriva dall'api
+      // @Matt3opower
+      // const messageID = Date.now().toString();
+      // const tempMessage = {
+      //   id: messageID,
+      //   chatUUID: chat.uuid,
+      //   senderUUID: myUUID,
+      //   text: newMessageText,
+      //   created_at: "",
+      //   type: "text",
+      // };
+      // await database.addMessage(message);
+      // poi si deve fare un metodo per sostituire il messaggio temporaneo con quello vero
+
       const { success, message } = await gateway.message.send(
         chat.uuid,
         newMessageText,
@@ -318,6 +326,9 @@ const ChatContent = ({ onBack, contentView }) => {
         setMessages((currentMessages) => [message, ...currentMessages]);
         // lo salvo nel db locale
         await database.addMessage(message);
+
+        // mando event emitter
+        await eventEmitter.newMessage(message);
       } else {
         console.error("Failed to send message");
       }
@@ -340,33 +351,51 @@ const ChatContent = ({ onBack, contentView }) => {
 
     // Ordina i messaggi per date_time in ordine decrescente (più recenti prima)
     const sortedMessages = [...messages].sort(
-      (a, b) => new Date(b.date_time) - new Date(a.date_time)
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );
 
     const prepared = [];
     let lastDate = null;
+    let lastDateDisplay = null;
+    let groupMessages = [];
 
-    sortedMessages.forEach((message, index) => {
-      const messageDate = moment(message.date_time).format("YYYY-MM-DD");
-      const displayDate = moment(message.date_time).format("MMMM D, YYYY");
+    sortedMessages.forEach((message) => {
+      const messageDate = moment(message.created_at).format("YYYY-MM-DD");
+      const displayDate = moment(message.created_at).format("MMMM D, YYYY");
 
-      // Aggiungi separator se la data è diversa dalla precedente
       if (messageDate !== lastDate) {
-        prepared.push({
-          type: "separator",
-          data: displayDate,
-          uniqueKey: `separator-${messageDate}`,
-        });
+        // Aggiungi il gruppo precedente e il suo separatore (se esiste)
+        if (groupMessages.length > 0) {
+          prepared.push(...groupMessages);
+          prepared.push({
+            type: "separator",
+            data: lastDateDisplay,
+            uniqueKey: `separator-${lastDate}`,
+          });
+        }
+        // Inizia un nuovo gruppo
+        groupMessages = [];
         lastDate = messageDate;
+        lastDateDisplay = displayDate;
       }
 
-      // Aggiungi il messaggio
-      prepared.push({
+      // Aggiungi il messaggio al gruppo corrente
+      groupMessages.push({
         type: "message",
         data: message,
         uniqueKey: message.id,
       });
     });
+
+    // Aggiungi l'ultimo gruppo e il suo separatore
+    if (groupMessages.length > 0) {
+      prepared.push(...groupMessages);
+      prepared.push({
+        type: "separator",
+        data: lastDateDisplay,
+        uniqueKey: `separator-${lastDate}`,
+      });
+    }
 
     return prepared;
   }, []);
@@ -418,32 +447,37 @@ const ChatContent = ({ onBack, contentView }) => {
   //   }
   // };
 
-  const renderMessagesList = () => (
-    <View style={styles.listContainer}>
-      <FlatList
-        data={prepareMessages(messages)}
-        keyExtractor={(item) => item.uniqueKey}
-        renderItem={({ item }) => {
-          if (item.type === "separator") {
-            return <MessageSystem type={"date"} data={item.data} />;
-          } else {
-            const message = item.data;
-            return (
-              <MessageBase
-                message={message}
-                isSender={message.senderUUID === myUUID}
-                onLongPress={(e) => handleLongPress(e, message)}
-              />
-            );
-          }
-        }}
-        inverted
-        style={styles.flatList}
-        showsVerticalScrollIndicator={true}
-        scrollIndicatorInsets={{ right: 1 }}
-      />
-    </View>
-  );
+  const renderMessagesList = () => {
+    return (
+      <View style={styles.listContainer}>
+        {(!loading && (
+          <FlatList
+            data={prepareMessages(messages)}
+            keyExtractor={(item) => item.uniqueKey}
+            renderItem={({ item }) => {
+              if (item.type === "separator") {
+                return <MessageSystem type={"date"} data={item.data} />;
+              } else {
+                const message = item.data;
+                return (
+                  <MessageBase
+                    message={message}
+                    isSender={message.senderUUID === myUUID}
+                    onLongPress={(e) => handleLongPress(e, message)}
+                  />
+                );
+              }
+            }}
+            inverted
+            style={styles.flatList}
+            showsVerticalScrollIndicator={true}
+            scrollIndicatorInsets={{ right: 1 }}
+          />
+        )) ||
+          null}
+      </View>
+    );
+  };
 
   const renderBottomBar = () => {
     console.log("Rendering bottom bar with contentView:", contentView);

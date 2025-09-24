@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Database from "../utils/storage/database";
 import utils from "../utils/chat";
+import eventEmitter from "../utils/global/Events/EventEmitter";
 
 const useChats = () => {
   const [chatDetails, setChatDetails] = useState({});
@@ -26,7 +27,7 @@ const useChats = () => {
             handle: chat.handle,
             type: chat.type,
             profilePictureUUID,
-            lastMessage,
+            lastMessage: lastMessage,
           };
         }
         setChatDetails(details);
@@ -44,6 +45,28 @@ const useChats = () => {
     };
 
     loadChats();
+
+    const handleNewMessage = (message) => {
+      const chatUUID = message.chatUUID;
+      setChatDetails((prevDetails) => {
+        if (prevDetails[chatUUID]) {
+          return {
+            ...prevDetails,
+            [chatUUID]: {
+              ...prevDetails[chatUUID],
+              lastMessage: message,
+            },
+          };
+        }
+        return prevDetails;
+      });
+    };
+
+    eventEmitter.getEmitter().on("newMessage", handleNewMessage);
+
+    return () => {
+      eventEmitter.getEmitter().off("newMessage", handleNewMessage);
+    };
   }, []);
 
   return { chatDetails, loading, error };

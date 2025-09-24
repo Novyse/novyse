@@ -98,12 +98,12 @@ const getChatNameAndProfilePicture = async (chat) => {
   const database = await Database.create();
 
   let name = chat.name;
-  let chatPictureUUID = chat.profile_picture_uuid;
+  let chatPictureUUID = chat.profilePictureUUID;
 
   if (chat.type === "DM") {
     const user = await database.getUserByChatUUID(chat.uuid);
     name = user.name;
-    chatPictureUUID = user.profile_picture_uuid;
+    chatPictureUUID = user.profilePictureUUID;
 
     if (user.uuid === (await auth.getUserUUID())) {
       name = "Saved Messages";

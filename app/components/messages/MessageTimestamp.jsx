@@ -16,7 +16,7 @@ const MessageTimestamp = ({ time }) => {
   };
 
   if (time === "") {
-    return <Icon name={"Clock01Icon"} />;
+    return <Icon name={"Clock01Icon"} size={14} />;
   }
 
   return <Text style={styles.timeText}>{parseTime(time)}</Text>;

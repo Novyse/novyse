@@ -1,6 +1,6 @@
 import gateway from "./backend-services/api-gateway"; // Importa la classe API esistente
 import localDatabase from "../utils/localDatabaseMethods";
-import eventEmitter from "../utils/EventEmitter";
+import eventEmitter from "./global/Events/lib/EventEmitter";
 import SocketMethods from "./backend-services/socket-io";
 
 class JsonParser {

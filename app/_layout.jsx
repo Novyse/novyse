@@ -4,7 +4,7 @@ import { AudioProvider } from "../context/AudioContext";
 import { ThemeProvider } from "../context/ThemeContext";
 import { ChatProvider } from "../context/ChatContext";
 
-import SetupGlobalEventReceiver from "./utils/global/EventReceiver";
+import SetupGlobalEventReceiver from "./utils/global/Events/EventReceiver";
 
 export default function RootLayout() {
   SetupGlobalEventReceiver();

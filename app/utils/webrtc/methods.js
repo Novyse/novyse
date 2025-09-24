@@ -1,6 +1,6 @@
 import gateway from "../backend-services/api-gateway.js";
 import WebRTCManager from "./index.js";
-import eventEmitter from "../EventEmitter.js";
+import eventEmitter from "../global/Events/lib/EventEmitter.js";
 import localDatabase from "../localDatabaseMethods.js";
 import SoundPlayer from "../sounds/SoundPlayer.js";
 import settingsManager from "../global/SettingsManager.js";

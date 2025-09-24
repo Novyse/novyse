@@ -116,7 +116,7 @@ class Database {
           email: user.email || null,
           name: user.name,
           surname: user.surname,
-          profile_picture_uuid: user.profile_picture_uuid || null,
+          profilePictureUUID: user.profilePictureUUID || null,
         });
         await this.store.setItem("users", users);
       }
@@ -127,7 +127,7 @@ class Database {
       );
       if (!existingHandle) {
         handles.push({
-          user_uuid: user.uuid,
+          userUUID: user.uuid,
           type: "USER",
           handle: user.handle,
         });
@@ -175,14 +175,14 @@ class Database {
         type: chat.type,
         name: chat.name || null,
         description: chat.description || null,
-        picture_uuid: chat.picture_uuid || null,
+        profilePictureUUID: chat.profilePictureUUID || null,
       });
       await this.store.setItem("chats", chats);
 
       if (chat.handle) {
         const handles = (await this.store.getItem("handles")) || [];
         handles.push({
-          chat_uuid: chat.uuid,
+          chatUUID: chat.uuid,
           type: "CHAT",
           handle: chat.handle,
         });
@@ -192,8 +192,8 @@ class Database {
       const members = (await this.store.getItem("members")) || [];
       for (const member of chat.members) {
         members.push({
-          user_uuid: member.uuid,
-          chat_uuid: chat.uuid,
+          userUUID: member.uuid,
+          chatUUID: chat.uuid,
         });
         await this.addUserInfo(member);
       }
@@ -217,7 +217,8 @@ class Database {
         !message ||
         message.id === undefined ||
         !message.chatUUID ||
-        !message.senderUUID
+        !message.senderUUID ||
+        !message.created_at
       ) {
         console.error(
           "Missing required message fields:",
@@ -225,6 +226,7 @@ class Database {
             id: message?.id,
             chatUUID: message?.chatUUID,
             senderUUID: message?.senderUUID,
+            created_at: message?.created_at,
           })
         );
         return false;
@@ -233,13 +235,13 @@ class Database {
       const messages = (await this.store.getItem("messages")) || [];
       messages.push({
         id: message.id,
-        chat_uuid: message.chatUUID,
-        sender_uuid: message.senderUUID,
+        chatUUID: message.chatUUID,
+        senderUUID: message.senderUUID,
         text: message.text || null,
-        file_uuid: message.fileUUID || null,
-        created_at: message.createdAt,
-        is_pinned: message.isPinned ? 1 : 0,
-        reply_to_message_uuid: message.replyToMessageUUID || null,
+        fileUUID: message.fileUUID || null,
+        created_at: message.created_at,
+        is_pinned: message.is_pinned ? 1 : 0,
+        replyToMessageUUID: message.replyToMessageUUID || null,
       });
       await this.store.setItem("messages", messages);
 
@@ -275,11 +277,11 @@ class Database {
       const messages = (await this.store.getItem("messages")) || [];
       const users = (await this.store.getItem("users")) || [];
       const chatMessages = messages
-        .filter((m) => m.chat_uuid === chatUUID)
+        .filter((m) => m.chatUUID === chatUUID)
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       if (chatMessages.length > 0) {
         const lastMessage = chatMessages[0];
-        const sender = users.find((u) => u.uuid === lastMessage.sender_uuid);
+        const sender = users.find((u) => u.uuid === lastMessage.senderUUID);
         return { ...lastMessage, sender_name: sender ? sender.name : null };
       }
       return null;
@@ -298,9 +300,9 @@ class Database {
     try {
       const members = (await this.store.getItem("members")) || [];
       const users = (await this.store.getItem("users")) || [];
-      const member = members.find((m) => m.chat_uuid === chatUUID);
+      const member = members.find((m) => m.chatUUID === chatUUID);
       if (member) {
-        return users.find((u) => u.uuid === member.user_uuid) || null;
+        return users.find((u) => u.uuid === member.userUUID) || null;
       }
       return null;
     } catch (error) {
@@ -326,7 +328,7 @@ class Database {
       if (users.length > 0) {
         const user = users[0];
         const handle = handles.find(
-          (h) => h.user_uuid === user.uuid && h.type === "USER"
+          (h) => h.userUUID === user.uuid && h.type === "USER"
         );
         return { ...user, handle: handle ? handle.handle : null };
       }
@@ -342,10 +344,10 @@ class Database {
       const messages = (await this.store.getItem("messages")) || [];
       const users = (await this.store.getItem("users")) || [];
       const chatMessages = messages
-        .filter((m) => m.chat_uuid === chatUUID)
+        .filter((m) => m.chatUUID === chatUUID)
         .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
         .map((m) => {
-          const sender = users.find((u) => u.uuid === m.sender_uuid);
+          const sender = users.find((u) => u.uuid === m.senderUUID);
           return { ...m, sender_name: sender ? sender.name : null };
         });
       return chatMessages;
@@ -361,7 +363,7 @@ class Database {
       const found = handles.find((h) => h.handle === handle);
       if (found) {
         return {
-          uuid: found.user_uuid || found.chat_uuid || found.bot_uuid || null,
+          uuid: found.userUUID || found.chatUUID || found.botUUID || null,
           type: found.type,
         };
       }
@@ -376,10 +378,9 @@ class Database {
     try {
       const chats = (await this.store.getItem("chats")) || [];
       const members = (await this.store.getItem("members")) || [];
-      const userMembers = members.filter((m) => m.user_uuid === userUUID);
+      const userMembers = members.filter((m) => m.userUUID === userUUID);
       const dmChats = chats.filter(
-        (c) =>
-          c.type === "DM" && userMembers.some((m) => m.chat_uuid === c.uuid)
+        (c) => c.type === "DM" && userMembers.some((m) => m.chatUUID === c.uuid)
       );
       return dmChats.length > 0 ? dmChats[0] : null;
     } catch (error) {
@@ -395,6 +396,22 @@ class Database {
     } catch (error) {
       console.error("Error retrieving chat by UUID:", error);
       return null;
+    }
+  }
+
+  async addSenderNameToMessage(message) {
+    try {
+      if (!message || !message.senderUUID) {
+        return message;
+      }
+      const user = await this.getUserByUUID(message.senderUUID);
+      if (user) {
+        return { ...message, sender_name: user.name };
+      }
+      return message;
+    } catch (error) {
+      console.error("Error adding sender name to message:", error);
+      return message;
     }
   }
 

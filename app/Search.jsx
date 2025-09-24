@@ -15,7 +15,7 @@ import SmartBackground from "./components/SmartBackground";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import gateway from "./utils/backend-services/api-gateway";
-import eventEmitter from "./utils/EventEmitter";
+import eventEmitter from "./utils/global/Events/lib/EventEmitter";
 
 const Search = () => {
   const { theme } = useContext(ThemeContext);

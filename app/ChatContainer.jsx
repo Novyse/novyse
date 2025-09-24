@@ -1,10 +1,11 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { View, StyleSheet, Image, Text } from "react-native";
 import ChatContent from "./ChatContent";
 import VocalContent from "./VocalContent";
 import SmartBackground from "./components/SmartBackground"; // Assumi import da path corretto
 import HeaderBase from "./components/HeaderBase";
 import Icon from "./components/Icon";
+import { useRouter } from "expo-router";
 
 // Context
 import { ChatContext } from "../context/ChatContext";
@@ -19,6 +20,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
 
   const [contentView, setContentView] = useState("chat"); // "chat", "vocal", "both"
   const styles = createStyle(theme);
+  const router = useRouter();
 
   // Render Header con pulsanti per switch view
   const renderChatHeader = () => (
@@ -88,16 +90,33 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
     }
   };
 
-  return (
-    <SmartBackground
-      colors={theme?.backgroundChatGradient}
-      style={styles.chatContent}
-      isSmallScreen={isSmallScreen}
-    >
-      {renderChatHeader()}
-      {renderContent()}
-    </SmartBackground>
-  );
+  if (!selectedChatUUID && !selectedHandle) {
+    return (
+      <Text
+        style={{
+          color: theme.text,
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
+          marginTop: 20,
+        }}
+      >
+        La chat selezionata non esiste, cosa stai facendo, stai fermo per favore
+      </Text>
+    );
+  } else {
+    return (
+      <SmartBackground
+        colors={theme?.backgroundChatGradient}
+        style={styles.chatContent}
+        isSmallScreen={isSmallScreen}
+      >
+        {renderChatHeader()}
+        {renderContent()}
+      </SmartBackground>
+    );
+  }
 };
 
 function createStyle(theme) {

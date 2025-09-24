@@ -37,7 +37,7 @@ class Database {
                 email TEXT,
                 name TEXT NOT NULL,
                 surname TEXT NOT NULL,
-                profile_picture_uuid TEXT
+                profilePictureUUID TEXT
             );
 
             CREATE TABLE IF NOT EXISTS handle_type (
@@ -65,16 +65,16 @@ class Database {
                 type TEXT NOT NULL,
                 name TEXT,
                 description TEXT,
-                picture_uuid TEXT,
+                profilePictureUUID TEXT,
                 FOREIGN KEY (type) REFERENCES chat_type(value)
             );
 
             CREATE TABLE IF NOT EXISTS member (
-                user_uuid TEXT NOT NULL,
-                chat_uuid TEXT NOT NULL,
-                PRIMARY KEY (user_uuid, chat_uuid),
-                FOREIGN KEY (user_uuid) REFERENCES user(uuid),
-                FOREIGN KEY (chat_uuid) REFERENCES chat(uuid)
+                userUUID TEXT NOT NULL,
+                chatUUID TEXT NOT NULL,
+                PRIMARY KEY (userUUID, chatUUID),
+                FOREIGN KEY (userUUID) REFERENCES user(uuid),
+                FOREIGN KEY (chatUUID) REFERENCES chat(uuid)
             );
 
             CREATE TABLE IF NOT EXISTS file (
@@ -88,31 +88,31 @@ class Database {
 
             CREATE TABLE IF NOT EXISTS message (
                 id INTEGER PRIMARY KEY,
-                chat_uuid TEXT NOT NULL,
-                sender_uuid TEXT NOT NULL,
+                chatUUID TEXT NOT NULL,
+                senderUUID TEXT NOT NULL,
                 text TEXT,
-                file_uuid TEXT,
+                fileUUID TEXT,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 is_pinned BOOLEAN NOT NULL DEFAULT 0,
-                reply_to_message_uuid TEXT,
-                FOREIGN KEY (chat_uuid) REFERENCES chat(uuid),
-                FOREIGN KEY (sender_uuid) REFERENCES user(uuid),
-                FOREIGN KEY (file_uuid) REFERENCES file(uuid),
-                FOREIGN KEY (reply_to_message_uuid) REFERENCES message(uuid)
+                replyToMessageUUID TEXT,
+                FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
+                FOREIGN KEY (senderUUID) REFERENCES user(uuid),
+                FOREIGN KEY (fileUUID) REFERENCES file(uuid),
+                FOREIGN KEY (replyToMessageUUID) REFERENCES message(uuid)
             );
 
             
             CREATE TABLE IF NOT EXISTS handle (
-                user_uuid TEXT NULL,
-                chat_uuid TEXT NULL,
-                bot_uuid TEXT NULL,
+                userUUID TEXT NULL,
+                chatUUID TEXT NULL,
+                botUUID TEXT NULL,
                 type TEXT NOT NULL,
                 handle TEXT NOT NULL,
                 CONSTRAINT handle_pkey PRIMARY KEY (handle),
                 CONSTRAINT handle_handle_key UNIQUE (handle),
-                FOREIGN KEY (user_uuid) REFERENCES user(uuid),
-                FOREIGN KEY (chat_uuid) REFERENCES chat(uuid),
-                FOREIGN KEY (bot_uuid) REFERENCES bot(uuid),
+                FOREIGN KEY (userUUID) REFERENCES user(uuid),
+                FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
+                FOREIGN KEY (botUUID) REFERENCES bot(uuid),
                 FOREIGN KEY (type) REFERENCES handle_type(value)
             );
 
@@ -120,23 +120,23 @@ class Database {
                 uuid TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
                 description TEXT,
-                profile_picture_uuid TEXT,
-                FOREIGN KEY (profile_picture_uuid) REFERENCES file(uuid)
+                profilePictureUUID TEXT,
+                FOREIGN KEY (profilePictureUUID) REFERENCES file(uuid)
             );
 
             CREATE TABLE IF NOT EXISTS pinned_chat (
-                user_uuid TEXT NOT NULL,
-                chat_uuid TEXT NOT NULL,
+                userUUID TEXT NOT NULL,
+                chatUUID TEXT NOT NULL,
                 sort_order INTEGER NOT NULL DEFAULT 0,
-                PRIMARY KEY (user_uuid, chat_uuid),
-                FOREIGN KEY (user_uuid) REFERENCES user(uuid),
-                FOREIGN KEY (chat_uuid) REFERENCES chat(uuid)
+                PRIMARY KEY (userUUID, chatUUID),
+                FOREIGN KEY (userUUID) REFERENCES user(uuid),
+                FOREIGN KEY (chatUUID) REFERENCES chat(uuid)
             );
 
             -- Indexes for performance
-            CREATE INDEX IF NOT EXISTS idx_message_chat_uuid ON message(chat_uuid);
-            CREATE INDEX IF NOT EXISTS idx_message_sender_uuid ON message(sender_uuid);
-            CREATE INDEX IF NOT EXISTS idx_member_chat_uuid ON member(chat_uuid);
+            CREATE INDEX IF NOT EXISTS idx_message_chatUUID ON message(chatUUID);
+            CREATE INDEX IF NOT EXISTS idx_message_senderUUID ON message(senderUUID);
+            CREATE INDEX IF NOT EXISTS idx_member_chatUUID ON member(chatUUID);
 `);
   }
 
@@ -192,20 +192,20 @@ class Database {
       // Insert user into the user table
       await this.db.runAsync(
         `
-        INSERT OR IGNORE INTO user (uuid, email, name, surname, profile_picture_uuid) VALUES (?, ?, ?, ?, ?);
+        INSERT OR IGNORE INTO user (uuid, email, name, surname, profilePictureUUID) VALUES (?, ?, ?, ?, ?);
       `,
         [
           user.uuid,
           user.email || null,
           user.name,
           user.surname,
-          user.profile_picture_uuid || null,
+          user.profilePictureUUID || null,
         ]
       );
       // Insert handle into the handle table
       await this.db.runAsync(
         `
-        INSERT OR IGNORE INTO handle (user_uuid, type, handle) VALUES (?, 'USER', ?);
+        INSERT OR IGNORE INTO handle (userUUID, type, handle) VALUES (?, 'USER', ?);
       `,
         [user.uuid, user.handle]
       );
@@ -246,26 +246,26 @@ class Database {
       }
       // Insert chat into the chat table
       await this.db.runAsync(
-        `INSERT INTO chat (uuid, type, name, description, picture_uuid) VALUES (?, ?, ?, ?, ?);`,
+        `INSERT INTO chat (uuid, type, name, description, profilePictureUUID) VALUES (?, ?, ?, ?, ?);`,
         [
           chat.uuid,
           chat.type,
           chat.name || null,
           chat.description || null,
-          chat.picture_uuid || null,
+          chat.profilePictureUUID || null,
         ]
       );
       // If exist insert handle into the handle table
       if (chat.handle) {
         await this.db.runAsync(
-          `INSERT INTO handle (chat_uuid, type, handle) VALUES (?, 'CHAT', ?);`,
+          `INSERT INTO handle (chatUUID, type, handle) VALUES (?, 'CHAT', ?);`,
           [chat.uuid, chat.handle]
         );
       }
       // Insert members into the member table
       for (const member of chat.members) {
         await this.db.runAsync(
-          `INSERT INTO member (user_uuid, chat_uuid) VALUES (?, ?);`,
+          `INSERT INTO member (userUUID, chatUUID) VALUES (?, ?);`,
           [member.uuid, chat.uuid]
         );
         // Insert member user info into the user table
@@ -303,7 +303,7 @@ class Database {
       }
 
       await this.db.runAsync(
-        `INSERT INTO message (id, chat_uuid, sender_uuid, text, file_uuid, created_at, is_pinned, reply_to_message_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT INTO message (id, chatUUID, senderUUID, text, fileUUID, created_at, is_pinned, replyToMessageUUID) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
@@ -348,8 +348,8 @@ class Database {
     try {
       const message = await this.db.getFirstAsync(
         `SELECT m.*, u.name as sender_name FROM message m
-             JOIN user u ON m.sender_uuid = u.uuid
-             WHERE m.chat_uuid = ? ORDER BY m.created_at DESC LIMIT 1;`,
+             JOIN user u ON m.senderUUID = u.uuid
+             WHERE m.chatUUID = ? ORDER BY m.created_at DESC LIMIT 1;`,
         [chatUUID]
       );
       return message || null;
@@ -370,8 +370,8 @@ class Database {
       const user = await this.db.getFirstAsync(
         `
         SELECT u.* FROM user u
-        JOIN member m ON u.uuid = m.user_uuid
-        WHERE m.chat_uuid = ?
+        JOIN member m ON u.uuid = m.userUUID
+        WHERE m.chatUUID = ?
         LIMIT 1;
       `,
         [chatUUID]
@@ -400,7 +400,7 @@ class Database {
     try {
       const user = await this.db.getFirstAsync(`
             SELECT u.*, h.handle FROM user u
-            LEFT JOIN handle h ON u.uuid = h.user_uuid AND h.type = 'USER'
+            LEFT JOIN handle h ON u.uuid = h.userUUID AND h.type = 'USER'
             LIMIT 1;
         `);
       console.log("Local user from DB:", user);
@@ -415,8 +415,8 @@ class Database {
     try {
       const messages = await this.db.getAllAsync(
         `SELECT m.*, u.name as sender_name FROM message m
-             JOIN user u ON m.sender_uuid = u.uuid
-             WHERE m.chat_uuid = ?
+             JOIN user u ON m.senderUUID = u.uuid
+             WHERE m.chatUUID = ?
                 ORDER BY m.created_at ASC;`,
         [chatUUID]
       );
@@ -430,12 +430,12 @@ class Database {
   async getUUIDByHandle(handle) {
     try {
       const row = await this.db.getFirstAsync(
-        `SELECT user_uuid, chat_uuid, bot_uuid, type FROM handle WHERE handle = ?;`,
+        `SELECT userUUID, chatUUID, botUUID, type FROM handle WHERE handle = ?;`,
         [handle]
       );
       if (row) {
         return {
-          uuid: row.user_uuid || row.chat_uuid || row.bot_uuid || null,
+          uuid: row.userUUID || row.chatUUID || row.botUUID || null,
           type: row.type,
         };
       }
@@ -451,8 +451,8 @@ class Database {
       const chat = await this.db.getFirstAsync(
         `
             SELECT c.* FROM chat c
-            JOIN member m ON c.uuid = m.chat_uuid
-            WHERE m.user_uuid = ? AND c.type = 'DM'
+            JOIN member m ON c.uuid = m.chatUUID
+            WHERE m.userUUID = ? AND c.type = 'DM'
             LIMIT 1;
         `,
         [userUUID]
@@ -474,6 +474,22 @@ class Database {
     } catch (error) {
       console.error("Error retrieving chat by UUID:", error);
       return null;
+    }
+  }
+
+  async addSenderNameToMessage(message) {
+    try {
+      if (!message || !message.senderUUID) {
+        return message;
+      }
+      const user = await this.getUserByUUID(message.senderUUID);
+      if (user) {
+        return { ...message, sender_name: user.name };
+      }
+      return message;
+    } catch (error) {
+      console.error("Error adding sender name to message:", error);
+      return message;
     }
   }
 

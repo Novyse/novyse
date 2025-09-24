@@ -1,5 +1,5 @@
 import axios, { all } from "axios";
-import eventEmitter from "../EventEmitter.js";
+import eventEmitter from "../global/Events/lib/EventEmitter.js";
 import { Platform } from "react-native";
 
 import token from "../welcome/token.js";
@@ -561,7 +561,7 @@ const gateway = {
   user: {
     /**
      * Initialize user data after login.
-     * @returns {Object} { success: boolean, user?:{ uuid?: String, email?: String, name?: String, surname?: String, handle?: String}, device?:{uuid?: String}, chats?: Array[{uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{user_uuid?: String, role_id?: Int}]}], messages?: Array[@SamueleOrazioDurante da completare]}
+     * @returns {Object} { success: boolean, user?:{ uuid?: String, email?: String, name?: String, surname?: String, handle?: String}, device?:{uuid?: String}, chats?: Array[{uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}], messages?: Array[@SamueleOrazioDurante da completare]}
      */
     async initialize() {
       const response = await api.get("/user/initialize");
@@ -596,7 +596,7 @@ const gateway = {
      * Gather information about a user or chat by handle.
      * @param {String} query
      * @param {boolean} detailed - If true, fetch more detailed information.
-     * @returns {Object} { success: boolean, data?: { uuid?: String, type?: [USER, CHAT], name?: String, surname?: String, handle?: String, profilePictureUUID?: String, chatType?: [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{user_uuid?: String, role_id?: Int}]} }
+     * @returns {Object} { success: boolean, data?: { uuid?: String, type?: [USER, CHAT], name?: String, surname?: String, handle?: String, profilePictureUUID?: String, chatType?: [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]} }
      */
     async handle(query, detailed = false) {
       let response;

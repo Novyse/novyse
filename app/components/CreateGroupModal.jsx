@@ -14,7 +14,7 @@ import gateway from "../utils/backend-services/api-gateway";
 import localDatabase from "../utils/localDatabaseMethods";
 import Database from "../utils/storage/database";
 import { useRouter } from "expo-router";
-import eventEmitter from "../utils/EventEmitter";
+import eventEmitter from "../utils/global/Events/lib/EventEmitter";
 import StatusMessage from "./StatusMessage";
 import InputDeviceDropdown from "./settings/vocal-chat/InputDeviceDropdown";
 

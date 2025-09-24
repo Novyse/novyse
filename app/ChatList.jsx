@@ -10,7 +10,7 @@ import {
 import moment from "moment";
 import SmartBackground from "./components/SmartBackground";
 import Search from "./Search";
-import eventEmitter from "./utils/EventEmitter";
+import eventEmitter from "./utils/global/Events/lib/EventEmitter";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
 import Icon from "./components/Icon";
 import SmallCommsMenu from "./components/comms/SmallCommsMenu"; // Solo per small screen
@@ -31,14 +31,17 @@ const ChatListItem = React.memo(
     uuid,
     name,
     pictureUUID,
-    lastMessageSender,
-    lastMessageText,
-    lastMessageDate,
+    lastMessage,
     isSelected,
     onPress,
     theme,
     styles,
   }) => {
+    const parseTime = (dateTimeMessage) => {
+      if (!dateTimeMessage) return "";
+      const timeMoment = moment(dateTimeMessage);
+      return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
+    };
     return (
       <SmartBackground
         colors={
@@ -65,12 +68,21 @@ const ChatListItem = React.memo(
               >
                 {name}
               </Text>
+              {lastMessage?.sender_name ? (
+                <Text
+                  style={[styles.chatSubtitle, styles.gridText]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {lastMessage?.sender_name}:{" "}
+                </Text>
+              ) : null}
               <Text
                 style={[styles.chatSubtitle, styles.gridText]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {lastMessageText}
+                {lastMessage?.text}
               </Text>
             </View>
             <View style={styles.rightContainer}>
@@ -79,10 +91,10 @@ const ChatListItem = React.memo(
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {lastMessageDate === "" ? (
+                {!lastMessage?.created_at ? (
                   <Icon name={"Clock01Icon"} size={15} />
                 ) : (
-                  lastMessageDate
+                  parseTime(lastMessage?.created_at)
                 )}
               </Text>
               <Text style={[styles.staticNumber, styles.gridText]}>123</Text>
@@ -98,8 +110,7 @@ const ChatListItem = React.memo(
       prev.name === next.name &&
       prev.uuid === next.uuid &&
       prev.isSelected === next.isSelected &&
-      prev.lastMessageText === next.lastMessageText &&
-      prev.lastMessageDate === next.lastMessageDate
+      prev.lastMessage === next.lastMessage
     );
   }
 );
@@ -113,7 +124,7 @@ const ChatList = ({
 }) => {
   useAppInit(true);
   const { selectedChatUUID } = useContext(ChatContext);
-  const { chatDetails, loading, error } = useChats();
+  const { chatDetails, loading } = useChats();
 
   const styles = createStyle(theme, colorScheme);
 
@@ -158,13 +169,6 @@ const ChatList = ({
     [onChatSelect]
   );
 
-  // parseTime invariato
-  const parseTime = (dateTimeMessage) => {
-    if (!dateTimeMessage) return "";
-    const timeMoment = moment(dateTimeMessage);
-    return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
-  };
-
   const renderItem = ({ item }) => {
     const isSelected = selectedChatUUID === item.uuid;
     return (
@@ -172,9 +176,7 @@ const ChatList = ({
         uuid={item.uuid}
         name={item.name}
         pictureUUID={item.profilePictureUUID}
-        lastMessageSender={item.lastMessage?.name}
-        lastMessageText={item.lastMessage?.text}
-        lastMessageDate={parseTime(item.lastMessage?.date_time)}
+        lastMessage={item.lastMessage}
         isSelected={isSelected}
         onPress={handleChatPress}
         theme={theme}

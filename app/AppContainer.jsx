@@ -12,7 +12,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import NetInfo from "@react-native-community/netinfo";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import ScreenLayout from "./components/ScreenLayout";
-import eventEmitter from "./utils/EventEmitter";
+import eventEmitter from "./utils/global/Events/lib/EventEmitter";
 import auth from "./utils/welcome/auth";
 import ChatList from "./ChatList";
 import ChatContainer from "./ChatContainer";
@@ -242,6 +242,9 @@ const AppContainer = () => {
 
   // Render ChatContainer solo se selezionata
   const renderChatView = useCallback(() => {
+    if (!params.chatUUIDorHandle) {
+      return null;
+    }
     return (
       <ChatContainer
         onBack={handleBackPress}

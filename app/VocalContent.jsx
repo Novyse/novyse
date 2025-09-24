@@ -1,11 +1,15 @@
 import React, { useState, useContext, useEffect } from "react";
 import { StyleSheet } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+
 import { useAudio } from "@/context/AudioContext";
 import VocalContentBottomBar from "./components/comms/VocalContentBottomBar";
-import eventEmitter from "./utils/EventEmitter";
+import eventEmitter from "./utils/global/Events/lib/EventEmitter";
 import SmartBackground from "./components/SmartBackground";
 import VocalMembersLayout from "./components/comms/VocalMembersLayout";
+
+// Context
+import { ChatContext } from "../context/ChatContext";
+import { ThemeContext } from "@/context/ThemeContext";
 
 import methods from "./utils/webrtc/methods";
 const { get, check, set } = methods;

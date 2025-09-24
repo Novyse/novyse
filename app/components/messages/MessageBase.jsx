@@ -1,4 +1,3 @@
-
 import React, { useContext } from "react";
 import { View, Pressable, StyleSheet, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -13,7 +12,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const { content, date_time } = message;
+  const { text, created_at } = message;
 
   return (
     <LinearGradient
@@ -24,16 +23,16 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
     >
       <Pressable onLongPress={onLongPress} style={styles.pressable}>
         {/* <View style={styles.content(isSender)}> */}
-          {/* Renderizza la griglia di immagini se presenti */}
-          {content.images && content.images.length > 0 && (
-            <ImageGrid imageUrls={content.images} />
-          )}
-          {/* Renderizza il testo se presente */}
-          {content.text && <MessageText text={content.text} />}
-          {/* Audio */}
-          {/* <MessageAudio /> */}
-          {/* Orario e stato del messaggio */}
-          <MessageTimestamp time={date_time} />
+        {/* Renderizza la griglia di immagini se presenti */}
+        {/* {content?.images && content?.images.length > 0 && (
+          <ImageGrid imageUrls={content.images} />
+        )} */}
+        {/* Renderizza il testo se presente */}
+        {text && <MessageText text={text} />}
+        {/* Audio */}
+        {/* <MessageAudio /> */}
+        {/* Orario e stato del messaggio */}
+        <MessageTimestamp time={created_at} />
         {/* </View> */}
       </Pressable>
     </LinearGradient>

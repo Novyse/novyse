@@ -1,5 +1,5 @@
 import localDatabase from "../localDatabaseMethods.js";
-import eventEmitter from "../EventEmitter.js";
+import eventEmitter from "../global/Events/lib/EventEmitter.js";
 import { io } from "socket.io-client";
 import gateway from "./api-gateway.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";

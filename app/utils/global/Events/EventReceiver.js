@@ -1,9 +1,8 @@
 import { useEffect } from "react";
 
-import eventEmitter from "../EventEmitter";
+import eventEmitter from "./lib/EventEmitter";
 
-import localDatabase from "../localDatabaseMethods";
-import auth from "../welcome/auth";
+import auth from "../../welcome/auth";
 import { useRouter } from "expo-router";
 
 export default function SetupGlobalEventReceiver() {
