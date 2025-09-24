@@ -208,7 +208,7 @@ class Database {
 
   /**
    * Adds a message to the database.
-   * @param {Object} message - Message object containing id, chatUUID, senderUUID, content, fileUUID, createdAt, isPinned, replyToMessageUUID
+   * @param {Object} message - Message object containing id, chatUUID, senderUUID, text, fileUUID, createdAt, isPinned, replyToMessageUUID
    * @returns {boolean} true if message added successfully, false otherwise
    */
   async addMessage(message) {
@@ -235,7 +235,7 @@ class Database {
         id: message.id,
         chat_uuid: message.chatUUID,
         sender_uuid: message.senderUUID,
-        content: message.content || null,
+        text: message.text || null,
         file_uuid: message.fileUUID || null,
         created_at: message.createdAt,
         is_pinned: message.isPinned ? 1 : 0,

@@ -81,7 +81,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
     loadMessages();
   }, [chatUUID, chatHandle]);
 
-  return { chat, messages, loading, error };
+  return { chat, messages, setMessages, loading, error };
 };
 
 export default useChatData;

@@ -15,7 +15,10 @@ import { ChatContext } from "../context/ChatContext";
 const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
   const { selectedChatUUID, selectedHandle } = useContext(ChatContext);
 
-  const { chat, messages } = useChatData(selectedChatUUID, selectedHandle);
+  const { chat, messages, setMessages } = useChatData(
+    selectedChatUUID,
+    selectedHandle
+  );
   console.log("Chat data in ChatContainer:", chat);
   console.log("Messages data in ChatContainer:", messages);
 
@@ -73,6 +76,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
           <ChatContent
             chat={chat}
             messages={messages}
+            setMessages={setMessages}
             onBack={onBack}
             contentView={contentView}
           />
@@ -90,6 +94,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
               <ChatContent
                 chat={chat}
                 messages={messages}
+                setMessages={setMessages}
                 onBack={onBack}
                 contentView="chat"
               />

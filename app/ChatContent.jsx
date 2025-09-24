@@ -26,9 +26,12 @@ import SmartBackground from "./components/SmartBackground";
 import ChatIconsPickerModal from "./components/ChatIconsPickerModal";
 import MessageBase from "./components/messages/MessageBase";
 import MessageSystem from "./components/messages/MessageSystem";
+
+import auth from "./utils/welcome/auth";
+import Database from "./utils/storage/database";
 import gateway from "./utils/backend-services/api-gateway";
 
-const ChatContent = ({ chat, messages, onBack, contentView }) => {
+const ChatContent = ({ chat, messages, setMessages, onBack, contentView }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const [newMessageText, setNewMessageText] = useState("");
@@ -89,6 +92,17 @@ const ChatContent = ({ chat, messages, onBack, contentView }) => {
   //   });
   // };
   // eventEmitter.on("updateMessage", handleUpdateMessage);
+
+  // @SamueleOrazioDurante da far esplodere e mettere nel context
+  const [myUUID, setMyUUID] = useState(null);
+  useEffect(() => {
+    const fetchMyUUID = async () => {
+      const uuid = await auth.getUserUUID();
+      setMyUUID(uuid);
+    };
+    fetchMyUUID();
+    console.log("messages", messages  );
+  }, []);
 
   useEffect(() => {
     // gestisco quando l'utente vuole tornare alla pagina precedente
@@ -273,6 +287,7 @@ const ChatContent = ({ chat, messages, onBack, contentView }) => {
   };
 
   const handleSendMessage = async () => {
+    const database = await Database.create();
     if (chat.uuid) {
       const { success, message } = await gateway.message.send(
         chat.uuid,
@@ -281,6 +296,10 @@ const ChatContent = ({ chat, messages, onBack, contentView }) => {
       );
       if (success) {
         console.log("Message sent successfully:", message);
+        // Aggiungo il messaggio alla lista dei messaggi
+        setMessages((currentMessages) => [message, ...currentMessages]);
+        // lo salvo nel db locale
+        await database.addMessage(message);
       } else {
         console.error("Failed to send message");
       }
@@ -299,47 +318,37 @@ const ChatContent = ({ chat, messages, onBack, contentView }) => {
 
   // preparo i messaggi prima che vengano stampati --> aggiungo le date tra messaggi di giorni diversi
   const prepareMessages = useCallback((messages = []) => {
+    if (!Array.isArray(messages) || messages.length === 0) return [];
+
+    // Ordina i messaggi per date_time in ordine decrescente (più recenti prima)
+    const sortedMessages = [...messages].sort(
+      (a, b) => new Date(b.date_time) - new Date(a.date_time)
+    );
+
     const prepared = [];
-    let currentGroup = [];
-    let lastKey = null;
+    let lastDate = null;
 
-    const msgs = []; // quando faremo i mesaggi @SamueleOrazioDurante
+    sortedMessages.forEach((message, index) => {
+      const messageDate = moment(message.date_time).format("YYYY-MM-DD");
+      const displayDate = moment(message.date_time).format("MMMM D, YYYY");
 
-    console.log("Preparing messages:", msgs);
-
-    if (msgs.length == 0) return prepared;
-
-    msgs.forEach((message) => {
-      const key = moment(message.created_at);
-
-      if (lastKey && lastKey !== key) {
-        prepared.push(...currentGroup);
+      // Aggiungi separator se la data è diversa dalla precedente
+      if (messageDate !== lastDate) {
         prepared.push({
           type: "separator",
-          data: lastKey,
-          uniqueKey: `separator-${lastKey}`,
+          data: displayDate,
+          uniqueKey: `separator-${messageDate}`,
         });
-        currentGroup = [];
+        lastDate = messageDate;
       }
 
-      currentGroup.push({
+      // Aggiungi il messaggio
+      prepared.push({
         type: "message",
         data: message,
-        uniqueKey: message.hash || message.message_id, // Usa l'hash come uniqueKey
+        uniqueKey: message.id,
       });
-      lastKey = key;
     });
-
-    if (currentGroup.length > 0) {
-      prepared.push(...currentGroup);
-      if (lastKey) {
-        prepared.push({
-          type: "separator",
-          data: lastKey,
-          uniqueKey: `separator-${lastKey}`,
-        });
-      }
-    }
 
     return prepared;
   }, []);
@@ -398,13 +407,13 @@ const ChatContent = ({ chat, messages, onBack, contentView }) => {
         keyExtractor={(item) => item.uniqueKey}
         renderItem={({ item }) => {
           if (item.type === "separator") {
-            return <MessageSystem type={"date"} data={item.data} />; // oppure tipo type={item.systemType}
+            return <MessageSystem type={"date"} data={item.data} />;
           } else {
             const message = item.data;
             return (
               <MessageBase
                 message={message}
-                isSender={message.sender === item.sender}
+                isSender={message.senderUUID === myUUID}
                 onLongPress={(e) => handleLongPress(e, message)}
               />
             );

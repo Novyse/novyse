@@ -90,7 +90,7 @@ class Database {
                 id INTEGER PRIMARY KEY,
                 chat_uuid TEXT NOT NULL,
                 sender_uuid TEXT NOT NULL,
-                content TEXT,
+                text TEXT,
                 file_uuid TEXT,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 is_pinned BOOLEAN NOT NULL DEFAULT 0,
@@ -280,7 +280,7 @@ class Database {
 
   /**
    * Adds a message to the database.
-   * @param {Object} message - Message object containing id, chatUUID, senderUUID, content, fileUUID, createdAt, isPinned, replyToMessageUUID
+   * @param {Object} message - Message object containing id, chatUUID, senderUUID, text, fileUUID, createdAt, isPinned, replyToMessageUUID
    * @returns {boolean} true if message added successfully, false otherwise
    */
   async addMessage(message) {
@@ -303,12 +303,12 @@ class Database {
       }
 
       await this.db.runAsync(
-        `INSERT INTO message (id, chat_uuid, sender_uuid, content, file_uuid, created_at, is_pinned, reply_to_message_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT INTO message (id, chat_uuid, sender_uuid, text, file_uuid, created_at, is_pinned, reply_to_message_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
           message.senderUUID,
-          message.content || null,
+          message.text || null,
           message.fileUUID || null,
           message.createdAt,
           message.isPinned ? 1 : 0,
