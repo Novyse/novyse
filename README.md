@@ -75,7 +75,7 @@ Sistema AndroidManifest.xml
 Crea local.properties dentro cartella android/ 
    con questo contenuto: sdk.dir=C:\\Users\\ISRaiken\\AppData\\Local\\Android\\Sdk
 
-npx expo run:android --clear-build-cache OR npx expo run:android
+npx expo run:android --no-build-cache OR npx expo run:android
 ```
 
 e in caso di problemi
