@@ -595,10 +595,16 @@ const gateway = {
     /**
      * Gather information about a user or chat by handle.
      * @param {String} query
+     * @param {boolean} detailed - If true, fetch more detailed information.
      * @returns {Object} { success: boolean, data?: { uuid?: String, type?: [USER, CHAT], name?: String, surname?: String, handle?: String, profilePictureUUID?: String, chatType?: [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{user_uuid?: String, role_id?: Int}]} }
      */
-    async handle(query) {
-      const response = await api.get(`/gather/handle?query=${query}`);
+    async handle(query, detailed = false) {
+      let response;
+      if (detailed) {
+        response = await api.get(`/gather/handle?query=${query}`);
+      } else {
+        response = await api.get(`/gather/handle/essentials?query=${query}`);
+      }
       const success = response.data.success;
       if (success) {
         const data = response.data.data;

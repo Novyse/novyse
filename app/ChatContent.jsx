@@ -16,7 +16,7 @@ import {
   TextInput,
   BackHandler,
 } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+
 import moment from "moment";
 import { useRouter } from "expo-router";
 import "react-native-get-random-values";
@@ -31,12 +31,26 @@ import auth from "./utils/welcome/auth";
 import Database from "./utils/storage/database";
 import gateway from "./utils/backend-services/api-gateway";
 
-const ChatContent = ({ chat, messages, setMessages, onBack, contentView }) => {
+// Hooks
+import useChatData from "./hooks/useChatData.js";
+
+// Context
+import { ChatContext } from "../context/ChatContext";
+import { ThemeContext } from "@/context/ThemeContext";
+
+const ChatContent = ({ onBack, contentView }) => {
   const { theme } = useContext(ThemeContext);
+
   const styles = createStyle(theme);
   const [newMessageText, setNewMessageText] = useState("");
   const [isVoiceMessage, setVoiceMessage] = useState(true);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
+
+  const { selectedChatUUID, selectedHandle } = useContext(ChatContext);
+  const { chat, messages, setMessages, loading } = useChatData(
+    selectedChatUUID,
+    selectedHandle
+  );
 
   const [dropdownInfo, setDropdownInfo] = useState({
     visible: false,
@@ -101,8 +115,12 @@ const ChatContent = ({ chat, messages, setMessages, onBack, contentView }) => {
       setMyUUID(uuid);
     };
     fetchMyUUID();
-    console.log("messages", messages  );
   }, []);
+
+  useEffect(() => {
+    console.log("chat", chat);
+    console.log("messages", messages);
+  }, [chat, messages]);
 
   useEffect(() => {
     // gestisco quando l'utente vuole tornare alla pagina precedente
@@ -437,9 +455,9 @@ const ChatContent = ({ chat, messages, setMessages, onBack, contentView }) => {
         }}
       >
         {chat.uuid ||
-        (chat.chatType != "GROUP" &&
-          chat.chatType != "CHANNEL" &&
-          chat.chatType != "FORUM") ? (
+        (chat.type != "GROUP" &&
+          chat.type != "CHANNEL" &&
+          chat.type != "FORUM") ? (
           <View
             style={{
               paddingBottom: 10,
@@ -672,10 +690,13 @@ function createStyle(theme) {
     joinGroupButton: {
       backgroundColor: theme.joinGroupButtonBackground,
       width: "100%",
-      height: "100%",
+      height: 50,
       padding: 12,
-      borderTopWidth: 1,
-      borderTopColor: theme.chatDivider,
+      borderRadius: 25,
+      marginBottom: 10,
+      alignSelf: "center",
+      justifyContent: "center",
+      alignItems: "center",
     },
     joinGroupButtonText: {
       fontSize: 18,

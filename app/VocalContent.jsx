@@ -10,10 +10,12 @@ import VocalMembersLayout from "./components/comms/VocalMembersLayout";
 import methods from "./utils/webrtc/methods";
 const { get, check, set } = methods;
 
-const VocalContent = ({ chatUUID }) => {
+const VocalContent = ({}) => {
   const { theme } = useContext(ThemeContext);
   const audioContext = useAudio();
   const styles = createStyle(theme);
+
+  const { selectedChatUUID: chatUUID } = useContext(ChatContext);
 
   const [commsData, setCommsData] = useState([]);
   const [activeStreams, setActiveStreams] = useState({});

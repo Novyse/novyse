@@ -6,21 +6,16 @@ import SmartBackground from "./components/SmartBackground"; // Assumi import da 
 import HeaderBase from "./components/HeaderBase";
 import Icon from "./components/Icon";
 
-// Hooks
-import useChatData from "./hooks/useChatData.js";
-
 // Context
 import { ChatContext } from "../context/ChatContext";
 
 const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
-  const { selectedChatUUID, selectedHandle } = useContext(ChatContext);
-
-  const { chat, messages, setMessages } = useChatData(
+  const {
     selectedChatUUID,
-    selectedHandle
-  );
-  console.log("Chat data in ChatContainer:", chat);
-  console.log("Messages data in ChatContainer:", messages);
+    selectedHandle,
+    selectedChatName,
+    selectedChatPictureUUID,
+  } = useContext(ChatContext);
 
   const [contentView, setContentView] = useState("chat"); // "chat", "vocal", "both"
   const styles = createStyle(theme);
@@ -40,7 +35,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
         style={styles.avatar}
       />
       <Text style={[styles.headerTitle, styles.chatHeaderTitle]}>
-        {chat.name}
+        {selectedChatName}
       </Text>
       {true && (
         <>
@@ -69,18 +64,10 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
   const renderContent = () => {
     switch (contentView) {
       case "vocal":
-        return <VocalContent chatUUID={chat.uuid} />;
+        return <VocalContent />;
       case "chat":
       default:
-        return (
-          <ChatContent
-            chat={chat}
-            messages={messages}
-            setMessages={setMessages}
-            onBack={onBack}
-            contentView={contentView}
-          />
-        );
+        return <ChatContent onBack={onBack} contentView={contentView} />;
       case "both":
         return (
           <View style={{ flex: 1, flexDirection: "row" }}>
@@ -91,16 +78,10 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
                 borderColor: theme.chatDivider,
               }}
             >
-              <ChatContent
-                chat={chat}
-                messages={messages}
-                setMessages={setMessages}
-                onBack={onBack}
-                contentView="chat"
-              />
+              <ChatContent onBack={onBack} contentView="chat" />
             </View>
             <View style={{ flex: 1 }}>
-              <VocalContent chatUUID={chat.uuid} />
+              <VocalContent />
             </View>
           </View>
         );

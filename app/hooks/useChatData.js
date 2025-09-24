@@ -20,7 +20,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
           const database = await Database.create();
           const messages = await database.getMessagesByChatUUID(chatUUID);
           const chat = await database.getChatByUUID(chatUUID);
-          const { name, profilePictureUUID } =
+          const { name, chatPictureUUID: profilePictureUUID } =
             await chatUtils.getChatNameAndProfilePicture(chat);
           setChat((prev) => ({
             uuid: chat.uuid,
@@ -32,7 +32,10 @@ const useChatData = (chatUUID, chatHandle = null) => {
           setMessages((prev) => ({ messages }));
         } else {
           if (chatHandle) {
-            const { success, data } = await gateway.gather.handle(chatHandle);
+            const { success, data } = await gateway.gather.handle(
+              chatHandle,
+              true
+            );
             if (success) {
               const { type, handle, profilePictureUUID } = data;
               let name = "Unknown";

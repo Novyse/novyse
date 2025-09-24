@@ -174,7 +174,9 @@ const CreateGroupModal = ({ visible, onClose }) => {
     <Modal animationType="slide" transparent={true} visible={visible}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
-          <Text style={styles.modalTitleText}>Create a new chat</Text>
+          <View style={styles.titleContainer}>
+            <Text style={styles.modalTitleText}>Create a new chat</Text>
+          </View>
 
           <StatusMessage type="error" text={error} />
 
@@ -224,21 +226,33 @@ const CreateGroupModal = ({ visible, onClose }) => {
           <View
             style={{
               flexDirection: "row",
-              gap: 10,
-              marginBottom: 10,
+              alignItems: "center",
               justifyContent: "space-between",
               width: "100%",
+              paddingVertical: 12,
+              paddingHorizontal: 4,
+              marginBottom: 20,
+              backgroundColor: theme.backgroundChatTextInput || "rgba(255, 255, 255, 0.05)",
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: theme.borderColor || "rgba(255, 255, 255, 0.1)",
             }}
           >
             <Text style={styles.isPublicText}>
               {isPublic ? "Public" : "Private"}
             </Text>
             <Switch
-              trackColor={{ false: "#767577", true: "#81b0ff" }}
-              thumbColor={isPublic ? "#f5dd4b" : "#f4f3f4"}
-              ios_backgroundColor="#3e3e3e"
+              trackColor={{ 
+                false: theme.textSecondary || "#767577", 
+                true: theme.primary || "#81b0ff" 
+              }}
+              thumbColor={isPublic ? "#ffffff" : "#f4f3f4"}
+              ios_backgroundColor={theme.textSecondary || "#3e3e3e"}
               onValueChange={setIsPublic}
               value={isPublic}
+              style={{
+                transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }],
+              }}
             />
           </View>
 
@@ -256,6 +270,8 @@ const CreateGroupModal = ({ visible, onClose }) => {
               flexDirection: "row",
               justifyContent: "space-between",
               width: "100%",
+              marginTop: 8,
+              gap: 16,
             }}
           >
             <Pressable
@@ -290,88 +306,135 @@ function createStyle(theme) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
+      backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent overlay
     },
     modalView: {
       backgroundColor: theme.modalsBackground,
-      borderRadius: 20,
-      paddingHorizontal: 50,
-      paddingVertical: 20,
+      borderRadius: 24,
+      paddingHorizontal: 32,
+      paddingVertical: 28,
       alignItems: "center",
       shadowColor: "#000",
       shadowOffset: {
         width: 0,
-        height: 2,
+        height: 8,
       },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-      elevation: 5,
-      width: "90%", // Add width for better responsiveness
-      maxWidth: 400, // Limit max width
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 10,
+      width: "90%",
+      maxWidth: 420,
+      borderWidth: 1,
+      borderColor: theme.borderColor || "rgba(255, 255, 255, 0.1)",
+    },
+    titleContainer: {
+      alignItems: "center",
+      marginBottom: 8,
+      paddingBottom: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderColor || "rgba(255, 255, 255, 0.1)",
+      width: "100%",
     },
     button: {
-      borderRadius: 10, // Uniform with dropdown
-      padding: 15, // Uniform with dropdown
-      elevation: 2,
-      backgroundColor: theme.primary || "#007AFF", // Use theme
+      borderRadius: 16,
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      elevation: 3,
+      backgroundColor: theme.primary || "#007AFF",
+      shadowColor: theme.primary || "#007AFF",
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      minWidth: 120,
     },
     buttonOpen: {
       backgroundColor: "#F194FF",
     },
     buttonClose: {
-      backgroundColor: theme.primary || "#007AFF", // Use theme
+      backgroundColor: theme.primary || "#007AFF",
+      transform: [{ scale: 1 }],
     },
     textStyle: {
-      color: theme.text || "white", // Use theme
-      fontWeight: "bold",
+      color: theme.text || "white",
+      fontWeight: "600",
       textAlign: "center",
+      fontSize: 16,
     },
     modalTitleText: {
-      marginBottom: 15,
+      marginBottom: 24,
       textAlign: "center",
-      fontSize: 20,
-      fontWeight: "bold",
+      fontSize: 24,
+      fontWeight: "700",
       color: theme.text,
+      letterSpacing: 0.5,
     },
     textInput: {
       width: "100%",
       outlineStyle: "none",
-      borderRadius: 10, // Uniform with dropdown
-      padding: 15, // Uniform with dropdown
-      borderWidth: 1,
-      borderColor: theme.borderColor || "#ddd", // Use theme
-      backgroundColor: theme.backgroundChatTextInput || "#fff", // Use theme
-      color: theme.text, // Use theme
+      borderRadius: 16,
+      paddingVertical: 16,
+      paddingHorizontal: 18,
+      borderWidth: 2,
+      borderColor: theme.borderColor || "rgba(0, 0, 0, 0.1)",
+      backgroundColor: theme.backgroundChatTextInput || "#fff",
+      color: theme.text,
       pointerEvents: "auto",
-      marginBottom: 10,
+      marginBottom: 16,
+      fontSize: 16,
+      shadowColor: theme.primary || "#007AFF",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+      transition: "all 0.3s ease",
     },
     textInputError: {
-      borderColor: theme.danger || "red", // Use theme
-      color: theme.danger || "red", // Use theme
+      borderColor: theme.danger || "red",
+      color: theme.danger || "red",
+      borderWidth: 2,
+      shadowColor: theme.danger || "red",
+      shadowOpacity: 0.2,
     },
     isPublicText: {
       color: theme.text,
+      fontSize: 16,
+      fontWeight: "600",
+      letterSpacing: 0.3,
     },
     handleInputError: {
-      borderColor: theme.danger || "red", // Use theme
+      borderColor: theme.danger || "red",
+      borderWidth: 2,
+      shadowColor: theme.danger || "red",
+      shadowOpacity: 0.2,
     },
     handleTextError: {
-      color: theme.danger || "red", // Use theme
-      marginTop: 5,
-      marginBottom: 10,
+      color: theme.danger || "red",
+      marginTop: 8,
+      marginBottom: 16,
+      fontSize: 14,
+      fontWeight: "500",
     },
     buttonDisabled: {
-      backgroundColor: theme.textSecondary || "#999", // Use theme
-      opacity: 0.7,
+      backgroundColor: theme.textSecondary || "#999",
+      opacity: 0.6,
+      transform: [{ scale: 0.98 }],
     },
     inputWrapperContainer: {
       position: "relative",
       width: "100%",
+      marginBottom: 8,
     },
     overlayIndicator: {
       position: "absolute",
-      right: 15,
+      right: 18,
       top: "50%",
-      marginTop: -16,
+      marginTop: -10,
     },
   });
 }

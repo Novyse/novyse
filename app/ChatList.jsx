@@ -167,7 +167,6 @@ const ChatList = ({
 
   const renderItem = ({ item }) => {
     const isSelected = selectedChatUUID === item.uuid;
-    console.log("Rendering chat item:", item.name, "Selected:", isSelected);
     return (
       <ChatListItem
         uuid={item.uuid}

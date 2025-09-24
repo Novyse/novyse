@@ -74,7 +74,7 @@ const Search = () => {
         const { users = [], chats = [], bots = [] } = data;
         const searched_list = [
           ...users.map((user) => ({ ...user, type: "USER" })),
-          ...chats.map((chat) => ({ ...chat, type: "CHAT" })),
+          ...chats.map((chat) => ({ ...chat })),
           ...bots.map((bot) => ({ ...bot, type: "BOT" })),
         ];
 
@@ -114,7 +114,12 @@ const Search = () => {
           {item.name} {item?.surname ? `${item?.surname}` : null}
         </Text>
         <Text style={styles.profileHandle}>
-          {item?.handle ? `@${item?.handle}` : null}
+          {item?.handle ? `@${item.handle}` : ""}
+          {item.type === "GROUP" ||
+          item.type === "FORUM" ||
+          item.type === "CHANNEL"
+            ? ` • ${item.memberCount} ${item.memberCount === 1 ? "member" : "members"}`
+            : ""}
         </Text>
       </View>
     </TouchableOpacity>

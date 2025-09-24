@@ -1,69 +1,116 @@
 import Database from "../storage/database";
 import auth from "../welcome/auth";
+import gateway from "../backend-services/api-gateway";
 
-const getChatUUIDAndHandle = async (params) => {
+const getChatData = async (chatUUIDorHandle) => {
   let chatUUID = null;
   let chatHandle = null;
+  let chatName = null;
+  let chatPictureUUID = null;
 
-  // Check if chatUUIDorHandle is handle or UUID
-  if (params.chatUUIDorHandle.length < 33) {
-    chatHandle = params.chatUUIDorHandle;
-    // It's a handle, look up UUID
-    const database = await Database.create();
-    const result = await database.getUUIDByHandle(params.chatUUIDorHandle);
+  const database = await Database.create();
+
+  const isHandle = chatUUIDorHandle.length < 33;
+
+  if (!isHandle) {
+    chatUUID = chatUUIDorHandle;
+    const chat = await database.getChatByUUID(chatUUID);
+    if (chat) {
+      const { name: realName, chatPictureUUID: realPictureUUID } =
+        await getChatNameAndProfilePicture(chat);
+      chatName = realName;
+      chatPictureUUID = realPictureUUID;
+    }
+  } else {
+    chatHandle = chatUUIDorHandle;
+    // Look up UUID by handle
+    const result = await database.getUUIDByHandle(chatUUIDorHandle);
     if (result) {
+      // If found, get UUID and type, then check
       let { uuid, type } = result;
-
       // If it's a user UUID or a bot UUID, try and get chat UUID
       if (type === "USER" || type === "BOT") {
         const chat = await database.getChatFromUserUUID(uuid);
         if (chat) {
           uuid = chat.uuid;
+          const { name: realName, chatPictureUUID: realPictureUUID } =
+            await getChatNameAndProfilePicture(chat);
+          chatName = realName;
+          chatPictureUUID = realPictureUUID;
         } else {
           console.warn(
-            `ChatUtils.js: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a user handle, but no DM chat found.`
+            `ChatUtils.js: route param chatUUIDorHandle=${chatUUIDorHandle} is a user handle, but no DM chat found.`
           );
         }
       } else {
-        // It's a chat, use directly
-        console.log(
-          `ChatUtils.js: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a handle, resolved to UUID ${uuid}, setting selectedChatUUID.`
-        );
+        // If it's a chat, use directly
         chatUUID = uuid;
+        const chat = await database.getChatByUUID(chatUUID);
+        if (chat) {
+          const { name: realName, chatPictureUUID: realPictureUUID } =
+            await getChatNameAndProfilePicture(chat);
+          chatName = realName;
+          chatPictureUUID = realPictureUUID;
+        }
+        console.log(
+          `ChatUtils.js: route param chatUUIDorHandle=${chatUUIDorHandle} is a handle, resolved to UUID ${uuid}, setting selectedChatUUID.`
+        );
       }
     } else {
+      // If handle is not found in local DB, log warning and try to fetch from gateway basic info to create/join chat
       console.warn(
-        `ChatUtils.js: route param chatUUIDorHandle=${params.chatUUIDorHandle} is a handle, but no chat found.`
+        `ChatUtils.js: route param chatUUIDorHandle=${chatUUIDorHandle} is a handle, but no chat found. Asking gateway for info.`
       );
-      chatUUID = null;
+      const { success, data } = await gateway.gather.handle(chatHandle, false);
+      if (success) {
+        const { type } = data;
+        switch (type) {
+          case "USER":
+            chatName = `${data.name} ${data.surname}`;
+            chatPictureUUID = data.profilePictureUUID;
+            break;
+          case "BOT":
+            chatName = data.name;
+            chatPictureUUID = null;
+          case "GROUP":
+          case "CHANNEL":
+          case "FORUM":
+            chatName = data.name;
+            chatPictureUUID = data.profilePictureUUID;
+            break;
+          default:
+            chatName = "How";
+            chatPictureUUID = null;
+        }
+      }
     }
-  } else {
-    // It's a UUID, use directly
-    console.log(
-      `ChatUtils.js: route param chatUUID=${params.chatUUIDorHandle}, setting selectedChatUUID.`
-    );
-    chatUUID = params.chatUUIDorHandle;
   }
-  return { chatUUID, chatHandle };
+  return { chatUUID, chatHandle, chatName, chatPictureUUID };
 };
+
+/**
+ * Get chat name and profile picture UUID
+ * @param {Object} chat
+ * @returns {Object} { name, chatPictureUUID }
+ */
 
 const getChatNameAndProfilePicture = async (chat) => {
   const database = await Database.create();
 
   let name = chat.name;
-  let profilePictureUUID = chat.profile_picture_uuid;
+  let chatPictureUUID = chat.profile_picture_uuid;
 
   if (chat.type === "DM") {
     const user = await database.getUserByChatUUID(chat.uuid);
     name = user.name;
-    profilePictureUUID = user.profile_picture_uuid;
+    chatPictureUUID = user.profile_picture_uuid;
 
     if (user.uuid === (await auth.getUserUUID())) {
       name = "Saved Messages";
-      profilePictureUUID = null;
+      chatPictureUUID = null;
     }
   }
-  return { name, profilePictureUUID };
+  return { name, chatPictureUUID };
 };
 
-export default { getChatUUIDAndHandle, getChatNameAndProfilePicture };
+export default { getChatData, getChatNameAndProfilePicture };

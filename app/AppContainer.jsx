@@ -40,6 +40,10 @@ const AppContainer = () => {
     setSelectedChatUUID,
     selectedHandle,
     setSelectedHandle,
+    selectedChatName,
+    setSelectedChatName,
+    selectedChatPictureUUID,
+    setSelectedChatPictureUUID,
   } = useContext(ChatContext);
 
   const [isSmallScreen, setIsSmallScreen] = useState(false);
@@ -61,18 +65,10 @@ const AppContainer = () => {
     new Animated.Value(Dimensions.get("window").width)
   );
 
-  // Callback memoizzata per selezione chat
   const onChatSelect = useCallback(
     (chatUUID) => {
       if (selectedChatUUID === chatUUID) return; // No-op if selecting already selected chat
-      
-      // Aggiorniamo prima lo stato locale
-      setSelectedChatUUID(chatUUID);
-      
-      // Poi aggiorniamo l'URL senza causare re-render
       router.setParams({ chatUUIDorHandle: chatUUID });
-      
-      // Infine aggiorniamo il path senza causare una navigazione completa
       router.navigate(`/chat/${chatUUID}`, { replace: true });
     },
     [router, selectedChatUUID]
@@ -87,7 +83,6 @@ const AppContainer = () => {
     Dimensions.addEventListener("change", updateScreenSize);
     updateScreenSize();
 
-    // Always set selectedChatUUID when route params include chatUUID.
     const handleParams = async () => {
       if (params.chatUUIDorHandle) {
         if (
@@ -96,10 +91,12 @@ const AppContainer = () => {
         )
           return; // no-op if already selected
 
-        const { chatUUID, chatHandle } =
-          await chatUtils.getChatUUIDAndHandle(params);
+        const { chatUUID, chatHandle, chatName, chatPictureUUID } =
+          await chatUtils.getChatData(params.chatUUIDorHandle);
         setSelectedChatUUID(chatUUID);
         setSelectedHandle(chatHandle);
+        setSelectedChatName(chatName);
+        setSelectedChatPictureUUID(chatPictureUUID);
       }
     };
     handleParams();
@@ -159,7 +156,7 @@ const AppContainer = () => {
   };
 
   const toggleSidebar = useCallback(() => {
-    setIsSidebarVisible(prev => !prev);
+    setIsSidebarVisible((prev) => !prev);
   }, []);
 
   // COMMS ROBA NON TOCCARE
@@ -210,27 +207,38 @@ const AppContainer = () => {
   // COMMS ROBA NON TOCCARE
 
   const toggleSearch = useCallback(() => {
-    setIsToggleSearchChats(prev => !prev);
+    setIsToggleSearchChats((prev) => !prev);
   }, []);
 
-  const renderHeader = useCallback(() => (
-    <HeaderBase>
-      <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
-      <Text style={styles.headerTitle}>Chats</Text>
-      <Icon
-        name={"Search02Icon"}
-        size={32}
-        onPress={toggleSearch}
-        style={styles.searchButton}
-      />
-    </HeaderBase>
-  ), [toggleSidebar, toggleSearch, styles.headerTitle, styles.searchButton]);
+  const renderHeader = useCallback(
+    () => (
+      <HeaderBase>
+        <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
+        <Text style={styles.headerTitle}>Chats</Text>
+        <Icon
+          name={"Search02Icon"}
+          size={32}
+          onPress={toggleSearch}
+          style={styles.searchButton}
+        />
+      </HeaderBase>
+    ),
+    [toggleSidebar, toggleSearch, styles.headerTitle, styles.searchButton]
+  );
 
   const handleBackPress = useCallback(() => {
     setSelectedChatUUID(null);
     setSelectedHandle(null);
+    setSelectedChatName(null);
+    setSelectedChatPictureUUID(null);
     router.back();
-  }, [router, setSelectedChatUUID, setSelectedHandle]);
+  }, [
+    router,
+    setSelectedChatUUID,
+    setSelectedHandle,
+    setSelectedChatName,
+    setSelectedChatPictureUUID,
+  ]);
 
   // Render ChatContainer solo se selezionata
   const renderChatView = useCallback(() => {
@@ -265,7 +273,6 @@ const AppContainer = () => {
         <>
           <View style={styles.container}>
             <View style={styles.chatList}>
-              {/* Passa props a ChatList: selectedChatUUID e onChatSelect */}
               {renderHeader()}
               <ChatList
                 onChatSelect={onChatSelect}
@@ -276,9 +283,6 @@ const AppContainer = () => {
                 colorScheme={colorScheme}
               />
             </View>
-            {/* Always mount the overlay to avoid unmount/remount of ChatContainer when toggling selection.
-                Visibility is controlled by translateX and pointerEvents so ChatList won't re-render due to
-                subtree mounting changes. */}
             <Animated.View
               pointerEvents={selectedChatUUID ? "auto" : "none"}
               style={[
@@ -359,7 +363,6 @@ function createStyle(theme, colorScheme) {
       flex: 1,
     },
     chatContentOverlay: {
-      // Nuovo per overlay animato small screen
       position: "absolute",
       top: 0,
       left: 0,
