@@ -12,7 +12,14 @@ const SOCKET_BASE_URL = "wss://io.novyse.com";
 const BRANCH = "development";
 //.ENV
 
-export { BRANCH, API_BASE_URL, SOCKET_BASE_URL, APP_VERSION, BUILD_NUMBER, BUILD_DATE };
+export {
+  BRANCH,
+  API_BASE_URL,
+  SOCKET_BASE_URL,
+  APP_VERSION,
+  BUILD_NUMBER,
+  BUILD_DATE,
+};
 
 // Genera suffisso per dev mode
 const getDevSuffix = () => {
@@ -25,8 +32,8 @@ const getImagePath = (imageName) => {
   const branch = BRANCH || "main";
   const basePath =
     branch === "development"
-      ? `./assets/images/development/logo-${APP_NAME_LOWERCASE}-${imageName}.png`
-      : `./assets/images/logo-${APP_NAME_LOWERCASE}-${imageName}.png`;
+      ? `./assets/images/development/logo-${APP_NAME_LOWERCASE}.png`
+      : `./assets/images/logo-${APP_NAME_LOWERCASE}.png`;
   return basePath;
 };
 

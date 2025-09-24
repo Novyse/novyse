@@ -2,7 +2,7 @@
 
 Note:
 1) Build web: npx expo export -p web
-2) ...
+2) Build android: vedi sotto
 
 # Messanger Client
 
