@@ -45,7 +45,7 @@ const createStyle = (theme) =>
       maxWidth: 768,
     },
     wipContainer: {
-      backgroundColor: theme.cardBackground || "#23232b",
+      backgroundColor: theme.backgroundCard,
       borderRadius: 12,
       padding: 16,
       marginBottom: 20,
@@ -72,7 +72,7 @@ const createStyle = (theme) =>
       fontWeight: "600",
     },
     wipSubtext: {
-      color: theme.subtitle || "#b0b0b0",
+      color: theme.subtitle,
       fontSize: 14,
       fontStyle: "italic",
     },

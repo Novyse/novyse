@@ -193,7 +193,7 @@ const VerifyMethod = () => {
                   {isLoading ? (
                     <ActivityIndicator
                       size="small"
-                      color={theme.textInverted || "#FFFFFF"}
+                      color={theme.textInverted}
                     />
                   ) : (
                     <Text style={styles.submitButtonText}>Verifica Codice</Text>
@@ -231,7 +231,7 @@ function createStyle(theme, isSmallScreen) {
     card: {
       width: "100%",
       maxWidth: 500,
-      backgroundColor: theme.cardBackground || "#23232b",
+      backgroundColor: theme.backgroundCard,
       borderRadius: 16,
       padding: isSmallScreen ? 24 : 32,
       shadowColor: "#000",
@@ -252,7 +252,7 @@ function createStyle(theme, isSmallScreen) {
     },
     subtitle: {
       fontSize: 15,
-      color: theme.subtitle || "#b0b0b0",
+      color: theme.subtitle,
       textAlign: "center",
       lineHeight: 22,
       paddingHorizontal: 8,
@@ -275,7 +275,7 @@ function createStyle(theme, isSmallScreen) {
       backgroundColor: "#ffffff",
       borderRadius: 12,
       borderWidth: 1.5,
-      borderColor: theme.primary || "#013480",
+      borderColor: theme.primary,
     },
     qrcode: {
       size: 180,
@@ -285,10 +285,10 @@ function createStyle(theme, isSmallScreen) {
       alignItems: "center",
       justifyContent: "space-between",
       width: "100%",
-      backgroundColor: theme.background || "#1a1a1a",
+      backgroundColor: theme.background,
       borderRadius: 12,
       borderWidth: 1,
-      borderColor: theme.border || "#333",
+      borderColor: theme.border,
       paddingLeft: 16,
     },
     secretText: {
@@ -304,7 +304,7 @@ function createStyle(theme, isSmallScreen) {
       justifyContent: "center",
       alignItems: "center",
       borderLeftWidth: 1,
-      borderLeftColor: theme.border || "#333",
+      borderLeftColor: theme.border,
     },
     copyButtonText: {
       fontSize: 18,
@@ -315,7 +315,7 @@ function createStyle(theme, isSmallScreen) {
       color: "#28a745", // Verde per indicare successo
     },
     submitButton: {
-      backgroundColor: theme.primary || "#4f8cff",
+      backgroundColor: theme.primary,
       borderRadius: 8,
       paddingVertical: 14,
       alignItems: "center",
@@ -326,7 +326,7 @@ function createStyle(theme, isSmallScreen) {
       opacity: 0.5,
     },
     submitButtonText: {
-      color: theme.textInverted || "#fff",
+      color: theme.textInverted,
       fontWeight: "600",
       fontSize: 16,
     },

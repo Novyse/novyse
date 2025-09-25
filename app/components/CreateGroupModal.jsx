@@ -183,7 +183,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
           <TextInput
             style={[styles.textInput, error && styles.textInputError]}
             placeholder={getNamePlaceholder()}
-            placeholderTextColor={theme.placeholderText || "#ccc"}
+            placeholderTextColor={theme.placeholderText}
             value={groupName}
             onChangeText={setGroupName}
           />
@@ -201,8 +201,8 @@ const CreateGroupModal = ({ visible, onClose }) => {
                   placeholder={getHandlePlaceholder()}
                   placeholderTextColor={
                     isTextError2
-                      ? theme.danger || "#red"
-                      : theme.placeholderText || "#ccc"
+                      ? theme.danger
+                      : theme.placeholderText
                   }
                   value={groupHandle}
                   onChangeText={handleGroupHandleChange}
@@ -210,7 +210,7 @@ const CreateGroupModal = ({ visible, onClose }) => {
                 {isHandleLoading && (
                   <ActivityIndicator
                     size="small"
-                    color={theme.primary || "#2399C3"}
+                    color={theme.primary}
                     style={styles.overlayIndicator}
                   />
                 )}
@@ -232,22 +232,22 @@ const CreateGroupModal = ({ visible, onClose }) => {
               paddingVertical: 12,
               paddingHorizontal: 4,
               marginBottom: 20,
-              backgroundColor: theme.backgroundChatTextInput || "rgba(255, 255, 255, 0.05)",
+              backgroundColor: theme.backgroundTextField,
               borderRadius: 16,
               borderWidth: 1,
-              borderColor: theme.borderColor || "rgba(255, 255, 255, 0.1)",
+              borderColor: theme.borderColor,
             }}
           >
             <Text style={styles.isPublicText}>
               {isPublic ? "Public" : "Private"}
             </Text>
             <Switch
-              trackColor={{ 
-                false: theme.textSecondary || "#767577", 
-                true: theme.primary || "#81b0ff" 
+              trackColor={{
+                false: theme.textSecondary,
+                true: theme.primary,
               }}
               thumbColor={isPublic ? "#ffffff" : "#f4f3f4"}
-              ios_backgroundColor={theme.textSecondary || "#3e3e3e"}
+              ios_backgroundColor={theme.textSecondary}
               onValueChange={setIsPublic}
               value={isPublic}
               style={{
@@ -309,7 +309,7 @@ function createStyle(theme) {
       backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent overlay
     },
     modalView: {
-      backgroundColor: theme.modalsBackground,
+      backgroundColor: theme.backgroundModal,
       borderRadius: 24,
       paddingHorizontal: 32,
       paddingVertical: 28,
@@ -325,14 +325,14 @@ function createStyle(theme) {
       width: "90%",
       maxWidth: 420,
       borderWidth: 1,
-      borderColor: theme.borderColor || "rgba(255, 255, 255, 0.1)",
+      borderColor: theme.borderColor,
     },
     titleContainer: {
       alignItems: "center",
       marginBottom: 8,
       paddingBottom: 16,
       borderBottomWidth: 1,
-      borderBottomColor: theme.borderColor || "rgba(255, 255, 255, 0.1)",
+      borderBottomColor: theme.borderColor,
       width: "100%",
     },
     button: {
@@ -340,8 +340,8 @@ function createStyle(theme) {
       paddingVertical: 16,
       paddingHorizontal: 24,
       elevation: 3,
-      backgroundColor: theme.primary || "#007AFF",
-      shadowColor: theme.primary || "#007AFF",
+      backgroundColor: theme.primary,
+      shadowColor: theme.primary,
       shadowOffset: {
         width: 0,
         height: 4,
@@ -354,11 +354,11 @@ function createStyle(theme) {
       backgroundColor: "#F194FF",
     },
     buttonClose: {
-      backgroundColor: theme.primary || "#007AFF",
+      backgroundColor: theme.primary,
       transform: [{ scale: 1 }],
     },
     textStyle: {
-      color: theme.text || "white",
+      color: theme.text,
       fontWeight: "600",
       textAlign: "center",
       fontSize: 16,
@@ -378,13 +378,13 @@ function createStyle(theme) {
       paddingVertical: 16,
       paddingHorizontal: 18,
       borderWidth: 2,
-      borderColor: theme.borderColor || "rgba(0, 0, 0, 0.1)",
-      backgroundColor: theme.backgroundChatTextInput || "#fff",
+      borderColor: theme.borderColor,
+      backgroundColor: theme.backgroundTextField,
       color: theme.text,
       pointerEvents: "auto",
       marginBottom: 16,
       fontSize: 16,
-      shadowColor: theme.primary || "#007AFF",
+      shadowColor: theme.primary,
       shadowOffset: {
         width: 0,
         height: 2,
@@ -395,10 +395,10 @@ function createStyle(theme) {
       transition: "all 0.3s ease",
     },
     textInputError: {
-      borderColor: theme.danger || "red",
-      color: theme.danger || "red",
+      borderColor: theme.danger,
+      color: theme.danger,
       borderWidth: 2,
-      shadowColor: theme.danger || "red",
+      shadowColor: theme.danger,
       shadowOpacity: 0.2,
     },
     isPublicText: {
@@ -408,20 +408,20 @@ function createStyle(theme) {
       letterSpacing: 0.3,
     },
     handleInputError: {
-      borderColor: theme.danger || "red",
+      borderColor: theme.danger,
       borderWidth: 2,
-      shadowColor: theme.danger || "red",
+      shadowColor: theme.danger,
       shadowOpacity: 0.2,
     },
     handleTextError: {
-      color: theme.danger || "red",
+      color: theme.danger,
       marginTop: 8,
       marginBottom: 16,
       fontSize: 14,
       fontWeight: "500",
     },
     buttonDisabled: {
-      backgroundColor: theme.textSecondary || "#999",
+      backgroundColor: theme.textSecondary,
       opacity: 0.6,
       transform: [{ scale: 0.98 }],
     },

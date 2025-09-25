@@ -46,8 +46,8 @@ const ChatListItem = React.memo(
       <SmartBackground
         colors={
           isSelected
-            ? theme?.backgroundChatSelectedInsideListGradient
-            : theme?.backgroundChatInsideListGradient
+            ? theme?.backgroundChatListItemSelectedGradient
+            : theme?.backgroundChatListItemGradient
         }
         style={styles.chatItem}
       >
@@ -232,7 +232,7 @@ function createStyle(theme, colorScheme) {
       flex: 1,
       ...(Platform.OS === "web" && {
         scrollbarWidth: "thin",
-        scrollbarColor: `${theme.icon} transparent`,
+        scrollbarColor: "transparent",
         "::-webkit-scrollbar": {
           width: 8,
           backgroundColor: "transparent",
@@ -240,7 +240,7 @@ function createStyle(theme, colorScheme) {
           right: 0,
         },
         "::-webkit-scrollbar-thumb": {
-          backgroundColor: theme.icon,
+          backgroundColor: "transparent",
           borderRadius: 4,
         },
         "::-webkit-scrollbar-track": {

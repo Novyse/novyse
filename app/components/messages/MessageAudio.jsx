@@ -177,7 +177,7 @@ function createStyle(theme) {
     },
     playbackRateText: {
       fontSize: 12,
-      color: "#fff",
+      color: theme.text,
       fontWeight: "bold",
     },
   });

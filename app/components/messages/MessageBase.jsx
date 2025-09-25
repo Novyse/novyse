@@ -16,7 +16,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
 
   return (
     <LinearGradient
-      colors={theme.messageContainerGradient}
+      colors={theme.backgroundMessageBaseGradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={isSender ? styles.msgSender : styles.msgReceiver}

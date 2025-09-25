@@ -47,7 +47,7 @@ const Themes = () => {
                         styles.themePreview,
                         {
                           backgroundColor:
-                            Colors[themeName]?.primary || "#4f8cff",
+                            Colors[themeName]?.primary,
                         },
                       ]}
                     />
@@ -90,7 +90,7 @@ const createStyle = (theme) =>
       textAlign: "center",
     },
     subtitle: {
-      color: theme.textTime || "#b0b0b0",
+      color: theme.textTime,
       fontSize: 16,
       textAlign: "center",
       marginBottom: 30,
@@ -100,7 +100,7 @@ const createStyle = (theme) =>
       gap: 12,
     },
     themeButton: {
-      backgroundColor: theme.backgroundSettingsCards || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards,
       borderRadius: 16,
       padding: 20,
       borderWidth: 2,
@@ -112,8 +112,8 @@ const createStyle = (theme) =>
       shadowRadius: 4,
     },
     activeThemeButton: {
-      borderColor: theme.primary || "#4f8cff",
-      backgroundColor: theme.backgroundSettingsCards || "#23232b",
+      borderColor: theme.primary,
+      backgroundColor: theme.backgroundSettingsCards,
       elevation: 4,
       shadowOpacity: 0.2,
     },
@@ -132,7 +132,7 @@ const createStyle = (theme) =>
       height: 24,
       borderRadius: 12,
       borderWidth: 2,
-      borderColor: theme.borderColor || "#333",
+      borderColor: theme.borderColor,
     },
     themeText: {
       color: theme.text,
@@ -143,12 +143,12 @@ const createStyle = (theme) =>
       width: 32,
       height: 32,
       borderRadius: 16,
-      backgroundColor: theme.primary || "#4f8cff",
+      backgroundColor: theme.primary,
       justifyContent: "center",
       alignItems: "center",
     },
     checkmark: {
-      color: "#ffffff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "bold",
     },

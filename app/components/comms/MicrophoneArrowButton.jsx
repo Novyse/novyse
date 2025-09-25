@@ -6,10 +6,7 @@ const MicrophoneArrowButton = ({ onPress, theme }) => {
   return (
     <Icon
       name={"ArrowDown01Icon"}
-      style={[
-        styles.arrowButton,
-        { backgroundColor: theme?.background || "rgba(0, 0, 0, 0.75)" },
-      ]}
+      style={[styles.arrowButton, { backgroundColor: theme?.background }]}
       onPress={onPress}
     />
   );

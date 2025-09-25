@@ -77,7 +77,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
               style={{
                 flex: 1,
                 borderRightWidth: 1,
-                borderColor: theme.chatDivider,
+                borderColor: theme.backgroundDivider,
               }}
             >
               <ChatContent onBack={onBack} contentView="chat" />
@@ -108,7 +108,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
   } else {
     return (
       <SmartBackground
-        colors={theme?.backgroundChatGradient}
+        colors={theme?.backgroundChatContentGradient}
         style={styles.chatContent}
         isSmallScreen={isSmallScreen}
       >
@@ -149,7 +149,7 @@ function createStyle(theme) {
     },
     // Espandi con altri stili se necessario
     chatHeader: {
-      borderBottomColor: theme?.chatDivider,
+      borderBottomColor: theme?.backgroundDivider,
       borderBottomWidth: 1,
       flexDirection: "row",
       alignItems: "center",

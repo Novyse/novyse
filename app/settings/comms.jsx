@@ -381,7 +381,7 @@ const createStyle = (theme) =>
       maxWidth: 768,
     },
     resetButton: {
-      backgroundColor: theme.danger || "#ff4444",
+      backgroundColor: theme.danger,
       paddingHorizontal: 15,
       paddingVertical: 8,
       borderRadius: 5,
@@ -393,13 +393,13 @@ const createStyle = (theme) =>
       marginTop: 50,
     },
     errorText: {
-      color: theme.danger || "#ff4444",
+      color: theme.danger,
       fontSize: 16,
       textAlign: "center",
       marginTop: 50,
     },
     retryButton: {
-      backgroundColor: theme.primary || "#007AFF",
+      backgroundColor: theme.primary,
       paddingHorizontal: 20,
       paddingVertical: 10,
       borderRadius: 5,
@@ -407,7 +407,7 @@ const createStyle = (theme) =>
       marginTop: 20,
     },
     retryButtonText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },
@@ -430,14 +430,14 @@ const createStyle = (theme) =>
       paddingVertical: 15,
       paddingHorizontal: 15,
       marginVertical: 5,
-      backgroundColor: theme.cardBackground || "gray",
+      backgroundColor: theme.backgroundCard,
       borderRadius: 10,
       opacity: 0.6,
     },
     debugSection: {
       marginTop: 20,
       padding: 10,
-      backgroundColor: theme.cardBackground,
+      backgroundColor: theme.backgroundCard,
       borderRadius: 5,
     },
     debugTitle: {
@@ -447,7 +447,7 @@ const createStyle = (theme) =>
       marginBottom: 5,
     },
     debugText: {
-      color: theme.textSecondary || "#666",
+      color: theme.textSecondary,
       fontSize: 12,
       fontFamily: "monospace",
     },

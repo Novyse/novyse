@@ -39,7 +39,7 @@ const createStyle = (theme) =>
       alignItems: "center",
       paddingVertical: 15,
       borderBottomWidth: 1,
-      borderBottomColor: theme.settingsDivider,
+      borderBottomColor: theme.backgroundSettingsDivider,
       transition: "background-color 0.2s ease",
       borderRadius: 0
     },

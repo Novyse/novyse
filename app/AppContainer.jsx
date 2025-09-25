@@ -296,7 +296,7 @@ const AppContainer = () => {
               ]}
             >
               <SmartBackground
-                colors={theme?.backgroundChatGradient}
+                colors={theme?.backgroundChatContentGradient}
                 style={styles.chatContent}
                 isSmallScreen={isSmallScreen}
               >
@@ -359,7 +359,7 @@ function createStyle(theme, colorScheme) {
       flex: 0,
       width: 330,
       borderRightWidth: 1,
-      borderRightColor: theme.chatDivider,
+      borderRightColor: theme.backgroundDivider,
     },
     chatContent: {
       padding: 0,
@@ -372,7 +372,6 @@ function createStyle(theme, colorScheme) {
       right: 0,
       bottom: 0,
       zIndex: 1,
-      backgroundColor: theme.backgroundChat,
     },
     chatListWrapper: {
       flex: 1,

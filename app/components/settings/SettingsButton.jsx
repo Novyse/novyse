@@ -39,7 +39,7 @@ const createStyle = (theme) =>
       paddingHorizontal: 16,
       borderRadius: 8,
       justifyContent: "center",
-      backgroundColor: theme.settingsButton,
+      backgroundColor: theme.backgroundSettingsButton,
       transition: "background-color 0.2s ease",
     },
     buttonHovered: {

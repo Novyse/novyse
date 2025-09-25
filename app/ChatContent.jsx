@@ -287,8 +287,8 @@ const ChatContent = ({ onBack, contentView }) => {
       top: y - 10,
       width: menuWidth,
       height: menuHeight,
-      backgroundColor: theme.modalBackground,
-      borderColor: theme.modalBorder,
+      backgroundColor: theme.backgroundModal,
+      borderColor: theme.borderModal,
       borderWidth: 1,
       borderRadius: 5,
       justifyContent: "center",
@@ -553,7 +553,7 @@ const ChatContent = ({ onBack, contentView }) => {
   };
   return (
     <SmartBackground
-      backgroundKey="backgroundChatGradient"
+      backgroundKey="backgroundChatContentGradient"
       style={styles.container}
     >
       <SafeAreaView
@@ -581,22 +581,22 @@ const ChatContent = ({ onBack, contentView }) => {
         {renderBottomBar()}
         {dropdownInfo.visible && (
           <View style={getDropdownStyle()}>
-            <Text style={{ color: theme.modalText }}>
+            <Text style={{ color: theme.text }}>
               Informazioni sul messaggio
             </Text>
-            <Text style={{ color: theme.modalText }}>
+            <Text style={{ color: theme.text }}>
               Informazioni sul messaggio
             </Text>
-            <Text style={{ color: theme.modalText }}>
+            <Text style={{ color: theme.text }}>
               Informazioni sul messaggio
             </Text>
-            <Text style={{ color: theme.modalText }}>
+            <Text style={{ color: theme.text }}>
               Informazioni sul messaggio
             </Text>
-            <Text style={{ color: theme.modalText }}>
+            <Text style={{ color: theme.text }}>
               Informazioni sul messaggio
             </Text>
-            <Text style={{ color: theme.modalText }}>
+            <Text style={{ color: theme.text }}>
               Informazioni sul messaggio
             </Text>
           </View>
@@ -671,7 +671,7 @@ function createStyle(theme) {
       position: "relative",
       ...(Platform.OS === "web" && {
         scrollbarWidth: "thin",
-        scrollbarColor: `${theme.icon} transparent`,
+        scrollbarColor: "transparent",
         "::-webkit-scrollbar": {
           width: 8,
           backgroundColor: "transparent",
@@ -679,7 +679,7 @@ function createStyle(theme) {
           right: 0,
         },
         "::-webkit-scrollbar-thumb": {
-          backgroundColor: theme.icon,
+          backgroundColor: "transparent",
           borderRadius: 4,
         },
         "::-webkit-scrollbar-track": {
@@ -722,7 +722,7 @@ function createStyle(theme) {
       marginHorizontal: 5,
     },
     joinGroupButton: {
-      backgroundColor: theme.joinGroupButtonBackground,
+      backgroundColor: theme.backgroundJoinChatButton,
       width: "100%",
       height: 50,
       padding: 12,
@@ -737,17 +737,6 @@ function createStyle(theme) {
       textAlign: "center",
       color: theme.text,
       fontWeight: "bold",
-    },
-    messagesLink: {
-      fontSize: 18,
-      color: theme.messagesLink,
-      textDecorationLine: "underline",
-      ...(Platform.OS === "web" && {
-        wordBreak: "break-all",
-        overflowWrap: "break-word",
-        whiteSpace: "pre-wrap",
-        maxWidth: "100%",
-      }),
     },
     emojiPickerContainer: {
       padding: 16,

@@ -8,14 +8,11 @@ const CameraArrowButton = ({
   isMobile = Platform.OS !== "web",
 }) => {
   return (
-      <Icon
-        name={isMobile ? "CameraRotated01Icon" : "ArrowDown01Icon"}
-        style={[
-          styles.arrowButton,
-          { backgroundColor: theme?.background || "rgba(0, 0, 0, 0.75)" },
-        ]}
-        onPress={onPress}
-      />
+    <Icon
+      name={isMobile ? "CameraRotated01Icon" : "ArrowDown01Icon"}
+      style={[styles.arrowButton, { backgroundColor: theme?.background }]}
+      onPress={onPress}
+    />
   );
 };
 

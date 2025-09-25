@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Animated,
   ScrollView,
-  Dimensions,
 } from "react-native";
 
 const DropdownMenu = ({
@@ -133,8 +132,8 @@ const createStyles = (theme) =>
       borderRadius: 10,
       padding: 15,
       borderWidth: 1,
-      borderColor: theme.borderColor || "#ddd",
-      backgroundColor: theme.backgroundChatTextInput || "#fff",
+      borderColor: theme.borderColor,
+      backgroundColor: theme.backgroundTextField,
     },
     dropdownHeaderOpen: {
       borderBottomLeftRadius: 0,
@@ -150,7 +149,7 @@ const createStyles = (theme) =>
       flex: 1,
     },
     disabledText: {
-      color: theme.textTime || "#999",
+      color: theme.textTime,
     },
     arrow: {
       color: theme.text,
@@ -162,12 +161,12 @@ const createStyles = (theme) =>
     },
     dropdownListContainer: {
       overflow: "hidden",
-      backgroundColor: theme.backgroundChatTextInput || "#fff",
+      backgroundColor: theme.backgroundTextField,
       borderBottomLeftRadius: 10,
       borderBottomRightRadius: 10,
       borderWidth: 1,
       borderTopWidth: 0,
-      borderColor: theme.borderColor || "#ddd",
+      borderColor: theme.borderColor,
     },
     dropdownList: {
       width: "100%",
@@ -175,17 +174,17 @@ const createStyles = (theme) =>
     option: {
       padding: 15,
       borderTopWidth: 1,
-      borderTopColor: theme.borderColor || "#eee",
+      borderTopColor: theme.borderColor,
     },
     selectedOption: {
-      backgroundColor: theme.chatListSelected || "#007AFF20",
+      backgroundColor: theme.backgroundDeviceDropdown,
     },
     optionText: {
       color: theme.text,
       fontSize: 16,
     },
     selectedOptionText: {
-      color: theme.primary || "#007AFF",
+      color: theme.primary,
       fontWeight: "600",
     },
   });

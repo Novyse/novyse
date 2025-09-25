@@ -44,7 +44,7 @@ const createStyle = (theme) =>
       fontSize: 15,
     },
     wipContainer: {
-      backgroundColor: theme.cardBackground || "#23232b",
+      backgroundColor: theme.backgroundCard,
       borderRadius: 12,
       padding: 16,
       marginBottom: 20,
@@ -59,12 +59,12 @@ const createStyle = (theme) =>
       marginBottom: 5,
     },
     wipSubtext: {
-      color: theme.subtitle || "#b0b0b0",
+      color: theme.subtitle,
       fontSize: 14,
       fontStyle: "italic",
     },
     shortcutsContainer: {
-      backgroundColor: theme.cardBackground || "#23232b",
+      backgroundColor: theme.backgroundCard,
       borderRadius: 12,
       padding: 16,
     },

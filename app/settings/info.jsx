@@ -121,7 +121,7 @@ const createStyle = (theme) =>
       paddingBottom: 40,
     },
     card: {
-      backgroundColor: theme.backgroundSettingsCards || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards,
       borderRadius: 16,
       padding: 24,
       marginBottom: 16,
@@ -138,7 +138,7 @@ const createStyle = (theme) =>
       marginBottom: 16,
     },
     text: {
-      color: theme.subtitle || "#b0b0b0",
+      color: theme.subtitle,
       fontSize: 16,
       lineHeight: 24,
       marginBottom: 16,
@@ -152,7 +152,7 @@ const createStyle = (theme) =>
       alignItems: "center",
     },
     infoLabel: {
-      color: theme.subtitle || "#b0b0b0",
+      color: theme.subtitle,
       fontSize: 16,
     },
     infoValue: {
@@ -164,7 +164,7 @@ const createStyle = (theme) =>
       gap: 8,
     },
     linkText: {
-      color: "#ffffff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },

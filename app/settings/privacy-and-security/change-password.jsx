@@ -84,7 +84,7 @@ const ChangePassword = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter current password"
-                placeholderTextColor={theme.placeholder || "#888"}
+                placeholderTextColor={theme.placeholder}
                 value={oldPassword}
                 onChangeText={setOldPassword}
                 secureTextEntry
@@ -97,7 +97,7 @@ const ChangePassword = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter new password"
-                placeholderTextColor={theme.placeholder || "#888"}
+                placeholderTextColor={theme.placeholder}
                 value={newPassword}
                 onChangeText={setNewPassword}
                 secureTextEntry
@@ -110,7 +110,7 @@ const ChangePassword = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Confirm new password"
-                placeholderTextColor={theme.placeholder || "#888"}
+                placeholderTextColor={theme.placeholder}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry
@@ -161,14 +161,14 @@ const createStyle = (theme) =>
       textAlign: "center",
     },
     subtitle: {
-      color: theme.subtitle || "#b0b0b0",
+      color: theme.subtitle,
       fontSize: 16,
       textAlign: "center",
       marginBottom: 30,
       lineHeight: 22,
     },
     formContainer: {
-      backgroundColor: theme.backgroundSettingsCards || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards,
       borderRadius: 16,
       padding: 24,
       marginBottom: 24,
@@ -183,33 +183,33 @@ const createStyle = (theme) =>
       marginBottom: 8,
     },
     input: {
-      backgroundColor: theme.inputBackground || "#1a1d29",
+      backgroundColor: theme.inputBackgroun,
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 14,
       fontSize: 16,
       color: theme.text,
       borderWidth: 1,
-      borderColor: theme.borderColor || "#333",
+      borderColor: theme.borderColor,
     },
     disabledButton: {
       opacity: 0.6,
     },
     buttonText: {
-      color: "#ffffff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },
     securityNote: {
-      backgroundColor: theme.backgroundSettingsCards || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards,
       borderRadius: 12,
       padding: 16,
       borderLeftWidth: 4,
-      borderLeftColor: theme.primary || "#4f8cff",
+      borderLeftColor: theme.primary,
       marginTop: 24,
     },
     noteText: {
-      color: theme.subtitle || "#b0b0b0",
+      color: theme.subtitle,
       fontSize: 14,
       lineHeight: 20,
     },

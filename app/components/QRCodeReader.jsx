@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   instructionText: {
-    color: "#FFF",
+    color: "#fff",
     fontSize: 18,
     marginTop: 10,
   },

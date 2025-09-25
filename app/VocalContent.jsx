@@ -558,7 +558,7 @@ const VocalContent = ({}) => {
 
   return (
     <SmartBackground
-      backgroundKey="backgroundChatGradient"
+      backgroundKey="backgroundChatContentGradient"
       style={styles.container}
     >
       <VocalMembersLayout commsData={commsData} activeStreams={activeStreams} />

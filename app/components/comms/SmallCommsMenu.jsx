@@ -110,7 +110,7 @@ const SmallCommsMenu = () => {
     <Pressable onPress={navigateToVocalView}>
       <Animated.View style={[styles.container, animatedStyle]}>
         <SmartBackground
-          colors={theme?.floatingBarComponentsGradient}
+          colors={theme?.backgroundCommsFloatingBarGradient}
           style={styles.gradientBackground}
         >
           <Animated.View style={styles.menuItems}>

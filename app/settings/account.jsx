@@ -121,12 +121,12 @@ const createStyle = (theme) =>
       width: 120,
       height: 120,
       borderRadius: 60,
-      backgroundColor: theme.backgroundSettingsCards || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards,
       justifyContent: "center",
       alignItems: "center",
       marginBottom: 15,
       borderWidth: 3,
-      borderColor: theme.primary || "#4f8cff",
+      borderColor: theme.primary,
       overflow: "hidden",
     },
     profileImage: {
@@ -142,12 +142,12 @@ const createStyle = (theme) =>
       marginBottom: 5,
     },
     profileHandle: {
-      color: theme.subtitle || "#b0b0b0",
+      color: theme.subtitle,
       fontSize: 16,
       textAlign: "center",
     },
     infoSection: {
-      backgroundColor: theme.backgroundSettingsCards || "#23232b",
+      backgroundColor: theme.backgroundSettingsCards,
       borderRadius: 12,
       padding: 20,
       marginBottom: 20,
@@ -162,7 +162,7 @@ const createStyle = (theme) =>
       marginBottom: 20,
     },
     fieldLabel: {
-      color: theme.subtitle || "#b0b0b0",
+      color: theme.subtitle,
       fontSize: 14,
       fontWeight: "600",
       marginBottom: 8,
@@ -170,12 +170,12 @@ const createStyle = (theme) =>
       letterSpacing: 0.5,
     },
     fieldValueContainer: {
-      backgroundColor: theme.inputBackground || "#1a1d29",
+      backgroundColor: theme.inputBackground,
       borderRadius: 8,
       paddingHorizontal: 15,
       paddingVertical: 12,
       borderWidth: 1,
-      borderColor: theme.borderColor || "#333",
+      borderColor: theme.borderColor,
     },
     fieldValue: {
       color: theme.text,

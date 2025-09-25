@@ -167,9 +167,6 @@ const TwoFAMethods = () => {
                           hovered && styles.addButtonHovered,
                           pressed && styles.addButtonPressed,
                         ]}
-                        android_ripple={{
-                          color: theme.rippleColor || "rgba(99, 102, 241, 0.2)",
-                        }}
                       >
                         <Icon name={"PlusSignCircleIcon"} color={"#fff"} />
                         <Text style={styles.addButtonText}>Add</Text>
@@ -202,7 +199,7 @@ const createStyle = (theme) =>
     title: {
       fontSize: 28,
       fontWeight: "bold",
-      color: "#ffffff",
+      color: theme.text,
       marginBottom: 8,
     },
     subtitle: {
@@ -216,7 +213,7 @@ const createStyle = (theme) =>
       alignSelf: "center",
     },
     methodCard: {
-      backgroundColor: theme.backgroundSettingsCards || "#2A2A2E",
+      backgroundColor: theme.backgroundSettingsCards,
       borderRadius: 16,
       marginBottom: 16,
       padding: 20,
@@ -233,7 +230,7 @@ const createStyle = (theme) =>
     },
     methodCardActive: {
       borderColor: "#00C851",
-      backgroundColor: theme.backgroundSettingsCards || "#2A2A2E",
+      backgroundColor: theme.backgroundSettingsCards,
     },
     methodHeader: {
       flexDirection: "row",
@@ -260,7 +257,7 @@ const createStyle = (theme) =>
     methodName: {
       fontSize: 18,
       fontWeight: "600",
-      color: "#ffffff",
+      color: theme.text,
       marginBottom: 4,
     },
     methodDescription: {
@@ -282,7 +279,7 @@ const createStyle = (theme) =>
       borderRadius: 16,
     },
     statusText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 12,
       fontWeight: "600",
     },
@@ -296,11 +293,11 @@ const createStyle = (theme) =>
       transition: "background-color 0.2s ease",
     },
     deleteButtonHovered: {
-      backgroundColor: theme.deleteHovered || "rgba(184, 28, 41, 0.85)",
+      backgroundColor: theme.deleteHovered,
       cursor: "pointer",
     },
     deleteButtonPressed: {
-      backgroundColor: theme.deletePressed || "rgba(255, 71, 86, 1)",
+      backgroundColor: theme.deletePressed,
       opacity: 0.9,
     },
     addButton: {
@@ -314,16 +311,16 @@ const createStyle = (theme) =>
       transition: "background-color 0.2s ease",
     },
     addButtonText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 14,
       fontWeight: "600",
     },
     addButtonHovered: {
-      backgroundColor: theme.addHovered || "rgba(88, 91, 235, 0.85)",
+      backgroundColor: theme.addHovered,
       cursor: "pointer",
     },
     addButtonPressed: {
-      backgroundColor: theme.addPressed || "rgba(99, 102, 241, 0.7)",
+      backgroundColor: theme.addPressed,
       opacity: 0.9,
     },
   });

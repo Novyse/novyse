@@ -65,7 +65,7 @@ const ThresholdSlider = ({
           maximumTrackTintColor="transparent"
           thumbStyle={[
             styles.thumb,
-            { backgroundColor: theme.text || 'white' },
+            { backgroundColor: theme.text},
             disabled && styles.disabledThumb
           ]}
         />
@@ -104,7 +104,7 @@ const createStyles = (theme) => StyleSheet.create({
     fontWeight: '600',
   },
   disabledText: {
-    color: theme.textTime || '#999',
+    color: theme.textTime,
   },
   sliderContainer: {
     position: 'relative',
@@ -148,7 +148,7 @@ const createStyles = (theme) => StyleSheet.create({
     marginTop: 5,
   },
   rangeText: {
-    color: theme.textTime || '#666',
+    color: theme.textTime,
     fontSize: 12,
   },
 });

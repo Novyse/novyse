@@ -103,7 +103,7 @@ const createStyle = (theme) =>
     container: {
       position: "absolute",
       right: 10,
-      backgroundColor: theme.modalBackground || "#1e1e1e",
+      backgroundColor: theme.backgroundModal,
       borderRadius: 8,
       shadowColor: "#000",
       shadowOffset: {
@@ -122,7 +122,7 @@ const createStyle = (theme) =>
     tabsContainer: {
       flexDirection: "row",
       borderBottomWidth: 1,
-      borderBottomColor: theme.ChatIconsPickerModalBorderColor || "#333",
+      borderBottomColor: theme.ChatIconsPickerModalBorderColor,
     },
     tab: {
       flex: 1,
@@ -131,21 +131,21 @@ const createStyle = (theme) =>
     },
     activeTab: {
       borderBottomWidth: 2,
-      borderBottomColor: theme.primary || "#4f8cff",
+      borderBottomColor: theme.primary,
     },
     tabText: {
-      color: theme.ChatIconsPickerModalTabInactiveText || "#999",
+      color: theme.ChatIconsPickerModalTabInactiveText,
       fontSize: 14,
       fontWeight: "500",
     },
     activeTabText: {
-      color: theme.text || "#ffffffff",
+      color: theme.text,
     },
     contentContainer: {
       height: 450,
     },
     contentText: {
-      color: theme.text || "#ffffffff",
+      color: theme.text,
       fontSize: 24,
     },
   });

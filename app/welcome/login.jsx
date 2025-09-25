@@ -195,7 +195,7 @@ const LoginPassword = () => {
               />
               <Icon
                 name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
-                color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
+                color={LoginColors[loginTheme].iconColor}
                 style={styles.eyeButton}
                 onPress={toggleSecureEntry}
               />
@@ -329,14 +329,14 @@ function createStyle(loginTheme, isSmallScreen) {
       paddingVertical: 12,
       borderRadius: 6,
       backgroundColor:
-        LoginColors[loginTheme].backgroundBackButton || "#b8b8b8ff",
+        LoginColors[loginTheme].backgroundBackButton,
       marginRight: 8,
       justifyContent: "center",
       alignItems: "center",
     },
     backButtonText: {
       fontSize: 16,
-      color: LoginColors[loginTheme].backButtonTextColor || "#000",
+      color: LoginColors[loginTheme].backButtonTextColor,
       fontWeight: "500",
     },
     submitButton: {

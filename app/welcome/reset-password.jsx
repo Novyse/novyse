@@ -151,7 +151,7 @@ const ResetPassword = () => {
               />
               <Icon
                 name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
-                color={LoginColors[loginTheme].iconColor || "rgba(0,0,0,0.6)"}
+                color={LoginColors[loginTheme].iconColor}
                 style={styles.eyeButton}
                 onPress={toggleSecureEntry}
               />

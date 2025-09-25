@@ -32,7 +32,7 @@ const EmojiPicker = ({ onEmojiSelected, onClose }) => {
 
 const createStyle = (theme) => StyleSheet.create({
   container: {
-    backgroundColor: theme.modalBackground,
+    backgroundColor: theme.backgroundModal,
     width: '100%',
     height: '100%'
   },

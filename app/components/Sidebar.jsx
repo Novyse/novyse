@@ -92,7 +92,7 @@ const Sidebar = ({
         ]}
       >
         <SmartBackground
-          colors={theme?.sideBarGradient}
+          colors={theme?.backgroundSideBarGradient}
           style={styles.sidebarContent}
         >
           <View style={styles.profileContainer}>
@@ -176,7 +176,7 @@ function createStyle(theme, colorScheme) {
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: theme?.overlay || "rgba(0, 0, 0, 0.4)",
+      backgroundColor: theme?.overlay,
       zIndex: 1,
     },
     profileContainer: {

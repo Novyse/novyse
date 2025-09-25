@@ -127,7 +127,7 @@ const Search = () => {
 
   return (
     <SmartBackground
-      colors={theme.searchSideBarGradient}
+      colors={theme.backgroundSearchGradient}
       style={styles.container}
     >
       <TextInput
@@ -169,7 +169,7 @@ function createStyle(theme) {
     },
     searchBar: {
       flex: 1,
-      backgroundColor: theme.backgroundChatTextInput,
+      backgroundColor: theme.backgroundTextField,
       borderRadius: 15,
       padding: 8,
       fontSize: 18,
@@ -190,7 +190,7 @@ function createStyle(theme) {
       flexDirection: "row",
       alignItems: "center",
       padding: 10,
-      backgroundColor: theme.backgroundChatInsideList,
+      backgroundColor: theme.backgroundSearchResultItem,
       borderRadius: 13,
       marginBottom: 10,
     },

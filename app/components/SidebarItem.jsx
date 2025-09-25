@@ -24,7 +24,7 @@ const createStyle = (theme) =>
       paddingVertical: 15,
       paddingHorizontal: 15,
       borderBottomWidth: 1,
-      borderBottomColor: theme.settingsDivider,
+      borderBottomColor: theme.backgroundSettingsDivider,
       borderRadius: 0,
     },
     sidebarText: {

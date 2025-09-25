@@ -113,7 +113,7 @@ const BigFloatingCommsMenu = () => {
         style={styles.pressableContainer}
       >
         <SmartBackground
-          colors={theme?.floatingBarComponentsGradient}
+          colors={theme?.backgroundCommsFloatingBarGradient}
           style={styles.gradientBackground}
         >
           <Animated.View style={styles.menuItems}>

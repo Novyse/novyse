@@ -101,7 +101,7 @@ export default function Index() {
           <Image source={logo_novyse} style={styles.logo} />
           <ActivityIndicator
             size="large"
-            color={theme.primary || "#6cadd8ff"} // Fallback to blue if theme.primary is undefined
+            color={theme.primary}
             style={styles.loader}
           />
         </View>
@@ -112,10 +112,10 @@ export default function Index() {
   return (
     <ScreenLayout>
       <EmailCheckForm />
-      <StatusBar style="light" backgroundColor={theme.backgroundClassic} />
+      <StatusBar style="light"/>
     </ScreenLayout>
   );
-};
+}
 
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({

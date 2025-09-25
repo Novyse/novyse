@@ -30,7 +30,7 @@ const createStyles = (theme) => {
   return StyleSheet.create({
     dateSeparator: {
       alignSelf: "center",
-      backgroundColor: theme.dateSeparatorBackground,
+      backgroundColor: theme.backgroundDateSeparator,
       paddingHorizontal: 10,
       paddingVertical: 5,
       borderRadius: 10,

@@ -18,7 +18,7 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.backgroundClassic,
+      backgroundColor: "blue",
       padding: 10,
     },
   });
