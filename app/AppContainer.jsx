@@ -210,21 +210,7 @@ const AppContainer = () => {
     setIsToggleSearchChats((prev) => !prev);
   }, []);
 
-  const renderHeader = useCallback(
-    () => (
-      <HeaderBase>
-        <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
-        <Text style={styles.headerTitle}>Chats</Text>
-        <Icon
-          name={"Search02Icon"}
-          size={32}
-          onPress={toggleSearch}
-          style={styles.searchButton}
-        />
-      </HeaderBase>
-    ),
-    [toggleSidebar, toggleSearch, styles.headerTitle, styles.searchButton]
-  );
+  
 
   const handleBackPress = useCallback(() => {
     setSelectedChatUUID(null);
@@ -276,7 +262,6 @@ const AppContainer = () => {
         <>
           <View style={styles.container}>
             <View style={styles.chatList}>
-              {renderHeader()}
               <ChatList
                 onChatSelect={onChatSelect}
                 isToggleSearchChats={isToggleSearchChats}
@@ -284,6 +269,7 @@ const AppContainer = () => {
                 isSmallScreen={isSmallScreen}
                 theme={theme}
                 colorScheme={colorScheme}
+                toggleSidebar={toggleSidebar}
               />
             </View>
             <Animated.View
@@ -316,7 +302,6 @@ const AppContainer = () => {
           >
             <View style={styles.chatListWrapper}>
               {renderBigFloatingCommsMenu()}
-              {renderHeader()}
               <ChatList
                 onChatSelect={onChatSelect}
                 isToggleSearchChats={isToggleSearchChats}
@@ -324,6 +309,7 @@ const AppContainer = () => {
                 isSmallScreen={isSmallScreen}
                 theme={theme}
                 colorScheme={colorScheme}
+                toggleSidebar={toggleSidebar}
               />
             </View>
           </View>
@@ -376,11 +362,6 @@ function createStyle(theme, colorScheme) {
     chatListWrapper: {
       flex: 1,
       position: "relative",
-    },
-    headerTitle: {
-      color: theme.text,
-      fontSize: 18,
-      fontWeight: "bold",
     },
   });
 }

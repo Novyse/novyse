@@ -39,7 +39,7 @@ export const Colors = {
     backgroundChatTextInputGradient: ["#16638e", "#2899cf"],
     backgroundCommsFloatingBarGradient: ["#165376", "#2899cf", "#4fb3e1"],
     backgroundMessageBaseGradient: ["#0b273cff"],
-    backgroundSearchGradient: ["transparent"],
+    backgroundSearchGradient: ["transparent"],                    //? Consiglio di lasciarlo trasparente, lo includo qui ma da mentenere trasparente
     backgroundSideBarGradient: ["#395e80ff", "#4a7fa0ff"],
 
     // ⚙️ Settings aggiuntivi

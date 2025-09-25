@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from "react";
+import React, { useEffect, useContext, useCallback } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import HoverAndPressedButton from "./components/HoverAndPressedButton";
 import Icon from "./components/Icon";
 import SmallCommsMenu from "./components/comms/SmallCommsMenu"; // Solo per small screen
 import methods from "./utils/webrtc/methods";
+import HeaderBase from "./components/HeaderBase";
 
 // Hooks
 import useChats from "./hooks/useChats";
@@ -121,6 +122,7 @@ const ChatList = ({
   setIsToggleSearchChats,
   theme,
   colorScheme,
+  toggleSidebar,
 }) => {
   useAppInit(true);
   const { selectedChatUUID } = useContext(ChatContext);
@@ -169,6 +171,27 @@ const ChatList = ({
     [onChatSelect]
   );
 
+  const renderHeader = useCallback(
+    () => (
+      <HeaderBase>
+        <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
+        <Text style={styles.headerTitle}>Chats</Text>
+        <Icon
+          name={"Search02Icon"}
+          size={32}
+          onPress={() => setIsToggleSearchChats((prev) => !prev)}
+          style={styles.searchButton}
+        />
+      </HeaderBase>
+    ),
+    [
+      toggleSidebar,
+      setIsToggleSearchChats,
+      styles.headerTitle,
+      styles.searchButton,
+    ]
+  );
+
   const renderItem = ({ item }) => {
     const isSelected = selectedChatUUID === item.uuid;
     return (
@@ -191,29 +214,30 @@ const ChatList = ({
   );
 
   const renderChatList = () => (
+    <FlatList
+      style={styles.flatList}
+      contentContainerStyle={styles.flatListContent}
+      extraData={selectedChatUUID}
+      initialNumToRender={12}
+      maxToRenderPerBatch={12}
+      windowSize={7}
+      data={Object.values(chatDetails)}
+      keyExtractor={(item) => item.uuid}
+      renderItem={memoizedRenderItem}
+    />
+  );
+
+  return (
     <SmartBackground
       colors={theme?.backgroundChatListGradient}
       style={[styles.chatListContainer]}
     >
-      <FlatList
-        style={styles.flatList}
-        contentContainerStyle={styles.flatListContent}
-        extraData={selectedChatUUID}
-        initialNumToRender={12}
-        maxToRenderPerBatch={12}
-        windowSize={7}
-        data={Object.values(chatDetails)}
-        keyExtractor={(item) => item.uuid}
-        renderItem={memoizedRenderItem}
-      />
+      <View style={styles.chatListWrapper}>
+        {renderHeader()}
+        {renderSmallCommsMenu()}
+        {!isToggleSearchChats ? renderChatList() : <Search />}
+      </View>
     </SmartBackground>
-  );
-
-  return (
-    <View style={styles.chatListWrapper}>
-      {renderSmallCommsMenu()}
-      {!isToggleSearchChats ? renderChatList() : <Search />}
-    </View>
   );
 };
 
@@ -306,6 +330,11 @@ function createStyle(theme, colorScheme) {
     },
     searchButton: {
       marginLeft: "auto",
+    },
+    headerTitle: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: "bold",
     },
   });
 }
