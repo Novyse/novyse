@@ -19,7 +19,7 @@ switch (BRANCH) {
     path = "/production";
 }
 
-const domain = "http://localhost:80"; //API_BASE_URL; @SamueleOrazioDurante per ora in locale, poi metti API_BASE_URL
+const domain = API_BASE_URL;
 const APIlink = domain + path;
 
 const api = axios.create({

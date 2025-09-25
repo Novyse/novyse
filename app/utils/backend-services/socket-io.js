@@ -19,7 +19,7 @@ switch (BRANCH) {
     path = "/production";
 }
 
-path += "/socket.io"; // Endpoint per Socket.IO @SamueleOrazioDurante
+path += "/socket.io";
 
 let socket = null;
 
@@ -42,8 +42,7 @@ const SocketMethods = {
         return socket;
       }
 
-      socket = io("ws://localhost:80", {
-        //SOCKET_BASE_URL, { @SamueleOrazioDurante per ora in locale, poi metti SOCKET_BASE_URL
+      socket = io(SOCKET_BASE_URL, {
         path: path,
         transports: ["websocket"],
         autoConnect: true,
