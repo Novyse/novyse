@@ -134,7 +134,7 @@ class Database {
         await this.store.setItem("handles", handles);
       }
 
-      console.log("User added successfully.");
+      console.log("User added successfully.", user);
       return true;
     } catch (error) {
       console.error("Error adding user:", error);
@@ -238,12 +238,16 @@ class Database {
         chatUUID: message.chatUUID,
         senderUUID: message.senderUUID,
         text: message.text || null,
+        type: message.type || "text",
         fileUUID: message.fileUUID || null,
+        system_action: message.system_action || null,
         created_at: message.created_at,
         is_pinned: message.is_pinned ? 1 : 0,
         replyToMessageUUID: message.replyToMessageUUID || null,
       });
       await this.store.setItem("messages", messages);
+
+      console.log("Message added successfully.", messages);
 
       return true;
     } catch (error) {

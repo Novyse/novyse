@@ -12,14 +12,15 @@ class MessengerEventEmitter {
 
   async newMessage(message) {
     const database = await Database.create();
+    await database.addMessage(message);
     const msg = await database.addSenderNameToMessage(message);
     this.eventEmitter.emit("newMessage", msg);
   }
 
   async newChat(chat) {
     const database = await Database.create();
-    this.eventEmitter.emit("newChat", chat);
     await database.addChat(chat);
+    this.eventEmitter.emit("newChat", chat);
   }
 }
 

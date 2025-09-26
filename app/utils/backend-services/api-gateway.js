@@ -618,7 +618,11 @@ const gateway = {
     async create(type, memberUUIDs = [], name = null, handle = null) {
       try {
         if (!type || (type == "DM" && memberUUIDs.length != 1)) {
-          throw new Error("Missing required fields for chat creation");
+          throw new Error(
+            "Missing required fields for chat creation",
+            type,
+            memberUUIDs
+          );
         }
         const response = await api.post("/chat/create", {
           type,
@@ -637,12 +641,33 @@ const gateway = {
         throw error;
       }
     },
+    async join(handle) {
+      try {
+        if (!handle) {
+          throw new Error("Handle is required to join a chat");
+        }
+        const response = await api.post("/chat/join", { handle });
+        const success = response.data.success;
+        if (success) {
+          const { chat, message } = response.data.data;
+          return { success, chat, message };
+        }
+        return { success };
+      } catch (error) {
+        console.error("Error in chat.join:", error);
+        throw error;
+      }
+    },
   },
   message: {
     async send(chatUUID, text, type = "text") {
       try {
         if (!chatUUID || !text) {
-          throw new Error("Missing required fields for sending message");
+          throw new Error(
+            "Missing required fields for sending message",
+            chatUUID,
+            text
+          );
         }
         const response = await api.post("/message/send", {
           chatUUID,

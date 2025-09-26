@@ -10,12 +10,13 @@ import {
 import moment from "moment";
 import SmartBackground from "./components/SmartBackground";
 import Search from "./Search";
-import eventEmitter from "./utils/global/Events/lib/EventEmitter";
+import eventEmitter from "./utils/global/Events/EventEmitter";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
 import Icon from "./components/Icon";
 import SmallCommsMenu from "./components/comms/SmallCommsMenu"; // Solo per small screen
 import methods from "./utils/webrtc/methods";
 import HeaderBase from "./components/HeaderBase";
+import chatUtils from "./utils/chat/index";
 
 // Hooks
 import useChats from "./hooks/useChats";
@@ -23,6 +24,7 @@ import useAppInit from "./hooks/useAppInit";
 
 // Context
 import { ChatContext } from "../context/ChatContext";
+import { UserContext } from "../context/UserContext";
 
 const { get, check } = methods;
 
@@ -38,10 +40,63 @@ const ChatListItem = React.memo(
     theme,
     styles,
   }) => {
+    const { userUUID } = useContext(UserContext);
+
     const parseTime = (dateTimeMessage) => {
       if (!dateTimeMessage) return "";
       const timeMoment = moment(dateTimeMessage);
       return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
+    };
+    const displayMessage = (message) => {
+      // Text message calculationsz
+      if (!message) return null;
+      let text = message.text;
+      switch (message.type) {
+        case "text":
+          break;
+        case "image":
+          text = "📷 Photo";
+          break;
+        case "file":
+          text = "📎 File";
+          break;
+        case "audio":
+          text = "🎵 Audio";
+          break;
+        case "video":
+          text = "🎥 Video";
+          break;
+        case "system":
+          text = chatUtils.getSystemMessageText(message.system_action);
+          break;
+        default:
+          return null;
+      }
+
+      let sender = "";
+
+      // Sender name
+      if (
+        message.senderUUID &&
+        message.sender_name &&
+        message.type !== "system"
+      ) {
+        sender =
+          message.senderUUID === userUUID
+            ? "You: "
+            : `${message.sender_name}: `;
+      }
+
+      return (
+        <Text
+          style={[styles.chatSubtitle, styles.gridText]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {sender}
+          {text}
+        </Text>
+      );
     };
     return (
       <SmartBackground
@@ -69,22 +124,7 @@ const ChatListItem = React.memo(
               >
                 {name}
               </Text>
-              {lastMessage?.sender_name ? (
-                <Text
-                  style={[styles.chatSubtitle, styles.gridText]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {lastMessage?.sender_name}:{" "}
-                </Text>
-              ) : null}
-              <Text
-                style={[styles.chatSubtitle, styles.gridText]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {lastMessage?.text}
-              </Text>
+              {displayMessage(lastMessage)}
             </View>
             <View style={styles.rightContainer}>
               <Text
@@ -138,11 +178,15 @@ const ChatList = ({
         setForceUpdate((prev) => prev + 1);
       }
     };
-    eventEmitter.on("member_joined_comms", handleCommsStateChange);
-    eventEmitter.on("member_left_comms", handleCommsStateChange);
+    eventEmitter.getEmitter().on("member_joined_comms", handleCommsStateChange);
+    eventEmitter.getEmitter().on("member_left_comms", handleCommsStateChange);
     return () => {
-      eventEmitter.off("member_joined_comms", handleCommsStateChange);
-      eventEmitter.off("member_left_comms", handleCommsStateChange);
+      eventEmitter
+        .getEmitter()
+        .off("member_joined_comms", handleCommsStateChange);
+      eventEmitter
+        .getEmitter()
+        .off("member_left_comms", handleCommsStateChange);
     };
   }, []);
 

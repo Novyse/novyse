@@ -26,6 +26,7 @@ import SmartBackground from "./components/SmartBackground";
 import ChatIconsPickerModal from "./components/ChatIconsPickerModal";
 import MessageBase from "./components/messages/MessageBase";
 import MessageSystem from "./components/messages/MessageSystem";
+import chatUtils from "./utils/chat/index";
 
 import auth from "./utils/welcome/auth";
 import Database from "./utils/storage/database";
@@ -253,20 +254,19 @@ const ChatContent = ({ onBack, contentView }) => {
   };
 
   const handleSendMessage = async () => {
-    const database = await Database.create();
+    let currentChatUUID = chat.uuid;
 
     if (!chat.uuid) {
       // Create chat first
-      const { success, newChat } = await gateway.chat.create(
-        "DM",
-        chat.member,
-        null,
-        null
-      );
+      const response = await gateway.chat.create("DM", chat.member, null, null);
+      const success = response.success;
+      const newChat = response.chat;
       if (success) {
+        newChat.name = newChat.members[0].name;
         console.log("Chat created successfully:", newChat);
-        setSelectedChatUUID(newChat.uuid);
         await eventEmitter.newChat(newChat);
+        setSelectedChatUUID(newChat.uuid);
+        currentChatUUID = newChat.uuid;
       } else {
         console.error("Failed to create chat");
         return;
@@ -287,17 +287,16 @@ const ChatContent = ({ onBack, contentView }) => {
     // poi si deve fare un metodo per sostituire il messaggio temporaneo con quello vero
 
     const { success, message } = await gateway.message.send(
-      chat.uuid,
+      currentChatUUID,
       newMessageText,
       "text"
     );
     if (success) {
       console.log("Message sent successfully:", message);
-      // Aggiungo il messaggio alla lista dei messaggi
-      setMessages((currentMessages) => [message, ...currentMessages]);
-
       // mando event emitter
       await eventEmitter.newMessage(message);
+      // Aggiungo il messaggio alla lista dei messaggi
+      setMessages((currentMessages) => [message, ...currentMessages]);
     } else {
       console.error("Failed to send message");
     }
@@ -346,11 +345,19 @@ const ChatContent = ({ onBack, contentView }) => {
       }
 
       // Aggiungi il messaggio al gruppo corrente
-      groupMessages.push({
-        type: "message",
-        data: message,
-        uniqueKey: message.id,
-      });
+      if (message.type === "system") {
+        groupMessages.push({
+          type: "system",
+          data: message,
+          uniqueKey: message.id,
+        });
+      } else {
+        groupMessages.push({
+          type: "text",
+          data: message,
+          uniqueKey: message.id,
+        });
+      }
     });
 
     // Aggiungi l'ultimo gruppo e il suo separatore
@@ -423,6 +430,11 @@ const ChatContent = ({ onBack, contentView }) => {
             renderItem={({ item }) => {
               if (item.type === "separator") {
                 return <MessageSystem type={"date"} data={item.data} />;
+              } else if (item.type === "system") {
+                const text = chatUtils.getSystemMessageText(
+                  item.data.system_action
+                );
+                return <MessageSystem type={"system"} data={text} />;
               } else {
                 const message = item.data;
                 return (

@@ -10,7 +10,7 @@ class Database {
   static async create() {
     if (!Database.instance) {
       const db = await adapter.openDatabaseAsync("novyse");
-      if(!db) {
+      if (!db) {
         throw new Error("Failed to open database");
       }
       Database.instance = new Database(db);
@@ -94,7 +94,9 @@ class Database {
                 chatUUID TEXT NOT NULL,
                 senderUUID TEXT NOT NULL,
                 text TEXT,
+                type TEXT NOT NULL DEFAULT 'text',
                 fileUUID TEXT,
+                system_action TEXT,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 is_pinned BOOLEAN NOT NULL DEFAULT 0,
                 replyToMessageUUID TEXT,
@@ -215,7 +217,7 @@ class Database {
       `,
         [user.uuid, user.handle]
       );
-      console.log("User added successfully.");
+      console.log("User added successfully.", user);
       return true;
     } catch (error) {
       console.error("Error adding user:", error);
@@ -310,13 +312,15 @@ class Database {
       }
 
       await this.db.runAsync(
-        `INSERT INTO message (id, chatUUID, senderUUID, text, fileUUID, created_at, is_pinned, replyToMessageUUID) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT INTO message (id, chatUUID, senderUUID, text, type, fileUUID, system_action, created_at, is_pinned, replyToMessageUUID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
           message.senderUUID,
           message.text || null,
+          message.type || "text",
           message.fileUUID || null,
+          message.system_action || null,
           message.created_at,
           message.isPinned ? 1 : 0,
           message.replyToMessageUUID || null,
