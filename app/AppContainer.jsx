@@ -32,6 +32,7 @@ import useAppInit from "./hooks/useAppInit";
 
 // Context
 import { ChatContext } from "../context/ChatContext";
+import { UserContext } from "../context/UserContext";
 
 const AppContainer = () => {
   useAppInit(true);
@@ -45,6 +46,8 @@ const AppContainer = () => {
     selectedChatPictureUUID,
     setSelectedChatPictureUUID,
   } = useContext(ChatContext);
+
+  const { setUserUUID } = useContext(UserContext);
 
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [networkAvailable, setNetworkAvailable] = useState(false);
@@ -64,6 +67,17 @@ const AppContainer = () => {
   const [chatContentPosition] = useState(
     new Animated.Value(Dimensions.get("window").width)
   );
+
+  // Set userUUID in UserContext on mount
+  useEffect(() => {
+    const fetchUserUUID = async () => {
+      const userUUID = await auth.getUserUUID();
+      if (userUUID) {
+        setUserUUID(userUUID);
+      }
+    };
+    fetchUserUUID();
+  }, [setUserUUID]);
 
   const onChatSelect = useCallback(
     (chatUUID) => {
@@ -209,8 +223,6 @@ const AppContainer = () => {
   const toggleSearch = useCallback(() => {
     setIsToggleSearchChats((prev) => !prev);
   }, []);
-
-  
 
   const handleBackPress = useCallback(() => {
     setSelectedChatUUID(null);

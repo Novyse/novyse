@@ -39,6 +39,7 @@ import useChatData from "./hooks/useChatData.js";
 // Context
 import { ChatContext } from "../context/ChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
+import { UserContext } from "@/context/UserContext";
 
 const ChatContent = ({ onBack, contentView }) => {
   const router = useRouter();
@@ -55,6 +56,7 @@ const ChatContent = ({ onBack, contentView }) => {
     selectedChatUUID,
     selectedHandle
   );
+  const { userUUID: myUUID } = useContext(UserContext);
 
   const [dropdownInfo, setDropdownInfo] = useState({
     visible: false,
@@ -68,54 +70,6 @@ const ChatContent = ({ onBack, contentView }) => {
   });
   const containerRef = useRef(null);
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
-
-  // setNewMessageText("");
-
-  // // gestisco quando ricevo un messaggio da un utente
-  // const handleReceiveMessage = (data) => {
-  //   if (data.chat_id === chatId) {
-  //     // --- MODIFICA: Creiamo il messaggio con la nuova struttura ---
-  //     const newMessage = {
-  //       message_id: data.message_id || data.hash,
-  //       sender: data.sender,
-  //       date_time: data.date,
-  //       hash: data.hash,
-  //       content: { text: data.text },
-  //     };
-  //     setMessages((currentMessages) => [newMessage, ...currentMessages]);
-  //   }
-  // };
-  // eventEmitter.on("newMessage", handleReceiveMessage);
-
-  // // gestisco quando il server ritorna le info del messaggio (il server conferma che ha ricevuto il messaggio)
-  // const handleUpdateMessage = (data) => {
-  //   setMessages((currentMessages) => {
-  //     return currentMessages.map((item) => {
-  //       if (item.hash === data.hash) {
-  //         // --- MODIFICA: Aggiorniamo il messaggio con la nuova struttura ---
-  //         return {
-  //           message_id: data.message_id,
-  //           sender: data.sender,
-  //           date_time: data.date,
-  //           hash: data.hash,
-  //           content: { text: data.text },
-  //         };
-  //       }
-  //       return item;
-  //     });
-  //   });
-  // };
-  // eventEmitter.on("updateMessage", handleUpdateMessage);
-
-  // @SamueleOrazioDurante da far esplodere e mettere nel context
-  const [myUUID, setMyUUID] = useState(null);
-  useEffect(() => {
-    const fetchMyUUID = async () => {
-      const uuid = await auth.getUserUUID();
-      setMyUUID(uuid);
-    };
-    fetchMyUUID();
-  }, []);
 
   useEffect(() => {
     // gestisco quando l'utente vuole tornare alla pagina precedente
@@ -300,7 +254,6 @@ const ChatContent = ({ onBack, contentView }) => {
   const handleSendMessage = async () => {
     const database = await Database.create();
     if (chat.uuid) {
-
       // Messaggio temporaneo da storare nel database, da aggiungere a messages e poi da cambiare con quello che arriva dall'api
       // @Matt3opower
       // const messageID = Date.now().toString();
@@ -538,14 +491,18 @@ const ChatContent = ({ onBack, contentView }) => {
             ) : (
               <Icon
                 name="SentIcon"
-                onPress={handleVoiceMessage}
+                onPress={handleSendMessage}
                 style={styles.iconButton}
               />
             )}
           </View>
         ) : (
           <Pressable onPress={handleJoin} style={styles.joinGroupButton}>
-            <Text style={styles.joinGroupButtonText}>Join</Text>
+            <Text style={styles.joinGroupButtonText}>
+              Join{" "}
+              {chat.type.charAt(0).toUpperCase() +
+                chat.type.slice(1).toLowerCase()}
+            </Text>
           </Pressable>
         )}
       </View>
