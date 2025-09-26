@@ -81,6 +81,7 @@ const useChats = () => {
 
     return () => {
       eventEmitter.getEmitter().off("newMessage", handleNewMessage);
+      eventEmitter.getEmitter().off("newChat", handleNewChat);
     };
   }, []);
 

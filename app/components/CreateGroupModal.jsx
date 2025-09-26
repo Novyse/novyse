@@ -14,7 +14,7 @@ import gateway from "../utils/backend-services/api-gateway";
 import localDatabase from "../utils/localDatabaseMethods";
 import Database from "../utils/storage/database";
 import { useRouter } from "expo-router";
-import eventEmitter from "../utils/global/Events/lib/EventEmitter";
+import eventEmitter from "../utils/global/Events/EventEmitter";
 import StatusMessage from "./StatusMessage";
 import InputDeviceDropdown from "./settings/vocal-chat/InputDeviceDropdown";
 
@@ -157,10 +157,8 @@ const CreateGroupModal = ({ visible, onClose }) => {
       resetFields();
       onClose();
 
-      // inserisco chat e user nel db locale
-      const database = await Database.create();
-      await database.addChat(chat);
-      // await localDatabase.insertUsers(handle);
+      // Notify other parts of the app about the new chat
+      await eventEmitter.newChat(chat);
       // Clear the parameter after handling
       router.navigate(`/chat/${chat.uuid}`);
 

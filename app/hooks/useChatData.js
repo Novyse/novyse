@@ -76,6 +76,10 @@ const useChatData = (chatUUID, chatHandle = null) => {
         setError(err);
       } finally {
         setLoading(false);
+        console.info("Finished loading messages and chat data.", {
+          chat,
+          messages,
+        });
       }
     };
     loadMessages();

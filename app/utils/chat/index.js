@@ -113,4 +113,31 @@ const getChatNameAndProfilePicture = async (chat) => {
   return { name, chatPictureUUID };
 };
 
-export default { getChatData, getChatNameAndProfilePicture };
+/**
+ * Get real text from system message object
+ * @param {String} systemMessage
+ * @returns {String} text
+ */
+const getSystemMessageText = (systemMessage) => {
+  let text = "";
+  switch (systemMessage) {
+    case "CHAT_CREATED":
+      text = "Chat created";
+      break;
+    case "USER_JOINED":
+      text = "User joined the chat";
+      break;
+    case "USER_LEFT":
+      text = "User left the chat";
+      break;
+    default:
+      text = systemMessage || "System message";
+  }
+  return text;
+};
+
+export default {
+  getChatData,
+  getChatNameAndProfilePicture,
+  getSystemMessageText,
+};
