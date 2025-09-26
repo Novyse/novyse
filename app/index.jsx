@@ -42,9 +42,9 @@ export default function Index() {
 
         if (isLoggedIn && isMounted) {
           console.log("Controllo positivo 🟢");
-          JsonParser.updateAll(lastUpdateDateTime).catch((error) =>
-            console.error("Errore in updateAll:", error)
-          );
+          // JsonParser.updateAll(lastUpdateDateTime).catch((error) =>
+          //   console.error("Errore in updateAll:", error)
+          // );
           router.replace("/chat");
         }
       } catch (error) {
@@ -53,7 +53,7 @@ export default function Index() {
         if (isMounted) {
           setIsReady(true);
           try {
-            await SplashScreen.hideAsync();
+            await SplashScreen.hideAsync(); 
           } catch (error) {
             console.error(
               "Errore durante la rimozione dello splash screen:",
@@ -112,7 +112,7 @@ export default function Index() {
   return (
     <ScreenLayout>
       <EmailCheckForm />
-      <StatusBar style="light"/>
+      <StatusBar style="light" />
     </ScreenLayout>
   );
 }

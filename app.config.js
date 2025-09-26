@@ -24,7 +24,7 @@ export {
 // Genera suffisso per dev mode
 const getDevSuffix = () => {
   const branch = BRANCH || "main";
-  return branch === "development" ? "_dev" : "";
+  return branch === "development" ? ".dev" : "";
 };
 
 // Genera il percorso base delle immagini in base al BRANCH
@@ -46,7 +46,7 @@ export default {
     version: APP_VERSION,
     orientation: "portrait",
     icon: getImagePath("bg"),
-    scheme: `com.${APP_SLUG}${devSuffix}`,
+    scheme: `${APP_SLUG}${devSuffix}`,
     owner: EXPO_OWNER,
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
@@ -61,6 +61,13 @@ export default {
       },
       package: `com.${APP_SLUG}${devSuffix}`,
       intentFilters: [
+        {
+          action: "VIEW",
+          data: {
+            scheme: `${APP_SLUG}${devSuffix}`,
+          },
+          category: ["BROWSABLE", "DEFAULT"],
+        },
         {
           action: "VIEW",
           data: {

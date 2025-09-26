@@ -62,7 +62,22 @@ const useChats = () => {
       });
     };
 
+    const handleNewChat = (chat) => {
+      setChatDetails((prevDetails) => ({
+        ...prevDetails,
+        [chat.uuid]: {
+          uuid: chat.uuid,
+          name: chat.name,
+          handle: chat.handle,
+          type: chat.type,
+          profilePictureUUID: chat.profilePictureUUID,
+          lastMessage: null,
+        },
+      }));
+    };
+
     eventEmitter.getEmitter().on("newMessage", handleNewMessage);
+    eventEmitter.getEmitter().on("newChat", handleNewChat);
 
     return () => {
       eventEmitter.getEmitter().off("newMessage", handleNewMessage);

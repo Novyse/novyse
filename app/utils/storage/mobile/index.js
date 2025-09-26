@@ -9,7 +9,10 @@ class Database {
 
   static async create() {
     if (!Database.instance) {
-      const db = await adapter.openDatabaseAsync("novyse.sqlite");
+      const db = await adapter.openDatabaseAsync("novyse");
+      if(!db) {
+        throw new Error("Failed to open database");
+      }
       Database.instance = new Database(db);
     }
     if (!(await Database.instance.exist())) {
@@ -101,6 +104,14 @@ class Database {
                 FOREIGN KEY (replyToMessageUUID) REFERENCES message(uuid)
             );
 
+            CREATE TABLE IF NOT EXISTS bot (
+                uuid TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                description TEXT,
+                profilePictureUUID TEXT,
+                FOREIGN KEY (profilePictureUUID) REFERENCES file(uuid)
+            );
+
             
             CREATE TABLE IF NOT EXISTS handle (
                 userUUID TEXT NULL,
@@ -114,14 +125,6 @@ class Database {
                 FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
                 FOREIGN KEY (botUUID) REFERENCES bot(uuid),
                 FOREIGN KEY (type) REFERENCES handle_type(value)
-            );
-
-            CREATE TABLE IF NOT EXISTS bot (
-                uuid TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                description TEXT,
-                profilePictureUUID TEXT,
-                FOREIGN KEY (profilePictureUUID) REFERENCES file(uuid)
             );
 
             CREATE TABLE IF NOT EXISTS pinned_chat (
@@ -142,6 +145,9 @@ class Database {
 
   async exist() {
     try {
+      if (!this.db) {
+        return false;
+      }
       const result = await this.db.getAllAsync(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='user';"
       );
@@ -289,7 +295,8 @@ class Database {
         !message ||
         message.id === undefined ||
         !message.chatUUID ||
-        !message.senderUUID
+        !message.senderUUID ||
+        !message.created_at
       ) {
         console.error(
           "Missing required message fields:",
@@ -310,7 +317,7 @@ class Database {
           message.senderUUID,
           message.text || null,
           message.fileUUID || null,
-          message.createdAt,
+          message.created_at,
           message.isPinned ? 1 : 0,
           message.replyToMessageUUID || null,
         ]

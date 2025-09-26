@@ -51,7 +51,8 @@ const ChatContent = ({ onBack, contentView }) => {
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
   const [isMicClicked, setIsMicClicked] = useState(false);
 
-  const { selectedChatUUID, selectedHandle } = useContext(ChatContext);
+  const { selectedChatUUID, setSelectedChatUUID, selectedHandle } =
+    useContext(ChatContext);
   const { chat, messages, setMessages, loading } = useChatData(
     selectedChatUUID,
     selectedHandle
@@ -253,42 +254,54 @@ const ChatContent = ({ onBack, contentView }) => {
 
   const handleSendMessage = async () => {
     const database = await Database.create();
-    if (chat.uuid) {
-      // Messaggio temporaneo da storare nel database, da aggiungere a messages e poi da cambiare con quello che arriva dall'api
-      // @Matt3opower
-      // const messageID = Date.now().toString();
-      // const tempMessage = {
-      //   id: messageID,
-      //   chatUUID: chat.uuid,
-      //   senderUUID: myUUID,
-      //   text: newMessageText,
-      //   created_at: "",
-      //   type: "text",
-      // };
-      // await database.addMessage(message);
-      // poi si deve fare un metodo per sostituire il messaggio temporaneo con quello vero
 
-      const { success, message } = await gateway.message.send(
-        chat.uuid,
-        newMessageText,
-        "text"
+    if (!chat.uuid) {
+      // Create chat first
+      const { success, newChat } = await gateway.chat.create(
+        "DM",
+        chat.member,
+        null,
+        null
       );
       if (success) {
-        console.log("Message sent successfully:", message);
-        // Aggiungo il messaggio alla lista dei messaggi
-        setMessages((currentMessages) => [message, ...currentMessages]);
-        // lo salvo nel db locale
-        await database.addMessage(message);
-
-        // mando event emitter
-        await eventEmitter.newMessage(message);
+        console.log("Chat created successfully:", newChat);
+        setSelectedChatUUID(newChat.uuid);
+        await eventEmitter.newChat(newChat);
       } else {
-        console.error("Failed to send message");
+        console.error("Failed to create chat");
+        return;
       }
-    } else if (chat) {
-      console.log("Starting new chat with handle:", chat);
-      // Qui andrebbe la logica per creare una nuova chat e inviare il messaggio
     }
+    // Messaggio temporaneo da storare nel database, da aggiungere a messages e poi da cambiare con quello che arriva dall'api
+    // @Matt3opower
+    // const messageID = Date.now().toString();
+    // const tempMessage = {
+    //   id: messageID,
+    //   chatUUID: chat.uuid,
+    //   senderUUID: myUUID,
+    //   text: newMessageText,
+    //   created_at: "",
+    //   type: "text",
+    // };
+    // await database.addMessage(message);
+    // poi si deve fare un metodo per sostituire il messaggio temporaneo con quello vero
+
+    const { success, message } = await gateway.message.send(
+      chat.uuid,
+      newMessageText,
+      "text"
+    );
+    if (success) {
+      console.log("Message sent successfully:", message);
+      // Aggiungo il messaggio alla lista dei messaggi
+      setMessages((currentMessages) => [message, ...currentMessages]);
+
+      // mando event emitter
+      await eventEmitter.newMessage(message);
+    } else {
+      console.error("Failed to send message");
+    }
+
     setNewMessageText("");
     setVoiceMessage(true);
     setIsMicClicked(false);

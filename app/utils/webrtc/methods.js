@@ -9,6 +9,7 @@ import { Platform } from "react-native";
 const WebRTC = WebRTCManager;
 
 // Import mediaDevices from react-native-webrtc
+let MediaStream;
 let mediaDevices;
 if (Platform.OS === "web") {
   const WebRTCLib = require("react-native-webrtc-web-shim");
@@ -23,9 +24,8 @@ const self = {
   // quando io entro in una room
   async join(chatId) {
     // Start local stream using settings parameters
-    const commsSettings = await settingsManager.getPageParameters(
-      "settings.comms"
-    );
+    const commsSettings =
+      await settingsManager.getPageParameters("settings.comms");
     const stream = await WebRTC.startLocalStream(commsSettings);
     if (!stream) {
       console.warn("Entry without stream");
@@ -44,9 +44,12 @@ const self = {
 
     await WebRTC.regenerate(data.from, chatId, stream);
 
-    if(commsSettings.entryMode === "VIDEO_ONLY" || commsSettings.entryMode === "BOTH") {
+    if (
+      commsSettings.entryMode === "VIDEO_ONLY" ||
+      commsSettings.entryMode === "BOTH"
+    ) {
       WebRTC.setVideoEnabled(true); // Set video state to enabled on join if entry mode includes video
-    }else{
+    } else {
       WebRTC.setVideoEnabled(false); // Set video state to disabled on join if entry mode is audio only or off
     }
 
@@ -90,9 +93,8 @@ const self = {
 
     if (!localStream) {
       console.warn("No local stream available for toggle audio, creating...");
-      const commsSettings = await settingsManager.getPageParameters(
-        "settings.comms"
-      );
+      const commsSettings =
+        await settingsManager.getPageParameters("settings.comms");
       commsSettings.entryMode = "AUDIO_ONLY"; // Force audio only for initial stream if none
       localStream = await WebRTC.startLocalStream(commsSettings);
       await WebRTC.updateVAD();
@@ -108,9 +110,8 @@ const self = {
         return audioTrack.enabled;
       } else {
         // add audio track if none
-        const commsSettings = await settingsManager.getPageParameters(
-          "settings.comms"
-        );
+        const commsSettings =
+          await settingsManager.getPageParameters("settings.comms");
         const newAudioTrack = await WebRTC.addAudioTrack(commsSettings);
         if (newAudioTrack) {
           await WebRTC.updateVAD();
@@ -153,9 +154,8 @@ const self = {
       // Apply audio processing using StreamManager
       let processedStream = newAudioStream;
       if (Platform.OS === "web") {
-        processedStream = await WebRTC.streamManager.applyAudioProcessing(
-          newAudioStream
-        );
+        processedStream =
+          await WebRTC.streamManager.applyAudioProcessing(newAudioStream);
       }
 
       const newAudioTrack = processedStream.getAudioTracks()[0];
@@ -439,9 +439,8 @@ const self = {
 
       if (!localStream) {
         console.warn("No local stream available for toggle video, creating...");
-        const commsSettings = await settingsManager.getPageParameters(
-          "settings.comms"
-        );
+        const commsSettings =
+          await settingsManager.getPageParameters("settings.comms");
         commsSettings.entryMode = "VIDEO_ONLY"; // Force video only for initial stream if none
         localStream = await WebRTC.startLocalStream(commsSettings);
       }
@@ -450,9 +449,8 @@ const self = {
 
       if (!WebRTC.isVideoEnabled()) {
         // Attiva video con parametri specifici
-        const commsSettings = await settingsManager.getPageParameters(
-          "settings.comms"
-        );
+        const commsSettings =
+          await settingsManager.getPageParameters("settings.comms");
         const videoTrack = await WebRTC.addVideoTrack(commsSettings);
         if (videoTrack) {
           WebRTC.setVideoEnabled(true);
@@ -676,12 +674,11 @@ const get = {
   },
   microphoneStatus: async () => {
     if (!check.isInComms()) {
-      const entryMode = await settingsManager.getSingleParameter("settings.comms.entryMode");
+      const entryMode = await settingsManager.getSingleParameter(
+        "settings.comms.entryMode"
+      );
       console.info("Entry mode:", entryMode);
-      if (
-        entryMode === "AUDIO_ONLY" ||
-        entryMode === "BOTH"
-      ) {
+      if (entryMode === "AUDIO_ONLY" || entryMode === "BOTH") {
         return true;
       }
       return false;
@@ -693,11 +690,10 @@ const get = {
   },
   videoStatus: async () => {
     if (!check.isInComms()) {
-      const entryMode = await settingsManager.getSingleParameter("settings.comms.entryMode");
-      if (
-        entryMode === "VIDEO_ONLY" ||
-        entryMode === "BOTH"
-      ) {
+      const entryMode = await settingsManager.getSingleParameter(
+        "settings.comms.entryMode"
+      );
+      if (entryMode === "VIDEO_ONLY" || entryMode === "BOTH") {
         return true;
       }
       return false;

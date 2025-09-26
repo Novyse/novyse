@@ -31,13 +31,20 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="com.novyse_dev"/>
-        <data android:scheme="exp+novysedev"/>
+        <data android:scheme="novyse.dev"/>
+        <data android:scheme="exp+novyse.dev"/>
+      </intent-filter>
+      <intent-filter data-generated="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="novyse.dev"/>
+        <data android:scheme="exp+novyse.dev"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
       <intent-filter data-generated="true">
         <action android:name="android.intent.action.VIEW"/>
         <data android:scheme="https" android:host="web.novyse.com" android:pathPrefix="/"/>
-        <data android:scheme="exp+novysedev"/>
+        <data android:scheme="exp+novyse.dev"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>

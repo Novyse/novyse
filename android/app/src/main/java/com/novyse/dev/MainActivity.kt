@@ -1,4 +1,4 @@
-package com.novyse_dev
+package com.novyse.dev
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

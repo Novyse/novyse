@@ -1,4 +1,4 @@
-package com.novyse_dev
+package com.novyse.dev
 
 import android.app.Application
 import android.content.res.Configuration
