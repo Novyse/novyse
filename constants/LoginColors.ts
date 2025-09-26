@@ -1,7 +1,7 @@
 export const LoginColors = {
   default: {
     background: ["#013480", "#177FC0"],
-    backgroundCard: "rgba(255, 255, 257, 0.8)",
+    backgroundCard: "rgba(255, 255, 255, 0.6)",
     backgroundTextInput: "#fff",
     backgroundQRCode: "#fff",
     backgroundIcon: "#177FC0",
@@ -21,6 +21,10 @@ export const LoginColors = {
     subtitle: "#2D2D2D",
     icon: "#fff",
     iconLoading: "#013480",
+    iconShowHideField: "#013480",
+
+    //signup new colors
+
   },
   christmas: {},
   halloween: {},

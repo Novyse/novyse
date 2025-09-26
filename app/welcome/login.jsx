@@ -10,6 +10,7 @@ import {
   Platform,
   Image,
   useWindowDimensions,
+  KeyboardAvoidingView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -39,7 +40,7 @@ const LoginPassword = () => {
   const styles = createStyle(loginTheme, isSmallScreen);
 
   useEffect(() => {
-    auth.checkShouldBeHere(router,false);
+    auth.checkShouldBeHere(router, false);
 
     const backAction = () => {
       router.navigate("/welcome/email-check");
@@ -79,7 +80,7 @@ const LoginPassword = () => {
         return;
       } else {
         if (!twofa) {
-          if(await auth.initializeApp()){
+          if (await auth.initializeApp()) {
             router.replace("/chat");
           }
         } else {
@@ -142,11 +143,7 @@ const LoginPassword = () => {
 
   return (
     <LinearGradient
-      colors={
-        isSmallScreen
-          ? ["transparent", "transparent"]
-          : LoginColors[loginTheme].background
-      }
+      colors={LoginColors[loginTheme].background}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -160,77 +157,84 @@ const LoginPassword = () => {
 
       {/* Card */}
       <View style={styles.card}>
-        <View style={styles.cardContent}>
-          <Image
-            style={styles.logo}
-            source={require("../../assets/images/logo-novyse.png")}
-          />
+        <KeyboardAvoidingView
+          behavior={"position"}
+          keyboardVerticalOffset={20}
+        >
+          <View style={styles.cardContent}>
+            <Image
+              style={styles.logo}
+              source={require("../../assets/images/logo-novyse.png")}
+            />
 
-          <Text style={styles.title}>Login</Text>
-          <Text style={styles.subtitle}>Enter your password to login</Text>
+            <Text style={styles.title}>Login</Text>
+            <Text style={styles.subtitle}>Enter your password to login</Text>
+              <View style={styles.inputWrapper}>
+                {/* Password Input */}
+                <View
+                  style={[
+                    styles.passwordInputContainer,
+                    error ? styles.inputError : null,
+                  ]}
+                >
+                  <TextInput
+                    style={styles.textInput}
+                    value={password}
+                    onChangeText={(text) => {
+                      setPassword(text);
+                      if (error) setError(null);
+                    }}
+                    placeholder="Password"
+                    placeholderTextColor={
+                      LoginColors[loginTheme].placeholderTextInput
+                    }
+                    secureTextEntry={secureTextEntry}
+                    onSubmitEditing={
+                      Platform.OS === "web" ? handleLogin : undefined
+                    }
+                  />
+                  <Icon
+                    name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
+                    color={LoginColors[loginTheme].iconShowHideField}
+                    style={styles.eyeButton}
+                    onPress={toggleSecureEntry}
+                  />
+                </View>
 
-          <View style={styles.inputWrapper}>
-            {/* Password Input */}
-            <View
-              style={[
-                styles.passwordInputContainer,
-                error ? styles.inputError : null,
-              ]}
+                {/* Container per i pulsanti Back e Login */}
+                <View style={styles.buttonContainer}>
+                  {/* Pulsante Back */}
+                  <Pressable style={styles.backButton} onPress={handleBack}>
+                    <Text style={styles.backButtonText}>Back</Text>
+                  </Pressable>
+
+                  {/* Pulsante Login */}
+                  <Pressable
+                    style={styles.submitButton}
+                    onPress={handleLogin}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Text style={styles.submitButtonText}>Login</Text>
+                    )}
+                  </Pressable>
+                </View>
+              </View>
+
+            {/* Sostituisci i vecchi messaggi di error e success con il nuovo componente */}
+            <StatusMessage type="error" text={error} />
+            <StatusMessage type="success" text={successMessage} />
+
+            <Text
+              style={styles.resetPasswordText}
+              onPress={handleResetPassword}
             >
-              <TextInput
-                style={styles.textInput}
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  if (error) setError(null);
-                }}
-                placeholder="Password"
-                placeholderTextColor={
-                  LoginColors[loginTheme].placeholderTextInput
-                }
-                secureTextEntry={secureTextEntry}
-                onSubmitEditing={
-                  Platform.OS === "web" ? handleLogin : undefined
-                }
-              />
-              <Icon
-                name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
-                color={LoginColors[loginTheme].iconColor}
-                style={styles.eyeButton}
-                onPress={toggleSecureEntry}
-              />
-            </View>
-
-            {/* Container per i pulsanti Back e Login */}
-            <View style={styles.buttonContainer}>
-              {/* Pulsante Back */}
-              <Pressable style={styles.backButton} onPress={handleBack}>
-                <Text style={styles.backButtonText}>Back</Text>
-              </Pressable>
-
-              {/* Pulsante Login */}
-              <Pressable
-                style={styles.submitButton}
-                onPress={handleLogin}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text style={styles.submitButtonText}>Login</Text>
-                )}
-              </Pressable>
-            </View>
+              Reset Password
+            </Text>
           </View>
-
-          {/* Sostituisci i vecchi messaggi di error e success con il nuovo componente */}
-          <StatusMessage type="error" text={error} />
-          <StatusMessage type="success" text={successMessage} />
-
-          <Text style={styles.resetPasswordText} onPress={handleResetPassword}>
-            Reset Password
-          </Text>
-        </View>
+        </KeyboardAvoidingView>
       </View>
     </LinearGradient>
   );
@@ -312,7 +316,7 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     eyeButton: {
       width: 40,
-      height: 44,
+      height: 40,
       justifyContent: "center",
       alignItems: "center",
       marginRight: 4,
@@ -328,8 +332,7 @@ function createStyle(loginTheme, isSmallScreen) {
       paddingHorizontal: 16,
       paddingVertical: 12,
       borderRadius: 6,
-      backgroundColor:
-        LoginColors[loginTheme].backgroundBackButton,
+      backgroundColor: LoginColors[loginTheme].backgroundBackButton,
       marginRight: 8,
       justifyContent: "center",
       alignItems: "center",

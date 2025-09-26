@@ -10,9 +10,9 @@ import {
   Image,
   useWindowDimensions,
   ActivityIndicator,
+  KeyboardAvoidingView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import JsonParser from "../utils/JsonParser";
 import { useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
@@ -164,11 +164,7 @@ const EmailCheckForm = () => {
 
   return (
     <LinearGradient
-      colors={
-        isSmallScreen
-          ? ["transparent", "transparent"]
-          : LoginColors[loginTheme].background
-      }
+      colors={LoginColors[loginTheme].background}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -181,74 +177,81 @@ const EmailCheckForm = () => {
       />
       {/* Glass Card */}
       <View style={styles.card}>
-        {/* Email Block */}
-        <View style={styles.cardContent}>
-          <Image
-            style={styles.logo}
-            source={require("../../assets/images/logo-novyse.png")}
-          />
-          <Text style={styles.title}>Welcome</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.textInput}
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                if (error) setError(null);
-              }}
-              placeholder="Email"
-              placeholderTextColor={
-                LoginColors[loginTheme].placeholderTextInput
-              }
-              keyboardType="email-address"
-              autoCapitalize="none"
-              onSubmitEditing={Platform.OS === "web" ? handleSubmit : undefined}
+        <KeyboardAvoidingView
+          behavior={"position"}
+          keyboardVerticalOffset={30}
+          style={styles.keyboardView}
+        >
+          {/* Email Block */}
+          <View style={styles.cardContent}>
+            <Image
+              style={styles.logo}
+              source={require("../../assets/images/logo-novyse.png")}
             />
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleSubmit}
-            >
-              <Text style={{ fontSize: 16, color: "white" }}>Continue</Text>
-            </TouchableOpacity>
+            <Text style={styles.title}>Welcome</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.textInput}
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (error) setError(null);
+                }}
+                placeholder="Email"
+                placeholderTextColor={
+                  LoginColors[loginTheme].placeholderTextInput
+                }
+                keyboardType="email-address"
+                autoCapitalize="none"
+                onSubmitEditing={
+                  Platform.OS === "web" ? handleSubmit : undefined
+                }
+              />
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleSubmit}
+              >
+                <Text style={{ fontSize: 16, color: "white" }}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+            <StatusMessage type="error" text={error} />
           </View>
 
-          <StatusMessage type="error" text={error} />
-        </View>
-
-        {/* 3. Esegui il rendering del divider e del QR Code solo se lo schermo NON è piccolo */}
-        {!isSmallScreen && (
-          <>
-            <View style={styles.divider}>
-              <View style={styles.lineDivider} />
-              <Text style={styles.textDivider}>OR</Text>
-              <View style={styles.lineDivider} />
-            </View>
-
-            {/* QR Code Block */}
-            <View style={styles.cardContent}>
-              <View style={styles.qrcodeContainer}>
-                {qrToken ? (
-                  <QRCode
-                    value={qrToken}
-                    logo={logoForQR}
-                    size={styles.qrcodeContainer.width}
-                    enableLinearGradient={true}
-                    linearGradient={["#2241d3", "#1fa6d3ff"]}
-                    logoBorderRadius={100}
-                    logoMargin={5}
-                    logoBackgroundColor={"#fff"}
-                  />
-                ) : (
-                  <ActivityIndicator
-                    size="large"
-                    color={LoginColors[loginTheme].iconLoading}
-                  />
-                )}
+          {/* 3. Esegui il rendering del divider e del QR Code solo se lo schermo NON è piccolo */}
+          {!isSmallScreen && (
+            <>
+              <View style={styles.divider}>
+                <View style={styles.lineDivider} />
+                <Text style={styles.textDivider}>OR</Text>
+                <View style={styles.lineDivider} />
               </View>
-              <Text style={styles.qrcodeSubtitle}>Scan QR to login</Text>
-            </View>
-          </>
-        )}
+
+              {/* QR Code Block */}
+              <View style={styles.cardContent}>
+                <View style={styles.qrcodeContainer}>
+                  {qrToken ? (
+                    <QRCode
+                      value={qrToken}
+                      logo={logoForQR}
+                      size={styles.qrcodeContainer.width}
+                      enableLinearGradient={true}
+                      linearGradient={["#2241d3", "#1fa6d3ff"]}
+                      logoBorderRadius={100}
+                      logoMargin={5}
+                      logoBackgroundColor={"#fff"}
+                    />
+                  ) : (
+                    <ActivityIndicator
+                      size="large"
+                      color={LoginColors[loginTheme].iconLoading}
+                    />
+                  )}
+                </View>
+                <Text style={styles.qrcodeSubtitle}>Scan QR to login</Text>
+              </View>
+            </>
+          )}
+        </KeyboardAvoidingView>
       </View>
     </LinearGradient>
   );
@@ -275,6 +278,9 @@ function createStyle(loginTheme, isSmallScreen) {
       width: isSmallScreen ? "100%" : "auto", // Occupa tutta la larghezza su mobile
       height: isSmallScreen ? "100%" : "auto", // Occupa tutta l'altezza su mobile
       justifyContent: "center", // Centra il contenuto verticalmente su mobile
+    },
+    keyboardView: {
+      flexDirection: isSmallScreen ? "column" : "row",
     },
     cardContent: {
       width: isSmallScreen ? "100%" : 400, // Larghezza piena su mobile

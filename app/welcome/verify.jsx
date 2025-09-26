@@ -2,12 +2,10 @@ import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   ActivityIndicator,
   BackHandler,
   TouchableOpacity,
-  Platform,
   Image,
   useWindowDimensions,
 } from "react-native";
