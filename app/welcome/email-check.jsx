@@ -241,10 +241,10 @@ const EmailCheckForm = () => {
                       logo={logoForQR}
                       size={styles.qrcodeContainer.width}
                       enableLinearGradient={true}
-                      linearGradient={["#2241d3", "#1fa6d3ff"]}
+                      linearGradient={LoginColors[loginTheme].QRCodeGradient}
                       logoBorderRadius={100}
                       logoMargin={5}
-                      logoBackgroundColor={"#fff"}
+                      logoBackgroundColor={LoginColors[loginTheme].QRCodeLogoBacground}
                     />
                   ) : (
                     <ActivityIndicator
@@ -328,7 +328,7 @@ function createStyle(loginTheme, isSmallScreen) {
       width: "100%", // Aggiungi width: '100%' per riempire la maxWidth
       color: LoginColors[loginTheme].text,
       outlineStyle: "none",
-      backgroundColor: "white",
+      backgroundColor: LoginColors[loginTheme].backgroundTextInput,
       borderColor: LoginColors[loginTheme].borderTextInput,
       borderWidth: 1.5,
     },
@@ -356,13 +356,6 @@ function createStyle(loginTheme, isSmallScreen) {
       height: 150,
       width: 150,
       marginBottom: 20,
-    },
-    errorText: {
-      color: "rgba(255, 99, 99, 0.9)",
-      fontSize: 14,
-      marginTop: 24,
-      textAlign: "center",
-      paddingHorizontal: 8,
     },
     divider: {
       flexDirection: "column",

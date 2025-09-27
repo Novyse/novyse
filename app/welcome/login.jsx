@@ -264,7 +264,6 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     cardContent: {
       width: isSmallScreen ? "100%" : 400,
-      // height: isSmallScreen ? 600 : 400,
       justifyContent: isSmallScreen ? "" : "center",
       alignContent: "center",
     },
@@ -301,13 +300,13 @@ function createStyle(loginTheme, isSmallScreen) {
       maxWidth: 300,
       marginBottom: 16,
       borderRadius: 6,
-      backgroundColor: "white",
+      backgroundColor: LoginColors[loginTheme].backgroundTextInput,
       borderColor: LoginColors[loginTheme].borderTextInput,
       borderWidth: 1.5,
     },
     inputError: {
-      borderColor: "rgba(255, 99, 99, 0.8)",
-      backgroundColor: "rgba(255, 99, 99, 0.1)",
+      borderColor: LoginColors[loginTheme].errorBorder,
+      backgroundColor: LoginColors[loginTheme].errorBackground,
     },
     textInput: {
       flex: 1,
@@ -340,7 +339,7 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     submitButtonText: {
       fontSize: 16,
-      color: "white",
+      color: LoginColors[loginTheme].text,
       fontWeight: "500",
     },
     resetPasswordText: {
