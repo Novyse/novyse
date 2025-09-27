@@ -126,10 +126,7 @@ const VerifyMethod = () => {
     setError(null);
     setIsLoading(true);
     try {
-      const verified = await gateway.auth.verifyTwofaCode(
-        token,
-        fullOtp
-      );
+      const verified = await gateway.auth.verifyTwofaCode(token, fullOtp);
       if (verified) {
         router.replace("/settings/privacy-and-security/twofa-methods");
       } else {
@@ -152,13 +149,12 @@ const VerifyMethod = () => {
 
   return (
     <ScreenLayout>
+      <StatusBar style="dark" />
       <HeaderWithBackArrow goBackTo="/settings/privacy-and-security/twofa-methods" />
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={"position"}
         style={styles.container}
       >
-        <StatusBar style="dark" />
-        <ScrollView contentstyle={styles.scrollContainer}>
           <View style={styles.card}>
             <View style={styles.cardContent}>
               <Text style={styles.title}>{getFormattedVerificationType()}</Text>
@@ -204,7 +200,6 @@ const VerifyMethod = () => {
               <StatusMessage type="error" text={error} />
             </View>
           </View>
-        </ScrollView>
       </KeyboardAvoidingView>
     </ScreenLayout>
   );
@@ -219,14 +214,10 @@ function createStyle(theme, isSmallScreen) {
     container: {
       flex: 1,
       alignSelf: "center",
+      alignItems: "center",
+      justifyContent: "center",
       width: "100%",
       maxWidth: 768,
-    },
-    scrollContainer: {
-      flexGrow: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 16,
     },
     card: {
       width: "100%",

@@ -212,7 +212,7 @@ const LoginPassword = () => {
                   </Text>
                 </WelcomeButton>
 
-                <WelcomeButton type={"submit"} onPress={handleBack}>
+                <WelcomeButton type={"submit"} onPress={handleLogin}>
                   <Text
                     style={{
                       fontSize: 16,
