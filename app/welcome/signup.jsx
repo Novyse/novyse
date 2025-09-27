@@ -4,7 +4,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   BackHandler,
   useWindowDimensions,
@@ -21,6 +21,7 @@ import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
 import StatusMessage from "../components/StatusMessage";
 import Icon from "../components/Icon";
+import WelcomeButton from "../components/welcome/WelcomeButton";
 
 const Signup = () => {
   const { emailValue } = useLocalSearchParams();
@@ -98,7 +99,7 @@ const Signup = () => {
   const [isFormValid, setIsFormValid] = useState(false);
   const [handleError, setHandleError] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const [maxStep, setMaxStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState(new Set());
 
   useEffect(() => {
     const backAction = () => {
@@ -251,17 +252,18 @@ const Signup = () => {
     <View style={styles.timeline}>
       {steps.map((step, index) => {
         const isLast = index === steps.length - 1;
-        const isAccessible = index <= maxStep;
-        const isCompleted = isAccessible && index !== currentStep;
+        const isCompleted = completedSteps.has(index) && index !== currentStep;
+        const isCurrent = index === currentStep;
+        const isAccessible = completedSteps.has(index) || isCurrent;
         return (
           <React.Fragment key={step.id}>
             <View style={styles.timelineDotContainer}>
-              <TouchableOpacity
+              <Pressable
                 style={[
                   styles.timelineCircle,
                   isCompleted
                     ? styles.timelineCompleted
-                    : index === currentStep
+                    : isCurrent
                       ? styles.timelineCurrent
                       : styles.timelinePending,
                 ]}
@@ -269,7 +271,7 @@ const Signup = () => {
                 disabled={!isAccessible}
               >
                 <Text style={styles.timelineNumber}>{step.id}</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
             {!isLast && <View style={styles.timelineLine} />}
           </React.Fragment>
@@ -422,7 +424,7 @@ const Signup = () => {
                       : styles.reqRed,
                 ]}
               >
-                {isLoading ? "⏳" : handleAvailable ? "✓" : "✗"}
+                {isLoading ? "⟳" : handleAvailable ? "✓" : "✗"}
               </Text>
               <Text style={styles.reqText}>
                 {isLoading
@@ -450,7 +452,7 @@ const Signup = () => {
           alignItems: "flex-start", // Allinea alla cima per poter centrare solo sulla prima riga
         }}
       >
-        <TouchableOpacity
+        <Pressable
           onPress={() => {
             const newVal = !privacy_policy_accepted;
             SetPrivacy_policy_accepted(newVal);
@@ -478,7 +480,7 @@ const Signup = () => {
               ✓
             </Text>
           )}
-        </TouchableOpacity>
+        </Pressable>
         <Text style={{ fontSize: 14, textAlign: "left", lineHeight: 20 }}>
           I accept{" "}
           <Text
@@ -526,37 +528,51 @@ const Signup = () => {
       if (isLastStep) {
         handleSignup();
       } else {
+        setCompletedSteps((prev) => new Set([...prev, currentStep]));
         const newStep = currentStep + 1;
         setCurrentStep(newStep);
-        setMaxStep(Math.max(maxStep, newStep));
       }
     };
 
     return (
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={prevHandler}>
+        <WelcomeButton onPress={prevHandler} type={"back"}>
           <View style={styles.backButtonText}>
             {isFirstStep ? (
-              <Text>Back</Text>
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: LoginColors[loginTheme].backButtonTextColor,
+                }}
+              >
+                Back
+              </Text>
             ) : (
               <Icon
                 name={"ArrowLeft02Icon"}
-                color={LoginColors[loginTheme].icon}
+                color={LoginColors[loginTheme].iconBackButton}
               />
             )}
           </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.submitButton, { opacity: isDisabled ? 0.6 : 1 }]}
+        </WelcomeButton>
+        <WelcomeButton
           disabled={isDisabled}
           onPress={nextHandler}
+          type={"submit"}
         >
           {isLoading && isLastStep ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
             <Text style={styles.submitButtonText}>
               {isLastStep ? (
-                <Text>Confirm</Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: LoginColors[loginTheme].submitButtonTextColor,
+                  }}
+                >
+                  Confirm
+                </Text>
               ) : (
                 <Icon
                   name={"ArrowRight02Icon"}
@@ -565,7 +581,7 @@ const Signup = () => {
               )}
             </Text>
           )}
-        </TouchableOpacity>
+        </WelcomeButton>
       </View>
     );
   };
@@ -704,6 +720,7 @@ function createStyle(loginTheme, isSmallScreen) {
     inputGroup: {
       marginBottom: 20,
       width: "100%",
+      maxWidth: 300,
     },
     label: {
       fontSize: 14,
@@ -740,7 +757,6 @@ function createStyle(loginTheme, isSmallScreen) {
       height: 40,
       justifyContent: "center",
       alignItems: "center",
-      marginRight: 4,
     },
     requirements: {
       marginTop: 10,
@@ -776,30 +792,10 @@ function createStyle(loginTheme, isSmallScreen) {
       maxWidth: 300,
       marginTop: 20,
     },
-    backButton: {
-      flex: 1,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 6,
-      backgroundColor: LoginColors[loginTheme].backgroundBackButton,
-      marginRight: 8,
-      justifyContent: "center",
-      alignItems: "center",
-    },
     backButtonText: {
       fontSize: 16,
       color: LoginColors[loginTheme].backButtonTextColor,
       fontWeight: "500",
-    },
-    submitButton: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 6,
-      backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
     },
     submitButtonText: {
       fontSize: 16,

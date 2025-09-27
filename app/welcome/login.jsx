@@ -21,6 +21,7 @@ import auth from "../utils/welcome/auth";
 import gateway from "../utils/backend-services/api-gateway";
 import StatusMessage from "../components/StatusMessage";
 import Icon from "../components/Icon";
+import WelcomeButton from "../components/welcome/WelcomeButton";
 
 const LoginPassword = () => {
   const router = useRouter();
@@ -157,10 +158,7 @@ const LoginPassword = () => {
 
       {/* Card */}
       <View style={styles.card}>
-        <KeyboardAvoidingView
-          behavior={"position"}
-          keyboardVerticalOffset={20}
-        >
+        <KeyboardAvoidingView behavior={"position"} keyboardVerticalOffset={20}>
           <View style={styles.cardContent}>
             <Image
               style={styles.logo}
@@ -169,59 +167,63 @@ const LoginPassword = () => {
 
             <Text style={styles.title}>Login</Text>
             <Text style={styles.subtitle}>Enter your password to login</Text>
-              <View style={styles.inputWrapper}>
-                {/* Password Input */}
-                <View
-                  style={[
-                    styles.passwordInputContainer,
-                    error ? styles.inputError : null,
-                  ]}
-                >
-                  <TextInput
-                    style={styles.textInput}
-                    value={password}
-                    onChangeText={(text) => {
-                      setPassword(text);
-                      if (error) setError(null);
-                    }}
-                    placeholder="Password"
-                    placeholderTextColor={
-                      LoginColors[loginTheme].placeholderTextInput
-                    }
-                    secureTextEntry={secureTextEntry}
-                    onSubmitEditing={
-                      Platform.OS === "web" ? handleLogin : undefined
-                    }
-                  />
-                  <Icon
-                    name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
-                    color={LoginColors[loginTheme].iconShowHideField}
-                    style={styles.eyeButton}
-                    onPress={toggleSecureEntry}
-                  />
-                </View>
-
-                {/* Container per i pulsanti Back e Login */}
-                <View style={styles.buttonContainer}>
-                  {/* Pulsante Back */}
-                  <Pressable style={styles.backButton} onPress={handleBack}>
-                    <Text style={styles.backButtonText}>Back</Text>
-                  </Pressable>
-
-                  {/* Pulsante Login */}
-                  <Pressable
-                    style={styles.submitButton}
-                    onPress={handleLogin}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <Text style={styles.submitButtonText}>Login</Text>
-                    )}
-                  </Pressable>
-                </View>
+            <View style={styles.inputWrapper}>
+              {/* Password Input */}
+              <View
+                style={[
+                  styles.passwordInputContainer,
+                  error ? styles.inputError : null,
+                ]}
+              >
+                <TextInput
+                  style={styles.textInput}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (error) setError(null);
+                  }}
+                  placeholder="Password"
+                  placeholderTextColor={
+                    LoginColors[loginTheme].placeholderTextInput
+                  }
+                  secureTextEntry={secureTextEntry}
+                  onSubmitEditing={
+                    Platform.OS === "web" ? handleLogin : undefined
+                  }
+                />
+                <Icon
+                  name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
+                  color={LoginColors[loginTheme].iconShowHideField}
+                  style={styles.eyeButton}
+                  onPress={toggleSecureEntry}
+                />
               </View>
+
+              {/* Container per i pulsanti Back e Login */}
+              <View style={styles.buttonContainer}>
+                <WelcomeButton type={"back"} onPress={handleBack}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: LoginColors[loginTheme].backButtonTextColor,
+                    }}
+                  >
+                    Back
+                  </Text>
+                </WelcomeButton>
+
+                <WelcomeButton type={"submit"} onPress={handleBack}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: LoginColors[loginTheme].submitButtonTextColor,
+                    }}
+                  >
+                    Continue
+                  </Text>
+                </WelcomeButton>
+              </View>
+            </View>
 
             {/* Sostituisci i vecchi messaggi di error e success con il nuovo componente */}
             <StatusMessage type="error" text={error} />
@@ -319,28 +321,12 @@ function createStyle(loginTheme, isSmallScreen) {
       height: 40,
       justifyContent: "center",
       alignItems: "center",
-      marginRight: 4,
     },
     buttonContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
       width: "100%",
       maxWidth: 300,
-    },
-    backButton: {
-      flex: 1,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 6,
-      backgroundColor: LoginColors[loginTheme].backgroundBackButton,
-      marginRight: 8,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    backButtonText: {
-      fontSize: 16,
-      color: LoginColors[loginTheme].backButtonTextColor,
-      fontWeight: "500",
     },
     submitButton: {
       flex: 1,

@@ -9,6 +9,7 @@ const HoverAndPressedButton = ({
   style = {}, // Stili base per il container
   hoveredStyle = {}, // Stili per stato hovered
   pressedStyle = {}, // Stili per stato pressed
+  disabled
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -22,6 +23,7 @@ const HoverAndPressedButton = ({
         pressed && { ...styles.basePressed, ...pressedStyle },
       ]}
       onPress={onPress}
+      disabled={disabled}
     >
       {children}
     </Pressable>
@@ -32,7 +34,7 @@ const createStyle = (theme) =>
   StyleSheet.create({
     baseContainer: {
       padding: 5,
-      borderRadius: "50%",
+      borderRadius: "50%"
     },
     baseHovered: {
       backgroundColor: "rgba(0, 0, 0, 0.1)",

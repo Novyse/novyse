@@ -6,7 +6,6 @@ import {
   Text,
   BackHandler,
   Platform,
-  TouchableOpacity,
   Image,
   useWindowDimensions,
   ActivityIndicator,
@@ -19,6 +18,7 @@ import { StatusBar } from "expo-status-bar";
 import gateway from "../utils/backend-services/api-gateway";
 import QRCode from "react-native-qrcode-svg";
 import StatusMessage from "../components/StatusMessage";
+import WelcomeButton from "../components/welcome/WelcomeButton";
 
 import auth from "../utils/welcome/auth";
 
@@ -207,12 +207,18 @@ const EmailCheckForm = () => {
                   Platform.OS === "web" ? handleSubmit : undefined
                 }
               />
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={handleSubmit}
-              >
-                <Text style={{ fontSize: 16, color: "white" }}>Continue</Text>
-              </TouchableOpacity>
+              <View style={styles.buttonContainer}>
+                <WelcomeButton type={"submit"} onPress={handleSubmit}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: LoginColors[loginTheme].submitButtonTextColor,
+                    }}
+                  >
+                    Continue
+                  </Text>
+                </WelcomeButton>
+              </View>
             </View>
             <StatusMessage type="error" text={error} />
           </View>
@@ -310,8 +316,8 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     inputWrapper: {
       alignSelf: "center",
-      width: isSmallScreen ? "100%" : 350,
-      alignItems: "center", // <-- LA SOLUZIONE! Centra i figli orizzontalmente.
+      width: isSmallScreen ? "100%" : 300,
+      alignItems: "center",
     },
     textInput: {
       padding: 10,
@@ -325,17 +331,6 @@ function createStyle(loginTheme, isSmallScreen) {
       backgroundColor: "white",
       borderColor: LoginColors[loginTheme].borderTextInput,
       borderWidth: 1.5,
-    },
-    submitButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 6,
-      maxWidth: 300,
-      width: "100%", // Aggiungi width: '100%' per riempire la maxWidth
-      backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
     },
     arrowIcon: {
       width: 40,
@@ -384,6 +379,12 @@ function createStyle(loginTheme, isSmallScreen) {
       marginVertical: 10,
       color: LoginColors[loginTheme].text,
       fontSize: 16,
+    },
+    buttonContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      width: "100%",
+      maxWidth: 300,
     },
   });
 }

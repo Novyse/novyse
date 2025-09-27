@@ -254,10 +254,9 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     eyeButton: {
       width: 40,
-      height: 44,
+      height: 40,
       justifyContent: "center",
       alignItems: "center",
-      marginRight: 4,
     },
     submitButton: {
       flexDirection: "row",

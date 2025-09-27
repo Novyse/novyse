@@ -10,7 +10,16 @@ export const LoginColors = {
     backgroundBackButton: "#b8b8b8",
 
     backButtonTextColor: "#000",
+    submitButtonTextColor: "#fff",
     placeholderTextInput: "grey",
+    
+    hoveredSubmitButton: "#003f9eff",
+    pressedSubmitButton: "#0049b8ff",
+
+    hoveredBackButton: "#acacacff",
+    pressedBackButton: "#9e9e9eff",
+
+    iconBackButton: "#000",
 
     borderTextInput: "#013480",
     borderQRCode: "#013480",
