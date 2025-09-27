@@ -22,6 +22,7 @@ import * as Linking from "expo-linking";
 import StatusMessage from "../components/StatusMessage";
 import Icon from "../components/Icon";
 import WelcomeButton from "../components/welcome/WelcomeButton";
+import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
 
 const Signup = () => {
   const { emailValue } = useLocalSearchParams();
@@ -260,6 +261,7 @@ const Signup = () => {
             <View style={styles.timelineDotContainer}>
               <Pressable
                 style={[
+                  styles.timelineCircle,
                   isCompleted
                     ? styles.timelineCompleted
                     : isCurrent
@@ -448,7 +450,7 @@ const Signup = () => {
       <View
         style={{
           flexDirection: "row",
-          alignItems: "flex-start", // Allinea alla cima per poter centrare solo sulla prima riga
+          alignItems: "flex-start",
         }}
       >
         <Pressable
@@ -471,11 +473,17 @@ const Signup = () => {
             justifyContent: "center",
             alignItems: "center",
             marginRight: 5,
-            marginTop: 1, // Aggiusta per centrare verticalmente al centro della prima riga (assumendo lineHeight ~20)
+            marginTop: 1,
           }}
         >
           {privacy_policy_accepted && (
-            <Text style={{ color: LoginColors[loginTheme].text, fontWeight: "bold", fontSize: 12 }}>
+            <Text
+              style={{
+                color: LoginColors[loginTheme].checkboxTick,
+                fontWeight: "bold",
+                fontSize: 12,
+              }}
+            >
               ✓
             </Text>
           )}
@@ -536,23 +544,14 @@ const Signup = () => {
     return (
       <View style={styles.buttonContainer}>
         <WelcomeButton onPress={prevHandler} type={"back"}>
-          <View style={styles.backButtonText}>
-            {isFirstStep ? (
-              <Text
-                style={{
-                  fontSize: 16,
-                  color: LoginColors[loginTheme].backButtonTextColor,
-                }}
-              >
-                Back
-              </Text>
-            ) : (
-              <Icon
-                name={"ArrowLeft02Icon"}
-                color={LoginColors[loginTheme].iconBackButton}
-              />
-            )}
-          </View>
+          {isFirstStep ? (
+            <WelcomeButtonText type={"back"} />
+          ) : (
+            <Icon
+              name={"ArrowLeft02Icon"}
+              color={LoginColors[loginTheme].iconBackButton}
+            />
+          )}
         </WelcomeButton>
         <WelcomeButton
           disabled={isDisabled}
@@ -564,24 +563,13 @@ const Signup = () => {
               size="small"
               color={LoginColors[loginTheme].iconLoading}
             />
+          ) : isLastStep ? (
+            <WelcomeButtonText type={"submit"} />
           ) : (
-            <Text style={styles.submitButtonText}>
-              {isLastStep ? (
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: LoginColors[loginTheme].submitButtonTextColor,
-                  }}
-                >
-                  Confirm
-                </Text>
-              ) : (
-                <Icon
-                  name={"ArrowRight02Icon"}
-                  color={LoginColors[loginTheme].icon}
-                />
-              )}
-            </Text>
+            <Icon
+              name={"ArrowRight02Icon"}
+              color={LoginColors[loginTheme].icon}
+            />
           )}
         </WelcomeButton>
       </View>
@@ -629,7 +617,6 @@ const Signup = () => {
 
 export default Signup;
 
-// Funzione per creare stili dinamici
 function createStyle(loginTheme, isSmallScreen) {
   return StyleSheet.create({
     container: {
@@ -676,6 +663,13 @@ function createStyle(loginTheme, isSmallScreen) {
       width: "100%",
       marginBottom: 32,
       maxWidth: 300,
+    },
+    timelineCircle: {
+      width: 45,
+      height: 45,
+      borderRadius: "50%",
+      justifyContent: "center",
+      alignItems: "center",
     },
     timelineDotContainer: {
       alignItems: "center",
@@ -729,7 +723,7 @@ function createStyle(loginTheme, isSmallScreen) {
       backgroundColor: LoginColors[loginTheme].backgroundTextInput,
       borderColor: LoginColors[loginTheme].borderTextInput,
       borderWidth: 1.5,
-      minHeight: 44,
+      minHeight: 45,
     },
     inputError: {
       borderColor: LoginColors[loginTheme].errorBorder,
@@ -785,17 +779,6 @@ function createStyle(loginTheme, isSmallScreen) {
       width: "100%",
       maxWidth: 300,
       marginTop: 20,
-    },
-    backButtonText: {
-      fontSize: 16,
-      color: LoginColors[loginTheme].backButtonTextColor,
-      fontWeight: "500",
-    },
-    submitButtonText: {
-      fontSize: 16,
-      color: LoginColors[loginTheme].submitButtonTextColor,
-      fontWeight: "500",
-      textAlign: "center",
     },
     handleErrorText: {
       color: LoginColors[loginTheme].textError,

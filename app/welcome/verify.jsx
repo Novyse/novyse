@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   BackHandler,
-  TouchableOpacity,
   Image,
   useWindowDimensions,
 } from "react-native";
@@ -17,6 +16,8 @@ import gateway from "../utils/backend-services/api-gateway";
 import auth from "../utils/welcome/auth";
 import OtpDigitsInput from "../components/OtpDigitsInput";
 import StatusMessage from "../components/StatusMessage";
+import WelcomeButton from "../components/welcome/WelcomeButton";
+import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
 
 const Verify = ({}) => {
   const router = useRouter();
@@ -98,13 +99,13 @@ const Verify = ({}) => {
     }
   };
 
+  const handleBack = () => {
+    router.navigate("/welcome/login");
+  };
+
   return (
     <LinearGradient
-      colors={
-        isSmallScreen
-          ? ["transparent", "transparent"]
-          : LoginColors[loginTheme].background
-      }
+      colors={LoginColors[loginTheme].background}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -136,19 +137,26 @@ const Verify = ({}) => {
               inputCount={6}
             />
 
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleVerifyOtp}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text style={styles.submitButtonText}>Verifica Codice</Text>
-              )}
-            </TouchableOpacity>
+            <View style={styles.buttonsContainer}>
+              <WelcomeButton onPress={handleBack} type={"back"}>
+                <WelcomeButtonText type={"back"} />
+              </WelcomeButton>
+              <WelcomeButton
+                onPress={handleVerifyOtp}
+                disabled={isLoading}
+                type={"submit"}
+              >
+                {isLoading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={LoginColors[loginTheme].iconLoading}
+                  />
+                ) : (
+                  <WelcomeButtonText type={"submit"} />
+                )}
+              </WelcomeButton>
+            </View>
           </View>
-
           <StatusMessage type="error" text={error} />
         </View>
       </View>
@@ -206,41 +214,11 @@ function createStyle(loginTheme, isSmallScreen) {
       width: isSmallScreen ? "100%" : 350,
       alignItems: "center",
     },
-    otpContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      width: "100%",
-      maxWidth: 300,
-      marginBottom: 20,
-    },
-    otpInput: {
-      width: 40,
-      height: 50,
-      borderWidth: 1.5,
-      borderColor: LoginColors[loginTheme].borderTextInput,
-      borderRadius: 6,
-      textAlign: "center",
-      fontSize: 24,
-      fontWeight: "bold",
-      color: LoginColors[loginTheme].text,
-      backgroundColor: "white",
-      outlineStyle: "none",
-    },
-    submitButton: {
-      flexDirection: "row",
+    buttonsContainer: {
       alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 6,
-      maxWidth: 300,
       width: "100%",
-      backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
-    },
-    submitButtonText: {
-      fontSize: 16,
-      color: "white",
-      fontWeight: "500",
+      flexDirection: "row",
+      maxWidth: 300,
     },
   });
 }

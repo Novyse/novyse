@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   BackHandler,
-  Pressable,
   Platform,
   Image,
   useWindowDimensions,
@@ -18,6 +17,8 @@ import auth from "../utils/welcome/auth";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import StatusMessage from "../components/StatusMessage";
+import WelcomeButton from "../components/welcome/WelcomeButton";
+import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
 import Icon from "../components/Icon";
 
 const ResetPassword = () => {
@@ -36,7 +37,7 @@ const ResetPassword = () => {
   const isPasswordValid = (pwd) => passwordRegex.test(pwd);
 
   useEffect(() => {
-    auth.checkShouldBeHere(router,false);
+    auth.checkShouldBeHere(router, false);
 
     const backAction = () => {
       router.navigate("/welcome/email-check");
@@ -96,13 +97,13 @@ const ResetPassword = () => {
     setSecureTextEntry(!secureTextEntry);
   };
 
+  const handleBack = () => {
+    router.navigate("/welcome/email-check");
+  };
+
   return (
     <LinearGradient
-      colors={
-        isSmallScreen
-          ? ["transparent", "transparent"]
-          : LoginColors[loginTheme].background
-      }
+      colors={LoginColors[loginTheme].background}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -157,18 +158,25 @@ const ResetPassword = () => {
               />
             </View>
 
-            {/* Submit Button */}
-            <Pressable
-              style={styles.submitButton}
-              onPress={handleResetPassword}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text style={styles.submitButtonText}>Continue</Text>
-              )}
-            </Pressable>
+            <View style={styles.buttonsContainer}>
+              <WelcomeButton onPress={handleBack} type={"back"}>
+                <WelcomeButtonText type={"back"} />
+              </WelcomeButton>
+              <WelcomeButton
+                onPress={handleResetPassword}
+                disabled={isLoading}
+                type={"submit"}
+              >
+                {isLoading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={LoginColors[loginTheme].iconLoading}
+                  />
+                ) : (
+                  <WelcomeButtonText type={"submit"} />
+                )}
+              </WelcomeButton>
+            </View>
           </View>
 
           <StatusMessage type="error" text={error} />
@@ -180,7 +188,6 @@ const ResetPassword = () => {
 
 export default ResetPassword;
 
-// Funzione per creare stili dinamici
 function createStyle(loginTheme, isSmallScreen) {
   return StyleSheet.create({
     container: {
@@ -200,7 +207,6 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     cardContent: {
       width: isSmallScreen ? "100%" : 400,
-      // height: isSmallScreen ? 600 : 400,
       justifyContent: isSmallScreen ? "" : "center",
       alignContent: "center",
     },
@@ -237,13 +243,13 @@ function createStyle(loginTheme, isSmallScreen) {
       maxWidth: 300,
       marginBottom: 16,
       borderRadius: 6,
-      backgroundColor: "white",
+      backgroundColor: LoginColors[loginTheme].backgroundTextInput,
       borderColor: LoginColors[loginTheme].borderTextInput,
       borderWidth: 1.5,
     },
     inputError: {
-      borderColor: "rgba(255, 99, 99, 0.8)",
-      backgroundColor: "rgba(255, 99, 99, 0.1)",
+      borderColor: LoginColors[loginTheme].errorBorder,
+      backgroundColor: LoginColors[loginTheme].errorBackground,
     },
     textInput: {
       flex: 1,
@@ -258,21 +264,11 @@ function createStyle(loginTheme, isSmallScreen) {
       justifyContent: "center",
       alignItems: "center",
     },
-    submitButton: {
-      flexDirection: "row",
+    buttonsContainer: {
       alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 6,
-      maxWidth: 300,
       width: "100%",
-      backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
-    },
-    submitButtonText: {
-      fontSize: 16,
-      color: "white",
-      fontWeight: "500",
+      flexDirection: "row",
+      maxWidth: 300,
     },
   });
 }

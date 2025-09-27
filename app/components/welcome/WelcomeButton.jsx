@@ -43,7 +43,7 @@ function createStyles(loginTheme) {
       maxWidth: 300,
       width: "100%",
       flex: 1,
-      height: 50,
+      height: 45,
     },
     backButton: {
       backgroundColor: LoginColors[loginTheme].backgroundBackButton,
@@ -55,7 +55,7 @@ function createStyles(loginTheme) {
       maxWidth: 300,
       width: "100%",
       flex: 1,
-      height: 50,
+      height: 45,
       marginRight: 16,
     },
   });

@@ -4,9 +4,7 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  ActivityIndicator,
   BackHandler,
-  Pressable,
   Platform,
   Image,
   useWindowDimensions,
@@ -22,6 +20,7 @@ import gateway from "../utils/backend-services/api-gateway";
 import StatusMessage from "../components/StatusMessage";
 import Icon from "../components/Icon";
 import WelcomeButton from "../components/welcome/WelcomeButton";
+import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
 
 const LoginPassword = () => {
   const router = useRouter();
@@ -33,11 +32,9 @@ const LoginPassword = () => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const loginTheme = "default";
 
-  // Ottieni la larghezza dello schermo e definisci il breakpoint
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 936;
 
-  // Passa la variabile isSmallScreen per creare stili dinamici
   const styles = createStyle(loginTheme, isSmallScreen);
 
   useEffect(() => {
@@ -202,25 +199,11 @@ const LoginPassword = () => {
               {/* Container per i pulsanti Back e Login */}
               <View style={styles.buttonContainer}>
                 <WelcomeButton type={"back"} onPress={handleBack}>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: LoginColors[loginTheme].backButtonTextColor,
-                    }}
-                  >
-                    Back
-                  </Text>
+                  <WelcomeButtonText type={"back"} />
                 </WelcomeButton>
 
                 <WelcomeButton type={"submit"} onPress={handleLogin}>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: LoginColors[loginTheme].submitButtonTextColor,
-                    }}
-                  >
-                    Continue
-                  </Text>
+                  <WelcomeButtonText type={"submit"} />
                 </WelcomeButton>
               </View>
             </View>
@@ -244,7 +227,6 @@ const LoginPassword = () => {
 
 export default LoginPassword;
 
-// Funzione per creare stili dinamici
 function createStyle(loginTheme, isSmallScreen) {
   return StyleSheet.create({
     container: {
@@ -327,26 +309,10 @@ function createStyle(loginTheme, isSmallScreen) {
       width: "100%",
       maxWidth: 300,
     },
-    submitButton: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 6,
-      backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
-    },
-    submitButtonText: {
-      fontSize: 16,
-      color: LoginColors[loginTheme].text,
-      fontWeight: "500",
-    },
     resetPasswordText: {
       fontSize: 14,
       marginTop: 24,
-      textAlign: "center",
-      paddingHorizontal: 8,
+      alignSelf: "center",
       color: LoginColors[loginTheme].link,
       textDecorationLine: "underline",
     },

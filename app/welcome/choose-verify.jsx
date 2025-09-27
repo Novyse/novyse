@@ -1,13 +1,11 @@
-// chooseverify.js (o il nome del tuo file per la pagina ChooseVerify)
 import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Image,
   useWindowDimensions,
-  ActivityIndicator, // Aggiunto per coerenza con gli stili
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -16,12 +14,14 @@ import { StatusBar } from "expo-status-bar";
 import gateway from "../utils/backend-services/api-gateway";
 import StatusMessage from "../components/StatusMessage";
 import auth from "../utils/welcome/auth";
+import WelcomeButton from "../components/welcome/WelcomeButton";
+import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
 
 const ChooseVerify = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false); // Mantieni per coerenza ma non strettamente necessario qui
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState(null);
-  const [error, setError] = useState(""); // Add error state
+  const [error, setError] = useState("");
   const loginTheme = "default";
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 936;
@@ -42,7 +42,7 @@ const ChooseVerify = () => {
   const handleContinue = async () => {
     if (selectedMethod) {
       setIsLoading(true);
-      setError(""); // Clear any previous error
+      setError("");
       const { success, method, twoFactorToken, expiresIn } =
         await gateway.auth.chooseTwofaMethod(token, selectedMethod);
       if (success) {
@@ -60,13 +60,13 @@ const ChooseVerify = () => {
     }
   };
 
+  const handleBack = () => {
+    router.navigate("/welcome/login");
+  };
+
   return (
     <LinearGradient
-      colors={
-        isSmallScreen
-          ? ["transparent", "transparent"]
-          : LoginColors[loginTheme].background
-      }
+      colors={LoginColors[loginTheme].background}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -114,20 +114,26 @@ const ChooseVerify = () => {
               </TouchableOpacity>
             ))}
           </View>
-
+          <View style={styles.buttonsContainer}>
+            <WelcomeButton onPress={handleBack} type={"back"}>
+              <WelcomeButtonText type={"back"} />
+            </WelcomeButton>
+            <WelcomeButton
+              onPress={handleContinue}
+              disabled={isLoading || !selectedMethod}
+              type={"submit"}
+            >
+              {isLoading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={LoginColors[loginTheme].iconLoading}
+                />
+              ) : (
+                <WelcomeButtonText type={"submit"} />
+              )}
+            </WelcomeButton>
+          </View>
           <StatusMessage type="error" text={error} />
-
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleContinue}
-            disabled={isLoading || !selectedMethod}
-          >
-            {isLoading ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <Text style={styles.submitButtonText}>Continue</Text>
-            )}
-          </TouchableOpacity>
         </View>
       </View>
     </LinearGradient>
@@ -136,7 +142,6 @@ const ChooseVerify = () => {
 
 export default ChooseVerify;
 
-// Gli stili sono stati modificati e aggiunti per la nuova UI
 function createStyle(loginTheme, isSmallScreen) {
   return StyleSheet.create({
     container: {
@@ -157,7 +162,7 @@ function createStyle(loginTheme, isSmallScreen) {
     cardContent: {
       width: isSmallScreen ? "100%" : 400,
       justifyContent: isSmallScreen ? undefined : "center",
-      alignContent: "center",
+      alignItems: "center",
     },
     logo: {
       alignSelf: "center",
@@ -179,6 +184,7 @@ function createStyle(loginTheme, isSmallScreen) {
       marginBottom: 30,
       lineHeight: 20,
       paddingHorizontal: 20,
+      maxWidth: 300,
     },
     optionsContainer: {
       width: "100%",
@@ -193,7 +199,7 @@ function createStyle(loginTheme, isSmallScreen) {
       paddingVertical: 15,
       marginBottom: 10,
       alignItems: "center",
-      backgroundColor: "white",
+      backgroundColor: LoginColors[loginTheme].backgroundTextInput,
     },
     selectedOptionButton: {
       borderColor: LoginColors[loginTheme].backgroundSubmitButton,
@@ -205,25 +211,13 @@ function createStyle(loginTheme, isSmallScreen) {
       color: LoginColors[loginTheme].text,
     },
     selectedOptionButtonText: {
-      color: "white",
+      color: LoginColors[loginTheme].selectedOptionText,
     },
-    submitButton: {
-      flexDirection: "row",
+    buttonsContainer: {
       alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 6,
-      maxWidth: 300,
       width: "100%",
-      alignSelf: "center",
-      backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
-      marginTop: 20,
-    },
-    submitButtonText: {
-      fontSize: 16,
-      color: "white",
-      fontWeight: "500",
+      flexDirection: "row",
+      maxWidth: 300,
     },
   });
 }

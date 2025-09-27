@@ -8,7 +8,7 @@ export const LoginColors = {
     backgroundIcon: "#177FC0",
     backgroundLineDivider: "#696969",
     backgroundSubmitButton: "#013480",
-    backgroundBackButton: "#b8b8b8",
+    backgroundBackButton: "#d0d0d0ff",
     backgroundTimeline: "#E0E0E0",
 
     // Bottoni
@@ -16,8 +16,8 @@ export const LoginColors = {
     backButtonTextColor: "#000",
     hoveredSubmitButton: "#003f9eff",
     pressedSubmitButton: "#0049b8ff",
-    hoveredBackButton: "#acacacff",
-    pressedBackButton: "#9e9e9eff",
+    hoveredBackButton: "#c7c7c7ff",
+    pressedBackButton: "#b2b2b2ff",
     iconBackButton: "#000",
     iconSubmitButton: "#fff",
 
@@ -42,12 +42,14 @@ export const LoginColors = {
 
     // Testi
     text: "#2D2D2D",
+    selectedOptionText: "#fff",
     link: "#013480",
     title: "#013480",
     subtitle: "#2D2D2D",
     textError: "rgba(255, 99, 99, 0.9)",
 
     // Icone
+    checkboxTick: "#fff",
     icon: "#fff",
     iconLoading: "#013480",
     iconShowHideField: "#013480",

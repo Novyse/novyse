@@ -19,6 +19,7 @@ import gateway from "../utils/backend-services/api-gateway";
 import QRCode from "react-native-qrcode-svg";
 import StatusMessage from "../components/StatusMessage";
 import WelcomeButton from "../components/welcome/WelcomeButton";
+import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
 
 import auth from "../utils/welcome/auth";
 
@@ -26,14 +27,12 @@ const EmailCheckForm = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState(null);
   const [qrToken, setQrToken] = useState("");
-  const [isNavigating, setIsNavigating] = useState(false); // Usato per disattivare il polling quando si naviga
+  const [isNavigating, setIsNavigating] = useState(false);
   const loginTheme = "default";
 
-  // 2. Ottieni la larghezza dello schermo e definisci il breakpoint
   const { width } = useWindowDimensions();
-  const isSmallScreen = width < 936; // Sarà true su schermi di tipo mobile
+  const isSmallScreen = width < 936;
 
-  // Passa la variabile isSmallScreen per creare stili dinamici
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const router = useRouter();
@@ -79,7 +78,6 @@ const EmailCheckForm = () => {
 
                 setQrToken(null); // Used to trigger reload of QR code
                 clearInterval(pollingInterval);
-                // Naviga o aggiorna stato
               } else {
                 // Valid QR but not yet scanned
               }
@@ -124,7 +122,7 @@ const EmailCheckForm = () => {
       return;
     }
 
-    setError(null); // Clear previous errors
+    setError(null);
     setIsNavigating(true); // Disattiva il polling
     checkEmailAndNavigate(email);
   };
@@ -209,14 +207,7 @@ const EmailCheckForm = () => {
               />
               <View style={styles.buttonContainer}>
                 <WelcomeButton type={"submit"} onPress={handleSubmit}>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: LoginColors[loginTheme].submitButtonTextColor,
-                    }}
-                  >
-                    Continue
-                  </Text>
+                  <WelcomeButtonText type={"submit"} />
                 </WelcomeButton>
               </View>
             </View>
@@ -244,7 +235,9 @@ const EmailCheckForm = () => {
                       linearGradient={LoginColors[loginTheme].QRCodeGradient}
                       logoBorderRadius={100}
                       logoMargin={5}
-                      logoBackgroundColor={LoginColors[loginTheme].QRCodeLogoBacground}
+                      logoBackgroundColor={
+                        LoginColors[loginTheme].QRCodeLogoBacground
+                      }
                     />
                   ) : (
                     <ActivityIndicator
@@ -265,7 +258,6 @@ const EmailCheckForm = () => {
 
 export default EmailCheckForm;
 
-// 4. Modifica la funzione createStyle per accettare il booleano isSmallScreen
 function createStyle(loginTheme, isSmallScreen) {
   return StyleSheet.create({
     container: {
@@ -274,22 +266,21 @@ function createStyle(loginTheme, isSmallScreen) {
       alignItems: "center",
       padding: isSmallScreen ? 0 : 24,
     },
-    // Stile della card modificato per essere responsive
     card: {
-      padding: isSmallScreen ? 16 : 24, // Meno padding su schermi piccoli
-      borderRadius: isSmallScreen ? 0 : 20, // Nessun bordo arrotondato su schermi piccoli
+      padding: isSmallScreen ? 16 : 24,
+      borderRadius: isSmallScreen ? 0 : 20,
       overflow: "hidden",
-      flexDirection: isSmallScreen ? "column" : "row", // In colonna su schermi piccoli
+      flexDirection: isSmallScreen ? "column" : "row",
       backgroundColor: LoginColors[loginTheme].backgroundCard,
-      width: isSmallScreen ? "100%" : "auto", // Occupa tutta la larghezza su mobile
-      height: isSmallScreen ? "100%" : "auto", // Occupa tutta l'altezza su mobile
-      justifyContent: "center", // Centra il contenuto verticalmente su mobile
+      width: isSmallScreen ? "100%" : "auto",
+      height: isSmallScreen ? "100%" : "auto",
+      justifyContent: "center",
     },
     keyboardView: {
       flexDirection: isSmallScreen ? "column" : "row",
     },
     cardContent: {
-      width: isSmallScreen ? "100%" : 400, // Larghezza piena su mobile
+      width: isSmallScreen ? "100%" : 400,
       justifyContent: isSmallScreen ? "" : "center",
       alignContent: "center",
     },
@@ -299,13 +290,6 @@ function createStyle(loginTheme, isSmallScreen) {
       color: LoginColors[loginTheme].title,
       textAlign: "center",
       marginBottom: isSmallScreen ? 140 : 40,
-    },
-    emailSubtitle: {
-      fontSize: 14,
-      color: LoginColors[loginTheme].subtitle,
-      textAlign: "left",
-      marginTop: 20,
-      marginBottom: 4,
     },
     qrcodeSubtitle: {
       fontSize: 18,
@@ -325,19 +309,13 @@ function createStyle(loginTheme, isSmallScreen) {
       marginBottom: 16,
       fontSize: 16,
       maxWidth: 300,
-      width: "100%", // Aggiungi width: '100%' per riempire la maxWidth
+      width: "100%",
       color: LoginColors[loginTheme].text,
       outlineStyle: "none",
       backgroundColor: LoginColors[loginTheme].backgroundTextInput,
       borderColor: LoginColors[loginTheme].borderTextInput,
       borderWidth: 1.5,
-    },
-    arrowIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 50,
-      alignItems: "right",
-      marginRight: 8,
+      height: 45,
     },
     qrcodeContainer: {
       alignSelf: "center",
