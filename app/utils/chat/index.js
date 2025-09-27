@@ -115,23 +115,39 @@ const getChatNameAndProfilePicture = async (chat) => {
 
 /**
  * Get real text from system message object
- * @param {String} systemMessage
+ * @param {Object} message
  * @returns {String} text
  */
-const getSystemMessageText = (systemMessage) => {
+const getSystemMessageText = async (message) => {
   let text = "";
-  switch (systemMessage) {
+  let name = "User";
+
+  switch (message.system_action) {
     case "CHAT_CREATED":
       text = "Chat created";
       break;
     case "USER_JOINED":
-      text = "User joined the chat";
+      if (message.text == (await auth.getUserUUID())) {
+        name = "You";
+      } else {
+        const database = await Database.create();
+        const user = await database.getUserByUUID(systemMessage.text);
+        name = user ? user.name : "User";
+      }
+      text = `${name} joined the chat`;
       break;
     case "USER_LEFT":
-      text = "User left the chat";
+      if (message.text == (await auth.getUserUUID())) {
+        name = "You";
+      } else {
+        const database = await Database.create();
+        const user = await database.getUserByUUID(message.text);
+        name = user ? user.name : "User";
+      }
+      text = `${name} left the chat`;
       break;
     default:
-      text = systemMessage || "System message";
+      text = "System message";
   }
   return text;
 };

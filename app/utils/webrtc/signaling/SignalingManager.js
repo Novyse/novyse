@@ -4,7 +4,7 @@ import { GlobalState } from "../core/GlobalState.js";
 import { SDP_OPTIONS } from "../config/mediaConstraints.js";
 import Compatibility from "../utils/compatibility.js";
 import helpers from "../utils/helpers.js";
-import SocketMethods from "../../backend-services/socket-io.js";
+import SocketIO from "../../backend-services/socket-io.js";
 
 const { RTCSessionDescription } = Compatibility.getWebRTCLib();
 
@@ -88,7 +88,7 @@ export class SignalingManager {
       // Invia tramite Socket con retry mechanism
       const success = await this._sendWithRetry(
         () =>
-          SocketMethods.RTCOffer({
+          SocketIO.RTCOffer({
             offer: offer.toJSON
               ? offer.toJSON()
               : { sdp: offer.sdp, type: offer.type },
@@ -189,7 +189,7 @@ export class SignalingManager {
       // Invia tramite WebSocket con retry mechanism
       const success = await this._sendWithRetry(
         () =>
-          SocketMethods.RTCAnswer({
+          SocketIO.RTCAnswer({
             answer: answer.toJSON
               ? answer.toJSON()
               : { sdp: answer.sdp, type: answer.type },
@@ -1036,12 +1036,12 @@ export class SignalingManager {
    * @private
    */
   async _sendWithRetry(sendFunction, operationName, maxRetries = 3) {
-    const SocketMethods = await import("../../backend-services/socket-io.js");
+    const SocketIO = await import("../../backend-services/socket-io.js");
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         // Check if WebSocket is connected
-        if (!SocketMethods.default.isSocketOpen()) {
+        if (!SocketIO.default.isSocketOpen()) {
           this.logger.warn(
             `WebSocket not connected for ${operationName}, attempt ${attempt}/${maxRetries}`,
             {
@@ -1063,7 +1063,7 @@ export class SignalingManager {
         // Try to send the message
         const result = await sendFunction();
 
-        // If SocketMethods returns false, treat as failure
+        // If SocketIO returns false, treat as failure
         if (result === false) {
           throw new Error("WebSocket send returned false");
         }

@@ -291,8 +291,8 @@ class PeerConnectionManager {
       // 5. Invia offer via WebSocket
       console.log("📡 SENDING RENEGOTIATION OFFER VIA WEBSOCKET...");
 
-      const SocketMethods = await import("../../backend-services/socket-io.js");
-      await SocketMethods.default.RTCOffer({
+      const SocketIO = await import("../../backend-services/socket-io.js");
+      await SocketIO.default.RTCOffer({
         offer: offer,
         to: participantId,
         from: this.globalState.getMyId(),
@@ -1344,10 +1344,10 @@ class PeerConnectionManager {
   async _sendICECandidateWithRetry(candidate, participantId, maxRetries = 3) {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const SocketMethods = await import("../../backend-services/socket-io.js");
+        const SocketIO = await import("../../backend-services/socket-io.js");
 
         // Check if WebSocket is connected
-        if (!SocketMethods.default.isSocketOpen()) {
+        if (!SocketIO.default.isSocketOpen()) {
           logger.warn(
             "PeerConnectionManager",
             `WebSocket not connected for ICE candidate to ${participantId}, attempt ${attempt}/${maxRetries}`
@@ -1363,7 +1363,7 @@ class PeerConnectionManager {
         }
 
         // Try to send the ICE candidate
-        await SocketMethods.default.IceCandidate({
+        await SocketIO.default.IceCandidate({
           candidate: candidate.toJSON(),
           to: participantId,
           from: this.globalState.myId,

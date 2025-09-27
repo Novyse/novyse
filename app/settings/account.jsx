@@ -26,7 +26,6 @@ const ProfilePage = () => {
       setIsLoading(true);
       const database = await Database.create();
       const user = await database.getLocalUser();
-      console.log("Fetched user dataaaa:", user);
       if (user) {
         setUserData({
           name: user.name || "",

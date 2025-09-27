@@ -1,11 +1,26 @@
 // MessageSystem.jsx
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
+
+import chatUtils from "../../utils/chat/index";
 
 const MessageSystem = ({ type, data }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
+
+
+  // Used to calculate system message text
+  const [systemText, setSystemText] = useState("");
+  useEffect(() => {
+    if (type === "system") {
+      const loadSystemText = async () => {
+        const text = await chatUtils.getSystemMessageText(data);
+        setSystemText(text);
+      };
+      loadSystemText();
+    }
+  }, [type, data]);
 
   switch (type) {
     case "date":
@@ -17,7 +32,7 @@ const MessageSystem = ({ type, data }) => {
     case "system":
       return (
         <View style={styles.systemContainer}>
-          <Text style={styles.systemText}>{data}</Text>
+          <Text style={styles.systemText}>{systemText}</Text>
         </View>
       );
     default:

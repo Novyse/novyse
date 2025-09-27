@@ -300,14 +300,7 @@ class Database {
         !message.senderUUID ||
         !message.created_at
       ) {
-        console.error(
-          "Missing required message fields:",
-          JSON.stringify({
-            id: message?.id,
-            chatUUID: message?.chatUUID,
-            senderUUID: message?.senderUUID,
-          })
-        );
+        console.error("Missing required message fields:", message);
         return false;
       }
 
@@ -341,7 +334,6 @@ class Database {
   async getChats() {
     try {
       const chats = await this.db.getAllAsync("SELECT * FROM chat;");
-      console.log("Fetched chats:", chats);
       return chats;
     } catch (error) {
       console.error("Error retrieving chats:", error);
@@ -378,16 +370,33 @@ class Database {
 
   async getUserByChatUUID(chatUUID) {
     try {
-      const user = await this.db.getFirstAsync(
-        `
-        SELECT u.* FROM user u
-        JOIN member m ON u.uuid = m.userUUID
-        WHERE m.chatUUID = ?
-        LIMIT 1;
-      `,
+      const members = await this.db.getAllAsync(
+        `SELECT userUUID FROM member WHERE chatUUID = ?;`,
         [chatUUID]
       );
-      return user || null;
+      if (members.length === 1) {
+        // Return the single user
+        const user = await this.getUserByUUID(members[0].userUUID);
+        return user;
+      } else if (members.length === 2) {
+        const localUser = await this.getLocalUser();
+        if (!localUser || !localUser.uuid) {
+          console.error("Local user not found");
+          return null;
+        }
+        // Return the user that is not the local user
+        const otherUserUUID = members.find(
+          (m) => m.userUUID !== localUser.uuid
+        )?.userUUID;
+        if (otherUserUUID) {
+          const user = await this.getUserByUUID(otherUserUUID);
+          return user;
+        }
+        return null;
+      } else {
+        // More than 2 or 0 members, return null
+        return null;
+      }
     } catch (error) {
       console.error("Error retrieving user by chat UUID:", error);
       return null;

@@ -220,15 +220,7 @@ class Database {
         !message.senderUUID ||
         !message.created_at
       ) {
-        console.error(
-          "Missing required message fields:",
-          JSON.stringify({
-            id: message?.id,
-            chatUUID: message?.chatUUID,
-            senderUUID: message?.senderUUID,
-            created_at: message?.created_at,
-          })
-        );
+        console.error("Missing required message fields:", message);
         return false;
       }
 
@@ -263,7 +255,6 @@ class Database {
   async getChats() {
     try {
       const chats = (await this.store.getItem("chats")) || [];
-      console.log("Fetched chats:", chats);
       return chats;
     } catch (error) {
       console.error("Error retrieving chats:", error);
@@ -304,9 +295,17 @@ class Database {
     try {
       const members = (await this.store.getItem("members")) || [];
       const users = (await this.store.getItem("users")) || [];
-      const member = members.find((m) => m.chatUUID === chatUUID);
-      if (member) {
-        return users.find((u) => u.uuid === member.userUUID) || null;
+      const chatMembers = members.filter((m) => m.chatUUID === chatUUID);
+
+      if (chatMembers.length === 1) {
+        return users.find((u) => u.uuid === chatMembers[0].userUUID) || null;
+      } else if (chatMembers.length === 2) {
+        const localUser = await this.getLocalUser();
+        const localUUID = localUser ? localUser.uuid : null;
+        const otherMember = chatMembers.find((m) => m.userUUID !== localUUID);
+        if (otherMember) {
+          return users.find((u) => u.uuid === otherMember.userUUID) || null;
+        }
       }
       return null;
     } catch (error) {

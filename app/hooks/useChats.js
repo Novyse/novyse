@@ -16,7 +16,7 @@ const useChats = () => {
         const chats = await database.getChats();
         const details = {};
         for (const chat of chats) {
-          const lastMessage = await database.getLastMessage(chat.uuid);
+          const lastMessage = await getLastMesssage(chat.uuid);
 
           const { name, profilePictureUUID } =
             await utils.getChatNameAndProfilePicture(chat);
@@ -31,11 +31,6 @@ const useChats = () => {
           };
         }
         setChatDetails(details);
-        console.log(
-          "[useChats] Loaded details for",
-          Object.keys(details).length,
-          "chats"
-        );
       } catch (err) {
         console.error("Error loading chats:", err);
         setError(err);
@@ -62,7 +57,8 @@ const useChats = () => {
       });
     };
 
-    const handleNewChat = (chat) => {
+    const handleNewChat = async (chat) => {
+      const lastMessage = await getLastMesssage(chat.uuid);
       setChatDetails((prevDetails) => ({
         ...prevDetails,
         [chat.uuid]: {
@@ -71,7 +67,7 @@ const useChats = () => {
           handle: chat.handle,
           type: chat.type,
           profilePictureUUID: chat.profilePictureUUID,
-          lastMessage: null,
+          lastMessage: lastMessage,
         },
       }));
     };
@@ -86,6 +82,20 @@ const useChats = () => {
   }, []);
 
   return { chatDetails, loading, error };
+};
+
+const getLastMesssage = async (chatUUID) => {
+  try {
+    const database = await Database.create();
+    const lastMessage = await database.getLastMessage(chatUUID);
+    if (lastMessage && lastMessage.type && lastMessage.type == "system") {
+      lastMessage.text = await utils.getSystemMessageText(lastMessage);
+    }
+    return lastMessage;
+  } catch (error) {
+    console.error("Error fetching last message:", error);
+    return null;
+  }
 };
 
 export default useChats;

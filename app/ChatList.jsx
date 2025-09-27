@@ -67,7 +67,7 @@ const ChatListItem = React.memo(
           text = "🎥 Video";
           break;
         case "system":
-          text = chatUtils.getSystemMessageText(message.system_action);
+          // Do nothing here, handled below
           break;
         default:
           return null;

@@ -3,7 +3,9 @@ import eventEmitter from "../global/Events/lib/EventEmitter.js";
 import { io } from "socket.io-client";
 import gateway from "./api-gateway.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Database from "../storage/database.js";
+
+import eventReceiver from "./lib/event-receiver.js";
+import eventSender from "./lib/event-sender.js";
 
 import { BRANCH, SOCKET_BASE_URL } from "../../../app.config.js";
 let path;
@@ -23,22 +25,17 @@ path += "/socket.io";
 
 let socket = null;
 
-// Global local parameters
-let userHandle = null;
-
-const SocketMethods = {
-  isSocketOpen: () => {
+const SocketIO = {
+  isOpen: () => {
     return socket && socket.connected;
   },
 
-  openSocketConnection: async () => {
-    userHandle = await localDatabase.fetchLocalUserHandle();
-
+  open: async () => {
     const accessToken = await AsyncStorage.getItem("accessToken");
 
     try {
-      if (SocketMethods.isSocketOpen()) {
-        console.warn("Una connessione Socket.IO era già aperta");
+      if (SocketIO.isOpen()) {
+        console.warn("Socket.IO already connected");
         return socket;
       }
 
@@ -54,7 +51,18 @@ const SocketMethods = {
 
       socket.on("connect", async () => {
         console.info("Socket.IO connection opened!");
-        await SocketMethods.socketReceiver();
+        await eventReceiver.initialize(socket);
+        await eventSender.initialize(socket);
+      });
+
+      socket.on("connect_error", (error) => {
+        console.error("Socket.IO connect_error event:", error);
+        if (error && error.message) {
+          console.error("Connect error message:", error.message);
+        }
+        if (error && error.data) {
+          console.error("Connect error data:", error.data);
+        }
       });
 
       socket.on("error", async (error) => {
@@ -63,26 +71,37 @@ const SocketMethods = {
         if (error.status === 401) {
           console.error("Invalid session - retrying pulling new sessionId");
 
-          // Close current socket before reconnecting
           if (socket) {
             socket.disconnect();
             socket = null;
           }
 
-          // Wait before reconnecting to avoid rapid retry loops
           setTimeout(async () => {
-            await SocketMethods.openSocketConnection();
+            await SocketIO.open();
           }, 2000);
         }
       });
 
-      socket.on("disconnect", () => {
-        console.info("Closed Socket.IO connection");
+      socket.on("disconnect", (reason) => {
+        console.info("Closed Socket.IO connection", { reason });
       });
     } catch (error) {
       console.error("Socket.IO initialization error:", error);
+      if (error && error.stack) {
+        console.error("Stack trace:", error.stack);
+      }
     }
   },
+
+  send: async (event, data) => {
+    if (!socket || !socket.connected) {
+      console.error("Cannot send message: Socket not connected");
+      return;
+    }
+    return eventSender;
+  },
+
+  // DA DISINTEGRARE ....................
 
   // Gestisco quando il socket.io mi ritorna un messaggio
   socketReceiver: async () => {
@@ -94,7 +113,7 @@ const SocketMethods = {
     socket.on("receive_message", async (data) => {
       const { message_id, chat_id, text, sender, date } = data;
 
-      await SocketMethods.UpdateLastWebSocketActionDateTime(date);
+      await SocketIO.UpdateLastWebSocketActionDateTime(date);
 
       const ChatAlreadyInDatabaseawait = await localDatabase.insertChat(
         chat_id,
@@ -131,7 +150,7 @@ const SocketMethods = {
     socket.on("group_created", async (data) => {
       const { chat_id, name, description, members, admins, date } = data;
 
-      await SocketMethods.UpdateLastWebSocketActionDateTime(date);
+      await SocketIO.UpdateLastWebSocketActionDateTime(date);
 
       //fare un metodo per favore
       await localDatabase.insertChat(chat_id, name);
@@ -157,7 +176,7 @@ const SocketMethods = {
     socket.on("group_member_joined", async (data) => {
       const { chat_id, handle, date } = data;
 
-      await SocketMethods.UpdateLastWebSocketActionDateTime(date);
+      await SocketIO.UpdateLastWebSocketActionDateTime(date);
 
       await localDatabase.insertChatAndUsers(chat_id, handle);
       console.log("🟢 Group member joined");
@@ -167,7 +186,7 @@ const SocketMethods = {
     socket.on("member_joined_group", async (data) => {
       const { group_name, chat_id, members, messages, date } = data;
 
-      await SocketMethods.UpdateLastWebSocketActionDateTime(date);
+      await SocketIO.UpdateLastWebSocketActionDateTime(date);
 
       await localDatabase.insertChat(chat_id, group_name);
       console.log(`Database insertChat for chat_id ${chat_id} completed`);
@@ -461,4 +480,4 @@ const SocketMethods = {
   },
 };
 
-export default SocketMethods;
+export default SocketIO;

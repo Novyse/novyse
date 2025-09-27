@@ -276,12 +276,12 @@ export class RecoveryManager {
         const offer = await pc.createOffer({ iceRestart: true });
         await pc.setLocalDescription(offer);
 
-        const SocketMethods = await import(
+        const SocketIO = await import(
           "../../backend-services/socket-io.js"
         );
         const success = await this._sendWithRetry(
           () =>
-            SocketMethods.default.RTCOffer({
+            SocketIO.default.RTCOffer({
               offer: offer.toJSON
                 ? offer.toJSON()
                 : { sdp: offer.sdp, type: offer.type },
@@ -499,11 +499,11 @@ export class RecoveryManager {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         // Use signaling manager's retry mechanism
-        const SocketMethods = await import(
+        const SocketIO = await import(
           "../../backend-services/socket-io.js"
         );
 
-        if (!SocketMethods.default.isWebSocketOpen()) {
+        if (!SocketIO.default.isWebSocketOpen()) {
           this.logger.warn(
             "RecoveryManager",
             `WebSocket not connected for offer to ${participantId}, attempt ${attempt}/${maxRetries}`
@@ -516,7 +516,7 @@ export class RecoveryManager {
           return false;
         }
 
-        await SocketMethods.default.RTCOffer({
+        await SocketIO.default.RTCOffer({
           offer: offer.toJSON
             ? offer.toJSON()
             : { sdp: offer.sdp, type: offer.type },
@@ -555,11 +555,11 @@ export class RecoveryManager {
   async _sendWithRetry(sendFunction, operationName, maxRetries = 3) {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const SocketMethods = await import(
+        const SocketIO = await import(
           "../../backend-services/socket-io.js"
         );
 
-        if (!SocketMethods.default.isWebSocketOpen()) {
+        if (!SocketIO.default.isWebSocketOpen()) {
           this.logger.warn(
             "RecoveryManager",
             `WebSocket not connected for ${operationName}, attempt ${attempt}/${maxRetries}`

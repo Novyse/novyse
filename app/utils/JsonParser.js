@@ -1,7 +1,7 @@
 import gateway from "./backend-services/api-gateway"; // Importa la classe API esistente
 import localDatabase from "../utils/localDatabaseMethods";
 import eventEmitter from "./global/Events/lib/EventEmitter";
-import SocketMethods from "./backend-services/socket-io";
+import SocketIO from "./backend-services/socket-io";
 
 class JsonParser {
   // Metodo per controllare l'email e restituire "login" o "signup"
@@ -141,7 +141,7 @@ class JsonParser {
         if (data.init) {
           console.log("🟢Init Successo:", data);
 
-          await SocketMethods.UpdateLastWebSocketActionDateTime(data.date);
+          await SocketIO.UpdateLastWebSocketActionDateTime(data.date);
 
           const { email, handle, name, surname, user_id } = data.localUser;
           await localDatabase.insertLocalUser(

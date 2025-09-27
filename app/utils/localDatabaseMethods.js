@@ -20,7 +20,7 @@ class LocalDatabase {
   async initializeDatabase() {
     if (isWeb) {
       this.db = localforage.createInstance({ name: "db", storeName: "store" });
-      console.log("Web DB init.");
+      //console.log("Web DB init.");
     } else {
       try {
         const SQLite = require("expo-sqlite");

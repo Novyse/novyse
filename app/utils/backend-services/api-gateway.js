@@ -649,8 +649,8 @@ const gateway = {
         const response = await api.post("/chat/join", { handle });
         const success = response.data.success;
         if (success) {
-          const { chat, message } = response.data.data;
-          return { success, chat, message };
+          const { chat, messages } = response.data.data;
+          return { success, chat, messages };
         }
         return { success };
       } catch (error) {

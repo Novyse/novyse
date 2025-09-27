@@ -1,5 +1,5 @@
 import eventEmitter from "../../global/Events/lib/EventEmitter";
-import SocketMethods from "../../backend-services/socket-io";
+import SocketIO from "../../backend-services/socket-io";
 import SoundPlayer from "../../sounds/SoundPlayer";
 
 class WebRTCEventReceiver {
@@ -105,7 +105,7 @@ class WebRTCEventReceiver {
     if (this.voiceActivityDetection) {
       this.voiceActivityDetection.setSpeakingState(this.globalState.myId, true);
     }
-    await SocketMethods.sendSpeakingStatus(
+    await SocketIO.sendSpeakingStatus(
       this.globalState.getChatId(),
       this.globalState.myId,
       true
@@ -119,7 +119,7 @@ class WebRTCEventReceiver {
         false
       );
     }
-    await SocketMethods.sendSpeakingStatus(
+    await SocketIO.sendSpeakingStatus(
       this.globalState.getChatId(),
       this.globalState.myId,
       false

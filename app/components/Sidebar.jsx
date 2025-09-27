@@ -38,7 +38,6 @@ const Sidebar = ({
     const fetchUserData = async () => {
       const database = await Database.create();
       const data = await database.getLocalUser();
-      console.log("Fetched user data:", data);
       setUserData(data);
     };
     fetchUserData();

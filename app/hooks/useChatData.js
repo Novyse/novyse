@@ -3,6 +3,8 @@ import Database from "../utils/storage/database";
 import gateway from "../utils/backend-services/api-gateway";
 import chatUtils from "../utils/chat";
 
+import eventEmitter from "../utils/global/Events/EventEmitter";
+
 const useChatData = (chatUUID, chatHandle = null) => {
   const [chat, setChat] = useState({});
   const [messages, setMessages] = useState([]);
@@ -19,6 +21,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
         if (chatUUID) {
           const database = await Database.create();
           const messages = await database.getMessagesByChatUUID(chatUUID);
+
           const chat = await database.getChatByUUID(chatUUID);
           const { name, chatPictureUUID: profilePictureUUID } =
             await chatUtils.getChatNameAndProfilePicture(chat);
@@ -76,13 +79,24 @@ const useChatData = (chatUUID, chatHandle = null) => {
         setError(err);
       } finally {
         setLoading(false);
-        console.info("Finished loading messages and chat data.", {
-          chat,
-          messages,
-        });
       }
     };
     loadMessages();
+
+    const handleNewMessage = (message) => {
+      setMessages((prevMessages) => {
+        if (prevMessages.some((m) => m.id === message.id)) {
+          return prevMessages;
+        }
+        return [message, ...prevMessages];
+      });
+    };
+
+    eventEmitter.getEmitter().on("newMessage", handleNewMessage);
+
+    return () => {
+      eventEmitter.getEmitter().off("newMessage", handleNewMessage);
+    };
   }, [chatUUID, chatHandle]);
 
   return { chat, messages, setMessages, loading, error };

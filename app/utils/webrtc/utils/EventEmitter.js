@@ -1,5 +1,5 @@
 import eventEmitter from "../../global/Events/lib/EventEmitter";
-import SocketMethods from "../../backend-services/socket-io";
+import SocketIO from "../../backend-services/socket-io";
 
 const EventEmitter = {
   sendMIDtoStreamUUIDMapping: (
@@ -18,7 +18,7 @@ const EventEmitter = {
       return;
     }
 
-    SocketMethods.sendMIDtoUUIDMapping(
+    SocketIO.sendMIDtoUUIDMapping(
       toPartecipantUUID,
       partecipantUUID,
       streamUUID,
@@ -54,7 +54,7 @@ const EventEmitter = {
       return;
     }
 
-    await SocketMethods.sendWebcamStatus(
+    await SocketIO.sendWebcamStatus(
       partecipantUUID,
       chatId,
       status

@@ -296,7 +296,13 @@ const ChatContent = ({ onBack, contentView }) => {
       // mando event emitter
       await eventEmitter.newMessage(message);
       // Aggiungo il messaggio alla lista dei messaggi
-      setMessages((currentMessages) => [message, ...currentMessages]);
+      setMessages((currentMessages) => {
+        const exists = currentMessages.some((msg) => msg.id === message.id);
+        if (!exists) {
+          return [message, ...currentMessages];
+        }
+        return currentMessages;
+      });
     } else {
       console.error("Failed to send message");
     }
@@ -306,8 +312,19 @@ const ChatContent = ({ onBack, contentView }) => {
     setIsMicClicked(false);
   };
 
-  const handleJoin = () => {
-    console.log("Join button pressed");
+  const handleJoin = async () => {
+    const response = await gateway.chat.join(selectedHandle);
+
+    const success = response.success;
+    if (success) {
+      const newChat = response.chat;
+      const newMessages = response.messages;
+      console.log("Chat joined successfully:", newChat);
+      await eventEmitter.newChat(newChat, newMessages);
+      setSelectedChatUUID(newChat.uuid);
+    } else {
+      console.error("Failed to join chat");
+    }
   };
 
   // preparo i messaggi prima che vengano stampati --> aggiungo le date tra messaggi di giorni diversi
@@ -431,10 +448,7 @@ const ChatContent = ({ onBack, contentView }) => {
               if (item.type === "separator") {
                 return <MessageSystem type={"date"} data={item.data} />;
               } else if (item.type === "system") {
-                const text = chatUtils.getSystemMessageText(
-                  item.data.system_action
-                );
-                return <MessageSystem type={"system"} data={text} />;
+                return <MessageSystem type={"system"} data={item.data} />;
               } else {
                 const message = item.data;
                 return (
@@ -458,7 +472,6 @@ const ChatContent = ({ onBack, contentView }) => {
   };
 
   const renderBottomBar = () => {
-    console.log("Rendering bottom bar with contentView:", contentView);
     return (
       <View
         style={styles.bottomBarContainer}
