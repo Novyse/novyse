@@ -260,7 +260,6 @@ const Signup = () => {
             <View style={styles.timelineDotContainer}>
               <Pressable
                 style={[
-                  styles.timelineCircle,
                   isCompleted
                     ? styles.timelineCompleted
                     : isCurrent
@@ -362,7 +361,7 @@ const Signup = () => {
             {field === "handle" && isLoading && (
               <ActivityIndicator
                 size="small"
-                color="#999"
+                color={LoginColors[loginTheme].iconLoading}
                 style={{ marginRight: 10 }}
               />
             )}
@@ -476,7 +475,7 @@ const Signup = () => {
           }}
         >
           {privacy_policy_accepted && (
-            <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 12 }}>
+            <Text style={{ color: LoginColors[loginTheme].text, fontWeight: "bold", fontSize: 12 }}>
               ✓
             </Text>
           )}
@@ -561,7 +560,10 @@ const Signup = () => {
           type={"submit"}
         >
           {isLoading && isLastStep ? (
-            <ActivityIndicator size="small" color="white" />
+            <ActivityIndicator
+              size="small"
+              color={LoginColors[loginTheme].iconLoading}
+            />
           ) : (
             <Text style={styles.submitButtonText}>
               {isLastStep ? (
@@ -678,38 +680,30 @@ function createStyle(loginTheme, isSmallScreen) {
     timelineDotContainer: {
       alignItems: "center",
     },
-    timelineCircle: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: "red",
-      justifyContent: "center",
-      alignItems: "center",
-    },
     timelineCompleted: {
-      backgroundColor: "green",
-      borderColor: "#c4c4c4ff",
+      borderColor: LoginColors[loginTheme].completedBorder,
+      backgroundColor: LoginColors[loginTheme].completedBackground,
       borderWidth: 4,
     },
     timelineCurrent: {
-      backgroundColor: "#007AFF",
-      borderColor: "#c4c4c4ff",
+      backgroundColor: LoginColors[loginTheme].currentBackground,
+      borderColor: LoginColors[loginTheme].currentBorder,
       borderWidth: 4,
     },
     timelinePending: {
-      backgroundColor: "#858585ff",
-      borderColor: "#c4c4c4ff",
+      borderColor: LoginColors[loginTheme].pendingBorder,
+      backgroundColor: LoginColors[loginTheme].pendingBackground,
       borderWidth: 4,
     },
     timelineNumber: {
-      color: "white",
+      color: LoginColors[loginTheme].timelineNumber,
       fontWeight: "bold",
       fontSize: 16,
     },
     timelineLine: {
       flex: 1,
       height: 2,
-      backgroundColor: "#E0E0E0",
+      backgroundColor: LoginColors[loginTheme].backgroundTimeline,
       marginHorizontal: 10,
     },
     formWrapper: {
@@ -732,18 +726,18 @@ function createStyle(loginTheme, isSmallScreen) {
       flexDirection: "row",
       alignItems: "center",
       borderRadius: 6,
-      backgroundColor: "white",
+      backgroundColor: LoginColors[loginTheme].backgroundTextInput,
       borderColor: LoginColors[loginTheme].borderTextInput,
       borderWidth: 1.5,
       minHeight: 44,
     },
     inputError: {
-      borderColor: "rgba(255, 99, 99, 0.8)",
-      backgroundColor: "rgba(255, 99, 99, 0.1)",
+      borderColor: LoginColors[loginTheme].errorBorder,
+      backgroundColor: LoginColors[loginTheme].errorBackground,
     },
     inputSuccess: {
-      borderColor: "rgba(0, 128, 0, 0.8)",
-      backgroundColor: "rgba(0, 128, 0, 0.1)",
+      borderColor: LoginColors[loginTheme].successBorder,
+      backgroundColor: LoginColors[loginTheme].successBackground,
     },
     textInput: {
       flex: 1,
@@ -773,13 +767,13 @@ function createStyle(loginTheme, isSmallScreen) {
       marginRight: 8,
     },
     reqGreen: {
-      color: "green",
+      color: LoginColors[loginTheme].signupReqGreen,
     },
     reqRed: {
-      color: "red",
+      color: LoginColors[loginTheme].signupReqRed,
     },
     reqGray: {
-      color: "gray",
+      color: LoginColors[loginTheme].signupReqGray,
     },
     reqText: {
       fontSize: 12,
@@ -799,12 +793,12 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     submitButtonText: {
       fontSize: 16,
-      color: "white",
+      color: LoginColors[loginTheme].submitButtonTextColor,
       fontWeight: "500",
       textAlign: "center",
     },
     handleErrorText: {
-      color: "rgba(255, 99, 99, 0.9)",
+      color: LoginColors[loginTheme].textError,
       fontSize: 12,
       marginTop: 4,
     },
