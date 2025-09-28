@@ -55,13 +55,20 @@ const SocketIO = {
         await eventSender.initialize(socket);
       });
 
-      socket.on("connect_error", (error) => {
+      socket.on("connect_error", async (error) => {
         console.error("Socket.IO connect_error event:", error);
         if (error && error.message) {
           console.error("Connect error message:", error.message);
         }
         if (error && error.data) {
           console.error("Connect error data:", error.data);
+        }
+        // Handle authentication errors specifically
+        if (
+          error.message.includes("Authentication error") ||
+          error.message.includes("jwt expired")
+        ) {
+          await gateway.handleSocketAuthError();
         }
       });
 

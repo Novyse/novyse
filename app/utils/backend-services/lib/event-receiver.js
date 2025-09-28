@@ -26,6 +26,13 @@ const eventReceiver = {
   },
 };
 
+// Reconnect socket on app foreground
+
+eventEmitter.getEmitter().on("socketReconnect", () => {
+  socket.disconnect();
+  socket.connect();
+});
+
 const setLastUpdateTimestamp = async (timestamp) => {
   await auth.setLastUpdateTimestamp(timestamp);
 };

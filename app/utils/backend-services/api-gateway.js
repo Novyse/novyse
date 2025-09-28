@@ -40,18 +40,63 @@ const api = axios.create({
  * If an 401 is detected, it tries to regenerate the access token. If it fails, it emits an "invalidSession" event.
  */
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const status = error.response?.status;
+  async (error) => {
+    const originalRequest = error.config;
 
-    if (status === 401 || status === 403) {
-      if (!gateway.auth.refresh()) {
-        // Cant regenerate access token, emit invalid session
-        console.error("Session expired and cannot refresh token.");
-        eventEmitter.emit("invalidSession");
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers["Authorization"] = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
       }
-    } else if (status === 500) {
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const refreshSuccess = await gateway.auth.refresh();
+        if (refreshSuccess) {
+          const newAccessToken = await token.getAccessToken();
+          processQueue(null, newAccessToken);
+          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+          return api(originalRequest);
+        } else {
+          processQueue(error, null);
+          eventEmitter.emit("invalidSession");
+          return Promise.reject(error);
+        }
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        eventEmitter.emit("invalidSession");
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    } else if (error.response?.status === 500) {
       console.error("Server error 500:", error.response?.data || error.message);
       eventEmitter.emit("serverError");
     }
@@ -706,6 +751,22 @@ const gateway = {
     },
   },
 
+  // Socket.IO specific methods to handle authentication errors
+  async handleSocketAuthError() {
+    try {
+      const refreshSuccess = await gateway.auth.refresh();
+      if (refreshSuccess) {
+        // Emit an event to notify that the socket should reconnect with the new token
+        eventEmitter.emit("socketReconnect");
+      } else {
+        // If refresh fails, emit invalidSession as before
+        eventEmitter.emit("invalidSession");
+      }
+    } catch (error) {
+      console.error("Error refreshing token for socket:", error);
+      eventEmitter.emit("invalidSession");
+    }
+  },
   // DEPRECATED ------------------------------------
 
   // chiede all'API se l'email è già registrata
