@@ -127,18 +127,22 @@ const ChatListItem = React.memo(
               {displayMessage(lastMessage)}
             </View>
             <View style={styles.rightContainer}>
-              <Text
-                style={[styles.chatDate, styles.gridText, { marginBottom: 5 }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+              <View style={styles.dateContainer}>
                 {!lastMessage?.created_at ? (
                   <Icon name={"Clock01Icon"} size={15} />
                 ) : (
-                  parseTime(lastMessage?.created_at)
+                  <>
+                    <Icon name={"TickDouble02Icon"} size={18} />
+                    <Text style={styles.chatDateText}>
+                      {parseTime(lastMessage?.created_at)}
+                    </Text>
+                  </>
                 )}
-              </Text>
-              <Text style={[styles.staticNumber, styles.gridText]}>123</Text>
+              </View>
+
+              <View style={[styles.ball]}>
+                <Text style={[styles.ballText]}>17</Text>{" "}
+              </View>
             </View>
           </View>
         </HoverAndPressedButton>
@@ -379,6 +383,32 @@ function createStyle(theme, colorScheme) {
       color: theme.text,
       fontSize: 18,
       fontWeight: "bold",
+    },
+    ball: {
+      borderRadius: 10,
+      width: 20,
+      height: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.badgeColor,
+      addingHorizontal: 5,
+    },
+    ballText: {
+      textAlign: "center",
+      color: theme.text,
+      fontSize: 12,
+    },
+    dateContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      marginBottom: 5,
+    },
+    chatDateText: {
+      fontSize: 14,
+      color: theme.text,
+      textAlign: "right",
+      marginLeft: 5,
     },
   });
 }

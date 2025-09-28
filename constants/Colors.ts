@@ -29,6 +29,7 @@ export const Colors = {
     // 🧩 Vari
     borderColor: "#000000",
     borderModal: "#000000",
+    badgeColor: "#4fb3e1",
 
     // 🌈 Gradients
     backgroundMainGradient: ["#013480", "#177FC0"],
@@ -39,7 +40,7 @@ export const Colors = {
     backgroundChatTextInputGradient: ["#16638e", "#2899cf"],
     backgroundCommsFloatingBarGradient: ["#165376", "#2899cf", "#4fb3e1"],
     backgroundMessageBaseGradient: ["#0b273cff"],
-    backgroundSearchGradient: ["transparent"],                    //? Consiglio di lasciarlo trasparente, lo includo qui ma da mentenere trasparente
+    backgroundSearchGradient: ["transparent"], //? Consiglio di lasciarlo trasparente, lo includo qui ma da mentenere trasparente
     backgroundSideBarGradient: ["#395e80ff", "#4a7fa0ff"],
 
     // ⚙️ Settings aggiuntivi
@@ -91,6 +92,7 @@ export const Colors = {
     backgroundMessageBaseGradient: ["#ffffff", "#f8f9fa"],
     backgroundSearchGradient: ["#e9ecef", "#dee2e6"],
     settingPagesGradient: ["#ffffff", "#f8f9fa", "#e9ecef"],
+    badgeColor: "#2399C3",
   },
   dark: {
     primary: "#2d2d2d",
@@ -134,6 +136,7 @@ export const Colors = {
     backgroundMessageBaseGradient: ["#0a0a0a", "#1e1e1e"],
     backgroundSearchGradient: ["#2d2d2d", "#404040"],
     settingPagesGradient: ["#121212", "#1e1e1e", "#2d2d2d"],
+    badgeColor: "#2d2d2d",
   },
   amoled: {
     primary: "#0d0d0d",
@@ -177,6 +180,7 @@ export const Colors = {
     backgroundMessageBaseGradient: ["#000000", "#222222"],
     backgroundSearchGradient: ["#000000", "#0d0d0d"],
     settingPagesGradient: ["#000000", "#000000", "#0d0d0d"],
+    badgeColor: "#000000",
   },
   "Amoled Extreme": {
     primary: "#000000",
@@ -220,6 +224,7 @@ export const Colors = {
     backgroundMessageBaseGradient: ["#000000", "#000000"],
     backgroundSearchGradient: ["#000000", "#000000"],
     settingPagesGradient: ["#000000", "#000000", "#000000"],
+    badgeColor: "#000000",
   },
   unifi: {
     // 🎨 Colori primari e di base
@@ -251,6 +256,7 @@ export const Colors = {
     // 🧩 Vari
     borderColor: "#272727ff",
     borderModal: "#272727ff",
+    badgeColor: "#16638e",
 
     // 🌈 Gradients
     backgroundChatContentGradient: ["transparent", "transparent"],
