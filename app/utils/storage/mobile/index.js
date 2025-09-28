@@ -305,7 +305,7 @@ class Database {
       }
 
       await this.db.runAsync(
-        `INSERT INTO message (id, chatUUID, senderUUID, text, type, fileUUID, system_action, created_at, is_pinned, replyToMessageUUID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, text, type, fileUUID, system_action, created_at, is_pinned, replyToMessageUUID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
@@ -319,6 +319,7 @@ class Database {
           message.replyToMessageUUID || null,
         ]
       );
+      console.log("Message added or already exists (ignored).", message.id);
       return true;
     } catch (error) {
       console.error("Error adding message:", error);

@@ -225,6 +225,16 @@ class Database {
       }
 
       const messages = (await this.store.getItem("messages")) || [];
+
+      // Check for duplicate message by ID and chatUUID to prevent adding the same message multiple times
+      const existingMessage = messages.find(
+        (m) => m.id === message.id && m.chatUUID === message.chatUUID
+      );
+      if (existingMessage) {
+        console.log("Message already exists, skipping addition:", message.id);
+        return true; // Treat as success since it's already there
+      }
+
       messages.push({
         id: message.id,
         chatUUID: message.chatUUID,
@@ -239,7 +249,7 @@ class Database {
       });
       await this.store.setItem("messages", messages);
 
-      console.log("Message added successfully.", messages);
+      console.log("Message added successfully.", message.id);
 
       return true;
     } catch (error) {
