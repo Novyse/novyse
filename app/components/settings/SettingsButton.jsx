@@ -1,11 +1,11 @@
-import React, { useContext } from "react";
-import { StyleSheet, Text, Pressable } from "react-native";
+import React, { Children, useContext } from "react";
+import { StyleSheet, Text } from "react-native";
 import { ThemeContext } from "../../../context/ThemeContext";
+import HoverAndPressedButton from "../HoverAndPressedButton";
 
 const SettingsButton = ({
   onPress,
   text,
-  style,
   textStyle,
   disabled = false,
 }) => {
@@ -13,20 +13,16 @@ const SettingsButton = ({
   const styles = createStyle(theme);
 
   return (
-    <Pressable
-      style={({ pressed, hovered }) => [
-        styles.button,
-        style,
-        hovered && styles.buttonHovered,
-        pressed && styles.buttonPressed,
-        disabled && styles.buttonDisabled,
-      ]}
+    <HoverAndPressedButton
+      style={styles.button}
+      hoveredStyle={styles.buttonHovered}
+      pressedStyle={styles.buttonPressed}
       onPress={onPress}
       disabled={disabled}
-      android_ripple={{ color: theme.rippleColor }}
     >
       {text && <Text style={[styles.buttonText, textStyle]}>{text}</Text>}
-    </Pressable>
+      
+    </HoverAndPressedButton>
   );
 };
 
@@ -40,7 +36,6 @@ const createStyle = (theme) =>
       borderRadius: 8,
       justifyContent: "center",
       backgroundColor: theme.backgroundSettingsButton,
-      transition: "background-color 0.2s ease",
     },
     buttonHovered: {
       backgroundColor: theme.settingsHoveredButton,

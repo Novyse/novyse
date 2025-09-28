@@ -12,6 +12,7 @@ export const Colors = {
     primary: "#4f8cff",
     text: "white",
     textTime: "#c9d1d9",
+    errorText: "#972323ff",
 
     // 🖼️ Background principali
     backgroundCard: "#416a90",
@@ -25,11 +26,15 @@ export const Colors = {
     backgroundSettingsCards: "#01348066", // blu scuro trasparente invece di nero
     backgroundSettingsDivider: "rgba(255, 255, 255, 0.1)",
     backgroundTextField: "#374e68",
+    backgroundModalOverlay: "rgba(0, 0, 0, 0.5)",
+    backgroundError: "#ffc7c7a7",
+    backgroundBackupCode: "#f0f0f0",
 
     // 🧩 Vari
     borderColor: "#000000",
     borderModal: "#000000",
     badgeColor: "#4fb3e1",
+    shadowColor: "#000",
 
     // 🌈 Gradients
     backgroundMainGradient: ["#013480", "#177FC0"],

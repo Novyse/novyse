@@ -34,7 +34,8 @@ const createStyle = (theme) =>
   StyleSheet.create({
     baseContainer: {
       padding: 5,
-      borderRadius: "50%"
+      borderRadius: "50%",
+      transition: "background-color 0.2s ease",
     },
     baseHovered: {
       backgroundColor: "rgba(0, 0, 0, 0.1)",

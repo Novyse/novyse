@@ -75,9 +75,10 @@ const Icon = ({
         style={({ pressed }) => [
           style,
           {
-            backgroundColor: pressed ? theme.iconPressed : "transparent", // Colore di sfondo quando premuto
-            padding: 5, // Padding per migliorare l'area di tocco e l'effetto visivo
-            borderRadius: "50%", // Bordi arrotondati per l'effetto ripple
+            backgroundColor: pressed ? theme.iconPressed : "transparent",
+            padding: 5,
+            borderRadius: "50%",
+            transition: "background-color 0.2s ease",
           },
         ]}
       >
