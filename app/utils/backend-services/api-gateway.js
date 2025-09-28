@@ -919,6 +919,7 @@ const gateway = {
     }
   },
 
+  // @SamueleOrazioDurante da qua
   // quando uno user vuole entrare in una chat vocale
   async commsJoin(chatId) {
     try {
@@ -998,6 +999,7 @@ const gateway = {
     }
   },
 
+  // @SamueleOrazioDurante fine
   async forgotPassword(email) {
     try {
       const response = await api.get(

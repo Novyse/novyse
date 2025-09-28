@@ -131,7 +131,7 @@ const getSystemMessageText = async (message) => {
         name = "You";
       } else {
         const database = await Database.create();
-        const user = await database.getUserByUUID(systemMessage.text);
+        const user = await database.getUserByUUID(message.text);
         name = user ? user.name : "User";
       }
       text = `${name} joined the chat`;

@@ -11,6 +11,8 @@ const eventReceiver = {
 
       await eventEmitter.newMessage(message);
     });
+
+    // @SamueleOrazioDurante forse da mettere evento new_chat
   },
 };
 
