@@ -6,6 +6,8 @@ import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
 import gateway from "@/app/utils/backend-services/api-gateway";
 import { useRouter } from "expo-router";
 import Icon from "@/app/components/Icon";
+import SettingsButton from "@/app/components/settings/SettingsButton";
+import ModalBackupCodes from "@/app/components/Modals/ModalBackupCodes";
 
 const TwoFAMethods = () => {
   const { theme } = useContext(ThemeContext);
@@ -14,6 +16,7 @@ const TwoFAMethods = () => {
 
   const [methods, setMethods] = useState([]);
   const [activeMethods, setActiveMethods] = useState([]);
+  const [isModalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchMethods = async () => {
@@ -106,6 +109,18 @@ const TwoFAMethods = () => {
     return method.charAt(0).toUpperCase() + method.slice(1);
   };
 
+  const handleShowBackupCodes = () => {
+    setModalVisible(!isModalVisible);
+  };
+
+  const handleResetBackupCodes = async () => {
+    const success = await gateway.auth.regenerateTwofaRecoverCodes();
+    if (success) {
+      console.log("🟢Recovery codes resetted successfully");
+    }
+    //todo @Matt3opower - toast alert instead of console.log
+  };
+
   return (
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="/settings/privacy-and-security" />
@@ -178,6 +193,21 @@ const TwoFAMethods = () => {
             );
           })}
         </View>
+        <View style={styles.buttonContainer}>
+          <SettingsButton
+            text={"Show Backup Codes"}
+            onPress={handleShowBackupCodes}
+          />
+          <SettingsButton
+            text={"Reset Backup Codes"}
+            onPress={handleResetBackupCodes}
+          />
+        </View>
+        <ModalBackupCodes
+          visible={isModalVisible}
+          onClose={handleShowBackupCodes}
+          theme={theme}
+        />
       </View>
     </ScreenLayout>
   );
@@ -322,6 +352,14 @@ const createStyle = (theme) =>
     addButtonPressed: {
       backgroundColor: theme.addPressed,
       opacity: 0.9,
+    },
+    buttonContainer: {
+      flexDirection: "column",
+      justifyContent: "center",
+      minWidth: 50,
+      maxWidth: 300,
+      gap: 10,
+      alignSelf: "center",
     },
   });
 
