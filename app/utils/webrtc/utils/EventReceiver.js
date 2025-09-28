@@ -82,22 +82,22 @@ class WebRTCEventReceiver {
     );
 
     // User Management Events
-    eventEmitter.on(`member_joined_comms`, this.boundHandlers.memberJoined);
-    eventEmitter.on(`member_left_comms`, this.boundHandlers.memberLeft);
+    eventEmitter.on(`comms_join`, this.boundHandlers.memberJoined);
+    eventEmitter.on(`comms_left`, this.boundHandlers.memberLeft);
     // WebRTC Signaling Events
-    eventEmitter.on("offer", this.boundHandlers.offer);
-    eventEmitter.on("answer", this.boundHandlers.answer);
-    eventEmitter.on("candidate", this.boundHandlers.iceCandidate);
+    eventEmitter.on("comms_offer", this.boundHandlers.offer);
+    eventEmitter.on("comms_answer", this.boundHandlers.answer);
+    eventEmitter.on("comms_candidate", this.boundHandlers.iceCandidate);
 
     // Mid to Stream UUID Mapping Event
     eventEmitter.on(
-      "mid_to_uuid_mapping",
+      "comms_mid_to_uuid_mapping",
       this.boundHandlers.midtoStreamUUIDMapping
     );
 
     // Webcam Status Events
-    eventEmitter.on("webcam_on", this.boundHandlers.webcam_on);
-    eventEmitter.on("webcam_off", this.boundHandlers.webcam_off);
+    eventEmitter.on("comms_webcam_on", this.boundHandlers.webcam_on);
+    eventEmitter.on("comms_webcam_off", this.boundHandlers.webcam_off);
   }
 
   // Voice Activity Detection Handlers
@@ -344,22 +344,22 @@ class WebRTCEventReceiver {
     );
 
     // User Management Events
-    eventEmitter.off(`member_joined_comms`, this.boundHandlers.memberJoined);
-    eventEmitter.off(`member_left_comms`, this.boundHandlers.memberLeft);
+    eventEmitter.off(`comms_join`, this.boundHandlers.memberJoined);
+    eventEmitter.off(`comms_left`, this.boundHandlers.memberLeft);
     // WebRTC Signaling Events
-    eventEmitter.off("offer", this.boundHandlers.offer);
-    eventEmitter.off("answer", this.boundHandlers.answer);
-    eventEmitter.off("candidate", this.boundHandlers.iceCandidate);
+    eventEmitter.off("comms_offer", this.boundHandlers.offer);
+    eventEmitter.off("comms_answer", this.boundHandlers.answer);
+    eventEmitter.off("comms_candidate", this.boundHandlers.iceCandidate);
 
     // Mid to Stream UUID Mapping Event
     eventEmitter.off(
-      "mid_to_uuid_mapping",
+      "comms_mid_to_uuid_mapping",
       this.boundHandlers.midtoStreamUUIDMapping
     );
 
     // Webcam Status Events
-    eventEmitter.off("webcam_on", this.boundHandlers.webcam_on);
-    eventEmitter.off("webcam_off", this.boundHandlers.webcam_off);
+    eventEmitter.off("comms_webcam_on", this.boundHandlers.webcam_on);
+    eventEmitter.off("comms_webcam_off", this.boundHandlers.webcam_off);
   }
 
   destroy() {

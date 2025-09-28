@@ -57,28 +57,28 @@ const VocalContent = ({}) => {
 
   useEffect(() => {
     // Registra i listeners
-    eventEmitter.on("member_joined_comms", handleMemberJoined);
-    eventEmitter.on("member_left_comms", handleMemberLeft);
+    eventEmitter.on("comms_join", handleMemberJoined);
+    eventEmitter.on("comms_leave", handleMemberLeft);
     eventEmitter.on("ui_update", handleStreamUpdate);
 
     eventEmitter.on("user_started_speaking", handleUserStartedSpeaking);
     eventEmitter.on("user_stopped_speaking", handleUserStoppedSpeaking);
     eventEmitter.on(
-      "remote_user_started_speaking",
+      "comms_speaking",
       handleRemoteUserStartedSpeaking
     );
     eventEmitter.on(
-      "remote_user_stopped_speaking",
+      "comms_not_speaking",
       handleRemoteUserStoppedSpeaking
     );
 
     // Screen sharing events
-    eventEmitter.on("screen_share_started", handleScreenShareStarted);
-    eventEmitter.on("screen_share_stopped", handleScreenShareStopped);
+    eventEmitter.on("comms_screen_share_start", handleScreenShareStarted);
+    eventEmitter.on("comms_screen_share_stop", handleScreenShareStopped);
 
     // Webcam status events
-    eventEmitter.on("webcam_on", handleWebcamOn);
-    eventEmitter.on("webcam_off", handleWebcamOff);
+    eventEmitter.on("comms_webcam_on", handleWebcamOn);
+    eventEmitter.on("comms_webcam_off", handleWebcamOff);
 
     const getCommsData = async () => {
       const commsData = await get.commsData(chatUUID);
@@ -97,8 +97,8 @@ const VocalContent = ({}) => {
 
     getCommsData();
     return () => {
-      eventEmitter.off("member_joined_comms", handleMemberJoined);
-      eventEmitter.off("member_left_comms", handleMemberLeft);
+      eventEmitter.off("comms_join", handleMemberJoined);
+      eventEmitter.off("comms_leave", handleMemberLeft);
 
       eventEmitter.off("ui_update", handleStreamUpdate);
 
@@ -106,21 +106,21 @@ const VocalContent = ({}) => {
       eventEmitter.off("user_stopped_speaking", handleUserStoppedSpeaking);
 
       eventEmitter.off(
-        "remote_user_started_speaking",
+        "comms_speaking",
         handleRemoteUserStartedSpeaking
       );
       eventEmitter.off(
-        "remote_user_stopped_speaking",
+        "comms_not_speaking",
         handleRemoteUserStoppedSpeaking
       );
 
       // Screen sharing events cleanup
-      eventEmitter.off("screen_share_started", handleScreenShareStarted);
-      eventEmitter.off("screen_share_stopped", handleScreenShareStopped);
+      eventEmitter.off("comms_screen_share_start", handleScreenShareStarted);
+      eventEmitter.off("comms_screen_share_stop", handleScreenShareStopped);
 
       // Webcam status events cleanup
-      eventEmitter.off("webcam_on", handleWebcamOn);
-      eventEmitter.off("webcam_off", handleWebcamOff);
+      eventEmitter.off("comms_webcam_on", handleWebcamOn);
+      eventEmitter.off("comms_webcam_off", handleWebcamOff);
     };
   }, [chatUUID]);
 

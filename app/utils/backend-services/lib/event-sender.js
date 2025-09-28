@@ -5,40 +5,41 @@ const eventSender = {
     socket = sock;
   },
 
-  // Move all send methods from SocketIO here
   IceCandidate: async (data) => {
-    if (!socket || !socket.connected) {
-      console.error("Cannot send candidate: Socket not connected");
-      return;
-    }
-    socket.emit("candidate", data);
+    socket.emit("comms_candidate", data);
   },
 
   RTCOffer: async (data) => {
-    if (!socket || !socket.connected) {
-      console.error("Cannot send RTC offer: Socket not connected", {
-        socketExists: !!socket,
-        socketConnected: socket?.connected,
-        data,
-      });
-      return false;
-    }
-    try {
-      console.log("Sending RTC offer via WebSocket", {
-        to: data.to,
-        from: data.from,
-        hasOffer: !!data.offer,
-      });
-      socket.emit("offer", data);
-      console.log("RTC offer sent successfully", {
-        to: data.to,
-        from: data.from,
-      });
-      return true;
-    } catch (error) {
-      console.error("Error sending RTC offer", { error: error.message, data });
-      return false;
-    }
+    socket.emit("comms_offer", data);
+  },
+  RTCAnswer: async (data) => {
+    socket.emit("comms_answer", data);
+  },
+  sendSpeakingStatus: async (commsId, partecipantId, isSpeaking) => {
+    const eventType = isSpeaking ? "comms_speaking" : "comms_not_speaking";
+    const data = {
+      to: commsId,
+      from: partecipantId,
+    };
+    socket.emit(eventType, data);
+  },
+  sendMIDtoUUIDMapping: async (toPartecipantUUID, from, streamUUID, mid) => {
+    const data = {
+      to: toPartecipantUUID,
+      from: from,
+      streamUUID: streamUUID,
+      mid: mid,
+    };
+    socket.emit("comms_mid_to_uuid_mapping", data);
+  },
+
+  sendWebcamStatus: async (from, chatUUID, isOn) => {
+    const eventType = isOn ? "comms_webcam_on" : "comms_webcam_off";
+    const data = {
+      to: chatUUID,
+      from: from,
+    };
+    socket.emit(eventType, data);
   },
 };
 

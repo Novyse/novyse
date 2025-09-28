@@ -188,11 +188,11 @@ const AppContainer = () => {
         setForceUpdate((prev) => prev + 1);
       }
     };
-    eventEmitter.on("member_joined_comms", handleCommsStateChange);
-    eventEmitter.on("member_left_comms", handleCommsStateChange);
+    eventEmitter.on("comms_join", handleCommsStateChange);
+    eventEmitter.on("comms_leave", handleCommsStateChange);
     return () => {
-      eventEmitter.off("member_joined_comms", handleCommsStateChange);
-      eventEmitter.off("member_left_comms", handleCommsStateChange);
+      eventEmitter.off("comms_join", handleCommsStateChange);
+      eventEmitter.off("comms_leave", handleCommsStateChange);
     };
   }, []);
 

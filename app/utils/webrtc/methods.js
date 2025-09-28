@@ -567,7 +567,7 @@ const handle = {
     if (WebRTC.getChatId() === data.chat_id) {
       SoundPlayer.getInstance().playSound("comms_join_vocal");
     }
-    eventEmitter.emit("member_joined_comms", data);
+    eventEmitter.emit("comms_join", data);
 
     await WebRTC.handleUserJoined(data);
   },
@@ -577,7 +577,7 @@ const handle = {
     if (WebRTC.getChatId() === data.chat_id) {
       SoundPlayer.getInstance().playSound("comms_leave_vocal");
     }
-    eventEmitter.emit("member_left_comms", data);
+    eventEmitter.emit("comms_leave", data);
 
     await WebRTC.handleUserLeft(data);
   },
@@ -587,7 +587,7 @@ const handle = {
       SoundPlayer.getInstance().playSound("comms_stream_started");
     }
 
-    eventEmitter.emit("screen_share_started", data);
+    eventEmitter.emit("comms_screen_share_start", data);
   },
   async screenShareStopped(data) {
     // Solo se il membro che ha fermato lo screen share è nella stessa chat vocale
@@ -595,7 +595,7 @@ const handle = {
       SoundPlayer.getInstance().playSound("comms_stream_stopped");
     }
 
-    eventEmitter.emit("screen_share_stopped", data);
+    eventEmitter.emit("comms_screen_share_stop", data);
   },
 };
 

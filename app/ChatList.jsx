@@ -174,43 +174,6 @@ const ChatList = ({
 
   const styles = createStyle(theme, colorScheme);
 
-  // COMMS ROBA NON TOCCARE
-  // useEffect per comms events (locale per forceUpdate)
-  useEffect(() => {
-    const handleCommsStateChange = (data) => {
-      if (data.from === get.myPartecipantId()) {
-        setForceUpdate((prev) => prev + 1);
-      }
-    };
-    eventEmitter.getEmitter().on("member_joined_comms", handleCommsStateChange);
-    eventEmitter.getEmitter().on("member_left_comms", handleCommsStateChange);
-    return () => {
-      eventEmitter
-        .getEmitter()
-        .off("member_joined_comms", handleCommsStateChange);
-      eventEmitter
-        .getEmitter()
-        .off("member_left_comms", handleCommsStateChange);
-    };
-  }, []);
-
-  // shouldShowSmallCommsMenu (locale per small screen)
-  const shouldShowSmallCommsMenu = () => {
-    if (isToggleSearchChats) return false; // Non mostrare se search attiva
-    const isInComms = check.isInComms();
-    if (isInComms) {
-      const commsId = get.commsId();
-      if (selectedChatUUID !== commsId) return true;
-      // Assumi "chat" view per default, poiché contentView è in ChatContainer
-      return true;
-    }
-    return false;
-  };
-
-  const renderSmallCommsMenu = () =>
-    shouldShowSmallCommsMenu() ? <SmallCommsMenu /> : null;
-  // COMMS ROBA NON TOCCARE
-
   // callback per onPress chat item
   const handleChatPress = React.useCallback(
     (chatUUID) => {
@@ -282,7 +245,6 @@ const ChatList = ({
     >
       <View style={styles.chatListWrapper}>
         {renderHeader()}
-        {renderSmallCommsMenu()}
         {!isToggleSearchChats ? renderChatList() : <Search />}
       </View>
     </SmartBackground>
