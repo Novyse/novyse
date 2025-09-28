@@ -1,39 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import localDatabase from "../localDatabaseMethods";
-import JsonParser from "../JsonParser";
+
 import gateway from "../backend-services/api-gateway";
-
 import Database from "../storage/database";
-
-const clearDBAddTokenInit = async () => {
-  // Wait until localDatabase.db is available
-  await new Promise((resolve) => {
-    const checklocalDatabase = setInterval(() => {
-      if (localDatabase.db) {
-        clearInterval(checklocalDatabase);
-        resolve();
-      }
-    }, 50);
-  });
-
-  // Clear the database
-  await localDatabase.clearDatabase();
-
-  // Check if the database exists
-  const exists = await localDatabase.checkDatabaseExistence();
-  console.log("Database exists:", exists);
-
-  const initSuccess = await JsonParser.initJson();
-
-  if (initSuccess) {
-    console.log("Init Success ⭐");
-    await storeSetIsLoggedIn("true");
-  } else {
-    console.log("Init Error");
-  }
-
-  return initSuccess;
-};
 
 /**
  * Check if the user is logged in by verifying the presence of an access token in AsyncStorage.
@@ -52,6 +20,16 @@ const getUserUUID = async () => {
 const getDeviceUUID = async () => {
   const deviceUUID = await AsyncStorage.getItem("deviceUUID");
   return deviceUUID;
+};
+
+/**
+ * Store the last update timestamp in AsyncStorage.
+ * @param {Timestamp} timestamp
+ * @returns {void}
+ */
+
+const setLastUpdateTimestamp = async (timestamp) => {
+  await AsyncStorage.setItem("lastUpdateTimestamp", timestamp);
 };
 
 /**
@@ -89,16 +67,23 @@ const checkShouldBeHere = async (router, shouldBeLoggedIn = true) => {
 
 const initializeApp = async () => {
   console.log("Initializing app...");
-  const { success, user, device, chats, messages } =
+  const { success, lastUpdateTime, user, device, chats, messages } =
     await gateway.user.initialize();
 
   if (success) {
     console.info("Initialization successful:", {
+      lastUpdateTime,
       user,
       device,
       chatsCount: chats,
       messagesCount: messages,
     });
+
+    // Set last update timestamp
+    if (lastUpdateTime) {
+      await setLastUpdateTimestamp(lastUpdateTime);
+      console.log("Last update timestamp set to:", lastUpdateTime);
+    }
 
     // Set local user uuid in async storage
     await AsyncStorage.setItem("userUUID", user.uuid);
@@ -134,18 +119,86 @@ const logout = async (router) => {
   // API logout @SamueleOrazioDurante
   const database = await Database.create();
   await database.clear();
-  await localDatabase.clearDatabase();
   await AsyncStorage.clear();
   router.replace("/welcome/email-check");
 };
 
+const update = async () => {
+  const lastUpdateTimestamp = await getLastUpdateTimestamp();
+  console.log("Last update timestamp:", lastUpdateTimestamp);
+
+  const { success, user, chats, messages } =
+    await gateway.user.update(lastUpdateTimestamp);
+
+  if (success) {
+    console.log("Update successful:", { user, chats, messages });
+
+    const database = await Database.create();
+
+    if (user) {
+      // Do nothing
+      //await database.addUserInfo(user);
+    }
+
+    if (chats && chats.length > 0) {
+      for (const chat of chats) {
+        chat.members = chat.members.map((member) => ({
+          uuid: member.uuid,
+          name: member.name,
+          surname: member.surname,
+          handle: member.handle,
+          profilePictureUUID: member.profilePictureUUID,
+        }));
+        await database.addChat(chat);
+      }
+    }
+
+    if (messages && messages.length > 0) {
+      for (const message of messages) {
+        await database.addMessage(message);
+      }
+    }
+
+    const newTimestamp = new Date().toISOString();
+    await AsyncStorage.setItem("lastUpdateTimestamp", newTimestamp);
+    console.log("Updated last update timestamp to:", newTimestamp);
+
+    return true;
+  }
+  console.error("Update failed.");
+  return false;
+};
+
+const checkLogged = async () => {
+  try {
+    console.log("Controllo in corso 🟡");
+    const loggedIn = await isLoggedIn();
+
+    if (loggedIn) {
+      console.log("Utente loggato, controllo aggiornamenti... 🟢");
+
+      const success = await update();
+      if (success) {
+        console.log("Aggiornamento dati avvenuto con successo ✅");
+      } else {
+        console.error("Aggiornamento dati fallito ❌");
+      }
+      return true;
+    }
+  } catch (error) {
+    console.error("Errore durante il controllo login:", error);
+  }
+};
+
 export default {
-  clearDBAddTokenInit,
   isLoggedIn,
   getLastUpdateTimestamp,
+  setLastUpdateTimestamp,
   getUserUUID,
   getDeviceUUID,
   checkShouldBeHere,
   initializeApp,
   logout,
+  update,
+  checkLogged,
 };

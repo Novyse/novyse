@@ -141,7 +141,7 @@ const ChatListItem = React.memo(
               </View>
 
               <View style={[styles.ball]}>
-                <Text style={[styles.ballText]}>17</Text>{" "}
+                <Text style={[styles.ballText]}>17</Text>
               </View>
             </View>
           </View>

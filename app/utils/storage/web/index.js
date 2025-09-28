@@ -170,35 +170,49 @@ class Database {
       }
 
       const chats = (await this.store.getItem("chats")) || [];
-      chats.push({
-        uuid: chat.uuid,
-        type: chat.type,
-        name: chat.name || null,
-        description: chat.description || null,
-        profilePictureUUID: chat.profilePictureUUID || null,
-      });
-      await this.store.setItem("chats", chats);
+      const existingChat = chats.find((c) => c.uuid === chat.uuid);
+      if (!existingChat) {
+        chats.push({
+          uuid: chat.uuid,
+          type: chat.type,
+          name: chat.name || null,
+          description: chat.description || null,
+          profilePictureUUID: chat.profilePictureUUID || null,
+        });
+        await this.store.setItem("chats", chats);
+      }
 
       if (chat.handle) {
         const handles = (await this.store.getItem("handles")) || [];
-        handles.push({
-          chatUUID: chat.uuid,
-          type: "CHAT",
-          handle: chat.handle,
-        });
-        await this.store.setItem("handles", handles);
+        const existingHandle = handles.find(
+          (h) => h.chatUUID === chat.uuid && h.type === "CHAT"
+        );
+        if (!existingHandle) {
+          handles.push({
+            chatUUID: chat.uuid,
+            type: "CHAT",
+            handle: chat.handle,
+          });
+          await this.store.setItem("handles", handles);
+        }
       }
 
       const members = (await this.store.getItem("members")) || [];
       for (const member of chat.members) {
-        members.push({
-          userUUID: member.uuid,
-          chatUUID: chat.uuid,
-        });
-        await this.addUserInfo(member);
+        const existingMember = members.find(
+          (m) => m.userUUID === member.uuid && m.chatUUID === chat.uuid
+        );
+        if (!existingMember) {
+          members.push({
+            userUUID: member.uuid,
+            chatUUID: chat.uuid,
+          });
+          await this.addUserInfo(member);
+        }
       }
       await this.store.setItem("members", members);
 
+      console.log("Chat added successfully.", chat.uuid);
       return true;
     } catch (error) {
       console.error("Error adding chat:", error);

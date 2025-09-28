@@ -1,5 +1,7 @@
 import eventEmitter from "../../global/Events/EventEmitter.js";
 
+import auth from "../../welcome/auth.js";
+
 let socket = null;
 
 const eventReceiver = {
@@ -9,11 +11,23 @@ const eventReceiver = {
     socket.on("new_message", async (message) => {
       console.log("Received new_message event:", message);
 
+      await setLastUpdateTimestamp(message.created_at);
+
       await eventEmitter.newMessage(message);
     });
 
-    // @SamueleOrazioDurante forse da mettere evento new_chat
+    socket.on("new_chat", async (chat) => {
+      console.log("Received new_chat event:", chat);
+
+      await setLastUpdateTimestamp(chat.created_at);
+
+      await eventEmitter.newChat(chat);
+    });
   },
+};
+
+const setLastUpdateTimestamp = async (timestamp) => {
+  await auth.setLastUpdateTimestamp(timestamp);
 };
 
 // const updateLastWebSocketActionDateTime = async (date) => {

@@ -254,7 +254,7 @@ class Database {
       }
       // Insert chat into the chat table
       await this.db.runAsync(
-        `INSERT INTO chat (uuid, type, name, description, profilePictureUUID) VALUES (?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO chat (uuid, type, name, description, profilePictureUUID) VALUES (?, ?, ?, ?, ?);`,
         [
           chat.uuid,
           chat.type,
@@ -266,14 +266,14 @@ class Database {
       // If exist insert handle into the handle table
       if (chat.handle) {
         await this.db.runAsync(
-          `INSERT INTO handle (chatUUID, type, handle) VALUES (?, 'CHAT', ?);`,
+          `INSERT OR IGNORE INTO handle (chatUUID, type, handle) VALUES (?, 'CHAT', ?);`,
           [chat.uuid, chat.handle]
         );
       }
       // Insert members into the member table
       for (const member of chat.members) {
         await this.db.runAsync(
-          `INSERT INTO member (userUUID, chatUUID) VALUES (?, ?);`,
+          `INSERT OR IGNORE INTO member (userUUID, chatUUID) VALUES (?, ?);`,
           [member.uuid, chat.uuid]
         );
         // Insert member user info into the user table

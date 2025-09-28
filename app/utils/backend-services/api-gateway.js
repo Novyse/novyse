@@ -561,14 +561,33 @@ const gateway = {
   user: {
     /**
      * Initialize user data after login.
-     * @returns {Object} { success: boolean, user?:{ uuid?: String, email?: String, name?: String, surname?: String, handle?: String}, device?:{uuid?: String}, chats?: Array[{uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}], messages?: Array[@SamueleOrazioDurante da completare]}
+     * @returns {Object} { success: boolean, lastUpdateTime: String, user?:{ uuid?: String, email?: String, name?: String, surname?: String, handle?: String}, device?:{uuid?: String}, chats?: Array[{uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}], messages?: Array[@SamueleOrazioDurante da completare]}
      */
     async initialize() {
       const response = await api.get("/user/initialize");
       const success = response.data.success;
       if (success) {
-        const { user, device, chats, messages } = response.data.data;
-        return { success, user, device, chats, messages };
+        const { lastUpdateTime, user, device, chats, messages } =
+          response.data.data;
+        return { success, lastUpdateTime, user, device, chats, messages };
+      }
+      return { success };
+    },
+
+    /**
+     * Update user data since last update time.
+     * @param {Timestamp} lastUpdateTime
+     * @returns {Object} { success: boolean, user?:{ uuid?: String, email?: String, name?: String, surname?: String, handle?: String}, chats?: Array[{uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}], messages?: Array[@SamueleOrazioDurante da completare]}
+     */
+
+    async update(lastUpdateTime) {
+      const response = await api.get(
+        `/user/update?lastUpdateTime=${lastUpdateTime}`
+      );
+      const success = response.data.success;
+      if (success) {
+        const { user, chats, messages } = response.data.data;
+        return { success, user, chats, messages };
       }
       return { success };
     },

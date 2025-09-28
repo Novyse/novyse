@@ -9,15 +9,17 @@ import {
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
+
 import logo_novyse from "../assets/images/logo-novyse.png";
+
 import ScreenLayout from "./components/ScreenLayout";
 import EmailCheckForm from "./welcome/email-check";
-import JsonParser from "./utils/JsonParser";
+
 import { LinearGradient } from "expo-linear-gradient";
 import { LoginColors } from "@/constants/LoginColors";
+
 import auth from "./utils/welcome/auth";
 
 // Prevent the splash screen from auto-hiding
@@ -33,38 +35,6 @@ export default function Index() {
 
   useEffect(() => {
     let isMounted = true;
-
-    const checkLogged = async () => {
-      try {
-        console.log("Controllo in corso 🟡");
-        const lastUpdateDateTime = await auth.getLastUpdateTimestamp();
-        const isLoggedIn = await auth.isLoggedIn();
-
-        if (isLoggedIn && isMounted) {
-          console.log("Controllo positivo 🟢");
-          // JsonParser.updateAll(lastUpdateDateTime).catch((error) =>
-          //   console.error("Errore in updateAll:", error)
-          // );
-          router.replace("/chat");
-        }
-      } catch (error) {
-        console.error("Errore durante il controllo login:", error);
-      } finally {
-        if (isMounted) {
-          setIsReady(true);
-          try {
-            await SplashScreen.hideAsync(); 
-          } catch (error) {
-            console.error(
-              "Errore durante la rimozione dello splash screen:",
-              error
-            );
-          }
-        }
-      }
-    };
-
-    checkLogged();
 
     const backAction = () => {
       Alert.alert("Hold on!", "Are you sure you want to go back? 😥", [
