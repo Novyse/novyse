@@ -483,14 +483,7 @@ const ChatContent = ({ onBack, contentView }) => {
         (chat.type != "GROUP" &&
           chat.type != "CHANNEL" &&
           chat.type != "FORUM") ? (
-          <View
-            style={{
-              paddingBottom: 10,
-              flexDirection: "row",
-              width: "100%",
-              alignItems: "center",
-            }}
-          >
+          <View style={styles.messageBottomContainer}>
             <Icon
               name="PlusSignIcon"
               style={styles.iconButton}
@@ -611,53 +604,6 @@ function createStyle(theme) {
     safeAreaContainer: {
       flex: 1,
     },
-    MessageTextContent: {
-      color: theme.text,
-      fontSize: 18,
-      maxWidth: "100%",
-      ...(Platform.OS === "web" && {
-        wordBreak: "break-word",
-        overflowWrap: "break-word",
-        whiteSpace: "pre-wrap",
-      }),
-    },
-    timeText: {
-      color: theme.textTime,
-      fontSize: 12,
-      marginLeft: 4,
-      alignSelf: "flex-end",
-      minWidth: 35,
-      textAlign: "right",
-    },
-    msgSender: {
-      marginVertical: 5,
-      padding: 10,
-      maxWidth: "70%",
-      borderRadius: 10,
-      borderBottomRightRadius: 0,
-      alignSelf: "flex-end",
-      marginRight: 8,
-    },
-    msgReceiver: {
-      marginVertical: 5,
-      padding: 10,
-      maxWidth: "70%",
-      borderRadius: 10,
-      borderBottomLeftRadius: 0,
-      alignSelf: "flex-start",
-      marginLeft: 8,
-    },
-    messagePressable: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      alignItems: "flex-end",
-      justifyContent: "flex-end",
-      gap: 4,
-      ...(Platform.OS === "web" && {
-        wordBreak: "break-word",
-        overflowWrap: "break-word",
-      }),
-    },
     listContainer: {
       flex: 1,
     },
@@ -687,8 +633,10 @@ function createStyle(theme) {
     bottomBarContainer: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: 10,
+      justifyContent: "center",
       width: "100%",
+      paddingVertical: 10,
+      maxHeight: 70
     },
     bottomTextBarContainer: {
       flex: 1,
@@ -707,6 +655,11 @@ function createStyle(theme) {
       outlineStyle: "none",
       maxHeight: 45,
     },
+    messageBottomContainer: {
+      flexDirection: "row",
+      width: "100%",
+      alignItems: "center",
+    },
     iconButton: {
       backgroundColor: "transparent",
       borderRadius: 100,
@@ -718,11 +671,10 @@ function createStyle(theme) {
     },
     joinGroupButton: {
       backgroundColor: theme.backgroundJoinChatButton,
-      width: "100%",
-      height: 50,
-      padding: 12,
+      paddingHorizontal: 30,
+      minHeight: 45,
+      padding: 13,
       borderRadius: 25,
-      marginBottom: 10,
       alignSelf: "center",
       justifyContent: "center",
       alignItems: "center",
