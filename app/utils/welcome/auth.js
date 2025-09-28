@@ -116,7 +116,14 @@ const initializeApp = async () => {
 
 const logout = async (router) => {
   console.log("Logging out user...");
-  // API logout @SamueleOrazioDurante
+  const success = await gateway.auth.logout();
+  if (!success) {
+    console.error(
+      "Logout failed at API level, but proceeding with local cleanup."
+    );
+  } else {
+    console.log("Logout successful at API level.");
+  }
   const database = await Database.create();
   await database.clear();
   await AsyncStorage.clear();
@@ -183,8 +190,9 @@ const checkLogged = async () => {
       } else {
         console.error("Aggiornamento dati fallito ❌");
       }
-      return true;
     }
+
+    return loggedIn;
   } catch (error) {
     console.error("Errore durante il controllo login:", error);
   }

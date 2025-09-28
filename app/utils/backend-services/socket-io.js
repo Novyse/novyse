@@ -1,9 +1,11 @@
 import localDatabase from "../localDatabaseMethods.js";
-import eventEmitter from "../global/Events/lib/EventEmitter.js";
-import { io } from "socket.io-client";
-import gateway from "./api-gateway.js";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { io } from "socket.io-client";
+
+import gateway from "./api-gateway.js";
+import token from "../welcome/token.js";
+
+import eventEmitter from "../global/Events/EventEmitter.js";
 import eventReceiver from "./lib/event-receiver.js";
 import eventSender from "./lib/event-sender.js";
 
@@ -24,6 +26,7 @@ switch (BRANCH) {
 path += "/socket.io";
 
 let socket = null;
+let isConnecting = false;
 
 const SocketIO = {
   isOpen: () => {
@@ -31,13 +34,17 @@ const SocketIO = {
   },
 
   open: async () => {
-    const accessToken = await AsyncStorage.getItem("accessToken");
-
     try {
-      if (SocketIO.isOpen()) {
-        console.warn("Socket.IO already connected");
+      if (isConnecting || SocketIO.isOpen()) {
+        console.warn(
+          "Socket.IO connection already in progress or already connected"
+        );
         return socket;
       }
+
+      isConnecting = true;
+
+      const accessToken = await token.getAccessToken();
 
       socket = io(SOCKET_BASE_URL, {
         path: path,
@@ -51,6 +58,7 @@ const SocketIO = {
 
       socket.on("connect", async () => {
         console.info("Socket.IO connection opened!");
+        isConnecting = false;
         await eventReceiver.initialize(socket);
         await eventSender.initialize(socket);
       });
@@ -59,9 +67,11 @@ const SocketIO = {
         console.error("Socket.IO connect_error event:", error);
         if (error && error.message) {
           console.error("Connect error message:", error.message);
+          isConnecting = false;
         }
         if (error && error.data) {
           console.error("Connect error data:", error.data);
+          isConnecting = false;
         }
         // Handle authentication errors specifically
         if (
@@ -74,6 +84,7 @@ const SocketIO = {
 
       socket.on("error", async (error) => {
         console.error("Socket.IO connection error:", error);
+        isConnecting = false;
 
         if (error.status === 401) {
           console.error("Invalid session - retrying pulling new sessionId");
@@ -90,10 +101,12 @@ const SocketIO = {
       });
 
       socket.on("disconnect", (reason) => {
+        isConnecting = false;
         console.info("Closed Socket.IO connection", { reason });
       });
     } catch (error) {
       console.error("Socket.IO initialization error:", error);
+      isConnecting = false;
       if (error && error.stack) {
         console.error("Stack trace:", error.stack);
       }
@@ -486,5 +499,15 @@ const SocketIO = {
     socket.emit(eventType, data);
   },
 };
+
+// Reconnect socket on app foreground
+
+eventEmitter.getEmitter().on("socketReconnect", () => {
+  console.log("Reconnecting Socket.IO after token refresh");
+  if (socket) {
+    socket.disconnect(); // Disconnect first to avoid conflicts
+  }
+  SocketIO.open();
+});
 
 export default SocketIO;

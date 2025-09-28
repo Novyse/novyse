@@ -21,6 +21,8 @@ export default function RootLayout() {
       const success = await auth.checkLogged();
       if (success) {
         router.replace("/chat");
+      }else{
+        router.replace("/welcome/email-check");
       }
     };
     initialize();

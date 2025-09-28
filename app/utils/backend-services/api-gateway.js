@@ -379,20 +379,19 @@ const gateway = {
      */
 
     async logout() {
-      const refreshToken = null; // @SamueleOrazioDurante prende da async storage il refresh token
+      const refreshToken = await token.getRefreshToken();
 
       if (!refreshToken) {
         console.error("No refresh token available");
-        eventEmitter.emit("invalidSession");
+        return false;
       }
 
       const response = await api.post("/auth/logout", { refreshToken });
       const success = response.data.success;
 
       if (success) {
-        console.info("Logged out successfully");
-        eventEmitter.emit("invalidSession");
-        // @SamueleOrazioDurante da creare un metodo che distrugga tutto, database, asyncstorage, cache, qualsiasi cosa, che verrà usato anche per forzare la disconessione in futuro insieme all'invalidSession event
+        console.info("Logged out successfully on API level");
+        return success;
       }
       return success;
     },
@@ -679,6 +678,14 @@ const gateway = {
   },
 
   chat: {
+    /**
+     * Create a new chat.
+     * @param {String} type
+     * @param {String} memberUUIDs
+     * @param {String} name
+     * @param {String} handle
+     * @returns { Object } { success: boolean, chat?: { uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]} }
+     */
     async create(type, memberUUIDs = [], name = null, handle = null) {
       try {
         if (!type || (type == "DM" && memberUUIDs.length != 1)) {
@@ -705,6 +712,11 @@ const gateway = {
         throw error;
       }
     },
+    /**
+     * Join a chat by its handle.
+     * @param {String} handle
+     * @returns { Object } { success: boolean, chat?: { uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}, messages?: Array[@SamueleOrazioDurante da completare] }
+     */
     async join(handle) {
       try {
         if (!handle) {
@@ -724,6 +736,13 @@ const gateway = {
     },
   },
   message: {
+    /**
+     * Send a message to a chat.
+     * @param {String} chatUUID
+     * @param {String} text
+     * @param {String} type
+     * @returns { Object } { success: boolean, message?: { uuid?: String, chatUUID?: String, from?: { uuid?: String, name?: String, surname?: String, handle?: String, profilePictureUUID?: String }, text?: String, type?: [text, image, video, file], created_at?: timestamp } }
+     */
     async send(chatUUID, text, type = "text") {
       try {
         if (!chatUUID || !text) {
@@ -751,7 +770,11 @@ const gateway = {
     },
   },
 
-  // Socket.IO specific methods to handle authentication errors
+  /**
+   * Handle Socket.IO authentication errors by attempting to refresh the token.
+   * If the refresh is successful, it emits an event to reconnect the socket with the new token.
+   * If the refresh fails, it emits an "invalidSession" event.
+   */
   async handleSocketAuthError() {
     try {
       const refreshSuccess = await gateway.auth.refresh();
@@ -765,237 +788,6 @@ const gateway = {
     } catch (error) {
       console.error("Error refreshing token for socket:", error);
       eventEmitter.emit("invalidSession");
-    }
-  },
-  // DEPRECATED ------------------------------------
-
-  // chiede all'API se l'email è già registrata
-  async emailCheckAPI(email) {
-    try {
-      const response = await api.get(`/user/auth/access?email=${email}`);
-      return response;
-    } catch (error) {
-      console.error("Error in emailCheckAPI:", error);
-      throw error;
-    }
-  },
-
-  // chiede registrazione all'API
-  async signupAPI(
-    email,
-    name,
-    surname,
-    handle,
-    password,
-    privacy_policy_accepted,
-    terms_of_service_accepted
-  ) {
-    try {
-      const response = await api.get(
-        `/user/auth/signup?email=${email}&name=${name}&surname=${surname}&handle=${handle}&password=${password}&privacy_policy_accepted=${privacy_policy_accepted}&terms_of_service_accepted=${terms_of_service_accepted}`
-      );
-      return response;
-    } catch (error) {
-      console.error("Error in signupAPI:", error);
-      throw error;
-    }
-  },
-
-  // controlla che l'handle sia disponibile
-  async handleAvailability(handle) {
-    try {
-      const response = await api.get(
-        `/user/data/check/handle-availability?handle=${handle}`
-      );
-      //console.log("handleAvailability in APImethods: ", response);
-      return response;
-    } catch (error) {
-      console.error("Error in handleAvailability:", error);
-      throw error;
-    }
-  },
-
-  // Chiede tutto all'API (search)
-  async searchAll(value) {
-    try {
-      const response = await api.get(`/user/data/search/all?handle=${value}`);
-      console.log("searchAll in APImethods: ", response);
-      return response;
-    } catch (error) {
-      console.error("Error in searchAll in APImethods:", error);
-      throw error;
-    }
-  },
-
-  // chiede il login all'API
-  async loginAPI(email, password) {
-    try {
-      const response = await api.get(
-        `/user/auth/login?email=${email}&password=${password}`
-      );
-
-      return response.data;
-    } catch (error) {
-      console.error("Error in loginAPI:", error);
-      throw error;
-    }
-  },
-
-  // chiedi all'API di generare il token per il QR Code
-  async generateQRCodeTokenAPI() {
-    try {
-      const response = await api.get("/user/auth/qr_code/generate");
-
-      const data = response.data;
-      if (!data || !data.qr_code_generated) {
-        console.error("QR Code generation failed:", data);
-        return null;
-      }
-      return data.qr_token;
-    } catch (error) {
-      console.error("Error in generateQRCodeTokenAPI:", error);
-      throw error;
-    }
-  },
-
-  // chiede all'API di scansionare il QR Code
-  async scanQRCodeAPI(qr_token) {
-    try {
-      const response = await api.get(
-        `/user/auth/qr_code/scan?qr_token=${qr_token}`
-      );
-      return response.data.qr_code_scanned;
-    } catch (error) {
-      if (error.response && error.response.data) {
-        // QR Code non valido o già scansionato
-        return false;
-      } else {
-        // Errore di rete, timeout, o risposta completamente assente
-        console.error(
-          "Error in scanQRCodeAPI: Nessuna risposta dal server",
-          error.message
-        );
-        throw error; // Rilancia l'errore per gestirlo a livello superiore
-      }
-    }
-  },
-
-  // chiede all'API di verificare se il token del QR Code è stato scansionato
-  async checkQRCodeScannedAPI(qr_token) {
-    try {
-      const response = await api.get(
-        `/user/auth/qr_code/check?qr_token=${qr_token}`
-      );
-
-      return response;
-    } catch (error) {
-      console.error("Error in checkQRCodeScannedAPI:", error);
-      throw error;
-    }
-  },
-
-  //chiede init all'API
-  async initAPI() {
-    try {
-      const response = await api.get("/user/data/get/init");
-
-      return response;
-    } catch (error) {
-      console.error("Error in initAPI:", error);
-      throw error;
-    }
-  },
-
-  // quando un messaggio viene inviato all'API, questa ritorna info utili al messaggio da salvare in locale
-  async sendMessageAPI(chat_id, text) {
-    try {
-      // edited message to encode the URLs
-      text = text
-        .replace(/http:\/\//g, "http%3A%2F%2F")
-        .replace(/https:\/\//g, "https%3A%2F%2F");
-
-      const response = await api.get(
-        `/chat/send/message?chat_id=${chat_id}&text=${text}`
-      );
-      return response;
-    } catch (error) {
-      console.error("Error in sendMessageAPI:", error);
-      throw error;
-    }
-  },
-
-  // ottiene i membri di una chat
-  async getChatMembers(chat_id) {
-    try {
-      const response = await api.get(`/chat/get/members?chat_id=${chat_id}`);
-      return response.data.members_list;
-    } catch (error) {
-      console.error("Error in getChatMembers API:", error);
-      throw error;
-    }
-  },
-
-  // effettua il logout
-  async logoutAPI() {
-    try {
-      const response = await api.get("/user/auth/logout");
-      return response.data.logged_out;
-    } catch (error) {
-      // if (response.status === 401) {
-      //   return true;
-      // } else {
-      //   console.error("Error in logout API:", error);
-      //   throw error;
-      // }
-      return true;
-    }
-  },
-
-  //creazione nuova chat
-  async createNewChatAPI(handle) {
-    try {
-      const response = await api.get(`/chat/create/chat?handle=${handle}`);
-      return response.data.chat_id;
-    } catch (error) {
-      console.error("Error in createNewChatAPI:", error);
-      throw error;
-    }
-  },
-
-  //creazione gruppo
-  async createNewGroupAPI(handle, name, members) {
-    try {
-      const response = await api.get(
-        `/chat/create/group?handle=${handle}&name=${name}`
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error in createNewGroupAPI:", error);
-      throw error;
-    }
-  },
-
-  // join gruppo
-  async joinGroup(handle) {
-    try {
-      const response = await api.get(`/chat/join/group?handle=${handle}`);
-      return response.data;
-    } catch (error) {
-      console.error("Error in joinGroupAPI:", error);
-      throw error;
-    }
-  },
-
-  // update rispetto all'ultimo evento dal websocket
-  async updateAll(date_time) {
-    try {
-      const response = await api.get(
-        `/user/data/get/update?latest_update_datetime=${date_time}`
-      );
-      return response;
-    } catch (error) {
-      console.error("Error in updateAll:", error);
-      throw error;
     }
   },
 
@@ -1078,97 +870,5 @@ const gateway = {
       throw error;
     }
   },
-
-  // @SamueleOrazioDurante fine
-  async forgotPassword(email) {
-    try {
-      const response = await api.get(
-        `/user/auth/forgot-password?email=${email}`
-      );
-      return response.data.forgot_password; // ritorna forgot_password : true/false
-    } catch (error) {
-      console.error("Error in forgotPassword:", error);
-      throw error;
-    }
-  },
-
-  async resetPassword(email, token, password) {
-    try {
-      const response = await api.get(
-        `/user/auth/reset-password?email=${email}&token=${token}&password=${password}`
-      );
-      return response.data.reset_password; // ritorna reset_password : true/false
-    } catch (error) {
-      console.error("Error in resetPassword:", error);
-      throw error;
-    }
-  },
-
-  async changePassword(old_password, new_password) {
-    try {
-      const response = await api.get(
-        `/user/auth/change-password?old_password=${old_password}&new_password=${new_password}`
-      );
-      return response.data.change_password; // ritorna change_password : true/false
-    } catch (error) {
-      console.error("Error in changePassword:", error);
-      throw error;
-    }
-  },
-
-  async twoFactorsAuth(method, token, code) {
-    try {
-      const response = await api.get(
-        `/user/auth/2fa/verify?method=${method}&token=${token}&code=${code}`
-      );
-      return response.data; // ritorna data : token sessione e authenticated true/false
-    } catch (error) {
-      console.error("Error in twoFactorsAuth:", error);
-      throw error;
-    }
-  },
-
-  async getTwofaMethods() {
-    try {
-      const response = await api.get(`/user/auth/2fa/get`);
-      return response.data; // ritorna data : two_fa_active_methods, two_fa_methods
-    } catch (error) {
-      console.error("Error in get 2fa methods:", error);
-      throw error;
-    }
-  },
-
-  async removeTwofaMethod(method) {
-    try {
-      const response = await api.get(`/user/auth/2fa/remove?method=${method}`);
-      return response.data; // ritorna data : two_fa_remove_method true/false, token
-    } catch (error) {
-      console.error("Error in get 2fa remove method:", error);
-      throw error;
-    }
-  },
-
-  async addTwofaMethod(method) {
-    try {
-      const response = await api.get(`/user/auth/2fa/add?method=${method}`);
-      return response.data; // ritorna data : two_fa_add_method true/false, token
-    } catch (error) {
-      console.error("Error in get 2fa remove method:", error);
-      throw error;
-    }
-  },
-
-  async twofaSelect(token, method) {
-    try {
-      const response = await api.get(
-        `/user/auth/2fa/select?method=${method}&token=${token}`
-      );
-      return response.data; // ritorna data : two_fa_select true/false
-    } catch (error) {
-      console.error("Error in get twofaSelect:", error);
-      throw error;
-    }
-  },
 };
-
 export default gateway;
