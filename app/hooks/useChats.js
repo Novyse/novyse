@@ -41,15 +41,16 @@ const useChats = () => {
 
     loadChats();
 
-    const handleNewMessage = (message) => {
+    const handleNewMessage = async (message) => {
       const chatUUID = message.chatUUID;
+      const lastMessage = await formatMessage(message);
       setChatDetails((prevDetails) => {
         if (prevDetails[chatUUID]) {
           return {
             ...prevDetails,
             [chatUUID]: {
               ...prevDetails[chatUUID],
-              lastMessage: message,
+              lastMessage: lastMessage,
             },
           };
         }
@@ -88,14 +89,19 @@ const getLastMesssage = async (chatUUID) => {
   try {
     const database = await Database.create();
     const lastMessage = await database.getLastMessage(chatUUID);
-    if (lastMessage && lastMessage.type && lastMessage.type == "system") {
-      lastMessage.text = await utils.getSystemMessageText(lastMessage);
-    }
-    return lastMessage;
+
+    return await formatMessage(lastMessage);
   } catch (error) {
     console.error("Error fetching last message:", error);
     return null;
   }
+};
+
+const formatMessage = async (message) => {
+  if (message && message.type && message.type == "system") {
+    message.text = await utils.getSystemMessageText(message);
+  }
+  return message;
 };
 
 export default useChats;
