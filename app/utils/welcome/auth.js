@@ -131,6 +131,14 @@ const logout = async (router) => {
 };
 
 const update = async () => {
+  const loggedIn = await isLoggedIn();
+  if (!loggedIn) {
+    console.warn("User is not logged in. Skipping update.");
+    return false;
+  }
+
+  console.log("Starting update process...");
+
   const lastUpdateTimestamp = await getLastUpdateTimestamp();
   console.log("Last update timestamp:", lastUpdateTimestamp);
 
@@ -176,28 +184,6 @@ const update = async () => {
   return false;
 };
 
-const checkLogged = async () => {
-  try {
-    console.log("Controllo in corso 🟡");
-    const loggedIn = await isLoggedIn();
-
-    if (loggedIn) {
-      console.log("Utente loggato, controllo aggiornamenti... 🟢");
-
-      const success = await update();
-      if (success) {
-        console.log("Aggiornamento dati avvenuto con successo ✅");
-      } else {
-        console.error("Aggiornamento dati fallito ❌");
-      }
-    }
-
-    return loggedIn;
-  } catch (error) {
-    console.error("Errore durante il controllo login:", error);
-  }
-};
-
 export default {
   isLoggedIn,
   getLastUpdateTimestamp,
@@ -208,5 +194,4 @@ export default {
   initializeApp,
   logout,
   update,
-  checkLogged,
 };

@@ -8,24 +8,16 @@ import { UserProvider } from "../context/UserContext";
 import { LanguageProvider } from "../context/LanguageContext";
 
 import { useEffect } from "react";
-import { useRouter } from "expo-router";
 import auth from "./utils/welcome/auth";
 
 import SetupGlobalEventReceiver from "./utils/global/Events/EventReceiver";
 
 export default function RootLayout() {
-  const router = useRouter();
-
   useEffect(() => {
-    const initialize = async () => {
-      const success = await auth.checkLogged();
-      if (success) {
-        router.replace("/chat");
-      }else{
-        router.replace("/welcome/email-check");
-      }
+    const updateData = async () => {
+      const success = await auth.update();
     };
-    initialize();
+    updateData();
   }, []);
 
   SetupGlobalEventReceiver();

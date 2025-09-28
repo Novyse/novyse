@@ -44,6 +44,21 @@ export default function Index() {
       return true;
     };
 
+    const navigateBasedOnAuth = async () => {
+      const success = await auth.isLoggedIn();
+      if (isMounted) {
+        if (success) {
+          router.replace("/chat");
+        } else {
+          setIsReady(true);
+          await SplashScreen.hideAsync();
+          router.replace("/welcome/email-check");
+        }
+      }
+    };
+
+    navigateBasedOnAuth();
+
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       backAction
