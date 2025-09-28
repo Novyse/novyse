@@ -13,13 +13,6 @@ import auth from "./utils/welcome/auth";
 import SetupGlobalEventReceiver from "./utils/global/Events/EventReceiver";
 
 export default function RootLayout() {
-  useEffect(() => {
-    const updateData = async () => {
-      const success = await auth.update();
-    };
-    updateData();
-  }, []);
-
   SetupGlobalEventReceiver();
 
   return (

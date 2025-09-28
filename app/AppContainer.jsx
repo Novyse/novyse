@@ -79,6 +79,13 @@ const AppContainer = () => {
     fetchUserUUID();
   }, [setUserUUID]);
 
+  useEffect(() => {
+    const updateData = async () => {
+      const success = await auth.update();
+    };
+    updateData();
+  }, []);
+
   const onChatSelect = useCallback(
     (chatUUID) => {
       if (selectedChatUUID === chatUUID) return; // No-op if selecting already selected chat
