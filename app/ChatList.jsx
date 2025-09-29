@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useCallback } from "react";
+import React, { useContext, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,13 +10,10 @@ import {
 import moment from "moment";
 import SmartBackground from "./components/SmartBackground";
 import Search from "./Search";
-import eventEmitter from "./utils/global/Events/EventEmitter";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
 import Icon from "./components/Icon";
-import SmallCommsMenu from "./components/comms/SmallCommsMenu"; // Solo per small screen
 import methods from "./utils/webrtc/methods";
 import HeaderBase from "./components/HeaderBase";
-import chatUtils from "./utils/chat/index";
 
 // Hooks
 import useChats from "./hooks/useChats";
@@ -186,12 +183,15 @@ const ChatList = ({
     () => (
       <HeaderBase>
         <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
-        <Text style={styles.headerTitle}>Chats</Text>
+        <Image
+          source={require("../assets/images/logo-novyse.png")}
+          style={styles.logo}
+        />
+        {/* <Text style={styles.headerTitle}>Novyse</Text> */}
         <Icon
           name={"Search02Icon"}
           size={32}
           onPress={() => setIsToggleSearchChats((prev) => !prev)}
-          style={styles.searchButton}
         />
       </HeaderBase>
     ),
@@ -265,32 +265,34 @@ function createStyle(theme, colorScheme) {
     flatList: {
       flex: 1,
       ...(Platform.OS === "web" && {
+        // Standard per Firefox (fisso, no active/drag change)
         scrollbarWidth: "thin",
-        scrollbarColor: "transparent",
+        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
+
         "::-webkit-scrollbar": {
-          width: 8,
-          backgroundColor: "transparent",
-          position: "absolute",
-          right: 0,
-        },
-        "::-webkit-scrollbar-thumb": {
-          backgroundColor: "transparent",
-          borderRadius: 4,
+          width: 6,
+          backgroundColor: theme.backgroundScrollbar,
         },
         "::-webkit-scrollbar-track": {
-          backgroundColor: "transparent",
-          position: "absolute",
-          right: 0,
+          backgroundColor: theme.backgroundScrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb": {
+          backgroundColor: theme.scrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb:hover": {
+          backgroundColor: theme.scrollbarHover,
         },
       }),
     },
     flatListContent: {
       padding: 10,
-      paddingTop: 0,
+      gap: 10
     },
     chatItem: {
-      borderRadius: 13,
-      marginBottom: 10,
+      borderRadius: 15,
+      height: 65,
     },
     chatItemPressable: {
       flexDirection: "row",
@@ -298,13 +300,17 @@ function createStyle(theme, colorScheme) {
       padding: 10,
       width: "100%",
       flex: 1,
-      borderRadius: 13,
+      borderRadius: 15,
     },
     avatar: {
       width: 40,
       height: 40,
       borderRadius: 20,
       marginRight: 10,
+    },
+    logo: {
+      width: 24,
+      height: 24
     },
     chatTitle: {
       fontSize: 16,
@@ -337,9 +343,6 @@ function createStyle(theme, colorScheme) {
     },
     staticNumber: {
       textAlign: "right",
-    },
-    searchButton: {
-      marginLeft: "auto",
     },
     headerTitle: {
       color: theme.text,

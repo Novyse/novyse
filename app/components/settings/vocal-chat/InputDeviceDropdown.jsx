@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Animated,
   ScrollView,
+  Platform
 } from "react-native";
 
 const DropdownMenu = ({
@@ -170,6 +171,27 @@ const createStyles = (theme) =>
     },
     dropdownList: {
       width: "100%",
+      ...(Platform.OS === "web" && {
+        // Standard per Firefox (fisso, no active/drag change)
+        scrollbarWidth: "thin",
+        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
+
+        "::-webkit-scrollbar": {
+          width: 6,
+          backgroundColor: theme.backgroundScrollbar,
+        },
+        "::-webkit-scrollbar-track": {
+          backgroundColor: theme.backgroundScrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb": {
+          backgroundColor: theme.scrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb:hover": {
+          backgroundColor: theme.scrollbarHover,
+        },
+      }),
     },
     option: {
       padding: 15,

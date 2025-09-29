@@ -1,4 +1,4 @@
-import React, { Children, useContext } from "react";
+import React, { useContext } from "react";
 import { StyleSheet, Text } from "react-native";
 import { ThemeContext } from "../../../context/ThemeContext";
 import HoverAndPressedButton from "../HoverAndPressedButton";

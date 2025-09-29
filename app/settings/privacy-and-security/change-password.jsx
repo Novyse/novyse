@@ -1,11 +1,13 @@
-import React, { useContext, useEffect, useState } from "react";
-import { StyleSheet, Text, View, TextInput, ScrollView } from "react-native";
+import React, { useContext, useState } from "react";
+import { StyleSheet, Text, View, TextInput } from "react-native";
 import ScreenLayout from "@/app/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
 import gateway from "../../utils/backend-services/api-gateway";
 import StatusMessage from "@/app/components/StatusMessage";
 import SettingsButton from "@/app/components/settings/SettingsButton";
+import SettingsPageScrollview from "@/app/components/settings/SettingsPageScrollview";
+import SettingsCard from "@/app/components/settings/SettingsCard";
 
 const ChangePassword = () => {
   const { theme } = useContext(ThemeContext);
@@ -13,7 +15,7 @@ const ChangePassword = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // Fixed typo in initialization
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   const passwordRegex =
@@ -21,7 +23,7 @@ const ChangePassword = () => {
   const isPasswordValid = (pwd) => passwordRegex.test(pwd);
 
   const handleChangePassword = async () => {
-    setError(""); // Reset error state
+    setError("");
 
     if (!oldPassword || !newPassword || !confirmPassword) {
       setError("Please fill in all fields");
@@ -69,90 +71,78 @@ const ChangePassword = () => {
   return (
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="./" />
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Change Password</Text>
-          <Text style={styles.subtitle}>
-            Enter your current password and choose a new one
-          </Text>
+      <SettingsPageScrollview>
+        <Text style={styles.title}>Change Password</Text>
+        <Text style={styles.subtitle}>
+          Enter your current password and choose a new one
+        </Text>
 
-          <View style={styles.formContainer}>
-            <StatusMessage type="error" text={error} />
+        <SettingsCard>
+          <StatusMessage type="error" text={error} />
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Current Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter current password"
-                placeholderTextColor={theme.placeholder}
-                value={oldPassword}
-                onChangeText={setOldPassword}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>New Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter new password"
-                placeholderTextColor={theme.placeholder}
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Confirm New Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Confirm new password"
-                placeholderTextColor={theme.placeholder}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-            </View>
-
-            <SettingsButton
-              onPress={handleChangePassword}
-              text={isLoading ? "Changing Password..." : "Change Password"}
-              style={[isLoading && styles.disabledButton]}
-              textStyle={styles.buttonText}
-              disabled={isLoading}
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Current Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter current password"
+              placeholderTextColor={theme.placeholder}
+              value={oldPassword}
+              onChangeText={setOldPassword}
+              secureTextEntry
+              autoCapitalize="none"
             />
-
-            <View style={styles.securityNote}>
-              <Text style={styles.noteText}>
-                • Password must be 8-128 characters long{"\n"}• Must include
-                uppercase and lowercase letters{"\n"}• Must include at least one
-                number{"\n"}• Must include at least one special character (@, $,
-                !, %, *, ?, &){"\n"}• Don't reuse old passwords
-              </Text>
-            </View>
           </View>
-        </View>
-      </ScrollView>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>New Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter new password"
+              placeholderTextColor={theme.placeholder}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Confirm New Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm new password"
+              placeholderTextColor={theme.placeholder}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+          </View>
+
+          <SettingsButton
+            onPress={handleChangePassword}
+            text={isLoading ? "Changing Password..." : "Change Password"}
+            style={[isLoading && styles.disabledButton]}
+            textStyle={styles.buttonText}
+            disabled={isLoading}
+          />
+
+          <View style={styles.securityNote}>
+            <Text style={styles.noteText}>
+              • Password must be 8-128 characters long{"\n"}• Must include
+              uppercase and lowercase letters{"\n"}• Must include at least one
+              number{"\n"}• Must include at least one special character (@, $,
+              !, %, *, ?, &){"\n"}• Don't reuse old passwords
+            </Text>
+          </View>
+        </SettingsCard>
+      </SettingsPageScrollview>
     </ScreenLayout>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      alignSelf: "center",
-      width: "100%",
-      maxWidth: 768,
-    },
-    content: {
-      paddingTop: 20,
-      paddingBottom: 40,
-    },
     title: {
       color: theme.text,
       fontSize: 28,
@@ -166,12 +156,6 @@ const createStyle = (theme) =>
       textAlign: "center",
       marginBottom: 30,
       lineHeight: 22,
-    },
-    formContainer: {
-      backgroundColor: theme.backgroundSettingsCards,
-      borderRadius: 16,
-      padding: 24,
-      marginBottom: 24,
     },
     inputContainer: {
       marginBottom: 20,

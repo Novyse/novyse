@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import Icon from "./Icon";
@@ -24,7 +24,7 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
 const createStyle = (theme) =>
   StyleSheet.create({
     iconContainer: {
-      padding: 10,
+      marginLeft: 5,
     },
   });
 

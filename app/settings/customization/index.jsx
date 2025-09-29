@@ -1,38 +1,22 @@
-import React, { useContext } from "react";
-import { StyleSheet, ScrollView, View } from "react-native"; // Aggiungi ScrollView
-import { ThemeContext } from "@/context/ThemeContext";
+import React from "react";
 import SettingsMenuItem from "../../components/SettingsMenuItem";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
 import ScreenLayout from "../../components/ScreenLayout";
+import SettingsPageScrollview from "@/app/components/settings/SettingsPageScrollview";
 
 const PrivacyAndSecurityMenu = () => {
-  const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
-
   return (
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="./" />
-      <View style={styles.container}>
-        <ScrollView contentstyle={styles.scrollContent}>
-          <SettingsMenuItem
-            navToPage="./customization/themes"
-            pageName="Themes"
-            iconName={"PaintBoardIcon"}
-          />
-        </ScrollView>
-      </View>
+      <SettingsPageScrollview isMenu={true}>
+        <SettingsMenuItem
+          navToPage="./customization/themes"
+          pageName="Themes"
+          iconName={"PaintBoardIcon"}
+        />
+      </SettingsPageScrollview>
     </ScreenLayout>
   );
 };
-
-const createStyle = (theme) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      alignSelf: "center",
-      width: "100%",
-      maxWidth: 768,
-    },
-  });
 
 export default PrivacyAndSecurityMenu;

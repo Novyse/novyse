@@ -1,8 +1,10 @@
 import React, { useContext } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import ScreenLayout from "../components/ScreenLayout";
+import SettingsPageScrollview from "../components/settings/SettingsPageScrollview";
+import SettingsCard from "../components/settings/SettingsCard";
 
 const ShortcutsPage = () => {
   const { theme } = useContext(ThemeContext);
@@ -11,47 +13,24 @@ const ShortcutsPage = () => {
   return (
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="./" />
-      <View style={styles.container}>
-        <View style={styles.wipContainer}>
+      <SettingsPageScrollview>
+        <SettingsCard>
           <Text style={styles.wipText}>🚧 Work in Progress 🚧</Text>
           <Text style={styles.wipSubtext}>
             Currently only implemented in VocalContentBottomBar
           </Text>
-        </View>
+        </SettingsCard>
 
-        <View style={styles.shortcutsContainer}>
+        <SettingsCard>
           <Text style={styles.shortcutItem}>Mute: ctrl + F12</Text>
-        </View>
-      </View>
+        </SettingsCard>
+      </SettingsPageScrollview>
     </ScreenLayout>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      alignSelf: "center",
-      width: "100%",
-      maxWidth: 768,
-    },
-    text: {
-      color: theme.text,
-    },
-    textTemp: {
-      color: "red",
-      marginVertical: 10,
-      fontSize: 15,
-    },
-    wipContainer: {
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 20,
-      borderLeftWidth: 4,
-      borderLeftColor: "#FFA500",
-      alignItems: "center",
-    },
     wipText: {
       color: "#FFA500",
       fontSize: 18,
@@ -62,11 +41,6 @@ const createStyle = (theme) =>
       color: theme.subtitle,
       fontSize: 14,
       fontStyle: "italic",
-    },
-    shortcutsContainer: {
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 12,
-      padding: 16,
     },
     shortcutItem: {
       color: theme.text,
