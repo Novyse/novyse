@@ -33,7 +33,7 @@ export const Colors = {
     // Vari
     borderColor: "#000000",
     borderModal: "#000000",
-    badgeColor: "#4fb3e1",
+    badgeColor: "#20566eff",
     shadowColor: "#000",
 
     // Gradients

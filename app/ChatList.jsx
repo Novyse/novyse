@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useCallback } from "react";
+import React, { useContext, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,13 +10,10 @@ import {
 import moment from "moment";
 import SmartBackground from "./components/SmartBackground";
 import Search from "./Search";
-import eventEmitter from "./utils/global/Events/EventEmitter";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
 import Icon from "./components/Icon";
-import SmallCommsMenu from "./components/comms/SmallCommsMenu"; // Solo per small screen
 import methods from "./utils/webrtc/methods";
 import HeaderBase from "./components/HeaderBase";
-import chatUtils from "./utils/chat/index";
 
 // Hooks
 import useChats from "./hooks/useChats";
@@ -186,12 +183,12 @@ const ChatList = ({
     () => (
       <HeaderBase>
         <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
-        <Text style={styles.headerTitle}>Chats</Text>
+        <Image source={require("../assets/images/logo-novyse.png")} style={styles.logo}/>
+        {/* <Text style={styles.headerTitle}>Novyse</Text> */}
         <Icon
           name={"Search02Icon"}
           size={32}
           onPress={() => setIsToggleSearchChats((prev) => !prev)}
-          style={styles.searchButton}
         />
       </HeaderBase>
     ),
@@ -291,8 +288,9 @@ function createStyle(theme, colorScheme) {
       paddingTop: 0,
     },
     chatItem: {
-      borderRadius: 13,
+      borderRadius: 15,
       marginBottom: 10,
+      minHeight: 65,
     },
     chatItemPressable: {
       flexDirection: "row",
@@ -305,6 +303,12 @@ function createStyle(theme, colorScheme) {
     avatar: {
       width: 40,
       height: 40,
+      borderRadius: 20,
+      marginRight: 10,
+    },
+    logo: {
+      width: 24,
+      height: 24,
       borderRadius: 20,
       marginRight: 10,
     },
@@ -339,9 +343,6 @@ function createStyle(theme, colorScheme) {
     },
     staticNumber: {
       textAlign: "right",
-    },
-    searchButton: {
-      marginLeft: "auto",
     },
     headerTitle: {
       color: theme.text,
