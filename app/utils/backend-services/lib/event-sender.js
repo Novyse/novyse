@@ -5,6 +5,29 @@ const eventSender = {
     socket = sock;
   },
 
+  // ------ WEBRTC EVENTS ------
+
+  retrieveCommData(commUUID) {
+    socket.emit("comms_retrieve_comms_data", { commUUID });
+  },
+  joinComm(commUUID) {
+    socket.emit("comms_join", { commUUID });
+  },
+
+  leaveComm(commUUID) {
+    socket.emit("comms_leave", { commUUID });
+  },
+
+  startScreenShare(commUUID) {
+    socket.emit("comms_screen_share_start", { commUUID });
+  },
+  stopScreenShare(commUUID, screenShareUUID) {
+    socket.emit("comms_screen_share_stop", {
+      commUUID,
+      screenShareUUID,
+    });
+  },
+
   IceCandidate: async (data) => {
     socket.emit("comms_candidate", data);
   },
@@ -15,29 +38,29 @@ const eventSender = {
   RTCAnswer: async (data) => {
     socket.emit("comms_answer", data);
   },
-  sendSpeakingStatus: async (commsId, partecipantId, isSpeaking) => {
+  sendSpeakingStatus: async (commUUID, deviceUUID, isSpeaking) => {
     const eventType = isSpeaking ? "comms_speaking" : "comms_not_speaking";
     const data = {
-      to: commsId,
-      from: partecipantId,
+      commUUID,
+      deviceUUID,
     };
     socket.emit(eventType, data);
   },
-  sendMIDtoUUIDMapping: async (toPartecipantUUID, from, streamUUID, mid) => {
+  sendMIDtoUUIDMapping: async (fromDeviceUUID, deviceUUID, streamUUID, mid) => {
     const data = {
-      to: toPartecipantUUID,
-      from: from,
-      streamUUID: streamUUID,
-      mid: mid,
+      fromDeviceUUID,
+      deviceUUID,
+      streamUUID,
+      mid,
     };
     socket.emit("comms_mid_to_uuid_mapping", data);
   },
 
-  sendWebcamStatus: async (from, chatUUID, isOn) => {
+  sendWebcamStatus: async (deviceUUID, commUUID, isOn) => {
     const eventType = isOn ? "comms_webcam_on" : "comms_webcam_off";
     const data = {
-      to: chatUUID,
-      from: from,
+      deviceUUID,
+      commUUID,
     };
     socket.emit(eventType, data);
   },

@@ -39,6 +39,46 @@ class MessengerEventEmitter {
     await database.removeMember(chatUUID, user);
     this.eventEmitter.emit("userLeft", { chatUUID, user });
   }
+
+  // -------------------- WebRTC EVENTS --------------------
+
+  commsJoin(data) {
+    this.eventEmitter.emit("comms_join", data);
+  }
+  commsLeave(data) {
+    this.eventEmitter.emit("comms_leave", data);
+  }
+  commsScreenShareStart(data) {
+    this.eventEmitter.emit("comms_screen_share_start", data);
+  }
+  commsScreenShareStop(data) {
+    this.eventEmitter.emit("comms_screen_share_stop", data);
+  }
+  commsCandidate(data) {
+    this.eventEmitter.emit("comms_candidate", data);
+  }
+  commsOffer(data) {
+    this.eventEmitter.emit("comms_offer", data);
+  }
+  commsAnswer(data) {
+    this.eventEmitter.emit("comms_answer", data);
+  }
+  commsSpeaking(data) {
+    this.eventEmitter.emit("comms_speaking", data);
+  }
+  commsNotSpeaking(data) {
+    this.eventEmitter.emit("comms_not_speaking", data);
+  }
+  commsMidToUUIDMapping(data) {
+    this.eventEmitter.emit("comms_mid_to_uuid_mapping", data);
+  }
+  commsWebcamOn(data) {
+    this.eventEmitter.emit("comms_webcam_on", data);
+  }
+  commsWebcamOff(data) {
+    this.eventEmitter.emit("comms_webcam_off", data);
+  }
+
 }
 
 const eventEmitter = new MessengerEventEmitter();

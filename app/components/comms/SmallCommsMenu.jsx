@@ -91,7 +91,7 @@ const SmallCommsMenu = () => {
 
   // Funzione per navigare alla vocal view
   const navigateToVocalView = () => {
-    const commsId = get.commsId();
+    const commsId = get.commUUID();
     if (commsId) {
       // Usa setParams per non ricaricare la pagina
       router.push(`/chat/${commsId}`);

@@ -6,8 +6,8 @@ const AudioContext = createContext();
 export const AudioProvider = ({ children }) => {
   const audioRefs = useRef(new Map()); // Map per gestire tutti gli elementi audio
   // Funzione per aggiungere audio al componente
-  const addAudio = (participantId, stream) => {
-    console.log(`[AudioContext] addAudio called for ${participantId}:`, {
+  const addAudio = (deviceUUID, stream) => {
+    console.log(`[AudioContext] addAudio called for ${deviceUUID}:`, {
       platform: Platform.OS,
       hasStream: !!stream,
       audioTracksCount: stream ? stream.getAudioTracks().length : 0
@@ -21,16 +21,16 @@ export const AudioProvider = ({ children }) => {
 
     try {
       // Rimuovi elemento audio esistente se presente
-      removeAudio(participantId);
+      removeAudio(deviceUUID);
 
       if (!stream || stream.getAudioTracks().length === 0) {
-        console.warn(`[AudioContext] No audio tracks found for ${participantId}`);
+        console.warn(`[AudioContext] No audio tracks found for ${deviceUUID}`);
         return;
       }
 
       // Crea nuovo elemento audio
       const audioElement = document.createElement("audio");
-      audioElement.id = `audio-${participantId}`;
+      audioElement.id = `audio-${deviceUUID}`;
       audioElement.autoplay = true;
       audioElement.muted = false;
       audioElement.style.display = "none";
@@ -41,27 +41,27 @@ export const AudioProvider = ({ children }) => {
       
       // Aggiungi al DOM e salva riferimento
       document.body.appendChild(audioElement);
-      audioRefs.current.set(participantId, audioElement);
+      audioRefs.current.set(deviceUUID, audioElement);
 
-      console.log(`[AudioContext] Audio element created and added to DOM for participant ${participantId}:`, {
+      console.log(`[AudioContext] Audio element created and added to DOM for participant ${deviceUUID}:`, {
         elementId: audioElement.id,
         audioTracksInStream: audioStream.getAudioTracks().length,
         elementInDom: !!document.getElementById(audioElement.id)
       });
     } catch (error) {
-      console.error(`[AudioContext] Error adding audio for ${participantId}:`, error);
+      console.error(`[AudioContext] Error adding audio for ${deviceUUID}:`, error);
     }
   };
   // Funzione per rimuovere audio del partecipante alla vocal chat
-  const removeAudio = (participantId) => {
-    console.log(`[AudioContext] removeAudio called for ${participantId}`);
+  const removeAudio = (deviceUUID) => {
+    console.log(`[AudioContext] removeAudio called for ${deviceUUID}`);
     
     if (Platform.OS !== 'web') {
       console.log(`[AudioContext] Platform is ${Platform.OS}, skipping audio element removal`);
       return;
     }
 
-    const audioElement = audioRefs.current.get(participantId);
+    const audioElement = audioRefs.current.get(deviceUUID);
     if (audioElement) {
       try {
         audioElement.pause();
@@ -69,13 +69,13 @@ export const AudioProvider = ({ children }) => {
         if (audioElement.parentNode) {
           audioElement.parentNode.removeChild(audioElement);
         }
-        audioRefs.current.delete(participantId);
-        console.log(`[AudioContext] Audio element removed from DOM for participant ${participantId}`);
+        audioRefs.current.delete(deviceUUID);
+        console.log(`[AudioContext] Audio element removed from DOM for participant ${deviceUUID}`);
       } catch (error) {
-        console.error(`[AudioContext] Error removing audio for ${participantId}:`, error);
+        console.error(`[AudioContext] Error removing audio for ${deviceUUID}:`, error);
       }
     } else {
-      console.log(`[AudioContext] No audio element found to remove for participant ${participantId}`);
+      console.log(`[AudioContext] No audio element found to remove for participant ${deviceUUID}`);
     }
   };
   // Funzione per pulire tutti gli audio
@@ -87,8 +87,8 @@ export const AudioProvider = ({ children }) => {
       return;
     }
 
-    audioRefs.current.forEach((audioElement, participantId) => {
-      removeAudio(participantId);
+    audioRefs.current.forEach((audioElement, deviceUUID) => {
+      removeAudio(deviceUUID);
     });
     audioRefs.current.clear();
     console.log(`[AudioContext] All audio elements cleared`);
@@ -108,8 +108,8 @@ export const AudioProvider = ({ children }) => {
     });
     
     // Check each audio element in detail
-    audioRefs.current.forEach((audioElement, participantId) => {
-      console.log(`[AudioContext] Audio element for ${participantId}:`, {
+    audioRefs.current.forEach((audioElement, deviceUUID) => {
+      console.log(`[AudioContext] Audio element for ${deviceUUID}:`, {
         id: audioElement.id,
         muted: audioElement.muted,
         paused: audioElement.paused,

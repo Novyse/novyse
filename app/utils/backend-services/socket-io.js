@@ -118,6 +118,10 @@ const SocketIO = {
     }
     return eventSender;
   },
+
+  getSocket: () => {
+    return socket;
+  },
 };
 
 // Reconnect socket on app foreground

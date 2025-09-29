@@ -35,19 +35,19 @@ class PeerConnectionManager {
    * @returns {RTCPeerConnection|null} La peer connection creata
    */
   createPeerConnection(participant) {
-    const participantId = participant.from;
+    const deviceUUID = participant.from;
 
-    if (this.globalState.getPeerConnection(participantId)) {
+    if (this.globalState.getPeerConnection(deviceUUID)) {
       logger.warning(
         "PeerConnectionManager",
-        `Connessione peer per ${participantId} esiste già`
+        `Connessione peer per ${deviceUUID} esiste già`
       );
-      return this.globalState.getPeerConnection(participantId);
+      return this.globalState.getPeerConnection(deviceUUID);
     }
 
     logger.info(
       "PeerConnectionManager",
-      `Creazione PeerConnection per ${participantId}`
+      `Creazione PeerConnection per ${deviceUUID}`
     );
 
     try {
@@ -61,24 +61,24 @@ class PeerConnectionManager {
       this._setAudioCodec(pc);
 
       // Salva nel global state
-      this.globalState.addPeerConnection(participantId, pc, userData);
-      this.globalState.initializeConnectionTracking(participantId);
+      this.globalState.addPeerConnection(deviceUUID, pc, userData);
+      this.globalState.initializeConnectionTracking(deviceUUID);
 
       // Configura event handlers
-      this._setupPeerConnectionEventHandlers(pc, participantId);
+      this._setupPeerConnectionEventHandlers(pc, deviceUUID);
 
       logger.info(
         "PeerConnectionManager",
-        `PeerConnection per ${participantId} creata con successo`
+        `PeerConnection per ${deviceUUID} creata con successo`
       );
       return pc;
     } catch (error) {
       logger.error(
         "PeerConnectionManager",
-        `Errore creazione PeerConnection per ${participantId}:`,
+        `Errore creazione PeerConnection per ${deviceUUID}:`,
         error
       );
-      this.globalState.removePeerConnection(participantId);
+      this.globalState.removePeerConnection(deviceUUID);
       return null;
     }
   }
@@ -109,29 +109,29 @@ class PeerConnectionManager {
   /**
    * Configura gli event handlers per una peer connection
    * @param {RTCPeerConnection} pc
-   * @param {string} participantId
-   */ _setupPeerConnectionEventHandlers(pc, participantId) {
+   * @param {string} deviceUUID
+   */ _setupPeerConnectionEventHandlers(pc, deviceUUID) {
     // Use ICEManager for ICE-related events if available
     if (this.iceManager) {
-      this.iceManager.setupICEEventHandlers(pc, participantId);
+      this.iceManager.setupICEEventHandlers(pc, deviceUUID);
     } else {
       // Fallback to direct ICE candidate handling
       pc.onicecandidate = async (event) => {
-        await this._handleIceCandidate(event, participantId);
+        await this._handleIceCandidate(event, deviceUUID);
       };
 
       pc.oniceconnectionstatechange = () => {
-        this._handleIceConnectionStateChange(pc, participantId);
+        this._handleIceConnectionStateChange(pc, deviceUUID);
       };
 
       pc.onicegatheringstatechange = () => {
-        this._handleIceGatheringStateChange(pc, participantId);
+        this._handleIceGatheringStateChange(pc, deviceUUID);
       };
     }
 
     pc.onnegotiationneeded = async (event) => {
       console.log("🔄 NEGOTIATION NEEDED!", {
-        participantId,
+        deviceUUID,
         signalingState: pc.signalingState,
         iceConnectionState: pc.iceConnectionState,
         connectionState: pc.connectionState,
@@ -148,7 +148,7 @@ class PeerConnectionManager {
 
       logger.info(
         "PeerConnectionManager",
-        `🔄 Negotiation needed for ${participantId}`,
+        `🔄 Negotiation needed for ${deviceUUID}`,
         {
           signalingState: pc.signalingState,
           transceivers: pc.getTransceivers().length,
@@ -160,7 +160,7 @@ class PeerConnectionManager {
       // 🔥 FIX PRINCIPALE: Non fare rinegoziazione se stiamo già processando offer/answer
       if (pc._isRenegotiating) {
         console.log("⏭️ SKIPPING RENEGOTIATION - already in progress:", {
-          participantId,
+          deviceUUID,
           signalingState: pc.signalingState,
         });
         return;
@@ -170,27 +170,27 @@ class PeerConnectionManager {
       if (pc.signalingState === "stable") {
         try {
           console.log("🚀 CREATING RENEGOTIATION OFFER DIRECTLY:", {
-            participantId,
+            deviceUUID,
           });
 
           // 🔥 MARCA CHE STIAMO RINEGOZIANDO
           pc._isRenegotiating = true;
 
-          await this._performDirectRenegotiation(pc, participantId);
+          await this._performDirectRenegotiation(pc, deviceUUID);
         } catch (error) {
           logger.error(
             "PeerConnectionManager",
-            `Error during renegotiation for ${participantId}:`,
+            `Error during renegotiation for ${deviceUUID}:`,
             error
           );
-          console.error("❌ RENEGOTIATION ERROR:", { participantId, error });
+          console.error("❌ RENEGOTIATION ERROR:", { deviceUUID, error });
         } finally {
           // 🔥 RESET FLAG ANCHE IN CASO DI ERRORE
           pc._isRenegotiating = false;
         }
       } else {
         console.log("⏳ SKIPPING RENEGOTIATION - not in stable state:", {
-          participantId,
+          deviceUUID,
           signalingState: pc.signalingState,
         });
       }
@@ -198,31 +198,31 @@ class PeerConnectionManager {
 
     // Track handler per stream remoti
     pc.ontrack = (event) => {
-      this._handleRemoteTrack(event, participantId);
+      this._handleRemoteTrack(event, deviceUUID);
     };
 
     // Connection state handlers (non-ICE)
     pc.onconnectionstatechange = () => {
-      this._handleConnectionStateChange(pc, participantId);
+      this._handleConnectionStateChange(pc, deviceUUID);
     };
 
     pc.onsignalingstatechange = () => {
-      this._handleSignalingStateChange(pc, participantId);
+      this._handleSignalingStateChange(pc, deviceUUID);
     };
 
     logger.debug(
       "PeerConnectionManager",
-      `Event handlers configurati per ${participantId}`
+      `Event handlers configurati per ${deviceUUID}`
     );
   }
   /**
    * Gestisce ICE candidates
    */
-  async _handleIceCandidate(event, participantId) {
+  async _handleIceCandidate(event, deviceUUID) {
     if (event.candidate) {
       logger.debug(
         "PeerConnectionManager",
-        `ICE candidate generato per ${participantId}:`,
+        `ICE candidate generato per ${deviceUUID}:`,
         {
           type: event.candidate.type,
           protocol: event.candidate.protocol,
@@ -232,20 +232,20 @@ class PeerConnectionManager {
       // Retry mechanism for ICE candidate sending
       const success = await this._sendICECandidateWithRetry(
         event.candidate,
-        participantId,
+        deviceUUID,
         3
       );
 
       if (!success) {
         logger.warn(
           "PeerConnectionManager",
-          `Failed to send ICE candidate to ${participantId} after retries`
+          `Failed to send ICE candidate to ${deviceUUID} after retries`
         );
       }
     } else {
       logger.debug(
         "PeerConnectionManager",
-        `ICE gathering completato per ${participantId}`
+        `ICE gathering completato per ${deviceUUID}`
       );
     }
   }
@@ -253,24 +253,24 @@ class PeerConnectionManager {
   /**
    * Esegue rinegoziazione direttamente senza SignalingManager
    */
-  async _performDirectRenegotiation(pc, participantId) {
+  async _performDirectRenegotiation(pc, deviceUUID) {
     try {
       console.log("📝 STARTING DIRECT RENEGOTIATION:", {
-        participantId,
+        deviceUUID,
         currentSignalingState: pc.signalingState,
         currentTransceivers: pc.getTransceivers().length,
         currentSenders: pc.getSenders().length,
       });
 
       // 1. Aggiungi tutte le tracce locali che non sono ancora state aggiunte
-      this._addLocalTracksIfAvailable(pc, participantId, false);
+      this._addLocalTracksIfAvailable(pc, deviceUUID, false);
 
       // 2. Crea nuova offer
       console.log("🎯 CREATING NEW OFFER FOR RENEGOTIATION...");
       const offer = await pc.createOffer();
 
       console.log("✅ OFFER CREATED:", {
-        participantId,
+        deviceUUID,
         hasOffer: !!offer,
         offerType: offer?.type,
         sdpLength: offer?.sdp?.length || 0,
@@ -280,7 +280,7 @@ class PeerConnectionManager {
       await pc.setLocalDescription(offer);
 
       console.log("✅ LOCAL DESCRIPTION SET:", {
-        participantId,
+        deviceUUID,
         newSignalingState: pc.signalingState,
         hasLocalDescription: !!pc.localDescription,
       });
@@ -294,18 +294,18 @@ class PeerConnectionManager {
       const SocketIO = await import("../../backend-services/socket-io.js");
       await SocketIO.default.RTCOffer({
         offer: offer,
-        to: participantId,
-        from: this.globalState.getMyId(),
+        to: deviceUUID,
+        from: this.globalState.getDeviceUUID(),
       });
 
       console.log("🎉 RENEGOTIATION OFFER SENT SUCCESSFULLY:", {
-        participantId,
-        from: this.globalState.getMyId(),
+        deviceUUID,
+        from: this.globalState.getDeviceUUID(),
       });
 
       logger.info(
         "PeerConnectionManager",
-        `✅ Renegotiation offer sent for ${participantId}`,
+        `✅ Renegotiation offer sent for ${deviceUUID}`,
         {
           signalingState: pc.signalingState,
           transceivers: pc.getTransceivers().length,
@@ -314,14 +314,14 @@ class PeerConnectionManager {
       );
     } catch (error) {
       console.error("❌ DIRECT RENEGOTIATION FAILED:", {
-        participantId,
+        deviceUUID,
         error: error.message,
         stack: error.stack,
       });
 
       logger.error(
         "PeerConnectionManager",
-        `❌ Direct renegotiation failed for ${participantId}:`,
+        `❌ Direct renegotiation failed for ${deviceUUID}:`,
         error
       );
 
@@ -330,8 +330,8 @@ class PeerConnectionManager {
   }
 
   // Add method to register a mid mapping
-  registerScreenShareMid(participantId, mid, screenShareUUID) {
-    const key = `${participantId}_${mid}`;
+  registerScreenShareMid(deviceUUID, mid, screenShareUUID) {
+    const key = `${deviceUUID}_${mid}`;
     this.midToScreenShareMap.set(key, screenShareUUID);
     logger.debug(
       "PeerConnectionManager",
@@ -341,9 +341,9 @@ class PeerConnectionManager {
   /**
    * Gestisce tracce remote ricevute - VERSIONE CON MAPPING MANAGER
    */
-  _handleRemoteTrack(event, participantId) {
-    if (!participantId) {
-      logger.error("PeerConnectionManager", "❌ ParticipantId mancante");
+  _handleRemoteTrack(event, deviceUUID) {
+    if (!deviceUUID) {
+      logger.error("PeerConnectionManager", "❌ deviceUUID mancante");
       return;
     }
 
@@ -357,7 +357,7 @@ class PeerConnectionManager {
 
     logger.info(
       "PeerConnectionManager",
-      `🎯 Traccia ricevuta da ${participantId}`,
+      `🎯 Traccia ricevuta da ${deviceUUID}`,
       {
         trackKind: event.track.kind,
         trackId: event.track.id,
@@ -367,14 +367,14 @@ class PeerConnectionManager {
 
     // 🔥 CERCA IL MAPPING NEL StreamMappingManager
     const streamUUID = this.streamMappingManager?.getStreamUUIDByMid(
-      participantId,
+      deviceUUID,
       event.transceiver.mid
     );
 
     if (streamUUID) {
       // 3.1 - MAPPING TROVATO: Processa subito la traccia
       console.log("✅ MAPPING TROVATO SUBITO!", {
-        participantId,
+        deviceUUID,
         mid: event.transceiver.mid,
         streamUUID,
         trackKind: event.track.kind,
@@ -384,18 +384,18 @@ class PeerConnectionManager {
         "PeerConnectionManager",
         `✅ Mapping trovato per MID ${event.transceiver.mid}`,
         {
-          participantId,
+          deviceUUID,
           streamUUID,
           trackKind: event.track.kind,
         }
       );
 
       // Processa la traccia con lo streamUUID trovato
-      this._processTrackWithStreamUUID(event, participantId, streamUUID);
+      this._processTrackWithStreamUUID(event, deviceUUID, streamUUID);
     } else {
       // 3.2 - MAPPING NON TROVATO: Aspetta e riprova
       console.log("⏳ MAPPING NON TROVATO, ASPETTO...", {
-        participantId,
+        deviceUUID,
         mid: event.transceiver.mid,
         trackKind: event.track.kind,
         availableMappings: this.streamMappingManager?.getAllMappings(),
@@ -405,21 +405,21 @@ class PeerConnectionManager {
         "PeerConnectionManager",
         `⏳ Mapping non trovato per MID ${event.transceiver.mid}, aspetto signaling...`,
         {
-          participantId,
+          deviceUUID,
           transceiverMid: event.transceiver.mid,
           trackKind: event.track.kind,
         }
       );
 
       // Aspetta che il mapping arrivi via signaling WebSocket
-      this._waitForMappingFromSignaling(event, participantId, 0);
+      this._waitForMappingFromSignaling(event, deviceUUID, 0);
     }
   }
 
   /**
    * Aspetta che il mapping arrivi via signaling WebSocket
    */
-  _waitForMappingFromSignaling(event, participantId, attemptCount) {
+  _waitForMappingFromSignaling(event, deviceUUID, attemptCount) {
     const maxAttempts = 200; // 10 secondi (200 x 50ms) - più tempo per il signaling
 
     if (attemptCount >= maxAttempts) {
@@ -427,7 +427,7 @@ class PeerConnectionManager {
         "PeerConnectionManager",
         `❌ Mapping non arrivato dopo ${maxAttempts * 50}ms via signaling`,
         {
-          participantId,
+          deviceUUID,
           transceiverMid: event.transceiver.mid,
           trackKind: event.track.kind,
           finalMappings: this.streamMappingManager?.getAllMappings(),
@@ -435,7 +435,7 @@ class PeerConnectionManager {
       );
 
       console.log("❌ TIMEOUT MAPPING!", {
-        participantId,
+        deviceUUID,
         mid: event.transceiver.mid,
         waitedMs: maxAttempts * 50,
         finalMappings: this.streamMappingManager?.getAllMappings(),
@@ -446,14 +446,14 @@ class PeerConnectionManager {
     setTimeout(() => {
       // Ricontrolla se il mapping è arrivato via WebSocket
       const streamUUID = this.streamMappingManager?.getStreamUUIDByMid(
-        participantId,
+        deviceUUID,
         event.transceiver.mid
       );
 
       if (streamUUID) {
         // MAPPING FINALMENTE ARRIVATO!
         console.log("🎉 MAPPING ARRIVATO DOPO ATTESA!", {
-          participantId,
+          deviceUUID,
           mid: event.transceiver.mid,
           streamUUID,
           waitedMs: attemptCount * 50,
@@ -464,7 +464,7 @@ class PeerConnectionManager {
           "PeerConnectionManager",
           `✅ Mapping ricevuto via signaling dopo ${attemptCount * 50}ms`,
           {
-            participantId,
+            deviceUUID,
             streamUUID,
             transceiverMid: event.transceiver.mid,
             attempts: attemptCount + 1,
@@ -472,24 +472,20 @@ class PeerConnectionManager {
         );
 
         // Processa la traccia con il mapping ricevuto
-        this._processTrackWithStreamUUID(event, participantId, streamUUID);
+        this._processTrackWithStreamUUID(event, deviceUUID, streamUUID);
       } else {
         // Continua ad aspettare
         if (attemptCount % 20 === 0) {
           // Log ogni secondo
           console.log("⏳ ANCORA IN ATTESA MAPPING...", {
-            participantId,
+            deviceUUID,
             mid: event.transceiver.mid,
             attemptCount: attemptCount + 1,
             waitedMs: (attemptCount + 1) * 50,
           });
         }
 
-        this._waitForMappingFromSignaling(
-          event,
-          participantId,
-          attemptCount + 1
-        );
+        this._waitForMappingFromSignaling(event, deviceUUID, attemptCount + 1);
       }
     }, 50);
   }
@@ -497,12 +493,12 @@ class PeerConnectionManager {
   /**
    * Processa la traccia con lo streamUUID
    */
-  _processTrackWithStreamUUID(event, participantId, streamUUID) {
+  _processTrackWithStreamUUID(event, deviceUUID, streamUUID) {
     logger.info(
       "PeerConnectionManager",
       `🔄 Processing track con streamUUID ${streamUUID}`,
       {
-        participantId,
+        deviceUUID,
         streamUUID,
         trackKind: event.track.kind,
         trackId: event.track.id,
@@ -511,7 +507,7 @@ class PeerConnectionManager {
 
     // Controlla se esiste già uno stream con questo UID
     let existingStream = this.globalState.getActiveStream(
-      participantId,
+      deviceUUID,
       streamUUID
     );
 
@@ -520,7 +516,7 @@ class PeerConnectionManager {
         "PeerConnectionManager",
         `🔗 Aggiunta traccia a stream esistente`,
         {
-          participantId,
+          deviceUUID,
           streamUUID,
           trackKind: event.track.kind,
           existingTracks: existingStream.getTracks().length,
@@ -539,7 +535,7 @@ class PeerConnectionManager {
           "PeerConnectionManager",
           `✅ Traccia aggiunta a stream esistente`,
           {
-            participantId,
+            deviceUUID,
             streamUUID,
             trackKind: event.track.kind,
             totalTracks: existingStream.getTracks().length,
@@ -550,7 +546,7 @@ class PeerConnectionManager {
           "PeerConnectionManager",
           `⚠️ Traccia già presente nello stream`,
           {
-            participantId,
+            deviceUUID,
             streamUUID,
             trackId: event.track.id,
           }
@@ -561,7 +557,7 @@ class PeerConnectionManager {
         "PeerConnectionManager",
         `✨ Creazione nuovo stream per streamUUID ${streamUUID}`,
         {
-          participantId,
+          deviceUUID,
           streamUUID,
           trackKind: event.track.kind,
         }
@@ -573,29 +569,25 @@ class PeerConnectionManager {
       existingStream = newStream;
 
       // Determina il tipo di stream e aggiungilo al globalState
-      if (streamUUID !== participantId) {
-        // È uno screen share (streamUUID diverso dal participantId)
-        this.globalState.addScreenShare(
-          participantId,
-          streamUUID,
-          existingStream
-        );
+      if (streamUUID !== deviceUUID) {
+        // È uno screen share (streamUUID diverso dal deviceUUID)
+        this.globalState.addScreenShare(deviceUUID, streamUUID, existingStream);
 
         logger.info("PeerConnectionManager", `🖥️ Screen share stream creato`, {
-          participantId,
+          deviceUUID,
           streamUUID,
           trackKind: event.track.kind,
         });
       } else {
         // È stream principale (webcam/audio)
         this.globalState.addActiveStream(
-          participantId,
+          deviceUUID,
           streamUUID,
           existingStream
         );
 
         logger.info("PeerConnectionManager", `📹 Stream principale creato`, {
-          participantId,
+          deviceUUID,
           streamUUID,
           trackKind: event.track.kind,
         });
@@ -608,36 +600,33 @@ class PeerConnectionManager {
         "PeerConnectionManager",
         `🔊 Aggiunta audio all'AudioContext`,
         {
-          participantId,
+          deviceUUID,
           streamUUID,
         }
       );
 
       if (Platform.OS === "web") {
         if (this.globalState.audioContextRef) {
-          this.globalState.audioContextRef.addAudio(
-            participantId,
-            existingStream
-          );
+          this.globalState.audioContextRef.addAudio(deviceUUID, existingStream);
         }
       }
     }
 
     // Emetti evento per notificare l'aggiornamento dello stream
     EventEmitter.sendLocalUpdateNeeded(
-      participantId,
+      deviceUUID,
       streamUUID,
       existingStream,
       "add_or_update"
     );
 
     // Determina il tipo di stream per il log finale
-    const streamType = streamUUID !== participantId ? "screenshare" : "webcam";
+    const streamType = streamUUID !== deviceUUID ? "screenshare" : "webcam";
     const audioTracks = existingStream.getAudioTracks().length;
     const videoTracks = existingStream.getVideoTracks().length;
 
     logger.info("PeerConnectionManager", `✅ Traccia elaborata con successo`, {
-      participantId,
+      deviceUUID,
       streamUUID,
       trackKind: event.track.kind,
       streamType,
@@ -649,12 +638,12 @@ class PeerConnectionManager {
   /**
    * Gestisce tracce webcam/audio (stesso stream)
    */
-  _handleWebcamTrack(event, participantId, streamUUID = null) {
-    const finalStreamUUID = participantId;
+  _handleWebcamTrack(event, deviceUUID, streamUUID = null) {
+    const finalStreamUUID = deviceUUID;
 
     logger.info(
       "PeerConnectionManager",
-      `🎥 Gestione traccia webcam/audio per ${participantId}`,
+      `🎥 Gestione traccia webcam/audio per ${deviceUUID}`,
       {
         streamUUID: finalStreamUUID,
         trackKind: event.track.kind,
@@ -664,20 +653,16 @@ class PeerConnectionManager {
 
     // Ottieni o crea lo stream principale per questo partecipante
     let mainStream = this.globalState.getActiveStream(
-      participantId,
+      deviceUUID,
       finalStreamUUID
     );
 
     if (!mainStream) {
       mainStream = createMediaStream();
-      this.globalState.addActiveStream(
-        participantId,
-        finalStreamUUID,
-        mainStream
-      );
+      this.globalState.addActiveStream(deviceUUID, finalStreamUUID, mainStream);
       logger.info(
         "PeerConnectionManager",
-        `✨ Nuovo stream principale creato per ${participantId}`,
+        `✨ Nuovo stream principale creato per ${deviceUUID}`,
         {
           streamUUID: finalStreamUUID,
         }
@@ -691,7 +676,7 @@ class PeerConnectionManager {
       "PeerConnectionManager",
       `➕ Traccia aggiunta allo stream principale`,
       {
-        participantId,
+        deviceUUID,
         streamUUID: finalStreamUUID,
         trackKind: event.track.kind,
         totalTracks: mainStream.getTracks().length,
@@ -705,13 +690,13 @@ class PeerConnectionManager {
       if (this.globalState.audioContextRef) {
         logger.info(
           "PeerConnectionManager",
-          `🔊 Aggiunta audio all'AudioContext per ${participantId}`
+          `🔊 Aggiunta audio all'AudioContext per ${deviceUUID}`
         );
-        this.globalState.audioContextRef.addAudio(participantId, mainStream);
+        this.globalState.audioContextRef.addAudio(deviceUUID, mainStream);
       } else {
         logger.warning(
           "PeerConnectionManager",
-          `⚠️ AudioContext non disponibile per ${participantId}`,
+          `⚠️ AudioContext non disponibile per ${deviceUUID}`,
           {
             audioContextRef: !!this.globalState.audioContextRef,
           }
@@ -722,26 +707,22 @@ class PeerConnectionManager {
     // Setup event handlers per la traccia
     this._setupTrackEventHandlers(
       event.track,
-      participantId,
+      deviceUUID,
       "webcam",
       finalStreamUUID
     );
 
     // Notifica che lo stream è stato aggiornato
-    EventEmitter.sendLocalUpdateNeeded(
-      participantId,
-      finalStreamUUID,
-      mainStream
-    );
+    EventEmitter.sendLocalUpdateNeeded(deviceUUID, finalStreamUUID, mainStream);
   }
 
   /**
    * Gestisce tracce screen share (stream separati)
    */
-  _handleScreenShareTrack(event, participantId, streamUUID) {
+  _handleScreenShareTrack(event, deviceUUID, streamUUID) {
     logger.info(
       "PeerConnectionManager",
-      `🖥️ Gestione traccia screen share per ${participantId}`,
+      `🖥️ Gestione traccia screen share per ${deviceUUID}`,
       {
         streamUUID,
         trackKind: event.track.kind,
@@ -750,19 +731,16 @@ class PeerConnectionManager {
     );
 
     // Ottieni o crea lo stream screen share
-    let screenStream = this.globalState.getActiveStream(
-      participantId,
-      streamUUID
-    );
+    let screenStream = this.globalState.getActiveStream(deviceUUID, streamUUID);
 
     if (!screenStream) {
       screenStream = createMediaStream();
-      this.globalState.addActiveStream(participantId, streamUUID, screenStream);
+      this.globalState.addActiveStream(deviceUUID, streamUUID, screenStream);
       logger.info(
         "PeerConnectionManager",
         `✨ Nuovo stream screen share creato`,
         {
-          participantId,
+          deviceUUID,
           streamUUID,
         }
       );
@@ -772,23 +750,23 @@ class PeerConnectionManager {
     screenStream.addTrack(event.track);
 
     logger.info("PeerConnectionManager", `➕ Traccia screen share aggiunta`, {
-      participantId,
+      deviceUUID,
       streamUUID,
       trackKind: event.track.kind,
       totalTracks: screenStream.getTracks().length,
     });
 
     // Aggiorna userData per includere questo screen share
-    this.globalState.addScreenShare(participantId, streamUUID, screenStream);
+    this.globalState.addScreenShare(deviceUUID, streamUUID, screenStream);
 
     // Setup event handlers per la traccia
     this._setupTrackEventHandlers(
       event.track,
-      participantId,
+      deviceUUID,
       "screenshare",
       streamUUID
     );
-    EventEmitter.sendLocalUpdateNeeded(participantId, streamUUID, screenStream);
+    EventEmitter.sendLocalUpdateNeeded(deviceUUID, streamUUID, screenStream);
   }
 
   /**
@@ -796,22 +774,22 @@ class PeerConnectionManager {
    */
   _setupTrackEventHandlers(
     track,
-    participantUUID = null,
+    deviceUUID = null,
     streamType = null,
     streamUUID = null
   ) {
     track.onended = () => {
       logger.debug("PeerConnectionManager", "Traccia remota terminata:", {
         trackId: track.id,
-        participantUUID,
+        deviceUUID,
         streamType,
         streamUUID,
       });
 
       // 🔥 RIMUOVI MAPPING QUANDO LA TRACCIA TERMINA
-      if (participantUUID && this.streamMappingManager) {
+      if (deviceUUID && this.streamMappingManager) {
         // Trova il MID associato a questa traccia
-        const pc = this.globalState.getPeerConnection(participantUUID);
+        const pc = this.globalState.getPeerConnection(deviceUUID);
         if (pc) {
           const transceivers = pc.getTransceivers();
           const transceiver = transceivers.find(
@@ -822,7 +800,7 @@ class PeerConnectionManager {
           if (transceiver && transceiver.mid) {
             // Rimuovi il mapping per questo MID
             this.streamMappingManager.removeMappingByMid(
-              participantUUID,
+              deviceUUID,
               transceiver.mid
             );
 
@@ -830,7 +808,7 @@ class PeerConnectionManager {
               "PeerConnectionManager",
               "🗑️ Mapping rimosso per traccia terminata",
               {
-                participantUUID,
+                deviceUUID,
                 trackId: track.id,
                 mid: transceiver.mid,
                 streamType,
@@ -842,7 +820,7 @@ class PeerConnectionManager {
               "PeerConnectionManager",
               "⚠️ Non trovato transceiver per traccia terminata",
               {
-                participantUUID,
+                deviceUUID,
                 trackId: track.id,
                 streamType,
                 streamUUID,
@@ -852,9 +830,9 @@ class PeerConnectionManager {
         }
       }
       EventEmitter.sendLocalUpdateNeeded(
-        participantUUID,
+        deviceUUID,
         streamUUID,
-        this.globalState.getActiveStream(participantUUID, streamUUID),
+        this.globalState.getActiveStream(deviceUUID, streamUUID),
         "remove"
       );
     };
@@ -875,19 +853,19 @@ class PeerConnectionManager {
   /**
    * Gestisce cambi di stato della connessione ICE
    */
-  _handleIceConnectionStateChange(pc, participantId) {
+  _handleIceConnectionStateChange(pc, deviceUUID) {
     const state = pc.iceConnectionState;
     logger.info(
       "PeerConnectionManager",
-      `ICE connection state per ${participantId}: ${state}`
+      `ICE connection state per ${deviceUUID}: ${state}`
     );
 
     // Aggiorna stato globale
-    this.globalState.connectionStates[participantId] = state;
+    this.globalState.connectionStates[deviceUUID] = state;
 
     // Notifica callback UI
     if (this.globalState.onPeerConnectionStateChange) {
-      this.globalState.onPeerConnectionStateChange(participantId, state);
+      this.globalState.onPeerConnectionStateChange(deviceUUID, state);
     }
 
     // Gestisci stati specifici
@@ -896,28 +874,28 @@ class PeerConnectionManager {
       case "completed":
         logger.info(
           "PeerConnectionManager",
-          `✅ Connessione a ${participantId} stabilita`
+          `✅ Connessione a ${deviceUUID} stabilita`
         );
-        this.globalState.lastKnownGoodStates[participantId] = Date.now();
-        this.globalState.reconnectionAttempts[participantId] = 0;
+        this.globalState.lastKnownGoodStates[deviceUUID] = Date.now();
+        this.globalState.reconnectionAttempts[deviceUUID] = 0;
         break;
 
       case "failed":
         logger.warning(
           "PeerConnectionManager",
-          `❌ Connessione a ${participantId} fallita`
+          `❌ Connessione a ${deviceUUID} fallita`
         );
-        this._triggerConnectionRecovery(participantId);
+        this._triggerConnectionRecovery(deviceUUID);
         break;
 
       case "disconnected":
         logger.warning(
           "PeerConnectionManager",
-          `⚠️ Connessione a ${participantId} disconnessa`
+          `⚠️ Connessione a ${deviceUUID} disconnessa`
         );
         setTimeout(() => {
           if (pc.iceConnectionState === "disconnected") {
-            this._triggerConnectionRecovery(participantId);
+            this._triggerConnectionRecovery(deviceUUID);
           }
         }, 5000);
         break;
@@ -927,55 +905,69 @@ class PeerConnectionManager {
   /**
    * Gestisce cambi di stato della connessione generale
    */
-  _handleConnectionStateChange(pc, participantId) {
+  _handleConnectionStateChange(pc, deviceUUID) {
     const state = pc.connectionState;
     logger.debug(
       "PeerConnectionManager",
-      `Connection state per ${participantId}: ${state}`
+      `Connection state per ${deviceUUID}: ${state}`
     );
 
     if (state === "failed") {
-      this._triggerConnectionRecovery(participantId);
+      this._triggerConnectionRecovery(deviceUUID);
     }
   }
 
   /**
    * Gestisce cambi di stato del signaling
    */
-  _handleSignalingStateChange(pc, participantId) {
+  _handleSignalingStateChange(pc, deviceUUID) {
     const state = pc.signalingState;
     logger.debug(
       "PeerConnectionManager",
-      `Signaling state per ${participantId}: ${state}`
+      `Signaling state per ${deviceUUID}: ${state}`
     );
   }
 
   /**
    * Gestisce cambi di stato dell'ICE gathering
    */
-  _handleIceGatheringStateChange(pc, participantId) {
+  _handleIceGatheringStateChange(pc, deviceUUID) {
     const state = pc.iceGatheringState;
     logger.debug(
       "PeerConnectionManager",
-      `ICE gathering state per ${participantId}: ${state}`
+      `ICE gathering state per ${deviceUUID}: ${state}`
     );
   }
   /**
    * Aggiunge tracce locali a una peer connection - VERSIONE CORRETTA PER ANSWER
    * @param {RTCPeerConnection} pc
-   * @param {string} remoteParticipantUUID
+   * @param {string} remotedeviceUUID
    * @param {boolean} isAnswer - Se true, stiamo creando un answer
    */
-  _addLocalTracksIfAvailable(pc, remoteParticipantUUID, isAnswer = false) {
+  _addLocalTracksIfAvailable(pc, remotedeviceUUID, isAnswer = false) {
     console.log(`🔧 _addLocalTracksIfAvailable CHIAMATO!`, {
-      myId: this.globalState.getMyId(),
+      myId: this.globalState.getDeviceUUID(),
       hasLocalStream: !!this.globalState.getLocalStream(),
-      remoteParticipantUUID,
+      remotedeviceUUID,
       isAnswer,
       signalingState: pc.signalingState,
       existingMappings: this.streamMappingManager?.getAllMappings(),
       existingTransceivers: pc.getTransceivers().length,
     });
+
+    // 🔥 ADD: Guard against undefined remotedeviceUUID to prevent invalid mappings
+    if (!remotedeviceUUID) {
+      console.warn("⚠️ _addLocalTracksIfAvailable: remotedeviceUUID is undefined - skipping local track addition and mapping");
+      this.logger?.warn(
+        "PeerConnectionManager",
+        "_addLocalTracksIfAvailable: remotedeviceUUID is undefined - cannot add mappings",
+        {
+          signalingState: pc.signalingState,
+          isAnswer,
+        }
+      );
+      return;
+    }
 
     // Add local stream tracks (audio/video)
     const localStream = this.globalState.getLocalStream();
@@ -994,7 +986,7 @@ class PeerConnectionManager {
             transceiver = pc.getTransceivers().find((t) => t.sender === sender);
 
             console.log("📝 TRACK AGGIUNTA IN ANSWER MODE:", {
-              streamUUID: this.globalState.getMyId(),
+              streamUUID: this.globalState.getDeviceUUID(),
               trackKind: track.kind,
               hasSender: !!sender,
               hasTransceiver: !!transceiver,
@@ -1008,14 +1000,14 @@ class PeerConnectionManager {
             });
 
             console.log("📝 TRANSCEIVER CREATO IN OFFER MODE:", {
-              streamUUID: this.globalState.getMyId(),
+              streamUUID: this.globalState.getDeviceUUID(),
               trackKind: track.kind,
               direction: transceiver.direction,
             });
           }
 
           if (transceiver) {
-            const streamUUID = this.globalState.getMyId();
+            const streamUUID = this.globalState.getDeviceUUID();
 
             // Salva per registrazione dopo SDP
             if (!pc._pendingMappings) {
@@ -1023,15 +1015,13 @@ class PeerConnectionManager {
             }
             pc._pendingMappings.push({
               transceiver,
-              remoteParticipantUUID,
+              remotedeviceUUID,
               streamUUID,
             });
 
             logger.debug(
               "PeerConnectionManager",
-              `${
-                isAnswer ? "Track" : "Transceiver"
-              } locale creato (pending mapping)`,
+              `${isAnswer ? "Track" : "Transceiver"} locale creato (pending mapping)`,
               {
                 streamUUID,
                 trackKind: track.kind,
@@ -1073,7 +1063,7 @@ class PeerConnectionManager {
             if (transceiver) {
               pc._pendingMappings.push({
                 transceiver,
-                remoteParticipantUUID,
+                remotedeviceUUID,
                 streamUUID,
               });
             }
@@ -1106,18 +1096,18 @@ class PeerConnectionManager {
     });
 
     pc._pendingMappings.forEach(
-      ({ transceiver, remoteParticipantUUID, streamUUID }) => {
+      ({ transceiver, remotedeviceUUID, streamUUID }) => {
         if (transceiver.mid) {
           console.log("✅ MID DISPONIBILE DOPO OFFER:", {
             mid: transceiver.mid,
             streamUUID,
-            remoteParticipantUUID,
+            remotedeviceUUID,
           });
 
           // Registra il mapping e invia via signaling
           if (this.streamMappingManager) {
             this.streamMappingManager.addLocalStreamMapping(
-              remoteParticipantUUID,
+              remotedeviceUUID,
               streamUUID,
               transceiver.mid
             );
@@ -1140,7 +1130,7 @@ class PeerConnectionManager {
    * Aspetta che il MID sia disponibile e poi registra il mapping
    */
   _waitForMidAndRegisterMapping(
-    remoteParticipantId,
+    remotedeviceUUID,
     streamUUID,
     transceiver,
     attemptCount = 0
@@ -1149,10 +1139,10 @@ class PeerConnectionManager {
 
     if (attemptCount >= maxAttempts) {
       // 🔥 DEBUG COMPLETO DEL PROBLEMA
-      const pc = this.globalState.getPeerConnection(remoteParticipantId);
+      const pc = this.globalState.getPeerConnection(remotedeviceUUID);
 
       console.log("❌ DEBUG MID TIMEOUT:", {
-        remoteParticipantId,
+        remotedeviceUUID,
         streamUUID,
         attemptCount,
         transceiver: {
@@ -1181,7 +1171,7 @@ class PeerConnectionManager {
         "PeerConnectionManager",
         "❌ MID non disponibile dopo 5 secondi",
         {
-          remoteParticipantId,
+          remotedeviceUUID,
           streamUUID,
           signalingState: pc?.signalingState,
           localDescription: !!pc?.localDescription,
@@ -1197,13 +1187,13 @@ class PeerConnectionManager {
       console.log("✅ MID DISPONIBILE, REGISTRO MAPPING:", {
         mid: transceiver.mid,
         streamUUID,
-        remoteParticipantId,
+        remotedeviceUUID,
         attemptCount,
       });
 
       if (this.streamMappingManager) {
         this.streamMappingManager.addLocalStreamMapping(
-          remoteParticipantId,
+          remotedeviceUUID,
           streamUUID,
           transceiver.mid
         );
@@ -1211,10 +1201,10 @@ class PeerConnectionManager {
     } else {
       // 🔥 DEBUG OGNI 20 TENTATIVI (1 secondo)
       if (attemptCount % 20 === 0) {
-        const pc = this.globalState.getPeerConnection(remoteParticipantId);
+        const pc = this.globalState.getPeerConnection(remotedeviceUUID);
         console.log("⏳ ATTENDO MID, DEBUG STATE:", {
           attemptCount,
-          remoteParticipantId,
+          remotedeviceUUID,
           streamUUID,
           transceiver: {
             mid: transceiver.mid,
@@ -1234,7 +1224,7 @@ class PeerConnectionManager {
       // MID non ancora disponibile, riprova
       setTimeout(() => {
         this._waitForMidAndRegisterMapping(
-          remoteParticipantId,
+          remotedeviceUUID,
           streamUUID,
           transceiver,
           attemptCount + 1
@@ -1245,43 +1235,43 @@ class PeerConnectionManager {
 
   /**
    * Trigger per recovery della connessione
-   */ _triggerConnectionRecovery(participantId) {
+   */ _triggerConnectionRecovery(deviceUUID) {
     // Importa RecoveryManager qui per evitare circular imports
     import("../features/RecoveryManager.js").then(({ RecoveryManager }) => {
       const recoveryManager = new RecoveryManager(
         this.globalState,
         this.logger
       );
-      recoveryManager.attemptConnectionRecovery(participantId);
+      recoveryManager.attemptConnectionRecovery(deviceUUID);
     });
   }
 
   /**
    * Ottieni info sulla connessione di un partecipante
    */
-  getConnectionInfo(participantId) {
-    const pc = this.globalState.getPeerConnection(participantId);
-    return getPeerConnectionInfo(pc, participantId);
+  getConnectionInfo(deviceUUID) {
+    const pc = this.globalState.getPeerConnection(deviceUUID);
+    return getPeerConnectionInfo(pc, deviceUUID);
   }
 
   /**
    * Chiude una peer connection specifica
-   * @param {string} participantId
+   * @param {string} deviceUUID
    */
-  closePeerConnection(participantId) {
-    // Add validation for participantId
-    if (!participantId) {
+  closePeerConnection(deviceUUID) {
+    // Add validation for deviceUUID
+    if (!deviceUUID) {
       logger.warning(
         "PeerConnectionManager",
-        "Cannot close peer connection: participantId is null or undefined"
+        "Cannot close peer connection: deviceUUID is null or undefined"
       );
       return;
     }
-    const pc = this.globalState.getPeerConnection(participantId);
+    const pc = this.globalState.getPeerConnection(deviceUUID);
     if (pc) {
       logger.info(
         "PeerConnectionManager",
-        `Chiusura connessione con ${participantId}`
+        `Chiusura connessione con ${deviceUUID}`
       );
 
       try {
@@ -1289,19 +1279,19 @@ class PeerConnectionManager {
       } catch (error) {
         logger.error(
           "PeerConnectionManager",
-          `Errore chiusura peer connection per ${participantId}:`,
+          `Errore chiusura peer connection per ${deviceUUID}:`,
           error
         );
       }
 
       // Pulisci stream remoti
       const remoteStreams =
-        this.globalState.getAllUserActiveStreams(participantId);
+        this.globalState.getAllUserActiveStreams(deviceUUID);
 
       if (!remoteStreams) {
         logger.warning(
           "PeerConnectionManager",
-          `Nessun stream remoto trovato per ${participantId}`
+          `Nessun stream remoto trovato per ${deviceUUID}`
         );
         return;
       }
@@ -1309,26 +1299,26 @@ class PeerConnectionManager {
       Object.entries(remoteStreams).forEach(([streamUUID, remoteStream]) => {
         if (remoteStream) {
           remoteStream.getTracks().forEach((track) => track.stop());
-          this.globalState.removeActiveStream(participantId, streamUUID);
+          this.globalState.removeActiveStream(deviceUUID, streamUUID);
           logger.debug(
             "PeerConnectionManager",
-            `Removed stream ${streamUUID} for ${participantId}`
+            `Removed stream ${streamUUID} for ${deviceUUID}`
           );
         }
       });
 
       // Pulisci dal global state
-      this.globalState.removePeerConnection(participantId);
-      this.globalState.clearConnectionTracking(participantId);
+      this.globalState.removePeerConnection(deviceUUID);
+      this.globalState.clearConnectionTracking(deviceUUID);
 
       // Notifica UI
       if (this.globalState.onParticipantLeft) {
-        this.globalState.onParticipantLeft(participantId);
+        this.globalState.onParticipantLeft(deviceUUID);
       }
 
       logger.info(
         "PeerConnectionManager",
-        `Connessione con ${participantId} chiusa`
+        `Connessione con ${deviceUUID} chiusa`
       );
     }
   }
@@ -1336,21 +1326,21 @@ class PeerConnectionManager {
   /**
    * Sends ICE candidate with retry mechanism
    * @param {RTCIceCandidate} candidate - ICE candidate to send
-   * @param {string} participantId - Target participant ID
+   * @param {string} deviceUUID - Target participant ID
    * @param {number} maxRetries - Maximum number of retry attempts
    * @returns {Promise<boolean>} True if sent successfully
    * @private
    */
-  async _sendICECandidateWithRetry(candidate, participantId, maxRetries = 3) {
+  async _sendICECandidateWithRetry(candidate, deviceUUID, maxRetries = 3) {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const SocketIO = await import("../../backend-services/socket-io.js");
 
         // Check if WebSocket is connected
-        if (!SocketIO.default.isSocketOpen()) {
+        if (!SocketIO.default.isOpen()) {
           logger.warn(
             "PeerConnectionManager",
-            `WebSocket not connected for ICE candidate to ${participantId}, attempt ${attempt}/${maxRetries}`
+            `WebSocket not connected for ICE candidate to ${deviceUUID}, attempt ${attempt}/${maxRetries}`
           );
 
           // Wait for a short time before retrying
@@ -1365,20 +1355,20 @@ class PeerConnectionManager {
         // Try to send the ICE candidate
         await SocketIO.default.IceCandidate({
           candidate: candidate.toJSON(),
-          to: participantId,
+          to: deviceUUID,
           from: this.globalState.myId,
         });
 
         logger.debug(
           "PeerConnectionManager",
-          `ICE candidate sent successfully to ${participantId} on attempt ${attempt}`
+          `ICE candidate sent successfully to ${deviceUUID} on attempt ${attempt}`
         );
 
         return true;
       } catch (error) {
         logger.warn(
           "PeerConnectionManager",
-          `ICE candidate send failed to ${participantId} on attempt ${attempt}/${maxRetries}: ${error.message}`
+          `ICE candidate send failed to ${deviceUUID} on attempt ${attempt}/${maxRetries}: ${error.message}`
         );
 
         if (attempt < maxRetries) {
@@ -1391,7 +1381,7 @@ class PeerConnectionManager {
 
     logger.error(
       "PeerConnectionManager",
-      `ICE candidate send failed to ${participantId} after ${maxRetries} attempts`
+      `ICE candidate send failed to ${deviceUUID} after ${maxRetries} attempts`
     );
 
     return false;
@@ -1415,11 +1405,9 @@ class PeerConnectionManager {
       "PeerConnectionManager",
       "Chiusura di tutte le connessioni peer"
     );
-    const participantIds = Object.keys(
-      this.globalState.getAllPeerConnections()
-    );
-    participantIds.forEach((participantId) => {
-      this.closePeerConnection(participantId);
+    const deviceUUIDs = Object.keys(this.globalState.getAllPeerConnections());
+    deviceUUIDs.forEach((deviceUUID) => {
+      this.closePeerConnection(deviceUUID);
     });
 
     logger.info("PeerConnectionManager", "Tutte le connessioni peer chiuse");
@@ -1435,28 +1423,28 @@ class PeerConnectionManager {
       connections: {},
     };
 
-    Object.keys(connections).forEach((participantId) => {
-      report.connections[participantId] = this.getConnectionInfo(participantId);
+    Object.keys(connections).forEach((deviceUUID) => {
+      report.connections[deviceUUID] = this.getConnectionInfo(deviceUUID);
     });
 
     return report;
   }
 
   /**
-   * Helper per ottenere participantId da track/streams
+   * Helper per ottenere deviceUUID da track/streams
    */
   _getCurrentParticipantFromTrack(track, streams) {
     // Questa è una implementazione semplificata
     // In una implementazione reale potresti aver bisogno di più logica
-    // per determinare il participantId dalla traccia
+    // per determinare il deviceUUID dalla traccia
 
     // Per ora, cerca negli userData per corrispondenze di stream
-    for (const [participantId, userData] of Object.entries(
+    for (const [deviceUUID, userData] of Object.entries(
       this.globalState.userData
     )) {
       if (streams.length > 0) {
         // Potresti aver bisogno di logica più sofisticata qui
-        return participantId;
+        return deviceUUID;
       }
     }
 

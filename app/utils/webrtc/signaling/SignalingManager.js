@@ -28,50 +28,61 @@ export class SignalingManager {
 
   /**
    * Crea un'offerta SDP per un partecipante specifico
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {Promise<RTCSessionDescription|null>}
    */
-  async createOffer(participantId) {
-    const myId = this.globalState.getMyId();
+  async createOffer(deviceUUID) {
+    const myId = this.globalState.getDeviceUUID();
     if (!myId) {
       this.logger.error(
         "Cannot create offer: myId is null - GlobalState not properly initialized",
         {
           component: "SignalingManager",
-          participantId,
+          deviceUUID,
         }
       );
       return null;
     }
 
-    this.logger.info(`Creazione offerta per ${participantId}`, {
+    // 🔥 ADD: Validate deviceUUID to prevent undefined remotedeviceUUID
+    if (!deviceUUID) {
+      this.logger.error(
+        "createOffer: deviceUUID is undefined - cannot create offer",
+        {
+          component: "SignalingManager",
+        }
+      );
+      return null;
+    }
+
+    this.logger.info(`Creazione offerta per ${deviceUUID}`, {
       component: "SignalingManager",
-      participantId,
+      deviceUUID,
       action: "createOffer",
     });
 
-    const pc = this.globalState.getPeerConnection(participantId);
+    const pc = this.globalState.getPeerConnection(deviceUUID);
     if (!pc) {
-      this.logger.error(`PeerConnection non trovata per ${participantId}`, {
+      this.logger.error(`PeerConnection non trovata per ${deviceUUID}`, {
         component: "SignalingManager",
-        participantId,
+        deviceUUID,
       });
       return null;
     }
 
     try {
       // Verifica che non ci sia già una negoziazione in corso (atomic check and set)
-      if (!this.globalState.trySetNegotiationInProgress(participantId)) {
-        this.logger.warning(`Negoziazione già in corso per ${participantId}`, {
+      if (!this.globalState.trySetNegotiationInProgress(deviceUUID)) {
+        this.logger.warning(`Negoziazione già in corso per ${deviceUUID}`, {
           component: "SignalingManager",
-          participantId,
+          deviceUUID,
         });
         return null;
       }
       if (this.peerConnectionManager) {
         this.peerConnectionManager._addLocalTracksIfAvailable(
           pc,
-          participantId,
+          deviceUUID,
           false
         );
       }
@@ -79,68 +90,73 @@ export class SignalingManager {
       const offer = await pc.createOffer(SDP_OPTIONS.OFFER_OPTIONS);
       await pc.setLocalDescription(offer);
       this.peerConnectionManager?.processPendingMappingsAfterOffer?.(pc);
-      this.logger.info(`Offerta creata e impostata per ${participantId}`, {
+      this.logger.info(`Offerta creata e impostata per ${deviceUUID}`, {
         component: "SignalingManager",
-        participantId,
+        deviceUUID,
         sdpType: offer.type,
       });
 
       // Invia tramite Socket con retry mechanism
       const success = await this._sendWithRetry(
-        () =>
-          SocketIO.RTCOffer({
+        () => {
+          const sender = SocketIO.send();
+          if (!sender) {
+            throw new Error("Socket not connected, cannot send offer");
+          }
+          return sender.RTCOffer({
             offer: offer.toJSON
               ? offer.toJSON()
               : { sdp: offer.sdp, type: offer.type },
-            to: participantId,
-            from: this.globalState.getMyId(),
-            chat: this.globalState.getChatId(),
-          }),
-        `RTCOffer to ${participantId}`,
+            to: deviceUUID,
+            from: this.globalState.getDeviceUUID(),
+            chat: this.globalState.getCommUUID(),
+          });
+        },
+        `RTCOffer to ${deviceUUID}`,
         3
       );
 
       if (!success) {
         this.logger.error(
-          `Failed to send offer to ${participantId} after retries`,
+          `Failed to send offer to ${deviceUUID} after retries`,
           {
             component: "SignalingManager",
-            participantId,
+            deviceUUID,
           }
         );
-        throw new Error(`Failed to send offer to ${participantId}`);
+        throw new Error(`Failed to send offer to ${deviceUUID}`);
       }
 
       return offer;
     } catch (error) {
-      this.logger.error(`Errore creazione offerta per ${participantId}`, {
+      this.logger.error(`Errore creazione offerta per ${deviceUUID}`, {
         component: "SignalingManager",
-        participantId,
+        deviceUUID,
         error: error.message,
         stack: error.stack,
       });
       return null;
     } finally {
-      this.globalState.setNegotiationInProgress(participantId, false);
+      this.globalState.setNegotiationInProgress(deviceUUID, false);
     }
   }
   /**
    * Crea una risposta SDP per un partecipante specifico
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {Promise<RTCSessionDescription|null>}
    */
-  async createAnswer(participantId) {
-    this.logger.info(`Creazione risposta per ${participantId}`, {
+  async createAnswer(deviceUUID) {
+    this.logger.info(`Creazione risposta per ${deviceUUID}`, {
       component: "SignalingManager",
-      participantId,
+      deviceUUID,
       action: "createAnswer",
     });
 
-    const pc = this.globalState.getPeerConnection(participantId);
+    const pc = this.globalState.getPeerConnection(deviceUUID);
     if (!pc) {
-      this.logger.error(`PeerConnection non trovata per ${participantId}`, {
+      this.logger.error(`PeerConnection non trovata per ${deviceUUID}`, {
         component: "SignalingManager",
-        participantId,
+        deviceUUID,
       });
       return null;
     }
@@ -152,7 +168,7 @@ export class SignalingManager {
           `Stato signaling non valido per risposta: ${pc.signalingState}`,
           {
             component: "SignalingManager",
-            participantId,
+            deviceUUID,
             signalingState: pc.signalingState,
           }
         );
@@ -161,7 +177,7 @@ export class SignalingManager {
 
       // Registra la transizione di stato prima della creazione answer
       this.globalState.recordSignalingStateTransition(
-        participantId,
+        deviceUUID,
         pc.signalingState,
         "creating-answer"
       );
@@ -174,49 +190,54 @@ export class SignalingManager {
 
       // Registra la transizione di stato prima della creazione answer
       this.globalState.recordSignalingStateTransition(
-        participantId,
+        deviceUUID,
         pc.signalingState,
         "creating-answer"
       );
 
-      this.logger.info(`Risposta creata e impostata per ${participantId}`, {
+      this.logger.info(`Risposta creata e impostata per ${deviceUUID}`, {
         component: "SignalingManager",
-        participantId,
+        deviceUUID,
         sdpType: answer.type,
         newSignalingState: pc.signalingState,
       });
 
       // Invia tramite WebSocket con retry mechanism
       const success = await this._sendWithRetry(
-        () =>
-          SocketIO.RTCAnswer({
+        () => {
+          const sender = SocketIO.send();
+          if (!sender) {
+            throw new Error("Socket not connected, cannot send answer");
+          }
+          return sender.RTCAnswer({
             answer: answer.toJSON
               ? answer.toJSON()
               : { sdp: answer.sdp, type: answer.type },
-            to: participantId,
-            from: this.globalState.getMyId(),
-            chat: this.globalState.getChatId(),
-          }),
-        `RTCAnswer to ${participantId}`,
+            to: deviceUUID,
+            from: this.globalState.getDeviceUUID(),
+            chat: this.globalState.getCommUUID(),
+          });
+        },
+        `RTCAnswer to ${deviceUUID}`,
         3
       );
 
       if (!success) {
         this.logger.error(
-          `Failed to send answer to ${participantId} after retries`,
+          `Failed to send answer to ${deviceUUID} after retries`,
           {
             component: "SignalingManager",
-            participantId,
+            deviceUUID,
           }
         );
-        throw new Error(`Failed to send answer to ${participantId}`);
+        throw new Error(`Failed to send answer to ${deviceUUID}`);
       }
 
       return answer;
     } catch (error) {
-      this.logger.error(`Errore creazione risposta per ${participantId}`, {
+      this.logger.error(`Errore creazione risposta per ${deviceUUID}`, {
         component: "SignalingManager",
-        participantId,
+        deviceUUID,
         error: error.message,
         stack: error.stack,
       });
@@ -226,7 +247,7 @@ export class SignalingManager {
   async handleOfferMessage(message) {
     // 🔥 AGGIUNGI QUESTO DEBUG ALL'INIZIO
     console.log("📥 HANDLING OFFER MESSAGE - DETAILED DEBUG:", {
-      participantId: message.from,
+      deviceUUID: message.from,
       offerType: message.offer?.type,
       sdpLength: message.offer?.sdp?.length,
       // 🔥 ANALISI SDP PER TRACCE VIDEO
@@ -251,8 +272,8 @@ export class SignalingManager {
       messageFrom: message.from,
       messageTo: message.to,
       messageChat: message.chat,
-      myId: this.globalState.getMyId(),
-      myChatId: this.globalState.getChatId(),
+      myId: this.globalState.getDeviceUUID(),
+      myChatId: this.globalState.getCommUUID(),
     });
 
     if (!isForMe) {
@@ -277,31 +298,31 @@ export class SignalingManager {
       console.log("⚠️ NO PEERCONNECTION FOUND - ATTEMPTING TO CREATE...");
       this.logger.warning(
         "SignalingManager",
-        `⚠️ PeerConnection non trovata per ${senderId}, creo e riprovo`,
+        `⚠️ PeerConnection non trovata per ${senderId}, creo e riprova`,
         {
-          participantId: senderId,
+          deviceUUID: senderId,
         }
       );
 
-      // 🔥 FIX: Usa l'offer.from se participantId è undefined
-      const actualParticipantId = senderId || message.from;
+      // 🔥 FIX: Usa l'offer.from se deviceUUID è undefined
+      const actualdeviceUUID = senderId || message.from;
 
-      if (!actualParticipantId) {
+      if (!actualdeviceUUID) {
         this.logger.error(
           "SignalingManager",
           "❌ CANNOT CREATE PEER CONNECTION - NO PARTICIPANT ID",
-          { participantId: senderId, offerFrom: message.from }
+          { deviceUUID: senderId, offerFrom: message.from }
         );
         return false;
       }
 
-      const participant = { from: actualParticipantId };
+      const participant = { from: actualdeviceUUID };
       pc = this.peerConnectionManager.createPeerConnection(participant);
 
       if (!pc) {
         this.logger.error(
           "SignalingManager",
-          `❌ Impossibile creare PeerConnection per ${actualParticipantId}`
+          `❌ Impossibile creare PeerConnection per ${actualdeviceUUID}`
         );
         return false;
       }
@@ -323,7 +344,7 @@ export class SignalingManager {
     try {
       // 🔥 DEBUG STATO PRIMA DELLA RINEGOZIAZIONE
       console.log("🔄 RENEGOTIATION DEBUG - BEFORE setRemoteDescription:", {
-        participantId: senderId,
+        deviceUUID: senderId,
         currentSignalingState: pc.signalingState,
         hasRemoteDescription: !!pc.remoteDescription,
         hasLocalDescription: !!pc.localDescription,
@@ -341,7 +362,7 @@ export class SignalingManager {
         console.log("❌ PEERCONNECTION IS CLOSED - ABORTING");
         this.logger.warning("Impossibile gestire offerta, connessione chiusa", {
           component: "SignalingManager",
-          participantId: senderId,
+          deviceUUID: senderId,
           signalingState: pc.signalingState,
         });
         return false;
@@ -352,7 +373,7 @@ export class SignalingManager {
         console.log(
           "🔄 RENEGOTIATION DETECTED - Current state before setRemoteDescription:",
           {
-            participantId: senderId,
+            deviceUUID: senderId,
             signalingState: pc.signalingState,
             hasRemoteDescription: !!pc.remoteDescription,
             hasLocalDescription: !!pc.localDescription,
@@ -386,7 +407,7 @@ export class SignalingManager {
 
       console.log("🎯 CALLING setRemoteDescription...");
       console.log(`🔄 PRE-RENEGOTIATION MAPPING STATE:`, {
-        participantId: senderId,
+        deviceUUID: senderId,
         allMappings:
           this.streamMappingManager?.getAllMappingsForParticipant?.(senderId) ||
           "N/A",
@@ -401,7 +422,7 @@ export class SignalingManager {
 
       // 🔥 DEBUG STATO DOPO setRemoteDescription
       console.log("🔄 RENEGOTIATION DEBUG - AFTER setRemoteDescription:", {
-        participantId: senderId,
+        deviceUUID: senderId,
         newSignalingState: pc.signalingState,
         hasRemoteDescription: !!pc.remoteDescription,
         hasLocalDescription: !!pc.localDescription,
@@ -432,7 +453,7 @@ export class SignalingManager {
 
       this.logger.info(`Remote description (offer) impostata per ${senderId}`, {
         component: "SignalingManager",
-        participantId: senderId,
+        deviceUUID: senderId,
         newSignalingState: pc.signalingState,
       });
 
@@ -448,7 +469,7 @@ export class SignalingManager {
       console.log("❌ ERROR DURING OFFER PROCESSING:", error);
       this.logger.error(`Errore gestione offerta da ${senderId}:`, error, {
         component: "SignalingManager",
-        participantId: senderId,
+        deviceUUID: senderId,
         errorMessage: error.message,
       });
       return false;
@@ -479,7 +500,7 @@ export class SignalingManager {
     if (!pc) {
       this.logger.error(`PeerConnection non trovata per ${senderId}`, {
         component: "SignalingManager",
-        participantId: senderId,
+        deviceUUID: senderId,
       });
       return false;
     }
@@ -494,7 +515,7 @@ export class SignalingManager {
           `Transizione signaling state troppo ravvicinata per ${senderId}, ignorando risposta`,
           {
             component: "SignalingManager",
-            participantId: senderId,
+            deviceUUID: senderId,
             lastTransition:
               this.globalState.getLastSignalingStateTransition(senderId),
           }
@@ -505,7 +526,7 @@ export class SignalingManager {
       if (!message.answer || !message.answer.sdp) {
         this.logger.error(`Risposta ricevuta senza SDP da ${senderId}`, {
           component: "SignalingManager",
-          participantId: senderId,
+          deviceUUID: senderId,
           messageStructure: Object.keys(message),
           hasAnswer: !!message.answer,
           answerStructure: message.answer ? Object.keys(message.answer) : null,
@@ -519,7 +540,7 @@ export class SignalingManager {
           `Stato signaling non valido per risposta: ${pc.signalingState}`,
           {
             component: "SignalingManager",
-            participantId: senderId,
+            deviceUUID: senderId,
             signalingState: pc.signalingState,
           }
         );
@@ -552,7 +573,7 @@ export class SignalingManager {
         `Remote description (answer) impostata per ${senderId}`,
         {
           component: "SignalingManager",
-          participantId: senderId,
+          deviceUUID: senderId,
           newSignalingState: pc.signalingState,
         }
       );
@@ -567,7 +588,7 @@ export class SignalingManager {
     } catch (error) {
       this.logger.error(`Errore gestione risposta da ${senderId}`, {
         component: "SignalingManager",
-        participantId: senderId,
+        deviceUUID: senderId,
         error: error.message,
         stack: error.stack,
       });
@@ -581,20 +602,20 @@ export class SignalingManager {
   }
   /**
    * Verifies that remote stream handling is working correctly
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @private
    */
-  _verifyRemoteStreamHandling(participantId) {
-    const pc = this.globalState.getPeerConnection(participantId);
+  _verifyRemoteStreamHandling(deviceUUID) {
+    const pc = this.globalState.getPeerConnection(deviceUUID);
     if (!pc) return;
 
     // Check if we have remote streams
     const remoteStreams = pc.getRemoteStreams ? pc.getRemoteStreams() : [];
     const receivers = pc.getReceivers ? pc.getReceivers() : [];
 
-    this.logger.info(`Remote stream verification for ${participantId}`, {
+    this.logger.info(`Remote stream verification for ${deviceUUID}`, {
       component: "SignalingManager",
-      participantId,
+      deviceUUID,
       remoteStreamsCount: remoteStreams.length,
       receiversCount: receivers.length,
       connectionState: pc.connectionState,
@@ -608,7 +629,7 @@ export class SignalingManager {
         if (receiver.track) {
           this.logger.info(`Found remote track via receiver ${index}`, {
             component: "SignalingManager",
-            participantId,
+            deviceUUID,
             trackKind: receiver.track.kind,
             trackEnabled: receiver.track.enabled,
             trackReadyState: receiver.track.readyState,
@@ -640,7 +661,7 @@ export class SignalingManager {
         `Delegating ICE candidate handling to ICEManager for ${senderId}`,
         {
           component: "SignalingManager",
-          participantId: senderId,
+          deviceUUID: senderId,
         }
       );
       return await this.iceManager.handleRemoteCandidate(
@@ -655,7 +676,7 @@ export class SignalingManager {
     if (!pc) {
       this.logger.error(`PeerConnection non trovata per ${senderId}`, {
         component: "SignalingManager",
-        participantId: senderId,
+        deviceUUID: senderId,
       });
       return false;
     }
@@ -664,7 +685,7 @@ export class SignalingManager {
       if (message.candidate) {
         this.logger.debug(`Ricevuto candidato ICE da ${senderId}`, {
           component: "SignalingManager",
-          participantId: senderId,
+          deviceUUID: senderId,
           candidateType: message.candidate.type,
         });
 
@@ -676,7 +697,7 @@ export class SignalingManager {
             `Remote description non ancora impostata per ${senderId}, metto candidato in coda`,
             {
               component: "SignalingManager",
-              participantId: senderId,
+              deviceUUID: senderId,
             }
           );
           this.globalState.queueICECandidate(senderId, candidate);
@@ -689,14 +710,14 @@ export class SignalingManager {
           `Candidato ICE aggiunto con successo per ${senderId}`,
           {
             component: "SignalingManager",
-            participantId: senderId,
+            deviceUUID: senderId,
           }
         );
       } else {
         // Fine candidati ICE
         this.logger.debug(`Fine candidati ICE per ${senderId}`, {
           component: "SignalingManager",
-          participantId: senderId,
+          deviceUUID: senderId,
         });
         await pc.addIceCandidate(null);
       }
@@ -705,7 +726,7 @@ export class SignalingManager {
     } catch (error) {
       this.logger.error(`Errore gestione candidato ICE da ${senderId}`, {
         component: "SignalingManager",
-        participantId: senderId,
+        deviceUUID: senderId,
         error: error.message,
       });
       return false;
@@ -720,11 +741,11 @@ export class SignalingManager {
   async handleUserJoined(message) {
     this.logger.info("Gestione utente entrato", {
       component: "SignalingManager",
-      from: message.from,
+      deviceUUID: message.deviceUUID,
       action: "handleUserJoined",
     });
-    const participantId = message.from;
-    const myId = this.globalState.getMyId();
+    const deviceUUID = message.deviceUUID;
+    const myId = this.globalState.getDeviceUUID();
 
     // Check if GlobalState is properly initialized
     if (!myId) {
@@ -732,15 +753,27 @@ export class SignalingManager {
         "Cannot handle user joined: GlobalState not properly initialized (myId is null)",
         {
           component: "SignalingManager",
-          participantId,
+          deviceUUID,
           globalStateMyId: this.globalState.myId,
-          globalStateChatId: this.globalState.getChatId(),
+          globalStateChatId: this.globalState.getCommUUID(),
         }
       );
       return false;
     }
 
-    if (participantId === myId) {
+    // 🔥 ADD: Validate deviceUUID to prevent undefined propagation
+    if (!deviceUUID) {
+      this.logger.error(
+        "handleUserJoined: deviceUUID (message.from) is undefined - skipping user join",
+        {
+          component: "SignalingManager",
+          message,
+        }
+      );
+      return false;
+    }
+
+    if (deviceUUID === myId) {
       // Ignora il proprio join
       return true;
     }
@@ -749,20 +782,20 @@ export class SignalingManager {
       // Crea connessione peer per il nuovo utente
       if (this.peerConnectionManager) {
         const pc = this.peerConnectionManager.createPeerConnection({
-          from: participantId,
-          handle: message.handle || participantId,
+          from: deviceUUID,
+          handle: message.handle,
         });
 
         if (pc) {
           this.logger.info(
-            `Connessione peer creata per nuovo utente ${participantId}`,
+            `Connessione peer creata per nuovo utente ${deviceUUID}`,
             {
               component: "SignalingManager",
-              participantId,
+              deviceUUID,
             }
           );
           // Avvia negoziazione con deterministic ordering per evitare race conditions
-          await this._scheduleOfferCreation(participantId);
+          await this._scheduleOfferCreation(deviceUUID);
 
           return true;
         }
@@ -770,9 +803,9 @@ export class SignalingManager {
 
       return false;
     } catch (error) {
-      this.logger.error(`Errore gestione utente entrato ${participantId}`, {
+      this.logger.error(`Errore gestione utente entrato ${deviceUUID}`, {
         component: "SignalingManager",
-        participantId,
+        deviceUUID,
         error: error.message,
       });
       return false;
@@ -791,48 +824,48 @@ export class SignalingManager {
       action: "handleUserLeft",
     });
 
-    const participantId = message.from;
-    const myId = this.globalState.getMyId();
+    const deviceUUID = message.from;
+    const myId = this.globalState.getDeviceUUID();
 
-    if (participantId === myId) {
+    if (deviceUUID === myId) {
       // Ignora la propria uscita
       return true;
     }
 
     try {
       // Chiudi connessione peer
-      const pc = this.globalState.getPeerConnection(participantId);
+      const pc = this.globalState.getPeerConnection(deviceUUID);
       if (pc) {
         pc.close();
-        this.logger.debug(`Connessione peer chiusa per ${participantId}`, {
+        this.logger.debug(`Connessione peer chiusa per ${deviceUUID}`, {
           component: "SignalingManager",
-          participantId,
+          deviceUUID,
         });
       }
 
       // Rimuovi da global state
-      this.globalState.removePeerConnection(participantId);
-      this.globalState.removeAllUserActiveStreams(participantId);
+      this.globalState.removePeerConnection(deviceUUID);
+      this.globalState.removeAllUserActiveStreams(deviceUUID);
 
       // Pulisci pin se era pinnato
       if (this.webRTCManager) {
-        this.webRTCManager.clearPinIfId(participantId);
-        this.logger.debug(`Pin rimosso per utente uscito ${participantId}`);
+        this.webRTCManager.clearPinIfId(deviceUUID);
+        this.logger.debug(`Pin rimosso per utente uscito ${deviceUUID}`);
       }
 
       this.logger.info(
-        `Pulizia completata per utente uscito ${participantId}`,
+        `Pulizia completata per utente uscito ${deviceUUID}`,
         {
           component: "SignalingManager",
-          participantId,
+          deviceUUID,
         }
       );
 
       return true;
     } catch (error) {
-      this.logger.error(`Errore gestione utente uscito ${participantId}`, {
+      this.logger.error(`Errore gestione utente uscito ${deviceUUID}`, {
         component: "SignalingManager",
-        participantId,
+        deviceUUID,
         error: error.message,
       });
       return false;
@@ -855,7 +888,7 @@ export class SignalingManager {
       action: "setExistingUsers",
     });
 
-    const myId = this.globalState.getMyId();
+    const myId = this.globalState.getDeviceUUID();
 
     if (!this.peerConnectionManager) {
       this.logger.error("PeerConnectionManager non disponibile", {
@@ -865,24 +898,24 @@ export class SignalingManager {
     }
 
     try {
-      for (const [participantId, userData] of Object.entries(existingUsers)) {
-        if (participantId === myId) {
+      for (const [deviceUUID, userData] of Object.entries(existingUsers)) {
+        if (deviceUUID === myId) {
           // Ignora se stesso
           continue;
         }
 
         // Crea connessione peer per utente esistente, passando l'intero oggetto 'userData' come userData
         const pc = this.peerConnectionManager.createPeerConnection({
-          from: participantId,
+          from: deviceUUID,
           handle: userData.handle,
         });
 
         if (pc) {
           this.logger.debug(
-            `Connessione peer creata per utente esistente ${participantId}`,
+            `Connessione peer creata per utente esistente ${deviceUUID}`,
             {
               component: "SignalingManager",
-              participantId,
+              deviceUUID,
             }
           );
         }
@@ -926,7 +959,7 @@ export class SignalingManager {
       } catch (error) {
         this.logger.error(`Errore rinegoziazione con ${peerId}`, {
           component: "SignalingManager",
-          participantId: peerId,
+          deviceUUID: peerId,
           error: error.message,
         });
       }
@@ -940,8 +973,8 @@ export class SignalingManager {
    * @private
    */
   _isMessageForMe(message) {
-    const myId = this.globalState.getMyId();
-    const chatId = this.globalState.getChatId();
+    const myId = this.globalState.getDeviceUUID();
+    const chatId = this.globalState.getCommUUID();
 
     // 🔥 FIX: message.to può essere myId (singlecast) o chatId (broadcast)
     const isAddressedToMe = message.to === myId; // Messaggio diretto a me
@@ -968,62 +1001,62 @@ export class SignalingManager {
 
   /**
    * Processa candidati ICE in coda
-   * @param {string} participantId
+   * @param {string} deviceUUID
    * @returns {Promise<void>}
    * @private
-   */ async _processQueuedICECandidates(participantId) {
+   */ async _processQueuedICECandidates(deviceUUID) {
     // Delegate to ICEManager if available
     if (this.iceManager) {
       this.logger.debug(
-        `Delegating queued ICE candidates processing to ICEManager for ${participantId}`,
+        `Delegating queued ICE candidates processing to ICEManager for ${deviceUUID}`,
         {
           component: "SignalingManager",
-          participantId,
+          deviceUUID,
         }
       );
-      return await this.iceManager.processQueuedCandidates(participantId);
+      return await this.iceManager.processQueuedCandidates(deviceUUID);
     }
 
     // Fallback to direct processing
     const queuedCandidates =
-      this.globalState.getQueuedICECandidates(participantId);
+      this.globalState.getQueuedICECandidates(deviceUUID);
 
     if (queuedCandidates && queuedCandidates.length > 0) {
       this.logger.info(
-        `Processando ${queuedCandidates.length} candidati ICE in coda per ${participantId}`,
+        `Processando ${queuedCandidates.length} candidati ICE in coda per ${deviceUUID}`,
         {
           component: "SignalingManager",
-          participantId,
+          deviceUUID,
           candidatesCount: queuedCandidates.length,
         }
       );
 
-      const pc = this.globalState.getPeerConnection(participantId);
+      const pc = this.globalState.getPeerConnection(deviceUUID);
       if (!pc) return;
 
       for (const candidate of queuedCandidates) {
         try {
           await pc.addIceCandidate(candidate);
           this.logger.debug(
-            `Candidato ICE dalla coda processato per ${participantId}`,
+            `Candidato ICE dalla coda processato per ${deviceUUID}`,
             {
               component: "SignalingManager",
-              participantId,
+              deviceUUID,
             }
           );
         } catch (error) {
           this.logger.error(
-            `Errore processando candidato ICE dalla coda per ${participantId}`,
+            `Errore processando candidato ICE dalla coda per ${deviceUUID}`,
             {
               component: "SignalingManager",
-              participantId,
+              deviceUUID,
               error: error.message,
             }
           );
         }
       }
 
-      // Pulisci la coda    this.globalState.clearQueuedICECandidates(participantId);
+      // Pulisci la coda    this.globalState.clearQueuedICECandidates(deviceUUID);
     }
   }
 
@@ -1041,7 +1074,7 @@ export class SignalingManager {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         // Check if WebSocket is connected
-        if (!SocketIO.default.isSocketOpen()) {
+        if (!SocketIO.default.isOpen()) {
           this.logger.warn(
             `WebSocket not connected for ${operationName}, attempt ${attempt}/${maxRetries}`,
             {
@@ -1131,28 +1164,28 @@ export class SignalingManager {
   }
   /**
    * Schedules offer creation with deterministic timing to prevent race conditions
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {Promise<void>}
    * @private
    */
-  async _scheduleOfferCreation(participantId) {
-    const myId = this.globalState.getMyId();
+  async _scheduleOfferCreation(deviceUUID) {
+    const myId = this.globalState.getDeviceUUID();
 
     // Validate that we have a valid myId
     if (!myId) {
       this.logger.error(`Cannot schedule offer creation: myId is null`, {
         component: "SignalingManager",
-        participantId,
+        deviceUUID,
         myId,
         globalStateInitialized: !!this.globalState,
       });
       return;
     }
 
-    if (myId === participantId) {
-      this.logger.warning(`Self-connection detected for ${participantId}`, {
+    if (myId === deviceUUID) {
+      this.logger.warning(`Self-connection detected for ${deviceUUID}`, {
         component: "SignalingManager",
-        participantId,
+        deviceUUID,
         myId,
       });
       return;
@@ -1167,25 +1200,25 @@ export class SignalingManager {
         .some((track) => track.enabled);
 
     // Secondary strategy: Use deterministic ordering based on string comparison
-    let shouldCreateOffer = hasVideo || myId > participantId;
+    let shouldCreateOffer = hasVideo || myId > deviceUUID;
 
-    if (myId === participantId) {
-      this.logger.warning(`Self-connection detected for ${participantId}`, {
+    if (myId === deviceUUID) {
+      this.logger.warning(`Self-connection detected for ${deviceUUID}`, {
         component: "SignalingManager",
-        participantId,
+        deviceUUID,
         myId,
       });
       return;
     }
 
     // Additional debug logging to understand the decision
-    this.logger.info(`Offer creation decision for ${participantId}`, {
+    this.logger.info(`Offer creation decision for ${deviceUUID}`, {
       component: "SignalingManager",
-      participantId,
+      deviceUUID,
       myId,
       shouldCreateOffer,
       hasVideo,
-      comparison: `"${myId}" > "${participantId}" = ${myId > participantId}`,
+      comparison: `"${myId}" > "${deviceUUID}" = ${myId > deviceUUID}`,
       strategy: hasVideo ? "video-priority" : "lexicographic",
     });
 
@@ -1196,10 +1229,10 @@ export class SignalingManager {
       const totalDelay = baseDelay + jitterDelay;
 
       this.logger.info(
-        `Scheduling offer creation for ${participantId} in ${totalDelay}ms`,
+        `Scheduling offer creation for ${deviceUUID} in ${totalDelay}ms`,
         {
           component: "SignalingManager",
-          participantId,
+          deviceUUID,
           myId,
           delay: totalDelay,
           shouldCreateOffer,
@@ -1208,13 +1241,13 @@ export class SignalingManager {
 
       setTimeout(async () => {
         try {
-          await this.createOffer(participantId);
+          await this.createOffer(deviceUUID);
         } catch (error) {
           this.logger.error(
-            `Error in scheduled offer creation for ${participantId}`,
+            `Error in scheduled offer creation for ${deviceUUID}`,
             {
               component: "SignalingManager",
-              participantId,
+              deviceUUID,
               error: error.message,
             }
           );
@@ -1222,10 +1255,10 @@ export class SignalingManager {
       }, totalDelay);
     } else {
       this.logger.info(
-        `Not creating offer for ${participantId} - waiting for remote offer`,
+        `Not creating offer for ${deviceUUID} - waiting for remote offer`,
         {
           component: "SignalingManager",
-          participantId,
+          deviceUUID,
           myId,
           shouldCreateOffer,
         }
@@ -1234,24 +1267,24 @@ export class SignalingManager {
       // Set a timeout to create offer if we don't receive one within reasonable time
       setTimeout(async () => {
         try {
-          const pc = this.globalState.getPeerConnection(participantId);
+          const pc = this.globalState.getPeerConnection(deviceUUID);
           if (pc && pc.signalingState === "stable" && !pc.remoteDescription) {
             this.logger.warning(
-              `Timeout waiting for remote offer from ${participantId}, creating offer anyway`,
+              `Timeout waiting for remote offer from ${deviceUUID}, creating offer anyway`,
               {
                 component: "SignalingManager",
-                participantId,
+                deviceUUID,
                 signalingState: pc.signalingState,
               }
             );
-            await this.createOffer(participantId);
+            await this.createOffer(deviceUUID);
           }
         } catch (error) {
           this.logger.error(
-            `Error in fallback offer creation for ${participantId}`,
+            `Error in fallback offer creation for ${deviceUUID}`,
             {
               component: "SignalingManager",
-              participantId,
+              deviceUUID,
               error: error.message,
             }
           );

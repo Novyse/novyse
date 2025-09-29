@@ -2,7 +2,7 @@ import eventEmitter from "../../global/Events/lib/EventEmitter";
 import SocketIO from "../../backend-services/socket-io";
 
 const EventEmitter = {
-  sendMIDtoStreamUUIDMapping: (
+  sendMIDtoStreamUUIDMapping: async (
     toPartecipantUUID,
     partecipantUUID,
     streamUUID,
@@ -18,7 +18,7 @@ const EventEmitter = {
       return;
     }
 
-    SocketIO.sendMIDtoUUIDMapping(
+    await SocketIO.send().sendMIDtoUUIDMapping(
       toPartecipantUUID,
       partecipantUUID,
       streamUUID,
@@ -37,7 +37,7 @@ const EventEmitter = {
     }
 
     eventEmitter.emit("ui_update", {
-      participantUUID: partecipantUUID,
+      deviceUUID: partecipantUUID,
       stream,
       streamUUID: streamUUID,
       action: action,
@@ -54,7 +54,7 @@ const EventEmitter = {
       return;
     }
 
-    await SocketIO.sendWebcamStatus(
+    await SocketIO.send().sendWebcamStatus(
       partecipantUUID,
       chatId,
       status

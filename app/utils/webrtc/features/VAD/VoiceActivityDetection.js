@@ -130,17 +130,17 @@ class VoiceActivityDetection {
 
   /**
    * Set speaking state for a participant
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @param {boolean} isSpeaking - Speaking state
    */
-  setSpeakingState(participantId, isSpeaking) {
+  setSpeakingState(deviceUUID, isSpeaking) {
     try {
-      this.globalState.setUserSpeaking(participantId, isSpeaking);
-      this.globalState.updateSpeakingHistory(participantId, isSpeaking);
+      this.globalState.setUserSpeaking(deviceUUID, isSpeaking);
+      this.globalState.updateSpeakingHistory(deviceUUID, isSpeaking);
 
       this.logger.verbose(
         "VoiceActivityDetection",
-        `Speaking state set for ${participantId}: ${isSpeaking}`
+        `Speaking state set for ${deviceUUID}: ${isSpeaking}`
       );
     } catch (error) {
       this.logger.error(
@@ -153,11 +153,11 @@ class VoiceActivityDetection {
 
   /**
    * Get speaking state for a participant
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {boolean} Speaking state
    */
-  getSpeakingState(participantId) {
-    return this.globalState.isUserSpeaking(participantId);
+  getSpeakingState(deviceUUID) {
+    return this.globalState.isUserSpeaking(deviceUUID);
   }
 
   /**

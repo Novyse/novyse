@@ -8,6 +8,8 @@ export const ChatProvider = ({ children }) => {
   const [selectedChatName, setSelectedChatName] = useState(null);
   const [selectedChatPictureUUID, setSelectedChatPictureUUID] = useState(null);
 
+  const [selectedSub, setSelectedSub] = useState(0);
+
   return (
     <ChatContext.Provider
       value={{
@@ -19,6 +21,8 @@ export const ChatProvider = ({ children }) => {
         setSelectedChatName,
         selectedChatPictureUUID,
         setSelectedChatPictureUUID,
+        selectedSub,
+        setSelectedSub,
       }}
     >
       {children}

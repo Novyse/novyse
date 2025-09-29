@@ -37,11 +37,11 @@ export class RecoveryManager {
 
   /**
    * Attempt connection recovery for a participant
-   * @param {string} participantId - Participant ID to recover
+   * @param {string} deviceUUID - Participant ID to recover
    * @returns {Promise<boolean>} True if recovery was successful
    */
-  async attemptConnectionRecovery(participantId) {
-    if (!participantId) {
+  async attemptConnectionRecovery(deviceUUID) {
+    if (!deviceUUID) {
       this.logger.warn(
         "RecoveryManager",
         "Cannot recover empty participant ID"
@@ -50,46 +50,46 @@ export class RecoveryManager {
     }
 
     // Check if recovery is already in progress
-    if (this.recoveryInProgress[participantId]) {
+    if (this.recoveryInProgress[deviceUUID]) {
       this.logger.info(
         "RecoveryManager",
-        `Recovery already in progress for ${participantId}`
+        `Recovery already in progress for ${deviceUUID}`
       );
       return false;
     }
 
     // Check retry limits
-    const currentAttempts = this.reconnectionAttempts[participantId] || 0;
+    const currentAttempts = this.reconnectionAttempts[deviceUUID] || 0;
     if (currentAttempts >= this.MAX_RECONNECTION_ATTEMPTS) {
       this.logger.error(
         "RecoveryManager",
-        `Max recovery attempts (${this.MAX_RECONNECTION_ATTEMPTS}) reached for ${participantId}`
+        `Max recovery attempts (${this.MAX_RECONNECTION_ATTEMPTS}) reached for ${deviceUUID}`
       );
       return false;
     }
 
-    this.recoveryInProgress[participantId] = true;
-    this.reconnectionAttempts[participantId] = currentAttempts + 1;
-    this.lastRecoveryAttempts[participantId] = Date.now();
+    this.recoveryInProgress[deviceUUID] = true;
+    this.reconnectionAttempts[deviceUUID] = currentAttempts + 1;
+    this.lastRecoveryAttempts[deviceUUID] = Date.now();
 
     this.logger.warn(
       "RecoveryManager",
-      `Starting recovery attempt ${this.reconnectionAttempts[participantId]}/${this.MAX_RECONNECTION_ATTEMPTS} for ${participantId}`
+      `Starting recovery attempt ${this.reconnectionAttempts[deviceUUID]}/${this.MAX_RECONNECTION_ATTEMPTS} for ${deviceUUID}`
     );
 
     try {
-      const success = await this._performConnectionRecovery(participantId);
+      const success = await this._performConnectionRecovery(deviceUUID);
 
       if (success) {
-        this.reconnectionAttempts[participantId] = 0; // Reset on success
+        this.reconnectionAttempts[deviceUUID] = 0; // Reset on success
         this.logger.info(
           "RecoveryManager",
-          `Recovery successful for ${participantId}`
+          `Recovery successful for ${deviceUUID}`
         );
       } else {
         this.logger.warn(
           "RecoveryManager",
-          `Recovery attempt failed for ${participantId}`
+          `Recovery attempt failed for ${deviceUUID}`
         );
       }
 
@@ -97,61 +97,61 @@ export class RecoveryManager {
     } catch (error) {
       this.logger.error(
         "RecoveryManager",
-        `Recovery error for ${participantId}: ${error.message}`
+        `Recovery error for ${deviceUUID}: ${error.message}`
       );
       return false;
     } finally {
-      this.recoveryInProgress[participantId] = false;
+      this.recoveryInProgress[deviceUUID] = false;
     }
   }
 
   /**
    * Force manual reconnection for a participant
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {Promise<boolean>} True if reconnection was initiated
    */
-  async forceReconnection(participantId) {
-    if (!participantId) return false;
+  async forceReconnection(deviceUUID) {
+    if (!deviceUUID) return false;
 
     this.logger.info(
       "RecoveryManager",
-      `Forcing manual reconnection for ${participantId}`
+      `Forcing manual reconnection for ${deviceUUID}`
     );
 
     // Reset attempt counter for manual retry
-    this.reconnectionAttempts[participantId] = 0;
+    this.reconnectionAttempts[deviceUUID] = 0;
 
-    return await this.attemptConnectionRecovery(participantId);
+    return await this.attemptConnectionRecovery(deviceUUID);
   }
 
   /**
    * Reset reconnection attempts for a participant
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    */
-  resetReconnectionAttempts(participantId) {
-    if (this.reconnectionAttempts[participantId]) {
-      delete this.reconnectionAttempts[participantId];
+  resetReconnectionAttempts(deviceUUID) {
+    if (this.reconnectionAttempts[deviceUUID]) {
+      delete this.reconnectionAttempts[deviceUUID];
       this.logger.debug(
         "RecoveryManager",
-        `Reset reconnection attempts for ${participantId}`
+        `Reset reconnection attempts for ${deviceUUID}`
       );
     }
   }
 
   /**
    * Get recovery statistics for a participant
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {Object} Recovery statistics
    */
-  getRecoveryStatistics(participantId) {
+  getRecoveryStatistics(deviceUUID) {
     return {
-      participantId,
-      reconnectionAttempts: this.reconnectionAttempts[participantId] || 0,
+      deviceUUID,
+      reconnectionAttempts: this.reconnectionAttempts[deviceUUID] || 0,
       maxAttempts: this.MAX_RECONNECTION_ATTEMPTS,
-      recoveryInProgress: !!this.recoveryInProgress[participantId],
-      lastRecoveryTime: this.lastRecoveryAttempts[participantId] || null,
+      recoveryInProgress: !!this.recoveryInProgress[deviceUUID],
+      lastRecoveryTime: this.lastRecoveryAttempts[deviceUUID] || null,
       canAttemptRecovery:
-        (this.reconnectionAttempts[participantId] || 0) <
+        (this.reconnectionAttempts[deviceUUID] || 0) <
         this.MAX_RECONNECTION_ATTEMPTS,
     };
   }
@@ -167,8 +167,8 @@ export class RecoveryManager {
     [
       ...Object.keys(this.reconnectionAttempts),
       ...Object.keys(this.recoveryInProgress),
-    ].forEach((participantId) => {
-      stats[participantId] = this.getRecoveryStatistics(participantId);
+    ].forEach((deviceUUID) => {
+      stats[deviceUUID] = this.getRecoveryStatistics(deviceUUID);
     });
 
     return stats;
@@ -176,16 +176,16 @@ export class RecoveryManager {
 
   /**
    * Perform the actual connection recovery
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {Promise<boolean>} Recovery success
    * @private
    */
-  async _performConnectionRecovery(participantId) {
-    const currentAttempt = this.reconnectionAttempts[participantId];
-    const pc = this.globalState.getPeerConnection(participantId);
+  async _performConnectionRecovery(deviceUUID) {
+    const currentAttempt = this.reconnectionAttempts[deviceUUID];
+    const pc = this.globalState.getPeerConnection(deviceUUID);
 
     if (!pc) {
-      throw new Error(`No peer connection found for ${participantId}`);
+      throw new Error(`No peer connection found for ${deviceUUID}`);
     }
 
     // Add exponential backoff delay
@@ -194,7 +194,7 @@ export class RecoveryManager {
     if (delay > 0) {
       this.logger.debug(
         "RecoveryManager",
-        `Waiting ${delay}ms before recovery attempt for ${participantId}`
+        `Waiting ${delay}ms before recovery attempt for ${deviceUUID}`
       );
       await this._wait(delay);
     }
@@ -203,35 +203,35 @@ export class RecoveryManager {
     try {
       if (currentAttempt === 1) {
         // Strategy 1: ICE restart (lightest approach)
-        return await this._performICERestart(participantId);
+        return await this._performICERestart(deviceUUID);
       } else if (currentAttempt === 2) {
         // Strategy 2: Full renegotiation
-        return await this._performRenegotiation(participantId);
+        return await this._performRenegotiation(deviceUUID);
       } else {
         // Strategy 3: Full reconnection (most aggressive)
-        return await this._performFullReconnection(participantId);
+        return await this._performFullReconnection(deviceUUID);
       }
     } catch (error) {
       this.logger.error(
         "RecoveryManager",
-        `Recovery strategy failed for ${participantId}: ${error.message}`
+        `Recovery strategy failed for ${deviceUUID}: ${error.message}`
       );
       return false;
     }
   }
   /**
    * Perform ICE restart recovery
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {Promise<boolean>} Success status
    * @private
    */
-  async _performICERestart(participantId) {
+  async _performICERestart(deviceUUID) {
     this.logger.info(
       "RecoveryManager",
-      `Attempting ICE restart for ${participantId}`
+      `Attempting ICE restart for ${deviceUUID}`
     );
 
-    const pc = this.globalState.getPeerConnection(participantId);
+    const pc = this.globalState.getPeerConnection(deviceUUID);
     if (!pc) return false;
 
     try {
@@ -245,7 +245,7 @@ export class RecoveryManager {
         // Send via signaling manager which has retry mechanisms
         const success = await this._sendOfferWithRetry(
           signalingManager,
-          participantId,
+          deviceUUID,
           offer
         );
 
@@ -255,13 +255,13 @@ export class RecoveryManager {
 
         // Wait for connection stabilization
         const stabilized = await this._waitForConnectionStabilization(
-          participantId
+          deviceUUID
         );
 
         if (stabilized) {
           this.logger.info(
             "RecoveryManager",
-            `ICE restart successful for ${participantId}`
+            `ICE restart successful for ${deviceUUID}`
           );
         }
 
@@ -270,7 +270,7 @@ export class RecoveryManager {
         // Fallback to direct WebSocket if no signaling manager
         this.logger.warn(
           "RecoveryManager",
-          `No signaling manager available, using direct WebSocket for ${participantId}`
+          `No signaling manager available, using direct WebSocket for ${deviceUUID}`
         );
 
         const offer = await pc.createOffer({ iceRestart: true });
@@ -281,14 +281,14 @@ export class RecoveryManager {
         );
         const success = await this._sendWithRetry(
           () =>
-            SocketIO.default.RTCOffer({
+            SocketIO.default.send().RTCOffer({
               offer: offer.toJSON
                 ? offer.toJSON()
                 : { sdp: offer.sdp, type: offer.type },
-              to: participantId,
-              from: this.globalState.getMyId(),
+              to: deviceUUID,
+              from: this.globalState.getDeviceUUID(),
             }),
-          `ICE restart offer to ${participantId}`,
+          `ICE restart offer to ${deviceUUID}`,
           3
         );
 
@@ -296,12 +296,12 @@ export class RecoveryManager {
           throw new Error("Failed to send ICE restart offer via WebSocket");
         }
 
-        return await this._waitForConnectionStabilization(participantId);
+        return await this._waitForConnectionStabilization(deviceUUID);
       }
     } catch (error) {
       this.logger.warn(
         "RecoveryManager",
-        `ICE restart failed for ${participantId}: ${error.message}`
+        `ICE restart failed for ${deviceUUID}: ${error.message}`
       );
       return false;
     }
@@ -309,30 +309,30 @@ export class RecoveryManager {
 
   /**
    * Perform full renegotiation recovery
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {Promise<boolean>} Success status
    * @private
    */
-  async _performRenegotiation(participantId) {
+  async _performRenegotiation(deviceUUID) {
     this.logger.info(
       "RecoveryManager",
-      `Attempting renegotiation for ${participantId}`
+      `Attempting renegotiation for ${deviceUUID}`
     );
 
     try {
       // Use signaling manager for safe renegotiation
       const signalingManager = this.globalState.getSignalingManager();
       if (signalingManager) {
-        const offer = await signalingManager.createOffer(participantId);
+        const offer = await signalingManager.createOffer(deviceUUID);
         if (offer) {
           const success = await this._waitForConnectionStabilization(
-            participantId
+            deviceUUID
           );
 
           if (success) {
             this.logger.info(
               "RecoveryManager",
-              `Renegotiation successful for ${participantId}`
+              `Renegotiation successful for ${deviceUUID}`
             );
           }
 
@@ -344,7 +344,7 @@ export class RecoveryManager {
     } catch (error) {
       this.logger.warn(
         "RecoveryManager",
-        `Renegotiation failed for ${participantId}: ${error.message}`
+        `Renegotiation failed for ${deviceUUID}: ${error.message}`
       );
       return false;
     }
@@ -352,14 +352,14 @@ export class RecoveryManager {
 
   /**
    * Perform full reconnection recovery
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {Promise<boolean>} Success status
    * @private
    */
-  async _performFullReconnection(participantId) {
+  async _performFullReconnection(deviceUUID) {
     this.logger.info(
       "RecoveryManager",
-      `Attempting full reconnection for ${participantId}`
+      `Attempting full reconnection for ${deviceUUID}`
     );
 
     try {
@@ -370,32 +370,32 @@ export class RecoveryManager {
       }
 
       // Close existing connection
-      const existingPc = this.globalState.getPeerConnection(participantId);
+      const existingPc = this.globalState.getPeerConnection(deviceUUID);
       if (existingPc) {
         existingPc.close();
       }
 
       // Remove from global state
-      this.globalState.removePeerConnection(participantId);
+      this.globalState.removePeerConnection(deviceUUID);
 
       // Create new connection
-      const userData = this.globalState.getUserData(participantId);
+      const userData = this.globalState.getUserData(deviceUUID);
       if (userData) {
         const newPc = peerConnectionManager.createPeerConnection({
-          from: participantId,
+          from: deviceUUID,
           handle: userData.handle,
         });
 
         if (newPc) {
           // Wait for connection stabilization
           const success = await this._waitForConnectionStabilization(
-            participantId
+            deviceUUID
           );
 
           if (success) {
             this.logger.info(
               "RecoveryManager",
-              `Full reconnection successful for ${participantId}`
+              `Full reconnection successful for ${deviceUUID}`
             );
           }
 
@@ -407,7 +407,7 @@ export class RecoveryManager {
     } catch (error) {
       this.logger.error(
         "RecoveryManager",
-        `Full reconnection failed for ${participantId}: ${error.message}`
+        `Full reconnection failed for ${deviceUUID}: ${error.message}`
       );
       return false;
     }
@@ -415,12 +415,12 @@ export class RecoveryManager {
 
   /**
    * Wait for connection to stabilize
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {Promise<boolean>} True if connection stabilized
    * @private
    */
-  async _waitForConnectionStabilization(participantId) {
-    const pc = this.globalState.getPeerConnection(participantId);
+  async _waitForConnectionStabilization(deviceUUID) {
+    const pc = this.globalState.getPeerConnection(deviceUUID);
     if (!pc) return false;
 
     return new Promise((resolve) => {
@@ -433,7 +433,7 @@ export class RecoveryManager {
         if (elapsed > this.STABILIZATION_TIMEOUT) {
           this.logger.warn(
             "RecoveryManager",
-            `Connection stabilization timeout for ${participantId}`
+            `Connection stabilization timeout for ${deviceUUID}`
           );
           resolve(false);
           return;
@@ -450,7 +450,7 @@ export class RecoveryManager {
         ) {
           this.logger.debug(
             "RecoveryManager",
-            `Connection stabilized for ${participantId} (${connectionState}/${iceConnectionState})`
+            `Connection stabilized for ${deviceUUID} (${connectionState}/${iceConnectionState})`
           );
           resolve(true);
           return;
@@ -463,7 +463,7 @@ export class RecoveryManager {
         ) {
           this.logger.warn(
             "RecoveryManager",
-            `Connection failed during stabilization for ${participantId} (${connectionState}/${iceConnectionState})`
+            `Connection failed during stabilization for ${deviceUUID} (${connectionState}/${iceConnectionState})`
           );
           resolve(false);
           return;
@@ -489,12 +489,12 @@ export class RecoveryManager {
   /**
    * Send offer with retry mechanism via SignalingManager
    * @param {Object} signalingManager - SignalingManager instance
-   * @param {string} participantId - Target participant ID
+   * @param {string} deviceUUID - Target participant ID
    * @param {RTCSessionDescription} offer - Offer to send
    * @returns {Promise<boolean>} True if sent successfully
    * @private
    */
-  async _sendOfferWithRetry(signalingManager, participantId, offer) {
+  async _sendOfferWithRetry(signalingManager, deviceUUID, offer) {
     const maxRetries = 3;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -503,10 +503,10 @@ export class RecoveryManager {
           "../../backend-services/socket-io.js"
         );
 
-        if (!SocketIO.default.isWebSocketOpen()) {
+        if (!SocketIO.default.isOpen()) {
           this.logger.warn(
             "RecoveryManager",
-            `WebSocket not connected for offer to ${participantId}, attempt ${attempt}/${maxRetries}`
+            `WebSocket not connected for offer to ${deviceUUID}, attempt ${attempt}/${maxRetries}`
           );
 
           if (attempt < maxRetries) {
@@ -516,24 +516,29 @@ export class RecoveryManager {
           return false;
         }
 
-        await SocketIO.default.RTCOffer({
+        const sender = SocketIO.default.send();
+        if (!sender) {
+          throw new Error("Socket not connected, cannot send offer");
+        }
+
+        await sender.RTCOffer({
           offer: offer.toJSON
             ? offer.toJSON()
             : { sdp: offer.sdp, type: offer.type },
-          to: participantId,
-          from: this.globalState.getMyId(),
-          chat: this.globalState.getChatId(),
+          to: deviceUUID,
+          from: this.globalState.getDeviceUUID(),
+          chat: this.globalState.getCommUUID(),
         });
 
         this.logger.debug(
           "RecoveryManager",
-          `Offer sent successfully to ${participantId} on attempt ${attempt}`
+          `Offer sent successfully to ${deviceUUID} on attempt ${attempt}`
         );
         return true;
       } catch (error) {
         this.logger.warn(
           "RecoveryManager",
-          `Offer send failed to ${participantId} on attempt ${attempt}/${maxRetries}: ${error.message}`
+          `Offer send failed to ${deviceUUID} on attempt ${attempt}/${maxRetries}: ${error.message}`
         );
 
         if (attempt < maxRetries) {
@@ -559,7 +564,7 @@ export class RecoveryManager {
           "../../backend-services/socket-io.js"
         );
 
-        if (!SocketIO.default.isWebSocketOpen()) {
+        if (!SocketIO.default.isOpen()) {
           this.logger.warn(
             "RecoveryManager",
             `WebSocket not connected for ${operationName}, attempt ${attempt}/${maxRetries}`
@@ -572,7 +577,12 @@ export class RecoveryManager {
           return false;
         }
 
-        const result = await sendFunction();
+        const sender = SocketIO.default.send();
+        if (!sender) {
+          throw new Error("Socket not connected, cannot perform send operation");
+        }
+
+        const result = await sendFunction(sender); // Pass sender to sendFunction if needed
         if (result === false) {
           throw new Error("WebSocket send returned false");
         }
@@ -598,16 +608,16 @@ export class RecoveryManager {
 
   /**
    * Clean up recovery state for a participant
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    */
-  cleanupParticipant(participantId) {
-    delete this.reconnectionAttempts[participantId];
-    delete this.recoveryInProgress[participantId];
-    delete this.lastRecoveryAttempts[participantId];
+  cleanupParticipant(deviceUUID) {
+    delete this.reconnectionAttempts[deviceUUID];
+    delete this.recoveryInProgress[deviceUUID];
+    delete this.lastRecoveryAttempts[deviceUUID];
 
     this.logger.debug(
       "RecoveryManager",
-      `Cleaned up recovery state for ${participantId}`
+      `Cleaned up recovery state for ${deviceUUID}`
     );
   }
 
