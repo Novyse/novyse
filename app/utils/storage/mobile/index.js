@@ -217,7 +217,7 @@ class Database {
       `,
         [user.uuid, user.handle]
       );
-      console.log("User added successfully.", user);
+      console.log("User added successfully.", user.name);
       return true;
     } catch (error) {
       console.error("Error adding user:", error);
@@ -272,12 +272,7 @@ class Database {
       }
       // Insert members into the member table
       for (const member of chat.members) {
-        await this.db.runAsync(
-          `INSERT OR IGNORE INTO member (userUUID, chatUUID) VALUES (?, ?);`,
-          [member.uuid, chat.uuid]
-        );
-        // Insert member user info into the user table
-        await this.addUserInfo(member);
+        await this.addMember(chat.uuid, member);
       }
       return true;
     } catch (error) {
@@ -513,6 +508,61 @@ class Database {
       return message;
     }
   }
+
+  async addMember(chatUUID, user) {
+    try {
+      if (!chatUUID || !user || !user.uuid) {
+        console.error(
+          "Missing required fields to add member:",
+          JSON.stringify({ chatUUID, user: user ? user.uuid : null })
+        );
+        return false;
+      }
+      // Insert member into the member table
+      await this.db.runAsync(
+        `INSERT OR IGNORE INTO member (userUUID, chatUUID) VALUES (?, ?);`,
+        [user.uuid, chatUUID]
+      );
+      // Insert member user info into the user table
+      await this.addUserInfo(user);
+      console.log(`User ${user.uuid} added to chat ${chatUUID} successfully.`);
+      return true;
+    } catch (error) {
+      console.error("Error adding member to chat:", error);
+      return false;
+    }
+  }
+
+  // async removeMember(chatUUID, user) {
+  //   try {
+  //     if (!chatUUID || !user || !user.uuid) {
+  //       console.error(
+  //         "Missing required fields to remove member:",
+  //         JSON.stringify({ chatUUID, user: user ? user.uuid : null })
+  //       );
+  //       return false;
+  //     }
+  //     const result = await this.db.runAsync(
+  //       `DELETE FROM member WHERE userUUID = ? AND chatUUID = ?;`,
+  //       [user.uuid, chatUUID]
+  //     );
+  //     if (result.changes > 0) {
+  //       console.log(
+  //         `User ${user.uuid} removed from chat ${chatUUID} successfully.`
+  //       );
+
+  //       // Remove from user and handle table if not member of any other chat @SamueleOrazioDurante
+  //       return true;
+  //     }
+  //     console.log(
+  //       `User ${user.uuid} was not a member of chat ${chatUUID}. No action taken.`
+  //     );
+  //     return false;
+  //   } catch (error) {
+  //     console.error("Error removing member from chat:", error);
+  //     return false;
+  //   }
+  // }
 
   // - DEBUGGING ONLY
   async getAllInfoAllTableEverything() {

@@ -39,7 +39,6 @@ const TwoFAMethods = () => {
 
     try {
       if (success) {
-        console.log("AIUTO", method, twoFactorToken, expiresIn);
         router.navigate({
           pathname: "./verify-method",
           params: {

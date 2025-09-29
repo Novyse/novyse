@@ -51,7 +51,7 @@ const Icon = ({
   };
 
   if (!IconComponent) {
-    return null; // Puoi sostituire con un loader: <ActivityIndicator size="small" />
+    return null;
   }
 
   // Componente base dell'icona

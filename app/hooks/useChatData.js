@@ -84,6 +84,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
     loadMessages();
 
     const handleNewMessage = (message) => {
+      if (message.chatUUID !== chatUUID) return;
       setMessages((prevMessages) => {
         if (prevMessages.some((m) => m.id === message.id)) {
           return prevMessages;

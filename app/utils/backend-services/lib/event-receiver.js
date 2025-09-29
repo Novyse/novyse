@@ -24,6 +24,19 @@ const eventReceiver = {
       await eventEmitter.newChat(chat);
     });
 
+    socket.on("user_joined", async (data) => {
+      console.log("Received user_joined event:", data);
+
+      await setLastUpdateTimestamp(data.user.joined_at);
+      await eventEmitter.userJoined(data.chatUUID, data.user);
+    });
+
+    // socket.on("user_left", async (data) => {
+    //   console.log("Received user_left event:", data);
+    //   await setLastUpdateTimestamp(data.left_at);
+    //   await eventEmitter.userLeft(data.chatUUID, data.user);;
+    // });
+
     // -------------------- WebRTC EVENTS --------------------
 
     socket.on("comms_join", async (data) => {

@@ -197,20 +197,9 @@ class Database {
         }
       }
 
-      const members = (await this.store.getItem("members")) || [];
       for (const member of chat.members) {
-        const existingMember = members.find(
-          (m) => m.userUUID === member.uuid && m.chatUUID === chat.uuid
-        );
-        if (!existingMember) {
-          members.push({
-            userUUID: member.uuid,
-            chatUUID: chat.uuid,
-          });
-          await this.addUserInfo(member);
-        }
+        await this.addMember(chat.uuid, member);
       }
-      await this.store.setItem("members", members);
 
       console.log("Chat added successfully.", chat.uuid);
       return true;
@@ -441,6 +430,37 @@ class Database {
       return message;
     }
   }
+
+  async addMember(chatUUID, user) {
+    try {
+      if (!chatUUID || !user || !user.uuid) {
+        console.error(
+          "Missing required fields to add member:",
+          JSON.stringify({ chatUUID, user: user ? user.uuid : null })
+        );
+        return false;
+      }
+      const members = (await this.store.getItem("members")) || [];
+      const existingMember = members.find(
+        (m) => m.userUUID === user.uuid && m.chatUUID === chatUUID
+      );
+      if (!existingMember) {
+        members.push({
+          userUUID: user.uuid,
+          chatUUID: chatUUID,
+        });
+        await this.store.setItem("members", members);
+        await this.addUserInfo(user);
+      }
+      console.log(`User ${user.uuid} added to chat ${chatUUID} successfully.`);
+      return true;
+    } catch (error) {
+      console.error("Error adding member to chat:", error);
+      return false;
+    }
+  }
+
+  // async removeMember(chatUUID, user) {
 
   // - DEBUGGING ONLY
   async getAllInfoAllTableEverything() {

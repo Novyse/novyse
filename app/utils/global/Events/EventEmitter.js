@@ -27,6 +27,18 @@ class MessengerEventEmitter {
     }
     this.eventEmitter.emit("newChat", chat);
   }
+
+  async userJoined(chatUUID, user) {
+    const database = await Database.create();
+    await database.addMember(chatUUID, user);
+    this.eventEmitter.emit("userJoined", { chatUUID, user });
+  }
+
+  async userLeft(chatUUID, user) {
+    const database = await Database.create();
+    await database.removeMember(chatUUID, user);
+    this.eventEmitter.emit("userLeft", { chatUUID, user });
+  }
 }
 
 const eventEmitter = new MessengerEventEmitter();

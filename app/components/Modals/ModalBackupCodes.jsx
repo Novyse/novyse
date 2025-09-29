@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import ModalBase from "./ModalBase";
 import * as Clipboard from "expo-clipboard";
 import Icon from "../Icon";
@@ -9,18 +9,21 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
   const styles = createStyles(theme);
   const [codes, setCodes] = useState([]);
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const getCodes = async () => {
+      setLoading(true);
       const { success, codes: recoveryCodes } =
         await gateway.auth.getTwofaRecoverCodes();
 
       if (success) {
         setCodes(recoveryCodes);
       }
+      setLoading(false);
     };
 
-    getCodes();
+    if (visible) getCodes();
   }, [visible]);
 
   const copyToClipboard = async () => {
@@ -38,7 +41,11 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
           Keep these codes in a safe place. You will need them to recover your
           account.
         </Text>
-        {codes.length > 0 ? (
+        {loading ? (
+          <View style={styles.iconButton}>
+            <ActivityIndicator color={theme.icon} size="small" />
+          </View>
+        ) : codes.length > 0 ? (
           <>
             <View style={styles.codesGrid}>
               {codes.map((code, index) => (
@@ -107,6 +114,16 @@ function createStyles(theme) {
       padding: 5,
       borderRadius: 8,
       marginBottom: 40,
+    },
+    loading: {
+      fontSize: 16,
+      color: theme.text,
+      marginBottom: 20,
+    },
+    iconButton: {
+      padding: 10,
+      borderRadius: 8,
+      backgroundColor: theme.backgroundIconButton,
     },
   });
 }
