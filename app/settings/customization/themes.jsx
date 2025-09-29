@@ -1,9 +1,10 @@
 import React, { useContext, useEffect } from "react";
-import { StyleSheet, Pressable, Text, View, ScrollView } from "react-native";
+import { StyleSheet, Pressable, Text, View } from "react-native";
 import ScreenLayout from "../../components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../../components/HeaderWithBackArrow";
 import { Colors } from "../../../constants/Colors";
+import SettingsPageScrollview from "@/app/components/settings/SettingsPageScrollview";
 
 const Themes = () => {
   const { setColorScheme, theme, colorScheme } = useContext(ThemeContext);
@@ -22,66 +23,51 @@ const Themes = () => {
   return (
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="./" />
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Themes</Text>
-          <Text style={styles.subtitle}>
-            Choose your preferred color scheme
-          </Text>
+      <SettingsPageScrollview>
+        <Text style={styles.title}>Themes</Text>
+        <Text style={styles.subtitle}>Choose your preferred color scheme</Text>
 
-          <View style={styles.themesContainer}>
-            {availableThemes.map((themeName) => (
-              <Pressable
-                key={themeName}
-                onPress={() => setColorScheme(themeName)}
-                style={[
-                  styles.themeButton,
-                  colorScheme === themeName && styles.activeThemeButton,
-                ]}
-                android_ripple={{ color: "rgba(255,255,255,0.1)" }}
-              >
-                <View style={styles.themeButtonContent}>
-                  <View style={styles.themeInfo}>
-                    <View
-                      style={[
-                        styles.themePreview,
-                        {
-                          backgroundColor:
-                            Colors[themeName]?.primary,
-                        },
-                      ]}
-                    />
-                    <Text style={styles.themeText}>
-                      {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
-                    </Text>
-                  </View>
-                  {colorScheme === themeName && (
-                    <View style={styles.activeIndicator}>
-                      <Text style={styles.checkmark}>✓</Text>
-                    </View>
-                  )}
+        <View style={styles.themesContainer}>
+          {availableThemes.map((themeName) => (
+            <Pressable
+              key={themeName}
+              onPress={() => setColorScheme(themeName)}
+              style={[
+                styles.themeButton,
+                colorScheme === themeName && styles.activeThemeButton,
+              ]}
+              android_ripple={{ color: "rgba(255,255,255,0.1)" }}
+            >
+              <View style={styles.themeButtonContent}>
+                <View style={styles.themeInfo}>
+                  <View
+                    style={[
+                      styles.themePreview,
+                      {
+                        backgroundColor: Colors[themeName]?.primary,
+                      },
+                    ]}
+                  />
+                  <Text style={styles.themeText}>
+                    {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
+                  </Text>
                 </View>
-              </Pressable>
-            ))}
-          </View>
+                {colorScheme === themeName && (
+                  <View style={styles.activeIndicator}>
+                    <Text style={styles.checkmark}>✓</Text>
+                  </View>
+                )}
+              </View>
+            </Pressable>
+          ))}
         </View>
-      </ScrollView>
+      </SettingsPageScrollview>
     </ScreenLayout>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      alignSelf: "center",
-      width: "100%",
-      maxWidth: 768,
-    },
-    content: {
-      paddingTop: 20,
-      paddingBottom: 40,
-    },
     title: {
       color: theme.text,
       fontSize: 28,

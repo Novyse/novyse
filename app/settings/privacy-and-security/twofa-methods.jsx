@@ -8,6 +8,7 @@ import { useRouter } from "expo-router";
 import Icon from "@/app/components/Icon";
 import SettingsButton from "@/app/components/settings/SettingsButton";
 import ModalBackupCodes from "@/app/components/Modals/ModalBackupCodes";
+import SettingsPageScrollview from "@/app/components/settings/SettingsPageScrollview";
 
 const TwoFAMethods = () => {
   const { theme } = useContext(ThemeContext);
@@ -27,7 +28,6 @@ const TwoFAMethods = () => {
         setActiveMethods(activeMethods);
         console.log(data);
       } catch (e) {
-        // gestisci errore
       }
     };
     fetchMethods();
@@ -123,7 +123,7 @@ const TwoFAMethods = () => {
   return (
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="/settings/privacy-and-security" />
-      <View style={styles.container}>
+      <SettingsPageScrollview>
         <View style={styles.headerSection}>
           <Text style={styles.title}>Authentication Methods</Text>
           <Text style={styles.subtitle}>
@@ -207,19 +207,13 @@ const TwoFAMethods = () => {
           onClose={handleShowBackupCodes}
           theme={theme}
         />
-      </View>
+      </SettingsPageScrollview>
     </ScreenLayout>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      alignSelf: "center",
-      width: "100%",
-      maxWidth: 768,
-    },
     headerSection: {
       marginBottom: 32,
       paddingTop: 20,

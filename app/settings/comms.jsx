@@ -17,6 +17,9 @@ import InputDeviceDropdown from "../components/settings/vocal-chat/InputDeviceDr
 import settingsManager from "../utils/global/SettingsManager";
 import commsUtils from "../utils/webrtc/methods";
 
+import SettingsPageScrollview from "../components/settings/SettingsPageScrollview";
+import SettingsCard from "../components/settings/SettingsCard";
+
 const CommsPage = () => {
   const { theme } = useContext(ThemeContext);
   const [audioSettings, setAudioSettings] = useState(null);
@@ -35,9 +38,8 @@ const CommsPage = () => {
   const loadSettings = async () => {
     try {
       setIsLoading(true);
-      const settings = await settingsManager.getPageParameters(
-        "settings.comms"
-      );
+      const settings =
+        await settingsManager.getPageParameters("settings.comms");
       setAudioSettings(settings);
     } catch (error) {
       console.error("Error loading vocal chat settings:", error);
@@ -184,9 +186,9 @@ const CommsPage = () => {
   return (
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="./" />
-      <ScrollView style={styles.container}>
+      <SettingsPageScrollview>
         {/* Input Devices Category */}
-        <View style={styles.categoryContainer}>
+        <SettingsCard>
           <Text style={styles.sectionTitle}>Input Devices</Text>
 
           {/* Warning for input devices */}
@@ -251,10 +253,10 @@ const CommsPage = () => {
             onValueChange={(value) => updateSetting("entryMode", value)}
             theme={theme}
           />
-        </View>
+        </SettingsCard>
 
         {/* Video Settings Category */}
-        <View style={styles.categoryContainer}>
+        <SettingsCard>
           <Text style={styles.sectionTitle}>Video Settings</Text>
           <SegmentedSelector
             label="Webcam Quality"
@@ -270,9 +272,9 @@ const CommsPage = () => {
             onValueChange={(value) => updateSetting("webcamFPS", value)}
             theme={theme}
           />
-        </View>
+        </SettingsCard>
 
-        <View style={styles.categoryContainer}>
+        <SettingsCard>
           <Text style={styles.sectionTitle}>Screen Share Settings</Text>
           <SegmentedSelector
             label="Screen Share Quality"
@@ -299,10 +301,10 @@ const CommsPage = () => {
             }
             theme={theme}
           />
-        </View>
+        </SettingsCard>
 
         {/* Audio Processing Category */}
-        <View style={styles.categoryContainer}>
+        <SettingsCard>
           <Text style={styles.sectionTitle}>Audio Processing</Text>
           <SegmentedSelector
             label="Noise Suppression"
@@ -356,36 +358,24 @@ const CommsPage = () => {
             }
             theme={theme}
           />
-        </View>
+        </SettingsCard>
 
         {/* Debug section */}
         {__DEV__ && (
-          <View style={[styles.debugSection, styles.categoryContainer]}>
+          <SettingsCard>
             <Text style={styles.debugTitle}>Current Settings:</Text>
             <Text style={styles.debugText}>
               {JSON.stringify(audioSettings, null, 2)}
             </Text>
-          </View>
+          </SettingsCard>
         )}
-      </ScrollView>
+      </SettingsPageScrollview>
     </ScreenLayout>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      alignSelf: "center",
-      width: "100%",
-      maxWidth: 768,
-    },
-    resetButton: {
-      backgroundColor: theme.danger,
-      paddingHorizontal: 15,
-      paddingVertical: 8,
-      borderRadius: 5,
-    },
     loadingText: {
       color: theme.text,
       fontSize: 16,
@@ -434,12 +424,6 @@ const createStyle = (theme) =>
       borderRadius: 10,
       opacity: 0.6,
     },
-    debugSection: {
-      marginTop: 20,
-      padding: 10,
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 5,
-    },
     debugTitle: {
       color: theme.text,
       fontSize: 14,
@@ -451,13 +435,6 @@ const createStyle = (theme) =>
       fontSize: 12,
       fontFamily: "monospace",
     },
-    categoryContainer: {
-      backgroundColor: theme.backgroundSettingsCards,
-      borderRadius: 12,
-      padding: 15,
-      marginBottom: 20,
-    },
-
     warningContainer: {
       backgroundColor: "rgba(255, 193, 7, 0.1)",
       borderRadius: 8,
@@ -470,8 +447,6 @@ const createStyle = (theme) =>
       fontSize: 14,
       lineHeight: 20,
     },
-
-    // ...rest of existing styles...
   });
 
 export default CommsPage;

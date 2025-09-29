@@ -7,7 +7,6 @@ import {
   BackHandler,
   Pressable,
   useWindowDimensions,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -22,6 +21,8 @@ import QRCode from "react-native-qrcode-svg";
 import StatusMessage from "@/app/components/StatusMessage";
 import * as Clipboard from "expo-clipboard";
 import Icon from "@/app/components/Icon";
+import SettingsPageScrollview from "@/app/components/settings/SettingsPageScrollview";
+import SettingsCard from "@/app/components/settings/SettingsCard";
 
 const AuthenticatorSection = ({
   secret,
@@ -50,15 +51,12 @@ const AuthenticatorSection = ({
       </Text>
       <Icon
         name={copied ? "Tick01Icon" : "Copy01Icon"}
-        color={copied ? "green" : "white"}
         style={styles.copyButton}
         onPress={onCopy}
       />
     </View>
   </View>
 );
-
-// --- Componente Principale ---
 
 const VerifyMethod = () => {
   const router = useRouter();
@@ -151,11 +149,9 @@ const VerifyMethod = () => {
     <ScreenLayout>
       <StatusBar style="dark" />
       <HeaderWithBackArrow goBackTo="/settings/privacy-and-security/twofa-methods" />
-      <KeyboardAvoidingView
-        behavior={"position"}
-        style={styles.container}
-      >
-          <View style={styles.card}>
+      <SettingsPageScrollview>
+        <KeyboardAvoidingView behavior={"position"}>
+          <SettingsCard>
             <View style={styles.cardContent}>
               <Text style={styles.title}>{getFormattedVerificationType()}</Text>
               <Text style={styles.subtitle}>{getSubtitleText()}</Text>
@@ -199,38 +195,17 @@ const VerifyMethod = () => {
 
               <StatusMessage type="error" text={error} />
             </View>
-          </View>
-      </KeyboardAvoidingView>
+          </SettingsCard>
+        </KeyboardAvoidingView>
+      </SettingsPageScrollview>
     </ScreenLayout>
   );
 };
 
 export default VerifyMethod;
 
-// --- Funzione per gli stili ---
-
 function createStyle(theme, isSmallScreen) {
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      alignSelf: "center",
-      alignItems: "center",
-      justifyContent: "center",
-      width: "100%",
-      maxWidth: 768,
-    },
-    card: {
-      width: "100%",
-      maxWidth: 500,
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 16,
-      padding: isSmallScreen ? 24 : 32,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 10,
-      elevation: 5,
-    },
     cardContent: {
       alignItems: "center",
       gap: 24,
@@ -301,9 +276,6 @@ function createStyle(theme, isSmallScreen) {
       fontSize: 18,
       fontWeight: "bold",
       color: theme.subtitle,
-    },
-    copyButtonTextSuccess: {
-      color: "#28a745", // Verde per indicare successo
     },
     submitButton: {
       backgroundColor: theme.primary,

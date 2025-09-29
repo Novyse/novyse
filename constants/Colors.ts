@@ -23,7 +23,7 @@ export const Colors = {
     backgroundModal: "#416a90",
     backgroundSearchResultItem: "#2b3e51",
     backgroundSettingsButton: "#4f8cff",
-    backgroundSettingsCards: "#01348066", // blu scuro trasparente invece di nero
+    backgroundSettingsCards: "rgba(0, 45, 108, 1)",
     backgroundSettingsDivider: "rgba(255, 255, 255, 0.1)",
     backgroundTextField: "#374e68",
     backgroundModalOverlay: "rgba(0, 0, 0, 0.5)",

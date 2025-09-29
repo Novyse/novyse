@@ -1,10 +1,12 @@
 import React, { useContext } from "react";
-import { StyleSheet, View, Text, Pressable } from "react-native";
+import { StyleSheet, Text, Pressable } from "react-native";
 import ScreenLayout from "../components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import DatabaseSizeChart from "../components/DatabaseSizeChart";
 import auth from "../utils/welcome/auth";
+import SettingsPageScrollview from "../components/settings/SettingsPageScrollview";
+import SettingsCard from "../components/settings/SettingsCard";
 
 const StoragePage = () => {
   const { theme } = useContext(ThemeContext);
@@ -17,33 +19,30 @@ const StoragePage = () => {
   return (
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="./" />
-      <View style={styles.container}>
-        <View style={styles.wipContainer}>
+      <SettingsPageScrollview>
+        <SettingsCard>
           <Text style={styles.wipText}>🚧 Work in Progress 🚧</Text>
           <Text style={styles.wipSubtext}>
             This feature is under development
           </Text>
-        </View>
-        <Pressable style={styles.resetButton} onPress={handleResetDatabase}>
-          <Text style={styles.resetButtonText}>Reset Database</Text>
-        </Pressable>
+        </SettingsCard>
+        <SettingsCard>
+          <Pressable style={styles.resetButton} onPress={handleResetDatabase}>
+            <Text style={styles.resetButtonText}>Reset Database</Text>
+          </Pressable>
+        </SettingsCard>
+
         {
           //<DatabaseSizeChart />
         }
         {/* Uncomment this line when DatabaseSizeChart is ready, cioè quando rifaremo il db, cioè tra la 0.8 e la 0.9 */}
-      </View>
+      </SettingsPageScrollview>
     </ScreenLayout>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      alignSelf: "center",
-      width: "100%",
-      maxWidth: 768,
-    },
     wipContainer: {
       backgroundColor: theme.backgroundCard,
       borderRadius: 12,
@@ -64,7 +63,6 @@ const createStyle = (theme) =>
       padding: 12,
       borderRadius: 8,
       alignItems: "center",
-      marginBottom: 20,
     },
     resetButtonText: {
       color: "#FFFFFF",

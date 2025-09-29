@@ -1,9 +1,11 @@
 import React, { useContext, useState, useEffect } from "react";
-import { StyleSheet, View, Text, ScrollView, Image } from "react-native";
+import { StyleSheet, View, Text, Image } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
 import ScreenLayout from "../components/ScreenLayout";
 import Database from "../utils/storage/database";
+import SettingsPageScrollview from "../components/settings/SettingsPageScrollview";
+import SettingsCard from "../components/settings/SettingsCard";
 
 const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
@@ -64,7 +66,7 @@ const ProfilePage = () => {
   return (
     <ScreenLayout>
       <HeaderWithBackArrow goBackTo="../" />
-      <ScrollView style={styles.container}>
+      <SettingsPageScrollview>
         {/* Profile Image Section */}
         <View style={styles.profileImageSection}>
           <View style={styles.profileImageContainer}>
@@ -84,27 +86,21 @@ const ProfilePage = () => {
         </View>
 
         {/* User Information Section */}
-        <View style={styles.infoSection}>
+        <SettingsCard>
           <Text style={styles.sectionTitle}>Personal Information</Text>
 
           <ProfileField label="Name" value={userData.name} />
           <ProfileField label="Surname" value={userData.surname} />
           <ProfileField label="Handle" value={userData.handle} />
           <ProfileField label="Email" value={userData.email} />
-        </View>
-      </ScrollView>
+        </SettingsCard>
+      </SettingsPageScrollview>
     </ScreenLayout>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      alignSelf: "center",
-      width: "100%",
-      maxWidth: 768,
-    },
     loadingText: {
       color: theme.text,
       fontSize: 16,
@@ -144,12 +140,6 @@ const createStyle = (theme) =>
       color: theme.subtitle,
       fontSize: 16,
       textAlign: "center",
-    },
-    infoSection: {
-      backgroundColor: theme.backgroundSettingsCards,
-      borderRadius: 12,
-      padding: 20,
-      marginBottom: 20,
     },
     sectionTitle: {
       color: theme.text,
