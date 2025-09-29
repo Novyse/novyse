@@ -73,12 +73,17 @@ const Icon = ({
         onHoverIn={() => setIsHovered(true)}
         onHoverOut={() => setIsHovered(false)}
         style={({ pressed }) => [
-          style,
+          // style di base se non viene passato altro
           {
-            backgroundColor: pressed ? theme.iconPressed : "transparent",
             padding: 5,
             borderRadius: "50%",
             transition: "background-color 0.2s ease",
+          },
+          // style che posso passare per sovrascrivere gli style di base
+          style,
+          // infine sovrascrivo sempre il background // todo (da cambiare non mi piace troppo così) @Matt3opower
+          {
+            backgroundColor: pressed ? theme.iconPressed : "transparent",
           },
         ]}
       >
