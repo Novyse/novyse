@@ -300,7 +300,7 @@ function createStyle(theme, colorScheme) {
       padding: 10,
       width: "100%",
       flex: 1,
-      borderRadius: 13,
+      borderRadius: 15,
     },
     avatar: {
       width: 40,
@@ -310,9 +310,7 @@ function createStyle(theme, colorScheme) {
     },
     logo: {
       width: 24,
-      height: 24,
-      borderRadius: 20,
-      marginRight: 10,
+      height: 24
     },
     chatTitle: {
       fontSize: 16,
