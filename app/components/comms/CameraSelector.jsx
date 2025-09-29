@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { Platform } from "react-native";
+import { ThemeContext } from "@react-navigation/native";
 import Icon from "../Icon";
 
 // Import mediaDevices from react-native-webrtc
@@ -29,6 +30,8 @@ const CameraSelector = ({
 }) => {
   const [availableCameras, setAvailableCameras] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyle(theme);
 
   useEffect(() => {
     if (visible) {
@@ -110,12 +113,12 @@ const CameraSelector = ({
         <View style={styles.modalContent}>
           <View style={styles.header}>
             <Text style={styles.title}>Select Camera</Text>
-              <Icon
-                name={"Cancel01Icon"}
-                color="#666"
-                onPress={onClose}
-                style={styles.closeButton}
-              />
+            <Icon
+              name={"Cancel01Icon"}
+              color="#666"
+              onPress={onClose}
+              style={styles.closeButton}
+            />
           </View>
 
           {loading ? (
@@ -143,91 +146,114 @@ const CameraSelector = ({
   );
 };
 
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 20,
-    width: "90%",
-    maxWidth: 400,
-    maxHeight: "70%",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  loadingContainer: {
-    padding: 40,
-    alignItems: "center",
-  },
-  loadingText: {
-    fontSize: 16,
-    color: "#666",
-  },
-  cameraList: {
-    maxHeight: 300,
-  },
-  cameraItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 8,
-    backgroundColor: "#f5f5f5",
-  },
-  selectedCamera: {
-    backgroundColor: "#e8f5e8",
-    borderWidth: 1,
-    borderColor: "#4CAF50",
-  },
-  cameraInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  cameraName: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "500",
-  },
-  selectedText: {
-    color: "#4CAF50",
-  },
-  currentLabel: {
-    fontSize: 12,
-    color: "#4CAF50",
-    marginTop: 2,
-  },
-  footer: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  cancelButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 6,
-    backgroundColor: "#f0f0f0",
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: "#666",
-    fontWeight: "500",
-  },
-});
+function createStyle(theme) {
+  return StyleSheet.create({
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContent: {
+      backgroundColor: "white",
+      borderRadius: 12,
+      padding: 20,
+      width: "90%",
+      maxWidth: 400,
+      maxHeight: "70%",
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 20,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: "#333",
+    },
+    closeButton: {
+      padding: 4,
+    },
+    loadingContainer: {
+      padding: 40,
+      alignItems: "center",
+    },
+    loadingText: {
+      fontSize: 16,
+      color: "#666",
+    },
+    cameraList: {
+      maxHeight: 300,
+      ...(Platform.OS === "web" && {
+        // Standard per Firefox (fisso, no active/drag change)
+        scrollbarWidth: "thin",
+        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
+
+        "::-webkit-scrollbar": {
+          width: 6,
+          backgroundColor: theme.backgroundScrollbar,
+        },
+        "::-webkit-scrollbar-track": {
+          backgroundColor: theme.backgroundScrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb": {
+          backgroundColor: theme.scrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb:hover": {
+          backgroundColor: theme.scrollbarHover,
+        },
+      }),
+    },
+    cameraItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 15,
+      borderRadius: 8,
+      marginBottom: 8,
+      backgroundColor: "#f5f5f5",
+    },
+    selectedCamera: {
+      backgroundColor: "#e8f5e8",
+      borderWidth: 1,
+      borderColor: "#4CAF50",
+    },
+    cameraInfo: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    cameraName: {
+      fontSize: 16,
+      color: "#333",
+      fontWeight: "500",
+    },
+    selectedText: {
+      color: "#4CAF50",
+    },
+    currentLabel: {
+      fontSize: 12,
+      color: "#4CAF50",
+      marginTop: 2,
+    },
+    footer: {
+      marginTop: 20,
+      alignItems: "center",
+    },
+    cancelButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 6,
+      backgroundColor: "#f0f0f0",
+    },
+    cancelButtonText: {
+      fontSize: 16,
+      color: "#666",
+      fontWeight: "500",
+    },
+  });
+}
 
 export default CameraSelector;

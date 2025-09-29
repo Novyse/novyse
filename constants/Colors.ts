@@ -1,6 +1,6 @@
 export const Colors = {
   default: {
-    // 🎨 Colori primari e di base
+    // Colori primari e di base
     icon: "white",
     iconCommsInHover: "#44b244ff",
     iconCommsOutHover: "#eb4444ff",
@@ -14,7 +14,7 @@ export const Colors = {
     textTime: "#c9d1d9",
     errorText: "#972323ff",
 
-    // 🖼️ Background principali
+    // Background principali
     backgroundCard: "#416a90",
     backgroundDateSeparator: "#17212b",
     backgroundDeviceDropdown: "#2b5278",
@@ -30,13 +30,13 @@ export const Colors = {
     backgroundError: "#ffc7c7a7",
     backgroundBackupCode: "#f0f0f0",
 
-    // 🧩 Vari
+    // Vari
     borderColor: "#000000",
     borderModal: "#000000",
     badgeColor: "#4fb3e1",
     shadowColor: "#000",
 
-    // 🌈 Gradients
+    // Gradients
     backgroundMainGradient: ["#013480", "#177FC0"],
     backgroundChatContentGradient: ["transparent"],
     backgroundChatListItemGradient: ["#16638e", "#197bb0"],
@@ -48,11 +48,16 @@ export const Colors = {
     backgroundSearchGradient: ["transparent"], //? Consiglio di lasciarlo trasparente, lo includo qui ma da mentenere trasparente
     backgroundSideBarGradient: ["#395e80ff", "#4a7fa0ff"],
 
-    // ⚙️ Settings aggiuntivi
+    // Settings aggiuntivi
     ChatIconsPickerModalBorderColor: "#ffffffff",
     ChatIconsPickerModalTabInactiveText: "#b1b1b1ff",
     settingsHoveredButton: "#4f8dffb9",
     settingsPressedButton: "#2a68dcff",
+
+    // Scrollbar
+    scrollbar: "#d6d6d6ff",
+    backgroundScrollbar: "transparent",
+    scrollbarHover: "#c7c7c7ff",
   },
 
   light: {

@@ -265,22 +265,24 @@ function createStyle(theme, colorScheme) {
     flatList: {
       flex: 1,
       ...(Platform.OS === "web" && {
+        // Standard per Firefox (fisso, no active/drag change)
         scrollbarWidth: "thin",
-        scrollbarColor: "transparent",
+        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
+
         "::-webkit-scrollbar": {
-          width: 8,
-          backgroundColor: "transparent",
-          position: "absolute",
-          right: 0,
-        },
-        "::-webkit-scrollbar-thumb": {
-          backgroundColor: "transparent",
-          borderRadius: 4,
+          width: 6,
+          backgroundColor: theme.backgroundScrollbar,
         },
         "::-webkit-scrollbar-track": {
-          backgroundColor: "transparent",
-          position: "absolute",
-          right: 0,
+          backgroundColor: theme.backgroundScrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb": {
+          backgroundColor: theme.scrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb:hover": {
+          backgroundColor: theme.scrollbarHover,
         },
       }),
     },
