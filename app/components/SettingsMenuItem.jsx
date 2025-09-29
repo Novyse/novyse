@@ -41,7 +41,8 @@ const createStyle = (theme) =>
       borderBottomWidth: 1,
       borderBottomColor: theme.backgroundSettingsDivider,
       transition: "background-color 0.2s ease",
-      borderRadius: 0
+      borderRadius: 0,
+      height: 60,
     },
     menuItemText: {
       color: theme.text,
