@@ -183,7 +183,10 @@ const ChatList = ({
     () => (
       <HeaderBase>
         <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
-        <Image source={require("../assets/images/logo-novyse.png")} style={styles.logo}/>
+        <Image
+          source={require("../assets/images/logo-novyse.png")}
+          style={styles.logo}
+        />
         {/* <Text style={styles.headerTitle}>Novyse</Text> */}
         <Icon
           name={"Search02Icon"}
@@ -285,12 +288,11 @@ function createStyle(theme, colorScheme) {
     },
     flatListContent: {
       padding: 10,
-      paddingTop: 0,
+      gap: 10
     },
     chatItem: {
       borderRadius: 15,
-      marginBottom: 10,
-      minHeight: 65,
+      height: 65,
     },
     chatItemPressable: {
       flexDirection: "row",
