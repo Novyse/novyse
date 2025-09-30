@@ -148,7 +148,7 @@ const VerifyMethod = () => {
   return (
     <ScreenLayout>
       <StatusBar style="dark" />
-      <HeaderWithBackArrow goBackTo="/settings/privacy-and-security/twofa-methods" />
+      <HeaderWithBackArrow goBackTo="../" />
       <SettingsPageScrollview>
         <KeyboardAvoidingView behavior={"position"}>
           <SettingsCard>

@@ -41,4 +41,4 @@ const createStyle = (theme) => StyleSheet.create({
   },
 });
 
-export default EmojiPicker; // Ensure this line is present
+export default EmojiPicker;

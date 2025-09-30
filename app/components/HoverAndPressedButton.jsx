@@ -2,13 +2,13 @@ import React, { useContext } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 
-// Componente riutilizzabile HoverAndPressedButton
+
 const HoverAndPressedButton = ({
   children,
   onPress,
-  style = {}, // Stili base per il container
-  hoveredStyle = {}, // Stili per stato hovered
-  pressedStyle = {}, // Stili per stato pressed
+  style = {},
+  hoveredStyle = {},
+  pressedStyle = {},
   disabled
 }) => {
   const { theme } = useContext(ThemeContext);
@@ -18,7 +18,7 @@ const HoverAndPressedButton = ({
     <Pressable
       style={({ pressed, hovered }) => [
         styles.baseContainer,
-        style, // Stili personalizzati passati come prop
+        style,
         hovered && { ...styles.baseHovered, ...hoveredStyle },
         pressed && { ...styles.basePressed, ...pressedStyle },
       ]}

@@ -22,7 +22,7 @@ const Themes = () => {
 
   return (
     <ScreenLayout>
-      <HeaderWithBackArrow goBackTo="./" />
+      <HeaderWithBackArrow goBackTo="../" />
       <SettingsPageScrollview>
         <Text style={styles.title}>Themes</Text>
         <Text style={styles.subtitle}>Choose your preferred color scheme</Text>

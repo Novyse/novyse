@@ -36,7 +36,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
         source={{ uri: "https://picsum.photos/200" }} // Placeholder avatar
         style={styles.avatar}
       />
-      <Text style={[styles.headerTitle, styles.chatHeaderTitle]}>
+      <Text style={styles.chatHeaderTitle} numberOfLines={1}>
         {selectedChatName}
       </Text>
       {true && (
@@ -122,8 +122,8 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
 function createStyle(theme) {
   return StyleSheet.create({
     chatContent: {
-      padding: 0,
       flex: 1,
+      padding: 0,
     },
     backButton: {
       marginRight: 10,
@@ -131,30 +131,26 @@ function createStyle(theme) {
     avatar: {
       width: 40,
       height: 40,
-      borderRadius: 20,
       marginRight: 10,
-    },
-    headerTitle: {
-      color: theme?.text,
-      fontSize: 18,
-      fontWeight: "bold",
+      borderRadius: 20,
     },
     chatHeaderTitle: {
-      marginLeft: 20,
       flex: 1,
-      textAlign: "left",
+      fontSize: 18,
+      marginLeft: 10,
+      color: theme?.text,
+      fontWeight: "bold",
     },
     moreButton: {
       marginLeft: 12,
     },
-    // Espandi con altri stili se necessario
     chatHeader: {
-      borderBottomColor: theme?.backgroundDivider,
+      width: "100%",
       borderBottomWidth: 1,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      width: "100%",
+      borderBottomColor: theme?.backgroundDivider,
     },
   });
 }

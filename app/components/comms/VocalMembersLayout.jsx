@@ -420,9 +420,8 @@ const styles = StyleSheet.create({
     padding: 0,
     rowGap: 0,
     columnGap: 0,
-    overflow: "hidden", // Previene lo sconfinamento degli elementi
+    overflow: "hidden",
     ...(Platform.OS === "android" && {
-      // Fix specifico per Android
       position: "relative",
       zIndex: 1,
     }),

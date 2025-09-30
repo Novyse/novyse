@@ -57,11 +57,6 @@ const createStyle = (theme) =>
       alignSelf: "flex-start",
       marginLeft: 8,
     },
-    // content: (isSender) => ({
-    //   flexDirection: "column",
-    //   alignItems: isSender ? "flex-end" : "flex-start",
-    //   width: "100%"
-    // }),
     pressable: {
       padding: 10,
       flexDirection: "row",

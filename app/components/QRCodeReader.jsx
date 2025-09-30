@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.4)", // Semi-transparent overlay
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
   qrFrame: {
     width: 250,
@@ -116,6 +116,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 50,
     left: "50%",
-    transform: [{ translateX: -100 }], // Adjust to center
+    transform: [{ translateX: -100 }],
   },
 });
