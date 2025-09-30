@@ -421,6 +421,7 @@ class Database {
       const user = await this.db.getFirstAsync(`
             SELECT u.*, h.handle FROM user u
             LEFT JOIN handle h ON u.uuid = h.userUUID AND h.type = 'USER'
+            WHERE u.email IS NOT NULL AND u.email != ''
             LIMIT 1;
         `);
       console.log("Local user from DB:", user);
