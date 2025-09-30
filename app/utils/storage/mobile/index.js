@@ -101,11 +101,9 @@ class Database {
                 system_action TEXT,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 is_pinned BOOLEAN NOT NULL DEFAULT 0,
-                replyToMessageUUID TEXT,
                 FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
                 FOREIGN KEY (senderUUID) REFERENCES user(uuid),
-                FOREIGN KEY (fileUUID) REFERENCES file(uuid),
-                FOREIGN KEY (replyToMessageUUID) REFERENCES message(uuid)
+                FOREIGN KEY (fileUUID) REFERENCES file(uuid)
             );
 
             CREATE TABLE IF NOT EXISTS bot (
@@ -285,7 +283,7 @@ class Database {
 
   /**
    * Adds a message to the database.
-   * @param {Object} message - Message object containing id, chatUUID, senderUUID, text, fileUUID, createdAt, isPinned, replyToMessageUUID
+   * @param {Object} message - Message object containing id, chatUUID, senderUUID, text, fileUUID, createdAt, isPinned,
    * @returns {boolean} true if message added successfully, false otherwise
    */
   async addMessage(message) {
@@ -302,7 +300,7 @@ class Database {
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, text, type, fileUUID, system_action, created_at, is_pinned, replyToMessageUUID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, text, type, fileUUID, system_action, created_at, is_pinned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
@@ -313,10 +311,9 @@ class Database {
           message.system_action || null,
           message.created_at,
           message.isPinned ? 1 : 0,
-          message.replyToMessageUUID || null,
         ]
       );
-      console.log("Message added or already exists (ignored).", message.id);
+      console.log("Message added or already exists.", message.id);
       return true;
     } catch (error) {
       console.error("Error adding message:", error);
