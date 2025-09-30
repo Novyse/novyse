@@ -92,7 +92,7 @@ class Database {
             );
 
             CREATE TABLE IF NOT EXISTS message (
-                id INTEGER PRIMARY KEY,
+                id INTEGER NOT NULL,
                 chatUUID TEXT NOT NULL,
                 senderUUID TEXT NOT NULL,
                 text TEXT,
@@ -101,6 +101,7 @@ class Database {
                 system_action TEXT,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 is_pinned BOOLEAN NOT NULL DEFAULT 0,
+                PRIMARY KEY (chatUUID, id),
                 FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
                 FOREIGN KEY (senderUUID) REFERENCES user(uuid),
                 FOREIGN KEY (fileUUID) REFERENCES file(uuid)

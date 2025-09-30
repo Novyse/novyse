@@ -26,10 +26,7 @@ import SmartBackground from "./components/SmartBackground";
 import ChatIconsPickerModal from "./components/ChatIconsPickerModal";
 import MessageBase from "./components/messages/MessageBase";
 import MessageSystem from "./components/messages/MessageSystem";
-import chatUtils from "./utils/chat/index";
 
-import auth from "./utils/welcome/auth";
-import Database from "./utils/storage/database";
 import gateway from "./utils/backend-services/api-gateway";
 
 import eventEmitter from "./utils/global/Events/EventEmitter.js";
@@ -91,85 +88,6 @@ const ChatContent = ({ onBack, contentView }) => {
       backHandler.remove();
     };
   }, [chat.uuid, onBack]);
-
-  // // quando voglio inviare il primo messaggio per avviare una chat
-  // const handleNewChatFirstMessage = async (handle) => {
-  //   //creo nuova chat
-  //   const newChatChatId = await gateway.createNewChatAPI(handle);
-  //   console.log("🚨Nuova chat ID: ", newChatChatId);
-
-  //   // inserisco chat e user nel db locale
-  //   await localDatabase.insertChat(newChatChatId, "");
-  //   await localDatabase.insertChatAndUsers(newChatChatId, handle);
-  //   await localDatabase.insertUsers(handle);
-
-  //   router.navigate(`/chat/${newChatChatId}`);
-
-  //   // aggiorno live la lista delle chat
-  //   eventEmitter.emit("newChat", { newChatId: newChatChatId });
-
-  //   // Existing message handling logic
-  //   const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
-  //   const randomNumberPlusDate = Date.now() + randomNumber;
-
-  //   const tempMessage = {
-  //     message_id: randomNumberPlusDate,
-  //     sender: userId,
-  //     text: newMessageText,
-  //     date_time: "",
-  //     hash: randomNumberPlusDate,
-  //   };
-
-  //   setMessages((currentMessages) => [tempMessage, ...currentMessages]);
-
-  //   await JsonParser.sendMessageJson(
-  //     newChatChatId,
-  //     newMessageText,
-  //     randomNumberPlusDate
-  //   );
-  // };
-
-  // //gestione invio messaggio (quando l'utente preme il pulsante)
-  // const handleSendMessage = async () => {
-  //   if (!newMessageText.trim()) {
-  //     console.warn("Empty message, not sending");
-  //     return;
-  //   }
-
-  //   try {
-  //     if (false) {
-  //       // Handle first message in new chat
-  //       await handleNewChatFirstMessage(params.creatingChatWith);
-  //     } else {
-  //       // Existing message handling logic
-  //       const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
-  //       const randomNumberPlusDate = Date.now() + randomNumber;
-
-  //       const tempMessage = {
-  //         message_id: randomNumberPlusDate,
-  //         sender: userId,
-  //         date_time: "", // Vuoto per mostrare l'orologio
-  //         hash: randomNumberPlusDate,
-  //         content: { text: newMessageText },
-  //       };
-
-  //       setMessages((currentMessages) => [tempMessage, ...currentMessages]);
-
-  //       await JsonParser.sendMessageJson(
-  //         chatId,
-  //         newMessageText,
-  //         randomNumberPlusDate
-  //       );
-  //     }
-
-  //     // Common cleanup
-  //     setNewMessageText("");
-  //     setVoiceMessage(true);
-  //     setIsMicClicked(false);
-  //   } catch (error) {
-  //     console.error("Errore nell'invio del messaggio:", error);
-  //   }
-  // };
 
   // gestisco quando il microfono viene premuto
   // non ci sono ancora i messaggi vocali, ma intanto l'ho fatto
@@ -254,6 +172,11 @@ const ChatContent = ({ onBack, contentView }) => {
   };
 
   const handleSendMessage = async () => {
+
+    if (newMessageText.trim() === "") {
+      return;
+    }
+
     let currentChatUUID = chat.uuid;
 
     if (!chat.uuid) {
@@ -395,47 +318,6 @@ const ChatContent = ({ onBack, contentView }) => {
     setNewMessageText(text);
     setVoiceMessage(text.length === 0 && !isMicClicked);
   };
-
-  // // gestisco quando clicco il pulsante per joinare un gruppo
-  // const handleJoinGroup = async () => {
-  //   const joinGroup = await gateway.joinGroup(params.creatingChatWith);
-
-  //   if (joinGroup.group_joined) {
-  //     await localDatabase.insertChat(joinGroup.chat_id, joinGroup.group_name);
-
-  //     for (const member of joinGroup.members) {
-  //       await localDatabase.insertChatAndUsers(
-  //         joinGroup.chat_id,
-  //         member.handle
-  //       );
-  //       await localDatabase.insertUsers(member.handle);
-  //     }
-
-  //     if (joinGroup.messages == null) {
-  //       console.log("Messaggi nel gruppo vuoti");
-  //     } else {
-  //       for (const message of joinGroup.messages) {
-  //         await localDatabase.insertMessage(
-  //           message.message_id,
-  //           joinGroup.chat_id,
-  //           message.text,
-  //           message.sender,
-  //           message.date,
-  //           ""
-  //         );
-  //       }
-  //     }
-
-  //     if (onJoinSuccess) {
-  //       onJoinSuccess(joinGroup.chat_id); // Passa il nuovo chat_id al genitore
-  //     }
-
-  //     router.navigate(`/chat/${joinGroup.chat_id}`);
-
-  //     // aggiorno live la lista delle chat
-  //     eventEmitter.emit("newChat", { newChatId: joinGroup.chat_id });
-  //   }
-  // };
 
   const renderMessagesList = () => {
     return (

@@ -22,9 +22,7 @@ import BigFloatingCommsMenu from "./components/comms/BigFloatingCommsMenu";
 import SmallCommsMenu from "./components/comms/SmallCommsMenu";
 import methods from "./utils/webrtc/methods";
 const { get, check } = methods;
-import Icon from "./components/Icon";
 import SmartBackground from "./components/SmartBackground";
-import HeaderBase from "./components/HeaderBase";
 import chatUtils from "./utils/chat";
 
 // Hooks
