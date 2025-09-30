@@ -45,6 +45,10 @@ class Database {
                 profilePictureUUID TEXT
             );
 
+            -- Insert system user for system messages
+            INSERT OR IGNORE INTO user (uuid, name, surname)
+            VALUES ('00000000-0000-0000-0000-000000000000', 'System', '');
+
             CREATE TABLE IF NOT EXISTS handle_type (
                 value TEXT PRIMARY KEY,
                 description TEXT NOT NULL
