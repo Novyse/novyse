@@ -22,21 +22,21 @@ import EventEmitter from "./utils/EventEmitter.js";
  * This class coordinates all WebRTC components and provides a unified API
  */
 class WebRTCManager {
-  constructor(myId = null, chatId = null, callbacks = {}) {
+  constructor(deviceUUID = null, commUUID = null, callbacks = {}) {
     // Initialize logger first
     this.logger = WebRTCLogger;
     this.logger.setLogLevel(LOG_LEVELS.INFO); // Set default log level
 
     // Initialize global state
-    this.globalState = new GlobalState(myId, chatId, callbacks);
+    this.globalState = new GlobalState(deviceUUID, commUUID, callbacks);
     if (!this.globalState) {
       throw new Error("Failed to initialize GlobalState");
     } else {
       console.log(
-        "GlobalState initialized successfully with myId:",
-        myId,
-        "and chatId:",
-        chatId
+        "GlobalState initialized successfully with deviceUUID:",
+        deviceUUID,
+        "and commUUID:",
+        commUUID
       );
     }
 
@@ -84,7 +84,7 @@ class WebRTCManager {
     // Initialize core components with streamMappingManager
     this.peerConnectionManager = new PeerConnectionManager(
       this.globalState,
-      this.streamMappingManager,
+      this.streamMappingManager
     );
     this.streamManager = new StreamManager(this.globalState, this.logger);
 
@@ -156,14 +156,13 @@ class WebRTCManager {
   /**
    * Regenerate WebRTC manager with new parameters
    */
-  async regenerate(myId, chatId, stream) {
+  async regenerate(deviceUUID, commUUID, stream) {
     this.logger.info("WebRTCManager", "Regenerating WebRTC Manager...");
 
     // Cleanup current state
     await this.closeAllConnections(false);
     // Update global state
-    this.globalState.regenerate(myId, chatId, stream);
-
+    this.globalState.regenerate(deviceUUID, commUUID, stream);
 
     // Reinitialize
     this._initialize();
@@ -205,14 +204,13 @@ class WebRTCManager {
     return await this.streamManager.removeVideoTracks();
   }
 
-   /**
+  /**
    * Close local stream
    */
   closeAllLocalStream() {
     this.streamManager.closeLocalStream();
     this.screenShareManager.stopAllScreenShares();
   }
-
 
   /**
    * Close local stream
@@ -233,7 +231,6 @@ class WebRTCManager {
     this.logger.info("WebRTCManager", "Local stream set successfully");
   }
 
-
   // ===== CONNECTION MANAGEMENT API =====
 
   /**
@@ -246,14 +243,13 @@ class WebRTCManager {
   /**
    * Close connection with specific participant
    */
-  closePeerConnection(participantId) {
-    this.peerConnectionManager.closePeerConnection(participantId);
+  closePeerConnection(deviceUUID) {
+    this.peerConnectionManager.closePeerConnection(deviceUUID);
   }
   /**
    * Close all connections
    */
   async closeAllConnections(closeLocalStream = true) {
-
     // Close all local streams
 
     // Close local stream
@@ -267,7 +263,6 @@ class WebRTCManager {
     // Close all peer connections
     this.peerConnectionManager.closeAllPeerConnections();
 
-    
     // Close VAD
     this.voiceActivityDetection.cleanup();
 
@@ -306,14 +301,14 @@ class WebRTCManager {
    * @returns {Promise<MediaStream>} Media stream for screen sharing
    * */
 
-  async acquireScreenStream(platform){
+  async acquireScreenStream(platform) {
     return await this.screenShareManager.acquireScreenStream(platform);
   }
   /**
    * Stop screen sharing
    */
-  async removeScreenShareStream(streamId) {
-    return await this.screenShareManager.stopScreenShare(streamId);
+  async removeScreenShareStream(streamUUID) {
+    return await this.screenShareManager.stopScreenShare(streamUUID);
   }
   /**
    * Remove all screen shares
@@ -322,8 +317,8 @@ class WebRTCManager {
     return await this.screenShareManager.stopAllScreenShares();
   }
 
-  isScreenShare(streamId) {
-    return this.globalState.isScreenShare(streamId);
+  isScreenShare(streamUUID) {
+    return this.globalState.isScreenShare(streamUUID);
   }
   /**
    * Get screen share streams
@@ -335,8 +330,8 @@ class WebRTCManager {
   /**
    * Get a specific screen stream by ID
    */
-  getScreenStream(streamId) {
-    return this.globalState.getScreenStream(streamId);
+  getScreenStream(streamUUID) {
+    return this.globalState.getScreenStream(streamUUID);
   }
 
   /**
@@ -406,18 +401,25 @@ class WebRTCManager {
     return await this.signalingManager.handleUserLeft(message);
   }
 
-  async setcommsData(commsData) {
-    this.globalState.setCommsData(commsData);
+  async setCommData(commData) {
+    this.globalState.setCommData(commData);
     const userData = {};
-    for (const participantUUID in commsData) {
-      if (commsData[participantUUID] && commsData[participantUUID].userData) {
-        userData[participantUUID] = commsData[participantUUID].userData;
-      }
-    }
+
+    commData.forEach((item) => {
+      userData[item.deviceUUID] = {
+        userUUID: item.userUUID,
+        deviceUUID: item.deviceUUID,
+        commUUID: item.commUUID,
+        webcamOn: item.webcamOn,
+        speaking: item.speaking,
+        screenShare: item.screenShare,
+      };
+    });
+
     return await this.signalingManager.setExistingUsers(userData);
   }
 
-  getActiveStreams(){
+  getActiveStreams() {
     return this.globalState.getAllActiveStreams();
   }
 
@@ -427,11 +429,14 @@ class WebRTCManager {
   async setExistingUsers(existingUsers) {
     console.log("DEBUG setExistingUsers - Input data:", existingUsers);
     console.log("DEBUG setExistingUsers - Keys:", Object.keys(existingUsers));
-    console.log("DEBUG setExistingUsers - MyId:", this.globalState.getMyId());
+    console.log(
+      "DEBUG setExistingUsers - MyId:",
+      this.globalState.getDeviceUUID()
+    );
     // Aggiungi questo per vedere ogni utente
-    for (const [participantId, userData] of Object.entries(existingUsers)) {
+    for (const [deviceUUID, userData] of Object.entries(existingUsers)) {
       console.log(
-        `DEBUG setExistingUsers - Processing user ${participantId}:`,
+        `DEBUG setExistingUsers - Processing user ${deviceUUID}:`,
         userData
       );
     }
@@ -442,7 +447,7 @@ class WebRTCManager {
 
   /**
    * Set audio context reference
-   */ 
+   */
   setAudioContext(audioContext) {
     this.logger.info("WebRTCManager", "Setting audio context reference:", {
       audioContext: !!audioContext,
@@ -476,8 +481,8 @@ class WebRTCManager {
   /**
    * Get connection statistics
    */
-  getConnectionStats(participantId = null) {
-    return this.connectionTracker.getConnectionStats(participantId);
+  getConnectionStats(deviceUUID = null) {
+    return this.connectionTracker.getConnectionStats(deviceUUID);
   }
 
   /**
@@ -490,15 +495,15 @@ class WebRTCManager {
   /**
    * Force reconnection for a participant
    */
-  async forceReconnection(participantId) {
-    return await this.recoveryManager.forceReconnection(participantId);
+  async forceReconnection(deviceUUID) {
+    return await this.recoveryManager.forceReconnection(deviceUUID);
   }
 
   /**
    * Reset reconnection attempts
    */
-  resetReconnectionAttempts(participantId = null) {
-    this.recoveryManager.resetReconnectionAttempts(participantId);
+  resetReconnectionAttempts(deviceUUID = null) {
+    this.recoveryManager.resetReconnectionAttempts(deviceUUID);
   }
 
   // ===== CALLBACK ACCESS API =====
@@ -534,9 +539,9 @@ class WebRTCManager {
   /**
    * Notify UI components of stream updates
    */
-  notifyLocalStreamUpdate(streamUUID = this.globalState.getMyId,stream) {
+  notifyLocalStreamUpdate(streamUUID = this.globalState.deviceUUID, stream) {
     EventEmitter.sendLocalUpdateNeeded(
-      this.globalState.getMyId(),
+      this.globalState.getDeviceUUID(),
       streamUUID,
       stream
     );
@@ -545,16 +550,16 @@ class WebRTCManager {
   /**
    * Get chat ID
    */
-  getChatId() {
-    return this.globalState.chatId;
+  getCommUUID() {
+    return this.globalState.commUUID;
   }
 
   /**
    * Get user data
    */
-  getUserData(participantId = null) {
-    if (participantId) {
-      return this.globalState.userData[participantId];
+  getUserData(deviceUUID = null) {
+    if (deviceUUID) {
+      return this.globalState.userData[deviceUUID];
     }
     return this.globalState.userData;
   }
@@ -562,8 +567,12 @@ class WebRTCManager {
   /**
    * Get comms data
    */
-  getCommsData(participantId) {
-    return this.globalState.getCommsData(participantId);
+  getCommsData(deviceUUID) {
+    return this.globalState.getCommsData(deviceUUID);
+  }
+
+  getAllCommsData() {
+    return this.globalState.commData;
   }
 
   /**
@@ -576,8 +585,8 @@ class WebRTCManager {
   /**
    * Get specific peer connection
    */
-  getPeerConnection(participantId) {
-    return this.globalState.peerConnections[participantId];
+  getPeerConnection(deviceUUID) {
+    return this.globalState.peerConnections[deviceUUID];
   }
 
   // ===== VOICE ACTIVITY DETECTION API =====
@@ -585,8 +594,8 @@ class WebRTCManager {
   /**
    * Get current speaking state
    */
-  getSpeakingState(userId = null) {
-    return this.voiceActivityDetection.getSpeakingState(userId);
+  getSpeakingState(deviceUUID = null) {
+    return this.voiceActivityDetection.getSpeakingState(deviceUUID);
   }
 
   /**
@@ -603,8 +612,8 @@ class WebRTCManager {
     this.voiceActivityDetection.setSpeakingThreshold(threshold);
   }
 
-  applyAudioProcessing(stream,options = {}) {
-    if(!this.streamManager) {
+  applyAudioProcessing(stream, options = {}) {
+    if (!this.streamManager) {
       this.logger.warn(
         "WebRTCManager",
         "StreamManager is not initialized. Cannot apply audio processing."
@@ -614,7 +623,7 @@ class WebRTCManager {
     return this.streamManager.applyAudioProcessing(stream, options);
   }
 
-  async updateVAD(){
+  async updateVAD() {
     if (!this.voiceActivityDetection) {
       this.logger.warn(
         "WebRTCManager",
@@ -639,22 +648,22 @@ class WebRTCManager {
   /**
    * Pin a user
    */
-  pinUser(userId) {
-    return this.pinManager.pinUser(userId);
+  pinUser(deviceUUID) {
+    return this.pinManager.pinUser(deviceUUID);
   }
 
   /**
    * Unpin a user
    */
-  unpinUser(userId) {
-    return this.pinManager.unpinUser(userId);
+  unpinUser(deviceUUID) {
+    return this.pinManager.unpinUser(deviceUUID);
   }
 
   /**
    * Toggle pin state for a user
    */
-  togglePin(userId) {
-    return this.pinManager.togglePin(userId);
+  togglePin(deviceUUID) {
+    return this.pinManager.togglePin(deviceUUID);
   }
 
   /**
@@ -667,8 +676,8 @@ class WebRTCManager {
   /**
    * Check if user is pinned
    */
-  isUserPinned(userId) {
-    return this.pinManager.isUserPinned(userId);
+  isUserPinned(deviceUUID) {
+    return this.pinManager.isUserPinned(deviceUUID);
   }
 
   /**
@@ -793,10 +802,9 @@ class WebRTCManager {
   /**
    * Get my ID
    */
-  getMyId() {
-    return this.globalState.myId;
+  getDeviceUUID() {
+    return this.globalState.getDeviceUUID();
   }
-
   /**
    * Check if video is enabled
    */
@@ -814,11 +822,11 @@ class WebRTCManager {
 
   /**
    * Get active screen shares for a participant
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {string[]} Array of active screen share IDs
    */
-  getActiveScreenShares(participantId) {
-    return this.globalState.getActiveScreenShares(participantId);
+  getActiveScreenShares(deviceUUID) {
+    return this.globalState.getActiveScreenShares(deviceUUID);
   }
 
   /**
@@ -828,7 +836,7 @@ class WebRTCManager {
    */
   initializeLocalUserData(handle, additionalData = {}) {
     return this.globalState.initializeLocalUserData(
-      this.globalState.myId,
+      this.globalState.deviceUUID,
       handle,
       additionalData
     );

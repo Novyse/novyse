@@ -14,51 +14,51 @@ export class ConnectionTracker {
 
   /**
    * Initialize connection tracking for a participant
-   * @param {string} participantId - The participant ID
-   */ initializeTracking(participantId) {
+   * @param {string} deviceUUID - The participant ID
+   */ initializeTracking(deviceUUID) {
     this.logger.debug(
       "ConnectionTracker",
-      `Initializing tracking for ${participantId}`
+      `Initializing tracking for ${deviceUUID}`
     );
 
-    this.globalState.connectionStates[participantId] = "connecting";
-    this.globalState.connectionTimestamps[participantId] = {
+    this.globalState.connectionStates[deviceUUID] = "connecting";
+    this.globalState.connectionTimestamps[deviceUUID] = {
       initialized: Date.now(),
       lastSignalingTransition: null,
     };
-    this.globalState.reconnectionAttempts[participantId] = 0;
-    this.globalState.lastKnownGoodStates[participantId] = null;
-    this.globalState.iceCandidateQueues[participantId] = [];
+    this.globalState.reconnectionAttempts[deviceUUID] = 0;
+    this.globalState.lastKnownGoodStates[deviceUUID] = null;
+    this.globalState.iceCandidateQueues[deviceUUID] = [];
 
-    this.reportConnectionEvent(participantId, "tracking_initialized");
+    this.reportConnectionEvent(deviceUUID, "tracking_initialized");
   }
 
   /**
    * Report a connection event for logging and debugging
-   * @param {string} participantId - The participant ID
+   * @param {string} deviceUUID - The participant ID
    * @param {string} event - The event name
    * @param {*} data - Optional event data
    */
-  reportConnectionEvent(participantId, event, data = null) {
+  reportConnectionEvent(deviceUUID, event, data = null) {
     const timestamp = new Date().toISOString();
 
     this.logger.debug(
       "ConnectionTracker",
-      `[${timestamp}] ${participantId}: ${event}`,
+      `[${timestamp}] ${deviceUUID}: ${event}`,
       data || ""
     );
 
     // Update connection state based on event
-    this._updateConnectionStateFromEvent(participantId, event);
+    this._updateConnectionStateFromEvent(deviceUUID, event);
   }
 
   /**
    * Log detailed connection debug information
-   * @param {string} participantId - The participant ID
+   * @param {string} deviceUUID - The participant ID
    * @param {string} context - The context of the debug log
    */
-  logConnectionDebugInfo(participantId, context) {
-    const pc = this.globalState.peerConnections[participantId];
+  logConnectionDebugInfo(deviceUUID, context) {
+    const pc = this.globalState.peerConnections[deviceUUID];
     if (!pc) return;
 
     const debugInfo = {
@@ -68,27 +68,27 @@ export class ConnectionTracker {
       signalingState: pc.signalingState,
       iceGatheringState: pc.iceGatheringState,
       reconnectionAttempts:
-        this.globalState.reconnectionAttempts[participantId] || 0,
-      lastGoodConnection: this.globalState.lastKnownGoodStates[participantId],
+        this.globalState.reconnectionAttempts[deviceUUID] || 0,
+      lastGoodConnection: this.globalState.lastKnownGoodStates[deviceUUID],
       queuedCandidates:
-        this.globalState.iceCandidateQueues[participantId]?.length || 0,
+        this.globalState.iceCandidateQueues[deviceUUID]?.length || 0,
     };
 
     this.logger.debug(
       "ConnectionTracker",
-      `${participantId} debug:`,
+      `${deviceUUID} debug:`,
       debugInfo
     );
   }
 
   /**
    * Get connection statistics for a specific participant or all participants
-   * @param {string|null} participantId - The participant ID (null for all)
+   * @param {string|null} deviceUUID - The participant ID (null for all)
    * @returns {Object} Connection statistics
    */
-  getConnectionStats(participantId = null) {
-    if (participantId) {
-      return this._getStatsForParticipant(participantId);
+  getConnectionStats(deviceUUID = null) {
+    if (deviceUUID) {
+      return this._getStatsForParticipant(deviceUUID);
     } else {
       return this._getAllConnectionStats();
     }
@@ -177,34 +177,34 @@ export class ConnectionTracker {
 
   /**
    * Clear tracking data for a participant
-   * @param {string} participantId - The participant ID
+   * @param {string} deviceUUID - The participant ID
    */
-  clearTracking(participantId) {
+  clearTracking(deviceUUID) {
     this.logger.debug(
       "ConnectionTracker",
-      `Clearing tracking for ${participantId}`
+      `Clearing tracking for ${deviceUUID}`
     );
 
-    delete this.globalState.connectionStates[participantId];
-    delete this.globalState.connectionTimestamps[participantId];
-    delete this.globalState.reconnectionAttempts[participantId];
-    delete this.globalState.lastKnownGoodStates[participantId];
-    delete this.globalState.iceCandidateQueues[participantId];
-    delete this.globalState.negotiationInProgress[participantId];
+    delete this.globalState.connectionStates[deviceUUID];
+    delete this.globalState.connectionTimestamps[deviceUUID];
+    delete this.globalState.reconnectionAttempts[deviceUUID];
+    delete this.globalState.lastKnownGoodStates[deviceUUID];
+    delete this.globalState.iceCandidateQueues[deviceUUID];
+    delete this.globalState.negotiationInProgress[deviceUUID];
   }
 
   /**
    * Check if a connection is healthy
-   * @param {string} participantId - The participant ID
+   * @param {string} deviceUUID - The participant ID
    * @returns {Object} Health status information
    */
-  checkConnectionHealth(participantId) {
-    const pc = this.globalState.peerConnections[participantId];
+  checkConnectionHealth(deviceUUID) {
+    const pc = this.globalState.peerConnections[deviceUUID];
     if (!pc) {
       return { healthy: false, reason: "NO_CONNECTION" };
     }
     const currentTime = Date.now();
-    const timestampObj = this.globalState.connectionTimestamps[participantId];
+    const timestampObj = this.globalState.connectionTimestamps[deviceUUID];
     const initTimestamp = timestampObj
       ? typeof timestampObj === "number"
         ? timestampObj
@@ -212,9 +212,9 @@ export class ConnectionTracker {
       : currentTime;
     const connectionAge = currentTime - initTimestamp;
     const timeSinceLastGood = this.globalState.lastKnownGoodStates[
-      participantId
+      deviceUUID
     ]
-      ? currentTime - this.globalState.lastKnownGoodStates[participantId]
+      ? currentTime - this.globalState.lastKnownGoodStates[deviceUUID]
       : connectionAge;
 
     // Check for unhealthy conditions
@@ -252,13 +252,13 @@ export class ConnectionTracker {
 
   /**
    * Update last known good state for a connection
-   * @param {string} participantId - The participant ID
+   * @param {string} deviceUUID - The participant ID
    */
-  updateLastKnownGoodState(participantId) {
-    this.globalState.lastKnownGoodStates[participantId] = Date.now();
+  updateLastKnownGoodState(deviceUUID) {
+    this.globalState.lastKnownGoodStates[deviceUUID] = Date.now();
     this.logger.verbose(
       "ConnectionTracker",
-      `Updated last good state for ${participantId}`
+      `Updated last good state for ${deviceUUID}`
     );
   }
 
@@ -266,33 +266,33 @@ export class ConnectionTracker {
 
   /**
    * Update connection state based on event
-   * @param {string} participantId - The participant ID
+   * @param {string} deviceUUID - The participant ID
    * @param {string} event - The event name
    */
-  _updateConnectionStateFromEvent(participantId, event) {
+  _updateConnectionStateFromEvent(deviceUUID, event) {
     if (event.includes("connected") || event.includes("completed")) {
-      this.globalState.connectionStates[participantId] = "connected";
-      this.globalState.lastKnownGoodStates[participantId] = Date.now();
-      this.globalState.reconnectionAttempts[participantId] = 0; // Reset on success
+      this.globalState.connectionStates[deviceUUID] = "connected";
+      this.globalState.lastKnownGoodStates[deviceUUID] = Date.now();
+      this.globalState.reconnectionAttempts[deviceUUID] = 0; // Reset on success
     } else if (event.includes("failed") || event.includes("disconnected")) {
-      this.globalState.connectionStates[participantId] = "failed";
+      this.globalState.connectionStates[deviceUUID] = "failed";
     } else if (event.includes("checking")) {
-      this.globalState.connectionStates[participantId] = "checking";
+      this.globalState.connectionStates[deviceUUID] = "checking";
     }
   }
 
   /**
    * Get connection statistics for a specific participant
-   * @param {string} participantId - The participant ID
+   * @param {string} deviceUUID - The participant ID
    * @returns {Object} Connection statistics
    */
-  _getStatsForParticipant(participantId) {
-    const pc = this.globalState.peerConnections[participantId];
-    const userData = this.globalState.userData[participantId];
+  _getStatsForParticipant(deviceUUID) {
+    const pc = this.globalState.peerConnections[deviceUUID];
+    const userData = this.globalState.userData[deviceUUID];
     const currentTime = Date.now();
 
     return {
-      participantId,
+      deviceUUID,
       userHandle: userData?.handle || "Unknown",
       connectionExists: !!pc,
       connectionState: pc?.connectionState || "N/A",
@@ -300,12 +300,12 @@ export class ConnectionTracker {
       signalingState: pc?.signalingState || "N/A",
       iceGatheringState: pc?.iceGatheringState || "N/A",
       reconnectionAttempts:
-        this.globalState.reconnectionAttempts[participantId] || 0,
+        this.globalState.reconnectionAttempts[deviceUUID] || 0,
       maxAttempts: WEBRTC_CONSTANTS.MAX_RECONNECTION_ATTEMPTS,
-      connectionAge: this.globalState.connectionTimestamps[participantId]
+      connectionAge: this.globalState.connectionTimestamps[deviceUUID]
         ? (() => {
             const timestampObj =
-              this.globalState.connectionTimestamps[participantId];
+              this.globalState.connectionTimestamps[deviceUUID];
             const initTimestamp =
               typeof timestampObj === "number"
                 ? timestampObj
@@ -313,20 +313,20 @@ export class ConnectionTracker {
             return Math.round((currentTime - initTimestamp) / 1000);
           })()
         : 0,
-      lastGoodConnection: this.globalState.lastKnownGoodStates[participantId]
+      lastGoodConnection: this.globalState.lastKnownGoodStates[deviceUUID]
         ? Math.round(
             (currentTime -
-              this.globalState.lastKnownGoodStates[participantId]) /
+              this.globalState.lastKnownGoodStates[deviceUUID]) /
               1000
           )
         : null,
       queuedCandidates:
-        this.globalState.iceCandidateQueues[participantId]?.length || 0,
+        this.globalState.iceCandidateQueues[deviceUUID]?.length || 0,
       negotiationInProgress:
-        this.globalState.negotiationInProgress[participantId] || false,
-      hasRemoteStream: !!this.globalState.remoteStreams[participantId],
+        this.globalState.negotiationInProgress[deviceUUID] || false,
+      hasRemoteStream: !!this.globalState.remoteStreams[deviceUUID],
       remoteStreamTracks:
-        this.globalState.remoteStreams[participantId]?.getTracks()?.length || 0,
+        this.globalState.remoteStreams[deviceUUID]?.getTracks()?.length || 0,
     };
   }
 

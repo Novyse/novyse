@@ -102,69 +102,70 @@ class WebRTCEventReceiver {
 
   // Voice Activity Detection Handlers
   async handleUserStartedSpeaking() {
-    if (this.voiceActivityDetection) {
-      this.voiceActivityDetection.setSpeakingState(this.globalState.myId, true);
+    const sender = SocketIO.send();
+    if (sender) {
+      await sender.sendSpeakingStatus(
+        this.globalState.getCommUUID(),
+        this.globalState.myId,
+        true
+      );
+    } else {
+      this.logger?.warn("[EventReceiver] Cannot send speaking status: socket not connected");
     }
-    await SocketIO.sendSpeakingStatus(
-      this.globalState.getChatId(),
-      this.globalState.myId,
-      true
-    );
   }
 
   async handleUserStoppedSpeaking() {
-    if (this.voiceActivityDetection) {
-      this.voiceActivityDetection.setSpeakingState(
+    const sender = SocketIO.send();
+    if (sender) {
+      await sender.sendSpeakingStatus(
+        this.globalState.getCommUUID(),
         this.globalState.myId,
         false
       );
+    } else {
+      this.logger?.warn("[EventReceiver] Cannot send speaking status: socket not connected");
     }
-    await SocketIO.sendSpeakingStatus(
-      this.globalState.getChatId(),
-      this.globalState.myId,
-      false
-    );
   }
 
   handleRemoteUserStartedSpeaking(data) {
     if (
-      data.from !== this.globalState.myId &&
+      data.deviceUUID !== this.globalState.myId &&
       this.globalState.myId !== undefined
     ) {
       if (this.voiceActivityDetection) {
-        this.voiceActivityDetection.setSpeakingState(data.from, true);
+        this.voiceActivityDetection.setSpeakingState(data.deviceUUID, true);
       }
     }
   }
 
   handleRemoteUserStoppedSpeaking(data) {
     if (
-      data.from !== this.globalState.myId &&
+      data.deviceUUID !== this.globalState.myId &&
       this.globalState.myId !== undefined
     ) {
       if (this.voiceActivityDetection) {
-        this.voiceActivityDetection.setSpeakingState(data.from, false);
+        this.voiceActivityDetection.setSpeakingState(data.deviceUUID, false);
       }
     }
   } // Screen Sharing Handlers
   async handleScreenShareStarted(data) {
     if (
-      data.from !== this.globalState.myId &&
+      data.deviceUUID !== this.globalState.myId &&
       this.globalState.myId !== undefined
     ) {
       this.logger?.info(`[EventReceiver] Remote screen share started:`, data);
 
       // For remote screen shares, we don't need to create a stream,
       // just update the userData to indicate the remote user has an active screen share
-      if (data.screenShareUUID && data.from) {
+      if (data.screenShareUUID && data.deviceUUID) {
         // Add the screen share to remote user's userData
-        this.globalState.addScreenShare(data.from, data.screenShareUUID, null);
+        this.globalState.addScreenShare(data.deviceUUID, data.screenShareUUID, null);
 
         this.logger?.info(
-          `[EventReceiver] Added remote screen share ${data.screenShareUUID} for user ${data.from}`
+          `[EventReceiver] Added remote screen share ${data.screenShareUUID} for user ${data.deviceUUID}`
         );
 
-        if (this.globalState.getChatId() === data.chatId) {
+        if (this.globalState.getCommUUID() === data.chatId) {
           SoundPlayer.getInstance().playSound("comms_stream_started");
         }
       }
@@ -173,22 +174,22 @@ class WebRTCEventReceiver {
 
   async handleScreenShareStopped(data) {
     if (
-      data.from !== this.globalState.myId &&
+      data.deviceUUID !== this.globalState.myId &&
       this.globalState.myId !== undefined
     ) {
       this.logger?.info(`[EventReceiver] Remote screen share stopped:`, data);
 
-      // For remote screen shares, remove from userData
-      if (data.screenShareUUID && data.from) {
+      // For remote screen shares, remove deviceUUID userData
+      if (data.screenShareUUID && data.deviceUUID) {
         this.pinManager.clearPinIfId(data.screenShareUUID);
-        this.globalState.removeScreenShare(data.from, data.screenShareUUID);
+        this.globalState.removeScreenShare(data.deviceUUID, data.screenShareUUID);
 
         this.logger?.info(
-          `[EventReceiver] Removed remote screen share ${data.screenShareUUID} for user ${data.from}`
+          `[EventReceiver] Removed remote screen share ${data.screenShareUUID} for user ${data.deviceUUID}`
         );
       }
 
-      if (this.globalState.getChatId() === data.chatId) {
+      if (this.globalState.getCommUUID() === data.chatId) {
         SoundPlayer.getInstance().playSound("comms_stream_stopped");
       }
     }
@@ -202,8 +203,8 @@ class WebRTCEventReceiver {
     if (
       !this.initialized ||
       !this.globalState ||
-      this.globalState.getMyId() === undefined ||
-      this.globalState.getMyId() === null
+      this.globalState.getDeviceUUID() === undefined ||
+      this.globalState.getDeviceUUID() === null
     ) {
       this.logger?.info(
         `[EventReceiver] handleMemberJoined: Instance not ready, globalState is null, or myId is undefined. Initialized: ${
@@ -214,14 +215,14 @@ class WebRTCEventReceiver {
     }
 
     if (
-      data.from !== this.globalState.myId &&
+      data.deviceUUID !== this.globalState.myId &&
       this.globalState.myId !== undefined
     ) {
       this.logger?.info("[EventReceiver] Member joined comms:", data);
 
       if (this.signalingManager) {
         await this.signalingManager.handleUserJoined(data);
-        if (this.globalState.getChatId() === data.chat_id) {
+        if (this.globalState.getCommUUID() === data.chat_id) {
           SoundPlayer.getInstance().playSound("comms_join_vocal");
         }
       }
@@ -231,42 +232,42 @@ class WebRTCEventReceiver {
   async handleMemberLeft(data) {
     // Check if the member is not the current user and if my id is defined
     if (
-      data.from !== this.globalState.myId &&
+      data.deviceUUID !== this.globalState.myId &&
       this.globalState.myId !== undefined
     ) {
       this.logger?.info(`[EventReceiver] Member left comms:+ ${data}`);
 
       if (this.signalingManager) {
         await this.signalingManager.handleUserLeft(data);
-        if (this.globalState.getChatId() === data.chat_id) {
+        if (this.globalState.getCommUUID() === data.chat_id) {
           SoundPlayer.getInstance().playSound("comms_leave_vocal");
         }
       }
 
       if (this.pinManager) {
-        this.pinManager.unpinUser(data.from);
+        this.pinManager.unpinUser(data.deviceUUID);
       }
     }
   }
   async handleOffer(data) {
-    const { from, offer } = data;
-    this.logger?.info(`Received offer from user ${from}`);
+    const { deviceUUID, offer } = data;
+    this.logger?.info(`Received offer deviceUUID user ${deviceUUID}`);
 
     if (this.signalingManager) {
       await this.signalingManager.handleOfferMessage(data);
     }
   }
   async handleAnswer(data) {
-    const { from, answer } = data;
-    this.logger?.info(`Received answer from user ${from}`);
+    const { deviceUUID, answer } = data;
+    this.logger?.info(`Received answer deviceUUID user ${deviceUUID}`);
 
     if (this.signalingManager) {
       await this.signalingManager.handleAnswerMessage(data);
     }
   }
   async handleICECandidate(data) {
-    const { from, candidate } = data;
-    this.logger?.debug(`Received ICE candidate from user ${from}`);
+    const { deviceUUID, candidate } = data;
+    this.logger?.debug(`Received ICE candidate deviceUUID user ${deviceUUID}`);
 
     if (this.signalingManager) {
       await this.signalingManager.handleCandidateMessage(data);
@@ -274,13 +275,13 @@ class WebRTCEventReceiver {
   }
 
   async handleMidtoStreamUUIDMapping(data) {
-    const { from, mid, streamUUID } = data;
+    const { deviceUUID, mid, streamUUID } = data;
     this.logger?.debug(
-      `Received mid to stream UUID mapping for participant ${from}, mid ${mid}, streamUUID ${streamUUID}`
+      `Received mid to stream UUID mapping for participant ${deviceUUID}, mid ${mid}, streamUUID ${streamUUID}`
     );
 
     if (this.streamMappingManager) {
-      this.streamMappingManager.addStreamMapping(from, streamUUID, mid);
+      this.streamMappingManager.addStreamMapping(deviceUUID, streamUUID, mid);
     } else {
       this.logger?.warn(
         `[EventReceiver] StreamManager not initialized, cannot handle mid to stream UUID mapping`
@@ -289,11 +290,11 @@ class WebRTCEventReceiver {
   }
 
   handleWebcamOn(data) {
-    const { from } = data;
-    this.logger?.info(`Webcam turned on for user ${from}`);
+    const { deviceUUID } = data;
+    this.logger?.info(`Webcam turned on for user ${deviceUUID}`);
 
     if (this.globalState) {
-      this.globalState.setWebcamStatus(from,true);
+      this.globalState.setWebcamStatus(deviceUUID,true);
     } else {
       this.logger?.warn(
         `[EventReceiver] globalState not initialized, cannot handle webcam on event`
@@ -302,10 +303,10 @@ class WebRTCEventReceiver {
   }
 
   handleWebcamOff(data) {
-    const { from } = data;
-    this.logger?.info(`Webcam turned off for user ${from}`);
+    const { deviceUUID } = data;
+    this.logger?.info(`Webcam turned off for user ${deviceUUID}`);
     if (this.globalState) {
-      this.globalState.setWebcamStatus(from, false);
+      this.globalState.setWebcamStatus(deviceUUID, false);
     } else {
       this.logger?.warn(
         `[EventReceiver] globalState not initialized, cannot handle webcam off event`

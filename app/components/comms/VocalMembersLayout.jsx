@@ -19,7 +19,7 @@ const MARGIN = 4;
 const HEIGHT_MULTIPLYER = 1;
 const WIDTH_MULTIPLYER = 1;
 
-const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
+const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
     height: 0,
@@ -45,7 +45,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
   useEffect(() => {
     const currentPinnedUser = get.pinnedUser();
     setPinnedUUID(currentPinnedUser);
-  }, [commsData]);
+  }, [commData]);
 
   // Handler per il layout
   const onContainerLayout = useCallback((event) => {
@@ -112,7 +112,30 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
 
   // ---- LAYOUT CALCULATION ----
 
-  // Calcolo ottimizzato del layout considerando anche le screen share
+  // Normalizza commData se necessario (fallback per dati non corretti)
+  const normalizedcommData = React.useMemo(() => {
+    if (Array.isArray(commData)) {
+      console.warn(
+        "[VocalMembersLayout] commData è array, normalizzo in oggetto"
+      );
+      const normalized = {};
+      commData.forEach((item, index) => {
+        const deviceUUID = item.deviceUUID || `unknown-${index}`;
+        normalized[deviceUUID] = {
+          userData: {
+            handle: item.handle || item.userData?.handle || "Unknown User",
+            isSpeaking: item.speaking || item.userData?.isSpeaking || false,
+            webcamOn: item.webcamOn || item.userData?.webcamOn || false,
+          },
+          activeScreenShares: item.screenShare || item.activeScreenShares || [],
+        };
+      });
+      return normalized;
+    }
+    return commData;
+  }, [commData]);
+
+  // Modifica calculateLayout per accettare normalizedcommData
   const calculateLayout = useCallback(() => {
     // Se c'è un utente pinnato, calcola layout per un singolo elemento
     if (pinnedUUID) {
@@ -140,10 +163,10 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
       return { numColumns: 1, rectWidth, rectHeight, margin: MARGIN };
     }
 
-    let totalElements = Object.keys(commsData).length;
+    let totalElements = Object.keys(normalizedcommData).length; // Usa normalizedcommData
 
     // Conta anche le screen shares
-    Object.values(commsData).forEach((userData) => {
+    Object.values(normalizedcommData).forEach((userData) => {
       if (
         userData.activeScreenShares &&
         userData.activeScreenShares.length > 0
@@ -260,14 +283,24 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
     rectWidth = Math.max(minWidth, rectWidth * WIDTH_MULTIPLYER);
     rectHeight = Math.max(minHeight, rectHeight * HEIGHT_MULTIPLYER);
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
-  }, [containerDimensions, commsData, pinnedUUID, activeStreams]);
+  }, [containerDimensions, normalizedcommData, pinnedUUID, activeStreams]); // Cambia commData a normalizedcommData
 
+  // Usa normalizedcommData invece di commData
   const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();
 
-  // ---- LAYOUT CALCULATION ----
+  // Log per debug (rimuovi dopo il test) - spostato dopo calculateLayout per evitare errore di inizializzazione
+  useEffect(() => {
+    console.log(
+      "[VocalMembersLayout] commData ricevuti:",
+      normalizedcommData,
+      commData
+    );
+    console.log("[VocalMembersLayout] activeStreams ricevuti:", activeStreams);
+    console.log("[VocalMembersLayout] numColumns calcolato:", numColumns);
+  }, [normalizedcommData, activeStreams]); // Rimosso numColumns dalle dipendenze per evitare loop o errori
 
   const renderRectangle = (
-    participantUUID,
+    deviceUUID,
     streamUUID,
     isSpeaking,
     handle,
@@ -278,7 +311,7 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
     return (
       <UserCard
         streamUUID={streamUUID}
-        isLocal={participantUUID === get.myPartecipantId()}
+        isLocal={deviceUUID === get.deviceUUID()}
         isSpeaking={isSpeaking}
         width={rectWidth}
         height={rectHeight}
@@ -287,15 +320,13 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
         isScreenShare={isScreenShare}
         webcamOn={webcamOn}
         stream={stream}
-        isPinned={pinnedUUID === (isScreenShare ? streamUUID : participantUUID)}
-        onPin={() =>
-          handlePinUser(isScreenShare ? streamUUID : participantUUID)
-        }
+        isPinned={pinnedUUID === (isScreenShare ? streamUUID : deviceUUID)}
+        onPin={() => handlePinUser(isScreenShare ? streamUUID : deviceUUID)}
         isFullScreen={
-          fullScreenUUID === (isScreenShare ? streamUUID : participantUUID)
+          fullScreenUUID === (isScreenShare ? streamUUID : deviceUUID)
         }
         onFullScreen={() => {
-          handleFullScreenUser(isScreenShare ? streamUUID : participantUUID);
+          handleFullScreenUser(isScreenShare ? streamUUID : deviceUUID);
         }}
         buttonsDisabled={!check.isInComms()} // Disabilita il pin se non sei in comms
       />
@@ -312,83 +343,84 @@ const VocalMembersLayout = ({ commsData = {}, activeStreams = {} }) => {
           },
         ]}
       >
-        {Object.keys(commsData).length > 0 ? (
+        {Object.keys(normalizedcommData).length > 0 ? ( // Usa normalizedcommData
           <>
-            {Object.entries(commsData).map(([participantUUID, commData]) => {
-              const components = [];
+            {Object.entries(normalizedcommData).map(
+              ([deviceUUID, commData]) => {
+                // Usa normalizedcommData
+                const components = [];
 
-              // Estrae i dati richiesti del partecipante
-              const handle = commData.userData?.handle;
-              const isSpeaking = commData.userData?.isSpeaking;
-              const webcamOn = commData.userData?.webcamOn;
+                // Estrae i dati richiesti del partecipante
+                const handle = commData.userData?.handle;
+                const isSpeaking = commData.userData?.isSpeaking;
+                const webcamOn = commData.userData?.webcamOn;
 
-              if (!activeStreams) {
-                activeStreams = {};
-              }
-              const userActiveStream = activeStreams[participantUUID] || {};
-              let mainStream = null;
-
-              console.log("🎬 ACTIVE STREAMS DEBUG:", {
-                handle: commData.userData?.handle,
-                participantUUID,
-                userActiveStream,
-                allActiveStreams: activeStreams,
-                allStreamKeys: Object.keys(userActiveStream),
-                commsDataForUser: commData,
-              });
-
-              if (Object.keys(userActiveStream).length > 0) {
-                if (userActiveStream[participantUUID]) {
-                  mainStream = userActiveStream[participantUUID];
+                if (!activeStreams) {
+                  activeStreams = {};
                 }
-              }
+                const userActiveStream = activeStreams[deviceUUID] || {};
+                let mainStream = null;
 
-              // Main profile object - solo se non c'è pin o se questo è quello pinnato
-              if (!pinnedUUID || pinnedUUID === participantUUID) {
-                components.push(
-                  <View key={`main-${participantUUID}`}>
-                    {renderRectangle(
-                      participantUUID,
-                      participantUUID,
-                      isSpeaking,
-                      handle,
-                      false,
-                      webcamOn,
-                      mainStream
-                    )}
-                  </View>
-                );
-              }
-
-              // Estrae gli stream UIDs dagli activeScreenShares
-              const streamUIDs = commData.activeScreenShares;
-
-              if (streamUIDs && streamUIDs.length > 0) {
-                streamUIDs.forEach((streamUUID) => {
-                  if (!pinnedUUID || pinnedUUID === streamUUID) {
-                    const screenShareStream =
-                      userActiveStream[streamUUID] || null;
-
-                    components.push(
-                      <View
-                        key={`screenShare-${participantUUID}-${streamUUID}`}
-                      >
-                        {renderRectangle(
-                          participantUUID,
-                          streamUUID,
-                          false,
-                          handle,
-                          true,
-                          true,
-                          screenShareStream
-                        )}
-                      </View>
-                    );
-                  }
+                console.log("🎬 ACTIVE STREAMS DEBUG:", {
+                  handle: commData.userData?.handle,
+                  deviceUUID,
+                  userActiveStream,
+                  allActiveStreams: activeStreams,
+                  allStreamKeys: Object.keys(userActiveStream),
+                  commDataForUser: commData,
                 });
+
+                if (Object.keys(userActiveStream).length > 0) {
+                  if (userActiveStream[deviceUUID]) {
+                    mainStream = userActiveStream[deviceUUID];
+                  }
+                }
+
+                // Main profile object - solo se non c'è pin o se questo è quello pinnato
+                if (!pinnedUUID || pinnedUUID === deviceUUID) {
+                  components.push(
+                    <View key={`main-${deviceUUID}`}>
+                      {renderRectangle(
+                        deviceUUID,
+                        deviceUUID,
+                        isSpeaking,
+                        handle,
+                        false,
+                        webcamOn,
+                        mainStream
+                      )}
+                    </View>
+                  );
+                }
+
+                // Estrae gli stream UIDs dagli activeScreenShares
+                const streamUIDs = commData.activeScreenShares;
+
+                if (streamUIDs && streamUIDs.length > 0) {
+                  streamUIDs.forEach((streamUUID) => {
+                    if (!pinnedUUID || pinnedUUID === streamUUID) {
+                      const screenShareStream =
+                        userActiveStream[streamUUID] || null;
+
+                      components.push(
+                        <View key={`screenShare-${deviceUUID}-${streamUUID}`}>
+                          {renderRectangle(
+                            deviceUUID,
+                            streamUUID,
+                            false,
+                            handle,
+                            true,
+                            true,
+                            screenShareStream
+                          )}
+                        </View>
+                      );
+                    }
+                  });
+                }
+                return components;
               }
-              return components;
-            })}
+            )}
           </>
         ) : (
           <Text style={styles.emptyChatText}>Non c'è nessuno qui</Text>

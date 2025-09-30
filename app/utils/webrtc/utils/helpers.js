@@ -38,11 +38,11 @@ export function isConnectionFailed(peerConnection) {
  */
 export function getPeerConnectionInfo(
   peerConnection,
-  participantId = "unknown"
+  deviceUUID = "unknown"
 ) {
   if (!peerConnection) {
     return {
-      participantId,
+      deviceUUID,
       exists: false,
       error: "PeerConnection not found",
     };
@@ -50,7 +50,7 @@ export function getPeerConnectionInfo(
 
   try {
     return {
-      participantId,
+      deviceUUID,
       exists: true,
       iceConnectionState: peerConnection.iceConnectionState,
       connectionState: peerConnection.connectionState,
@@ -72,11 +72,11 @@ export function getPeerConnectionInfo(
   } catch (error) {
     logger.error(
       "Helpers",
-      `Errore ottenendo info peer connection per ${participantId}:`,
+      `Errore ottenendo info peer connection per ${deviceUUID}:`,
       error
     );
     return {
-      participantId,
+      deviceUUID,
       exists: true,
       error: error.message,
     };

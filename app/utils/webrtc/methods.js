@@ -1,14 +1,14 @@
-import gateway from "../backend-services/api-gateway.js";
 import WebRTCManager from "./index.js";
-import eventEmitter from "../global/Events/lib/EventEmitter.js";
-import localDatabase from "../localDatabaseMethods.js";
+
+import eventEmitter from "../global/Events/EventEmitter.js";
+import SocketIO from "../backend-services/socket-io.js";
+
 import SoundPlayer from "../sounds/SoundPlayer.js";
 import settingsManager from "../global/SettingsManager.js";
 import { Platform } from "react-native";
 
 const WebRTC = WebRTCManager;
 
-// Import mediaDevices from react-native-webrtc
 let MediaStream;
 let mediaDevices;
 if (Platform.OS === "web") {
@@ -21,8 +21,7 @@ if (Platform.OS === "web") {
 }
 
 const self = {
-  // quando io entro in una room
-  async join(chatId) {
+  async join(commUUID) {
     // Start local stream using settings parameters
     const commsSettings =
       await settingsManager.getPageParameters("settings.comms");
@@ -30,19 +29,34 @@ const self = {
     if (!stream) {
       console.warn("Entry without stream");
     }
+
     // Check if already in a vocal chat
-    if (WebRTC.getChatId() != chatId) {
-      await gateway.commsLeave(chatId);
+    if (WebRTC.getCommUUID() != commUUID) {
+      await SocketIO.send().leaveComm(WebRTC.getCommUUID());
     }
+
     // Join vocal chat
-    const data = await gateway.commsJoin(chatId);
-    if (!data.comms_joined) {
+    await SocketIO.send().joinComm(commUUID);
+    const result = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error("Timeout waiting for comms_joined")),
+        10000
+      );
+      SocketIO.getSocket().once("comms_joined", (data) => {
+        if (data && data.commUUID === commUUID) {
+          clearTimeout(timeout);
+          resolve(data);
+        }
+      });
+    });
+
+    if (!result.success) {
       throw new Error("Failed to join vocal chat");
     }
 
     // Rigenero
 
-    await WebRTC.regenerate(data.from, chatId, stream);
+    await WebRTC.regenerate(result.data.deviceUUID, commUUID, stream);
 
     if (
       commsSettings.entryMode === "VIDEO_ONLY" ||
@@ -53,32 +67,46 @@ const self = {
       WebRTC.setVideoEnabled(false); // Set video state to disabled on join if entry mode is audio only or off
     }
 
-    // Aggiungi il chat_id ai dati prima di emettere l'evento
-    // e includi anche i dati dell'utente locale
-    const localUserHandle = await localDatabase.fetchLocalUserHandle();
-    const localUserData = await localDatabase.fetchLocalUserData();
+    await handle.memberJoined(result.data);
 
-    const dataWithChatId = {
-      ...data,
-      chat_id: chatId,
-      handle: localUserHandle,
-      profileImage: localUserData?.profileImage || null,
-      profileImageUri: localUserData?.profileImage || null,
-      webcamOn: WebRTC.isVideoEnabled(),
-    };
-    await handle.memberJoined(dataWithChatId);
+    await SocketIO.send().retrieveCommData(commUUID);
+    const response = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(
+        () =>
+          reject(new Error("Timeout waiting for comms_retrieve_comms_data")),
+        10000
+      );
+      SocketIO.getSocket().once("comms_retrieve_comms_data", (data) => {
+        if (data.commUUID === commUUID) {
+          clearTimeout(timeout);
+          resolve(data);
+        }
+      });
+    });
 
-    const commsData = await gateway.retrieveVocalUsers(chatId);
-    WebRTC.setcommsData(commsData);
+    if (!response.success) {
+      throw new Error("Failed to retrieve vocal users");
+    }
+
+    WebRTC.setCommData(response.data);
   },
 
   // quando io esco in una room
   async left() {
-    const data = await gateway.commsLeave();
-
-    //  if (!data.comms_left || false /* Force leave for now */) {
-    //    throw new Error("Failed to leave comms");
-    //  }
+    await SocketIO.send().leaveComm(WebRTC.getCommUUID());
+    const result = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error("Timeout waiting for comms_left")),
+        10000
+      );
+      SocketIO.getSocket().once("comms_left", (data) => {
+        if (data.commUUID === WebRTC.getCommUUID()) {
+          clearTimeout(timeout);
+          resolve(data);
+        }
+      });
+    });
+    const data = result.data;
 
     WebRTC.setVideoEnabled(false); // Reset video state to enabled on leave
 
@@ -87,7 +115,7 @@ const self = {
     // Close all peer connections and all local stream (both webcam and screen shares)
     await WebRTC.closeAllConnections();
   },
-  // quando premo pulsante microfono
+
   async toggleAudio() {
     let localStream = WebRTC.getLocalStream();
 
@@ -102,23 +130,21 @@ const self = {
       return true;
     }
 
-    if (localStream) {
-      const audioTrack = WebRTC.getLocalStream().getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
+    const audioTrack = WebRTC.getLocalStream().getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      await WebRTC.updateVAD();
+      return audioTrack.enabled;
+    } else {
+      const commsSettings =
+        await settingsManager.getPageParameters("settings.comms");
+      const newAudioTrack = await WebRTC.addAudioTrack(commsSettings);
+      if (newAudioTrack) {
         await WebRTC.updateVAD();
-        return audioTrack.enabled;
-      } else {
-        // add audio track if none
-        const commsSettings =
-          await settingsManager.getPageParameters("settings.comms");
-        const newAudioTrack = await WebRTC.addAudioTrack(commsSettings);
-        if (newAudioTrack) {
-          await WebRTC.updateVAD();
-          return true;
-        }
+        return true;
       }
     }
+
     return false;
   },
 
@@ -126,7 +152,7 @@ const self = {
     return WebRTC.togglePinById(rectangleId);
   },
 
-  // Switch microphone device  // Switch microphone device
+  // Switch microphone device
   async switchMicrophone(deviceId) {
     try {
       if (!WebRTC.getLocalStream()) {
@@ -195,6 +221,7 @@ const self = {
       throw error;
     }
   },
+
   // Switch camera device
   async switchCamera(deviceId) {
     try {
@@ -270,7 +297,7 @@ const self = {
 
       WebRTC.setLocalStream(localStream);
 
-      WebRTC.notifyLocalStreamUpdate(get.myPartecipantId(), localStream);
+      WebRTC.notifyLocalStreamUpdate(get.deviceUUID(), localStream);
 
       console.log(
         `Successfully switched to camera device: ${deviceId || "default"}`
@@ -418,10 +445,7 @@ const self = {
       WebRTC.setLocalStream(updatedStream);
 
       // Notify UI of the stream update
-      WebRTC.notifyLocalStreamUpdate(
-        get.myPartecipantId(),
-        WebRTC.getLocalStream()
-      ); // Force local stream update for mobile platforms with delay
+      WebRTC.notifyLocalStreamUpdate(get.deviceUUID(), WebRTC.getLocalStream());
 
       console.log(
         `Successfully switched to mobile camera with facingMode: ${facingMode}`
@@ -432,7 +456,7 @@ const self = {
       throw error;
     }
   },
-  // quando premo pulsante video
+
   async toggleVideo() {
     try {
       let localStream = WebRTC.getLocalStream();
@@ -494,11 +518,24 @@ const self = {
         throw new Error("Failed to get screen share permission or stream");
       } // Now that we have permission and the stream, get the screen share ID from API
 
-      const data = await gateway.startScreenShare(WebRTC.getChatId());
+      await SocketIO.send().startScreenShare(WebRTC.getCommUUID());
+      const response = await new Promise((resolve, reject) => {
+        const timeout = setTimeout(
+          () =>
+            reject(new Error("Timeout waiting for comms_screen_share_started")),
+          10000
+        );
+        SocketIO.getSocket().once("comms_screen_share_started", (data) => {
+          if (data.commUUID === WebRTC.getCommUUID()) {
+            clearTimeout(timeout);
+            resolve(data);
+          }
+        });
+      });
 
-      if (data.screen_share_started) {
+      if (response.success) {
         SoundPlayer.getInstance().playSound("comms_stream_started");
-        const screenShareUUID = data.screen_share_uuid;
+        const screenShareUUID = response.data.screenShareUUID;
 
         const result = await WebRTC.startScreenShare(
           screenShareUUID,
@@ -538,16 +575,27 @@ const self = {
     }
   },
 
-  // quando premo x per fermare lo screen share
-
   async stopScreenShare(screenShareUUID) {
     try {
-      const data = await gateway.stopScreenShare(
-        WebRTC.getChatId(),
+      await SocketIO.send().stopScreenShare(
+        WebRTC.getCommUUID(),
         screenShareUUID
       );
+      const response = await new Promise((resolve, reject) => {
+        const timeout = setTimeout(
+          () =>
+            reject(new Error("Timeout waiting for comms_screen_share_stopped")),
+          10000
+        );
+        SocketIO.getSocket().once("comms_screen_share_stopped", (data) => {
+          if (data.commUUID === WebRTC.getCommUUID()) {
+            clearTimeout(timeout);
+            resolve(data);
+          }
+        });
+      });
 
-      if (!data.screen_share_stopped) {
+      if (!response.success) {
         console.warn("[ScreenShare] Failed to stop screen share");
         throw new Error("Failed to stop screen share");
       }
@@ -561,37 +609,31 @@ const self = {
 };
 
 const handle = {
-  // quando un nuovo membro entra in una room
   async memberJoined(data) {
-    // Solo se il membro che entra è nella stessa chat vocale
-    if (WebRTC.getChatId() === data.chat_id) {
+    if (WebRTC.getCommUUID() === data.commUUID) {
       SoundPlayer.getInstance().playSound("comms_join_vocal");
     }
-    eventEmitter.emit("comms_join", data);
+    await eventEmitter.commsJoin(data.commUUID, data.user);
 
     await WebRTC.handleUserJoined(data);
   },
-  // quando un membro esce da una room
   async memberLeft(data) {
-    // Solo se il membro che esce è nella stessa chat vocale
-    if (WebRTC.getChatId() === data.chat_id) {
+    if (WebRTC.getCommUUID() === data.commUUID) {
       SoundPlayer.getInstance().playSound("comms_leave_vocal");
     }
-    eventEmitter.emit("comms_leave", data);
+    await eventEmitter.commsLeave(data.commUUID, data.user);
 
     await WebRTC.handleUserLeft(data);
   },
   async screenShareStarted(data) {
-    // Solo se il membro che ha iniziato lo screen share è nella stessa chat vocale
-    if (WebRTC.getChatId() == data.chat_id) {
+    if (WebRTC.getCommUUID() == data.commUUID) {
       SoundPlayer.getInstance().playSound("comms_stream_started");
     }
 
     eventEmitter.emit("comms_screen_share_start", data);
   },
   async screenShareStopped(data) {
-    // Solo se il membro che ha fermato lo screen share è nella stessa chat vocale
-    if (WebRTC.getChatId() == data.chat_id) {
+    if (WebRTC.getCommUUID() == data.commUUID) {
       SoundPlayer.getInstance().playSound("comms_stream_stopped");
     }
 
@@ -601,67 +643,47 @@ const handle = {
 
 const check = {
   isInComms: () => {
-    return WebRTC.getChatId() != null && WebRTC.getChatId() !== "";
+    return WebRTC.getCommUUID() != null && WebRTC.getCommUUID() !== "";
   },
-  isScreenShare: (participantId, streamUUID) => {
-    return WebRTC.isScreenShare(participantId, streamUUID);
+  isScreenShare: (deviceUUID, streamUUID) => {
+    return WebRTC.isScreenShare(deviceUUID, streamUUID);
   },
 };
 
 const get = {
-  commsId: () => {
-    return WebRTC.getChatId();
+  commUUID: () => {
+    return WebRTC.getCommUUID();
   },
-  myPartecipantId: () => {
-    return WebRTC.getMyId();
+  deviceUUID: () => {
+    return WebRTC.getDeviceUUID();
   },
-  commsData: async (chatId) => {
-    let commsData = [];
+  commData: async (commUUID) => {
+    let commData = [];
 
-    if (chatId != WebRTC.getChatId()) {
-      // Different comms - always fetch from API
-      commsData = await gateway.retrieveVocalUsers(chatId);
+    if (commUUID != WebRTC.getCommUUID()) {
+      // Different comms - always fetch from Socket-IO
+      await SocketIO.send().retrieveCommData(commUUID);
+      const response = await new Promise((resolve, reject) => {
+        const timeout = setTimeout(
+          () =>
+            reject(new Error("Timeout waiting for comms_retrieve_comms_data")),
+          10000
+        );
+        SocketIO.getSocket().once("comms_retrieve_comms_data", (data) => {
+          if (data.commUUID === commUUID) {
+            clearTimeout(timeout);
+            resolve(data);
+          }
+        });
+      });
+      if (response.success) {
+        commData = response.data;
+      }
     } else {
       // Active comms data
-      commsData = WebRTC.getCommsData();
+      commData = WebRTC.getAllCommsData();
     }
-
-    // // Ensure local user is in the list with current screen shares (DA CAPIRE SE SERVE)
-    // const localUserExists = usersList.some(
-    //   (user) => user.from === myParticipantId
-    // );
-
-    // if (!localUserExists) {
-    //   // Fetch local user handle and data only if not already present
-    //   const localUserHandle = await localDatabase.fetchLocalUserHandle();
-    //   const localUserData = await localDatabase.fetchLocalUserData();
-
-    //   // Build local user object with active screen shares
-    //   const activeScreenShares =
-    //     WebRTC.getActiveScreenShares(myParticipantId);
-
-    //   const localUser = {
-    //     handle: localUserHandle,
-    //     from: myParticipantId,
-    //     profileImage: localUserData?.profileImage || null,
-    //     active_screen_share: activeScreenShares || [], // Include active screen shares
-    //   };
-
-    //   usersList.push(localUser);
-    // } else {
-    //   // Update existing local user with current screen shares
-    //   const localUserIndex = usersList.findIndex(
-    //     (user) => user.from === myParticipantId
-    //   );
-    //   if (localUserIndex !== -1) {
-    //     const activeScreenShares =
-    //       WebRTC.getActiveScreenShares(myParticipantId);
-    //     usersList[localUserIndex].active_screen_share =
-    //       activeScreenShares || [];
-    //   }
-    // }
-
-    return commsData;
+    return commData;
   },
   activeStreams: () => {
     return WebRTC.getActiveStreams();

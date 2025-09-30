@@ -43,22 +43,22 @@ export class ICEManager {
       return false;
     }
 
-    const participantId = message.from;
-    const pc = this.globalState.getPeerConnection(participantId);
+    const deviceUUID = message.from;
+    const pc = this.globalState.getPeerConnection(deviceUUID);
 
     if (!pc) {
-      this.logger.error(`PeerConnection non trovata per ${participantId}`, {
+      this.logger.error(`PeerConnection non trovata per ${deviceUUID}`, {
         component: "ICEManager",
-        participantId,
+        deviceUUID,
       });
       return false;
     }
 
     try {
       if (message.candidate) {
-        this.logger.debug(`Candidato ICE ricevuto da ${participantId}`, {
+        this.logger.debug(`Candidato ICE ricevuto da ${deviceUUID}`, {
           component: "ICEManager",
-          participantId,
+          deviceUUID,
           candidateType: message.candidate.type,
           protocol: message.candidate.protocol,
           foundation: message.candidate.foundation,
@@ -69,24 +69,24 @@ export class ICEManager {
         // Verifica se remote description è impostata
         if (!pc.remoteDescription) {
           this.logger.info(
-            `Remote description non ancora impostata per ${participantId}, accodamento candidato`,
+            `Remote description non ancora impostata per ${deviceUUID}, accodamento candidato`,
             {
               component: "ICEManager",
-              participantId,
+              deviceUUID,
             }
           );
-          this._queueICECandidate(participantId, candidate);
+          this._queueICECandidate(deviceUUID, candidate);
           return true;
         }
 
         // Tenta di aggiungere il candidato con retry logic per Android
-        await this._addICECandidateWithRetry(participantId, candidate);
+        await this._addICECandidateWithRetry(deviceUUID, candidate);
         return true;
       } else {
         // Fine candidati ICE (null candidate)
-        this.logger.info(`Fine candidati ICE per ${participantId}`, {
+        this.logger.info(`Fine candidati ICE per ${deviceUUID}`, {
           component: "ICEManager",
-          participantId,
+          deviceUUID,
         });
 
         if (pc.remoteDescription) {
@@ -95,9 +95,9 @@ export class ICEManager {
         return true;
       }
     } catch (error) {
-      this.logger.error(`Errore gestione candidato ICE per ${participantId}`, {
+      this.logger.error(`Errore gestione candidato ICE per ${deviceUUID}`, {
         component: "ICEManager",
-        participantId,
+        deviceUUID,
         error: error.message,
         stack: error.stack,
       });
@@ -108,65 +108,65 @@ export class ICEManager {
   /**
    * Configura i gestori di eventi ICE per una PeerConnection
    * @param {RTCPeerConnection} pc - La peer connection
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {void}
    */
-  setupICEEventHandlers(pc, participantId) {
+  setupICEEventHandlers(pc, deviceUUID) {
     this.logger.debug(
-      `Configurazione gestori eventi ICE per ${participantId}`,
+      `Configurazione gestori eventi ICE per ${deviceUUID}`,
       {
         component: "ICEManager",
-        participantId,
+        deviceUUID,
       }
     );
 
     // Gestione generazione candidati ICE
     pc.onicecandidate = (event) => {
-      this._handleICECandidateGenerated(event, participantId);
+      this._handleICECandidateGenerated(event, deviceUUID);
     };
 
     // Monitoraggio stato connessione ICE
     pc.oniceconnectionstatechange = () => {
-      this._handleICEConnectionStateChange(pc, participantId);
+      this._handleICEConnectionStateChange(pc, deviceUUID);
     };
 
     // Monitoraggio stato raccolta ICE
     pc.onicegatheringstatechange = () => {
-      this._handleICEGatheringStateChange(pc, participantId);
+      this._handleICEGatheringStateChange(pc, deviceUUID);
     };
 
     // Timeout per raccolta ICE
-    this._setupICEGatheringTimeout(participantId);
+    this._setupICEGatheringTimeout(deviceUUID);
   }
   /**
    * Processa tutti i candidati ICE in coda per un partecipante
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {Promise<void>}
    */
-  async processQueuedICECandidates(participantId) {
+  async processQueuedICECandidates(deviceUUID) {
     const queuedCandidates =
-      this.globalState.getQueuedICECandidates(participantId);
+      this.globalState.getQueuedICECandidates(deviceUUID);
 
     if (!queuedCandidates || queuedCandidates.length === 0) {
       return;
     }
 
     this.logger.info(
-      `Processando ${queuedCandidates.length} candidati ICE in coda per ${participantId}`,
+      `Processando ${queuedCandidates.length} candidati ICE in coda per ${deviceUUID}`,
       {
         component: "ICEManager",
-        participantId,
+        deviceUUID,
         candidatesCount: queuedCandidates.length,
       }
     );
 
-    const pc = this.globalState.getPeerConnection(participantId);
+    const pc = this.globalState.getPeerConnection(deviceUUID);
     if (!pc) {
       this.logger.error(
-        `PeerConnection non trovata per processare candidati in coda: ${participantId}`,
+        `PeerConnection non trovata per processare candidati in coda: ${deviceUUID}`,
         {
           component: "ICEManager",
-          participantId,
+          deviceUUID,
         }
       );
       return;
@@ -175,10 +175,10 @@ export class ICEManager {
     // Check if remote description is set before processing
     if (!pc.remoteDescription) {
       this.logger.warning(
-        `Remote description still not set for ${participantId}, keeping candidates queued`,
+        `Remote description still not set for ${deviceUUID}, keeping candidates queued`,
         {
           component: "ICEManager",
-          participantId,
+          deviceUUID,
         }
       );
       return;
@@ -188,10 +188,10 @@ export class ICEManager {
     let processedCount = 0;
     for (const candidate of queuedCandidates) {
       try {
-        await this._addICECandidateWithRetry(participantId, candidate);
+        await this._addICECandidateWithRetry(deviceUUID, candidate);
 
         // Mark candidate as processed to prevent duplicate processing
-        this.globalState.markICECandidateAsProcessed(participantId, candidate);
+        this.globalState.markICECandidateAsProcessed(deviceUUID, candidate);
         processedCount++;
 
         // Small delay between candidates to prevent overwhelming the connection
@@ -200,10 +200,10 @@ export class ICEManager {
         }
       } catch (error) {
         this.logger.error(
-          `Errore processando candidato ICE dalla coda per ${participantId}`,
+          `Errore processando candidato ICE dalla coda per ${deviceUUID}`,
           {
             component: "ICEManager",
-            participantId,
+            deviceUUID,
             error: error.message,
             candidateIndex: processedCount,
           }
@@ -213,56 +213,56 @@ export class ICEManager {
     }
 
     this.logger.info(
-      `Processati ${processedCount}/${queuedCandidates.length} candidati ICE per ${participantId}`,
+      `Processati ${processedCount}/${queuedCandidates.length} candidati ICE per ${deviceUUID}`,
       {
         component: "ICEManager",
-        participantId,
+        deviceUUID,
         processedCount,
         totalCount: queuedCandidates.length,
       }
     );
 
     // Clear only processed candidates, keeping any new ones that arrived during processing
-    this._cleanupProcessedCandidates(participantId);
+    this._cleanupProcessedCandidates(deviceUUID);
   }
 
   /**
    * Reimposta lo stato ICE per un partecipante (per riconnessioni)
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {void}
-   */ resetICEState(participantId) {
-    this.logger.info(`Reset stato ICE per ${participantId}`, {
+   */ resetICEState(deviceUUID) {
+    this.logger.info(`Reset stato ICE per ${deviceUUID}`, {
       component: "ICEManager",
-      participantId,
+      deviceUUID,
       action: "resetICEState",
     });
 
     // Pulisci coda candidati ICE
-    this.globalState.clearQueuedICECandidates(participantId);
+    this.globalState.clearQueuedICECandidates(deviceUUID);
 
     // Pulisci timeout ICE gathering se presente
-    this._clearICEGatheringTimeout(participantId);
+    this._clearICEGatheringTimeout(deviceUUID);
   }
 
   /**
    * Handles a remote ICE candidate for SignalingManager integration
-   * @param {string} participantId - ID of the participant
+   * @param {string} deviceUUID - ID of the participant
    * @param {Object} candidateData - The ICE candidate data
    * @returns {Promise<boolean>}
    */
-  async handleRemoteCandidate(participantId, candidateData) {
-    this.logger.debug(`Handling remote ICE candidate for ${participantId}`, {
+  async handleRemoteCandidate(deviceUUID, candidateData) {
+    this.logger.debug(`Handling remote ICE candidate for ${deviceUUID}`, {
       component: "ICEManager",
-      participantId,
+      deviceUUID,
       candidateType: candidateData?.type,
     });
 
-    const pc = this.globalState.getPeerConnection(participantId);
+    const pc = this.globalState.getPeerConnection(deviceUUID);
 
     if (!pc) {
-      this.logger.error(`PeerConnection not found for ${participantId}`, {
+      this.logger.error(`PeerConnection not found for ${deviceUUID}`, {
         component: "ICEManager",
-        participantId,
+        deviceUUID,
       });
       return false;
     }
@@ -274,24 +274,24 @@ export class ICEManager {
         // Check if remote description is set
         if (!pc.remoteDescription) {
           this.logger.info(
-            `Remote description not set for ${participantId}, queuing candidate`,
+            `Remote description not set for ${deviceUUID}, queuing candidate`,
             {
               component: "ICEManager",
-              participantId,
+              deviceUUID,
             }
           );
-          this._queueICECandidate(participantId, candidate);
+          this._queueICECandidate(deviceUUID, candidate);
           return true;
         }
 
         // Add candidate with retry logic
-        await this._addICECandidateWithRetry(participantId, candidate);
+        await this._addICECandidateWithRetry(deviceUUID, candidate);
         return true;
       } else {
         // End of candidates (null candidate)
-        this.logger.info(`End of ICE candidates for ${participantId}`, {
+        this.logger.info(`End of ICE candidates for ${deviceUUID}`, {
           component: "ICEManager",
-          participantId,
+          deviceUUID,
         });
 
         if (pc.remoteDescription) {
@@ -301,10 +301,10 @@ export class ICEManager {
       }
     } catch (error) {
       this.logger.error(
-        `Error handling remote ICE candidate for ${participantId}`,
+        `Error handling remote ICE candidate for ${deviceUUID}`,
         {
           component: "ICEManager",
-          participantId,
+          deviceUUID,
           error: error.message,
         }
       );
@@ -314,20 +314,20 @@ export class ICEManager {
 
   /**
    * Processes queued ICE candidates for SignalingManager integration
-   * @param {string} participantId - ID of the participant
+   * @param {string} deviceUUID - ID of the participant
    * @returns {Promise<void>}
    */
-  async processQueuedCandidates(participantId) {
-    return await this.processQueuedICECandidates(participantId);
+  async processQueuedCandidates(deviceUUID) {
+    return await this.processQueuedICECandidates(deviceUUID);
   }
 
   /**
    * Ottiene statistiche ICE per debug
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {Object|null}
    */
-  async getICEStatistics(participantId) {
-    const pc = this.globalState.getPeerConnection(participantId);
+  async getICEStatistics(deviceUUID) {
+    const pc = this.globalState.getPeerConnection(deviceUUID);
     if (!pc) {
       return null;
     }
@@ -373,10 +373,10 @@ export class ICEManager {
       return iceStats;
     } catch (error) {
       this.logger.error(
-        `Errore ottenendo statistiche ICE per ${participantId}`,
+        `Errore ottenendo statistiche ICE per ${deviceUUID}`,
         {
           component: "ICEManager",
-          participantId,
+          deviceUUID,
           error: error.message,
         }
       );
@@ -387,33 +387,33 @@ export class ICEManager {
   /**
    * Gestisce la generazione di un candidato ICE locale
    * @param {RTCPeerConnectionIceEvent} event - Evento candidato ICE
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {void}
    * @private
    */
-  _handleICECandidateGenerated(event, participantId) {
+  async _handleICECandidateGenerated(event, deviceUUID) {
     if (event.candidate) {
-      this.logger.debug(`Candidato ICE generato per ${participantId}`, {
+      this.logger.debug(`Candidato ICE generato per ${deviceUUID}`, {
         component: "ICEManager",
-        participantId,
+        deviceUUID,
         candidateType: event.candidate.type,
         protocol: event.candidate.protocol,
       });
 
       // Invia candidato tramite WebSocket utilizzando direttamente IceCandidate
       const SocketIO = require("../../backend-services/socket-io.js").default;
-      SocketIO.IceCandidate({
+      await SocketIO.send().IceCandidate({
         candidate: event.candidate.toJSON(),
-        to: participantId,
-        from: this.globalState.getMyId(),
-        chat: this.globalState.getChatId(),
+        to: deviceUUID,
+        from: this.globalState.getDeviceUUID(),
+        chat: this.globalState.getCommUUID(),
       });
     } else {
       this.logger.info(
-        `Raccolta candidati ICE completata per ${participantId}`,
+        `Raccolta candidati ICE completata per ${deviceUUID}`,
         {
           component: "ICEManager",
-          participantId,
+          deviceUUID,
         }
       );
     }
@@ -422,16 +422,16 @@ export class ICEManager {
   /**
    * Gestisce i cambiamenti di stato della connessione ICE
    * @param {RTCPeerConnection} pc - La peer connection
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {void}
    * @private
    */
-  _handleICEConnectionStateChange(pc, participantId) {
+  _handleICEConnectionStateChange(pc, deviceUUID) {
     const state = pc.iceConnectionState;
 
-    this.logger.info(`Stato connessione ICE per ${participantId}: ${state}`, {
+    this.logger.info(`Stato connessione ICE per ${deviceUUID}: ${state}`, {
       component: "ICEManager",
-      participantId,
+      deviceUUID,
       iceConnectionState: state,
     });
 
@@ -440,7 +440,7 @@ export class ICEManager {
       "onPeerConnectionStateChange"
     );
     if (callback) {
-      callback(participantId, "ice", state);
+      callback(deviceUUID, "ice", state);
     }
 
     // Gestisci stati critici
@@ -448,10 +448,10 @@ export class ICEManager {
       case "connected":
       case "completed":
         this.logger.info(
-          `Connessione ICE stabilita con successo per ${participantId}`,
+          `Connessione ICE stabilita con successo per ${deviceUUID}`,
           {
             component: "ICEManager",
-            participantId,
+            deviceUUID,
             iceConnectionState: state,
           }
         );
@@ -459,27 +459,27 @@ export class ICEManager {
 
       case "disconnected":
         this.logger.warning(
-          `Connessione ICE disconnessa per ${participantId}`,
+          `Connessione ICE disconnessa per ${deviceUUID}`,
           {
             component: "ICEManager",
-            participantId,
+            deviceUUID,
             iceConnectionState: state,
           }
         );
         break;
 
       case "failed":
-        this.logger.error(`Connessione ICE fallita per ${participantId}`, {
+        this.logger.error(`Connessione ICE fallita per ${deviceUUID}`, {
           component: "ICEManager",
-          participantId,
+          deviceUUID,
           iceConnectionState: state,
         });
         break;
 
       case "closed":
-        this.logger.info(`Connessione ICE chiusa per ${participantId}`, {
+        this.logger.info(`Connessione ICE chiusa per ${deviceUUID}`, {
           component: "ICEManager",
-          participantId,
+          deviceUUID,
           iceConnectionState: state,
         });
         break;
@@ -489,35 +489,35 @@ export class ICEManager {
   /**
    * Gestisce i cambiamenti di stato della raccolta ICE
    * @param {RTCPeerConnection} pc - La peer connection
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {void}
    * @private
    */
-  _handleICEGatheringStateChange(pc, participantId) {
+  _handleICEGatheringStateChange(pc, deviceUUID) {
     const state = pc.iceGatheringState;
 
-    this.logger.debug(`Stato raccolta ICE per ${participantId}: ${state}`, {
+    this.logger.debug(`Stato raccolta ICE per ${deviceUUID}: ${state}`, {
       component: "ICEManager",
-      participantId,
+      deviceUUID,
       iceGatheringState: state,
     });
 
     if (state === "complete") {
-      this._clearICEGatheringTimeout(participantId);
+      this._clearICEGatheringTimeout(deviceUUID);
     }
   }
 
   /**
    * Aggiunge un candidato ICE con retry logic
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @param {RTCIceCandidate} candidate - Il candidato ICE
    * @returns {Promise<void>}
    * @private
    */
-  async _addICECandidateWithRetry(participantId, candidate) {
-    const pc = this.globalState.getPeerConnection(participantId);
+  async _addICECandidateWithRetry(deviceUUID, candidate) {
+    const pc = this.globalState.getPeerConnection(deviceUUID);
     if (!pc) {
-      throw new Error(`PeerConnection non trovata per ${participantId}`);
+      throw new Error(`PeerConnection non trovata per ${deviceUUID}`);
     }
 
     let retryCount = 0;
@@ -528,10 +528,10 @@ export class ICEManager {
         await pc.addIceCandidate(candidate);
 
         this.logger.debug(
-          `Candidato ICE aggiunto con successo per ${participantId}`,
+          `Candidato ICE aggiunto con successo per ${deviceUUID}`,
           {
             component: "ICEManager",
-            participantId,
+            deviceUUID,
             attempt: retryCount + 1,
           }
         );
@@ -541,10 +541,10 @@ export class ICEManager {
         retryCount++;
 
         this.logger.warning(
-          `Tentativo ${retryCount}/${maxRetries} fallito per candidato ICE di ${participantId}`,
+          `Tentativo ${retryCount}/${maxRetries} fallito per candidato ICE di ${deviceUUID}`,
           {
             component: "ICEManager",
-            participantId,
+            deviceUUID,
             attempt: retryCount,
             maxRetries,
             error: error.message,
@@ -557,10 +557,10 @@ export class ICEManager {
         } else {
           // Tutti i tentativi falliti
           this.logger.error(
-            `Tutti i tentativi falliti per candidato ICE di ${participantId}`,
+            `Tutti i tentativi falliti per candidato ICE di ${deviceUUID}`,
             {
               component: "ICEManager",
-              participantId,
+              deviceUUID,
               totalAttempts: retryCount,
               error: error.message,
             }
@@ -573,54 +573,54 @@ export class ICEManager {
 
   /**
    * Accoda un candidato ICE se remote description non è ancora impostata
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @param {RTCIceCandidate} candidate - Il candidato ICE
    * @returns {void}
    * @private
    */
-  _queueICECandidate(participantId, candidate) {
-    this.globalState.queueICECandidate(participantId, candidate);
+  _queueICECandidate(deviceUUID, candidate) {
+    this.globalState.queueICECandidate(deviceUUID, candidate);
 
-    this.logger.debug(`Candidato ICE accodato per ${participantId}`, {
+    this.logger.debug(`Candidato ICE accodato per ${deviceUUID}`, {
       component: "ICEManager",
-      participantId,
+      deviceUUID,
       queueLength:
-        this.globalState.getQueuedICECandidates(participantId).length,
+        this.globalState.getQueuedICECandidates(deviceUUID).length,
     });
   }
 
   /**
    * Configura timeout per raccolta ICE
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {void}
    * @private
    */
-  _setupICEGatheringTimeout(participantId) {
+  _setupICEGatheringTimeout(deviceUUID) {
     const timeoutId = setTimeout(() => {
-      const pc = this.globalState.getPeerConnection(participantId);
+      const pc = this.globalState.getPeerConnection(deviceUUID);
       if (pc && pc.iceGatheringState !== "complete") {
-        this.logger.warning(`Timeout raccolta ICE per ${participantId}`, {
+        this.logger.warning(`Timeout raccolta ICE per ${deviceUUID}`, {
           component: "ICEManager",
-          participantId,
+          deviceUUID,
           iceGatheringState: pc.iceGatheringState,
           timeout: this.ICE_GATHERING_TIMEOUT,
         });
       }
     }, this.ICE_GATHERING_TIMEOUT);
 
-    this.globalState.setICEGatheringTimeout(participantId, timeoutId);
+    this.globalState.setICEGatheringTimeout(deviceUUID, timeoutId);
   }
   /**
    * Pulisce il timeout di raccolta ICE
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {void}
    * @private
    */
-  _clearICEGatheringTimeout(participantId) {
-    const timeoutId = this.globalState.getICEGatheringTimeout(participantId);
+  _clearICEGatheringTimeout(deviceUUID) {
+    const timeoutId = this.globalState.getICEGatheringTimeout(deviceUUID);
     if (timeoutId) {
       clearTimeout(timeoutId);
-      this.globalState.clearICEGatheringTimeout(participantId);
+      this.globalState.clearICEGatheringTimeout(deviceUUID);
     }
   }
 
@@ -637,23 +637,23 @@ export class ICEManager {
 
   /**
    * Cleanup processed ICE candidates from queue while preserving new ones
-   * @param {string} participantId - ID del partecipante
+   * @param {string} deviceUUID - ID del partecipante
    * @returns {void}
    * @private
    */
-  _cleanupProcessedCandidates(participantId) {
+  _cleanupProcessedCandidates(deviceUUID) {
     const allEntries =
-      this.globalState.getQueuedICECandidateEntries(participantId);
+      this.globalState.getQueuedICECandidateEntries(deviceUUID);
     const unprocessedEntries = allEntries.filter((entry) => !entry.processed);
 
     // Replace queue with only unprocessed candidates
-    this.globalState.iceCandidateQueues[participantId] = unprocessedEntries;
+    this.globalState.iceCandidateQueues[deviceUUID] = unprocessedEntries;
 
     this.logger.debug(
-      `Cleaned up processed ICE candidates for ${participantId}`,
+      `Cleaned up processed ICE candidates for ${deviceUUID}`,
       {
         component: "ICEManager",
-        participantId,
+        deviceUUID,
         totalEntries: allEntries.length,
         remainingEntries: unprocessedEntries.length,
       }
@@ -667,8 +667,8 @@ export class ICEManager {
    * @private
    */
   _isMessageForMe(message) {
-    const myId = this.globalState.getMyId();
-    const chatId = this.globalState.getChatId();
+    const myId = this.globalState.getDeviceUUID();
+    const chatId = this.globalState.getCommUUID();
 
     return message.to === myId && message.chat === chatId;
   }
@@ -684,9 +684,9 @@ export class ICEManager {
     });
 
     // Pulisci tutti i timeout ICE gathering
-    const participantIds = this.globalState.getAllPeerConnectionIds();
-    participantIds.forEach((participantId) => {
-      this._clearICEGatheringTimeout(participantId);
+    const deviceUUIDs = this.globalState.getAllPeerConnectionIds();
+    deviceUUIDs.forEach((deviceUUID) => {
+      this._clearICEGatheringTimeout(deviceUUID);
     });
   }
 }

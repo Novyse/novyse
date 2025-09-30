@@ -184,7 +184,7 @@ const AppContainer = () => {
   // useEffect per comms events
   useEffect(() => {
     const handleCommsStateChange = (data) => {
-      if (data.from === get.myPartecipantId()) {
+      if (data.from === get.deviceUUID()) {
         setForceUpdate((prev) => prev + 1);
       }
     };
@@ -201,7 +201,7 @@ const AppContainer = () => {
     if (isSmallScreen) return false;
     const isInComms = check.isInComms();
     if (isInComms) {
-      const commsId = get.commsId();
+      const commsId = get.commUUID();
       if (selectedChatUUID !== commsId) return true;
       return selectedChatUUID === commsId && "chat" === "chat";
     }
@@ -215,7 +215,7 @@ const AppContainer = () => {
     if (!isSmallScreen) return false;
     const isInComms = check.isInComms();
     if (isInComms) {
-      const commsId = get.commsId();
+      const commsId = get.commUUID();
       if (selectedChatUUID !== commsId) return true;
       return selectedChatUUID === commsId && "chat" === "chat";
     }

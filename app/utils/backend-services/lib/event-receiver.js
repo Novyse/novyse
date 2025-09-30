@@ -40,22 +40,22 @@ const eventReceiver = {
     // -------------------- WebRTC EVENTS --------------------
 
     socket.on("comms_join", async (data) => {
-      eventEmitter.emit("comms_join", data);
+      eventEmitter.commsJoin(data);
     });
 
     socket.on("comms_leave", async (data) => {
-      eventEmitter.emit("comms_leave", data);
+      eventEmitter.commsLeave(data);
     });
 
     socket.on("comms_screen_share_start", async (data) => {
-      eventEmitter.emit("comms_screen_share_start", {
+      eventEmitter.commsScreenShareStart({
         from: data.from,
         chatUUID: data.to,
         screenShareUUID: data.screen_share_uuid,
       });
     });
     socket.on("comms_screen_share_stop", async (data) => {
-      eventEmitter.emit("comms_screen_share_stop", {
+      eventEmitter.commsScreenShareStop({
         from: data.from,
         chatUUID: data.to,
         screenShareUUID: data.screen_share_uuid,
@@ -65,48 +65,48 @@ const eventReceiver = {
     // Relay WebRTC signaling events
 
     socket.on("comms_candidate", async (data) => {
-      eventEmitter.emit("comms_candidate", data);
+      eventEmitter.commsCandidate(data);
     });
 
     socket.on("comms_answer", async (data) => {
-      eventEmitter.emit("comms_answer", data);
+      eventEmitter.commsAnswer(data);
     });
 
     socket.on("comms_offer", async (data) => {
-      eventEmitter.emit("comms_offer", data);
+      eventEmitter.commsOffer(data);
     });
 
     socket.on("comms_speaking", async (data) => {
-      eventEmitter.emit("comms_speaking", {
+      eventEmitter.commsSpeaking({
         id: data.from,
         chatUUID: data.to,
       });
     });
     socket.on("comms_not_speaking", async (data) => {
-      eventEmitter.emit("comms_not_speaking", {
+      eventEmitter.commsNotSpeaking({
         id: data.from,
         chatUUID: data.to,
       });
     });
 
     socket.on("comms_mid_to_uuid_mapping", async (data) => {
-      eventEmitter.emit("comms_mid_to_uuid_mapping", {
+      eventEmitter.commsMidToUUIDMapping({
         from: data.from,
         to: data.to,
-        mid: data.mid,
         streamUUID: data.streamUUID,
+        mid: data.mid,
       });
     });
 
     socket.on("comms_webcam_on", async (data) => {
-      eventEmitter.emit("comms_webcam_on", {
+      eventEmitter.commsWebcamOn({
         from: data.from,
         chatUUID: data.to,
       });
     });
 
     socket.on("comms_webcam_off", async (data) => {
-      eventEmitter.emit("comms_webcam_off", {
+      eventEmitter.commsWebcamOff({
         from: data.from,
         chatUUID: data.to,
       });

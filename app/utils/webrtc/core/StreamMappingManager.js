@@ -14,8 +14,8 @@ export class StreamMappingManager {
 
     // Struttura
     /*
-      midToStreaumUUIDMapping = {
-        participantUUID: {
+      midToStreamUUIDMapping = {
+        myDeviceUUID: {
           mid: streamUUID,
           ...
         }
@@ -27,14 +27,14 @@ export class StreamMappingManager {
     });
   }
 
-  addLocalStreamMapping(remoteParticipantUUID,streamUUID, mid) {
-    const participantUUID = this.globalState.getMyId();
-    this.addStreamMapping(participantUUID, streamUUID, mid);
+  addLocalStreamMapping(deviceUUID, streamUUID, mid) {
+    const myDeviceUUID = this.globalState.getDeviceUUID();
+    this.addStreamMapping(myDeviceUUID, streamUUID, mid);
 
-    if(!remoteParticipantUUID || !participantUUID || !streamUUID || !mid) {
+    if (!deviceUUID || !myDeviceUUID || !streamUUID || !mid) {
       this.logger.error("addLocalStreamMapping: Parametri mancanti", {
-        remoteParticipantUUID,
-        participantUUID,
+        deviceUUID,
+        myDeviceUUID,
         streamUUID,
         mid,
       });
@@ -42,37 +42,36 @@ export class StreamMappingManager {
     }
 
     EventEmitter.sendMIDtoStreamUUIDMapping(
-      remoteParticipantUUID,
-      participantUUID,
+      deviceUUID,
+      myDeviceUUID,
       streamUUID,
       mid
     );
-
   }
 
-  addStreamMapping(participantUUID, streamUUID, mid) {
+  addStreamMapping(myDeviceUUID, streamUUID, mid) {
     // Inizializza oggetto se non esiste
-    if (!this.midToStreaumUUIDMapping[participantUUID]) {
-      this.midToStreaumUUIDMapping[participantUUID] = {};
+    if (!this.midToStreaumUUIDMapping[myDeviceUUID]) {
+      this.midToStreaumUUIDMapping[myDeviceUUID] = {};
     }
 
     // Assegna direttamente mid → streamUUID
-    this.midToStreaumUUIDMapping[participantUUID][mid] = streamUUID;
+    this.midToStreaumUUIDMapping[myDeviceUUID][mid] = streamUUID;
 
     this.logger.info("Mapping mid→streamUUID aggiunto o aggiornato", {
       component: "StreamMappingManager",
-      participantUUID,
+      myDeviceUUID,
       mid,
       streamUUID,
     });
   }
 
-  getStreamUUIDByMid(participantUUID, mid) {
-    const participantMapping = this.midToStreaumUUIDMapping[participantUUID];
+  getStreamUUIDByMid(myDeviceUUID, mid) {
+    const participantMapping = this.midToStreaumUUIDMapping[myDeviceUUID];
     if (!participantMapping) {
       this.logger.warning("Nessun mapping trovato per il partecipante", {
         component: "StreamMappingManager",
-        participantUUID,
+        myDeviceUUID,
         mid,
       });
       return null;
@@ -81,26 +80,26 @@ export class StreamMappingManager {
     if (!streamUUID) {
       this.logger.warning("Nessun streamUUID trovato per il MID", {
         component: "StreamMappingManager",
-        participantUUID,
+        myDeviceUUID,
         mid,
       });
       return null;
     }
     this.logger.debug("StreamUUID trovato per il MID", {
       component: "StreamMappingManager",
-      participantUUID,
+      myDeviceUUID,
       mid,
       streamUUID,
     });
     return streamUUID;
   }
 
-  removeMappingByMid(participantUUID, mid) {
-    const participantMapping = this.midToStreaumUUIDMapping[participantUUID];
+  removeMappingByMid(myDeviceUUID, mid) {
+    const participantMapping = this.midToStreaumUUIDMapping[myDeviceUUID];
     if (!participantMapping || !participantMapping[mid]) {
       this.logger.warning("Nessun mapping da rimuovere per il MID", {
         component: "StreamMappingManager",
-        participantUUID,
+        myDeviceUUID,
         mid,
       });
       return;
@@ -109,7 +108,7 @@ export class StreamMappingManager {
     delete participantMapping[mid];
     this.logger.info("Mapping rimosso con successo", {
       component: "StreamMappingManager",
-      participantUUID,
+      myDeviceUUID,
       mid,
     });
   }

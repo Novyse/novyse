@@ -18,7 +18,7 @@ import { useRouter } from "expo-router";
 import methods from "../../utils/webrtc/methods";
 const { get, self, check } = methods;
 
-const VocalContentBottomBar = ({ chatId }) => {
+const VocalContentBottomBar = ({ commUUID }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
@@ -53,7 +53,7 @@ const VocalContentBottomBar = ({ chatId }) => {
       setIsAudioEnabled(await get.microphoneStatus());
       setIsVideoEnabled(await get.videoStatus());
 
-      await self.join(chatId);
+      await self.join(commUUID);
 
       setCurrentMicrophoneId(get.microphoneDeviceId());
       setCurrentCameraId(get.videoDeviceId());
@@ -211,7 +211,7 @@ const VocalContentBottomBar = ({ chatId }) => {
 
   return (
     <View style={styles.container}>
-      {!check.isInComms() || get.commsId() !== chatId ? (
+      {!check.isInComms() || get.commUUID() !== commUUID ? (
         isLoading ? (
           <View style={styles.iconButton}>
             <ActivityIndicator color={theme.icon} size="small" />
@@ -255,7 +255,7 @@ const VocalContentBottomBar = ({ chatId }) => {
             />
             <VocalBottomBarButton
               onPress={async () => {
-                self.left(chatId);
+                self.left(commUUID);
               }}
               iconName={"Call02Icon"}
               iconColor="red"
@@ -286,7 +286,7 @@ const VocalContentBottomBar = ({ chatId }) => {
           </View>
           <VocalBottomBarButton
             onPress={async () => {
-              self.left(chatId);
+              self.left(commUUID);
             }}
             iconName={Call02Icon}
             iconColor="red"

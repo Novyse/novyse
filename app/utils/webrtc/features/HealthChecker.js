@@ -33,25 +33,25 @@ export class HealthChecker {
 
   /**
    * Start health monitoring for a connection
-   * @param {string} participantId - Participant ID to monitor
+   * @param {string} deviceUUID - Participant ID to monitor
    */
-  startHealthMonitoring(participantId) {
-    if (!participantId) {
+  startHealthMonitoring(deviceUUID) {
+    if (!deviceUUID) {
       this.logger.info("Cannot start monitoring for empty participant ID");
       return;
     }
 
     // Stop existing monitoring if any
-    this.stopHealthMonitoring(participantId);
+    this.stopHealthMonitoring(deviceUUID);
 
     // Initialize health state
-    this.connectionHealthStates[participantId] = {
+    this.connectionHealthStates[deviceUUID] = {
       isHealthy: true,
       lastCheckTime: Date.now(),
       checkCount: 0,
     };
-    this.consecutiveFailures[participantId] = 0;
-    this.healthStatistics[participantId] = {
+    this.consecutiveFailures[deviceUUID] = 0;
+    this.healthStatistics[deviceUUID] = {
       totalChecks: 0,
       failedChecks: 0,
       recoveryAttempts: 0,
@@ -59,54 +59,54 @@ export class HealthChecker {
     };
 
     // Start periodic health checks
-    this.healthCheckIntervals[participantId] = setInterval(() => {
-      this._performHealthCheck(participantId);
+    this.healthCheckIntervals[deviceUUID] = setInterval(() => {
+      this._performHealthCheck(deviceUUID);
     }, this.HEALTH_CHECK_INTERVAL);
 
-    this.logger.debug(`Started health monitoring for ${participantId}`);
+    this.logger.debug(`Started health monitoring for ${deviceUUID}`);
   }
 
   /**
    * Stop health monitoring for a connection
-   * @param {string} participantId - Participant ID to stop monitoring
+   * @param {string} deviceUUID - Participant ID to stop monitoring
    */
-  stopHealthMonitoring(participantId) {
-    if (this.healthCheckIntervals[participantId]) {
-      clearInterval(this.healthCheckIntervals[participantId]);
-      delete this.healthCheckIntervals[participantId];
+  stopHealthMonitoring(deviceUUID) {
+    if (this.healthCheckIntervals[deviceUUID]) {
+      clearInterval(this.healthCheckIntervals[deviceUUID]);
+      delete this.healthCheckIntervals[deviceUUID];
     }
 
     // Clean up health state but keep statistics
-    delete this.connectionHealthStates[participantId];
-    delete this.consecutiveFailures[participantId];
-    delete this.lastKnownGoodStates[participantId];
+    delete this.connectionHealthStates[deviceUUID];
+    delete this.consecutiveFailures[deviceUUID];
+    delete this.lastKnownGoodStates[deviceUUID];
 
-    this.logger.debug(`Stopped health monitoring for ${participantId}`);
+    this.logger.debug(`Stopped health monitoring for ${deviceUUID}`);
   }
 
   /**
    * Get health status for a connection
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {Object|null} Health status object
    */
-  getHealthStatus(participantId) {
-    const healthState = this.connectionHealthStates[participantId];
-    const pc = this.globalState.getPeerConnection(participantId);
+  getHealthStatus(deviceUUID) {
+    const healthState = this.connectionHealthStates[deviceUUID];
+    const pc = this.globalState.getPeerConnection(deviceUUID);
 
     if (!pc || !healthState) {
       return null;
     }
 
     return {
-      participantId,
+      deviceUUID,
       isHealthy: healthState.isHealthy,
       connectionState: pc.connectionState,
       iceConnectionState: pc.iceConnectionState,
       signalingState: pc.signalingState,
       lastCheckTime: healthState.lastCheckTime,
       checkCount: healthState.checkCount,
-      consecutiveFailures: this.consecutiveFailures[participantId] || 0,
-      statistics: this.healthStatistics[participantId] || {},
+      consecutiveFailures: this.consecutiveFailures[deviceUUID] || 0,
+      statistics: this.healthStatistics[deviceUUID] || {},
     };
   }
 
@@ -117,8 +117,8 @@ export class HealthChecker {
   getAllHealthStatuses() {
     const statuses = {};
 
-    Object.keys(this.connectionHealthStates).forEach((participantId) => {
-      statuses[participantId] = this.getHealthStatus(participantId);
+    Object.keys(this.connectionHealthStates).forEach((deviceUUID) => {
+      statuses[deviceUUID] = this.getHealthStatus(deviceUUID);
     });
 
     return statuses;
@@ -126,11 +126,11 @@ export class HealthChecker {
 
   /**
    * Check if a connection is considered healthy
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {boolean} True if connection is healthy
    */
-  isConnectionHealthy(participantId) {
-    const pc = this.globalState.getPeerConnection(participantId);
+  isConnectionHealthy(deviceUUID) {
+    const pc = this.globalState.getPeerConnection(deviceUUID);
     if (!pc) return false;
 
     const connectionState = pc.connectionState;
@@ -150,11 +150,11 @@ export class HealthChecker {
 
   /**
    * Check if a connection has failed
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {boolean} True if connection has failed
    */
-  isConnectionFailed(participantId) {
-    const pc = this.globalState.getPeerConnection(participantId);
+  isConnectionFailed(deviceUUID) {
+    const pc = this.globalState.getPeerConnection(deviceUUID);
     if (!pc) return true;
 
     const connectionState = pc.connectionState;
@@ -170,11 +170,11 @@ export class HealthChecker {
 
   /**
    * Force a health check for a specific connection
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @returns {Object} Health check result
    */
-  async forceHealthCheck(participantId) {
-    return await this._performHealthCheck(participantId);
+  async forceHealthCheck(deviceUUID) {
+    return await this._performHealthCheck(deviceUUID);
   }
 
   /**
@@ -191,8 +191,8 @@ export class HealthChecker {
       overallHealth: "unknown",
     };
 
-    Object.keys(this.connectionHealthStates).forEach((participantId) => {
-      const status = this.getHealthStatus(participantId);
+    Object.keys(this.connectionHealthStates).forEach((deviceUUID) => {
+      const status = this.getHealthStatus(deviceUUID);
       if (status) {
         report.monitoredConnections.push(status);
         if (status.isHealthy) {
@@ -219,22 +219,22 @@ export class HealthChecker {
 
   /**
    * Perform health check for a connection
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @private
    */
-  async _performHealthCheck(participantId) {
-    const healthState = this.connectionHealthStates[participantId];
-    const statistics = this.healthStatistics[participantId];
+  async _performHealthCheck(deviceUUID) {
+    const healthState = this.connectionHealthStates[deviceUUID];
+    const statistics = this.healthStatistics[deviceUUID];
 
     if (!healthState || !statistics) {
       return null;
     }
 
     try {
-      const pc = this.globalState.getPeerConnection(participantId);
+      const pc = this.globalState.getPeerConnection(deviceUUID);
       if (!pc) {
         this._handleHealthCheckFailure(
-          participantId,
+          deviceUUID,
           "No peer connection found"
         );
         return null;
@@ -246,34 +246,34 @@ export class HealthChecker {
       statistics.totalChecks++;
 
       // Perform actual health check
-      const isHealthy = this.isConnectionHealthy(participantId);
-      const isFailed = this.isConnectionFailed(participantId);
+      const isHealthy = this.isConnectionHealthy(deviceUUID);
+      const isFailed = this.isConnectionFailed(deviceUUID);
 
       if (isFailed) {
-        this._handleHealthCheckFailure(participantId, "Connection failed");
-        return { participantId, healthy: false, reason: "connection_failed" };
+        this._handleHealthCheckFailure(deviceUUID, "Connection failed");
+        return { deviceUUID, healthy: false, reason: "connection_failed" };
       }
 
       if (!isHealthy) {
-        this._handleHealthCheckFailure(participantId, "Connection unhealthy");
+        this._handleHealthCheckFailure(deviceUUID, "Connection unhealthy");
         return {
-          participantId,
+          deviceUUID,
           healthy: false,
           reason: "connection_unhealthy",
         };
       }
 
       // Connection is healthy
-      this._handleHealthCheckSuccess(participantId);
+      this._handleHealthCheckSuccess(deviceUUID);
 
-      return { participantId, healthy: true };
+      return { deviceUUID, healthy: true };
     } catch (error) {
       this._handleHealthCheckFailure(
-        participantId,
+        deviceUUID,
         `Health check error: ${error.message}`
       );
       return {
-        participantId,
+        deviceUUID,
         healthy: false,
         reason: "check_error",
         error: error.message,
@@ -283,23 +283,23 @@ export class HealthChecker {
 
   /**
    * Handle successful health check
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @private
    */
-  _handleHealthCheckSuccess(participantId) {
-    const healthState = this.connectionHealthStates[participantId];
-    const pc = this.globalState.getPeerConnection(participantId);
+  _handleHealthCheckSuccess(deviceUUID) {
+    const healthState = this.connectionHealthStates[deviceUUID];
+    const pc = this.globalState.getPeerConnection(deviceUUID);
 
     if (healthState) {
       healthState.isHealthy = true;
     }
 
     // Reset consecutive failures
-    this.consecutiveFailures[participantId] = 0;
+    this.consecutiveFailures[deviceUUID] = 0;
 
     // Update last known good state
     if (pc) {
-      this.lastKnownGoodStates[participantId] = {
+      this.lastKnownGoodStates[deviceUUID] = {
         connectionState: pc.connectionState,
         iceConnectionState: pc.iceConnectionState,
         signalingState: pc.signalingState,
@@ -310,13 +310,13 @@ export class HealthChecker {
 
   /**
    * Handle failed health check
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @param {string} reason - Failure reason
    * @private
    */
-  _handleHealthCheckFailure(participantId, reason) {
-    const healthState = this.connectionHealthStates[participantId];
-    const statistics = this.healthStatistics[participantId];
+  _handleHealthCheckFailure(deviceUUID, reason) {
+    const healthState = this.connectionHealthStates[deviceUUID];
+    const statistics = this.healthStatistics[deviceUUID];
 
     if (healthState) {
       healthState.isHealthy = false;
@@ -327,26 +327,26 @@ export class HealthChecker {
     }
 
     // Increment consecutive failures
-    this.consecutiveFailures[participantId] =
-      (this.consecutiveFailures[participantId] || 0) + 1;
+    this.consecutiveFailures[deviceUUID] =
+      (this.consecutiveFailures[deviceUUID] || 0) + 1;
 
     this.logger.info(
-      `Health check failed for ${participantId}: ${reason} (consecutive failures: ${this.consecutiveFailures[participantId]})`
+      `Health check failed for ${deviceUUID}: ${reason} (consecutive failures: ${this.consecutiveFailures[deviceUUID]})`
     );
 
     // Trigger recovery if too many consecutive failures
-    if (this.consecutiveFailures[participantId] >= this.MAX_FAILED_CHECKS) {
-      this._triggerRecovery(participantId);
+    if (this.consecutiveFailures[deviceUUID] >= this.MAX_FAILED_CHECKS) {
+      this._triggerRecovery(deviceUUID);
     }
   }
 
   /**
    * Trigger connection recovery
-   * @param {string} participantId - Participant ID
+   * @param {string} deviceUUID - Participant ID
    * @private
    */
-  async _triggerRecovery(participantId) {
-    const statistics = this.healthStatistics[participantId];
+  async _triggerRecovery(deviceUUID) {
+    const statistics = this.healthStatistics[deviceUUID];
 
     if (statistics) {
       statistics.recoveryAttempts++;
@@ -354,20 +354,20 @@ export class HealthChecker {
     }
 
     this.logger.info(
-      `Triggering recovery for ${participantId} after ${this.consecutiveFailures[participantId]} consecutive failures`
+      `Triggering recovery for ${deviceUUID} after ${this.consecutiveFailures[deviceUUID]} consecutive failures`
     );
 
     try {
       // Get recovery manager from global state or components
       const recoveryManager = this.globalState.getRecoveryManager();
       if (recoveryManager) {
-        await recoveryManager.attemptConnectionRecovery(participantId);
+        await recoveryManager.attemptConnectionRecovery(deviceUUID);
       } else {
         this.logger.info("No recovery manager available");
       }
     } catch (error) {
       this.logger.info(
-        `Recovery attempt failed for ${participantId}: ${error.message}`
+        `Recovery attempt failed for ${deviceUUID}: ${error.message}`
       );
     }
   }
@@ -377,8 +377,8 @@ export class HealthChecker {
    */
   cleanup() {
     // Stop all health check intervals
-    Object.keys(this.healthCheckIntervals).forEach((participantId) => {
-      this.stopHealthMonitoring(participantId);
+    Object.keys(this.healthCheckIntervals).forEach((deviceUUID) => {
+      this.stopHealthMonitoring(deviceUUID);
     });
 
     // Clear all state

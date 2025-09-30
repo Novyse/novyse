@@ -328,18 +328,18 @@ export class StreamManager {
         localStream = updatedStream;
 
         EventEmitter.sendLocalUpdateNeeded(
-          this.globalState.getMyId(),
-          this.globalState.getMyId(),
+          this.globalState.getDeviceUUID(),
+          this.globalState.getDeviceUUID(),
           localStream,
           "add_or_update"
         );
 
         await EventEmitter.sendWebcamStatus(
-          this.globalState.getMyId(),
-          this.globalState.getChatId(),
+          this.globalState.getDeviceUUID(),
+          this.globalState.getCommUUID(),
           true
         );
-        this.globalState.setWebcamStatus(this.globalState.getMyId(), true);
+        this.globalState.setWebcamStatus(this.globalState.getDeviceUUID(), true);
 
         this.logger.info(
           "StreamManager",
@@ -487,18 +487,18 @@ export class StreamManager {
 
       // Emit video removed event
       EventEmitter.sendLocalUpdateNeeded(
-        this.globalState.getMyId(),
-        this.globalState.getMyId(),
+        this.globalState.getDeviceUUID(),
+        this.globalState.getDeviceUUID(),
         localStream
       );
 
       await EventEmitter.sendWebcamStatus(
-        this.globalState.getMyId(),
-        this.globalState.getChatId(),
+        this.globalState.getDeviceUUID(),
+        this.globalState.getCommUUID(),
         false
       );
 
-      this.globalState.setWebcamStatus(this.globalState.getMyId(), false);
+      this.globalState.setWebcamStatus(this.globalState.getDeviceUUID(), false);
 
       this.logger.info("StreamManager", "Video tracks removed successfully");
     } catch (error) {
@@ -523,8 +523,8 @@ export class StreamManager {
       this.globalState.setLocalStream(null);
 
       EventEmitter.sendLocalUpdateNeeded(
-        this.globalState.getMyId(),
-        this.globalState.getMyId(),
+        this.globalState.getDeviceUUID(),
+        this.globalState.getDeviceUUID(),
         null // Clear local stream
       );
 
@@ -585,7 +585,7 @@ export class StreamManager {
       }
 
       const peerConnections = this.globalState.getAllPeerConnections();
-      const webcamStreamUUID = this.globalState.getMyId();
+      const webcamStreamUUID = this.globalState.getDeviceUUID();
 
       for (const [peerId, pc] of Object.entries(peerConnections)) {
         // 🔥 PRIMA VERIFICA SE ESISTE GIÀ UN SENDER PER QUESTO TIPO DI TRACCIA
@@ -639,7 +639,7 @@ export class StreamManager {
 
               pc._pendingMappings.push({
                 transceiver,
-                remoteParticipantUUID: peerId,
+                remotedeviceUUID: peerId,
                 streamUUID: webcamStreamUUID,
               });
 
@@ -672,7 +672,7 @@ export class StreamManager {
 
               pc._pendingMappings.push({
                 transceiver,
-                remoteParticipantUUID: peerId,
+                remotedeviceUUID: peerId,
                 streamUUID: webcamStreamUUID,
               });
 
@@ -790,29 +790,29 @@ export class StreamManager {
   }
   /**
    * Identify track type (webcam vs screen share)
-   * @param {string} participantId - The participant ID
+   * @param {string} deviceUUID - The participant ID
    * @param {MediaStreamTrack} track - The track
    * @param {MediaStream[]} streams - The streams
    * @returns {Object} { isScreenShare, streamId }
    */
-  _identifyTrackType(participantId, track, streams) {
+  _identifyTrackType(deviceUUID, track, streams) {
     let isScreenShare = false;
     let streamId = null;
 
     // Get the event stream ID for reference
     const eventStreamId = streams.length > 0 ? streams[0].id : track.id; // STEP 1: Check userData.active_screen_share first (this is set by EventReceiver)
     if (
-      this.globalState.userData[participantId] &&
-      this.globalState.userData[participantId].active_screen_share &&
+      this.globalState.userData[deviceUUID] &&
+      this.globalState.userData[deviceUUID].active_screen_share &&
       Array.isArray(
-        this.globalState.userData[participantId].active_screen_share
+        this.globalState.userData[deviceUUID].active_screen_share
       ) &&
-      this.globalState.userData[participantId].active_screen_share.length > 0
+      this.globalState.userData[deviceUUID].active_screen_share.length > 0
     ) {
       this.logger.info(
         "StreamManager",
-        `User ${participantId} has active screen shares in userData: ${JSON.stringify(
-          this.globalState.userData[participantId].active_screen_share
+        `User ${deviceUUID} has active screen shares in userData: ${JSON.stringify(
+          this.globalState.userData[deviceUUID].active_screen_share
         )}`
       );
 
@@ -825,8 +825,8 @@ export class StreamManager {
         // Additional check: if this user already has a webcam stream and this is a video track,
         // it's likely a screen share
         (track.kind === "video" &&
-          this.globalState.remoteStreams[participantId] &&
-          this.globalState.remoteStreams[participantId]
+          this.globalState.remoteStreams[deviceUUID] &&
+          this.globalState.remoteStreams[deviceUUID]
             .getTracks()
             .some((t) => t.kind === "video"));
 
@@ -838,7 +838,7 @@ export class StreamManager {
 
         // Try to find a matching streamId by looking at stream characteristics
         const possibleStreamIds =
-          this.globalState.userData[participantId].active_screen_share;
+          this.globalState.userData[deviceUUID].active_screen_share;
 
         // Enhanced matching logic
         if (eventStreamId.includes("screen")) {
@@ -852,10 +852,10 @@ export class StreamManager {
 
         this.logger.info(
           "StreamManager",
-          `Identified as screen share track from userData for ${participantId}: ${streamId}, available: ${JSON.stringify(
+          `Identified as screen share track from userData for ${deviceUUID}: ${streamId}, available: ${JSON.stringify(
             possibleStreamIds
           )}, hasExistingWebcam: ${!!this.globalState.remoteStreams[
-            participantId
+            deviceUUID
           ]
             ?.getTracks()
             .some((t) => t.kind === "video")}`
@@ -871,10 +871,10 @@ export class StreamManager {
     // STEP 2: Check metadata if not identified yet
     if (
       !isScreenShare &&
-      this.globalState.remoteStreamMetadata[participantId]
+      this.globalState.remoteStreamMetadata[deviceUUID]
     ) {
       for (const [metaStreamId, streamType] of Object.entries(
-        this.globalState.remoteStreamMetadata[participantId]
+        this.globalState.remoteStreamMetadata[deviceUUID]
       )) {
         if (streamType === "screenshare") {
           if (
@@ -885,7 +885,7 @@ export class StreamManager {
             streamId = metaStreamId;
             this.logger.info(
               "StreamManager",
-              `Identified as screen share track from metadata for ${participantId}: ${streamId}`
+              `Identified as screen share track from metadata for ${deviceUUID}: ${streamId}`
             );
             break;
           }
@@ -906,14 +906,14 @@ export class StreamManager {
         streamId = streams.length > 0 ? streams[0].id : `screen_${Date.now()}`;
         this.logger.info(
           "StreamManager",
-          `Identified as screen share track from label for ${participantId}: ${streamId}`
+          `Identified as screen share track from label for ${deviceUUID}: ${streamId}`
         );
 
         // Update metadata
-        if (!this.globalState.remoteStreamMetadata[participantId]) {
-          this.globalState.remoteStreamMetadata[participantId] = {};
+        if (!this.globalState.remoteStreamMetadata[deviceUUID]) {
+          this.globalState.remoteStreamMetadata[deviceUUID] = {};
         }
-        this.globalState.remoteStreamMetadata[participantId][streamId] =
+        this.globalState.remoteStreamMetadata[deviceUUID][streamId] =
           "screenshare";
       }
     }
@@ -921,22 +921,22 @@ export class StreamManager {
     // If we identified this as a screen share, make sure the information is consistent
     if (isScreenShare && streamId) {
       // Make sure this streamId is also registered in userData.active_screen_share
-      if (this.globalState.userData[participantId]) {
-        if (!this.globalState.userData[participantId].active_screen_share) {
-          this.globalState.userData[participantId].active_screen_share = [];
+      if (this.globalState.userData[deviceUUID]) {
+        if (!this.globalState.userData[deviceUUID].active_screen_share) {
+          this.globalState.userData[deviceUUID].active_screen_share = [];
         }
 
         if (
           !this.globalState.userData[
-            participantId
+            deviceUUID
           ].active_screen_share.includes(streamId)
         ) {
-          this.globalState.userData[participantId].active_screen_share.push(
+          this.globalState.userData[deviceUUID].active_screen_share.push(
             streamId
           );
           this.logger.info(
             "StreamManager",
-            `Added ${streamId} to userData.active_screen_share for ${participantId}`
+            `Added ${streamId} to userData.active_screen_share for ${deviceUUID}`
           );
         }
       }

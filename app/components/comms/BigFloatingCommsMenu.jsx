@@ -90,7 +90,7 @@ const BigFloatingCommsMenu = () => {
   };
 
   const navigateToVocalView = () => {
-    const commsId = get.commsId();
+    const commsId = get.commUUID();
     if (commsId) {
       // Usa setParams per non ricaricare la pagina
       router.setParams({ chatId: commsId });
