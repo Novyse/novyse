@@ -12,7 +12,6 @@ import SmartBackground from "./components/SmartBackground";
 import Search from "./Search";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
 import Icon from "./components/Icon";
-import methods from "./utils/webrtc/methods";
 import HeaderBase from "./components/HeaderBase";
 
 // Hooks
@@ -22,8 +21,6 @@ import useAppInit from "./hooks/useAppInit";
 // Context
 import { ChatContext } from "../context/ChatContext";
 import { UserContext } from "../context/UserContext";
-
-const { get, check } = methods;
 
 // Top-level memoized list item to avoid re-creating component on every render
 const ChatListItem = React.memo(
@@ -152,7 +149,9 @@ const ChatListItem = React.memo(
       prev.name === next.name &&
       prev.uuid === next.uuid &&
       prev.isSelected === next.isSelected &&
-      prev.lastMessage === next.lastMessage
+      prev.lastMessage === next.lastMessage &&
+      prev.theme === next.theme &&
+      prev.styles === next.styles
     );
   }
 );
@@ -221,14 +220,14 @@ const ChatList = ({
 
   const memoizedRenderItem = React.useMemo(
     () => renderItem,
-    [selectedChatUUID]
+    [selectedChatUUID, theme]
   );
 
   const renderChatList = () => (
     <FlatList
       style={styles.flatList}
       contentContainerStyle={styles.flatListContent}
-      extraData={selectedChatUUID}
+      extraData={[selectedChatUUID, theme]}
       initialNumToRender={12}
       maxToRenderPerBatch={12}
       windowSize={7}
@@ -288,7 +287,7 @@ function createStyle(theme, colorScheme) {
     },
     flatListContent: {
       padding: 10,
-      gap: 10
+      gap: 10,
     },
     chatItem: {
       borderRadius: 15,
@@ -310,7 +309,7 @@ function createStyle(theme, colorScheme) {
     },
     logo: {
       width: 24,
-      height: 24
+      height: 24,
     },
     chatTitle: {
       fontSize: 16,
