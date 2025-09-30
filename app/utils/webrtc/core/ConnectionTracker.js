@@ -105,8 +105,8 @@ export class ConnectionTracker {
 
     const stats = this.getConnectionStats();
 
-    this.logger.info("ConnectionTracker", `👤 My ID: ${stats.myId}`);
-    this.logger.info("ConnectionTracker", `💬 Chat ID: ${stats.chatId}`);
+    this.logger.info("ConnectionTracker", `👤 My ID: ${stats.deviceUUID}`);
+    this.logger.info("ConnectionTracker", `💬 Chat ID: ${stats.commUUID}`);
     this.logger.info(
       "ConnectionTracker",
       `🎤 Local Stream: ${
@@ -342,8 +342,8 @@ export class ConnectionTracker {
 
     return {
       totalConnections: Object.keys(this.globalState.peerConnections).length,
-      myId: this.globalState.myId,
-      chatId: this.globalState.chatId,
+      deviceUUID: this.globalState.deviceUUID,
+      commUUID: this.globalState.commUUID,
       hasLocalStream: !!this.globalState.localStream,
       localStreamTracks: this.globalState.localStream?.getTracks()?.length || 0,
       connections: allStats,

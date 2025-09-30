@@ -112,29 +112,6 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
 
   // ---- LAYOUT CALCULATION ----
 
-  // Normalizza commData se necessario (fallback per dati non corretti)
-  const normalizedcommData = React.useMemo(() => {
-    if (Array.isArray(commData)) {
-      console.warn(
-        "[VocalMembersLayout] commData è array, normalizzo in oggetto"
-      );
-      const normalized = {};
-      commData.forEach((item, index) => {
-        const deviceUUID = item.deviceUUID || `unknown-${index}`;
-        normalized[deviceUUID] = {
-          userData: {
-            handle: item.handle || item.userData?.handle || "Unknown User",
-            isSpeaking: item.speaking || item.userData?.isSpeaking || false,
-            webcamOn: item.webcamOn || item.userData?.webcamOn || false,
-          },
-          activeScreenShares: item.screenShare || item.activeScreenShares || [],
-        };
-      });
-      return normalized;
-    }
-    return commData;
-  }, [commData]);
-
   // Modifica calculateLayout per accettare normalizedcommData
   const calculateLayout = useCallback(() => {
     // Se c'è un utente pinnato, calcola layout per un singolo elemento
@@ -163,10 +140,10 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
       return { numColumns: 1, rectWidth, rectHeight, margin: MARGIN };
     }
 
-    let totalElements = Object.keys(normalizedcommData).length; // Usa normalizedcommData
+    let totalElements = Object.keys(commData).length; // Use commData directly
 
     // Conta anche le screen shares
-    Object.values(normalizedcommData).forEach((userData) => {
+    Object.values(commData).forEach((userData) => {
       if (
         userData.activeScreenShares &&
         userData.activeScreenShares.length > 0
@@ -283,21 +260,20 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
     rectWidth = Math.max(minWidth, rectWidth * WIDTH_MULTIPLYER);
     rectHeight = Math.max(minHeight, rectHeight * HEIGHT_MULTIPLYER);
     return { numColumns, rectWidth, rectHeight, margin: MARGIN };
-  }, [containerDimensions, normalizedcommData, pinnedUUID, activeStreams]); // Cambia commData a normalizedcommData
+  }, [containerDimensions, commData, pinnedUUID, activeStreams]); // Use commData directly
 
-  // Usa normalizedcommData invece di commData
+  // Usa normalizedcommData invece di commData - UPDATED: Use commData directly
   const { numColumns, rectWidth, rectHeight, margin } = calculateLayout();
 
   // Log per debug (rimuovi dopo il test) - spostato dopo calculateLayout per evitare errore di inizializzazione
   useEffect(() => {
     console.log(
       "[VocalMembersLayout] commData ricevuti:",
-      normalizedcommData,
-      commData
+      commData // Use commData directly
     );
     console.log("[VocalMembersLayout] activeStreams ricevuti:", activeStreams);
     console.log("[VocalMembersLayout] numColumns calcolato:", numColumns);
-  }, [normalizedcommData, activeStreams]); // Rimosso numColumns dalle dipendenze per evitare loop o errori
+  }, [commData, activeStreams]); // Use commData directly
 
   const renderRectangle = (
     deviceUUID,
@@ -343,11 +319,11 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
           },
         ]}
       >
-        {Object.keys(normalizedcommData).length > 0 ? ( // Usa normalizedcommData
+        {Object.keys(commData).length > 0 ? ( // Use commData directly
           <>
-            {Object.entries(normalizedcommData).map(
+            {Object.entries(commData).map( // Use commData directly
               ([deviceUUID, commData]) => {
-                // Usa normalizedcommData
+                // Usa commData direttamente
                 const components = [];
 
                 // Estrae i dati richiesti del partecipante

@@ -67,7 +67,7 @@ class VoiceActivityDetection {
     }
 
     try {
-      await VAD.initializeVoiceActivityDetection(localStream);
+      await VAD.initializeVoiceActivityDetection(localStream, this.globalState);
       this.vadActive = true;
       this.logger.info("VoiceActivityDetection", "VAD started successfully");
       return true;

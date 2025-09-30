@@ -90,10 +90,11 @@ const BigFloatingCommsMenu = () => {
   };
 
   const navigateToVocalView = () => {
-    const commsId = get.commUUID();
-    if (commsId) {
-      // Usa setParams per non ricaricare la pagina
-      router.setParams({ chatId: commsId });
+    const commUUID = get.commUUID();
+    const chatUUID = commUUID ? commUUID.split("_")[0] : null;
+    if (chatUUID) {
+      router.setParams({ chatUUIDorHandle: chatUUID });
+      router.navigate(`/chat/${chatUUID}`, { replace: true });
 
       // Imposta direttamente la vista vocal
       setTimeout(() => {

@@ -23,10 +23,6 @@ class WebRTCEventReceiver {
     this.boundHandlers = {
       userStartedSpeaking: this.handleUserStartedSpeaking.bind(this),
       userStoppedSpeaking: this.handleUserStoppedSpeaking.bind(this),
-      remoteUserStartedSpeaking:
-        this.handleRemoteUserStartedSpeaking.bind(this),
-      remoteUserStoppedSpeaking:
-        this.handleRemoteUserStoppedSpeaking.bind(this),
       screenShareStarted: this.handleScreenShareStarted.bind(this),
       screenShareStopped: this.handleScreenShareStopped.bind(this),
       memberJoined: this.handleMemberJoined.bind(this),
@@ -54,32 +50,18 @@ class WebRTCEventReceiver {
 
   setupEventListeners() {
     // Voice Activity Detection Events
+    eventEmitter.on(`comms_speaking`, this.boundHandlers.userStartedSpeaking);
     eventEmitter.on(
-      `user_started_speaking`,
-      this.boundHandlers.userStartedSpeaking
-    );
-    eventEmitter.on(
-      `user_stopped_speaking`,
+      `comms_not_speaking`,
       this.boundHandlers.userStoppedSpeaking
-    );
-    eventEmitter.on(
-      `remote_user_started_speaking`,
-      this.boundHandlers.remoteUserStartedSpeaking
-    );
-    eventEmitter.on(
-      `remote_user_stopped_speaking`,
-      this.boundHandlers.remoteUserStoppedSpeaking
     );
 
     // Screen Sharing Events
     eventEmitter.on(
-      `screen_share_started`,
+      `screen_share_start`,
       this.boundHandlers.screenShareStarted
     );
-    eventEmitter.on(
-      `screen_share_stopped`,
-      this.boundHandlers.screenShareStopped
-    );
+    eventEmitter.on(`screen_share_stop`, this.boundHandlers.screenShareStopped);
 
     // User Management Events
     eventEmitter.on(`comms_join`, this.boundHandlers.memberJoined);
@@ -100,58 +82,65 @@ class WebRTCEventReceiver {
     eventEmitter.on("comms_webcam_off", this.boundHandlers.webcam_off);
   }
 
-  // Voice Activity Detection Handlers
-  async handleUserStartedSpeaking() {
-    const sender = SocketIO.send();
-    if (sender) {
-      await sender.sendSpeakingStatus(
-        this.globalState.getCommUUID(),
-        this.globalState.myId,
-        true
-      );
-    } else {
-      this.logger?.warn("[EventReceiver] Cannot send speaking status: socket not connected");
-    }
-  }
+  async handleUserStartedSpeaking(data) {
+    if (data.fromSocket) return; // Ignore events that came from socket to prevent circular emission
 
-  async handleUserStoppedSpeaking() {
-    const sender = SocketIO.send();
-    if (sender) {
-      await sender.sendSpeakingStatus(
-        this.globalState.getCommUUID(),
-        this.globalState.myId,
-        false
-      );
+    if (data.deviceUUID === this.globalState.getDeviceUUID()) {
+      const sender = SocketIO.send();
+      if (sender) {
+        await sender.sendSpeakingStatus(
+          this.globalState.getCommUUID(),
+          this.globalState.deviceUUID,
+          true
+        );
+      } else {
+        this.logger?.warn(
+          "[EventReceiver] Cannot send speaking status: socket not connected"
+        );
+      }
     } else {
-      this.logger?.warn("[EventReceiver] Cannot send speaking status: socket not connected");
-    }
-  }
-
-  handleRemoteUserStartedSpeaking(data) {
-    if (
-      data.deviceUUID !== this.globalState.myId &&
-      this.globalState.myId !== undefined
-    ) {
-      if (this.voiceActivityDetection) {
-        this.voiceActivityDetection.setSpeakingState(data.deviceUUID, true);
+      if (
+        data.deviceUUID !== this.globalState.deviceUUID &&
+        this.globalState.deviceUUID !== undefined
+      ) {
+        if (this.voiceActivityDetection) {
+          this.voiceActivityDetection.setSpeakingState(data.deviceUUID, true);
+        }
       }
     }
   }
 
-  handleRemoteUserStoppedSpeaking(data) {
-    if (
-      data.deviceUUID !== this.globalState.myId &&
-      this.globalState.myId !== undefined
-    ) {
-      if (this.voiceActivityDetection) {
-        this.voiceActivityDetection.setSpeakingState(data.deviceUUID, false);
+  async handleUserStoppedSpeaking(data) {
+    if (data.fromSocket) return; // Ignore events that came from socket to prevent circular emission
+
+    if (data.deviceUUID === this.globalState.getDeviceUUID()) {
+      const sender = SocketIO.send();
+      if (sender) {
+        await sender.sendSpeakingStatus(
+          this.globalState.getCommUUID(),
+          this.globalState.getDeviceUUID(),
+          false
+        );
+      } else {
+        this.logger?.warn(
+          "[EventReceiver] Cannot send speaking status: socket not connected"
+        );
+      }
+    } else {
+      if (
+        data.deviceUUID !== this.globalState.deviceUUID &&
+        this.globalState.deviceUUID !== undefined
+      ) {
+        if (this.voiceActivityDetection) {
+          this.voiceActivityDetection.setSpeakingState(data.deviceUUID, false);
+        }
       }
     }
   } // Screen Sharing Handlers
   async handleScreenShareStarted(data) {
     if (
-      data.deviceUUID !== this.globalState.myId &&
-      this.globalState.myId !== undefined
+      data.deviceUUID !== this.globalState.deviceUUID &&
+      this.globalState.deviceUUID !== undefined
     ) {
       this.logger?.info(`[EventReceiver] Remote screen share started:`, data);
 
@@ -159,13 +148,17 @@ class WebRTCEventReceiver {
       // just update the userData to indicate the remote user has an active screen share
       if (data.screenShareUUID && data.deviceUUID) {
         // Add the screen share to remote user's userData
-        this.globalState.addScreenShare(data.deviceUUID, data.screenShareUUID, null);
+        this.globalState.addScreenShare(
+          data.deviceUUID,
+          data.screenShareUUID,
+          null
+        );
 
         this.logger?.info(
           `[EventReceiver] Added remote screen share ${data.screenShareUUID} for user ${data.deviceUUID}`
         );
 
-        if (this.globalState.getCommUUID() === data.chatId) {
+        if (this.globalState.getCommUUID() === data.commUUID) {
           SoundPlayer.getInstance().playSound("comms_stream_started");
         }
       }
@@ -174,22 +167,25 @@ class WebRTCEventReceiver {
 
   async handleScreenShareStopped(data) {
     if (
-      data.deviceUUID !== this.globalState.myId &&
-      this.globalState.myId !== undefined
+      data.deviceUUID !== this.globalState.deviceUUID &&
+      this.globalState.deviceUUID !== undefined
     ) {
       this.logger?.info(`[EventReceiver] Remote screen share stopped:`, data);
 
       // For remote screen shares, remove deviceUUID userData
       if (data.screenShareUUID && data.deviceUUID) {
         this.pinManager.clearPinIfId(data.screenShareUUID);
-        this.globalState.removeScreenShare(data.deviceUUID, data.screenShareUUID);
+        this.globalState.removeScreenShare(
+          data.deviceUUID,
+          data.screenShareUUID
+        );
 
         this.logger?.info(
           `[EventReceiver] Removed remote screen share ${data.screenShareUUID} for user ${data.deviceUUID}`
         );
       }
 
-      if (this.globalState.getCommUUID() === data.chatId) {
+      if (this.globalState.getCommUUID() === data.commUUID) {
         SoundPlayer.getInstance().playSound("comms_stream_stopped");
       }
     }
@@ -207,22 +203,22 @@ class WebRTCEventReceiver {
       this.globalState.getDeviceUUID() === null
     ) {
       this.logger?.info(
-        `[EventReceiver] handleMemberJoined: Instance not ready, globalState is null, or myId is undefined. Initialized: ${
+        `[EventReceiver] handleMemberJoined: Instance not ready, globalState is null, or deviceUUID is undefined. Initialized: ${
           this.initialized
-        }, GlobalState: ${!!this.globalState}, MyId: ${this.globalState?.myId}`
+        }, GlobalState: ${!!this.globalState}, MyId: ${this.globalState?.deviceUUID}`
       );
       return;
     }
 
     if (
-      data.deviceUUID !== this.globalState.myId &&
-      this.globalState.myId !== undefined
+      data.deviceUUID !== this.globalState.deviceUUID &&
+      this.globalState.deviceUUID !== undefined
     ) {
       this.logger?.info("[EventReceiver] Member joined comms:", data);
 
       if (this.signalingManager) {
         await this.signalingManager.handleUserJoined(data);
-        if (this.globalState.getCommUUID() === data.chat_id) {
+        if (this.globalState.getCommUUID() === data.commUUID) {
           SoundPlayer.getInstance().playSound("comms_join_vocal");
         }
       }
@@ -232,14 +228,14 @@ class WebRTCEventReceiver {
   async handleMemberLeft(data) {
     // Check if the member is not the current user and if my id is defined
     if (
-      data.deviceUUID !== this.globalState.myId &&
-      this.globalState.myId !== undefined
+      data.deviceUUID !== this.globalState.deviceUUID &&
+      this.globalState.deviceUUID !== undefined
     ) {
       this.logger?.info(`[EventReceiver] Member left comms:+ ${data}`);
 
       if (this.signalingManager) {
         await this.signalingManager.handleUserLeft(data);
-        if (this.globalState.getCommUUID() === data.chat_id) {
+        if (this.globalState.getCommUUID() === data.commUUID) {
           SoundPlayer.getInstance().playSound("comms_leave_vocal");
         }
       }
@@ -294,7 +290,7 @@ class WebRTCEventReceiver {
     this.logger?.info(`Webcam turned on for user ${deviceUUID}`);
 
     if (this.globalState) {
-      this.globalState.setWebcamStatus(deviceUUID,true);
+      this.globalState.setWebcamStatus(deviceUUID, true);
     } else {
       this.logger?.warn(
         `[EventReceiver] globalState not initialized, cannot handle webcam on event`
@@ -317,30 +313,24 @@ class WebRTCEventReceiver {
   // Cleanup method
   removeEventListeners() {
     // Voice Activity Detection Events
+    eventEmitter.off(`comms_speaking`, this.boundHandlers.userStartedSpeaking);
     eventEmitter.off(
-      `user_started_speaking`,
-      this.boundHandlers.userStartedSpeaking
-    );
-    eventEmitter.off(
-      `user_stopped_speaking`,
+      `comms_not_speaking`,
       this.boundHandlers.userStoppedSpeaking
     );
+    eventEmitter.off(`comms_speaking`, this.boundHandlers.userStartedSpeaking);
     eventEmitter.off(
-      `remote_user_started_speaking`,
-      this.boundHandlers.remoteUserStartedSpeaking
-    );
-    eventEmitter.off(
-      `remote_user_stopped_speaking`,
-      this.boundHandlers.remoteUserStoppedSpeaking
+      `comms_not_speaking`,
+      this.boundHandlers.userStoppedSpeaking
     );
 
     // Screen Sharing Events
     eventEmitter.off(
-      `screen_share_started`,
+      `screen_share_start`,
       this.boundHandlers.screenShareStarted
     );
     eventEmitter.off(
-      `screen_share_stopped`,
+      `screen_share_stopp`,
       this.boundHandlers.screenShareStopped
     );
 

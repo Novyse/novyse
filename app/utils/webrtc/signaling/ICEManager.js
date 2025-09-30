@@ -35,7 +35,7 @@ export class ICEManager {
   async handleCandidateMessage(message) {
     this.logger.debug("Gestione messaggio candidato ICE ricevuto", {
       component: "ICEManager",
-      from: message.from,
+      deviceUUID: message.deviceUUID,
       action: "handleCandidate",
     });
 
@@ -43,7 +43,7 @@ export class ICEManager {
       return false;
     }
 
-    const deviceUUID = message.from;
+    const deviceUUID = message.deviceUUID;
     const pc = this.globalState.getPeerConnection(deviceUUID);
 
     if (!pc) {
@@ -112,13 +112,10 @@ export class ICEManager {
    * @returns {void}
    */
   setupICEEventHandlers(pc, deviceUUID) {
-    this.logger.debug(
-      `Configurazione gestori eventi ICE per ${deviceUUID}`,
-      {
-        component: "ICEManager",
-        deviceUUID,
-      }
-    );
+    this.logger.debug(`Configurazione gestori eventi ICE per ${deviceUUID}`, {
+      component: "ICEManager",
+      deviceUUID,
+    });
 
     // Gestione generazione candidati ICE
     pc.onicecandidate = (event) => {
@@ -372,14 +369,11 @@ export class ICEManager {
 
       return iceStats;
     } catch (error) {
-      this.logger.error(
-        `Errore ottenendo statistiche ICE per ${deviceUUID}`,
-        {
-          component: "ICEManager",
-          deviceUUID,
-          error: error.message,
-        }
-      );
+      this.logger.error(`Errore ottenendo statistiche ICE per ${deviceUUID}`, {
+        component: "ICEManager",
+        deviceUUID,
+        error: error.message,
+      });
       return null;
     }
   }
@@ -404,18 +398,15 @@ export class ICEManager {
       const SocketIO = require("../../backend-services/socket-io.js").default;
       await SocketIO.send().IceCandidate({
         candidate: event.candidate.toJSON(),
-        to: deviceUUID,
-        from: this.globalState.getDeviceUUID(),
-        chat: this.globalState.getCommUUID(),
+        toDeviceUUID: deviceUUID,
+        deviceUUID: this.globalState.getDeviceUUID(),
+        commUUID: this.globalState.getCommUUID(),
       });
     } else {
-      this.logger.info(
-        `Raccolta candidati ICE completata per ${deviceUUID}`,
-        {
-          component: "ICEManager",
-          deviceUUID,
-        }
-      );
+      this.logger.info(`Raccolta candidati ICE completata per ${deviceUUID}`, {
+        component: "ICEManager",
+        deviceUUID,
+      });
     }
   }
 
@@ -458,14 +449,11 @@ export class ICEManager {
         break;
 
       case "disconnected":
-        this.logger.warning(
-          `Connessione ICE disconnessa per ${deviceUUID}`,
-          {
-            component: "ICEManager",
-            deviceUUID,
-            iceConnectionState: state,
-          }
-        );
+        this.logger.warning(`Connessione ICE disconnessa per ${deviceUUID}`, {
+          component: "ICEManager",
+          deviceUUID,
+          iceConnectionState: state,
+        });
         break;
 
       case "failed":
@@ -584,8 +572,7 @@ export class ICEManager {
     this.logger.debug(`Candidato ICE accodato per ${deviceUUID}`, {
       component: "ICEManager",
       deviceUUID,
-      queueLength:
-        this.globalState.getQueuedICECandidates(deviceUUID).length,
+      queueLength: this.globalState.getQueuedICECandidates(deviceUUID).length,
     });
   }
 
@@ -649,15 +636,12 @@ export class ICEManager {
     // Replace queue with only unprocessed candidates
     this.globalState.iceCandidateQueues[deviceUUID] = unprocessedEntries;
 
-    this.logger.debug(
-      `Cleaned up processed ICE candidates for ${deviceUUID}`,
-      {
-        component: "ICEManager",
-        deviceUUID,
-        totalEntries: allEntries.length,
-        remainingEntries: unprocessedEntries.length,
-      }
-    );
+    this.logger.debug(`Cleaned up processed ICE candidates for ${deviceUUID}`, {
+      component: "ICEManager",
+      deviceUUID,
+      totalEntries: allEntries.length,
+      remainingEntries: unprocessedEntries.length,
+    });
   }
 
   /**
@@ -667,10 +651,10 @@ export class ICEManager {
    * @private
    */
   _isMessageForMe(message) {
-    const myId = this.globalState.getDeviceUUID();
-    const chatId = this.globalState.getCommUUID();
+    const deviceUUID = this.globalState.getDeviceUUID();
+    const commUUID = this.globalState.getCommUUID();
 
-    return message.to === myId && message.chat === chatId;
+    return message.toDeviceUUID === deviceUUID && message.commUUID === commUUID;
   }
 
   /**

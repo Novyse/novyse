@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import gateway from "../utils/backend-services/api-gateway";
 
 import methods from "../utils/webrtc/methods";
 const { get, check } = methods;
 
+import WebRTC from "../utils/webrtc/index";
+
 import eventEmitter from "../utils/global/Events/EventEmitter";
 
-const useCommData = (chatUUID, sub = 0) => {
-  const [commUUID, setCommUUID] = useState(null);
+const useCommData = (commUUID) => {
   const [commData, setCommData] = useState({});
   const [activeStreams, setActiveStreams] = useState({});
   const [loading, setLoading] = useState(true);
@@ -74,7 +74,7 @@ const useCommData = (chatUUID, sub = 0) => {
     } else if (action === "remove") {
       // Check if this is a screen share (when deviceUUID != streamUUID)
       if (deviceUUID !== streamUUID) {
-        // Remove screen share data from commData if it exists
+        // Remove screen share data deviceUUID commData if it exists
         setCommData((prev) => {
           const updated = { ...prev };
 
@@ -82,7 +82,7 @@ const useCommData = (chatUUID, sub = 0) => {
             const activeScreenShares =
               updated[deviceUUID].activeScreenShares || [];
 
-            // Remove streamUUID from activeScreenShares if it exists
+            // Remove streamUUID deviceUUID activeScreenShares if it exists
             updated[deviceUUID] = {
               ...updated[deviceUUID],
               activeScreenShares: activeScreenShares.filter(
@@ -119,159 +119,113 @@ const useCommData = (chatUUID, sub = 0) => {
   };
 
   // Speech detection handlers
-  const handleUserStartedSpeaking = () => {
-    if (check.isInComms() && chatUUID === get.commUUID()) {
-      // Aggiorna lo stato isSpeaking per l'utente corrente in commData
-      setCommData((prev) => {
-        const updated = { ...prev };
-        const myDeviceUUID = get.deviceUUID();
-
-        // Assicurati che il partecipante esista in commData
-        if (!updated[myDeviceUUID]) {
-          updated[myDeviceUUID] = {
-            userData: {
-              handle: "Unknown User",
-              isSpeaking: false,
-              webcamOn: false,
-            },
-            activeScreenShares: [],
-          };
-        }
-
-        // Assicurati che userData esista
-        if (!updated[myDeviceUUID].userData) {
-          updated[myDeviceUUID].userData = {
-            handle: "Unknown User",
-            isSpeaking: false,
-            webcamOn: false,
-          };
-        }
-
-        updated[myDeviceUUID] = {
-          ...updated[myDeviceUUID],
-          userData: {
-            ...updated[myDeviceUUID].userData,
-            isSpeaking: true,
-          },
-        };
-
-        return updated;
-      });
-    }
-  };
-
-  const handleUserStoppedSpeaking = () => {
-    if (check.isInComms() && chatUUID === get.commUUID()) {
-      // Aggiorna lo stato isSpeaking per l'utente corrente in commData
-      setCommData((prev) => {
-        const updated = { ...prev };
-        const myDeviceUUID = get.deviceUUID();
-
-        // Assicurati che il partecipante esista in commData
-        if (!updated[myDeviceUUID]) {
-          updated[myDeviceUUID] = {
-            userData: {
-              handle: "Unknown User",
-              isSpeaking: false,
-              webcamOn: false,
-            },
-            activeScreenShares: [],
-          };
-        }
-
-        // Assicurati che userData esista
-        if (!updated[myDeviceUUID].userData) {
-          updated[myDeviceUUID].userData = {
-            handle: "Unknown User",
-            isSpeaking: false,
-            webcamOn: false,
-          };
-        }
-
-        updated[myDeviceUUID] = {
-          ...updated[myDeviceUUID],
-          userData: {
-            ...updated[myDeviceUUID].userData,
-            isSpeaking: false,
-          },
-        };
-
-        return updated;
-      });
-    }
-  };
-  const handleRemoteUserStartedSpeaking = (data) => {
-    // Controlla se l'evento è per il commUUID corretto (cambia chatUUID a commUUID)
-    if (!check.isInComms()) {
+  const handleStartedSpeaking = (data) => {
+    if (
+      !check.isInComms() ||
+      data.commUUID !== commUUID ||
+      data.commUUID !== get.commUUID()
+    ) {
       return;
     }
 
-    if (
-      data.commUUID === commUUID &&
-      data.commUUID === get.commUUID() &&
-      data.id !== get.deviceUUID()
-    ) {
-      // Aggiorna lo stato isSpeaking per l'utente remoto in commData
-      setCommData((prev) => {
-        const updated = { ...prev };
-        const deviceUUID = data.id;
+    const deviceUUID = data.deviceUUID;
 
-        if (updated[deviceUUID]) {
-          updated[deviceUUID] = {
-            ...updated[deviceUUID],
-            userData: {
-              ...updated[deviceUUID].userData,
-              isSpeaking: true,
-            },
-          };
-        }
-        return updated;
-      });
-    }
+    setCommData((prev) => {
+      const updated = { ...prev };
+
+      // Ensure the participant exists in commData
+      if (!updated[deviceUUID]) {
+        updated[deviceUUID] = {
+          userData: {
+            handle: "Unknown User",
+            isSpeaking: false,
+            webcamOn: false,
+          },
+          activeScreenShares: [],
+        };
+      }
+
+      // Ensure userData exists
+      if (!updated[deviceUUID].userData) {
+        updated[deviceUUID].userData = {
+          handle: "Unknown User",
+          isSpeaking: false,
+          webcamOn: false,
+        };
+      }
+
+      updated[deviceUUID] = {
+        ...updated[deviceUUID],
+        userData: {
+          ...updated[deviceUUID].userData,
+          isSpeaking: true,
+        },
+      };
+
+      return updated;
+    });
   };
-  const handleRemoteUserStoppedSpeaking = (data) => {
-    // Controlla se l'evento è per il commUUID corretto
-    if (!check.isInComms()) {
+
+  const handleStoppedSpeaking = (data) => {
+    if (
+      !check.isInComms() ||
+      data.commUUID !== commUUID ||
+      data.commUUID !== get.commUUID()
+    ) {
       return;
     }
 
-    if (
-      data.commUUID === commUUID &&
-      data.commUUID === get.commUUID() &&
-      data.id !== get.deviceUUID()
-    ) {
-      // Aggiorna lo stato isSpeaking per l'utente remoto in commData
-      setCommData((prev) => {
-        const updated = { ...prev };
-        const deviceUUID = data.id;
+    const deviceUUID = data.deviceUUID;
 
-        if (updated[deviceUUID]) {
-          updated[deviceUUID] = {
-            ...updated[deviceUUID],
-            userData: {
-              ...updated[deviceUUID].userData,
-              isSpeaking: false,
-            },
-          };
-        }
-        return updated;
-      });
-    }
+    setCommData((prev) => {
+      const updated = { ...prev };
+
+      // Ensure the participant exists in commData
+      if (!updated[deviceUUID]) {
+        updated[deviceUUID] = {
+          userData: {
+            handle: "Unknown User",
+            isSpeaking: false,
+            webcamOn: false,
+          },
+          activeScreenShares: [],
+        };
+      }
+
+      // Ensure userData exists
+      if (!updated[deviceUUID].userData) {
+        updated[deviceUUID].userData = {
+          handle: "Unknown User",
+          isSpeaking: false,
+          webcamOn: false,
+        };
+      }
+
+      updated[deviceUUID] = {
+        ...updated[deviceUUID],
+        userData: {
+          ...updated[deviceUUID].userData,
+          isSpeaking: false,
+        },
+      };
+
+      return updated;
+    });
   };
+
   // Screen sharing handlers
   const handleScreenShareStarted = (data) => {
     console.debug("[VocalContent] Screen share started:", data);
-    const { from, screenShareUUID } = data;
+    const { deviceUUID, screenShareUUID } = data;
 
     // Non saltare per l'utente locale: aggiorna sempre per mantenere la sincronizzazione con il core WebRTC
-    // if (from === get.deviceUUID()) {
+    // if (deviceUUID === get.deviceUUID()) {
     //   console.info("[VocalContent] Ignoring own screen share started event");
     //   return;
     // }
 
     setCommData((prev) => {
       const updated = { ...prev };
-      const deviceUUID = from;
 
       // Assicurati che il partecipante esista in commData
       if (!updated[deviceUUID]) {
@@ -308,10 +262,10 @@ const useCommData = (chatUUID, sub = 0) => {
   const handleScreenShareStopped = (data) => {
     console.debug("[VocalContent] Screen share stopped:", data);
 
-    const { from, screenShareUUID } = data;
+    const { deviceUUID, screenShareUUID } = data;
 
     // Non saltare per l'utente locale
-    // if (from === get.deviceUUID()) {
+    // if (deviceUUID === get.deviceUUID()) {
     //   console.info("[VocalContent] Ignoring own screen share stopped event");
     //   return;
     // }
@@ -319,7 +273,6 @@ const useCommData = (chatUUID, sub = 0) => {
     // Rimuovi lo screen share da activeStreams e commData
     setCommData((prev) => {
       const updated = { ...prev };
-      const deviceUUID = from;
 
       if (updated[deviceUUID]) {
         // Assicurati che activeScreenShares sia un array
@@ -334,7 +287,7 @@ const useCommData = (chatUUID, sub = 0) => {
           ),
         };
         console.log(
-          `[VocalContent] Updated activeScreenShares for ${from}: ${screenShareUUID} removed`
+          `[VocalContent] Updated activeScreenShares for ${deviceUUID}: ${screenShareUUID} removed`
         );
       }
 
@@ -344,11 +297,11 @@ const useCommData = (chatUUID, sub = 0) => {
     setActiveStreams((prev) => {
       const newStreams = { ...prev };
 
-      if (newStreams[from]) {
+      if (newStreams[deviceUUID]) {
         // Rimuovi lo stream di screen share per il partecipante
-        delete newStreams[from][screenShareUUID];
+        delete newStreams[deviceUUID][screenShareUUID];
         console.log(
-          `[VocalContent] Removed screen share stream for ${from}: ${screenShareUUID}`
+          `[VocalContent] Removed screen share stream for ${deviceUUID}: ${screenShareUUID}`
         );
       }
       return newStreams;
@@ -356,31 +309,31 @@ const useCommData = (chatUUID, sub = 0) => {
   };
   // Gestione dell'ingresso nella chat vocale
   const handleMemberJoined = async (data) => {
-    // Controlla se l'evento è per il commUUID corretto (usa commUUID invece di chatUUID)
-    if (data.commUUID === commUUID) {
-      console.debug("[VocalContent] Member joined comms:", data);
+    console.debug("[VocalContent] Member joined comms:", data);
+    // Controlla se l'evento è per il commUUID corretto (usa commUUID invece di commUUID)
+    if (data.commUUID == commUUID) {
       console.log("[VocalContent] Adding member to profiles");
 
       setCommData((prev) => {
         const updated = { ...prev };
-        const deviceUUID = data.from;
+        const deviceUUID = data.deviceUUID;
 
         // Ensure the participant exists in commData
         if (!updated[deviceUUID]) {
           updated[deviceUUID] = {
             userData: {
               handle: data.handle || "Unknown User",
-              isSpeaking: false,
+              isSpeaking: data.speaking,
               webcamOn: data.webcamOn || false, // Default webcam status
             },
-            activeScreenShares: [],
+            activeScreenShares: data.screenShares || [],
           };
         }
         return updated;
       });
 
       // Se è il mio join event, sincronizza subito gli stream esistenti
-      if (data.from === get.deviceUUID()) {
+      if (data.deviceUUID === get.deviceUUID()) {
         const updatedActiveStreams = get.activeStreams();
         console.debug(
           "[VocalContent] Syncing existing streams after my join:",
@@ -389,27 +342,31 @@ const useCommData = (chatUUID, sub = 0) => {
         setActiveStreams(updatedActiveStreams);
       }
     } else {
-      console.log("[VocalContent] View incorrect, ignored member join event for different comm", { dataCommUUID: data.commUUID, currentCommUUID: commUUID });
+      console.log(
+        "[VocalContent] View incorrect, ignored member join event for different comm",
+        { dataCommUUID: data.commUUID, currentCommUUID: get.commUUID() }
+      );
     }
   };
   // Gestione dell'uscita dalla chat vocale
   const handleMemberLeft = async (data) => {
+    console.log(`[VocalContent] Member left: ${data}`);
     // Controlla se l'evento è per il commUUID corretto
     if (data.commUUID === commUUID) {
-      console.log(`[VocalContent] Member left: ${data.from}`);
-
       // Rimuovo il profilo
       setCommData((prev) => {
         const updated = { ...prev };
-        const deviceUUID = data.from;
+        const deviceUUID = data.deviceUUID;
 
         // Remove the participant if they exist
         if (updated[deviceUUID]) {
           delete updated[deviceUUID];
-          console.log(`[VocalContent] Removed profile for user: ${data.from}`);
+          console.log(
+            `[VocalContent] Removed profile for user: ${data.deviceUUID}`
+          );
         } else {
           console.warn(
-            `[VocalContent] Attempted to remove non-existent profile for user: ${data.from}`
+            `[VocalContent] Attempted to remove non-existent profile for user: ${data.deviceUUID}`
           );
         }
         return updated;
@@ -421,16 +378,19 @@ const useCommData = (chatUUID, sub = 0) => {
         const newStreams = { ...prev };
         // Remove all active streams for the departing user
 
-        if (newStreams[data.from]) {
-          delete newStreams[data.from];
+        if (newStreams[data.deviceUUID]) {
+          delete newStreams[data.deviceUUID];
           console.log(
-            `[VocalContent] Removed all active streams for departing user ${data.from}`
+            `[VocalContent] Removed all active streams for departing user ${data.deviceUUID}`
           );
         }
         return newStreams;
       });
     } else {
-      console.log("[VocalContent] View incorrect, ignored member left event for different comm", { dataCommUUID: data.commUUID, currentCommUUID: commUUID });
+      console.log(
+        "[VocalContent] View incorrect, ignored member left event for different comm",
+        { dataCommUUID: data.commUUID, currentCommUUID: get.commUUID() }
+      );
     }
   };
 
@@ -445,7 +405,7 @@ const useCommData = (chatUUID, sub = 0) => {
       // Aggiorna lo stato webcamOn per l'utente remoto in commData
       setCommData((prev) => {
         const updated = { ...prev };
-        const deviceUUID = data.from;
+        const deviceUUID = data.deviceUUID;
 
         if (updated[deviceUUID]) {
           updated[deviceUUID] = {
@@ -471,7 +431,7 @@ const useCommData = (chatUUID, sub = 0) => {
       // Aggiorna lo stato webcamOn per l'utente remoto in commData
       setCommData((prev) => {
         const updated = { ...prev };
-        const deviceUUID = data.from;
+        const deviceUUID = data.deviceUUID;
 
         if (updated[deviceUUID]) {
           updated[deviceUUID] = {
@@ -488,17 +448,14 @@ const useCommData = (chatUUID, sub = 0) => {
   };
 
   useEffect(() => {
-    const commUUIDValue = chatUUID ? chatUUID + "_" + sub : null;
-    setCommUUID(commUUIDValue);
-
     const loadCommData = async () => {
       try {
         setLoading(true);
         setCommData({});
         setActiveStreams({});
 
-        if (commUUIDValue) {
-          const commData = await get.commData(commUUIDValue);
+        if (commUUID) {
+          const commData = await get.commData(commUUID);
           console.log("[VocalContent] Loaded commData:", commData);
           setCommData(commData || {});
           setActiveStreams(get.activeStreams() || {});
@@ -522,10 +479,8 @@ const useCommData = (chatUUID, sub = 0) => {
       .getEmitter()
       .on("comms_screen_share_stop", handleScreenShareStopped);
 
-    eventEmitter.getEmitter().on("comms_speaking", handleUserStartedSpeaking);
-    eventEmitter
-      .getEmitter()
-      .on("comms_not_speaking", handleUserStoppedSpeaking);
+    eventEmitter.getEmitter().on("comms_speaking", handleStartedSpeaking);
+    eventEmitter.getEmitter().on("comms_not_speaking", handleStoppedSpeaking);
 
     eventEmitter.getEmitter().on("comms_webcam_on", handleWebcamOn);
     eventEmitter.getEmitter().on("comms_webcam_off", handleWebcamOff);
@@ -542,19 +497,20 @@ const useCommData = (chatUUID, sub = 0) => {
         .getEmitter()
         .off("comms_screen_share_stop", handleScreenShareStopped);
 
-      eventEmitter
-        .getEmitter()
-        .off("comms_speaking", handleUserStartedSpeaking);
-      eventEmitter
-        .getEmitter()
-        .off("comms_not_speaking", handleUserStoppedSpeaking);
+      eventEmitter.getEmitter().off("comms_speaking", handleStartedSpeaking);
+      eventEmitter.getEmitter().off("comms_not_speaking", handleStoppedSpeaking);
 
       eventEmitter.getEmitter().off("comms_webcam_on", handleWebcamOn);
       eventEmitter.getEmitter().off("comms_webcam_off", handleWebcamOff);
 
       eventEmitter.getEmitter().off("ui_update", handleStreamUpdate);
     };
-  }, [chatUUID, sub]);
+  }, [commUUID]);
+
+  useEffect(() => {
+    // Set commsData to WebRTC whenever it changes
+    WebRTC.setCommData(commData);
+  }, [commData]);
 
   return { commUUID, commData, activeStreams, loading, error };
 };
