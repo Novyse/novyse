@@ -38,7 +38,7 @@ const createStyle = (theme) =>
       marginBottom: 5,
     },
     wipSubtext: {
-      color: theme.subtitle,
+      color: theme.text,
       fontSize: 14,
       fontStyle: "italic",
     },

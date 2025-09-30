@@ -73,7 +73,7 @@ const ChangePassword = () => {
       <HeaderWithBackArrow goBackTo="../" />
       <SettingsPageScrollview>
         <Text style={styles.title}>Change Password</Text>
-        <Text style={styles.subtitle}>
+        <Text style={styles.text}>
           Enter your current password and choose a new one
         </Text>
 
@@ -150,8 +150,8 @@ const createStyle = (theme) =>
       marginBottom: 8,
       textAlign: "center",
     },
-    subtitle: {
-      color: theme.subtitle,
+    text: {
+      color: theme.text,
       fontSize: 16,
       textAlign: "center",
       marginBottom: 30,
@@ -193,7 +193,7 @@ const createStyle = (theme) =>
       marginTop: 24,
     },
     noteText: {
-      color: theme.subtitle,
+      color: theme.text,
       fontSize: 14,
       lineHeight: 20,
     },

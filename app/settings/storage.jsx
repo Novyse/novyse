@@ -70,7 +70,7 @@ const createStyle = (theme) =>
       fontWeight: "600",
     },
     wipSubtext: {
-      color: theme.subtitle,
+      color: theme.text,
       fontSize: 14,
       fontStyle: "italic",
     },

@@ -137,7 +137,7 @@ const createStyle = (theme) =>
       marginBottom: 5,
     },
     profileHandle: {
-      color: theme.subtitle,
+      color: theme.text,
       fontSize: 16,
       textAlign: "center",
     },
@@ -151,7 +151,7 @@ const createStyle = (theme) =>
       marginBottom: 20,
     },
     fieldLabel: {
-      color: theme.subtitle,
+      color: theme.text,
       fontSize: 14,
       fontWeight: "600",
       marginBottom: 8,

@@ -115,7 +115,7 @@ const createStyle = (theme) =>
       marginBottom: 16,
     },
     text: {
-      color: theme.subtitle,
+      color: theme.text,
       fontSize: 16,
       lineHeight: 24,
       marginBottom: 16,
@@ -129,7 +129,7 @@ const createStyle = (theme) =>
       alignItems: "center",
     },
     infoLabel: {
-      color: theme.subtitle,
+      color: theme.text,
       fontSize: 16,
     },
     infoValue: {
