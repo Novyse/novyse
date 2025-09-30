@@ -11,15 +11,6 @@ const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
   const styles = createStyle(theme);
 
   return (
-    // <Pressable
-    //   style={({ pressed, hovered }) => [
-    //     styles.menuItem,
-    //     hovered && styles.menuItemHovered,
-    //     pressed && styles.menuItemPressed,
-    //   ]}
-    //   onPress={() => router.push(navToPage)}
-    //   android_ripple={{ color: theme.rippleColor }}
-    // >
     <HoverAndPressedButton
       onPress={() => router.push(navToPage)}
       style={styles.menuItem}

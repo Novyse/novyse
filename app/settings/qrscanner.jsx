@@ -19,10 +19,6 @@ const QRScanner = () => {
   // Gestione delle barre di sistema
   useEffect(() => {
     const hideBars = async () => {
-      // Nascondi la status bar
-      // (Già impostata come traslucida, ma possiamo renderla completamente invisibile se preferiamo)
-      // StatusBar.setHidden(true, 'slide'); // Potresti volerla nascondere completamente, ma traslucida va bene per la camera
-
       // Nascondi la barra di navigazione (Android)
       await NavigationBar.setVisibilityAsync("hidden");
       // Puoi anche impostare il tipo di comportamento immersivo
@@ -30,18 +26,13 @@ const QRScanner = () => {
     };
 
     const showBars = async () => {
-      // Mostra la status bar
-      // StatusBar.setHidden(false, 'slide');
-
       // Mostra la barra di navigazione (Android)
       await NavigationBar.setVisibilityAsync("visible");
-      await NavigationBar.setSystemUIVisibility("lean_back"); // O "system_bars"
+      await NavigationBar.setSystemUIVisibility("lean_back");
     };
 
-    hideBars(); // Chiama la funzione per nasconderle all'ingresso nella schermata
+    hideBars();
 
-    // Funzione di cleanup: assicura che le barre vengano ripristinate
-    // quando il componente viene smontato (ad esempio, quando l'utente lascia la schermata)
     return () => {
       showBars();
     };
@@ -89,13 +80,13 @@ const createStyle = (theme) =>
       flex: 1,
     },
     headerContainer: {
-      position: "absolute", // Posizionamento assoluto per sovrapporsi alla camera
-      top: 10, // Allineato al bordo superiore
-      left: 10, // Allineato al bordo sinistro
-      right: 0, // Si estende per tutta la larghezza (opzionale, dipende dal layout interno di HeaderWithBackArrow)
-      // backgroundColor: 'rgba(0,0,0,0.3)', // Puoi aggiungere uno sfondo per visibilità durante il debug
-      zIndex: 1, // Assicura che sia sopra la CameraView
-      // Il paddingTop: insets.top verrà aggiunto direttamente inline
+      position: "absolute",
+      top: 10,
+      left: 10,
+      right: 0,
+      // backgroundColor: 'rgba(0,0,0,0.3)',
+      zIndex: 1,
+      
     },
   });
 

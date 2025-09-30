@@ -147,7 +147,6 @@ function createStyle(theme) {
     moreButton: {
       marginLeft: 12,
     },
-    // Espandi con altri stili se necessario
     chatHeader: {
       borderBottomColor: theme?.backgroundDivider,
       borderBottomWidth: 1,
