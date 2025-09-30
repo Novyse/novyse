@@ -46,7 +46,7 @@ const SocketIO = {
 
       socket = io(SOCKET_BASE_URL, {
         path: path,
-        transports: ["websocket"],
+        transports: ["polling", "websocket"],
         autoConnect: true,
         reconnectionAttempts: -1,
         auth: {

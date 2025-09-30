@@ -288,7 +288,7 @@ const VocalContentBottomBar = ({ commUUID }) => {
             onPress={async () => {
               self.left(commUUID);
             }}
-            iconName={Call02Icon}
+            iconName={"Call02Icon"}
             iconColor="red"
             hoverColor={theme.iconCommsOutHover}
           />
