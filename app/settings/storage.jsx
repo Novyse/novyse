@@ -18,7 +18,7 @@ const StoragePage = () => {
 
   return (
     <ScreenLayout>
-      <HeaderWithBackArrow goBackTo="./" />
+      <HeaderWithBackArrow goBackTo="../" />
       <SettingsPageScrollview>
         <SettingsCard>
           <Text style={styles.wipText}>🚧 Work in Progress 🚧</Text>

@@ -14,7 +14,7 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
     <HeaderBase>
       <Icon
         name={"ArrowLeft02Icon"}
-        onPress={() => router.replace(goBackTo)}
+        onPress={() => router.navigate(goBackTo)}
         style={styles.iconContainer}
       />
     </HeaderBase>

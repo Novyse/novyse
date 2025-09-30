@@ -472,31 +472,28 @@ const ChatContent = ({ onBack, contentView }) => {
   };
 
   const renderBottomBar = () => {
+    // Condizione per mostrare la barra di input o il pulsante "Join"
+    const showInputBar =
+      chat.uuid || !["GROUP", "CHANNEL", "FORUM"].includes(chat.type);
+
     return (
       <View
-        style={styles.bottomBarContainer}
+        style={styles.bottomBar} // Stile unificato
         onLayout={(event) => {
           setBottomBarHeight(event.nativeEvent.layout.height);
         }}
       >
-        {chat.uuid ||
-        (chat.type != "GROUP" &&
-          chat.type != "CHANNEL" &&
-          chat.type != "FORUM") ? (
-          <View style={styles.messageBottomContainer}>
-            <Icon
-              name="PlusSignIcon"
-              style={styles.iconButton}
-              onPress={() => {}}
-            />
+        {showInputBar ? (
+          <>
+            <Icon name="PlusSignIcon" style={styles.icon} onPress={() => {}} />
+
             <LinearGradient
               colors={theme.backgroundChatTextInputGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.bottomTextBarContainer}
+              style={styles.textInputContainer} // Contenitore del testo
             >
+              {/* TextInput ora è un figlio diretto del gradiente */}
               <TextInput
-                style={styles.bottomBarTextInput}
+                style={styles.textInput}
                 placeholder={"New message"}
                 placeholderTextColor={theme.placeholderText}
                 value={newMessageText}
@@ -507,29 +504,31 @@ const ChatContent = ({ onBack, contentView }) => {
                   Platform.OS === "web" ? handleSendMessage : undefined
                 }
               />
+              {/* Anche l'icona è un figlio diretto */}
               <Icon
                 name="SmileIcon"
-                style={styles.iconButton}
+                style={styles.icon}
                 onPress={toggleEmojiPicker}
               />
             </LinearGradient>
+
             {isVoiceMessage ? (
               <Icon
                 name="Mic02Icon"
                 onPress={handleVoiceMessage}
-                style={styles.iconButton}
+                style={styles.icon} // Stile riutilizzato
               />
             ) : (
               <Icon
                 name="SentIcon"
                 onPress={handleSendMessage}
-                style={styles.iconButton}
+                style={styles.icon} // Stile riutilizzato
               />
             )}
-          </View>
+          </>
         ) : (
-          <Pressable onPress={handleJoin} style={styles.joinGroupButton}>
-            <Text style={styles.joinGroupButtonText}>
+          <Pressable onPress={handleJoin} style={styles.joinButton}>
+            <Text style={styles.joinButtonText}>
               Join{" "}
               {chat.type.charAt(0).toUpperCase() +
                 chat.type.slice(1).toLowerCase()}
@@ -539,6 +538,7 @@ const ChatContent = ({ onBack, contentView }) => {
       </View>
     );
   };
+
   return (
     <SmartBackground
       backgroundKey="backgroundChatContentGradient"
@@ -632,58 +632,50 @@ function createStyle(theme) {
         },
       }),
     },
-    bottomBarContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
+    bottomBar: {
       width: "100%",
       paddingVertical: 10,
-      maxHeight: 70,
+      paddingHorizontal: 5,
+      flexDirection: "row",
+      alignItems: "center",
+      minHeight: 55,
     },
-    bottomTextBarContainer: {
+    textInputContainer: {
       flex: 1,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
-      borderRadius: 15,
-      padding: 8,
+      borderRadius: 20,
+      paddingHorizontal: 5,
+      marginHorizontal: 5,
+      minHeight: 45,
+      
     },
-    bottomBarTextInput: {
+    textInput: {
       flex: 1,
-      fontSize: 18,
-      minWidth: 20,
+      fontSize: 16,
       color: theme.text,
-      placeholderTextColor: theme.placeholderText,
       outlineStyle: "none",
-      maxHeight: 45,
+      alignSelf: 'stretch',
+      marginLeft: 10
     },
-    messageBottomContainer: {
-      flexDirection: "row",
-      width: "100%",
-      alignItems: "center",
-    },
-    iconButton: {
-      backgroundColor: "transparent",
-      borderRadius: 100,
+    icon: {
       width: 35,
       height: 35,
       justifyContent: "center",
       alignItems: "center",
       marginHorizontal: 5,
+      
     },
-    joinGroupButton: {
+    joinButton: {
       backgroundColor: theme.backgroundJoinChatButton,
       paddingHorizontal: 30,
-      minHeight: 45,
-      padding: 13,
+      paddingVertical: 13,
       borderRadius: 25,
       alignSelf: "center",
-      justifyContent: "center",
-      alignItems: "center",
+      marginHorizontal: "auto",
     },
-    joinGroupButtonText: {
+    joinButtonText: {
       fontSize: 18,
-      textAlign: "center",
       color: theme.text,
       fontWeight: "bold",
     },
