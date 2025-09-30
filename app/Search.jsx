@@ -10,6 +10,7 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import SmartBackground from "./components/SmartBackground";
 import { ThemeContext } from "@/context/ThemeContext";
