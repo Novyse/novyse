@@ -9,7 +9,9 @@ class Database {
 
   static async create() {
     if (!Database.instance) {
-      const db = await adapter.openDatabaseAsync("novyse");
+      const db = await adapter.openDatabaseAsync("novyse", {
+        useNewConnection: true,
+      });
       if (!db) {
         throw new Error("Failed to open database");
       }

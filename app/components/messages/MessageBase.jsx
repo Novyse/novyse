@@ -7,6 +7,7 @@ import MessageAudio from "./MessageAudio";
 // Importa i componenti di contenuto
 import MessageText from "./MessageText";
 import MessageTimestamp from "./MessageTimestamp";
+import SmartBackground from "../SmartBackground";
 
 const MessageBase = ({ message, isSender, onLongPress }) => {
   const { theme } = useContext(ThemeContext);
@@ -15,10 +16,8 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
   const { text, created_at } = message;
 
   return (
-    <LinearGradient
+    <SmartBackground
       colors={theme.backgroundMessageBaseGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
       style={isSender ? styles.msgSender : styles.msgReceiver}
     >
       <Pressable onLongPress={onLongPress} style={styles.pressable}>
@@ -35,7 +34,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         <MessageTimestamp time={created_at} />
         {/* </View> */}
       </Pressable>
-    </LinearGradient>
+    </SmartBackground>
   );
 };
 
