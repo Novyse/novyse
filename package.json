@@ -123,6 +123,7 @@
   "resolutions": {
     "form-data": "^4.0.4",
     "on-headers": "^1.1.0",
-    "**/electron": "^35.7.5"
+    "**/electron": "^35.7.5",
+    "tar-fs": ">=2.1.4" 
   }
 }

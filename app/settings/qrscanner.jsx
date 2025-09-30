@@ -1,8 +1,8 @@
-import React, { useContext, useEffect } from "react"; // Aggiunto useEffect
+import React, { useContext, useEffect } from "react";
 import { StyleSheet, Alert, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import * as NavigationBar from "expo-navigation-bar"; // Importa expo-navigation-bar
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // Importa useSafeAreaInsets
+// import * as NavigationBar from "expo-navigation-bar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "../components/HeaderWithBackArrow";
@@ -14,29 +14,29 @@ const QRScanner = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const insets = useSafeAreaInsets(); // Ottieni gli insets di sicurezza
+  const insets = useSafeAreaInsets();
 
   // Gestione delle barre di sistema
-  useEffect(() => {
-    const hideBars = async () => {
-      // Nascondi la barra di navigazione (Android)
-      await NavigationBar.setVisibilityAsync("hidden");
-      // Puoi anche impostare il tipo di comportamento immersivo
-      await NavigationBar.setSystemUIVisibility("immersive");
-    };
+  // useEffect(() => {
+  //   const hideBars = async () => {
+  //     // Nascondi la barra di navigazione (Android)
+  //     await NavigationBar.setVisibilityAsync("hidden");
+  //     // Puoi anche impostare il tipo di comportamento immersivo
+  //     await NavigationBar.setSystemUIVisibility("immersive");
+  //   };
 
-    const showBars = async () => {
-      // Mostra la barra di navigazione (Android)
-      await NavigationBar.setVisibilityAsync("visible");
-      await NavigationBar.setSystemUIVisibility("lean_back");
-    };
+  //   const showBars = async () => {
+  //     // Mostra la barra di navigazione (Android)
+  //     await NavigationBar.setVisibilityAsync("visible");
+  //     await NavigationBar.setSystemUIVisibility("lean_back");
+  //   };
 
-    hideBars();
+  //   hideBars();
 
-    return () => {
-      showBars();
-    };
-  }, []); // Esegui solo una volta al montaggio e smontaggio
+  //   return () => {
+  //     showBars();
+  //   };
+  // }, []); // Esegui solo una volta al montaggio e smontaggio
 
   const handleCodeScanned = async (content) => {
     try {
