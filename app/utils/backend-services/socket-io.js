@@ -8,6 +8,8 @@ import eventReceiver from "./lib/event-receiver.js";
 import eventSender from "./lib/event-sender.js";
 
 import { BRANCH, SOCKET_BASE_URL } from "../../../app.config.js";
+import { Platform } from "react-native";
+
 let path;
 
 switch (BRANCH) {
@@ -25,6 +27,12 @@ path += "/socket.io";
 
 let socket = null;
 let isConnecting = false;
+
+let transportsMethods = ["polling"];
+if (Platform.OS == "web") {
+  transportsMethods.pop(); // Remove "polling
+  transportsMethods.push("websocket");
+}
 
 const SocketIO = {
   isOpen: () => {
@@ -46,7 +54,7 @@ const SocketIO = {
 
       socket = io(SOCKET_BASE_URL, {
         path: path,
-        transports: ["polling", "websocket"],
+        transports: transportsMethods,
         autoConnect: true,
         reconnectionAttempts: -1,
         auth: {
