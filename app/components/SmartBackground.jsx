@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Platform, View } from "react-native";
+import { View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "../../context/ThemeContext";
 
