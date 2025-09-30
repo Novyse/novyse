@@ -35,7 +35,7 @@ class PeerConnectionManager {
    * @returns {RTCPeerConnection|null} La peer connection creata
    */
   createPeerConnection(participant) {
-    const deviceUUID = participant.from;
+    const deviceUUID = participant.deviceUUID;
 
     if (this.globalState.getPeerConnection(deviceUUID)) {
       logger.warning(
@@ -266,8 +266,17 @@ class PeerConnectionManager {
       this._addLocalTracksIfAvailable(pc, deviceUUID, false);
 
       // 2. Crea nuova offer
-      console.log("🎯 CREATING NEW OFFER FOR RENEGOTIATION...");
-      const offer = await pc.createOffer();
+      const isICERestartNeeded =
+        pc.iceConnectionState === "failed" ||
+        pc.iceConnectionState === "disconnected";
+      console.log("🎯 CREATING NEW OFFER FOR RENEGOTIATION:", {
+        deviceUUID,
+        iceRestart: isICERestartNeeded,
+        iceConnectionState: pc.iceConnectionState,
+      });
+      const offer = await pc.createOffer(
+        isICERestartNeeded ? { iceRestart: true } : {}
+      );
 
       console.log("✅ OFFER CREATED:", {
         deviceUUID,
@@ -292,10 +301,11 @@ class PeerConnectionManager {
       console.log("📡 SENDING RENEGOTIATION OFFER VIA WEBSOCKET...");
 
       const SocketIO = await import("../../backend-services/socket-io.js");
-      await SocketIO.default.RTCOffer({
+      await SocketIO.default.send().RTCOffer({
         offer: offer,
-        to: deviceUUID,
-        from: this.globalState.getDeviceUUID(),
+        toDeviceUUID: deviceUUID,
+        deviceUUID: this.globalState.getDeviceUUID(),
+        commUUID: this.globalState.getCommUUID(),
       });
 
       console.log("🎉 RENEGOTIATION OFFER SENT SUCCESSFULLY:", {
@@ -941,26 +951,28 @@ class PeerConnectionManager {
   /**
    * Aggiunge tracce locali a una peer connection - VERSIONE CORRETTA PER ANSWER
    * @param {RTCPeerConnection} pc
-   * @param {string} remotedeviceUUID
+   * @param {string} deviceUUID
    * @param {boolean} isAnswer - Se true, stiamo creando un answer
    */
-  _addLocalTracksIfAvailable(pc, remotedeviceUUID, isAnswer = false) {
+  _addLocalTracksIfAvailable(pc, deviceUUID, isAnswer = false) {
     console.log(`🔧 _addLocalTracksIfAvailable CHIAMATO!`, {
       myId: this.globalState.getDeviceUUID(),
       hasLocalStream: !!this.globalState.getLocalStream(),
-      remotedeviceUUID,
+      deviceUUID,
       isAnswer,
       signalingState: pc.signalingState,
       existingMappings: this.streamMappingManager?.getAllMappings(),
       existingTransceivers: pc.getTransceivers().length,
     });
 
-    // 🔥 ADD: Guard against undefined remotedeviceUUID to prevent invalid mappings
-    if (!remotedeviceUUID) {
-      console.warn("⚠️ _addLocalTracksIfAvailable: remotedeviceUUID is undefined - skipping local track addition and mapping");
+    // 🔥 ADD: Guard against undefined deviceUUID to prevent invalid mappings
+    if (!deviceUUID) {
+      console.warn(
+        "⚠️ _addLocalTracksIfAvailable: deviceUUID is undefined - skipping local track addition and mapping"
+      );
       this.logger?.warn(
         "PeerConnectionManager",
-        "_addLocalTracksIfAvailable: remotedeviceUUID is undefined - cannot add mappings",
+        "_addLocalTracksIfAvailable: deviceUUID is undefined - cannot add mappings",
         {
           signalingState: pc.signalingState,
           isAnswer,
@@ -1005,7 +1017,7 @@ class PeerConnectionManager {
               direction: transceiver.direction,
             });
           }
-
+          
           if (transceiver) {
             const streamUUID = this.globalState.getDeviceUUID();
 
@@ -1015,7 +1027,7 @@ class PeerConnectionManager {
             }
             pc._pendingMappings.push({
               transceiver,
-              remotedeviceUUID,
+              deviceUUID,
               streamUUID,
             });
 
@@ -1063,7 +1075,7 @@ class PeerConnectionManager {
             if (transceiver) {
               pc._pendingMappings.push({
                 transceiver,
-                remotedeviceUUID,
+                deviceUUID,
                 streamUUID,
               });
             }
@@ -1095,32 +1107,30 @@ class PeerConnectionManager {
       localDescription: !!pc.localDescription,
     });
 
-    pc._pendingMappings.forEach(
-      ({ transceiver, remotedeviceUUID, streamUUID }) => {
-        if (transceiver.mid) {
-          console.log("✅ MID DISPONIBILE DOPO OFFER:", {
-            mid: transceiver.mid,
-            streamUUID,
-            remotedeviceUUID,
-          });
+    for (const { transceiver, deviceUUID, streamUUID } of pc._pendingMappings) {
+      if (transceiver.mid) {
+        console.log("✅ MID DISPONIBILE DOPO OFFER:", {
+          mid: transceiver.mid,
+          streamUUID,
+          deviceUUID,
+        });
 
-          // Registra il mapping e invia via signaling
-          if (this.streamMappingManager) {
-            this.streamMappingManager.addLocalStreamMapping(
-              remotedeviceUUID,
-              streamUUID,
-              transceiver.mid
-            );
-          }
-        } else {
-          console.log("❌ MID ANCORA NULL DOPO OFFER:", {
+        // Registra il mapping localmente
+        if (this.streamMappingManager) {
+          this.streamMappingManager.addLocalStreamMapping(
+            deviceUUID,
             streamUUID,
-            direction: transceiver.direction,
-            currentDirection: transceiver.currentDirection,
-          });
+            transceiver.mid
+          );
         }
+      } else {
+        console.log("❌ MID ANCORA NULL DOPO OFFER:", {
+          streamUUID,
+          direction: transceiver.direction,
+          currentDirection: transceiver.currentDirection,
+        });
       }
-    );
+    }
 
     // Pulisci pending mappings
     pc._pendingMappings = [];
@@ -1130,7 +1140,7 @@ class PeerConnectionManager {
    * Aspetta che il MID sia disponibile e poi registra il mapping
    */
   _waitForMidAndRegisterMapping(
-    remotedeviceUUID,
+    deviceUUID,
     streamUUID,
     transceiver,
     attemptCount = 0
@@ -1139,10 +1149,10 @@ class PeerConnectionManager {
 
     if (attemptCount >= maxAttempts) {
       // 🔥 DEBUG COMPLETO DEL PROBLEMA
-      const pc = this.globalState.getPeerConnection(remotedeviceUUID);
+      const pc = this.globalState.getPeerConnection(deviceUUID);
 
       console.log("❌ DEBUG MID TIMEOUT:", {
-        remotedeviceUUID,
+        deviceUUID,
         streamUUID,
         attemptCount,
         transceiver: {
@@ -1171,7 +1181,7 @@ class PeerConnectionManager {
         "PeerConnectionManager",
         "❌ MID non disponibile dopo 5 secondi",
         {
-          remotedeviceUUID,
+          deviceUUID,
           streamUUID,
           signalingState: pc?.signalingState,
           localDescription: !!pc?.localDescription,
@@ -1187,13 +1197,13 @@ class PeerConnectionManager {
       console.log("✅ MID DISPONIBILE, REGISTRO MAPPING:", {
         mid: transceiver.mid,
         streamUUID,
-        remotedeviceUUID,
+        deviceUUID,
         attemptCount,
       });
 
       if (this.streamMappingManager) {
         this.streamMappingManager.addLocalStreamMapping(
-          remotedeviceUUID,
+          deviceUUID,
           streamUUID,
           transceiver.mid
         );
@@ -1201,10 +1211,10 @@ class PeerConnectionManager {
     } else {
       // 🔥 DEBUG OGNI 20 TENTATIVI (1 secondo)
       if (attemptCount % 20 === 0) {
-        const pc = this.globalState.getPeerConnection(remotedeviceUUID);
+        const pc = this.globalState.getPeerConnection(deviceUUID);
         console.log("⏳ ATTENDO MID, DEBUG STATE:", {
           attemptCount,
-          remotedeviceUUID,
+          deviceUUID,
           streamUUID,
           transceiver: {
             mid: transceiver.mid,
@@ -1224,7 +1234,7 @@ class PeerConnectionManager {
       // MID non ancora disponibile, riprova
       setTimeout(() => {
         this._waitForMidAndRegisterMapping(
-          remotedeviceUUID,
+          deviceUUID,
           streamUUID,
           transceiver,
           attemptCount + 1
@@ -1353,10 +1363,11 @@ class PeerConnectionManager {
         }
 
         // Try to send the ICE candidate
-        await SocketIO.default.IceCandidate({
+        await SocketIO.default.send().IceCandidate({
           candidate: candidate.toJSON(),
-          to: deviceUUID,
-          from: this.globalState.myId,
+          toDeviceUUID: deviceUUID,
+          deviceUUID: this.globalState.getDeviceUUID(),
+          commUUID: this.globalState.getCommUUID(),
         });
 
         logger.debug(

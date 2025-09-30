@@ -10,8 +10,8 @@ const eventSender = {
   retrieveCommData(commUUID) {
     socket.emit("comms_retrieve_comms_data", { commUUID });
   },
-  joinComm(commUUID) {
-    socket.emit("comms_join", { commUUID });
+  joinComm(commUUID, handle) {
+    socket.emit("comms_join", { commUUID, handle });
   },
 
   leaveComm(commUUID) {
@@ -46,13 +46,14 @@ const eventSender = {
     };
     socket.emit(eventType, data);
   },
-  sendMIDtoUUIDMapping: async (fromDeviceUUID, deviceUUID, streamUUID, mid) => {
+  sendMIDtoUUIDMapping: async (deviceUUID, toDeviceUUID, streamUUID, mid) => {
     const data = {
-      fromDeviceUUID,
       deviceUUID,
+      toDeviceUUID,
       streamUUID,
       mid,
     };
+    console.log("[DEBUGGING] [SENDER]", "comms_mid_to_uuid_mapping", data);
     socket.emit("comms_mid_to_uuid_mapping", data);
   },
 

@@ -285,8 +285,9 @@ export class RecoveryManager {
               offer: offer.toJSON
                 ? offer.toJSON()
                 : { sdp: offer.sdp, type: offer.type },
-              to: deviceUUID,
-              from: this.globalState.getDeviceUUID(),
+              toDeviceUUID: deviceUUID,
+              deviceUUID: this.globalState.getDeviceUUID(),
+              commUUID: this.globalState.getCommUUID(),
             }),
           `ICE restart offer to ${deviceUUID}`,
           3
@@ -382,7 +383,7 @@ export class RecoveryManager {
       const userData = this.globalState.getUserData(deviceUUID);
       if (userData) {
         const newPc = peerConnectionManager.createPeerConnection({
-          from: deviceUUID,
+          deviceUUID: deviceUUID,
           handle: userData.handle,
         });
 
@@ -525,9 +526,9 @@ export class RecoveryManager {
           offer: offer.toJSON
             ? offer.toJSON()
             : { sdp: offer.sdp, type: offer.type },
-          to: deviceUUID,
-          from: this.globalState.getDeviceUUID(),
-          chat: this.globalState.getCommUUID(),
+          toDeviceUUID: deviceUUID,
+          deviceUUID: this.globalState.getDeviceUUID(),
+          commUUID: this.globalState.getCommUUID(),
         });
 
         this.logger.debug(

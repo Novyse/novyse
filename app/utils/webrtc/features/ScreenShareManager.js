@@ -4,7 +4,6 @@ import { GlobalState } from "../core/GlobalState.js";
 import Compatibility from "../utils/compatibility.js";
 import { Helpers } from "../utils/helpers.js";
 import SocketIO from "../../backend-services/socket-io.js";
-import WebRTC from "../index.js";
 import eventEmitter from "../utils/EventEmitter.js";
 import SoundPlayer from "../../sounds/SoundPlayer.js";
 import { getScreenShareConstraints } from "../config/mediaConstraints.js";
@@ -158,21 +157,25 @@ export class ScreenShareManager {
    * @returns {void}
    */
   handleRemoteScreenShareStarted(data) {
-    const { from, screenShareUUID } = data;
+    const { deviceUUID, screenShareUUID } = data;
 
-    if (from && from !== this.globalState.getDeviceUUID()) {
+    if (deviceUUID && deviceUUID !== this.globalState.getDeviceUUID()) {
       this.logger.info(
-        `Screen share remoto avviato: ${from}/${screenShareUUID}`,
+        `Screen share remoto avviato: ${deviceUUID}/${screenShareUUID}`,
         {
           component: "ScreenShareManager",
-          deviceUUID: from,
+          deviceUUID: deviceUUID,
           screenShareUUID,
           action: "handleRemoteScreenShareStarted",
         }
       );
 
       // Inizializza tracking metadata
-      this.globalState.setStreamMetadata(from, screenShareUUID, "screenshare");
+      this.globalState.setStreamMetadata(
+        deviceUUID,
+        screenShareUUID,
+        "screenshare"
+      );
 
       // Lo stream effettivo sarà gestito in ontrack quando arriva il media
     }
@@ -184,14 +187,14 @@ export class ScreenShareManager {
    * @returns {void}
    */
   handleRemoteScreenShareStopped(data) {
-    const { from, screenShareUUID } = data;
+    const { deviceUUID, screenShareUUID } = data;
 
-    if (from && from !== this.globalState.getDeviceUUID()) {
+    if (deviceUUID && deviceUUID !== this.globalState.getDeviceUUID()) {
       this.logger.info(
-        `Screen share remoto fermato: ${from}/${screenShareUUID}`,
+        `Screen share remoto fermato: ${deviceUUID}/${screenShareUUID}`,
         {
           component: "ScreenShareManager",
-          deviceUUID: from,
+          deviceUUID: deviceUUID,
           screenShareUUID,
           action: "handleRemoteScreenShareStopped",
         }
@@ -201,13 +204,13 @@ export class ScreenShareManager {
       this._clearPinIfscreenShareUUID(screenShareUUID);
 
       // Rimuovi metadata
-      this.globalState.removeStreamMetadata(from, screenShareUUID);
+      this.globalState.removeStreamMetadata(deviceUUID, screenShareUUID);
 
       // Rimuovi stream
-      this.globalState.removeRemoteScreenStream(from, screenShareUUID);
+      this.globalState.removeRemoteScreenStream(deviceUUID, screenShareUUID);
 
       eventEmitter.sendLocalUpdateNeeded(
-        from,
+        deviceUUID,
         screenShareUUID,
         null, // Passa null per indicare che lo stream è stato fermato
         "remove"
@@ -586,7 +589,7 @@ export class ScreenShareManager {
         // Chiama API per fermare screen share
 
         await SocketIO.send().stopScreenShare(
-          WebRTC.getCommUUID(),
+          this.globalState.getCommUUID(),
           screenShareUUID
         );
         const response = await new Promise((resolve, reject) => {
@@ -598,7 +601,7 @@ export class ScreenShareManager {
             10000
           );
           SocketIO.getSocket().once("comms_screen_share_stopped", (data) => {
-            if (data.commUUID === WebRTC.getCommUUID()) {
+            if (data.commUUID === this.globalState.getCommUUID()) {
               clearTimeout(timeout);
               resolve(data);
             }
@@ -652,7 +655,7 @@ export class ScreenShareManager {
 
               pc._pendingMappings.push({
                 transceiver,
-                remotedeviceUUID: peerId,
+                deviceUUID: peerId,
                 streamUUID: screenShareUUID,
               });
 

@@ -201,9 +201,10 @@ const AppContainer = () => {
     if (isSmallScreen) return false;
     const isInComms = check.isInComms();
     if (isInComms) {
-      const commsId = get.commUUID();
-      if (selectedChatUUID !== commsId) return true;
-      return selectedChatUUID === commsId && "chat" === "chat";
+      const commsUUID = get.commUUID();
+      const chatUUID = commsUUID ? commsUUID.split("_")[0] : null;
+      if (selectedChatUUID !== chatUUID) return true;
+      return selectedChatUUID === chatUUID && "chat" === "chat";
     }
     return false;
   }, [isSmallScreen, selectedChatUUID, forceUpdate]);
@@ -215,9 +216,10 @@ const AppContainer = () => {
     if (!isSmallScreen) return false;
     const isInComms = check.isInComms();
     if (isInComms) {
-      const commsId = get.commUUID();
-      if (selectedChatUUID !== commsId) return true;
-      return selectedChatUUID === commsId && "chat" === "chat";
+      const commsUUID = get.commUUID();
+      const chatUUID = commsUUID ? commsUUID.split("_")[0] : null;
+      if (selectedChatUUID !== chatUUID) return true;
+      return selectedChatUUID === chatUUID && "chat" === "chat";
     }
     return false;
   }, [isSmallScreen, selectedChatUUID, forceUpdate]);

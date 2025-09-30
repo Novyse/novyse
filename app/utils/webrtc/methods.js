@@ -3,6 +3,8 @@ import WebRTCManager from "./index.js";
 import eventEmitter from "../global/Events/EventEmitter.js";
 import SocketIO from "../backend-services/socket-io.js";
 
+import Database from "../storage/database.js";
+
 import SoundPlayer from "../sounds/SoundPlayer.js";
 import settingsManager from "../global/SettingsManager.js";
 import { Platform } from "react-native";
@@ -36,7 +38,10 @@ const self = {
     }
 
     // Join vocal chat
-    await SocketIO.send().joinComm(commUUID);
+    const database = await Database.create();
+    const user = await database.getLocalUser();
+    const user_handle = user.handle;
+    await SocketIO.send().joinComm(commUUID, user_handle);
     const result = await new Promise((resolve, reject) => {
       const timeout = setTimeout(
         () => reject(new Error("Timeout waiting for comms_joined")),
@@ -69,26 +74,8 @@ const self = {
 
     await handle.memberJoined(result.data);
 
-    await SocketIO.send().retrieveCommData(commUUID);
-    const response = await new Promise((resolve, reject) => {
-      const timeout = setTimeout(
-        () =>
-          reject(new Error("Timeout waiting for comms_retrieve_comms_data")),
-        10000
-      );
-      SocketIO.getSocket().once("comms_retrieve_comms_data", (data) => {
-        if (data.commUUID === commUUID) {
-          clearTimeout(timeout);
-          resolve(data);
-        }
-      });
-    });
-
-    if (!response.success) {
-      throw new Error("Failed to retrieve vocal users");
-    }
-
-    WebRTC.setCommData(response.data);
+    const commData = await get.commData(commUUID, true);
+    await WebRTC.setCommData(commData);
   },
 
   // quando io esco in una room
@@ -613,7 +600,7 @@ const handle = {
     if (WebRTC.getCommUUID() === data.commUUID) {
       SoundPlayer.getInstance().playSound("comms_join_vocal");
     }
-    await eventEmitter.commsJoin(data.commUUID, data.user);
+    await eventEmitter.commsJoin(data);
 
     await WebRTC.handleUserJoined(data);
   },
@@ -621,7 +608,7 @@ const handle = {
     if (WebRTC.getCommUUID() === data.commUUID) {
       SoundPlayer.getInstance().playSound("comms_leave_vocal");
     }
-    await eventEmitter.commsLeave(data.commUUID, data.user);
+    await eventEmitter.commsLeave(data);
 
     await WebRTC.handleUserLeft(data);
   },
@@ -657,10 +644,10 @@ const get = {
   deviceUUID: () => {
     return WebRTC.getDeviceUUID();
   },
-  commData: async (commUUID) => {
-    let commData = [];
+  commData: async (commUUID, force = false) => {
+    let commData = {};
 
-    if (commUUID != WebRTC.getCommUUID()) {
+    if (force || commUUID != WebRTC.getCommUUID()) {
       // Different comms - always fetch from Socket-IO
       await SocketIO.send().retrieveCommData(commUUID);
       const response = await new Promise((resolve, reject) => {
@@ -677,10 +664,23 @@ const get = {
         });
       });
       if (response.success) {
-        commData = response.data;
+        // Process the array from SocketIO into the expected map format
+        response.data.forEach((item) => {
+          commData[item.deviceUUID] = {
+            userData: {
+              userUUID: item.userUUID,
+              handle: item.handle,
+              deviceUUID: item.deviceUUID,
+              commUUID: item.commUUID,
+              webcamOn: item.webcamOn,
+              isSpeaking: item.speaking,
+            },
+            activeScreenShares: item.screenShare || [],
+          };
+        });
       }
     } else {
-      // Active comms data
+      // Active comms data (already a map)
       commData = WebRTC.getAllCommsData();
     }
     return commData;

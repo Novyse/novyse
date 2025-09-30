@@ -44,19 +44,19 @@ const EventEmitter = {
     });
   },
 
-  sendWebcamStatus: async (partecipantUUID, chatId, status = false) => {
-    if (!partecipantUUID || !chatId) {
+  sendWebcamStatus: async (deviceUUID, commUUID, status = false) => {
+    if (!deviceUUID || !commUUID) {
       console.error("sendWebcamStatus: Missing parameters", {
-        partecipantUUID,
-        chatId,
+        deviceUUID,
+        commUUID,
         status,
       });
       return;
     }
 
     await SocketIO.send().sendWebcamStatus(
-      partecipantUUID,
-      chatId,
+      deviceUUID,
+      commUUID,
       status
     );
   }

@@ -17,10 +17,10 @@ const VocalContent = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const { selectedChatUUID, selectedSub } = useContext(ChatContext);
+  const { selectedCommUUID } = useContext(ChatContext);
 
-  const { commUUID, commData, activeStreams, loading, error } =
-    useCommData(selectedChatUUID, selectedSub);
+  const { commData, activeStreams, loading, error } =
+    useCommData(selectedCommUUID);
   const { audioContext } = useAudioContext();
 
   return (
@@ -30,7 +30,9 @@ const VocalContent = () => {
     >
       <VocalMembersLayout commData={commData} activeStreams={activeStreams} />
 
-      {commUUID && <VocalContentBottomBar commUUID={commUUID} />}
+      {selectedCommUUID && (
+        <VocalContentBottomBar commUUID={selectedCommUUID} />
+      )}
     </SmartBackground>
   );
 };

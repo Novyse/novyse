@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
 
 export const ChatContext = createContext();
 
@@ -9,6 +9,15 @@ export const ChatProvider = ({ children }) => {
   const [selectedChatPictureUUID, setSelectedChatPictureUUID] = useState(null);
 
   const [selectedSub, setSelectedSub] = useState(0);
+  const [selectedCommUUID, setSelectedCommUUID] = useState(null);
+
+  useEffect(() => {
+    if (selectedChatUUID !== null) {
+      setSelectedCommUUID(selectedChatUUID + "_" + selectedSub);
+    } else {
+      setSelectedCommUUID(null);
+    }
+  }, [selectedChatUUID, selectedSub]);
 
   return (
     <ChatContext.Provider
@@ -23,6 +32,8 @@ export const ChatProvider = ({ children }) => {
         setSelectedChatPictureUUID,
         selectedSub,
         setSelectedSub,
+        selectedCommUUID,
+        setSelectedCommUUID,
       }}
     >
       {children}

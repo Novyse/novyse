@@ -403,20 +403,7 @@ class WebRTCManager {
 
   async setCommData(commData) {
     this.globalState.setCommData(commData);
-    const userData = {};
-
-    commData.forEach((item) => {
-      userData[item.deviceUUID] = {
-        userUUID: item.userUUID,
-        deviceUUID: item.deviceUUID,
-        commUUID: item.commUUID,
-        webcamOn: item.webcamOn,
-        speaking: item.speaking,
-        screenShare: item.screenShare,
-      };
-    });
-
-    return await this.signalingManager.setExistingUsers(userData);
+    return await this.signalingManager.setExistingUsers(commData);
   }
 
   getActiveStreams() {

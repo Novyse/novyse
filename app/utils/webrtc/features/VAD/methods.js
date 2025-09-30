@@ -3,7 +3,7 @@ import voiceActivityDetection from "./lib/voiceActivityDetection";
 import eventEmitter from "../../../global/Events/lib/EventEmitter";
 
 const VAD = {
-  async initializeVoiceActivityDetection(localStream) {
+  async initializeVoiceActivityDetection(localStream, globalState) {
     console.log("Attempting to initialize VAD...", {
       hasLocalStream: !!localStream,
       platform: Platform.OS,
@@ -16,26 +16,26 @@ const VAD = {
       });
     }
 
-      const audioTracks = localStream.getAudioTracks();
-  if (audioTracks.length === 0) {
-    console.error("VAD: No audio tracks in stream!");
-    return false;
-  }
+    const audioTracks = localStream.getAudioTracks();
+    if (audioTracks.length === 0) {
+      console.error("VAD: No audio tracks in stream!");
+      return false;
+    }
 
     // 🔥 DEBUG TRACCE AUDIO PER VEDERE SE SONO ATTIVE
-  audioTracks.forEach((track, index) => {
-    console.log(`🎤 VAD Audio Track ${index}:`, {
-      id: track.id,
-      enabled: track.enabled,
-      muted: track.muted,
-      readyState: track.readyState,
+    audioTracks.forEach((track, index) => {
+      console.log(`🎤 VAD Audio Track ${index}:`, {
+        id: track.id,
+        enabled: track.enabled,
+        muted: track.muted,
+        readyState: track.readyState,
+      });
     });
-  });
 
     const success = await voiceActivityDetection.initialize(
       localStream,
       (isSpeaking) => {
-        VAD.handleSpeakingStatusChange(isSpeaking);
+        VAD.handleSpeakingStatusChange(isSpeaking, globalState);
       }
     );
 
@@ -49,11 +49,17 @@ const VAD = {
     }
   },
 
-  handleSpeakingStatusChange(isSpeaking) {
+  handleSpeakingStatusChange(isSpeaking, globalState) {
     if (isSpeaking) {
-      eventEmitter.emit("user_started_speaking");
+      eventEmitter.emit("comms_speaking", {
+        deviceUUID: globalState.getDeviceUUID(),
+        commUUID: globalState.getCommUUID(),
+      });
     } else {
-      eventEmitter.emit("user_stopped_speaking");
+      eventEmitter.emit("comms_not_speaking", {
+        deviceUUID: globalState.getDeviceUUID(),
+        commUUID: globalState.getCommUUID(),
+      });
     }
   },
 
