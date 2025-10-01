@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AudioProvider } from "../context/AudioContext";
 import { ThemeProvider } from "../context/ThemeContext";
@@ -14,23 +15,25 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <AudioProvider>
-          <ChatProvider>
-            <UserProvider>
-              <LanguageProvider>
-                <Stack
-                  screenOptions={{
-                    // Opzioni globali che si applicano a tutte le schermate
-                    headerShown: false,
-                    contentStyle: { backgroundColor: "transparent" },
-                  }}
-                />
-              </LanguageProvider>
-            </UserProvider>
-          </ChatProvider>
-        </AudioProvider>
-      </ThemeProvider>
+      <KeyboardProvider>
+        <ThemeProvider>
+          <AudioProvider>
+            <ChatProvider>
+              <UserProvider>
+                <LanguageProvider>
+                  <Stack
+                    screenOptions={{
+                      // Opzioni globali che si applicano a tutte le schermate
+                      headerShown: false,
+                      contentStyle: { backgroundColor: "transparent" },
+                    }}
+                  />
+                </LanguageProvider>
+              </UserProvider>
+            </ChatProvider>
+          </AudioProvider>
+        </ThemeProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 }

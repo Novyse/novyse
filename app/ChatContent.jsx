@@ -14,7 +14,6 @@ import {
   FlatList,
   TextInput,
   BackHandler,
-  KeyboardAvoidingView,
 } from "react-native";
 
 import moment from "moment";
@@ -38,7 +37,9 @@ import useChatData from "./hooks/useChatData.js";
 import { ChatContext } from "../context/ChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 import { UserContext } from "@/context/UserContext";
-import { platform } from "process";
+
+// Keyboard Controller
+import { KeyboardAvoidingView, KeyboardProvider } from 'react-native-keyboard-controller';
 
 const ChatContent = ({ onBack, contentView }) => {
   const router = useRouter();
@@ -64,11 +65,7 @@ const ChatContent = ({ onBack, contentView }) => {
     y: 0,
     message: null,
   });
-  const [containerLayout, setContainerLayout] = useState({
-    width: 0,
-    height: 0,
-  });
-  const containerRef = useRef(null);
+  const flatListRef = useRef(null);
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
 
   useEffect(() => {
@@ -100,7 +97,7 @@ const ChatContent = ({ onBack, contentView }) => {
 
   // gestisco quando viene premuto il pulsante emoji
   const toggleEmojiPicker = () => {
-    if (platform === "web") {
+    if (Platform.OS === "web") {
       setIsEmojiPickerVisible(!isEmojiPickerVisible);
     }
   };
@@ -122,18 +119,14 @@ const ChatContent = ({ onBack, contentView }) => {
       setDropdownInfo({ visible: false, x: 0, y: 0, message: null });
     }
     const { pageX, pageY } = event.nativeEvent;
-    if (containerRef.current) {
-      containerRef.current.measureInWindow((containerX, containerY) => {
-        const relativeX = pageX - containerX;
-        const relativeY = pageY - containerY;
-        setDropdownInfo({
-          visible: true,
-          x: relativeX,
-          y: relativeY,
-          message: message,
-        });
-      });
-    }
+    const relativeX = pageX;
+    const relativeY = pageY;
+    setDropdownInfo({
+      visible: true,
+      x: relativeX,
+      y: relativeY,
+      message: message,
+    });
   };
 
   const hideDropdown = () => {
@@ -148,16 +141,14 @@ const ChatContent = ({ onBack, contentView }) => {
     let x = dropdownInfo.x;
     let y = dropdownInfo.y;
 
-    if (containerLayout.width && containerLayout.height) {
-      if (x + menuWidth > containerLayout.width) {
-        x = containerLayout.width - menuWidth;
-      }
-      if (y + menuHeight > containerLayout.height) {
-        y = containerLayout.height - menuHeight;
-      }
-      if (x < 0) x = 0;
-      if (y < 0) y = 0;
+    if (x + menuWidth > 400) { // approximate screen width
+      x = 400 - menuWidth;
     }
+    if (y + menuHeight > 800) { // approximate screen height
+      y = 800 - menuHeight;
+    }
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
     return {
       position: "absolute",
       left: x - 10,
@@ -197,19 +188,6 @@ const ChatContent = ({ onBack, contentView }) => {
         return;
       }
     }
-    // Messaggio temporaneo da storare nel database, da aggiungere a messages e poi da cambiare con quello che arriva dall'api
-    // @Matt3opower
-    // const messageID = Date.now().toString();
-    // const tempMessage = {
-    //   id: messageID,
-    //   chatUUID: chat.uuid,
-    //   senderUUID: myUUID,
-    //   text: newMessageText,
-    //   created_at: "",
-    //   type: "text",
-    // };
-    // await database.addMessage(message);
-    // poi si deve fare un metodo per sostituire il messaggio temporaneo con quello vero
 
     const { success, message } = await gateway.message.send(
       currentChatUUID,
@@ -218,9 +196,7 @@ const ChatContent = ({ onBack, contentView }) => {
     );
     if (success) {
       console.log("Message sent successfully:", message);
-      // mando event emitter
       await eventEmitter.newMessage(message);
-      // Aggiungo il messaggio alla lista dei messaggi
       setMessages((currentMessages) => {
         const exists = currentMessages.some((msg) => msg.id === message.id);
         if (!exists) {
@@ -256,7 +232,6 @@ const ChatContent = ({ onBack, contentView }) => {
   const prepareMessages = useCallback((messages = []) => {
     if (!Array.isArray(messages) || messages.length === 0) return [];
 
-    // Ordina i messaggi per date_time in ordine decrescente (più recenti prima)
     const sortedMessages = [...messages].sort(
       (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );
@@ -271,7 +246,6 @@ const ChatContent = ({ onBack, contentView }) => {
       const displayDate = moment(message.created_at).format("MMMM D, YYYY");
 
       if (messageDate !== lastDate) {
-        // Aggiungi il gruppo precedente e il suo separatore (se esiste)
         if (groupMessages.length > 0) {
           prepared.push(...groupMessages);
           prepared.push({
@@ -280,13 +254,11 @@ const ChatContent = ({ onBack, contentView }) => {
             uniqueKey: `separator-${lastDate}`,
           });
         }
-        // Inizia un nuovo gruppo
         groupMessages = [];
         lastDate = messageDate;
         lastDateDisplay = displayDate;
       }
 
-      // Aggiungi il messaggio al gruppo corrente
       if (message.type === "system") {
         groupMessages.push({
           type: "system",
@@ -302,7 +274,6 @@ const ChatContent = ({ onBack, contentView }) => {
       }
     });
 
-    // Aggiungi l'ultimo gruppo e il suo separatore
     if (groupMessages.length > 0) {
       prepared.push(...groupMessages);
       prepared.push({
@@ -315,54 +286,19 @@ const ChatContent = ({ onBack, contentView }) => {
     return prepared;
   }, []);
 
-  //gestisco quando il testo cmbia nel textinput
+  //gestisco quando il testo cambia nel textinput
   const handleTextChanging = (text) => {
     setNewMessageText(text);
     setVoiceMessage(text.length === 0 && !isMicClicked);
   };
 
-  const renderMessagesList = () => {
-    return (
-      <View style={styles.listContainer}>
-        {(!loading && (
-          <FlatList
-            data={prepareMessages(messages)}
-            keyExtractor={(item) => item.uniqueKey}
-            renderItem={({ item }) => {
-              if (item.type === "separator") {
-                return <MessageSystem type={"date"} data={item.data} />;
-              } else if (item.type === "system") {
-                return <MessageSystem type={"system"} data={item.data} />;
-              } else {
-                const message = item.data;
-                return (
-                  <MessageBase
-                    message={message}
-                    isSender={message.senderUUID === myUUID}
-                    onLongPress={(e) => handleLongPress(e, message)}
-                  />
-                );
-              }
-            }}
-            inverted
-            style={styles.flatList}
-            showsVerticalScrollIndicator={true}
-            scrollIndicatorInsets={{ right: 1 }}
-          />
-        )) ||
-          null}
-      </View>
-    );
-  };
-
   const renderBottomBar = () => {
-    // Condizione per mostrare la barra di input o il pulsante "Join"
     const showInputBar =
       chat.uuid || !["GROUP", "CHANNEL", "FORUM"].includes(chat.type);
 
     return (
       <View
-        style={styles.bottomBar} // Stile unificato
+        style={styles.bottomBar}
         onLayout={(event) => {
           setBottomBarHeight(event.nativeEvent.layout.height);
         }}
@@ -373,9 +309,8 @@ const ChatContent = ({ onBack, contentView }) => {
 
             <LinearGradient
               colors={theme.backgroundChatTextInputGradient}
-              style={styles.textInputContainer} // Contenitore del testo
+              style={styles.textInputContainer}
             >
-              {/* TextInput ora è un figlio diretto del gradiente */}
               <TextInput
                 style={styles.textInput}
                 placeholder={"New message"}
@@ -388,7 +323,6 @@ const ChatContent = ({ onBack, contentView }) => {
                   Platform.OS === "web" ? handleSendMessage : undefined
                 }
               />
-              {/* Anche l'icona è un figlio diretto */}
               <Icon
                 name="SmileIcon"
                 style={styles.icon}
@@ -400,13 +334,13 @@ const ChatContent = ({ onBack, contentView }) => {
               <Icon
                 name="Mic02Icon"
                 onPress={handleVoiceMessage}
-                style={styles.icon} // Stile riutilizzato
+                style={styles.icon}
               />
             ) : (
               <Icon
                 name="SentIcon"
                 onPress={handleSendMessage}
-                style={styles.icon} // Stile riutilizzato
+                style={styles.icon}
               />
             )}
           </>
@@ -423,64 +357,91 @@ const ChatContent = ({ onBack, contentView }) => {
     );
   };
 
+  const renderMessageItem = ({ item }) => {
+    if (item.type === "separator") {
+      return <MessageSystem type={"date"} data={item.data} />;
+    } else if (item.type === "system") {
+      return <MessageSystem type={"system"} data={item.data} />;
+    } else {
+      const message = item.data;
+      return (
+        <MessageBase
+          message={message}
+          isSender={message.senderUUID === myUUID}
+          onLongPress={(e) => handleLongPress(e, message)}
+        />
+      );
+    }
+  };
+
+  if (loading) {
+    return (
+      <SmartBackground
+        backgroundKey="backgroundChatContentGradient"
+        style={styles.container}
+      >
+        <Text>Loading...</Text>
+      </SmartBackground>
+    );
+  }
+
   return (
     <SmartBackground
       backgroundKey="backgroundChatContentGradient"
       style={styles.container}
     >
-      <View
-        ref={containerRef}
-        style={styles.safeAreaContainer}
-        onStartShouldSetResponder={() => true}
-        onResponderRelease={hideDropdown}
-        onLayout={(event) => {
-          setContainerLayout({
-            width: event.nativeEvent.layout.width,
-            height: event.nativeEvent.layout.height,
-          });
-        }}
-      >
+      <KeyboardProvider>
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={"padding"}
+          style={styles.container}
+          behavior="padding"
           keyboardVerticalOffset={90}
           enabled
         >
-          {renderMessagesList()}
+          <FlatList
+            ref={flatListRef}
+            data={prepareMessages(messages)}
+            keyExtractor={(item) => item.uniqueKey}
+            renderItem={renderMessageItem}
+            inverted
+            style={styles.list}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={true}
+            scrollIndicatorInsets={{ right: 1 }}
+          />
           {renderBottomBar()}
         </KeyboardAvoidingView>
-        <ChatIconsPickerModal
-          visible={isEmojiPickerVisible}
-          anchor={{ height: bottomBarHeight }}
-          onEmojiSelected={handleEmojiSelected}
-        >
-          <View style={styles.emojiPickerContainer}>
-            <Text style={styles.placeholderText}>Emoji Picker Content</Text>
-          </View>
-        </ChatIconsPickerModal>
-        {dropdownInfo.visible && (
-          <View style={getDropdownStyle()}>
-            <Text style={{ color: theme.text }}>
-              Informazioni sul messaggio
-            </Text>
-            <Text style={{ color: theme.text }}>
-              Informazioni sul messaggio
-            </Text>
-            <Text style={{ color: theme.text }}>
-              Informazioni sul messaggio
-            </Text>
-            <Text style={{ color: theme.text }}>
-              Informazioni sul messaggio
-            </Text>
-            <Text style={{ color: theme.text }}>
-              Informazioni sul messaggio
-            </Text>
-            <Text style={{ color: theme.text }}>
-              Informazioni sul messaggio
-            </Text>
-          </View>
-        )}
-      </View>
+      </KeyboardProvider>
+      <ChatIconsPickerModal
+        visible={isEmojiPickerVisible}
+        anchor={{ height: bottomBarHeight }}
+        onEmojiSelected={handleEmojiSelected}
+      >
+        <View style={styles.emojiPickerContainer}>
+          <Text style={styles.placeholderText}>Emoji Picker Content</Text>
+        </View>
+      </ChatIconsPickerModal>
+      {dropdownInfo.visible && (
+        <View style={getDropdownStyle()}>
+          <Text style={{ color: theme.text }}>
+            Informazioni sul messaggio
+          </Text>
+          <Text style={{ color: theme.text }}>
+            Informazioni sul messaggio
+          </Text>
+          <Text style={{ color: theme.text }}>
+            Informazioni sul messaggio
+          </Text>
+          <Text style={{ color: theme.text }}>
+            Informazioni sul messaggio
+          </Text>
+          <Text style={{ color: theme.text }}>
+            Informazioni sul messaggio
+          </Text>
+          <Text style={{ color: theme.text }}>
+            Informazioni sul messaggio
+          </Text>
+        </View>
+      )}
     </SmartBackground>
   );
 };
@@ -492,36 +453,11 @@ function createStyle(theme) {
     container: {
       flex: 1,
     },
-    safeAreaContainer: {
+    list: {
       flex: 1,
     },
-    listContainer: {
-      flex: 1,
-    },
-    flatList: {
-      flex: 1,
-      // position: "relative",
-      ...(Platform.OS === "web" && {
-        // Standard per Firefox (fisso, no active/drag change)
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
-        "::-webkit-scrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::-webkit-scrollbar-track": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::-webkit-scrollbar-thumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::-webkit-scrollbar-thumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
+    listContent: {
+      padding: 10,
     },
     bottomBar: {
       width: "100%",
@@ -577,5 +513,27 @@ function createStyle(theme) {
       color: theme.text,
       fontSize: 16,
     },
+    ...(Platform.OS === "web" && {
+      list: {
+        scrollbarWidth: "thin",
+        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
+
+        "::-webkit-scrollbar": {
+          width: 6,
+          backgroundColor: theme.backgroundScrollbar,
+        },
+        "::-webkit-scrollbar-track": {
+          backgroundColor: theme.backgroundScrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb": {
+          backgroundColor: theme.scrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb:hover": {
+          backgroundColor: theme.scrollbarHover,
+        },
+      },
+    }),
   });
 }
