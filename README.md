@@ -2,7 +2,14 @@
 
 Note:
 1) Build web: npx expo export -p web
-2) Build android: vedi sotto
+2) Build android: per dev -> vedi sotto
+
+3) build android per PRODUCTION
+  
+  modifica app.config.js con i valori appropriati
+  npx expo prebuild --clean # (questo pulisce il file build.gradle e inserisce i nuovi valori)
+  npx eas build --platform android
+  
 
 # Messanger Client
 

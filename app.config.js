@@ -2,14 +2,14 @@
 const APP_NAME = "Novyse"; // Novyse-dev Novyse
 const APP_NAME_LOWERCASE = "novyse";
 const APP_SLUG = "novyse";
-const APP_VERSION = "0.7.1";
-const BUILD_NUMBER = "56";
-const BUILD_DATE = "2025/08/30 00:34";
+const APP_VERSION = "0.8";
+const BUILD_NUMBER = "1";
+const BUILD_DATE = "2025/10/01 16:21:47";
 const EXPO_OWNER = "novyse";
-const EAS_PROJECT_ID = "6f29bfad-6db3-491f-9bbf-d97664dac861";
+const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
 const API_BASE_URL = "https://api.novyse.com";
 const SOCKET_BASE_URL = "wss://io.novyse.com";
-const BRANCH = "development";
+const BRANCH = "preview";
 //.ENV
 
 export {
@@ -30,10 +30,11 @@ const getDevSuffix = () => {
 // Genera il percorso base delle immagini in base al BRANCH
 const getImagePath = (imageName) => {
   const branch = BRANCH || "main";
+  const name = imageName ? `-${imageName}` : "";
   const basePath =
     branch === "development"
-      ? `./assets/images/development/logo-${APP_NAME_LOWERCASE}.png`
-      : `./assets/images/logo-${APP_NAME_LOWERCASE}.png`;
+      ? `./assets/images/development/logo-${APP_NAME_LOWERCASE}${name}.png`
+      : `./assets/images/logo-${APP_NAME_LOWERCASE}${name}.png`;
   return basePath;
 };
 
@@ -45,7 +46,7 @@ export default {
     slug: `${APP_SLUG}${devSuffix}`,
     version: APP_VERSION,
     orientation: "portrait",
-    icon: getImagePath("bg"),
+    icon: getImagePath(),
     scheme: `${APP_SLUG}${devSuffix}`,
     owner: EXPO_OWNER,
     userInterfaceStyle: "automatic",
@@ -82,14 +83,14 @@ export default {
     web: {
       bundler: "metro",
       output: "static",
-      favicon: getImagePath("nobg-zoom"),
+      favicon: getImagePath(),
     },
     plugins: [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          image: getImagePath("bg"),
+          image: getImagePath(),
           imageWidth: 200,
           resizeMode: "contain",
           backgroundColor: "#ffffff",
