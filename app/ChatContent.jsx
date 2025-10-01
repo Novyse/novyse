@@ -10,11 +10,11 @@ import {
   View,
   Text,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   FlatList,
   TextInput,
   BackHandler,
+  KeyboardAvoidingView,
 } from "react-native";
 
 import moment from "moment";
@@ -38,6 +38,7 @@ import useChatData from "./hooks/useChatData.js";
 import { ChatContext } from "../context/ChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 import { UserContext } from "@/context/UserContext";
+import { platform } from "process";
 
 const ChatContent = ({ onBack, contentView }) => {
   const router = useRouter();
@@ -99,7 +100,9 @@ const ChatContent = ({ onBack, contentView }) => {
 
   // gestisco quando viene premuto il pulsante emoji
   const toggleEmojiPicker = () => {
-    setIsEmojiPickerVisible(!isEmojiPickerVisible);
+    if (platform === "web") {
+      setIsEmojiPickerVisible(!isEmojiPickerVisible);
+    }
   };
 
   // gestisco quando viene selezionato un emoji
@@ -172,7 +175,6 @@ const ChatContent = ({ onBack, contentView }) => {
   };
 
   const handleSendMessage = async () => {
-
     if (newMessageText.trim() === "") {
       return;
     }
@@ -426,7 +428,7 @@ const ChatContent = ({ onBack, contentView }) => {
       backgroundKey="backgroundChatContentGradient"
       style={styles.container}
     >
-      <SafeAreaView
+      <View
         ref={containerRef}
         style={styles.safeAreaContainer}
         onStartShouldSetResponder={() => true}
@@ -438,7 +440,15 @@ const ChatContent = ({ onBack, contentView }) => {
           });
         }}
       >
-        {renderMessagesList()}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={"padding"}
+          keyboardVerticalOffset={90}
+          enabled
+        >
+          {renderMessagesList()}
+          {renderBottomBar()}
+        </KeyboardAvoidingView>
         <ChatIconsPickerModal
           visible={isEmojiPickerVisible}
           anchor={{ height: bottomBarHeight }}
@@ -448,7 +458,6 @@ const ChatContent = ({ onBack, contentView }) => {
             <Text style={styles.placeholderText}>Emoji Picker Content</Text>
           </View>
         </ChatIconsPickerModal>
-        {renderBottomBar()}
         {dropdownInfo.visible && (
           <View style={getDropdownStyle()}>
             <Text style={{ color: theme.text }}>
@@ -471,7 +480,7 @@ const ChatContent = ({ onBack, contentView }) => {
             </Text>
           </View>
         )}
-      </SafeAreaView>
+      </View>
     </SmartBackground>
   );
 };
@@ -530,15 +539,14 @@ function createStyle(theme) {
       paddingHorizontal: 5,
       marginHorizontal: 5,
       minHeight: 45,
-      
     },
     textInput: {
       flex: 1,
       fontSize: 16,
       color: theme.text,
       outlineStyle: "none",
-      alignSelf: 'stretch',
-      marginLeft: 10
+      alignSelf: "stretch",
+      marginLeft: 10,
     },
     icon: {
       width: 35,
@@ -546,7 +554,6 @@ function createStyle(theme) {
       justifyContent: "center",
       alignItems: "center",
       marginHorizontal: 5,
-      
     },
     joinButton: {
       backgroundColor: theme.backgroundJoinChatButton,

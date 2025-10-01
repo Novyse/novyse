@@ -7,9 +7,6 @@ import { ChatProvider } from "../context/ChatContext";
 import { UserProvider } from "../context/UserContext";
 import { LanguageProvider } from "../context/LanguageContext";
 
-import { useEffect } from "react";
-import auth from "./utils/welcome/auth";
-
 import SetupGlobalEventReceiver from "./utils/global/Events/EventReceiver";
 
 export default function RootLayout() {
