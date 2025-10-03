@@ -9,7 +9,7 @@ const EXPO_OWNER = "novyse";
 const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
 const API_BASE_URL = "https://api.novyse.com";
 const SOCKET_BASE_URL = "wss://io.novyse.com";
-const BRANCH = "preview";
+const BRANCH = "development";
 //.ENV
 
 export {
