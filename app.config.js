@@ -84,6 +84,7 @@ export default {
       bundler: "metro",
       output: "static",
       favicon: getImagePath(),
+      title: APP_NAME,
     },
     plugins: [
       "expo-router",
