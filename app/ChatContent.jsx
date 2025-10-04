@@ -324,9 +324,7 @@ const ChatContent = ({ onBack, contentView }) => {
       <SmartBackground
         backgroundKey="backgroundChatContentGradient"
         style={styles.container}
-      >
-        <Text>Loading...</Text>
-      </SmartBackground>
+      ></SmartBackground>
     );
   }
 
