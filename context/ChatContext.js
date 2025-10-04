@@ -1,4 +1,7 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useContext } from "react";
+
+import EventEmitter from "@/app/utils/global/Events/EventEmitter";
+import auth from "../app/utils/welcome/auth";
 
 export const ChatContext = createContext();
 
@@ -10,6 +13,32 @@ export const ChatProvider = ({ children }) => {
 
   const [selectedSub, setSelectedSub] = useState(0);
   const [selectedCommUUID, setSelectedCommUUID] = useState(null);
+
+  useEffect(() => {
+    const handleNewChat = async (chat) => {
+      let handle;
+      if (chat.type === "DM") {
+        const userUUID = await auth.getUserUUID();
+        const otherUser = chat.members.find(
+          (member) => member.uuid != userUUID
+        );
+        handle = otherUser.handle;
+      } else {
+        handle = chat.handle;
+      }
+
+      if (selectedChatUUID === null && selectedHandle === handle) {
+        console.log("Auto-selecting new chat:", chat);
+        setSelectedChatUUID(chat.uuid);
+      }
+    };
+
+    EventEmitter.getEmitter().on("newChat", handleNewChat);
+
+    return () => {
+      EventEmitter.getEmitter().off("newChat", handleNewChat);
+    };
+  }, [selectedChatUUID, selectedHandle]);
 
   useEffect(() => {
     if (selectedChatUUID !== null) {

@@ -16,12 +16,18 @@ const eventReceiver = {
       await eventEmitter.newMessage(message);
     });
 
-    socket.on("new_chat", async (chat) => {
-      console.log("Received new_chat event:", chat);
+    socket.on("new_chat", async (data) => {
+      console.log("Received new_chat event:", data);
 
-      await setLastUpdateTimestamp(chat.created_at);
+      const { chat, messages } = data;
 
-      await eventEmitter.newChat(chat);
+      const timestamp =
+        messages && messages.length > 0
+          ? messages[messages.length - 1].created_at
+          : chat.created_at;
+      await setLastUpdateTimestamp(timestamp);
+
+      await eventEmitter.newChat(chat, messages);
     });
 
     socket.on("user_joined", async (data) => {
