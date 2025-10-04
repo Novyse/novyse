@@ -41,6 +41,8 @@ const Signup = () => {
 
   const isPasswordValid = (pwd) => passwordRegex.test(pwd);
   const isHandleValid = (handle) => handleRegex.test(handle);
+  const isNameValid = (name) => /^[a-zA-Z\s]+$/.test(name.trim()) && name.trim() !== "";
+  const isSurnameValid = (surname) => /^[a-zA-Z\s]+$/.test(surname.trim()) && surname.trim() !== "";
 
   const passwordRequirements = [
     { label: "At least 8 characters", check: (pwd) => pwd.length >= 8 },
@@ -136,7 +138,7 @@ const Signup = () => {
 
   const validateStep = (stepIndex) => {
     if (stepIndex === 0) {
-      return form.name.trim() !== "" && form.surname.trim() !== "";
+      return isNameValid(form.name) && isSurnameValid(form.surname);
     }
     if (stepIndex === 1) {
       return isPasswordValid(form.password);
@@ -197,6 +199,8 @@ const Signup = () => {
 
   const validateForm = () => {
     const { password, name, surname, handle } = form;
+    if (!isNameValid(name)) return "Name can only contain letters and spaces.";
+    if (!isSurnameValid(surname)) return "Surname can only contain letters and spaces.";
     if (!name.trim()) return "Please enter your name.";
     if (!surname.trim()) return "Please enter your surname.";
     if (!password) return "Please enter your password.";
@@ -287,7 +291,11 @@ const Signup = () => {
         <>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Name</Text>
-            <View style={styles.inputContainer}>
+            <View style={[
+              styles.inputContainer,
+              form.name.length > 0 && !isNameValid(form.name) ? styles.inputError :
+              form.name.length > 0 && isNameValid(form.name) ? styles.inputSuccess : null
+            ]}>
               <TextInput
                 style={styles.textInput}
                 onChangeText={(text) => handleChange("name", text)}
@@ -302,7 +310,11 @@ const Signup = () => {
           </View>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Surname</Text>
-            <View style={styles.inputContainer}>
+            <View style={[
+              styles.inputContainer,
+              form.surname.length > 0 && !isSurnameValid(form.surname) ? styles.inputError :
+              form.surname.length > 0 && isSurnameValid(form.surname) ? styles.inputSuccess : null
+            ]}>
               <TextInput
                 style={styles.textInput}
                 onChangeText={(text) => handleChange("surname", text)}
@@ -313,6 +325,30 @@ const Signup = () => {
                 value={form.surname}
                 autoCapitalize="sentences"
               />
+            </View>
+          </View>
+          <View style={styles.requirements}>
+            <View style={styles.reqItem}>
+              <Text
+                style={[
+                  styles.reqIcon,
+                  isNameValid(form.name) ? styles.reqGreen : styles.reqRed,
+                ]}
+              >
+                {isNameValid(form.name) ? "✓" : "✗"}
+              </Text>
+              <Text style={styles.reqText}>Name: Only letters and spaces</Text>
+            </View>
+            <View style={styles.reqItem}>
+              <Text
+                style={[
+                  styles.reqIcon,
+                  isSurnameValid(form.surname) ? styles.reqGreen : styles.reqRed,
+                ]}
+              >
+                {isSurnameValid(form.surname) ? "✓" : "✗"}
+              </Text>
+              <Text style={styles.reqText}>Surname: Only letters and spaces</Text>
             </View>
           </View>
         </>
