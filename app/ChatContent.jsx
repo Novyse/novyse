@@ -39,7 +39,10 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { UserContext } from "@/context/UserContext";
 
 // Keyboard Controller
-import { KeyboardAvoidingView, KeyboardProvider } from 'react-native-keyboard-controller';
+import {
+  KeyboardAvoidingView,
+  KeyboardProvider,
+} from "react-native-keyboard-controller";
 
 const ChatContent = ({ onBack, contentView }) => {
   const router = useRouter();
@@ -141,10 +144,12 @@ const ChatContent = ({ onBack, contentView }) => {
     let x = dropdownInfo.x;
     let y = dropdownInfo.y;
 
-    if (x + menuWidth > 400) { // approximate screen width
+    if (x + menuWidth > 400) {
+      // approximate screen width
       x = 400 - menuWidth;
     }
-    if (y + menuHeight > 800) { // approximate screen height
+    if (y + menuHeight > 800) {
+      // approximate screen height
       y = 800 - menuHeight;
     }
     if (x < 0) x = 0;
@@ -422,24 +427,12 @@ const ChatContent = ({ onBack, contentView }) => {
       </ChatIconsPickerModal>
       {dropdownInfo.visible && (
         <View style={getDropdownStyle()}>
-          <Text style={{ color: theme.text }}>
-            Informazioni sul messaggio
-          </Text>
-          <Text style={{ color: theme.text }}>
-            Informazioni sul messaggio
-          </Text>
-          <Text style={{ color: theme.text }}>
-            Informazioni sul messaggio
-          </Text>
-          <Text style={{ color: theme.text }}>
-            Informazioni sul messaggio
-          </Text>
-          <Text style={{ color: theme.text }}>
-            Informazioni sul messaggio
-          </Text>
-          <Text style={{ color: theme.text }}>
-            Informazioni sul messaggio
-          </Text>
+          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
+          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
+          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
+          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
+          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
+          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
         </View>
       )}
     </SmartBackground>

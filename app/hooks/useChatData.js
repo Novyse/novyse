@@ -4,6 +4,7 @@ import gateway from "../utils/backend-services/api-gateway";
 import chatUtils from "../utils/chat";
 
 import eventEmitter from "../utils/global/Events/EventEmitter";
+import SocketIO from "../utils/backend-services/socket-io";
 
 const useChatData = (chatUUID, chatHandle = null) => {
   const [chat, setChat] = useState({});
@@ -55,6 +56,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
                   name = data.name;
                   member = data.members || [];
                   setMessages(data.messages.reverse() || []);
+                  SocketIO.send().subscribe(handle);
                   break;
                 case "BOT":
                   name = data.name;
@@ -84,7 +86,8 @@ const useChatData = (chatUUID, chatHandle = null) => {
     loadMessages();
 
     const handleNewMessage = (message) => {
-      if (message.chatUUID !== chatUUID) return;
+      if (message.chatUUID !== chatUUID && message.chatHandle !== chatHandle)
+        return;
       setMessages((prevMessages) => {
         if (prevMessages.some((m) => m.id === message.id)) {
           return prevMessages;
@@ -96,6 +99,8 @@ const useChatData = (chatUUID, chatHandle = null) => {
     eventEmitter.getEmitter().on("newMessage", handleNewMessage);
 
     return () => {
+      SocketIO.send().unsubscribe();
+
       eventEmitter.getEmitter().off("newMessage", handleNewMessage);
     };
   }, [chatUUID, chatHandle]);
