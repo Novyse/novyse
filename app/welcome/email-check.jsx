@@ -67,7 +67,7 @@ const EmailCheckForm = () => {
                   router.replace("/chat");
                 }
 
-                setQrToken(null); // Used to trigger reload of QR code
+                setQrToken(null);
                 clearInterval(pollingInterval);
               } else {
                 // Valid QR but not yet scanned
@@ -78,7 +78,7 @@ const EmailCheckForm = () => {
           } catch (error) {
             if (!success) {
               // QR scaduto: rigenera
-              setQrToken(null); // Used to trigger reload of QR code
+              setQrToken(null);
               clearInterval(pollingInterval);
               fetchQrToken();
             } else {
@@ -89,13 +89,13 @@ const EmailCheckForm = () => {
       }
     };
 
-    fetchQrToken();
+    if (!isSmallScreen) fetchQrToken();
 
     return () => {
       isMounted = false;
       if (pollingInterval) clearInterval(pollingInterval);
     };
-  }, [isNavigating]);
+  }, [isNavigating, isSmallScreen, router]);
 
   useEffect(() => {
     if (remainingTime > 0) {
