@@ -39,26 +39,26 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
       <Text style={styles.chatHeaderTitle} numberOfLines={1}>
         {selectedChatName}
       </Text>
-      {true && (
-        <>
-          <Icon
-            name={"Message02Icon"}
-            style={styles.moreButton}
-            onPress={() => setContentView("chat")}
-          />
-          <Icon
-            name={"AudioWave01Icon"}
-            style={styles.moreButton}
-            onPress={() => setContentView("vocal")}
-          />
-          {!isSmallScreen && (
-            <Icon
-              name={"Layout2ColumnIcon"}
-              style={styles.moreButton}
-              onPress={() => setContentView("both")}
-            />
-          )}
-        </>
+      {contentView === "vocal" ? (
+        <Icon
+          name={"Message02Icon"}
+          style={styles.moreButton}
+          onPress={() => setContentView("chat")}
+        />
+      ) : (
+        <Icon
+          name={"AudioWave01Icon"}
+          style={styles.moreButton}
+          onPress={() => setContentView("vocal")}
+        />
+      )}
+
+      {!isSmallScreen && (
+        <Icon
+          name={"Layout2ColumnIcon"}
+          style={styles.moreButton}
+          onPress={() => setContentView("both")}
+        />
       )}
     </HeaderBase>
   );

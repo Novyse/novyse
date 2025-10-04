@@ -39,10 +39,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { UserContext } from "@/context/UserContext";
 
 // Keyboard Controller
-import {
-  KeyboardAvoidingView,
-  KeyboardProvider,
-} from "react-native-keyboard-controller";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 
 const ChatContent = ({ onBack, contentView }) => {
   const router = useRouter();
@@ -62,12 +59,7 @@ const ChatContent = ({ onBack, contentView }) => {
   );
   const { userUUID: myUUID } = useContext(UserContext);
 
-  const [dropdownInfo, setDropdownInfo] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-    message: null,
-  });
+  
   const flatListRef = useRef(null);
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
 
@@ -116,59 +108,11 @@ const ChatContent = ({ onBack, contentView }) => {
     setIsEmojiPickerVisible(false);
   };
 
-  // gestisco quando l'utente tiene premuto su un messaggio nella chat
-  const handleLongPress = (event, message) => {
-    if (dropdownInfo.visible) {
-      setDropdownInfo({ visible: false, x: 0, y: 0, message: null });
-    }
-    const { pageX, pageY } = event.nativeEvent;
-    const relativeX = pageX;
-    const relativeY = pageY;
-    setDropdownInfo({
-      visible: true,
-      x: relativeX,
-      y: relativeY,
-      message: message,
-    });
-  };
+  
 
-  const hideDropdown = () => {
-    if (dropdownInfo.visible) {
-      setDropdownInfo({ visible: false, x: 0, y: 0, message: null });
-    }
-  };
+  
 
-  const getDropdownStyle = () => {
-    const menuWidth = 200;
-    const menuHeight = 170;
-    let x = dropdownInfo.x;
-    let y = dropdownInfo.y;
-
-    if (x + menuWidth > 400) {
-      // approximate screen width
-      x = 400 - menuWidth;
-    }
-    if (y + menuHeight > 800) {
-      // approximate screen height
-      y = 800 - menuHeight;
-    }
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-    return {
-      position: "absolute",
-      left: x - 10,
-      top: y - 10,
-      width: menuWidth,
-      height: menuHeight,
-      backgroundColor: theme.backgroundModal,
-      borderColor: theme.borderModal,
-      borderWidth: 1,
-      borderRadius: 5,
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 999,
-    };
-  };
+  
 
   const handleSendMessage = async () => {
     if (newMessageText.trim() === "") {
@@ -302,12 +246,7 @@ const ChatContent = ({ onBack, contentView }) => {
       chat.uuid || !["GROUP", "CHANNEL", "FORUM"].includes(chat.type);
 
     return (
-      <View
-        style={styles.bottomBar}
-        onLayout={(event) => {
-          setBottomBarHeight(event.nativeEvent.layout.height);
-        }}
-      >
+      <View style={styles.bottomBar}>
         {showInputBar ? (
           <>
             <Icon name="PlusSignIcon" style={styles.icon} onPress={() => {}} />
@@ -318,15 +257,16 @@ const ChatContent = ({ onBack, contentView }) => {
             >
               <TextInput
                 style={styles.textInput}
+                maxLength={2000}
+                value={newMessageText}
+                onChangeText={handleTextChanging}
                 placeholder={"New message"}
                 placeholderTextColor={theme.placeholderText}
-                value={newMessageText}
-                maxLength={2000}
-                onChangeText={handleTextChanging}
-                returnKeyType="send"
                 onSubmitEditing={
                   Platform.OS === "web" ? handleSendMessage : undefined
                 }
+                // multiline={true}
+                // numberOfLines={5}
               />
               <Icon
                 name="SmileIcon"
@@ -395,27 +335,25 @@ const ChatContent = ({ onBack, contentView }) => {
       backgroundKey="backgroundChatContentGradient"
       style={styles.container}
     >
-      <KeyboardProvider>
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior="padding"
-          keyboardVerticalOffset={90}
-          enabled
-        >
-          <FlatList
-            ref={flatListRef}
-            data={prepareMessages(messages)}
-            keyExtractor={(item) => item.uniqueKey}
-            renderItem={renderMessageItem}
-            inverted
-            style={styles.list}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={true}
-            scrollIndicatorInsets={{ right: 1 }}
-          />
-          {renderBottomBar()}
-        </KeyboardAvoidingView>
-      </KeyboardProvider>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior="padding"
+        keyboardVerticalOffset={90}
+        enabled
+      >
+        <FlatList
+          ref={flatListRef}
+          data={prepareMessages(messages)}
+          keyExtractor={(item) => item.uniqueKey}
+          renderItem={renderMessageItem}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={true}
+          scrollIndicatorInsets={{ right: 1 }}
+          inverted
+        />
+        {renderBottomBar()}
+      </KeyboardAvoidingView>
       <ChatIconsPickerModal
         visible={isEmojiPickerVisible}
         anchor={{ height: bottomBarHeight }}
@@ -425,16 +363,6 @@ const ChatContent = ({ onBack, contentView }) => {
           <Text style={styles.placeholderText}>Emoji Picker Content</Text>
         </View>
       </ChatIconsPickerModal>
-      {dropdownInfo.visible && (
-        <View style={getDropdownStyle()}>
-          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
-          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
-          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
-          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
-          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
-          <Text style={{ color: theme.text }}>Informazioni sul messaggio</Text>
-        </View>
-      )}
     </SmartBackground>
   );
 };
