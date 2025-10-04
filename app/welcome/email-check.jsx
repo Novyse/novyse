@@ -26,30 +26,18 @@ import auth from "../utils/welcome/auth";
 const EmailCheckForm = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState(null);
-  const [qrToken, setQrToken] = useState("");
-  const [isNavigating, setIsNavigating] = useState(false);
-  const loginTheme = "default";
 
+  const [qrToken, setQrToken] = useState("");
+
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [remainingTime, setRemainingTime] = useState(0);
+  const loginTheme = "default";
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 936;
 
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const router = useRouter();
-
-  useEffect(() => {
-    const backAction = () => {
-      router.navigate("/");
-      return true;
-    };
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-    return () => backHandler.remove();
-  }, []);
-
-  const logoForQR = require("../../assets/images/logo-novyse.png");
 
   useEffect(() => {
     let pollingInterval;
@@ -61,7 +49,10 @@ const EmailCheckForm = () => {
       const { success, qrCodeToken, expiresIn } =
         await gateway.auth.generateQRCodeToken();
 
-      if (isMounted) setQrToken(qrCodeToken);
+      if (isMounted) {
+        setQrToken(qrCodeToken);
+        setRemainingTime(parseExpiresIn(expiresIn));
+      }
 
       // Avvia il polling solo se il token è valido
       if (qrCodeToken) {
@@ -106,9 +97,47 @@ const EmailCheckForm = () => {
     };
   }, [isNavigating]);
 
+  useEffect(() => {
+    if (remainingTime > 0) {
+      const timer = setTimeout(() => setRemainingTime(remainingTime - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [remainingTime]);
+
+  useEffect(() => {
+    const backAction = () => {
+      router.navigate("/");
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+    return () => backHandler.remove();
+  }, []);
+
   const validateEmail = (value) => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailPattern.test(value);
+  };
+
+  const logoForQR = require("../../assets/images/logo-novyse.png");
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const parseExpiresIn = (expiresIn) => {
+    if (typeof expiresIn === "string") {
+      if (expiresIn.endsWith("m")) {
+        return parseInt(expiresIn.slice(0, -1)) * 60;
+      } else if (expiresIn.endsWith("s")) {
+        return parseInt(expiresIn.slice(0, -1));
+      }
+    }
+    return expiresIn;
   };
 
   const handleSubmit = async () => {
@@ -224,7 +253,7 @@ const EmailCheckForm = () => {
               </View>
 
               {/* QR Code Block */}
-              <View style={styles.cardContent}>
+              <View style={styles.qrCardContent}>
                 <View style={styles.qrcodeContainer}>
                   {qrToken ? (
                     <QRCode
@@ -247,6 +276,11 @@ const EmailCheckForm = () => {
                   )}
                 </View>
                 <Text style={styles.qrcodeSubtitle}>Scan QR to login</Text>
+                {qrToken && (
+                  <Text style={styles.qrcodeSmallSubtitle}>
+                    Expires in {formatTime(remainingTime)}
+                  </Text>
+                )}
               </View>
             </>
           )}
@@ -297,6 +331,13 @@ function createStyle(loginTheme, isSmallScreen) {
       textAlign: "center",
       marginTop: 4,
       fontWeight: "600",
+    },
+    qrcodeSmallSubtitle: {
+      fontSize: 14,
+      color: LoginColors[loginTheme].subtitle,
+      textAlign: "center",
+      marginTop: 2,
+      fontWeight: "500",
     },
     inputWrapper: {
       alignSelf: "center",
@@ -356,6 +397,12 @@ function createStyle(loginTheme, isSmallScreen) {
       justifyContent: "space-between",
       width: "100%",
       maxWidth: 300,
+    },
+    qrCardContent: {
+      width: isSmallScreen ? "100%" : 400,
+      justifyContent: isSmallScreen ? "" : "center",
+      alignContent: "center",
+      marginTop: 40,
     },
   });
 }

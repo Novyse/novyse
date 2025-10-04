@@ -113,7 +113,7 @@ function createStyle(theme, colorScheme) {
     logo: {
       width: 100,
       height: 100,
-      marginBottom: 20, // Space between logo and loader
+      marginBottom: 20,
     },
     loader: {
       marginTop: 10,
