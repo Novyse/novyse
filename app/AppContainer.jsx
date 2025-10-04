@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { ThemeContext } from "@/context/ThemeContext";
+
 import NetInfo from "@react-native-community/netinfo";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import ScreenLayout from "./components/ScreenLayout";
@@ -29,6 +29,7 @@ import chatUtils from "./utils/chat";
 import useAppInit from "./hooks/useAppInit";
 
 // Context
+import { ThemeContext } from "../context/ThemeContext";
 import { ChatContext } from "../context/ChatContext";
 import { UserContext } from "../context/UserContext";
 

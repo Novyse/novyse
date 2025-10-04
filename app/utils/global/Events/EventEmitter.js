@@ -12,8 +12,10 @@ class MessengerEventEmitter {
 
   async newMessage(message) {
     const database = await Database.create();
-    await database.addMessage(message);
-    const msg = await database.addSenderNameToMessage(message);
+    if (!message.fromSubscription) {
+      await database.addMessage(message);
+    }
+    const msg = await database.addSenderNameToMessage(message); //@SamueleOrazioDurante to be changes, devi usare un metodo che vada a carcare nel database, eventualmente lo vada a pullare dal server, ma solo temporaneamente (il pull completo viene fatto al join)
     this.eventEmitter.emit("newMessage", msg);
   }
 
@@ -78,7 +80,6 @@ class MessengerEventEmitter {
   commsWebcamOff(data) {
     this.eventEmitter.emit("comms_webcam_off", data);
   }
-
 }
 
 const eventEmitter = new MessengerEventEmitter();
