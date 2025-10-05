@@ -424,7 +424,6 @@ class Database {
             WHERE u.email IS NOT NULL AND u.email != ''
             LIMIT 1;
         `);
-      console.log("Local user from DB:", user);
       return user || null;
     } catch (error) {
       console.error("Error retrieving local user:", error);
