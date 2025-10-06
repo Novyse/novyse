@@ -3,13 +3,13 @@ const APP_NAME = "Novyse"; // Novyse-dev Novyse
 const APP_NAME_LOWERCASE = "novyse";
 const APP_SLUG = "novyse";
 const APP_VERSION = "0.8";
-const BUILD_NUMBER = "2";
+const BUILD_NUMBER = "3";
 const BUILD_DATE = "2025/10/01 16:21:47";
 const EXPO_OWNER = "novyse";
 const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
 const API_BASE_URL = "https://api.novyse.com";
 const SOCKET_BASE_URL = "wss://io.novyse.com";
-const BRANCH = "preview";
+const BRANCH = "development";
 //.ENV
 
 export {
