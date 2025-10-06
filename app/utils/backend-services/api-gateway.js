@@ -27,8 +27,8 @@ const api = axios.create({
   withCredentials: true,
   timeout: 10000,
   headers: {
-    "X-Operating-System": Platform.OS,
-    "X-App-Version": APP_VERSION,
+    "x-operating-system": Platform.OS,
+    "x-app-version": APP_VERSION,
   },
 });
 
@@ -101,7 +101,7 @@ api.interceptors.response.use(
       eventEmitter.emit("serverError");
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 /**
@@ -126,7 +126,7 @@ api.interceptors.request.use((request) => {
   console.log(
     `Starting Request: ${request.method.toUpperCase()} ${request.url}`,
     request.params || {},
-    request.data || {}
+    request.data || {},
   );
   return request;
 });
@@ -134,7 +134,7 @@ api.interceptors.request.use((request) => {
 api.interceptors.response.use((response) => {
   console.log(
     `Response: ${response.config.method.toUpperCase()} ${response.config.url}`,
-    response.data || {}
+    response.data || {},
   );
   return response;
 });
@@ -159,7 +159,7 @@ const gateway = {
       surname,
       handle,
       privacy_policy_accepted,
-      terms_of_service_accepted
+      terms_of_service_accepted,
     ) {
       try {
         if (!email || !password || !name || !surname || !handle) {
@@ -170,7 +170,7 @@ const gateway = {
           terms_of_service_accepted !== true
         ) {
           throw new Error(
-            "Privacy policy and terms of service must be accepted"
+            "Privacy policy and terms of service must be accepted",
           );
         }
 
@@ -626,7 +626,7 @@ const gateway = {
 
     async update(lastUpdateTime) {
       const response = await api.get(
-        `/user/update?lastUpdateTime=${lastUpdateTime}`
+        `/user/update?lastUpdateTime=${lastUpdateTime}`,
       );
       const success = response.data.success;
       if (success) {
@@ -692,7 +692,7 @@ const gateway = {
           throw new Error(
             "Missing required fields for chat creation",
             type,
-            memberUUIDs
+            memberUUIDs,
           );
         }
         const response = await api.post("/chat/create", {
@@ -749,7 +749,7 @@ const gateway = {
           throw new Error(
             "Missing required fields for sending message",
             chatUUID,
-            text
+            text,
           );
         }
         const response = await api.post("/message/send", {
@@ -835,7 +835,7 @@ const gateway = {
 
         if (member.active_screen_share) {
           commsData[member.from].activeScreenShares.push(
-            ...member.active_screen_share
+            ...member.active_screen_share,
           );
         }
       });
@@ -850,7 +850,7 @@ const gateway = {
   async startScreenShare(chatId) {
     try {
       const response = await api.get(
-        `/comms/screen_share/start?chat_id=${chatId}`
+        `/comms/screen_share/start?chat_id=${chatId}`,
       );
       return response.data; // ritorna screen_share_started : true/false e screen_share_uuid
     } catch (error) {
@@ -862,7 +862,7 @@ const gateway = {
   async stopScreenShare(chatId, screenShareUUID) {
     try {
       const response = await api.get(
-        `/comms/screen_share/stop?chat_id=${chatId}&screen_share_uuid=${screenShareUUID}`
+        `/comms/screen_share/stop?chat_id=${chatId}&screen_share_uuid=${screenShareUUID}`,
       );
       return response.data; // ritorna screen_share_stopped : true/false
     } catch (error) {
