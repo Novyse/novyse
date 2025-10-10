@@ -29,6 +29,7 @@ export const Colors = {
     backgroundModalOverlay: "rgba(0, 0, 0, 0.5)",
     backgroundError: "#ffc7c7a7",
     backgroundBackupCode: "#f0f0f0",
+    backgroundBottomsheet: "#1d72c1ff",
 
     // Vari
     borderColor: "#000000",
