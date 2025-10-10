@@ -17,6 +17,7 @@ import {
   BackHandler,
   TouchableWithoutFeedback,
   Animated,
+  Alert,
 } from "react-native";
 
 import moment from "moment";
@@ -28,6 +29,7 @@ import SmartBackground from "./components/SmartBackground";
 import ChatIconsPickerModal from "./components/ChatIconsPickerModal";
 import MessageBase from "./components/messages/MessageBase";
 import MessageSystem from "./components/messages/MessageSystem";
+import * as ImagePicker from 'expo-image-picker';
 
 import gateway from "./utils/backend-services/api-gateway";
 
@@ -42,12 +44,12 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { UserContext } from "@/context/UserContext";
 
 // Keyboard Controller
-import {
-  KeyboardAvoidingView,
-  OverKeyboardView,
-} from "react-native-keyboard-controller";
+import { KeyboardAvoidingView, OverKeyboardView } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomSheet from "@gorhom/bottom-sheet";
+import {
+  TouchableOpacity,
+} from "@gorhom/bottom-sheet";
 import { Ionicons } from "@expo/vector-icons";
 
 const ChatContent = ({ onBack, contentView }) => {
@@ -153,14 +155,96 @@ const ChatContent = ({ onBack, contentView }) => {
     }
   }, [sheetIndex]);
 
-  const handleMenuItemPress = useCallback((action) => {
+  const handleSendImageMessage = async (imageUri, chatUUID) => {
+    if (!imageUri || !chatUUID) return;
+
+    const { success, message } = await gateway.message.send(
+      chatUUID,
+      null, // No text
+      "image",
+      { uri: imageUri } // Assuming the backend accepts image as an object with uri
+    );
+
+    if (success) {
+      console.log("Image message sent successfully:", message);
+      await eventEmitter.newMessage(message);
+      setMessages((currentMessages) => {
+        const exists = currentMessages.some((msg) => msg.id === message.id);
+        if (!exists) {
+          return [message, ...currentMessages];
+        }
+        return currentMessages;
+      });
+    } else {
+      console.error("Failed to send image message");
+      Alert.alert("Error", "Failed to send image");
+    }
+  };
+
+  const pickImage = async () => {
+    console.log("Starting to pick image");
+    // No permissions needed for gallery on iOS and Android 13+, but request for safety
+    if (Platform.OS !== 'web') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert("Permission denied", "Sorry, we need camera roll permissions to make this work!");
+        return;
+      }
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const imageUri = result.assets[0].uri;
+      let currentChatUUID = chat.uuid;
+
+      if (!chat.uuid) {
+        // Create chat first
+        const response = await gateway.chat.create("DM", chat.member, null, null);
+        const success = response.success;
+        const newChat = response.chat;
+        if (success) {
+          newChat.name = newChat.members[0].name;
+          console.log("Chat created successfully:", newChat);
+          await eventEmitter.newChat(newChat);
+          setSelectedChatUUID(newChat.uuid);
+          currentChatUUID = newChat.uuid;
+        } else {
+          console.error("Failed to create chat");
+          Alert.alert("Error", "Failed to create chat");
+          return;
+        }
+      }
+
+      await handleSendImageMessage(imageUri, currentChatUUID);
+    }
+
+    // Close the menu after action
+    if (Platform.OS === "web") {
+      setSheetIndex(-1);
+    } else {
+      bottomSheetRef.current?.close();
+    }
+  };
+
+  const handleMenuItemPress = useCallback(async (action) => {
+    console.log("Menu item pressed:", action);
+    if (action === "Gallery") {
+      await pickImage();
+      return;
+    }
     if (Platform.OS === "web") {
       setSheetIndex(-1);
     } else {
       bottomSheetRef.current?.close();
     }
     console.log(`Action: ${action}`);
-  }, []);
+  }, [chat, selectedChatUUID]);
 
   const handleSendMessage = async () => {
     if (newMessageText.trim() === "") {
@@ -283,10 +367,7 @@ const ChatContent = ({ onBack, contentView }) => {
     return prepared;
   }, []);
 
-  const preparedMessages = useMemo(
-    () => prepareMessages(messages),
-    [messages, prepareMessages]
-  );
+  const preparedMessages = useMemo(() => prepareMessages(messages), [messages, prepareMessages]);
 
   //gestisco quando il testo cambia nel textinput
   const handleTextChanging = (text) => {
@@ -310,16 +391,17 @@ const ChatContent = ({ onBack, contentView }) => {
     };
 
     return (
-      <View
+      <View 
         style={styles.bottomBar}
-        onLayout={(event) =>
-          setBottomBarHeight(event.nativeEvent.layout.height)
-        }
+        onLayout={(event) => setBottomBarHeight(event.nativeEvent.layout.height)}
       >
         {showInputBar ? (
           <>
             <Animated.View style={[styles.icon, animatedStyle]}>
-              <Icon name="PlusSignIcon" onPress={handleToggleMenu} />
+              <Icon 
+                name="PlusSignIcon" 
+                onPress={handleToggleMenu} 
+              />
             </Animated.View>
 
             <LinearGradient
@@ -394,37 +476,55 @@ const ChatContent = ({ onBack, contentView }) => {
     }
   };
 
-  const renderFloatingMenu = () =>
-    Platform.OS === "web" &&
-    sheetIndex === 0 && (
-      <View style={styles.floatingMenuContainer}>
-        <View style={styles.floatingMenu}>
-          <View style={[styles.menuRow, { flex: 0 }]}>
-            <Pressable
-              style={styles.menuItem}
-              onPress={() => handleMenuItemPress("Gallery")}
-            >
-              <Ionicons name="images" size={32} color="royalblue" />
-              <Text style={styles.menuText}>Gallery</Text>
-            </Pressable>
-            <Pressable
-              style={styles.menuItem}
-              onPress={() => handleMenuItemPress("File")}
-            >
-              <Ionicons name="document" size={32} color="gray" />
-              <Text style={styles.menuText}>File</Text>
-            </Pressable>
-            <Pressable
-              style={styles.menuItem}
-              onPress={() => handleMenuItemPress("Camera")}
-            >
-              <Ionicons name="camera" size={32} color="darkorange" />
-              <Text style={styles.menuText}>Camera</Text>
-            </Pressable>
-          </View>
+  const renderFloatingMenu = () => (
+    Platform.OS === "web" && sheetIndex === 0 && (
+      <TouchableWithoutFeedback
+        style={styles.fullScreen}
+        onPress={() => setSheetIndex(-1)}
+      >
+        <View style={styles.floatingMenuContainer}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.floatingMenu}>
+              <View style={[styles.menuRow, { flex: 0 }]}>
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={() => handleMenuItemPress("Gallery")}
+                >
+                  <Ionicons name="images" size={32} color="royalblue" />
+                  <Text style={styles.menuText}>Gallery</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={() => handleMenuItemPress("File")}
+                >
+                  <Ionicons name="document" size={32} color="gray" />
+                  <Text style={styles.menuText}>File</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={() => handleMenuItemPress("Camera")}
+                >
+                  <Ionicons name="camera" size={32} color="darkorange" />
+                  <Text style={styles.menuText}>Camera</Text>
+                </Pressable>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
-    );
+      </TouchableWithoutFeedback>
+    )
+  );
+
+  const renderMenuItem = (action, iconName, color) => (
+    <TouchableOpacity
+      key={action}
+      style={styles.menuItem}
+      onPress={() => handleMenuItemPress(action)}
+    >
+      <Ionicons name={iconName} size={32} color={color} />
+      <Text style={styles.menuText}>{action}</Text>
+    </TouchableOpacity>
+  );
 
   if (loading) {
     return (
@@ -486,31 +586,9 @@ const ChatContent = ({ onBack, contentView }) => {
                   >
                     <View style={styles.sheetContent}>
                       <View style={styles.menuRow}>
-                        <Pressable
-                          style={styles.menuItem}
-                          onPress={() => handleMenuItemPress("Gallery")}
-                        >
-                          <Ionicons name="images" size={32} color="royalblue" />
-                          <Text style={styles.menuText}>Gallery</Text>
-                        </Pressable>
-                        <Pressable
-                          style={styles.menuItem}
-                          onPress={() => handleMenuItemPress("File")}
-                        >
-                          <Ionicons name="document" size={32} color="gray" />
-                          <Text style={styles.menuText}>File</Text>
-                        </Pressable>
-                        <Pressable
-                          style={styles.menuItem}
-                          onPress={() => handleMenuItemPress("Camera")}
-                        >
-                          <Ionicons
-                            name="camera"
-                            size={32}
-                            color="darkorange"
-                          />
-                          <Text style={styles.menuText}>Camera</Text>
-                        </Pressable>
+                        {renderMenuItem("Gallery", "images", "royalblue")}
+                        {renderMenuItem("File", "document", "gray")}
+                        {renderMenuItem("Camera", "camera", "darkorange")}
                       </View>
                     </View>
                   </BottomSheet>
@@ -610,17 +688,14 @@ function createStyle(theme) {
     sheetBackground: {
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
-      backgroundColor: theme.backgroundBottomsheet,
+      backgroundColor: theme.backgroundSecondary || "#F0F0F0",
     },
     handleIndicator: {
       backgroundColor: theme.divider || "#ccc",
     },
     sheetContent: {
       flex: 1,
-      borderColor: "black",
-      borderWidth: 2,
-      margin: 10,
-      borderRadius: 15,
+      padding: 20,
     },
     menuRow: {
       flex: 1,
@@ -645,11 +720,11 @@ function createStyle(theme) {
       zIndex: 1000,
     },
     floatingMenu: {
-      backgroundColor: theme.backgroundBottomsheet,
-      borderRadius: 15,
+      backgroundColor: theme.backgroundSecondary || "#F0F0F0",
+      borderRadius: 10,
       padding: 20,
-      alignSelf: "flex-start",
-      width: "30%",
+      alignSelf: "center",
+      width: "80%",
       shadowColor: "#000",
       shadowOffset: {
         width: 0,
