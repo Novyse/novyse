@@ -1,124 +1,141 @@
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
 
+<!-- BANNER -->
 
-Note:
-1) Build web: npx expo export -p web
-2) Build android: per dev -> vedi sotto
+<img src="./assets/images/banner-novyse.png" alt="Banner">
 
-3) build android per PRODUCTION
+<br />
+<br />
+
+<!-- GITHUB RELATED -->
+
+[![GitHub release](https://img.shields.io/github/release/Novyse/novyse?include_prereleases=&sort=semver&color=blue)](https://github.com/Novyse/novyse/releases/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENCE)
+[![issues - novyse](https://img.shields.io/github/issues/Novyse/novyse)](https://github.com/Novyse/novyse/issues)
+
+<!-- SOCIAL RELATED -->
+
+<a href='https://www.patreon.com/cw/Novyse' target="_blank"><img alt='Patreon' src='https://img.shields.io/badge/Patreon-100000?style=for-the-badge&logo=Patreon&logoColor=white&labelColor=blacke&color=orange'/></a>
+<a href='https://x.com/novyse_official' target="_blank"><img alt='X' src='https://img.shields.io/badge/Twitter-100000?style=for-the-badge&logo=X&logoColor=white&labelColor=black&color=black'/></a>
+
+<!-- TECH STACK RELATED -->
+
+<img alt='Node.js' src='https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white'/>
+<img alt='React Native' src='https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB'/>
+<img alt='Electron' src='https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=electron&logoColor=%2347848F&color=%231b1c26
+'/>
+
+<br />
+
+  <!-- LOGO -->
+  <a href="https://github.com/Novyse/novyse">
+    <img src="./assets/images/logo-novyse.png" alt="Logo" width="80" height="80">
+  </a>
+
+  <!-- INTRO -->
+
+  <h1 align="center">Novyse</h1>
   
-  modifica app.config.js con i valori appropriati
-  npx expo prebuild --clean # (questo pulisce il file build.gradle e inserisce i nuovi valori)
-  npx eas build --platform android
-  
+  <p align="center">
+    A simple messaging app done with lots of love!
+    <br />
+    <br />
+    <a href="https://www.novyse.com/#download"><strong>Download</strong></a>
+    &middot;
+    <a href="https://www.novyse.com">Website</a>
+    &middot;
+    <a href="https://github.com/Novyse/novyse/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
+    &middot;
+    <a href="https://github.com/Novyse/novyse/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+  </p>
+</div>
 
-# Messanger Client
+> [!WARNING]  
+> The application is still in development, even in production versions. User data may be deleted at any time due to server issues, database structure changes, or version updates.
 
-I principali componenti dell'applicazione si trovano in:
+<br />
 
- - /app: schermate dell'app
- - /assets: immagini e fonts
- - /constants: colori per i temi
- - /context: temi dell'app
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+    </li>
+    <li><a href="#updates-and-roadmap">Updates and Roadmap</a></li>
+    <li><a href="#preview-version">Preview Version</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#trademark-notice">Trademark Notice</a></li>
+  </ol>
+</details>
 
-# /app
+## About The Project
 
-## index
-Contiene una pagina di benvenuto molto semplice. Se l'utente è già loggato, viene reindirizzato automaticamente alla schermata dei messaggi.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
-## _layout.jsx
-Serve per expo-router, non tocchiamola gentilmente
+## Updates and Roadmap
 
-## ChatList
-È la pagina principale dell'applicazione. Mostra la lista delle chat con le quali l'utente ha un contatto. Se eseguita su schermi di piccole dimensioni si ridimensiona a dovere, mentre su schermi più grandi mostra anche inclusa al suo interno la pagina ChatContent.
+All changelogs and patch notes are published on:
 
-## ChatContent
-Si tratta della pagina che effettivamente si occupa di gestire e mostrare il contenuto effettivo di una chat. Viene integrata dentro ChatList per il lato responsive
+- [Twitter (@novyse_official)](https://x.com/novyse_official)
+- [Patreon](https://www.patreon.com/cw/Novyse)
+- [GitHub Releases](https://github.com/Novyse/novyse/releases)
+- [Website](https://www.novyse.com/patchnotes)
 
-## /welcome/EmailCheckForm
-Questa pagina permette di inserire una email all'utente, se questa email risulta:
+Additionally, the website features a complete _roadmap_ that is typically updated every Sunday.
 
- - già presente nel DB: si passerà al login
- - non presente nel DB: si passerà al signup
+## Preview Version
 
-È inoltre presente un controllo che verifica se il testo inserito corrisponde effettivamente ad una email.
+A preview version with new features that are not yet fully tested may be available at [preview.novyse.com](https://preview.novyse.com). We recommend not saving important data on this version, as data may be deleted with version changes, and there could be significant bugs affecting app usage.
 
-## /welcome/LoginPassword
-Questa pagina permette ad un utente che ha già effettuato un signup di loggarsi nell'app.
-Se il login avviene con successo verrà salvata una variabile nel DB locale tramite AsyncStorage che mantiene la sessione. Viene inoltre pulito il DB locale e aperta una connessione websocket.
+### Contributing
 
-## /welcome/Signup
-Questa pagina React Native implementa un modulo di registrazione utente con campi per password, conferma password, nome, cognome e handle univoco. Gestisce la visibilità della password tramite icone interattive, verifica automaticamente la disponibilità dell'handle tramite una chiamata API, e include la validazione del form prima dell'invio. Se l'utente è già loggato, viene reindirizzato automaticamente alla schermata dei messaggi.
+We welcome contributions from the community! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
 
-## /chat
-Le pagine al suo interno sono utilizzate per gestire le route delle varie chat. Permettono di avere quindi:
+For developers interested in contributing or building the application, refer to the documentation in the `docs/` folder:
 
- - lista delle chat: http://localhost:8081/chat
- - chat specifica: http://localhost:8081/chat?chatId=2000000000000000000
+- [Build Documentation](docs/build.md): Instructions on how to build the app for different platforms.
+- [Developer Setup](docs/dev.md): Guide to set up the local development environment.
 
-## /utils/APImethods
-Contiene tutti i metodi per effetturare chiamate all'API
+### Contact
 
-## /utils/localDatabaseMethods
-Contiene i metodi per gestire il DB locale
+If you have any questions, suggestions, or need support, feel free to reach out:
 
-## /utils/JsonParser
-Contiene metodi di supporto alle chiamate API. Permette al codice di interfacciarsi correttamente ai risultati delle chiamate API
+- **Website**: [novyse.com](https://www.novyse.com)
+- **Twitter**: [@novyse_official](https://x.com/novyse_official)
+- **Patreon**: [Support us](https://www.patreon.com/cw/Novyse)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/Novyse/novyse/issues)
 
-## /utils/SocketIO
-Contiene i metodi per gestire le websocket (apertura, chiusura, invio e ricezione messaggi da esse)
+You can also contact us via email at [contact@novyse.com](mailto:contact@novyse.com)
 
-## /utils/EventEmitter
-Contiene dei metodi che permettono di aggiornare dei campi nelle varie pagine dell'applicazione quando avviene un determinato evento (ad esempio quando si riceve un messaggio aggiorna l'ultimo messaggio ricevuto da questa chat nel riquadro nella lista delle chat)
+---
 
-# Build guide
+<!-- LICENCE -->
 
-## Android
+### Licence
 
-```
-npx expo install --fix
-npx expo prebuild --clean
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
 
-Sistema AndroidManifest.xml
-Crea local.properties dentro cartella android/ 
-   con questo contenuto: sdk.dir=C:\\Users\\ISRaiken\\AppData\\Local\\Android\\Sdk
+GPL-3.0 is a copyleft license that allows you to use, modify, and distribute the software freely, as long as any derivative works are also licensed under GPL-3.0. This ensures that the software remains open source and that improvements are shared with the community.
 
-npx expo run:android --no-build-cache OR npx expo run:android
-```
+For more details, please refer to the [LICENSE](LICENSE) file in this repository or visit the [official GPL-3.0 page](https://www.gnu.org/licenses/gpl-3.0.html).
 
-e in caso di problemi
+<!-- TRADEMARK -->
 
-```
-sudo apt install openjdk-17-jdk -y
+### Trademark Notice
 
-nano ~/.bashrc
+**Novyse** and the Novyse logo are trademarks of the original creators.  
+The software is open source (GPLv3), but the name and logo are protected.  
+Forks or derivative projects must not imply official affiliation.
 
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-export PATH="$JAVA_HOME/bin:$PATH"
+For more details on trademark usage and guidelines, please refer to [TRADEMARK](TRADEMARK.md).
 
-export PATH=$PATH:/mnt/c/Users/ISRaiken/AppData/Local/Android/Sdk/cmake/3.22.1/bin
+---
 
-# Android SDK Configuration
-# Set the base path (adjust if your Windows path is different)
-export ANDROID_HOME=/mnt/c/Users/ISRaiken/AppData/Local/Android/Sdk
-
-# Add essential tools to PATH based on your Windows setup
-export PATH=$PATH:$ANDROID_HOME/platform-tools
-export PATH=$PATH:$ANDROID_HOME/emulator
-
-# Add command-line tools (usually preferred over older 'tools')
-# Check the actual folder name inside C:\Users\ISRaiken\AppData\Local\Android\Sdk\cmdline-tools
-# It might be 'latest' or a version number like '11.0'
-export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin #<-- Adjust 'latest' if needed
-
-# Add build tools (dynamically finds the latest installed version)
-export PATH=$PATH:$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -r | head -n 1)
-
-# Add older tools directories (less likely needed, but included based on your list)
-# export PATH=$PATH:$ANDROID_HOME/tools
-# export PATH=$PATH:$ANDROID_HOME/tools/bin
-
-source ~/.bashrc
-
-npm install
-npx expo run:android
-```
+<p align="center">
+© 2025 Novyse. All rights reserved.
+</p>
