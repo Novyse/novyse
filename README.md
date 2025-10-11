@@ -12,7 +12,7 @@
 <!-- GITHUB RELATED -->
 
 [![GitHub release](https://img.shields.io/github/release/Novyse/novyse?include_prereleases=&sort=semver&color=blue)](https://github.com/Novyse/novyse/releases/)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENCE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![issues - novyse](https://img.shields.io/github/issues/Novyse/novyse)](https://github.com/Novyse/novyse/issues)
 
 <!-- SOCIAL RELATED -->
@@ -24,8 +24,7 @@
 
 <img alt='Node.js' src='https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white'/>
 <img alt='React Native' src='https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB'/>
-<img alt='Electron' src='https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=electron&logoColor=%2347848F&color=%231b1c26
-'/>
+<img alt='Electron' src='https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=electron&logoColor=%2347848F&color=%231b1c26'/>
 
 <br />
 
@@ -86,7 +85,7 @@ All changelogs and patch notes are published on:
 - [GitHub Releases](https://github.com/Novyse/novyse/releases)
 - [Website](https://www.novyse.com/patchnotes)
 
-Additionally, the website features a complete _roadmap_ that is typically updated every Sunday.
+Additionally, the website features a complete [roadmap](https://www.novyse.com/roadmap) that is typically updated every Sunday.
 
 ## Preview Version
 
