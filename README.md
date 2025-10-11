@@ -27,6 +27,7 @@
 <img alt='Electron' src='https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=electron&logoColor=%2347848F&color=%231b1c26'/>
 
 <br />
+<br />
 
   <!-- LOGO -->
   <a href="https://github.com/Novyse/novyse">
