@@ -110,6 +110,13 @@ export default {
           recordAudioAndroid: true,
         },
       ],
+      [
+        "expo-image-picker",
+        {
+          photosPermission:
+            "The app accesses your photos to let you share them with your friends.",
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,

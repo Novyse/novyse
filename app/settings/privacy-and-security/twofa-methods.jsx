@@ -7,7 +7,7 @@ import gateway from "@/app/utils/backend-services/api-gateway";
 import { useRouter } from "expo-router";
 import Icon from "@/app/components/Icon";
 import SettingsButton from "@/app/components/settings/SettingsButton";
-import ModalBackupCodes from "@/app/components/Modals/ModalBackupCodes";
+import ModalBackupCodes from "@/app/components/modals/ModalBackupCodes";
 import SettingsPageScrollview from "@/app/components/settings/SettingsPageScrollview";
 
 const TwoFAMethods = () => {
