@@ -117,7 +117,7 @@ const MessageAudio = () => {
           thumbTintColor="#0088cc"
         />
         <View style={styles.textContainer}>
-          <Text style={styles.durationText}>
+          <Text style={styles.durationText} selectable={false}>
             {formatTime(position)} / {formatTime(duration)}
           </Text>
           <Pressable
@@ -125,7 +125,7 @@ const MessageAudio = () => {
             disabled={!isPlayerReady}
             style={styles.playbackRateButton}
           >
-            <Text style={styles.playbackRateText}>{playbackRate}x</Text>
+            <Text style={styles.playbackRateText} selectable={false}>{playbackRate}x</Text>
           </Pressable>
         </View>
       </View>

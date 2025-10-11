@@ -3,6 +3,7 @@ import { View, Pressable, StyleSheet, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "@/context/ThemeContext";
 import MessageAudio from "./MessageAudio";
+import MessageImagesVideos from "./MessageImagesVideos";
 
 // Importa i componenti di contenuto
 import MessageText from "./MessageText";
@@ -21,18 +22,15 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
       style={isSender ? styles.msgSender : styles.msgReceiver}
     >
       <Pressable onLongPress={onLongPress} style={styles.pressable}>
-        {/* <View style={styles.content(isSender)}> */}
-        {/* Renderizza la griglia di immagini se presenti */}
-        {/* {content?.images && content?.images.length > 0 && (
-          <ImageGrid imageUrls={content.images} />
-        )} */}
-        {/* Renderizza il testo se presente */}
-        {text && <MessageText text={text} />}
-        {/* Audio */}
-        {/* <MessageAudio /> */}
-        {/* Orario e stato del messaggio */}
-        <MessageTimestamp time={created_at} />
-        {/* </View> */}
+        {/* <MessageImagesVideos /> */}
+
+        <View style={styles.bottomMessage}>
+          {text && <MessageText text={text} />}
+
+          {/* <MessageAudio /> */}
+
+          <MessageTimestamp time={created_at} />
+        </View>
       </Pressable>
     </SmartBackground>
   );
@@ -41,6 +39,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
 const createStyle = (theme) =>
   StyleSheet.create({
     msgSender: {
+      overflow: "hidden",
       marginVertical: 5,
       maxWidth: "60%",
       borderRadius: 10,
@@ -49,6 +48,7 @@ const createStyle = (theme) =>
       marginRight: 8,
     },
     msgReceiver: {
+      overflow: "hidden",
       marginVertical: 5,
       maxWidth: "60%",
       borderRadius: 10,
@@ -56,17 +56,20 @@ const createStyle = (theme) =>
       alignSelf: "flex-start",
       marginLeft: 8,
     },
-    pressable: {
+    bottomMessage: {
       padding: 10,
-      flexDirection: "row",
+      gap: 15,
+      flexDirection: "column",
       flexWrap: "wrap",
-      alignItems: "flex-end",
-      justifyContent: "flex-end",
-      gap: 4,
+      alignItems: "flex-start",
+      justifyContent: "flex-start",
       ...(Platform.OS === "web" && {
         wordBreak: "break-word",
         overflowWrap: "break-word",
       }),
+    },
+    pressable: {
+      padding: 0,
     },
   });
 

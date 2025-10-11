@@ -19,7 +19,7 @@ const MessageTimestamp = ({ time }) => {
     return <Icon name={"Clock01Icon"} size={14} />;
   }
 
-  return <Text style={styles.timeText}>{parseTime(time)}</Text>;
+  return <Text style={styles.timeText} selectable={false}>{parseTime(time)}</Text>;
 };
 
 const createStyle = (theme) =>
