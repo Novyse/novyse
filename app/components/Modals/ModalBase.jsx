@@ -33,7 +33,6 @@ function createStyle(theme) {
       backgroundColor: theme.backgroundModal,
       padding: 20,
       borderRadius: 15,
-      width: "65%",
       shadowColor: theme.shadowColor,
       shadowOffset: {
         width: 0,

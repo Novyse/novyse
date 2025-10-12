@@ -17,7 +17,7 @@ import auth from "./utils/welcome/auth";
 import ChatList from "./ChatList";
 import ChatContainer from "./ChatContainer";
 import Sidebar from "./components/Sidebar";
-import CreateGroupModal from "./components/CreateGroupModal";
+import CreateGroupModal from "./components/modals/ModalCreateGroupChannelForum";
 import BigFloatingCommsMenu from "./components/comms/BigFloatingCommsMenu";
 import SmallCommsMenu from "./components/comms/SmallCommsMenu";
 import methods from "./utils/webrtc/methods";
