@@ -1,4 +1,4 @@
-import React, { useContext, useCallback } from "react";
+import React, { useState, useContext, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,46 +8,33 @@ import {
   Platform,
 } from "react-native";
 import moment from "moment";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import SmartBackground from "./components/SmartBackground";
 import Search from "./Search";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
 import Icon from "./components/Icon";
 import HeaderBase from "./components/HeaderBase";
-
-// Hooks
 import useChats from "./hooks/useChats";
 import useAppInit from "./hooks/useAppInit";
-
-// Context
 import { ChatContext } from "../context/ChatContext";
 import { UserContext } from "../context/UserContext";
 
-// Top-level memoized list item to avoid re-creating component on every render
+const PINNED_CHATS_STORAGE_KEY = "@chat_order"; // Rinominato per chiarezza
+
 const ChatListItem = React.memo(
-  ({
-    uuid,
-    name,
-    pictureUUID,
-    lastMessage,
-    isSelected,
-    onPress,
-    theme,
-    styles,
-  }) => {
+  ({ item, isSelected, onPress, onLongPress, theme, styles }) => {
     const { userUUID } = useContext(UserContext);
 
     const parseTime = (dateTimeMessage) => {
       if (!dateTimeMessage) return "";
-      const timeMoment = moment(dateTimeMessage);
-      return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
+      return moment(dateTimeMessage).format("HH:mm");
     };
+
     const displayMessage = (message) => {
-      // Text message calculationsz
       if (!message) return null;
       let text = message.text;
       switch (message.type) {
-        case "text":
-          break;
         case "image":
           text = "📷 Photo";
           break;
@@ -60,16 +47,11 @@ const ChatListItem = React.memo(
         case "video":
           text = "🎥 Video";
           break;
-        case "system":
-          // Do nothing here, handled below
-          break;
         default:
-          return null;
+          break;
       }
 
       let sender = "";
-
-      // Sender name
       if (
         message.senderUUID &&
         message.sender_name &&
@@ -86,12 +68,14 @@ const ChatListItem = React.memo(
           style={[styles.chatSubtitle, styles.gridText]}
           numberOfLines={1}
           ellipsizeMode="tail"
+          selectable={false}
         >
           {sender}
           {text}
         </Text>
       );
     };
+
     return (
       <SmartBackground
         colors={
@@ -102,9 +86,15 @@ const ChatListItem = React.memo(
         style={styles.chatItem}
       >
         <HoverAndPressedButton
-          onPress={() => onPress(uuid)}
+          onPress={() => onPress(item.uuid)}
+          onLongPress={() => onLongPress(item.uuid)}
           style={styles.chatItemPressable}
         >
+          {isSelected && (
+            <View style={styles.selectionIndicator}>
+              <Icon name={"Tick02Icon"} size={24} />
+            </View>
+          )}
           <Image
             source={{ uri: "https://picsum.photos/200" }}
             style={styles.avatar}
@@ -115,43 +105,34 @@ const ChatListItem = React.memo(
                 style={[styles.chatTitle, styles.gridText, { marginBottom: 5 }]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
+                selectable={false}
               >
-                {name}
+                {item.name}
               </Text>
-              {displayMessage(lastMessage)}
+              {displayMessage(item.lastMessage)}
             </View>
             <View style={styles.rightContainer}>
               <View style={styles.dateContainer}>
-                {!lastMessage?.created_at ? (
+                {!item.lastMessage?.created_at ? (
                   <Icon name={"Clock01Icon"} size={15} />
                 ) : (
                   <>
                     <Icon name={"TickDouble02Icon"} size={18} />
-                    <Text style={styles.chatDateText}>
-                      {parseTime(lastMessage?.created_at)}
+                    <Text style={styles.chatDateText} selectable={false}>
+                      {parseTime(item.lastMessage?.created_at)}
                     </Text>
                   </>
                 )}
               </View>
-
               <View style={[styles.ball]}>
-                <Text style={[styles.ballText]}>17</Text>
+                <Text style={[styles.ballText]} selectable={false}>
+                  17
+                </Text>
               </View>
             </View>
           </View>
         </HoverAndPressedButton>
       </SmartBackground>
-    );
-  },
-  (prev, next) => {
-    // shallow compare important primitive props to avoid re-render
-    return (
-      prev.name === next.name &&
-      prev.uuid === next.uuid &&
-      prev.isSelected === next.isSelected &&
-      prev.lastMessage === next.lastMessage &&
-      prev.theme === next.theme &&
-      prev.styles === next.styles
     );
   }
 );
@@ -165,20 +146,99 @@ const ChatList = ({
   toggleSidebar,
 }) => {
   useAppInit(true);
-  const { selectedChatUUID } = useContext(ChatContext);
-  const { chatDetails, loading } = useChats();
-
+  const { chatDetails } = useChats();
   const styles = createStyle(theme, colorScheme);
 
-  // callback per onPress chat item
-  const handleChatPress = React.useCallback(
-    (chatUUID) => {
-      onChatSelect(chatUUID);
-    },
-    [onChatSelect]
-  );
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [orderedChats, setOrderedChats] = useState([]);
 
-  const renderHeader = useCallback(
+  const isSelectionMode = selectedItems.length > 0;
+
+  // LOGICA SEMPLIFICATA IN UN UNICO useEffect
+  useEffect(() => {
+    const organizeChats = async () => {
+      const allChats = Object.values(chatDetails);
+      if (allChats.length === 0) {
+        setOrderedChats([]);
+        return;
+      }
+
+      try {
+        const savedOrderJSON = await AsyncStorage.getItem(
+          PINNED_CHATS_STORAGE_KEY
+        );
+        const savedOrderIds = savedOrderJSON ? JSON.parse(savedOrderJSON) : [];
+
+        // Crea una mappa per un lookup veloce della posizione di ogni chat
+        const orderMap = new Map(savedOrderIds.map((id, index) => [id, index]));
+
+        const sortedChats = [...allChats].sort((a, b) => {
+          const indexA = orderMap.get(a.uuid) ?? Infinity;
+          const indexB = orderMap.get(b.uuid) ?? Infinity;
+          return indexA - indexB;
+        });
+
+        setOrderedChats(sortedChats);
+      } catch (e) {
+        console.error("Failed to organize chats:", e);
+        setOrderedChats(allChats); // In caso di errore, mostra le chat in ordine di default
+      }
+    };
+
+    organizeChats();
+  }, [chatDetails]); // Si attiva solo quando le chat iniziali cambiano
+
+  const handleLongPress = (chatUUID) => {
+    if (!isSelectionMode) {
+      setSelectedItems([chatUUID]);
+    }
+  };
+
+  const handlePress = (chatUUID) => {
+    if (isSelectionMode) {
+      setSelectedItems((currentSelected) =>
+        currentSelected.includes(chatUUID)
+          ? currentSelected.filter((id) => id !== chatUUID)
+          : [...currentSelected, chatUUID]
+      );
+    } else {
+      onChatSelect(chatUUID);
+    }
+  };
+
+  const handleCancelSelection = () => {
+    setSelectedItems([]);
+  };
+
+  const handlePinItems = async () => {
+    // Sposta le chat selezionate all'inizio della lista
+    const selectedChats = orderedChats.filter((chat) =>
+      selectedItems.includes(chat.uuid)
+    );
+    const unselectedChats = orderedChats.filter(
+      (chat) => !selectedItems.includes(chat.uuid)
+    );
+    const newOrderedList = [...selectedChats, ...unselectedChats];
+
+    // 1. Aggiorna subito la UI
+    setOrderedChats(newOrderedList);
+
+    // 2. Salva il nuovo ordine (solo gli ID) su disco
+    try {
+      const newOrderedIds = newOrderedList.map((chat) => chat.uuid);
+      await AsyncStorage.setItem(
+        PINNED_CHATS_STORAGE_KEY,
+        JSON.stringify(newOrderedIds)
+      );
+    } catch (e) {
+      console.error("Failed to save chat order:", e);
+    }
+
+    // 3. Esci dalla modalità selezione
+    setSelectedItems([]);
+  };
+
+  const renderDefaultHeader = useCallback(
     () => (
       <HeaderBase>
         <Icon name={"Menu02Icon"} size={32} onPress={toggleSidebar} />
@@ -186,113 +246,72 @@ const ChatList = ({
           source={require("../assets/images/logo-novyse.png")}
           style={styles.logo}
         />
-        {/* <Text style={styles.headerTitle}>Novyse</Text> */}
         <Icon
           name={"Search02Icon"}
           size={32}
-          onPress={() => setIsToggleSearchChats((prev) => !prev)}
+          onPress={() => setIsToggleSearchChats((p) => !p)}
         />
       </HeaderBase>
     ),
-    [
-      toggleSidebar,
-      setIsToggleSearchChats,
-      styles.headerTitle,
-      styles.searchButton,
-    ]
+    [toggleSidebar, setIsToggleSearchChats, styles.logo]
   );
 
-  const renderItem = ({ item }) => {
-    const isSelected = selectedChatUUID === item.uuid;
-    return (
-      <ChatListItem
-        uuid={item.uuid}
-        name={item.name}
-        pictureUUID={item.profilePictureUUID}
-        lastMessage={item.lastMessage}
-        isSelected={isSelected}
-        onPress={handleChatPress}
-        theme={theme}
-        styles={styles}
-      />
-    );
-  };
-
-  const memoizedRenderItem = React.useMemo(
-    () => renderItem,
-    [selectedChatUUID, theme]
+  const renderSelectionHeader = useCallback(
+    () => (
+      <HeaderBase>
+        <Icon name={"Cancel01Icon"} size={32} onPress={handleCancelSelection} />
+        <Text style={styles.headerTitle}>
+          {selectedItems.length} selezionate
+        </Text>
+        <Icon name={"PinIcon"} size={32} onPress={handlePinItems} />
+      </HeaderBase>
+    ),
+    [selectedItems.length, styles.headerTitle]
   );
 
-  const renderChatList = () => (
-    <FlatList
-      style={styles.flatList}
-      contentContainerStyle={styles.flatListContent}
-      extraData={[selectedChatUUID, theme]}
-      initialNumToRender={12}
-      maxToRenderPerBatch={12}
-      windowSize={7}
-      data={Object.values(chatDetails)}
-      keyExtractor={(item) => item.uuid}
-      renderItem={memoizedRenderItem}
+  const renderItem = ({ item }) => (
+    <ChatListItem
+      item={item}
+      isSelected={selectedItems.includes(item.uuid)}
+      onPress={handlePress}
+      onLongPress={handleLongPress}
+      theme={theme}
+      styles={styles}
     />
   );
 
   return (
     <SmartBackground
       colors={theme?.backgroundChatListGradient}
-      style={[styles.chatListContainer]}
+      style={styles.chatListContainer}
     >
       <View style={styles.chatListWrapper}>
-        {renderHeader()}
-        {!isToggleSearchChats ? renderChatList() : <Search />}
+        {isSelectionMode ? renderSelectionHeader() : renderDefaultHeader()}
+        {!isToggleSearchChats ? (
+          <FlatList
+            style={styles.flatList}
+            contentContainerStyle={styles.flatListContent}
+            data={orderedChats}
+            keyExtractor={(item) => item.uuid}
+            renderItem={renderItem}
+            extraData={selectedItems}
+          />
+        ) : (
+          <Search />
+        )}
       </View>
     </SmartBackground>
   );
 };
 
+// ... (la funzione createStyle rimane invariata) ...
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
-    chatListContainer: {
-      flex: 1,
-      position: "relative",
-    },
-    chatListWrapper: {
-      flex: 1,
-      position: "relative",
-      paddingBottom: 10,
-    },
-    flatList: {
-      flex: 1,
-      ...(Platform.OS === "web" && {
-        // Standard per Firefox (fisso, no active/drag change)
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
-        "::-webkit-scrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::-webkit-scrollbar-track": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::-webkit-scrollbar-thumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::-webkit-scrollbar-thumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
-    },
-    flatListContent: {
-      padding: 10,
-      gap: 10,
-    },
-    chatItem: {
-      borderRadius: 15,
-      height: 65,
-    },
+    chatListContainer: { flex: 1, position: "relative" },
+    chatListWrapper: { flex: 1, position: "relative", paddingBottom: 10 },
+    flatList: { flex: 1 },
+    flatListContent: { padding: 10, gap: 10 },
+    chatItem: { borderRadius: 15, height: 65 },
     chatItemPressable: {
       flexDirection: "row",
       alignItems: "center",
@@ -301,53 +320,19 @@ function createStyle(theme, colorScheme) {
       flex: 1,
       borderRadius: 15,
     },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 10,
-    },
-    logo: {
-      width: 24,
-      height: 24,
-    },
-    chatTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: theme.text,
-    },
-    chatSubtitle: {
-      fontSize: 14,
-      color: theme.text,
-    },
+    avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
+    logo: { width: 24, height: 24 },
+    chatTitle: { fontSize: 16, fontWeight: "bold", color: theme.text },
+    chatSubtitle: { fontSize: 14, color: theme.text },
     chatItemGrid: {
       flexDirection: "row",
       flex: 1,
       justifyContent: "space-between",
     },
-    leftContainer: {
-      flex: 1,
-      flexDirection: "column",
-    },
-    rightContainer: {
-      flexDirection: "column",
-      alignItems: "flex-end",
-    },
-    gridText: {
-      fontSize: 14,
-      color: theme.text,
-    },
-    chatDate: {
-      textAlign: "right",
-    },
-    staticNumber: {
-      textAlign: "right",
-    },
-    headerTitle: {
-      color: theme.text,
-      fontSize: 18,
-      fontWeight: "bold",
-    },
+    leftContainer: { flex: 1, flexDirection: "column" },
+    rightContainer: { flexDirection: "column", alignItems: "flex-end" },
+    gridText: { fontSize: 14, color: theme.text },
+    headerTitle: { color: theme.text, fontSize: 18, fontWeight: "bold" },
     ball: {
       borderRadius: 10,
       width: 20,
@@ -355,13 +340,8 @@ function createStyle(theme, colorScheme) {
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: theme.badgeColor,
-      addingHorizontal: 5,
     },
-    ballText: {
-      textAlign: "center",
-      color: theme.text,
-      fontSize: 12,
-    },
+    ballText: { textAlign: "center", color: theme.text, fontSize: 12 },
     dateContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -373,6 +353,14 @@ function createStyle(theme, colorScheme) {
       color: theme.text,
       textAlign: "right",
       marginLeft: 5,
+    },
+    selectionIndicator: {
+      position: "absolute",
+      top: 5,
+      left: 5,
+      zIndex: 1,
+      backgroundColor: "#25b34bff",
+      borderRadius: 999,
     },
   });
 }

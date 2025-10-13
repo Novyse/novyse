@@ -67,6 +67,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
                   style={styles.senderName}
                   numberOfLines={1}
                   ellipsizeMode="tail"
+                  selectable={false}
                 >
                   {sender_name}
                 </Text>

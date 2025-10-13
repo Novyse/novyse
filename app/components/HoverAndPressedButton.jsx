@@ -2,14 +2,14 @@ import React, { useContext } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 
-
 const HoverAndPressedButton = ({
   children,
   onPress,
+  onLongPress = () => {},
   style = {},
   hoveredStyle = {},
   pressedStyle = {},
-  disabled
+  disabled,
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -23,6 +23,7 @@ const HoverAndPressedButton = ({
         pressed && { ...styles.basePressed, ...pressedStyle },
       ]}
       onPress={onPress}
+      onLongPress={onLongPress}
       disabled={disabled}
     >
       {children}

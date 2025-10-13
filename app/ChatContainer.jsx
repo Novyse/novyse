@@ -36,7 +36,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
         source={{ uri: "https://picsum.photos/200" }} // Placeholder avatar
         style={styles.avatar}
       />
-      <Text style={styles.chatHeaderTitle} numberOfLines={1}>
+      <Text style={styles.chatHeaderTitle} numberOfLines={1} selectable={false}>
         {selectedChatName}
       </Text>
       {contentView === "vocal" ? (
@@ -101,6 +101,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
           textAlign: "center",
           marginTop: 20,
         }}
+        selectable={false}
       >
         La chat selezionata non esiste, cosa stai facendo, stai fermo per favore
       </Text>

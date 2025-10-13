@@ -9,7 +9,6 @@ const MessageSystem = ({ type, data }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
-
   // Used to calculate system message text
   const [systemText, setSystemText] = useState("");
   useEffect(() => {
@@ -26,13 +25,17 @@ const MessageSystem = ({ type, data }) => {
     case "date":
       return (
         <View style={styles.dateSeparator}>
-          <Text style={styles.dateSeparatorText}>{data}</Text>
+          <Text style={styles.dateSeparatorText} selectable={false}>
+            {data}
+          </Text>
         </View>
       );
     case "system":
       return (
         <View style={styles.systemContainer}>
-          <Text style={styles.systemText}>{systemText}</Text>
+          <Text style={styles.systemText} selectable={false}>
+            {systemText}
+          </Text>
         </View>
       );
     default:
