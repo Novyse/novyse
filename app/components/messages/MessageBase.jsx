@@ -1,64 +1,131 @@
 import React, { useContext } from "react";
-import { View, Pressable, StyleSheet, Platform } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import {
+  View,
+  Pressable,
+  StyleSheet,
+  Platform,
+  Text,
+  Image,
+} from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import MessageAudio from "./MessageAudio";
-import MessageImagesVideos from "./MessageImagesVideos";
-
-// Importa i componenti di contenuto
+import SmartBackground from "../SmartBackground";
 import MessageText from "./MessageText";
 import MessageTimestamp from "./MessageTimestamp";
-import SmartBackground from "../SmartBackground";
 
 const MessageBase = ({ message, isSender, onLongPress }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const { text, created_at } = message;
+  const {
+    text,
+    created_at,
+    showSenderName = false,
+    showAvatar = false,
+    sender_name,
+  } = message;
 
-  return (
-    <SmartBackground
-      colors={theme.backgroundMessageBaseGradient}
-      style={isSender ? styles.msgSender : styles.msgReceiver}
-    >
-      <Pressable onLongPress={onLongPress} style={styles.pressable}>
-        {/* <MessageImagesVideos /> */}
-
-        <View style={styles.bottomMessage}>
-          {text && <MessageText text={text} />}
-
-          {/* <MessageAudio /> */}
-
+  // Messaggi inviati: bolla a destra senza nome/avatar, angoli arrotondati condizionali
+  if (isSender) {
+    return (
+      <SmartBackground
+        colors={theme.backgroundMessageBaseGradient}
+        style={[styles.senderBubble, showAvatar && styles.senderBubbleChained]}
+      >
+        <Pressable onLongPress={onLongPress} style={styles.pressable}>
+          <View style={styles.contentContainer}>
+            {text && <MessageText text={text} />}
+          </View>
           <MessageTimestamp time={created_at} />
-        </View>
-      </Pressable>
-    </SmartBackground>
+        </Pressable>
+      </SmartBackground>
+    );
+  }
+
+  // Messaggi ricevuti: bolla a sinistra con nome/avatar opzionali
+  return (
+    <View style={styles.receiverContainer}>
+      <View style={styles.receiverRow}>
+        {showAvatar && (
+          <View style={styles.avatarWrapper}>
+            <Image
+              source={{ uri: "https://picsum.photos/200/300" }}
+              style={styles.avatar}
+            />
+          </View>
+        )}
+        <SmartBackground
+          colors={theme.backgroundMessageBaseGradient}
+          style={[
+            styles.receiverBubble,
+            showAvatar && styles.receiverBubbleWithAvatar,
+          ]}
+        >
+          <Pressable onLongPress={onLongPress} style={styles.pressable}>
+            {showSenderName && (
+              <View style={styles.senderNameWrapper}>
+                <Text
+                  style={styles.senderName}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {sender_name}
+                </Text>
+              </View>
+            )}
+            <View style={styles.contentContainer}>
+              {text && <MessageText text={text} />}
+            </View>
+            <MessageTimestamp time={created_at} />
+          </Pressable>
+        </SmartBackground>
+      </View>
+    </View>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    msgSender: {
-      overflow: "hidden",
-      marginVertical: 5,
-      maxWidth: "60%",
-      borderRadius: 10,
-      borderBottomRightRadius: 0,
-      alignSelf: "flex-end",
-      marginRight: 8,
-    },
-    msgReceiver: {
-      overflow: "hidden",
-      marginVertical: 5,
-      maxWidth: "60%",
-      borderRadius: 10,
-      borderBottomLeftRadius: 0,
+    // CONTAINER PRINCIPALI
+    receiverContainer: {
       alignSelf: "flex-start",
-      marginLeft: 8,
+      maxWidth: "80%",
     },
-    bottomMessage: {
+    receiverRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+    },
+    // BOLLE MESSAGGI
+    senderBubble: {
+      overflow: "hidden",
+      marginVertical: 3,
+      marginRight: 8,
+      maxWidth: "80%",
+      minWidth: 70,
+      borderRadius: 10,
+      alignSelf: "flex-end",
+    },
+    senderBubbleChained: {
+      borderBottomRightRadius: 0,
+    },
+    receiverBubble: {
+      overflow: "hidden",
+      marginVertical: 3,
+      marginLeft: 58,
+      maxWidth: "80%",
+      minWidth: 70,
+      borderRadius: 10,
+      alignSelf: "flex-start",
+    },
+    receiverBubbleWithAvatar: {
+      marginLeft: 10,
+      borderBottomLeftRadius: 0,
+    },
+    // CONTENUTO MESSAGGI
+    pressable: {
       padding: 10,
-      gap: 15,
+      width: "100%",
+    },
+    contentContainer: {
       flexDirection: "column",
       flexWrap: "wrap",
       alignItems: "flex-start",
@@ -68,8 +135,23 @@ const createStyle = (theme) =>
         overflowWrap: "break-word",
       }),
     },
-    pressable: {
-      padding: 0,
+    // AVATAR
+    avatarWrapper: {
+      marginRight: 5,
+      marginLeft: 3,
+      marginBottom: 5,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+    },
+    // NOME MITTENTE
+    senderNameWrapper: {},
+    senderName: {
+      fontWeight: "600",
+      color: theme.primary || theme.text,
+      flexShrink: 1,
     },
   });
 

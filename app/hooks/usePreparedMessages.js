@@ -5,66 +5,96 @@ const usePreparedMessages = (messages) => {
   const prepareMessages = useCallback((msgs = []) => {
     if (!Array.isArray(msgs) || msgs.length === 0) return [];
 
-    const sortedMessages = [...msgs].sort(
+    const sortedAsc = [...msgs].sort(
+      (a, b) => new Date(a.created_at) - new Date(b.created_at)
+    );
+
+    const isBreaking = (msg) =>
+      !msg || msg.type === "system" || msg.type === "date";
+
+    // Calcolo flag showSenderName / showAvatar
+    for (let i = 0; i < sortedAsc.length; ) {
+      const msg = sortedAsc[i];
+      if (isBreaking(msg)) {
+        i++;
+        continue;
+      }
+
+      const sender = msg.sender_name;
+      const dateOfGroup = moment(msg.created_at).format("YYYY-MM-DD");
+      const start = i;
+
+      // Avanza fino alla fine del gruppo
+      while (
+        i < sortedAsc.length &&
+        !isBreaking(sortedAsc[i]) &&
+        sortedAsc[i].sender_name === sender &&
+        moment(sortedAsc[i].created_at).format("YYYY-MM-DD") === dateOfGroup
+      ) {
+        i++;
+      }
+
+      const end = i - 1;
+
+      if (sortedAsc[start]) sortedAsc[start].showSenderName = true;
+      if (sortedAsc[end]) sortedAsc[end].showAvatar = true;
+    }
+
+    // Ordina per visualizzazione (nuovi → vecchi)
+    const sortedDesc = [...sortedAsc].sort(
       (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );
 
     const prepared = [];
-    let lastDate = null;
-    let lastDateDisplay = null;
-    let groupMessages = [];
+    let currentDate = null;
+    let displayDate = null;
+    let buffer = [];
 
-    sortedMessages.forEach((message) => {
-      const messageDate = moment(message.created_at).format("YYYY-MM-DD");
-      const displayDate = moment(message.created_at).format("MMMM D, YYYY");
+    for (const msg of sortedDesc) {
+      const msgDate = moment(msg.created_at).format("YYYY-MM-DD");
+      const msgDisplay = moment(msg.created_at).format("MMMM D, YYYY");
 
-      if (messageDate !== lastDate) {
-        if (groupMessages.length > 0) {
-          prepared.push(...groupMessages);
-          prepared.push({
-            type: "separator",
-            data: lastDateDisplay,
-            uniqueKey: `separator-${lastDate}`,
-          });
-        }
-        groupMessages = [];
-        lastDate = messageDate;
-        lastDateDisplay = displayDate;
+      if (msgDate !== currentDate && buffer.length > 0) {
+        prepared.push(...buffer);
+        prepared.push({
+          type: "separator",
+          data: displayDate,
+          uniqueKey: `separator-${currentDate}`,
+        });
+        buffer = [];
       }
 
-      if (message.type === "system") {
-        groupMessages.push({
-          type: "system",
-          data: message,
-          uniqueKey: message.id,
-        });
+      currentDate = msgDate;
+      displayDate = msgDisplay;
+
+      if (isBreaking(msg)) {
+        buffer.push({ type: msg.type, data: msg, uniqueKey: msg.id });
       } else {
-        groupMessages.push({
+        buffer.push({
           type: "text",
-          data: message,
-          uniqueKey: message.id,
+          data: {
+            ...msg,
+            showSenderName: msg.showSenderName || false,
+            showAvatar: msg.showAvatar || false,
+          },
+          uniqueKey: msg.id,
         });
       }
-    });
+    }
 
-    if (groupMessages.length > 0) {
-      prepared.push(...groupMessages);
+    if (buffer.length > 0) {
+      prepared.push(...buffer);
       prepared.push({
         type: "separator",
-        data: lastDateDisplay,
-        uniqueKey: `separator-${lastDate}`,
+        data: displayDate,
+        uniqueKey: `separator-${currentDate}`,
       });
     }
 
     return prepared;
   }, []);
 
-  const preparedMessages = useMemo(
-    () => prepareMessages(messages),
-    [messages, prepareMessages]
-  );
-
-  return preparedMessages;
+  return useMemo(() => prepareMessages(messages), [messages, prepareMessages]);
 };
 
 export default usePreparedMessages;
