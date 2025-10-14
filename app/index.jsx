@@ -15,7 +15,7 @@ import * as SplashScreen from "expo-splash-screen";
 import logo_novyse from "../assets/images/logo-novyse.png";
 
 import ScreenLayout from "./components/ScreenLayout";
-import EmailCheckForm from "./welcome/email-check";
+import EmailCheckForm from "./welcome";
 
 import { LinearGradient } from "expo-linear-gradient";
 import { LoginColors } from "@/constants/LoginColors";
@@ -52,7 +52,7 @@ export default function Index() {
         if (success) {
           router.replace("/chat");
         } else {
-          router.replace("/welcome/email-check");
+          router.replace("/welcome");
         }
       }
     };

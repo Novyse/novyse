@@ -40,7 +40,7 @@ const ResetPassword = () => {
     auth.checkShouldBeHere(router, false);
 
     const backAction = () => {
-      router.navigate("/welcome/email-check");
+      router.navigate("/welcome");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -80,7 +80,7 @@ const ResetPassword = () => {
         return;
       } else {
         if (resetPasswordSuccess) {
-          router.replace("/welcome/email-check");
+          router.replace("/welcome");
         } else {
           console.error("Error");
         }
@@ -98,7 +98,7 @@ const ResetPassword = () => {
   };
 
   const handleBack = () => {
-    router.navigate("/welcome/email-check");
+    router.navigate("/welcome");
   };
 
   return (

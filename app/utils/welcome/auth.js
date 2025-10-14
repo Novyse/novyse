@@ -53,7 +53,7 @@ const checkShouldBeHere = async (router, shouldBeLoggedIn = true) => {
   const loggedIn = await isLoggedIn();
   if (shouldBeLoggedIn && !loggedIn) {
     console.warn("User should be logged in but is not. Redirecting to login.");
-    router.replace("/welcome/email-check");
+    router.replace("/welcome");
     return false;
   } else if (!shouldBeLoggedIn && loggedIn) {
     console.warn(
@@ -127,7 +127,7 @@ const logout = async (router) => {
   const database = await Database.create();
   await database.clear();
   await AsyncStorage.clear();
-  router.replace("/welcome/email-check");
+  router.replace("/welcome");
 };
 
 const update = async () => {
