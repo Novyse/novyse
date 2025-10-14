@@ -51,8 +51,8 @@ const Search = () => {
 
     const trimmedValue = value.trim();
 
-    // Se il valore (dopo il trim) è vuoto, resetta lo stato e non fare la chiamata API
-    if (trimmedValue === "") {
+    // Se il valore (dopo il trim) è vuoto oppure ha meno di 3 caratteri, resetta lo stato e non fare la chiamata API
+    if (trimmedValue === "" || trimmedValue.length < 3) {
       setIsLoading(false);
       setResponseArray([]);
       setIsSearching(false);
