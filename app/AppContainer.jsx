@@ -26,7 +26,7 @@ import SmartBackground from "./components/SmartBackground";
 import chatUtils from "./utils/chat";
 
 // Hooks
-import useAppInit from "./hooks/useAppInit";
+import useAppInit from "./hooks/auth/useAppInit";
 
 // Context
 import { ThemeContext } from "../context/ThemeContext";

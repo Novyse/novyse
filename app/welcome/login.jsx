@@ -24,7 +24,7 @@ import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
 
 const LoginPassword = () => {
   const router = useRouter();
-  const { emailValue } = useLocalSearchParams();
+  const { email } = useLocalSearchParams();
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -69,7 +69,7 @@ const LoginPassword = () => {
         twoFactorToken,
         chooseTwoFactorToken,
         expiresIn,
-      } = await gateway.auth.login(emailValue, password);
+      } = await gateway.auth.login(email, password);
 
       if (!success) {
         console.log("Error", "Incorrect password.");
@@ -115,7 +115,7 @@ const LoginPassword = () => {
       setError(null);
       setSuccessMessage(null);
 
-      const resetPassword = await gateway.auth.requestPasswordReset(emailValue);
+      const resetPassword = await gateway.auth.requestPasswordReset(email);
       console.log("Password forgot Success?", resetPassword);
 
       if (resetPassword) {

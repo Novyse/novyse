@@ -24,9 +24,9 @@ import gateway from "./utils/backend-services/api-gateway";
 import eventEmitter from "./utils/global/Events/EventEmitter.js";
 
 // Hooks
-import useChatData from "./hooks/useChatData.js";
-import useMessageHandlers from "./hooks/useMessageHandlers.js";
-import usePreparedMessages from "./hooks/usePreparedMessages.js";
+import useChatData from "./hooks/chat/useChatData.js";
+import useMessageHandlers from "./hooks/chat/useMessageHandlers.js";
+import usePreparedMessages from "./hooks/chat/usePreparedMessages.js";
 
 // Context
 import { ChatContext } from "@/context/ChatContext";

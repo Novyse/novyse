@@ -15,8 +15,8 @@ import Search from "./Search";
 import HoverAndPressedButton from "./components/HoverAndPressedButton";
 import Icon from "./components/Icon";
 import HeaderBase from "./components/HeaderBase";
-import useChats from "./hooks/useChats";
-import useAppInit from "./hooks/useAppInit";
+import useChats from "./hooks/chat/useChats";
+import useAppInit from "./hooks/auth/useAppInit";
 import { ChatContext } from "../context/ChatContext";
 import { UserContext } from "../context/UserContext";
 

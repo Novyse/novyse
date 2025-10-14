@@ -25,7 +25,7 @@ import WelcomeButton from "../components/welcome/WelcomeButton";
 import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
 
 const Signup = () => {
-  const { emailValue } = useLocalSearchParams();
+  const { email } = useLocalSearchParams();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const loginTheme = "default";
@@ -231,7 +231,7 @@ const Signup = () => {
     try {
       const { password, name, surname, handle } = form;
       const signupResponse = await gateway.auth.register(
-        emailValue,
+        email,
         password,
         name,
         surname,

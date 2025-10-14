@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { Alert, Platform } from "react-native";
-import gateway from "../utils/backend-services/api-gateway";
+import gateway from "../utils/backend-services/api-gateway.js";
 import eventEmitter from "../utils/global/Events/EventEmitter.js";
 
 const useMessageHandlers = (

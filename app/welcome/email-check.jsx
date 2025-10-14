@@ -156,9 +156,9 @@ const EmailCheckForm = () => {
     checkEmailAndNavigate(email);
   };
 
-  const checkEmailAndNavigate = async (emailValue) => {
+  const checkEmailAndNavigate = async (email) => {
     try {
-      const response = await gateway.check.email(emailValue);
+      const response = await gateway.check.email(email);
 
       let emailResponse = "login";
       if (response.success) {
@@ -171,14 +171,14 @@ const EmailCheckForm = () => {
         router.navigate({
           pathname: "/welcome/signup",
           params: {
-            emailValue: emailValue,
+            email: email,
           },
         });
       } else if (emailResponse === "login") {
         router.navigate({
           pathname: "/welcome/login",
           params: {
-            emailValue: emailValue,
+            email: email,
           },
         });
       } else {

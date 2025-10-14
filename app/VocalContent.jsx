@@ -10,8 +10,8 @@ import { ChatContext } from "../context/ChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 
 // Hooks
-import useCommData from "./hooks/useCommData";
-import useAudioContext from "./hooks/useAudioContext";
+import useCommData from "./hooks/comm/useCommData";
+import useAudioContext from "./hooks/comm/useAudioContext";
 
 const VocalContent = () => {
   const { theme } = useContext(ThemeContext);

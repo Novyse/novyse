@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import Database from "../utils/storage/database";
-import gateway from "../utils/backend-services/api-gateway";
-import chatUtils from "../utils/chat";
+import Database from "../../app/utils/storage/database";
+import gateway from "../../app/utils/backend-services/api-gateway";
+import chatUtils from "../../app/utils/chat";
 
-import eventEmitter from "../utils/global/Events/EventEmitter";
-import SocketIO from "../utils/backend-services/socket-io";
+import eventEmitter from "../../app/utils/global/Events/EventEmitter";
+import SocketIO from "../../app/utils/backend-services/socket-io";
 
 const useChatData = (chatUUID, chatHandle = null) => {
   const [chat, setChat] = useState({});
