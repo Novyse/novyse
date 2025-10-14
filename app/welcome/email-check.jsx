@@ -32,6 +32,7 @@ const EmailCheckForm = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   const [remainingTime, setRemainingTime] = useState(0);
   const loginTheme = "default";
+
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 936;
 
@@ -152,7 +153,6 @@ const EmailCheckForm = () => {
     }
 
     setError(null);
-    setIsNavigating(true); // Disattiva il polling
     checkEmailAndNavigate(email);
   };
 
@@ -166,6 +166,7 @@ const EmailCheckForm = () => {
           emailResponse = "signup";
         }
       }
+      setIsNavigating(true); // Disattiva il polling
 
       if (emailResponse === "signup") {
         router.navigate({
