@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import Database from "../utils/storage/database";
-import utils from "../utils/chat";
-import eventEmitter from "../utils/global/Events/EventEmitter";
+import Database from "@/app/utils/storage/database";
+import utils from "@/app/utils/chat";
+import eventEmitter from "@/app/utils/global/Events/EventEmitter";
 
 const useChats = () => {
   const [chatDetails, setChatDetails] = useState({});

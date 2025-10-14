@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
-import auth from "../utils/welcome/auth";
-import SocketIO from "../utils/backend-services/socket-io";
+import auth from "@/app/utils/welcome/auth";
+import SocketIO from "@/app/utils/backend-services/socket-io";
 
 const useAppInit = (shouldBeLoggedIn) => {
   const router = useRouter();

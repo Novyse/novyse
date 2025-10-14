@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 
-import methods from "../utils/webrtc/methods";
+import methods from "@/app/utils/webrtc/methods";
 const { get, check } = methods;
 
-import WebRTC from "../utils/webrtc/index";
+import WebRTC from "@/app/utils/webrtc/index";
 
-import eventEmitter from "../utils/global/Events/EventEmitter";
+import eventEmitter from "@/app/utils/global/Events/EventEmitter";
 
 const useCommData = (commUUID) => {
   const [commData, setCommData] = useState({});

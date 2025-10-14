@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import { useAudio } from "@/context/AudioContext";
 
-import methods from "../utils/webrtc/methods";
+import methods from "@/app/utils/webrtc/methods";
 const { set } = methods;
 
 const useAudioContext = () => {
