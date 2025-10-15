@@ -13,36 +13,37 @@ import {
   ScrollView,
   KeyboardAvoidingView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+
+import validate from "@/app/utils/welcome/validator";
 import gateway from "../utils/backend-services/api-gateway";
+
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
+
 import StatusMessage from "../components/StatusMessage";
 import Icon from "../components/Icon";
 import WelcomeButton from "../components/welcome/WelcomeButton";
 import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
 
+import {
+  PRIVACY_POLICY_URL,
+  TOS_URL,
+} from "@/app.config.js";
+
 const Signup = () => {
   const { email } = useLocalSearchParams();
+
   const router = useRouter();
   const { width } = useWindowDimensions();
+
   const loginTheme = "default";
-  const privacyPolicyLink = "https://www.novyse.com/legal/privacy-policy";
-  const tosLink = "https://www.novyse.com/legal/terms-of-service";
+
   const [privacy_policy_accepted, SetPrivacy_policy_accepted] = useState(false);
   const [terms_of_service_accepted, setTerms_of_service_accepted] =
     useState(false);
-
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[a-zA-Z0-9@$!%*?&]{8,128}$/;
-  const handleRegex = /^(?!.*_{2,})[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$/;
-
-  const isPasswordValid = (pwd) => passwordRegex.test(pwd);
-  const isHandleValid = (handle) => handleRegex.test(handle);
-  const isNameValid = (name) => /^[a-zA-Z\s]+$/.test(name.trim()) && name.trim() !== "";
-  const isSurnameValid = (surname) => /^[a-zA-Z\s]+$/.test(surname.trim()) && surname.trim() !== "";
 
   const passwordRequirements = [
     { label: "At least 8 characters", check: (pwd) => pwd.length >= 8 },
@@ -121,11 +122,11 @@ const Signup = () => {
     const allFieldsFilled = password && name && surname && handle;
     setIsFormValid(
       !!allFieldsFilled &&
-        handleAvailable === true &&
-        !handleError &&
-        !isLoading &&
-        privacy_policy_accepted &&
-        terms_of_service_accepted
+      handleAvailable === true &&
+      !handleError &&
+      !isLoading &&
+      privacy_policy_accepted &&
+      terms_of_service_accepted
     );
   }, [
     form,
@@ -138,15 +139,15 @@ const Signup = () => {
 
   const validateStep = (stepIndex) => {
     if (stepIndex === 0) {
-      return isNameValid(form.name) && isSurnameValid(form.surname);
+      return validate.name(form.name) && validate.surname(form.surname);
     }
     if (stepIndex === 1) {
-      return isPasswordValid(form.password);
+      return validate.password(form.password);
     }
     if (stepIndex === 2) {
       return (
         form.handle.trim() !== "" &&
-        isHandleValid(form.handle) &&
+        validate.handle(form.handle) &&
         handleAvailable === true &&
         !handleError
       );
@@ -170,7 +171,7 @@ const Signup = () => {
         return;
       }
 
-      if (!isHandleValid(processedValue)) {
+      if (!validate.handle(processedValue)) {
         setHandleError("Invalid format. Use a-z, 0-9, and single '_'.");
         setIsLoading(false);
         return;
@@ -199,16 +200,16 @@ const Signup = () => {
 
   const validateForm = () => {
     const { password, name, surname, handle } = form;
-    if (!isNameValid(name)) return "Name can only contain letters and spaces.";
-    if (!isSurnameValid(surname)) return "Surname can only contain letters and spaces.";
+    if (!validate.name(name)) return "Name can only contain letters and spaces.";
+    if (!validate.surname(surname)) return "Surname can only contain letters and spaces.";
     if (!name.trim()) return "Please enter your name.";
     if (!surname.trim()) return "Please enter your surname.";
     if (!password) return "Please enter your password.";
-    if (!isPasswordValid(password)) {
+    if (!validate.password(password)) {
       return "Password must be 8-128 chars, include upper/lowercase, a number and a special character (@, $, !, %, *, ?, &)";
     }
     if (!handle.trim()) return "Please enter your handle.";
-    if (!isHandleValid(handle)) {
+    if (!validate.handle(handle)) {
       return "Handle format is invalid. Use a-z, 0-9, and single '_'.";
     }
     if (handleAvailable === false) return "Handle is already in use.";
@@ -293,8 +294,8 @@ const Signup = () => {
             <Text style={styles.label}>Name</Text>
             <View style={[
               styles.inputContainer,
-              form.name.length > 0 && !isNameValid(form.name) ? styles.inputError :
-              form.name.length > 0 && isNameValid(form.name) ? styles.inputSuccess : null
+              form.name.length > 0 && !validate.name(form.name) ? styles.inputError :
+                form.name.length > 0 && validate.name(form.name) ? styles.inputSuccess : null
             ]}>
               <TextInput
                 style={styles.textInput}
@@ -312,8 +313,8 @@ const Signup = () => {
             <Text style={styles.label}>Surname</Text>
             <View style={[
               styles.inputContainer,
-              form.surname.length > 0 && !isSurnameValid(form.surname) ? styles.inputError :
-              form.surname.length > 0 && isSurnameValid(form.surname) ? styles.inputSuccess : null
+              form.surname.length > 0 && !validate.surname(form.surname) ? styles.inputError :
+                form.surname.length > 0 && validate.surname(form.surname) ? styles.inputSuccess : null
             ]}>
               <TextInput
                 style={styles.textInput}
@@ -332,10 +333,10 @@ const Signup = () => {
               <Text
                 style={[
                   styles.reqIcon,
-                  isNameValid(form.name) ? styles.reqGreen : styles.reqRed,
+                  validate.name(form.name) ? styles.reqGreen : styles.reqRed,
                 ]}
               >
-                {isNameValid(form.name) ? "✓" : "✗"}
+                {validate.name(form.name) ? "✓" : "✗"}
               </Text>
               <Text style={styles.reqText}>Name: Only letters and spaces</Text>
             </View>
@@ -343,10 +344,10 @@ const Signup = () => {
               <Text
                 style={[
                   styles.reqIcon,
-                  isSurnameValid(form.surname) ? styles.reqGreen : styles.reqRed,
+                  validate.surname(form.surname) ? styles.reqGreen : styles.reqRed,
                 ]}
               >
-                {isSurnameValid(form.surname) ? "✓" : "✗"}
+                {validate.surname(form.surname) ? "✓" : "✗"}
               </Text>
               <Text style={styles.reqText}>Surname: Only letters and spaces</Text>
             </View>
@@ -360,7 +361,7 @@ const Signup = () => {
       let inputStyle = styles.inputContainer;
 
       if (field === "password") {
-        const valid = isPasswordValid(value);
+        const valid = validate.password(value);
         if (value.length > 0 && !valid) {
           inputStyle = [inputStyle, styles.inputError];
         } else if (value.length > 0 && valid) {
@@ -375,7 +376,7 @@ const Signup = () => {
       }
 
       const showAvailability =
-        field === "handle" && value.trim() && isHandleValid(value);
+        field === "handle" && value.trim() && validate.handle(value);
 
       return (
         <View style={styles.inputGroup}>
@@ -530,8 +531,8 @@ const Signup = () => {
             style={[styles.link, { textDecorationLine: "underline" }]}
             onPress={() =>
               Platform.OS === "web"
-                ? window.open(privacyPolicyLink, "_blank")
-                : Linking.openURL(privacyPolicyLink)
+                ? window.open(PRIVACY_POLICY_URL, "_blank")
+                : Linking.openURL(PRIVACY_POLICY_URL)
             }
           >
             privacy policy
@@ -541,8 +542,8 @@ const Signup = () => {
             style={[styles.link, { textDecorationLine: "underline" }]}
             onPress={() =>
               Platform.OS === "web"
-                ? window.open(tosLink, "_blank")
-                : Linking.openURL(tosLink)
+                ? window.open(TOS_URL, "_blank")
+                : Linking.openURL(TOS_URL)
             }
           >
             terms of service

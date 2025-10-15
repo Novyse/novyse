@@ -22,6 +22,8 @@ import Icon from "../components/Icon";
 import WelcomeButton from "../components/welcome/WelcomeButton";
 import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
 
+import validate from "@/app/utils/welcome/validator";
+
 const LoginPassword = () => {
   const router = useRouter();
   const { email } = useLocalSearchParams();
@@ -50,6 +52,12 @@ const LoginPassword = () => {
     );
     return () => backHandler.remove();
   }, []);
+
+  useEffect(() => {
+    if (!validate.email(email)) {
+      setTimeout(() => router.navigate("/welcome"), 0);
+    }
+  }, [email]);
 
   const handleLogin = async () => {
     if (!password) {

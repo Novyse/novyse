@@ -10,12 +10,16 @@ import {
   Image,
   useWindowDimensions,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, useLocalSearchParams } from "expo-router";
+
 import gateway from "../utils/backend-services/api-gateway";
 import auth from "../utils/welcome/auth";
+import validate from "@/app/utils/welcome/validator";
+
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
+
 import StatusMessage from "../components/StatusMessage";
 import WelcomeButton from "../components/welcome/WelcomeButton";
 import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
@@ -23,8 +27,10 @@ import Icon from "../components/Icon";
 
 const ResetPassword = () => {
   const router = useRouter();
+
   const { email, token } = useLocalSearchParams();
   const [password, setPassword] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -32,9 +38,6 @@ const ResetPassword = () => {
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 936;
   const styles = createStyle(loginTheme, isSmallScreen);
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[^\s]{8,128}$/;
-  const isPasswordValid = (pwd) => passwordRegex.test(pwd);
 
   useEffect(() => {
     auth.checkShouldBeHere(router, false);
@@ -55,9 +58,9 @@ const ResetPassword = () => {
       setError("Password cannot be empty");
       return;
     }
-    if (!isPasswordValid(password)) {
+    if (!validate.password(password)) {
       setError(
-        "Password must be 8-128 chars, include upper/lowercase, a number and a special character (@, $, !, %, *, ?, &)"
+        validate.requirements.password
       );
       return;
     }

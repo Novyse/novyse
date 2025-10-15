@@ -10,6 +10,9 @@ const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
 const API_BASE_URL = "https://api.novyse.com";
 const SOCKET_BASE_URL = "wss://io.novyse.com";
 const BRANCH = "development";
+const LANDING_PAGE_URL = "https://www.novyse.com";
+const PRIVACY_POLICY_URL = LANDING_PAGE_URL+"/legal/privacy-policy";
+const TOS_URL = LANDING_PAGE_URL+"/legal/terms-of-service";
 //.ENV
 
 export {
@@ -19,6 +22,9 @@ export {
   APP_VERSION,
   BUILD_NUMBER,
   BUILD_DATE,
+  LANDING_PAGE_URL,
+  PRIVACY_POLICY_URL,
+  TOS_URL,
 };
 
 // Genera suffisso per dev mode

@@ -11,12 +11,16 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
 } from "react-native";
+
+import gateway from "../utils/backend-services/api-gateway";
+import validate from "@/app/utils/welcome/validator"
+
+import QRCode from "react-native-qrcode-svg";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 import { StatusBar } from "expo-status-bar";
-import gateway from "../utils/backend-services/api-gateway";
-import QRCode from "react-native-qrcode-svg";
+
 import StatusMessage from "../components/StatusMessage";
 import WelcomeButton from "../components/welcome/WelcomeButton";
 import WelcomeButtonText from "../components/welcome/WelcomeButtonText";
@@ -117,11 +121,6 @@ const EmailCheckForm = () => {
     return () => backHandler.remove();
   }, []);
 
-  const validateEmail = (value) => {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailPattern.test(value);
-  };
-
   const logoForQR = require("../../assets/images/logo-novyse.png");
 
   const formatTime = (seconds) => {
@@ -147,8 +146,8 @@ const EmailCheckForm = () => {
       return;
     }
 
-    if (!validateEmail(email)) {
-      setError("Non hai inserito un indirizzo email valido");
+    if (!validate.email(email)) {
+      setError("Inserted email is not valid");
       return;
     }
 
