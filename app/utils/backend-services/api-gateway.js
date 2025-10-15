@@ -61,6 +61,11 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 || error.response?.status === 403) {
+      if (error.response.status === 401 && originalRequest.url === "/auth/login" && originalRequest.method.toLowerCase() === "post") {
+        // For login requests with 401, skip token refresh and reject
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
