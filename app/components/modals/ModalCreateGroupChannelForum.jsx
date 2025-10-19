@@ -288,7 +288,6 @@ function createStyle(theme) {
   return StyleSheet.create({
     modalView: {
       padding: 20,
-      minWidth: 400,
     },
     titleContainer: {
       alignItems: "center",
@@ -341,7 +340,6 @@ function createStyle(theme) {
       color: theme.text,
       fontSize: 15,
       paddingHorizontal: 12,
-      
     },
     handleInputError: {
       borderColor: theme.danger,

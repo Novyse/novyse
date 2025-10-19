@@ -1,6 +1,8 @@
 import React from "react";
-import { Modal, StyleSheet, Pressable } from "react-native";
+import { Modal, StyleSheet, Pressable, Dimensions } from "react-native";
 import Icon from "../Icon";
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 const ModalBase = ({ visible, onClose, children, theme }) => {
   const styles = createStyle(theme);
@@ -13,7 +15,11 @@ const ModalBase = ({ visible, onClose, children, theme }) => {
     >
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={styles.container}>
-          <Icon name={"Cancel01Icon"} style={styles.closeIcon} onPress={onClose}/>
+          <Icon
+            name={"Cancel01Icon"}
+            style={styles.closeIcon}
+            onPress={onClose}
+          />
           {children}
         </Pressable>
       </Pressable>
@@ -41,10 +47,14 @@ function createStyle(theme) {
       shadowOpacity: 0.25,
       shadowRadius: 4,
       elevation: 5,
+      width: "90%",
+      maxWidth: 400,
+      maxHeight: 600,
+      marginHorizontal: 10,
     },
     closeIcon: {
-      alignSelf: "flex-end"
-    },
+      alignSelf: "flex-end",
+    },
   });
 }
 
