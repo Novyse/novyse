@@ -14,7 +14,15 @@ const HeaderWithBackArrow = ({ goBackTo }) => {
     <HeaderBase>
       <Icon
         name={"ArrowLeft02Icon"}
-        onPress={() => router.navigate(goBackTo)}
+        onPress={() => {
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            // fallback esplicito
+
+            router.navigate("/chat");
+          }
+        }}
         style={styles.iconContainer}
       />
     </HeaderBase>
