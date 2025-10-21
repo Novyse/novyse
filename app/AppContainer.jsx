@@ -150,19 +150,19 @@ const AppContainer = () => {
   useEffect(() => {
     if (isSmallScreen) {
       Animated.timing(chatContentPosition, {
-        toValue: selectedChatUUID ? 0 : Dimensions.get("window").width,
+        toValue: selectedChatUUID || selectedHandle ? 0 : Dimensions.get("window").width,
         duration: 250,
         useNativeDriver: true,
       }).start();
     }
-  }, [selectedChatUUID, isSmallScreen, chatContentPosition]);
+  }, [selectedChatUUID , selectedHandle, isSmallScreen, chatContentPosition]);
 
   // Ensure overlay is positioned correctly on mount (avoid flash)
   useEffect(() => {
     if (isSmallScreen) {
       // set initial value without animation
       chatContentPosition.setValue(
-        selectedChatUUID ? 0 : Dimensions.get("window").width
+        selectedChatUUID || selectedHandle ? 0 : Dimensions.get("window").width
       );
     } else {
       // on large screens ensure overlay is off-screen
