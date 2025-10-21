@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 
-import EventEmitter from "@/app/utils/global/Events/EventEmitter";
-import auth from "../app/utils/welcome/auth";
+import EventEmitter from "@/src/utils/global/Events/EventEmitter";
+import auth from "@/src/utils/welcome/auth";
 
 export const ChatContext = createContext();
 
