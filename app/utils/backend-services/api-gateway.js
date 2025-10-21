@@ -385,6 +385,7 @@ const gateway = {
      */
 
     async logout() {
+      try {
       const refreshToken = await token.getRefreshToken();
 
       if (!refreshToken) {
@@ -397,9 +398,12 @@ const gateway = {
 
       if (success) {
         console.info("Logged out successfully on API level");
-        return success;
       }
       return success;
+      } catch (error) {
+      console.error("Error in logout:", error);
+      return false;
+      }
     },
 
     /**
