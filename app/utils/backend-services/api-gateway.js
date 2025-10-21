@@ -365,8 +365,9 @@ const gateway = {
 
         if (success) {
           const accessToken = response.data.data.accessToken;
-          if (accessToken) {
-            await token.setAccessToken(accessToken);
+          const refreshToken = response.data.data.refreshToken;
+          if (accessToken && refreshToken) {
+            await token.setBothTokens(accessToken, refreshToken);
             return success;
           }
         }
