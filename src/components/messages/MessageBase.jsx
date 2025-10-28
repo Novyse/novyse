@@ -11,6 +11,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import SmartBackground from "../SmartBackground";
 import MessageText from "./MessageText";
 import MessageTimestamp from "./MessageTimestamp";
+import MessageImagesVideos from "./MessageImagesVideos";
 
 const MessageBase = ({ message, isSender, onLongPress }) => {
   const { theme } = useContext(ThemeContext);
@@ -24,7 +25,18 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
     sender_name,
   } = message;
 
-  // Messaggi inviati: bolla a destra senza nome/avatar, angoli arrotondati condizionali
+  const sharedContent = (
+    <>
+      <View style={styles.mediaContainer}>
+        <MessageImagesVideos />
+      </View>
+      <View style={styles.textContainer}>
+        {text && <MessageText text={text} />}
+        <MessageTimestamp time={created_at} />
+      </View>
+    </>
+  );
+
   if (isSender) {
     return (
       <SmartBackground
@@ -32,16 +44,12 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         style={[styles.senderBubble, showAvatar && styles.senderBubbleChained]}
       >
         <Pressable onLongPress={onLongPress} style={styles.pressable}>
-          <View style={styles.contentContainer}>
-            {text && <MessageText text={text} />}
-          </View>
-          <MessageTimestamp time={created_at} />
+          {sharedContent}
         </Pressable>
       </SmartBackground>
     );
   }
 
-  // Messaggi ricevuti: bolla a sinistra con nome/avatar opzionali
   return (
     <View style={styles.receiverContainer}>
       <View style={styles.receiverRow}>
@@ -73,10 +81,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
                 </Text>
               </View>
             )}
-            <View style={styles.contentContainer}>
-              {text && <MessageText text={text} />}
-            </View>
-            <MessageTimestamp time={created_at} />
+            {sharedContent}
           </Pressable>
         </SmartBackground>
       </View>
@@ -86,7 +91,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    // CONTAINER PRINCIPALI
+    // Contenitori principali
     receiverContainer: {
       alignSelf: "flex-start",
       maxWidth: "80%",
@@ -95,13 +100,12 @@ const createStyle = (theme) =>
       flexDirection: "row",
       alignItems: "flex-end",
     },
-    // BOLLE MESSAGGI
+    // Bolle messaggi (base semplificata)
     senderBubble: {
       overflow: "hidden",
-      marginVertical: 3,
+      marginVertical: 2,
       marginRight: 8,
       maxWidth: "80%",
-      minWidth: 70,
       borderRadius: 10,
       alignSelf: "flex-end",
     },
@@ -110,10 +114,9 @@ const createStyle = (theme) =>
     },
     receiverBubble: {
       overflow: "hidden",
-      marginVertical: 3,
+      marginVertical: 2,
       marginLeft: 58,
       maxWidth: "80%",
-      minWidth: 70,
       borderRadius: 10,
       alignSelf: "flex-start",
     },
@@ -121,25 +124,28 @@ const createStyle = (theme) =>
       marginLeft: 10,
       borderBottomLeftRadius: 0,
     },
-    // CONTENUTO MESSAGGI
+    // Contenuti messaggi (padding gestibili separatamente)
     pressable: {
-      padding: 10,
+      padding: 0,
       width: "100%",
     },
-    contentContainer: {
+    mediaContainer: {
+      paddingBottom: 8,
+    },
+    textContainer: {
       flexDirection: "column",
-      flexWrap: "wrap",
       alignItems: "flex-start",
       justifyContent: "flex-start",
+      paddingHorizontal: 12, // Padding personalizzabile per text + timestamp
+      paddingBottom: 8,
       ...(Platform.OS === "web" && {
         wordBreak: "break-word",
         overflowWrap: "break-word",
       }),
     },
-    // AVATAR
+    // Avatar
     avatarWrapper: {
       marginRight: 5,
-      marginLeft: 3,
       marginBottom: 5,
     },
     avatar: {
@@ -147,8 +153,12 @@ const createStyle = (theme) =>
       height: 40,
       borderRadius: 20,
     },
-    // NOME MITTENTE
-    senderNameWrapper: {},
+    // Nome mittente
+    senderNameWrapper: {
+      paddingHorizontal: 12,
+      paddingTop: 8,
+      paddingBottom: 4,
+    },
     senderName: {
       fontWeight: "600",
       color: theme.primary || theme.text,
