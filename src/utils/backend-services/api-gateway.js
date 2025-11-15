@@ -63,10 +63,10 @@ api.interceptors.response.use(
     if (error.response?.status === 401 || error.response?.status === 403) {
       if (
         error.response.status === 401 &&
-        (
-          (originalRequest.url === "/auth/login" && originalRequest.method.toLowerCase() === "post") ||
-          (originalRequest.url === "/auth/logout" && originalRequest.method.toLowerCase() === "post")
-        )
+        ((originalRequest.url === "/auth/login" &&
+          originalRequest.method.toLowerCase() === "post") ||
+          (originalRequest.url === "/auth/logout" &&
+            originalRequest.method.toLowerCase() === "post"))
       ) {
         // For login or logout requests with 401, skip token refresh and reject
         return Promise.reject(error);
@@ -112,7 +112,7 @@ api.interceptors.response.use(
       eventEmitter.emit("serverError");
     }
     return Promise.reject(error);
-  },
+  }
 );
 
 /**
@@ -137,7 +137,7 @@ api.interceptors.request.use((request) => {
   console.log(
     `Starting Request: ${request.method.toUpperCase()} ${request.url}`,
     request.params || {},
-    request.data || {},
+    request.data || {}
   );
   return request;
 });
@@ -145,7 +145,7 @@ api.interceptors.request.use((request) => {
 api.interceptors.response.use((response) => {
   console.log(
     `Response: ${response.config.method.toUpperCase()} ${response.config.url}`,
-    response.data || {},
+    response.data || {}
   );
   return response;
 });
@@ -170,7 +170,7 @@ const gateway = {
       surname,
       handle,
       privacy_policy_accepted,
-      terms_of_service_accepted,
+      terms_of_service_accepted
     ) {
       try {
         if (!email || !password || !name || !surname || !handle) {
@@ -181,7 +181,7 @@ const gateway = {
           terms_of_service_accepted !== true
         ) {
           throw new Error(
-            "Privacy policy and terms of service must be accepted",
+            "Privacy policy and terms of service must be accepted"
           );
         }
 
@@ -392,23 +392,23 @@ const gateway = {
 
     async logout() {
       try {
-      const refreshToken = await token.getRefreshToken();
+        const refreshToken = await token.getRefreshToken();
 
-      if (!refreshToken) {
-        console.error("No refresh token available");
-        return false;
-      }
+        if (!refreshToken) {
+          console.error("No refresh token available");
+          return false;
+        }
 
-      const response = await api.post("/auth/logout", { refreshToken });
-      const success = response.data.success;
+        const response = await api.post("/auth/logout", { refreshToken });
+        const success = response.data.success;
 
-      if (success) {
-        console.info("Logged out successfully on API level");
-      }
-      return success;
+        if (success) {
+          console.info("Logged out successfully on API level");
+        }
+        return success;
       } catch (error) {
-      console.error("Error in logout:", error);
-      return false;
+        console.error("Error in logout:", error);
+        return false;
       }
     },
 
@@ -516,7 +516,7 @@ const gateway = {
         email,
       });
       const success = response.data.success;
-      return success;
+      return true;
     },
     /**
      *
@@ -532,7 +532,7 @@ const gateway = {
         newPassword,
       });
       const success = response.data.success;
-      return success;
+      return true;
     },
     /**
      * Request a QR code token for login.
@@ -642,7 +642,7 @@ const gateway = {
 
     async update(lastUpdateTime) {
       const response = await api.get(
-        `/user/update?lastUpdateTime=${lastUpdateTime}`,
+        `/user/update?lastUpdateTime=${lastUpdateTime}`
       );
       const success = response.data.success;
       if (success) {
@@ -708,7 +708,7 @@ const gateway = {
           throw new Error(
             "Missing required fields for chat creation",
             type,
-            memberUUIDs,
+            memberUUIDs
           );
         }
         const response = await api.post("/chat/create", {
@@ -765,7 +765,7 @@ const gateway = {
           throw new Error(
             "Missing required fields for sending message",
             chatUUID,
-            text,
+            text
           );
         }
         const response = await api.post("/message/send", {
@@ -851,7 +851,7 @@ const gateway = {
 
         if (member.active_screen_share) {
           commsData[member.from].activeScreenShares.push(
-            ...member.active_screen_share,
+            ...member.active_screen_share
           );
         }
       });
@@ -866,7 +866,7 @@ const gateway = {
   async startScreenShare(chatId) {
     try {
       const response = await api.get(
-        `/comms/screen_share/start?chat_id=${chatId}`,
+        `/comms/screen_share/start?chat_id=${chatId}`
       );
       return response.data; // ritorna screen_share_started : true/false e screen_share_uuid
     } catch (error) {
@@ -878,7 +878,7 @@ const gateway = {
   async stopScreenShare(chatId, screenShareUUID) {
     try {
       const response = await api.get(
-        `/comms/screen_share/stop?chat_id=${chatId}&screen_share_uuid=${screenShareUUID}`,
+        `/comms/screen_share/stop?chat_id=${chatId}&screen_share_uuid=${screenShareUUID}`
       );
       return response.data; // ritorna screen_share_stopped : true/false
     } catch (error) {

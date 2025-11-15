@@ -137,7 +137,7 @@ const LoginPassword = () => {
       }
     } catch (error) {
       console.error(error);
-      setError("Error");
+      setError("An error occurred while requesting password reset.");
     }
   };
 

@@ -60,9 +60,7 @@ const ResetPassword = () => {
       return;
     }
     if (!validate.password(password)) {
-      setError(
-        validate.requirements.password
-      );
+      setError(validate.requirements.password);
       return;
     }
 
@@ -77,21 +75,17 @@ const ResetPassword = () => {
       );
       console.log("Reset Password Success?", resetPasswordSuccess);
 
-      if (!resetPasswordSuccess) {
-        console.log("Error", "Password Reset Error");
-        setError("Error");
+      if (resetPasswordSuccess) {
+        router.replace("/welcome");
+      } else {
+        console.error("Error", "Password Reset Error");
+        setError("Password reset failed. Please try again.");
         setIsLoading(false);
         return;
-      } else {
-        if (resetPasswordSuccess) {
-          router.replace("/welcome");
-        } else {
-          console.error("Error");
-        }
       }
     } catch (error) {
       console.error(error);
-      setError("Error");
+      setError(error.response.data.error || "An error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -122,10 +116,7 @@ const ResetPassword = () => {
       {/* Card */}
       <View style={styles.card}>
         <View style={styles.cardContent}>
-          <Image
-            style={styles.logo}
-            source={logoNovyse}
-          />
+          <Image style={styles.logo} source={logoNovyse} />
 
           <Text style={styles.title}>Reset Password</Text>
           <Text style={styles.subtitle}>Enter your new password</Text>

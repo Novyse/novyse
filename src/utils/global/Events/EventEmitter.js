@@ -10,46 +10,6 @@ class MessengerEventEmitter {
     return this.eventEmitter;
   }
 
-  // Delegate standard EventEmitter methods so consumers can call eventEmitter.on / off / once / emit
-  on(event, listener) {
-    return this.eventEmitter.on(event, listener);
-  }
-
-  off(event, listener) {
-    // support both off (modern) and removeListener (older implementations)
-    if (typeof this.eventEmitter.off === "function") {
-      return this.eventEmitter.off(event, listener);
-    }
-    if (typeof this.eventEmitter.removeListener === "function") {
-      return this.eventEmitter.removeListener(event, listener);
-    }
-    return undefined;
-  }
-
-  once(event, listener) {
-    if (typeof this.eventEmitter.once === "function") {
-      return this.eventEmitter.once(event, listener);
-    }
-    // fallback: manual once
-    const wrapper = (...args) => {
-      listener(...args);
-      this.off(event, wrapper);
-    };
-    return this.on(event, wrapper);
-  }
-
-  emit(event, ...args) {
-    return this.eventEmitter.emit(event, ...args);
-  }
-
-  addListener(event, listener) {
-    return this.on(event, listener);
-  }
-
-  removeListener(event, listener) {
-    return this.off(event, listener);
-  }
-
   async newMessage(message) {
     const database = await Database.create();
     if (!message.fromSubscription) {
