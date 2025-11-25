@@ -130,7 +130,7 @@ const useMessageHandlers = (
       const { success, message } = await gateway.message.send(
         currentChatUUID,
         text,
-        "text"
+        "message"
       );
       if (success) {
         console.log("Message sent successfully:", message);
