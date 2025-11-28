@@ -1,30 +1,156 @@
-import React from "react";
-import { View, Text, Pressable, TextInput, StyleSheet } from "react-native";
-import Icon from "../../Icon";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  TextInput,
+  StyleSheet,
+  Animated,
+  Platform,
+  Alert,
+} from "react-native";
+import Icon from "../../Icon"; // Assicurati che il percorso sia corretto
 import { LinearGradient } from "expo-linear-gradient";
-import { Platform } from "react-native";
-import { Animated } from "react-native";
+import * as Haptics from "expo-haptics";
+import {
+  useAudioRecorder,
+  AudioModule,
+  RecordingPresets,
+  setAudioModeAsync,
+  useAudioRecorderState,
+} from "expo-audio";
+
+import RecordingBar from "./RecordingBar"; // Importa il file creato sopra
 
 const BottomBar = ({
   chat,
   newMessageText,
-  isVoiceMessage,
+  isVoiceMessage, // Questo stato esterno indica se mostrare Mic o Send (quando c'è testo)
   rotationAnim,
   textInputRef,
   onTextChange,
   onSendMessage,
-  onVoiceMessage,
   onToggleMenu,
   onToggleEmoji,
   onInputFocus,
   onJoin,
   theme,
   setBottomBarHeight,
+  onSendVoiceMessage,
 }) => {
   const styles = createStyle(theme);
   const showInputBar =
     chat.uuid || !["GROUP", "CHANNEL", "FORUM"].includes(chat.type);
 
+  // --- LOGICA AUDIO ---
+  const [isRecording, setIsRecording] = useState(false);
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorderState = useAudioRecorderState(audioRecorder);
+
+  // Cleanup alla distruzione
+  useEffect(() => {
+    return () => {
+      if (isRecording) audioRecorder.stop();
+      audioRecorder.unmount();
+    };
+  }, []);
+
+  // Avvio Registrazione (Click sul Mic)
+  const handleStartRecording = async () => {
+    try {
+      const { status } = await AudioModule.requestRecordingPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permesso negato",
+          "Serve il microfono per registrare audio."
+        );
+        return;
+      }
+
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
+      });
+
+      await audioRecorder.prepareToRecordAsync();
+      audioRecorder.record();
+
+      setIsRecording(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (err) {
+      console.error("Errore start recording:", err);
+      setIsRecording(false);
+    }
+  };
+
+  const getAudioFileSize = async (uri) => {
+    if (!uri) return 0;
+
+    try {
+      if (Platform.OS === "web") {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        return blob.size; // in byte
+      } else {
+        // iOS & ANDROID: usa expo-file-system
+        // const FileSystem = require("expo-file-system");
+        // const info = await FileSystem.getInfoAsync(uri);
+        // return info.size || 0;
+      }
+    } catch (err) {
+      console.warn("Impossibile leggere dimensione file:", err);
+      return 0;
+    }
+  };
+
+  // Stop e Invia (Click sul pulsante Send durante rec)
+  const handleStopAndSend = async () => {
+
+    
+    if (!isRecording) return;
+
+    try {
+      await audioRecorder.stop();
+      const uri = audioRecorder.uri;
+      // const duration = Math.round(recorderState.durationMillis / 1000);
+
+      setIsRecording(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      if (onSendMessage && uri) {
+        // CALCOLA LA SIZE REALE
+        const sizeInBytes = await getAudioFileSize(uri);
+
+        const files = [
+          {
+            name: "voice_message.opus",
+            size: sizeInBytes,
+            mimeType: Platform.OS === "web" ? "audio/webm" : "audio/opus",
+            uri: uri
+          },
+        ];
+
+        onSendMessage("", files, "audio");
+      }
+    } catch (err) {
+      console.error("Errore stop recording:", err);
+    }
+  };
+
+  // Annulla (Swipe)
+  const handleCancelRecording = async () => {
+    if (!isRecording) return;
+    try {
+      await audioRecorder.stop();
+      setIsRecording(false);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      console.log("Registrazione annullata");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Animazione rotazione "+"
   const animatedStyle = {
     transform: [
       {
@@ -39,47 +165,82 @@ const BottomBar = ({
   return (
     <View
       style={styles.bottomBar}
-      onLayout={(event) => setBottomBarHeight(event.nativeEvent.layout.height)}
+      onLayout={(event) =>
+        setBottomBarHeight &&
+        setBottomBarHeight(event.nativeEvent.layout.height)
+      }
     >
       {showInputBar ? (
         <>
+          {/* 1. Icona Menu (+) */}
           <Animated.View style={[styles.icon, animatedStyle]}>
-            <Icon name="PlusSignIcon" onPress={onToggleMenu} />
+            <Icon
+              name="PlusSignIcon"
+              onPress={isRecording ? null : onToggleMenu} // Disabilita click se registra
+              style={{ opacity: isRecording ? 0.3 : 1 }}
+            />
           </Animated.View>
 
-          <LinearGradient
-            colors={theme.backgroundChatTextInputGradient}
-            style={styles.textInputContainer}
-          >
-            <TextInput
-              ref={textInputRef}
-              style={styles.textInput}
-              maxLength={2000}
-              value={newMessageText}
-              onChangeText={onTextChange}
-              placeholder={"New message"}
-              placeholderTextColor={theme.placeholderText}
-              onSubmitEditing={
-                Platform.OS === "web" ? onSendMessage : undefined
-              }
-              onFocus={onInputFocus}
-            />
-            <Icon
-              name="SmileIcon"
-              style={styles.icon}
-              onPress={onToggleEmoji}
-            />
-          </LinearGradient>
-
-          {isVoiceMessage ? (
-            <Icon
-              name="Mic02Icon"
-              onPress={onVoiceMessage}
-              style={styles.icon}
+          {/* 2. AREA CENTRALE: Switch tra TextInput e RecordingBar */}
+          {isRecording ? (
+            <RecordingBar
+              duration={recorderState.durationMillis}
+              onCancel={handleCancelRecording}
+              theme={theme}
             />
           ) : (
-            <Icon name="SentIcon" onPress={onSendMessage} style={styles.icon} />
+            <LinearGradient
+              colors={theme.backgroundChatTextInputGradient}
+              style={styles.textInputContainer}
+            >
+              <TextInput
+                ref={textInputRef}
+                style={styles.textInput}
+                maxLength={2000}
+                value={newMessageText}
+                onChangeText={onTextChange}
+                placeholder={"Scrivi un messaggio..."}
+                placeholderTextColor={theme.placeholderText}
+                onSubmitEditing={
+                  Platform.OS === "web" ? onSendMessage : undefined
+                }
+                onFocus={onInputFocus}
+              />
+              <Icon
+                name="SmileIcon"
+                style={styles.icon}
+                onPress={onToggleEmoji}
+              />
+            </LinearGradient>
           )}
+
+          {/* 3. PULSANTE DESTRO: Cambia funzione dinamicamente */}
+          <View style={styles.rightButtonContainer}>
+            {isRecording ? (
+              // Caso A: Sta registrando
+
+              <Icon
+                name="SentIcon"
+                style={styles.icon}
+                onPress={handleStopAndSend}
+              />
+            ) : // Caso B: Non sta registrando
+            newMessageText.length > 0 || !isVoiceMessage ? (
+              // C'è testo o modalità testo -> Bottone INVIA TESTO
+              <Icon
+                name="SentIcon"
+                onPress={() => onSendMessage(newMessageText)}
+                style={styles.icon}
+              />
+            ) : (
+              // Non c'è testo e modalità voce -> Bottone MICROFONO (Click per avviare)
+              <Icon
+                name="Mic02Icon"
+                onPress={handleStartRecording}
+                style={styles.icon}
+              />
+            )}
+          </View>
         </>
       ) : (
         <Pressable onPress={onJoin} style={styles.joinButton}>
@@ -105,9 +266,10 @@ const createStyle = (theme) =>
       flexDirection: "row",
       alignItems: "center",
       minHeight: 55,
+      backgroundColor: theme.background, // Assicura che la barra abbia il colore di sfondo corretto
     },
     textInputContainer: {
-      flex: 1,
+      flex: 1, // Occupa lo spazio centrale
       flexDirection: "row",
       alignItems: "center",
       borderRadius: 20,
@@ -122,7 +284,7 @@ const createStyle = (theme) =>
       outlineStyle: "none",
       alignSelf: "stretch",
       marginLeft: 10,
-      minWidth: 30
+      minWidth: 30,
     },
     icon: {
       width: 35,
@@ -130,6 +292,20 @@ const createStyle = (theme) =>
       justifyContent: "center",
       alignItems: "center",
       marginHorizontal: 5,
+    },
+    rightButtonContainer: {
+      justifyContent: "center",
+      alignItems: "center",
+      width: 45,
+    },
+    sendAudioButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: "#34C759", // Verde "Invia" stile Whatsapp
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 2,
     },
     joinButton: {
       backgroundColor: theme.backgroundJoinChatButton,

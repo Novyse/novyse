@@ -11,8 +11,8 @@ const API_BASE_URL = "https://api.novyse.com";
 const SOCKET_BASE_URL = "wss://io.novyse.com";
 const BRANCH = "development";
 const LANDING_PAGE_URL = "https://www.novyse.com";
-const PRIVACY_POLICY_URL = LANDING_PAGE_URL+"/legal/privacy-policy";
-const TOS_URL = LANDING_PAGE_URL+"/legal/terms-of-service";
+const PRIVACY_POLICY_URL = LANDING_PAGE_URL + "/legal/privacy-policy";
+const TOS_URL = LANDING_PAGE_URL + "/legal/terms-of-service";
 //.ENV
 
 export {
@@ -105,7 +105,13 @@ export default {
         },
       ],
       "expo-sqlite",
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          microphonePermission:
+            "Allow $(PRODUCT_NAME) to access your microphone.",
+        },
+      ],
       "expo-video",
       [
         "expo-camera",

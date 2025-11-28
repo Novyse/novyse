@@ -30,7 +30,7 @@ let isConnecting = false;
 
 let transportsMethods = ["polling"];
 if (Platform.OS == "web") {
-  transportsMethods.pop(); // Remove "polling
+  transportsMethods.pop();
   transportsMethods.push("websocket");
 }
 

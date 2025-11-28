@@ -12,7 +12,8 @@ const useMessageHandlers = (
   setNewMessageText,
   setVoiceMessage,
   setIsMicClicked,
-  sheetIndex
+  sheetIndex,
+  myUUID
 ) => {
   const handleSendImageMessage = useCallback(
     async (imageUri, chatUUID) => {
@@ -101,8 +102,10 @@ const useMessageHandlers = (
   }, [chat, selectedChatUUID, setSelectedChatUUID, handleSendImageMessage]);
 
   const handleSendMessage = useCallback(
-    async (text) => {
-      if (text.trim() === "") return;
+    async (content, files = [], type) => {
+      // type temporaneo
+      // no text and files, so nothing happens
+      if (content.trim() === "" && files.length === 0) return;
 
       let currentChatUUID = chat.uuid;
 
@@ -126,14 +129,28 @@ const useMessageHandlers = (
           return;
         }
       }
+      if (type === "audio") {
+        const uri = files[0].uri;
+        files[0].uri = undefined;
+      }
 
       const { success, message } = await gateway.message.send(
         currentChatUUID,
-        text,
-        "text"
+        content,
+        "message",
+        files
       );
       if (success) {
         console.log("Message sent successfully:", message);
+        if (type === "audio") {
+          message.type = "audio";
+          message.attachments = [
+            {
+              type: "audio",
+              uri: uri,
+            },
+          ];
+        }
         await eventEmitter.newMessage(message);
         setMessages((currentMessages) => {
           const exists = currentMessages.some((msg) => msg.id === message.id);
@@ -160,11 +177,41 @@ const useMessageHandlers = (
     ]
   );
 
-  const handleVoiceMessage = useCallback(() => {
-    console.log("Voice message button pressed");
-    setIsMicClicked(true);
-    setVoiceMessage(false);
-  }, [setIsMicClicked, setVoiceMessage]);
+  // const handleSendVoiceMessage = useCallback(
+  //   async ({ uri }) => {
+  //     if (!uri) return;
+
+  //     // 1. Crea un oggetto messaggio FITTIZIO che rispecchia la struttura del DB
+  //     const mockVoiceMessage = {
+  //       id: `temp_${Date.now()}`, // ID temporaneo
+  //       uuid: `temp_${Date.now()}`,
+  //       chat_uuid: chat.uuid,
+  //       senderUUID: myUUID, // Usa l'UUID reale dell'utente
+  //       text: "", // I messaggi vocali spesso non hanno testo
+  //       type: "audio", // Importante per MessageBase
+  //       created_at: new Date().toISOString(),
+  //       attachments: [
+  //         {
+  //           type: "audio",
+  //           uri: uri, // L'URI locale del file registrato
+  //         },
+  //       ],
+  //       sender_name: "Me (Local)", // Placeholder
+  //     };
+
+  //     console.log("Adding mock voice message to list:", mockVoiceMessage);
+
+  //     // 2. Aggiorna lo stato locale immediatamente (Optimistic Update)
+  //     setMessages((currentMessages) => [mockVoiceMessage, ...currentMessages]);
+
+  //     // NOTA: Qui normalmente faresti la chiamata API: await gateway.message.send(...)
+
+  //     // Reset stati UI se necessario
+  //     setVoiceMessage(true);
+  //     setIsMicClicked(false);
+  //   },
+  //   [chat.uuid, myUUID, setMessages, setVoiceMessage, setIsMicClicked]
+  // );
 
   const handleTextChanging = useCallback(
     (text, isMicClicked) => {
@@ -191,7 +238,6 @@ const useMessageHandlers = (
     handleSendMessage,
     handleSendImageMessage,
     pickImage,
-    handleVoiceMessage,
     handleTextChanging,
     handleMenuItemPress,
   };

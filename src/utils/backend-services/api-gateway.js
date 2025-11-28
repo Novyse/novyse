@@ -755,23 +755,24 @@ const gateway = {
     /**
      * Send a message to a chat.
      * @param {String} chatUUID
-     * @param {String} text
+     * @param {String} content
      * @param {String} type
-     * @returns { Object } { success: boolean, message?: { uuid?: String, chatUUID?: String, from?: { uuid?: String, name?: String, surname?: String, handle?: String, profilePictureUUID?: String }, text?: String, type?: [text, image, video, file], created_at?: timestamp } }
+     * @param {Array} files { name: String, size: Int, type: String}
+     * @returns Promise<{success: boolean, message?: Object}>
      */
-    async send(chatUUID, text, type = "text") {
+    async send(chatUUID, content, type = "message", files = undefined) {
       try {
-        if (!chatUUID || !text) {
+        if (!chatUUID) {
           throw new Error(
             "Missing required fields for sending message",
-            chatUUID,
-            text
+            chatUUID
           );
         }
-        const response = await api.post("/message/send", {
+        const response = await api.post("/message", {
           chatUUID,
-          text,
+          content,
           type,
+          files,
         });
         const success = response.data.success;
         if (success) {
@@ -780,7 +781,67 @@ const gateway = {
         }
         return { success };
       } catch (error) {
-        console.error("Error in chat.send.message:", error);
+        console.error("Error in message.send:", error);
+        throw error;
+      }
+    },
+    async confirm(messageUUID) {
+      try {
+        if (!messageUUID) {
+          throw new Error(
+            "Missing required fields for confirming message",
+            messageUUID
+          );
+        }
+        const response = await api.post("/message/confirm", {
+          messageUUID,
+        });
+        const success = response.data.success;
+        return { success };
+      } catch (error) {
+        console.error("Error in message.confirm:", error);
+        throw error;
+      }
+    },
+    async delete(messageUUID) {
+      try {
+        if (!messageUUID) {
+          throw new Error(
+            "Missing required fields for deleting message",
+            messageUUID
+          );
+        }
+        const response = await api.delete("/message", {
+          messageUUID,
+        });
+        const success = response.data.success;
+        return { success };
+      } catch (error) {
+        console.error("Error in message.delete:", error);
+        throw error;
+      }
+    },
+    async modify(messageUUID, newContent) {
+      try {
+        if (!messageUUID || !newContent) {
+          throw new Error(
+            "Missing required fields for modifying message",
+            messageUUID,
+            newContent
+          );
+        }
+        const response = await api.patch("/message", {
+          messageUUID,
+          newContent,
+        });
+        const success = response.data.success;
+        if (success) {
+          const message = response.data.data;
+          return { success, message };
+        }
+        return { success };
+      } catch (error) {
+        console.error("Error in message.modify:", error);
         throw error;
       }
     },

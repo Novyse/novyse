@@ -73,9 +73,9 @@ const ChatContent = ({ onBack, contentView }) => {
   // Hook per message handlers
   const {
     handleSendMessage,
-    handleVoiceMessage,
     handleTextChanging,
     handleMenuItemPress,
+    handleSendVoiceMessage,
   } = useMessageHandlers(
     chat,
     selectedChatUUID,
@@ -84,7 +84,8 @@ const ChatContent = ({ onBack, contentView }) => {
     setNewMessageText,
     setVoiceMessage,
     setIsMicClicked,
-    sheetIndex // Per close menu in pickImage
+    sheetIndex, // Per close menu in pickImage
+    myUUID
   );
 
   const handleJoin = useCallback(async () => {
@@ -196,6 +197,8 @@ const ChatContent = ({ onBack, contentView }) => {
           <BottomBar
             chat={chat}
             newMessageText={newMessageText}
+            // Passiamo la funzione che gestisce l'invio del file audio
+            onSendVoiceMessage={handleSendVoiceMessage}
             isVoiceMessage={isVoiceMessage}
             rotationAnim={rotationAnim}
             textInputRef={textInputRef}
@@ -203,8 +206,7 @@ const ChatContent = ({ onBack, contentView }) => {
               setNewMessageText(text);
               handleTextChanging(text, isMicClicked);
             }}
-            onSendMessage={() => handleSendMessage(newMessageText)}
-            onVoiceMessage={handleVoiceMessage}
+            onSendMessage={handleSendMessage}
             onToggleMenu={handleToggleMenu}
             onToggleEmoji={toggleEmojiPicker}
             onInputFocus={onInputFocus}

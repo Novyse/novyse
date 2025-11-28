@@ -12,15 +12,12 @@ import { ThemeContext } from "@/context/ThemeContext";
 import Slider from "@react-native-community/slider";
 import Icon from "../Icon";
 
-const audioSource = require("../../../assets/audio/vocalMessagesTest.mp3");
-
-const MessageAudio = () => {
+const MessageAudio = ({ audioUri }) => {
   const playerRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isPlayerReady, setPlayerReady] = useState(false);
-  // Add state for playback rate
   const [playbackRate, setPlaybackRate] = useState(1);
   const playbackRates = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3];
 
@@ -28,20 +25,40 @@ const MessageAudio = () => {
   const styles = useMemo(() => createStyle(theme), [theme]);
 
   useEffect(() => {
-    const newPlayer = createAudioPlayer(audioSource);
+    if (!audioUri) return;
+
+    // Crea il player con l'URI dinamico
+    const newPlayer = createAudioPlayer(audioUri);
     playerRef.current = newPlayer;
 
     const listener = newPlayer.addListener("playbackStatusUpdate", (status) => {
-      if (status.isLoaded) {
+      // Verifica se il file è caricato o se c'è un errore
+      if (status.isLoaded || status.playing) { // Aggiunto check playing per robustezza
         setPlayerReady(true);
+        
+        // Recupera la posizione corrente (default 0)
         setPosition(status.currentTime || 0);
-        setDuration(status.duration || 0);
+
+        // LOGICA MIGLIORATA PER LA DURATA:
+        // 1. Prova a prendere la durata dallo status
+        // 2. Se è 0 o mancante, prova a chiederla direttamente al player
+        // 3. Mantieni la vecchia durata se quella nuova è 0 (per evitare sfarfallii)
+        let currentDuration = status.duration || newPlayer.duration || 0;
+        
+        // Se la durata è > 0, aggiorna lo stato
+        if (currentDuration > 0) {
+           setDuration(currentDuration);
+        }
+
         setIsPlaying(status.playing);
 
         if (status.didJustFinish) {
           playerRef.current?.seekTo(0);
+          setIsPlaying(false);
+          setPosition(0); // Reset visivo posizione
         }
       }
+      
       if (status.error) {
         console.error("[MessageAudio] Errore di riproduzione:", status.error);
       }
@@ -51,9 +68,8 @@ const MessageAudio = () => {
       listener.remove();
       playerRef.current?.remove();
     };
-  }, []);
+  }, [audioUri]);
 
-  // Function to handle playback rate change
   const handlePlaybackRateChange = useCallback(() => {
     if (!playerRef.current) return;
     try {
@@ -83,10 +99,13 @@ const MessageAudio = () => {
   const handleSeek = useCallback((value) => {
     if (!playerRef.current) return;
     playerRef.current.seekTo(value);
+    setPosition(value); // Aggiornamento ottimistico UI
   }, []);
 
   const formatTime = (timeInSeconds) => {
     if (isNaN(timeInSeconds) || timeInSeconds === null) return "00:00";
+    
+    // Arrotonda per difetto per evitare millesimi di secondo
     const seconds = Math.floor(timeInSeconds);
     const minutes = Math.floor(seconds / 60)
       .toString()
@@ -102,13 +121,13 @@ const MessageAudio = () => {
         disabled={!isPlayerReady}
         style={styles.playPauseButton}
       >
-        <Icon name={isPlaying ? "PauseIcon" : "PlayIcon"} />
+        <Icon name={isPlaying ? "PauseIcon" : "PlayIcon"} style={{ width: 15, height: 15, tintColor: '#fff' }} />
       </Pressable>
       <View style={styles.progressContainer}>
         <Slider
           style={styles.slider}
           minimumValue={0}
-          maximumValue={duration || 1}
+          maximumValue={duration > 0 ? duration : 1} // Evita bug visivi se durata è 0
           value={position}
           onSlidingComplete={handleSeek}
           disabled={!isPlayerReady}
