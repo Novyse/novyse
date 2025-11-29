@@ -52,15 +52,14 @@ const ChatListItem = React.memo(
       }
 
       let sender = "";
-      if (
-        message.senderUUID &&
-        message.sender_name &&
-        message.type !== "system"
-      ) {
-        sender =
-          message.senderUUID === userUUID
-            ? "You: "
-            : `${message.sender_name}: `;
+      if (message.senderUUID === userUUID) {
+        sender = "You: ";
+      } else if (message.senderUUID && message.sender_name) {
+        sender = `${message.sender_name}: `;
+      } else if (message.type === "system") {
+        sender = "";
+      } else {
+        sender = "Unknown: ";
       }
 
       return (

@@ -1,6 +1,7 @@
 import gateway from "../backend-services/api-gateway.js";
 import Database from "../storage/database.js";
 import eventEmitter from "../global/Events/EventEmitter.js";
+import S3Uploader from "../file/s3Bucket.js";
 
 class QueueManager {
   constructor() {
@@ -118,6 +119,7 @@ class QueueManager {
               );
               if (originalFile) {
                 message.files[i].uri = originalFile.uri;
+                message.files[i].mimeType = originalFile.mimeType;
               }
             }
           }
@@ -143,7 +145,17 @@ class QueueManager {
           }
         }
       } else if (job.type === "upload") {
-        // Check if all files have been uploaded
+        // Upload every file to S3 Bucket
+        const { files } = job.params;
+        for (const file of files) {
+          if (file.uri) {
+            await S3Uploader.upload(file.uri, file.uploadURL);
+          }
+        }
+        this.queue.shift(); // Remove completed job
+        await this.removeJob(job.id);
+        // After all files are uploaded, upload job to confirm
+        // @SamueleOrazioDurante DA CAPIRE DADDY
       } else if (job.type === "confirm") {
         const { messageUUID } = job.params;
         const result = await gateway.message.confirm(messageUUID);

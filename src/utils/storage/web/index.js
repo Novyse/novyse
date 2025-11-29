@@ -315,13 +315,15 @@ class Database {
 
         // Insert files into pending_files
         if (pendingMessage.files && Array.isArray(pendingMessage.files)) {
-          const pending_files = (await this.store.getItem("pending_files")) || [];
+          const pending_files =
+            (await this.store.getItem("pending_files")) || [];
           for (let i = 0; i < pendingMessage.files.length; i++) {
             const file = pendingMessage.files[i];
             pending_files.push({
               index: i,
               pendingMessageID: pendingMessage.id,
               uri: file.uri,
+              mimeType: file.mimeType,
             });
           }
           await this.store.setItem("pending_files", pending_files);
@@ -501,6 +503,10 @@ class Database {
    */
   async getLastMessage(chatUUID) {
     try {
+      const pendingMessages = await this.getPendingMessagesByChatUUID(chatUUID);
+      if (pendingMessages && pendingMessages.length > 0) {
+        return pendingMessages[pendingMessages.length - 1];
+      }
       const messages = (await this.store.getItem("messages")) || [];
       const users = (await this.store.getItem("users")) || [];
       const chatMessages = messages

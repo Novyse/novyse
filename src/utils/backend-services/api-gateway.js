@@ -760,7 +760,7 @@ const gateway = {
      * @param {Array} files { name: String, size: Int, type: String}
      * @returns Promise<{success: boolean, message?: Object}>
      */
-    async send(chatUUID, content, type = "message", files = undefined) {
+    async send(chatUUID, content = null, type = "message", files = undefined) {
       try {
         if (!chatUUID) {
           throw new Error(

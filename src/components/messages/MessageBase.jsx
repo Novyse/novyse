@@ -35,25 +35,23 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
   const audioMessages =
     Object.groupBy(
       files,
-      async ({ uri }) =>
-        getFileType(await getMimeType(uri)) == "VOICE" ||
-        getFileType(await getMimeType(uri)) == "AUDIO"
+      ({ mimeType }) =>
+        getFileType(mimeType) == "VOICE" || getFileType(mimeType) == "AUDIO"
     ) || [];
   const mediaMessages =
     Object.groupBy(
       files,
-      async ({ uri }) =>
-        getFileType(await getMimeType(uri)) == "IMAGE" ||
-        getFileType(await getMimeType(uri)) == "VIDEO"
+      ({ mimeType }) =>
+        getFileType(mimeType) == "IMAGE" || getFileType(mimeType) == "VIDEO"
     ) || [];
   const otherMessages =
     Object.groupBy(
       files,
-      async ({ uri }) =>
-        getFileType(await getMimeType(uri)) == "DOCUMENT" ||
-        getFileType(await getMimeType(uri)) == "CODE" ||
-        getFileType(await getMimeType(uri)) == "ARCHIVE" ||
-        getFileType(await getMimeType(uri)) == "OTHER"
+      ({ mimeType }) =>
+        getFileType(mimeType) == "DOCUMENT" ||
+        getFileType(mimeType) == "CODE" ||
+        getFileType(mimeType) == "ARCHIVE" ||
+        getFileType(mimeType) == "OTHER"
     ) || [];
 
   const sharedContent = (
@@ -67,6 +65,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
               mediaUris={[mediaMessage.uri]}
               s3Url={mediaMessage.uploadURL}
               uuid={mediaMessage.uuid}
+              mimeType={mediaMessage.mimeType}
             />
           );
         })}
@@ -78,6 +77,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
               fileUri={otherMessage.uri}
               s3Url={otherMessage.uploadURL}
               uuid={otherMessage.uuid}
+              mimeType={otherMessage.mimeType}
             />
           );
         })}
@@ -89,6 +89,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
               audioUri={audioMessage.uri}
               s3Url={audioMessage.uploadURL}
               uuid={audioMessage.uuid}
+              mimeType={audioMessage.mimeType}
             />
           );
         })}

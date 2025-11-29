@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import S3Uploader from "@/src/utils/file/s3Bucket.js";
+import { getName, getSize } from "@/src/utils/file/index.js";
 
 const useFiles = (fileUri, s3Url, uuid) => {
   const [name, setName] = useState("");
   const [size, setSize] = useState(0);
-  const [mimeType, setMimeType] = useState(undefined);
   const [state, setState] = useState("uploaded");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,10 +12,9 @@ const useFiles = (fileUri, s3Url, uuid) => {
   const [uploadedSize, setUploadedSize] = useState(0);
 
   useEffect(() => {
-    setName(`file_${uuid}`);
-    setMimeType("audio/ogg");
-    setSize(1024 * 1024 * 5); // 5 MB for example
-    console.log("File metadata set:", { state});
+    setName(getName(fileUri));
+    setSize(getSize(fileUri));
+    console.log("File metadata set:", { state });
 
     switch (state) {
       case "uploading":
@@ -58,7 +57,6 @@ const useFiles = (fileUri, s3Url, uuid) => {
   return {
     name,
     size,
-    mimeType,
     state,
     loading,
     error,

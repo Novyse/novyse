@@ -132,6 +132,7 @@ class Database {
                 index INTEGER NOT NULL,
                 pendingMessageID TEXT NOT NULL,
                 uri TEXT NOT NULL,
+                mimeType TEXT NOT NULL,
                 uuid TEXT,
                 s3Url TEXT,
                 PRIMARY KEY (index, pendingMessageID),
@@ -397,8 +398,8 @@ class Database {
         for (let i = 0; i < pendingMessage.files.length; i++) {
           const file = pendingMessage.files[i];
           await this.db.runAsync(
-            `INSERT INTO pending_file (index, pendingMessageID, uri) VALUES (?, ?, ?);`,
-            [i, pendingMessage.id, file.uri]
+            `INSERT INTO pending_file (index, pendingMessageID, uri, mimeType) VALUES (?, ?, ?);`,
+            [i, pendingMessage.id, file.uri, file.mimeType]
           );
         }
       }
@@ -567,6 +568,11 @@ class Database {
 
   async getLastMessage(chatUUID) {
     try {
+      const pendingMessages = await this.getPendingMessagesByChatUUID(chatUUID);
+      if (pendingMessages.length > 0) {
+        // Return the most recent pending message
+        return pendingMessages[pendingMessages.length - 1];
+      }
       const message = await this.db.getFirstAsync(
         `SELECT m.*, u.name as sender_name FROM message m
              JOIN user u ON m.senderUUID = u.uuid

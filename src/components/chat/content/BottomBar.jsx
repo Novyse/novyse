@@ -19,6 +19,7 @@ import {
   setAudioModeAsync,
   useAudioRecorderState,
 } from "expo-audio";
+import { WebBlobManager } from "@/src/utils/file";
 
 import RecordingBar from "./RecordingBar"; // Importa il file creato sopra
 
@@ -110,28 +111,48 @@ const BottomBar = ({
   // Stop e Invia (Click sul pulsante Send durante rec)
   const handleStopAndSend = async () => {
     if (!isRecording) return;
-
+  
     try {
       await audioRecorder.stop();
-      const uri = audioRecorder.uri;
-      // const duration = Math.round(recorderState.durationMillis / 1000);
-
+      // Questo è l'URI volatile (blob:...) che sparisce al refresh
+      const tempUri = audioRecorder.uri; 
+  
       setIsRecording(false);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      if (onSendMessage && uri) {
-        // CALCOLA LA SIZE REALE
-        const sizeInBytes = await getAudioFileSize(uri);
-
-        const files = [
-          {
-            name: "voice_message.ogg",
-            size: sizeInBytes,
-            mimeType: "audio/ogg",
-            uri: uri,
-          },
-        ];
-
+  
+      if (onSendMessage && tempUri) {
+        let finalFile = {
+          name: "voice_message.ogg", // Nome di default per mobile
+          uri: tempUri,
+          size: 0,
+          mimeType: "audio/ogg"
+        };
+  
+        // --- LOGICA DI PERSISTENZA WEB ---
+        if (Platform.OS === 'web') {
+          // Generiamo un nome unico per evitare di sovrascrivere vecchi audio
+          const uniqueName = `rec_${Date.now()}.ogg`;
+          
+          // SALVIAMO ORA: Prende il tempUri, lo scrive su DB e ci ridà i dati
+          const savedRecord = await WebBlobManager.save(tempUri, uniqueName);
+          
+          // Sovrascriviamo l'oggetto finale con i dati del DB
+          finalFile = {
+            name: savedRecord.name,
+            uri: savedRecord.uri,
+            size: savedRecord.size,
+            mimeType: "audio/ogg"
+          };
+        } else {
+          // Logica Mobile (rimane invariata, calcoli solo la size)
+          const sizeInBytes = await getAudioFileSize(tempUri);
+          finalFile.size = sizeInBytes;
+        }
+  
+        // Creiamo l'array come serviva a te
+        const files = [ finalFile ];
+  
+        // Inviamo il messaggio con il file che ora è "sicuro" nel DB
         onSendMessage("message", "", files);
       }
     } catch (err) {

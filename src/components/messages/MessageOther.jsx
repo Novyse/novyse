@@ -4,11 +4,11 @@ import { ThemeContext } from "@/context/ThemeContext";
 
 import useFiles from "@/src/hooks/chat/useFiles";
 
-const MessageOther = ({ fileUri, s3Url, uuid }) => {
+const MessageOther = ({ fileUri, s3Url, uuid, mimeType }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-    const { name, size, mimeType, state, loading, error } = useFiles(fileUri, s3Url, uuid);
+    const { name, size, state, loading, error } = useFiles(fileUri, s3Url, uuid, MimeType);
 
   // Funzione per formattare la dimensione del file (es. in KB o MB)
   const formatFileSize = (size) => {

@@ -7,13 +7,14 @@ import useFiles from "@/src/hooks/chat/useFiles";
 const { width: screenWidth } = Dimensions.get("window");
 const maxBubbleWidth = screenWidth * 1;
 
-const MessageImagesVideos = ({ mediaUris, s3Url, uuid }) => {
+const MessageImagesVideos = ({ mediaUris, s3Url, uuid, mimeType }) => {
   const [mediaDimensions, setMediaDimensions] = useState({});
 
-  const { name, size, mimeType, state, loading, error } = useFiles(
+  const { name, size, state, loading, error } = useFiles(
     mediaUris[0],
     s3Url,
-    uuid
+    uuid,
+    mimeType
   );
 
   const renderGridCell = (item, index, cellStyle) => {

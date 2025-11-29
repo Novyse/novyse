@@ -13,8 +13,9 @@ import Slider from "@react-native-community/slider";
 import Icon from "../Icon";
 
 import useFiles from "@/src/hooks/chat/useFiles";
+import useWebBlob from "@src/hooks/chat/useWebBlob";
 
-const MessageAudio = ({ audioUri, s3Url, uuid }) => {
+const MessageAudio = ({ audioUri, s3Url, uuid, mimeType }) => {
   const playerRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [position, setPosition] = useState(0);
@@ -26,7 +27,12 @@ const MessageAudio = ({ audioUri, s3Url, uuid }) => {
   const { theme } = useContext(ThemeContext);
   const styles = useMemo(() => createStyle(theme), [theme]);
 
-  const { name, size, mimeType, state, loading, error } = useFiles(audioUri, s3Url, uuid);
+  const { name, size, state, loading, error } = useFiles(
+    audioUri,
+    s3Url,
+    uuid,
+    mimeType
+  );
 
   const formatFileSize = (size) => {
     if (!size || isNaN(size)) return "0 B";
@@ -39,7 +45,7 @@ const MessageAudio = ({ audioUri, s3Url, uuid }) => {
     if (!audioUri) return;
 
     // Crea il player con l'URI dinamico
-    const newPlayer = createAudioPlayer(audioUri);
+    const newPlayer = createAudioPlayer(useWebBlob(audioUri));
     playerRef.current = newPlayer;
 
     const listener = newPlayer.addListener("playbackStatusUpdate", (status) => {
