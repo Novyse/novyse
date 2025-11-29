@@ -118,20 +118,32 @@ class QueueManager {
               );
               if (originalFile) {
                 message.files[i].uri = originalFile.uri;
-                message.files[i].mimeType = originalFile.mimeType;
               }
             }
           }
 
-          // Notify that message was sent successfully
-          eventEmitter.getEmitter().emit("messageSent", {
-            tempId: job.id,
-            message,
-          });
+          if (message.status === "sent") {
+            // Notify that message was sent successfully
+            eventEmitter.getEmitter().emit("messageSent", {
+              tempId: job.id,
+              message,
+            });
 
-          this.queue.shift(); // Remove completed job
-          await this.removeJob(job.id);
+            this.queue.shift(); // Remove completed job
+            await this.removeJob(job.id);
+          } else if (message.status === "pending") {
+            // If message is pending, modify the job to an upload one
+            this.moveJobToUpload(job.id, message);
+            eventEmitter.getEmitter().emit("messageUploading", {
+              tempId: job.id,
+              message,
+            });
+          } else {
+            throw new Error("Message sending failed");
+          }
         }
+      } else if (job.type === "upload") {
+        // Check if all files have been uploaded
       } else if (job.type === "confirm") {
         const { messageUUID } = job.params;
         const result = await gateway.message.confirm(messageUUID);
@@ -148,6 +160,10 @@ class QueueManager {
           this.queue.shift(); // Remove completed job
           await this.removeJob(job.id);
         }
+      } else {
+        console.warn("Unknown job type:", job.type);
+        this.queue.shift(); // Remove unknown job
+        await this.removeJob(job.id);
       }
     } catch (error) {
       console.error("Job failed:", job.id, error);
@@ -202,6 +218,36 @@ class QueueManager {
       await database.removePendingMessage(jobId);
     } catch (error) {
       console.error("Error removing job from database:", error);
+    }
+  }
+
+  /**
+   * Modify a job in the queue to an upload job
+   * @param {string} jobId - The ID of the job to modify
+   * @param {object} params - The new parameters for the upload job
+   * @return {Promise<void>}
+   */
+
+  async moveJobToUpload(jobId, params) {
+    const jobIndex = this.queue.findIndex((job) => job.id === jobId);
+    if (jobIndex !== -1) {
+      this.queue[jobIndex].id = params.messageUUID;
+      this.queue[jobIndex].type = "upload";
+      this.queue[jobIndex].params = params;
+
+      console.log("Job modified to upload:", jobId);
+
+      // Update in database
+      try {
+        const database = await Database.create();
+        await database.updatePendingMessageForUpload(
+          jobId,
+          params.messageUUID,
+          params.files
+        );
+      } catch (error) {
+        console.error("Error modifying job in database:", error);
+      }
     }
   }
 

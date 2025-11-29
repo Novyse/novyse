@@ -310,9 +310,22 @@ class Database {
           senderUUID: pendingMessage.senderUUID,
           content: pendingMessage.content || null,
           type: pendingMessage.type || "message",
-          files: pendingMessage.files || [],
         });
         await this.store.setItem("pending_messages", pending_messages);
+
+        // Insert files into pending_files
+        if (pendingMessage.files && Array.isArray(pendingMessage.files)) {
+          const pending_files = (await this.store.getItem("pending_files")) || [];
+          for (let i = 0; i < pendingMessage.files.length; i++) {
+            const file = pendingMessage.files[i];
+            pending_files.push({
+              index: i,
+              pendingMessageID: pendingMessage.id,
+              uri: file.uri,
+            });
+          }
+          await this.store.setItem("pending_files", pending_files);
+        }
       }
       console.log("Pending message added successfully.", pendingMessage.id);
       return true;
@@ -341,8 +354,16 @@ class Database {
       if (index !== -1) {
         pending_messages.splice(index, 1);
         await this.store.setItem("pending_messages", pending_messages);
+
+        // Remove associated files from pending_files
+        const pending_files = (await this.store.getItem("pending_files")) || [];
+        const filteredFiles = pending_files.filter(
+          (pf) => pf.pendingMessageID !== pendingMessageID
+        );
+        await this.store.setItem("pending_files", filteredFiles);
+
         console.log(
-          `Pending message ${pendingMessageID} removed successfully.`
+          `Pending message ${pendingMessageID} and associated files removed successfully.`
         );
         return true;
       }
@@ -364,6 +385,13 @@ class Database {
     try {
       const pending_messages =
         (await this.store.getItem("pending_messages")) || [];
+      const pending_files = (await this.store.getItem("pending_files")) || [];
+      for (const message of pending_messages) {
+        const files = pending_files.filter(
+          (pf) => pf.pendingMessageID === message.id
+        );
+        message.files = files;
+      }
       return pending_messages;
     } catch (error) {
       console.error("Error retrieving pending messages:", error);
@@ -376,7 +404,6 @@ class Database {
    * @param {String} chatUUID
    * @returns {Array} array of pending message objects
    */
-
   async getPendingMessagesByChatUUID(chatUUID) {
     try {
       const pending_messages =
@@ -384,10 +411,72 @@ class Database {
       const chatPendingMessages = pending_messages.filter(
         (pm) => pm.chatUUID === chatUUID
       );
+      const pending_files = (await this.store.getItem("pending_files")) || [];
+      for (const message of chatPendingMessages) {
+        const files = pending_files.filter(
+          (pf) => pf.pendingMessageID === message.id
+        );
+        message.files = files;
+      }
       return chatPendingMessages;
     } catch (error) {
       console.error("Error retrieving pending messages by chat UUID:", error);
       return [];
+    }
+  }
+
+  /**
+   * Update a pending message in the database.
+   * @param {String} pendingMessageID - ID of the pending message to update
+   * @param {String} newPendingMessageUUID - new UUID for the pending message
+   * @param {Object} files - files to update
+   * @returns {boolean} true if pending message updated successfully, false otherwise
+   */
+  async updatePendingMessageForUpload(
+    pendingMessageID,
+    newPendingMessageUUID,
+    files
+  ) {
+    try {
+      if (!pendingMessageID || !files) {
+        console.error("Missing required fields to update pending message.");
+        return false;
+      }
+      const pending_messages =
+        (await this.store.getItem("pending_messages")) || [];
+      const messageIndex = pending_messages.findIndex(
+        (pm) => pm.id === pendingMessageID
+      );
+      if (messageIndex !== -1) {
+        pending_messages[messageIndex].id = newPendingMessageUUID;
+        pending_messages[messageIndex].jobType = "upload";
+        await this.store.setItem("pending_messages", pending_messages);
+
+        // Update pending_files
+        const pending_files = (await this.store.getItem("pending_files")) || [];
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const fileIndex = pending_files.findIndex(
+            (pf) => pf.pendingMessageID === pendingMessageID && pf.index === i
+          );
+          if (fileIndex !== -1) {
+            pending_files[fileIndex].pendingMessageID = newPendingMessageUUID;
+            pending_files[fileIndex].uuid = file.uuid || null;
+            pending_files[fileIndex].s3Url = file.s3Url || null;
+          }
+        }
+        await this.store.setItem("pending_files", pending_files);
+
+        console.log(
+          `Pending message ${pendingMessageID} updated successfully for upload.`
+        );
+        return true;
+      }
+      console.log(`Pending message ${pendingMessageID} not found.`);
+      return false;
+    } catch (error) {
+      console.error("Error updating pending message:", error);
+      return false;
     }
   }
 

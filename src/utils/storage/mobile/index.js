@@ -132,9 +132,7 @@ class Database {
                 index INTEGER NOT NULL,
                 pendingMessageID TEXT NOT NULL,
                 uri TEXT NOT NULL,
-                name TEXT NOT NULL,
-                mime_type TEXT NOT NULL,
-                size INTEGER NOT NULL,
+                uuid TEXT,
                 s3Url TEXT,
                 PRIMARY KEY (index, pendingMessageID),
                 FOREIGN KEY (pendingMessageID) REFERENCES pending_message(id)
@@ -382,9 +380,8 @@ class Database {
         );
         return false;
       }
-
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO pending_message (id, jobType, chatUUID, senderUUID, content, type) VALUES (?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO pending_message (id, jobType, chatUUID, senderUUID, content, type) VALUES (?, ?, ?, ?, ?, ?);`,
         [
           pendingMessage.id,
           pendingMessage.jobType,
@@ -394,6 +391,17 @@ class Database {
           pendingMessage.type || "message",
         ]
       );
+
+      // Insert files into pending_file table
+      if (pendingMessage.files && Array.isArray(pendingMessage.files)) {
+        for (let i = 0; i < pendingMessage.files.length; i++) {
+          const file = pendingMessage.files[i];
+          await this.db.runAsync(
+            `INSERT INTO pending_file (index, pendingMessageID, uri) VALUES (?, ?, ?);`,
+            [i, pendingMessage.id, file.uri]
+          );
+        }
+      }
       console.log("Pending message added successfully.", pendingMessage.id);
       return true;
     } catch (error) {
@@ -401,7 +409,6 @@ class Database {
       return false;
     }
   }
-
   /**
    * Remove a pending message from the database.
    * @param {String} pendingMessageID - ID of the pending message to remove
@@ -414,13 +421,19 @@ class Database {
         console.error("Missing pending message ID to remove.");
         return false;
       }
+      // First, delete associated files from pending_file table
+      await this.db.runAsync(
+        `DELETE FROM pending_file WHERE pendingMessageID = ?;`,
+        [pendingMessageID]
+      );
+      // Then, delete the pending message
       const result = await this.db.runAsync(
         `DELETE FROM pending_message WHERE id = ?;`,
         [pendingMessageID]
       );
       if (result.changes > 0) {
         console.log(
-          `Pending message ${pendingMessageID} removed successfully.`
+          `Pending message ${pendingMessageID} and associated files removed successfully.`
         );
         return true;
       }
@@ -444,6 +457,13 @@ class Database {
       const pendingMessages = await this.db.getAllAsync(
         "SELECT * FROM pending_message;"
       );
+      for (const message of pendingMessages) {
+        const files = await this.db.getAllAsync(
+          "SELECT * FROM pending_file WHERE pendingMessageID = ?;",
+          [message.id]
+        );
+        message.files = files;
+      }
       return pendingMessages;
     } catch (error) {
       console.error("Error retrieving pending messages:", error);
@@ -463,10 +483,64 @@ class Database {
         "SELECT * FROM pending_message WHERE chatUUID = ?;",
         [chatUUID]
       );
+      for (const message of pendingMessages) {
+        const files = await this.db.getAllAsync(
+          "SELECT * FROM pending_file WHERE pendingMessageID = ?;",
+          [message.id]
+        );
+        message.files = files;
+      }
       return pendingMessages;
     } catch (error) {
       console.error("Error retrieving pending messages by chat UUID:", error);
       return [];
+    }
+  }
+  /**
+   * Update a pending message in the database.
+   * @param {String} pendingMessageID - ID of the pending message to update
+   * @param {String} newPendingMessageUUID - new UUID for the pending message
+   * @param {Object} files - files to update
+   * @returns {boolean} true if pending message updated successfully, false otherwise
+   */
+
+  async updatePendingMessageForUpload(
+    pendingMessageID,
+    newPendingMessageUUID,
+    files
+  ) {
+    try {
+      if (!pendingMessageID || !files) {
+        console.error("Missing required fields to update pending message.");
+        return false;
+      }
+      // Update pending_message table
+      await this.db.runAsync(
+        `UPDATE pending_message SET id = ?, jobType = 'upload' WHERE id = ?;`,
+        [newPendingMessageUUID, pendingMessageID]
+      );
+      // Update pending_file table with new pendingMessageID and set s3Url to uploadURL
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        await this.db.runAsync(
+          `UPDATE pending_file SET pendingMessageID = ?, uuid = ?, s3Url = ? WHERE index = ? AND pendingMessageID = ?;`,
+          [
+            newPendingMessageUUID,
+            file.uuid || null,
+            file.s3Url || null,
+            i,
+            pendingMessageID,
+          ]
+        );
+      }
+      console.log(
+        `Pending message ${pendingMessageID} updated successfully for upload.`
+      );
+
+      return true;
+    } catch (error) {
+      console.error("Error updating pending message:", error);
+      return false;
     }
   }
 

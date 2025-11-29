@@ -212,35 +212,32 @@ const useMessageHandlers = (
   // Listen for message sent events to update message IDs
   useEffect(() => {
     const handleMessageSent = ({ tempId, message }) => {
-      if (message.status === "sent") {
-        setMessages((currentMessages) => {
-          // Remove any existing message with the same id as the new message
-          const filteredMessages = currentMessages.filter(
-            (msg) => msg.id !== message.id
-          );
-          // Then replace the tempId with the new message
-          return filteredMessages.map((msg) =>
-            msg.id === tempId ? { ...message } : msg
-          );
-        });
-      } else if (message.status === "pending") {
-        setMessages((currentMessages) => {
-          return currentMessages.map((msg) =>
-            msg.id === tempId ? { id: message.messageUUID, ...message } : msg
-          );
-        });
-      } else {
-        // If failed, remove the temp message
-        setMessages((currentMessages) =>
-          currentMessages.filter((msg) => msg.id !== tempId)
+      setMessages((currentMessages) => {
+        // Remove any existing message with the same id as the new message
+        const filteredMessages = currentMessages.filter(
+          (msg) => msg.id !== message.id
         );
-      }
+        // Then replace the tempId with the new message
+        return filteredMessages.map((msg) =>
+          msg.id === tempId ? { ...message } : msg
+        );
+      });
+    };
+
+    const handleMessageUploading = ({ tempId, message }) => {
+      setMessages((currentMessages) => {
+        return currentMessages.map((msg) =>
+          msg.id === tempId ? { id: message.messageUUID, ...message } : msg
+        );
+      });
     };
 
     eventEmitter.getEmitter().on("messageSent", handleMessageSent);
+    eventEmitter.getEmitter().on("messageUploading", handleMessageUploading);
 
     return () => {
       eventEmitter.getEmitter().off("messageSent", handleMessageSent);
+      eventEmitter.getEmitter().off("messageUploading", handleMessageUploading);
     };
   }, [setMessages]);
 

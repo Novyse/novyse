@@ -10,6 +10,7 @@ import {
 import { ThemeContext } from "@/context/ThemeContext";
 import SmartBackground from "../SmartBackground";
 import { getFileType } from "@/src/utils/file/type";
+import { getMimeType } from "@/src/utils/file/index.js";
 
 import MessageText from "./MessageText";
 import MessageTimestamp from "./MessageTimestamp";
@@ -34,23 +35,25 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
   const audioMessages =
     Object.groupBy(
       files,
-      ({ mimeType }) =>
-        getFileType(mimeType) == "VOICE" || getFileType(mimeType) == "AUDIO"
+      async ({ uri }) =>
+        getFileType(await getMimeType(uri)) == "VOICE" ||
+        getFileType(await getMimeType(uri)) == "AUDIO"
     ) || [];
   const mediaMessages =
     Object.groupBy(
       files,
-      ({ mimeType }) =>
-        getFileType(mimeType) == "IMAGE" || getFileType(mimeType) == "VIDEO"
+      async ({ uri }) =>
+        getFileType(await getMimeType(uri)) == "IMAGE" ||
+        getFileType(await getMimeType(uri)) == "VIDEO"
     ) || [];
   const otherMessages =
     Object.groupBy(
       files,
-      ({ mimeType }) =>
-        getFileType(mimeType) == "DOCUMENT" ||
-        getFileType(mimeType) == "CODE" ||
-        getFileType(mimeType) == "ARCHIVE" ||
-        getFileType(mimeType) == "OTHER"
+      async ({ uri }) =>
+        getFileType(await getMimeType(uri)) == "DOCUMENT" ||
+        getFileType(await getMimeType(uri)) == "CODE" ||
+        getFileType(await getMimeType(uri)) == "ARCHIVE" ||
+        getFileType(await getMimeType(uri)) == "OTHER"
     ) || [];
 
   const sharedContent = (
@@ -59,17 +62,35 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         {/* images/videos print */}
         {/* <MessageImagesVideos mediaUris={mediaMessages[true]?.map((m) => m.uri) || []} />  MULTIPLE IMAGES IN ONE MESSAGE 2X2 */}
         {(mediaMessages[true] || []).map((mediaMessage) => {
-          return <MessageImagesVideos mediaUris={[mediaMessage.uri]} s3Url={mediaMessage.uploadURL} uuid={mediaMessage.uuid}/>;
+          return (
+            <MessageImagesVideos
+              mediaUris={[mediaMessage.uri]}
+              s3Url={mediaMessage.uploadURL}
+              uuid={mediaMessage.uuid}
+            />
+          );
         })}
 
         {/* others print */}
         {(otherMessages[true] || []).map((otherMessage) => {
-          return <MessageOther fileUri={otherMessage.uri} s3Url={otherMessage.uploadURL} uuid={otherMessage.uuid}/>;
+          return (
+            <MessageOther
+              fileUri={otherMessage.uri}
+              s3Url={otherMessage.uploadURL}
+              uuid={otherMessage.uuid}
+            />
+          );
         })}
 
         {/* audios print */}
         {(audioMessages[true] || []).map((audioMessage) => {
-          return <MessageAudio audioUri={audioMessage.uri} s3Url={audioMessage.uploadURL} uuid={audioMessage.uuid} />;
+          return (
+            <MessageAudio
+              audioUri={audioMessage.uri}
+              s3Url={audioMessage.uploadURL}
+              uuid={audioMessage.uuid}
+            />
+          );
         })}
 
         {/* Renderizza il testo SOLO se esiste ed è diverso da stringa vuota */}

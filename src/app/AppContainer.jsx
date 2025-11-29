@@ -126,7 +126,7 @@ const AppContainer = () => {
 
   useEffect(() => {
     const initializeQueueManager = async () =>
-      await queueManager.initialize(() => isConnected);
+      await queueManager.initialize(() => false);
     initializeQueueManager();
   }, [isConnected]);
 
