@@ -12,7 +12,9 @@ import { ThemeContext } from "@/context/ThemeContext";
 import Slider from "@react-native-community/slider";
 import Icon from "../Icon";
 
-const MessageAudio = ({ audioUri }) => {
+import useFiles from "@/src/hooks/chat/useFiles";
+
+const MessageAudio = ({ audioUri, s3Url, uuid }) => {
   const playerRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [position, setPosition] = useState(0);
@@ -24,6 +26,15 @@ const MessageAudio = ({ audioUri }) => {
   const { theme } = useContext(ThemeContext);
   const styles = useMemo(() => createStyle(theme), [theme]);
 
+  const { name, size, mimeType, state, loading, error } = useFiles(audioUri, s3Url, uuid);
+
+  const formatFileSize = (size) => {
+    if (!size || isNaN(size)) return "0 B";
+    const i = Math.floor(Math.log(size) / Math.log(1024));
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
+    return (size / Math.pow(1024, i)).toFixed(2) + " " + sizes[i];
+  };
+
   useEffect(() => {
     if (!audioUri) return;
 
@@ -33,9 +44,10 @@ const MessageAudio = ({ audioUri }) => {
 
     const listener = newPlayer.addListener("playbackStatusUpdate", (status) => {
       // Verifica se il file è caricato o se c'è un errore
-      if (status.isLoaded || status.playing) { // Aggiunto check playing per robustezza
+      if (status.isLoaded || status.playing) {
+        // Aggiunto check playing per robustezza
         setPlayerReady(true);
-        
+
         // Recupera la posizione corrente (default 0)
         setPosition(status.currentTime || 0);
 
@@ -44,10 +56,10 @@ const MessageAudio = ({ audioUri }) => {
         // 2. Se è 0 o mancante, prova a chiederla direttamente al player
         // 3. Mantieni la vecchia durata se quella nuova è 0 (per evitare sfarfallii)
         let currentDuration = status.duration || newPlayer.duration || 0;
-        
+
         // Se la durata è > 0, aggiorna lo stato
         if (currentDuration > 0) {
-           setDuration(currentDuration);
+          setDuration(currentDuration);
         }
 
         setIsPlaying(status.playing);
@@ -58,7 +70,7 @@ const MessageAudio = ({ audioUri }) => {
           setPosition(0); // Reset visivo posizione
         }
       }
-      
+
       if (status.error) {
         console.error("[MessageAudio] Errore di riproduzione:", status.error);
       }
@@ -104,7 +116,7 @@ const MessageAudio = ({ audioUri }) => {
 
   const formatTime = (timeInSeconds) => {
     if (isNaN(timeInSeconds) || timeInSeconds === null) return "00:00";
-    
+
     // Arrotonda per difetto per evitare millesimi di secondo
     const seconds = Math.floor(timeInSeconds);
     const minutes = Math.floor(seconds / 60)
@@ -121,7 +133,10 @@ const MessageAudio = ({ audioUri }) => {
         disabled={!isPlayerReady}
         style={styles.playPauseButton}
       >
-        <Icon name={isPlaying ? "PauseIcon" : "PlayIcon"} style={{ width: 15, height: 15, tintColor: '#fff' }} />
+        <Icon
+          name={isPlaying ? "PauseIcon" : "PlayIcon"}
+          style={{ width: 15, height: 15, tintColor: "#fff" }}
+        />
       </Pressable>
       <View style={styles.progressContainer}>
         <Slider
@@ -139,12 +154,17 @@ const MessageAudio = ({ audioUri }) => {
           <Text style={styles.durationText} selectable={false}>
             {formatTime(position)} / {formatTime(duration)}
           </Text>
+          <Text style={styles.sizeText} selectable={false}>
+            {formatFileSize(size)}
+          </Text>
           <Pressable
             onPress={handlePlaybackRateChange}
             disabled={!isPlayerReady}
             style={styles.playbackRateButton}
           >
-            <Text style={styles.playbackRateText} selectable={false}>{playbackRate}x</Text>
+            <Text style={styles.playbackRateText} selectable={false}>
+              {playbackRate}x
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -184,6 +204,11 @@ function createStyle(theme) {
       marginTop: 4,
     },
     durationText: {
+      fontSize: 12,
+      color: theme.text,
+      textAlign: "left",
+    },
+    sizeText: {
       fontSize: 12,
       color: theme.text,
       textAlign: "left",

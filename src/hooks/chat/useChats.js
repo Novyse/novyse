@@ -99,7 +99,7 @@ const getLastMesssage = async (chatUUID) => {
 
 const formatMessage = async (message) => {
   if (message && message.type && message.type == "system") {
-    message.text = await utils.getSystemMessageText(message);
+    message.content = await utils.getSystemMessageText(message);
   }
   return message;
 };

@@ -1,4 +1,3 @@
-
 import React, { useContext } from "react";
 import { Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -15,11 +14,15 @@ const MessageTimestamp = ({ time }) => {
     return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
   };
 
-  if (time === "") {
-    return <Icon name={"Clock01Icon"} size={14} />;
+  if (parseTime(time) === "") {
+    return <Icon name={"Clock01Icon"} size={14} style={styles.clockIcon}/>;
   }
 
-  return <Text style={styles.timeText} selectable={false}>{parseTime(time)}</Text>;
+  return (
+    <Text style={styles.timeText} selectable={false}>
+      {parseTime(time)}
+    </Text>
+  );
 };
 
 const createStyle = (theme) =>
@@ -32,6 +35,10 @@ const createStyle = (theme) =>
       minWidth: 35,
       textAlign: "right",
     },
+    clockIcon: {
+      alignSelf: "flex-end",
+      backgroundColor: "red"
+    }
   });
 
 export default MessageTimestamp;

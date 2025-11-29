@@ -22,6 +22,75 @@ const useChatData = (chatUUID, chatHandle = null) => {
         if (chatUUID) {
           const database = await Database.create();
           const messages = await database.getMessagesByChatUUID(chatUUID);
+          const pendingMessage =
+            await database.getPendingMessagesByChatUUID(chatUUID);
+          messages.push(...pendingMessage);
+
+          messages.push({
+            id: "fsahjfsdajhfsdajhdfashjsdaf",
+            chatUUID,
+            senderUUID: "asddsa",
+            content: "This is a system message.",
+            type: "message",
+            files: [
+              {
+                uuid: "file-uuid-1234",
+                name: "example.ogg",
+                size: 1024,
+                mimeType: "audio/ogg",
+                uri: "http://webaudioapi.com/samples/audio-tag/chrono.mp3",
+              },
+              {
+                uuid: "file-uuid-1234"  ,
+                name: "example.ogg",
+                size: 1024,
+                mimeType: "audio/ogg",
+                uri: "http://webaudioapi.com/samples/audio-tag/chrono.mp3",
+              },
+              {
+                uuid: "file-uuid-5678",
+                name: "image.png",
+                size: 2048,
+                mimeType: "image/png",
+                uri: "https://picsum.photos/200",
+              },
+              {
+                uuid: "file-uuid-5678",
+                name: "image.png",
+                size: 2048,
+                mimeType: "image/png",
+                uri: "https://picsum.photos/200",
+              },
+              {
+                uuid: "file-uuid-5678",
+                name: "image.png",
+                size: 2048,
+                mimeType: "image/png",
+                uri: "https://picsum.photos/200",
+              },
+              {
+                uuid: "file-uuid-1234",
+                name: "example.ogg",
+                size: 1024,
+                mimeType: "audio/ogg",
+                uri: "http://webaudioapi.com/samples/audio-tag/chrono.mp3",
+              },
+                            {
+                uuid: "file-uuid-5678",
+                name: "image.png",
+                size: 2048,
+                mimeType: "text/plain",
+                uri: "https://picsum.photos/200",
+              },
+                            {
+                uuid: "file-uuid-5678",
+                name: "image.png",
+                size: -2078899848,
+                mimeType: "text/plain",
+                uri: "https://picsum.photos/200",
+              },
+            ],
+          });
 
           const chat = await database.getChatByUUID(chatUUID);
           const { name, chatPictureUUID: profilePictureUUID } =
@@ -99,7 +168,9 @@ const useChatData = (chatUUID, chatHandle = null) => {
     eventEmitter.getEmitter().on("newMessage", handleNewMessage);
 
     return () => {
-      SocketIO.send().unsubscribe();
+      if (SocketIO.send()) {
+        SocketIO.send().unsubscribe();
+      }
 
       eventEmitter.getEmitter().off("newMessage", handleNewMessage);
     };

@@ -88,8 +88,7 @@ class Database {
 
             CREATE TABLE IF NOT EXISTS file (
                 uuid TEXT PRIMARY KEY,
-                path TEXT NOT NULL UNIQUE,
-                file_type TEXT NOT NULL,
+                uri TEXT NOT NULL UNIQUE,
                 mime_type TEXT NOT NULL,
                 size INTEGER NOT NULL,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -99,16 +98,46 @@ class Database {
                 id INTEGER NOT NULL,
                 chatUUID TEXT NOT NULL,
                 senderUUID TEXT NOT NULL,
-                text TEXT,
-                type TEXT NOT NULL DEFAULT 'text',
-                fileUUID TEXT,
+                content TEXT,
+                type TEXT NOT NULL DEFAULT 'message',
                 system_action TEXT,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 is_pinned BOOLEAN NOT NULL DEFAULT 0,
                 PRIMARY KEY (chatUUID, id),
                 FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
-                FOREIGN KEY (senderUUID) REFERENCES user(uuid),
+                FOREIGN KEY (senderUUID) REFERENCES user(uuid)
+            );
+
+            CREATE TABLE IF NOT EXISTS message_files (
+                messageID INTEGER NOT NULL,
+                fileUUID TEXT NOT NULL,
+                PRIMARY KEY (messageID, fileUUID),
+                FOREIGN KEY (messageID) REFERENCES message(id),
                 FOREIGN KEY (fileUUID) REFERENCES file(uuid)
+            );
+
+            CREATE TABLE IF NOT EXISTS pending_message (
+                id TEXT PRIMARY KEY,
+                jobType TEXT NOT NULL,
+                chatUUID TEXT,
+                senderUUID TEXT,
+                content TEXT,
+                type TEXT,
+                PRIMARY KEY (id),
+                FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
+                FOREIGN KEY (senderUUID) REFERENCES user(uuid)
+            );
+
+            CREATE TABLE IF NOT EXISTS pending_file (
+                index INTEGER NOT NULL,
+                pendingMessageID TEXT NOT NULL,
+                uri TEXT NOT NULL,
+                name TEXT NOT NULL,
+                mime_type TEXT NOT NULL,
+                size INTEGER NOT NULL,
+                s3Url TEXT,
+                PRIMARY KEY (index, pendingMessageID),
+                FOREIGN KEY (pendingMessageID) REFERENCES pending_message(id)
             );
 
             CREATE TABLE IF NOT EXISTS bot (
@@ -288,7 +317,7 @@ class Database {
 
   /**
    * Adds a message to the database.
-   * @param {Object} message - Message object containing id, chatUUID, senderUUID, text, fileUUID, createdAt, isPinned,
+   * @param {Object} message - Message object containing id, chatUUID, senderUUID, content, fileUUID, createdAt, isPinned,
    * @returns {boolean} true if message added successfully, false otherwise
    */
   async addMessage(message) {
@@ -305,14 +334,13 @@ class Database {
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, text, type, fileUUID, system_action, created_at, is_pinned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, is_pinned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
           message.senderUUID,
-          message.text || null,
-          message.type || "text",
-          message.fileUUID || null,
+          message.content || null,
+          message.type || "message",
           message.system_action || null,
           message.created_at,
           message.isPinned ? 1 : 0,
@@ -323,6 +351,122 @@ class Database {
     } catch (error) {
       console.error("Error adding message:", error);
       return false;
+    }
+  }
+
+  /**
+   * Adds a pending message to the database.
+   * @param {Object} pendingMessage - Pending message object containing id, jobType, chatUUID, senderUUID, content, type, files
+   * @returns {boolean} true if pending message added successfully, false otherwise
+   */
+
+  async addPendingMessage(pendingMessage) {
+    try {
+      if (
+        !pendingMessage ||
+        !pendingMessage.id ||
+        !pendingMessage.jobType ||
+        !pendingMessage.chatUUID ||
+        !pendingMessage.senderUUID ||
+        !pendingMessage.type
+      ) {
+        console.error(
+          "Missing required pending message fields:",
+          JSON.stringify({
+            id: pendingMessage?.id,
+            jobType: pendingMessage?.jobType,
+            type: pendingMessage?.type,
+            chatUUID: pendingMessage?.chatUUID,
+            senderUUID: pendingMessage?.senderUUID,
+          })
+        );
+        return false;
+      }
+
+      await this.db.runAsync(
+        `INSERT OR IGNORE INTO pending_message (id, jobType, chatUUID, senderUUID, content, type) VALUES (?, ?, ?, ?, ?);`,
+        [
+          pendingMessage.id,
+          pendingMessage.jobType,
+          pendingMessage.chatUUID,
+          pendingMessage.senderUUID,
+          pendingMessage.content || null,
+          pendingMessage.type || "message",
+        ]
+      );
+      console.log("Pending message added successfully.", pendingMessage.id);
+      return true;
+    } catch (error) {
+      console.error("Error adding pending message:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Remove a pending message from the database.
+   * @param {String} pendingMessageID - ID of the pending message to remove
+   * @returns {boolean} true if pending message removed successfully, false otherwise
+   */
+
+  async removePendingMessage(pendingMessageID) {
+    try {
+      if (!pendingMessageID) {
+        console.error("Missing pending message ID to remove.");
+        return false;
+      }
+      const result = await this.db.runAsync(
+        `DELETE FROM pending_message WHERE id = ?;`,
+        [pendingMessageID]
+      );
+      if (result.changes > 0) {
+        console.log(
+          `Pending message ${pendingMessageID} removed successfully.`
+        );
+        return true;
+      }
+      console.log(
+        `Pending message ${pendingMessageID} not found. No action taken.`
+      );
+      return false;
+    } catch (error) {
+      console.error("Error removing pending message:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Fetch all pending messages from the database.
+   * @returns {Array} array of pending message objects
+   */
+
+  async getPendingMessages() {
+    try {
+      const pendingMessages = await this.db.getAllAsync(
+        "SELECT * FROM pending_message;"
+      );
+      return pendingMessages;
+    } catch (error) {
+      console.error("Error retrieving pending messages:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Fetch all pending message from a specific chat UUID
+   * @param {String} chatUUID
+   * @returns {Array} array of pending message objects
+   */
+
+  async getPendingMessagesByChatUUID(chatUUID) {
+    try {
+      const pendingMessages = await this.db.getAllAsync(
+        "SELECT * FROM pending_message WHERE chatUUID = ?;",
+        [chatUUID]
+      );
+      return pendingMessages;
+    } catch (error) {
+      console.error("Error retrieving pending messages by chat UUID:", error);
+      return [];
     }
   }
 

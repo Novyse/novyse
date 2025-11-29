@@ -1,8 +1,9 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { Alert, Platform } from "react-native";
 import gateway from "@/src/utils/backend-services/api-gateway.js";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
+import queueManager from "@/src/utils/chat/queueManager.js";
 
 const useMessageHandlers = (
   chat,
@@ -102,9 +103,8 @@ const useMessageHandlers = (
   }, [chat, selectedChatUUID, setSelectedChatUUID, handleSendImageMessage]);
 
   const handleSendMessage = useCallback(
-    async (content, files = [], type) => {
-      // type temporaneo
-      // no text and files, so nothing happens
+    async (type = "message", content, files = []) => {
+      // no content and files, so nothing happens
       if (content.trim() === "" && files.length === 0) return;
 
       let currentChatUUID = chat.uuid;
@@ -129,39 +129,14 @@ const useMessageHandlers = (
           return;
         }
       }
-      if (type === "audio") {
-        const uri = files[0].uri;
-        files[0].uri = undefined;
-      }
 
-      const { success, message } = await gateway.message.send(
-        currentChatUUID,
+      await queueManager.addJob("send", {
+        chatUUID: currentChatUUID,
         content,
-        "message",
-        files
-      );
-      if (success) {
-        console.log("Message sent successfully:", message);
-        if (type === "audio") {
-          message.type = "audio";
-          message.attachments = [
-            {
-              type: "audio",
-              uri: uri,
-            },
-          ];
-        }
-        await eventEmitter.newMessage(message);
-        setMessages((currentMessages) => {
-          const exists = currentMessages.some((msg) => msg.id === message.id);
-          if (!exists) {
-            return [message, ...currentMessages];
-          }
-          return currentMessages;
-        });
-      } else {
-        console.error("Failed to send message");
-      }
+        senderUUID: myUUID,
+        type,
+        files,
+      });
 
       setNewMessageText("");
       setVoiceMessage(true);
@@ -233,6 +208,41 @@ const useMessageHandlers = (
     },
     [pickImage]
   );
+
+  // Listen for message sent events to update message IDs
+  useEffect(() => {
+    const handleMessageSent = ({ tempId, message }) => {
+      if (message.status === "sent") {
+        setMessages((currentMessages) => {
+          // Remove any existing message with the same id as the new message
+          const filteredMessages = currentMessages.filter(
+            (msg) => msg.id !== message.id
+          );
+          // Then replace the tempId with the new message
+          return filteredMessages.map((msg) =>
+            msg.id === tempId ? { ...message } : msg
+          );
+        });
+      } else if (message.status === "pending") {
+        setMessages((currentMessages) => {
+          return currentMessages.map((msg) =>
+            msg.id === tempId ? { id: message.messageUUID, ...message } : msg
+          );
+        });
+      } else {
+        // If failed, remove the temp message
+        setMessages((currentMessages) =>
+          currentMessages.filter((msg) => msg.id !== tempId)
+        );
+      }
+    };
+
+    eventEmitter.getEmitter().on("messageSent", handleMessageSent);
+
+    return () => {
+      eventEmitter.getEmitter().off("messageSent", handleMessageSent);
+    };
+  }, [setMessages]);
 
   return {
     handleSendMessage,

@@ -59,6 +59,16 @@ class Database {
     const messages = (await this.store.getItem("messages")) || [];
     await this.store.setItem("messages", messages);
 
+    const message_files = (await this.store.getItem("message_files")) || [];
+    await this.store.setItem("message_files", message_files);
+
+    const pending_messages =
+      (await this.store.getItem("pending_messages")) || [];
+    await this.store.setItem("pending_messages", pending_messages);
+
+    const pending_files = (await this.store.getItem("pending_files")) || [];
+    await this.store.setItem("pending_files", pending_files);
+
     const handles = (await this.store.getItem("handles")) || [];
     await this.store.setItem("handles", handles);
 
@@ -211,7 +221,7 @@ class Database {
 
   /**
    * Adds a message to the database.
-   * @param {Object} message - Message object containing id, chatUUID, senderUUID, text, fileUUID, createdAt, isPinned, replyToMessageUUID
+   * @param {Object} message - Message object containing id, chatUUID, senderUUID, content, fileUUID, createdAt, isPinned, replyToMessageUUID
    * @returns {boolean} true if message added successfully, false otherwise
    */
   async addMessage(message) {
@@ -242,9 +252,8 @@ class Database {
         id: message.id,
         chatUUID: message.chatUUID,
         senderUUID: message.senderUUID,
-        text: message.text || null,
-        type: message.type || "text",
-        fileUUID: message.fileUUID || null,
+        content: message.content || null,
+        type: message.type || "message",
         system_action: message.system_action || null,
         created_at: message.created_at,
         is_pinned: message.is_pinned ? 1 : 0,
@@ -258,6 +267,127 @@ class Database {
     } catch (error) {
       console.error("Error adding message:", error);
       return false;
+    }
+  }
+
+  /**
+   * Adds a pending message to the database.
+   * @param {Object} pendingMessage - Pending message object containing id, jobType, chatUUID, senderUUID, content, type, files
+   * @returns {boolean} true if pending message added successfully, false otherwise
+   */
+  async addPendingMessage(pendingMessage) {
+    try {
+      if (
+        !pendingMessage ||
+        !pendingMessage.id ||
+        !pendingMessage.jobType ||
+        !pendingMessage.chatUUID ||
+        !pendingMessage.senderUUID ||
+        !pendingMessage.type
+      ) {
+        console.error(
+          "Missing required pending message fields:",
+          JSON.stringify({
+            id: pendingMessage?.id,
+            jobType: pendingMessage?.jobType,
+            type: pendingMessage?.type,
+            chatUUID: pendingMessage?.chatUUID,
+            senderUUID: pendingMessage?.senderUUID,
+          })
+        );
+        return false;
+      }
+      const pending_messages =
+        (await this.store.getItem("pending_messages")) || [];
+      const existingPending = pending_messages.find(
+        (pm) => pm.id === pendingMessage.id
+      );
+      if (!existingPending) {
+        pending_messages.push({
+          id: pendingMessage.id,
+          jobType: pendingMessage.jobType,
+          chatUUID: pendingMessage.chatUUID,
+          senderUUID: pendingMessage.senderUUID,
+          content: pendingMessage.content || null,
+          type: pendingMessage.type || "message",
+          files: pendingMessage.files || [],
+        });
+        await this.store.setItem("pending_messages", pending_messages);
+      }
+      console.log("Pending message added successfully.", pendingMessage.id);
+      return true;
+    } catch (error) {
+      console.error("Error adding pending message:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Remove a pending message from the database.
+   * @param {String} pendingMessageID - ID of the pending message to remove
+   * @returns {boolean} true if pending message removed successfully, false otherwise
+   */
+  async removePendingMessage(pendingMessageID) {
+    try {
+      if (!pendingMessageID) {
+        console.error("Missing pending message ID to remove.");
+        return false;
+      }
+      const pending_messages =
+        (await this.store.getItem("pending_messages")) || [];
+      const index = pending_messages.findIndex(
+        (pm) => pm.id === pendingMessageID
+      );
+      if (index !== -1) {
+        pending_messages.splice(index, 1);
+        await this.store.setItem("pending_messages", pending_messages);
+        console.log(
+          `Pending message ${pendingMessageID} removed successfully.`
+        );
+        return true;
+      }
+      console.log(
+        `Pending message ${pendingMessageID} not found. No action taken.`
+      );
+      return false;
+    } catch (error) {
+      console.error("Error removing pending message:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Fetch all pending messages from the database.
+   * @returns {Array} array of pending message objects
+   */
+  async getPendingMessages() {
+    try {
+      const pending_messages =
+        (await this.store.getItem("pending_messages")) || [];
+      return pending_messages;
+    } catch (error) {
+      console.error("Error retrieving pending messages:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Fetch all pending message from a specific chat UUID
+   * @param {String} chatUUID
+   * @returns {Array} array of pending message objects
+   */
+
+  async getPendingMessagesByChatUUID(chatUUID) {
+    try {
+      const pending_messages =
+        (await this.store.getItem("pending_messages")) || [];
+      const chatPendingMessages = pending_messages.filter(
+        (pm) => pm.chatUUID === chatUUID
+      );
+      return chatPendingMessages;
+    } catch (error) {
+      console.error("Error retrieving pending messages by chat UUID:", error);
+      return [];
     }
   }
 

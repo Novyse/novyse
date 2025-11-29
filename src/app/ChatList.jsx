@@ -33,7 +33,7 @@ const ChatListItem = React.memo(
 
     const displayMessage = (message) => {
       if (!message) return null;
-      let text = message.text;
+      let text = message.content;
       switch (message.type) {
         case "image":
           text = "📷 Photo";
@@ -114,7 +114,7 @@ const ChatListItem = React.memo(
             <View style={styles.rightContainer}>
               <View style={styles.dateContainer}>
                 {!item.lastMessage?.created_at ? (
-                  <Icon name={"Clock01Icon"} size={15} />
+                  <Icon name={"Clock01Icon"} size={14} />
                 ) : (
                   <>
                     <Icon name={"TickDouble02Icon"} size={18} />

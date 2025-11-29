@@ -2,31 +2,24 @@ import React, { useState } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import { Image } from "expo-image";
 
+import useFiles from "@/src/hooks/chat/useFiles";
+
 const { width: screenWidth } = Dimensions.get("window");
 const maxBubbleWidth = screenWidth * 1;
 
-const MessageImagesVideos = () => {
+const MessageImagesVideos = ({ mediaUris, s3Url, uuid }) => {
   const [mediaDimensions, setMediaDimensions] = useState({});
 
-  const staticMedia = [
-    {
-      source: require("../../../assets/images/logo-novyse-bg.png"),
-    },
-    {
-      source: require("../../../assets/images/logo-novyse-bg.png"),
-    },
-    {
-      source: require("../../../assets/images/logo-novyse-bg.png"),
-    },
-    {
-      source: require("../../../assets/images/logo-novyse-bg.png"),
-    },
-  ];
+  const { name, size, mimeType, state, loading, error } = useFiles(
+    mediaUris[0],
+    s3Url,
+    uuid
+  );
 
   const renderGridCell = (item, index, cellStyle) => {
     return (
       <View key={index} style={[styles.gridCell, cellStyle]}>
-        <Image source={item.source} style={styles.media} contentFit="cover" />
+        <Image source={item} style={styles.media} contentFit="cover" />
       </View>
     );
   };
@@ -36,7 +29,7 @@ const MessageImagesVideos = () => {
     return (
       <Image
         key={index}
-        source={item.source}
+        source={item}
         style={{
           aspectRatio: dims.aspectRatio,
           width: "100%",
@@ -50,7 +43,7 @@ const MessageImagesVideos = () => {
   const renderTwoImages = () => (
     <View style={styles.twoImagesContainer}>
       <View style={styles.oneRow}>
-        {staticMedia
+        {mediaUris
           .slice(0, 2)
           .map((item, index) => renderGridCell(item, index, styles.topCell))}
       </View>
@@ -60,12 +53,12 @@ const MessageImagesVideos = () => {
   const renderThreeImages = () => (
     <View style={styles.gridContainer}>
       <View style={styles.twoRow}>
-        {staticMedia
+        {mediaUris
           .slice(0, 2)
           .map((item, index) => renderGridCell(item, index, styles.topCell))}
       </View>
       <View style={styles.oneWideRow}>
-        {renderGridCell(staticMedia[2], 2, styles.bottomCell)}
+        {renderGridCell(mediaUris[2], 2, styles.bottomCell)}
       </View>
     </View>
   );
@@ -73,12 +66,12 @@ const MessageImagesVideos = () => {
   const renderFourImages = () => (
     <View style={styles.gridContainer}>
       <View style={styles.twoRow}>
-        {staticMedia
+        {mediaUris
           .slice(0, 2)
           .map((item, index) => renderGridCell(item, index, styles.topCell))}
       </View>
       <View style={styles.twoRow}>
-        {staticMedia
+        {mediaUris
           .slice(2, 4)
           .map((item, index) =>
             renderGridCell(item, index + 2, styles.topCell)
@@ -87,11 +80,11 @@ const MessageImagesVideos = () => {
     </View>
   );
 
-  const numImages = staticMedia.length;
+  const numImages = mediaUris.length;
   let gridContent;
 
   if (numImages === 1) {
-    gridContent = renderSingleImage(staticMedia[0], 0);
+    gridContent = renderSingleImage(mediaUris[0], 0);
   } else if (numImages === 2) {
     gridContent = renderTwoImages();
   } else if (numImages === 3) {

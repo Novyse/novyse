@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 
-import NetInfo from "@react-native-community/netinfo";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import ScreenLayout from "../components/ScreenLayout";
 import eventEmitter from "../utils/global/Events/EventEmitter";
@@ -24,6 +23,7 @@ import methods from "../utils/webrtc/methods";
 const { get, check } = methods;
 import SmartBackground from "../components/SmartBackground";
 import chatUtils from "../utils/chat";
+import queueManager from "../utils/chat/queueManager";
 
 // Hooks
 import useAppInit from "../hooks/auth/useAppInit";
@@ -32,6 +32,7 @@ import useAppInit from "../hooks/auth/useAppInit";
 import { ThemeContext } from "@/context/ThemeContext";
 import { ChatContext } from "@/context/ChatContext";
 import { UserContext } from "@/context/UserContext";
+import { NetworkContext } from "@/context/NetworkContext";
 
 const AppContainer = () => {
   useAppInit(true);
@@ -48,8 +49,9 @@ const AppContainer = () => {
 
   const { setUserUUID } = useContext(UserContext);
 
+  const { isConnected } = useContext(NetworkContext);
+
   const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const [networkAvailable, setNetworkAvailable] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
   const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] =
@@ -122,12 +124,14 @@ const AppContainer = () => {
     handleParams();
   }, [params.chatUUIDorHandle]);
 
-  // useEffect per network e back button
   useEffect(() => {
-    const checkConnection = NetInfo.addEventListener((state) => {
-      setNetworkAvailable(state.isConnected);
-    });
+    const initializeQueueManager = async () =>
+      await queueManager.initialize(() => isConnected);
+    initializeQueueManager();
+  }, [isConnected]);
 
+  // useEffect per back button
+  useEffect(() => {
     const backAction = () => {
       if (isSmallScreen && selectedChatUUID) {
         setSelectedChatUUID(null);
@@ -143,19 +147,21 @@ const AppContainer = () => {
     );
     return () => {
       backHandler.remove();
-      checkConnection();
     };
   }, [isSmallScreen, selectedChatUUID]);
 
   useEffect(() => {
     if (isSmallScreen) {
       Animated.timing(chatContentPosition, {
-        toValue: selectedChatUUID || selectedHandle ? 0 : Dimensions.get("window").width,
+        toValue:
+          selectedChatUUID || selectedHandle
+            ? 0
+            : Dimensions.get("window").width,
         duration: 250,
         useNativeDriver: true,
       }).start();
     }
-  }, [selectedChatUUID , selectedHandle, isSmallScreen, chatContentPosition]);
+  }, [selectedChatUUID, selectedHandle, isSmallScreen, chatContentPosition]);
 
   // Ensure overlay is positioned correctly on mount (avoid flash)
   useEffect(() => {
@@ -341,7 +347,7 @@ const AppContainer = () => {
         visible={isCreateGroupModalVisible}
         onClose={() => setIsCreateGroupModalVisible(false)}
       />
-      {!networkAvailable && (
+      {!isConnected && (
         <Text style={styles.connectionInfoContainer}>
           Network Status: Not Connected
         </Text>

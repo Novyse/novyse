@@ -9,48 +9,71 @@ import {
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import SmartBackground from "../SmartBackground";
+import { getFileType } from "@/src/utils/file/type";
+
 import MessageText from "./MessageText";
 import MessageTimestamp from "./MessageTimestamp";
-import MessageAudio from "./MessageAudio"; // Importato
+import MessageAudio from "./MessageAudio";
+import MessageImagesVideos from "./MessageImagesVideos";
+import MessageOther from "./MessageOther";
 
 const MessageBase = ({ message, isSender, onLongPress }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   const {
-    text,
+    content,
     created_at,
     showSenderName = false,
     showAvatar = false,
     sender_name,
     type,
-    attachments, // Assumiamo che l'audio sia qui o definito dal type
+    files = [],
   } = message;
 
-  // Determina se è un messaggio audio
-  const isAudioMessage =
-    type === "audio" ||
-    (attachments && attachments.some((a) => a.type === "audio"));
-
-  // Recupera l'URI e la durata (se disponibile)
-  const audioAttachment = isAudioMessage
-    ? attachments
-      ? attachments.find((a) => a.type === "audio")
-      : message
-    : null;
-  const audioUri = audioAttachment?.uri || audioAttachment?.url;
-  
+  const audioMessages =
+    Object.groupBy(
+      files,
+      ({ mimeType }) =>
+        getFileType(mimeType) == "VOICE" || getFileType(mimeType) == "AUDIO"
+    ) || [];
+  const mediaMessages =
+    Object.groupBy(
+      files,
+      ({ mimeType }) =>
+        getFileType(mimeType) == "IMAGE" || getFileType(mimeType) == "VIDEO"
+    ) || [];
+  const otherMessages =
+    Object.groupBy(
+      files,
+      ({ mimeType }) =>
+        getFileType(mimeType) == "DOCUMENT" ||
+        getFileType(mimeType) == "CODE" ||
+        getFileType(mimeType) == "ARCHIVE" ||
+        getFileType(mimeType) == "OTHER"
+    ) || [];
 
   const sharedContent = (
     <>
       <View style={styles.textContainer}>
-        {/* Renderizza Audio Player SOLO se è un messaggio audio */}
-        {isAudioMessage && audioUri && (
-          <MessageAudio audioUri={audioUri} />
-        )}
+        {/* images/videos print */}
+        {/* <MessageImagesVideos mediaUris={mediaMessages[true]?.map((m) => m.uri) || []} />  MULTIPLE IMAGES IN ONE MESSAGE 2X2 */}
+        {(mediaMessages[true] || []).map((mediaMessage) => {
+          return <MessageImagesVideos mediaUris={[mediaMessage.uri]} s3Url={mediaMessage.uploadURL} uuid={mediaMessage.uuid}/>;
+        })}
+
+        {/* others print */}
+        {(otherMessages[true] || []).map((otherMessage) => {
+          return <MessageOther fileUri={otherMessage.uri} s3Url={otherMessage.uploadURL} uuid={otherMessage.uuid}/>;
+        })}
+
+        {/* audios print */}
+        {(audioMessages[true] || []).map((audioMessage) => {
+          return <MessageAudio audioUri={audioMessage.uri} s3Url={audioMessage.uploadURL} uuid={audioMessage.uuid} />;
+        })}
 
         {/* Renderizza il testo SOLO se esiste ed è diverso da stringa vuota */}
-        {text && text.trim().length > 0 && <MessageText text={text} />}
+        {content && content.trim().length > 0 && <MessageText text={content} />}
 
         <MessageTimestamp time={created_at} />
       </View>

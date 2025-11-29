@@ -127,21 +127,21 @@ const getSystemMessageText = async (message) => {
       text = "Chat created";
       break;
     case "USER_JOINED":
-      if (message.text == (await auth.getUserUUID())) {
+      if (message.content == (await auth.getUserUUID())) {
         name = "You";
       } else {
         const database = await Database.create();
-        const user = await database.getUserByUUID(message.text);
+        const user = await database.getUserByUUID(message.content);
         name = user ? user.name : "User";
       }
       text = `${name} joined the chat`;
       break;
     case "USER_LEFT":
-      if (message.text == (await auth.getUserUUID())) {
+      if (message.content == (await auth.getUserUUID())) {
         name = "You";
       } else {
         const database = await Database.create();
-        const user = await database.getUserByUUID(message.text);
+        const user = await database.getUserByUUID(message.content);
         name = user ? user.name : "User";
       }
       text = `${name} left the chat`;

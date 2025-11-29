@@ -47,13 +47,17 @@ const BottomBar = ({
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recorderState = useAudioRecorderState(audioRecorder);
 
-  // Cleanup alla distruzione
+  // Cleanup
   useEffect(() => {
     return () => {
-      if (isRecording) audioRecorder.stop();
-      audioRecorder.unmount();
+      // Ferma la registrazione se era in corso quando il componente si smonta
+      if (isRecording) {
+        audioRecorder.stop().catch((e) => {
+          console.warn("Error during audio cleanup:", e);
+        });
+      }
     };
-  }, []);
+  }, [audioRecorder, isRecording]);
 
   // Avvio Registrazione (Click sul Mic)
   const handleStartRecording = async () => {
@@ -105,8 +109,6 @@ const BottomBar = ({
 
   // Stop e Invia (Click sul pulsante Send durante rec)
   const handleStopAndSend = async () => {
-
-    
     if (!isRecording) return;
 
     try {
@@ -123,14 +125,14 @@ const BottomBar = ({
 
         const files = [
           {
-            name: "voice_message.opus",
+            name: "voice_message.ogg",
             size: sizeInBytes,
-            mimeType: Platform.OS === "web" ? "audio/webm" : "audio/opus",
-            uri: uri
+            mimeType: "audio/ogg",
+            uri: uri,
           },
         ];
 
-        onSendMessage("", files, "audio");
+        onSendMessage("message", "", files);
       }
     } catch (err) {
       console.error("Errore stop recording:", err);
@@ -202,7 +204,7 @@ const BottomBar = ({
                 placeholder={"Scrivi un messaggio..."}
                 placeholderTextColor={theme.placeholderText}
                 onSubmitEditing={
-                  Platform.OS === "web" ? onSendMessage : undefined
+                  Platform.OS === "web" ? () => onSendMessage("message", newMessageText) : undefined
                 }
                 onFocus={onInputFocus}
               />
@@ -229,7 +231,7 @@ const BottomBar = ({
               // C'è testo o modalità testo -> Bottone INVIA TESTO
               <Icon
                 name="SentIcon"
-                onPress={() => onSendMessage(newMessageText)}
+                onPress={() => onSendMessage("message", newMessageText)}
                 style={styles.icon}
               />
             ) : (
