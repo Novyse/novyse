@@ -77,7 +77,7 @@ const Signup = () => {
   const steps = [
     { id: 1, label: "Personal Info" },
     { id: 2, label: "Password", field: "password", placeholder: "Password" },
-    { id: 3, label: "Handle", field: "handle", placeholder: "Handle" },
+    { id: 3, label: "Username", field: "handle", placeholder: "Username" },
   ];
 
   const isSmallScreen = width < 936;

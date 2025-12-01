@@ -91,7 +91,7 @@ const ProfilePage = () => {
 
           <ProfileField label="Name" value={userData.name} />
           <ProfileField label="Surname" value={userData.surname} />
-          <ProfileField label="Handle" value={userData.handle} />
+          <ProfileField label="Username" value={userData.handle} />
           <ProfileField label="Email" value={userData.email} />
         </SettingsCard>
       </SettingsPageScrollview>
