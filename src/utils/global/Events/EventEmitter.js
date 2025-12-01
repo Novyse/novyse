@@ -44,6 +44,12 @@ class MessengerEventEmitter {
     this.eventEmitter.emit("userLeft", { chatUUID, user });
   }
 
+  async fileReady(fileUUID, uri) {
+    const database = await Database.create();
+    await database.updateFileURI(fileUUID, uri);
+    this.eventEmitter.emit("fileReady", { fileUUID });
+  }
+
   // -------------------- WebRTC EVENTS --------------------
   commsJoin(data) {
     this.eventEmitter.emit("comms_join", data);

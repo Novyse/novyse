@@ -483,6 +483,35 @@ class Database {
   }
 
   /**
+   * Update a pending message in the database to confirm
+   * @param {String} pendingMessageID - ID of the pending message to update
+   * @return {boolean} true if pending message updated successfully, false otherwise
+   */
+  async updatePendingMessageToConfirm(pendingMessageID) {
+    try {
+      if (!pendingMessageID) {
+        console.error("Missing pending message ID to update to confirm.");
+        return false;
+      }
+      const pending_messages = (await this.store.getItem("pending_messages")) || [];
+      const messageIndex = pending_messages.findIndex(
+        (pm) => pm.id === pendingMessageID
+      );
+      if (messageIndex !== -1) {
+        pending_messages[messageIndex].jobType = "confirm";
+        await this.store.setItem("pending_messages", pending_messages);
+        console.log(`Pending message ${pendingMessageID} updated to confirm successfully.`);
+        return true;
+      }
+      console.log(`Pending message ${pendingMessageID} not found.`);
+      return false;
+    } catch (error) {
+      console.error("Error updating pending message to confirm:", error);
+      return false;
+    }
+  }
+
+  /**
    * Fetch all chats from the database.
    * @returns {Array} array of chat objects
    */

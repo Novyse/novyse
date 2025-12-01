@@ -149,13 +149,14 @@ class QueueManager {
         const { files } = job.params;
         for (const file of files) {
           if (file.uri) {
-            await S3Uploader.upload(file.uri, file.uploadURL);
+            await S3Uploader.upload(file.uri, file.uploadURL, this.notifyProgress);
           }
         }
-        this.queue.shift(); // Remove completed job
-        await this.removeJob(job.id);
+
         // After all files are uploaded, upload job to confirm
-        // @SamueleOrazioDurante DA CAPIRE DADDY
+        this.moveJobToConfirm(job.id);
+        console.log("Files uploaded, moved job to confirm:", job.id);
+
       } else if (job.type === "confirm") {
         const { messageUUID } = job.params;
         const result = await gateway.message.confirm(messageUUID);
@@ -164,7 +165,7 @@ class QueueManager {
         if (success) {
           console.log("Job completed successfully:", job.id);
           // Notify that message was sent successfully
-          eventEmitter.getEmitter().emit("messageConfirmed", {
+          eventEmitter.getEmitter().emit("messageSent", {
             tempId: job.id,
             result,
           });
@@ -264,6 +265,31 @@ class QueueManager {
   }
 
   /**
+   * Modify a job in the queue to a confirm job
+   * @param {string} jobId - The ID of the job to modify
+   * @return {Promise<void>}
+   */
+
+  async moveJobToConfirm(jobId) {
+    const jobIndex = this.queue.findIndex((job) => job.id === jobId);
+    if (jobIndex !== -1) {
+      const messageUUID = this.queue[jobIndex].id;
+      this.queue[jobIndex].type = "confirm";
+      this.queue[jobIndex].params = { messageUUID };
+
+      console.log("Job modified to confirm:", jobId);
+
+      // Update in database
+      try {
+        const database = await Database.create();
+        await database.updatePendingMessageToConfirm(jobId);
+      } catch (error) {
+        console.error("Error modifying job in database:", error);
+      }
+    }
+  }
+
+  /**
    * Load the queue from persistent storage
    * @return {Promise<void>}
    */
@@ -298,6 +324,10 @@ class QueueManager {
     } catch (error) {
       console.error("Error loading queue from database:", error);
     }
+  }
+
+  notifyProgress(progress) {
+    eventEmitter.getEmitter().emit("fileProgress", progress);
   }
 }
 const queueManager = new QueueManager();

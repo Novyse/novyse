@@ -546,6 +546,29 @@ class Database {
   }
 
   /**
+   * Update a pending message in the database to confirm
+   * @param {String} pendingMessageID - ID of the pending message to update
+   * @return {boolean} true if pending message updated successfully, false otherwise
+   */
+  async updatePendingMessageToConfirm(pendingMessageID) {
+    try {
+      if (!pendingMessageID) {
+        console.error("Missing pending message ID to update to confirm.");
+        return false;
+      }
+      // Update pending_message table
+      await this.db.runAsync(
+        `UPDATE pending_message SET jobType = 'confirm' WHERE id = ?;`,
+        [pendingMessageID]
+      );
+      return true;
+    } catch (error) {
+      console.error("Error updating pending message to confirm:", error);
+      return false;
+    }
+  }
+
+  /**
    * Fetch all chats from the database.
    * @returns {Array} array of chat objects
    */
