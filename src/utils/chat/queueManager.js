@@ -135,7 +135,7 @@ class QueueManager {
             await this.removeJob(job.id);
           } else if (message.status === "pending") {
             // If message is pending, modify the job to an upload one
-            this.moveJobToUpload(job.id, message);
+            await this.moveJobToUpload(job.id, message);
             eventEmitter.getEmitter().emit("messageUploading", {
               tempId: job.id,
               message,
@@ -154,7 +154,7 @@ class QueueManager {
         }
 
         // After all files are uploaded, upload job to confirm
-        this.moveJobToConfirm(job.id);
+        await this.moveJobToConfirm(job.id);
         console.log("Files uploaded, moved job to confirm:", job.id);
 
       } else if (job.type === "confirm") {
@@ -167,7 +167,7 @@ class QueueManager {
           // Notify that message was sent successfully
           eventEmitter.getEmitter().emit("messageSent", {
             tempId: job.id,
-            result,
+            message: result,
           });
 
           this.queue.shift(); // Remove completed job
@@ -327,6 +327,7 @@ class QueueManager {
   }
 
   notifyProgress(progress) {
+    console.log("File upload progress:", progress);
     eventEmitter.getEmitter().emit("fileProgress", progress);
   }
 }
