@@ -7,8 +7,6 @@ import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import SocketIO from "@/src/utils/backend-services/socket-io";
 import { UserContext } from "@/context/UserContext";
 
-
-
 const useChatData = (chatUUID, chatHandle = null) => {
   const { userUUID } = useContext(UserContext);
   const [chat, setChat] = useState({});
@@ -22,7 +20,6 @@ const useChatData = (chatUUID, chatHandle = null) => {
         setLoading(true);
         setChat({});
         setMessages([]);
-        
 
         if (chatUUID) {
           const database = await Database.create();
@@ -31,71 +28,72 @@ const useChatData = (chatUUID, chatHandle = null) => {
             await database.getPendingMessagesByChatUUID(chatUUID);
           messages.push(...pendingMessage);
 
-          messages.push({
-            id: "fsahjfsdajhfsdajhdfashjsdaf",
-            chatUUID,
-            senderUUID: "asddsa",
-            content: "This is a system message.",
-            type: "message",
-            files: [
-              {
-                uuid: "file-uuid-1234",
-                name: "example.ogg",
-                size: 1024,
-                mimeType: "audio/ogg",
-                uri: "https://cdn.freesound.org/previews/833/833447_11861866-lq.mp3",
-              },
-              {
-                uuid: "file-uuid-1234",
-                name: "example.ogg",
-                size: 1024,
-                mimeType: "audio/ogg",
-                uri: "https://cdn.freesound.org/previews/833/833447_11861866-lq.mp3",
-              },
-              {
-                uuid: "file-uuid-5678",
-                name: "image.png",
-                size: 2048,
-                mimeType: "image/png",
-                uri: "https://picsum.photos/200",
-              },
-              {
-                uuid: "file-uuid-5678",
-                name: "image.png",
-                size: 2048,
-                mimeType: "image/png",
-                uri: "https://picsum.photos/200",
-              },
-              {
-                uuid: "file-uuid-5678",
-                name: "image.png",
-                size: 2048,
-                mimeType: "image/png",
-                uri: "https://picsum.photos/200",
-              },
-              {
-                uuid: "file-uuid-1234",
-                name: "example.ogg",
-                size: 1024,
-                mimeType: "audio/ogg",
-                uri: "https://cdn.freesound.org/previews/833/833447_11861866-lq.mp3",
-              },
-              {
-                uuid: "file-uuid-5678",
-                name: "image.png",
-                size: 2048,
-                mimeType: "text/plain",
-                uri: "https://picsum.photos/200",
-              },
-              {
-                uuid: "file-uuid-5678",
-                name: "image.png",
-                size: -2078899848,
-                mimeType: "text/plain",
-                uri: "https://picsum.photos/200",
-              },
-            ],
-          });
+          // // msg temporaneo
+          // messages.push({
+          //   id: "fsahjfsdajhfsdajhdfashjsdaf",
+          //   chatUUID,
+          //   senderUUID: "asddsa",
+          //   content: "This is a system message.",
+          //   type: "message",
+          //   files: [
+          //     {
+          //       uuid: "file-uuid-1234",
+          //       name: "example.ogg",
+          //       size: 1024,
+          //       mimeType: "audio/ogg",
+          //       uri: "https://cdn.freesound.org/previews/833/833447_11861866-lq.mp3",
+          //     },
+          //     {
+          //       uuid: "file-uuid-1234",
+          //       name: "example.ogg",
+          //       size: 1024,
+          //       mimeType: "audio/ogg",
+          //       uri: "https://cdn.freesound.org/previews/833/833447_11861866-lq.mp3",
+          //     },
+          //     {
+          //       uuid: "file-uuid-5678",
+          //       name: "image.png",
+          //       size: 2048,
+          //       mimeType: "image/png",
+          //       uri: "https://picsum.photos/200",
+          //     },
+          //     {
+          //       uuid: "file-uuid-5678",
+          //       name: "image.png",
+          //       size: 2048,
+          //       mimeType: "image/png",
+          //       uri: "https://picsum.photos/200",
+          //     },
+          //     {
+          //       uuid: "file-uuid-5678",
+          //       name: "image.png",
+          //       size: 2048,
+          //       mimeType: "image/png",
+          //       uri: "https://picsum.photos/200",
+          //     },
+          //     {
+          //       uuid: "file-uuid-1234",
+          //       name: "example.ogg",
+          //       size: 1024,
+          //       mimeType: "audio/ogg",
+          //       uri: "https://cdn.freesound.org/previews/833/833447_11861866-lq.mp3",
+          //     },
+          //     {
+          //       uuid: "file-uuid-5678",
+          //       name: "image.png",
+          //       size: 2048,
+          //       mimeType: "text/plain",
+          //       uri: "https://picsum.photos/200",
+          //     },
+          //     {
+          //       uuid: "file-uuid-5678",
+          //       name: "image.png",
+          //       size: -2078899848,
+          //       mimeType: "text/plain",
+          //       uri: "https://picsum.photos/200",
+          //     },
+          //   ],
+          // });
 
           const chat = await database.getChatByUUID(chatUUID);
           const { name, chatPictureUUID: profilePictureUUID } =

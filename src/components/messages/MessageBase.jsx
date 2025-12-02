@@ -9,8 +9,9 @@ import {
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import SmartBackground from "../SmartBackground";
-import { getFileType } from "@/src/utils/file/type";
-import { getMimeType } from "@/src/utils/file/index.js";
+import { getFileType } from "@/src/utils/storage/file/type";
+
+import storage from "@/src/utils/storage/file";
 
 import MessageText from "./MessageText";
 import MessageTimestamp from "./MessageTimestamp";
@@ -63,9 +64,9 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
           return (
             <MessageImagesVideos
               mediaUris={[mediaMessage.uri]}
-              s3Url={mediaMessage.uploadURL}
               uuid={mediaMessage.uuid}
               mimeType={mediaMessage.mimeType}
+              size={mediaMessage.size}
             />
           );
         })}
@@ -75,9 +76,9 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
           return (
             <MessageOther
               fileUri={otherMessage.uri}
-              s3Url={otherMessage.uploadURL}
               uuid={otherMessage.uuid}
               mimeType={otherMessage.mimeType}
+              size={otherMessage.size}
             />
           );
         })}
@@ -86,10 +87,10 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         {(audioMessages[true] || []).map((audioMessage) => {
           return (
             <MessageAudio
-              audioUri={audioMessage.uri}
-              s3Url={audioMessage.uploadURL}
+              audioRef={audioMessage.ref}
               uuid={audioMessage.uuid}
               mimeType={audioMessage.mimeType}
+              size={audioMessage.size}
             />
           );
         })}

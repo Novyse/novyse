@@ -1,6 +1,6 @@
 import React, { memo, useContext, useMemo, useEffect, useRef } from "react";
 import { View, StyleSheet, Platform } from "react-native";
-import { BlurView } from "expo-blur";
+import BlurredView from "../BlurredView";
 import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
 import Icon from "../Icon";
@@ -348,10 +348,7 @@ const VideoContent = memo(
                     style={[styles.videoStream, { objectFit: "cover" }]}
                     muted={isLocal}
                   />
-                  <BlurView
-                    experimentalBlurMethod="dimezisBlurView"
-                    intensity={100}
-                    tint="dark"
+                  <BlurredView
                     style={{
                       ...StyleSheet.absoluteFillObject,
                       borderRadius: 20,

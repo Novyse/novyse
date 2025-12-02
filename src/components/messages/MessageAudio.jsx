@@ -1,176 +1,133 @@
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { createAudioPlayer } from "expo-audio";
+import React, { useState, useEffect, useContext, useMemo } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { ThemeContext } from "@/context/ThemeContext";
 import Slider from "@react-native-community/slider";
 import Icon from "../Icon";
+import storage from "@/src/utils/storage/file";
 
-import useFiles from "@/src/hooks/chat/useFiles";
-import useWebBlob from "@src/hooks/chat/useWebBlob";
+const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
+  const [playableUri, setPlayableUri] = useState(null);
 
-const MessageAudio = ({ audioUri, s3Url, uuid, mimeType }) => {
-  const playerRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isPlayerReady, setPlayerReady] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const playbackRates = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+  // 1. Risolvi l'URI in modo asincrono
+  useEffect(() => {
+    let isMounted = true;
+    const resolveUri = async () => {
+      if (!audioRef) return;
+      try {
+        const resolved = await storage.read(audioRef);
+        if (isMounted && resolved) {
+          setPlayableUri(resolved);
+        }
+      } catch (error) {
+        console.error("Errore URI:", error);
+      }
+    };
+    resolveUri();
+    return () => {
+      isMounted = false;
+    };
+  }, [audioRef]);
 
+  // 2. Inizializza il player
+  const player = useAudioPlayer(playableUri);
+  const status = useAudioPlayerStatus(player);
   const { theme } = useContext(ThemeContext);
   const styles = useMemo(() => createStyle(theme), [theme]);
 
-  const { name, size, state, loading, error } = useFiles(
-    audioUri,
-    s3Url,
-    uuid,
-    mimeType
-  );
+  // 3. LOGICA DI SICUREZZA PER LA DURATA
+  // Se la durata è null, undefined, Infinity o NaN, usiamo 0.
+  const isValidDuration =
+    status.duration && Number.isFinite(status.duration) && status.duration > 0;
+  const safeDuration = isValidDuration ? status.duration : 0;
 
-  const formatFileSize = (size) => {
-    if (!size || isNaN(size)) return "0 B";
-    const i = Math.floor(Math.log(size) / Math.log(1024));
-    const sizes = ["B", "KB", "MB", "GB", "TB"];
-    return (size / Math.pow(1024, i)).toFixed(2) + " " + sizes[i];
+  // Lo stato "Ready" è vero solo se caricato E se abbiamo una durata valida (opzionale: o se sta facendo buffering)
+  const isReady = playableUri && status.isLoaded;
+
+  const handlePlayPause = () => {
+    if (player.playing) {
+      player.pause();
+    } else {
+      player.play();
+    }
   };
 
-  useEffect(() => {
-    if (!audioUri) return;
-
-    // Crea il player con l'URI dinamico
-    const newPlayer = createAudioPlayer(useWebBlob(audioUri));
-    playerRef.current = newPlayer;
-
-    const listener = newPlayer.addListener("playbackStatusUpdate", (status) => {
-      // Verifica se il file è caricato o se c'è un errore
-      if (status.isLoaded || status.playing) {
-        // Aggiunto check playing per robustezza
-        setPlayerReady(true);
-
-        // Recupera la posizione corrente (default 0)
-        setPosition(status.currentTime || 0);
-
-        // LOGICA MIGLIORATA PER LA DURATA:
-        // 1. Prova a prendere la durata dallo status
-        // 2. Se è 0 o mancante, prova a chiederla direttamente al player
-        // 3. Mantieni la vecchia durata se quella nuova è 0 (per evitare sfarfallii)
-        let currentDuration = status.duration || newPlayer.duration || 0;
-
-        // Se la durata è > 0, aggiorna lo stato
-        if (currentDuration > 0) {
-          setDuration(currentDuration);
-        }
-
-        setIsPlaying(status.playing);
-
-        if (status.didJustFinish) {
-          playerRef.current?.seekTo(0);
-          setIsPlaying(false);
-          setPosition(0); // Reset visivo posizione
-        }
-      }
-
-      if (status.error) {
-        console.error("[MessageAudio] Errore di riproduzione:", status.error);
-      }
-    });
-
-    return () => {
-      listener.remove();
-      playerRef.current?.remove();
-    };
-  }, [audioUri]);
-
-  const handlePlaybackRateChange = useCallback(() => {
-    if (!playerRef.current) return;
-    try {
-      const currentIndex = playbackRates.indexOf(playbackRate);
-      const nextIndex = (currentIndex + 1) % playbackRates.length;
-      const newRate = playbackRates[nextIndex];
-      setPlaybackRate(newRate);
-      playerRef.current.setPlaybackRate(newRate);
-    } catch (error) {
-      console.error("[MessageAudio] Errore cambio playback rate:", error);
+  const handleSeek = (value) => {
+    // Evita seek se la durata non è ancora calcolata
+    if (safeDuration > 0) {
+      player.seekTo(value);
     }
-  }, [playbackRate]);
+  };
 
-  const handlePlayPause = useCallback(() => {
-    if (!playerRef.current) return;
-    try {
-      if (isPlaying) {
-        playerRef.current.pause();
-      } else {
-        playerRef.current.play();
-      }
-    } catch (error) {
-      console.error("[MessageAudio] Errore play/pause:", error);
-    }
-  }, [isPlaying]);
+  // Funzione formattazione "corazzata" contro errori
+  const formatTime = (seconds) => {
+    if (!seconds || isNaN(seconds) || !isFinite(seconds)) return "00:00";
 
-  const handleSeek = useCallback((value) => {
-    if (!playerRef.current) return;
-    playerRef.current.seekTo(value);
-    setPosition(value); // Aggiornamento ottimistico UI
-  }, []);
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
 
-  const formatTime = (timeInSeconds) => {
-    if (isNaN(timeInSeconds) || timeInSeconds === null) return "00:00";
-
-    // Arrotonda per difetto per evitare millesimi di secondo
-    const seconds = Math.floor(timeInSeconds);
-    const minutes = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const remainingSeconds = (seconds % 60).toString().padStart(2, "0");
-    return `${minutes}:${remainingSeconds}`;
+  const formatFileSize = (size) => {
+    if (!size) return "0 B";
+    const i = Math.floor(Math.log(size) / Math.log(1024));
+    return (
+      (size / Math.pow(1024, i)).toFixed(2) + " " + ["B", "KB", "MB", "GB"][i]
+    );
   };
 
   return (
     <View style={styles.container}>
       <Pressable
         onPress={handlePlayPause}
-        disabled={!isPlayerReady}
+        disabled={!isReady}
         style={styles.playPauseButton}
       >
-        <Icon
-          name={isPlaying ? "PauseIcon" : "PlayIcon"}
-          style={{ width: 15, height: 15, tintColor: "#fff" }}
-        />
+        {!isReady ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Icon
+            name={player.playing ? "PauseIcon" : "PlayIcon"}
+            style={{ width: 15, height: 15, tintColor: "#fff" }}
+          />
+        )}
       </Pressable>
+
       <View style={styles.progressContainer}>
         <Slider
           style={styles.slider}
           minimumValue={0}
-          maximumValue={duration > 0 ? duration : 1} // Evita bug visivi se durata è 0
-          value={position}
+          // Se la durata è invalida, mettiamo 1 per evitare crash, ma lo slider non si muoverà correttamente finché non è caricato
+          maximumValue={safeDuration > 0 ? safeDuration : 1}
+          value={status.currentTime}
           onSlidingComplete={handleSeek}
-          disabled={!isPlayerReady}
+          // Disabilita lo slider se la durata è Infinity o 0
+          disabled={!isReady || !isValidDuration}
           minimumTrackTintColor="#0088cc"
           maximumTrackTintColor="#d3d3d3"
           thumbTintColor="#0088cc"
         />
         <View style={styles.textContainer}>
-          <Text style={styles.durationText} selectable={false}>
-            {formatTime(position)} / {formatTime(duration)}
+          <Text style={styles.durationText}>
+            {/* Qui mostriamo 00:00 se safeDuration è 0/Infinity */}
+            {formatTime(status.currentTime)} / {formatTime(safeDuration)}
           </Text>
-          <Text style={styles.sizeText} selectable={false}>
-            {formatFileSize(size)}
-          </Text>
+          <Text style={styles.sizeText}>{formatFileSize(size)}</Text>
+
           <Pressable
-            onPress={handlePlaybackRateChange}
-            disabled={!isPlayerReady}
+            onPress={() =>
+              player.setPlaybackRate(player.playbackRate === 1 ? 1.5 : 1)
+            }
             style={styles.playbackRateButton}
+            disabled={!isReady}
           >
-            <Text style={styles.playbackRateText} selectable={false}>
-              {playbackRate}x
-            </Text>
+            <Text style={styles.playbackRateText}>{player.playbackRate}x</Text>
           </Pressable>
         </View>
       </View>
@@ -193,6 +150,8 @@ function createStyle(theme) {
       marginRight: 10,
       justifyContent: "center",
       alignItems: "center",
+      width: 32,
+      height: 32, // Importante fissare dim per evitare salti col loader
     },
     progressContainer: {
       flex: 1,
@@ -213,6 +172,7 @@ function createStyle(theme) {
       fontSize: 12,
       color: theme.text,
       textAlign: "left",
+      fontVariant: ["tabular-nums"], // Mantiene i numeri fermi evitando sfarfallii
     },
     sizeText: {
       fontSize: 12,

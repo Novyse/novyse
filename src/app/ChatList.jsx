@@ -303,14 +303,29 @@ const ChatList = ({
   );
 };
 
-// ... (la funzione createStyle rimane invariata) ...
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
-    chatListContainer: { flex: 1, position: "relative" },
-    chatListWrapper: { flex: 1, position: "relative", paddingBottom: 10 },
-    flatList: { flex: 1 },
-    flatListContent: { padding: 10, gap: 10 },
-    chatItem: { borderRadius: 15, height: 65 },
+    chatListContainer: {
+      flex: 1,
+      position: "relative",
+    },
+    chatListWrapper: {
+      flex: 1,
+      position: "relative",
+      paddingBottom: 10,
+    },
+    flatList: {
+      flex: 1,
+      paddingTop: 60
+    },
+    flatListContent: {
+      padding: 10,
+      gap: 10,
+    },
+    chatItem: {
+      borderRadius: 15,
+      height: 65,
+    },
     chatItemPressable: {
       flexDirection: "row",
       alignItems: "center",
@@ -319,19 +334,47 @@ function createStyle(theme, colorScheme) {
       flex: 1,
       borderRadius: 15,
     },
-    avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
-    logo: { width: 24, height: 24 },
-    chatTitle: { fontSize: 16, fontWeight: "bold", color: theme.text },
-    chatSubtitle: { fontSize: 14, color: theme.text },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 10,
+    },
+    logo: {
+      width: 24,
+      height: 24,
+    },
+    chatTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: theme.text,
+    },
+    chatSubtitle: {
+      fontSize: 14,
+      color: theme.text,
+    },
     chatItemGrid: {
       flexDirection: "row",
       flex: 1,
       justifyContent: "space-between",
     },
-    leftContainer: { flex: 1, flexDirection: "column" },
-    rightContainer: { flexDirection: "column", alignItems: "flex-end" },
-    gridText: { fontSize: 14, color: theme.text },
-    headerTitle: { color: theme.text, fontSize: 18, fontWeight: "bold" },
+    leftContainer: {
+      flex: 1,
+      flexDirection: "column",
+    },
+    rightContainer: {
+      flexDirection: "column",
+      alignItems: "flex-end",
+    },
+    gridText: {
+      fontSize: 14,
+      color: theme.text,
+    },
+    headerTitle: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
     ball: {
       borderRadius: 10,
       width: 20,
@@ -340,7 +383,11 @@ function createStyle(theme, colorScheme) {
       alignItems: "center",
       backgroundColor: theme.badgeColor,
     },
-    ballText: { textAlign: "center", color: theme.text, fontSize: 12 },
+    ballText: {
+      textAlign: "center",
+      color: theme.text,
+      fontSize: 12,
+    },
     dateContainer: {
       flexDirection: "row",
       alignItems: "center",

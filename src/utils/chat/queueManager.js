@@ -1,7 +1,8 @@
 import gateway from "../backend-services/api-gateway.js";
-import Database from "../storage/database.js";
+import Database from "../storage/database";
 import eventEmitter from "../global/Events/EventEmitter.js";
-import S3Uploader from "../file/s3Bucket.js";
+import S3Uploader from "../storage/file/s3Bucket.js";
+import storage from "../storage/file";
 
 class QueueManager {
   constructor() {
@@ -93,10 +94,16 @@ class QueueManager {
         const { chatUUID, content, type = "message" } = job.params;
 
         let files = [];
-        // Remove files uri before sending
+
         if (job.params.files && job.params.files.length > 0) {
+          for (const file of job.params.files) {
+            const { ref, size } = await storage.save(file.uri, file.isInternal);
+            file.ref = ref;
+            file.size = size;
+          }
+          // Remove files ( uri, ref, isInternal ) before sending
           files = job.params.files.map((file) => {
-            const { uri, ...rest } = file;
+            const { uri, ref, isInternal, ...rest } = file;
             return rest;
           });
         }
@@ -112,13 +119,13 @@ class QueueManager {
           console.log("Job completed successfully:", job.id);
 
           if (message.files && message.files.length > 0) {
-            // Update files with uris from original job
+            // Update files with refs from original job
             for (let i = 0; i < message.files.length; i++) {
               const originalFile = job.params.files.find(
                 (f) => f.id === message.files[i].id
               );
               if (originalFile) {
-                message.files[i].uri = originalFile.uri;
+                message.files[i].ref = originalFile.ref;
                 message.files[i].mimeType = originalFile.mimeType;
               }
             }
@@ -148,20 +155,19 @@ class QueueManager {
         // Upload every file to S3 Bucket
         const { files } = job.params;
         for (const file of files) {
-          if (file.uri) {
-            await S3Uploader.upload(file.uri, file.uploadURL, this.notifyProgress);
+          if (file.ref) {
+            const uri = await storage.read(file.ref);
+            await S3Uploader.upload(file.uploadURL, uri, this.notifyProgress);
           }
         }
 
         // After all files are uploaded, upload job to confirm
         await this.moveJobToConfirm(job.id);
         console.log("Files uploaded, moved job to confirm:", job.id);
-
       } else if (job.type === "confirm") {
         const { messageUUID } = job.params;
         const result = await gateway.message.confirm(messageUUID);
         success = result.success;
-        // DA CAPIRE DADDY @SamueleOrazioDurante
         if (success) {
           console.log("Job completed successfully:", job.id);
           // Notify that message was sent successfully

@@ -2,13 +2,9 @@ import React, { useContext } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 
-import useFiles from "@/src/hooks/chat/useFiles";
-
-const MessageOther = ({ fileUri, s3Url, uuid, mimeType }) => {
+const MessageOther = ({ fileUri, uuid, mimeType, size }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-
-    const { name, size, state, loading, error } = useFiles(fileUri, s3Url, uuid, MimeType);
 
   // Funzione per formattare la dimensione del file (es. in KB o MB)
   const formatFileSize = (size) => {
@@ -26,7 +22,7 @@ const MessageOther = ({ fileUri, s3Url, uuid, mimeType }) => {
       </View>
       <View style={styles.detailsContainer}>
         <Text style={styles.name} numberOfLines={1}>
-          {name}
+          {fileUri}
         </Text>
         <Text style={styles.fileSize}>{formatFileSize(size)}</Text>
       </View>

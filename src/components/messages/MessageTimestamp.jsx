@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Text, StyleSheet } from "react-native";
+import { Text, StyleSheet, View } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "../Icon";
 import moment from "moment";
@@ -15,13 +15,19 @@ const MessageTimestamp = ({ time }) => {
   };
 
   if (parseTime(time) === "") {
-    return <Icon name={"Clock01Icon"} size={14} style={styles.clockIcon}/>;
+    return (
+      <View style={styles.alignContainer}>
+        <Icon name={"Clock01Icon"} size={14} />
+      </View>
+    );
   }
 
   return (
-    <Text style={styles.timeText} selectable={false}>
-      {parseTime(time)}
-    </Text>
+    <View style={styles.alignContainer}>
+      <Text style={styles.timeText} selectable={false}>
+        {parseTime(time)}
+      </Text>
+    </View>
   );
 };
 
@@ -31,14 +37,11 @@ const createStyle = (theme) =>
       color: theme.textTime,
       fontSize: 12,
       marginLeft: 4,
-      alignSelf: "flex-end",
       minWidth: 35,
-      textAlign: "right",
     },
-    clockIcon: {
+    alignContainer: {
       alignSelf: "flex-end",
-      backgroundColor: "red"
-    }
+    },
   });
 
 export default MessageTimestamp;

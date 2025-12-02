@@ -12,7 +12,7 @@ import MicrophoneSelector from "./MicrophoneSelector";
 import MicrophoneArrowButton from "./MicrophoneArrowButton";
 import CameraSelector from "./CameraSelector";
 import CameraArrowButton from "./CameraArrowButton";
-import { BlurView } from "expo-blur";
+import BlurredView from "../BlurredView";
 import { useRouter } from "expo-router";
 
 import methods from "../../utils/webrtc/methods";
@@ -225,7 +225,7 @@ const VocalContentBottomBar = ({ commUUID }) => {
           />
         )
       ) : Platform.OS === "web" ? (
-        <BlurView intensity={30} tint="light" style={styles.blurContainer}>
+        <BlurredView style={styles.blurContainer}>
           <View style={styles.container}>
             <View style={styles.microphoneButtonContainer}>
               <VocalBottomBarButton
@@ -262,7 +262,7 @@ const VocalContentBottomBar = ({ commUUID }) => {
               hoverColor={theme.iconCommsOutHover}
             />
           </View>
-        </BlurView>
+        </BlurredView>
       ) : (
         <View style={styles.container}>
           <View style={styles.microphoneButtonContainer}>

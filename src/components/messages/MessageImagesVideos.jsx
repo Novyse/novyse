@@ -2,20 +2,11 @@ import React, { useState } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import { Image } from "expo-image";
 
-import useFiles from "@/src/hooks/chat/useFiles";
-
 const { width: screenWidth } = Dimensions.get("window");
 const maxBubbleWidth = screenWidth * 1;
 
-const MessageImagesVideos = ({ mediaUris, s3Url, uuid, mimeType }) => {
+const MessageImagesVideos = ({ mediaUris, uuid, mimeType, size }) => {
   const [mediaDimensions, setMediaDimensions] = useState({});
-
-  const { name, size, state, loading, error } = useFiles(
-    mediaUris[0],
-    s3Url,
-    uuid,
-    mimeType
-  );
 
   const renderGridCell = (item, index, cellStyle) => {
     return (

@@ -1,21 +1,25 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import BlurredView from './BlurredView';
 
 const HeaderBase = ({ children, style }) => {
   return (
-    <View style={[styles.container, style]}>
+    <BlurredView style={[styles.container, style]}>
       {children}
-    </View>
+    </BlurredView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    width: "100%",
     padding: 10,
     height: 60,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    position: "absolute",
+    zIndex: 999
   },
 });
 

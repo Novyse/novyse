@@ -131,7 +131,8 @@ class Database {
             CREATE TABLE IF NOT EXISTS pending_file (
                 index INTEGER NOT NULL,
                 pendingMessageID TEXT NOT NULL,
-                uri TEXT NOT NULL,
+                uri TEXT,
+                ref TEXT,
                 mimeType TEXT NOT NULL,
                 uuid TEXT,
                 s3Url TEXT,
@@ -520,15 +521,16 @@ class Database {
         `UPDATE pending_message SET id = ?, jobType = 'upload' WHERE id = ?;`,
         [newPendingMessageUUID, pendingMessageID]
       );
-      // Update pending_file table with new pendingMessageID and set s3Url to uploadURL
+      // Update pending_file table with new pendingMessageID, set s3Url to uploadURL and set new ref, removing the old uri
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         await this.db.runAsync(
-          `UPDATE pending_file SET pendingMessageID = ?, uuid = ?, s3Url = ? WHERE index = ? AND pendingMessageID = ?;`,
+          `UPDATE pending_file SET pendingMessageID = ?, uuid = ?, s3Url = ?, ref = ?, uri = null WHERE index = ? AND pendingMessageID = ?;`,
           [
             newPendingMessageUUID,
             file.uuid || null,
             file.s3Url || null,
+            file.ref || null,
             i,
             pendingMessageID,
           ]

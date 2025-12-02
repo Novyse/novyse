@@ -126,7 +126,7 @@ const AppContainer = () => {
 
   useEffect(() => {
     const initializeQueueManager = async () =>
-      await queueManager.initialize(() => false);
+      await queueManager.initialize(() => isConnected);
     initializeQueueManager();
   }, [isConnected]);
 
@@ -370,7 +370,7 @@ function createStyle(theme, colorScheme) {
     largeScreenChatList: {
       flex: 0,
       width: 330,
-      borderRightWidth: 1,
+      borderRightWidth: 0,
       borderRightColor: theme.backgroundDivider,
     },
     chatContent: {

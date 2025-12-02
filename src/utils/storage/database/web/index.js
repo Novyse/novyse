@@ -465,6 +465,8 @@ class Database {
             pending_files[fileIndex].pendingMessageID = newPendingMessageUUID;
             pending_files[fileIndex].uuid = file.uuid || null;
             pending_files[fileIndex].s3Url = file.s3Url || null;
+            pending_files[fileIndex].ref = file.ref || null;
+            pending_files[fileIndex].uri = null;
           }
         }
         await this.store.setItem("pending_files", pending_files);

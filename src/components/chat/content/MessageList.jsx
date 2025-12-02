@@ -7,6 +7,8 @@ const createStyle = (theme) =>
   StyleSheet.create({
     list: {
       flex: 1,
+      paddingTop: 50,
+      paddingBottom: 50,
       ...(Platform.OS === "web" && {
         scrollbarWidth: "thin",
         scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,

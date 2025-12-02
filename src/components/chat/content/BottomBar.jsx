@@ -19,7 +19,7 @@ import {
   setAudioModeAsync,
   useAudioRecorderState,
 } from "expo-audio";
-import { WebBlobManager } from "@/src/utils/file";
+import BlurredView from "../../BlurredView";
 
 import RecordingBar from "./RecordingBar"; // Importa il file creato sopra
 
@@ -37,7 +37,6 @@ const BottomBar = ({
   onJoin,
   theme,
   setBottomBarHeight,
-  onSendVoiceMessage,
 }) => {
   const styles = createStyle(theme);
   const showInputBar =
@@ -111,48 +110,24 @@ const BottomBar = ({
   // Stop e Invia (Click sul pulsante Send durante rec)
   const handleStopAndSend = async () => {
     if (!isRecording) return;
-  
+
     try {
       await audioRecorder.stop();
-      // Questo è l'URI volatile (blob:...) che sparisce al refresh
-      const tempUri = audioRecorder.uri; 
-  
+      const tempUri = audioRecorder.uri;
+
       setIsRecording(false);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-  
+
       if (onSendMessage && tempUri) {
-        let finalFile = {
-          name: "voice_message.ogg", // Nome di default per mobile
-          uri: tempUri,
-          size: 0,
-          mimeType: "audio/ogg"
-        };
-  
-        // --- LOGICA DI PERSISTENZA WEB ---
-        if (Platform.OS === 'web') {
-          // Generiamo un nome unico per evitare di sovrascrivere vecchi audio
-          const uniqueName = `rec_${Date.now()}.ogg`;
-          
-          // SALVIAMO ORA: Prende il tempUri, lo scrive su DB e ci ridà i dati
-          const savedRecord = await WebBlobManager.save(tempUri, uniqueName);
-          
-          // Sovrascriviamo l'oggetto finale con i dati del DB
-          finalFile = {
-            name: savedRecord.name,
-            uri: savedRecord.uri,
-            size: savedRecord.size,
-            mimeType: "audio/ogg"
-          };
-        } else {
-          // Logica Mobile (rimane invariata, calcoli solo la size)
-          const sizeInBytes = await getAudioFileSize(tempUri);
-          finalFile.size = sizeInBytes;
-        }
-  
-        // Creiamo l'array come serviva a te
-        const files = [ finalFile ];
-  
-        // Inviamo il messaggio con il file che ora è "sicuro" nel DB
+        const files = [
+          {
+            name: `recording_${Date.now()}.ogg`,
+            uri: tempUri,
+            mimeType: "audio/ogg",
+            isInternal: true,
+          },
+        ];
+
         onSendMessage("message", "", files);
       }
     } catch (err) {
@@ -197,11 +172,13 @@ const BottomBar = ({
         <>
           {/* 1. Icona Menu (+) */}
           <Animated.View style={[styles.icon, animatedStyle]}>
-            <Icon
-              name="PlusSignIcon"
-              onPress={isRecording ? null : onToggleMenu} // Disabilita click se registra
-              style={{ opacity: isRecording ? 0.3 : 1 }}
-            />
+            <BlurredView style={styles.rightLeftButtons}>
+              <Icon
+                name="PlusSignIcon"
+                onPress={isRecording ? null : onToggleMenu} // Disabilita click se registra
+                style={{ opacity: isRecording ? 0.3 : 1 }}
+              />
+            </BlurredView>
           </Animated.View>
 
           {/* 2. AREA CENTRALE: Switch tra TextInput e RecordingBar */}
@@ -212,10 +189,7 @@ const BottomBar = ({
               theme={theme}
             />
           ) : (
-            <LinearGradient
-              colors={theme.backgroundChatTextInputGradient}
-              style={styles.textInputContainer}
-            >
+            <BlurredView style={styles.textInputContainer}>
               <TextInput
                 ref={textInputRef}
                 style={styles.textInput}
@@ -225,7 +199,9 @@ const BottomBar = ({
                 placeholder={"Scrivi un messaggio..."}
                 placeholderTextColor={theme.placeholderText}
                 onSubmitEditing={
-                  Platform.OS === "web" ? () => onSendMessage("message", newMessageText) : undefined
+                  Platform.OS === "web"
+                    ? () => onSendMessage("message", newMessageText)
+                    : undefined
                 }
                 onFocus={onInputFocus}
               />
@@ -234,11 +210,11 @@ const BottomBar = ({
                 style={styles.icon}
                 onPress={onToggleEmoji}
               />
-            </LinearGradient>
+            </BlurredView>
           )}
 
           {/* 3. PULSANTE DESTRO: Cambia funzione dinamicamente */}
-          <View style={styles.rightButtonContainer}>
+          <BlurredView style={styles.rightLeftButtons}>
             {isRecording ? (
               // Caso A: Sta registrando
 
@@ -263,7 +239,7 @@ const BottomBar = ({
                 style={styles.icon}
               />
             )}
-          </View>
+          </BlurredView>
         </>
       ) : (
         <Pressable onPress={onJoin} style={styles.joinButton}>
@@ -289,16 +265,20 @@ const createStyle = (theme) =>
       flexDirection: "row",
       alignItems: "center",
       minHeight: 55,
-      backgroundColor: theme.background, // Assicura che la barra abbia il colore di sfondo corretto
+      backgroundColor: theme.background,
+      position: "absolute",
+      bottom: 0,
     },
     textInputContainer: {
       flex: 1, // Occupa lo spazio centrale
       flexDirection: "row",
       alignItems: "center",
-      borderRadius: 20,
+      borderRadius: 100,
       paddingHorizontal: 5,
       marginHorizontal: 5,
       minHeight: 45,
+      borderColor: "#ffffff1e",
+      borderWidth: 1,
     },
     textInput: {
       flex: 1,
@@ -316,10 +296,14 @@ const createStyle = (theme) =>
       alignItems: "center",
       marginHorizontal: 5,
     },
-    rightButtonContainer: {
+    rightLeftButtons: {
       justifyContent: "center",
       alignItems: "center",
       width: 45,
+      height: 45,
+      flexDirection: "row",
+      alignItems: "center",
+      borderRadius: "50%",
     },
     sendAudioButton: {
       width: 40,
