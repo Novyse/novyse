@@ -797,7 +797,8 @@ const gateway = {
           messageUUID,
         });
         const success = response.data.success;
-        return { success };
+        const message = response.data.data;
+        return { success, message };
       } catch (error) {
         console.error("Error in message.confirm:", error);
         throw error;

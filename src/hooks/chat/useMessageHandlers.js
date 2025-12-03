@@ -217,9 +217,11 @@ const useMessageHandlers = (
         const filteredMessages = currentMessages.filter(
           (msg) => msg.id !== message.id
         );
-        // Then replace the tempId with the new message
+        // Then replace the tempId with the new message, setting only id and timestamp, rest undefined
         return filteredMessages.map((msg) =>
-          msg.id === tempId ? { ...message } : msg
+          msg.id === tempId
+            ? { id: message.id, created_at: message.created_at, ...msg }
+            : msg
         );
       });
     };

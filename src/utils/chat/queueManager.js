@@ -166,14 +166,14 @@ class QueueManager {
         console.log("Files uploaded, moved job to confirm:", job.id);
       } else if (job.type === "confirm") {
         const { messageUUID } = job.params;
-        const result = await gateway.message.confirm(messageUUID);
-        success = result.success;
+        const { success, message } = await gateway.message.confirm(messageUUID);
         if (success) {
           console.log("Job completed successfully:", job.id);
+
           // Notify that message was sent successfully
           eventEmitter.getEmitter().emit("messageSent", {
             tempId: job.id,
-            message: result,
+            message,
           });
 
           this.queue.shift(); // Remove completed job
