@@ -220,7 +220,7 @@ const useMessageHandlers = (
         // Then replace the tempId with the new message, setting only id and timestamp, rest undefined
         return filteredMessages.map((msg) =>
           msg.id === tempId
-            ? { id: message.id, created_at: message.created_at, ...msg }
+            ? { ...msg, id: message.id, created_at: message.created_at }
             : msg
         );
       });
@@ -229,7 +229,7 @@ const useMessageHandlers = (
     const handleMessageUploading = ({ tempId, message }) => {
       setMessages((currentMessages) => {
         return currentMessages.map((msg) =>
-          msg.id === tempId ? { id: message.messageUUID, ...message } : msg
+          msg.id === tempId ? { ...message, id: message.messageUUID } : msg
         );
       });
     };

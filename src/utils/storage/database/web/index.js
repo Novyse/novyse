@@ -261,6 +261,40 @@ class Database {
       });
       await this.store.setItem("messages", messages);
 
+      // Add files to files table and message_files table if present
+      if (message.files && Array.isArray(message.files)) {
+        const files = (await this.store.getItem("files")) || [];
+        const message_files = (await this.store.getItem("message_files")) || [];
+        for (const file of message.files) {
+          // Check if file already exists
+          const existingFile = files.find((f) => f.uuid === file.uuid);
+          if (!existingFile) {
+            files.push({
+              uuid: file.uuid,
+              ref: file.ref,
+              mimeType: file.mimeType,
+              size: file.size,
+            });
+          }
+          // Check if message_file association already exists
+          const existingMessageFile = message_files.find(
+            (mf) =>
+              mf.chatUUID === message.chatUUID &&
+              mf.messageID === message.id &&
+              mf.fileUUID === file.uuid
+          );
+          if (!existingMessageFile) {
+            message_files.push({
+              chatUUID: message.chatUUID,
+              messageID: message.id,
+              fileUUID: file.uuid,
+            });
+          }
+        }
+        await this.store.setItem("files", files);
+        await this.store.setItem("message_files", message_files);
+      }
+
       console.log("Message added successfully.", message.id);
 
       return true;
@@ -495,14 +529,17 @@ class Database {
         console.error("Missing pending message ID to update to confirm.");
         return false;
       }
-      const pending_messages = (await this.store.getItem("pending_messages")) || [];
+      const pending_messages =
+        (await this.store.getItem("pending_messages")) || [];
       const messageIndex = pending_messages.findIndex(
         (pm) => pm.id === pendingMessageID
       );
       if (messageIndex !== -1) {
         pending_messages[messageIndex].jobType = "confirm";
         await this.store.setItem("pending_messages", pending_messages);
-        console.log(`Pending message ${pendingMessageID} updated to confirm successfully.`);
+        console.log(
+          `Pending message ${pendingMessageID} updated to confirm successfully.`
+        );
         return true;
       }
       console.log(`Pending message ${pendingMessageID} not found.`);
@@ -615,6 +652,8 @@ class Database {
     try {
       const messages = (await this.store.getItem("messages")) || [];
       const users = (await this.store.getItem("users")) || [];
+      const message_files = (await this.store.getItem("message_files")) || [];
+      const files = (await this.store.getItem("files")) || [];
       const chatMessages = messages
         .filter((m) => m.chatUUID === chatUUID)
         .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
@@ -622,6 +661,16 @@ class Database {
           const sender = users.find((u) => u.uuid === m.senderUUID);
           return { ...m, sender_name: sender ? sender.name : null };
         });
+      // Add files to each message
+      for (const message of chatMessages) {
+        const msgFiles = message_files
+          .filter(
+            (mf) => mf.chatUUID === chatUUID && mf.messageID === message.id
+          )
+          .map((mf) => files.find((f) => f.uuid === mf.fileUUID))
+          .filter(Boolean);
+        message.files = msgFiles;
+      }
       return chatMessages;
     } catch (error) {
       console.error("Error retrieving messages by chat UUID:", error);

@@ -26,11 +26,15 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
   // Render Header con pulsanti per switch view
   const renderChatHeader = () => (
     <HeaderBase style={styles.chatHeader}>
-      <BlurredView>
         {isSmallScreen && onBack && (
-          <Icon name={"ArrowLeft02Icon"} onPress={onBack} style={styles.icon} />
+          <BlurredView>
+            <Icon
+              name={"ArrowLeft02Icon"}
+              onPress={onBack}
+              style={styles.icon}
+            />
+          </BlurredView>
         )}
-      </BlurredView>
       <BlurredView style={styles.chatInfoContainer}>
         <Image
           source={{ uri: "https://picsum.photos/200" }} // Placeholder avatar
@@ -125,7 +129,7 @@ function createStyle(theme) {
   return StyleSheet.create({
     chatContent: {
       flex: 1,
-      padding: 0,
+      paddingTop: 5,
     },
     icon: {
       width: 45,

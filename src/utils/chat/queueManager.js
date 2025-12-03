@@ -127,26 +127,24 @@ class QueueManager {
               if (originalFile) {
                 message.files[i].ref = originalFile.ref;
                 message.files[i].mimeType = originalFile.mimeType;
+                message.files[i].size = originalFile.size;
               }
             }
           }
 
           if (message.status === "sent") {
             // Notify that message was sent successfully
-            eventEmitter.getEmitter().emit("messageSent", {
-              tempId: job.id,
-              message,
-            });
+            await this.messageSent(job.id, message);
 
             this.queue.shift(); // Remove completed job
             await this.removeJob(job.id);
           } else if (message.status === "pending") {
             // If message is pending, modify the job to an upload one
-            await this.moveJobToUpload(job.id, message);
             eventEmitter.getEmitter().emit("messageUploading", {
               tempId: job.id,
               message,
             });
+            await this.moveJobToUpload(job.id, message);
           } else {
             throw new Error("Message sending failed");
           }
@@ -163,18 +161,18 @@ class QueueManager {
 
         // After all files are uploaded, upload job to confirm
         await this.moveJobToConfirm(job.id);
+
         console.log("Files uploaded, moved job to confirm:", job.id);
       } else if (job.type === "confirm") {
         const { messageUUID } = job.params;
+
         const { success, message } = await gateway.message.confirm(messageUUID);
         if (success) {
           console.log("Job completed successfully:", job.id);
 
           // Notify that message was sent successfully
-          eventEmitter.getEmitter().emit("messageSent", {
-            tempId: job.id,
-            message,
-          });
+          message.files = job.params.files;
+          await this.messageSent(job.id, message);
 
           this.queue.shift(); // Remove completed job
           await this.removeJob(job.id);
@@ -281,7 +279,10 @@ class QueueManager {
     if (jobIndex !== -1) {
       const messageUUID = this.queue[jobIndex].id;
       this.queue[jobIndex].type = "confirm";
-      this.queue[jobIndex].params = { messageUUID };
+      this.queue[jobIndex].params = {
+        messageUUID,
+        files: this.queue[jobIndex].params.files,
+      };
 
       console.log("Job modified to confirm:", jobId);
 
@@ -330,6 +331,12 @@ class QueueManager {
     } catch (error) {
       console.error("Error loading queue from database:", error);
     }
+  }
+
+  async messageSent(tempId, message) {
+    const database = await Database.create();
+    await database.addMessage(message);
+    eventEmitter.getEmitter().emit("messageSent", { tempId, message });
   }
 
   notifyProgress(progress) {

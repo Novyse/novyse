@@ -88,8 +88,8 @@ class Database {
 
             CREATE TABLE IF NOT EXISTS file (
                 uuid TEXT PRIMARY KEY,
-                uri TEXT NOT NULL UNIQUE,
-                mime_type TEXT NOT NULL,
+                ref TEXT NOT NULL,
+                mimeType TEXT NOT NULL,
                 size INTEGER NOT NULL,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
@@ -109,9 +109,11 @@ class Database {
             );
 
             CREATE TABLE IF NOT EXISTS message_files (
+                chatUUID TEXT NOT NULL,
                 messageID INTEGER NOT NULL,
                 fileUUID TEXT NOT NULL,
-                PRIMARY KEY (messageID, fileUUID),
+                PRIMARY KEY (chatUUID, messageID, fileUUID),
+                FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
                 FOREIGN KEY (messageID) REFERENCES message(id),
                 FOREIGN KEY (fileUUID) REFERENCES file(uuid)
             );
@@ -346,6 +348,21 @@ class Database {
           message.isPinned ? 1 : 0,
         ]
       );
+
+      // Add files to file table and message_files table if present
+      if (message.files && Array.isArray(message.files)) {
+        for (const file of message.files) {
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO file (uuid, ref, mimeType, size) VALUES (?, ?, ?, ?);`,
+            [file.uuid, file.ref, file.mimeType, file.size]
+          );
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES (?, ?);`,
+            [message.chatUUID, message.id, file.uuid]
+          );
+        }
+      }
+
       console.log("Message added or already exists.", message.id);
       return true;
     } catch (error) {
@@ -689,6 +706,16 @@ class Database {
                 ORDER BY m.created_at ASC;`,
         [chatUUID]
       );
+      // Add files to each message
+      for (const message of messages) {
+        const files = await this.db.getAllAsync(
+          `SELECT f.* FROM file f
+         JOIN message_files mf ON f.uuid = mf.fileUUID
+         WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
+          [chatUUID, message.id]
+        );
+        message.files = files;
+      }
       return messages;
     } catch (error) {
       console.error("Error retrieving messages by chat UUID:", error);

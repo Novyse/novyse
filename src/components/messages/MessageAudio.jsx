@@ -150,8 +150,6 @@ function createStyle(theme) {
       marginRight: 10,
       justifyContent: "center",
       alignItems: "center",
-      width: 32,
-      height: 32, // Importante fissare dim per evitare salti col loader
     },
     progressContainer: {
       flex: 1,
@@ -172,7 +170,7 @@ function createStyle(theme) {
       fontSize: 12,
       color: theme.text,
       textAlign: "left",
-      fontVariant: ["tabular-nums"], // Mantiene i numeri fermi evitando sfarfallii
+      fontVariant: ["tabular-nums"],
     },
     sizeText: {
       fontSize: 12,
