@@ -6,6 +6,7 @@ import {
   FlatList,
   Image,
   Platform,
+  useWindowDimensions,
 } from "react-native";
 import moment from "moment";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -19,6 +20,7 @@ import useChats from "../hooks/chat/useChats";
 import useAppInit from "../hooks/auth/useAppInit";
 import { ChatContext } from "@/context/ChatContext";
 import { UserContext } from "@/context/UserContext";
+import BlurredView from "../components/BlurredView";
 
 const PINNED_CHATS_STORAGE_KEY = "@chat_order"; // Rinominato per chiarezza
 
@@ -146,12 +148,19 @@ const ChatList = ({
 }) => {
   useAppInit(true);
   const { chatDetails } = useChats();
-  const styles = createStyle(theme, colorScheme);
+  const { width } = useWindowDimensions();
+  const [isSmallScreen, setIsSmallScreen] = useState(width < 768);
+  const styles = createStyle(theme, isSmallScreen);
 
   const [selectedItems, setSelectedItems] = useState([]);
   const [orderedChats, setOrderedChats] = useState([]);
 
   const isSelectionMode = selectedItems.length > 0;
+
+  // Aggiorna isSmallScreen quando le dimensioni cambiano
+  useEffect(() => {
+    setIsSmallScreen(width < 768);
+  }, [width]);
 
   // LOGICA SEMPLIFICATA IN UN UNICO useEffect
   useEffect(() => {
@@ -284,39 +293,58 @@ const ChatList = ({
       colors={theme?.backgroundChatListGradient}
       style={styles.chatListContainer}
     >
-      <View style={styles.chatListWrapper}>
-        {isSelectionMode ? renderSelectionHeader() : renderDefaultHeader()}
-        {!isToggleSearchChats ? (
-          <FlatList
-            style={styles.flatList}
-            contentContainerStyle={styles.flatListContent}
-            data={orderedChats}
-            keyExtractor={(item) => item.uuid}
-            renderItem={renderItem}
-            extraData={selectedItems}
-          />
-        ) : (
-          <Search />
-        )}
-      </View>
+      {!isSmallScreen ? (
+        <BlurredView style={styles.chatListWrapper}>
+          {isSelectionMode ? renderSelectionHeader() : renderDefaultHeader()}
+          {!isToggleSearchChats ? (
+            <FlatList
+              style={styles.flatList}
+              contentContainerStyle={styles.flatListContent}
+              data={orderedChats}
+              keyExtractor={(item) => item.uuid}
+              renderItem={renderItem}
+              extraData={selectedItems}
+            />
+          ) : (
+            <Search />
+          )}
+        </BlurredView>
+      ) : (
+        <View style={styles.chatListWrapper}>
+          {isSelectionMode ? renderSelectionHeader() : renderDefaultHeader()}
+          {!isToggleSearchChats ? (
+            <FlatList
+              style={styles.flatList}
+              contentContainerStyle={styles.flatListContent}
+              data={orderedChats}
+              keyExtractor={(item) => item.uuid}
+              renderItem={renderItem}
+              extraData={selectedItems}
+            />
+          ) : (
+            <Search />
+          )}
+        </View>
+      )}
     </SmartBackground>
   );
 };
 
-function createStyle(theme, colorScheme) {
+function createStyle(theme, isSmallScreen) {
   return StyleSheet.create({
     chatListContainer: {
       flex: 1,
       position: "relative",
+      padding: isSmallScreen ? 0 : 10
     },
     chatListWrapper: {
       flex: 1,
       position: "relative",
-      paddingBottom: 10,
+      borderRadius: isSmallScreen ? 0 : 15
     },
     flatList: {
       flex: 1,
-      paddingTop: 60
+      paddingTop: 60,
     },
     flatListContent: {
       padding: 10,

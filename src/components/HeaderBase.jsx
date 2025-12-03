@@ -4,9 +4,9 @@ import BlurredView from './BlurredView';
 
 const HeaderBase = ({ children, style }) => {
   return (
-    <BlurredView style={[styles.container, style]}>
+    <View style={[styles.container, style]}>
       {children}
-    </BlurredView>
+    </View>
   );
 };
 

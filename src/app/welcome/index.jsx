@@ -13,7 +13,7 @@ import {
 } from "react-native";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
-import validate from "@/src/utils/welcome/validator"
+import validate from "@/src/utils/welcome/validator";
 
 import QRCode from "react-native-qrcode-svg";
 import { LinearGradient } from "expo-linear-gradient";
@@ -124,8 +124,6 @@ const EmailCheckForm = () => {
     return () => backHandler.remove();
   }, []);
 
-  
-
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -214,15 +212,13 @@ const EmailCheckForm = () => {
         >
           {/* Email Block */}
           <View style={styles.cardContent}>
-            <Image
-              style={styles.logo}
-              source={logoNovyse}
-            />
+            <Image style={styles.logo} source={logoNovyse} />
             <Text style={styles.title}>Welcome</Text>
             <View style={styles.inputWrapper}>
               <TextInput
                 style={styles.textInput}
                 value={email}
+                autoFocus={true}
                 onChangeText={(text) => {
                   setEmail(text);
                   if (error) setError(null);

@@ -277,8 +277,6 @@ const createStyle = (theme) =>
       paddingHorizontal: 5,
       marginHorizontal: 5,
       minHeight: 45,
-      borderColor: "#ffffff1e",
-      borderWidth: 1,
     },
     textInput: {
       flex: 1,
@@ -303,7 +301,6 @@ const createStyle = (theme) =>
       height: 45,
       flexDirection: "row",
       alignItems: "center",
-      borderRadius: "50%",
     },
     sendAudioButton: {
       width: 40,

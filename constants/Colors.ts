@@ -36,6 +36,8 @@ export const Colors = {
     borderModal: "#000000",
     badgeColor: "#20566eff",
     shadowColor: "#000",
+    blurredViewTint: "default",
+    blurredViewBorder: "#ffffff1e",
 
     // Gradients
     backgroundMainGradient: ["#013480", "#177FC0"],

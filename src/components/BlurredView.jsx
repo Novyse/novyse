@@ -1,27 +1,35 @@
-import React from "react";
+import React, { useContext } from "react";
+import { StyleSheet } from "react-native";
 import { BlurView } from "expo-blur";
+import { ThemeContext } from "@/context/ThemeContext";
 
-const BlurredView = ({ children, style, intensity = 75, tint }) => {
+const BlurredView = ({
+  children,
+  style,
+  intensity = 75,
+  tint,
+}) => {
+  const { theme } = useContext(ThemeContext);
+
   return (
     <BlurView
-      style={style}
+      style={[styles(theme).container, style]}
       intensity={intensity}
       experimentalBlurMethod="dimezisBlurView"
-      tint={tint}
+      tint={tint || theme.blurredViewTint}
     >
       {children}
     </BlurView>
   );
 };
 
-// const styles = StyleSheet.create({
-//   container: {
-//     padding: 10,
-//     height: 60,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     justifyContent: 'space-between'
-//   },
-// });
+const styles = (theme) =>
+  StyleSheet.create({
+    container: {
+      borderColor: theme.blurredViewBorder,
+      borderWidth: 1,
+      borderRadius: "50%",
+    },
+  });
 
 export default BlurredView;

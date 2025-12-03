@@ -185,6 +185,7 @@ const LoginPassword = () => {
                 <TextInput
                   style={styles.textInput}
                   value={password}
+                  autoFocus={true}
                   onChangeText={(text) => {
                     setPassword(text);
                     if (error) setError(null);
