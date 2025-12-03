@@ -25,7 +25,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
 
   // Render Header con pulsanti per switch view
   const renderChatHeader = () => (
-    <HeaderBase>
+    <HeaderBase style={styles.chatHeader}>
       <BlurredView>
         {isSmallScreen && onBack && (
           <Icon name={"ArrowLeft02Icon"} onPress={onBack} style={styles.icon} />
@@ -151,6 +151,7 @@ function createStyle(theme) {
       fontWeight: "700",
     },
     chatHeader: {
+      gap: 10,
       width: "100%",
       borderBottomWidth: 1,
       alignItems: "center",
