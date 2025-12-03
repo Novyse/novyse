@@ -171,15 +171,15 @@ const BottomBar = ({
       {showInputBar ? (
         <>
           {/* 1. Icona Menu (+) */}
-          <Animated.View style={[styles.icon, animatedStyle]}>
-            <BlurredView style={styles.rightLeftButtons}>
+          <BlurredView style={styles.rightLeftButtons}>
+            <Animated.View style={animatedStyle}>
               <Icon
                 name="PlusSignIcon"
                 onPress={isRecording ? null : onToggleMenu} // Disabilita click se registra
-                style={{ opacity: isRecording ? 0.3 : 1 }}
+                style={[styles.icon, { opacity: isRecording ? 0.3 : 1 }]}
               />
-            </BlurredView>
-          </Animated.View>
+            </Animated.View>
+          </BlurredView>
 
           {/* 2. AREA CENTRALE: Switch tra TextInput e RecordingBar */}
           {isRecording ? (
@@ -288,18 +288,16 @@ const createStyle = (theme) =>
       minWidth: 30,
     },
     icon: {
-      width: 35,
-      height: 35,
+      width: 45,
+      height: 45,
       justifyContent: "center",
       alignItems: "center",
-      marginHorizontal: 5,
     },
     rightLeftButtons: {
       justifyContent: "center",
       alignItems: "center",
       width: 45,
       height: 45,
-      flexDirection: "row",
       alignItems: "center",
     },
     sendAudioButton: {

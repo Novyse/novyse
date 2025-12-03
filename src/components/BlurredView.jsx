@@ -28,7 +28,7 @@ const styles = (theme) =>
     container: {
       borderColor: theme.blurredViewBorder,
       borderWidth: 1,
-      borderRadius: "50%",
+      borderRadius: 1000,
     },
   });
 
