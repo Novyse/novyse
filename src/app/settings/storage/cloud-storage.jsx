@@ -27,7 +27,7 @@ const CloudStoragePage = () => {
 
   return (
     <ScreenLayout>
-      <HeaderWithBackArrow goBackTo="../" />
+      <HeaderWithBackArrow title={"Cloud Storage"}/>
       <SettingsPageScrollview>
         <SettingsCard>
           <StorageBreakdown storage={cloudData} />

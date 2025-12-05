@@ -25,7 +25,7 @@ const Info = () => {
 
   return (
     <ScreenLayout>
-      <HeaderWithBackArrow goBackTo="../" />
+      <HeaderWithBackArrow title={"Info"}/>
       <SettingsPageScrollview>
         {/* Sezione Informazioni Versione */}
         <SettingsCard>

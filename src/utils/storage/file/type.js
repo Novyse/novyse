@@ -78,7 +78,12 @@ const mimeToType = {
  * @returns {string} The file type category (e.g., 'IMAGE'), or 'OTHER' if not found.
  */
 function getFileType(mimeType) {
-    return mimeToType[mimeType.toLowerCase()] || 'OTHER';
+    // Protezioni: può capitare che mimeType sia undefined/null/non-string
+    if (!mimeType || typeof mimeType !== "string") return 'OTHER';
+
+    // Rimuovi eventuali parametri aggiuntivi (es. "image/jpeg; charset=utf-8")
+    const clean = mimeType.split(';')[0].trim().toLowerCase();
+    return mimeToType[clean] || 'OTHER';
 }
 
 module.exports = { getFileType };

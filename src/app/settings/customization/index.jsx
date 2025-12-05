@@ -7,7 +7,7 @@ import SettingsPageScrollview from "@/src/components/settings/SettingsPageScroll
 const PrivacyAndSecurityMenu = () => {
   return (
     <ScreenLayout>
-      <HeaderWithBackArrow goBackTo="../" />
+      <HeaderWithBackArrow title={"Customization"}/>
       <SettingsPageScrollview isMenu={true}>
         <SettingsMenuItem
           navToPage="./customization/themes"

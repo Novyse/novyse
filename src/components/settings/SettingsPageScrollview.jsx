@@ -23,6 +23,7 @@ function createStyle(theme, isMenu) {
       width: "100%",
       maxWidth: 768,
       paddingBottom: isMenu ? 0 : 20,
+      paddingTop: 60,
       alignSelf: "center",
       paddingHorizontal: isMenu ? 0 : 20,
       ...(Platform.OS === "web" && {

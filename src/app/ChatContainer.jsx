@@ -158,6 +158,7 @@ function createStyle(theme) {
       gap: 10,
       width: "100%",
       borderBottomWidth: 1,
+      position: "absolute",
       alignItems: "center",
       justifyContent: "space-between",
       borderBottomColor: theme?.backgroundDivider,

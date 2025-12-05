@@ -122,7 +122,7 @@ const TwoFAMethods = () => {
 
   return (
     <ScreenLayout>
-      <HeaderWithBackArrow goBackTo="../" />
+      <HeaderWithBackArrow title={"2FA"}/>
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
           <Text style={styles.title}>Authentication Methods</Text>

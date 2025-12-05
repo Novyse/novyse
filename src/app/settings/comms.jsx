@@ -160,7 +160,7 @@ const CommsPage = () => {
   if (isLoading) {
     return (
       <ScreenLayout>
-        <HeaderWithBackArrow goBackTo="../" />
+        <HeaderWithBackArrow title={"Comms"}/>
         <View style={styles.container}>
           <Text style={styles.loadingText}>Loading settings...</Text>
         </View>
@@ -172,7 +172,7 @@ const CommsPage = () => {
   if (!audioSettings) {
     return (
       <ScreenLayout>
-        <HeaderWithBackArrow goBackTo="../" />
+        <HeaderWithBackArrow title={"Comms"}/>
         <View style={styles.container}>
           <Text style={styles.errorText}>Error loading settings</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadSettings}>
@@ -185,7 +185,7 @@ const CommsPage = () => {
 
   return (
     <ScreenLayout>
-      <HeaderWithBackArrow goBackTo="../" />
+      <HeaderWithBackArrow title={"Comms"}/>
       <SettingsPageScrollview>
         {/* Input Devices Category */}
         <SettingsCard>

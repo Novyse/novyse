@@ -56,7 +56,7 @@ const ProfilePage = () => {
     return (
       <ScreenLayout>
         <View style={styles.container}>
-          <HeaderWithBackArrow goBackTo="../" />
+          <HeaderWithBackArrow title={"Account"}/>
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </ScreenLayout>
@@ -65,7 +65,7 @@ const ProfilePage = () => {
 
   return (
     <ScreenLayout>
-      <HeaderWithBackArrow goBackTo="../" />
+      <HeaderWithBackArrow title={"Account"}/>
       <SettingsPageScrollview>
         {/* Profile Image Section */}
         <View style={styles.profileImageSection}>

@@ -8,7 +8,7 @@ import SettingsPageScrollview from "@/src/components/settings/SettingsPageScroll
 const SettingsMenu = () => {
   return (
     <ScreenLayout>
-      <HeaderWithBackArrow goBackTo="../" />
+      <HeaderWithBackArrow title={"Settings"}/>
       <SettingsPageScrollview isMenu={true}>
         <SettingsMenuItem
           navToPage="/settings/account"

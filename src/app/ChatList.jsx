@@ -340,11 +340,10 @@ function createStyle(theme, isSmallScreen) {
     chatListWrapper: {
       flex: 1,
       position: "relative",
-      borderRadius: isSmallScreen ? 0 : 15
+      borderRadius: isSmallScreen ? 0 : 15,
     },
     flatList: {
       flex: 1,
-      paddingTop: 60,
     },
     flatListContent: {
       padding: 10,

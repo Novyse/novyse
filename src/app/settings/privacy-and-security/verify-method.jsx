@@ -149,7 +149,7 @@ const VerifyMethod = () => {
   return (
     <ScreenLayout>
       <StatusBar style="dark" />
-      <HeaderWithBackArrow goBackTo="../" />
+      <HeaderWithBackArrow title={"Verify"}/>
       <SettingsPageScrollview>
         <KeyboardAvoidingView behavior={"position"}>
           <SettingsCard>

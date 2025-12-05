@@ -26,7 +26,7 @@ const LocalStoragePage = () => {
 
   return (
     <ScreenLayout>
-      <HeaderWithBackArrow goBackTo="../" />
+      <HeaderWithBackArrow title={"Local Storage"}/>
       <SettingsPageScrollview>
         <SettingsCard>
           <StorageBreakdown storage={localData} />

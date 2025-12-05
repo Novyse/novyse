@@ -41,7 +41,7 @@ const StoragePage = () => {
 
   return (
     <ScreenLayout>
-      <HeaderWithBackArrow goBackTo={"../"}/>
+      <HeaderWithBackArrow title={"Storage"}/>
       <SettingsPageScrollview>
         <SettingsCard>
           <Text style={styles.wipText}>🚧 Work in Progress 🚧</Text>
@@ -132,7 +132,7 @@ const createStyle = (theme) =>
       justifyContent: "space-between",
       alignItems: "center",
       padding: 24,
-      borderRadius: 0
+      borderRadius: 0,
     },
     storageTitle: {
       fontSize: 16,
