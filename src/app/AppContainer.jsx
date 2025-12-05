@@ -370,11 +370,8 @@ function createStyle(theme, colorScheme) {
     largeScreenChatList: {
       flex: 0,
       width: 330,
-      borderRightWidth: 0,
-      borderRightColor: theme.backgroundDivider,
     },
     chatContent: {
-      padding: 0,
       flex: 1,
     },
     chatContentOverlay: {

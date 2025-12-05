@@ -20,30 +20,32 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
   } = useContext(ChatContext);
 
   const [contentView, setContentView] = useState("chat"); // "chat", "vocal", "both"
-  const styles = createStyle(theme);
+  const styles = createStyle(theme, isSmallScreen);
   const router = useRouter();
 
   // Render Header con pulsanti per switch view
   const renderChatHeader = () => (
     <HeaderBase style={styles.chatHeader}>
-        {isSmallScreen && onBack && (
-          <BlurredView>
-            <Icon
-              name={"ArrowLeft02Icon"}
-              onPress={onBack}
-              style={styles.icon}
-            />
-          </BlurredView>
-        )}
-      <BlurredView style={styles.chatInfoContainer}>
+      {isSmallScreen && onBack && (
+        <BlurredView>
+          <Icon name={"ArrowLeft02Icon"} onPress={onBack} style={styles.icon} />
+        </BlurredView>
+      )}
+      <View style={{ flexDirection: "row", gap: 10 }}>
         <Image
           source={{ uri: "https://picsum.photos/200" }} // Placeholder avatar
           style={styles.avatar}
         />
-        <Text style={styles.chatInfoText} numberOfLines={1} selectable={false}>
-          {selectedChatName}
-        </Text>
-      </BlurredView>
+        <BlurredView style={styles.chatInfoContainer}>
+          <Text
+            style={styles.chatInfoText}
+            numberOfLines={1}
+            selectable={false}
+          >
+            {selectedChatName}
+          </Text>
+        </BlurredView>
+      </View>
 
       <BlurredView style={{ flexDirection: "row" }}>
         <Icon
@@ -81,8 +83,6 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
             <View
               style={{
                 flex: 1,
-                borderRightWidth: 1,
-                borderColor: theme.backgroundDivider,
               }}
             >
               <ChatContent onBack={onBack} contentView="chat" />
@@ -125,11 +125,15 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
   }
 };
 
-function createStyle(theme) {
+function createStyle(theme, isSmallScreen) {
   return StyleSheet.create({
     chatContent: {
       flex: 1,
-      paddingTop: 5,
+      position: "relative",
+      paddingHorizontal: isSmallScreen ? 10 : 0,
+      paddingLeft: isSmallScreen ? 10 : 0,
+      paddingRight: 10,
+      paddingTop: isSmallScreen ? 0 : 5,
     },
     icon: {
       width: 45,
@@ -138,16 +142,15 @@ function createStyle(theme) {
       alignItems: "center",
     },
     avatar: {
-      width: 35,
-      height: 35,
-      marginRight: 10,
-      borderRadius: 20,
+      width: 45,
+      height: 45,
+      borderRadius: 100,
     },
     chatInfoContainer: {
       height: 45,
       alignItems: "center",
       flexDirection: "row",
-      paddingHorizontal: 5,
+      paddingHorizontal: 10,
     },
     chatInfoText: {
       fontSize: 16,
@@ -155,13 +158,15 @@ function createStyle(theme) {
       fontWeight: "700",
     },
     chatHeader: {
-      gap: 10,
-      width: "100%",
-      borderBottomWidth: 1,
+      padding: 0,
       position: "absolute",
-      alignItems: "center",
-      justifyContent: "space-between",
-      borderBottomColor: theme?.backgroundDivider,
+      top: 0,
+      left: 0,
+      right: 0,
+      paddingHorizontal: isSmallScreen ? 10 : 0,
+      paddingRight: 10,
+      paddingTop: isSmallScreen ? 0 : 5,
+      zIndex: 100,
     },
   });
 }

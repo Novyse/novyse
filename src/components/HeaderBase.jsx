@@ -9,6 +9,7 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     padding: 10,
+    gap: 10,
     height: 60,
     flexDirection: "row",
     alignItems: "center",

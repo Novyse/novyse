@@ -261,13 +261,14 @@ const createStyle = (theme) =>
     bottomBar: {
       width: "100%",
       paddingVertical: 10,
-      paddingHorizontal: 5,
+      // paddingHorizontal: 5,
       flexDirection: "row",
       alignItems: "center",
       minHeight: 55,
       backgroundColor: theme.background,
       position: "absolute",
       bottom: 0,
+      gap: 10
     },
     textInputContainer: {
       flex: 1, // Occupa lo spazio centrale
@@ -275,7 +276,6 @@ const createStyle = (theme) =>
       alignItems: "center",
       borderRadius: 100,
       paddingHorizontal: 5,
-      marginHorizontal: 5,
       minHeight: 45,
     },
     textInput: {
