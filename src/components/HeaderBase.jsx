@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    zIndex: 999,
+    // zIndex: 999,     // don't use this, it breaks on mobile
   },
 });
 

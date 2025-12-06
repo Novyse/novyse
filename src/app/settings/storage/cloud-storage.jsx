@@ -26,7 +26,7 @@ const CloudStoragePage = () => {
   };
 
   return (
-    <ScreenLayout>
+    <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Cloud Storage"}/>
       <SettingsPageScrollview>
         <SettingsCard>

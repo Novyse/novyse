@@ -268,12 +268,7 @@ const AppContainer = () => {
 
   return (
     <ScreenLayout>
-      <StatusBar
-        style="light"
-        backgroundColor={"transparent"}
-        translucent={true}
-        hidden={false}
-      />
+      <StatusBar />
       <Sidebar
         isSidebarVisible={isSidebarVisible}
         toggleSidebar={toggleSidebar}
@@ -307,13 +302,7 @@ const AppContainer = () => {
                 },
               ]}
             >
-              <SmartBackground
-                colors={theme?.backgroundChatContentGradient}
-                style={styles.chatContent}
-                isSmallScreen={isSmallScreen}
-              >
-                {renderChatView()}
-              </SmartBackground>
+              {renderChatView()}
             </Animated.View>
           </View>
         </>

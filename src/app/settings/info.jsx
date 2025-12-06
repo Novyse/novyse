@@ -24,7 +24,7 @@ const Info = () => {
   );
 
   return (
-    <ScreenLayout>
+    <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Info"}/>
       <SettingsPageScrollview>
         {/* Sezione Informazioni Versione */}

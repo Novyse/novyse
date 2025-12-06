@@ -48,18 +48,22 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
       </View>
 
       <BlurredView style={{ flexDirection: "row" }}>
-        <Icon
-          name={"Message02Icon"}
-          style={styles.icon}
-          onPress={() => setContentView("chat")}
-        />
+        {contentView !== "chat" && (
+          <Icon
+            name={"Message02Icon"}
+            style={styles.icon}
+            onPress={() => setContentView("chat")}
+          />
+        )}
 
-        <Icon
-          name={"AudioWave01Icon"}
-          style={styles.icon}
-          onPress={() => setContentView("vocal")}
-        />
-        {!isSmallScreen && (
+        {contentView !== "vocal" && (
+          <Icon
+            name={"AudioWave01Icon"}
+            style={styles.icon}
+            onPress={() => setContentView("vocal")}
+          />
+        )}
+        {!isSmallScreen && contentView !== "both" &&(
           <Icon
             name={"Layout2ColumnIcon"}
             style={styles.icon}
@@ -113,14 +117,15 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
     );
   } else {
     return (
-      <SmartBackground
-        colors={theme?.backgroundChatContentGradient}
-        style={styles.chatContent}
-        isSmallScreen={isSmallScreen}
-      >
-        {renderChatHeader()}
-        {renderContent()}
-      </SmartBackground>
+      
+        <SmartBackground
+          colors={theme?.backgroundChatContentGradient}
+          style={styles.chatContent}
+          isSmallScreen={isSmallScreen}
+        >
+          {renderChatHeader()}
+          {renderContent()}
+        </SmartBackground>
     );
   }
 };
@@ -130,10 +135,7 @@ function createStyle(theme, isSmallScreen) {
     chatContent: {
       flex: 1,
       position: "relative",
-      paddingHorizontal: isSmallScreen ? 10 : 0,
-      paddingLeft: isSmallScreen ? 10 : 0,
-      paddingRight: 10,
-      paddingTop: isSmallScreen ? 0 : 5,
+      
     },
     icon: {
       width: 45,
@@ -163,10 +165,9 @@ function createStyle(theme, isSmallScreen) {
       top: 0,
       left: 0,
       right: 0,
-      paddingHorizontal: isSmallScreen ? 10 : 0,
-      paddingRight: 10,
+      paddingHorizontal: 10,
       paddingTop: isSmallScreen ? 0 : 5,
-      zIndex: 100,
+      zIndex: 105,
     },
   });
 }

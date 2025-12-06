@@ -196,7 +196,7 @@ const BottomBar = ({
                 maxLength={2000}
                 value={newMessageText}
                 onChangeText={onTextChange}
-                placeholder={"Scrivi un messaggio..."}
+                placeholder={"Message"}
                 placeholderTextColor={theme.placeholderText}
                 onSubmitEditing={
                   Platform.OS === "web"
@@ -260,7 +260,7 @@ const createStyle = (theme) =>
   StyleSheet.create({
     bottomBar: {
       width: "100%",
-      paddingVertical: 10,
+      padding: 10,
       // paddingHorizontal: 5,
       flexDirection: "row",
       alignItems: "center",

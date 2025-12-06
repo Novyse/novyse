@@ -29,6 +29,7 @@ const styles = (theme) =>
       borderColor: theme.blurredViewBorder,
       borderWidth: 1,
       borderRadius: 1000,
+      overflow: "hidden"
     },
   });
 

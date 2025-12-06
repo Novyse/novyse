@@ -119,7 +119,7 @@ class Database {
             );
 
             CREATE TABLE IF NOT EXISTS pending_message (
-                id TEXT PRIMARY KEY,
+                id TEXT NOT NULL,
                 jobType TEXT NOT NULL,
                 chatUUID TEXT,
                 senderUUID TEXT,
@@ -131,14 +131,14 @@ class Database {
             );
 
             CREATE TABLE IF NOT EXISTS pending_file (
-                index INTEGER NOT NULL,
+                "index" INTEGER NOT NULL,
                 pendingMessageID TEXT NOT NULL,
                 uri TEXT,
                 ref TEXT,
                 mimeType TEXT NOT NULL,
                 uuid TEXT,
                 s3Url TEXT,
-                PRIMARY KEY (index, pendingMessageID),
+                PRIMARY KEY ("index", pendingMessageID),
                 FOREIGN KEY (pendingMessageID) REFERENCES pending_message(id)
             );
 

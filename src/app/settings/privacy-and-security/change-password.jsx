@@ -69,7 +69,7 @@ const ChangePassword = () => {
   };
 
   return (
-    <ScreenLayout>
+    <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Change Password"}/>
       <SettingsPageScrollview>
         <Text style={styles.title}>Change Password</Text>

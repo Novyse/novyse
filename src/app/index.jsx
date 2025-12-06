@@ -97,7 +97,7 @@ export default function Index() {
   return (
     <ScreenLayout>
       <EmailCheckForm />
-      <StatusBar style="light" />
+      <StatusBar/>
     </ScreenLayout>
   );
 }

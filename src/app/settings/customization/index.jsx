@@ -6,7 +6,7 @@ import SettingsPageScrollview from "@/src/components/settings/SettingsPageScroll
 
 const PrivacyAndSecurityMenu = () => {
   return (
-    <ScreenLayout>
+    <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Customization"}/>
       <SettingsPageScrollview isMenu={true}>
         <SettingsMenuItem

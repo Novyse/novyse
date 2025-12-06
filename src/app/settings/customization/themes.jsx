@@ -21,7 +21,7 @@ const Themes = () => {
   }, [colorScheme, setColorScheme]);
 
   return (
-    <ScreenLayout>
+    <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Themes"}/>
       <SettingsPageScrollview>
         <Text style={styles.title}>Themes</Text>

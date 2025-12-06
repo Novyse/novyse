@@ -8,7 +8,7 @@ export const Colors = {
     iconPressed: "rgba(0, 0, 0, 0.3)",
     iconSecondary: "#c9d1d9",
     messagesLink: "#61abe6",
-    placeholderText: "#bfbfbf",
+    placeholderText: "#c9c9c9ff",
     primary: "#4f8cff",
     text: "white",
     textTime: "#c9d1d9",
@@ -41,7 +41,7 @@ export const Colors = {
     // Gradients
     backgroundMainGradient: ["#013480", "#177FC0"],
     backgroundChatContentGradient: ["transparent"],
-    backgroundChatListItemGradient: ["#16638e", "#197bb0"],
+    backgroundChatListItemGradient: ["#0478bcff", "#4b96c1ff"],
     backgroundChatListGradient: ["transparent"],
     backgroundChatListItemSelectedGradient: ["#2899cf", "#4fb3e1"],
     backgroundChatTextInputGradient: ["#16638e", "#2899cf"],

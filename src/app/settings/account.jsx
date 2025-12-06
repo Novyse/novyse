@@ -54,7 +54,7 @@ const ProfilePage = () => {
 
   if (isLoading) {
     return (
-      <ScreenLayout>
+      <ScreenLayout fullscreen={true}>
         <View style={styles.container}>
           <HeaderWithBackArrow title={"Account"}/>
           <Text style={styles.loadingText}>Loading profile...</Text>
@@ -64,7 +64,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <ScreenLayout>
+    <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Account"}/>
       <SettingsPageScrollview>
         {/* Profile Image Section */}

@@ -121,7 +121,7 @@ const TwoFAMethods = () => {
   };
 
   return (
-    <ScreenLayout>
+    <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"2FA"}/>
       <SettingsPageScrollview>
         <View style={styles.headerSection}>

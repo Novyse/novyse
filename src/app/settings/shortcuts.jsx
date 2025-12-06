@@ -11,7 +11,7 @@ const ShortcutsPage = () => {
   const styles = createStyle(theme);
 
   return (
-    <ScreenLayout>
+    <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Keyboard Shortcuts"}/>
       <SettingsPageScrollview>
         <SettingsCard>

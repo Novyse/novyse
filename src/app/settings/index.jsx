@@ -7,7 +7,7 @@ import SettingsPageScrollview from "@/src/components/settings/SettingsPageScroll
 
 const SettingsMenu = () => {
   return (
-    <ScreenLayout>
+    <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Settings"}/>
       <SettingsPageScrollview isMenu={true}>
         <SettingsMenuItem

@@ -1,10 +1,13 @@
 import React, { useContext } from "react";
 import { StyleSheet, ScrollView, Platform } from "react-native";
 import { ThemeContext } from "../../../context/ThemeContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; 
 
 const SettingsPageScrollview = ({ children, isMenu = false }) => {
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme, isMenu);
+  const insets = useSafeAreaInsets(); 
+
+  const styles = createStyle(theme, isMenu, insets);
 
   return (
     <ScrollView
@@ -16,18 +19,17 @@ const SettingsPageScrollview = ({ children, isMenu = false }) => {
   );
 };
 
-function createStyle(theme, isMenu) {
+function createStyle(theme, isMenu, insets) {
   return StyleSheet.create({
     container: {
       flex: 1,
       width: "100%",
+      height: "100%",
       maxWidth: 768,
-      paddingBottom: isMenu ? 0 : 20,
-      paddingTop: 60,
       alignSelf: "center",
-      paddingHorizontal: isMenu ? 0 : 20,
+      // RIMOSSO PADDING DA QUI
+      
       ...(Platform.OS === "web" && {
-        // Standard per Firefox (fisso, no active/drag change)
         scrollbarWidth: "thin",
         scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
 
@@ -50,6 +52,9 @@ function createStyle(theme, isMenu) {
     },
     contentContainer: {
       gap: isMenu ? 0 : 20,
+      paddingTop: 60 + insets.top,
+      paddingBottom: isMenu ? 0 : 20,
+      paddingHorizontal: isMenu ? 0 : 20,
     },
   });
 }

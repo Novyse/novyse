@@ -40,7 +40,7 @@ const StoragePage = () => {
   };
 
   return (
-    <ScreenLayout>
+    <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Storage"}/>
       <SettingsPageScrollview>
         <SettingsCard>

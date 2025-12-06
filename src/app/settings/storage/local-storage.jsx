@@ -25,7 +25,7 @@ const LocalStoragePage = () => {
   };
 
   return (
-    <ScreenLayout>
+    <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Local Storage"}/>
       <SettingsPageScrollview>
         <SettingsCard>

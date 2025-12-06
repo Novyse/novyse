@@ -6,6 +6,7 @@ import {
   Switch,
   ScrollView,
   TouchableOpacity,
+  StatusBar
 } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
@@ -38,8 +39,9 @@ const CommsPage = () => {
   const loadSettings = async () => {
     try {
       setIsLoading(true);
-      const settings =
-        await settingsManager.getPageParameters("settings.comms");
+      const settings = await settingsManager.getPageParameters(
+        "settings.comms"
+      );
       setAudioSettings(settings);
     } catch (error) {
       console.error("Error loading vocal chat settings:", error);
@@ -159,8 +161,8 @@ const CommsPage = () => {
 
   if (isLoading) {
     return (
-      <ScreenLayout>
-        <HeaderWithBackArrow title={"Comms"}/>
+      <ScreenLayout fullscreen={true}>
+        <HeaderWithBackArrow title={"Comms"} />
         <View style={styles.container}>
           <Text style={styles.loadingText}>Loading settings...</Text>
         </View>
@@ -171,8 +173,8 @@ const CommsPage = () => {
   // Se audioSettings è null o undefined, mostra un messaggio di errore
   if (!audioSettings) {
     return (
-      <ScreenLayout>
-        <HeaderWithBackArrow title={"Comms"}/>
+      <ScreenLayout fullscreen={true}>
+        <HeaderWithBackArrow title={"Comms"} />
         <View style={styles.container}>
           <Text style={styles.errorText}>Error loading settings</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadSettings}>
@@ -184,8 +186,9 @@ const CommsPage = () => {
   }
 
   return (
-    <ScreenLayout>
-      <HeaderWithBackArrow title={"Comms"}/>
+    <ScreenLayout fullscreen={true}>
+    <StatusBar/>
+      <HeaderWithBackArrow title={"Comms"} />
       <SettingsPageScrollview>
         {/* Input Devices Category */}
         <SettingsCard>
