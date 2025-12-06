@@ -7,7 +7,7 @@ import {
   Dimensions,
   StyleSheet,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
+import MyStatusBar from "@/src/components/MyStatusBar";
 
 import { useRouter, useLocalSearchParams } from "expo-router";
 import ScreenLayout from "../components/ScreenLayout";
@@ -21,7 +21,6 @@ import BigFloatingCommsMenu from "../components/comms/BigFloatingCommsMenu";
 import SmallCommsMenu from "../components/comms/SmallCommsMenu";
 import methods from "../utils/webrtc/methods";
 const { get, check } = methods;
-import SmartBackground from "../components/SmartBackground";
 import chatUtils from "../utils/chat";
 import queueManager from "../utils/chat/queueManager";
 
@@ -268,7 +267,7 @@ const AppContainer = () => {
 
   return (
     <ScreenLayout>
-      <StatusBar />
+      <MyStatusBar />
       <Sidebar
         isSidebarVisible={isSidebarVisible}
         toggleSidebar={toggleSidebar}

@@ -19,11 +19,11 @@ import QRCode from "react-native-qrcode-svg";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
-import { StatusBar } from "expo-status-bar";
 
 import StatusMessage from "@/src/components/StatusMessage";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
+import MyStatusBar from "@/src/components/MyStatusBar";
 
 import auth from "@/src/utils/welcome/auth";
 
@@ -197,12 +197,7 @@ const EmailCheckForm = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <StatusBar
-        style="dark"
-        backgroundColor={LoginColors[loginTheme].backgroundCard}
-        translucent={false}
-        hidden={false}
-      />
+      <MyStatusBar/>
       {/* Glass Card */}
       <View style={styles.card}>
         <KeyboardAvoidingView

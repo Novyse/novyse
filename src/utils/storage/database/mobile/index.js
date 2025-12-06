@@ -336,7 +336,7 @@ class Database {
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, is_pinned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, is_pinned) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
@@ -357,7 +357,7 @@ class Database {
             [file.uuid, file.ref, file.mimeType, file.size]
           );
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES (?, ?);`,
+            `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES (?, ?, ?);`,
             [message.chatUUID, message.id, file.uuid]
           );
         }

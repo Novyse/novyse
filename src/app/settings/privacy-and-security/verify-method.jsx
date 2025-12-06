@@ -11,7 +11,6 @@ import {
   Platform,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { ThemeContext } from "@/context/ThemeContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import OtpDigitsInput from "@/src/components/OtpDigitsInput";
@@ -148,7 +147,6 @@ const VerifyMethod = () => {
 
   return (
     <ScreenLayout fullscreen={true}>
-      <StatusBar/>
       <HeaderWithBackArrow title={"Verify"}/>
       <SettingsPageScrollview>
         <KeyboardAvoidingView behavior={"position"}>

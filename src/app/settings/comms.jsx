@@ -3,10 +3,7 @@ import {
   StyleSheet,
   View,
   Text,
-  Switch,
-  ScrollView,
   TouchableOpacity,
-  StatusBar
 } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
@@ -187,7 +184,6 @@ const CommsPage = () => {
 
   return (
     <ScreenLayout fullscreen={true}>
-    <StatusBar/>
       <HeaderWithBackArrow title={"Comms"} />
       <SettingsPageScrollview>
         {/* Input Devices Category */}

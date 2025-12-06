@@ -33,34 +33,38 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
     files = [],
   } = message;
 
-  const audioMessages =
-    Object.groupBy(
-      files,
-      ({ mimeType }) =>
-        getFileType(mimeType) == "VOICE" || getFileType(mimeType) == "AUDIO"
-    ) || [];
-  const mediaMessages =
-    Object.groupBy(
-      files,
-      ({ mimeType }) =>
-        getFileType(mimeType) == "IMAGE" || getFileType(mimeType) == "VIDEO"
-    ) || [];
-  const otherMessages =
-    Object.groupBy(
-      files,
-      ({ mimeType }) =>
-        getFileType(mimeType) == "DOCUMENT" ||
-        getFileType(mimeType) == "CODE" ||
-        getFileType(mimeType) == "ARCHIVE" ||
-        getFileType(mimeType) == "OTHER"
-    ) || [];
+  // object.groupby non è (ancora) supportata su react native quindi tocca fare così
+  const groupBy = (array, callback) => {
+    return array.reduce((acc, item) => {
+      const key = callback(item);
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
+    }, {});
+  };
+
+  const audioMessages = groupBy(
+    files,
+    ({ mimeType }) =>
+      getFileType(mimeType) === "VOICE" || getFileType(mimeType) === "AUDIO"
+  );
+
+  const mediaMessages = groupBy(
+    files,
+    ({ mimeType }) =>
+      getFileType(mimeType) === "IMAGE" || getFileType(mimeType) === "VIDEO"
+  );
+
+  const otherMessages = groupBy(files, ({ mimeType }) =>
+    ["DOCUMENT", "CODE", "ARCHIVE", "OTHER"].includes(getFileType(mimeType))
+  );
 
   const sharedContent = (
     <>
       <View style={styles.textContainer}>
         {/* images/videos print */}
         {/* <MessageImagesVideos mediaUris={mediaMessages[true]?.map((m) => m.uri) || []} />  MULTIPLE IMAGES IN ONE MESSAGE 2X2 */}
-        {(mediaMessages[true] || []).map((mediaMessage) => {
+        {(mediaMessages.true || []).map((mediaMessage) => {
           return (
             <MessageImagesVideos
               mediaUris={[mediaMessage.uri]}
@@ -72,7 +76,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         })}
 
         {/* others print */}
-        {(otherMessages[true] || []).map((otherMessage) => {
+        {(otherMessages.true || []).map((otherMessage) => {
           return (
             <MessageOther
               fileUri={otherMessage.uri}
@@ -84,7 +88,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         })}
 
         {/* audios print */}
-        {(audioMessages[true] || []).map((audioMessage) => {
+        {(audioMessages.true || []).map((audioMessage) => {
           return (
             <MessageAudio
               audioRef={audioMessage.ref}

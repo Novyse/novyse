@@ -18,7 +18,6 @@ import validate from "@/src/utils/welcome/validator";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
-import { StatusBar } from "expo-status-bar";
 
 import StatusMessage from "@/src/components/StatusMessage";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
@@ -106,12 +105,6 @@ const ResetPassword = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <StatusBar
-        style="dark"
-        backgroundColor={LoginColors[loginTheme].backgroundCard}
-        translucent={false}
-        hidden={false}
-      />
 
       {/* Card */}
       <View style={styles.card}>

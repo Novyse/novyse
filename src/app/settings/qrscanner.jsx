@@ -59,7 +59,7 @@ const QRScanner = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar
+      <MyStatusBar
         style="light"
         backgroundColor={"transparent"}
         translucent={true}

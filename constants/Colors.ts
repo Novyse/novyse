@@ -37,6 +37,7 @@ export const Colors = {
     shadowColor: "#000",
     blurredViewTint: "default",
     blurredViewBorder: "#ffffff1e",
+    statusBarTextColor: "light",
 
     // Gradients
     backgroundMainGradient: ["#013480", "#177FC0"],

@@ -10,7 +10,6 @@ import {
   Alert,
 } from "react-native";
 import Icon from "../../Icon"; // Assicurati che il percorso sia corretto
-import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import {
   useAudioRecorder,
@@ -198,6 +197,7 @@ const BottomBar = ({
                 onChangeText={onTextChange}
                 placeholder={"Message"}
                 placeholderTextColor={theme.placeholderText}
+                cursorColor={theme.placeholderText}
                 onSubmitEditing={
                   Platform.OS === "web"
                     ? () => onSendMessage("message", newMessageText)
@@ -266,9 +266,9 @@ const createStyle = (theme) =>
       alignItems: "center",
       minHeight: 55,
       backgroundColor: theme.background,
-      position: "absolute",
-      bottom: 0,
-      gap: 10
+      // position: "absolute",
+      // bottom: 0,
+      gap: 10,
     },
     textInputContainer: {
       flex: 1, // Occupa lo spazio centrale

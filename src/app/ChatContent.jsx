@@ -12,7 +12,7 @@ import {
   BackHandler,
   Animated,
   StyleSheet,
-  ImageBackground
+  ImageBackground,
 } from "react-native";
 
 import { useRouter } from "expo-router";
@@ -183,22 +183,27 @@ const ChatContent = ({ onBack, contentView }) => {
       style={styles.container}
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior="padding"
-          keyboardVerticalOffset={90}
-          enabled
-        >
+        <View style={StyleSheet.absoluteFill}>
           <MessageList
             ref={flatListRef}
             preparedMessages={preparedMessages}
             myUUID={myUUID}
             theme={theme}
           />
+        </View>
+        <KeyboardAvoidingView
+          behavior="padding"
+          keyboardVerticalOffset={30}
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+          }}
+        >
           <BottomBar
             chat={chat}
             newMessageText={newMessageText}
-            // Passiamo la funzione che gestisce l'invio del file audio
             onSendVoiceMessage={handleSendVoiceMessage}
             isVoiceMessage={isVoiceMessage}
             rotationAnim={rotationAnim}

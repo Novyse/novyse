@@ -40,7 +40,7 @@ const getImagePath = (imageName) => {
   const basePath =
     branch === "development"
       ? `./assets/images/development/logo-${APP_NAME_LOWERCASE}${name}.png`
-      : `./assets/images/logo-${APP_NAME_LOWERCASE}${name}.png`;
+      : `./assets/images/logo-${APP_NAME_LOWERCASE}${name}-bg.png`;
   return basePath;
 };
 

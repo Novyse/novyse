@@ -11,7 +11,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
-import { StatusBar } from "expo-status-bar";
+import MyStatusBar from "@/src/components/MyStatusBar";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import auth from "@/src/utils/welcome/auth";
 import OtpDigitsInput from "@/src/components/OtpDigitsInput";
@@ -111,19 +111,9 @@ const Verify = ({}) => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <StatusBar
-        style="dark"
-        backgroundColor={LoginColors[loginTheme].backgroundCard}
-        translucent={false}
-        hidden={false}
-      />
-
       <View style={styles.card}>
         <View style={styles.cardContent}>
-          <Image
-            style={styles.logo}
-            source={logoNovyse}
-          />
+          <Image style={styles.logo} source={logoNovyse} />
 
           <Text style={styles.title}>{getFormattedVerificationType()}</Text>
           <Text style={styles.subtitle}>

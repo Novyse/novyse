@@ -20,7 +20,6 @@ import gateway from "@/src/utils/backend-services/api-gateway";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
-import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
 
 import StatusMessage from "@/src/components/StatusMessage";
@@ -270,8 +269,8 @@ const Signup = () => {
                   isCompleted
                     ? styles.timelineCompleted
                     : isCurrent
-                      ? styles.timelineCurrent
-                      : styles.timelinePending,
+                    ? styles.timelineCurrent
+                    : styles.timelinePending,
                 ]}
                 onPress={isAccessible ? () => setCurrentStep(index) : undefined}
                 disabled={!isAccessible}
@@ -298,8 +297,8 @@ const Signup = () => {
                 form.name.length > 0 && !validate.name(form.name)
                   ? styles.inputError
                   : form.name.length > 0 && validate.name(form.name)
-                    ? styles.inputSuccess
-                    : null,
+                  ? styles.inputSuccess
+                  : null,
               ]}
             >
               <TextInput
@@ -322,8 +321,8 @@ const Signup = () => {
                 form.surname.length > 0 && !validate.surname(form.surname)
                   ? styles.inputError
                   : form.surname.length > 0 && validate.surname(form.surname)
-                    ? styles.inputSuccess
-                    : null,
+                  ? styles.inputSuccess
+                  : null,
               ]}
             >
               <TextInput
@@ -472,8 +471,8 @@ const Signup = () => {
                   isLoading
                     ? styles.reqGray
                     : handleAvailable === true
-                      ? styles.reqGreen
-                      : styles.reqRed,
+                    ? styles.reqGreen
+                    : styles.reqRed,
                 ]}
               >
                 {isLoading ? "⟳" : handleAvailable ? "✓" : "✗"}
@@ -482,8 +481,8 @@ const Signup = () => {
                 {isLoading
                   ? "Checking availability..."
                   : handleAvailable
-                    ? "Available"
-                    : "Already in use"}
+                  ? "Available"
+                  : "Already in use"}
               </Text>
             </View>
           )}
@@ -634,20 +633,11 @@ const Signup = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <StatusBar
-        style="dark"
-        backgroundColor={LoginColors[loginTheme].backgroundCard}
-        translucent={false}
-        hidden={false}
-      />
 
       <View style={styles.card}>
         <KeyboardAvoidingView behavior={"position"}>
           <ScrollView contentContainerStyle={styles.cardContent}>
-            <Image
-              style={styles.logo}
-              source={logoNovyse}
-            />
+            <Image style={styles.logo} source={logoNovyse} />
 
             <Text style={styles.title}>Sign Up</Text>
 
@@ -800,7 +790,7 @@ function createStyle(loginTheme, isSmallScreen) {
     requirements: {
       marginTop: 10,
       width: "100%",
-      maxWidth: 300
+      maxWidth: 300,
     },
     reqItem: {
       flexDirection: "row",

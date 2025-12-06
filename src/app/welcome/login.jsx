@@ -13,7 +13,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
-import { StatusBar } from "expo-status-bar";
 
 import auth from "@/src/utils/welcome/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -21,6 +20,7 @@ import StatusMessage from "@/src/components/StatusMessage";
 import Icon from "@/src/components/Icon";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
+import MyStatusBar from "@/src/components/MyStatusBar";
 
 import validate from "@/src/utils/welcome/validator";
 
@@ -156,21 +156,12 @@ const LoginPassword = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <StatusBar
-        style="dark"
-        backgroundColor={LoginColors[loginTheme].backgroundCard}
-        translucent={false}
-        hidden={false}
-      />
-
+      <MyStatusBar />
       {/* Card */}
       <View style={styles.card}>
         <KeyboardAvoidingView behavior={"position"} keyboardVerticalOffset={20}>
           <View style={styles.cardContent}>
-            <Image
-              style={styles.logo}
-              source={logoNovyse}
-            />
+            <Image style={styles.logo} source={logoNovyse} />
 
             <Text style={styles.title}>Login</Text>
             <Text style={styles.subtitle}>Enter your password to login</Text>

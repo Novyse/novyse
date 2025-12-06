@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+import MyStatusBar from "@/src/components/MyStatusBar";
 import * as SplashScreen from "expo-splash-screen";
 
 import logo_novyse from "@/assets/images/logo-novyse.png";
@@ -97,7 +97,7 @@ export default function Index() {
   return (
     <ScreenLayout>
       <EmailCheckForm />
-      <StatusBar/>
+      <MyStatusBar/>
     </ScreenLayout>
   );
 }
