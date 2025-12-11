@@ -15,7 +15,7 @@ import * as SplashScreen from "expo-splash-screen";
 import logo_novyse from "@/assets/images/logo-novyse.png";
 
 import ScreenLayout from "@/src/components/ScreenLayout";
-import EmailCheckForm from "./welcome";
+import EmailCheckForm from "./(welcome)/email-check";
 
 import { LinearGradient } from "expo-linear-gradient";
 import { LoginColors } from "@/constants/LoginColors";
