@@ -1,43 +1,49 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   ActivityIndicator,
   BackHandler,
+  Platform,
   Image,
   useWindowDimensions,
 } from "react-native";
+
+import gateway from "@/src/utils/backend-services/api-gateway";
+import auth from "@/src/utils/welcome/auth";
+import validate from "@/src/utils/welcome/validator";
+
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
-import MyStatusBar from "@/src/components/MyStatusBar";
-import gateway from "@/src/utils/backend-services/api-gateway";
-import auth from "@/src/utils/welcome/auth";
-import OtpDigitsInput from "@/src/components/OtpDigitsInput";
+
 import StatusMessage from "@/src/components/StatusMessage";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
+import Icon from "@/src/components/Icon";
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
-const Verify = ({}) => {
+const ResetPassword = () => {
   const router = useRouter();
+
+  const { email, token } = useLocalSearchParams();
+  const [password, setPassword] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [secureTextEntry, setSecureTextEntry] = useState(true);
   const loginTheme = "default";
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 936;
   const styles = createStyle(loginTheme, isSmallScreen);
 
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-
-  const { token, verificationType } = useLocalSearchParams();
-
   useEffect(() => {
     auth.checkShouldBeHere(router, false);
 
     const backAction = () => {
-      router.navigate("/email-check");
+      router.navigate("/");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -47,26 +53,13 @@ const Verify = ({}) => {
     return () => backHandler.remove();
   }, []);
 
-  const getFormattedVerificationType = () => {
-    if (!verificationType) {
-      return "Verify Code";
+  const handleResetPassword = async () => {
+    if (!password) {
+      setError("Password cannot be empty");
+      return;
     }
-    switch (verificationType) {
-      case "email":
-        return "Email OTP";
-      case "email_verification":
-        return "Verify Email ";
-      case "authenticator":
-        return "Authenticator App";
-      default:
-        return "Verify Code";
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    const fullOtp = otp.join("");
-    if (fullOtp.length !== 6 || !/^\d+$/.test(fullOtp)) {
-      setError("Enter a valid code");
+    if (!validate.password(password)) {
+      setError(validate.requirements.password);
       return;
     }
 
@@ -74,34 +67,35 @@ const Verify = ({}) => {
     setIsLoading(true);
 
     try {
-      console.log("Verifying OTP:", fullOtp);
-      console.log("Token:", token);
-
-      const otpVerificationSuccess = await gateway.auth.verifyTwofaCode(
+      const resetPasswordSuccess = await gateway.auth.resetPassword(
+        email,
         token,
-        fullOtp
+        password
       );
+      console.log("Reset Password Success?", resetPasswordSuccess);
 
-      if (otpVerificationSuccess) {
-        console.log("OTP verificato con successo!");
-        const success = await auth.initializeApp();
-        if (success) {
-          router.replace("/chat");
-        }
+      if (resetPasswordSuccess) {
+        router.replace("/");
       } else {
-        console.log("Errore nella verifica OTP");
-        setError("Codice OTP non valido. Riprova.");
+        console.error("Error", "Password Reset Error");
+        setError("Password reset failed. Please try again.");
+        setIsLoading(false);
+        return;
       }
-    } catch (apiError) {
-      console.error("Errore durante la verifica OTP:", apiError);
-      setError("Si è verificato un errore durante la verifica. Riprova.");
+    } catch (error) {
+      console.error(error);
+      setError(error.response.data.error || "An error occurred");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const toggleSecureEntry = () => {
+    setSecureTextEntry(!secureTextEntry);
+  };
+
   const handleBack = () => {
-    router.navigate("/login");
+    router.navigate("/");
   };
 
   return (
@@ -111,29 +105,53 @@ const Verify = ({}) => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
+
+      {/* Card */}
       <View style={styles.card}>
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
 
-          <Text style={styles.title}>{getFormattedVerificationType()}</Text>
-          <Text style={styles.subtitle}>
-            Enter the code you received in your email.
-          </Text>
+          <Text style={styles.title}>Reset Password</Text>
+          <Text style={styles.subtitle}>Enter your new password</Text>
 
           <View style={styles.inputWrapper}>
-            <OtpDigitsInput
-              value={otp}
-              onChange={setOtp}
-              error={!!error}
-              inputCount={6}
-            />
+            {/* Password Input */}
+            <View
+              style={[
+                styles.passwordInputContainer,
+                error ? styles.inputError : null,
+              ]}
+            >
+              <TextInput
+                style={styles.textInput}
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (error) setError(null);
+                }}
+                placeholder="New Password"
+                placeholderTextColor={
+                  LoginColors[loginTheme].placeholderTextInput
+                }
+                secureTextEntry={secureTextEntry}
+                onSubmitEditing={
+                  Platform.OS === "web" ? handleResetPassword : undefined
+                }
+              />
+              <Icon
+                name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
+                color={LoginColors[loginTheme].iconShowHideField}
+                style={styles.eyeButton}
+                onPress={toggleSecureEntry}
+              />
+            </View>
 
             <View style={styles.buttonsContainer}>
               <WelcomeButton onPress={handleBack} type={"back"}>
                 <WelcomeButtonText type={"back"} />
               </WelcomeButton>
               <WelcomeButton
-                onPress={handleVerifyOtp}
+                onPress={handleResetPassword}
                 disabled={isLoading}
                 type={"submit"}
               >
@@ -148,6 +166,7 @@ const Verify = ({}) => {
               </WelcomeButton>
             </View>
           </View>
+
           <StatusMessage type="error" text={error} />
         </View>
       </View>
@@ -155,7 +174,7 @@ const Verify = ({}) => {
   );
 };
 
-export default Verify;
+export default ResetPassword;
 
 function createStyle(loginTheme, isSmallScreen) {
   return StyleSheet.create({
@@ -176,7 +195,7 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     cardContent: {
       width: isSmallScreen ? "100%" : 400,
-      justifyContent: isSmallScreen ? undefined : "center",
+      justifyContent: isSmallScreen ? "" : "center",
       alignContent: "center",
     },
     logo: {
@@ -203,6 +222,34 @@ function createStyle(loginTheme, isSmallScreen) {
     inputWrapper: {
       alignSelf: "center",
       width: isSmallScreen ? "100%" : 350,
+      alignItems: "center",
+    },
+    passwordInputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      width: "100%",
+      maxWidth: 300,
+      marginBottom: 16,
+      borderRadius: 6,
+      backgroundColor: LoginColors[loginTheme].backgroundTextInput,
+      borderColor: LoginColors[loginTheme].borderTextInput,
+      borderWidth: 1.5,
+    },
+    inputError: {
+      borderColor: LoginColors[loginTheme].errorBorder,
+      backgroundColor: LoginColors[loginTheme].errorBackground,
+    },
+    textInput: {
+      flex: 1,
+      padding: 10,
+      fontSize: 16,
+      color: LoginColors[loginTheme].text,
+      outlineStyle: "none",
+    },
+    eyeButton: {
+      width: 40,
+      height: 40,
+      justifyContent: "center",
       alignItems: "center",
     },
     buttonsContainer: {

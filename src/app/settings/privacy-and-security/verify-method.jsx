@@ -80,7 +80,7 @@ const VerifyMethod = () => {
 
   useEffect(() => {
     const backAction = () => {
-      router.navigate("/welcome");
+      router.navigate("/email-check");
       return true;
     };
     const backHandler = BackHandler.addEventListener(

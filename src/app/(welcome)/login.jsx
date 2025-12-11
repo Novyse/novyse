@@ -45,7 +45,7 @@ const LoginPassword = () => {
     auth.checkShouldBeHere(router, false);
 
     const backAction = () => {
-      router.navigate("/email-check");
+      router.navigate("/");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -57,7 +57,7 @@ const LoginPassword = () => {
 
   useEffect(() => {
     if (!validate.email(email)) {
-      setTimeout(() => router.navigate("/email-check"), 0);
+      setTimeout(() => router.navigate("/"), 0);
     }
   }, [email]);
 
@@ -146,7 +146,7 @@ const LoginPassword = () => {
   };
 
   const handleBack = () => {
-    router.navigate("/email-check");
+    router.navigate("/");
   };
 
   return (

@@ -37,7 +37,7 @@ const Verify = ({}) => {
     auth.checkShouldBeHere(router, false);
 
     const backAction = () => {
-      router.navigate("/email-check");
+      router.navigate("/");
       return true;
     };
     const backHandler = BackHandler.addEventListener(

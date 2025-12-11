@@ -43,7 +43,7 @@ const ResetPassword = () => {
     auth.checkShouldBeHere(router, false);
 
     const backAction = () => {
-      router.navigate("/welcome");
+      router.navigate("/email-check");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -75,7 +75,7 @@ const ResetPassword = () => {
       console.log("Reset Password Success?", resetPasswordSuccess);
 
       if (resetPasswordSuccess) {
-        router.replace("/welcome");
+        router.replace("/email-check");
       } else {
         console.error("Error", "Password Reset Error");
         setError("Password reset failed. Please try again.");
@@ -95,7 +95,7 @@ const ResetPassword = () => {
   };
 
   const handleBack = () => {
-    router.navigate("/welcome");
+    router.navigate("/email-check");
   };
 
   return (

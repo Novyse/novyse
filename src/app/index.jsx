@@ -52,7 +52,7 @@ export default function Index() {
         if (success) {
           router.replace("/chat");
         } else {
-          router.replace("/welcome");
+          router.replace("/email-check");
         }
       }
     };
