@@ -24,8 +24,9 @@ const useChatData = (chatUUID, chatHandle = null) => {
         if (chatUUID) {
           const database = await Database.create();
           const messages = await database.getMessagesByChatUUID(chatUUID);
-          const pendingMessage =
-            await database.getPendingMessagesByChatUUID(chatUUID);
+          const pendingMessage = await database.getPendingMessagesByChatUUID(
+            chatUUID
+          );
           messages.push(...pendingMessage);
 
           const chat = await database.getChatByUUID(chatUUID);

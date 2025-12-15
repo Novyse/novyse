@@ -26,7 +26,7 @@ class QueueManager {
   // Add a job to the queue
   async addJob(type, params, id = null) {
     const job = {
-      type, // 'send' or 'confirm'
+      type, // 'send' or 'confirm' or 'upload' or 'download'
       params,
     };
 
@@ -176,6 +176,8 @@ class QueueManager {
 
           this.queue.shift(); // Remove completed job
           await this.removeJob(job.id);
+        }else if(job.type === "download"){
+          const { fileURL, savePath } = job.params;
         }
       } else {
         console.warn("Unknown job type:", job.type);

@@ -753,6 +753,35 @@ const gateway = {
   },
   message: {
     /**
+     * Retrive a specific message from a specified chat.
+     * @param {String} chatUUID
+     * @param {String} messageID
+     * @returns Promise<{success: boolean, message?: Object}>
+     */
+    async retrieve(chatUUID, messageID) {
+      try {
+        if (!chatUUID || !messageID) {
+          throw new Error(
+            "Missing required fields for retrieving message",
+            chatUUID,
+            messageID
+          );
+        }
+        const response = await api.get(
+          `/message?chatUUID=${chatUUID}&messageID=${messageID}`
+        );
+        const success = response.data.success;
+        if (success) {
+          const message = response.data.data;
+          return { success, message };
+        }
+        return { success };
+      } catch (error) {
+        console.error("Error in message.retrieve:", error);
+        throw error;
+      }
+    },
+    /**
      * Send a message to a chat.
      * @param {String} chatUUID
      * @param {String} content
@@ -760,7 +789,12 @@ const gateway = {
      * @param {Array} files { name: String, size: Int, type: String}
      * @returns Promise<{success: boolean, message?: Object}>
      */
-    async send(chatUUID, content = undefined, type = "message", files = undefined) {
+    async send(
+      chatUUID,
+      content = undefined,
+      type = "message",
+      files = undefined
+    ) {
       try {
         if (!chatUUID) {
           throw new Error(
