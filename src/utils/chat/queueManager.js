@@ -10,6 +10,8 @@ class QueueManager {
     this.isProcessing = false;
     this.isConnected = false;
     this.processingInterval = 100; // 0.1 seconds
+    this.errorDelay = 5000; // 5 seconds
+    this.maxRetries = 5;
     this.getConnectionStatus = undefined;
   }
 

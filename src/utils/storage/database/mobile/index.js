@@ -621,6 +621,16 @@ class Database {
              WHERE m.chatUUID = ? ORDER BY m.created_at DESC LIMIT 1;`,
         [chatUUID]
       );
+      if (message) {
+        // Retrieve associated files with mime types
+        const files = await this.db.getAllAsync(
+          `SELECT f.uuid f.mimeType FROM file f
+           JOIN message_files mf ON f.uuid = mf.fileUUID
+           WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
+          [chatUUID, message.id]
+        );
+        message.files = files;
+      }
       return message || null;
     } catch (error) {
       console.error("Error retrieving last message:", error);

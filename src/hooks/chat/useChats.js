@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Database from "@/src/utils/storage/database";
 import utils from "@/src/utils/chat";
+import { getFileType } from "@/src/utils/storage/file/type";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 
 const useChats = () => {
@@ -97,9 +98,38 @@ const getLastMesssage = async (chatUUID) => {
   }
 };
 
-const formatMessage = async (message) => {
-  if (message && message.type && message.type == "system") {
-    message.content = await utils.getSystemMessageText(message);
+const formatMessage = async (messageRef) => {
+  if (!messageRef) return messageRef;
+
+  const message = { ...messageRef };
+
+  if (message && message.type) {
+    if (message.type == "system") {
+      message.content = await utils.getSystemMessageText(message);
+    } else if (message.type == "message") {
+      if (!message.content) {
+        if (message.files && message.files.length > 0) {
+          const fileType = getFileType(message.files[0].mimeType);
+          if (fileType === "IMAGE") {
+            message.content = "📷 Image";
+          } else if (fileType === "VIDEO") {
+            message.content = "📹 Video";
+          } else if (fileType === "AUDIO") {
+            message.content = "🎵 Audio";
+          } else if (fileType === "VOICE") {
+            message.content = "🎤 Voice Message";
+          } else if (fileType === "DOCUMENT") {
+            message.content = "📄 Document";
+          } else if (fileType === "CODE") {
+            message.content = "💻 Code File";
+          } else if (fileType === "ARCHIVE") {
+            message.content = "🗄️ Archive File";
+          } else {
+            message.content = "📎 File";
+          }
+        }
+      }
+    }
   }
   return message;
 };

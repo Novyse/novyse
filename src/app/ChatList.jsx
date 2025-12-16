@@ -35,23 +35,7 @@ const ChatListItem = React.memo(
 
     const displayMessage = (message) => {
       if (!message) return null;
-      let text = message.content;
-      switch (message.type) {
-        case "image":
-          text = "📷 Photo";
-          break;
-        case "file":
-          text = "📎 File";
-          break;
-        case "audio":
-          text = "🎵 Audio";
-          break;
-        case "video":
-          text = "🎥 Video";
-          break;
-        default:
-          break;
-      }
+      let content = message.content;
 
       let sender = "";
       if (message.senderUUID === userUUID) {
@@ -72,7 +56,7 @@ const ChatListItem = React.memo(
           selectable={false}
         >
           {sender}
-          {text}
+          {content}
         </Text>
       );
     };

@@ -75,14 +75,11 @@ const mimeToType = {
 /**
  * Returns the file type category for a given MIME type.
  * @param {string} mimeType - The MIME type (e.g., 'image/jpeg').
- * @returns {string} The file type category (e.g., 'IMAGE'), or 'OTHER' if not found.
+ * @returns {string} The file type category (e.g., 'IMAGE') or 'OTHER' if not recognized.
  */
 function getFileType(mimeType) {
-    // Protezioni: può capitare che mimeType sia undefined/null/non-string
-    if (!mimeType || typeof mimeType !== "string") return 'OTHER';
-
-    // Rimuovi eventuali parametri aggiuntivi (es. "image/jpeg; charset=utf-8")
     const clean = mimeType.split(';')[0].trim().toLowerCase();
+    // No default return of OTHER here, for security reasons mimeType must be explicitly defined
     return mimeToType[clean] || 'OTHER';
 }
 

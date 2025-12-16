@@ -577,13 +577,26 @@ class Database {
       }
       const messages = (await this.store.getItem("messages")) || [];
       const users = (await this.store.getItem("users")) || [];
+      const message_files = (await this.store.getItem("message_files")) || [];
+      const files = (await this.store.getItem("files")) || [];
       const chatMessages = messages
         .filter((m) => m.chatUUID === chatUUID)
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       if (chatMessages.length > 0) {
         const lastMessage = chatMessages[0];
         const sender = users.find((u) => u.uuid === lastMessage.senderUUID);
-        return { ...lastMessage, sender_name: sender ? sender.name : null };
+        // Retrieve associated files with mime types
+        const msgFiles = message_files
+          .filter(
+            (mf) => mf.chatUUID === chatUUID && mf.messageID === lastMessage.id
+          )
+          .map((mf) => files.find((f) => f.uuid === mf.fileUUID))
+          .filter(Boolean);
+        return {
+          ...lastMessage,
+          sender_name: sender ? sender.name : null,
+          files: msgFiles,
+        };
       }
       return null;
     } catch (error) {
