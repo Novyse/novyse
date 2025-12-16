@@ -92,7 +92,6 @@ const useChatData = (chatUUID, chatHandle = null) => {
     loadMessages();
 
     const handleNewMessage = (message) => {
-      console.log("New message received in useChatData:", message);
       if (message.chatUUID !== chatUUID && message.chatHandle !== chatHandle)
         return;
       setMessages((prevMessages) => {
