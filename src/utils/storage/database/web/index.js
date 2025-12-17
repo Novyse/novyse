@@ -778,6 +778,60 @@ class Database {
     }
   }
 
+  get file() {
+    const db = this;
+    return {
+      get get() {
+        return {
+          /**
+           * Get file info by UUID.
+           * @param {String} fileUUID
+           * @returns {String} file ref or null if not found
+           */
+          ref: async (fileUUID) => {
+            try {
+              const files = (await db.store.getItem("files")) || [];
+              const file = files.find((f) => f.uuid === fileUUID);
+              return file ? file.ref : null;
+            } catch (error) {
+              console.error("Error retrieving file ref:", error);
+              return null;
+            }
+          },
+        };
+      },
+      get update() {
+        return {
+          /**
+           * Update the ref of a file in the database.
+           * @param {String} fileUUID
+           * @param {String} newRef
+           * @returns {boolean} true if file ref updated successfully, false otherwise
+           */
+          ref: async (fileUUID, newRef) => {
+            try {
+              if (!fileUUID || !newRef) {
+                console.error("Missing required fields to update file ref.");
+                return false;
+              }
+              const files = (await db.store.getItem("files")) || [];
+              const fileIndex = files.findIndex((f) => f.uuid === fileUUID);
+              if (fileIndex !== -1) {
+                files[fileIndex].ref = newRef;
+                await db.store.setItem("files", files);
+                return true;
+              }
+              return false;
+            } catch (error) {
+              console.error("Error updating file ref:", error);
+              return false;
+            }
+          },
+        };
+      },
+    };
+  }
+
   // async removeMember(chatUUID, user) {
 
   // - DEBUGGING ONLY

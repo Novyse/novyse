@@ -10,6 +10,10 @@ const storage = {
    * @returns {Promise<{ref: string, size: number}>} The file reference and size
    */
   async save(uri, isInternal = false) {
+    if (!uri) {
+      throw new Error("URI is required to save a file.");
+    }
+
     let ref = undefined;
     let size = -1;
 
@@ -43,7 +47,7 @@ const storage = {
     } else {
       // Mobile
       uri = await mobile.read(ref);
-    } 
+    }
     return uri;
   },
 };

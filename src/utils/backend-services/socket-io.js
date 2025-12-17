@@ -136,12 +136,12 @@ const SocketIO = {
 
 // Reconnect socket on app foreground
 
-eventEmitter.getEmitter().on("socketReconnect", () => {
+eventEmitter.getEmitter().on("socketReconnect", async () => {
   console.log("Reconnecting Socket.IO after token refresh");
   if (socket) {
     socket.disconnect(); // Disconnect first to avoid conflicts
   }
-  SocketIO.open();
+  await SocketIO.open();
 });
 
 export default SocketIO;

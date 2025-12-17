@@ -74,11 +74,11 @@ const useChats = () => {
       }));
     };
 
-    eventEmitter.getEmitter().on("newMessage", handleNewMessage);
+    eventEmitter.getEmitter().on("message:new", handleNewMessage);
     eventEmitter.getEmitter().on("newChat", handleNewChat);
 
     return () => {
-      eventEmitter.getEmitter().off("newMessage", handleNewMessage);
+      eventEmitter.getEmitter().off("message:new", handleNewMessage);
       eventEmitter.getEmitter().off("newChat", handleNewChat);
     };
   }, []);
