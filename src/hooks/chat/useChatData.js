@@ -102,14 +102,57 @@ const useChatData = (chatUUID, chatHandle = null) => {
       });
     };
 
-    eventEmitter.getEmitter().on("newMessage", handleNewMessage);
+    const handleMessageUploading = ({ tempId, message }) => {
+      setMessages((currentMessages) => {
+        return currentMessages.map((msg) =>
+          msg.id === tempId ? { ...message, id: message.messageUUID } : msg
+        );
+      });
+    };
+
+    const handleFileDownloaded = async ({ message, file }) => {
+      if (message.chatUUID !== chatUUID && message.chatHandle !== chatHandle)
+        return;
+      setMessages((currentMessages) => {
+        return currentMessages.map((msg) =>
+          msg.id === message.id
+            ? {
+                ...msg,
+                files: msg.files.map((f) => (f.uuid === file.uuid ? file : f)),
+              }
+            : msg
+        );
+      });
+    };
+
+    const handleMessageSent = ({ tempId, message }) => {
+      setMessages((currentMessages) => {
+        // Remove any existing message with the same id as the new message
+        const filteredMessages = currentMessages.filter(
+          (msg) => msg.id !== message.id
+        );
+        // Then replace the tempId with the new message, setting only id and timestamp, rest undefined
+        return filteredMessages.map((msg) =>
+          msg.id === tempId
+            ? { ...msg, id: message.id, created_at: message.created_at }
+            : msg
+        );
+      });
+    };
+
+    eventEmitter.getEmitter().on("message:new", handleNewMessage);
+    eventEmitter.getEmitter().on("message:upload", handleMessageUploading);
+    eventEmitter.getEmitter().on("message:downloaded", handleFileDownloaded);
+    eventEmitter.getEmitter().on("message:sent", handleMessageSent);
 
     return () => {
       if (SocketIO.send()) {
         SocketIO.send().unsubscribe();
       }
-
-      eventEmitter.getEmitter().off("newMessage", handleNewMessage);
+      eventEmitter.getEmitter().off("message:new", handleNewMessage);
+      eventEmitter.getEmitter().off("message:upload", handleMessageUploading);
+      eventEmitter.getEmitter().off("message:downloaded", handleFileDownloaded);
+      eventEmitter.getEmitter().off("message:sent", handleMessageSent);
     };
   }, [chatUUID, chatHandle]);
 

@@ -41,6 +41,7 @@ const api = axios.create({
  */
 
 let isRefreshing = false;
+let isRefreshingAuth = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
@@ -66,6 +67,8 @@ api.interceptors.response.use(
         ((originalRequest.url === "/auth/login" &&
           originalRequest.method.toLowerCase() === "post") ||
           (originalRequest.url === "/auth/logout" &&
+            originalRequest.method.toLowerCase() === "post") ||
+          (originalRequest.url === "/auth/refresh" &&
             originalRequest.method.toLowerCase() === "post"))
       ) {
         // For login or logout requests with 401, skip token refresh and reject
@@ -358,6 +361,11 @@ const gateway = {
      */
 
     async refresh() {
+      if (isRefreshingAuth) {
+        // Prevent multiple simultaneous refresh calls
+        return false;
+      }
+      isRefreshingAuth = true;
       try {
         const refreshToken = await token.getRefreshToken();
 
@@ -382,6 +390,8 @@ const gateway = {
       } catch (error) {
         console.error("Error in refresh:", error);
         throw error;
+      } finally {
+        isRefreshingAuth = false;
       }
     },
 

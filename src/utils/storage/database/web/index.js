@@ -577,13 +577,26 @@ class Database {
       }
       const messages = (await this.store.getItem("messages")) || [];
       const users = (await this.store.getItem("users")) || [];
+      const message_files = (await this.store.getItem("message_files")) || [];
+      const files = (await this.store.getItem("files")) || [];
       const chatMessages = messages
         .filter((m) => m.chatUUID === chatUUID)
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       if (chatMessages.length > 0) {
         const lastMessage = chatMessages[0];
         const sender = users.find((u) => u.uuid === lastMessage.senderUUID);
-        return { ...lastMessage, sender_name: sender ? sender.name : null };
+        // Retrieve associated files with mime types
+        const msgFiles = message_files
+          .filter(
+            (mf) => mf.chatUUID === chatUUID && mf.messageID === lastMessage.id
+          )
+          .map((mf) => files.find((f) => f.uuid === mf.fileUUID))
+          .filter(Boolean);
+        return {
+          ...lastMessage,
+          sender_name: sender ? sender.name : null,
+          files: msgFiles,
+        };
       }
       return null;
     } catch (error) {
@@ -763,6 +776,60 @@ class Database {
       console.error("Error adding member to chat:", error);
       return false;
     }
+  }
+
+  get file() {
+    const db = this;
+    return {
+      get get() {
+        return {
+          /**
+           * Get file info by UUID.
+           * @param {String} fileUUID
+           * @returns {String} file ref or null if not found
+           */
+          ref: async (fileUUID) => {
+            try {
+              const files = (await db.store.getItem("files")) || [];
+              const file = files.find((f) => f.uuid === fileUUID);
+              return file ? file.ref : null;
+            } catch (error) {
+              console.error("Error retrieving file ref:", error);
+              return null;
+            }
+          },
+        };
+      },
+      get update() {
+        return {
+          /**
+           * Update the ref of a file in the database.
+           * @param {String} fileUUID
+           * @param {String} newRef
+           * @returns {boolean} true if file ref updated successfully, false otherwise
+           */
+          ref: async (fileUUID, newRef) => {
+            try {
+              if (!fileUUID || !newRef) {
+                console.error("Missing required fields to update file ref.");
+                return false;
+              }
+              const files = (await db.store.getItem("files")) || [];
+              const fileIndex = files.findIndex((f) => f.uuid === fileUUID);
+              if (fileIndex !== -1) {
+                files[fileIndex].ref = newRef;
+                await db.store.setItem("files", files);
+                return true;
+              }
+              return false;
+            } catch (error) {
+              console.error("Error updating file ref:", error);
+              return false;
+            }
+          },
+        };
+      },
+    };
   }
 
   // async removeMember(chatUUID, user) {

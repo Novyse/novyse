@@ -57,5 +57,45 @@ class S3Uploader {
       }
     });
   }
+
+  /**
+   * Downloads a file from S3 using a presigned URL with progress tracking.
+   * @param {String} presignedUrl
+   * @param {Function} onProgress
+   * @returns {Promise<Blob|null>} - The downloaded file as a Blob, or null on failure.
+   */
+  static async download(presignedUrl, onProgress = null) {
+    return new Promise(async (resolve) => {
+      try {
+        if (!presignedUrl) {
+          throw new Error("Presigned URL is required.");
+        }
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", presignedUrl, true);
+        xhr.responseType = "blob";
+        xhr.onprogress = (event) => {
+          if (onProgress && event.lengthComputable) {
+            onProgress({ loaded: event.loaded, total: event.total });
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            console.log("File downloaded successfully from S3.");
+            resolve(xhr.response);
+          } else {
+            throw new Error(`Download failed: ${xhr.status} ${xhr.statusText}`);
+          }
+        };
+        xhr.onerror = () => {
+          console.error("Error downloading file from S3:", xhr.statusText);
+          resolve(null);
+        };
+        xhr.send();
+      } catch (error) {
+        console.error("Error downloading file from S3:", error);
+        resolve(null);
+      }
+    });
+  }
 }
 export default S3Uploader;

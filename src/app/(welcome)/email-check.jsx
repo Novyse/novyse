@@ -66,6 +66,11 @@ const EmailCheckForm = () => {
       if (qrCodeToken) {
         pollingInterval = setInterval(async () => {
           try {
+            if (!isMounted) {
+              clearInterval(pollingInterval);
+              return;
+            }
+
             const response = await gateway.auth.checkQRCodeToken(qrCodeToken);
             const { success, scanned } = response;
             if (success) {
@@ -197,7 +202,7 @@ const EmailCheckForm = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <MyStatusBar/>
+      <MyStatusBar />
       {/* Glass Card */}
       <View style={styles.card}>
         <KeyboardAvoidingView

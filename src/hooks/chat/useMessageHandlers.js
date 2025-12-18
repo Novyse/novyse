@@ -107,36 +107,54 @@ const useMessageHandlers = (
       // no content and files, so nothing happens
       if (content.trim() === "" && files.length === 0) return;
 
-      let currentChatUUID = chat.uuid;
-
-      if (!chat.uuid) {
-        const response = await gateway.chat.create(
-          "DM",
-          chat.member,
-          null,
-          null
-        );
-        const success = response.success;
-        const newChat = response.chat;
-        if (success) {
-          newChat.name = newChat.members[0].name;
-          console.log("Chat created successfully:", newChat);
-          await eventEmitter.newChat(newChat);
-          setSelectedChatUUID(newChat.uuid);
-          currentChatUUID = newChat.uuid;
-        } else {
-          console.error("Failed to create chat");
-          return;
-        }
+      /*
+      // If chat is pending creation, remove chat.uuid and put it as job uuid
+      if (chat.pendingCreation){
+        const id = chat.uuid;
+        chat.uuid = null;
+        await queueManager.addOutgoingMessageJob(message,chat,id);
+        return;
       }
-
-      await queueManager.addJob("send", {
-        chatUUID: currentChatUUID,
-        content,
+      */
+      const message = {
         senderUUID: myUUID,
+        content,
         type,
         files,
-      });
+      };
+
+      await queueManager.addOutgoingMessageJob(message, chat);
+
+      // let currentChatUUID = chat.uuid;
+
+      // if (!chat.uuid) {
+      //   const response = await gateway.chat.create(
+      //     "DM",
+      //     chat.member,
+      //     null,
+      //     null
+      //   );
+      //   const success = response.success;
+      //   const newChat = response.chat;
+      //   if (success) {
+      //     newChat.name = newChat.members[0].name;
+      //     console.log("Chat created successfully:", newChat);
+      //     await eventEmitter.newChat(newChat);
+      //     setSelectedChatUUID(newChat.uuid);
+      //     currentChatUUID = newChat.uuid;
+      //   } else {
+      //     console.error("Failed to create chat");
+      //     return;
+      //   }
+      // }
+
+      // await queueManager.addJob("send", {
+      //   chatUUID: currentChatUUID,
+      //   content,
+      //   senderUUID: myUUID,
+      //   type,
+      //   files,
+      // });
 
       setNewMessageText("");
       setVoiceMessage(true);
@@ -209,39 +227,39 @@ const useMessageHandlers = (
     [pickImage]
   );
 
-  // Listen for message sent events to update message IDs
-  useEffect(() => {
-    const handleMessageSent = ({ tempId, message }) => {
-      setMessages((currentMessages) => {
-        // Remove any existing message with the same id as the new message
-        const filteredMessages = currentMessages.filter(
-          (msg) => msg.id !== message.id
-        );
-        // Then replace the tempId with the new message, setting only id and timestamp, rest undefined
-        return filteredMessages.map((msg) =>
-          msg.id === tempId
-            ? { ...msg, id: message.id, created_at: message.created_at }
-            : msg
-        );
-      });
-    };
+  // // Listen for message sent events to update message IDs
+  // useEffect(() => {
+  //   const handleMessageSent = ({ tempId, message }) => {
+  //     setMessages((currentMessages) => {
+  //       // Remove any existing message with the same id as the new message
+  //       const filteredMessages = currentMessages.filter(
+  //         (msg) => msg.id !== message.id
+  //       );
+  //       // Then replace the tempId with the new message, setting only id and timestamp, rest undefined
+  //       return filteredMessages.map((msg) =>
+  //         msg.id === tempId
+  //           ? { ...msg, id: message.id, created_at: message.created_at }
+  //           : msg
+  //       );
+  //     });
+  //   };
 
-    const handleMessageUploading = ({ tempId, message }) => {
-      setMessages((currentMessages) => {
-        return currentMessages.map((msg) =>
-          msg.id === tempId ? { ...message, id: message.messageUUID } : msg
-        );
-      });
-    };
+  //   const handleMessageUploading = ({ tempId, message }) => {
+  //     setMessages((currentMessages) => {
+  //       return currentMessages.map((msg) =>
+  //         msg.id === tempId ? { ...message, id: message.messageUUID } : msg
+  //       );
+  //     });
+  //   };
 
-    eventEmitter.getEmitter().on("messageSent", handleMessageSent);
-    eventEmitter.getEmitter().on("messageUploading", handleMessageUploading);
+  //   eventEmitter.getEmitter().on("message:sent", handleMessageSent);
+  //   eventEmitter.getEmitter().on("message:upload", handleMessageUploading);
 
-    return () => {
-      eventEmitter.getEmitter().off("messageSent", handleMessageSent);
-      eventEmitter.getEmitter().off("messageUploading", handleMessageUploading);
-    };
-  }, [setMessages]);
+  //   return () => {
+  //     eventEmitter.getEmitter().off("message:sent", handleMessageSent);
+  //     eventEmitter.getEmitter().off("message:upload", handleMessageUploading);
+  //   };
+  // }, [setMessages]);
 
   return {
     handleSendMessage,

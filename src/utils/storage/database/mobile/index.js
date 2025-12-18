@@ -621,6 +621,16 @@ class Database {
              WHERE m.chatUUID = ? ORDER BY m.created_at DESC LIMIT 1;`,
         [chatUUID]
       );
+      if (message) {
+        // Retrieve associated files with mime types
+        const files = await this.db.getAllAsync(
+          `SELECT f.uuid, f.mimeType FROM file f
+           JOIN message_files mf ON f.uuid = mf.fileUUID
+           WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
+          [chatUUID, message.id]
+        );
+        message.files = files;
+      }
       return message || null;
     } catch (error) {
       console.error("Error retrieving last message:", error);
@@ -812,6 +822,55 @@ class Database {
       return false;
     }
   }
+
+  file = {
+    get: {
+      /**
+       * Get file info by UUID.
+       * @param {String} fileUUID
+       * @returns {String} file ref or null if not found
+       */
+      ref: async (fileUUID) => {
+        try {
+          const file = await this.db.getFirstAsync(
+            `SELECT ref FROM file WHERE uuid = ?;`,
+            [fileUUID]
+          );
+          return file ? file.ref : null;
+        } catch (error) {
+          console.error("Error retrieving file ref:", error);
+          return null;
+        }
+      },
+    },
+    update: {
+      /**
+       * Update the ref of a file in the database.
+       * @param {String} fileUUID
+       * @param {String} newRef
+       * @returns {boolean} true if file ref updated successfully, false otherwise
+       */
+      ref: async (fileUUID, newRef) => {
+        try {
+          if (!fileUUID || !newRef) {
+            console.error("Missing required fields to update file ref.");
+            return false;
+          }
+          const result = await this.db.runAsync(
+            `UPDATE file SET ref = ? WHERE uuid = ?;`,
+            [newRef, fileUUID]
+          );
+          if (result.changes > 0) {
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Error updating file ref:", error);
+          return false;
+        }
+      },
+    },
+  };
 
   // async removeMember(chatUUID, user) {
   //   try {

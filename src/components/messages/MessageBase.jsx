@@ -45,8 +45,9 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
 
   const audioMessages = groupBy(
     files,
-    ({ mimeType }) =>
-      getFileType(mimeType) === "VOICE" || getFileType(mimeType) === "AUDIO"
+    ({ mimeType, name }) =>
+      getFileType(mimeType, name) === "VOICE" ||
+      getFileType(mimeType) === "AUDIO"
   );
 
   const mediaMessages = groupBy(

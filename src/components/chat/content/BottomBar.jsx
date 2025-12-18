@@ -9,23 +9,17 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import Icon from "../../Icon"; // Assicurati che il percorso sia corretto
-import * as Haptics from "expo-haptics";
-import {
-  useAudioRecorder,
-  AudioModule,
-  RecordingPresets,
-  setAudioModeAsync,
-  useAudioRecorderState,
-} from "expo-audio";
+import Icon from "../../Icon";
 import BlurredView from "../../BlurredView";
 
-import RecordingBar from "./RecordingBar"; // Importa il file creato sopra
+import RecordingBar from "./RecordingBar";
+
+import useVoiceRecord from "../../../hooks/chat/useVoiceRecord";
 
 const BottomBar = ({
   chat,
   newMessageText,
-  isVoiceMessage, // Questo stato esterno indica se mostrare Mic o Send (quando c'è testo)
+  isVoiceMessage,
   rotationAnim,
   textInputRef,
   onTextChange,
@@ -41,111 +35,13 @@ const BottomBar = ({
   const showInputBar =
     chat.uuid || !["GROUP", "CHANNEL", "FORUM"].includes(chat.type);
 
-  // --- LOGICA AUDIO ---
-  const [isRecording, setIsRecording] = useState(false);
-  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
-  const recorderState = useAudioRecorderState(audioRecorder);
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      // Ferma la registrazione se era in corso quando il componente si smonta
-      if (isRecording) {
-        audioRecorder.stop().catch((e) => {
-          console.warn("Error during audio cleanup:", e);
-        });
-      }
-    };
-  }, [audioRecorder, isRecording]);
-
-  // Avvio Registrazione (Click sul Mic)
-  const handleStartRecording = async () => {
-    try {
-      const { status } = await AudioModule.requestRecordingPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Permesso negato",
-          "Serve il microfono per registrare audio."
-        );
-        return;
-      }
-
-      await setAudioModeAsync({
-        allowsRecording: true,
-        playsInSilentMode: true,
-      });
-
-      await audioRecorder.prepareToRecordAsync();
-      audioRecorder.record();
-
-      setIsRecording(true);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } catch (err) {
-      console.error("Errore start recording:", err);
-      setIsRecording(false);
-    }
-  };
-
-  const getAudioFileSize = async (uri) => {
-    if (!uri) return 0;
-
-    try {
-      if (Platform.OS === "web") {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        return blob.size; // in byte
-      } else {
-        // iOS & ANDROID: usa expo-file-system
-        // const FileSystem = require("expo-file-system");
-        // const info = await FileSystem.getInfoAsync(uri);
-        // return info.size || 0;
-      }
-    } catch (err) {
-      console.warn("Impossibile leggere dimensione file:", err);
-      return 0;
-    }
-  };
-
-  // Stop e Invia (Click sul pulsante Send durante rec)
-  const handleStopAndSend = async () => {
-    if (!isRecording) return;
-
-    try {
-      await audioRecorder.stop();
-      const tempUri = audioRecorder.uri;
-
-      setIsRecording(false);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      if (onSendMessage && tempUri) {
-        const files = [
-          {
-            name: `recording_${Date.now()}.ogg`,
-            uri: tempUri,
-            mimeType: "audio/ogg",
-            isInternal: true,
-          },
-        ];
-
-        onSendMessage("message", "", files);
-      }
-    } catch (err) {
-      console.error("Errore stop recording:", err);
-    }
-  };
-
-  // Annulla (Swipe)
-  const handleCancelRecording = async () => {
-    if (!isRecording) return;
-    try {
-      await audioRecorder.stop();
-      setIsRecording(false);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-      console.log("Registrazione annullata");
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const {
+    isRecording,
+    recorderState,
+    handleStartRecording,
+    handleStopAndSend,
+    handleCancelRecording,
+  } = useVoiceRecord(onSendMessage);
 
   // Animazione rotazione "+"
   const animatedStyle = {
@@ -261,17 +157,14 @@ const createStyle = (theme) =>
     bottomBar: {
       width: "100%",
       padding: 10,
-      // paddingHorizontal: 5,
       flexDirection: "row",
       alignItems: "center",
       minHeight: 55,
       backgroundColor: theme.background,
-      // position: "absolute",
-      // bottom: 0,
       gap: 10,
     },
     textInputContainer: {
-      flex: 1, // Occupa lo spazio centrale
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       borderRadius: 100,
@@ -304,7 +197,7 @@ const createStyle = (theme) =>
       width: 40,
       height: 40,
       borderRadius: 20,
-      backgroundColor: "#34C759", // Verde "Invia" stile Whatsapp
+      backgroundColor: "#34C759",
       justifyContent: "center",
       alignItems: "center",
       elevation: 2,
