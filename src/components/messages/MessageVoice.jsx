@@ -85,8 +85,8 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
       <View style={styles.progressContainer}>
         <SmoothWaveform
           waveformData={waveformData}
-          currentValue={thisCurrentTime * 1000}
-          maxValue={safeDuration * 1000}
+          currentValue={thisCurrentTime}
+          maxValue={safeDuration}
           onSeek={handleSeek}
           reset={!isThisLoaded || didJustFinish}
           isMoving={isThisPlaying}

@@ -12,16 +12,17 @@ export default function SmoothSlider({
   isMoving,
 }) {
   const sliderAnim = useRef(new Animated.Value(0)).current;
+  const isSeeking = useRef(false);
 
   useEffect(() => {
-    if (isMoving && maxValue > 0) {
+    if (isMoving && maxValue > 0 && !isSeeking.current) {
       if (!currentValue) {
         sliderAnim.setValue(0);
       }
 
       Animated.timing(sliderAnim, {
-        toValue: 1,
-        duration: maxValue,
+        toValue: maxValue,
+        duration: Math.max((maxValue - currentValue) * 1000, 100),
         easing: Easing.linear,
         useNativeDriver: false,
       }).start();
@@ -36,17 +37,46 @@ export default function SmoothSlider({
     }
   }, [reset]);
 
+  const onSlidingStart = () => {
+    isSeeking.current = true;
+    sliderAnim.stopAnimation();
+  };
+
+  const onValueChange = (value) => {
+    sliderAnim.setValue(value);
+  };
+
+  const onSlidingComplete = (value) => {
+    if (isMoving) {
+      onSeek(seekValue);
+    }
+    isSeeking.current = false;
+
+    if (isMoving && maxValue > 0) {
+      sliderAnim.setValue(value);
+
+      Animated.timing(sliderAnim, {
+        toValue: maxValue,
+        duration: Math.max((maxValue - value) * 1000, 100),
+        easing: Easing.linear,
+        useNativeDriver: false,
+      }).start();
+    }
+  };
+
   return (
     <AnimatedSlider
       style={{ width: "100%", height: 40 }}
       minimumValue={0}
-      maximumValue={1}
-      onSlidingComplete={onSeek}
+      maximumValue={maxValue | 1}
+      value={isSeeking.current ? undefined : sliderAnim}
       minimumTrackTintColor="#307ecc"
       maximumTrackTintColor="#ffffffff"
       thumbTintColor="#307ecc"
-      value={sliderAnim}
-      disabled={isMoving}
+      onSlidingStart={onSlidingStart}
+      onValueChange={onValueChange}
+      onSlidingComplete={onSlidingComplete}
+      tapToSeek={true}
     />
   );
 }

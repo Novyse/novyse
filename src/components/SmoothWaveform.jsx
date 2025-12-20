@@ -15,19 +15,23 @@ export default function SmoothWaveform({
 
   useEffect(() => {
     const listener = progressAnim.addListener(({ value }) => {
-      setProgress(value);
+      setProgress(value / maxValue);
     });
 
     return () => {
       progressAnim.removeListener(listener);
     };
-  }, []);
+  }, [maxValue]);
 
   useEffect(() => {
     if (isMoving && maxValue > 0) {
+      if (!currentValue) {
+        progressAnim.setValue(0);
+      }
+
       Animated.timing(progressAnim, {
-        toValue: 1,
-        duration: maxValue,
+        toValue: maxValue,
+        duration: Math.max((maxValue - currentValue) * 1000, 100),
         easing: Easing.linear,
         useNativeDriver: false,
       }).start();
@@ -39,16 +43,28 @@ export default function SmoothWaveform({
   useEffect(() => {
     if (reset) {
       progressAnim.setValue(0);
-      setProgress(0);
     }
   }, [reset]);
 
   const handleWaveformPress = (event) => {
     if (waveformRef.current) {
       waveformRef.current.measure((x, y, width, height, pageX, pageY) => {
-        const progressValue = event.nativeEvent.locationX / width;
-        onSeek(progressValue);
-        progressAnim.setValue(progressValue);
+        const relativeX = event.nativeEvent.pageX - pageX;
+        const progressValue = Math.max(0, Math.min(1, relativeX / width));
+        const seekValue = progressValue * maxValue;
+        if (isMoving) {
+          onSeek(seekValue);
+        }
+        progressAnim.setValue(seekValue);
+
+        if (isMoving) {
+          Animated.timing(progressAnim, {
+            toValue: maxValue,
+            duration: Math.max((maxValue - seekValue) * 1000, 100),
+            easing: Easing.linear,
+            useNativeDriver: false,
+          }).start();
+        }
       });
     }
   };
