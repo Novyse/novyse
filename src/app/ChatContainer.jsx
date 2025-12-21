@@ -89,8 +89,8 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
         </BlurredView>
       </HeaderBase>
 
-      <PinnedMessages isSmallScreen={isSmallScreen}/>
-      <AudioHeaderContainer isSmallScreen={isSmallScreen}/>
+      {/* <PinnedMessages isSmallScreen={isSmallScreen}/> */}
+      <AudioHeaderContainer isSmallScreen={isSmallScreen} />
     </View>
   );
 
@@ -116,18 +116,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
   };
 
   if (!selectedChatUUID && !selectedHandle) {
-    return (
-      <Text
-        style={{
-          color: theme.text,
-          flex: 1,
-          textAlign: "center",
-          marginTop: 20,
-        }}
-      >
-        La chat selezionata non esiste.
-      </Text>
-    );
+    return;
   } else {
     return (
       <SmartBackground

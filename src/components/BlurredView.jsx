@@ -3,12 +3,7 @@ import { StyleSheet } from "react-native";
 import { BlurView } from "expo-blur";
 import { ThemeContext } from "@/context/ThemeContext";
 
-const BlurredView = ({
-  children,
-  style,
-  intensity = 75,
-  tint,
-}) => {
+const BlurredView = ({ children, style, intensity = 75, tint }) => {
   const { theme } = useContext(ThemeContext);
 
   return (
@@ -29,7 +24,7 @@ const styles = (theme) =>
       borderColor: theme.blurredViewBorder,
       borderWidth: 1,
       borderRadius: 1000,
-      overflow: "hidden"
+      overflow: "hidden",
     },
   });
 

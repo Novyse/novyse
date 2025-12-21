@@ -1,4 +1,3 @@
-
 import React, { useContext } from "react";
 import { Text, StyleSheet, Platform } from "react-native";
 import * as Linking from "expo-linking";
@@ -64,7 +63,8 @@ const createStyle = (theme) =>
   StyleSheet.create({
     MessageTextContent: {
       color: theme.text,
-      fontSize: 18,
+      fontSize: 15,
+      textAlign: "left",
       maxWidth: "100%",
       ...(Platform.OS === "web" && {
         wordBreak: "break-word",
@@ -73,7 +73,7 @@ const createStyle = (theme) =>
       }),
     },
     messagesLink: {
-      fontSize: 18,
+      fontSize: 15,
       color: theme.messagesLink,
       textDecorationLine: "underline",
       ...(Platform.OS === "web" && {

@@ -35,12 +35,13 @@ const createStyle = (theme) =>
   StyleSheet.create({
     timeText: {
       color: theme.textTime,
+      textAlign: "right",
       fontSize: 12,
-      marginLeft: 4,
       minWidth: 35,
     },
     alignContainer: {
       alignSelf: "flex-end",
+      marginLeft: 10,
     },
   });
 

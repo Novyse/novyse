@@ -71,8 +71,6 @@ const SocketIO = {
 
       socket.on("connect_error", async (error) => {
         console.error("Socket.IO connect_error:", error);
-        console.error("Error type:", error.type);
-        console.error("Error code:", error.code);
         if (error && error.message) {
           console.error("Connect error message:", error.message);
           isConnecting = false;

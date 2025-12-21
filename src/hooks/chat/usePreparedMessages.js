@@ -1,7 +1,10 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useContext } from "react";
 import moment from "moment";
+import { UserContext } from "@/context/UserContext";
 
 const usePreparedMessages = (messages) => {
+  const { userUUID } = useContext(UserContext);
+
   const prepareMessages = useCallback((msgs = []) => {
     if (!Array.isArray(msgs) || msgs.length === 0) return [];
 
@@ -21,6 +24,7 @@ const usePreparedMessages = (messages) => {
       }
 
       const sender = msg.sender_name;
+      const senderUUID = msg.senderUUID;
       const dateOfGroup = moment(msg.created_at).format("YYYY-MM-DD");
       const start = i;
 
@@ -36,8 +40,13 @@ const usePreparedMessages = (messages) => {
 
       const end = i - 1;
 
-      if (sortedAsc[start]) sortedAsc[start].showSenderName = true;
-      if (sortedAsc[end]) sortedAsc[end].showAvatar = true;
+      // Imposta showSenderName e showAvatar solo se il senderUUID non è quello dell'utente corrente
+      if (sortedAsc[start] && senderUUID !== userUUID) {
+        sortedAsc[start].showSenderName = true;
+      }
+      if (sortedAsc[end] && senderUUID !== userUUID) {
+        sortedAsc[end].showAvatar = true;
+      }
     }
 
     // Ordina per visualizzazione (nuovi → vecchi)

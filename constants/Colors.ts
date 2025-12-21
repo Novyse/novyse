@@ -7,7 +7,7 @@ export const Colors = {
     iconHover: "#c9c9c9ff",
     iconPressed: "rgba(0, 0, 0, 0.3)",
     iconSecondary: "#c9d1d9",
-    messagesLink: "#61abe6",
+    messagesLink: "#ffffffff",
     placeholderText: "#c9c9c9ff",
     primary: "#4f8cff",
     text: "white",

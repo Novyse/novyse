@@ -1,16 +1,16 @@
-// MessageSystem.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
+import BlurredView from "../BlurredView"; // Aggiunto import per BlurredView
 
 import chatUtils from "../../utils/chat/index";
 
 const MessageSystem = ({ type, data }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
-
   // Used to calculate system message text
   const [systemText, setSystemText] = useState("");
+
   useEffect(() => {
     if (type === "system") {
       const loadSystemText = async () => {
@@ -21,23 +21,22 @@ const MessageSystem = ({ type, data }) => {
     }
   }, [type, data]);
 
+  const renderPill = (content) => (
+    <BlurredView
+      colors={theme.backgroundDateSeparator}
+      style={styles.container}
+    >
+      <Text style={styles.text} selectable={false}>
+        {content}
+      </Text>
+    </BlurredView>
+  );
+
   switch (type) {
     case "date":
-      return (
-        <View style={styles.dateSeparator}>
-          <Text style={styles.dateSeparatorText} selectable={false}>
-            {data}
-          </Text>
-        </View>
-      );
+      return renderPill(data);
     case "system":
-      return (
-        <View style={styles.systemContainer}>
-          <Text style={styles.systemText} selectable={false}>
-            {systemText}
-          </Text>
-        </View>
-      );
+      return renderPill(systemText);
     default:
       return null;
   }
@@ -45,31 +44,30 @@ const MessageSystem = ({ type, data }) => {
 
 const createStyles = (theme) => {
   return StyleSheet.create({
-    dateSeparator: {
+    container: {
       alignSelf: "center",
-      backgroundColor: theme.backgroundDateSeparator,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 10,
-      marginVertical: 10,
+      borderRadius: 20,
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      marginVertical: 6,
+      shadowColor: theme.shadowColor || "#000",
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4.5,
+
+      elevation: 5,
     },
-    dateSeparatorText: {
+    text: {
       color: theme.text,
-      fontSize: 14,
-      fontWeight: "bold",
-    },
-    systemContainer: {
-      alignSelf: "center",
-      backgroundColor: theme.backgroundDateSeparator,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 10,
-      marginVertical: 10,
-    },
-    systemText: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "bold",
+      fontSize: 12,
+      fontWeight: "600",
+      textAlign: "center",
+      textShadowColor: "rgba(0, 0, 0, 0.5)",
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 2,
     },
   });
 };

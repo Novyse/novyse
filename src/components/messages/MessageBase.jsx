@@ -8,10 +8,8 @@ import {
   Image,
 } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import SmartBackground from "../SmartBackground";
+import BlurredView from "../BlurredView";
 import { getFileType } from "@/src/utils/storage/file/type";
-
-import storage from "@/src/utils/storage/file";
 
 import MessageText from "./MessageText";
 import MessageTimestamp from "./MessageTimestamp";
@@ -65,7 +63,11 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
 
   const sharedContent = (
     <>
-      <View style={styles.textContainer}>
+      <View
+        style={
+          showSenderName ? styles.textContainerNoTop : styles.textContainer
+        }
+      >
         {/* images/videos print */}
         {/* <MessageImagesVideos mediaUris={mediaMessages[true]?.map((m) => m.uri) || []} />  MULTIPLE IMAGES IN ONE MESSAGE 2X2 */}
         {(mediaMessages.true || []).map((mediaMessage) => {
@@ -115,28 +117,43 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
           );
         })}
 
-        {/* Renderizza il testo SOLO se esiste ed è diverso da stringa vuota */}
-        {content && content.trim().length > 0 && <MessageText text={content} />}
+        {/* Renderizza il testo e timestamp */}
+        {content &&
+          content.trim().length > 0 &&
+          (content.trim().length < 50 ? (
+            <View style={styles.textRow}>
+              <MessageText text={content} />
+              <MessageTimestamp time={created_at} />
+            </View>
+          ) : (
+            <>
+              <MessageText text={content} />
+              <MessageTimestamp time={created_at} />
+            </>
+          ))}
 
-        <MessageTimestamp time={created_at} />
+        {/* Se non c'è testo, mostra solo timestamp se necessario, cioè sempre */}
+        {!content || content.trim().length === 0 ? (
+          <MessageTimestamp time={created_at} />
+        ) : null}
       </View>
     </>
   );
 
   if (isSender) {
     return (
-      <SmartBackground
+      <BlurredView
         colors={theme.backgroundMessageBaseGradient}
         style={[styles.senderBubble, showAvatar && styles.senderBubbleChained]}
       >
         <Pressable onLongPress={onLongPress} style={styles.pressable}>
           {sharedContent}
         </Pressable>
-      </SmartBackground>
+      </BlurredView>
     );
   }
 
-  // ... (Parte Receiver invariata per brevità, usa lo stesso sharedContent)
+  // RECEIVER
   return (
     <View style={styles.receiverContainer}>
       <View style={styles.receiverRow}>
@@ -148,7 +165,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
             />
           </View>
         )}
-        <SmartBackground
+        <BlurredView
           colors={theme.backgroundMessageBaseGradient}
           style={[
             styles.receiverBubble,
@@ -165,35 +182,50 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
             )}
             {sharedContent}
           </Pressable>
-        </SmartBackground>
+        </BlurredView>
       </View>
     </View>
   );
 };
 
-// ... stili invariati
 const createStyle = (theme) =>
   StyleSheet.create({
     receiverContainer: { alignSelf: "flex-start", maxWidth: "80%" },
     receiverRow: { flexDirection: "row", alignItems: "flex-end" },
     senderBubble: {
-      overflow: "hidden",
-      marginVertical: 2,
-      marginRight: 8,
+      overflow: "visible",
+      marginVertical: 4,
+      marginRight: 10,
       maxWidth: "80%",
-      borderRadius: 10,
+      borderRadius: 18,
       alignSelf: "flex-end",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 3.84,
+      elevation: 5,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.1)",
     },
-    senderBubbleChained: { borderBottomRightRadius: 0 },
+    senderBubbleChained: { borderBottomRightRadius: 4 },
+
     receiverBubble: {
-      overflow: "hidden",
-      marginVertical: 2,
+      overflow: "visible",
+      marginVertical: 4,
       marginLeft: 58,
       maxWidth: "80%",
-      borderRadius: 10,
+      borderRadius: 18,
       alignSelf: "flex-start",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 4,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.2)",
     },
-    receiverBubbleWithAvatar: { marginLeft: 10, borderBottomLeftRadius: 0 },
+    receiverBubbleWithAvatar: { marginLeft: 10, borderBottomLeftRadius: 4 },
+
     pressable: { padding: 0, width: "100%" },
     textContainer: {
       flexDirection: "column",
@@ -201,17 +233,31 @@ const createStyle = (theme) =>
       justifyContent: "flex-start",
       paddingHorizontal: 12,
       paddingBottom: 8,
+      paddingTop: 8,
+    },
+    textContainerNoTop: {
+      flexDirection: "column",
+      alignItems: "flex-start",
+      justifyContent: "flex-start",
+      paddingHorizontal: 12,
+      paddingBottom: 8,
+      paddingTop: 0,
+    },
+    textRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-end",
+      flexWrap: "wrap",
     },
     avatarWrapper: { marginRight: 5, marginBottom: 5 },
     avatar: { width: 40, height: 40, borderRadius: 20 },
     senderNameWrapper: {
       paddingHorizontal: 12,
       paddingTop: 8,
-      paddingBottom: 4,
     },
     senderName: {
       fontWeight: "600",
-      color: theme.primary || theme.text,
+      color: theme.text,
       flexShrink: 1,
     },
   });

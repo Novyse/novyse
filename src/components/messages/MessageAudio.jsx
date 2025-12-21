@@ -116,6 +116,7 @@ function createStyle(theme) {
     },
     durationText: {
       fontSize: 12,
+      marginRight: 12,
       color: theme.text,
       textAlign: "left",
       fontVariant: ["tabular-nums"],
