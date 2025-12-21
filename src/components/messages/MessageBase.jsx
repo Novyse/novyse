@@ -43,11 +43,14 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
     }, {});
   };
 
+  const voiceMessages = groupBy(
+    files,
+    ({ mimeType, name }) => getFileType(mimeType, name) === "VOICE"
+  );
+
   const audioMessages = groupBy(
     files,
-    ({ mimeType, name }) =>
-      getFileType(mimeType, name) === "VOICE" ||
-      getFileType(mimeType) === "AUDIO"
+    ({ mimeType, name }) => getFileType(mimeType, name) === "AUDIO"
   );
 
   const mediaMessages = groupBy(
@@ -96,6 +99,18 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
               uuid={audioMessage.uuid}
               mimeType={audioMessage.mimeType}
               size={audioMessage.size}
+            />
+          );
+        })}
+
+        {/* voices print */}
+        {(voiceMessages.true || []).map((voiceMessage) => {
+          return (
+            <MessageAudio
+              audioRef={voiceMessage.ref}
+              uuid={voiceMessage.uuid}
+              mimeType={voiceMessage.mimeType}
+              size={voiceMessage.size}
             />
           );
         })}

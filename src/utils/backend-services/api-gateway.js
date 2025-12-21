@@ -69,6 +69,9 @@ api.interceptors.response.use(
           (originalRequest.url === "/auth/logout" &&
             originalRequest.method.toLowerCase() === "post") ||
           (originalRequest.url === "/auth/refresh" &&
+            originalRequest.method.toLowerCase() === "post") ||
+          // TEMPORARY FIX
+          (originalRequest.url === "/auth/qrcode/check" &&
             originalRequest.method.toLowerCase() === "post"))
       ) {
         // For login or logout requests with 401, skip token refresh and reject
