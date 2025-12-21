@@ -654,6 +654,15 @@ const gateway = {
      */
 
     async update(lastUpdateTime) {
+      // lastUpdateTime is a timestamp with ISO 8601 format
+      if (!lastUpdateTime) {
+        console.error("lastUpdateTime is required for user.update");
+        return { success: false };
+      }
+      if (isNaN(Date.parse(lastUpdateTime))) {
+        console.error("lastUpdateTime is not a valid ISO 8601 timestamp");
+        return { success: false };
+      }
       const response = await api.get(
         `/user/update?lastUpdateTime=${lastUpdateTime}`
       );
