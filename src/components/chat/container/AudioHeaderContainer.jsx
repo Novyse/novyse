@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef } from "react";
+import React, { useState, useContext, useRef, Activity } from "react";
 import { View, StyleSheet, Text, FlatList } from "react-native";
 import BlurredView from "@/src/components/BlurredView";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -8,6 +8,9 @@ const ComponenteA = () => (
   <Text style={{ color: "white", fontWeight: "bold" }}>IO SONO A</Text>
 );
 const ComponenteB = () => (
+  <Text style={{ color: "white", fontWeight: "bold" }}>IO SONO B</Text>
+);
+const ComponenteC = () => (
   <Text style={{ color: "white", fontWeight: "bold" }}>IO SONO B</Text>
 );
 
@@ -21,6 +24,7 @@ const AudioHeaderContainer = ({ isSmallScreen }) => {
   const data = [
     { id: "A", component: <ComponenteA /> },
     { id: "B", component: <ComponenteB /> },
+    { id: "C", component: <ComponenteC /> },
   ];
 
   // Logica per aggiornare i pallini quando cambi pagina
@@ -58,21 +62,22 @@ const AudioHeaderContainer = ({ isSmallScreen }) => {
         )}
       />
 
-      {/* Pallini */}
-      <View style={styles.dotsContainer}>
-        {data.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              {
-                opacity: activeIndex === index ? 1 : 0.3,
-                backgroundColor: theme.text,
-              },
-            ]}
-          />
-        ))}
-      </View>
+      <Activity mode={data.length>1 ? "visible" : "hidden"}>
+        <View style={styles.dotsContainer}>
+          {data.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                {
+                  opacity: activeIndex === index ? 1 : 0.3,
+                  backgroundColor: theme.text,
+                },
+              ]}
+            />
+          ))}
+        </View>
+      </Activity>
     </BlurredView>
   );
 };
@@ -81,7 +86,7 @@ function createStyle(theme, isSmallScreen) {
   return StyleSheet.create({
     container: {
       height: 50,
-      marginTop: 29,
+      marginTop: 9,
       width: "100%",
       alignSelf: "center",
       maxWidth: isSmallScreen ? "100%" : "50%",
