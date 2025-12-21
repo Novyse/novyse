@@ -3,10 +3,16 @@ import eventEmitter from "../../global/Events/EventEmitter.js";
 import auth from "../../welcome/auth.js";
 
 let socket = null;
+let initialized = false;
 
 const eventReceiver = {
   initialize: async (sock) => {
+    if (initialized) {
+      console.warn("eventReceiver already initialized, skipping");
+      return;
+    }
     socket = sock;
+    initialized = true;
 
     socket.on("new_message", async (message) => {
       console.log("Received new_message event:", message);
