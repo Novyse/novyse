@@ -86,7 +86,7 @@ function createStyle(theme, isSmallScreen) {
   return StyleSheet.create({
     container: {
       height: 50,
-      marginTop: 9,
+      marginTop: 29,
       width: "100%",
       alignSelf: "center",
       maxWidth: isSmallScreen ? "100%" : "50%",
