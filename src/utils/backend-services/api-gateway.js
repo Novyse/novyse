@@ -718,7 +718,7 @@ const gateway = {
   chat: {
     /**
      * Create a new chat.
-     * @param {String} type
+     * @param {String} type [DM, CHANNEL, GROUP, FORUM]
      * @param {String} memberUUIDs
      * @param {String} name
      * @param {String} handle
@@ -732,6 +732,9 @@ const gateway = {
             type,
             memberUUIDs
           );
+        }
+        if (handle == "") {
+          handle = undefined;
         }
         const response = await api.post("/chat/create", {
           type,

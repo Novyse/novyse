@@ -633,7 +633,6 @@ const Signup = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-
       <View style={styles.card}>
         <KeyboardAvoidingView behavior={"position"}>
           <ScrollView contentContainerStyle={styles.cardContent}>
@@ -647,7 +646,14 @@ const Signup = () => {
               {renderCurrentField()}
               {currentStep === steps.length - 1 && renderCheckbox()}
               {renderNavButtons()}
-              <StatusMessage type="error" text={error} />
+              <StatusMessage
+                type="error"
+                content={[error]}
+                visible={!!error}
+                onClose={() => {
+                  setError(null);
+                }}
+              />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

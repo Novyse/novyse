@@ -4,6 +4,7 @@
   "version": "0.7.1",
   "scripts": {
     "start": "expo start",
+    "dev": "expo start -c",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",

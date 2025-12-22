@@ -16,7 +16,7 @@ import Database from "../utils/storage/database";
 const Sidebar = ({
   isSidebarVisible,
   toggleSidebar,
-  setIsCreateGroupModalVisible,
+  setIsCreateChatModalVisible,
   handleSettingsPress,
   logout,
   theme,
@@ -131,11 +131,11 @@ const Sidebar = ({
               }}
             />
             <SidebarItem
-              text="Nuovo Gruppo"
+              text="New Chat"
               iconName={"UserGroup03Icon"}
               onPress={() => {
                 toggleSidebar();
-                setIsCreateGroupModalVisible(true);
+                setIsCreateChatModalVisible(true);
               }}
             />
             <SidebarItem

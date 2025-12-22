@@ -76,7 +76,6 @@ const VerifyMethod = () => {
 
   const isSmallScreen = width < 768;
   const styles = createStyle(theme, isSmallScreen);
-  
 
   useEffect(() => {
     const backAction = () => {
@@ -147,7 +146,7 @@ const VerifyMethod = () => {
 
   return (
     <ScreenLayout fullscreen={true}>
-      <HeaderWithBackArrow title={"Verify"}/>
+      <HeaderWithBackArrow title={"Verify"} />
       <SettingsPageScrollview>
         <KeyboardAvoidingView behavior={"position"}>
           <SettingsCard>
@@ -192,7 +191,14 @@ const VerifyMethod = () => {
                 </Pressable>
               </View>
 
-              <StatusMessage type="error" text={error} />
+              <StatusMessage
+                type="error"
+                content={[error]}
+                visible={!!error}
+                onClose={() => {
+                  setError(null);
+                }}
+              />
             </View>
           </SettingsCard>
         </KeyboardAvoidingView>

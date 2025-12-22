@@ -210,16 +210,31 @@ const LoginPassword = () => {
               </View>
             </View>
 
-            {/* Sostituisci i vecchi messaggi di error e success con il nuovo componente */}
-            <StatusMessage type="error" text={error} />
-            <StatusMessage type="success" text={successMessage} />
-
             <Text
               style={styles.resetPasswordText}
               onPress={handleResetPassword}
             >
               Reset Password
             </Text>
+
+            <View style={styles.containerStatus}>
+              <StatusMessage
+                type="error"
+                content={[error]}
+                visible={!!error}
+                onClose={() => {
+                  setError(null);
+                }}
+              />
+              <StatusMessage
+                type="success"
+                content={[successMessage]}
+                visible={!!successMessage}
+                onClose={() => {
+                  setSuccessMessage(null);
+                }}
+              />
+            </View>
           </View>
         </KeyboardAvoidingView>
       </View>
@@ -275,6 +290,11 @@ function createStyle(loginTheme, isSmallScreen) {
     inputWrapper: {
       alignSelf: "center",
       width: isSmallScreen ? "100%" : 350,
+      alignItems: "center",
+    },
+    containerStatus: {
+      alignSelf: "center",
+      width: 300,
       alignItems: "center",
     },
     passwordInputContainer: {

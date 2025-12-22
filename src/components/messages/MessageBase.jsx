@@ -143,7 +143,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
   if (isSender) {
     return (
       <BlurredView
-        colors={theme.backgroundMessageBaseGradient}
+        //colors={theme.backgroundMessageBaseGradient}
         style={[styles.senderBubble, showAvatar && styles.senderBubbleChained]}
       >
         <Pressable onLongPress={onLongPress} style={styles.pressable}>
@@ -166,7 +166,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
           </View>
         )}
         <BlurredView
-          colors={theme.backgroundMessageBaseGradient}
+          //colors={theme.backgroundMessageBaseGradient}
           style={[
             styles.receiverBubble,
             showAvatar && styles.receiverBubbleWithAvatar,

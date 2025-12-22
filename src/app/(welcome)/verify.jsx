@@ -148,7 +148,14 @@ const Verify = ({}) => {
               </WelcomeButton>
             </View>
           </View>
-          <StatusMessage type="error" text={error} />
+          <StatusMessage
+            type="error"
+            content={[error]}
+            visible={!!error}
+            onClose={() => {
+              setError(null);
+            }}
+          />
         </View>
       </View>
     </LinearGradient>

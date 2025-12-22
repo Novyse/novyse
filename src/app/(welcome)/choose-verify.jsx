@@ -71,7 +71,6 @@ const ChooseVerify = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-
       <View style={styles.card}>
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
@@ -124,7 +123,16 @@ const ChooseVerify = () => {
               )}
             </WelcomeButton>
           </View>
-          <StatusMessage type="error" text={error} />
+          <View style={styles.containerStatus}>
+            <StatusMessage
+              type="error"
+              content={[error]}
+              visible={!!error}
+              onClose={() => {
+                setError(null);
+              }}
+            />
+          </View>
         </View>
       </View>
     </LinearGradient>
@@ -182,6 +190,11 @@ function createStyle(loginTheme, isSmallScreen) {
       maxWidth: 300,
       alignSelf: "center",
       marginBottom: 30,
+    },
+    containerStatus: {
+      alignSelf: "center",
+      width: 300,
+      alignItems: "center",
     },
     optionButton: {
       borderWidth: 1.5,

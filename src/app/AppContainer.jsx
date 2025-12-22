@@ -16,7 +16,7 @@ import auth from "../utils/welcome/auth";
 import ChatList from "./ChatList";
 import ChatContainer from "./ChatContainer";
 import Sidebar from "../components/Sidebar";
-import CreateGroupModal from "../components/modals/ModalCreateGroupChannelForum";
+import CreateGroupModal from "../components/modals/createChat";
 import BigFloatingCommsMenu from "../components/comms/BigFloatingCommsMenu";
 import SmallCommsMenu from "../components/comms/SmallCommsMenu";
 import methods from "../utils/webrtc/methods";
@@ -53,7 +53,7 @@ const AppContainer = () => {
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
-  const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] =
+  const [isCreateChatModalVisible, setIsCreateChatModalVisible] =
     useState(false);
 
   const [forceUpdate, setForceUpdate] = useState(0);
@@ -271,7 +271,7 @@ const AppContainer = () => {
       <Sidebar
         isSidebarVisible={isSidebarVisible}
         toggleSidebar={toggleSidebar}
-        setIsCreateGroupModalVisible={setIsCreateGroupModalVisible}
+        setIsCreateChatModalVisible={setIsCreateChatModalVisible}
         handleSettingsPress={() => router.navigate("/settings")}
         logout={logout}
         sidebarPosition={sidebarPosition}
@@ -332,8 +332,8 @@ const AppContainer = () => {
       )}
 
       <CreateGroupModal
-        visible={isCreateGroupModalVisible}
-        onClose={() => setIsCreateGroupModalVisible(false)}
+        visible={isCreateChatModalVisible}
+        onClose={() => setIsCreateChatModalVisible(false)}
       />
       {!isConnected && (
         <Text style={styles.connectionInfoContainer}>

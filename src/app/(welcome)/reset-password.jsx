@@ -105,7 +105,6 @@ const ResetPassword = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-
       {/* Card */}
       <View style={styles.card}>
         <View style={styles.cardContent}>
@@ -166,8 +165,16 @@ const ResetPassword = () => {
               </WelcomeButton>
             </View>
           </View>
-
-          <StatusMessage type="error" text={error} />
+          <View style={styles.containerStatus}>
+            <StatusMessage
+              type="error"
+              content={[error]}
+              visible={!!error}
+              onClose={() => {
+                setError(null);
+              }}
+            />
+          </View>
         </View>
       </View>
     </LinearGradient>
@@ -222,6 +229,11 @@ function createStyle(loginTheme, isSmallScreen) {
     inputWrapper: {
       alignSelf: "center",
       width: isSmallScreen ? "100%" : 350,
+      alignItems: "center",
+    },
+    containerStatus: {
+      alignSelf: "center",
+      width: 300,
       alignItems: "center",
     },
     passwordInputContainer: {

@@ -1,4 +1,3 @@
-// Prima, crea un hook riutilizzabile per i toast: hooks/useToast.js (o simile)
 import { Toast } from "toastify-react-native";
 
 export const useToast = () => {
@@ -6,9 +5,9 @@ export const useToast = () => {
     Toast.show({
       type,
       text1: message,
-      position: "top", // Sovrascrive globale se necessario
+      position: "top",
       visibilityTime: 4000,
-      ...options, // Es. text2 per sottotitolo, onPress, etc.
+      ...options,
     });
   };
 

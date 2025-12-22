@@ -191,6 +191,12 @@ const EmailCheckForm = () => {
         console.error("Errore: Risposta sconosciuta dall'API.");
       }
     } catch (error) {
+      if (error.code === "ERR_BAD_REQUEST") {
+        setError("Please enter a valid email address.");
+      } else {
+        setError("An error occurred while checking the email.");
+      }
+
       console.error("Errore durante la verifica email:", error);
     }
   };
@@ -239,7 +245,16 @@ const EmailCheckForm = () => {
                 </WelcomeButton>
               </View>
             </View>
-            <StatusMessage type="error" text={error} />
+            <View style={styles.containerStatus}>
+              <StatusMessage
+                type="error"
+                content={[error]}
+                visible={!!error}
+                onClose={() => {
+                  setError(null);
+                }}
+              />
+            </View>
           </View>
 
           {/* 3. Esegui il rendering del divider e del QR Code solo se lo schermo NON è piccolo */}
@@ -341,6 +356,11 @@ function createStyle(loginTheme, isSmallScreen) {
     inputWrapper: {
       alignSelf: "center",
       width: isSmallScreen ? "100%" : 300,
+      alignItems: "center",
+    },
+    containerStatus: {
+      alignSelf: "center",
+      width: 300,
       alignItems: "center",
     },
     textInput: {

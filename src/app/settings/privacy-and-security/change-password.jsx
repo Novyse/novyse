@@ -70,7 +70,7 @@ const ChangePassword = () => {
 
   return (
     <ScreenLayout fullscreen={true}>
-      <HeaderWithBackArrow title={"Change Password"}/>
+      <HeaderWithBackArrow title={"Change Password"} />
       <SettingsPageScrollview>
         <Text style={styles.title}>Change Password</Text>
         <Text style={styles.text}>
@@ -78,7 +78,14 @@ const ChangePassword = () => {
         </Text>
 
         <SettingsCard>
-          <StatusMessage type="error" text={error} />
+          <StatusMessage
+            type="error"
+            content={[error]}
+            visible={!!error}
+            onClose={() => {
+              setError(null);
+            }}
+          />
 
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Current Password</Text>
