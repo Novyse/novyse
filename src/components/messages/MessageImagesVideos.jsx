@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
-import { Image } from "expo-image";
+import { Image, useImage } from "expo-image";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { getFileType } from "@/src/utils/storage/file/type";
+
 import useUriResolver from "@/src/hooks/file/useUriResolver";
+import useImageDimension from "@/src/hooks/file/useImageDimension";
 
 const { width: screenWidth } = Dimensions.get("window");
 const maxBubbleWidth = screenWidth * 1;
@@ -12,6 +14,11 @@ const MessageImagesVideos = ({ mediaRefs, uuid, mimeType, size }) => {
   const [mediaDimensions, setMediaDimensions] = useState({});
 
   const { uri: mediaUri } = useUriResolver(mediaRefs[0]);
+  const { width: mediaWidth, height: mediaHeight } =
+    useImageDimension(mediaUri);
+
+  console.log("Media dimensions:", mediaWidth, mediaHeight);
+
   const type = getFileType(mimeType);
   const isImage = type === "IMAGE";
   const mediaUris = [mediaUri]; // Per ora supporta un solo media, ma in futuro si può estendere
