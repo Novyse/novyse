@@ -5,7 +5,6 @@ import { VideoView, useVideoPlayer } from "expo-video";
 import { getFileType } from "@/src/utils/storage/file/type";
 
 import useUriResolver from "@/src/hooks/file/useUriResolver";
-import useImageDimension from "@/src/hooks/file/useImageDimension";
 
 const { width: screenWidth } = Dimensions.get("window");
 const maxBubbleWidth = screenWidth * 1;
@@ -13,11 +12,17 @@ const maxBubbleWidth = screenWidth * 1;
 const MessageImagesVideos = ({ mediaRefs, uuid, mimeType, size }) => {
   const [mediaDimensions, setMediaDimensions] = useState({});
 
-  const { uri: mediaUri } = useUriResolver(mediaRefs[0]);
-  const { width: mediaWidth, height: mediaHeight } =
-    useImageDimension(mediaUri);
+  const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
 
-  console.log("Media dimensions:", mediaWidth, mediaHeight);
+  const onLoadImage = (imageInfo) => {
+    const { width: imgWidth, height: imgHeight } = imageInfo.source;
+    setWidth(imgWidth);
+    setHeight(imgHeight);
+    console.log("Loaded image dimensions:", imgWidth, imgHeight);
+  };
+
+  const { uri: mediaUri } = useUriResolver(mediaRefs[0]);
 
   const type = getFileType(mimeType);
   const isImage = type === "IMAGE";
@@ -47,6 +52,7 @@ const MessageImagesVideos = ({ mediaRefs, uuid, mimeType, size }) => {
           maxWidth: maxBubbleWidth,
         }}
         contentFit="cover"
+        onLoad={onLoadImage}
       />
     ) : (
       <VideoView
