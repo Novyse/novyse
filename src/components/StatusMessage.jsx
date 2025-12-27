@@ -142,8 +142,9 @@ const StatusMessage = ({
           <View style={styles.contentList}>
             {content.map((value, index) => (
               <View key={index} style={styles.contentItem}>
-                {content.length > 1 && <View style={styles.bulletPoint} />}
-                <Text style={styles.contentText}>{value}</Text>
+                <Text style={styles.contentText}>
+                  {content.length > 1 ? `• ${value}` : value}
+                </Text>
               </View>
             ))}
           </View>
@@ -172,7 +173,7 @@ const createStyles = (theme) => {
       shadowOpacity: 0.15,
       shadowRadius: 10,
       elevation: 6,
-      margin: 16,
+      marginTop: 16,
       width: "100%",
     },
     blurredContainer: {
@@ -204,16 +205,7 @@ const createStyles = (theme) => {
       gap: 4,
     },
     contentItem: {
-      flexDirection: "row",
-      alignItems: "center",
       marginBottom: 2,
-    },
-    bulletPoint: {
-      width: 4,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: theme.bulletColor,
-      marginRight: 8,
     },
     contentText: {
       color: theme.contentColor,

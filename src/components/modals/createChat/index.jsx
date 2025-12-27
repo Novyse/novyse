@@ -19,6 +19,7 @@ import Icon from "@/src/components/Icon";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
+import validate from "@/src/utils/welcome/validator";
 
 const CreateChatModal = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
@@ -54,17 +55,17 @@ const CreateChatModal = ({ visible, onClose }) => {
 
   const handleNameChange = (value) => {
     setName(value);
-    if (value.length > 3) {
+    if (validate.chat.name(value)) {
       setNameError(null);
     } else {
-      setNameError("Chat name is required (Min. 3 characters)");
+      setNameError(validate.chat.requirements.name);
     }
   };
 
   const handleHandleChange = (value) => {
     setHandle(value);
-
-    if (value.length >= 3) {
+    console.log("Validating handle:", validate.handle(value));
+    if (validate.handle(value)) {
       setIsHandleLoading(true);
       setHandleError(null);
       setHandleAvailable(null);
@@ -89,11 +90,16 @@ const CreateChatModal = ({ visible, onClose }) => {
 
       setHandleTimer(timer);
     } else {
-      // Reset if less than 3 characters
+      // Reset availability if handle is invalid
       setHandleAvailable(null);
       setHandleError(null);
       setIsHandleLoading(false);
       if (handleTimer) clearTimeout(handleTimer);
+      if (value.length > 0) {
+        setHandleError(
+          validate.requirements.handle + " (Required for public chats)"
+        );
+      }
     }
   };
 
@@ -107,18 +113,26 @@ const CreateChatModal = ({ visible, onClose }) => {
   };
 
   const handleCreateChat = async () => {
-    if (!name && !handle && privacy === "PUBLIC") {
-      setNameError("Chat name is required (Min. 3 characters)");
-      setHandleError("Chat handle is required for public chats");
+    if (
+      !validate.chat.name(name) &&
+      !validate.handle(handle) &&
+      privacy === "PUBLIC"
+    ) {
+      setNameError(validate.chat.requirements.name);
+      setHandleError(
+        validate.requirements.handle + " (Required for public chats)"
+      );
       return;
     }
 
-    if (!name) {
-      setNameError("Chat name is required (Min. 3 characters)");
+    if (!validate.chat.name(name)) {
+      setNameError(validate.chat.requirements.name);
       return;
     }
-    if (privacy === "PUBLIC" && !handle) {
-      setHandleError("Chat handle is required for public chats");
+    if (privacy === "PUBLIC" && !validate.handle(handle)) {
+      setHandleError(
+        validate.requirements.handle + " (Required for public chats)"
+      );
       return;
     }
 

@@ -136,10 +136,10 @@ const Signup = () => {
 
   const validateStep = (stepIndex) => {
     if (stepIndex === 0) {
-      return validate.name(form.name) && validate.surname(form.surname);
+      return validate.user.name(form.name) && validate.user.surname(form.surname);
     }
     if (stepIndex === 1) {
-      return validate.password(form.password);
+      return validate.user.password(form.password);
     }
     if (stepIndex === 2) {
       return (
@@ -197,14 +197,14 @@ const Signup = () => {
 
   const validateForm = () => {
     const { password, name, surname, handle } = form;
-    if (!validate.name(name))
+    if (!validate.user.name(name))
       return "Name can only contain letters and spaces.";
-    if (!validate.surname(surname))
+    if (!validate.user.surname(surname))
       return "Surname can only contain letters and spaces.";
     if (!name.trim()) return "Please enter your name.";
     if (!surname.trim()) return "Please enter your surname.";
     if (!password) return "Please enter your password.";
-    if (!validate.password(password)) {
+    if (!validate.user.password(password)) {
       return "Password must be 8-128 chars, include upper/lowercase, a number and a special character (@, $, !, %, *, ?, &)";
     }
     if (!handle.trim()) return "Please enter your handle.";
@@ -294,9 +294,9 @@ const Signup = () => {
             <View
               style={[
                 styles.inputContainer,
-                form.name.length > 0 && !validate.name(form.name)
+                form.name.length > 0 && !validate.user.name(form.name)
                   ? styles.inputError
-                  : form.name.length > 0 && validate.name(form.name)
+                  : form.name.length > 0 && validate.user.name(form.name)
                   ? styles.inputSuccess
                   : null,
               ]}
@@ -318,9 +318,9 @@ const Signup = () => {
             <View
               style={[
                 styles.inputContainer,
-                form.surname.length > 0 && !validate.surname(form.surname)
+                form.surname.length > 0 && !validate.user.surname(form.surname)
                   ? styles.inputError
-                  : form.surname.length > 0 && validate.surname(form.surname)
+                  : form.surname.length > 0 && validate.user.surname(form.surname)
                   ? styles.inputSuccess
                   : null,
               ]}
@@ -342,10 +342,10 @@ const Signup = () => {
               <Text
                 style={[
                   styles.reqIcon,
-                  validate.name(form.name) ? styles.reqGreen : styles.reqRed,
+                  validate.user.name(form.name) ? styles.reqGreen : styles.reqRed,
                 ]}
               >
-                {validate.name(form.name) ? "✓" : "✗"}
+                {validate.user.name(form.name) ? "✓" : "✗"}
               </Text>
               <Text style={styles.reqText}>Name: Only letters and spaces</Text>
             </View>
@@ -353,12 +353,12 @@ const Signup = () => {
               <Text
                 style={[
                   styles.reqIcon,
-                  validate.surname(form.surname)
+                  validate.user.surname(form.surname)
                     ? styles.reqGreen
                     : styles.reqRed,
                 ]}
               >
-                {validate.surname(form.surname) ? "✓" : "✗"}
+                {validate.user.surname(form.surname) ? "✓" : "✗"}
               </Text>
               <Text style={styles.reqText}>
                 Surname: Only letters and spaces
@@ -374,7 +374,7 @@ const Signup = () => {
       let inputStyle = styles.inputContainer;
 
       if (field === "password") {
-        const valid = validate.password(value);
+        const valid = validate.user.password(value);
         if (value.length > 0 && !valid) {
           inputStyle = [inputStyle, styles.inputError];
         } else if (value.length > 0 && valid) {

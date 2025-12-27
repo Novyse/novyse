@@ -152,7 +152,7 @@ const EmailCheckForm = () => {
       return;
     }
 
-    if (!validate.email(email)) {
+    if (!validate.user.email(email)) {
       setError("Inserted email is not valid");
       return;
     }

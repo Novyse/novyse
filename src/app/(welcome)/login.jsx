@@ -56,7 +56,7 @@ const LoginPassword = () => {
   }, []);
 
   useEffect(() => {
-    if (!validate.email(email)) {
+    if (!validate.user.email(email)) {
       setTimeout(() => router.navigate("/"), 0);
     }
   }, [email]);

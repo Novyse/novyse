@@ -58,8 +58,8 @@ const ResetPassword = () => {
       setError("Password cannot be empty");
       return;
     }
-    if (!validate.password(password)) {
-      setError(validate.requirements.password);
+    if (!validate.user.password(password)) {
+      setError(validate.user.requirements.password);
       return;
     }
 

@@ -1,6 +1,6 @@
 import axios, { all } from "axios";
 import eventEmitter from "../global/Events/lib/EventEmitter.js";
-import { Platform } from "react-native";
+import { getOs, getPlatform } from "../device/type.js";
 
 import token from "../welcome/token.js";
 
@@ -27,7 +27,8 @@ const api = axios.create({
   withCredentials: true,
   timeout: 10000,
   headers: {
-    "x-operating-system": Platform.OS,
+    "x-platform": getPlatform(),
+    "x-operating-system": getOs(),
     "x-app-version": APP_VERSION,
   },
 });
