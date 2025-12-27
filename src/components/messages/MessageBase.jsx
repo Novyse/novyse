@@ -143,7 +143,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
   if (isSender) {
     return (
       <BlurredView
-        //colors={theme.backgroundMessageBaseGradient}
+        // tint={"dark"}
         style={[styles.senderBubble, showAvatar && styles.senderBubbleChained]}
       >
         <Pressable onLongPress={onLongPress} style={styles.pressable}>
@@ -166,7 +166,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
           </View>
         )}
         <BlurredView
-          //colors={theme.backgroundMessageBaseGradient}
+          tint={"dark"}
           style={[
             styles.receiverBubble,
             showAvatar && styles.receiverBubbleWithAvatar,
@@ -190,12 +190,17 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    receiverContainer: { alignSelf: "flex-start", maxWidth: "80%" },
-    receiverRow: { flexDirection: "row", alignItems: "flex-end" },
+    receiverContainer: {
+      alignSelf: "flex-start",
+      maxWidth: "80%",
+    },
+    receiverRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+    },
     senderBubble: {
       overflow: "visible",
       marginVertical: 4,
-      marginRight: 10,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-end",
@@ -204,29 +209,31 @@ const createStyle = (theme) =>
       shadowOpacity: 0.15,
       shadowRadius: 3.84,
       elevation: 5,
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.1)",
     },
-    senderBubbleChained: { borderBottomRightRadius: 4 },
-
+    senderBubbleChained: {
+      borderBottomRightRadius: 4,
+    },
     receiverBubble: {
       overflow: "visible",
       marginVertical: 4,
-      marginLeft: 58,
+      marginLeft: 55,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-start",
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
-      elevation: 4,
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.2)",
+      shadowOpacity: 0.15,
+      shadowRadius: 3.84,
+      elevation: 5,
     },
-    receiverBubbleWithAvatar: { marginLeft: 10, borderBottomLeftRadius: 4 },
-
-    pressable: { padding: 0, width: "100%" },
+    receiverBubbleWithAvatar: {
+      marginLeft: 10,
+      borderBottomLeftRadius: 4,
+    },
+    pressable: {
+      padding: 0,
+      width: "100%",
+    },
     textContainer: {
       flexDirection: "column",
       alignItems: "flex-start",
@@ -249,8 +256,15 @@ const createStyle = (theme) =>
       alignItems: "flex-end",
       flexWrap: "wrap",
     },
-    avatarWrapper: { marginRight: 5, marginBottom: 5 },
-    avatar: { width: 40, height: 40, borderRadius: 20 },
+    avatarWrapper: {
+      marginRight: 5,
+      marginBottom: 5,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 50,
+    },
     senderNameWrapper: {
       paddingHorizontal: 12,
       paddingTop: 8,
