@@ -43,6 +43,7 @@ const useChats = () => {
     loadChats();
 
     const handleNewMessage = async (message) => {
+      console.log("New message event received in useChats hook:", message);
       const chatUUID = message.chatUUID;
       const lastMessage = await formatMessage(message);
       setChatDetails((prevDetails) => {
@@ -57,6 +58,11 @@ const useChats = () => {
         }
         return prevDetails;
       });
+    };
+
+    const handleMessageSent = async (data) => {
+      const message = data.message;
+      await handleNewMessage(message);
     };
 
     const handleNewChat = async (chat) => {
@@ -75,10 +81,12 @@ const useChats = () => {
     };
 
     eventEmitter.getEmitter().on("message:new", handleNewMessage);
+    eventEmitter.getEmitter().on("message:sent", handleMessageSent);
     eventEmitter.getEmitter().on("newChat", handleNewChat);
 
     return () => {
       eventEmitter.getEmitter().off("message:new", handleNewMessage);
+      eventEmitter.getEmitter().off("message:sent", handleMessageSent);
       eventEmitter.getEmitter().off("newChat", handleNewChat);
     };
   }, []);
@@ -109,7 +117,10 @@ const formatMessage = async (messageRef) => {
     } else if (message.type == "message") {
       if (!message.content) {
         if (message.files && message.files.length > 0) {
-          const fileType = getFileType(message.files[0].mimeType, message.files[0].name);
+          const fileType = getFileType(
+            message.files[0].mimeType,
+            message.files[0].name
+          );
           if (fileType === "IMAGE") {
             message.content = "📷 Image";
           } else if (fileType === "VIDEO") {
