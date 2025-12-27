@@ -8,6 +8,7 @@ import storage from "../storage/file";
 
 class QueueManager {
   constructor() {
+    this.initialized = false;
     this.queue = [];
     this.isProcessing = false;
     this.isConnected = false;
@@ -19,12 +20,14 @@ class QueueManager {
 
   // Initialize the queue manager
   async initialize(getConnectionStatus) {
+    if (this.initialized) return;
     if (getConnectionStatus) {
       this.getConnectionStatus = getConnectionStatus;
     }
     await this.loadQueue();
     this.startConnectionMonitoring();
     this.processQueue();
+    this.initialized = true;
   }
 
   // Start monitoring connection state

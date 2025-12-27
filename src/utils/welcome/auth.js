@@ -2,6 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import gateway from "../backend-services/api-gateway";
 import Database from "../storage/database";
+import EventEmitter from "../global/Events/EventEmitter";
+
+import messageUtils from "../chat/message";
 
 /**
  * Check if the user is logged in by verifying the presence of an access token in AsyncStorage.
@@ -103,7 +106,7 @@ const initializeApp = async () => {
     }
 
     for (const message of messages) {
-      await database.addMessage(message);
+      await messageUtils.add(message);
     }
 
     console.log("All data stored in local database.");
@@ -170,7 +173,7 @@ const update = async () => {
 
     if (messages && messages.length > 0) {
       for (const message of messages) {
-        await database.addMessage(message);
+        await EventEmitter.newMessage(message);
       }
     }
 

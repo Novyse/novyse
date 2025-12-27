@@ -1,6 +1,7 @@
 import EventEmitter from "./lib/EventEmitter";
 import Database from "../../storage/database";
-import queueManager from "@/src/utils/chat/queueManager.js";
+
+import messageUtils from "../../chat/message";
 
 class GlobalEventEmitter {
   constructor() {
@@ -14,15 +15,11 @@ class GlobalEventEmitter {
   async newMessage(message) {
     const database = await Database.create();
     if (!message.fromSubscription) {
-      await database.addMessage(message);
+      await messageUtils.add(message);
     }
     const msg = await database.addSenderNameToMessage(message);
     //@SamueleOrazioDurante to be changes, devi usare un metodo che vada a carcare nel database, eventualmente lo vada a pullare dal server, ma solo temporaneamente (il pull completo viene fatto al join)
     this.eventEmitter.emit("message:new", msg);
-
-    if (message.files && message.files.length > 0) {
-      await queueManager.addInboundMessageJob(message);
-    }
   }
 
   async newChat(chat, messages = []) {
