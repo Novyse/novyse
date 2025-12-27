@@ -669,8 +669,8 @@ const gateway = {
       );
       const success = response.data.success;
       if (success) {
-        const { user, chats, messages } = response.data.data;
-        return { success, user, chats, messages };
+        const { user, chats, messages, updated_at } = response.data.data;
+        return { success, user, chats, messages, updated_at };
       }
       return { success };
     },

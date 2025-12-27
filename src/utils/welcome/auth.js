@@ -142,7 +142,7 @@ const update = async () => {
   const lastUpdateTimestamp = await getLastUpdateTimestamp();
   console.log("Last update timestamp:", lastUpdateTimestamp);
 
-  const { success, user, chats, messages } =
+  const { success, user, chats, messages, updated_at } =
     await gateway.user.update(lastUpdateTimestamp);
 
   if (success) {
@@ -174,9 +174,7 @@ const update = async () => {
       }
     }
 
-    const newTimestamp = new Date().toISOString();
-    await AsyncStorage.setItem("lastUpdateTimestamp", newTimestamp);
-    console.log("Updated last update timestamp to:", newTimestamp);
+    await AsyncStorage.setItem("lastUpdateTimestamp", updated_at);
 
     return true;
   }
