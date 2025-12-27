@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useContext } from "react";
-import moment from "moment";
+import { DateTime } from "luxon";
 import { UserContext } from "@/context/UserContext";
 
 const usePreparedMessages = (messages) => {
@@ -25,7 +25,10 @@ const usePreparedMessages = (messages) => {
 
       const sender = msg.sender_name;
       const senderUUID = msg.senderUUID;
-      const dateOfGroup = moment(msg.created_at).format("YYYY-MM-DD");
+      const dateTime = DateTime.fromJSDate(new Date(msg.created_at));
+      const dateOfGroup = dateTime.isValid
+        ? dateTime.toFormat("yyyy-MM-dd")
+        : null;
       const start = i;
 
       // Avanza fino alla fine del gruppo
@@ -33,7 +36,11 @@ const usePreparedMessages = (messages) => {
         i < sortedAsc.length &&
         !isBreaking(sortedAsc[i]) &&
         sortedAsc[i].sender_name === sender &&
-        moment(sortedAsc[i].created_at).format("YYYY-MM-DD") === dateOfGroup
+        (DateTime.fromJSDate(new Date(sortedAsc[i].created_at)).isValid
+          ? DateTime.fromJSDate(new Date(sortedAsc[i].created_at)).toFormat(
+              "yyyy-MM-dd"
+            )
+          : null) === dateOfGroup
       ) {
         i++;
       }
@@ -60,16 +67,21 @@ const usePreparedMessages = (messages) => {
     let buffer = [];
 
     for (const msg of sortedDesc) {
-      const msgDate = moment(msg.created_at).format("YYYY-MM-DD");
-      const msgDisplay = moment(msg.created_at).format("MMMM D, YYYY");
+      const dateTime = DateTime.fromJSDate(new Date(msg.created_at));
+      const msgDate = dateTime.isValid ? dateTime.toFormat("yyyy-MM-dd") : null;
+      const msgDisplay = dateTime.isValid
+        ? dateTime.toFormat("MMMM d, yyyy")
+        : null;
 
       if (msgDate !== currentDate && buffer.length > 0) {
         prepared.push(...buffer);
-        prepared.push({
-          type: "separator",
-          data: displayDate,
-          uniqueKey: `separator-${currentDate}`,
-        });
+        if (displayDate !== null) {
+          prepared.push({
+            type: "separator",
+            data: displayDate,
+            uniqueKey: `separator-${currentDate}`,
+          });
+        }
         buffer = [];
       }
 
@@ -93,11 +105,13 @@ const usePreparedMessages = (messages) => {
 
     if (buffer.length > 0) {
       prepared.push(...buffer);
-      prepared.push({
-        type: "separator",
-        data: displayDate,
-        uniqueKey: `separator-${currentDate}`,
-      });
+      if (displayDate !== null) {
+        prepared.push({
+          type: "separator",
+          data: displayDate,
+          uniqueKey: `separator-${currentDate}`,
+        });
+      }
     }
 
     return prepared;

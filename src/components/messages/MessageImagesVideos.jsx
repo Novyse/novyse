@@ -1,12 +1,20 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import { Image } from "expo-image";
+import { VideoView, useVideoPlayer } from "expo-video";
+import { getFileType } from "@/src/utils/storage/file/type";
+import useUriResolver from "@/src/hooks/file/useUriResolver";
 
 const { width: screenWidth } = Dimensions.get("window");
 const maxBubbleWidth = screenWidth * 1;
 
-const MessageImagesVideos = ({ mediaUris, uuid, mimeType, size }) => {
+const MessageImagesVideos = ({ mediaRefs, uuid, mimeType, size }) => {
   const [mediaDimensions, setMediaDimensions] = useState({});
+
+  const { uri: mediaUri } = useUriResolver(mediaRefs[0]);
+  const type = getFileType(mimeType);
+  const isImage = type === "IMAGE";
+  const mediaUris = [mediaUri]; // Per ora supporta un solo media, ma in futuro si può estendere
 
   const renderGridCell = (item, index, cellStyle) => {
     return (
@@ -16,18 +24,34 @@ const MessageImagesVideos = ({ mediaUris, uuid, mimeType, size }) => {
     );
   };
 
+  const playerVideo = useVideoPlayer(mediaUris[0], (player) => {
+    player.play();
+  });
+
   const renderSingleImage = (item, index) => {
     const dims = mediaDimensions[index] || { aspectRatio: 1 };
-    return (
+    return isImage ? (
       <Image
         key={index}
         source={item}
         style={{
-          aspectRatio: dims.aspectRatio,
-          width: "100%",
+          width: 100,
+          height: 100,
           maxWidth: maxBubbleWidth,
         }}
-        contentFit="contain"
+        contentFit="cover"
+      />
+    ) : (
+      <VideoView
+        key={index}
+        player={playerVideo}
+        style={{
+          maxWidth: maxBubbleWidth,
+        }}
+        useNativeControls
+        allowsFullscreen
+        allowsPictureInPicture
+        resizeMode="contain"
       />
     );
   };
@@ -126,7 +150,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     height: "50%",
   },
-  gridCell: {},
   topCell: {
     flex: 1,
   },

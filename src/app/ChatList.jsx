@@ -8,8 +8,8 @@ import {
   Platform,
   useWindowDimensions,
 } from "react-native";
-import moment from "moment";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { DateTime } from "luxon";
 
 import SmartBackground from "../components/SmartBackground";
 import Search from "./Search";
@@ -30,7 +30,7 @@ const ChatListItem = React.memo(
 
     const parseTime = (dateTimeMessage) => {
       if (!dateTimeMessage) return "";
-      return moment(dateTimeMessage).format("HH:mm");
+      return DateTime.fromJSDate(new Date(dateTimeMessage)).toFormat("HH:mm");
     };
 
     const displayMessage = (message) => {
@@ -319,7 +319,7 @@ function createStyle(theme, isSmallScreen) {
     chatListContainer: {
       flex: 1,
       position: "relative",
-      padding: isSmallScreen ? 0 : 10
+      padding: isSmallScreen ? 0 : 10,
     },
     chatListWrapper: {
       flex: 1,

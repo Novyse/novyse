@@ -15,8 +15,6 @@ const eventReceiver = {
     initialized = true;
 
     socket.on("new_message", async (message) => {
-      console.log("Received new_message event:", message);
-
       await setLastUpdateTimestamp(message.created_at);
 
       await eventEmitter.newMessage(message);

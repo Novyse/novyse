@@ -73,7 +73,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         {(mediaMessages.true || []).map((mediaMessage) => {
           return (
             <MessageImagesVideos
-              mediaUris={[mediaMessage.uri]}
+              mediaRefs={[mediaMessage.ref]}
               uuid={mediaMessage.uuid}
               mimeType={mediaMessage.mimeType}
               size={mediaMessage.size}

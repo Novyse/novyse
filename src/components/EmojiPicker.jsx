@@ -1,7 +1,8 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
-import { ThemeContext } from '@/context/ThemeContext';
-import EmojiSelector from 'react-native-emoji-selector';
+import React, { useContext } from "react";
+import { View, StyleSheet, Platform } from "react-native";
+import { ThemeContext } from "@/context/ThemeContext";
+import EmojiSelector from "react-native-emoji-selector";
+import BlurredView from "@/src/components/BlurredView";
 
 const EmojiPicker = ({ onEmojiSelected, onClose }) => {
   const { theme } = useContext(ThemeContext);
@@ -12,10 +13,10 @@ const EmojiPicker = ({ onEmojiSelected, onClose }) => {
     if (onClose) onClose();
   };
 
-  const isWeb = Platform.OS === 'web';
+  const isWeb = Platform.OS === "web";
 
   return (
-    <View style={styles.container}>
+    <BlurredView style={styles.container}>
       <EmojiSelector
         onEmojiSelected={handleEmojiSelected}
         showSearchBar={true}
@@ -26,19 +27,20 @@ const EmojiPicker = ({ onEmojiSelected, onClose }) => {
         placeholder="Search emoji..."
         style={styles.emojiSelector}
       />
-    </View>
+    </BlurredView>
   );
 };
 
-const createStyle = (theme) => StyleSheet.create({
-  container: {
-    backgroundColor: theme.backgroundModal,
-    width: '100%',
-    height: '100%'
-  },
-  emojiSelector: {
-    flex: 1,
-  },
-});
+const createStyle = (theme) =>
+  StyleSheet.create({
+    container: {
+      width: "100%",
+      height: "100%",
+      borderRadius: 0,
+    },
+    emojiSelector: {
+      flex: 1,
+    },
+  });
 
 export default EmojiPicker;

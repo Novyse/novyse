@@ -49,6 +49,7 @@ const ChatContent = ({ onBack, contentView }) => {
   const styles = createStyle(theme);
   const [newMessageText, setNewMessageText] = useState("");
   const [isVoiceMessage, setVoiceMessage] = useState(true);
+  const [isFileMenuOpen, setIsFileMenuOpen] = useState(false);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
   const [isMicClicked, setIsMicClicked] = useState(false);
   const [sheetIndex, setSheetIndex] = useState(-1);
@@ -65,7 +66,6 @@ const ChatContent = ({ onBack, contentView }) => {
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
   const textInputRef = useRef(null);
   const bottomSheetRef = useRef(null);
-  const rotationAnim = useRef(new Animated.Value(0)).current;
 
   // Hook per prepared messages
   const preparedMessages = usePreparedMessages(messages);
@@ -120,14 +120,6 @@ const ChatContent = ({ onBack, contentView }) => {
     };
   }, [chat.uuid, onBack]);
 
-  useEffect(() => {
-    Animated.timing(rotationAnim, {
-      toValue: sheetIndex === 0 ? 1 : 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [sheetIndex]);
-
   const toggleEmojiPicker = useCallback(() => {
     if (Platform.OS === "web") {
       setIsEmojiPickerVisible(!isEmojiPickerVisible);
@@ -152,11 +144,14 @@ const ChatContent = ({ onBack, contentView }) => {
   const handleToggleMenu = useCallback(() => {
     if (sheetIndex === -1) {
       setSheetIndex(0);
+      setIsFileMenuOpen(true);
     } else {
       if (Platform.OS === "web") {
         setSheetIndex(-1);
+        setIsFileMenuOpen(false);
       } else {
         bottomSheetRef.current?.close();
+        setIsFileMenuOpen(false);
       }
     }
   }, [sheetIndex]);
@@ -205,18 +200,17 @@ const ChatContent = ({ onBack, contentView }) => {
             newMessageText={newMessageText}
             onSendVoiceMessage={handleSendVoiceMessage}
             isVoiceMessage={isVoiceMessage}
-            rotationAnim={rotationAnim}
             textInputRef={textInputRef}
             onTextChange={(text) => {
               setNewMessageText(text);
               handleTextChanging(text, isMicClicked);
             }}
             onSendMessage={handleSendMessage}
+            isFileMenuOpen={isFileMenuOpen}
             onToggleMenu={handleToggleMenu}
             onToggleEmoji={toggleEmojiPicker}
             onInputFocus={onInputFocus}
             onJoin={handleJoin}
-            theme={theme}
             setBottomBarHeight={setBottomBarHeight}
           />
         </KeyboardAvoidingView>

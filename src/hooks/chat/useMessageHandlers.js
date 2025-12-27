@@ -20,29 +20,39 @@ const useMessageHandlers = (
     async (imageUri, chatUUID) => {
       if (!imageUri || !chatUUID) return;
 
-      const { success, message } = await gateway.message.send(
-        chatUUID,
-        null,
-        "image",
-        { uri: imageUri }
-      );
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      const size = blob.size;
+      const mimeType = blob.type;
+      const name = blob.name;
 
-      if (success) {
-        console.log("Image message sent successfully:", message);
-        await eventEmitter.newMessage(message);
-        setMessages((currentMessages) => {
-          const exists = currentMessages.some((msg) => msg.id === message.id);
-          if (!exists) {
-            return [message, ...currentMessages];
-          }
-          return currentMessages;
-        });
-      } else {
-        console.error("Failed to send image message");
-        Alert.alert("Error", "Failed to send image");
-      }
+      const files = [
+        {
+          uri: imageUri,
+          isInternal: true,
+          name,
+          mimeType,
+          size,
+        },
+      ];
+
+      const message = {
+        senderUUID: myUUID,
+        content: "",
+        type: "message",
+        files,
+      };
+
+      await queueManager.addOutgoingMessageJob(message, chat);
     },
-    [setMessages]
+    [
+      chat,
+      setSelectedChatUUID,
+      setMessages,
+      setNewMessageText,
+      setVoiceMessage,
+      setIsMicClicked,
+    ]
   );
 
   const pickImage = useCallback(async () => {

@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Text, StyleSheet, View } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "../Icon";
-import moment from "moment";
+import { DateTime } from "luxon";
 
 const MessageTimestamp = ({ time }) => {
   const { theme } = useContext(ThemeContext);
@@ -10,8 +10,8 @@ const MessageTimestamp = ({ time }) => {
 
   const parseTime = (dateTime) => {
     if (!dateTime) return "";
-    const timeMoment = moment(dateTime);
-    return timeMoment.isValid() ? timeMoment.format("HH:mm") : "";
+    const dt = DateTime.fromJSDate(new Date(dateTime));
+    return dt.isValid ? dt.toFormat("HH:mm") : "";
   };
 
   if (parseTime(time) === "") {

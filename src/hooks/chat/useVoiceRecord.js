@@ -13,7 +13,7 @@ const useVoiceRecord = (onSendMessage) => {
   // --- LOGICA AUDIO ---
   const [isRecording, setIsRecording] = useState(false);
   const audioRecorder = useAudioRecorder(RecordPreset.AAC);
-  const recorderState = useAudioRecorderState(audioRecorder);
+  const recorderState = useAudioRecorderState(audioRecorder, 100);
 
   // Cleanup
   useEffect(() => {
@@ -27,7 +27,7 @@ const useVoiceRecord = (onSendMessage) => {
     };
   }, [audioRecorder, isRecording]);
 
-  // Avvio Registrazione (Click sul Mic)
+  // Avvio Registrazione
   const handleStartRecording = async () => {
     try {
       const { status } = await AudioModule.requestRecordingPermissionsAsync();
@@ -81,7 +81,7 @@ const useVoiceRecord = (onSendMessage) => {
     }
   };
 
-  // Annulla (Swipe)
+  // Annulla
   const handleCancelRecording = async () => {
     if (!isRecording) return;
     try {
@@ -92,12 +92,26 @@ const useVoiceRecord = (onSendMessage) => {
       console.error(err);
     }
   };
+
+  const handleTogglePause = async () => {
+    if (!isRecording) return;
+    try {
+      if (recorderState.isRecording) {
+        await audioRecorder.pause();
+      } else await audioRecorder.record();
+    } catch (err) {
+      console.error("Errore toggle pause:", err);
+    }
+  };
+
   return {
     isRecording,
+    isPaused: !recorderState.isRecording,
     recorderState,
     handleStartRecording,
     handleStopAndSend,
     handleCancelRecording,
+    handleTogglePause,
   };
 };
 

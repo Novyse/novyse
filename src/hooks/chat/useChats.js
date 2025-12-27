@@ -43,7 +43,6 @@ const useChats = () => {
     loadChats();
 
     const handleNewMessage = async (message) => {
-      console.log("New message event received in useChats hook:", message);
       const chatUUID = message.chatUUID;
       const lastMessage = await formatMessage(message);
       setChatDetails((prevDetails) => {

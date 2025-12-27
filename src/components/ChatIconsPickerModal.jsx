@@ -8,7 +8,8 @@ import {
 } from "react-native";
 import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
-import EmojiPicker from "./EmojiPicker"; // Verify this path
+import BlurredView from "@/src/components/BlurredView";
+import EmojiPicker from "./EmojiPicker";
 
 const TABS = {
   EMOJI: "emoji",
@@ -44,7 +45,7 @@ const ChatIconsPickerModal = ({
   if (!visible) return null;
 
   return (
-    <View
+    <BlurredView
       style={[
         styles.container,
         {
@@ -94,7 +95,7 @@ const ChatIconsPickerModal = ({
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.contentContainer}>{renderContent()}</ScrollView>
-    </View>
+    </BlurredView>
   );
 };
 
@@ -117,7 +118,7 @@ const createStyle = (theme) =>
       maxHeight: 500,
       minWidth: 300,
       width: "23%",
-      overflow: "hidden"
+      overflow: "hidden",
     },
     tabsContainer: {
       flexDirection: "row",
