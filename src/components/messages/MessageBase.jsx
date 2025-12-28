@@ -1,21 +1,17 @@
 import React, { useContext } from "react";
-import {
-  View,
-  Pressable,
-  StyleSheet,
-  Platform,
-  Text,
-  Image,
-} from "react-native";
+import { View, Pressable, StyleSheet, Text, Image } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import BlurredView from "../BlurredView";
 import { getFileType } from "@/src/utils/storage/file/type";
 
-import MessageText from "./MessageText";
 import MessageTimestamp from "./MessageTimestamp";
-import MessageAudio from "./MessageAudio";
-import MessageImagesVideos from "./MessageImagesVideos";
+
+import MessageMedia from "./MessageMedia";
 import MessageOther from "./MessageOther";
+import MessageAudio from "./MessageAudio";
+import MessageVoice from "./MessageVoice";
+
+import MessageText from "./MessageText";
 
 const MessageBase = ({ message, isSender, onLongPress }) => {
   const { theme } = useContext(ThemeContext);
@@ -69,17 +65,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         }
       >
         {/* images/videos print */}
-        {/* <MessageImagesVideos mediaUris={mediaMessages[true]?.map((m) => m.uri) || []} />  MULTIPLE IMAGES IN ONE MESSAGE 2X2 */}
-        {(mediaMessages.true || []).map((mediaMessage) => {
-          return (
-            <MessageImagesVideos
-              mediaRefs={[mediaMessage.ref]}
-              uuid={mediaMessage.uuid}
-              mimeType={mediaMessage.mimeType}
-              size={mediaMessage.size}
-            />
-          );
-        })}
+        <MessageMedia medias={mediaMessages.true || []} />
 
         {/* others print */}
         {(otherMessages.true || []).map((otherMessage) => {
@@ -94,9 +80,9 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         })}
 
         {/* audios print */}
-        {(audioMessages.true || []).map((audioMessage) => {
+        {(audioMessages.true || []).map((audioMessage) => { // TEMPORARY, TILL NAME IS ADDED TO DB FOR FILES @SamueleOrazioDurante
           return (
-            <MessageAudio
+            <MessageVoice
               audioRef={audioMessage.ref}
               uuid={audioMessage.uuid}
               mimeType={audioMessage.mimeType}
@@ -108,7 +94,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         {/* voices print */}
         {(voiceMessages.true || []).map((voiceMessage) => {
           return (
-            <MessageAudio
+            <MessageVoice
               audioRef={voiceMessage.ref}
               uuid={voiceMessage.uuid}
               mimeType={voiceMessage.mimeType}
