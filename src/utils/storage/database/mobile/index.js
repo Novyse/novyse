@@ -88,6 +88,7 @@ class Database {
 
             CREATE TABLE IF NOT EXISTS file (
                 uuid TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
                 ref TEXT NOT NULL,
                 mimeType TEXT NOT NULL,
                 size INTEGER NOT NULL,
@@ -353,8 +354,8 @@ class Database {
       if (message.files && Array.isArray(message.files)) {
         for (const file of message.files) {
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO file (uuid, ref, mimeType, size) VALUES (?, ?, ?, ?);`,
-            [file.uuid, file.ref, file.mimeType, file.size]
+            `INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size) VALUES (?, ?, ?, ?);`,
+            [file.uuid, file.name, file.ref, file.mimeType, file.size]
           );
           await this.db.runAsync(
             `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES (?, ?, ?);`,

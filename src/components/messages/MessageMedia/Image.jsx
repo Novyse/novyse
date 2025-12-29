@@ -28,6 +28,7 @@ const Image = ({ ref }) => {
         width: 100,
         height: 100,
         maxWidth: maxBubbleWidth,
+        borderRadius: 4,
       }}
       contentFit="cover"
       onLoad={onLoadImage}

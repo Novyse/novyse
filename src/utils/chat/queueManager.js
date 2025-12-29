@@ -74,7 +74,7 @@ class QueueManager {
 
   /**
    * Add an outgoing message job to the queue
-   * @param {Object} message { senderUUID, content, type, files { uuid, index, uri, ref, mimeType, uploadURL } }
+   * @param {Object} message { senderUUID, content, type, files { uuid, index, name, uri, ref, mimeType, uploadURL } }
    * @param {Object} chat { uuid, name, type, handle, profilePictureUUID, member }
    * @param {String?} id (default = v6())
    * @param {String?} status (default = "PENDING_SEND")
@@ -387,6 +387,7 @@ class QueueManager {
         for (let i = 0; i < message.files.length; i++) {
           const originalFile = files.find((f) => f.id === message.files[i].id);
           if (originalFile) {
+            message.files[i].name = originalFile.name;
             message.files[i].ref = originalFile.ref;
             message.files[i].mimeType = originalFile.mimeType;
             message.files[i].size = originalFile.size;
@@ -672,6 +673,7 @@ class QueueManager {
               for (const file of job.params.message.files) {
                 filesData.push({
                   index: file.index,
+                  name: file.name,
                   uri: file.uri,
                   mimeType: file.mimeType,
                   uuid: file.uuid,
@@ -703,6 +705,7 @@ class QueueManager {
               for (const file of job.params.message.files) {
                 filesData.push({
                   index: file.index,
+                  name: file.name,
                   uri: file.uri,
                   mimeType: file.mimeType,
                   uuid: file.uuid,
@@ -730,6 +733,7 @@ class QueueManager {
               for (const file of job.params.message.files) {
                 filesData.push({
                   index: file.index,
+                  name: file.name,
                   uri: file.uri,
                   mimeType: file.mimeType,
                   uuid: file.uuid,
@@ -782,6 +786,7 @@ class QueueManager {
       for (const file of message.files) {
         fileData.push({
           index: file.index,
+          name: file.name,
           uri: file.uri,
           ref: file.ref,
           mimeType: file.mimeType,

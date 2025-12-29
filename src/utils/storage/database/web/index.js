@@ -271,6 +271,7 @@ class Database {
           if (!existingFile) {
             files.push({
               uuid: file.uuid,
+              name: file.name,
               ref: file.ref,
               mimeType: file.mimeType,
               size: file.size,

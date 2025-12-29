@@ -80,9 +80,9 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         })}
 
         {/* audios print */}
-        {(audioMessages.true || []).map((audioMessage) => { // TEMPORARY, TILL NAME IS ADDED TO DB FOR FILES @SamueleOrazioDurante
+        {(audioMessages.true || []).map((audioMessage) => {
           return (
-            <MessageVoice
+            <MessageAudio
               audioRef={audioMessage.ref}
               uuid={audioMessage.uuid}
               mimeType={audioMessage.mimeType}

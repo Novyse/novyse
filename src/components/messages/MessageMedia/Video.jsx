@@ -20,6 +20,7 @@ const Video = ({ ref }) => {
       player={playerVideo}
       style={{
         maxWidth: maxBubbleWidth,
+        borderRadius: 4,
       }}
       useNativeControls
       allowsFullscreen
