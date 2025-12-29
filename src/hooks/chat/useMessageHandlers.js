@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 import { Alert, Platform } from "react-native";
 import gateway from "@/src/utils/backend-services/api-gateway.js";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
@@ -77,31 +78,8 @@ const useMessageHandlers = (
 
     if (!result.canceled) {
       const imageUri = result.assets[0].uri;
-      let currentChatUUID = chat.uuid;
 
-      if (!chat.uuid) {
-        const response = await gateway.chat.create(
-          "DM",
-          chat.member,
-          null,
-          null
-        );
-        const success = response.success;
-        const newChat = response.chat;
-        if (success) {
-          newChat.name = newChat.members[0].name;
-          console.log("Chat created successfully:", newChat);
-          await eventEmitter.newChat(newChat);
-          setSelectedChatUUID(newChat.uuid);
-          currentChatUUID = newChat.uuid;
-        } else {
-          console.error("Failed to create chat");
-          Alert.alert("Error", "Failed to create chat");
-          return;
-        }
-      }
-
-      await handleSendImageMessage(imageUri, currentChatUUID);
+      await handleSendImageMessage(imageUri, chat.uuid);
     }
 
     // Close menu after action
@@ -111,6 +89,50 @@ const useMessageHandlers = (
       // Assumi bottomSheetRef.current?.close() sia gestito esternamente
     }
   }, [chat, selectedChatUUID, setSelectedChatUUID, handleSendImageMessage]);
+
+  const handleSendFileMessage = useCallback(
+    async (files, chatUUID) => {
+      if (!files || !chatUUID) return;
+
+      const cleanedFiles = files.map((file) => ({
+        uri: file.uri,
+        isInternal: true,
+        name: file.name,
+        mimeType:
+          file.mimeType && file.mimeType !== ""
+            ? file.mimeType
+            : "application/octet-stream",
+        size: file.size,
+      }));
+
+      console.log(cleanedFiles);
+
+      const message = {
+        senderUUID: myUUID,
+        content: "",
+        type: "message",
+        files: cleanedFiles,
+      };
+
+      await queueManager.addOutgoingMessageJob(message, chat);
+    },
+    [chat, myUUID]
+  );
+
+  const pickFile = useCallback(async () => {
+    console.log("Starting to pick file");
+    let result = await DocumentPicker.getDocumentAsync({
+      type: "*/*",
+      copyToCacheDirectory: true,
+      multiple: true,
+    });
+    if (!result.canceled) {
+      await handleSendFileMessage(result.assets, chat.uuid);
+    }
+
+    // Close menu after action
+    // Logica per chiudere il menu gestita esternamente
+  }, [chat, selectedChatUUID, setSelectedChatUUID, handleSendFileMessage]);
 
   const handleSendMessage = useCallback(
     async (type = "message", content, files = []) => {
@@ -231,10 +253,14 @@ const useMessageHandlers = (
         await pickImage();
         return;
       }
+      if (action === "File") {
+        await pickFile();
+        return;
+      }
       console.log(`Action: ${action}`);
       // Close menu logic handled externally
     },
-    [pickImage]
+    [pickImage, pickFile]
   );
 
   // // Listen for message sent events to update message IDs
@@ -275,6 +301,7 @@ const useMessageHandlers = (
     handleSendMessage,
     handleSendImageMessage,
     pickImage,
+    pickFile,
     handleTextChanging,
     handleMenuItemPress,
   };

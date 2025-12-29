@@ -385,12 +385,11 @@ class QueueManager {
       if (message.files && message.files.length > 0) {
         // Update files with refs from original job
         for (let i = 0; i < message.files.length; i++) {
-          const originalFile = files.find((f) => f.id === message.files[i].id);
-          if (originalFile) {
-            message.files[i].name = originalFile.name;
-            message.files[i].ref = originalFile.ref;
-            message.files[i].mimeType = originalFile.mimeType;
-            message.files[i].size = originalFile.size;
+          if (files[i]) {
+            message.files[i].name = files[i].name;
+            message.files[i].ref = files[i].ref;
+            message.files[i].mimeType = files[i].mimeType;
+            message.files[i].size = files[i].size;
           }
         }
       }

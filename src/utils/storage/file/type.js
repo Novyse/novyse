@@ -76,8 +76,8 @@ const mimeToType = {
   "application/x-7z-compressed": "ARCHIVE",
   "application/x-bzip2": "ARCHIVE",
   "application/x-xz": "ARCHIVE",
-  // ENCRYPTED
-  "application/application/octet-stream": "ENCRYPTED",
+  // OTHER
+  "application/octet-stream": "OTHER",
 };
 
 /**

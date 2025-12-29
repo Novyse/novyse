@@ -71,10 +71,11 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         {(otherMessages.true || []).map((otherMessage) => {
           return (
             <MessageOther
-              fileUri={otherMessage.uri}
+              fileRef={otherMessage.ref}
               uuid={otherMessage.uuid}
               mimeType={otherMessage.mimeType}
               size={otherMessage.size}
+              name={otherMessage.name}
             />
           );
         })}

@@ -44,6 +44,7 @@ const api = axios.create({
 let isRefreshing = false;
 let isRefreshingAuth = false;
 let failedAuthQueue = [];
+let failedQueue = [];
 
 const processAuthQueue = (error, token = null) => {
   failedAuthQueue.forEach((prom) => {
