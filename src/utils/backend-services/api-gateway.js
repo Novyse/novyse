@@ -43,7 +43,19 @@ const api = axios.create({
 
 let isRefreshing = false;
 let isRefreshingAuth = false;
-let failedQueue = [];
+let failedAuthQueue = [];
+
+const processAuthQueue = (error, token = null) => {
+  failedAuthQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+
+  failedAuthQueue = [];
+};
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
@@ -366,8 +378,9 @@ const gateway = {
 
     async refresh() {
       if (isRefreshingAuth) {
-        // Prevent multiple simultaneous refresh calls
-        return false;
+        return new Promise((resolve, reject) => {
+          failedAuthQueue.push({ resolve, reject });
+        });
       }
       isRefreshingAuth = true;
       try {
@@ -376,6 +389,8 @@ const gateway = {
         if (!refreshToken) {
           console.error("No refresh token available");
           eventEmitter.emit("invalidSession");
+          processAuthQueue(new Error("No refresh token"), null);
+          return false;
         }
 
         const response = await api.post("/auth/refresh", { refreshToken });
@@ -386,13 +401,16 @@ const gateway = {
           const refreshToken = response.data.data.refreshToken;
           if (accessToken && refreshToken) {
             await token.setBothTokens(accessToken, refreshToken);
+            processAuthQueue(null, true);
             return success;
           }
         }
 
+        processAuthQueue(new Error("Refresh failed"), null);
         return success;
       } catch (error) {
         console.error("Error in refresh:", error);
+        processAuthQueue(error, null);
         throw error;
       } finally {
         isRefreshingAuth = false;
