@@ -260,18 +260,27 @@ class QueueManager {
                 throw new Error("File download failed from S3");
               }
 
-              const uri = URL.createObjectURL(blob);
-
-              // Save file to storage
-              const { ref, size } = await storage.save(uri, true);
-
-              if (!ref || !size || size <= 0) {
-                throw new Error("File save to storage failed");
-              }
+              const downloadedSize = blob.byteLength || blob.size; // Depends on type, .size for blob .byteLength for arrayBuffer
 
               // Check declared size matches downloaded size
-              if (size != downloadedFile.size) {
-                throw new Error("Downloaded file size mismatch");
+              if (downloadedSize != downloadedFile.size) {
+                const errorMsg = `Downloaded file size mismatch for file ${fileToDownload}: expected ${downloadedFile.size}, got ${downloadedSize}`;
+                throw new Error(errorMsg);
+              }
+
+              const uri = await storage.getUri(blob, downloadedFile.uuid);
+
+              // Save file to storage
+              const { ref, size } = await storage.save(uri, false);
+
+              if (!ref || !size || size <= 0) {
+                const errorMsg = `File save to storage failed for file ${fileToDownload}: ref=${ref}, size=${size}`;
+                throw new Error(errorMsg);
+              }
+
+              if (downloadedFile.size !== size) {
+                const errorMsg = `Saved file size mismatch for file ${fileToDownload}: expected ${downloadedFile.size}, got ${size}`;
+                throw new Error(errorMsg);
               }
 
               // Update files object in message with new ref

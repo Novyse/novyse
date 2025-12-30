@@ -354,7 +354,7 @@ class Database {
       if (message.files && Array.isArray(message.files)) {
         for (const file of message.files) {
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size) VALUES (?, ?, ?, ?);`,
+            `INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size) VALUES (?, ?, ?, ?, ?);`,
             [file.uuid, file.name, file.ref, file.mimeType, file.size]
           );
           await this.db.runAsync(

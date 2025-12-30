@@ -79,6 +79,43 @@ const DB = {
     await blobStore.clear();
     console.log("[FILES_DB]: All files cleared");
   },
+
+  /**
+   * Get the blob of the file
+   * @param {String} uri
+   * @returns
+   */
+  getBlob: async (uri) => {
+    try {
+      // Handle all URIs with fetch
+      const response = await fetch(uri);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch file from URI: ${response.statusText}`
+        );
+      }
+      const blob = await response.blob();
+
+      return blob;
+    } catch (err) {
+      console.error("Could not get blob", err);
+      return null;
+    }
+  },
+
+  /**
+   * Get the URI from a blob
+   * @param {Blob} blob
+   * @returns
+   */
+  getUri: async (blob) => {
+    try {
+      return URL.createObjectURL(blob);
+    } catch (err) {
+      console.error("Could not get URI from blob", err);
+      return null;
+    }
+  },
 };
 
 export default DB;

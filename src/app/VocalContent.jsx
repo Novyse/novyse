@@ -65,7 +65,7 @@ const createStyle = (theme) =>
       backgroundColor: theme.errorText,
       padding: 15,
       borderRadius: 12,
-      marginTop: 50,
+      marginTop: 150,
       marginBottom: 10,
       borderWidth: 1,
       borderColor: theme.iconCommsOutHover,

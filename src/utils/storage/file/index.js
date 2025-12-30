@@ -30,7 +30,7 @@ const storage = {
         size = result.size;
       } else {
         ref = uri;
-        size = await mobile.getSize(uri); // da usare la libreria apposita
+        size = await mobile.getSize(ref);
       }
     } else if (Platform.OS === "WindowsOS") {
       // Windows
@@ -49,6 +49,26 @@ const storage = {
       uri = await mobile.read(ref);
     }
     return uri;
+  },
+
+  async getBlob(uri) {
+    if (Platform.OS === "web") {
+      // Web
+      return await web.getBlob(uri);
+    } else {
+      // Mobile
+      return await mobile.getBlob(uri);
+    }
+  },
+
+  async getUri(blob, uuid) {
+    if (Platform.OS === "web") {
+      // Web
+      return await web.getUri(blob);
+    } else {
+      // Mobile
+      return await mobile.getUri(blob, uuid);
+    }
   },
 };
 

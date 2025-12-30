@@ -1,8 +1,11 @@
+import storage from "./index";
+import { Platform } from "react-native";
+
 class S3Uploader {
   /**
    * Uploads a file to S3 using a presigned URL with progress tracking.
    * @param {string} presignedUrl - The presigned S3 URL for upload.
-   * @param {string} fileUri - The URI of the file to upload (e.g., blob URL or data URL).
+   * @param {string} fileUri - The URI of the file to upload (e.g., blob URL).
    * @param {function} onProgress - Callback function called with { loaded: number, total: number }.
    * @returns {Promise<boolean>} - True if upload successful, false otherwise.
    */
@@ -13,14 +16,10 @@ class S3Uploader {
           throw new Error("Presigned URL and file URI are required.");
         }
 
-        // Fetch the file as a blob
-        const response = await fetch(fileUri);
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch file from URI: ${response.statusText}`
-          );
+        const blob = await storage.getBlob(fileUri);
+        if (!blob) {
+          throw new Error("Could not retrieve blob for the given file URI.");
         }
-        const blob = await response.blob();
 
         // Use XMLHttpRequest for progress tracking
         const xhr = new XMLHttpRequest();
@@ -72,7 +71,12 @@ class S3Uploader {
         }
         const xhr = new XMLHttpRequest();
         xhr.open("GET", presignedUrl, true);
-        xhr.responseType = "blob";
+
+        if(Platform.OS === "web"){
+          xhr.responseType = "blob";
+        }else{
+          xhr.responseType = "arraybuffer";
+        }
         xhr.onprogress = (event) => {
           if (onProgress && event.lengthComputable) {
             onProgress({ loaded: event.loaded, total: event.total });
