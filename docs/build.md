@@ -60,6 +60,17 @@ For a development build on Android, follow these steps:
    npx expo run:android
    ```
 
+> [!WARNING]  
+> If you encounter a "path too long 260 char" error on Windows, you need to enable long paths support using the following PowerShell command (run as Administrator):
+>
+> ```
+> New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+> ```
+>
+> To ensure compatibility with the latest build tools, download the latest Ninja .exe from the [Ninja repository releases](https://github.com/ninja-build/ninja/releases). Replace the existing `ninja.exe` in the following path:  
+> `C:\Users\{LOCAL_USER}\AppData\Local\Android\Sdk\cmake\{VERSION}\bin`  
+> (For example, in my case was: `C:\Users\ISRaiken\AppData\Local\Android\Sdk\cmake\3.22.1\bin`)
+
 ### Production Build
 
 For a production build on Android, follow these steps:
