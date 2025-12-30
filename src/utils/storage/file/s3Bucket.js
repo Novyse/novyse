@@ -1,5 +1,5 @@
 import storage from "./index";
-import { Platform } from "react-native";
+import { getPlatform } from "../../device/type";
 
 class S3Uploader {
   /**
@@ -72,11 +72,7 @@ class S3Uploader {
         const xhr = new XMLHttpRequest();
         xhr.open("GET", presignedUrl, true);
 
-        if(Platform.OS === "web"){
-          xhr.responseType = "blob";
-        }else{
-          xhr.responseType = "arraybuffer";
-        }
+        xhr.responseType = S3Uploader.getResponseType();
         xhr.onprogress = (event) => {
           if (onProgress && event.lengthComputable) {
             onProgress({ loaded: event.loaded, total: event.total });
@@ -100,6 +96,22 @@ class S3Uploader {
         resolve(null);
       }
     });
+  }
+
+  static getResponseType() {
+    const platform = getPlatform();
+    switch (platform) {
+      case "web":
+        return "blob";
+      case "mobile":
+        return "arraybuffer";
+      default:
+        throw new Error(`Unsupported platform: ${platform}`);
+    }
+  }
+
+  static getSizeFromBytes(bytes) {
+    return bytes ? bytes.size || bytes.byteLength || -1 : -1;
   }
 }
 export default S3Uploader;

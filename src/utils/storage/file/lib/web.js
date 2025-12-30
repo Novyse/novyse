@@ -11,23 +11,45 @@ const DB = {
    * @param {String} uri - The file URI
    * @returns {Promise<{ref: string, size: number}>} The file reference and size
    */
-  save: async (uri) => {
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      const size = blob.size;
+  save: {
+    /**
+     * Save a file by its URI.
+     * @param {string} uri - The URI of the file to save.
+     * @returns {Promise<{ref: string, size: number}>} The file reference and size
+     */
+    byUri: async (uri) => {
+      if (!uri) {
+        throw new Error("URI is required to save a file.");
+      }
+      try {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const size = blob.size;
 
-      const key = uri.split("/").pop();
+        const key = uri.split("/").pop();
 
-      await blobStore.setItem(key, {
-        key,
-        blob,
-      });
-      return { ref: key, size };
-    } catch (err) {
-      console.error("[FILES_DB]: Could not save file", err);
-      throw err;
-    }
+        await blobStore.setItem(key, {
+          key,
+          blob,
+        });
+        return { ref: key, size };
+      } catch (err) {
+        console.error("Could not save file", err);
+        throw err;
+      }
+    },
+    /**
+     * Save a file by its Blob.
+     * @param {Blob} blob
+     * @returns {Promise<{ref: string, size: number}>} The file reference and size
+     */
+    byBlob: async (blob) => {
+      if (!blob) {
+        throw new Error("Blob is required to save a file.");
+      }
+      const uri = await DB.getUri(blob);
+      return await DB.save.byUri(uri);
+    },
   },
 
   /**

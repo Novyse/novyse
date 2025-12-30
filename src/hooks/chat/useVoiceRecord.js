@@ -70,7 +70,6 @@ const useVoiceRecord = (onSendMessage) => {
             name: `novyse_vocal_${Date.now()}.m4a`,
             uri: tempUri,
             mimeType: "audio/aac",
-            isInternal: true,
           },
         ];
 

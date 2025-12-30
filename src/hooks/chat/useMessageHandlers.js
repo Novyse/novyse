@@ -30,7 +30,6 @@ const useMessageHandlers = (
       const files = [
         {
           uri: imageUri,
-          isInternal: true,
           name,
           mimeType,
           size,
@@ -96,7 +95,6 @@ const useMessageHandlers = (
 
       const cleanedFiles = files.map((file) => ({
         uri: file.uri,
-        isInternal: true,
         name: file.name,
         mimeType:
           file.mimeType && file.mimeType !== ""

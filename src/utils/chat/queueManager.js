@@ -183,8 +183,8 @@ class QueueManager {
     } catch (error) {
       console.error("Job failed:", job.id, error);
       // Increment retry count
-      job.retries++;
-      if (job.retries >= job.maxRetries) {
+      job.params.attempts++;
+      if (job.params.attempts >= job.params.maxRetries) {
         console.error("Job failed permanently, removing:", job.id);
         this.queue.shift(); // Remove failed job after max retries
         await this.removeJob(job.id);
@@ -252,15 +252,16 @@ class QueueManager {
 
             if (downloadedFile && downloadedFile.downloadURL) {
               // Download file from S3 bucket
-              const blob = await S3Uploader.download(
+              const bytes = await S3Uploader.download(
                 downloadedFile.downloadURL
               );
 
-              if (!blob) {
+              if (!bytes) {
                 throw new Error("File download failed from S3");
               }
 
-              const downloadedSize = blob.byteLength || blob.size; // Depends on type, .size for blob .byteLength for arrayBuffer
+              // Get size of downloaded file (can be Blob or ArrayBuffer depending on platform)
+              const downloadedSize = S3Uploader.getSizeFromBytes(bytes);
 
               // Check declared size matches downloaded size
               if (downloadedSize != downloadedFile.size) {
@@ -268,10 +269,11 @@ class QueueManager {
                 throw new Error(errorMsg);
               }
 
-              const uri = await storage.getUri(blob, downloadedFile.uuid);
-
               // Save file to storage
-              const { ref, size } = await storage.save(uri, false);
+              const { ref, size } = await storage.save.byBytes(
+                bytes,
+                fileToDownload
+              );
 
               if (!ref || !size || size <= 0) {
                 const errorMsg = `File save to storage failed for file ${fileToDownload}: ref=${ref}, size=${size}`;
@@ -372,13 +374,13 @@ class QueueManager {
 
     if (files && files.length > 0) {
       for (const file of files) {
-        const { ref, size } = await storage.save(file.uri, file.isInternal);
+        const { ref, size } = await storage.save.byUri(file.uri);
         file.ref = ref;
         file.size = size;
       }
-      // Remove files ( uri, ref, isInternal ) before sending
+      // Remove files ( uri, ref ) before sending
       cleanFiles = files.map((file) => {
-        const { uri, ref, isInternal, ...rest } = file;
+        const { uri, ref, ...rest } = file;
         return rest;
       });
     }

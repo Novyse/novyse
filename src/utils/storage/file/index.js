@@ -2,41 +2,76 @@ import web from "./lib/web";
 import mobile from "./lib/mobile";
 import { Platform } from "react-native";
 
+import { getPlatform } from "../../device/type";
+
 const storage = {
-  /**
-   * Saves a file to storage and returns a reference.
-   * @param {string} uri - The URI of the file to save.
-   * @param {boolean} isInternal - Whether to save the file internally (mobile only).
-   * @returns {Promise<{ref: string, size: number}>} The file reference and size
-   */
-  async save(uri, isInternal = false) {
-    if (!uri) {
-      throw new Error("URI is required to save a file.");
-    }
-
-    let ref = undefined;
-    let size = -1;
-
-    if (Platform.OS === "web") {
-      // Web
-      const result = await web.save(uri);
-      ref = result.ref;
-      size = result.size;
-    } else if (Platform.OS != "web") {
-      // Mobile
-      if (isInternal) {
-        const result = await mobile.save(uri);
-        ref = result.ref;
-        size = result.size;
-      } else {
-        ref = uri;
-        size = await mobile.getSize(ref);
+  save: {
+    /**
+     * Save a file by its URI.
+     * @param {string} uri - The URI of the file to save.
+     * @returns {Promise<{ref: string, size: number}>} The file reference and size
+     */
+    byUri: async (uri) => {
+      if (!uri) {
+        throw new Error("URI is required to save a file.");
       }
-    } else if (Platform.OS === "WindowsOS") {
-      // Windows
-    }
+      let ref = undefined;
+      let size = -1;
 
-    return { ref, size };
+      const platform = getPlatform();
+
+      switch (platform) {
+        case "web": {
+          const result = await web.save.byUri(uri);
+          ref = result.ref;
+          size = result.size;
+          break;
+        }
+        case "mobile": {
+          const result = await mobile.save.byUri(uri);
+          ref = result.ref;
+          size = result.size;
+          break;
+        }
+        default:
+          throw new Error(`Unsupported platform: ${platform}`);
+      }
+
+      return { ref, size };
+    },
+    /**
+     * Save a file by its raw bytes.
+     * @param {Blob | ArrayBuffer } bytes - The raw bytes of the file to save.\
+     * @param {String} key - Optional key/uuid for the file.
+     * @returns {Promise<{ref: string, size: number}>} The file reference and size
+     */
+    byBytes: async (bytes, key = null) => {
+      if (!bytes) {
+        throw new Error("Bytes are required to save a file.");
+      }
+      let ref = undefined;
+      let size = -1;
+      const platform = getPlatform();
+
+      switch (platform) {
+        case "web": {
+          const result = await web.save.byBlob(bytes);
+          ref = result.ref;
+          size = result.size;
+          break;
+        }
+        case "mobile": {
+          const result = await mobile.save.byArrayBuffer(bytes, key);
+          ref = result.ref;
+          size = result.size;
+          break;
+        }
+        default:
+          throw new Error(`Unsupported platform: ${platform}`);
+      }
+
+      return { ref, size };
+    },
   },
 
   async read(ref) {

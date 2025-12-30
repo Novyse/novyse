@@ -1,33 +1,54 @@
 import { File, Directory, Paths } from "expo-file-system";
 
 const FileSystemUtil = {
-  /**
-   * Save a file from URI to Expo File System.
-   * @param {String} uri - The file URI (file:// or http/https)
-   * @returns {Promise<{ref: string, size: number}>} The file reference and size
-   */
-  save: async (uri) => {
-    try {
-      const key = uri.split("/").pop();
-      const destination = new File(Paths.document, key);
-      let file;
-      if (uri.startsWith("http://") || uri.startsWith("https://")) {
-        file = await File.downloadFileAsync(uri, destination);
-      } else if (uri.startsWith("file://")) {
+  save: {
+    /**
+     * Save a file by its URI.
+     * @param {string} uri - The URI of the file to save.
+     * @returns {Promise<{ref: string, size: number}>} The file reference and size
+     */
+    byUri: async (uri) => {
+      if (!uri) {
+        throw new Error("URI is required to save a file.");
+      }
+      try {
+        const key = uri.split("/").pop();
+
         const sourceFile = new File(uri);
+        if (!sourceFile.exists) {
+          throw new Error("Source file does not exist");
+        }
+
+        const destination = new File(Paths.document, key);
         await sourceFile.copy(destination);
-        file = destination;
-      } else {
-        throw new Error("Unsupported URI scheme");
+        const file = destination;
+
+        return { ref: key, size: file.size };
+      } catch (err) {
+        console.error("Could not save file", err);
+        throw err;
       }
-      if (file.size === 0) {
-        throw new Error("Downloaded file is empty");
+    },
+    /**
+     * Save a file by its ArrayBuffer.
+     * @param {ArrayBuffer} arrayBuffer
+     * @param {String} key
+     * @returns {Promise<{ref: string, size: number}>} The file reference and size
+     */
+    byArrayBuffer: async (arrayBuffer, key) => {
+      if (!arrayBuffer) {
+        throw new Error("ArrayBuffer is required to save a file.");
       }
-      return { ref: key, size: file.size };
-    } catch (err) {
-      console.error("[FILES_DB]: Could not save file", err);
-      throw err;
-    }
+      try {
+        const file = new File(Paths.document, key);
+        // Write arrayBuffer to file
+        file.write(new Uint8Array(arrayBuffer));
+        return { ref: key, size: file.size };
+      } catch (err) {
+        console.error("Could not save file from ArrayBuffer", err);
+        throw err;
+      }
+    },
   },
 
   /**
@@ -78,17 +99,6 @@ const FileSystemUtil = {
       return await file.arrayBuffer();
     } catch (err) {
       console.error("[FILES_DB]: Could not get file blob", err);
-      return null;
-    }
-  },
-  getUri: async (blob, key) => {
-    try {
-      const file = new File(Paths.document, key);
-      // Write blob to file
-      file.write(new Uint8Array(blob)); // It is an arrayBuffer, not a Blob object
-      return file.uri;
-    } catch (err) {
-      console.error("[FILES_DB]: Could not get URI from blob", err);
       return null;
     }
   },
