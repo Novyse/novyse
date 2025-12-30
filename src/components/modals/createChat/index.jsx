@@ -5,6 +5,7 @@ import {
   TextInput,
   StyleSheet,
   ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 
@@ -23,7 +24,9 @@ import validate from "@/src/utils/welcome/validator";
 
 const CreateChatModal = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
+  const { width } = useWindowDimensions();
+  const isNarrow = width <= 360;
+  const styles = createStyle(theme, isNarrow);
 
   const router = useRouter();
 
@@ -148,7 +151,7 @@ const CreateChatModal = ({ visible, onClose }) => {
       setHandle("");
     }
 
-    // @SamueleOrazioDurante da capire se inserire una sezione per aggiungere membri ancor prima della cerazione
+    // @SamueleOrazioDurante da capire se inserire una sezione per aggiungere membri ancor prima della creazione
     const { success, chat } = await gateway.chat.create(type, [], name, handle);
 
     if (success) {
@@ -327,15 +330,15 @@ const CreateChatModal = ({ visible, onClose }) => {
       />
 
       {/* Footer */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, isNarrow && styles.footerNarrow]}>
         <HoverAndPressedButton
           onPress={() => onClose()}
-          style={styles.cancelBtn}
+          style={[styles.cancelBtn, isNarrow && styles.cancelBtnNarrow]}
         >
           <Text style={styles.cancelBtnText}>Cancel</Text>
         </HoverAndPressedButton>
         <HoverAndPressedButton
-          style={styles.createBtn}
+          style={[styles.createBtn, isNarrow && styles.createBtnNarrow]}
           onPress={handleCreateChat}
         >
           <Icon name="PlusSignIcon" size={18} color="#FFF" />
@@ -346,7 +349,7 @@ const CreateChatModal = ({ visible, onClose }) => {
   );
 };
 
-function createStyle(theme) {
+function createStyle(theme, isNarrow = false) {
   return StyleSheet.create({
     // Header
     header: {
@@ -429,6 +432,8 @@ function createStyle(theme) {
     cardsRow: {
       flexDirection: "row",
       justifyContent: "space-between",
+      flexWrap: "wrap",
+      gap: 8,
     },
     // Handle Input with Prefix
     inputWrapper: {
@@ -461,16 +466,29 @@ function createStyle(theme) {
       borderTopWidth: 1,
       borderTopColor: theme.backgroundCard,
     },
+    footerNarrow: {
+      flexDirection: "column-reverse",
+      alignItems: "stretch",
+      padding: 12,
+    },
     cancelBtn: {
       marginRight: 16,
       paddingVertical: 10,
       paddingHorizontal: 16,
       borderRadius: 8,
     },
+    cancelBtnNarrow: {
+      marginRight: 0,
+      marginTop: 8,
+      width: "100%",
+      paddingVertical: 12,
+      paddingHorizontal: 12,
+    },
     cancelBtnText: {
       color: theme.iconSecondary,
       fontSize: 15,
       fontWeight: "500",
+      textAlign: isNarrow ? "center" : "left",
     },
     createBtn: {
       backgroundColor: theme.primary,
@@ -480,11 +498,18 @@ function createStyle(theme) {
       paddingHorizontal: 20,
       borderRadius: 8,
     },
+    createBtnNarrow: {
+      width: "100%",
+      justifyContent: "center",
+      paddingVertical: 12,
+      paddingHorizontal: 12,
+    },
     createBtnText: {
       color: theme.text,
       fontSize: 15,
       fontWeight: "600",
       marginLeft: 4,
+      textAlign: "center",
     },
   });
 }

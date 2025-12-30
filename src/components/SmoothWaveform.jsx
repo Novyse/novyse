@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, View, Pressable } from "react-native";
+import { Animated, Easing, View, Pressable, ScrollView } from "react-native";
 
 export default function SmoothWaveform({
   waveformData,
@@ -72,24 +72,26 @@ export default function SmoothWaveform({
   return (
     <View style={{ width: "100%", height: 40 }} ref={waveformRef}>
       <Pressable onPress={handleWaveformPress} style={{ flex: 1 }}>
-        <View
-          style={{ flexDirection: "row", alignItems: "center", height: "100%" }}
-        >
-          {waveformData.map((value, index) => {
-            const isPlayed = index / waveformData.length < progress;
-            return (
-              <View
-                key={index}
-                style={{
-                  width: 2,
-                  height: value * 20,
-                  backgroundColor: isPlayed ? "#0088cc" : "#d3d3d3",
-                  marginHorizontal: 1,
-                }}
-              />
-            );
-          })}
-        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+          <View
+            style={{ flexDirection: "row", alignItems: "center", height: "100%" }}
+          >
+            {waveformData.map((value, index) => {
+              const isPlayed = index / waveformData.length < progress;
+              return (
+                <View
+                  key={index}
+                  style={{
+                    width: 2,
+                    height: value * 20,
+                    backgroundColor: isPlayed ? "#0088cc" : "#d3d3d3",
+                    marginHorizontal: 1,
+                  }}
+                />
+              );
+            })}
+          </View>
+        </ScrollView>
       </Pressable>
     </View>
   );

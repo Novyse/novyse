@@ -68,7 +68,7 @@ function createStyle(theme, screenWidth, screenHeight) {
       marginHorizontal: 10,
     },
     scrollView: {
-      flex: 1,
+      maxHeight: "100%",
     },
     closeIcon: {
       alignSelf: "flex-end",
