@@ -65,7 +65,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         }
       >
         {/* images/videos print */}
-        <MessageMedia medias={mediaMessages.true || []} />
+        {mediaMessages && <MessageMedia medias={mediaMessages.true || []} />}
 
         {/* others print */}
         {(otherMessages.true || []).map((otherMessage) => {
