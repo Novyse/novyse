@@ -9,8 +9,12 @@ import {
   Image,
   useWindowDimensions,
   ActivityIndicator,
-  KeyboardAvoidingView,
 } from "react-native";
+
+import {
+  KeyboardAvoidingView,
+  KeyboardController,
+} from "react-native-keyboard-controller";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import validate from "@/src/utils/welcome/validator";
@@ -162,8 +166,10 @@ const EmailCheckForm = () => {
   };
 
   const checkEmailAndNavigate = async (email) => {
+    await KeyboardController.dismiss();
     try {
       const response = await gateway.check.email(email);
+
 
       let emailResponse = "login";
       if (response.success) {
@@ -171,7 +177,9 @@ const EmailCheckForm = () => {
           emailResponse = "signup";
         }
       }
-      setIsNavigating(true); // Disattiva il polling
+      setIsNavigating(true);
+
+      
 
       if (emailResponse === "signup") {
         router.navigate({
@@ -211,20 +219,18 @@ const EmailCheckForm = () => {
       <MyStatusBar />
       {/* Glass Card */}
       <View style={styles.card}>
-        <KeyboardAvoidingView
-          behavior={"position"}
-          keyboardVerticalOffset={30}
-          style={styles.keyboardView}
-        >
-          {/* Email Block */}
-          <View style={styles.cardContent}>
-            <Image style={styles.logo} source={logoNovyse} />
-            <Text style={styles.title}>Welcome</Text>
+        {/* Email Block */}
+        <View style={styles.cardContent}>
+          <Image style={styles.logo} source={logoNovyse} />
+          <Text style={styles.title}>Welcome</Text>
+          <KeyboardAvoidingView
+            behavior={"position"}
+            keyboardVerticalOffset={170}
+          >
             <View style={styles.inputWrapper}>
               <TextInput
                 style={styles.textInput}
                 value={email}
-                autoFocus={true}
                 onChangeText={(text) => {
                   setEmail(text);
                   if (error) setError(null);
@@ -245,60 +251,60 @@ const EmailCheckForm = () => {
                 </WelcomeButton>
               </View>
             </View>
-            <View style={styles.containerStatus}>
-              <StatusMessage
-                type="error"
-                content={[error]}
-                visible={!!error}
-                onClose={() => {
-                  setError(null);
-                }}
-              />
-            </View>
+          </KeyboardAvoidingView>
+          <View style={styles.containerStatus}>
+            <StatusMessage
+              type="error"
+              content={[error]}
+              visible={!!error}
+              onClose={() => {
+                setError(null);
+              }}
+            />
           </View>
+        </View>
 
-          {/* 3. Esegui il rendering del divider e del QR Code solo se lo schermo NON è piccolo */}
-          {!isSmallScreen && (
-            <>
-              <View style={styles.divider}>
-                <View style={styles.lineDivider} />
-                <Text style={styles.textDivider}>OR</Text>
-                <View style={styles.lineDivider} />
-              </View>
+        {/* 3. Esegui il rendering del divider e del QR Code solo se lo schermo NON è piccolo */}
+        {!isSmallScreen && (
+          <>
+            <View style={styles.divider}>
+              <View style={styles.lineDivider} />
+              <Text style={styles.textDivider}>OR</Text>
+              <View style={styles.lineDivider} />
+            </View>
 
-              {/* QR Code Block */}
-              <View style={styles.qrCardContent}>
-                <View style={styles.qrcodeContainer}>
-                  {qrToken ? (
-                    <QRCode
-                      value={qrToken}
-                      logo={logoForQR}
-                      size={styles.qrcodeContainer.width}
-                      enableLinearGradient={true}
-                      linearGradient={LoginColors[loginTheme].QRCodeGradient}
-                      logoBorderRadius={100}
-                      logoMargin={5}
-                      logoBackgroundColor={
-                        LoginColors[loginTheme].QRCodeLogoBacground
-                      }
-                    />
-                  ) : (
-                    <ActivityIndicator
-                      size="large"
-                      color={LoginColors[loginTheme].iconLoading}
-                    />
-                  )}
-                </View>
-                <Text style={styles.qrcodeSubtitle}>Scan QR to login</Text>
-                {qrToken && (
-                  <Text style={styles.qrcodeSmallSubtitle}>
-                    Expires in {formatTime(remainingTime)}
-                  </Text>
+            {/* QR Code Block */}
+            <View style={styles.qrCardContent}>
+              <View style={styles.qrcodeContainer}>
+                {qrToken ? (
+                  <QRCode
+                    value={qrToken}
+                    logo={logoForQR}
+                    size={styles.qrcodeContainer.width}
+                    enableLinearGradient={true}
+                    linearGradient={LoginColors[loginTheme].QRCodeGradient}
+                    logoBorderRadius={100}
+                    logoMargin={5}
+                    logoBackgroundColor={
+                      LoginColors[loginTheme].QRCodeLogoBacground
+                    }
+                  />
+                ) : (
+                  <ActivityIndicator
+                    size="large"
+                    color={LoginColors[loginTheme].iconLoading}
+                  />
                 )}
               </View>
-            </>
-          )}
-        </KeyboardAvoidingView>
+              <Text style={styles.qrcodeSubtitle}>Scan QR to login</Text>
+              {qrToken && (
+                <Text style={styles.qrcodeSmallSubtitle}>
+                  Expires in {formatTime(remainingTime)}
+                </Text>
+              )}
+            </View>
+          </>
+        )}
       </View>
     </LinearGradient>
   );
@@ -323,9 +329,6 @@ function createStyle(loginTheme, isSmallScreen) {
       width: isSmallScreen ? "100%" : "auto",
       height: isSmallScreen ? "100%" : "auto",
       justifyContent: "center",
-    },
-    keyboardView: {
-      flexDirection: isSmallScreen ? "column" : "row",
     },
     cardContent: {
       width: isSmallScreen ? "100%" : 400,

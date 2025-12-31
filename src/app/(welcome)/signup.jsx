@@ -11,8 +11,12 @@ import {
   Image,
   Platform,
   ScrollView,
-  KeyboardAvoidingView,
 } from "react-native";
+
+import {
+  KeyboardAvoidingView,
+  KeyboardController,
+} from "react-native-keyboard-controller";
 
 import validate from "@/src/utils/welcome/validator";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -136,7 +140,9 @@ const Signup = () => {
 
   const validateStep = (stepIndex) => {
     if (stepIndex === 0) {
-      return validate.user.name(form.name) && validate.user.surname(form.surname);
+      return (
+        validate.user.name(form.name) && validate.user.surname(form.surname)
+      );
     }
     if (stepIndex === 1) {
       return validate.user.password(form.password);
@@ -320,7 +326,8 @@ const Signup = () => {
                 styles.inputContainer,
                 form.surname.length > 0 && !validate.user.surname(form.surname)
                   ? styles.inputError
-                  : form.surname.length > 0 && validate.user.surname(form.surname)
+                  : form.surname.length > 0 &&
+                    validate.user.surname(form.surname)
                   ? styles.inputSuccess
                   : null,
               ]}
@@ -342,7 +349,9 @@ const Signup = () => {
               <Text
                 style={[
                   styles.reqIcon,
-                  validate.user.name(form.name) ? styles.reqGreen : styles.reqRed,
+                  validate.user.name(form.name)
+                    ? styles.reqGreen
+                    : styles.reqRed,
                 ]}
               >
                 {validate.user.name(form.name) ? "✓" : "✗"}

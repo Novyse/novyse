@@ -63,7 +63,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: getImagePath("bg"),
+        foregroundImage: getImagePath(),
         backgroundColor: "#ffffff",
       },
       package: `com.${APP_SLUG}${devSuffix}`,

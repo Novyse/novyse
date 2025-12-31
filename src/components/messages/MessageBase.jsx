@@ -196,6 +196,7 @@ const createStyle = (theme) =>
       shadowOpacity: 0.15,
       shadowRadius: 3.84,
       elevation: 5,
+      overflow: "hidden",
     },
     senderBubbleChained: {
       borderBottomRightRadius: 4,
@@ -212,6 +213,7 @@ const createStyle = (theme) =>
       shadowOpacity: 0.15,
       shadowRadius: 3.84,
       elevation: 5,
+      overflow: "hidden",
     },
     receiverBubbleWithAvatar: {
       marginLeft: 10,

@@ -8,11 +8,14 @@ import {
   Platform,
   Image,
   useWindowDimensions,
-  KeyboardAvoidingView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
+import {
+  KeyboardAvoidingView,
+  KeyboardController,
+} from "react-native-keyboard-controller";
 
 import auth from "@/src/utils/welcome/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -62,6 +65,8 @@ const LoginPassword = () => {
   }, [email]);
 
   const handleLogin = async () => {
+    await KeyboardController.dismiss();
+
     if (!password) {
       setError("Password cannot be empty");
       return;
@@ -159,12 +164,15 @@ const LoginPassword = () => {
       <MyStatusBar />
       {/* Card */}
       <View style={styles.card}>
-        <KeyboardAvoidingView behavior={"position"} keyboardVerticalOffset={20}>
-          <View style={styles.cardContent}>
-            <Image style={styles.logo} source={logoNovyse} />
+        <View style={styles.cardContent}>
+          <Image style={styles.logo} source={logoNovyse} />
 
-            <Text style={styles.title}>Login</Text>
-            <Text style={styles.subtitle}>Enter your password to login</Text>
+          <Text style={styles.title}>Login</Text>
+          <Text style={styles.subtitle}>Enter your password to login</Text>
+          <KeyboardAvoidingView
+            behavior={"position"}
+            keyboardVerticalOffset={170}
+          >
             <View style={styles.inputWrapper}>
               {/* Password Input */}
               <View
@@ -176,7 +184,6 @@ const LoginPassword = () => {
                 <TextInput
                   style={styles.textInput}
                   value={password}
-                  autoFocus={true}
                   onChangeText={(text) => {
                     setPassword(text);
                     if (error) setError(null);
@@ -197,46 +204,41 @@ const LoginPassword = () => {
                   onPress={toggleSecureEntry}
                 />
               </View>
-
               {/* Container per i pulsanti Back e Login */}
               <View style={styles.buttonContainer}>
                 <WelcomeButton type={"back"} onPress={handleBack}>
                   <WelcomeButtonText type={"back"} />
                 </WelcomeButton>
-
                 <WelcomeButton type={"submit"} onPress={handleLogin}>
                   <WelcomeButtonText type={"submit"} />
                 </WelcomeButton>
               </View>
             </View>
+          </KeyboardAvoidingView>
 
-            <Text
-              style={styles.resetPasswordText}
-              onPress={handleResetPassword}
-            >
-              Reset Password
-            </Text>
+          <Text style={styles.resetPasswordText} onPress={handleResetPassword}>
+            Reset Password
+          </Text>
 
-            <View style={styles.containerStatus}>
-              <StatusMessage
-                type="error"
-                content={[error]}
-                visible={!!error}
-                onClose={() => {
-                  setError(null);
-                }}
-              />
-              <StatusMessage
-                type="success"
-                content={[successMessage]}
-                visible={!!successMessage}
-                onClose={() => {
-                  setSuccessMessage(null);
-                }}
-              />
-            </View>
+          <View style={styles.containerStatus}>
+            <StatusMessage
+              type="error"
+              content={[error]}
+              visible={!!error}
+              onClose={() => {
+                setError(null);
+              }}
+            />
+            <StatusMessage
+              type="success"
+              content={[successMessage]}
+              visible={!!successMessage}
+              onClose={() => {
+                setSuccessMessage(null);
+              }}
+            />
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </View>
     </LinearGradient>
   );
