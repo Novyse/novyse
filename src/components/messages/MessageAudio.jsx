@@ -90,6 +90,7 @@ function createStyle(theme) {
       alignItems: "center",
       paddingVertical: 5,
       width: "100%",
+      minWidth: 200
     },
     playPauseButton: {
       padding: 8,

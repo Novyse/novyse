@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import { StyleSheet, Alert, View } from "react-native";
-import { StatusBar } from "expo-status-bar";
+import MyStatusBar from "@/src/components/MyStatusBar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemeContext } from "@/context/ThemeContext";

@@ -112,7 +112,13 @@ export default {
             "Allow $(PRODUCT_NAME) to access your microphone.",
         },
       ],
-      "expo-video",
+      [
+        "expo-video",
+        {
+          supportsBackgroundPlayback: true,
+          supportsPictureInPicture: true,
+        },
+      ],
       [
         "expo-camera",
         {

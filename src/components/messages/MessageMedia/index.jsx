@@ -66,11 +66,11 @@ const renderGridCell = (item, index, cellStyle) => {
 
 const renderMedia = (media) => {
   const fileType = getFileType(media.mimeType);
-  const ref = media.ref;
+  const fileRef = media.ref;
   if (fileType === "IMAGE") {
-    return <Image ref={ref} />;
+    return <Image fileRef={fileRef} />;
   } else if (fileType === "VIDEO") {
-    return <Video ref={ref} />;
+    return <Video fileRef={fileRef} />;
   }
   return null;
 };
@@ -81,7 +81,6 @@ const styles = StyleSheet.create({
   bubble: {
     alignSelf: "flex-start",
     borderRadius: 12,
-    minWidth: 200,
     width: "100%",
   },
   twoImagesContainer: {

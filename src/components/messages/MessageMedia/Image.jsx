@@ -1,39 +1,65 @@
-import React, { useState } from "react";
-import { Dimensions } from "react-native";
+import React from "react";
+import { StyleSheet, Pressable, View, ActivityIndicator } from "react-native";
 import { Image as ExpoImage } from "expo-image";
-
-const { width: screenWidth } = Dimensions.get("window");
-const maxBubbleWidth = screenWidth * 1;
-
+import { useRouter } from "expo-router";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 
-const Image = ({ ref }) => {
-  const { uri } = useUriResolver(ref);
+const Image = ({ fileRef }) => {
+  const router = useRouter();
+  const { uri, isLoading } = useUriResolver(fileRef);
 
-  const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(0);
-
-  const onLoadImage = (imageInfo) => {
-    const { width: imgWidth, height: imgHeight } = imageInfo.source;
-    setWidth(imgWidth);
-    setHeight(imgHeight);
-    console.log("Loaded image dimensions:", imgWidth, imgHeight);
+  const handlePress = () => {
+    if (!uri) return;
+    
+    router.push({
+      pathname: "/chat/ImageViewer",
+      params: { 
+        uri: encodeURIComponent(uri) 
+      },
+    });
   };
 
+
+  if (!uri || isLoading) {
+    return (
+      <View style={[styles.container, styles.placeholder]}>
+        <ActivityIndicator size="small" color="#999" />
+      </View>
+    );
+  }
+
   return (
-    <ExpoImage
-      key={uri}
-      source={uri}
-      style={{
-        width: 100,
-        height: 100,
-        maxWidth: maxBubbleWidth,
-        borderRadius: 4,
-      }}
-      contentFit="cover"
-      onLoad={onLoadImage}
-    />
+    <Pressable onPress={handlePress} style={styles.container}>
+      <ExpoImage
+        source={{ uri }}
+        style={styles.image}
+        contentFit="cover"
+        transition={200}
+        cachePolicy="memory-disk"
+      />
+    </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: "100%", 
+    height: "100%",
+    overflow: "hidden",
+    borderRadius: 4,
+  },
+  image: {
+    width: 150,
+    height: 150,
+    backgroundColor: "#f0f0f0",
+  },
+  placeholder: {
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    minHeight: 100,
+  },
+});
 
 export default Image;
