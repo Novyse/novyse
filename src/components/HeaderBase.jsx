@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
+import BlurredView from "./BlurredView";
 
 const HeaderBase = ({ children, style }) => {
   return <View style={[styles.container, style]}>{children}</View>;
@@ -10,7 +11,6 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 10,
     gap: 10,
-    height: 60,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

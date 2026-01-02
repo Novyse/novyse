@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 // 1. Importa l'hook per la Safe Area
-import { useSafeAreaInsets } from "react-native-safe-area-context"; 
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Icon from "./Icon";
 import HeaderBase from "./HeaderBase";
@@ -13,15 +13,14 @@ const HeaderWithBackArrow = ({ goBackTo, title }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const router = useRouter();
-  
-  
-  const insets = useSafeAreaInsets(); 
+
+  const insets = useSafeAreaInsets();
 
   return (
-    // 3. Aggiungi { top: insets.top } allo stile. 
+    // 3. Aggiungi { top: insets.top } allo stile.
     // Puoi aggiungere un po' di margine extra (+ 10) se vuoi che respiri di più.
     <HeaderBase style={[styles.container, { top: insets.top }]}>
-      <BlurredView>
+      <BlurredView style={{ flexDirection: "row", width: "100%", justifyContent: "space-between" }}>
         <Icon
           name={"ArrowLeft02Icon"}
           onPress={() => {
@@ -35,14 +34,21 @@ const HeaderWithBackArrow = ({ goBackTo, title }) => {
           }}
           style={styles.icon}
         />
+
+        {title && (
+          <View style={styles.titleContainer}>
+            <Text
+              style={styles.titleText}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {title}
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.icon}/>
       </BlurredView>
-      {title && (
-        <BlurredView style={styles.titleContainer}>
-          <Text style={styles.titleText} numberOfLines={1} ellipsizeMode="tail">
-            {title}
-          </Text>
-        </BlurredView>
-      )}
     </HeaderBase>
   );
 };
@@ -53,7 +59,6 @@ const createStyle = (theme) =>
       gap: 10,
       justifyContent: "flex-start",
       position: "absolute",
-      left: 10,
       zIndex: 100,
     },
     icon: {
