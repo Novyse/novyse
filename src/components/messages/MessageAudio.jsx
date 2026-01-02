@@ -89,8 +89,7 @@ function createStyle(theme) {
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: 5,
-      width: "100%",
-      minWidth: 200
+      alignSelf: "stretch"
     },
     playPauseButton: {
       padding: 8,

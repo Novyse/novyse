@@ -58,32 +58,31 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
   );
 
   const sharedContent = (
-    <>
-      <View
-        style={
-          showSenderName ? styles.textContainerNoTop : styles.textContainer
-        }
-      >
-        {/* images/videos print */}
-        {mediaMessages && <MessageMedia medias={mediaMessages.true || []} />}
+    <View
+      style={showSenderName ? styles.textContainerNoTop : styles.textContainer}
+    >
+      {/* images/videos print */}
+      {mediaMessages && <MessageMedia medias={mediaMessages.true || []} />}
 
-        {/* others print */}
-        {(otherMessages.true || []).map((otherMessage) => {
-          return (
-            <MessageOther
-              fileRef={otherMessage.ref}
-              uuid={otherMessage.uuid}
-              mimeType={otherMessage.mimeType}
-              size={otherMessage.size}
-              name={otherMessage.name}
-            />
-          );
-        })}
+      {/* others print */}
+      {(otherMessages.true || []).map((otherMessage) => {
+        return (
+          <MessageOther
+            fileRef={otherMessage.ref}
+            uuid={otherMessage.uuid}
+            mimeType={otherMessage.mimeType}
+            size={otherMessage.size}
+            name={otherMessage.name}
+          />
+        );
+      })}
 
-        {/* audios print */}
+      {/* audios print */}
+      <View style={{ width: "100%" }}>
         {(audioMessages.true || []).map((audioMessage) => {
           return (
             <MessageAudio
+              key={audioMessage.uuid}
               audioRef={audioMessage.ref}
               uuid={audioMessage.uuid}
               mimeType={audioMessage.mimeType}
@@ -91,11 +90,14 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
             />
           );
         })}
+      </View>
 
-        {/* voices print */}
+      {/* voices print */}
+      <View style={{ width: "100%" }}>
         {(voiceMessages.true || []).map((voiceMessage) => {
           return (
             <MessageVoice
+              key={voiceMessage.uuid}
               audioRef={voiceMessage.ref}
               uuid={voiceMessage.uuid}
               mimeType={voiceMessage.mimeType}
@@ -103,28 +105,28 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
             />
           );
         })}
-
-        {/* Renderizza il testo e timestamp */}
-        {content &&
-          content.trim().length > 0 &&
-          (content.trim().length < 50 ? (
-            <View style={styles.textRow}>
-              <MessageText text={content} />
-              <MessageTimestamp time={created_at} />
-            </View>
-          ) : (
-            <>
-              <MessageText text={content} />
-              <MessageTimestamp time={created_at} />
-            </>
-          ))}
-
-        {/* Se non c'è testo, mostra solo timestamp se necessario, cioè sempre */}
-        {!content || content.trim().length === 0 ? (
-          <MessageTimestamp time={created_at} />
-        ) : null}
       </View>
-    </>
+
+      {/* Renderizza il testo e timestamp */}
+      {content &&
+        content.trim().length > 0 &&
+        (content.trim().length < 50 ? (
+          <View style={styles.textRow}>
+            <MessageText text={content} />
+            <MessageTimestamp time={created_at} />
+          </View>
+        ) : (
+          <>
+            <MessageText text={content} />
+            <MessageTimestamp time={created_at} />
+          </>
+        ))}
+
+      {/* Se non c'è testo, mostra solo timestamp se necessario, cioè sempre */}
+      {!content || content.trim().length === 0 ? (
+        <MessageTimestamp time={created_at} />
+      ) : null}
+    </View>
   );
 
   if (isSender) {

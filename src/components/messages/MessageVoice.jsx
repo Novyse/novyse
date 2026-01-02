@@ -15,10 +15,9 @@ import useUriResolver from "@/src/hooks/file/useUriResolver";
 import { formatTime, formatFileSize } from "@/src/utils/storage/file/utils";
 import SmoothWaveform from "../SmoothWaveform";
 
-const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
+const MessageVoice = ({ audioRef, uuid, mimeType, size }) => {
   const {
     isPlaying,
-    playBackRate,
     currentTime,
     duration,
     didJustFinish,
@@ -30,7 +29,6 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
   const { uri: playableUri } = useUriResolver(audioRef);
 
   const isThisLoaded = playableUri === currentUri;
-  const thisDuration = isThisLoaded ? duration : 0;
   const thisCurrentTime = isThisLoaded ? currentTime : 0;
   const isThisPlaying = isPlaying && isThisLoaded;
 
@@ -39,12 +37,11 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
 
   const isReady = !!playableUri;
 
-  // @SamueleOrazioDurante la duration si deve gestire da un altra parte, ma per ora chill
   const isValidDuration =
-    thisDuration && Number.isFinite(thisDuration) && thisDuration > 0;
-  const safeDuration = isValidDuration ? thisDuration : 0;
+    duration && Number.isFinite(duration) && duration > 0;
+  const safeDuration = isThisLoaded && isValidDuration ? duration : 0;
 
-  // Valori statici per la waveform (50 barre, valori tra 0 e 1)
+  // Valori statici (va bene così per ora)
   const waveformData = [
     0.73716100166034, 0.8367726846214676, 0.9008939948296025,
     0.09882654568369253, 0.8690468149905026, 0.8674881230598692,
@@ -63,7 +60,7 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
     0.7374558843917352, 0.8998779988031088, 0.9566768850889973,
     0.3242465157439205, 0.8782431721467635, 0.40371289180690795,
     0.9754664229096691, 0.3789821606239272,
-  ]; //Array.from({ length: 50 }, () => Math.random());
+  ];
 
   return (
     <View style={styles.container}>
@@ -77,25 +74,29 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
         ) : (
           <Icon
             name={isThisPlaying ? "PauseIcon" : "PlayIcon"}
-            style={{ width: 15, height: 15, tintColor: "#fff" }}
+            style={{ width: 18, height: 18, tintColor: "#fff" }} // Icona leggermente più grande per i vocali
           />
         )}
       </Pressable>
 
       <View style={styles.progressContainer}>
-        <SmoothWaveform
-          waveformData={waveformData}
-          currentValue={thisCurrentTime}
-          maxValue={safeDuration}
-          onSeek={handleSeek}
-          reset={!isThisLoaded || didJustFinish}
-          isMoving={isThisPlaying}
-        />
+        {/* Wrapper View per dare una height esplicita alla waveform */}
+        <View style={styles.waveformWrapper}> 
+            <SmoothWaveform
+            waveformData={waveformData}
+            currentValue={thisCurrentTime}
+            maxValue={safeDuration}
+            onSeek={handleSeek}
+            reset={!isThisLoaded || didJustFinish}
+            isMoving={isThisPlaying}
+            />
+        </View>
         <View style={styles.textContainer}>
           <Text style={styles.durationText}>
             {formatTime(thisCurrentTime)} / {formatTime(safeDuration)}
           </Text>
-          <Text style={styles.sizeText}>{formatFileSize(size)}</Text>
+          {/* Nei vocali a volte si preferisce non mostrare la size se è ridondante, ma lasciala se vuoi */}
+          {/* <Text style={styles.sizeText}>{formatFileSize(size)}</Text> */}
         </View>
       </View>
     </View>
@@ -107,14 +108,15 @@ function createStyle(theme) {
     container: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 5,
-      width: "100%",
+      paddingVertical: 8,
+      minWidth: 180
     },
     playPauseButton: {
-      padding: 8,
-      borderRadius: 50,
+      width: 45,
+      height: 45,
+      borderRadius: 100,
       backgroundColor: "#0088cc",
-      marginRight: 10,
+      marginRight: 12,
       justifyContent: "center",
       alignItems: "center",
     },
@@ -123,39 +125,31 @@ function createStyle(theme) {
       flexDirection: "column",
       justifyContent: "center",
     },
-    slider: {
-      flex: 1,
-      height: 30,
+    waveformWrapper: {
+        height: 35,
+        width: '100%',
+        justifyContent: 'center',
     },
     textContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginTop: 4,
+      marginTop: 6,
     },
     durationText: {
       fontSize: 12,
       color: theme.text,
       textAlign: "left",
       fontVariant: ["tabular-nums"],
+      opacity: 0.8,
     },
     sizeText: {
-      fontSize: 12,
+      fontSize: 11,
       color: theme.text,
-      textAlign: "left",
-    },
-    playbackRateButton: {
-      paddingVertical: 4,
-      paddingHorizontal: 8,
-      borderRadius: 12,
-      backgroundColor: "#0088cc",
-    },
-    playbackRateText: {
-      fontSize: 12,
-      color: theme.text,
-      fontWeight: "bold",
+      opacity: 0.6,
+      textAlign: "right",
     },
   });
 }
 
-export default React.memo(MessageAudio);
+export default React.memo(MessageVoice);
