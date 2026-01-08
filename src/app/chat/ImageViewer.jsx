@@ -15,8 +15,6 @@ const ImageViewer = () => {
   // Per nascondere l'header quando si fa zoom o tap
   const [controlsVisible, setControlsVisible] = useState(true);
 
-  console.log("🍆🍆🍆");
-
   const handleShare = async () => {
     if (!uri) return;
     try {
