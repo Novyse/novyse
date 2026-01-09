@@ -6,12 +6,24 @@ import {
   Pressable,
   SafeAreaView,
   Platform,
+  StatusBar,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useEvent } from "expo";
 import Slider from "@react-native-community/slider";
 import Icon from "@/src/components/Icon";
+import * as ScreenOrientation from "expo-screen-orientation";
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
 
 const formatTime = (seconds) => {
   if (!seconds) return "00:00";
@@ -31,14 +43,27 @@ const VideoViewer = () => {
   const [isSeeking, setIsSeeking] = useState(false);
   const [currentSpeedIndex, setCurrentSpeedIndex] = useState(3);
   const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // Stato locale per il tempo durante lo scrubbing per non dipendere solo dal player
   const [seekTime, setSeekTime] = useState(0);
 
   const lastVolumeRef = useRef(1);
   const wasPlayingBeforeSeek = useRef(false);
   const controlsTimeoutRef = useRef(null);
   const containerRef = useRef(null);
+
+  // --- ZOOM LOGIC ---
+  const scale = useSharedValue(1);
+  const savedScale = useSharedValue(1);
+  const pinchGesture = Gesture.Pinch()
+    .onUpdate((e) => {
+      scale.value = savedScale.value * e.scale;
+    })
+    .onEnd(() => {
+      if (scale.value < 1) scale.value = withSpring(1);
+      savedScale.value = scale.value;
+    });
+  const animatedVideoStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   const player = useVideoPlayer(uri, (p) => {
     p.loop = false;
@@ -57,35 +82,23 @@ const VideoViewer = () => {
   });
   const duration = player.duration || 0;
 
-  // Sincronizza lo stato di seek locale quando non stiamo trascinando
   useEffect(() => {
-    if (!isSeeking) {
-      setSeekTime(currentTime);
-    }
+    if (!isSeeking) setSeekTime(currentTime);
   }, [currentTime, isSeeking]);
 
-  useEffect(() => {
-    if (Platform.OS === "web") {
-      const style = document.createElement("style");
-      style.id = "hide-cursor-style";
-      style.innerHTML = `* { cursor: none !important; }`;
-      if (!showControls) document.head.appendChild(style);
-      else {
-        const existingStyle = document.getElementById("hide-cursor-style");
-        if (existingStyle) existingStyle.remove();
-      }
-      return () => {
-        const existingStyle = document.getElementById("hide-cursor-style");
-        if (existingStyle) existingStyle.remove();
-      };
-    }
-  }, [showControls]);
-
+  // Gestione Fullscreen e Orientamento
   useEffect(() => {
     if (Platform.OS === "web") {
       const handler = () => setIsFullscreen(!!document.fullscreenElement);
       document.addEventListener("fullscreenchange", handler);
       return () => document.removeEventListener("fullscreenchange", handler);
+    } else {
+      const sub = ScreenOrientation.addOrientationChangeListener((e) => {
+        const isL = e.orientationInfo.orientation > 2;
+        setIsFullscreen(isL);
+        StatusBar.setHidden(isL, "fade");
+      });
+      return () => ScreenOrientation.removeOrientationChangeListener(sub);
     }
   }, []);
 
@@ -100,32 +113,21 @@ const VideoViewer = () => {
     resetControlsTimeout();
   };
 
-  useEffect(() => {
-    resetControlsTimeout();
-    return () => clearTimeout(controlsTimeoutRef.current);
-  }, [isPlaying, isSeeking]);
-
-  const toggleMute = () => {
-    if (player.volume > 0) {
-      lastVolumeRef.current = player.volume;
-      player.volume = 0;
-    } else {
-      player.volume = lastVolumeRef.current || 1;
-    }
-    handleUserActivity();
-  };
-
-  const getVolumeIcon = () => {
-    if (volume === 0) return "VolumeMute02Icon";
-    if (volume < 0.5) return "VolumeLowIcon";
-    return "VolumeHighIcon";
-  };
-
-  const toggleFullscreen = () => {
+  const toggleFullscreen = async () => {
     if (Platform.OS === "web") {
       if (!document.fullscreenElement)
         containerRef.current?.requestFullscreen?.();
       else document.exitFullscreen?.();
+    } else {
+      if (!isFullscreen) {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.LANDSCAPE
+        );
+      } else {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT_UP
+        );
+      }
     }
   };
 
@@ -133,168 +135,149 @@ const VideoViewer = () => {
     const nextIndex = (currentSpeedIndex + 1) % speeds.length;
     setCurrentSpeedIndex(nextIndex);
     player.playbackRate = speeds[nextIndex];
-    resetControlsTimeout();
-  };
-
-  // --- FIX SEEK IN TEMPO REALE ---
-  const handleSlidingStart = () => {
-    setIsSeeking(true);
-    wasPlayingBeforeSeek.current = player.playing;
-    player.pause(); // Pausa necessaria per liberare risorse di decodifica durante lo scrub
-  };
-
-  const handleOnValueChange = (value) => {
-    setSeekTime(value);
-    // Forza il player a saltare al tempo indicato immediatamente
-    player.currentTime = value;
     handleUserActivity();
-  };
-
-  const handleSlidingComplete = (value) => {
-    player.currentTime = value;
-    setIsSeeking(false);
-    if (wasPlayingBeforeSeek.current) player.play();
-    resetControlsTimeout();
   };
 
   if (!uri) return <View style={styles.container} />;
 
   return (
-    <View
-      ref={containerRef}
-      style={styles.container}
-      // @ts-ignore
-      onMouseMove={Platform.OS === "web" ? handleUserActivity : undefined}
-    >
-      <VideoView
-        player={player}
-        style={styles.video}
-        contentFit="contain"
-        nativeControls={false}
-      />
-
-      <Pressable
-        onPress={handleUserActivity}
-        style={[
-          StyleSheet.absoluteFill,
-          Platform.OS === "web" && {
-            cursor: showControls ? "default" : "none",
-          },
-        ]}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View
+        ref={containerRef}
+        style={styles.container}
+        onMouseMove={Platform.OS === "web" ? handleUserActivity : undefined}
       >
-        {showControls && (
-          <SafeAreaView style={styles.overlay}>
-            <View style={styles.header}>
-              <Icon
-                name="Cancel01Icon"
-                onPress={() => router.back()}
-                color="white"
-              />
-            </View>
+        <GestureDetector gesture={pinchGesture}>
+          <Animated.View style={[styles.videoContainer, animatedVideoStyle]}>
+            <VideoView
+              player={player}
+              style={styles.video}
+              contentFit="contain"
+              nativeControls={false}
+            />
+          </Animated.View>
+        </GestureDetector>
 
-            <View style={styles.centerContainer}>
-              <Pressable
-                style={styles.skipButton}
-                onPress={() => (player.currentTime -= 10)}
-              >
-                <Icon name="GoBackward10SecIcon" size={32} color="white" />
-              </Pressable>
-
-              <Pressable
-                style={styles.playButtonMain}
-                onPress={() => (isPlaying ? player.pause() : player.play())}
-              >
+        <Pressable onPress={handleUserActivity} style={StyleSheet.absoluteFill}>
+          {showControls && (
+            <SafeAreaView
+              style={[styles.overlay, isFullscreen && styles.overlayLandscape]}
+            >
+              <View style={styles.header}>
                 <Icon
-                  name={isPlaying ? "PauseIcon" : "PlayIcon"}
-                  size={40}
+                  name="Cancel01Icon"
+                  onPress={() => router.back()}
                   color="white"
                 />
-              </Pressable>
-
-              <Pressable
-                style={styles.skipButton}
-                onPress={() => (player.currentTime += 10)}
-              >
-                <Icon name="GoForward10SecIcon" size={32} color="white" />
-              </Pressable>
-            </View>
-
-            <View style={styles.footerContainer}>
-              <View style={styles.sliderRow}>
-                <Text style={styles.timeText}>
-                  {formatTime(isSeeking ? seekTime : currentTime)}
-                </Text>
-                <Slider
-                  style={styles.slider}
-                  minimumValue={0}
-                  maximumValue={duration}
-                  value={isSeeking ? seekTime : currentTime}
-                  onSlidingStart={handleSlidingStart}
-                  onValueChange={handleOnValueChange}
-                  onSlidingComplete={handleSlidingComplete}
-                  minimumTrackTintColor="#3b82f6"
-                  maximumTrackTintColor="rgba(255,255,255,0.3)"
-                  thumbTintColor="#ffffff"
-                />
-                <Text style={styles.timeText}>{formatTime(duration)}</Text>
               </View>
 
-              <View style={styles.bottomActionsRow}>
-                <View style={styles.volumeContainer}>
-                  <Pressable onPress={toggleMute} style={{ padding: 5 }}>
-                    <Icon name={getVolumeIcon()} size={22} color="white" />
-                  </Pressable>
+              <View style={styles.centerContainer}>
+                <Icon
+                  name="GoBackward10SecIcon"
+                  size={32}
+                  color="white"
+                  onPress={() => (player.currentTime -= 10)}
+                />
+                <Pressable
+                  style={styles.playButtonMain}
+                  onPress={() => (isPlaying ? player.pause() : player.play())}
+                >
+                  <Icon
+                    name={isPlaying ? "PauseIcon" : "PlayIcon"}
+                    size={40}
+                    color="white"
+                  />
+                </Pressable>
+                <Icon
+                  name="GoForward10SecIcon"
+                  size={32}
+                  color="white"
+                  onPress={() => (player.currentTime += 10)}
+                />
+              </View>
+
+              <View style={styles.footerContainer}>
+                <View style={styles.sliderRow}>
+                  <Text style={styles.timeText}>
+                    {formatTime(isSeeking ? seekTime : currentTime)}
+                  </Text>
                   <Slider
-                    style={styles.volumeSlider}
+                    style={styles.slider}
                     minimumValue={0}
-                    maximumValue={1}
-                    value={volume}
-                    onValueChange={(val) => {
-                      player.volume = val;
-                      handleUserActivity();
+                    maximumValue={duration}
+                    value={isSeeking ? seekTime : currentTime}
+                    onSlidingStart={() => {
+                      setIsSeeking(true);
+                      player.pause();
+                    }}
+                    onValueChange={(v) => {
+                      setSeekTime(v);
+                      player.currentTime = v;
+                    }}
+                    onSlidingComplete={(v) => {
+                      setIsSeeking(false);
+                      player.play();
                     }}
                     minimumTrackTintColor="#3b82f6"
-                    maximumTrackTintColor="rgba(255,255,255,0.3)"
                     thumbTintColor="#ffffff"
                   />
+                  <Text style={styles.timeText}>{formatTime(duration)}</Text>
                 </View>
 
-                <View style={styles.rightActions}>
-                  <Pressable style={styles.speedButton} onPress={cycleSpeed}>
-                    <Text style={styles.speedText} selectable={false}>
-                      {speeds[currentSpeedIndex]}x
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={toggleFullscreen}
-                    style={styles.actionIcon}
-                  >
+                <View style={styles.bottomActionsRow}>
+                  <View style={styles.volumeContainer}>
+                    <Icon
+                      name={
+                        volume === 0 ? "VolumeMute02Icon" : "VolumeHighIcon"
+                      }
+                      size={22}
+                      color="white"
+                      onPress={() => (player.volume = volume > 0 ? 0 : 1)}
+                    />
+                    <Slider
+                      style={styles.volumeSlider}
+                      minimumValue={0}
+                      maximumValue={1}
+                      value={volume}
+                      onValueChange={(v) => (player.volume = v)}
+                      minimumTrackTintColor="#3b82f6"
+                      thumbTintColor="#ffffff"
+                    />
+                  </View>
+                  <View style={styles.rightActions}>
+                    <Pressable style={styles.speedButton} onPress={cycleSpeed}>
+                      <Text style={styles.speedText}>
+                        {speeds[currentSpeedIndex]}x
+                      </Text>
+                    </Pressable>
                     <Icon
                       name={
                         isFullscreen ? "ArrowShrink02Icon" : "ArrowExpand01Icon"
                       }
                       color="white"
+                      onPress={toggleFullscreen}
                     />
-                  </Pressable>
+                  </View>
                 </View>
               </View>
-            </View>
-          </SafeAreaView>
-        )}
-      </Pressable>
-    </View>
+            </SafeAreaView>
+          )}
+        </Pressable>
+      </View>
+    </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000", justifyContent: "center" },
-  video: { width: "100%", height: "100%" },
+  container: { flex: 1, backgroundColor: "#000", overflow: "hidden" },
+  videoContainer: { flex: 1 },
+  video: { flex: 1 },
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "space-between",
   },
+  overlayLandscape: { paddingHorizontal: 40 },
   header: { padding: 16 },
   centerContainer: {
     flexDirection: "row",
@@ -312,21 +295,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
   },
-  skipButton: { padding: 10 },
   footerContainer: { paddingBottom: 20, paddingHorizontal: 20 },
   sliderRow: { flexDirection: "row", alignItems: "center" },
   slider: { flex: 1, marginHorizontal: 10, height: 40 },
-  timeText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-    fontVariant: ["tabular-nums"],
-  },
+  timeText: { color: "#fff", fontSize: 12, fontWeight: "600", minWidth: 40 },
   bottomActionsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: -5,
   },
   volumeContainer: { flexDirection: "row", alignItems: "center", width: 160 },
   volumeSlider: { flex: 1, marginLeft: 10, height: 30 },
@@ -338,7 +314,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   speedText: { color: "white", fontSize: 12, fontWeight: "bold" },
-  actionIcon: { padding: 5 },
 });
 
 export default VideoViewer;
