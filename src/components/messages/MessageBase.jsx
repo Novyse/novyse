@@ -87,6 +87,8 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
               uuid={audioMessage.uuid}
               mimeType={audioMessage.mimeType}
               size={audioMessage.size}
+              name={audioMessage.name}
+              message={message}
             />
           );
         })}
@@ -102,6 +104,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
               uuid={voiceMessage.uuid}
               mimeType={voiceMessage.mimeType}
               size={voiceMessage.size}
+              message={message}
             />
           );
         })}
@@ -164,7 +167,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
           <Pressable onLongPress={onLongPress} style={styles.pressable}>
             {showSenderName && (
               <View style={styles.senderNameWrapper}>
-                <Text style={styles.senderName} numberOfLines={1}>
+                <Text style={styles.senderName} numberOfLines={1} selectable={false}>
                   {sender_name}
                 </Text>
               </View>

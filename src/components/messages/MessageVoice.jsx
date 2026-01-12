@@ -15,13 +15,15 @@ import useUriResolver from "@/src/hooks/file/useUriResolver";
 import { formatTime, formatFileSize } from "@/src/utils/storage/file/utils";
 import SmoothWaveform from "../SmoothWaveform";
 
-const MessageVoice = ({ audioRef, uuid, mimeType, size }) => {
+const MessageVoice = ({ audioRef, size, message }) => {
   const {
     isPlaying,
+    playbackRate,
     currentTime,
     duration,
     didJustFinish,
     currentUri,
+    addInfo,
     handlePlayPause,
     handleSeek,
   } = useContext(AudioPlayerContext);
@@ -37,8 +39,7 @@ const MessageVoice = ({ audioRef, uuid, mimeType, size }) => {
 
   const isReady = !!playableUri;
 
-  const isValidDuration =
-    duration && Number.isFinite(duration) && duration > 0;
+  const isValidDuration = duration && Number.isFinite(duration) && duration > 0;
   const safeDuration = isThisLoaded && isValidDuration ? duration : 0;
 
   // Valori statici (va bene così per ora)
@@ -65,7 +66,16 @@ const MessageVoice = ({ audioRef, uuid, mimeType, size }) => {
   return (
     <View style={styles.container}>
       <Pressable
-        onPress={() => handlePlayPause(playableUri)}
+        onPress={() => {
+          console.log(message);
+          addInfo(
+            message.chatUUID,
+            message.id,
+            message.sender_name,
+            message.created_at
+          );
+          handlePlayPause(playableUri);
+        }}
         disabled={!isReady}
         style={styles.playPauseButton}
       >
@@ -74,29 +84,27 @@ const MessageVoice = ({ audioRef, uuid, mimeType, size }) => {
         ) : (
           <Icon
             name={isThisPlaying ? "PauseIcon" : "PlayIcon"}
-            style={{ width: 18, height: 18, tintColor: "#fff" }} // Icona leggermente più grande per i vocali
+            style={{ width: 18, height: 18, tintColor: "#fff" }}
           />
         )}
       </Pressable>
 
       <View style={styles.progressContainer}>
-        {/* Wrapper View per dare una height esplicita alla waveform */}
-        <View style={styles.waveformWrapper}> 
-            <SmoothWaveform
+        <View style={styles.waveformWrapper}>
+          <SmoothWaveform
             waveformData={waveformData}
             currentValue={thisCurrentTime}
             maxValue={safeDuration}
+            playbackRate={playbackRate}
             onSeek={handleSeek}
             reset={!isThisLoaded || didJustFinish}
             isMoving={isThisPlaying}
-            />
+          />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.durationText}>
+          <Text style={styles.durationText} selectable={false}>
             {formatTime(thisCurrentTime)} / {formatTime(safeDuration)}
           </Text>
-          {/* Nei vocali a volte si preferisce non mostrare la size se è ridondante, ma lasciala se vuoi */}
-          {/* <Text style={styles.sizeText}>{formatFileSize(size)}</Text> */}
         </View>
       </View>
     </View>
@@ -109,7 +117,7 @@ function createStyle(theme) {
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: 8,
-      minWidth: 180
+      minWidth: 180,
     },
     playPauseButton: {
       width: 45,
@@ -126,9 +134,9 @@ function createStyle(theme) {
       justifyContent: "center",
     },
     waveformWrapper: {
-        height: 35,
-        width: '100%',
-        justifyContent: 'center',
+      height: 35,
+      width: "100%",
+      justifyContent: "center",
     },
     textContainer: {
       flexDirection: "row",

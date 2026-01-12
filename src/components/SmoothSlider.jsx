@@ -7,10 +7,15 @@ const AnimatedSlider = Animated.createAnimatedComponent(Slider);
 export default function SmoothSlider({
   currentValue,
   maxValue,
+  playbackRate = 1,
   onSeek,
   reset,
   isMoving,
+  showThumb = true,
 }) {
+
+  const thumbColor = showThumb ? "#307ecc" : "#307ecc";
+
   const sliderAnim = useRef(new Animated.Value(0)).current;
   const isSeeking = useRef(false);
 
@@ -22,14 +27,14 @@ export default function SmoothSlider({
 
       Animated.timing(sliderAnim, {
         toValue: maxValue,
-        duration: Math.max((maxValue - currentValue) * 1000, 100),
+        duration: Math.max((maxValue - currentValue) * 1000, 100)/playbackRate,
         easing: Easing.linear,
         useNativeDriver: false,
       }).start();
     } else {
       sliderAnim.stopAnimation();
     }
-  }, [maxValue, isMoving]);
+  }, [maxValue, isMoving, playbackRate]);
 
   useEffect(() => {
     if (reset) {
@@ -72,7 +77,7 @@ export default function SmoothSlider({
       value={isSeeking.current ? undefined : sliderAnim}
       minimumTrackTintColor="#307ecc"
       maximumTrackTintColor="#ffffffff"
-      thumbTintColor="#307ecc"
+      thumbTintColor={thumbColor}
       onSlidingStart={onSlidingStart}
       onValueChange={onValueChange}
       onSlidingComplete={onSlidingComplete}

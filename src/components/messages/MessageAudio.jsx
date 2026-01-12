@@ -15,10 +15,7 @@ import useUriResolver from "@/src/hooks/file/useUriResolver";
 import SmoothSlider from "../SmoothSlider";
 import { formatTime, formatFileSize } from "@/src/utils/storage/file/utils";
 
-import MessageVoice from "./MessageVoice"; //TEMPORARY WRAPPER
-
-const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
-  //return <MessageVoice audioRef={audioRef} uuid={uuid} mimeType={mimeType} size={size} />; //TEMPORARY WRAPPER
+const MessageAudio = ({ audioRef, uuid, mimeType, size, name, message }) => {
   const {
     isPlaying,
     playBackRate,
@@ -26,6 +23,7 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
     duration,
     didJustFinish,
     currentUri,
+    addInfo,
     handlePlayPause,
     handleSeek,
   } = useContext(AudioPlayerContext);
@@ -50,7 +48,15 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
   return (
     <View style={styles.container}>
       <Pressable
-        onPress={() => handlePlayPause(playableUri)}
+        onPress={() => {
+          addInfo(
+            message.chatUUID,
+            message.id,
+            message.sender_name,
+            message.created_at
+          );
+          handlePlayPause(playableUri);
+        }}
         disabled={!isReady}
         style={styles.playPauseButton}
       >
@@ -64,19 +70,27 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
         )}
       </Pressable>
 
-      <View style={styles.progressContainer}>
-        <SmoothSlider
-          currentValue={thisCurrentTime}
-          maxValue={safeDuration}
-          onSeek={handleSeek}
-          reset={!isThisLoaded || didJustFinish}
-          isMoving={isThisPlaying}
-        />
-        <View style={styles.textContainer}>
-          <Text style={styles.durationText}>
-            {formatTime(thisCurrentTime)} / {formatTime(safeDuration)}
-          </Text>
-          <Text style={styles.sizeText}>{formatFileSize(size)}</Text>
+      <View style={{ flexDirection: "column" }}>
+        <Text style={styles.fileName} selectable={false}>
+          {name}
+        </Text>
+        <View style={styles.progressContainer}>
+          <SmoothSlider
+            currentValue={thisCurrentTime}
+            maxValue={safeDuration}
+            playbackRate={playBackRate}
+            onSeek={handleSeek}
+            reset={!isThisLoaded || didJustFinish}
+            isMoving={isThisPlaying}
+          />
+          <View style={styles.textContainer}>
+            <Text style={styles.durationText} selectable={false}>
+              {formatTime(thisCurrentTime)} / {formatTime(safeDuration)}
+            </Text>
+            <Text style={styles.sizeText} selectable={false}>
+              {formatFileSize(size)}
+            </Text>
+          </View>
         </View>
       </View>
     </View>
@@ -89,7 +103,7 @@ function createStyle(theme) {
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: 5,
-      alignSelf: "stretch"
+      alignSelf: "stretch",
     },
     playPauseButton: {
       padding: 8,
@@ -136,6 +150,9 @@ function createStyle(theme) {
       fontSize: 12,
       color: theme.text,
       fontWeight: "bold",
+    },
+    fileName: {
+      color: theme.text,
     },
   });
 }

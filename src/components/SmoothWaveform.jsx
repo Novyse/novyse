@@ -5,6 +5,7 @@ export default function SmoothWaveform({
   waveformData,
   currentValue,
   maxValue,
+  playbackRate = 1,
   onSeek,
   reset,
   isMoving,
@@ -31,14 +32,15 @@ export default function SmoothWaveform({
 
       Animated.timing(progressAnim, {
         toValue: maxValue,
-        duration: Math.max((maxValue - currentValue) * 1000, 100),
+        duration:
+          Math.max((maxValue - currentValue) * 1000, 100) / playbackRate,
         easing: Easing.linear,
         useNativeDriver: false,
       }).start();
     } else {
       progressAnim.stopAnimation();
     }
-  }, [maxValue, isMoving]);
+  }, [maxValue, isMoving, playbackRate]);
 
   useEffect(() => {
     if (reset) {
@@ -72,9 +74,17 @@ export default function SmoothWaveform({
   return (
     <View style={{ width: "100%", height: 40 }} ref={waveformRef}>
       <Pressable onPress={handleWaveformPress} style={{ flex: 1 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ flex: 1 }}
+        >
           <View
-            style={{ flexDirection: "row", alignItems: "center", height: "100%" }}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              height: "100%",
+            }}
           >
             {waveformData.map((value, index) => {
               const isPlayed = index / waveformData.length < progress;

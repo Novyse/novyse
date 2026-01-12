@@ -1,68 +1,24 @@
-import React, { useState, useContext, useMemo } from "react";
+import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 
-import ChatContent from "./ChatContent";
-import VocalContent from "./VocalContent";
-import SmartBackground from "../components/SmartBackground";
+import { ThemeContext } from "@/context/ThemeContext";
 
-import Header from "../components/chat/content/Header";
-
-import { ChatContext } from "@/context/ChatContext";
-
-const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
-  const { selectedChatUUID, selectedHandle, selectedChatName } =
-    useContext(ChatContext);
-
-  const [contentView, setContentView] = useState("chat");
-
-  const styles = useMemo(
-    () => createStyle(theme, isSmallScreen),
-    [theme, isSmallScreen]
-  );
-
-  if (!selectedChatUUID && !selectedHandle) return null;
-
-  const renderContent = () => {
-    switch (contentView) {
-      case "vocal":
-        return <VocalContent />;
-      case "both":
-        return (
-          <View style={styles.splitContainer}>
-            <View style={styles.splitPanel}>
-              <ChatContent onBack={onBack} contentView="chat" />
-            </View>
-            <View style={styles.splitSeparator} />
-            <View style={styles.splitPanel}>
-              <VocalContent />
-            </View>
-          </View>
-        );
-      case "chat":
-      default:
-        return <ChatContent onBack={onBack} contentView={contentView} />;
-    }
-  };
+const PinnedMessageHeader = ({}) => {
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyle(theme);
 
   return (
-    <SmartBackground
-      colors={theme?.backgroundChatContentGradient}
-      style={styles.container}
-      isSmallScreen={isSmallScreen}
-    >
-      <Header
-        selectedChatName={selectedChatName}
-        contentView={contentView}
-        setContentView={setContentView}
-        isSmallScreen={isSmallScreen}
-        onBack={onBack}
-      />
-      <View style={styles.contentWrapper}>{renderContent()}</View>
-    </SmartBackground>
+    <View style={styles.headerSecondaryRow}>
+      <View style={styles.pinnedContainer}>
+        <Text style={styles.pinnedText} numberOfLines={1}>
+          📌 Messaggio importante fissato in alto
+        </Text>
+      </View>
+    </View>
   );
 };
 
-function createStyle(theme, isSmallScreen) {
+function createStyle(theme) {
   const HEADER_MAIN_HEIGHT = 55;
   const ICON_SIZE = 40;
 
@@ -174,4 +130,4 @@ function createStyle(theme, isSmallScreen) {
   });
 }
 
-export default React.memo(ChatContainer);
+export default PinnedMessageHeader;
