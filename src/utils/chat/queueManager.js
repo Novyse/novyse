@@ -28,6 +28,14 @@ class QueueManager {
     this.startConnectionMonitoring();
     this.processQueue();
     this.initialized = true;
+
+    eventEmitter.getEmitter().on("message:new", (message) => {
+      if (!message.fromSubscription) {
+        if (message.files && message.files.length > 0) {
+          this.addInboundMessageJob(message);
+        }
+      }
+    });
   }
 
   // Start monitoring connection state
