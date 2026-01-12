@@ -1,22 +1,47 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Animated } from "react-native";
 
 import HoverAndPressedButton from "./HoverAndPressedButton";
-import BlurredView from "./BlurredView";
 import Icon from "@/src/components/Icon";
 
 const StatusMessage = ({
   type,
   visible = true,
   content = [],
+  timeout = null,
   onClose,
-  theme,
 }) => {
+  const [isVisible, setIsVisible] = useState(visible);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
+  const slideAnim = useRef(new Animated.Value(10)).current;
 
   useEffect(() => {
-    if (visible) {
+    setIsVisible(visible);
+  }, [visible]);
+
+  const handleClose = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 10,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setIsVisible(false);
+      if (onClose) onClose();
+    });
+  };
+
+  useEffect(() => {
+    let timer;
+
+    if (isVisible) {
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -29,92 +54,56 @@ const StatusMessage = ({
           useNativeDriver: true,
         }),
       ]).start();
+
+      if (timeout) {
+        timer = setTimeout(() => {
+          handleClose();
+        }, timeout);
+      }
     } else {
       fadeAnim.setValue(0);
-      slideAnim.setValue(20);
+      slideAnim.setValue(10);
     }
-  }, [visible]);
 
-  if (!visible) return null;
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isVisible, timeout]);
+
+  if (!isVisible) return null;
 
   const getTypeValues = () => {
     switch (type) {
       case "success":
         return {
           title: "Success",
-          iconName: "CheckmarkCircle02Icon",
-          icon: {
-            name: "CheckmarkCircle02Icon",
-            color: "#4BB543",
-            cancelColor: "#66C466",
-          },
-          theme: {
-            containerBg: "rgba(75, 181, 67, 0.1)",
-            shadowColor: "#4BB543",
-            iconBg: "rgba(75, 181, 67, 0.15)",
-            titleColor: "#ffffff",
-            bulletColor: "#66C466",
-            contentColor: "#B3E5B3",
-          },
+          icon: { name: "CheckmarkCircle02Icon", color: "#FFFFFF" },
+          theme: { bg: "#48cd79ab", text: "#FFFFFF" },
         };
       case "error":
         return {
           title: "Error",
-          icon: {
-            name: "AlertCircleIcon",
-            color: "#FF6B6B",
-            cancelColor: "#FF8F8F",
-          },
-          theme: {
-            containerBg: "rgba(40, 10, 14, 0.95)",
-            shadowColor: "#FF453A",
-            iconBg: "rgba(255, 99, 99, 0.15)",
-            titleColor: "#ffffff",
-            bulletColor: "#FF8F8F",
-            contentColor: "#FFD1D1",
-          },
+          icon: { name: "AlertCircleIcon", color: "#FFFFFF" },
+          theme: { bg: "#9c4238ab", text: "#FFFFFF" },
         };
       case "warning":
         return {
           title: "Warning",
-          icon: {
-            name: "Alert02Icon",
-            color: "#FFA500",
-            cancelColor: "#FFB733",
-          },
-          theme: {
-            containerBg: "rgba(255, 166, 0, 0.1)",
-            shadowColor: "#FFA500",
-            iconBg: "rgba(255, 166, 0, 0.15)",
-            titleColor: "#ffffff",
-            bulletColor: "#FFB733",
-            contentColor: "#FFE5B3",
-          },
+          icon: { name: "Alert02Icon", color: "#000000" },
+          theme: { bg: "#f0ce46c1", text: "#000000" },
         };
       case "info":
       default:
         return {
           title: "Info",
-          icon: {
-            name: "InformationCircleIcon",
-            color: "#ffffff",
-            cancelColor: "#3399FF",
-          },
-          theme: {
-            containerBg: "rgba(0, 120, 255, 0.1)",
-            shadowColor: "#0078FF",
-            iconBg: "rgba(0, 120, 255, 0.15)",
-            titleColor: "#ffffff",
-            bulletColor: "#3399FF",
-            contentColor: "#B3D9FF",
-          },
+          icon: { name: "InformationCircleIcon", color: "#FFFFFF" },
+          theme: { bg: "#297fb9d2", text: "#FFFFFF" },
         };
     }
   };
 
-  const typeValues = getTypeValues();
-
-  const styles = createStyles(typeValues.theme);
+  const { title, icon, theme: colors } = getTypeValues();
+  const styles = createStyles(colors);
 
   return (
     <Animated.View
@@ -126,94 +115,65 @@ const StatusMessage = ({
         },
       ]}
     >
-      <BlurredView style={styles.blurredContainer} intensity={60}>
-        {/* ! Icon */}
+      <View style={styles.inner}>
         <View style={styles.iconContainer}>
-          <Icon
-            name={typeValues.icon.name}
-            size={20}
-            color={typeValues.icon.color}
-          />
+          <Icon name={icon.name} size={20} color={icon.color} />
         </View>
 
-        {/* Content */}
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>{typeValues.title}</Text>
-          <View style={styles.contentList}>
-            {content.map((value, index) => (
-              <View key={index} style={styles.contentItem}>
-                <Text style={styles.contentText}>
-                  {content.length > 1 ? `• ${value}` : value}
-                </Text>
-              </View>
-            ))}
-          </View>
+          <Text style={styles.title}>{title}</Text>
+          {content.map((value, index) => (
+            <Text key={index} style={styles.contentText}>
+              {content.length > 1 ? `• ${value}` : value}
+            </Text>
+          ))}
         </View>
 
-        {/* Close toast btn */}
-        <HoverAndPressedButton onPress={onClose} style={styles.closeButton}>
-          <Icon
-            name="Cancel01Icon"
-            size={18}
-            color={typeValues.icon.cancelColor}
-          />
+        <HoverAndPressedButton onPress={handleClose} style={styles.closeButton}>
+          <Icon name="Cancel01Icon" size={18} color={icon.color} />
         </HoverAndPressedButton>
-      </BlurredView>
+      </View>
     </Animated.View>
   );
 };
 
-const createStyles = (theme) => {
+const createStyles = (colors) => {
   return StyleSheet.create({
     container: {
-      backgroundColor: theme.containerBg,
-      borderRadius: 16,
-      shadowColor: theme.shadowColor,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 10,
-      elevation: 6,
-      marginTop: 16,
+      backgroundColor: colors.bg,
+      borderRadius: 12,
+      marginTop: 12,
       width: "100%",
+      overflow: "hidden",
     },
-    blurredContainer: {
-      borderRadius: 16,
+    inner: {
       padding: 16,
       flexDirection: "row",
       alignItems: "flex-start",
     },
     iconContainer: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: theme.iconBg,
-      justifyContent: "center",
-      alignItems: "center",
       marginRight: 12,
+      marginTop: 2,
     },
     contentContainer: {
       flex: 1,
-      paddingRight: 8,
     },
     title: {
-      color: theme.titleColor,
+      color: colors.text,
       fontSize: 15,
-      fontWeight: "600",
-      marginBottom: 6,
-    },
-    contentList: {
-      gap: 4,
-    },
-    contentItem: {
+      fontWeight: "800",
       marginBottom: 2,
     },
     contentText: {
-      color: theme.contentColor,
+      color: colors.text,
       fontSize: 13,
-      fontWeight: "400",
+      lineHeight: 18,
+      fontWeight: "500",
+      opacity: 0.9,
     },
     closeButton: {
       padding: 4,
+      marginLeft: 8,
     },
   });
 };

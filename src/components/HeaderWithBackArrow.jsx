@@ -20,7 +20,14 @@ const HeaderWithBackArrow = ({ goBackTo, title }) => {
     // 3. Aggiungi { top: insets.top } allo stile.
     // Puoi aggiungere un po' di margine extra (+ 10) se vuoi che respiri di più.
     <HeaderBase style={[styles.container, { top: insets.top }]}>
-      <BlurredView style={{ flexDirection: "row", width: "100%", justifyContent: "space-between" }}>
+      <BlurredView
+        style={{
+          flexDirection: "row",
+          width: "100%",
+          justifyContent: "space-between",
+          padding: 4,
+        }}
+      >
         <Icon
           name={"ArrowLeft02Icon"}
           onPress={() => {
@@ -34,7 +41,6 @@ const HeaderWithBackArrow = ({ goBackTo, title }) => {
           }}
           style={styles.icon}
         />
-
         {title && (
           <View style={styles.titleContainer}>
             <Text
@@ -47,7 +53,7 @@ const HeaderWithBackArrow = ({ goBackTo, title }) => {
           </View>
         )}
 
-        <View style={styles.icon}/>
+        <View style={styles.icon} />
       </BlurredView>
     </HeaderBase>
   );

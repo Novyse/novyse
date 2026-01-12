@@ -253,7 +253,7 @@ const Signup = () => {
       );
 
       if (signupResponse) {
-        router.navigate("/");
+        router.navigate("/(welcome)/email-check?signedup=true&email=" + email);
       } else {
         setError("Signup failed. Please try again.");
       }
@@ -617,7 +617,7 @@ const Signup = () => {
           )}
         </Pressable>
         <Text style={{ fontSize: 14, textAlign: "left", lineHeight: 20 }}>
-          I confirm that I am more than 16 years old.
+          I am 16 or older.
         </Text>
       </View>
     </View>

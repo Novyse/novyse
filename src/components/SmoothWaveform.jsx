@@ -92,10 +92,12 @@ export default function SmoothWaveform({
                 <View
                   key={index}
                   style={{
-                    width: 2,
+                    width: 3,
                     height: value * 20,
+                    minHeight: 3,
                     backgroundColor: isPlayed ? "#0088cc" : "#d3d3d3",
-                    marginHorizontal: 1,
+                    marginHorizontal: 0.5,
+                    borderRadius: 10,
                   }}
                 />
               );
