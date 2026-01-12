@@ -18,7 +18,7 @@ import {
 class WebRTCLogger {
   constructor() {
     // Livello minimo di log da mostrare (i log >= a questo valore verranno mostrati)
-    this.currentLogLevel = LOG_LEVELS?.INFO || 4; // Default: mostra INFO e superiori
+    this.currentLogLevel = 11//LOG_LEVELS?.INFO || 4; // Default: mostra INFO e superiori
 
     // Buffer per salvare i log in memoria (per debugging)
     this.logBuffer = [];
