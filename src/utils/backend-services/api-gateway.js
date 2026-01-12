@@ -190,7 +190,8 @@ const gateway = {
       surname,
       handle,
       privacy_policy_accepted,
-      terms_of_service_accepted
+      terms_of_service_accepted,
+      more_than_16_years_old
     ) {
       try {
         if (!email || !password || !name || !surname || !handle) {
@@ -213,6 +214,7 @@ const gateway = {
           handle,
           acceptTerms: privacy_policy_accepted,
           acceptPrivacy: terms_of_service_accepted,
+          moreThan16: more_than_16_years_old,
         });
         const success = response.data.success;
         return success;
