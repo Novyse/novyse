@@ -214,7 +214,7 @@ const gateway = {
           handle,
           acceptTerms: privacy_policy_accepted,
           acceptPrivacy: terms_of_service_accepted,
-          moreThan16: more_than_16_years_old,
+          moreThan16YearsOld: more_than_16_years_old,
         });
         const success = response.data.success;
         return success;
