@@ -53,7 +53,13 @@ const MessageVoice = ({ audioRef, message, duration, waveform = undefined }) => 
         disabled={!isReady}
         style={styles.playPauseButton}
       >
-        {!isReady ? (
+        {!audioRef ? (
+                    <Icon
+            name="DownloadCircle01Icon"
+            style={{ width: 18, height: 18, tintColor: "#fff" }}
+          />
+        ) :
+        !isReady ? (
           <ActivityIndicator size="small" color="#fff" />
         ) : (
           <Icon

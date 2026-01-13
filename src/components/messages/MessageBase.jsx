@@ -3,6 +3,7 @@ import { View, Pressable, StyleSheet, Text, Image } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import BlurredView from "../BlurredView";
 import { getFileType } from "@/src/utils/storage/file/type";
+import { defaultWaveform } from "@/src/utils/storage/file/media";
 
 import MessageTimestamp from "./MessageTimestamp";
 
@@ -97,14 +98,16 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
       {/* voices print */}
       <View style={{ width: "100%" }}>
         {(voiceMessages.true || []).map((voiceMessage) => {
-          return (
+    const waveform = Array.isArray(voiceMessage.waveform)
+      ? voiceMessage.waveform
+      : JSON.parse(voiceMessage.waveform) || defaultWaveform;          
+      return (
             <MessageVoice
               key={voiceMessage.uuid}
               audioRef={voiceMessage.ref}
               message={message}
               duration={voiceMessage.duration}
-              waveform={JSON.parse(voiceMessage.waveform || "[]")
-              }
+              waveform={waveform}
             />
           );
         })}
