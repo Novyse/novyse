@@ -92,7 +92,9 @@ class Database {
                 ref TEXT,
                 mimeType TEXT NOT NULL,
                 size INTEGER NOT NULL,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                duration INTEGER DEFAULT 0,
+                waveform TEXT
             );
 
             CREATE TABLE IF NOT EXISTS message (
@@ -354,8 +356,16 @@ class Database {
       if (message.files && Array.isArray(message.files)) {
         for (const file of message.files) {
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size) VALUES (?, ?, ?, ?, ?);`,
-            [file.uuid, file.name, file.ref, file.mimeType, file.size]
+            `INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size, waveform, duration) VALUES (?, ?, ?, ?, ?, ?, ?);`,
+            [
+              file.uuid,
+              file.name,
+              file.ref,
+              file.mimeType,
+              file.size,
+              file.waveform ? JSON.stringify(file.waveform) : null,
+              file.duration,
+            ]
           );
           await this.db.runAsync(
             `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES (?, ?, ?);`,
@@ -367,7 +377,7 @@ class Database {
       console.log("Message added or already exists.", message.id);
       return true;
     } catch (error) {
-      console.error("Error adding message:", error);
+      console.error("Error adding message:", error, message);
       return false;
     }
   }
@@ -625,7 +635,7 @@ class Database {
       if (message) {
         // Retrieve associated files with mime types
         const files = await this.db.getAllAsync(
-          `SELECT f.uuid, f.mimeType FROM file f
+          `SELECT f.uuid, f.mimeType, f.name FROM file f
            JOIN message_files mf ON f.uuid = mf.fileUUID
            WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
           [chatUUID, message.id]
@@ -862,11 +872,60 @@ class Database {
             [newRef, fileUUID]
           );
           if (result.changes > 0) {
+            console.log("File ref updated successfully:", fileUUID);
             return true;
           }
           return false;
         } catch (error) {
           console.error("Error updating file ref:", error);
+          return false;
+        }
+      },
+      /**
+       * Update the waveform of a file in the database.
+       * @param {String} fileUUID
+       * @param {Array} newWaveform
+       */
+      waveform: async (fileUUID, newWaveform) => {
+        try {
+          if (!fileUUID || !newWaveform) {
+            console.error("Missing required fields to update file waveform.");
+            return false;
+          }
+          const result = await this.db.runAsync(
+            `UPDATE file SET waveform = ? WHERE uuid = ?;`,
+            [JSON.stringify(newWaveform), fileUUID]
+          );
+          if (result.changes > 0) {
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Error updating file waveform:", error);
+          return false;
+        }
+      },
+      /**
+       * Update the duration of a file in the database.
+       * @param {String} fileUUID
+       * @param {Number} newDuration
+       */
+      duration: async (fileUUID, newDuration) => {
+        try {
+          if (!fileUUID || newDuration === undefined || newDuration === null) {
+            console.error("Missing required fields to update file duration.");
+            return false;
+          }
+          const result = await this.db.runAsync(
+            `UPDATE file SET duration = ? WHERE uuid = ?;`,
+            [newDuration, fileUUID]
+          );
+          if (result.changes > 0) {
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Error updating file duration:", error);
           return false;
         }
       },

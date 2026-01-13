@@ -61,8 +61,8 @@ export default {
       supportsTablet: true,
       bundleIdentifier: `com.${APP_SLUG}${devSuffix}`,
       infoPlist: {
-        UIBackgroundModes: ["audio"]
-      }
+        UIBackgroundModes: ["audio"],
+      },
     },
     android: {
       adaptiveIcon: {
@@ -88,7 +88,7 @@ export default {
           category: ["BROWSABLE", "DEFAULT"],
         },
       ],
-      permissions: ["FOREGROUND_SERVICE", "WAKE_LOCK"]
+      permissions: ["FOREGROUND_SERVICE", "WAKE_LOCK"],
     },
     web: {
       bundler: "metro",
@@ -108,7 +108,12 @@ export default {
           backgroundColor: "#ffffff",
         },
       ],
-      "expo-sqlite",
+      [
+        "expo-sqlite",
+        {
+          useSQLCipher: true,
+        },
+      ],
       [
         "expo-audio",
         {

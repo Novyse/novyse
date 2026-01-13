@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, View, Pressable, ScrollView } from "react-native";
+import { defaultWaveform } from "@/src/utils/storage/file/media";
 
 export default function SmoothWaveform({
-  waveformData,
+  waveformData = defaultWaveform,
   currentValue,
   maxValue,
   playbackRate = 1,

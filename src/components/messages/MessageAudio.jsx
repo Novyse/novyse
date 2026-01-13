@@ -13,14 +13,13 @@ import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 
 import SmoothSlider from "../SmoothSlider";
-import { formatTime, formatFileSize } from "@/src/utils/storage/file/utils";
+import { formatTime, formatDuration, formatFileSize } from "@/src/utils/storage/file/utils";
 
-const MessageAudio = ({ audioRef, uuid, mimeType, size, name, message }) => {
+const MessageAudio = ({ audioRef, size, name, message, duration }) => {
   const {
     isPlaying,
     playBackRate,
     currentTime,
-    duration,
     didJustFinish,
     currentUri,
     addInfo,
@@ -31,19 +30,13 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size, name, message }) => {
   const { uri: playableUri } = useUriResolver(audioRef);
 
   const isThisLoaded = playableUri === currentUri;
-  const thisDuration = isThisLoaded ? duration : 0;
-  const thisCurrentTime = isThisLoaded ? currentTime : 0;
+  const thisCurrentTime = currentUri && isThisLoaded ? currentTime : 0;
   const isThisPlaying = isPlaying && isThisLoaded;
 
   const { theme } = useContext(ThemeContext);
   const styles = useMemo(() => createStyle(theme), [theme]);
 
   const isReady = !!playableUri;
-
-  // @SamueleOrazioDurante la duration si deve gestire da un altra parte, ma per ora chill
-  const isValidDuration =
-    thisDuration && Number.isFinite(thisDuration) && thisDuration > 0;
-  const safeDuration = isValidDuration ? thisDuration : 0;
 
   return (
     <View style={styles.container}>
@@ -77,7 +70,7 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size, name, message }) => {
         <View style={styles.progressContainer}>
           <SmoothSlider
             currentValue={thisCurrentTime}
-            maxValue={safeDuration}
+            maxValue={duration}
             playbackRate={playBackRate}
             onSeek={handleSeek}
             reset={!isThisLoaded || didJustFinish}
@@ -85,7 +78,7 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size, name, message }) => {
           />
           <View style={styles.textContainer}>
             <Text style={styles.durationText} selectable={false}>
-              {formatTime(thisCurrentTime)} / {formatTime(safeDuration)}
+              {formatTime(thisCurrentTime)} / {formatDuration(duration)}
             </Text>
             <Text style={styles.sizeText} selectable={false}>
               {formatFileSize(size)}

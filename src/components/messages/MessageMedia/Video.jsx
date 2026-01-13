@@ -5,19 +5,21 @@ import {
   ActivityIndicator,
   StyleSheet,
   Pressable,
+  Text,
 } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 
+import { formatDuration } from "@/src/utils/storage/file/utils";
+
 const { width: screenWidth } = Dimensions.get("window");
 const maxBubbleWidth = screenWidth * 0.6;
 
-const Video = ({ fileRef }) => {
+const Video = ({ fileRef, duration }) => {
   const router = useRouter();
   const { uri, isLoading } = useUriResolver(fileRef);
-
 
   // Serve solo per mostrare il primo frame come copertina
   const player = useVideoPlayer(uri, (player) => {
@@ -25,7 +27,6 @@ const Video = ({ fileRef }) => {
     player.muted = true;
     player.pause();
   });
-
 
   const handlePress = () => {
     if (!uri) return;
@@ -48,10 +49,6 @@ const Video = ({ fileRef }) => {
 
   return (
     <Pressable onPress={handlePress} style={styles.videoContainer}>
-      {/* pointerEvents="none" è il trucco magico:
-         Dice a React: "Ignora i tocchi su questo componente video, 
-         passali direttamente al padre (Pressable)".
-      */}
       <View pointerEvents="none" style={styles.videoWrapper}>
         <VideoView
           player={player}
@@ -71,6 +68,8 @@ const Video = ({ fileRef }) => {
           />
         </View>
       </View>
+
+      <Text style={styles.durationText}>{formatDuration(duration)}</Text>
     </Pressable>
   );
 };
@@ -112,6 +111,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.8)",
+  },
+  durationText: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    color: "white",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    fontSize: 12,
   },
 });
 
