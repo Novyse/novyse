@@ -116,27 +116,27 @@ const formatMessage = async (messageRef) => {
     } else if (message.type == "message") {
       if (!message.content) {
         if (message.files && message.files.length > 0) {
-          const fileType = getFileType(
-            message.files[0].mimeType,
-            message.files[0].name
-          );
-          if (fileType === "IMAGE") {
-            message.content = "📷 Image";
-          } else if (fileType === "VIDEO") {
-            message.content = "📹 Video";
-          } else if (fileType === "AUDIO") {
-            message.content = "🎵 Audio";
-          } else if (fileType === "VOICE") {
-            message.content = "🎤 Voice Message";
-          } else if (fileType === "DOCUMENT") {
-            message.content = "📄 Document";
-          } else if (fileType === "CODE") {
-            message.content = "💻 Code File";
-          } else if (fileType === "ARCHIVE") {
-            message.content = "🗄️ Archive File";
-          } else {
-            message.content = "📎 File";
-          }
+          const types = message.files.map(file => getFileType(file.mimeType, file.name));
+          const uniqueTypes = [...new Set(types)];
+          if (uniqueTypes.length === 1) {
+            const type = uniqueTypes[0];
+            const count = types.length;
+            const fileTypeMap = {
+              IMAGE: { emoji: "📷", singular: "Image", plural: "Images" },
+              VIDEO: { emoji: "📹", singular: "Video", plural: "Videos" },
+              AUDIO: { emoji: "🎵", singular: "Audio", plural: "Audios" },
+              VOICE: { emoji: "🎤", singular: "Voice Message", plural: "Voice Messages" },
+              DOCUMENT: { emoji: "📄", singular: "Document", plural: "Documents" },
+              CODE: { emoji: "💻", singular: "Code File", plural: "Code Files" },
+              ARCHIVE: { emoji: "🗄️", singular: "Archive File", plural: "Archive Files" },
+            };
+            const { emoji, singular, plural } = fileTypeMap[type] || { emoji: "📎", singular: "File", plural: "Files" };
+            message.content = count === 1 ? `${emoji} ${singular}` : `${count} ${emoji} ${plural}`;
+         } 
+          else {
+          const hasOnlyMedia = uniqueTypes.every(type => type === 'IMAGE' || type === 'VIDEO');
+          message.content = hasOnlyMedia ? `${message.files.length} 📎 Media` : `${message.files.length} 📎 Files`;
+         }
         }
       }
     }

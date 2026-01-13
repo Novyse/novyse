@@ -1,9 +1,7 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { Alert, Platform } from "react-native";
-import gateway from "@/src/utils/backend-services/api-gateway.js";
-import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
 import queueManager from "@/src/utils/chat/queueManager.js";
 
 const useMessageHandlers = (
@@ -17,33 +15,9 @@ const useMessageHandlers = (
   sheetIndex,
   myUUID
 ) => {
-  const handleSendImageMessage = useCallback(
-    async (imageUri, chatUUID) => {
-      if (!imageUri || !chatUUID) return;
-
-      const response = await fetch(imageUri);
-      const blob = await response.blob();
-      const size = blob.size;
-      const mimeType = blob.type;
-      const name = blob.name;
-
-      const files = [
-        {
-          uri: imageUri,
-          name,
-          mimeType,
-          size,
-        },
-      ];
-
-      const message = {
-        senderUUID: myUUID,
-        content: "",
-        type: "message",
-        files,
-      };
-
-      await queueManager.addOutgoingMessageJob(message, chat);
+  const handleSendMediaMessage = useCallback(
+    async (files, chatUUID) => {
+      await handleSendFileMessage(files, chatUUID);
     },
     [
       chat,
@@ -55,8 +29,7 @@ const useMessageHandlers = (
     ]
   );
 
-  const pickImage = useCallback(async () => {
-    console.log("Starting to pick image");
+  const pickMedia = useCallback(async () => {
     if (Platform.OS !== "web") {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -68,26 +41,23 @@ const useMessageHandlers = (
         return;
       }
     }
+    try{
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images','videos','livePhotos'], // livePhotos only on iOS
+          allowsMultipleSelection: true,
+          quality: 1,
+        });
 
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
-      quality: 1,
-    });
 
-    if (!result.canceled) {
-      const imageUri = result.assets[0].uri;
-
-      await handleSendImageMessage(imageUri, chat.uuid);
+        if (!result.canceled) {
+          await handleSendMediaMessage(result.assets, chat.uuid);
+        }
+      }catch(error){
+      console.info("Error picking media:", error);
     }
 
-    // Close menu after action
-    if (Platform.OS === "web") {
-      // Assumi setSheetIndex(-1) sia passato o gestito esternamente
-    } else {
-      // Assumi bottomSheetRef.current?.close() sia gestito esternamente
-    }
-  }, [chat, selectedChatUUID, setSelectedChatUUID, handleSendImageMessage]);
+    _closeFileMenu();
+  }, [chat, selectedChatUUID, setSelectedChatUUID, handleSendMediaMessage]);
 
   const handleSendFileMessage = useCallback(
     async (files, chatUUID) => {
@@ -95,7 +65,7 @@ const useMessageHandlers = (
 
       const cleanedFiles = files.map((file) => ({
         uri: file.uri,
-        name: file.name,
+        name: file.name || file.fileName || "novyse_file_"+Date.now(),
         mimeType:
           file.mimeType && file.mimeType !== ""
             ? file.mimeType
@@ -103,7 +73,7 @@ const useMessageHandlers = (
         size: file.size,
       }));
 
-      console.log(cleanedFiles);
+      console.log("Cleaned files to send:", cleanedFiles, files);
 
       const message = {
         senderUUID: myUUID,
@@ -118,7 +88,6 @@ const useMessageHandlers = (
   );
 
   const pickFile = useCallback(async () => {
-    console.log("Starting to pick file");
     let result = await DocumentPicker.getDocumentAsync({
       type: "*/*",
       copyToCacheDirectory: true,
@@ -128,8 +97,7 @@ const useMessageHandlers = (
       await handleSendFileMessage(result.assets, chat.uuid);
     }
 
-    // Close menu after action
-    // Logica per chiudere il menu gestita esternamente
+    _closeFileMenu();
   }, [chat, selectedChatUUID, setSelectedChatUUID, handleSendFileMessage]);
 
   const handleSendMessage = useCallback(
@@ -238,7 +206,6 @@ const useMessageHandlers = (
 
   const handleTextChanging = useCallback(
     (text, isMicClicked) => {
-      // Assumi setNewMessageText sia chiamata esternamente, qui solo logica
       setVoiceMessage(text.length === 0 && !isMicClicked);
     },
     [setVoiceMessage]
@@ -246,19 +213,17 @@ const useMessageHandlers = (
 
   const handleMenuItemPress = useCallback(
     async (action) => {
-      console.log("Menu item pressed:", action);
       if (action === "Gallery") {
-        await pickImage();
+        await pickMedia();
         return;
       }
       if (action === "File") {
         await pickFile();
         return;
       }
-      console.log(`Action: ${action}`);
-      // Close menu logic handled externally
+      _closeFileMenu();
     },
-    [pickImage, pickFile]
+    [pickMedia, pickFile]
   );
 
   // // Listen for message sent events to update message IDs
@@ -295,10 +260,19 @@ const useMessageHandlers = (
   //   };
   // }, [setMessages]);
 
+  const _closeFileMenu = useCallback(() => {
+    // Close menu after action
+    if (Platform.OS === "web") {
+      // Assumi setSheetIndex(-1) sia passato o gestito esternamente
+    } else {
+      // Assumi bottomSheetRef.current?.close() sia gestito esternamente
+    }
+  }, []);
+
   return {
     handleSendMessage,
-    handleSendImageMessage,
-    pickImage,
+    handleSendMediaMessage,
+    pickMedia,
     pickFile,
     handleTextChanging,
     handleMenuItemPress,

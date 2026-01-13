@@ -81,6 +81,7 @@ export default function ChatLayout() {
   );
 
   const renderCommsMenu = () => {
+    return;
     const isInComms = check.isInComms();
     if (!isInComms) return null;
     const commsUUID = get.commUUID();
