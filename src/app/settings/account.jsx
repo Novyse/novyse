@@ -1,11 +1,12 @@
 import React, { useContext, useState, useEffect } from "react";
-import { StyleSheet, View, Text, Image } from "react-native";
+import { StyleSheet, View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import ScreenLayout from "@/src/components/ScreenLayout";
 import Database from "@/src/utils/storage/database";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/settings/SettingsCard";
+import Icon from "@/src/components/Icon";
 
 const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
@@ -16,8 +17,10 @@ const ProfilePage = () => {
     surname: "",
     handle: "",
     email: "",
+    profileImageUri: "",
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -34,6 +37,7 @@ const ProfilePage = () => {
           surname: user.surname || "",
           handle: user.handle || "",
           email: user.email || "",
+          profileImageUri: user.profileImageUri || "https://picsum.photos/200", // Default or from user
         });
       }
     } catch (error) {
@@ -62,6 +66,9 @@ const ProfilePage = () => {
       </ScreenLayout>
     );
   }
+  const pickImage = () => {
+    Alert.alert("Change Profile Image", "This feature is coming soon!");
+  };
 
   return (
     <ScreenLayout fullscreen={true}>
@@ -69,12 +76,22 @@ const ProfilePage = () => {
       <SettingsPageScrollview>
         {/* Profile Image Section */}
         <View style={styles.profileImageSection}>
-          <View style={styles.profileImageContainer}>
+          <TouchableOpacity 
+            onPress={pickImage} 
+            style={styles.profileImageContainer}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
             <Image
-              source={{ uri: "https://picsum.photos/200" }}
-              style={styles.profileImage}
+              source={{ uri: userData.profileImageUri }}
+              style={[styles.profileImage, { opacity: isHovered ? 0.5 : 1 }]}
             />
-          </View>
+            {isHovered && (
+              <View style={styles.editIconContainer}>
+                <Icon name="PencilEdit02Icon" size={24} color={theme.text} />
+              </View>
+            )}
+          </TouchableOpacity>
           <Text style={styles.profileName}>
             {userData.name && userData.surname
               ? `${userData.name} ${userData.surname}`
@@ -169,6 +186,13 @@ const createStyle = (theme) =>
     fieldValue: {
       color: theme.text,
       fontSize: 16,
+    },
+    editIconContainer: {
+      position: 'absolute',
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: '100%',
+      height: '100%',
     },
   });
 
