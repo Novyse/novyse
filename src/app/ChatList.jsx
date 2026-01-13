@@ -10,24 +10,21 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DateTime } from "luxon";
-
 import SmartBackground from "../components/SmartBackground";
 import Search from "./Search";
 import HoverAndPressedButton from "../components/HoverAndPressedButton";
 import Icon from "../components/Icon";
 import HeaderBase from "../components/HeaderBase";
 import useChats from "../hooks/chat/useChats";
-import useAppInit from "../hooks/auth/useAppInit";
-import { ChatContext } from "@/context/ChatContext";
 import { UserContext } from "@/context/UserContext";
 import BlurredView from "../components/BlurredView";
+import { ThemeContext } from "@/context/ThemeContext";
 
-const PINNED_CHATS_STORAGE_KEY = "@chat_order"; // Rinominato per chiarezza
+const PINNED_CHATS_STORAGE_KEY = "@chat_order";
 
 const ChatListItem = React.memo(
   ({ item, isSelected, onPress, onLongPress, theme, styles }) => {
     const { userUUID } = useContext(UserContext);
-
     const parseTime = (dateTimeMessage) => {
       if (!dateTimeMessage) return "";
       return DateTime.fromJSDate(new Date(dateTimeMessage)).toFormat("HH:mm");
@@ -36,7 +33,6 @@ const ChatListItem = React.memo(
     const displayMessage = (message) => {
       if (!message) return null;
       let content = message.content;
-
       let sender = "";
       if (message.senderUUID === userUUID) {
         sender = "You: ";
@@ -47,7 +43,6 @@ const ChatListItem = React.memo(
       } else {
         sender = "Unknown: ";
       }
-
       return (
         <Text
           style={[styles.chatSubtitle, styles.gridText]}
@@ -122,31 +117,21 @@ const ChatListItem = React.memo(
   }
 );
 
-const ChatList = ({
-  onChatSelect,
-  isToggleSearchChats,
-  setIsToggleSearchChats,
-  theme,
-  colorScheme,
-  toggleSidebar,
-}) => {
-  useAppInit(true);
+const ChatList = ({ onChatSelect, toggleSidebar }) => {
   const { chatDetails } = useChats();
   const { width } = useWindowDimensions();
   const [isSmallScreen, setIsSmallScreen] = useState(width < 768);
+  const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme, isSmallScreen);
-
   const [selectedItems, setSelectedItems] = useState([]);
   const [orderedChats, setOrderedChats] = useState([]);
-
+  const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
   const isSelectionMode = selectedItems.length > 0;
 
-  // Aggiorna isSmallScreen quando le dimensioni cambiano
   useEffect(() => {
     setIsSmallScreen(width < 768);
   }, [width]);
 
-  // LOGICA SEMPLIFICATA IN UN UNICO useEffect
   useEffect(() => {
     const organizeChats = async () => {
       const allChats = Object.values(chatDetails);
@@ -154,56 +139,42 @@ const ChatList = ({
         setOrderedChats([]);
         return;
       }
-
       try {
         const savedOrderJSON = await AsyncStorage.getItem(
           PINNED_CHATS_STORAGE_KEY
         );
         const savedOrderIds = savedOrderJSON ? JSON.parse(savedOrderJSON) : [];
-
-        // Crea una mappa per un lookup veloce della posizione di ogni chat
         const orderMap = new Map(savedOrderIds.map((id, index) => [id, index]));
-
         const sortedChats = [...allChats].sort((a, b) => {
           const indexA = orderMap.get(a.uuid) ?? Infinity;
           const indexB = orderMap.get(b.uuid) ?? Infinity;
           return indexA - indexB;
         });
-
         setOrderedChats(sortedChats);
       } catch (e) {
-        console.error("Failed to organize chats:", e);
-        setOrderedChats(allChats); // In caso di errore, mostra le chat in ordine di default
+        setOrderedChats(allChats);
       }
     };
-
     organizeChats();
-  }, [chatDetails]); // Si attiva solo quando le chat iniziali cambiano
+  }, [chatDetails]);
 
   const handleLongPress = (chatUUID) => {
-    if (!isSelectionMode) {
-      setSelectedItems([chatUUID]);
-    }
+    if (!isSelectionMode) setSelectedItems([chatUUID]);
   };
 
   const handlePress = (chatUUID) => {
     if (isSelectionMode) {
-      setSelectedItems((currentSelected) =>
-        currentSelected.includes(chatUUID)
-          ? currentSelected.filter((id) => id !== chatUUID)
-          : [...currentSelected, chatUUID]
+      setSelectedItems((current) =>
+        current.includes(chatUUID)
+          ? current.filter((id) => id !== chatUUID)
+          : [...current, chatUUID]
       );
     } else {
       onChatSelect(chatUUID);
     }
   };
 
-  const handleCancelSelection = () => {
-    setSelectedItems([]);
-  };
-
   const handlePinItems = async () => {
-    // Sposta le chat selezionate all'inizio della lista
     const selectedChats = orderedChats.filter((chat) =>
       selectedItems.includes(chat.uuid)
     );
@@ -211,22 +182,13 @@ const ChatList = ({
       (chat) => !selectedItems.includes(chat.uuid)
     );
     const newOrderedList = [...selectedChats, ...unselectedChats];
-
-    // 1. Aggiorna subito la UI
     setOrderedChats(newOrderedList);
-
-    // 2. Salva il nuovo ordine (solo gli ID) su disco
     try {
-      const newOrderedIds = newOrderedList.map((chat) => chat.uuid);
       await AsyncStorage.setItem(
         PINNED_CHATS_STORAGE_KEY,
-        JSON.stringify(newOrderedIds)
+        JSON.stringify(newOrderedList.map((chat) => chat.uuid))
       );
-    } catch (e) {
-      console.error("Failed to save chat order:", e);
-    }
-
-    // 3. Esci dalla modalità selezione
+    } catch (e) {}
     setSelectedItems([]);
   };
 
@@ -245,13 +207,17 @@ const ChatList = ({
         />
       </HeaderBase>
     ),
-    [toggleSidebar, setIsToggleSearchChats, styles.logo]
+    [toggleSidebar, styles.logo]
   );
 
   const renderSelectionHeader = useCallback(
     () => (
       <HeaderBase>
-        <Icon name={"Cancel01Icon"} size={32} onPress={handleCancelSelection} />
+        <Icon
+          name={"Cancel01Icon"}
+          size={32}
+          onPress={() => setSelectedItems([])}
+        />
         <Text style={styles.headerTitle}>
           {selectedItems.length} selezionate
         </Text>
@@ -325,38 +291,23 @@ function createStyle(theme, isSmallScreen) {
       flex: 1,
       position: "relative",
       borderRadius: isSmallScreen ? 0 : 15,
+      overflow: "hidden",
     },
     flatList: {
       flex: 1,
       ...(Platform.OS === "web" && {
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
         "::-webkit-scrollbar": {
           width: 6,
           backgroundColor: theme.backgroundScrollbar,
-        },
-        "::-webkit-scrollbar-track": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
         },
         "::-webkit-scrollbar-thumb": {
           backgroundColor: theme.scrollbar,
           borderRadius: 3,
         },
-        "::-webkit-scrollbar-thumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
       }),
     },
-    flatListContent: {
-      padding: 10,
-      gap: 10,
-    },
-    chatItem: {
-      borderRadius: 15,
-      height: 65,
-    },
+    flatListContent: { padding: 10, gap: 10 },
+    chatItem: { borderRadius: 15, height: 65 },
     chatItemPressable: {
       flexDirection: "row",
       alignItems: "center",
@@ -365,47 +316,19 @@ function createStyle(theme, isSmallScreen) {
       flex: 1,
       borderRadius: 15,
     },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 10,
-    },
-    logo: {
-      width: 24,
-      height: 24,
-    },
-    chatTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: theme.text,
-    },
-    chatSubtitle: {
-      fontSize: 14,
-      color: theme.text,
-    },
+    avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
+    logo: { width: 24, height: 24 },
+    chatTitle: { fontSize: 16, fontWeight: "bold", color: theme.text },
+    chatSubtitle: { fontSize: 14, color: theme.text },
     chatItemGrid: {
       flexDirection: "row",
       flex: 1,
       justifyContent: "space-between",
     },
-    leftContainer: {
-      flex: 1,
-      flexDirection: "column",
-    },
-    rightContainer: {
-      flexDirection: "column",
-      alignItems: "flex-end",
-    },
-    gridText: {
-      fontSize: 14,
-      color: theme.text,
-    },
-    headerTitle: {
-      color: theme.text,
-      fontSize: 18,
-      fontWeight: "bold",
-    },
+    leftContainer: { flex: 1, flexDirection: "column" },
+    rightContainer: { flexDirection: "column", alignItems: "flex-end" },
+    gridText: { fontSize: 14, color: theme.text },
+    headerTitle: { color: theme.text, fontSize: 18, fontWeight: "bold" },
     ball: {
       borderRadius: 10,
       width: 20,
@@ -414,11 +337,7 @@ function createStyle(theme, isSmallScreen) {
       alignItems: "center",
       backgroundColor: theme.badgeColor,
     },
-    ballText: {
-      textAlign: "center",
-      color: theme.text,
-      fontSize: 12,
-    },
+    ballText: { textAlign: "center", color: theme.text, fontSize: 12 },
     dateContainer: {
       flexDirection: "row",
       alignItems: "center",

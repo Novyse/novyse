@@ -1,6 +1,12 @@
-import React, { useState, useContext, useMemo } from "react";
-import { View, StyleSheet, Image, Text } from "react-native";
-import { useRouter } from "expo-router";
+import React, { useState, useContext, useMemo, useEffect } from "react";
+import {
+  View,
+  StyleSheet,
+  Image,
+  Text,
+  useWindowDimensions,
+} from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 import ChatContent from "./ChatContent";
 import VocalContent from "./VocalContent";
@@ -10,29 +16,44 @@ import Icon from "../components/Icon";
 import BlurredView from "../components/BlurredView";
 
 import { ChatContext } from "@/context/ChatContext";
+import { ThemeContext } from "@/context/ThemeContext";
 
-const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
+const ChatContainer = ({ onBack }) => {
+  const { chatUUIDorHandle } = useLocalSearchParams();
   const { selectedChatUUID, selectedHandle, selectedChatName } =
     useContext(ChatContext);
-  const router = useRouter();
+  const { theme } = useContext(ThemeContext);
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width <= 768;
   const [contentView, setContentView] = useState("chat");
-
-  // SOSTITUIRE QUESTI CON I DATI REALI
-  const pinnedMessage = null;
-  const voiceState = null;
-
-  const hasPinnedMessage = !!pinnedMessage;
-  const isVoiceActive = !!voiceState;
-  const isHeaderExpanded = hasPinnedMessage || isVoiceActive;
-
-  const activeRadius = isHeaderExpanded ? 15 : 100;
 
   const styles = useMemo(
     () => createStyle(theme, isSmallScreen),
     [theme, isSmallScreen]
   );
 
-  if (!selectedChatUUID && !selectedHandle) return null;
+  // Verifica se i dati nel context appartengono effettivamente alla chat aperta nell'URL
+  const isDataReady = useMemo(() => {
+    return (
+      selectedChatUUID === chatUUIDorHandle ||
+      selectedHandle === chatUUIDorHandle
+    );
+  }, [selectedChatUUID, selectedHandle, chatUUIDorHandle]);
+
+  // Se i dati non sono pronti o non corrispondono all'URL, mostriamo uno stato vuoto
+  // ma manteniamo la struttura per evitare salti visivi eccessivi
+  if (!isDataReady) {
+    return (
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: theme.backgroundChatContentGradient?.[0] || "#000",
+          },
+        ]}
+      />
+    );
+  }
 
   const renderMainRow = () => (
     <View style={styles.headerMainRow}>
@@ -52,7 +73,7 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
           style={styles.avatar}
         />
         <Text style={styles.chatTitle} numberOfLines={1}>
-          {selectedChatName}
+          {selectedChatName || "Caricamento..."}
         </Text>
       </View>
 
@@ -79,43 +100,6 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
           />
         )}
       </View>
-    </View>
-  );
-
-  const renderPinnedRow = () => (
-    <View style={styles.headerSecondaryRow}>
-      <View style={styles.pinnedContainer}>
-        <Text style={styles.pinnedText} numberOfLines={1}>
-          📌 Messaggio importante fissato in alto
-        </Text>
-      </View>
-    </View>
-  );
-
-  const renderVoiceControlRow = () => (
-    <View style={styles.headerSecondaryRow}>
-      <View style={styles.voiceControlContainer}>
-        <Text style={{ color: theme.text }}>Voice Player / Waveform here</Text>
-      </View>
-    </View>
-  );
-
-  const renderHeader = () => (
-    <View style={styles.headerWrapper}>
-      <HeaderBase
-        style={[styles.headerBase, { borderRadius: activeRadius }]}
-      >
-        <BlurredView
-          style={[
-            styles.headerColumnContainer,
-            { borderRadius: activeRadius },
-          ]}
-        >
-          {renderMainRow()}
-          {hasPinnedMessage && renderPinnedRow()}
-          {isVoiceActive && renderVoiceControlRow()}
-        </BlurredView>
-      </HeaderBase>
     </View>
   );
 
@@ -147,24 +131,22 @@ const ChatContainer = ({ onBack, isSmallScreen, theme }) => {
       style={styles.container}
       isSmallScreen={isSmallScreen}
     >
-      {renderHeader()}
+      <View style={styles.headerWrapper}>
+        <HeaderBase style={styles.headerBase}>
+          <BlurredView style={styles.headerColumnContainer}>
+            {renderMainRow()}
+          </BlurredView>
+        </HeaderBase>
+      </View>
       <View style={styles.contentWrapper}>{renderContent()}</View>
     </SmartBackground>
   );
 };
 
 function createStyle(theme, isSmallScreen) {
-  const HEADER_MAIN_HEIGHT = 55;
-  const ICON_SIZE = 40;
-
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      overflow: "hidden",
-    },
-    contentWrapper: {
-      flex: 1,
-    },
+    container: { flex: 1, overflow: "hidden" },
+    contentWrapper: { flex: 1 },
     headerWrapper: {
       position: "absolute",
       top: 0,
@@ -172,26 +154,20 @@ function createStyle(theme, isSmallScreen) {
       right: 0,
       zIndex: 100,
     },
-    headerBase: {
-      overflow: "hidden",
-    },
+    headerBase: { overflow: "hidden", borderRadius: 100 },
     headerColumnContainer: {
       flexDirection: "column",
       width: "100%",
-      paddingBottom: 0,
+      borderRadius: 100,
     },
     headerMainRow: {
       flexDirection: "row",
       alignItems: "center",
-      height: HEADER_MAIN_HEIGHT,
+      height: 55,
       paddingHorizontal: 8,
       width: "100%",
     },
-    headerLeft: {
-      flex: 1,
-      alignItems: "flex-start",
-      justifyContent: "center",
-    },
+    headerLeft: { flex: 1, alignItems: "flex-start", justifyContent: "center" },
     headerCenter: {
       flex: 2,
       flexDirection: "row",
@@ -205,28 +181,9 @@ function createStyle(theme, isSmallScreen) {
       justifyContent: "flex-end",
       gap: 4,
     },
-    headerSecondaryRow: {
-      width: "100%",
-      paddingHorizontal: 12,
-      paddingBottom: 8,
-      justifyContent: "center",
-    },
-    pinnedContainer: {
-      backgroundColor: "rgba(0,0,0,0.05)",
-      padding: 6,
-      borderRadius: 8,
-      width: "100%",
-    },
-    voiceControlContainer: {
-      height: 36,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "rgba(0,0,0,0.08)",
-      borderRadius: 12,
-    },
     iconButton: {
-      width: ICON_SIZE,
-      height: ICON_SIZE,
+      width: 40,
+      height: 40,
       justifyContent: "center",
       alignItems: "center",
     },
@@ -235,7 +192,7 @@ function createStyle(theme, isSmallScreen) {
       height: 32,
       borderRadius: 16,
       marginRight: 8,
-      backgroundColor: theme.placeholder || "#ccc",
+      backgroundColor: "#ccc",
     },
     chatTitle: {
       fontSize: 15,
@@ -244,19 +201,8 @@ function createStyle(theme, isSmallScreen) {
       textAlign: "center",
       flexShrink: 1,
     },
-    pinnedText: {
-      fontSize: 12,
-      color: theme.text,
-      opacity: 0.9,
-    },
-    splitContainer: {
-      flex: 1,
-      flexDirection: "row",
-    },
-    splitPanel: {
-      flex: 1,
-      height: "100%",
-    },
+    splitContainer: { flex: 1, flexDirection: "row" },
+    splitPanel: { flex: 1, height: "100%" },
     splitSeparator: {
       width: 1,
       backgroundColor: "rgba(255,255,255,0.1)",
