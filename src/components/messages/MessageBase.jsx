@@ -100,7 +100,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
         {(voiceMessages.true || []).map((voiceMessage) => {
     const waveform = Array.isArray(voiceMessage.waveform)
       ? voiceMessage.waveform
-      : JSON.parse(voiceMessage.waveform) || defaultWaveform;          
+      : JSON.parse(voiceMessage.waveform || JSON.stringify(defaultWaveform)) || defaultWaveform;          
       return (
             <MessageVoice
               key={voiceMessage.uuid}

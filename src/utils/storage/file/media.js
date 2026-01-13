@@ -12,7 +12,7 @@ const getWaveform = (ref, type) => {
   }
 };
 
-const extractWaveformFromAudio = (ref) => {
+const extractWaveformFromAudio = async (ref) => {
   // Placeholder implementation for audio waveform extraction
   // In a real implementation, you would process the audio bytes to extract waveform data
   return [
@@ -34,6 +34,8 @@ const extractWaveformFromAudio = (ref) => {
     0.3242465157439205, 0.8782431721467635, 0.40371289180690795,
     0.9754664229096691, 0.3789821606239272,
   ]; // Example waveform data
+
+  const uri = await storage.read(ref);
 };
 
 const getDuration = async (ref, type) => {
