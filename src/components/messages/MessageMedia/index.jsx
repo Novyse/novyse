@@ -70,7 +70,7 @@ const renderMedia = (media) => {
   if (fileType === "IMAGE") {
     return <Image fileRef={fileRef} />;
   } else if (fileType === "VIDEO") {
-    return <Video fileRef={fileRef} />;
+    return <Video fileRef={fileRef} duration={media.duration} />;
   }
   return null;
 };

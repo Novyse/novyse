@@ -21,6 +21,7 @@ const HoverAndPressedButton = ({
         style,
         hovered && { ...styles.baseHovered, ...hoveredStyle },
         pressed && { ...styles.basePressed, ...pressedStyle },
+        disabled && styles.disabled,
       ]}
       onPress={onPress}
       onLongPress={onLongPress}
@@ -45,6 +46,10 @@ const createStyle = (theme) =>
     basePressed: {
       backgroundColor: "rgba(0, 0, 0, 0.3)",
       opacity: 0.9,
+    },
+    disabled: {
+      opacity: 0.5,
+      cursor: "not-allowed",
     },
   });
 

@@ -6,6 +6,9 @@ import eventEmitter from "../global/Events/EventEmitter.js";
 import S3Uploader from "../storage/file/s3Bucket.js";
 import storage from "../storage/file";
 
+import { getFileType } from "../storage/file/type.js";
+import { getDuration, getWaveform } from "../storage/file/media.js";
+
 class QueueManager {
   constructor() {
     this.initialized = false;
@@ -28,6 +31,14 @@ class QueueManager {
     this.startConnectionMonitoring();
     this.processQueue();
     this.initialized = true;
+
+    eventEmitter.getEmitter().on("message:new", (message) => {
+      if (!message.fromSubscription) {
+        if (message.files && message.files.length > 0) {
+          this.addInboundMessageJob(message);
+        }
+      }
+    });
   }
 
   // Start monitoring connection state
@@ -296,6 +307,33 @@ class QueueManager {
               // Update file info in database
               await this._addFileRef(fileToDownload, ref);
 
+              const file_type = getFileType(
+                downloadedFile.mimeType,
+                downloadedFile.name
+              );
+
+              // Calculate duration if media file
+              if (
+                file_type === "AUDIO" ||
+                file_type === "VOICE" ||
+                file_type === "VIDEO"
+              ) {
+                const duration = await getDuration(ref, file_type);
+                if (duration && duration > 0) {
+                  await this._addFileDuration(fileToDownload, duration);
+                }
+              }
+
+              // Calculate waveform if audio/voice file
+              if (file_type === "AUDIO" || file_type === "VOICE") {
+                const waveform = await getWaveform(ref);
+                if (waveform && waveform.length > 0) {
+                  await this._addFileWaveform(fileToDownload, waveform);
+                }
+              }
+
+              // Notify file downloaded
+
               await this.fileDownloaded(message, file);
             } else {
               throw new Error("Downloaded file info missing");
@@ -470,6 +508,31 @@ class QueueManager {
     if (success) {
       // Notify that message was sent successfully
       message.files = job.params.message.files;
+
+      for (const file of message.files) {
+        const file_type = getFileType(file.mimeType, file.name);
+
+        // Calculate duration if media file
+        if (
+          file_type === "AUDIO" ||
+          file_type === "VOICE" ||
+          file_type === "VIDEO"
+        ) {
+          const duration = await getDuration(file.ref, file_type);
+          if (duration && duration > 0) {
+            file.duration = duration;
+          }
+        }
+
+        // Calculate waveform if voice file
+        if (file_type === "VOICE") {
+          const waveform = await getWaveform(file.ref, file_type);
+          if (waveform && waveform.length > 0) {
+            file.waveform = waveform;
+          }
+        }
+      }
+
       await this.messageSent(messageUUID, message);
     } else {
       throw new Error("Message confirmation failed");
@@ -845,6 +908,16 @@ class QueueManager {
   async _addFileRef(fileUUID, ref) {
     const database = await Database.create();
     await database.file.update.ref(fileUUID, ref);
+  }
+
+  async _addFileDuration(fileUUID, duration) {
+    const database = await Database.create();
+    await database.file.update.duration(fileUUID, duration);
+  }
+
+  async _addFileWaveform(fileUUID, waveform) {
+    const database = await Database.create();
+    await database.file.update.waveform(fileUUID, waveform);
   }
 
   // Event emitters for message status updates

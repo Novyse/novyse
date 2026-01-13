@@ -202,6 +202,7 @@ const AppContainer = () => {
 
   // Funzioni per menu comms (memoizzate)
   const shouldShowBigFloatingCommsMenu = useCallback(() => {
+    return false; // Deactivate big comms menu
     if (isSmallScreen) return false;
     const isInComms = check.isInComms();
     if (isInComms) {

@@ -68,6 +68,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
       {(otherMessages.true || []).map((otherMessage) => {
         return (
           <MessageOther
+            key={otherMessage.uuid}
             fileRef={otherMessage.ref}
             uuid={otherMessage.uuid}
             mimeType={otherMessage.mimeType}
@@ -84,9 +85,10 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
             <MessageAudio
               key={audioMessage.uuid}
               audioRef={audioMessage.ref}
-              uuid={audioMessage.uuid}
-              mimeType={audioMessage.mimeType}
               size={audioMessage.size}
+              name={audioMessage.name}
+              message={message}
+              duration={audioMessage.duration}
             />
           );
         })}
@@ -99,9 +101,10 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
             <MessageVoice
               key={voiceMessage.uuid}
               audioRef={voiceMessage.ref}
-              uuid={voiceMessage.uuid}
-              mimeType={voiceMessage.mimeType}
-              size={voiceMessage.size}
+              message={message}
+              duration={voiceMessage.duration}
+              waveform={JSON.parse(voiceMessage.waveform || "[]")
+              }
             />
           );
         })}
@@ -164,7 +167,11 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
           <Pressable onLongPress={onLongPress} style={styles.pressable}>
             {showSenderName && (
               <View style={styles.senderNameWrapper}>
-                <Text style={styles.senderName} numberOfLines={1}>
+                <Text
+                  style={styles.senderName}
+                  numberOfLines={1}
+                  selectable={false}
+                >
                   {sender_name}
                 </Text>
               </View>

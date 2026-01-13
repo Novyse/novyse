@@ -2,15 +2,54 @@ import React, { createContext, useEffect, useState } from "react";
 import {
   useAudioPlayer as useAudioPlayerExpo,
   useAudioPlayerStatus,
+  AudioModule,
 } from "expo-audio";
 
 export const AudioPlayerContext = createContext();
 
+const speeds = [1, 1.5, 2, 0.5];
+
 export const AudioPlayerProvider = ({ children }) => {
   const [currentUri, setCurrentUri] = useState(null);
 
+  const [audioInfo, setAudioInfo] = useState({});
+  const [playbackRate, setPlaybackRate] = useState(1);
+
   const player = useAudioPlayerExpo(null);
   const status = useAudioPlayerStatus(player);
+
+  useEffect(() => {
+    const configureAudioSession = async () => {
+      try {
+        await AudioModule.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: true,
+          interruptionModeIOS: "doNotMix",
+          interruptionModeAndroid: "doNotMix",
+          shouldDuckAndroid: true,
+        });
+      } catch (error) {
+        console.error("Error in audio sessionconfiguration:", error);
+      }
+    };
+
+    configureAudioSession();
+  });
+
+  useEffect(() => {
+    if (status.didJustFinish) {
+      setCurrentUri(null);
+    }
+  }, [status.didJustFinish]);
+
+  const addInfo = (chatUUID, messageID, senderName, timestamp) => {
+    setAudioInfo({
+      chatUUID,
+      messageID,
+      senderName,
+      timestamp,
+    });
+  };
 
   const handlePlayPause = (uri = null) => {
     if (player.playing && currentUri === uri) {
@@ -28,6 +67,7 @@ export const AudioPlayerProvider = ({ children }) => {
     }
     try {
       player.play();
+      setPlaybackRate(player.playbackRate);
     } catch (error) {
       console.error("Audio play error:", error);
     }
@@ -37,27 +77,49 @@ export const AudioPlayerProvider = ({ children }) => {
     player.pause();
   };
 
-  // Da fixare seek e playback rate @SamueleOrazioDurante
   const handleSeek = (value) => {
     if (status.duration > 0) {
       player.seekTo(value);
     }
   };
 
-  const handleChangePlaybackRate = (rate) => {
-    player.setPlaybackRate(rate);
+  const handleChangePlaybackRate = (playBackRateToSet = null) => {
+    // for future menu implementation (where you can choose a specific speed without cycling)
+    if (playBackRateToSet) {
+      player.setPlaybackRate(playBackRateToSet);
+      setPlaybackRate(player.playbackRate);
+      return;
+    }
+
+    const cycleSpeed = () => {
+      const nextIndex =
+        (speeds.indexOf(player.playbackRate) + 1) % speeds.length;
+      return speeds[nextIndex];
+    };
+
+    const newRate = cycleSpeed();
+    player.setPlaybackRate(newRate);
+    setPlaybackRate(player.playbackRate);
+  };
+
+  const removeAudio = () => {
+    player.remove();
+    setCurrentUri(null);
   };
 
   const value = {
     isPlaying: player.playing,
-    playBackRate: player.playbackRate,
+    playbackRate,
     currentTime: status.currentTime,
     duration: status.duration,
     didJustFinish: status.didJustFinish,
     currentUri,
+    audioInfo,
+    addInfo,
     handlePlayPause,
     handleSeek,
     handleChangePlaybackRate,
+    removeAudio,
   };
 
   return (

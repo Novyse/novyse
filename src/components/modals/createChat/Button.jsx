@@ -3,12 +3,13 @@ import { View, Text, StyleSheet } from "react-native";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 
-const Button = ({ id, icon, title, subtitle, selected, onSelect, theme }) => {
+const Button = ({ id, icon, title, subtitle, selected, onSelect, theme, disabled }) => {
   const styles = createStyles(theme);
   return (
     <HoverAndPressedButton
       style={[styles.card, selected === id && styles.cardSelected]}
       onPress={() => onSelect(id)}
+      disabled={disabled}
     >
       <View style={styles.cardIconContainer}>
         <Icon

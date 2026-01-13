@@ -6,7 +6,7 @@ import web from "./web";
 class Database {
   static async create() {
     if (Platform.OS === "web") {
-      return web.create();
+      return mobile.create();
     } else {
       return mobile.create();
     }

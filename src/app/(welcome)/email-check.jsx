@@ -21,7 +21,7 @@ import validate from "@/src/utils/welcome/validator";
 
 import QRCode from "react-native-qrcode-svg";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 
 import StatusMessage from "@/src/components/StatusMessage";
@@ -35,7 +35,10 @@ import logoForQR from "@/assets/images/logo-novyse.png";
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
 const EmailCheckForm = () => {
-  const [email, setEmail] = useState("");
+  const { email: urlEmail, signedup: urlSignedup } = useLocalSearchParams();
+  const [signedup, setSignedup] = useState(urlSignedup === "true");
+
+  const [email, setEmail] = useState(urlEmail || "");
   const [error, setError] = useState(null);
 
   const [qrToken, setQrToken] = useState("");
@@ -151,6 +154,7 @@ const EmailCheckForm = () => {
   };
 
   const handleSubmit = async () => {
+    setSignedup(false);
     if (!email) {
       setError("Email cannot be empty");
       return;
@@ -170,7 +174,6 @@ const EmailCheckForm = () => {
     try {
       const response = await gateway.check.email(email);
 
-
       let emailResponse = "login";
       if (response.success) {
         if (response.free) {
@@ -178,8 +181,6 @@ const EmailCheckForm = () => {
         }
       }
       setIsNavigating(true);
-
-      
 
       if (emailResponse === "signup") {
         router.navigate({
@@ -217,6 +218,7 @@ const EmailCheckForm = () => {
       style={styles.container}
     >
       <MyStatusBar />
+
       {/* Glass Card */}
       <View style={styles.card}>
         {/* Email Block */}
@@ -261,6 +263,17 @@ const EmailCheckForm = () => {
                 setError(null);
               }}
             />
+            {signedup && (
+              <StatusMessage
+                type="success"
+                content={["Signup successful! Please log in using your email."]}
+                visible={true}
+                timeout={5000}
+                onClose={() => {
+                  setSignedup(false);
+                }}
+              />
+            )}
           </View>
         </View>
 

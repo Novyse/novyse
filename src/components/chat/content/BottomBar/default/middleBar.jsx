@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { Duration } from "luxon";
 
@@ -6,6 +6,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
 import RecordingDot from "@/src/components/RecordingDot";
+import SpeechIndicator from "@/src/components/SpeechIndicator";
 import { getPlatform } from "@/src/utils/device/type";
 
 const MiddleBar = ({
@@ -22,6 +23,19 @@ const MiddleBar = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+
+  const [audioLevel, setAudioLevel] = useState(-60);
+  useEffect(() => {
+    if (!isPaused) {
+      const interval = setInterval(() => {
+        // Genera un valore random tra -60 e 0 (dB)
+        setAudioLevel(Math.random() * 60 - 60);
+      }, 100);
+      return () => clearInterval(interval);
+    } else {
+      setAudioLevel(-60);
+    }
+  }, [isPaused]);
 
   return (
     <>
@@ -56,6 +70,9 @@ const MiddleBar = ({
               )}
             </Text>
           </View>
+
+          {/* Voice Activity */}
+          <SpeechIndicator audioLevel={audioLevel} />
 
           {/* Pause/Resume button */}
           {!isPaused ? (

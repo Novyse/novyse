@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, View, Pressable, ScrollView } from "react-native";
+import { defaultWaveform } from "@/src/utils/storage/file/media";
 
 export default function SmoothWaveform({
-  waveformData,
+  waveformData = defaultWaveform,
   currentValue,
   maxValue,
+  playbackRate = 1,
   onSeek,
   reset,
   isMoving,
@@ -31,14 +33,15 @@ export default function SmoothWaveform({
 
       Animated.timing(progressAnim, {
         toValue: maxValue,
-        duration: Math.max((maxValue - currentValue) * 1000, 100),
+        duration:
+          Math.max((maxValue - currentValue) * 1000, 100) / playbackRate,
         easing: Easing.linear,
         useNativeDriver: false,
       }).start();
     } else {
       progressAnim.stopAnimation();
     }
-  }, [maxValue, isMoving]);
+  }, [maxValue, isMoving, playbackRate]);
 
   useEffect(() => {
     if (reset) {
@@ -72,9 +75,17 @@ export default function SmoothWaveform({
   return (
     <View style={{ width: "100%", height: 40 }} ref={waveformRef}>
       <Pressable onPress={handleWaveformPress} style={{ flex: 1 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ flex: 1 }}
+        >
           <View
-            style={{ flexDirection: "row", alignItems: "center", height: "100%" }}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              height: "100%",
+            }}
           >
             {waveformData.map((value, index) => {
               const isPlayed = index / waveformData.length < progress;
@@ -82,10 +93,12 @@ export default function SmoothWaveform({
                 <View
                   key={index}
                   style={{
-                    width: 2,
+                    width: 3,
                     height: value * 20,
+                    minHeight: 3,
                     backgroundColor: isPlayed ? "#0088cc" : "#d3d3d3",
-                    marginHorizontal: 1,
+                    marginHorizontal: 0.5,
+                    borderRadius: 10,
                   }}
                 />
               );

@@ -13,19 +13,16 @@ import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 
 import SmoothSlider from "../SmoothSlider";
-import { formatTime, formatFileSize } from "@/src/utils/storage/file/utils";
+import { formatTime, formatDuration, formatFileSize } from "@/src/utils/storage/file/utils";
 
-import MessageVoice from "./MessageVoice"; //TEMPORARY WRAPPER
-
-const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
-  //return <MessageVoice audioRef={audioRef} uuid={uuid} mimeType={mimeType} size={size} />; //TEMPORARY WRAPPER
+const MessageAudio = ({ audioRef, size, name, message, duration }) => {
   const {
     isPlaying,
     playBackRate,
     currentTime,
-    duration,
     didJustFinish,
     currentUri,
+    addInfo,
     handlePlayPause,
     handleSeek,
   } = useContext(AudioPlayerContext);
@@ -33,8 +30,7 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
   const { uri: playableUri } = useUriResolver(audioRef);
 
   const isThisLoaded = playableUri === currentUri;
-  const thisDuration = isThisLoaded ? duration : 0;
-  const thisCurrentTime = isThisLoaded ? currentTime : 0;
+  const thisCurrentTime = currentUri && isThisLoaded ? currentTime : 0;
   const isThisPlaying = isPlaying && isThisLoaded;
 
   const { theme } = useContext(ThemeContext);
@@ -42,15 +38,18 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
 
   const isReady = !!playableUri;
 
-  // @SamueleOrazioDurante la duration si deve gestire da un altra parte, ma per ora chill
-  const isValidDuration =
-    thisDuration && Number.isFinite(thisDuration) && thisDuration > 0;
-  const safeDuration = isValidDuration ? thisDuration : 0;
-
   return (
     <View style={styles.container}>
       <Pressable
-        onPress={() => handlePlayPause(playableUri)}
+        onPress={() => {
+          addInfo(
+            message.chatUUID,
+            message.id,
+            message.sender_name,
+            message.created_at
+          );
+          handlePlayPause(playableUri);
+        }}
         disabled={!isReady}
         style={styles.playPauseButton}
       >
@@ -64,19 +63,27 @@ const MessageAudio = ({ audioRef, uuid, mimeType, size }) => {
         )}
       </Pressable>
 
-      <View style={styles.progressContainer}>
-        <SmoothSlider
-          currentValue={thisCurrentTime}
-          maxValue={safeDuration}
-          onSeek={handleSeek}
-          reset={!isThisLoaded || didJustFinish}
-          isMoving={isThisPlaying}
-        />
-        <View style={styles.textContainer}>
-          <Text style={styles.durationText}>
-            {formatTime(thisCurrentTime)} / {formatTime(safeDuration)}
-          </Text>
-          <Text style={styles.sizeText}>{formatFileSize(size)}</Text>
+      <View style={{ flexDirection: "column" }}>
+        <Text style={styles.fileName} selectable={false}>
+          {name}
+        </Text>
+        <View style={styles.progressContainer}>
+          <SmoothSlider
+            currentValue={thisCurrentTime}
+            maxValue={duration}
+            playbackRate={playBackRate}
+            onSeek={handleSeek}
+            reset={!isThisLoaded || didJustFinish}
+            isMoving={isThisPlaying}
+          />
+          <View style={styles.textContainer}>
+            <Text style={styles.durationText} selectable={false}>
+              {formatTime(thisCurrentTime)} / {formatDuration(duration)}
+            </Text>
+            <Text style={styles.sizeText} selectable={false}>
+              {formatFileSize(size)}
+            </Text>
+          </View>
         </View>
       </View>
     </View>
@@ -89,13 +96,14 @@ function createStyle(theme) {
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: 5,
-      alignSelf: "stretch"
+      alignSelf: "stretch",
     },
     playPauseButton: {
-      padding: 8,
-      borderRadius: 50,
+      width: 45,
+      height: 45,
+      borderRadius: 100,
       backgroundColor: "#0088cc",
-      marginRight: 10,
+      marginRight: 12,
       justifyContent: "center",
       alignItems: "center",
     },
@@ -136,6 +144,9 @@ function createStyle(theme) {
       fontSize: 12,
       color: theme.text,
       fontWeight: "bold",
+    },
+    fileName: {
+      color: theme.text,
     },
   });
 }

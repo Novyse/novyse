@@ -97,7 +97,9 @@ const useVoiceRecord = (onSendMessage) => {
     try {
       if (recorderState.isRecording) {
         await audioRecorder.pause();
-      } else await audioRecorder.record();
+      } else {
+        await audioRecorder.record();
+      }
     } catch (err) {
       console.error("Errore toggle pause:", err);
     }

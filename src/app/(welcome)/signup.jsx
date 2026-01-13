@@ -42,9 +42,10 @@ const Signup = () => {
 
   const loginTheme = "default";
 
-  const [privacy_policy_accepted, SetPrivacy_policy_accepted] = useState(false);
+  const [privacy_policy_accepted, setPrivacy_policy_accepted] = useState(false);
   const [terms_of_service_accepted, setTerms_of_service_accepted] =
     useState(false);
+  const [more_than_16_years_old, setMore_than_16_years_old] = useState(false);
 
   const passwordRequirements = [
     { label: "At least 8 characters", check: (pwd) => pwd.length >= 8 },
@@ -127,7 +128,8 @@ const Signup = () => {
         !handleError &&
         !isLoading &&
         privacy_policy_accepted &&
-        terms_of_service_accepted
+        terms_of_service_accepted &&
+        more_than_16_years_old
     );
   }, [
     form,
@@ -136,6 +138,7 @@ const Signup = () => {
     handleError,
     privacy_policy_accepted,
     terms_of_service_accepted,
+    more_than_16_years_old,
   ]);
 
   const validateStep = (stepIndex) => {
@@ -220,6 +223,8 @@ const Signup = () => {
     if (handleAvailable === false) return "Handle is already in use.";
     if (!privacy_policy_accepted || !terms_of_service_accepted)
       return "Please accept privacy policy and terms of service.";
+    if (!more_than_16_years_old)
+      return "Please confirm that you are more than 16 years old.";
 
     return null;
   };
@@ -243,11 +248,12 @@ const Signup = () => {
         surname,
         handle,
         privacy_policy_accepted,
-        terms_of_service_accepted
+        terms_of_service_accepted,
+        more_than_16_years_old
       );
 
       if (signupResponse) {
-        router.navigate("/");
+        router.navigate("/(welcome)/email-check?signedup=true&email=" + email);
       } else {
         setError("Signup failed. Please try again.");
       }
@@ -515,7 +521,7 @@ const Signup = () => {
         <Pressable
           onPress={() => {
             const newVal = !privacy_policy_accepted;
-            SetPrivacy_policy_accepted(newVal);
+            setPrivacy_policy_accepted(newVal);
             setTerms_of_service_accepted(newVal);
           }}
           style={{
@@ -570,6 +576,48 @@ const Signup = () => {
           >
             terms of service
           </Text>
+        </Text>
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+          marginTop: 10,
+        }}
+      >
+        <Pressable
+          onPress={() => setMore_than_16_years_old(!more_than_16_years_old)}
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: 4,
+            borderWidth: 2,
+            borderColor: more_than_16_years_old
+              ? LoginColors[loginTheme].backgroundSubmitButton
+              : "#ccc",
+            backgroundColor: more_than_16_years_old
+              ? LoginColors[loginTheme].backgroundSubmitButton
+              : "#fff",
+            justifyContent: "center",
+            alignItems: "center",
+            marginRight: 5,
+            marginTop: 1,
+          }}
+        >
+          {more_than_16_years_old && (
+            <Text
+              style={{
+                color: LoginColors[loginTheme].checkboxTick,
+                fontWeight: "bold",
+                fontSize: 12,
+              }}
+            >
+              ✓
+            </Text>
+          )}
+        </Pressable>
+        <Text style={{ fontSize: 14, textAlign: "left", lineHeight: 20 }}>
+          I am 16 or older.
         </Text>
       </View>
     </View>

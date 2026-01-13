@@ -6,6 +6,11 @@ const formatTime = (seconds) => {
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 };
 
+const formatDuration = (seconds) => {
+  if (!seconds || isNaN(seconds) || !isFinite(seconds)) return "--:--";
+  return formatTime(seconds);
+};
+
 const formatFileSize = (size) => {
   if (!size) return "0 B";
   const i = Math.floor(Math.log(size) / Math.log(1024));
@@ -14,4 +19,4 @@ const formatFileSize = (size) => {
   );
 };
 
-export { formatTime, formatFileSize };
+export { formatTime, formatDuration, formatFileSize };

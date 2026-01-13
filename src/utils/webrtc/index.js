@@ -23,6 +23,10 @@ import EventEmitter from "./utils/EventEmitter.js";
  */
 class WebRTCManager {
   constructor(deviceUUID = null, commUUID = null, callbacks = {}) {
+
+    console.warn("Vocal functionality is deactivated in this build.");
+    return;
+
     // Initialize logger first
     this.logger = WebRTCLogger;
     this.logger.setLogLevel(LOG_LEVELS.INFO); // Set default log level

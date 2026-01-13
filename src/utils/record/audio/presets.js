@@ -6,6 +6,7 @@ export const RecordPreset = {
     sampleRate: 44100,
     numberOfChannels: 1,
     bitRate: 96000,
+    isMeteringEnabled: true,
     android: {
       outputFormat: "mpeg4",
       audioEncoder: "aac",
@@ -27,6 +28,7 @@ export const RecordPreset = {
     sampleRate: 44100,
     numberOfChannels: 1,
     bitRate: 1411200,
+    isMeteringEnabled: true,
     android: {
       outputFormat: "wav",
       audioEncoder: "pcm_16bit",
