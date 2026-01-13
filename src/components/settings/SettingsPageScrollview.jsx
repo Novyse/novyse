@@ -27,7 +27,6 @@ function createStyle(theme, isMenu, insets) {
       height: "100%",
       maxWidth: 768,
       alignSelf: "center",
-      // RIMOSSO PADDING DA QUI
       
       ...(Platform.OS === "web" && {
         scrollbarWidth: "thin",
@@ -52,7 +51,7 @@ function createStyle(theme, isMenu, insets) {
     },
     contentContainer: {
       gap: isMenu ? 0 : 20,
-      paddingTop: 60 + insets.top,
+      paddingTop: 90 + insets.top,
       paddingBottom: isMenu ? 0 : 20,
       paddingHorizontal: isMenu ? 0 : 20,
     },

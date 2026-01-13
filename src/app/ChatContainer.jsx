@@ -14,6 +14,7 @@ import SmartBackground from "../components/SmartBackground";
 import HeaderBase from "../components/HeaderBase";
 import Icon from "../components/Icon";
 import BlurredView from "../components/BlurredView";
+import Header from "../components/chat/content/Header";
 
 import { ChatContext } from "@/context/ChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -55,54 +56,6 @@ const ChatContainer = ({ onBack }) => {
     );
   }
 
-  const renderMainRow = () => (
-    <View style={styles.headerMainRow}>
-      <View style={styles.headerLeft}>
-        <Icon
-          name={
-            isSmallScreen && onBack ? "ArrowLeft02Icon" : "MoreVerticalIcon"
-          }
-          onPress={isSmallScreen && onBack ? onBack : () => {}}
-          style={styles.iconButton}
-        />
-      </View>
-
-      <View style={styles.headerCenter}>
-        <Image
-          source={{ uri: "https://picsum.photos/200" }}
-          style={styles.avatar}
-        />
-        <Text style={styles.chatTitle} numberOfLines={1}>
-          {selectedChatName || "Caricamento..."}
-        </Text>
-      </View>
-
-      <View style={styles.headerRight}>
-        {contentView !== "chat" && (
-          <Icon
-            name="Message02Icon"
-            style={styles.iconButton}
-            onPress={() => setContentView("chat")}
-          />
-        )}
-        {contentView !== "vocal" && (
-          <Icon
-            name="AudioWave01Icon"
-            style={styles.iconButton}
-            onPress={() => setContentView("vocal")}
-          />
-        )}
-        {!isSmallScreen && contentView !== "both" && (
-          <Icon
-            name="BorderVerticalIcon"
-            style={styles.iconButton}
-            onPress={() => setContentView("both")}
-          />
-        )}
-      </View>
-    </View>
-  );
-
   const renderContent = () => {
     switch (contentView) {
       case "vocal":
@@ -131,13 +84,13 @@ const ChatContainer = ({ onBack }) => {
       style={styles.container}
       isSmallScreen={isSmallScreen}
     >
-      <View style={styles.headerWrapper}>
-        <HeaderBase style={styles.headerBase}>
-          <BlurredView style={styles.headerColumnContainer}>
-            {renderMainRow()}
-          </BlurredView>
-        </HeaderBase>
-      </View>
+      <Header
+        selectedChatName={selectedChatName}
+        contentView={contentView}
+        setContentView={setContentView}
+        isSmallScreen={isSmallScreen}
+        onBack={onBack}
+      />
       <View style={styles.contentWrapper}>{renderContent()}</View>
     </SmartBackground>
   );
