@@ -71,6 +71,7 @@ const useMessageHandlers = (
             ? file.mimeType
             : "application/octet-stream",
         size: file.size,
+        duration: file.duration || undefined, // for videos
       }));
 
       console.log("Cleaned files to send:", cleanedFiles, files);

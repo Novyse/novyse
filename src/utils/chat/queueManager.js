@@ -418,7 +418,7 @@ class QueueManager {
       }
       // Remove files ( uri, ref ) before sending
       cleanFiles = files.map((file) => {
-        const { uri, ref, ...rest } = file;
+        const { uri, ref, duration, ...rest } = file;
         return rest;
       });
     }
@@ -439,6 +439,7 @@ class QueueManager {
             message.files[i].ref = files[i].ref;
             message.files[i].mimeType = files[i].mimeType;
             message.files[i].size = files[i].size;
+            message.files[i].duration = files[i].duration || undefined;
           }
         }
       }
@@ -513,10 +514,10 @@ class QueueManager {
         const file_type = getFileType(file.mimeType, file.name);
 
         // Calculate duration if media file
+        // if file_type is VIDEO, duration is already calculated on picking
         if (
           file_type === "AUDIO" ||
-          file_type === "VOICE" ||
-          file_type === "VIDEO"
+          file_type === "VOICE"
         ) {
           const duration = await getDuration(file.ref, file_type);
           if (duration && duration > 0) {
