@@ -6,21 +6,22 @@ import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/settings/SettingsCard";
 import StorageBreakdown from "@/src/components/settings/storage/StorageBreakdown";
+import useStorage from "@/src/hooks/settings/useStorage";
 
 const LocalStoragePage = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
+  const { usedStorage } = useStorage();
+
   const localData = {
     type: "local",
     title: "Local Storage",
     iconName: "Folder01Icon",
-    totalUsed: 2.3,
+    totalUsed: (usedStorage / (1024 * 1024 * 1024)).toFixed(2),
     totalCapacity: null,
     categories: [
-      { name: "Media", size: 1.15, color: "#0EA5E9" },
-      { name: "Stickers", size: 0.69, color: "#F97316" },
-      { name: "Cache", size: 0.46, color: "#EC4899" },
+      { name: "File", size: (usedStorage / (1024 * 1024 * 1024)).toFixed(2), color: "#0EA5E9" },
     ],
   };
 
@@ -28,7 +29,7 @@ const LocalStoragePage = () => {
     <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Local Storage"}/>
       <SettingsPageScrollview>
-        <SettingsCard>
+        <SettingsCard style={{ marginTop: 30 }}>
           <StorageBreakdown storage={localData} />
         </SettingsCard>
       </SettingsPageScrollview>

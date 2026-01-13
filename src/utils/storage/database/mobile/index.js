@@ -853,6 +853,21 @@ class Database {
           return null;
         }
       },
+      /**
+       * Get total size of all files in the database.
+       * @returns {Number} total size in bytes
+       */
+      totalSize: async () => {
+        try {
+          const result = await this.db.getFirstAsync(
+            `SELECT SUM(size) as totalSize FROM file;`
+          );
+          return result ? result.totalSize : 0;
+        } catch (error) {
+          console.error("Error calculating total file size:", error);
+          return 0;
+        }
+      }
     },
     update: {
       /**

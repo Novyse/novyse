@@ -10,6 +10,8 @@ import SettingsCard from "@/src/components/settings/SettingsCard";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 
+import useStorage from "@/src/hooks/settings/useStorage";
+
 const StoragePage = () => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
@@ -27,39 +29,23 @@ const StoragePage = () => {
     router.push("./storage/cloud-storage");
   };
 
-  const localData = {
-    title: "Local Storage",
-    totalUsed: 2.3,
-    totalCapacity: null,
-  };
-
-  const cloudData = {
-    title: "Cloud Storage",
-    totalUsed: 10,
-    totalCapacity: 15,
-  };
+  const { usedStorage } = useStorage();
 
   return (
     <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Storage"}/>
       <SettingsPageScrollview>
-        <SettingsCard>
-          <Text style={styles.wipText}>🚧 Work in Progress 🚧</Text>
-          <Text style={styles.wipSubtext}>
-            This feature is under development
-          </Text>
-        </SettingsCard>
-        <SettingsCard style={{ padding: 0 }}>
+        <SettingsCard style={{ padding: 0, marginTop: 30 }}>
           <HoverAndPressedButton
             style={styles.storagePressable}
             onPress={handleNavigateToLocal}
           >
-            <Text style={styles.storageTitle}>{localData.title}</Text>
+            <Text style={styles.storageTitle}>Local Storage</Text>
             <View
               style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
             >
               <Text style={styles.storageUsage}>
-                {localData.totalUsed} GB used
+                {(usedStorage / (1024 * 1024 * 1024)).toFixed(2)} GB used
               </Text>
               <Icon name={"ArrowRight02Icon"} />
             </View>
@@ -70,13 +56,14 @@ const StoragePage = () => {
           <HoverAndPressedButton
             style={styles.storagePressable}
             onPress={handleNavigateToCloud}
+            disabled={true}
           >
-            <Text style={styles.storageTitle}>{cloudData.title}</Text>
+            <Text style={styles.storageTitle}>Cloud Storage (Coming Soon)</Text>
             <View
               style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
             >
               <Text style={styles.storageUsage}>
-                {cloudData.totalUsed} / {cloudData.totalCapacity} GB
+                0 / 0 GB
               </Text>
               <Icon name={"ArrowRight02Icon"} />
             </View>
@@ -88,6 +75,7 @@ const StoragePage = () => {
             onPress={handleResetDatabase}
           >
             <Text style={styles.resetButtonText}>Reset Database</Text>
+            <Text style={styles.resetButtonSubtitle}> (This will completely clean local database and request server all your data)</Text>
           </HoverAndPressedButton>
         </SettingsCard>
       </SettingsPageScrollview>
@@ -121,6 +109,11 @@ const createStyle = (theme) =>
       color: "#FFFFFF",
       fontSize: 16,
       fontWeight: "600",
+    },
+    resetButtonSubtitle: {
+      color: "#FFFFFF",
+      fontSize: 12,
+      fontStyle: "italic",
     },
     wipSubtext: {
       color: theme.text,
