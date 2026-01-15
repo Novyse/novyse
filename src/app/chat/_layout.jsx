@@ -32,7 +32,7 @@ export default function ChatLayout() {
   const isSmallScreen = width <= 768;
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { theme, colorScheme } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const { isConnected } = useContext(NetworkContext);
   const { setUserUUID } = useContext(UserContext);
   const {

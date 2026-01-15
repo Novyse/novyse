@@ -41,18 +41,17 @@ const useMessageHandlers = (
         return;
       }
     }
-    try{
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images','videos','livePhotos'], // livePhotos only on iOS
-          allowsMultipleSelection: true,
-          quality: 1,
-        });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images", "videos", "livePhotos"], // livePhotos only on iOS
+        allowsMultipleSelection: true,
+        quality: 1,
+      });
 
-
-        if (!result.canceled) {
-          await handleSendMediaMessage(result.assets, chat.uuid);
-        }
-      }catch(error){
+      if (!result.canceled) {
+        await handleSendMediaMessage(result.assets, chat.uuid);
+      }
+    } catch (error) {
       console.info("Error picking media:", error);
     }
 
@@ -65,7 +64,7 @@ const useMessageHandlers = (
 
       const cleanedFiles = files.map((file) => ({
         uri: file.uri,
-        name: file.name || file.fileName || "novyse_file_"+Date.now(),
+        name: file.name || file.fileName || "novyse_file_" + Date.now(),
         mimeType:
           file.mimeType && file.mimeType !== ""
             ? file.mimeType

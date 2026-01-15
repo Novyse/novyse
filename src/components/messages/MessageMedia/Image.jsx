@@ -36,6 +36,7 @@ const Image = ({ fileRef, uuid }) => {
         transition={200}
         cachePolicy="memory-disk"
       />
+
       {/* Da eliminare l'intera view e rifare con non ho capito @Matt3opower */}
       <View
         style={{

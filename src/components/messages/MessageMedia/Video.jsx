@@ -49,12 +49,14 @@ const Video = ({ fileRef, uuid, duration }) => {
   return (
     <Pressable onPress={handlePress} style={styles.videoContainer}>
       <View pointerEvents="none" style={styles.videoWrapper}>
-        <VideoView
-          player={player}
-          style={styles.video}
-          contentFit="cover"
-          nativeControls={false}
-        />
+        {uri && (
+          <VideoView
+            player={player}
+            style={styles.video}
+            contentFit="cover"
+            nativeControls={false}
+          />
+        )}
       </View>
       {/* Da eliminare l'intera view e rifare con non ho capito @Matt3opower */}
       <View

@@ -1,69 +1,79 @@
 import React, { useCallback } from "react";
-import { Platform, View, TouchableWithoutFeedback, Pressable, Text, StyleSheet } from "react-native";
+import {
+  Platform,
+  View,
+  TouchableWithoutFeedback,
+  Pressable,
+  Text,
+  StyleSheet,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { OverKeyboardView } from "react-native-keyboard-controller";
 import { TouchableOpacity } from "@gorhom/bottom-sheet";
 import { Ionicons } from "@expo/vector-icons";
 
-const createStyle = (theme) => StyleSheet.create({
-  fullScreen: {
-    flex: 1,
-  },
-  bottomSheetContainer: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  sheetBackground: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    backgroundColor: theme.backgroundSecondary || "#F0F0F0",
-  },
-  handleIndicator: {
-    backgroundColor: theme.divider || "#ccc",
-  },
-  sheetContent: {
-    flex: 1,
-    padding: 20,
-  },
-  menuRow: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-  },
-  menuItem: {
-    alignItems: "center",
-  },
-  menuText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: theme.text,
-  },
-  // web floating menu
-  floatingMenuContainer: {
-    position: "absolute",
-    bottom: 70, // above bottom bar
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    zIndex: 1000,
-  },
-  floatingMenu: {
-    backgroundColor: theme.backgroundBottomsheet || "#F0F0F0",
-    borderRadius: 15,
-    padding: 15,
-    alignSelf: "flex-start",
-    width: "30%",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
+import { getPlatform } from "@/src/utils/device/type";
+
+const createStyle = (theme) =>
+  StyleSheet.create({
+    fullScreen: {
+      flex: 1,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-  },
-});
+    bottomSheetContainer: {
+      flex: 1,
+      justifyContent: "flex-end",
+    },
+    sheetBackground: {
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      backgroundColor: theme.backgroundSecondary || "#F0F0F0",
+    },
+    handleIndicator: {
+      backgroundColor: theme.divider || "#ccc",
+    },
+    sheetContent: {
+      flex: 1,
+      padding: 20,
+    },
+    menuRow: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-around",
+    },
+    menuItem: {
+      alignItems: "center",
+    },
+    menuText: {
+      marginTop: 6,
+      fontSize: 12,
+      color: theme.text,
+    },
+    // web floating menu
+    floatingMenuContainer: {
+      position: "absolute",
+      bottom: 70, // above bottom bar
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 1000,
+    },
+    floatingMenu: {
+      backgroundColor: theme.backgroundBottomsheet || "#F0F0F0",
+      borderRadius: 15,
+      padding: 15,
+      alignSelf: "flex-start",
+      width: "30%",
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3,
+    },
+  });
 
 const MenuSheet = ({
   platform,
@@ -86,8 +96,9 @@ const MenuSheet = ({
     </TouchableOpacity>
   );
 
-  const renderFloatingMenu = () => (
-    platform === "web" && sheetIndex === 0 && (
+  const renderFloatingMenu = () =>
+    platform === "web" &&
+    sheetIndex === 0 && (
       <TouchableWithoutFeedback
         style={styles.fullScreen}
         onPress={() => onSheetChange(-1)}
@@ -96,13 +107,15 @@ const MenuSheet = ({
           <TouchableWithoutFeedback onPress={() => {}}>
             <View style={styles.floatingMenu}>
               <View style={[styles.menuRow, { flex: 0 }]}>
-                <Pressable
-                  style={styles.menuItem}
-                  onPress={() => onMenuItemPress("Gallery")}
-                >
-                  <Ionicons name="images" size={32} color="royalblue" />
-                  <Text style={styles.menuText}>Gallery</Text>
-                </Pressable>
+                {getPlatform() !== "web" && (
+                  <Pressable
+                    style={styles.menuItem}
+                    onPress={() => onMenuItemPress("Gallery")}
+                  >
+                    <Ionicons name="images" size={32} color="royalblue" />
+                    <Text style={styles.menuText}>Gallery</Text>
+                  </Pressable>
+                )}
                 <Pressable
                   style={styles.menuItem}
                   onPress={() => onMenuItemPress("File")}
@@ -110,20 +123,21 @@ const MenuSheet = ({
                   <Ionicons name="document" size={32} color="gray" />
                   <Text style={styles.menuText}>File</Text>
                 </Pressable>
-                <Pressable
-                  style={styles.menuItem}
-                  onPress={() => onMenuItemPress("Camera")}
-                >
-                  <Ionicons name="camera" size={32} color="darkorange" />
-                  <Text style={styles.menuText}>Camera</Text>
-                </Pressable>
+                {getPlatform() !== "web" && (
+                  <Pressable
+                    style={styles.menuItem}
+                    onPress={() => onMenuItemPress("Camera")}
+                  >
+                    <Ionicons name="camera" size={32} color="darkorange" />
+                    <Text style={styles.menuText}>Camera</Text>
+                  </Pressable>
+                )}
               </View>
             </View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
-    )
-  );
+    );
 
   return (
     <>

@@ -89,6 +89,8 @@ For a production build on Android, follow these steps:
 > [!WARNING]  
 > Building for iOS is not possible as of now, so there is no documentation available.
 
+First test done, not working :(
+
 ## Windows
 
 > [!WARNING]  

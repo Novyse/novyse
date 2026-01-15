@@ -50,3 +50,6 @@ electron/assets
 dist.zip
 
 .vscode/launch.json
+
+# android
+.kotlin
