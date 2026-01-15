@@ -86,6 +86,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
             <MessageAudio
               key={audioMessage.uuid}
               audioRef={audioMessage.ref}
+              uuid={audioMessage.uuid}
               size={audioMessage.size}
               name={audioMessage.name}
               message={message}
@@ -98,13 +99,16 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
       {/* voices print */}
       <View style={{ width: "100%" }}>
         {(voiceMessages.true || []).map((voiceMessage) => {
-    const waveform = Array.isArray(voiceMessage.waveform)
-      ? voiceMessage.waveform
-      : JSON.parse(voiceMessage.waveform || JSON.stringify(defaultWaveform)) || defaultWaveform;          
-      return (
+          const waveform = Array.isArray(voiceMessage.waveform)
+            ? voiceMessage.waveform
+            : JSON.parse(
+                voiceMessage.waveform || JSON.stringify(defaultWaveform)
+              ) || defaultWaveform;
+          return (
             <MessageVoice
               key={voiceMessage.uuid}
               audioRef={voiceMessage.ref}
+              uuid={voiceMessage.uuid}
               message={message}
               duration={voiceMessage.duration}
               waveform={waveform}

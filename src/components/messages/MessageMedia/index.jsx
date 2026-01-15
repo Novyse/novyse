@@ -67,10 +67,11 @@ const renderGridCell = (item, index, cellStyle) => {
 const renderMedia = (media) => {
   const fileType = getFileType(media.mimeType);
   const fileRef = media.ref;
+  const uuid = media.uuid;
   if (fileType === "IMAGE") {
-    return <Image fileRef={fileRef} />;
+    return <Image fileRef={fileRef} uuid={uuid} />;
   } else if (fileType === "VIDEO") {
-    return <Video fileRef={fileRef} duration={media.duration} />;
+    return <Video fileRef={fileRef} uuid={uuid} duration={media.duration} />;
   }
   return null;
 };

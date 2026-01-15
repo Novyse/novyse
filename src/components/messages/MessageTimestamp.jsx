@@ -12,6 +12,7 @@ const MessageTimestamp = ({ time }) => {
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const timeRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
+  const autoHideTimeoutRef = useRef(null);
 
   const parseTime = (dateTime) => {
     if (!dateTime) return "";
@@ -31,6 +32,9 @@ const MessageTimestamp = ({ time }) => {
         setTooltipPosition({ top: y - 50, left: x + width / 2 - 175 });
         hoverTimeoutRef.current = setTimeout(() => {
           setIsHovered(true);
+          autoHideTimeoutRef.current = setTimeout(() => {
+            setIsHovered(false);
+          }, 5000);
         }, 500);
       });
     }
@@ -40,6 +44,10 @@ const MessageTimestamp = ({ time }) => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
+    }
+    if (autoHideTimeoutRef.current) {
+      clearTimeout(autoHideTimeoutRef.current);
+      autoHideTimeoutRef.current = null;
     }
     setIsHovered(false);
   };

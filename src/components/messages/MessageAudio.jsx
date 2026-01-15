@@ -12,10 +12,16 @@ import Icon from "../Icon";
 import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 
-import SmoothSlider from "../SmoothSlider";
-import { formatTime, formatDuration, formatFileSize } from "@/src/utils/storage/file/utils";
+import {
+  formatTime,
+  formatDuration,
+  formatFileSize,
+} from "@/src/utils/storage/file/utils";
 
-const MessageAudio = ({ audioRef, size, name, message, duration }) => {
+import SmoothSlider from "../SmoothSlider";
+import PlayButton from "./Button";
+
+const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
   const {
     isPlaying,
     playBackRate,
@@ -38,30 +44,26 @@ const MessageAudio = ({ audioRef, size, name, message, duration }) => {
 
   const isReady = !!playableUri;
 
+  const handlePlayPress = () => {
+    addInfo(
+      message.chatUUID,
+      message.id,
+      message.sender_name,
+      message.created_at
+    );
+    handlePlayPause(playableUri);
+  };
+
   return (
     <View style={styles.container}>
-      <Pressable
-        onPress={() => {
-          addInfo(
-            message.chatUUID,
-            message.id,
-            message.sender_name,
-            message.created_at
-          );
-          handlePlayPause(playableUri);
-        }}
-        disabled={!isReady}
-        style={styles.playPauseButton}
-      >
-        {!isReady ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <Icon
-            name={isThisPlaying ? "PauseIcon" : "PlayIcon"}
-            style={{ width: 15, height: 15, tintColor: "#fff" }}
-          />
-        )}
-      </Pressable>
+      <PlayButton
+        uuid={uuid}
+        isAvailable={!!audioRef}
+        isReady={isReady}
+        isPlaying={isThisPlaying}
+        type={"AUDIO"}
+        handleDefaultPress={handlePlayPress}
+      />
 
       <View style={{ flexDirection: "column" }}>
         <Text style={styles.fileName} selectable={false}>
@@ -97,15 +99,6 @@ function createStyle(theme) {
       alignItems: "center",
       paddingVertical: 5,
       alignSelf: "stretch",
-    },
-    playPauseButton: {
-      width: 45,
-      height: 45,
-      borderRadius: 100,
-      backgroundColor: "#0088cc",
-      marginRight: 12,
-      justifyContent: "center",
-      alignItems: "center",
     },
     progressContainer: {
       flex: 1,

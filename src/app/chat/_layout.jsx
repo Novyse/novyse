@@ -11,7 +11,7 @@ import MyStatusBar from "@/src/components/MyStatusBar";
 import ScreenLayout from "@/src/components/ScreenLayout";
 import Sidebar from "@/src/components/Sidebar";
 import ChatList from "@/src/app/ChatList";
-import CreateGroupModal from "@/src/components/modals/createChat";
+import CreateChatModal from "@/src/components/modals/createChat";
 import BigFloatingCommsMenu from "@/src/components/comms/BigFloatingCommsMenu";
 import SmallCommsMenu from "@/src/components/comms/SmallCommsMenu";
 import auth from "@/src/utils/welcome/auth";
@@ -44,7 +44,7 @@ export default function ChatLayout() {
   } = useContext(ChatContext);
 
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-  const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] =
+  const [isCreateChatModalVisible, setIsCreateChatModalVisible] =
     useState(false);
   const [sidebarPosition] = useState(new Animated.Value(-250));
 
@@ -100,7 +100,7 @@ export default function ChatLayout() {
         <Sidebar
           isSidebarVisible={isSidebarVisible}
           toggleSidebar={toggleSidebar}
-          setIsCreateGroupModalVisible={setIsCreateGroupModalVisible}
+          setIsCreateChatModalVisible={setIsCreateChatModalVisible}
           handleSettingsPress={() => router.navigate("/settings")}
           logout={() => auth.logout(router, false)}
           sidebarPosition={sidebarPosition}
@@ -139,9 +139,9 @@ export default function ChatLayout() {
         )}
       </View>
       {!isSmallScreen && (
-        <CreateGroupModal
-          visible={isCreateGroupModalVisible}
-          onClose={() => setIsCreateGroupModalVisible(false)}
+        <CreateChatModal
+          visible={isCreateChatModalVisible}
+          onClose={() => setIsCreateChatModalVisible(false)}
         />
       )}
     </ScreenLayout>

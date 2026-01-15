@@ -1,21 +1,21 @@
 import React, { useContext, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import Icon from "../Icon";
 
 import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 
 import { formatTime, formatDuration } from "@/src/utils/storage/file/utils";
 import SmoothWaveform from "../SmoothWaveform";
+import PlayButton from "./Button";
 
-const MessageVoice = ({ audioRef, message, duration, waveform = undefined }) => {
+const MessageVoice = ({
+  audioRef,
+  uuid,
+  message,
+  duration,
+  waveform = undefined,
+}) => {
   const {
     isPlaying,
     playbackRate,
@@ -38,36 +38,26 @@ const MessageVoice = ({ audioRef, message, duration, waveform = undefined }) => 
 
   const isReady = !!playableUri;
 
+  const handlePlayPress = () => {
+    addInfo(
+      message.chatUUID,
+      message.id,
+      message.sender_name,
+      message.created_at
+    );
+    handlePlayPause(playableUri);
+  };
+
   return (
     <View style={styles.container}>
-      <Pressable
-        onPress={() => {
-          addInfo(
-            message.chatUUID,
-            message.id,
-            message.sender_name,
-            message.created_at
-          );
-          handlePlayPause(playableUri);
-        }}
-        disabled={!isReady}
-        style={styles.playPauseButton}
-      >
-        {!audioRef ? (
-                    <Icon
-            name="DownloadCircle01Icon"
-            style={{ width: 18, height: 18, tintColor: "#fff" }}
-          />
-        ) :
-        !isReady ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <Icon
-            name={isThisPlaying ? "PauseIcon" : "PlayIcon"}
-            style={{ width: 18, height: 18, tintColor: "#fff" }}
-          />
-        )}
-      </Pressable>
+      <PlayButton
+        uuid={uuid}
+        isAvailable={!!audioRef}
+        isReady={isReady}
+        isPlaying={isThisPlaying}
+        type={"VOICE"}
+        handleDefaultPress={handlePlayPress}
+      />
 
       <View style={styles.progressContainer}>
         <View style={styles.waveformWrapper}>
@@ -98,15 +88,6 @@ function createStyle(theme) {
       alignItems: "center",
       paddingVertical: 8,
       minWidth: 180,
-    },
-    playPauseButton: {
-      width: 45,
-      height: 45,
-      borderRadius: 100,
-      backgroundColor: "#0088cc",
-      marginRight: 12,
-      justifyContent: "center",
-      alignItems: "center",
     },
     progressContainer: {
       flex: 1,
