@@ -1,10 +1,11 @@
 import React from "react";
 import Icon from "@/src/components/Icon";
 
+import queueManager from "@/src/utils/chat/queueManager";
+
 const DownloadButton = ({ uuid }) => {
-  const handleDownload = () => {
-    // Implement download logic here, possibly using the uuid
-    console.log(`Downloading file with UUID: ${uuid}`);
+  const handleDownload = async () => {
+    await queueManager.addInboundFileJob(uuid);
   };
 
   return <Icon name="DownloadCircle01Icon" onPress={handleDownload} />;

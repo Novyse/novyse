@@ -929,6 +929,32 @@ const gateway = {
     },
   },
 
+  file: {
+    /**
+     * Retrieve a file download URL and metadata by its UUID.uuid: fileFromDB.uuid,
+     * @param {String} fileUUID
+     * @returns {Object} { success: boolean, downloadURL?: String, expiresAt?: Date, name?: String, size?: Int, mimeType?: String }
+     */
+    async retrieve(fileUUID) {
+      try {
+        if (!fileUUID) {
+          throw new Error("fileUUID is required to get download URL");
+        }
+        const response = await api.get(`/file?fileUUID=${fileUUID}`);
+        const success = response.data.success;
+        if (success) {
+          const { downloadURL, name, expiresAt, size, mimeType } =
+            response.data.data;
+          return { success, downloadURL, expiresAt, name, size, mimeType };
+        }
+        return { success };
+      } catch (error) {
+        console.error("Error in file.retrieve:", error);
+        throw error;
+      }
+    },
+  },
+
   /**
    * Handle Socket.IO authentication errors by attempting to refresh the token.
    * If the refresh is successful, it emits an event to reconnect the socket with the new token.

@@ -141,6 +141,17 @@ class QueueManager {
     this.startProcessing();
   }
 
+  async addInboundFileJob(fileUUID) {
+    const params = {
+      fileUUID,
+      status: "PENDING_DOWNLOAD",
+      attempts: 0,
+      maxRetries: this.maxRetries,
+    };
+    await this.addJob(v6(), "INBOUND_FILE", params);
+    this.startProcessing();
+  }
+
   /**
    * Add a job to the queue and save it to persistent storage
    * @param {String} id
@@ -176,6 +187,9 @@ class QueueManager {
       switch (job.type) {
         case "INBOUND_MESSAGE":
           await this.processInboundMessageJob(job);
+          break;
+        case "INBOUND_FILE":
+          await this.processInboundFileJob(job);
           break;
         case "OUTGOING_MESSAGE":
           await this.processOutgoingMessageJob(job);
@@ -326,7 +340,7 @@ class QueueManager {
 
               // Calculate waveform if audio/voice file
               if (file_type === "AUDIO" || file_type === "VOICE") {
-                const waveform = await getWaveform(ref);
+                const waveform = await getWaveform(ref, file_type);
                 if (waveform && waveform.length > 0) {
                   await this._addFileWaveform(fileToDownload, waveform);
                 }
@@ -334,7 +348,7 @@ class QueueManager {
 
               // Notify file downloaded
 
-              await this.fileDownloaded(message, file);
+              await this.messageDownloaded(message, file);
             } else {
               throw new Error("Downloaded file info missing");
             }
@@ -515,10 +529,7 @@ class QueueManager {
 
         // Calculate duration if media file
         // if file_type is VIDEO, duration is already calculated on picking
-        if (
-          file_type === "AUDIO" ||
-          file_type === "VOICE"
-        ) {
+        if (file_type === "AUDIO" || file_type === "VOICE") {
           const duration = await getDuration(file.ref, file_type);
           if (duration && duration > 0) {
             file.duration = duration;
@@ -537,6 +548,81 @@ class QueueManager {
       await this.messageSent(messageUUID, message);
     } else {
       throw new Error("Message confirmation failed");
+    }
+  }
+
+  async processInboundFileJob(job) {
+    const { fileUUID } = job.params;
+
+    // Download file metadata from server
+    const { success, downloadURL, expiresAt, name, size, mimeType } =
+      await gateway.file.retrieve(fileUUID);
+
+    const fileInfo = {
+      downloadURL,
+      expiresAt,
+      name,
+      size,
+      mimeType,
+      uuid: fileUUID,
+    };
+
+    if (success && fileInfo && fileInfo.downloadURL) {
+      // Download file from S3 bucket
+      const bytes = await S3Uploader.download(fileInfo.downloadURL);
+
+      if (!bytes) {
+        throw new Error("File download failed from S3");
+      }
+      // Save file to storage
+      const { ref, size } = await storage.save.byBytes(bytes, fileUUID);
+
+      if (!ref || !size || size <= 0) {
+        const errorMsg = `File save to storage failed for file ${fileUUID}: ref=${ref}, size=${size}`;
+        throw new Error(errorMsg);
+      }
+
+      if (fileInfo.size !== size) {
+        const errorMsg = `Saved file size mismatch for file ${fileUUID}: expected ${fileInfo.size}, got ${size}`;
+        throw new Error(errorMsg);
+      }
+
+      fileInfo.ref = ref;
+
+      // Update file info in database
+      await this._addFileRef(fileUUID, ref);
+
+      const file_type = getFileType(mimeType, name);
+
+      // Calculate duration if media file
+      if (
+        file_type === "AUDIO" ||
+        file_type === "VOICE" ||
+        file_type === "VIDEO"
+      ) {
+        const duration = await getDuration(ref, file_type);
+        if (duration && duration > 0) {
+          await this._addFileDuration(fileUUID, duration);
+          fileInfo.duration = duration;
+        }
+      }
+
+      // Calculate waveform if audio/voice file
+      if (file_type === "AUDIO" || file_type === "VOICE") {
+        const waveform = await getWaveform(ref, file_type);
+        if (waveform && waveform.length > 0) {
+          await this._addFileWaveform(fileUUID, waveform);
+          fileInfo.waveform = waveform;
+        }
+      }
+
+      // Notify file downloaded
+      // @SamueleOrazioDurante SISTEMA LOGICA + VEDI COME GESTIRE DOWNLOAD UPLOAD CERCHIETTO
+      await this.fileDownloaded(fileInfo);
+
+      console.info("Inbound file downloaded successfully:", fileUUID);
+    } else {
+      throw new Error("File download failed");
     }
   }
 
@@ -960,8 +1046,12 @@ class QueueManager {
    * @param {Object} file
    */
 
-  async fileDownloaded(message, file) {
+  async messageDownloaded(message, file) {
     eventEmitter.getEmitter().emit("message:downloaded", { message, file });
+  }
+
+  async fileDownloaded(file) {
+    eventEmitter.getEmitter().emit("file:downloaded", { file });
   }
 
   /**

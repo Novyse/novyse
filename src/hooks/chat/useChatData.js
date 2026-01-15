@@ -110,7 +110,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
       });
     };
 
-    const handleFileDownloaded = async ({ message, file }) => {
+    const handleMessageDownloaded = async ({ message, file }) => {
       if (message.chatUUID !== chatUUID && message.chatHandle !== chatHandle)
         return;
       setMessages((currentMessages) => {
@@ -140,10 +140,24 @@ const useChatData = (chatUUID, chatHandle = null) => {
       });
     };
 
+    const handleFileDownloaded = ({ file }) => {
+      setMessages((currentMessages) => {
+        return currentMessages.map((msg) => {
+          const { uuid: fileUUID, ref, waveform, duration } = file;
+          const updatedFiles = msg.files.map((f) =>
+            f.uuid === fileUUID ? { ...f, ref, waveform, duration } : f
+          );
+          return { ...msg, files: updatedFiles };
+        });
+      });
+    };
+
     eventEmitter.getEmitter().on("message:new", handleNewMessage);
     eventEmitter.getEmitter().on("message:upload", handleMessageUploading);
-    eventEmitter.getEmitter().on("message:downloaded", handleFileDownloaded);
+    eventEmitter.getEmitter().on("message:downloaded", handleMessageDownloaded);
     eventEmitter.getEmitter().on("message:sent", handleMessageSent);
+
+    eventEmitter.getEmitter().on("file:downloaded", handleFileDownloaded);
 
     return () => {
       if (SocketIO.send()) {
@@ -151,8 +165,12 @@ const useChatData = (chatUUID, chatHandle = null) => {
       }
       eventEmitter.getEmitter().off("message:new", handleNewMessage);
       eventEmitter.getEmitter().off("message:upload", handleMessageUploading);
-      eventEmitter.getEmitter().off("message:downloaded", handleFileDownloaded);
+      eventEmitter
+        .getEmitter()
+        .off("message:downloaded", handleMessageDownloaded);
       eventEmitter.getEmitter().off("message:sent", handleMessageSent);
+
+      eventEmitter.getEmitter().off("file:downloaded", handleFileDownloaded);
     };
   }, [chatUUID, chatHandle]);
 
