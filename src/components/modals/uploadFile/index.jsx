@@ -33,6 +33,7 @@ const UploadFile = ({
     invalidFiles,
     setInvalidFiles,
     checkErrors,
+    removeAllFiles,
     removeFileAtIndex,
   } = useUploadFile(maxFile, maxSingleSize, maxTotalSize);
 
@@ -74,6 +75,7 @@ const UploadFile = ({
           files={files}
           onChooseFile={handleOnChooseFile}
           onRemoveFile={removeFileAtIndex}
+          removeAllFiles={removeAllFiles}
           invalidFiles={invalidFiles}
           maxSingleSize={maxSingleSize}
           maxTotalSize={maxTotalSize}

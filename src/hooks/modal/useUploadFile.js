@@ -43,6 +43,15 @@ const useUploadFile = (maxFile, maxSingleSize, maxTotalSize) => {
   };
 
   /**
+   * Remove all files
+   */
+  const removeAllFiles = () => {
+    setFiles([]);
+    setInvalidFiles([]);
+    setError(null);
+  };
+
+  /**
    * Remove file at specific index
    * @param {Int} index
    */
@@ -61,6 +70,7 @@ const useUploadFile = (maxFile, maxSingleSize, maxTotalSize) => {
     invalidFiles,
     setInvalidFiles,
     checkErrors,
+    removeAllFiles,
     removeFileAtIndex,
   };
 };

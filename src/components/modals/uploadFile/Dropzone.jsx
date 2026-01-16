@@ -11,6 +11,7 @@ const Dropzone = ({
   files,
   onChooseFile,
   onRemoveFile,
+  removeAllFiles,
   invalidFiles,
   maxSingleSize = 52428800,
   maxTotalSize = 2147483648,
@@ -36,6 +37,13 @@ const Dropzone = ({
         disabled={!onChooseFile}
       >
         <Text style={styles.chooseFileText}>Choose File</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.removeAllFilesBtn}
+        onPress={removeAllFiles}
+        disabled={!removeAllFiles || files.length === 0}
+      >
+        <Text style={styles.removeAllFilesText}>Remove all files</Text>
       </TouchableOpacity>
       {files && files.length > 0 && (
         <View style={styles.fileList}>
@@ -136,6 +144,14 @@ const createStyle = (theme) =>
     },
     removeBtn: {
       marginLeft: 8,
+    },
+    removeAllFilesBtn: {
+      marginTop: 10,
+    },
+    removeAllFilesText: {
+      color: theme.placeholderText,
+      fontSize: 10,
+      userSelect: "none",
     },
   });
 
