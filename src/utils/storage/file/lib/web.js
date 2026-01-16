@@ -126,6 +126,29 @@ const DB = {
   },
 
   /**
+   * Get the arrayBuffer of the file
+   * @param {String} uri
+   * @returns
+   */
+  getArrayBuffer: async (uri) => {
+    try {
+      // Handle all URIs with fetch
+      const response = await fetch(uri);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch file from URI: ${response.statusText}`
+        );
+      }
+      const arrayBuffer = await response.arrayBuffer();
+
+      return arrayBuffer;
+    } catch (err) {
+      console.error("Could not get arrayBuffer", err);
+      return null;
+    }
+  },
+
+  /**
    * Get the URI from a blob
    * @param {Blob} blob
    * @returns

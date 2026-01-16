@@ -1,5 +1,7 @@
 import { AudioContext } from "react-native-audio-api";
 
+import storage from "@/src/utils/storage/file";
+
 /**
  * Generates waveform data for an audio file given its URI.
  * @param {String} uri
@@ -14,6 +16,17 @@ export const getWaveformData = async (uri, samples = 50) => {
 };
 
 /**
+ * Gets the duration of an audio file from its URI.
+ * @param {String} uri
+ * @returns {Promise<number>} Duration in seconds
+ */
+export const getAudioDuration = async (uri) => {
+  const audioBuffer = await getAudioBuffer(uri);
+  if (!audioBuffer) return 0;
+  return audioBuffer.duration;
+};
+
+/**
  * Retrieves and decodes the audio file from a URI.
  * @param {string} uri - The URI of the audio file
  * @returns {Promise<AudioBuffer|null>} The decoded audio buffer or null in case of error
@@ -21,9 +34,7 @@ export const getWaveformData = async (uri, samples = 50) => {
 
 const getAudioBuffer = async (uri) => {
   try {
-    const response = await fetch(uri);
-
-    const arrayBuffer = await response.arrayBuffer();
+    const arrayBuffer = await storage.getArrayBuffer(uri);
     const context = new AudioContext();
     const audioBuffer = await context.decodeAudioData(arrayBuffer);
 

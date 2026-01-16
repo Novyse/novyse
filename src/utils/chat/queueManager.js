@@ -33,7 +33,7 @@ class QueueManager {
     this.initialized = true;
 
     eventEmitter.getEmitter().on("message:new", (message) => {
-      if (!message.fromSubscription) {
+      if (!message.fromSubscription && !message.internal) {
         if (message.files && message.files.length > 0) {
           this.addInboundMessageJob(message);
         }
@@ -135,6 +135,7 @@ class QueueManager {
         senderUUID: message.senderUUID,
         type: message.type,
         files: message.files || [],
+        internal: true,
       });
     }
 
@@ -517,9 +518,19 @@ class QueueManager {
    * @param {Object} job
    */
   async processPendingConfirmJob(job) {
-    const { messageUUID } = job.params.message;
+    const { message: messageFromParams, alreadyUploaded } = job.params;
+    const messageUUID = messageFromParams.messageUUID;
 
-    const { success, message } = await gateway.message.confirm(messageUUID);
+    let success = true;
+    let message = messageFromParams;
+
+    if (!alreadyUploaded) {
+      const result = await gateway.message.confirm(messageUUID);
+      success = result.success;
+      message = result.message;
+      job.params.alreadyUploaded = true;
+    }
+
     if (success) {
       // Notify that message was sent successfully
       message.files = job.params.message.files;
@@ -528,12 +539,10 @@ class QueueManager {
         const file_type = getFileType(file.mimeType, file.name);
 
         // Calculate duration if media file
-        // if file_type is VIDEO, duration is already calculated on picking
-        if (file_type === "AUDIO" || file_type === "VOICE") {
-          const duration = await getDuration(file.ref, file_type);
-          if (duration && duration > 0) {
-            file.duration = duration;
-          }
+
+        const duration = await getDuration(file.ref, file_type);
+        if (duration && duration > 0) {
+          file.duration = duration;
         }
 
         // Calculate waveform if voice file

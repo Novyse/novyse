@@ -62,6 +62,7 @@ const useMessageHandlers = (
     async (files, chatUUID) => {
       if (!files || !chatUUID) return;
 
+      console.log("Files to send:", files);
       const cleanedFiles = files.map((file) => ({
         uri: file.uri,
         name: file.name || file.fileName || "novyse_file_" + Date.now(),
@@ -70,7 +71,6 @@ const useMessageHandlers = (
             ? file.mimeType
             : "application/octet-stream",
         size: file.size,
-        duration: file.duration || undefined, // for videos
       }));
 
       console.log("Cleaned files to send:", cleanedFiles, files);

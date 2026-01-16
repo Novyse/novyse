@@ -1,7 +1,14 @@
 import storage from "@/src/utils/storage/file";
 import { createAudioPlayer } from "expo-audio";
 
-import { getWaveformData } from "@/src/utils/storage/file/audio";
+import { getPlatform } from "@/src/utils//device/type";
+
+import { getVideoDuration } from "@/src/utils/storage/file/video";
+
+import {
+  getAudioDuration,
+  getWaveformData,
+} from "@/src/utils/storage/file/audio";
 
 const defaultWaveform = Array(50).fill(0);
 
@@ -33,22 +40,13 @@ const getDuration = async (ref, type) => {
 
 const extractDurationFromAudio = async (ref) => {
   const uri = await storage.read(ref);
-  const player = createAudioPlayer(uri);
-  return new Promise((resolve, reject) => {
-    const audio = player.media;
-    audio.addEventListener("loadedmetadata", () => {
-      const duration = audio.duration;
-      player.remove();
-      resolve(duration);
-    });
-    audio.addEventListener("error", (error) => {
-      player.remove();
-      reject(error);
-    });
-  });
+
+  return await getAudioDuration(uri);
 };
 const extractDurationFromVideo = async (ref) => {
-  return await extractDurationFromAudio(ref);
+  const uri = await storage.read(ref);
+
+  return await getVideoDuration(uri);
 };
 
 export { defaultWaveform, getWaveform, getDuration };

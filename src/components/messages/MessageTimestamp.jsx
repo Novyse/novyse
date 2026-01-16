@@ -1,5 +1,5 @@
 import React, { useContext, useState, useRef } from "react";
-import { Text, StyleSheet, View } from "react-native";
+import { Text, StyleSheet, View, Platform } from "react-native";
 import { createPortal } from "react-dom";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "../Icon";
@@ -60,30 +60,39 @@ const MessageTimestamp = ({ time }) => {
     );
   }
 
-  const tooltip = isHovered ? (
-    <View
-      style={[
-        styles.tooltip,
-        { top: tooltipPosition.top, left: tooltipPosition.left },
-      ]}
-    >
-      <Text style={styles.tooltipText}>{parseFullTime(time)}</Text>
-    </View>
-  ) : null;
+  const tooltip =
+    Platform.OS === "web" && isHovered ? (
+      <View
+        style={[
+          styles.tooltip,
+          { top: tooltipPosition.top, left: tooltipPosition.left },
+        ]}
+      >
+        <Text style={styles.tooltipText}>{parseFullTime(time)}</Text>
+      </View>
+    ) : null;
 
   return (
     <View style={styles.alignContainer}>
-      <View
-        ref={timeRef}
-        style={styles.timeContainer}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        <Text style={styles.timeText} selectable={false}>
-          {parseTime(time)}
-        </Text>
-      </View>
-      {createPortal(tooltip, document.body)}
+      {Platform.OS === "web" ? (
+        <View
+          ref={timeRef}
+          style={styles.timeContainer}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <Text style={styles.timeText} selectable={false}>
+            {parseTime(time)}
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.timeContainer}>
+          <Text style={styles.timeText} selectable={false}>
+            {parseTime(time)}
+          </Text>
+        </View>
+      )}
+      {Platform.OS === "web" && createPortal(tooltip, document.body)}
     </View>
   );
 };

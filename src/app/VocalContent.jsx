@@ -31,13 +31,13 @@ const VocalContent = () => {
       <View style={styles.alertContainer}>
         <Text style={styles.alertText}>
           La funzionalità vocale non è al momento disponibile e si sconsiglia il
-          suo utilizzo. Per testare le chat vocali, visitare il link{" "}
+          suo utilizzo. Per testare le chat vocali, visitare il link
           <Text
             style={styles.alertLink}
             onPress={() => Linking.openURL("https://novyse.com/preview")}
           >
             novyse.com/preview
-          </Text>{" "}
+          </Text>
           o attendere aggiornamenti futuri (versione &gt;0.10).
         </Text>
       </View>

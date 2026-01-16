@@ -96,6 +96,16 @@ const storage = {
     }
   },
 
+  async getArrayBuffer(uri) {
+    if (Platform.OS === "web") {
+      // Web
+      return await web.getArrayBuffer(uri);
+    } else {
+      // Mobile
+      return await mobile.getBlob(uri);
+    }
+  },
+
   async getUri(blob, uuid) {
     if (Platform.OS === "web") {
       // Web
