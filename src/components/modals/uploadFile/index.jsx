@@ -37,6 +37,9 @@ const UploadFile = ({
   } = useUploadFile(maxFile, maxSingleSize, maxTotalSize);
 
   const handleOnChooseFile = async () => {
+    if (invalidFiles.length > 0) return;
+    if (error) return;
+
     const result = await handleFilePick(type, true);
 
     if (!result) return;
