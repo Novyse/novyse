@@ -1,19 +1,12 @@
-import React, { useCallback } from "react";
-import {
-  Platform,
-  View,
-  TouchableWithoutFeedback,
-  Pressable,
-  Text,
-  StyleSheet,
-} from "react-native";
+import React from "react";
+import { View, TouchableWithoutFeedback, Text, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { OverKeyboardView } from "react-native-keyboard-controller";
-import { TouchableOpacity } from "@gorhom/bottom-sheet";
-import { Ionicons } from "@expo/vector-icons";
 
-import { getPlatform } from "@/src/utils/device/type";
+import HoverAndPressedButton from "../../HoverAndPressedButton";
+
+import Icon from "@/src/components/Icon";
 
 const createStyle = (theme) =>
   StyleSheet.create({
@@ -85,15 +78,50 @@ const MenuSheet = ({
 }) => {
   const styles = createStyle(theme);
 
-  const renderMenuItem = (action, iconName, color) => (
-    <TouchableOpacity
+  const items = [
+    {
+      action: "Media",
+      iconName: "Album01Icon",
+      color: "white",
+      disabled: false,
+    },
+    {
+      action: "Camera",
+      iconName: "Camera01Icon",
+      color: "white",
+      disabled: true,
+    },
+    { action: "File", iconName: "File01Icon", color: "white", disabled: false },
+    {
+      action: "Location",
+      iconName: "Location06Icon",
+      color: "white",
+      disabled: true,
+    },
+    {
+      action: "Todo",
+      iconName: "TaskAdd01Icon",
+      color: "white",
+      disabled: true,
+    },
+    {
+      action: "Poll",
+      iconName: "TaskEdit01Icon",
+      color: "white",
+      disabled: true,
+    },
+  ];
+
+  const renderMenuItem = (action, iconName, color, disabled) => (
+    <HoverAndPressedButton
       key={action}
       style={styles.menuItem}
       onPress={() => onMenuItemPress(action)}
+      disabled={disabled}
     >
-      <Ionicons name={iconName} size={32} color={color} />
+      <Icon name={iconName} size={32} color={color} />
       <Text style={styles.menuText}>{action}</Text>
-    </TouchableOpacity>
+    </HoverAndPressedButton>
   );
 
   const renderFloatingMenu = () =>
@@ -107,48 +135,14 @@ const MenuSheet = ({
           <TouchableWithoutFeedback onPress={() => {}}>
             <View style={styles.floatingMenu}>
               <View style={[styles.menuRow, { flex: 0 }]}>
-                <Pressable
-                  style={styles.menuItem}
-                  onPress={() => onMenuItemPress("Media")}
-                >
-                  <Ionicons name="images" size={32} color="royalblue" />
-                  <Text style={styles.menuText}>Media</Text>
-                </Pressable>
-                <Pressable
-                  style={styles.menuItem}
-                  onPress={() => onMenuItemPress("Camera")}
-                >
-                  <Ionicons name="camera" size={32} color="darkorange" />
-                  <Text style={styles.menuText}>Camera</Text>
-                </Pressable>
-                <Pressable
-                  style={styles.menuItem}
-                  onPress={() => onMenuItemPress("File")}
-                >
-                  <Ionicons name="document" size={32} color="gray" />
-                  <Text style={styles.menuText}>File</Text>
-                </Pressable>
-                <Pressable
-                  style={styles.menuItem}
-                  onPress={() => onMenuItemPress("Location")}
-                >
-                  <Ionicons name="location" size={32} color="gray" />
-                  <Text style={styles.menuText}>Location</Text>
-                </Pressable>
-                <Pressable
-                  style={styles.menuItem}
-                  onPress={() => onMenuItemPress("Todo")}
-                >
-                  <Ionicons name="document" size={32} color="gray" />
-                  <Text style={styles.menuText}>Todo</Text>
-                </Pressable>
-                <Pressable
-                  style={styles.menuItem}
-                  onPress={() => onMenuItemPress("Poll")}
-                >
-                  <Ionicons name="document" size={32} color="gray" />
-                  <Text style={styles.menuText}>Poll</Text>
-                </Pressable>
+                {items.map((item) =>
+                  renderMenuItem(
+                    item.action,
+                    item.iconName,
+                    item.color,
+                    item.disabled
+                  )
+                )}
               </View>
             </View>
           </TouchableWithoutFeedback>

@@ -29,13 +29,14 @@ const useAttachHandlers = (
       default:
         console.warn("Unknown menu item:", item);
     }
-    _closeFileMenu();
   };
 
   const handleFilePick = async (type, forced = false) => {
     if (forced) {
       return await openNativeFileMenu(type);
     }
+
+    _closeFileMenu();
 
     switch (getPlatform()) {
       case "web":
