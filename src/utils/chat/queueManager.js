@@ -528,7 +528,10 @@ class QueueManager {
       const result = await gateway.message.confirm(messageUUID);
       success = result.success;
       message = result.message;
-      job.params.alreadyUploaded = true;
+
+      if (success) {
+        job.params.alreadyUploaded = true;
+      }
     }
 
     if (success) {
