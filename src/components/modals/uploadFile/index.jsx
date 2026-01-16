@@ -5,7 +5,11 @@ import ModalBase from "../ModalBase";
 import Dropzone from "./Dropzone";
 import Footer from "./Footer";
 
+import StatusMessage from "../../StatusMessage";
+
 import { ThemeContext } from "@/context/ThemeContext";
+
+import useUploadFile from "@/src/hooks/modal/useUploadFile";
 
 const UploadFile = ({
   visible,
@@ -17,24 +21,46 @@ const UploadFile = ({
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
-  const [files, setFiles] = useState([]);
+  const maxFile = 100;
+  const maxSingleSize = 52428800; // 50MB
+  const maxTotalSize = 2147483648; // 2GB
+
+  const {
+    files,
+    setFiles,
+    error,
+    setError,
+    invalidFiles,
+    setInvalidFiles,
+    checkErrors,
+    removeFileAtIndex,
+  } = useUploadFile(maxFile, maxSingleSize, maxTotalSize);
 
   const handleOnChooseFile = async () => {
     const result = await handleFilePick(type, true);
 
     if (!result) return;
-    setFiles((prev) => [...prev, ...result]);
+
+    const newFiles = [...files, ...result];
+    setFiles(newFiles);
+
+    // Validate files
+    checkErrors(newFiles);
   };
 
   const handleFooterRightButtonPress = () => {
+    if (files.length === 0) return;
+    if (invalidFiles.length > 0) return;
+    if (error) return;
+
+    if (checkErrors(files)) return;
+
     handleSendMessage(files);
     setFiles([]);
+    setError(null);
+    setInvalidFiles([]);
     onClose();
   };
-
-  useEffect(() => {
-    setFiles([]);
-  }, [visible]);
 
   return (
     <ModalBase visible={visible} theme={theme} onClose={onClose}>
@@ -43,9 +69,12 @@ const UploadFile = ({
           title={"Drag and drop your file here"}
           subtitle={type + " is supported."}
           files={files}
-          setFiles={setFiles}
           onChooseFile={handleOnChooseFile}
-          maxFile={100}
+          onRemoveFile={removeFileAtIndex}
+          invalidFiles={invalidFiles}
+          maxSingleSize={maxSingleSize}
+          maxTotalSize={maxTotalSize}
+          maxFile={maxFile}
           typeFile={"ALL"}
           theme={theme}
         />
@@ -57,6 +86,16 @@ const UploadFile = ({
           rightButtonOnPress={handleFooterRightButtonPress}
           theme={theme}
         />
+        {error && (
+          <StatusMessage
+            isVisible={true}
+            type="error"
+            content={[error]}
+            onClose={() => {
+              setError(null);
+            }}
+          />
+        )}
       </View>
     </ModalBase>
   );

@@ -9,8 +9,9 @@ const Dropzone = ({
   title,
   subtitle,
   files,
-  setFiles,
   onChooseFile,
+  onRemoveFile,
+  invalidFiles,
   maxSingleSize = 52428800,
   maxTotalSize = 2147483648,
   maxFile = 50,
@@ -41,10 +42,21 @@ const Dropzone = ({
           {files.map((file, index) => (
             <View key={index} style={styles.fileItem}>
               <Icon name="FileIcon" size={16} color={theme.text} />
-              <Text style={styles.fileName}>{file.name}</Text>
+              <Text
+                style={[
+                  styles.fileName,
+                  invalidFiles.includes(index) && styles.invalidFileName,
+                ]}
+              >
+                {file.name}
+              </Text>
+              {invalidFiles.includes(index) && (
+                <Text style={styles.fileError}>(Exceeds max size)</Text>
+              )}
+              <Text style={styles.fileSize}>{formatFileSize(file.size)}</Text>
               <TouchableOpacity
                 style={styles.removeBtn}
-                onPress={() => setFiles(files.filter((_, i) => i !== index))}
+                onPress={() => onRemoveFile(index)}
               >
                 <Icon name="Cancel01Icon" size={14} color={theme.text} />
               </TouchableOpacity>
@@ -107,6 +119,20 @@ const createStyle = (theme) =>
       fontSize: 12,
       marginLeft: 8,
       flex: 1,
+    },
+    invalidFileName: {
+      color: "red",
+      textDecorationLine: "line-through",
+    },
+    fileError: {
+      color: "red",
+      fontSize: 10,
+      marginLeft: 4,
+    },
+    fileSize: {
+      color: theme.placeholderText,
+      fontSize: 10,
+      marginLeft: 8,
     },
     removeBtn: {
       marginLeft: 8,
