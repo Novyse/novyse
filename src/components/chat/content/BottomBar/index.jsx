@@ -11,8 +11,8 @@ const BottomBar = ({
   textInputRef,
   onTextChange,
   onSendMessage,
-  isFileMenuOpen,
-  onToggleMenu,
+  isAttachMenuOpen,
+  onToggleAttachMenu,
   onToggleEmoji,
   onInputFocus,
   setBottomBarHeight,
@@ -31,8 +31,8 @@ const BottomBar = ({
         <JoinBar onJoin={onJoin} chat={chat} />
       ) : (
         <DefaultBar
-          isFileMenuOpen={isFileMenuOpen}
-          onToggleMenu={onToggleMenu}
+          isAttachMenuOpen={isAttachMenuOpen}
+          onToggleAttachMenu={onToggleAttachMenu}
           onToggleEmoji={onToggleEmoji}
           textInputRef={textInputRef}
           newMessageText={newMessageText}

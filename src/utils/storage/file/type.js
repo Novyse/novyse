@@ -1,3 +1,5 @@
+const defaultMimeType = "application/octet-stream";
+
 /**
  * Maps MIME types to file type categories.
  */
@@ -109,4 +111,4 @@ function getFileType(mimeType, fileName = null) {
   return type;
 }
 
-module.exports = { getFileType };
+module.exports = { defaultMimeType, getFileType };

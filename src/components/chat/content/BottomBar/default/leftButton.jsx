@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef } from "react";
-import { StyleSheet, Animated } from "react-native";
+import { StyleSheet, Animated, Pressable } from "react-native";
 
 import BlurredView from "@/src/components/BlurredView";
 
@@ -8,8 +8,8 @@ import Icon from "@/src/components/Icon";
 
 const LeftButton = ({
   isRecording,
-  isFileMenuOpen = false,
-  onToggleFileMenu,
+  isAttachMenuOpen = false,
+  onToggleAttachMenu,
   onCancelVocal,
 }) => {
   const { theme } = useContext(ThemeContext);
@@ -31,21 +31,19 @@ const LeftButton = ({
 
   useEffect(() => {
     Animated.timing(rotationAnim, {
-      toValue: isFileMenuOpen || isRecording ? 1 : 0,
+      toValue: isAttachMenuOpen || isRecording ? 1 : 0,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [isFileMenuOpen, isRecording]);
+  }, [isAttachMenuOpen, isRecording]);
 
   return (
     <BlurredView style={styles.container}>
-      <Animated.View style={animatedStyle}>
-        <Icon
-          name="PlusSignIcon"
-          onPress={isRecording ? onCancelVocal : onToggleFileMenu}
-          style={styles.icon}
-        />
-      </Animated.View>
+      <Pressable onPress={isRecording ? onCancelVocal : onToggleAttachMenu}>
+        <Animated.View style={animatedStyle}>
+          <Icon name="PlusSignIcon" style={styles.icon} />
+        </Animated.View>
+      </Pressable>
     </BlurredView>
   );
 };

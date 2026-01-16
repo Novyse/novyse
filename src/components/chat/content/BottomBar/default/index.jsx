@@ -10,8 +10,8 @@ import MiddleBar from "./middleBar";
 import RightButton from "./rightButton";
 
 const DefaultBar = ({
-  isFileMenuOpen,
-  onToggleMenu,
+  isAttachMenuOpen,
+  onToggleAttachMenu,
   onToggleEmoji,
   textInputRef,
   newMessageText = "",
@@ -37,8 +37,8 @@ const DefaultBar = ({
       <LeftButton
         isRecording={isRecording}
         onCancelVocal={handleCancelRecording}
-        isFileMenuOpen={isFileMenuOpen}
-        onToggleFileMenu={onToggleMenu}
+        isAttachMenuOpen={isAttachMenuOpen}
+        onToggleAttachMenu={onToggleAttachMenu}
       />
       <MiddleBar
         newMessageText={newMessageText}

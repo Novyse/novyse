@@ -1,12 +1,16 @@
 import React, { useContext, useState, useEffect } from "react";
-import { StyleSheet, View, Text, Image, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
+
 import { ThemeContext } from "@/context/ThemeContext";
+
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import ScreenLayout from "@/src/components/ScreenLayout";
 import Database from "@/src/utils/storage/database";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/settings/SettingsCard";
 import Icon from "@/src/components/Icon";
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import UploadProfilePicture from "@/src/components/modals/UploadProfilePicture";
 
 const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
@@ -21,6 +25,8 @@ const ProfilePage = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
+  const [isProfilePicModalVisible, setIsProfilePicModalVisible] =
+    useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -60,24 +66,30 @@ const ProfilePage = () => {
     return (
       <ScreenLayout fullscreen={true}>
         <View style={styles.container}>
-          <HeaderWithBackArrow title={"Account"}/>
+          <HeaderWithBackArrow title={"Account"} />
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </ScreenLayout>
     );
   }
   const pickImage = () => {
-    Alert.alert("Change Profile Image", "This feature is coming soon!");
+    setIsProfilePicModalVisible(true);
   };
 
   return (
     <ScreenLayout fullscreen={true}>
-      <HeaderWithBackArrow title={"Account"}/>
+      <HeaderWithBackArrow title={"Account"} />
       <SettingsPageScrollview>
+        <UploadProfilePicture
+          visible={isProfilePicModalVisible}
+          onClose={() => {
+            setIsProfilePicModalVisible(false);
+          }}
+        />
         {/* Profile Image Section */}
         <View style={styles.profileImageSection}>
-          <TouchableOpacity 
-            onPress={pickImage} 
+          <TouchableOpacity
+            onPress={pickImage}
             style={styles.profileImageContainer}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -188,11 +200,11 @@ const createStyle = (theme) =>
       fontSize: 16,
     },
     editIconContainer: {
-      position: 'absolute',
-      justifyContent: 'center',
-      alignItems: 'center',
-      width: '100%',
-      height: '100%',
+      position: "absolute",
+      justifyContent: "center",
+      alignItems: "center",
+      width: "100%",
+      height: "100%",
     },
   });
 

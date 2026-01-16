@@ -107,15 +107,20 @@ const MenuSheet = ({
           <TouchableWithoutFeedback onPress={() => {}}>
             <View style={styles.floatingMenu}>
               <View style={[styles.menuRow, { flex: 0 }]}>
-                {getPlatform() !== "web" && (
-                  <Pressable
-                    style={styles.menuItem}
-                    onPress={() => onMenuItemPress("Gallery")}
-                  >
-                    <Ionicons name="images" size={32} color="royalblue" />
-                    <Text style={styles.menuText}>Gallery</Text>
-                  </Pressable>
-                )}
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={() => onMenuItemPress("Media")}
+                >
+                  <Ionicons name="images" size={32} color="royalblue" />
+                  <Text style={styles.menuText}>Media</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={() => onMenuItemPress("Camera")}
+                >
+                  <Ionicons name="camera" size={32} color="darkorange" />
+                  <Text style={styles.menuText}>Camera</Text>
+                </Pressable>
                 <Pressable
                   style={styles.menuItem}
                   onPress={() => onMenuItemPress("File")}
@@ -123,15 +128,27 @@ const MenuSheet = ({
                   <Ionicons name="document" size={32} color="gray" />
                   <Text style={styles.menuText}>File</Text>
                 </Pressable>
-                {getPlatform() !== "web" && (
-                  <Pressable
-                    style={styles.menuItem}
-                    onPress={() => onMenuItemPress("Camera")}
-                  >
-                    <Ionicons name="camera" size={32} color="darkorange" />
-                    <Text style={styles.menuText}>Camera</Text>
-                  </Pressable>
-                )}
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={() => onMenuItemPress("Location")}
+                >
+                  <Ionicons name="location" size={32} color="gray" />
+                  <Text style={styles.menuText}>Location</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={() => onMenuItemPress("Todo")}
+                >
+                  <Ionicons name="document" size={32} color="gray" />
+                  <Text style={styles.menuText}>Todo</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={() => onMenuItemPress("Poll")}
+                >
+                  <Ionicons name="document" size={32} color="gray" />
+                  <Text style={styles.menuText}>Poll</Text>
+                </Pressable>
               </View>
             </View>
           </TouchableWithoutFeedback>

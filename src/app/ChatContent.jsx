@@ -26,6 +26,7 @@ import eventEmitter from "../utils/global/Events/EventEmitter.js";
 // Hooks
 import useChatData from "../hooks/chat/useChatData.js";
 import useMessageHandlers from "../hooks/chat/useMessageHandlers.js";
+import useAttachHandlers from "../hooks/chat/useAttachHandlers.js";
 import usePreparedMessages from "../hooks/chat/usePreparedMessages.js";
 
 // Context
@@ -42,6 +43,8 @@ import BottomBar from "../components/chat/content/BottomBar";
 import MessageList from "../components/chat/content/MessageList";
 import MenuSheet from "../components/chat/content/MenuSheet";
 
+import UploadFileModal from "../components/modals/uploadFile";
+
 const ChatContent = ({ onBack, contentView }) => {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
@@ -49,7 +52,8 @@ const ChatContent = ({ onBack, contentView }) => {
   const styles = createStyle(theme);
   const [newMessageText, setNewMessageText] = useState("");
   const [isVoiceMessage, setVoiceMessage] = useState(true);
-  const [isFileMenuOpen, setIsFileMenuOpen] = useState(false);
+  const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
+  const [isFileModalVisible, setIsFileModalVisible] = useState(false);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
   const [isMicClicked, setIsMicClicked] = useState(false);
   const [sheetIndex, setSheetIndex] = useState(-1);
@@ -71,21 +75,19 @@ const ChatContent = ({ onBack, contentView }) => {
   const preparedMessages = usePreparedMessages(messages);
 
   // Hook per message handlers
-  const {
-    handleSendMessage,
-    handleTextChanging,
-    handleMenuItemPress,
-    handleSendVoiceMessage,
-  } = useMessageHandlers(
-    chat,
-    selectedChatUUID,
-    setSelectedChatUUID,
-    setMessages,
-    setNewMessageText,
-    setVoiceMessage,
-    setIsMicClicked,
-    sheetIndex, // Per close menu in pickImage
-    myUUID
+  const { handleSendMessage, handleSendFileMessage, handleTextChanging } =
+    useMessageHandlers(
+      chat,
+      myUUID,
+      setNewMessageText,
+      setVoiceMessage,
+      setIsMicClicked
+    );
+
+  const { attachType, handleMenuItemPress, handleFilePick } = useAttachHandlers(
+    setIsAttachMenuOpen,
+    setSheetIndex,
+    setIsFileModalVisible
   );
 
   const handleJoin = useCallback(async () => {
@@ -141,17 +143,17 @@ const ChatContent = ({ onBack, contentView }) => {
     }
   }, []);
 
-  const handleToggleMenu = useCallback(() => {
+  const handleToggleAttachMenu = useCallback(() => {
     if (sheetIndex === -1) {
       setSheetIndex(0);
-      setIsFileMenuOpen(true);
+      setIsAttachMenuOpen(true);
     } else {
       if (Platform.OS === "web") {
         setSheetIndex(-1);
-        setIsFileMenuOpen(false);
+        setIsAttachMenuOpen(false);
       } else {
         bottomSheetRef.current?.close();
-        setIsFileMenuOpen(false);
+        setIsAttachMenuOpen(false);
       }
     }
   }, [sheetIndex]);
@@ -185,6 +187,15 @@ const ChatContent = ({ onBack, contentView }) => {
             theme={theme}
           />
         </View>
+        <UploadFileModal
+          visible={isFileModalVisible}
+          onClose={() => {
+            setIsFileModalVisible(false);
+          }}
+          type={attachType}
+          handleFilePick={handleFilePick}
+          handleSendMessage={handleSendFileMessage}
+        />
         <KeyboardAvoidingView
           behavior="padding"
           keyboardVerticalOffset={30}
@@ -197,20 +208,18 @@ const ChatContent = ({ onBack, contentView }) => {
         >
           <BottomBar
             chat={chat}
+            onJoin={handleJoin}
             newMessageText={newMessageText}
-            onSendVoiceMessage={handleSendVoiceMessage}
-            isVoiceMessage={isVoiceMessage}
             textInputRef={textInputRef}
             onTextChange={(text) => {
               setNewMessageText(text);
               handleTextChanging(text, isMicClicked);
             }}
             onSendMessage={handleSendMessage}
-            isFileMenuOpen={isFileMenuOpen}
-            onToggleMenu={handleToggleMenu}
+            isAttachMenuOpen={isAttachMenuOpen}
+            onToggleAttachMenu={handleToggleAttachMenu}
             onToggleEmoji={toggleEmojiPicker}
             onInputFocus={onInputFocus}
-            onJoin={handleJoin}
             setBottomBarHeight={setBottomBarHeight}
           />
         </KeyboardAvoidingView>
