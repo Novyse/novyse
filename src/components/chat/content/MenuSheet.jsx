@@ -20,7 +20,7 @@ const createStyle = (theme) =>
     sheetBackground: {
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
-      backgroundColor: theme.backgroundSecondary || "#F0F0F0",
+      backgroundColor: theme.backgroundSecondary || "#00b7ff",
     },
     handleIndicator: {
       backgroundColor: theme.divider || "#ccc",
@@ -140,8 +140,8 @@ const MenuSheet = ({
                     item.action,
                     item.iconName,
                     item.color,
-                    item.disabled
-                  )
+                    item.disabled,
+                  ),
                 )}
               </View>
             </View>
@@ -176,9 +176,14 @@ const MenuSheet = ({
                 >
                   <View style={styles.sheetContent}>
                     <View style={styles.menuRow}>
-                      {renderMenuItem("Gallery", "images", "royalblue")}
-                      {renderMenuItem("File", "document", "gray")}
-                      {renderMenuItem("Camera", "camera", "darkorange")}
+                      {items.map((item) =>
+                        renderMenuItem(
+                          item.action,
+                          item.iconName,
+                          item.color,
+                          item.disabled,
+                        ),
+                      )}
                     </View>
                   </View>
                 </BottomSheet>

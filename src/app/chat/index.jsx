@@ -11,7 +11,7 @@ export default function ChatIndex() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-  const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] =
+  const [isCreateChatModalVisible, setIsCreateChatModalVisible] =
     useState(false);
   const [sidebarPosition] = useState(new Animated.Value(-250));
 
@@ -25,7 +25,7 @@ export default function ChatIndex() {
       <Sidebar
         isSidebarVisible={isSidebarVisible}
         toggleSidebar={toggleSidebar}
-        setIsCreateGroupModalVisible={setIsCreateGroupModalVisible}
+        setIsCreateChatModalVisible={setIsCreateChatModalVisible}
         handleSettingsPress={() => router.navigate("/settings")}
         logout={() => auth.logout(router, false)}
         sidebarPosition={sidebarPosition}
@@ -36,8 +36,8 @@ export default function ChatIndex() {
         toggleSidebar={toggleSidebar}
       />
       <CreateGroupModal
-        visible={isCreateGroupModalVisible}
-        onClose={() => setIsCreateGroupModalVisible(false)}
+        visible={isCreateChatModalVisible}
+        onClose={() => setIsCreateChatModalVisible(false)}
       />
     </>
   );
