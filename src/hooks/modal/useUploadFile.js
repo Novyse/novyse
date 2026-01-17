@@ -46,7 +46,7 @@ const useUploadFile = (
     const invalidFilesData = [];
     newFiles.forEach((file, index) => {
       const errors = [];
-      if (file.size > maxSingleSize) {
+      if (file.size || file.fileSize > maxSingleSize) {
         errors.push(
           "File size exceeds maximum allowed size of " +
             formatFileSize(maxSingleSize),

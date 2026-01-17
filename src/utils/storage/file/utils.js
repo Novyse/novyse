@@ -20,7 +20,7 @@ const formatFileSize = (size) => {
 };
 
 const calculateTotalSize = (files) => {
-  return files.reduce((total, file) => total + (file.size || 0), 0);
+  return files.reduce((total, file) => total + (file.size || file.fileSize || 0), 0);
 };
 
 export { formatTime, formatDuration, formatFileSize, calculateTotalSize };

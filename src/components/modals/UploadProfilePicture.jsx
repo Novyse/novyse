@@ -48,9 +48,6 @@ const UploadProfilePicture = ({ visible, onClose }) => {
   const { handleFilePick } = useAttachHandlers();
 
   const handleOnChooseFile = async () => {
-    if (invalidFiles.length > 0) return;
-    if (error) return;
-
     const result = await handleFilePick(type, true);
 
     if (!result) return;
@@ -68,9 +65,9 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       if (!file) throw new Error("No file to upload");
       // Get presigned URL from backend
       const presignResponse = await gateway.user.profile.picture.update(
-        file.name,
+        file.name || file.fileName,
         file.mimeType,
-        file.size,
+        file.size || file.fileSize,
       );
       const { success, fileUUID, uploadURL, expiresAt } = presignResponse;
       if (!success) throw new Error("Failed to get presigned URL");
@@ -95,9 +92,9 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       const database = await Database.create();
       await database.file.add(
         profilePictureUUID,
-        file.name,
+        file.name || file.fileName,
         file.mimeType,
-        file.size,
+        file.size || file.fileSize,
       );
 
       // Add file to local storage

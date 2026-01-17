@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 
 import Icon from "@/src/components/Icon";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
@@ -60,26 +55,33 @@ const Dropzone = ({
             );
             const isInvalid = !!invalidFile;
             return (
-              <View key={index} style={styles.fileItem}>
-                <Icon name="FileIcon" size={16} color={theme.text} />
-                <Text
-                  style={[styles.fileName, isInvalid && styles.invalidFileName]}
-                >
-                  {file.name}
-                </Text>
+              <>
+                <View key={index} style={styles.fileItem}>
+                  <Icon name="FileIcon" size={16} color={theme.text} />
+                  <Text
+                    style={[
+                      styles.fileName,
+                      isInvalid && styles.invalidFileName,
+                    ]}
+                  >
+                    {file.name || file.fileName}
+                  </Text>
+                  <Text style={styles.fileSize}>
+                    {formatFileSize(file.size || file.fileSize)}
+                  </Text>
+                  <HoverAndPressedButton
+                    style={styles.removeBtn}
+                    onPress={() => onRemoveFile(index)}
+                  >
+                    <Icon name="Cancel01Icon" size={14} color={theme.text} />
+                  </HoverAndPressedButton>
+                </View>
                 {isInvalid && (
                   <Text style={styles.fileError}>
                     {invalidFile.errors.join(", ")}
                   </Text>
                 )}
-                <Text style={styles.fileSize}>{formatFileSize(file.size)}</Text>
-                <HoverAndPressedButton
-                  style={styles.removeBtn}
-                  onPress={() => onRemoveFile(index)}
-                >
-                  <Icon name="Cancel01Icon" size={14} color={theme.text} />
-                </HoverAndPressedButton>
-              </View>
+              </>
             );
           })}
         </ScrollView>
@@ -152,7 +154,6 @@ const createStyle = (theme) =>
     fileItem: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 8,
       justifyContent: "space-between",
     },
     fileName: {
@@ -169,6 +170,7 @@ const createStyle = (theme) =>
       color: "red",
       fontSize: 10,
       marginLeft: 4,
+      marginBottom: 8,
     },
     fileSize: {
       color: theme.placeholderText,

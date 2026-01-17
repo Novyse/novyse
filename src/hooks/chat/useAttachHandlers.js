@@ -8,7 +8,8 @@ import { openNativeFileMenu } from "@/src/utils/storage/file/handler.js";
 const useAttachHandlers = (
   setIsAttachMenuOpen,
   setSheetIndex,
-  setIsFileModalVisible
+  bottomSheetRef,
+  setIsFileModalVisible,
 ) => {
   const [attachType, setAttachType] = useState(null);
 
@@ -23,7 +24,7 @@ const useAttachHandlers = (
       case "Todo":
         Alert.alert(
           "Not implemented",
-          `${item} attachment is not implemented yet.`
+          `${item} attachment is not implemented yet.`,
         );
         break;
       default:
@@ -55,7 +56,7 @@ const useAttachHandlers = (
     if (getPlatform() === "web") {
       setSheetIndex(-1);
     } else {
-      // Assumi bottomSheetRef.current?.close() sia gestito esternamente
+      bottomSheetRef.current?.close();
     }
   };
 

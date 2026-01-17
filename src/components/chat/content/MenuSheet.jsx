@@ -73,6 +73,7 @@ const MenuSheet = ({
   sheetIndex,
   onSheetChange,
   onMenuItemPress,
+  onSendMessage,
   bottomSheetRef,
   theme,
 }) => {
@@ -112,11 +113,18 @@ const MenuSheet = ({
     },
   ];
 
+  const handleMenuItemPress = async (action) => {
+    const files = await onMenuItemPress(action);
+    if (files && (action === "Media" || action === "File")) {
+      onSendMessage(files);
+    }
+  }
+
   const renderMenuItem = (action, iconName, color, disabled) => (
     <HoverAndPressedButton
       key={action}
       style={styles.menuItem}
-      onPress={() => onMenuItemPress(action)}
+      onPress={() => handleMenuItemPress(action)}
       disabled={disabled}
     >
       <Icon name={iconName} size={32} color={color} />

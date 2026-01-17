@@ -63,8 +63,7 @@ export const openNativeFileMenu = async (type) => {
 const openMobileFileMenu = async (type) => {
   switch (type) {
     case "Image":
-      pickMedia(["images"]);
-      break;
+      return await pickMedia(["images"]);
     case "Media":
       return await pickMedia();
     case "File":

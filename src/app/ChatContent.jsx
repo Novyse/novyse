@@ -62,7 +62,7 @@ const ChatContent = ({ onBack, contentView }) => {
     useContext(ChatContext);
   const { chat, messages, setMessages, loading } = useChatData(
     selectedChatUUID,
-    selectedHandle
+    selectedHandle,
   );
   const { userUUID: myUUID } = useContext(UserContext);
 
@@ -81,13 +81,14 @@ const ChatContent = ({ onBack, contentView }) => {
       myUUID,
       setNewMessageText,
       setVoiceMessage,
-      setIsMicClicked
+      setIsMicClicked,
     );
 
   const { attachType, handleMenuItemPress, handleFilePick } = useAttachHandlers(
     setIsAttachMenuOpen,
     setSheetIndex,
-    setIsFileModalVisible
+    bottomSheetRef,
+    setIsFileModalVisible,
   );
 
   const handleJoin = useCallback(async () => {
@@ -115,7 +116,7 @@ const ChatContent = ({ onBack, contentView }) => {
     };
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
-      backAction
+      backAction,
     );
     return () => {
       backHandler.remove();
@@ -133,13 +134,14 @@ const ChatContent = ({ onBack, contentView }) => {
       setNewMessageText((prevText) => prevText + emoji);
       setVoiceMessage(false);
     },
-    [setNewMessageText, setVoiceMessage]
+    [setNewMessageText, setVoiceMessage],
   );
 
   const handleSheetChange = useCallback((index) => {
     setSheetIndex(index);
     if (index === -1) {
       textInputRef.current?.focus();
+      setIsAttachMenuOpen(false);
     }
   }, []);
 
@@ -229,6 +231,7 @@ const ChatContent = ({ onBack, contentView }) => {
           sheetIndex={sheetIndex}
           onSheetChange={handleSheetChange}
           onMenuItemPress={handleMenuItemPress}
+          onSendMessage={handleSendFileMessage}
           bottomSheetRef={bottomSheetRef}
           theme={theme}
         />
