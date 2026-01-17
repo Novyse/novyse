@@ -34,7 +34,7 @@ export default function ChatLayout() {
   const params = useLocalSearchParams();
   const { theme } = useContext(ThemeContext);
   const { isConnected } = useContext(NetworkContext);
-  const { setUserUUID } = useContext(UserContext);
+  const { setUserUUID, setProfilePictureUUID } = useContext(UserContext);
   const {
     setSelectedChatUUID,
     setSelectedHandle,
@@ -52,10 +52,11 @@ export default function ChatLayout() {
     const initApp = async () => {
       const userUUID = await auth.getUserUUID();
       if (userUUID) setUserUUID(userUUID);
+
       await auth.update();
     };
     initApp();
-  }, [setUserUUID]);
+  }, [setUserUUID, setProfilePictureUUID]);
 
   useEffect(() => {
     const handleParams = async () => {
@@ -77,7 +78,7 @@ export default function ChatLayout() {
 
   const toggleSidebar = useCallback(
     () => setIsSidebarVisible((prev) => !prev),
-    []
+    [],
   );
 
   const renderCommsMenu = () => {

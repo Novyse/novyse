@@ -1,30 +1,154 @@
 import React, { useContext } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  Modal,
-} from "react-native";
+import { View, StyleSheet, Image } from "react-native";
 
 import ModalBase from "./ModalBase";
+import Avatar from "../Avatar";
 import Dropzone from "./uploadFile/Dropzone";
 import Footer from "./uploadFile/Footer";
+import StatusMessage from "../StatusMessage";
 
 import { ThemeContext } from "@/context/ThemeContext";
+import { UserContext } from "@/context/UserContext";
+
+import useUploadFile from "@/src/hooks/modal/useUploadFile.js";
+import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers.js";
+
+import gateway from "@/src/utils/backend-services/api-gateway";
+import S3Uploader from "@/src/utils/storage/file/s3Bucket";
+import storage from "@/src/utils/storage/file";
+import Database from "@/src/utils/storage/database";
 
 const UploadProfilePicture = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
+  const {
+    userUUID,
+    profilePictureUUID: myProfilePictureUUID,
+    setProfilePictureUUID: setMyProfilePictureUUID,
+  } = useContext(UserContext);
+
+  const maxFile = 1;
+  const maxSingleSize = 52428800; // 50MB
+  const maxTotalSize = 52428800; // 2GB
+
+  const type = "Image";
+
+  const {
+    files,
+    setFiles,
+    error,
+    setError,
+    invalidFiles,
+    setInvalidFiles,
+    checkErrors,
+    removeAllFiles,
+    removeFileAtIndex,
+  } = useUploadFile(type, maxFile, maxSingleSize, maxTotalSize);
+
+  const { handleFilePick } = useAttachHandlers();
+
+  const handleOnChooseFile = async () => {
+    if (invalidFiles.length > 0) return;
+    if (error) return;
+
+    const result = await handleFilePick(type, true);
+
+    if (!result) return;
+
+    const newFiles = [...result];
+    setFiles(newFiles);
+
+    // Validate files
+    checkErrors(newFiles);
+  };
+
+  const uploadProfilePicture = async () => {
+    try {
+      const file = files[0];
+      if (!file) throw new Error("No file to upload");
+      // Get presigned URL from backend
+      const presignResponse = await gateway.user.profile.picture.update(
+        file.name,
+        file.mimeType,
+        file.size,
+      );
+      const { success, fileUUID, uploadURL, expiresAt } = presignResponse;
+      if (!success) throw new Error("Failed to get presigned URL");
+
+      // Upload to S3
+      const uploadResult = await S3Uploader.upload(
+        uploadURL,
+        file.uri,
+        () => {},
+      );
+      if (!uploadResult) throw new Error("Failed to upload file to S3");
+
+      // Confirm upload to backend
+      const confirmResponse =
+        await gateway.user.profile.picture.confirm(fileUUID);
+      const { success: confirmSuccess, profilePictureUUID } = confirmResponse;
+      if (!confirmSuccess)
+        throw new Error("Failed to confirm upload with backend");
+
+      // Update local state
+      // Add to database
+      const database = await Database.create();
+      await database.file.add(
+        profilePictureUUID,
+        file.name,
+        file.mimeType,
+        file.size,
+      );
+
+      // Add file to local storage
+      const { ref, size } = await storage.save.byUri(file.uri);
+
+      // Add ref to database
+      await database.file.update.ref(profilePictureUUID, ref);
+
+      // Link to local user
+      await database.user.profile.picture.set(userUUID, profilePictureUUID);
+
+      setMyProfilePictureUUID(profilePictureUUID);
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      setError("Error uploading profile picture: " + error.message);
+    }
+  };
+
+  const handleFooterRightButtonPress = async () => {
+    if (files.length === 0) return;
+    if (invalidFiles.length > 0) return;
+    if (error) return;
+
+    if (checkErrors(files)) return;
+
+    await uploadProfilePicture();
+    setFiles([]);
+    setError(null);
+    setInvalidFiles([]);
+    onClose();
+  };
+
   return (
     <ModalBase visible={visible} onClose={onClose} theme={theme}>
       <View style={styles.container}>
         {/* Avatar Preview */}
         <View style={styles.avatarContainer}>
-          <Image
-            source={{ uri: "https://picsum.photos/200" }} // Sostituisci con l'immagine reale
-            style={styles.avatar}
+          <Avatar
+            uuid={
+              myProfilePictureUUID &&
+              (!files[0] || !!error || invalidFiles.length > 0)
+                ? myProfilePictureUUID
+                : null
+            }
+            uri={
+              files[0] && !error && invalidFiles.length === 0
+                ? files[0].uri
+                : null
+            }
+            size={120}
+            theme={theme}
           />
         </View>
 
@@ -32,10 +156,15 @@ const UploadProfilePicture = ({ visible, onClose }) => {
         <Dropzone
           title="Drag and drop your image here"
           subtitle="JPG, PNG or GIF."
-          maxFile={1}
-          maxSingleSize={52428800}
-          maxTotalSize={52428800}
-          typeFile="IMAGE"
+          files={files}
+          onChooseFile={handleOnChooseFile}
+          onRemoveFile={removeFileAtIndex}
+          removeAllFiles={removeAllFiles}
+          invalidFiles={invalidFiles}
+          maxSingleSize={maxSingleSize}
+          maxTotalSize={maxTotalSize}
+          maxFile={maxFile}
+          typeFile={type}
           theme={theme}
         />
         {/* Footer Buttons */}
@@ -43,9 +172,23 @@ const UploadProfilePicture = ({ visible, onClose }) => {
           leftButtonText="Cancel"
           rightButtonText="Upload"
           leftBtnOnPress={onClose}
-          rightButtonOnPress={() => {}}
+          rightButtonOnPress={handleFooterRightButtonPress}
+          leftBtnDisabled={false}
+          rightBtnDisabled={
+            files.length === 0 || invalidFiles.length > 0 || !!error
+          }
           theme={theme}
         />
+        {error && (
+          <StatusMessage
+            isVisible={true}
+            type="error"
+            content={[error]}
+            onClose={() => {
+              setError(null);
+            }}
+          />
+        )}
       </View>
     </ModalBase>
   );
@@ -81,7 +224,7 @@ const createStyles = (theme) => {
       overflow: "hidden",
       marginBottom: 30,
       borderWidth: 2,
-      borderColor: "#1A1D23",
+      borderColor: theme.primary,
       alignSelf: "center",
     },
     avatar: {

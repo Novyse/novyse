@@ -35,7 +35,7 @@ const UploadFile = ({
     checkErrors,
     removeAllFiles,
     removeFileAtIndex,
-  } = useUploadFile(maxFile, maxSingleSize, maxTotalSize);
+  } = useUploadFile("All", maxFile, maxSingleSize, maxTotalSize);
 
   const handleOnChooseFile = async () => {
     if (invalidFiles.length > 0) return;
@@ -80,7 +80,7 @@ const UploadFile = ({
           maxSingleSize={maxSingleSize}
           maxTotalSize={maxTotalSize}
           maxFile={maxFile}
-          typeFile={"ALL"}
+          typeFile={"All"}
           theme={theme}
         />
         <Footer
@@ -89,6 +89,8 @@ const UploadFile = ({
           rightButtonText="Send message"
           leftBtnOnPress={null}
           rightButtonOnPress={handleFooterRightButtonPress}
+          leftBtnDisabled={true}
+          rightBtnDisabled={files.length === 0 || invalidFiles.length > 0 || !!error}
           theme={theme}
         />
         {error && (

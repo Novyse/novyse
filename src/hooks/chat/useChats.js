@@ -1,10 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import Database from "@/src/utils/storage/database";
 import utils from "@/src/utils/chat";
 import { getFileType } from "@/src/utils/storage/file/type";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 
+import { UserContext } from "@/context/UserContext";
+
 const useChats = () => {
+  const { profilePictureUUID: myProfilePictureUUID } = useContext(UserContext);
+
   const [chatDetails, setChatDetails] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,7 +24,10 @@ const useChats = () => {
           const lastMessage = await getLastMesssage(chat.uuid);
 
           const { name, profilePictureUUID } =
-            await utils.getChatNameAndProfilePicture(chat);
+            await utils.getChatNameAndProfilePicture(
+              chat,
+              myProfilePictureUUID,
+            );
 
           details[chat.uuid] = {
             uuid: chat.uuid,
@@ -116,7 +123,9 @@ const formatMessage = async (messageRef) => {
     } else if (message.type == "message") {
       if (!message.content) {
         if (message.files && message.files.length > 0) {
-          const types = message.files.map(file => getFileType(file.mimeType, file.name));
+          const types = message.files.map((file) =>
+            getFileType(file.mimeType, file.name),
+          );
           const uniqueTypes = [...new Set(types)];
           if (uniqueTypes.length === 1) {
             const type = uniqueTypes[0];
@@ -125,18 +134,44 @@ const formatMessage = async (messageRef) => {
               IMAGE: { emoji: "📷", singular: "Image", plural: "Images" },
               VIDEO: { emoji: "📹", singular: "Video", plural: "Videos" },
               AUDIO: { emoji: "🎵", singular: "Audio", plural: "Audios" },
-              VOICE: { emoji: "🎤", singular: "Voice Message", plural: "Voice Messages" },
-              DOCUMENT: { emoji: "📄", singular: "Document", plural: "Documents" },
-              CODE: { emoji: "💻", singular: "Code File", plural: "Code Files" },
-              ARCHIVE: { emoji: "🗄️", singular: "Archive File", plural: "Archive Files" },
+              VOICE: {
+                emoji: "🎤",
+                singular: "Voice Message",
+                plural: "Voice Messages",
+              },
+              DOCUMENT: {
+                emoji: "📄",
+                singular: "Document",
+                plural: "Documents",
+              },
+              CODE: {
+                emoji: "💻",
+                singular: "Code File",
+                plural: "Code Files",
+              },
+              ARCHIVE: {
+                emoji: "🗄️",
+                singular: "Archive File",
+                plural: "Archive Files",
+              },
             };
-            const { emoji, singular, plural } = fileTypeMap[type] || { emoji: "📎", singular: "File", plural: "Files" };
-            message.content = count === 1 ? `${emoji} ${singular}` : `${count} ${emoji} ${plural}`;
-         } 
-          else {
-          const hasOnlyMedia = uniqueTypes.every(type => type === 'IMAGE' || type === 'VIDEO');
-          message.content = hasOnlyMedia ? `${message.files.length} 📎 Media` : `${message.files.length} 📎 Files`;
-         }
+            const { emoji, singular, plural } = fileTypeMap[type] || {
+              emoji: "📎",
+              singular: "File",
+              plural: "Files",
+            };
+            message.content =
+              count === 1
+                ? `${emoji} ${singular}`
+                : `${count} ${emoji} ${plural}`;
+          } else {
+            const hasOnlyMedia = uniqueTypes.every(
+              (type) => type === "IMAGE" || type === "VIDEO",
+            );
+            message.content = hasOnlyMedia
+              ? `${message.files.length} 📎 Media`
+              : `${message.files.length} 📎 Files`;
+          }
         }
       }
     }

@@ -10,11 +10,14 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DateTime } from "luxon";
+
 import SmartBackground from "../components/SmartBackground";
 import Search from "./Search";
 import HoverAndPressedButton from "../components/HoverAndPressedButton";
 import Icon from "../components/Icon";
 import HeaderBase from "../components/HeaderBase";
+import Avatar from "../components/Avatar";
+
 import useChats from "../hooks/chat/useChats";
 import { UserContext } from "@/context/UserContext";
 import BlurredView from "../components/BlurredView";
@@ -75,8 +78,9 @@ const ChatListItem = React.memo(
               <Icon name={"Tick02Icon"} size={24} />
             </View>
           )}
-          <Image
-            source={{ uri: "https://picsum.photos/200" }}
+          <Avatar
+            uuid={item.profilePictureUUID}
+            theme={theme}
             style={styles.avatar}
           />
           <View style={styles.chatItemGrid}>
@@ -114,7 +118,7 @@ const ChatListItem = React.memo(
         </HoverAndPressedButton>
       </SmartBackground>
     );
-  }
+  },
 );
 
 const ChatList = ({ onChatSelect, toggleSidebar }) => {
@@ -141,7 +145,7 @@ const ChatList = ({ onChatSelect, toggleSidebar }) => {
       }
       try {
         const savedOrderJSON = await AsyncStorage.getItem(
-          PINNED_CHATS_STORAGE_KEY
+          PINNED_CHATS_STORAGE_KEY,
         );
         const savedOrderIds = savedOrderJSON ? JSON.parse(savedOrderJSON) : [];
         const orderMap = new Map(savedOrderIds.map((id, index) => [id, index]));
@@ -167,7 +171,7 @@ const ChatList = ({ onChatSelect, toggleSidebar }) => {
       setSelectedItems((current) =>
         current.includes(chatUUID)
           ? current.filter((id) => id !== chatUUID)
-          : [...current, chatUUID]
+          : [...current, chatUUID],
       );
     } else {
       onChatSelect(chatUUID);
@@ -176,17 +180,17 @@ const ChatList = ({ onChatSelect, toggleSidebar }) => {
 
   const handlePinItems = async () => {
     const selectedChats = orderedChats.filter((chat) =>
-      selectedItems.includes(chat.uuid)
+      selectedItems.includes(chat.uuid),
     );
     const unselectedChats = orderedChats.filter(
-      (chat) => !selectedItems.includes(chat.uuid)
+      (chat) => !selectedItems.includes(chat.uuid),
     );
     const newOrderedList = [...selectedChats, ...unselectedChats];
     setOrderedChats(newOrderedList);
     try {
       await AsyncStorage.setItem(
         PINNED_CHATS_STORAGE_KEY,
-        JSON.stringify(newOrderedList.map((chat) => chat.uuid))
+        JSON.stringify(newOrderedList.map((chat) => chat.uuid)),
       );
     } catch (e) {}
     setSelectedItems([]);
@@ -207,7 +211,7 @@ const ChatList = ({ onChatSelect, toggleSidebar }) => {
         />
       </HeaderBase>
     ),
-    [toggleSidebar, styles.logo]
+    [toggleSidebar, styles.logo],
   );
 
   const renderSelectionHeader = useCallback(
@@ -224,7 +228,7 @@ const ChatList = ({ onChatSelect, toggleSidebar }) => {
         <Icon name={"PinIcon"} size={32} onPress={handlePinItems} />
       </HeaderBase>
     ),
-    [selectedItems.length, styles.headerTitle]
+    [selectedItems.length, styles.headerTitle],
   );
 
   const renderItem = ({ item }) => (
@@ -296,13 +300,23 @@ function createStyle(theme, isSmallScreen) {
     flatList: {
       flex: 1,
       ...(Platform.OS === "web" && {
+        scrollbarWidth: "thin",
+        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
+
         "::-webkit-scrollbar": {
           width: 6,
           backgroundColor: theme.backgroundScrollbar,
         },
+        "::-webkit-scrollbar-track": {
+          backgroundColor: theme.backgroundScrollbar,
+          borderRadius: 3,
+        },
         "::-webkit-scrollbar-thumb": {
           backgroundColor: theme.scrollbar,
           borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb:hover": {
+          backgroundColor: theme.scrollbarHover,
         },
       }),
     },

@@ -9,6 +9,8 @@ const HoverAndPressedButton = ({
   style = {},
   hoveredStyle = {},
   pressedStyle = {},
+  onMouseEnter = () => {},
+  onMouseLeave = () => {},
   disabled,
 }) => {
   const { theme } = useContext(ThemeContext);
@@ -25,6 +27,8 @@ const HoverAndPressedButton = ({
       ]}
       onPress={onPress}
       onLongPress={onLongPress}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       disabled={disabled}
     >
       {children}

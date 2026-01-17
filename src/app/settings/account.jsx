@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
@@ -11,6 +11,7 @@ import SettingsCard from "@/src/components/settings/SettingsCard";
 import Icon from "@/src/components/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import UploadProfilePicture from "@/src/components/modals/UploadProfilePicture";
+import Avatar from "@/src/components/Avatar";
 
 const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
@@ -21,7 +22,6 @@ const ProfilePage = () => {
     surname: "",
     handle: "",
     email: "",
-    profileImageUri: "",
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
@@ -39,11 +39,10 @@ const ProfilePage = () => {
       const user = await database.getLocalUser();
       if (user) {
         setUserData({
-          name: user.name || "",
-          surname: user.surname || "",
-          handle: user.handle || "",
-          email: user.email || "",
-          profileImageUri: user.profileImageUri || "https://picsum.photos/200", // Default or from user
+          name: user.name,
+          surname: user.surname,
+          handle: user.handle,
+          email: user.email,
         });
       }
     } catch (error) {
@@ -88,22 +87,19 @@ const ProfilePage = () => {
         />
         {/* Profile Image Section */}
         <View style={styles.profileImageSection}>
-          <TouchableOpacity
+          <HoverAndPressedButton
             onPress={pickImage}
             style={styles.profileImageContainer}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            <Image
-              source={{ uri: userData.profileImageUri }}
-              style={[styles.profileImage, { opacity: isHovered ? 0.5 : 1 }]}
-            />
+            <Avatar size={120} mySelf={true} theme={theme} />
             {isHovered && (
               <View style={styles.editIconContainer}>
                 <Icon name="PencilEdit02Icon" size={24} color={theme.text} />
               </View>
             )}
-          </TouchableOpacity>
+          </HoverAndPressedButton>
           <Text style={styles.profileName}>
             {userData.name && userData.surname
               ? `${userData.name} ${userData.surname}`
@@ -152,11 +148,6 @@ const createStyle = (theme) =>
       borderWidth: 3,
       borderColor: theme.primary,
       overflow: "hidden",
-    },
-    profileImage: {
-      width: 110,
-      height: 110,
-      borderRadius: 55,
     },
     profileName: {
       color: theme.text,

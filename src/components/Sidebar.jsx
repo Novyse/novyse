@@ -1,13 +1,10 @@
-import React, { use, useContext, useEffect, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Animated,
-  Image,
-} from "react-native";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
+
+import Avatar from "./Avatar";
+
 import { ThemeContext } from "@/context/ThemeContext";
+
 import SmartBackground from "./SmartBackground";
 import SidebarItem from "./SidebarItem";
 import { useRouter } from "expo-router";
@@ -96,10 +93,7 @@ const Sidebar = ({
         >
           <View style={styles.profileContainer}>
             <View style={styles.avatar}>
-              <Image
-                source={{ uri: "https://picsum.photos/200" }}
-                style={styles.avatar}
-              />
+              <Avatar size={50} mySelf={true} theme={theme} />
             </View>
             <View style={styles.profileTextContainer}>
               <Text style={styles.profileName}>
@@ -201,8 +195,6 @@ function createStyle(theme, colorScheme) {
       flex: 1,
     },
     avatar: {
-      width: 50,
-      height: 50,
       marginBottom: 15,
       borderRadius: 25,
       alignSelf: "flex-start",

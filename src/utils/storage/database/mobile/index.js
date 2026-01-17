@@ -190,7 +190,7 @@ class Database {
         return false;
       }
       const result = await this.db.getAllAsync(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='user';"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='user';",
       );
       return result.length > 0;
     } catch (error) {
@@ -202,7 +202,7 @@ class Database {
   async clear() {
     try {
       const tables = await this.db.getAllAsync(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';",
       );
       const dropStatements = tables
         .map((table) => `DROP TABLE IF EXISTS ${table.name};`)
@@ -231,7 +231,7 @@ class Database {
             name: user?.name,
             surname: user?.surname,
             handle: user?.handle,
-          })
+          }),
         );
         return false;
       }
@@ -247,14 +247,14 @@ class Database {
           user.name,
           user.surname,
           user.profilePictureUUID || null,
-        ]
+        ],
       );
       // Insert handle into the handle table
       await this.db.runAsync(
         `
         INSERT OR IGNORE INTO handle (userUUID, type, handle) VALUES (?, 'USER', ?);
       `,
-        [user.uuid, user.handle]
+        [user.uuid, user.handle],
       );
       console.log("User added successfully.", user.name);
       return true;
@@ -287,7 +287,7 @@ class Database {
             members: Array.isArray(chat?.members)
               ? chat.members.length
               : "not an array",
-          })
+          }),
         );
         return false;
       }
@@ -300,13 +300,13 @@ class Database {
           chat.name || null,
           chat.description || null,
           chat.profilePictureUUID || null,
-        ]
+        ],
       );
       // If exist insert handle into the handle table
       if (chat.handle) {
         await this.db.runAsync(
           `INSERT OR IGNORE INTO handle (chatUUID, type, handle) VALUES (?, 'CHAT', ?);`,
-          [chat.uuid, chat.handle]
+          [chat.uuid, chat.handle],
         );
       }
       // Insert members into the member table
@@ -349,7 +349,7 @@ class Database {
           message.system_action || null,
           message.created_at,
           message.isPinned ? 1 : 0,
-        ]
+        ],
       );
 
       // Add files to file table and message_files table if present
@@ -365,11 +365,11 @@ class Database {
               file.size,
               file.waveform ? JSON.stringify(file.waveform) : null,
               file.duration,
-            ]
+            ],
           );
           await this.db.runAsync(
             `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES (?, ?, ?);`,
-            [message.chatUUID, message.id, file.uuid]
+            [message.chatUUID, message.id, file.uuid],
           );
         }
       }
@@ -406,7 +406,7 @@ class Database {
             type: pendingMessage?.type,
             chatUUID: pendingMessage?.chatUUID,
             senderUUID: pendingMessage?.senderUUID,
-          })
+          }),
         );
         return false;
       }
@@ -419,7 +419,7 @@ class Database {
           pendingMessage.senderUUID,
           pendingMessage.content || null,
           pendingMessage.type || "message",
-        ]
+        ],
       );
 
       // Insert files into pending_file table
@@ -428,7 +428,7 @@ class Database {
           const file = pendingMessage.files[i];
           await this.db.runAsync(
             `INSERT INTO pending_file (index, pendingMessageID, uri, mimeType) VALUES (?, ?, ?);`,
-            [i, pendingMessage.id, file.uri, file.mimeType]
+            [i, pendingMessage.id, file.uri, file.mimeType],
           );
         }
       }
@@ -454,21 +454,21 @@ class Database {
       // First, delete associated files from pending_file table
       await this.db.runAsync(
         `DELETE FROM pending_file WHERE pendingMessageID = ?;`,
-        [pendingMessageID]
+        [pendingMessageID],
       );
       // Then, delete the pending message
       const result = await this.db.runAsync(
         `DELETE FROM pending_message WHERE id = ?;`,
-        [pendingMessageID]
+        [pendingMessageID],
       );
       if (result.changes > 0) {
         console.log(
-          `Pending message ${pendingMessageID} and associated files removed successfully.`
+          `Pending message ${pendingMessageID} and associated files removed successfully.`,
         );
         return true;
       }
       console.log(
-        `Pending message ${pendingMessageID} not found. No action taken.`
+        `Pending message ${pendingMessageID} not found. No action taken.`,
       );
       return false;
     } catch (error) {
@@ -485,12 +485,12 @@ class Database {
   async getPendingMessages() {
     try {
       const pendingMessages = await this.db.getAllAsync(
-        "SELECT * FROM pending_message;"
+        "SELECT * FROM pending_message;",
       );
       for (const message of pendingMessages) {
         const files = await this.db.getAllAsync(
           "SELECT * FROM pending_file WHERE pendingMessageID = ?;",
-          [message.id]
+          [message.id],
         );
         message.files = files;
       }
@@ -511,12 +511,12 @@ class Database {
     try {
       const pendingMessages = await this.db.getAllAsync(
         "SELECT * FROM pending_message WHERE chatUUID = ?;",
-        [chatUUID]
+        [chatUUID],
       );
       for (const message of pendingMessages) {
         const files = await this.db.getAllAsync(
           "SELECT * FROM pending_file WHERE pendingMessageID = ?;",
-          [message.id]
+          [message.id],
         );
         message.files = files;
       }
@@ -537,7 +537,7 @@ class Database {
   async updatePendingMessageForUpload(
     pendingMessageID,
     newPendingMessageUUID,
-    files
+    files,
   ) {
     try {
       if (!pendingMessageID || !files) {
@@ -547,7 +547,7 @@ class Database {
       // Update pending_message table
       await this.db.runAsync(
         `UPDATE pending_message SET id = ?, jobType = 'upload' WHERE id = ?;`,
-        [newPendingMessageUUID, pendingMessageID]
+        [newPendingMessageUUID, pendingMessageID],
       );
       // Update pending_file table with new pendingMessageID, set s3Url to uploadURL and set new ref, removing the old uri
       for (let i = 0; i < files.length; i++) {
@@ -561,11 +561,11 @@ class Database {
             file.ref || null,
             i,
             pendingMessageID,
-          ]
+          ],
         );
       }
       console.log(
-        `Pending message ${pendingMessageID} updated successfully for upload.`
+        `Pending message ${pendingMessageID} updated successfully for upload.`,
       );
 
       return true;
@@ -589,7 +589,7 @@ class Database {
       // Update pending_message table
       await this.db.runAsync(
         `UPDATE pending_message SET jobType = 'confirm' WHERE id = ?;`,
-        [pendingMessageID]
+        [pendingMessageID],
       );
       return true;
     } catch (error) {
@@ -630,7 +630,7 @@ class Database {
         `SELECT m.*, u.name as sender_name FROM message m
              JOIN user u ON m.senderUUID = u.uuid
              WHERE m.chatUUID = ? ORDER BY m.created_at DESC LIMIT 1;`,
-        [chatUUID]
+        [chatUUID],
       );
       if (message) {
         // Retrieve associated files with mime types
@@ -638,7 +638,7 @@ class Database {
           `SELECT f.uuid, f.mimeType, f.name FROM file f
            JOIN message_files mf ON f.uuid = mf.fileUUID
            WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
-          [chatUUID, message.id]
+          [chatUUID, message.id],
         );
         message.files = files;
       }
@@ -659,7 +659,7 @@ class Database {
     try {
       const members = await this.db.getAllAsync(
         `SELECT userUUID FROM member WHERE chatUUID = ?;`,
-        [chatUUID]
+        [chatUUID],
       );
       if (members.length === 1) {
         // Return the single user
@@ -673,7 +673,7 @@ class Database {
         }
         // Return the user that is not the local user
         const otherUserUUID = members.find(
-          (m) => m.userUUID !== localUser.uuid
+          (m) => m.userUUID !== localUser.uuid,
         )?.userUUID;
         if (otherUserUUID) {
           const user = await this.getUserByUUID(otherUserUUID);
@@ -694,7 +694,7 @@ class Database {
     try {
       const user = await this.db.getFirstAsync(
         `SELECT * FROM user WHERE uuid = ?;`,
-        [userUUID]
+        [userUUID],
       );
       return user || null;
     } catch (error) {
@@ -725,7 +725,7 @@ class Database {
              JOIN user u ON m.senderUUID = u.uuid
              WHERE m.chatUUID = ?
                 ORDER BY m.created_at ASC;`,
-        [chatUUID]
+        [chatUUID],
       );
       // Add files to each message
       for (const message of messages) {
@@ -733,7 +733,7 @@ class Database {
           `SELECT f.* FROM file f
          JOIN message_files mf ON f.uuid = mf.fileUUID
          WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
-          [chatUUID, message.id]
+          [chatUUID, message.id],
         );
         message.files = files;
       }
@@ -748,7 +748,7 @@ class Database {
     try {
       const row = await this.db.getFirstAsync(
         `SELECT userUUID, chatUUID, botUUID, type FROM handle WHERE handle = ?;`,
-        [handle]
+        [handle],
       );
       if (row) {
         return {
@@ -772,7 +772,7 @@ class Database {
             WHERE m.userUUID = ? AND c.type = 'DM'
             LIMIT 1;
         `,
-        [userUUID]
+        [userUUID],
       );
       return chat || null;
     } catch (error) {
@@ -785,7 +785,7 @@ class Database {
     try {
       const chat = await this.db.getFirstAsync(
         `SELECT * FROM chat WHERE uuid = ?;`,
-        [chatUUID]
+        [chatUUID],
       );
       return chat || null;
     } catch (error) {
@@ -815,14 +815,14 @@ class Database {
       if (!chatUUID || !user || !user.uuid) {
         console.error(
           "Missing required fields to add member:",
-          JSON.stringify({ chatUUID, user: user ? user.uuid : null })
+          JSON.stringify({ chatUUID, user: user ? user.uuid : null }),
         );
         return false;
       }
       // Insert member into the member table
       await this.db.runAsync(
         `INSERT OR IGNORE INTO member (userUUID, chatUUID) VALUES (?, ?);`,
-        [user.uuid, chatUUID]
+        [user.uuid, chatUUID],
       );
       // Insert member user info into the user table
       await this.addUserInfo(user);
@@ -833,7 +833,49 @@ class Database {
       return false;
     }
   }
-
+  user = {
+    profile: {
+      picture: {
+        get: async (userUUID) => {
+          try {
+            const user = await this.db.getFirstAsync(
+              `SELECT profilePictureUUID FROM user WHERE uuid = ?;`,
+              [userUUID],
+            );
+            return user ? user.profilePictureUUID : null;
+          } catch (error) {
+            console.error("Error retrieving user profile picture:", error);
+            return null;
+          }
+        },
+        set: async (userUUID, pictureUUID) => {
+          try {
+            if (!userUUID || !pictureUUID) {
+              console.error(
+                "Missing required fields to set user profile picture.",
+              );
+              return false;
+            }
+            const result = await this.db.runAsync(
+              `UPDATE user SET profilePictureUUID = ? WHERE uuid = ?;`,
+              [pictureUUID, userUUID],
+            );
+            if (result.changes > 0) {
+              console.log(
+                "User profile picture updated successfully:",
+                userUUID,
+              );
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error("Error updating user profile picture:", error);
+            return false;
+          }
+        },
+      },
+    },
+  };
   file = {
     get: {
       /**
@@ -845,7 +887,7 @@ class Database {
         try {
           const file = await this.db.getFirstAsync(
             `SELECT ref FROM file WHERE uuid = ?;`,
-            [fileUUID]
+            [fileUUID],
           );
           return file ? file.ref : null;
         } catch (error) {
@@ -860,14 +902,14 @@ class Database {
       totalSize: async () => {
         try {
           const result = await this.db.getFirstAsync(
-            `SELECT SUM(size) as totalSize FROM file;`
+            `SELECT SUM(size) as totalSize FROM file;`,
           );
           return result ? result.totalSize : 0;
         } catch (error) {
           console.error("Error calculating total file size:", error);
           return 0;
         }
-      }
+      },
     },
     update: {
       /**
@@ -884,7 +926,7 @@ class Database {
           }
           const result = await this.db.runAsync(
             `UPDATE file SET ref = ? WHERE uuid = ?;`,
-            [newRef, fileUUID]
+            [newRef, fileUUID],
           );
           if (result.changes > 0) {
             console.log("File ref updated successfully:", fileUUID);
@@ -909,7 +951,7 @@ class Database {
           }
           const result = await this.db.runAsync(
             `UPDATE file SET waveform = ? WHERE uuid = ?;`,
-            [JSON.stringify(newWaveform), fileUUID]
+            [JSON.stringify(newWaveform), fileUUID],
           );
           if (result.changes > 0) {
             return true;
@@ -933,7 +975,7 @@ class Database {
           }
           const result = await this.db.runAsync(
             `UPDATE file SET duration = ? WHERE uuid = ?;`,
-            [newDuration, fileUUID]
+            [newDuration, fileUUID],
           );
           if (result.changes > 0) {
             return true;
@@ -944,6 +986,30 @@ class Database {
           return false;
         }
       },
+    },
+    /**
+     * Add a new file to the database.
+     * @param {String} uuid
+     * @param {String} name
+     * @param {String} mimeType
+     * @param {String} size
+     * @returns {boolean} true if file added successfully, false otherwise
+     */
+    add: async (uuid, name, mimeType, size) => {
+      try {
+        if (!uuid || !name || !mimeType || !size) {
+          console.error("Missing required fields to add file.");
+          return false;
+        }
+        await this.db.runAsync(
+          `INSERT OR IGNORE INTO file (uuid, name, mimeType, size) VALUES (?, ?, ?, ?);`,
+          [uuid, name, mimeType, size],
+        );
+        return true;
+      } catch (error) {
+        console.error("Error adding file:", error);
+        return false;
+      }
     },
   };
 
@@ -982,7 +1048,7 @@ class Database {
   async getAllInfoAllTableEverything() {
     try {
       const tables = await this.db.getAllAsync(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';",
       );
       const result = {};
       for (const table of tables) {

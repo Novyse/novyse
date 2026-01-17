@@ -1,9 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 
 import Icon from "@/src/components/Icon";
+import HoverAndPressedButton from "../../HoverAndPressedButton";
 
 import { formatFileSize } from "@/src/utils/storage/file/utils";
+import { getPlatform } from "@/src/utils/device/type";
 
 const Dropzone = ({
   title,
@@ -16,7 +23,7 @@ const Dropzone = ({
   maxSingleSize = 52428800,
   maxTotalSize = 2147483648,
   maxFile = 50,
-  typeFile = "ALL",
+  typeFile = "All",
   theme,
 }) => {
   const styles = createStyle(theme);
@@ -31,46 +38,51 @@ const Dropzone = ({
         {subtitle} Max single size: {formatFileSize(maxSingleSize)} Max total
         size: {formatFileSize(maxTotalSize)} File Number: {maxFile}
       </Text>
-      <TouchableOpacity
+      <HoverAndPressedButton
         style={styles.chooseFileBtn}
         onPress={onChooseFile}
         disabled={!onChooseFile}
       >
         <Text style={styles.chooseFileText}>Choose File</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </HoverAndPressedButton>
+      <HoverAndPressedButton
         style={styles.removeAllFilesBtn}
         onPress={removeAllFiles}
         disabled={!removeAllFiles || files.length === 0}
       >
         <Text style={styles.removeAllFilesText}>Remove all files</Text>
-      </TouchableOpacity>
+      </HoverAndPressedButton>
       {files && files.length > 0 && (
-        <View style={styles.fileList}>
-          {files.map((file, index) => (
-            <View key={index} style={styles.fileItem}>
-              <Icon name="FileIcon" size={16} color={theme.text} />
-              <Text
-                style={[
-                  styles.fileName,
-                  invalidFiles.includes(index) && styles.invalidFileName,
-                ]}
-              >
-                {file.name}
-              </Text>
-              {invalidFiles.includes(index) && (
-                <Text style={styles.fileError}>(Exceeds max size)</Text>
-              )}
-              <Text style={styles.fileSize}>{formatFileSize(file.size)}</Text>
-              <TouchableOpacity
-                style={styles.removeBtn}
-                onPress={() => onRemoveFile(index)}
-              >
-                <Icon name="Cancel01Icon" size={14} color={theme.text} />
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
+        <ScrollView style={styles.fileList}>
+          {files.map((file, index) => {
+            const invalidFile = invalidFiles.find(
+              (item) => item.index === index,
+            );
+            const isInvalid = !!invalidFile;
+            return (
+              <View key={index} style={styles.fileItem}>
+                <Icon name="FileIcon" size={16} color={theme.text} />
+                <Text
+                  style={[styles.fileName, isInvalid && styles.invalidFileName]}
+                >
+                  {file.name}
+                </Text>
+                {isInvalid && (
+                  <Text style={styles.fileError}>
+                    {invalidFile.errors.join(", ")}
+                  </Text>
+                )}
+                <Text style={styles.fileSize}>{formatFileSize(file.size)}</Text>
+                <HoverAndPressedButton
+                  style={styles.removeBtn}
+                  onPress={() => onRemoveFile(index)}
+                >
+                  <Icon name="Cancel01Icon" size={14} color={theme.text} />
+                </HoverAndPressedButton>
+              </View>
+            );
+          })}
+        </ScrollView>
       )}
     </View>
   );
@@ -115,6 +127,27 @@ const createStyle = (theme) =>
     fileList: {
       marginTop: 15,
       width: "100%",
+      maxHeight: 250,
+      ...(getPlatform() === "web" && {
+        scrollbarWidth: "thin",
+        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
+
+        "::-webkit-scrollbar": {
+          width: 6,
+          backgroundColor: theme.backgroundScrollbar,
+        },
+        "::-webkit-scrollbar-track": {
+          backgroundColor: theme.backgroundScrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb": {
+          backgroundColor: theme.scrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb:hover": {
+          backgroundColor: theme.scrollbarHover,
+        },
+      }),
     },
     fileItem: {
       flexDirection: "row",

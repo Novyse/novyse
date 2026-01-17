@@ -1,8 +1,11 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Image, Text } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
+
 import Icon from "@/src/components/Icon";
+import Avatar from "@/src/components/Avatar";
 
 import { ThemeContext } from "@/context/ThemeContext";
+import { UserContext } from "@/context/UserContext";
 
 const MainHeader = ({
   selectedChatName,
@@ -13,6 +16,8 @@ const MainHeader = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+
+  const { profilePictureUUID } = useContext(UserContext);
 
   return (
     <View style={styles.headerMainRow}>
@@ -27,10 +32,7 @@ const MainHeader = ({
       </View>
 
       <View style={styles.headerCenter}>
-        <Image
-          source={{ uri: "https://picsum.photos/200" }}
-          style={styles.avatar}
-        />
+        <Avatar uuid={profilePictureUUID} theme={theme} />
         <Text style={styles.chatTitle} numberOfLines={1}>
           {selectedChatName}
         </Text>
@@ -48,6 +50,7 @@ const MainHeader = ({
           <Icon
             name="AudioWave01Icon"
             style={styles.iconButton}
+            onPress={() => {}}
             //onPress={() => setContentView("vocal")}
           />
         )}
@@ -97,13 +100,6 @@ function createStyle(theme) {
       height: ICON_SIZE,
       justifyContent: "center",
       alignItems: "center",
-    },
-    avatar: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      marginRight: 8,
-      backgroundColor: theme.placeholder || "#ccc",
     },
     chatTitle: {
       fontSize: 15,

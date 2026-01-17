@@ -132,7 +132,7 @@ api.interceptors.response.use(
       eventEmitter.emit("serverError");
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 /**
@@ -157,7 +157,7 @@ api.interceptors.request.use((request) => {
   console.log(
     `Starting Request: ${request.method.toUpperCase()} ${request.url}`,
     request.params || {},
-    request.data || {}
+    request.data || {},
   );
   return request;
 });
@@ -165,7 +165,7 @@ api.interceptors.request.use((request) => {
 api.interceptors.response.use((response) => {
   console.log(
     `Response: ${response.config.method.toUpperCase()} ${response.config.url}`,
-    response.data || {}
+    response.data || {},
   );
   return response;
 });
@@ -191,7 +191,7 @@ const gateway = {
       handle,
       privacy_policy_accepted,
       terms_of_service_accepted,
-      more_than_16_years_old
+      more_than_16_years_old,
     ) {
       try {
         if (!email || !password || !name || !surname || !handle) {
@@ -202,7 +202,7 @@ const gateway = {
           terms_of_service_accepted !== true
         ) {
           throw new Error(
-            "Privacy policy and terms of service must be accepted"
+            "Privacy policy and terms of service must be accepted",
           );
         }
 
@@ -686,7 +686,7 @@ const gateway = {
         return { success: false };
       }
       const response = await api.get(
-        `/user/update?lastUpdateTime=${lastUpdateTime}`
+        `/user/update?lastUpdateTime=${lastUpdateTime}`,
       );
       const success = response.data.success;
       if (success) {
@@ -694,6 +694,46 @@ const gateway = {
         return { success, user, chats, messages, updated_at };
       }
       return { success };
+    },
+    profile: {
+      picture: {
+        /**
+         * Request user's profile picture update.
+         * @param {String} name
+         * @param {String} mimeType
+         * @param {Number} size
+         * @returns {Object} { success: boolean, fileUUID?: String, uploadURL?: String, expiresAt?: String }
+         */
+        async update(name, mimeType, size) {
+          const response = await api.patch("/user/profile/picture", {
+            name,
+            mimeType,
+            size,
+          });
+          const success = response.data.success;
+          if (success) {
+            const { fileUUID, uploadURL, expiresAt } = response.data.data;
+            return { success, fileUUID, uploadURL, expiresAt };
+          }
+          return { success };
+        },
+        /**
+         * Confirm user's profile picture update after successful upload.
+         * @param {String} fileUUID
+         * @returns {Object} { success: boolean, profilePictureUUID?: String }
+         */
+        async confirm(fileUUID) {
+          const response = await api.post("/user/profile/picture/confirm", {
+            fileUUID,
+          });
+          const success = response.data.success;
+          if (success) {
+            const { profilePictureUUID } = response.data.data;
+            return { success, profilePictureUUID };
+          }
+          return { success };
+        },
+      },
     },
   },
 
@@ -752,7 +792,7 @@ const gateway = {
           throw new Error(
             "Missing required fields for chat creation",
             type,
-            memberUUIDs
+            memberUUIDs,
           );
         }
         if (handle == "") {
@@ -811,11 +851,11 @@ const gateway = {
           throw new Error(
             "Missing required fields for retrieving message",
             chatUUID,
-            messageID
+            messageID,
           );
         }
         const response = await api.get(
-          `/message?chatUUID=${chatUUID}&messageID=${messageID}`
+          `/message?chatUUID=${chatUUID}&messageID=${messageID}`,
         );
         const success = response.data.success;
         if (success) {
@@ -840,13 +880,13 @@ const gateway = {
       chatUUID,
       content = undefined,
       type = "message",
-      files = undefined
+      files = undefined,
     ) {
       try {
         if (!chatUUID) {
           throw new Error(
             "Missing required fields for sending message",
-            chatUUID
+            chatUUID,
           );
         }
         const response = await api.post("/message", {
@@ -871,7 +911,7 @@ const gateway = {
         if (!messageUUID) {
           throw new Error(
             "Missing required fields for confirming message",
-            messageUUID
+            messageUUID,
           );
         }
         const response = await api.post("/message/confirm", {
@@ -890,7 +930,7 @@ const gateway = {
         if (!messageUUID) {
           throw new Error(
             "Missing required fields for deleting message",
-            messageUUID
+            messageUUID,
           );
         }
         const response = await api.delete("/message", {
@@ -909,7 +949,7 @@ const gateway = {
           throw new Error(
             "Missing required fields for modifying message",
             messageUUID,
-            newContent
+            newContent,
           );
         }
         const response = await api.patch("/message", {
@@ -1020,7 +1060,7 @@ const gateway = {
 
         if (member.active_screen_share) {
           commsData[member.from].activeScreenShares.push(
-            ...member.active_screen_share
+            ...member.active_screen_share,
           );
         }
       });
@@ -1035,7 +1075,7 @@ const gateway = {
   async startScreenShare(chatId) {
     try {
       const response = await api.get(
-        `/comms/screen_share/start?chat_id=${chatId}`
+        `/comms/screen_share/start?chat_id=${chatId}`,
       );
       return response.data; // ritorna screen_share_started : true/false e screen_share_uuid
     } catch (error) {
@@ -1047,7 +1087,7 @@ const gateway = {
   async stopScreenShare(chatId, screenShareUUID) {
     try {
       const response = await api.get(
-        `/comms/screen_share/stop?chat_id=${chatId}&screen_share_uuid=${screenShareUUID}`
+        `/comms/screen_share/stop?chat_id=${chatId}&screen_share_uuid=${screenShareUUID}`,
       );
       return response.data; // ritorna screen_share_stopped : true/false
     } catch (error) {

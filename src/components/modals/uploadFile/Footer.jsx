@@ -8,17 +8,18 @@ const Footer = ({
   rightButtonText,
   leftBtnOnPress,
   rightButtonOnPress,
+  leftBtnDisabled,
+  rightBtnDisabled,
   theme,
 }) => {
   const styles = createStyles(theme);
 
-  const hasFiles = files && files.length > 0;
   return (
     <View style={styles.container}>
       <HoverAndPressedButton
         style={styles.leftBtn}
         onPress={leftBtnOnPress}
-        disabled={!leftBtnOnPress || !hasFiles}
+        disabled={leftBtnDisabled}
       >
         <Text style={styles.leftBtnText}>{leftButtonText}</Text>
       </HoverAndPressedButton>
@@ -26,7 +27,7 @@ const Footer = ({
       <HoverAndPressedButton
         style={styles.rightBtn}
         onPress={rightButtonOnPress}
-        disabled={!rightButtonOnPress || !hasFiles}
+        disabled={rightBtnDisabled}
       >
         <Text style={styles.rightBtnText}>{rightButtonText}</Text>
       </HoverAndPressedButton>

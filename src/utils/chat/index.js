@@ -39,7 +39,7 @@ const getChatData = async (chatUUIDorHandle) => {
           chatPictureUUID = realPictureUUID;
         } else {
           console.warn(
-            `ChatUtils.js: route param chatUUIDorHandle=${chatUUIDorHandle} is a user handle, but no DM chat found.`
+            `ChatUtils.js: route param chatUUIDorHandle=${chatUUIDorHandle} is a user handle, but no DM chat found.`,
           );
         }
       } else {
@@ -53,13 +53,13 @@ const getChatData = async (chatUUIDorHandle) => {
           chatPictureUUID = realPictureUUID;
         }
         console.log(
-          `ChatUtils.js: route param chatUUIDorHandle=${chatUUIDorHandle} is a handle, resolved to UUID ${uuid}, setting selectedChatUUID.`
+          `ChatUtils.js: route param chatUUIDorHandle=${chatUUIDorHandle} is a handle, resolved to UUID ${uuid}, setting selectedChatUUID.`,
         );
       }
     } else {
       // If handle is not found in local DB, log warning and try to fetch from gateway basic info to create/join chat
       console.warn(
-        `ChatUtils.js: route param chatUUIDorHandle=${chatUUIDorHandle} is a handle, but no chat found. Asking gateway for info.`
+        `ChatUtils.js: route param chatUUIDorHandle=${chatUUIDorHandle} is a handle, but no chat found. Asking gateway for info.`,
       );
       const { success, data } = await gateway.gather.handle(chatHandle, false);
       if (success) {
@@ -94,7 +94,7 @@ const getChatData = async (chatUUIDorHandle) => {
  * @returns {Object} { name, chatPictureUUID }
  */
 
-const getChatNameAndProfilePicture = async (chat) => {
+const getChatNameAndProfilePicture = async (chat, myProfilePictureUUID) => {
   const database = await Database.create();
 
   let name = chat.name;
@@ -107,7 +107,7 @@ const getChatNameAndProfilePicture = async (chat) => {
 
     if (user.uuid === (await auth.getUserUUID())) {
       name = "Saved Messages";
-      chatPictureUUID = null;
+      chatPictureUUID = myProfilePictureUUID;
     }
   }
   return { name, chatPictureUUID };

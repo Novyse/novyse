@@ -1,8 +1,17 @@
 import { useState } from "react";
 
-import { calculateTotalSize } from "@/src/utils/storage/file/utils";
+import {
+  calculateTotalSize,
+  formatFileSize,
+  formatTime,
+} from "@/src/utils/storage/file/utils";
 
-const useUploadFile = (maxFile, maxSingleSize, maxTotalSize) => {
+const useUploadFile = (
+  fileType = "All",
+  maxFile,
+  maxSingleSize,
+  maxTotalSize,
+) => {
   const [files, setFiles] = useState([]);
   const [error, setError] = useState(null);
   const [invalidFiles, setInvalidFiles] = useState([]);
@@ -26,18 +35,38 @@ const useUploadFile = (maxFile, maxSingleSize, maxTotalSize) => {
 
     // Check total size
     if (calculateTotalSize(newFiles) > maxTotalSize) {
-      setError("Total file size too large. Maximum allowed: 2GB");
+      setError(
+        "Total file size too large. Maximum allowed: " +
+          formatFileSize(maxTotalSize),
+      );
       return true;
     }
 
     // Check individual file sizes and mark invalid ones
+    const invalidFilesData = [];
     newFiles.forEach((file, index) => {
+      const errors = [];
       if (file.size > maxSingleSize) {
-        invalidIndices.push(index);
+        errors.push(
+          "File size exceeds maximum allowed size of " +
+            formatFileSize(maxSingleSize),
+        );
+      }
+
+      if (fileType !== "All") {
+        const allowedType = fileType.toLowerCase();
+        if (
+          (allowedType === "image" && !file.mimeType.startsWith("image/")) ||
+          (allowedType === "video" && !file.mimeType.startsWith("video/"))
+        ) {
+          errors.push("File type not allowed. Allowed types: " + fileType);
+        }
+      }
+      if (errors.length > 0) {
+        invalidFilesData.push({ index, errors });
       }
     });
-
-    setInvalidFiles(invalidIndices);
+    setInvalidFiles(invalidFilesData);
 
     return invalidIndices.length > 0;
   };
