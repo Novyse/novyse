@@ -32,7 +32,7 @@ import usePreparedMessages from "../hooks/chat/usePreparedMessages.js";
 // Context
 import { ChatContext } from "@/context/ChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
-import { UserContext } from "@/context/UserContext";
+import { LocalUserContext } from "@/context/LocalUserContext";
 
 // Keyboard Controller
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
@@ -64,7 +64,7 @@ const ChatContent = ({ onBack, contentView }) => {
     selectedChatUUID,
     selectedHandle,
   );
-  const { userUUID: myUUID } = useContext(UserContext);
+  const { userUUID: myUUID } = useContext(LocalUserContext);
 
   const flatListRef = useRef(null);
   const [bottomBarHeight, setBottomBarHeight] = useState(0);

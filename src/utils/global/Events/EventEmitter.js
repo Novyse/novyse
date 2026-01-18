@@ -52,6 +52,39 @@ class GlobalEventEmitter {
     this.eventEmitter.emit("fileReady", { fileUUID });
   }
 
+  user = {
+    profile: {
+      picture: {
+        update: async (userUUID, profilePictureUUID) => {
+          const database = await Database.create();
+          await database.user.profile.picture.update(
+            userUUID,
+            profilePictureUUID,
+          );
+          this.eventEmitter.emit("user:profile:picture:update", {
+            userUUID,
+            profilePictureUUID,
+          });
+        },
+      },
+    },
+  };
+
+  chat = {
+    pin: {
+      async add(chatUUID) {
+        const database = await Database.create();
+        await database.pinChat(chatUUID);
+        this.eventEmitter.emit("chat:pin:add", { chatUUID });
+      },
+      async remove(chatUUID) {
+        const database = await Database.create();
+        await database.unpinChat(chatUUID);
+        this.eventEmitter.emit("chat:pin:remove", { chatUUID });
+      },
+    },
+  };
+
   // -------------------- WebRTC EVENTS --------------------
   commsJoin(data) {
     this.eventEmitter.emit("comms_join", data);

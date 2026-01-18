@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useContext } from "react";
 import { DateTime } from "luxon";
-import { UserContext } from "@/context/UserContext";
+import { LocalUserContext } from "@/context/LocalUserContext";
 
 const usePreparedMessages = (messages) => {
-  const { userUUID } = useContext(UserContext);
+  const { userUUID } = useContext(LocalUserContext);
 
   const prepareMessages = useCallback((msgs = []) => {
     if (!Array.isArray(msgs) || msgs.length === 0) return [];

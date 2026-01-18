@@ -4,6 +4,7 @@ import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
 import Avatar from "./Avatar";
 
 import { ThemeContext } from "@/context/ThemeContext";
+import { LocalUserContext } from "@/context/LocalUserContext";
 
 import SmartBackground from "./SmartBackground";
 import SidebarItem from "./SidebarItem";
@@ -20,6 +21,8 @@ const Sidebar = ({
 }) => {
   const { colorScheme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
+  const { name, surname, handle, profilePictureUUID } =
+    useContext(LocalUserContext);
 
   // 1. Definisci i valori animati all'interno del componente
   const sidebarPosition = useRef(new Animated.Value(-250)).current;
@@ -28,17 +31,6 @@ const Sidebar = ({
   const SIDEBAR_OVERLAY_SPEED = 175;
 
   const router = useRouter();
-
-  const [userData, setUserData] = useState({});
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const database = await Database.create();
-      const data = await database.getLocalUser();
-      setUserData(data);
-    };
-    fetchUserData();
-  }, []);
 
   // 2. Sincronizza le animazioni con il cambio di isSidebarVisible
   useEffect(() => {
@@ -93,16 +85,14 @@ const Sidebar = ({
         >
           <View style={styles.profileContainer}>
             <View style={styles.avatar}>
-              <Avatar size={50} mySelf={true} theme={theme} />
+              <Avatar uuid={profilePictureUUID} size={50} theme={theme} />
             </View>
             <View style={styles.profileTextContainer}>
               <Text style={styles.profileName}>
-                {userData?.name && userData?.surname
-                  ? `${userData?.name} ${userData?.surname}`
-                  : "Loading..."}
+                {name && surname ? `${name} ${surname}` : "Loading..."}
               </Text>
               <Text style={styles.profileHandle}>
-                {userData?.handle ? `@${userData?.handle}` : "@loading..."}
+                {handle ? `@${handle}` : "@loading..."}
               </Text>
             </View>
           </View>

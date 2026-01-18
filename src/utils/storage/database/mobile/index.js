@@ -876,6 +876,71 @@ class Database {
       },
     },
   };
+  user = {
+    /**
+     * Get user info by UUID.
+     * @param {String} userUUID
+     * @returns {Object} user object or null if not found
+     */
+    get: async (userUUID) => {
+      try {
+        const user = await this.db.getFirstAsync(
+          `SELECT * FROM user WHERE uuid = ?;`,
+          [userUUID],
+        );
+        if (user) {
+          const handleRow = await this.db.getFirstAsync(
+            `SELECT handle FROM handle WHERE userUUID = ? AND type = 'USER';`,
+            [userUUID],
+          );
+          if (handleRow) {
+            user.handle = handleRow.handle;
+          }
+        }
+        return user;
+      } catch (error) {
+        console.error("Error retrieving user by UUID:", error);
+        return null;
+      }
+    },
+
+    profile: {
+      picture: {
+        /**
+         * Update user profile picture UUID.
+         * @param {String} userUUID
+         * @param {String} profilePictureUUID
+         * @returns {boolean} true if profile picture updated successfully, false otherwise
+         */
+
+        update: async (userUUID, profilePictureUUID) => {
+          try {
+            if (!userUUID || !profilePictureUUID) {
+              console.error(
+                "Missing required fields to update user profile picture.",
+              );
+              return false;
+            }
+            const result = await this.db.runAsync(
+              `UPDATE user SET profilePictureUUID = ? WHERE uuid = ?;`,
+              [profilePictureUUID, userUUID],
+            );
+            if (result.changes > 0) {
+              console.log(
+                "User profile picture updated successfully:",
+                userUUID,
+              );
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error("Error updating user profile picture:", error);
+            return false;
+          }
+        },
+      },
+    },
+  };
   file = {
     get: {
       /**

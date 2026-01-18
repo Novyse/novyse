@@ -30,7 +30,7 @@ import useAppInit from "../hooks/auth/useAppInit";
 // Context
 import { ThemeContext } from "@/context/ThemeContext";
 import { ChatContext } from "@/context/ChatContext";
-import { UserContext } from "@/context/UserContext";
+import { LocalUserContext } from "@/context/LocalUserContext";
 import { NetworkContext } from "@/context/NetworkContext";
 
 const AppContainer = () => {
@@ -46,7 +46,6 @@ const AppContainer = () => {
     setSelectedChatPictureUUID,
   } = useContext(ChatContext);
 
-  const { setUserUUID } = useContext(UserContext);
 
   const { isConnected } = useContext(NetworkContext);
 
@@ -67,17 +66,6 @@ const AppContainer = () => {
   const [chatContentPosition] = useState(
     new Animated.Value(Dimensions.get("window").width)
   );
-
-  // Set userUUID in UserContext on mount
-  useEffect(() => {
-    const fetchUserUUID = async () => {
-      const userUUID = await auth.getUserUUID();
-      if (userUUID) {
-        setUserUUID(userUUID);
-      }
-    };
-    fetchUserUUID();
-  }, [setUserUUID]);
 
   useEffect(() => {
     const updateData = async () => {

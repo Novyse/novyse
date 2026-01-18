@@ -20,7 +20,7 @@ import chatUtils from "@/src/utils/chat";
 import queueManager from "@/src/utils/chat/queueManager";
 import { ThemeContext } from "@/context/ThemeContext";
 import { ChatContext } from "@/context/ChatContext";
-import { UserContext } from "@/context/UserContext";
+import { LocalUserContext } from "@/context/LocalUserContext";
 import { NetworkContext } from "@/context/NetworkContext";
 import useAppInit from "@/src/hooks/auth/useAppInit";
 
@@ -34,7 +34,6 @@ export default function ChatLayout() {
   const params = useLocalSearchParams();
   const { theme } = useContext(ThemeContext);
   const { isConnected } = useContext(NetworkContext);
-  const { setUserUUID, setProfilePictureUUID } = useContext(UserContext);
   const {
     setSelectedChatUUID,
     setSelectedHandle,
@@ -47,16 +46,6 @@ export default function ChatLayout() {
   const [isCreateChatModalVisible, setIsCreateChatModalVisible] =
     useState(false);
   const [sidebarPosition] = useState(new Animated.Value(-250));
-
-  useEffect(() => {
-    const initApp = async () => {
-      const userUUID = await auth.getUserUUID();
-      if (userUUID) setUserUUID(userUUID);
-
-      await auth.update();
-    };
-    initApp();
-  }, [setUserUUID, setProfilePictureUUID]);
 
   useEffect(() => {
     const handleParams = async () => {

@@ -10,7 +10,7 @@ import { AudioProvider } from "@/context/AudioContext";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ChatProvider } from "@/context/ChatContext";
-import { UserProvider } from "@/context/UserContext";
+import { LocalUserProvider } from "@/context/LocalUserContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { NetworkProvider } from "@/context/NetworkContext";
 
@@ -40,7 +40,7 @@ export default function RootLayout() {
           <AudioProvider>
             <AudioPlayerProvider>
               <ChatProvider>
-                <UserProvider>
+                <LocalUserProvider>
                   <LanguageProvider>
                     <NetworkProvider>
                       <Stack
@@ -64,7 +64,7 @@ export default function RootLayout() {
                       />
                     </NetworkProvider>
                   </LanguageProvider>
-                </UserProvider>
+                </LocalUserProvider>
               </ChatProvider>
             </AudioPlayerProvider>
           </AudioProvider>

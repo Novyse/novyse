@@ -8,11 +8,12 @@ import Footer from "./uploadFile/Footer";
 import StatusMessage from "../StatusMessage";
 
 import { ThemeContext } from "@/context/ThemeContext";
-import { UserContext } from "@/context/UserContext";
+import { LocalUserContext } from "@/context/LocalUserContext";
 
 import useUploadFile from "@/src/hooks/modal/useUploadFile.js";
 import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers.js";
 
+import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import S3Uploader from "@/src/utils/storage/file/s3Bucket";
 import storage from "@/src/utils/storage/file";
@@ -24,8 +25,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
   const {
     userUUID,
     profilePictureUUID: myProfilePictureUUID,
-    setProfilePictureUUID: setMyProfilePictureUUID,
-  } = useContext(UserContext);
+  } = useContext(LocalUserContext);
 
   const maxFile = 1;
   const maxSingleSize = 52428800; // 50MB
@@ -104,9 +104,8 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       await database.file.update.ref(profilePictureUUID, ref);
 
       // Link to local user
-      await database.user.profile.picture.set(userUUID, profilePictureUUID);
-
-      setMyProfilePictureUUID(profilePictureUUID);
+      await eventEmitter.user.profile.picture.update(userUUID, profilePictureUUID);
+      
     } catch (error) {
       console.error("Error uploading profile picture:", error);
       setError("Error uploading profile picture: " + error.message);

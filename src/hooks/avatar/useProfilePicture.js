@@ -1,26 +1,16 @@
-import { useEffect, useState, useContext } from "react";
-
-import { UserContext } from "@/context/UserContext";
+import { useEffect, useState } from "react";
 
 import Database from "@/src/utils/storage/database";
 
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 
-const useProfilePicture = (uuid, uri, mySelf) => {
-  const { profilePictureUUID } = useContext(UserContext);
-
+const useProfilePicture = (uuid, uri) => {
   const [ref, setRef] = useState(null);
 
   useEffect(() => {
     const fetchRef = async () => {
       if (uri) {
         setRef(null);
-        return;
-      }
-      if (mySelf) {
-        const database = await Database.create();
-        const fetchedRef = await database.file.get.ref(profilePictureUUID);
-        setRef(fetchedRef);
         return;
       }
       if (!uuid) return;
@@ -34,7 +24,7 @@ const useProfilePicture = (uuid, uri, mySelf) => {
       }
     };
     fetchRef();
-  }, [uuid, uri, mySelf]);
+  }, [uuid, uri]);
 
   const { uri: resolvedUriFromHook } = useUriResolver(ref);
 

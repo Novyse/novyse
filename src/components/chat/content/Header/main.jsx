@@ -5,7 +5,7 @@ import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
 
 import { ThemeContext } from "@/context/ThemeContext";
-import { UserContext } from "@/context/UserContext";
+import { LocalUserContext } from "@/context/LocalUserContext";
 
 const MainHeader = ({
   selectedChatName,
@@ -17,7 +17,7 @@ const MainHeader = ({
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const { profilePictureUUID } = useContext(UserContext);
+  const { profilePictureUUID } = useContext(LocalUserContext);
 
   return (
     <View style={styles.headerMainRow}>

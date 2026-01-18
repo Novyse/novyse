@@ -5,10 +5,10 @@ import chatUtils from "@/src/utils/chat";
 
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import SocketIO from "@/src/utils/backend-services/socket-io";
-import { UserContext } from "@/context/UserContext";
+import { LocalUserContext } from "@/context/LocalUserContext";
 
 const useChatData = (chatUUID, chatHandle = null) => {
-  const { userUUID } = useContext(UserContext);
+  const { userUUID } = useContext(LocalUserContext);
   const [chat, setChat] = useState({});
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);

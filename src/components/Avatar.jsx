@@ -3,11 +3,17 @@ import { Image, StyleSheet } from "react-native";
 
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
-const Avatar = ({ uuid, uri, size = 32, mySelf = false, theme }) => {
+const Avatar = ({ uuid, uri, size = 32, theme }) => {
   const styles = createStyles(size, theme);
-  const { uri: resolvedUri } = useProfilePicture(uuid, uri, mySelf);
+  const { uri: resolvedUri } = useProfilePicture(uuid, uri);
 
-  return <Image source={{ uri: resolvedUri }} style={styles.avatar} />;
+  return (
+    <Image
+      key={uuid || uri}
+      source={{ uri: resolvedUri }}
+      style={styles.avatar}
+    />
+  );
 };
 
 const createStyles = (size, theme) =>

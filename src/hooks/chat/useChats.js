@@ -4,10 +4,10 @@ import utils from "@/src/utils/chat";
 import { getFileType } from "@/src/utils/storage/file/type";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 
-import { UserContext } from "@/context/UserContext";
+import { LocalUserContext } from "@/context/LocalUserContext";
 
 const useChats = () => {
-  const { profilePictureUUID: myProfilePictureUUID } = useContext(UserContext);
+  const { profilePictureUUID: myProfilePictureUUID } = useContext(LocalUserContext);
 
   const [chatDetails, setChatDetails] = useState({});
   const [loading, setLoading] = useState(true);

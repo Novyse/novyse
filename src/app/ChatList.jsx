@@ -19,7 +19,7 @@ import HeaderBase from "../components/HeaderBase";
 import Avatar from "../components/Avatar";
 
 import useChats from "../hooks/chat/useChats";
-import { UserContext } from "@/context/UserContext";
+import { LocalUserContext } from "@/context/LocalUserContext";
 import BlurredView from "../components/BlurredView";
 import { ThemeContext } from "@/context/ThemeContext";
 
@@ -27,7 +27,7 @@ const PINNED_CHATS_STORAGE_KEY = "@chat_order";
 
 const ChatListItem = React.memo(
   ({ item, isSelected, onPress, onLongPress, theme, styles }) => {
-    const { userUUID } = useContext(UserContext);
+    const { userUUID } = useContext(LocalUserContext);
     const parseTime = (dateTimeMessage) => {
       if (!dateTimeMessage) return "";
       return DateTime.fromJSDate(new Date(dateTimeMessage)).toFormat("HH:mm");

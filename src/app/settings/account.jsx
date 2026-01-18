@@ -1,7 +1,8 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
 import { StyleSheet, View, Text } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
+import { LocalUserContext } from "@/context/LocalUserContext";
 
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import ScreenLayout from "@/src/components/ScreenLayout";
@@ -17,40 +18,11 @@ const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const [userData, setUserData] = useState({
-    name: "",
-    surname: "",
-    handle: "",
-    email: "",
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const { name, surname, handle, email, profilePictureUUID, isLoading } = useContext(LocalUserContext);
+
   const [isHovered, setIsHovered] = useState(false);
   const [isProfilePicModalVisible, setIsProfilePicModalVisible] =
     useState(false);
-
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
-    try {
-      setIsLoading(true);
-      const database = await Database.create();
-      const user = await database.getLocalUser();
-      if (user) {
-        setUserData({
-          name: user.name,
-          surname: user.surname,
-          handle: user.handle,
-          email: user.email,
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const ProfileField = ({ label, value }) => (
     <View style={styles.fieldContainer}>
@@ -93,7 +65,7 @@ const ProfilePage = () => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            <Avatar size={120} mySelf={true} theme={theme} />
+            <Avatar uuid={profilePictureUUID} size={120}  theme={theme} />
             {isHovered && (
               <View style={styles.editIconContainer}>
                 <Icon name="PencilEdit02Icon" size={24} color={theme.text} />
@@ -101,12 +73,10 @@ const ProfilePage = () => {
             )}
           </HoverAndPressedButton>
           <Text style={styles.profileName}>
-            {userData.name && userData.surname
-              ? `${userData.name} ${userData.surname}`
-              : "Loading..."}
+            {name && surname ? `${name} ${surname}` : "Loading..."}
           </Text>
           <Text style={styles.profileHandle}>
-            {userData.handle ? `@${userData.handle}` : "Loading..."}
+            {handle ? `@${handle}` : "Loading..."}
           </Text>
         </View>
 
@@ -114,10 +84,10 @@ const ProfilePage = () => {
         <SettingsCard>
           <Text style={styles.sectionTitle}>Personal Information</Text>
 
-          <ProfileField label="Name" value={userData.name} />
-          <ProfileField label="Surname" value={userData.surname} />
-          <ProfileField label="Username" value={userData.handle} />
-          <ProfileField label="Email" value={userData.email} />
+          <ProfileField label="Name" value={name} />
+          <ProfileField label="Surname" value={surname} />
+          <ProfileField label="Username" value={handle} />
+          <ProfileField label="Email" value={email} />
         </SettingsCard>
       </SettingsPageScrollview>
     </ScreenLayout>
