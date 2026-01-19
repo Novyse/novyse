@@ -1,5 +1,7 @@
 const adapter = require("expo-sqlite");
 
+import { useSQLiteContext } from "expo-sqlite";
+
 class Database {
   static instance = null;
 
@@ -29,9 +31,17 @@ class Database {
   }
 
   async addDb(){
-    const db = await adapter.openDatabaseAsync("novyse", {
+    return;
+    const db = useSQLiteContext();
+    this.db = db;
+    return;
+    const dba = await adapter.openDatabaseAsync("novyse", {
       useNewConnection: true,
     });
+    this.db = db;
+  }
+
+  setDb(db){
     this.db = db;
   }
 

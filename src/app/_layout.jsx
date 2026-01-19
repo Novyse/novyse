@@ -14,6 +14,8 @@ import { LocalUserProvider } from "@/context/LocalUserContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { NetworkProvider } from "@/context/NetworkContext";
 
+import { SQLiteProvider } from "expo-sqlite";
+
 import SetupGlobalEventReceiver from "../utils/global/Events/EventReceiver";
 
 export default function RootLayout() {
@@ -26,6 +28,7 @@ export default function RootLayout() {
   const isMobile = width < 768; // Threshold per width responsive
   const headerHeight = 64; // Altezza fissa header standard su tutta l'app
 
+
   useEffect(() => {
     setToastWidth(isMobile ? "90%" : 300); // 90% su mobile, fissa 300px su desktop/tablet
   }, []);
@@ -36,39 +39,41 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <KeyboardProvider>
-        <ThemeProvider>
-          <AudioProvider>
-            <AudioPlayerProvider>
-              <ChatProvider>
-                <LocalUserProvider>
-                  <LanguageProvider>
-                    <NetworkProvider>
-                      <Stack
-                        screenOptions={{
-                          headerShown: false,
-                          contentStyle: { backgroundColor: "transparent" },
-                        }}
-                      />
-                      {/* ToastManager a root: overlay full-viewport, sotto header su tutti i device */}
-                      <ToastManager
-                        position="top"
-                        topOffset={topOffset} // Sempre sotto header
-                        theme="light" // O "dark" based on theme
-                        width={toastWidth}
-                        showCloseIcon={true}
-                        showProgressBar={true}
-                        style={{
-                          alignSelf: "flex-end",
-                          marginRight: 20,
-                        }}
-                      />
-                    </NetworkProvider>
-                  </LanguageProvider>
-                </LocalUserProvider>
-              </ChatProvider>
-            </AudioPlayerProvider>
-          </AudioProvider>
-        </ThemeProvider>
+        <SQLiteProvider databaseName="novyse">
+          <ThemeProvider>
+            <AudioProvider>
+              <AudioPlayerProvider>
+                <ChatProvider>
+                  <LocalUserProvider>
+                    <LanguageProvider>
+                      <NetworkProvider>
+                        <Stack
+                          screenOptions={{
+                            headerShown: false,
+                            contentStyle: { backgroundColor: "transparent" },
+                          }}
+                        />
+                        {/* ToastManager a root: overlay full-viewport, sotto header su tutti i device */}
+                        <ToastManager
+                          position="top"
+                          topOffset={topOffset} // Sempre sotto header
+                          theme="light" // O "dark" based on theme
+                          width={toastWidth}
+                          showCloseIcon={true}
+                          showProgressBar={true}
+                          style={{
+                            alignSelf: "flex-end",
+                            marginRight: 20,
+                          }}
+                        />
+                      </NetworkProvider>
+                    </LanguageProvider>
+                  </LocalUserProvider>
+                </ChatProvider>
+              </AudioPlayerProvider>
+            </AudioProvider>
+          </ThemeProvider>
+        </SQLiteProvider>
       </KeyboardProvider>
     </SafeAreaProvider>
   );

@@ -24,9 +24,18 @@ import { LocalUserContext } from "@/context/LocalUserContext";
 import { NetworkContext } from "@/context/NetworkContext";
 import useAppInit from "@/src/hooks/auth/useAppInit";
 
+import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
+import database from "@/src/utils/storage/database/";
+
 const { get, check } = methods;
 
 export default function ChatLayout() {
+  const db = useSQLiteContext();
+
+  useEffect(() => {
+    database.setDb(db);
+  }, [db]);
+
   useAppInit(true);
   const { width } = useWindowDimensions();
   const isSmallScreen = width <= 768;
