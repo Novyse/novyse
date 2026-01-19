@@ -22,10 +22,8 @@ import Database from "@/src/utils/storage/database";
 const UploadProfilePicture = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
-  const {
-    userUUID,
-    profilePictureUUID: myProfilePictureUUID,
-  } = useContext(LocalUserContext);
+  const { userUUID, profilePictureUUID: myProfilePictureUUID } =
+    useContext(LocalUserContext);
 
   const maxFile = 1;
   const maxSingleSize = 52428800; // 50MB
@@ -104,8 +102,10 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       await database.file.update.ref(profilePictureUUID, ref);
 
       // Link to local user
-      await eventEmitter.user.profile.picture.update(userUUID, profilePictureUUID);
-      
+      await eventEmitter.user.profile.picture.update(
+        userUUID,
+        profilePictureUUID,
+      );
     } catch (error) {
       console.error("Error uploading profile picture:", error);
       setError("Error uploading profile picture: " + error.message);

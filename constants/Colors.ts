@@ -19,7 +19,7 @@ export const Colors = {
     backgroundDateSeparator: "#17212b",
     backgroundDeviceDropdown: "#2b5278",
     backgroundJoinChatButton: "#1b2734",
-    backgroundModal: "#416a90",
+    backgroundModal: "#18426a",
     backgroundSearchResultItem: "#2b3e51",
     backgroundSettingsButton: "#4f8cff",
     backgroundSettingsCards: "rgba(0, 45, 108, 1)",

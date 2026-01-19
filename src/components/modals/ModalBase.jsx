@@ -5,6 +5,7 @@ import {
   Pressable,
   ScrollView,
   useWindowDimensions,
+  View,
 } from "react-native";
 import Icon from "../Icon";
 import BlurredView from "../BlurredView";
@@ -17,14 +18,20 @@ const ModalBase = ({
   hideCloseX = false,
 }) => {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-  const styles = createStyle(theme, screenWidth, screenHeight);
+  const isSmallScreen = screenWidth < 768;
+  const styles = createStyle(theme, screenWidth, screenHeight, isSmallScreen);
+
+  const ContainerComponent = isSmallScreen ? View : BlurredView;
+  const containerProps = isSmallScreen ? {} : { intensity: 40 };
+
   return (
-    <Modal visible={visible} transparent={true} onRequestClose={onClose}>
+    <Modal visible={visible} transparent={true} onRequestClose={onClose} animationType="fade">
       <Pressable style={styles.overlay} onPress={onClose}>
-        <BlurredView style={styles.container} intensity={40}>
+        <ContainerComponent style={styles.container} {...containerProps}>
           <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={isSmallScreen ? { flexGrow: 1 } : null}
           >
             <Pressable>
               {!hideCloseX && (
@@ -37,23 +44,24 @@ const ModalBase = ({
               {children}
             </Pressable>
           </ScrollView>
-        </BlurredView>
+        </ContainerComponent>
       </Pressable>
     </Modal>
   );
 };
 
-function createStyle(theme, screenWidth, screenHeight) {
+function createStyle(theme, screenWidth, screenHeight, isSmallScreen) {
   return StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: theme.backgroundModalOverlay,
+      backgroundColor: isSmallScreen ? undefined : theme.backgroundModalOverlay,
       justifyContent: "center",
       alignItems: "center",
     },
     container: {
       padding: 20,
-      borderRadius: 15,
+      backgroundColor: isSmallScreen ? theme.backgroundModal : undefined,
+      borderRadius: isSmallScreen ? 0 : 15,
       shadowColor: theme.shadowColor,
       shadowOffset: {
         width: 0,
@@ -62,10 +70,11 @@ function createStyle(theme, screenWidth, screenHeight) {
       shadowOpacity: 0.25,
       shadowRadius: 4,
       elevation: 5,
-      width: "100%",
-      maxWidth: Math.min(500, screenWidth),
-      maxHeight: Math.min(900, screenHeight),
-      marginHorizontal: 10,
+      width: isSmallScreen ? "100%" : "90%",
+      maxWidth: isSmallScreen ? "100%" : 500,
+      height: isSmallScreen ? "100%" : "auto",
+      maxHeight: isSmallScreen ? "100%" : screenHeight * 0.9,
+      marginHorizontal: isSmallScreen ? 0 : 10,
     },
     scrollView: {
       maxHeight: "100%",
