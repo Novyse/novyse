@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import Database from "@/src/utils/storage/database";
+import database from "@/src/utils/storage/database";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import chatUtils from "@/src/utils/chat";
 
@@ -22,7 +22,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
         setMessages([]);
 
         if (chatUUID) {
-          const database = await Database.create();
+          
           const messages = await database.getMessagesByChatUUID(chatUUID);
           const pendingMessage = await database.getPendingMessagesByChatUUID(
             chatUUID

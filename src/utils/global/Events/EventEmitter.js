@@ -1,7 +1,7 @@
-import EventEmitter from "./lib/EventEmitter";
-import Database from "../../storage/database";
+import EventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
+import database from "@/src/utils/storage/database";
 
-import messageUtils from "../../chat/message";
+import messageUtils from "@/src/utils/chat/message";
 
 class GlobalEventEmitter {
   constructor() {
@@ -13,7 +13,7 @@ class GlobalEventEmitter {
   }
 
   async newMessage(message) {
-    const database = await Database.create();
+    
     if (!message.fromSubscription) {
       await messageUtils.add(message);
     }
@@ -23,7 +23,7 @@ class GlobalEventEmitter {
   }
 
   async newChat(chat, messages = []) {
-    const database = await Database.create();
+    
     await database.addChat(chat);
 
     if (messages.length > 0) {
@@ -35,19 +35,19 @@ class GlobalEventEmitter {
   }
 
   async userJoined(chatUUID, user) {
-    const database = await Database.create();
+    
     await database.addMember(chatUUID, user);
     this.eventEmitter.emit("userJoined", { chatUUID, user });
   }
 
   async userLeft(chatUUID, user) {
-    const database = await Database.create();
+    
     await database.removeMember(chatUUID, user);
     this.eventEmitter.emit("userLeft", { chatUUID, user });
   }
 
   async fileReady(fileUUID, uri) {
-    const database = await Database.create();
+    
     await database.updateFileURI(fileUUID, uri);
     this.eventEmitter.emit("fileReady", { fileUUID });
   }
@@ -56,7 +56,7 @@ class GlobalEventEmitter {
     profile: {
       picture: {
         update: async (userUUID, profilePictureUUID) => {
-          const database = await Database.create();
+          
           await database.user.profile.picture.update(
             userUUID,
             profilePictureUUID,
@@ -73,12 +73,12 @@ class GlobalEventEmitter {
   chat = {
     pin: {
       async add(chatUUID) {
-        const database = await Database.create();
+        
         await database.pinChat(chatUUID);
         this.eventEmitter.emit("chat:pin:add", { chatUUID });
       },
       async remove(chatUUID) {
-        const database = await Database.create();
+        
         await database.unpinChat(chatUUID);
         this.eventEmitter.emit("chat:pin:remove", { chatUUID });
       },

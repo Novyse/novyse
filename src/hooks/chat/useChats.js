@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import Database from "@/src/utils/storage/database";
+import database from "@/src/utils/storage/database";
 import utils from "@/src/utils/chat";
 import { getFileType } from "@/src/utils/storage/file/type";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
@@ -17,7 +17,7 @@ const useChats = () => {
     const loadChats = async () => {
       try {
         setLoading(true);
-        const database = await Database.create();
+        
         const chats = await database.getChats();
         const details = {};
         for (const chat of chats) {
@@ -102,7 +102,7 @@ const useChats = () => {
 
 const getLastMesssage = async (chatUUID) => {
   try {
-    const database = await Database.create();
+    
     const lastMessage = await database.getLastMessage(chatUUID);
 
     return await formatMessage(lastMessage);

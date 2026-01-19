@@ -9,9 +9,7 @@ class Database {
 
   static async create() {
     if (!Database.instance) {
-      const db = await adapter.openDatabaseAsync("novyse", {
-        useNewConnection: true,
-      });
+
       if (!db) {
         throw new Error("Failed to open database");
       }
@@ -23,7 +21,22 @@ class Database {
     return Database.instance;
   }
 
+  static async createDb() {
+    const db = await adapter.openDatabaseAsync("novyse", {
+      useNewConnection: true,
+    });
+    return new Database(db);
+  }
+
+  async addDb(){
+    const db = await adapter.openDatabaseAsync("novyse", {
+      useNewConnection: true,
+    });
+    this.db = db;
+  }
+
   async initialize() {
+    await this.addDb();
     return await this.db.execAsync(`
             CREATE TABLE IF NOT EXISTS chat_type (
                 value TEXT PRIMARY KEY,
@@ -185,6 +198,7 @@ class Database {
   }
 
   async exist() {
+    await this.addDb();
     try {
       if (!this.db) {
         return false;
@@ -200,6 +214,7 @@ class Database {
   }
 
   async clear() {
+    await this.addDb();
     try {
       const tables = await this.db.getAllAsync(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';",
@@ -604,6 +619,7 @@ class Database {
    */
 
   async getChats() {
+    await this.addDb();
     try {
       const chats = await this.db.getAllAsync("SELECT * FROM chat;");
       return chats;
@@ -719,6 +735,7 @@ class Database {
   }
 
   async getMessagesByChatUUID(chatUUID) {
+    await this.addDb();
     try {
       const messages = await this.db.getAllAsync(
         `SELECT m.*, u.name as sender_name FROM message m
@@ -883,6 +900,7 @@ class Database {
      * @returns {Object} user object or null if not found
      */
     get: async (userUUID) => {
+      await this.addDb();
       try {
         const user = await this.db.getFirstAsync(
           `SELECT * FROM user WHERE uuid = ?;`,
@@ -1128,4 +1146,5 @@ class Database {
   }
 }
 
-export default Database;
+const database = new Database();
+export default database;

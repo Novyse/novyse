@@ -1,10 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import gateway from "../backend-services/api-gateway";
-import Database from "../storage/database";
-import EventEmitter from "../global/Events/EventEmitter";
+import gateway from "@/src/utils/backend-services/api-gateway";
+import database from "@/src/utils/storage/database";
+import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 
-import messageUtils from "../chat/message";
+import messageUtils from "@/src/utils/chat/message";
 
 /**
  * Check if the user is logged in by verifying the presence of an access token in AsyncStorage.
@@ -92,7 +92,7 @@ const initializeApp = async () => {
     await AsyncStorage.setItem("userUUID", user.uuid);
     await AsyncStorage.setItem("deviceUUID", device.uuid);
 
-    const database = await Database.create();
+    
     console.log("Database instance created:", database);
     await database.clear();
     await database.initialize();
@@ -127,7 +127,7 @@ const logout = async (router) => {
   } else {
     console.log("Logout successful at API level.");
   }
-  const database = await Database.create();
+  
   await database.clear();
   await AsyncStorage.clear();
   router.replace("/email-check");
@@ -151,7 +151,7 @@ const update = async () => {
   if (success) {
     console.log("Update successful:", { user, chats, messages });
 
-    const database = await Database.create();
+    
 
     if (user) {
       // Do nothing

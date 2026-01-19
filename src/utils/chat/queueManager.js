@@ -1,13 +1,13 @@
 import { v6 } from "uuid";
 
-import gateway from "../backend-services/api-gateway.js";
-import Database from "../storage/database";
-import eventEmitter from "../global/Events/EventEmitter.js";
-import S3Uploader from "../storage/file/s3Bucket.js";
-import storage from "../storage/file";
+import gateway from "@/src/utils/backend-services/api-gateway.js";
+import database from "@/src/utils/storage/database";
+import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
+import S3Uploader from "@/src/utils/storage/file/s3Bucket.js";
+import storage from "@/src/utils/storage/file";
 
-import { getFileType } from "../storage/file/type.js";
-import { getDuration, getWaveform } from "../storage/file/media.js";
+import { getFileType } from "@/src/utils/storage/file/type.js";
+import { getDuration, getWaveform } from "@/src/utils/storage/file/media.js";
 
 class QueueManager {
   constructor() {
@@ -113,7 +113,7 @@ class QueueManager {
     // No chat UUID means chat is being created
     if (!params.chat.uuid) {
       params.status = "CREATING_CHAT";
-      const database = await Database.create();
+      
       // Check if chat is already pending creation, to avoid duplicate jobs just add message to pending messages attached to chat creation
       if (await database.isChatPendingCreation(id)) {
         console.log("Chat is already pending creation in queue:", id);
@@ -646,7 +646,7 @@ class QueueManager {
    */
   async saveJob(job) {
     try {
-      const database = await Database.create();
+      
       await database.addPendingMessage({
         id: job.id,
         jobType: job.type,
@@ -664,7 +664,7 @@ class QueueManager {
    */
   async removeJob(jobId) {
     try {
-      const database = await Database.create();
+      
       await database.removePendingMessage(jobId);
     } catch (error) {
       console.error("Error removing job from database:", error);
@@ -689,7 +689,7 @@ class QueueManager {
 
       // Update in database
       try {
-        const database = await Database.create();
+        
         await database.updatePendingMessageForUpload(
           jobId,
           params.messageUUID,
@@ -721,7 +721,7 @@ class QueueManager {
 
       // Update in database
       try {
-        const database = await Database.create();
+        
         await database.updatePendingMessageToConfirm(jobId);
       } catch (error) {
         console.error("Error modifying job in database:", error);
@@ -736,7 +736,7 @@ class QueueManager {
 
   async loadQueue() {
     try {
-      const database = await Database.create();
+      
       const pendingMessages = await database.getPendingMessages();
 
       if (!pendingMessages) {
@@ -920,18 +920,18 @@ class QueueManager {
         break;
     }
 
-    const database = await Database.create();
+    
     await database.job.save(job);
   }
 
   async removeJob(jobId) {
     return;
-    const database = await Database.create();
+    
     await database.job.remove(jobId);
   }
 
   async loadJobs() {
-    const database = await Database.create();
+    
     const pendingMessages = await database.job.loadAll();
     return pendingMessages;
   }
@@ -968,7 +968,7 @@ class QueueManager {
       }
     }
 
-    const database = await Database.create();
+    
     await database.message.pending.add(messageData, fileData);
   }
 
@@ -979,7 +979,7 @@ class QueueManager {
    */
 
   async loadPendingMessagesForChatCreation(pendingChatUUID, newChat) {
-    const database = await Database.create();
+    
     const pendingMessages = await database.message.pending.getByChatUUID(
       pendingChatUUID
     );
@@ -1000,22 +1000,22 @@ class QueueManager {
    * @param {String} fileUUID
    */
   async _getRef(fileUUID) {
-    const database = await Database.create();
+    
     return await database.file.get.ref(fileUUID);
   }
 
   async _addFileRef(fileUUID, ref) {
-    const database = await Database.create();
+    
     await database.file.update.ref(fileUUID, ref);
   }
 
   async _addFileDuration(fileUUID, duration) {
-    const database = await Database.create();
+    
     await database.file.update.duration(fileUUID, duration);
   }
 
   async _addFileWaveform(fileUUID, waveform) {
-    const database = await Database.create();
+    
     await database.file.update.waveform(fileUUID, waveform);
   }
 
@@ -1027,7 +1027,7 @@ class QueueManager {
    * @param {Object} message
    */
   async messageSent(tempId, message) {
-    const database = await Database.create();
+    
     await database.addMessage(message);
     eventEmitter.getEmitter().emit("message:sent", { tempId, message });
   }

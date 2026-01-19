@@ -1,6 +1,6 @@
-import Database from "../storage/database";
-import auth from "../welcome/auth";
-import gateway from "../backend-services/api-gateway";
+import database from "@/src/utils/storage/database";
+import auth from "@/src/utils/welcome/auth";
+import gateway from "@/src/utils/backend-services/api-gateway";
 
 const getChatData = async (chatUUIDorHandle) => {
   let chatUUID = null;
@@ -8,7 +8,7 @@ const getChatData = async (chatUUIDorHandle) => {
   let chatName = null;
   let chatPictureUUID = null;
 
-  const database = await Database.create();
+  
 
   const isHandle = chatUUIDorHandle.length < 33;
 
@@ -95,7 +95,7 @@ const getChatData = async (chatUUIDorHandle) => {
  */
 
 const getChatNameAndProfilePicture = async (chat, myProfilePictureUUID) => {
-  const database = await Database.create();
+  
 
   let name = chat.name;
   let chatPictureUUID = chat.profilePictureUUID;
@@ -130,7 +130,7 @@ const getSystemMessageText = async (message) => {
       if (message.content == (await auth.getUserUUID())) {
         name = "You";
       } else {
-        const database = await Database.create();
+        
         const user = await database.getUserByUUID(message.content);
         name = user ? user.name : "User";
       }
@@ -140,7 +140,7 @@ const getSystemMessageText = async (message) => {
       if (message.content == (await auth.getUserUUID())) {
         name = "You";
       } else {
-        const database = await Database.create();
+        
         const user = await database.getUserByUUID(message.content);
         name = user ? user.name : "User";
       }

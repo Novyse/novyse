@@ -17,7 +17,7 @@ import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import S3Uploader from "@/src/utils/storage/file/s3Bucket";
 import storage from "@/src/utils/storage/file";
-import Database from "@/src/utils/storage/database";
+import database from "@/src/utils/storage/database";
 
 const UploadProfilePicture = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
@@ -87,7 +87,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
 
       // Update local state
       // Add to database
-      const database = await Database.create();
+      
       await database.file.add(
         profilePictureUUID,
         file.name || file.fileName,

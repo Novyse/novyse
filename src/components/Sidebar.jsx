@@ -9,7 +9,6 @@ import { LocalUserContext } from "@/context/LocalUserContext";
 import SmartBackground from "./SmartBackground";
 import SidebarItem from "./SidebarItem";
 import { useRouter } from "expo-router";
-import Database from "../utils/storage/database";
 
 const Sidebar = ({
   isSidebarVisible,

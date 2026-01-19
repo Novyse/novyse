@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useState } from "react";
 
 import auth from "@/src/utils/welcome/auth";
-import Database from "@/src/utils/storage/database";
+import database from "@/src/utils/storage/database";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 
 export const LocalUserContext = createContext();
@@ -21,7 +21,7 @@ export const LocalUserProvider = ({ children }) => {
       setIsLoading(true);
       const userUUID = await auth.getUserUUID();
       if (userUUID) {
-        const database = await Database.create();
+        
         const localUser = await database.user.get(userUUID);
         setUserUUID(userUUID);
         setProfilePictureUUID(localUser.profilePictureUUID);

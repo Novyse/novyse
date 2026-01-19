@@ -3,7 +3,7 @@ import WebRTCManager from "./index.js";
 import eventEmitter from "../global/Events/EventEmitter.js";
 import SocketIO from "../backend-services/socket-io.js";
 
-import Database from "../storage/database";
+import database from "../storage/database";
 
 import SoundPlayer from "../sounds/SoundPlayer.js";
 import settingsManager from "../global/SettingsManager.js";
@@ -38,7 +38,7 @@ const self = {
     }
 
     // Join vocal chat
-    const database = await Database.create();
+    
     const user = await database.getLocalUser();
     const user_handle = user.handle;
     await SocketIO.send().joinComm(commUUID, user_handle);

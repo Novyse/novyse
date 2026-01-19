@@ -1,9 +1,9 @@
-import Database from "../storage/database";
+import database from "@/src/utils/storage/database";
 
 const add = async (message) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const database = await Database.create();
+      
       await database.addMessage(message);
       resolve(true);
     } catch (error) {

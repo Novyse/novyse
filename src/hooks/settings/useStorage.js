@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Database from "@/src/utils/storage/database";
+import database from "@/src/utils/storage/database";
 
 const useStorage = () => {
 
@@ -14,7 +14,7 @@ const useStorage = () => {
         try {
             setLoading(true);
             setError(null);
-            const database = await Database.create();
+            
             const used = await database.file.get.totalSize();
             setUsedStorage(used);
         } catch (error) {

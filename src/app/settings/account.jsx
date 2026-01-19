@@ -6,7 +6,6 @@ import { LocalUserContext } from "@/context/LocalUserContext";
 
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import ScreenLayout from "@/src/components/ScreenLayout";
-import Database from "@/src/utils/storage/database";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/settings/SettingsCard";
 import Icon from "@/src/components/Icon";

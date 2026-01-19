@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import Database from "@/src/utils/storage/database";
+import database from "@/src/utils/storage/database";
 
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 
@@ -15,7 +15,7 @@ const useProfilePicture = (uuid, uri) => {
       }
       if (!uuid) return;
       try {
-        const database = await Database.create();
+        
         const fetchedRef = await database.file.get.ref(uuid);
         setRef(fetchedRef);
         return;

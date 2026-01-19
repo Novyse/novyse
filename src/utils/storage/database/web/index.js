@@ -113,7 +113,7 @@ class Database {
             name: user?.name,
             surname: user?.surname,
             handle: user?.handle,
-          })
+          }),
         );
         return false;
       }
@@ -133,7 +133,7 @@ class Database {
 
       const handles = (await this.store.getItem("handles")) || [];
       const existingHandle = handles.find(
-        (h) => h.handle === user.handle && h.type === "USER"
+        (h) => h.handle === user.handle && h.type === "USER",
       );
       if (!existingHandle) {
         handles.push({
@@ -174,7 +174,7 @@ class Database {
             members: Array.isArray(chat?.members)
               ? chat.members.length
               : "not an array",
-          })
+          }),
         );
         return false;
       }
@@ -195,7 +195,7 @@ class Database {
       if (chat.handle) {
         const handles = (await this.store.getItem("handles")) || [];
         const existingHandle = handles.find(
-          (h) => h.chatUUID === chat.uuid && h.type === "CHAT"
+          (h) => h.chatUUID === chat.uuid && h.type === "CHAT",
         );
         if (!existingHandle) {
           handles.push({
@@ -241,7 +241,7 @@ class Database {
 
       // Check for duplicate message by ID and chatUUID to prevent adding the same message multiple times
       const existingMessage = messages.find(
-        (m) => m.id === message.id && m.chatUUID === message.chatUUID
+        (m) => m.id === message.id && m.chatUUID === message.chatUUID,
       );
       if (existingMessage) {
         console.log("Message already exists, skipping addition:", message.id);
@@ -282,7 +282,7 @@ class Database {
             (mf) =>
               mf.chatUUID === message.chatUUID &&
               mf.messageID === message.id &&
-              mf.fileUUID === file.uuid
+              mf.fileUUID === file.uuid,
           );
           if (!existingMessageFile) {
             message_files.push({
@@ -328,14 +328,14 @@ class Database {
             type: pendingMessage?.type,
             chatUUID: pendingMessage?.chatUUID,
             senderUUID: pendingMessage?.senderUUID,
-          })
+          }),
         );
         return false;
       }
       const pending_messages =
         (await this.store.getItem("pending_messages")) || [];
       const existingPending = pending_messages.find(
-        (pm) => pm.id === pendingMessage.id
+        (pm) => pm.id === pendingMessage.id,
       );
       if (!existingPending) {
         pending_messages.push({
@@ -386,7 +386,7 @@ class Database {
       const pending_messages =
         (await this.store.getItem("pending_messages")) || [];
       const index = pending_messages.findIndex(
-        (pm) => pm.id === pendingMessageID
+        (pm) => pm.id === pendingMessageID,
       );
       if (index !== -1) {
         pending_messages.splice(index, 1);
@@ -395,17 +395,17 @@ class Database {
         // Remove associated files from pending_files
         const pending_files = (await this.store.getItem("pending_files")) || [];
         const filteredFiles = pending_files.filter(
-          (pf) => pf.pendingMessageID !== pendingMessageID
+          (pf) => pf.pendingMessageID !== pendingMessageID,
         );
         await this.store.setItem("pending_files", filteredFiles);
 
         console.log(
-          `Pending message ${pendingMessageID} and associated files removed successfully.`
+          `Pending message ${pendingMessageID} and associated files removed successfully.`,
         );
         return true;
       }
       console.log(
-        `Pending message ${pendingMessageID} not found. No action taken.`
+        `Pending message ${pendingMessageID} not found. No action taken.`,
       );
       return false;
     } catch (error) {
@@ -425,7 +425,7 @@ class Database {
       const pending_files = (await this.store.getItem("pending_files")) || [];
       for (const message of pending_messages) {
         const files = pending_files.filter(
-          (pf) => pf.pendingMessageID === message.id
+          (pf) => pf.pendingMessageID === message.id,
         );
         message.files = files;
       }
@@ -446,12 +446,12 @@ class Database {
       const pending_messages =
         (await this.store.getItem("pending_messages")) || [];
       const chatPendingMessages = pending_messages.filter(
-        (pm) => pm.chatUUID === chatUUID
+        (pm) => pm.chatUUID === chatUUID,
       );
       const pending_files = (await this.store.getItem("pending_files")) || [];
       for (const message of chatPendingMessages) {
         const files = pending_files.filter(
-          (pf) => pf.pendingMessageID === message.id
+          (pf) => pf.pendingMessageID === message.id,
         );
         message.files = files;
       }
@@ -472,7 +472,7 @@ class Database {
   async updatePendingMessageForUpload(
     pendingMessageID,
     newPendingMessageUUID,
-    files
+    files,
   ) {
     try {
       if (!pendingMessageID || !files) {
@@ -482,7 +482,7 @@ class Database {
       const pending_messages =
         (await this.store.getItem("pending_messages")) || [];
       const messageIndex = pending_messages.findIndex(
-        (pm) => pm.id === pendingMessageID
+        (pm) => pm.id === pendingMessageID,
       );
       if (messageIndex !== -1) {
         pending_messages[messageIndex].id = newPendingMessageUUID;
@@ -494,7 +494,7 @@ class Database {
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           const fileIndex = pending_files.findIndex(
-            (pf) => pf.pendingMessageID === pendingMessageID && pf.index === i
+            (pf) => pf.pendingMessageID === pendingMessageID && pf.index === i,
           );
           if (fileIndex !== -1) {
             pending_files[fileIndex].pendingMessageID = newPendingMessageUUID;
@@ -507,7 +507,7 @@ class Database {
         await this.store.setItem("pending_files", pending_files);
 
         console.log(
-          `Pending message ${pendingMessageID} updated successfully for upload.`
+          `Pending message ${pendingMessageID} updated successfully for upload.`,
         );
         return true;
       }
@@ -533,13 +533,13 @@ class Database {
       const pending_messages =
         (await this.store.getItem("pending_messages")) || [];
       const messageIndex = pending_messages.findIndex(
-        (pm) => pm.id === pendingMessageID
+        (pm) => pm.id === pendingMessageID,
       );
       if (messageIndex !== -1) {
         pending_messages[messageIndex].jobType = "confirm";
         await this.store.setItem("pending_messages", pending_messages);
         console.log(
-          `Pending message ${pendingMessageID} updated to confirm successfully.`
+          `Pending message ${pendingMessageID} updated to confirm successfully.`,
         );
         return true;
       }
@@ -589,7 +589,7 @@ class Database {
         // Retrieve associated files with mime types
         const msgFiles = message_files
           .filter(
-            (mf) => mf.chatUUID === chatUUID && mf.messageID === lastMessage.id
+            (mf) => mf.chatUUID === chatUUID && mf.messageID === lastMessage.id,
           )
           .map((mf) => files.find((f) => f.uuid === mf.fileUUID))
           .filter(Boolean);
@@ -651,7 +651,7 @@ class Database {
       if (users.length > 0) {
         const user = users[0];
         const handle = handles.find(
-          (h) => h.userUUID === user.uuid && h.type === "USER"
+          (h) => h.userUUID === user.uuid && h.type === "USER",
         );
         return { ...user, handle: handle ? handle.handle : null };
       }
@@ -679,7 +679,7 @@ class Database {
       for (const message of chatMessages) {
         const msgFiles = message_files
           .filter(
-            (mf) => mf.chatUUID === chatUUID && mf.messageID === message.id
+            (mf) => mf.chatUUID === chatUUID && mf.messageID === message.id,
           )
           .map((mf) => files.find((f) => f.uuid === mf.fileUUID))
           .filter(Boolean);
@@ -715,7 +715,8 @@ class Database {
       const members = (await this.store.getItem("members")) || [];
       const userMembers = members.filter((m) => m.userUUID === userUUID);
       const dmChats = chats.filter(
-        (c) => c.type === "DM" && userMembers.some((m) => m.chatUUID === c.uuid)
+        (c) =>
+          c.type === "DM" && userMembers.some((m) => m.chatUUID === c.uuid),
       );
       return dmChats.length > 0 ? dmChats[0] : null;
     } catch (error) {
@@ -755,13 +756,13 @@ class Database {
       if (!chatUUID || !user || !user.uuid) {
         console.error(
           "Missing required fields to add member:",
-          JSON.stringify({ chatUUID, user: user ? user.uuid : null })
+          JSON.stringify({ chatUUID, user: user ? user.uuid : null }),
         );
         return false;
       }
       const members = (await this.store.getItem("members")) || [];
       const existingMember = members.find(
-        (m) => m.userUUID === user.uuid && m.chatUUID === chatUUID
+        (m) => m.userUUID === user.uuid && m.chatUUID === chatUUID,
       );
       if (!existingMember) {
         members.push({
