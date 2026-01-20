@@ -11,7 +11,6 @@ class Database {
 
   static async create() {
     if (!Database.instance) {
-
       if (!db) {
         throw new Error("Failed to open database");
       }
@@ -30,7 +29,7 @@ class Database {
     return new Database(db);
   }
 
-  async addDb(){
+  async addDb() {
     return;
     const db = useSQLiteContext();
     this.db = db;
@@ -41,7 +40,7 @@ class Database {
     this.db = db;
   }
 
-  setDb(db){
+  setDb(db) {
     this.db = db;
   }
 
@@ -748,7 +747,7 @@ class Database {
     await this.addDb();
     try {
       const messages = await this.db.getAllAsync(
-        `SELECT m.*, u.name as sender_name FROM message m
+        `SELECT m.*, u.name as sender_name, u.profilePictureUUID as profile_picture_uuid FROM message m
              JOIN user u ON m.senderUUID = u.uuid
              WHERE m.chatUUID = ?
                 ORDER BY m.created_at ASC;`,

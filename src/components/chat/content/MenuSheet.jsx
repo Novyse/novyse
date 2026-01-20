@@ -8,66 +8,6 @@ import HoverAndPressedButton from "../../HoverAndPressedButton";
 
 import Icon from "@/src/components/Icon";
 
-const createStyle = (theme) =>
-  StyleSheet.create({
-    fullScreen: {
-      flex: 1,
-    },
-    bottomSheetContainer: {
-      flex: 1,
-      justifyContent: "flex-end",
-    },
-    sheetBackground: {
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      backgroundColor: theme.backgroundSecondary || "#00b7ff",
-    },
-    handleIndicator: {
-      backgroundColor: theme.divider || "#ccc",
-    },
-    sheetContent: {
-      flex: 1,
-      padding: 20,
-    },
-    menuRow: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-around",
-    },
-    menuItem: {
-      alignItems: "center",
-    },
-    menuText: {
-      marginTop: 6,
-      fontSize: 12,
-      color: theme.text,
-    },
-    // web floating menu
-    floatingMenuContainer: {
-      position: "absolute",
-      bottom: 70, // above bottom bar
-      left: 0,
-      right: 0,
-      alignItems: "center",
-      zIndex: 1000,
-    },
-    floatingMenu: {
-      backgroundColor: theme.backgroundBottomsheet || "#F0F0F0",
-      borderRadius: 15,
-      padding: 15,
-      alignSelf: "flex-start",
-      width: "30%",
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3,
-    },
-  });
-
 const MenuSheet = ({
   platform,
   sheetIndex,
@@ -118,7 +58,7 @@ const MenuSheet = ({
     if (files && (action === "Media" || action === "File")) {
       onSendMessage(files);
     }
-  }
+  };
 
   const renderMenuItem = (action, iconName, color, disabled) => (
     <HoverAndPressedButton
@@ -205,3 +145,64 @@ const MenuSheet = ({
 };
 
 export default MenuSheet;
+
+const createStyle = (theme) =>
+  StyleSheet.create({
+    fullScreen: {
+      flex: 1,
+    },
+    bottomSheetContainer: {
+      flex: 1,
+      justifyContent: "flex-end",
+    },
+    sheetBackground: {
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      backgroundColor: theme.backgroundSecondary || "#00b7ff",
+    },
+    handleIndicator: {
+      backgroundColor: theme.divider || "#ccc",
+    },
+    sheetContent: {
+      flex: 1,
+      padding: 20,
+    },
+    menuRow: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-around",
+    },
+    menuItem: {
+      alignItems: "center",
+      borderRadius: 10
+    },
+    menuText: {
+      marginTop: 6,
+      fontSize: 12,
+      color: theme.text,
+    },
+    // web floating menu
+    floatingMenuContainer: {
+      position: "absolute",
+      bottom: 70, // above bottom bar
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 1000,
+    },
+    floatingMenu: {
+      backgroundColor: theme.backgroundBottomsheet || "#F0F0F0",
+      borderRadius: 15,
+      padding: 10,
+      alignSelf: "flex-start",
+      width: "30%",
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3,
+    },
+  });

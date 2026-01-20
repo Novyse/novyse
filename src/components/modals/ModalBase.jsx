@@ -25,13 +25,18 @@ const ModalBase = ({
   const containerProps = isSmallScreen ? {} : { intensity: 40 };
 
   return (
-    <Modal visible={visible} transparent={true} onRequestClose={onClose} animationType="fade">
+    <Modal
+      visible={visible}
+      transparent={true}
+      onRequestClose={onClose}
+      animationType="fade"
+    >
       <Pressable style={styles.overlay} onPress={onClose}>
         <ContainerComponent style={styles.container} {...containerProps}>
           <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={isSmallScreen ? { flexGrow: 1 } : null}
+            contentContainerStyle={styles.contentStyle}
           >
             <Pressable>
               {!hideCloseX && (
@@ -81,6 +86,11 @@ function createStyle(theme, screenWidth, screenHeight, isSmallScreen) {
     },
     closeIcon: {
       alignSelf: "flex-end",
+    },
+    contentStyle: {
+      flexGrow: isSmallScreen ? 1 : null,
+      alignContent: "center",
+      justifyContent: "center",
     },
   });
 }

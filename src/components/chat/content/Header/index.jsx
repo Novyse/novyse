@@ -13,6 +13,7 @@ import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 
 const Header = ({
   selectedChatName,
+  selectedChatPictureUUID,
   contentView,
   setContentView,
   isSmallScreen,
@@ -38,6 +39,7 @@ const Header = ({
         >
           <MainHeader
             selectedChatName={selectedChatName}
+            selectedChatPictureUUID={selectedChatPictureUUID}
             contentView={contentView}
             setContentView={setContentView}
             isSmallScreen={isSmallScreen}

@@ -7,11 +7,14 @@ import chatUtils from "@/src/utils/chat";
 
 export default function ChatPage() {
   const { chatUUIDorHandle } = useLocalSearchParams();
-  const { setSelectedChatUUID, setSelectedHandle, setSelectedChatName } =
-    useContext(ChatContext);
+  const {
+    setSelectedChatUUID,
+    setSelectedHandle,
+    setSelectedChatName,
+    setSelectedChatPictureUUID,
+  } = useContext(ChatContext);
 
   const router = useRouter();
-  
 
   useEffect(() => {
     let isMounted = true;
@@ -25,6 +28,7 @@ export default function ChatPage() {
       if (isMounted && data) {
         setSelectedChatUUID(data.chatUUID);
         setSelectedChatName(data.chatName);
+        setSelectedChatPictureUUID(data.chatPictureUUID);
       }
     }
 
@@ -34,5 +38,11 @@ export default function ChatPage() {
     };
   }, [chatUUIDorHandle]);
 
-  return <ChatContainer onBack={() => router.canGoBack() ? router.back() : router.navigate("/chat")}/>;
+  return (
+    <ChatContainer
+      onBack={() =>
+        router.canGoBack() ? router.back() : router.navigate("/chat")
+      }
+    />
+  );
 }

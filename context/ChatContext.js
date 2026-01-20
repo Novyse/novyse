@@ -28,7 +28,6 @@ export const ChatProvider = ({ children }) => {
       }
 
       if (selectedChatUUID === null && selectedHandle === handle) {
-        console.log("Auto-selecting new chat:", chat);
         setSelectedChatUUID(chat.uuid);
       }
     };

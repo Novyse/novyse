@@ -1,124 +1,73 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-
 import Image from "./Image";
 import Video from "./Video";
-
 import { getFileType } from "@/src/utils/storage/file/type";
 
 const MessageMedia = ({ medias }) => {
+  if (!medias || medias.length === 0) return null;
+
   return (
-    <View style={styles.bubble}>
+    <View style={styles.container}>
       {medias.length === 1 ? (
-        renderMedia(medias[0])
-      ) : medias.length === 2 ? (
-        <View style={styles.twoImagesContainer}>
-          <View style={styles.oneRow}>
-            {medias
-              .slice(0, 2)
-              .map((item, index) =>
-                renderGridCell(item, index, styles.topCell)
-              )}
+        renderMedia(medias[0], true)
+      ) : (
+        <View style={styles.grid}>
+          <View style={styles.row}>
+            {medias.slice(0, 2).map((item, index) => renderGridCell(item, index))}
           </View>
+          {medias.length > 2 && (
+            <View style={styles.row}>
+              {medias.length === 3 
+                ? renderGridCell(medias[2], 2)
+                : medias.slice(2, 4).map((item, index) => renderGridCell(item, index + 2))
+              }
+            </View>
+          )}
         </View>
-      ) : medias.length === 3 ? (
-        <View style={styles.gridContainer}>
-          <View style={styles.twoRow}>
-            {medias
-              .slice(0, 2)
-              .map((item, index) =>
-                renderGridCell(item, index, styles.topCell)
-              )}
-          </View>
-          <View style={styles.oneWideRow}>
-            {renderGridCell(medias[2], 2, styles.bottomCell)}
-          </View>
-        </View>
-      ) : medias.length > 3 ? (
-        <View style={styles.gridContainer}>
-          <View style={styles.twoRow}>
-            {medias
-              .slice(0, 2)
-              .map((item, index) =>
-                renderGridCell(item, index, styles.topCell)
-              )}
-          </View>
-          <View style={styles.twoRow}>
-            {medias
-              .slice(2, 4)
-              .map((item, index) =>
-                renderGridCell(item, index + 2, styles.topCell)
-              )}
-          </View>
-        </View>
-      ) : null}
+      )}
     </View>
   );
 };
 
-const renderGridCell = (item, index, cellStyle) => {
-  return (
-    <View key={index} style={[styles.gridCell, cellStyle]}>
-      {renderMedia(item)}
-    </View>
-  );
-};
+const renderGridCell = (item, index) => (
+  <View key={index} style={styles.cell}>
+    {renderMedia(item, false)}
+  </View>
+);
 
-const renderMedia = (media) => {
+const renderMedia = (media, isSingle) => {
   const fileType = getFileType(media.mimeType);
-  const fileRef = media.ref;
-  const uuid = media.uuid;
+  const { ref, uuid, duration } = media;
+
   if (fileType === "IMAGE") {
-    return <Image fileRef={fileRef} uuid={uuid} />;
+    return <Image fileRef={ref} uuid={uuid} isSingle={isSingle} />;
   } else if (fileType === "VIDEO") {
-    return <Video fileRef={fileRef} uuid={uuid} duration={media.duration} />;
+    return <Video fileRef={ref} uuid={uuid} duration={duration} isSingle={isSingle} />;
   }
   return null;
 };
 
-export default MessageMedia;
-
 const styles = StyleSheet.create({
-  bubble: {
-    alignSelf: "flex-start",
+  container: {
+    width: "100%",
     borderRadius: 12,
+    overflow: "hidden",
+    minWidth: 200, 
+  },
+  grid: {
     width: "100%",
+    gap: 2,
   },
-  twoImagesContainer: {
-    width: "100%",
-    aspectRatio: 2,
-    borderRadius: 8,
-  },
-  gridContainer: {
-    flexDirection: "column",
-    aspectRatio: 1,
-    width: "100%",
-    borderRadius: 8,
-  },
-  twoRow: {
+  row: {
     flexDirection: "row",
-    height: "50%",
-    gap: 5,
-    marginBottom: 5,
+    gap: 2,
+    height: 150, 
   },
-  oneRow: {
-    flexDirection: "row",
-    height: "100%",
-    gap: 5,
-    marginBottom: 5,
-  },
-  oneWideRow: {
-    flexDirection: "row",
-    height: "50%",
-  },
-  topCell: {
+  cell: {
     flex: 1,
-  },
-  bottomCell: {
-    flex: 1,
-  },
-  media: {
-    width: "100%",
-    height: "100%",
+    minWidth: 100,
   },
 });
+
+export default MessageMedia;

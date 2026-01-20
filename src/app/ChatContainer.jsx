@@ -21,7 +21,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 
 const ChatContainer = ({ onBack }) => {
   const { chatUUIDorHandle } = useLocalSearchParams();
-  const { selectedChatUUID, selectedHandle, selectedChatName } =
+  const { selectedChatUUID, selectedHandle, selectedChatName, selectedChatPictureUUID } =
     useContext(ChatContext);
   const { theme } = useContext(ThemeContext);
   const { width } = useWindowDimensions();
@@ -86,6 +86,7 @@ const ChatContainer = ({ onBack }) => {
     >
       <Header
         selectedChatName={selectedChatName}
+        selectedChatPictureUUID={selectedChatPictureUUID}
         contentView={contentView}
         setContentView={setContentView}
         isSmallScreen={isSmallScreen}

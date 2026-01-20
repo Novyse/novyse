@@ -87,7 +87,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
 
       // Update local state
       // Add to database
-      
+
       await database.file.add(
         profilePictureUUID,
         file.name || file.fileName,
@@ -127,7 +127,12 @@ const UploadProfilePicture = ({ visible, onClose }) => {
   };
 
   return (
-    <ModalBase visible={visible} onClose={onClose} theme={theme}>
+    <ModalBase
+      visible={visible}
+      onClose={onClose}
+      theme={theme}
+      hideCloseX={true}
+    >
       <View style={styles.container}>
         {/* Avatar Preview */}
         <View style={styles.avatarContainer}>

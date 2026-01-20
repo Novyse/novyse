@@ -17,7 +17,8 @@ const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const { name, surname, handle, email, profilePictureUUID, isLoading } = useContext(LocalUserContext);
+  const { name, surname, handle, email, profilePictureUUID, isLoading } =
+    useContext(LocalUserContext);
 
   const [isHovered, setIsHovered] = useState(false);
   const [isProfilePicModalVisible, setIsProfilePicModalVisible] =
@@ -64,7 +65,7 @@ const ProfilePage = () => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            <Avatar uuid={profilePictureUUID} size={120}  theme={theme} />
+            <Avatar uuid={profilePictureUUID} size={120} theme={theme} />
             {isHovered && (
               <View style={styles.editIconContainer}>
                 <Icon name="PencilEdit02Icon" size={24} color={theme.text} />

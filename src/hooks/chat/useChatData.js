@@ -22,11 +22,9 @@ const useChatData = (chatUUID, chatHandle = null) => {
         setMessages([]);
 
         if (chatUUID) {
-          
           const messages = await database.getMessagesByChatUUID(chatUUID);
-          const pendingMessage = await database.getPendingMessagesByChatUUID(
-            chatUUID
-          );
+          const pendingMessage =
+            await database.getPendingMessagesByChatUUID(chatUUID);
           messages.push(...pendingMessage);
 
           const chat = await database.getChatByUUID(chatUUID);
@@ -44,7 +42,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
           if (chatHandle) {
             const { success, data } = await gateway.gather.handle(
               chatHandle,
-              true
+              true,
             );
             if (success) {
               const { type, handle, profilePictureUUID } = data;
@@ -105,7 +103,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
     const handleMessageUploading = ({ tempId, message }) => {
       setMessages((currentMessages) => {
         return currentMessages.map((msg) =>
-          msg.id === tempId ? { ...message, id: message.messageUUID } : msg
+          msg.id === tempId ? { ...message, id: message.messageUUID } : msg,
         );
       });
     };
@@ -120,7 +118,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
                 ...msg,
                 files: msg.files.map((f) => (f.uuid === file.uuid ? file : f)),
               }
-            : msg
+            : msg,
         );
       });
     };
@@ -129,13 +127,13 @@ const useChatData = (chatUUID, chatHandle = null) => {
       setMessages((currentMessages) => {
         // Remove any existing message with the same id as the new message
         const filteredMessages = currentMessages.filter(
-          (msg) => msg.id !== message.id
+          (msg) => msg.id !== message.id,
         );
         // Then replace the tempId with the new message, setting only id and timestamp, rest undefined
         return filteredMessages.map((msg) =>
           msg.id === tempId
             ? { ...msg, id: message.id, created_at: message.created_at }
-            : msg
+            : msg,
         );
       });
     };
@@ -145,7 +143,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
         return currentMessages.map((msg) => {
           const { uuid: fileUUID, ref, waveform, duration } = file;
           const updatedFiles = msg.files.map((f) =>
-            f.uuid === fileUUID ? { ...f, ref, waveform, duration } : f
+            f.uuid === fileUUID ? { ...f, ref, waveform, duration } : f,
           );
           return { ...msg, files: updatedFiles };
         });

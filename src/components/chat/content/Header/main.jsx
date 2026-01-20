@@ -9,6 +9,7 @@ import { LocalUserContext } from "@/context/LocalUserContext";
 
 const MainHeader = ({
   selectedChatName,
+  selectedChatPictureUUID,
   contentView,
   setContentView,
   isSmallScreen,
@@ -16,8 +17,6 @@ const MainHeader = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-
-  const { profilePictureUUID } = useContext(LocalUserContext);
 
   return (
     <View style={styles.headerMainRow}>
@@ -32,7 +31,7 @@ const MainHeader = ({
       </View>
 
       <View style={styles.headerCenter}>
-        <Avatar uuid={profilePictureUUID} theme={theme} />
+        <Avatar uuid={selectedChatPictureUUID} theme={theme} />
         <Text style={styles.chatTitle} numberOfLines={1}>
           {selectedChatName}
         </Text>

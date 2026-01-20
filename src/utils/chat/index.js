@@ -8,8 +8,6 @@ const getChatData = async (chatUUIDorHandle) => {
   let chatName = null;
   let chatPictureUUID = null;
 
-  
-
   const isHandle = chatUUIDorHandle.length < 33;
 
   if (!isHandle) {
@@ -94,9 +92,7 @@ const getChatData = async (chatUUIDorHandle) => {
  * @returns {Object} { name, chatPictureUUID }
  */
 
-const getChatNameAndProfilePicture = async (chat, myProfilePictureUUID) => {
-  
-
+const getChatNameAndProfilePicture = async (chat) => {
   let name = chat.name;
   let chatPictureUUID = chat.profilePictureUUID;
 
@@ -105,9 +101,10 @@ const getChatNameAndProfilePicture = async (chat, myProfilePictureUUID) => {
     name = user.name;
     chatPictureUUID = user.profilePictureUUID;
 
-    if (user.uuid === (await auth.getUserUUID())) {
+    const myUser = await database.user.get(await auth.getUserUUID());
+    if (user.uuid === myUser.uuid) {
       name = "Saved Messages";
-      chatPictureUUID = myProfilePictureUUID;
+      chatPictureUUID = myUser.profilePictureUUID;
     }
   }
   return { name, chatPictureUUID };
@@ -130,7 +127,6 @@ const getSystemMessageText = async (message) => {
       if (message.content == (await auth.getUserUUID())) {
         name = "You";
       } else {
-        
         const user = await database.getUserByUUID(message.content);
         name = user ? user.name : "User";
       }
@@ -140,7 +136,6 @@ const getSystemMessageText = async (message) => {
       if (message.content == (await auth.getUserUUID())) {
         name = "You";
       } else {
-        
         const user = await database.getUserByUUID(message.content);
         name = user ? user.name : "User";
       }

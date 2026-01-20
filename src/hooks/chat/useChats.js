@@ -7,8 +7,6 @@ import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import { LocalUserContext } from "@/context/LocalUserContext";
 
 const useChats = () => {
-  const { profilePictureUUID: myProfilePictureUUID } = useContext(LocalUserContext);
-
   const [chatDetails, setChatDetails] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,17 +15,14 @@ const useChats = () => {
     const loadChats = async () => {
       try {
         setLoading(true);
-        
+
         const chats = await database.getChats();
         const details = {};
         for (const chat of chats) {
           const lastMessage = await getLastMesssage(chat.uuid);
 
-          const { name, profilePictureUUID } =
-            await utils.getChatNameAndProfilePicture(
-              chat,
-              myProfilePictureUUID,
-            );
+          const { name,  chatPictureUUID:profilePictureUUID } =
+            await utils.getChatNameAndProfilePicture(chat);
 
           details[chat.uuid] = {
             uuid: chat.uuid,
@@ -102,7 +97,6 @@ const useChats = () => {
 
 const getLastMesssage = async (chatUUID) => {
   try {
-    
     const lastMessage = await database.getLastMessage(chatUUID);
 
     return await formatMessage(lastMessage);

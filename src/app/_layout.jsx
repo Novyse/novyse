@@ -28,7 +28,6 @@ export default function RootLayout() {
   const isMobile = width < 768; // Threshold per width responsive
   const headerHeight = 64; // Altezza fissa header standard su tutta l'app
 
-
   useEffect(() => {
     setToastWidth(isMobile ? "90%" : 300); // 90% su mobile, fissa 300px su desktop/tablet
   }, []);

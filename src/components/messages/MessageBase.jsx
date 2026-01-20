@@ -6,6 +6,7 @@ import { getFileType } from "@/src/utils/storage/file/type";
 import { defaultWaveform } from "@/src/utils/storage/file/media";
 
 import MessageTimestamp from "./MessageTimestamp";
+import Avatar from "../Avatar";
 
 import MessageMedia from "./MessageMedia";
 import MessageOther from "./MessageOther";
@@ -40,22 +41,22 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
 
   const voiceMessages = groupBy(
     files,
-    ({ mimeType, name }) => getFileType(mimeType, name) === "VOICE"
+    ({ mimeType, name }) => getFileType(mimeType, name) === "VOICE",
   );
 
   const audioMessages = groupBy(
     files,
-    ({ mimeType, name }) => getFileType(mimeType, name) === "AUDIO"
+    ({ mimeType, name }) => getFileType(mimeType, name) === "AUDIO",
   );
 
   const mediaMessages = groupBy(
     files,
     ({ mimeType }) =>
-      getFileType(mimeType) === "IMAGE" || getFileType(mimeType) === "VIDEO"
+      getFileType(mimeType) === "IMAGE" || getFileType(mimeType) === "VIDEO",
   );
 
   const otherMessages = groupBy(files, ({ mimeType }) =>
-    ["DOCUMENT", "CODE", "ARCHIVE", "OTHER"].includes(getFileType(mimeType))
+    ["DOCUMENT", "CODE", "ARCHIVE", "OTHER"].includes(getFileType(mimeType)),
   );
 
   const sharedContent = (
@@ -102,7 +103,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
           const waveform = Array.isArray(voiceMessage.waveform)
             ? voiceMessage.waveform
             : JSON.parse(
-                voiceMessage.waveform || JSON.stringify(defaultWaveform)
+                voiceMessage.waveform || JSON.stringify(defaultWaveform),
               ) || defaultWaveform;
           return (
             <MessageVoice
@@ -156,14 +157,7 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
   return (
     <View style={styles.receiverContainer}>
       <View style={styles.receiverRow}>
-        {showAvatar && (
-          <View style={styles.avatarWrapper}>
-            <Image
-              source={{ uri: "https://picsum.photos/200/300" }}
-              style={styles.avatar}
-            />
-          </View>
-        )}
+        {showAvatar && <Avatar size={40} uuid={message.profile_picture_uuid} />}
         <BlurredView
           tint={"dark"}
           style={[
