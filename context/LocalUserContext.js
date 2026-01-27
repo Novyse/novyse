@@ -23,6 +23,7 @@ export const LocalUserProvider = ({ children }) => {
       if (userUUID) {
         
         const localUser = await database.user.get(userUUID);
+
         setUserUUID(userUUID);
         setProfilePictureUUID(localUser.profilePictureUUID);
         setName(localUser.name);
@@ -51,6 +52,37 @@ export const LocalUserProvider = ({ children }) => {
       eventEmitter
         .getEmitter()
         .off("user:profile:picture:update", handleUpdateProfilePicture);
+    };
+  }, [userUUID]);
+
+  // This is a temporary solution to handle the case where the userUUID is not immediately available. Will be fixed for 1.0 release.
+  useEffect(() => {
+    if (userUUID) return;
+    let mounted = true;
+    const checkForUser = async () => {
+      try {
+        const uid = await auth.getUserUUID();
+        if (!mounted || !uid) return;
+
+        const localUser = await database.user.get(uid);
+        if (!mounted) return;
+        if (localUser) {
+          setUserUUID(uid);
+          setProfilePictureUUID(localUser.profilePictureUUID);
+          setName(localUser.name);
+          setSurname(localUser.surname);
+          setEmail(localUser.email);
+          setHandle(localUser.handle);
+        }
+      } catch (e) {
+        // ignora errori e continua il polling
+      }
+    };
+    checkForUser();
+    const intervalId = setInterval(checkForUser, 1000);
+    return () => {
+      mounted = false;
+      clearInterval(intervalId);
     };
   }, [userUUID]);
 

@@ -18,6 +18,8 @@ import { SQLiteProvider } from "expo-sqlite";
 
 import SetupGlobalEventReceiver from "../utils/global/Events/EventReceiver";
 
+import ErrorPage from "./ErrorPage";
+
 export default function RootLayout() {
   SetupGlobalEventReceiver();
 
@@ -35,10 +37,21 @@ export default function RootLayout() {
   // Top offset sempre sotto header: safe top + header height (su tutti i device)
   const topOffset = insets.top + headerHeight;
 
+  // Manages SQLite errors in the app
+  const [sqliteError, setSqliteError] = useState(false);
+  if (sqliteError) {
+    return <ErrorPage />;
+  }
+
   return (
     <SafeAreaProvider>
       <KeyboardProvider>
-        <SQLiteProvider databaseName="novyse">
+        <SQLiteProvider
+          databaseName="novyse"
+          onError={(e) => {
+            setSqliteError(true);
+          }}
+        >
           <ThemeProvider>
             <AudioProvider>
               <AudioPlayerProvider>

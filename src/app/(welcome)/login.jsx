@@ -206,10 +206,10 @@ const LoginPassword = () => {
               </View>
               {/* Container per i pulsanti Back e Login */}
               <View style={styles.buttonContainer}>
-                <WelcomeButton type={"back"} onPress={handleBack}>
+                <WelcomeButton type={"back"} onPress={handleBack} disabled={isLoading}>
                   <WelcomeButtonText type={"back"} />
                 </WelcomeButton>
-                <WelcomeButton type={"submit"} onPress={handleLogin}>
+                <WelcomeButton type={"submit"} onPress={handleLogin} disabled={isLoading}>
                   <WelcomeButtonText type={"submit"} />
                 </WelcomeButton>
               </View>
