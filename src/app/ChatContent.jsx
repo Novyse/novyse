@@ -41,7 +41,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 // New Components
 import BottomBar from "../components/chat/content/BottomBar";
 import MessageList from "../components/chat/content/MessageList";
-import MenuSheet from "../components/chat/content/MenuSheet";
+import UploadFileOverlay from "../components/chat/content/UploadFileOverlay";
 
 import UploadFileModal from "../components/modals/uploadFile";
 
@@ -226,7 +226,7 @@ const ChatContent = ({ onBack, contentView }) => {
           />
         </KeyboardAvoidingView>
 
-        <MenuSheet
+        <UploadFileOverlay
           platform={Platform.OS}
           sheetIndex={sheetIndex}
           onSheetChange={handleSheetChange}

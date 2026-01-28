@@ -8,7 +8,7 @@ import HoverAndPressedButton from "../../HoverAndPressedButton";
 
 import Icon from "@/src/components/Icon";
 
-const MenuSheet = ({
+const UploadFileOverlay = ({
   platform,
   sheetIndex,
   onSheetChange,
@@ -144,7 +144,7 @@ const MenuSheet = ({
   );
 };
 
-export default MenuSheet;
+export default UploadFileOverlay;
 
 const createStyle = (theme) =>
   StyleSheet.create({
@@ -196,7 +196,7 @@ const createStyle = (theme) =>
       borderRadius: 15,
       padding: 10,
       alignSelf: "flex-start",
-      width: "30%",
+      marginLeft: 10,
       shadowColor: "#000",
       shadowOffset: {
         width: 0,

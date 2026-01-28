@@ -83,8 +83,8 @@ const createStyle = (theme, isSingle) =>
       color: "white",
       backgroundColor: "rgba(0, 0, 0, 0.5)",
       paddingHorizontal: 4,
-      borderRadius: 4,
-      fontSize: 10,
+      borderRadius: 5,
+      fontSize: 12,
     },
   });
 

@@ -59,9 +59,12 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
     ["DOCUMENT", "CODE", "ARCHIVE", "OTHER"].includes(getFileType(mimeType)),
   );
 
+  // Determina se ci sono solo media senza testo
+  const hasOnlyMedia = (!content || content.trim().length === 0) && (mediaMessages.true || []).length > 0;
+
   const sharedContent = (
     <View
-      style={showSenderName ? styles.textContainerNoTop : styles.textContainer}
+      style={hasOnlyMedia ? styles.mediaContainer : (showSenderName ? styles.textContainerNoTop : styles.textContainer)}
     >
       {/* images/videos print */}
       {mediaMessages && <MessageMedia medias={mediaMessages.true || []} />}
@@ -214,7 +217,7 @@ const createStyle = (theme) =>
     receiverBubble: {
       overflow: "visible",
       marginVertical: 4,
-      marginLeft: 55,
+      marginLeft: 58,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-start",
@@ -247,6 +250,14 @@ const createStyle = (theme) =>
       justifyContent: "flex-start",
       paddingHorizontal: 12,
       paddingBottom: 8,
+      paddingTop: 0,
+    },
+    mediaContainer: {
+      flexDirection: "column",
+      alignItems: "flex-start",
+      justifyContent: "flex-start",
+      paddingHorizontal: 0,
+      paddingBottom: 0,
       paddingTop: 0,
     },
     textRow: {

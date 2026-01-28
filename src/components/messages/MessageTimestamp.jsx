@@ -104,6 +104,7 @@ const createStyle = (theme) =>
       textAlign: "right",
       fontSize: 12,
       minWidth: 35,
+      padding: 8
     },
     alignContainer: {
       alignSelf: "flex-end",
