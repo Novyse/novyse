@@ -1,0 +1,1 @@
+// Will be updated in 0.10 with WebRTC/Full files support for Linux, MacOS and Windows
