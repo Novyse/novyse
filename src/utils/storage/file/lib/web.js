@@ -1,0 +1,166 @@
+import localforage from "localforage";
+
+const blobStore = localforage.createInstance({
+  name: "NovyseFiles",
+  storeName: "novyse_blob_files",
+});
+
+const DB = {
+  /**
+   * Save a blob file into IndexedDB.
+   * @param {String} uri - The file URI
+   * @returns {Promise<{ref: string, size: number}>} The file reference and size
+   */
+  save: {
+    /**
+     * Save a file by its URI.
+     * @param {string} uri - The URI of the file to save.
+     * @returns {Promise<{ref: string, size: number}>} The file reference and size
+     */
+    byUri: async (uri) => {
+      if (!uri) {
+        throw new Error("URI is required to save a file.");
+      }
+      try {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const size = blob.size;
+
+        const key = uri.split("/").pop();
+
+        await blobStore.setItem(key, {
+          key,
+          blob,
+        });
+        return { ref: key, size };
+      } catch (err) {
+        console.error("Could not save file", err);
+        throw err;
+      }
+    },
+    /**
+     * Save a file by its Blob.
+     * @param {Blob} blob
+     * @returns {Promise<{ref: string, size: number}>} The file reference and size
+     */
+    byBlob: async (blob) => {
+      if (!blob) {
+        throw new Error("Blob is required to save a file.");
+      }
+      const uri = await DB.getUri(blob);
+      return await DB.save.byUri(uri);
+    },
+  },
+
+  /**
+   * Retrieve a blob file URL from IndexedDB.
+   * @param {string} key
+   * @returns {string|null} The object URI or null if not found
+   */
+  read: async (key) => {
+    try {
+      const item = await blobStore.getItem(key);
+      if (item && item.blob) {
+        return URL.createObjectURL(item.blob);
+      }
+      return null;
+    } catch (err) {
+      console.error("[FILES_DB]: Could not retrieve file", err);
+      return null;
+    }
+  },
+
+  /**
+   * Delete a file from IndexedDB.
+   * @param {string} key
+   * @return {Promise<Void>}
+   */
+  delete: async (key) => {
+    try {
+      await blobStore.removeItem(key);
+    } catch (err) {
+      console.error("[FILES_DB]: Could not delete file", err);
+    }
+  },
+
+  /**
+   * Check if a file exists in IndexedDB.
+   * @param {string} key
+   * @return {Promise<Boolean>}
+   */
+  exists: async (key) => {
+    const item = await blobStore.getItem(key);
+    return !!item;
+  },
+
+  /**
+   * Clear all files from IndexedDB.
+   * @return {Promise<Void>}
+   */
+  clearAll: async () => {
+    await blobStore.clear();
+    console.log("[FILES_DB]: All files cleared");
+  },
+
+  /**
+   * Get the blob of the file
+   * @param {String} uri
+   * @returns
+   */
+  getBlob: async (uri) => {
+    try {
+      // Handle all URIs with fetch
+      const response = await fetch(uri);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch file from URI: ${response.statusText}`
+        );
+      }
+      const blob = await response.blob();
+
+      return blob;
+    } catch (err) {
+      console.error("Could not get blob", err);
+      return null;
+    }
+  },
+
+  /**
+   * Get the arrayBuffer of the file
+   * @param {String} uri
+   * @returns
+   */
+  getArrayBuffer: async (uri) => {
+    try {
+      // Handle all URIs with fetch
+      const response = await fetch(uri);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch file from URI: ${response.statusText}`
+        );
+      }
+      const arrayBuffer = await response.arrayBuffer();
+
+      return arrayBuffer;
+    } catch (err) {
+      console.error("Could not get arrayBuffer", err);
+      return null;
+    }
+  },
+
+  /**
+   * Get the URI from a blob
+   * @param {Blob} blob
+   * @returns
+   */
+  getUri: async (blob) => {
+    try {
+      return URL.createObjectURL(blob);
+    } catch (err) {
+      console.error("Could not get URI from blob", err);
+      return null;
+    }
+  },
+};
+
+export default DB;
