@@ -102,7 +102,7 @@ const Sidebar = ({
               iconName={"User03Icon"}
               onPress={() => {
                 toggleSidebar();
-                router.push("/settings/account");
+                router.push("/profile/" + handle);
               }}
             />
             <SidebarItem

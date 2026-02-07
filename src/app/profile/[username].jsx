@@ -1,6 +1,8 @@
 import React, { useContext, useState } from "react";
 import { StyleSheet, View, Text } from "react-native";
 
+import { useLocalSearchParams } from "expo-router";
+
 import { ThemeContext } from "@/context/ThemeContext";
 import { LocalUserContext } from "@/context/LocalUserContext";
 
@@ -17,8 +19,13 @@ const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const { name, surname, handle, email, profilePictureUUID, isLoading } =
-    useContext(LocalUserContext);
+  // pick username from url /profile/:username
+  const { username } = useLocalSearchParams();
+
+  //   const { name, surname, handle, email, profilePictureUUID = "", isLoading } =
+  //     useContext(LocalUserContext);
+
+  const isLoading = false;
 
   const [isHovered, setIsHovered] = useState(false);
   const [isProfilePicModalVisible, setIsProfilePicModalVisible] =
@@ -59,7 +66,7 @@ const ProfilePage = () => {
         />
         {/* Profile Image Section */}
         <View style={styles.profileImageSection}>
-          <HoverAndPressedButton
+          {/* <HoverAndPressedButton
             onPress={pickImage}
             style={styles.profileImageContainer}
             onMouseEnter={() => setIsHovered(true)}
@@ -71,12 +78,12 @@ const ProfilePage = () => {
                 <Icon name="PencilEdit02Icon" size={24} color={theme.text} />
               </View>
             )}
-          </HoverAndPressedButton>
-          <Text style={styles.profileName}>
+          </HoverAndPressedButton> */}
+          {/* <Text style={styles.profileName}>
             {name && surname ? `${name} ${surname}` : "Loading..."}
-          </Text>
+          </Text> */}
           <Text style={styles.profileHandle}>
-            {handle ? `@${handle}` : "Loading..."}
+            {username ? `@${username}` : "Loading..."}
           </Text>
         </View>
 
@@ -84,10 +91,10 @@ const ProfilePage = () => {
         <SettingsCard>
           <Text style={styles.sectionTitle}>Personal Information</Text>
 
-          <ProfileField label="Name" value={name} />
+          {/* <ProfileField label="Name" value={name} />
           <ProfileField label="Surname" value={surname} />
           <ProfileField label="Username" value={handle} />
-          <ProfileField label="Email" value={email} />
+          <ProfileField label="Email" value={email} /> */}
         </SettingsCard>
       </SettingsPageScrollview>
     </ScreenLayout>
