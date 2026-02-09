@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useContext, useEffect } from "react";
 import { View, StyleSheet, Text, Platform } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
+import { useScreen } from "@/context/ScreenContext";
 import UserCard from "./UserCard";
 
 import methods from "../../utils/webrtc/methods";
@@ -64,7 +65,7 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
 
       setIsTogglingPin(true);
       console.debug(
-        `Toggling pin for user ${userId}, current pinned: ${pinnedUUID}`
+        `Toggling pin for user ${userId}, current pinned: ${pinnedUUID}`,
       );
 
       // Use pin utils to toggle pin state
@@ -75,12 +76,12 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
         // Update local state to reflect the change immediately
         const newPinnedUser = get.pinnedUser();
         console.info(
-          `Pin toggle successful, new pinned user: ${newPinnedUser}`
+          `Pin toggle successful, new pinned user: ${newPinnedUser}`,
         );
         setPinnedUUID(newPinnedUser);
       }
     },
-    [isTogglingPin, pinnedUUID]
+    [isTogglingPin, pinnedUUID],
   );
 
   // ---- Pinning State ----
@@ -91,12 +92,12 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
     // Controlla se l'utente è nella chat vocale
     if (!check.isInComms()) {
       console.info(
-        "Non puoi mettere utenti in fullscreen se non sei nella chat vocale"
+        "Non puoi mettere utenti in fullscreen se non sei nella chat vocale",
       );
       return;
     }
     console.debug(
-      `Toggling fullscreen for user ${streamUUID}, current fullscreen: ${fullScreenUUID}`
+      `Toggling fullscreen for user ${streamUUID}, current fullscreen: ${fullScreenUUID}`,
     );
 
     if (streamUUID === fullScreenUUID) {
@@ -163,7 +164,7 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
     const { width, height } = containerDimensions;
     const isPortrait = height > width;
     // Migliorata la rilevazione di schermi piccoli
-    const isSmallScreen = width < 700 || Platform.OS === "android";
+    const { isSmallScreen } = useScreen();
 
     let numColumns, numRows;
 
@@ -269,7 +270,7 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
   useEffect(() => {
     console.log(
       "[VocalMembersLayout] commData ricevuti:",
-      commData // Use commData directly
+      commData, // Use commData directly
     );
     console.log("[VocalMembersLayout] activeStreams ricevuti:", activeStreams);
     console.log("[VocalMembersLayout] numColumns calcolato:", numColumns);
@@ -282,7 +283,7 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
     handle,
     isScreenShare,
     webcamOn = false,
-    stream
+    stream,
   ) => {
     return (
       <UserCard
@@ -321,7 +322,8 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
       >
         {Object.keys(commData).length > 0 ? ( // Use commData directly
           <>
-            {Object.entries(commData).map( // Use commData directly
+            {Object.entries(commData).map(
+              // Use commData directly
               ([deviceUUID, commData]) => {
                 // Usa commData direttamente
                 const components = [];
@@ -363,9 +365,9 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
                         handle,
                         false,
                         webcamOn,
-                        mainStream
+                        mainStream,
                       )}
-                    </View>
+                    </View>,
                   );
                 }
 
@@ -387,15 +389,15 @@ const VocalMembersLayout = ({ commData = {}, activeStreams = {} }) => {
                             handle,
                             true,
                             true,
-                            screenShareStream
+                            screenShareStream,
                           )}
-                        </View>
+                        </View>,
                       );
                     }
                   });
                 }
                 return components;
-              }
+              },
             )}
           </>
         ) : (

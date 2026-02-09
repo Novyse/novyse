@@ -16,6 +16,7 @@ import Icon from "../components/Icon";
 import BlurredView from "../components/BlurredView";
 import Header from "../components/chat/content/Header";
 
+import { useScreen } from "@/context/ScreenContext";
 import { ChatContext } from "@/context/ChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 
@@ -25,7 +26,8 @@ const ChatContainer = ({ onBack }) => {
     useContext(ChatContext);
   const { theme } = useContext(ThemeContext);
   const { width } = useWindowDimensions();
-  const isSmallScreen = width <= 768;
+  
+  const { isSmallScreen } = useScreen();
   const [contentView, setContentView] = useState("chat");
 
   const styles = useMemo(

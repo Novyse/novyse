@@ -7,7 +7,6 @@ import {
   BackHandler,
   Platform,
   Image,
-  useWindowDimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -16,6 +15,8 @@ import {
   KeyboardAvoidingView,
   KeyboardController,
 } from "react-native-keyboard-controller";
+
+import { useScreen } from "@/context/ScreenContext";
 
 import auth from "@/src/utils/welcome/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -39,8 +40,8 @@ const LoginPassword = () => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const loginTheme = "default";
 
-  const { width } = useWindowDimensions();
-  const isSmallScreen = width < 936;
+  const { isSmallScreen } = useScreen();
+  
 
   const styles = createStyle(loginTheme, isSmallScreen);
 

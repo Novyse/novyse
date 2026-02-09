@@ -10,6 +10,8 @@ import {
 import Icon from "../Icon";
 import BlurredView from "../BlurredView";
 
+import { useScreen } from "@/context/ScreenContext";
+
 const ModalBase = ({
   visible,
   onClose,
@@ -18,7 +20,7 @@ const ModalBase = ({
   hideCloseX = false,
 }) => {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-  const isSmallScreen = screenWidth < 768;
+  const { isSmallScreen } = useScreen();
   const styles = createStyle(theme, screenWidth, screenHeight, isSmallScreen);
 
   const ContainerComponent = isSmallScreen ? View : BlurredView;

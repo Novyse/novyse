@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
+import { useScreen } from "@/context/ScreenContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import OtpDigitsInput from "@/src/components/OtpDigitsInput";
 import ScreenLayout from "@/src/components/ScreenLayout";
@@ -61,7 +62,6 @@ const AuthenticatorSection = ({
 const VerifyMethod = () => {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
-  const { width } = useWindowDimensions();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -74,7 +74,7 @@ const VerifyMethod = () => {
     ? decodeURIComponent(params.otpauth)
     : params.otpauth;
 
-  const isSmallScreen = width < 768;
+  const { isSmallScreen } = useScreen();
   const styles = createStyle(theme, isSmallScreen);
 
   useEffect(() => {
@@ -84,7 +84,7 @@ const VerifyMethod = () => {
     };
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
-      backAction
+      backAction,
     );
     return () => backHandler.remove();
   }, [router]);

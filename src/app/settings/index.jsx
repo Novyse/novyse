@@ -11,8 +11,8 @@ const SettingsMenu = () => {
       <HeaderWithBackArrow title={"Settings"}/>
       <SettingsPageScrollview isMenu={true}>
         <SettingsMenuItem
-          navToPage="/settings/modify-profile"
-          pageName="Modify profile"
+          navToPage="/settings/account"
+          pageName="Account"
           iconName={"UserIcon"}
         />
         <SettingsMenuItem

@@ -6,8 +6,10 @@ import {
   ActivityIndicator,
   BackHandler,
   Image,
-  useWindowDimensions,
 } from "react-native";
+
+import { useScreen } from "@/context/ScreenContext";
+
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
@@ -25,8 +27,7 @@ const Verify = ({}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const loginTheme = "default";
-  const { width } = useWindowDimensions();
-  const isSmallScreen = width < 936;
+  const { isSmallScreen } = useScreen();
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);

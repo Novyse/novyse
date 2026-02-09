@@ -8,6 +8,7 @@ import ToastManager from "toastify-react-native";
 
 import { AudioProvider } from "@/context/AudioContext";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
+import { ScreenProvider } from "@/context/ScreenContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ChatProvider } from "@/context/ChatContext";
 import { LocalUserProvider } from "@/context/LocalUserContext";
@@ -52,39 +53,41 @@ export default function RootLayout() {
             setSqliteError(true);
           }}
         >
-          <ThemeProvider>
-            <AudioProvider>
-              <AudioPlayerProvider>
-                <ChatProvider>
-                  <LocalUserProvider>
-                    <LanguageProvider>
-                      <NetworkProvider>
-                        <Stack
-                          screenOptions={{
-                            headerShown: false,
-                            contentStyle: { backgroundColor: "transparent" },
-                          }}
-                        />
-                        {/* ToastManager a root: overlay full-viewport, sotto header su tutti i device */}
-                        <ToastManager
-                          position="top"
-                          topOffset={topOffset} // Sempre sotto header
-                          theme="light" // O "dark" based on theme
-                          width={toastWidth}
-                          showCloseIcon={true}
-                          showProgressBar={true}
-                          style={{
-                            alignSelf: "flex-end",
-                            marginRight: 20,
-                          }}
-                        />
-                      </NetworkProvider>
-                    </LanguageProvider>
-                  </LocalUserProvider>
-                </ChatProvider>
-              </AudioPlayerProvider>
-            </AudioProvider>
-          </ThemeProvider>
+          <ScreenProvider>
+            <ThemeProvider>
+              <AudioProvider>
+                <AudioPlayerProvider>
+                  <ChatProvider>
+                    <LocalUserProvider>
+                      <LanguageProvider>
+                        <NetworkProvider>
+                          <Stack
+                            screenOptions={{
+                              headerShown: false,
+                              contentStyle: { backgroundColor: "transparent" },
+                            }}
+                          />
+                          {/* ToastManager a root: overlay full-viewport, sotto header su tutti i device */}
+                          <ToastManager
+                            position="top"
+                            topOffset={topOffset} // Sempre sotto header
+                            theme="light" // O "dark" based on theme
+                            width={toastWidth}
+                            showCloseIcon={true}
+                            showProgressBar={true}
+                            style={{
+                              alignSelf: "flex-end",
+                              marginRight: 20,
+                            }}
+                          />
+                        </NetworkProvider>
+                      </LanguageProvider>
+                    </LocalUserProvider>
+                  </ChatProvider>
+                </AudioPlayerProvider>
+              </AudioProvider>
+            </ThemeProvider>
+          </ScreenProvider>
         </SQLiteProvider>
       </KeyboardProvider>
     </SafeAreaProvider>

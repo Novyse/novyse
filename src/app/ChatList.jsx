@@ -22,6 +22,7 @@ import useChats from "../hooks/chat/useChats";
 import { LocalUserContext } from "@/context/LocalUserContext";
 import BlurredView from "../components/BlurredView";
 import { ThemeContext } from "@/context/ThemeContext";
+import { useScreen } from "@/context/ScreenContext";
 
 const PINNED_CHATS_STORAGE_KEY = "@chat_order";
 
@@ -123,18 +124,13 @@ const ChatListItem = React.memo(
 
 const ChatList = ({ onChatSelect, toggleSidebar }) => {
   const { chatDetails } = useChats();
-  const { width } = useWindowDimensions();
-  const [isSmallScreen, setIsSmallScreen] = useState(width < 768);
+  const { isSmallScreen } = useScreen();
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme, isSmallScreen);
   const [selectedItems, setSelectedItems] = useState([]);
   const [orderedChats, setOrderedChats] = useState([]);
   const [isToggleSearchChats, setIsToggleSearchChats] = useState(false);
   const isSelectionMode = selectedItems.length > 0;
-
-  useEffect(() => {
-    setIsSmallScreen(width < 768);
-  }, [width]);
 
   useEffect(() => {
     const organizeChats = async () => {

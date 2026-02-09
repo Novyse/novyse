@@ -1,18 +1,17 @@
 import React, { useContext } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
 import Avatar from "@/src/components/Avatar";
 import Icon from "@/src/components/Icon";
 
-import { MaterialIcons } from "@expo/vector-icons";
-
 interface ProfileHeaderProps {
   name: string;
   surname: string;
   username: string;
   profilePictureUUID?: string;
+  isOnline?: boolean;
   badges?: Array<{ text: string; color: string; icon: string }>;
   onEditAvatar?: () => void;
 }
@@ -22,20 +21,21 @@ export default function ProfileHeader({
   surname,
   username,
   profilePictureUUID,
+  isOnline = false,
   badges = [],
-  onEditAvatar,
+  onEditAvatar = undefined,
 }: ProfileHeaderProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
   return (
     <View style={styles.profileHeader}>
-      <Avatar uuid={profilePictureUUID} size={120} theme={theme} onEdit={() => {}}/>
+      <Avatar uuid={profilePictureUUID} size={120} theme={theme} isOnline={isOnline} onEdit={onEditAvatar}/>
 
       <Text style={styles.nameSurnameText}>
         {name} {surname}
       </Text>
-      <Text style={styles.usernameText}>{username}</Text>
+      <Text style={styles.usernameText}>@{username}</Text>
 
       <View style={styles.badgesRow}>
         {badges.map((badge, index) => (

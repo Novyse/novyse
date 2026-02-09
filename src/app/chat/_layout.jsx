@@ -26,6 +26,7 @@ import useAppInit from "@/src/hooks/auth/useAppInit";
 
 import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
 import database from "@/src/utils/storage/database/";
+import { useScreen } from "@/context/ScreenContext";
 
 const { get, check } = methods;
 
@@ -38,7 +39,7 @@ export default function ChatLayout() {
 
   useAppInit(true);
   const { width } = useWindowDimensions();
-  const isSmallScreen = width <= 768;
+  const {isSmallScreen} = useScreen();
   const router = useRouter();
   const params = useLocalSearchParams();
   const { theme } = useContext(ThemeContext);

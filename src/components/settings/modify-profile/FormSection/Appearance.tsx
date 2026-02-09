@@ -2,6 +2,8 @@ import React, { useContext } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 
+import Icon from "@/src/components/Icon";
+
 import Label from "@/src/components/Label";
 import SectionHeader from "@/src/components/SectionHeader";
 import ColorDot from "@/src/components/ColorDot";
@@ -31,7 +33,7 @@ export default function Appareance() {
           </View>
         </View>
         <View style={styles.infoContainer}>
-          <Text style={styles.infoText}>Function not available yet</Text>
+          <Icon name="UnavailableIcon" size={24} color="white" />
         </View>
       </View>
     </>
@@ -54,12 +56,6 @@ const createStyles = (theme: any) =>
       justifyContent: "center",
       pointerEvents: "none",
       borderRadius: 8,
-    },
-    infoText: {
-      color: theme.text,
-      fontSize: 26,
-      fontStyle: "italic",
-      textAlign: "center",
     },
     row: {
       flexDirection: "row",

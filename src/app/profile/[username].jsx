@@ -15,6 +15,8 @@ import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import UploadProfilePicture from "@/src/components/modals/UploadProfilePicture";
 import Avatar from "@/src/components/Avatar";
 
+import Profile from "@/src/components/Profile";
+
 const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -22,37 +24,37 @@ const ProfilePage = () => {
   // pick username from url /profile/:username
   const { username } = useLocalSearchParams();
 
-  //   const { name, surname, handle, email, profilePictureUUID = "", isLoading } =
-  //     useContext(LocalUserContext);
-
-  const isLoading = false;
-
-  const [isHovered, setIsHovered] = useState(false);
-  const [isProfilePicModalVisible, setIsProfilePicModalVisible] =
-    useState(false);
-
-  const ProfileField = ({ label, value }) => (
-    <View style={styles.fieldContainer}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.fieldValueContainer}>
-        <Text style={styles.fieldValue}>{value || "Loading..."}</Text>
-      </View>
-    </View>
-  );
+  const {
+    name,
+    surname,
+    handle,
+    profilePictureUUID = "",
+    isLoading,
+  } = useContext(LocalUserContext);
 
   if (isLoading) {
     return (
       <ScreenLayout fullscreen={true}>
         <View style={styles.container}>
-          <HeaderWithBackArrow title={"Account"} />
+          <HeaderWithBackArrow title={"Profile"} />
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </ScreenLayout>
     );
   }
-  const pickImage = () => {
-    setIsProfilePicModalVisible(true);
-  };
+
+  return (
+    <ScreenLayout fullscreen={true}>
+      <HeaderWithBackArrow title={"Profile"} />
+        <Profile
+          name={name}
+          surname={surname}
+          username={handle}
+          profilePictureUUID={profilePictureUUID}
+          isOnline={true}
+        />
+    </ScreenLayout>
+  );
 
   return (
     <ScreenLayout fullscreen={true}>

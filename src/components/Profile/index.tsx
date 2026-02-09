@@ -8,36 +8,54 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 
 import Banner from "@/src/components/Banner";
-import ProfileHeader from "../../Profile/ProfileHeader";
-import FormSection from "./FormSection";
+import ProfileHeader from "./ProfileHeader";
+import AboutMe from "./AboutMe";
+import Connections from "./Connections";
+import BirthdayLocation from "./BirthdayLocation";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 
-interface ModifyProfileProps {
+interface Connection {
+  name: string;
+  icon: string;
+  url?: string;
+}
+
+interface ProfileProps {
   name: string;
   surname: string;
   username: string;
-  email: string;
-  birthday: string;
-  country: string;
+  birthday?: string;
+  country?: string;
   profilePictureUUID?: string;
+  bannerUUID?: string;
+  isOnline?: boolean;
+  description?: string;
+  connections?: Connection[];
+  onChannelPress?: () => void;
+  onConnectionPress?: (connection: Connection) => void;
 }
 
-export default function ModifyProfile({
+export default function Profile({
   name,
   surname,
   username,
-  email,
   birthday,
   country,
   profilePictureUUID,
-}: ModifyProfileProps) {
+  bannerUUID,
+  isOnline,
+  description,
+  connections,
+  onConnectionPress,
+}: ProfileProps) {
   const { theme } = useContext(ThemeContext);
   const { width, height } = useWindowDimensions();
   const { isSmallScreen } = useScreen();
 
   const styles = createStyles(theme, isSmallScreen, height);
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -49,44 +67,43 @@ export default function ModifyProfile({
           colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.01)"]}
           style={styles.glassPanel}
         >
-          <Banner
-            theme={theme}
-            size={isSmallScreen ? 120 : 180}
-            onEdit={() => {}}
-          />
+          <Banner theme={theme} size={isSmallScreen ? 120 : 180} />
 
           <ProfileHeader
             name={name}
             surname={surname}
-            profilePictureUUID={profilePictureUUID}
             username={username}
+            profilePictureUUID={profilePictureUUID}
+            isOnline={isOnline}
             badges={[
               {
-                text: "Pro Member",
+                text: "Founder",
                 color: "rgba(16, 185, 129, 0.1)",
                 icon: "FirstBracketCircleIcon",
               },
               {
-                text: "Artist",
+                text: "Pro del frontend",
                 color: "rgba(168, 85, 247, 0.1)",
                 icon: "SevenZ01Icon",
               },
             ]}
-            onEditAvatar={() => {}}
           />
 
-          <FormSection
-            name={name}
-            surname={surname}
-            username={username}
-            email={email}
-            birthday={birthday}
-            country={country}
-            isSmallScreen={isSmallScreen}
-          />
+          {/* About Me Section */}
+          <AboutMe description={description} />
 
-          {/* Spacer for bottom footer */}
-          <View style={{ height: 20 }} />
+          {/* Birthday and Location Section */}
+          {birthday && (
+            <BirthdayLocation birthday={birthday} country={country} />
+          )}
+
+          {/* Connections Section */}
+          {connections && (
+            <Connections
+              connections={connections}
+              onConnectionPress={onConnectionPress}
+            />
+          )}
         </LinearGradient>
       </ScrollView>
     </View>
@@ -117,6 +134,6 @@ const createStyles = (
       overflow: "hidden",
       width: isSmallScreen ? "100%" : "90%",
       maxWidth: 600,
-      minHeight: isSmallScreen ? screenHeight * 0.8 : 800,
+      minHeight: isSmallScreen ? screenHeight * 0.8 : 500,
     },
   });

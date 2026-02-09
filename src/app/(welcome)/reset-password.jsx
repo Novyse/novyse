@@ -8,8 +8,9 @@ import {
   BackHandler,
   Platform,
   Image,
-  useWindowDimensions,
 } from "react-native";
+
+import { useScreen } from "@/context/ScreenContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import auth from "@/src/utils/welcome/auth";
@@ -35,8 +36,7 @@ const ResetPassword = () => {
   const [error, setError] = useState(null);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const loginTheme = "default";
-  const { width } = useWindowDimensions();
-  const isSmallScreen = width < 936;
+  const { isSmallScreen } = useScreen();
   const styles = createStyle(loginTheme, isSmallScreen);
 
   useEffect(() => {

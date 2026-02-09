@@ -4,25 +4,28 @@ import { View, StyleSheet } from "react-native";
 import PersonalInfo from "./PersonalInfo";
 import Appareance from "./Appearance";
 import Connections from "./Connections";
-
-const Divider: React.FC = () => <View style={styles.divider} />;
+import Divider from "@/src/components/Divider";
 
 interface FormSectionProps {
   name: string;
   surname: string;
   username: string;
-  email: string;
   description?: string;
   birthday?: string;
+  country?: string;
+  region?: string;
+  isSmallScreen?: boolean;
 }
 
 export default function FormSection({
   name,
   surname,
   username,
-  email,
   description,
   birthday,
+  country,
+  region,
+  isSmallScreen = false,
 }: FormSectionProps) {
   return (
     <View style={styles.formSection}>
@@ -31,9 +34,11 @@ export default function FormSection({
         name={name}
         surname={surname}
         username={username}
-        email={email}
         description={description}
         birthday={birthday}
+        country={country}
+        region={region}
+        isSmallScreen={isSmallScreen}
       />
 
       <Divider />
@@ -54,10 +59,5 @@ const styles = StyleSheet.create({
   formSection: {
     paddingHorizontal: 20,
     width: "100%",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    marginVertical: 24,
   },
 });

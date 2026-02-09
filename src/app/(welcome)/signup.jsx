@@ -18,6 +18,8 @@ import {
   KeyboardController,
 } from "react-native-keyboard-controller";
 
+import { useScreen } from "@/context/ScreenContext";
+
 import validate from "@/src/utils/welcome/validator";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
@@ -84,7 +86,7 @@ const Signup = () => {
     { id: 3, label: "Username", field: "handle", placeholder: "Username" },
   ];
 
-  const isSmallScreen = width < 936;
+  const { isSmallScreen } = useScreen();
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const [form, setForm] = useState({
@@ -114,7 +116,7 @@ const Signup = () => {
     };
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
-      backAction
+      backAction,
     );
     return () => backHandler.remove();
   }, []);
@@ -129,7 +131,7 @@ const Signup = () => {
         !isLoading &&
         privacy_policy_accepted &&
         terms_of_service_accepted &&
-        more_than_16_years_old
+        more_than_16_years_old,
     );
   }, [
     form,
@@ -249,7 +251,7 @@ const Signup = () => {
         handle,
         privacy_policy_accepted,
         terms_of_service_accepted,
-        more_than_16_years_old
+        more_than_16_years_old,
       );
 
       if (signupResponse) {
@@ -281,8 +283,8 @@ const Signup = () => {
                   isCompleted
                     ? styles.timelineCompleted
                     : isCurrent
-                    ? styles.timelineCurrent
-                    : styles.timelinePending,
+                      ? styles.timelineCurrent
+                      : styles.timelinePending,
                 ]}
                 onPress={isAccessible ? () => setCurrentStep(index) : undefined}
                 disabled={!isAccessible}
@@ -309,8 +311,8 @@ const Signup = () => {
                 form.name.length > 0 && !validate.user.name(form.name)
                   ? styles.inputError
                   : form.name.length > 0 && validate.user.name(form.name)
-                  ? styles.inputSuccess
-                  : null,
+                    ? styles.inputSuccess
+                    : null,
               ]}
             >
               <TextInput
@@ -333,9 +335,9 @@ const Signup = () => {
                 form.surname.length > 0 && !validate.user.surname(form.surname)
                   ? styles.inputError
                   : form.surname.length > 0 &&
-                    validate.user.surname(form.surname)
-                  ? styles.inputSuccess
-                  : null,
+                      validate.user.surname(form.surname)
+                    ? styles.inputSuccess
+                    : null,
               ]}
             >
               <TextInput
@@ -486,8 +488,8 @@ const Signup = () => {
                   isLoading
                     ? styles.reqGray
                     : handleAvailable === true
-                    ? styles.reqGreen
-                    : styles.reqRed,
+                      ? styles.reqGreen
+                      : styles.reqRed,
                 ]}
               >
                 {isLoading ? "⟳" : handleAvailable ? "✓" : "✗"}
@@ -496,8 +498,8 @@ const Signup = () => {
                 {isLoading
                   ? "Checking availability..."
                   : handleAvailable
-                  ? "Available"
-                  : "Already in use"}
+                    ? "Available"
+                    : "Already in use"}
               </Text>
             </View>
           )}

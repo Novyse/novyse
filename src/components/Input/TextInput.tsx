@@ -1,58 +1,65 @@
 import React, { useContext } from "react";
-import { View, Text, TextInput, StyleSheet } from "react-native";
+import { View, Text, TextInput as RNTextInput, StyleSheet } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
-interface BlurInputProps {
+interface TextInputProps {
   value?: string;
   prefix?: string;
   placeholder?: string;
   disabled?: boolean;
   maxLenght?: number;
+  numberOfLines?: number;
   onChange?: (text: string) => void;
 }
 
-export default function BlurInput({
+export default function TextInput({
   value,
   prefix,
   placeholder,
-  disabled,
+  disabled = false,
   maxLenght,
+  numberOfLines = 1,
   onChange,
-}: BlurInputProps) {
+}: TextInputProps) {
+  const isMultiline = numberOfLines > 1;
+
   const { theme } = useContext(ThemeContext);
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, disabled, isMultiline);
 
   return (
     <View style={styles.inputContainer}>
       {prefix && <Text style={styles.prefix}>{prefix}</Text>}
 
-      <TextInput
-        style={styles.blurInput}
+      <RNTextInput
+        style={styles.TextInput}
         value={value}
         placeholder={placeholder}
         editable={!disabled}
         onChangeText={onChange}
         maxLength={maxLenght}
         placeholderTextColor={theme.placeholderText}
+        multiline={isMultiline}
+        numberOfLines={numberOfLines}
       />
     </View>
   );
 }
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: any, disabled: boolean, isMultiline: boolean) =>
   StyleSheet.create({
     inputContainer: {
       paddingHorizontal: 20,
       paddingVertical: 14,
       flexDirection: "row",
-      borderRadius: 99,
+      borderRadius: isMultiline ? 16 : 99,
       alignItems: "center",
       backgroundColor: theme.backgroundCard,
+      opacity: disabled ? 0.6 : 1,
     },
-
-    blurInput: {
+    TextInput: {
       color: theme.text,
+      width: "100%",
       fontSize: 14,
       outlineStyle: "solid",
       outlineWidth: 0,

@@ -9,6 +9,9 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
+
+import { useScreen } from "@/context/ScreenContext";
+
 import { LoginColors } from "@/constants/LoginColors";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import StatusMessage from "@/src/components/StatusMessage";
@@ -24,7 +27,9 @@ const ChooseVerify = () => {
   const [error, setError] = useState("");
   const loginTheme = "default";
   const { width } = useWindowDimensions();
-  const isSmallScreen = width < 936;
+
+  const { isSmallScreen } = useScreen();
+
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const { email, token, verificationTypeList } = useLocalSearchParams();

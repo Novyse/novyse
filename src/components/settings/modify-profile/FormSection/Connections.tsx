@@ -87,7 +87,7 @@ export default function Connections() {
           />
         </View>
         <View style={styles.infoContainer}>
-          <Text style={styles.infoText}>Function not available yet</Text>
+          <Icon name="UnavailableIcon" size={24} color="white" />
         </View>
       </View>
     </>
@@ -110,12 +110,6 @@ const createStyles = (theme: any) =>
       justifyContent: "center",
       pointerEvents: "none",
       borderRadius: 8,
-    },
-    infoText: {
-      color: theme.text,
-      fontSize: 26,
-      fontStyle: "italic",
-      textAlign: "center",
     },
     row: {
       flexDirection: "column",

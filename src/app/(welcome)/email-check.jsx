@@ -16,6 +16,8 @@ import {
   KeyboardController,
 } from "react-native-keyboard-controller";
 
+import { useScreen } from "@/context/ScreenContext";
+
 import gateway from "@/src/utils/backend-services/api-gateway";
 import validate from "@/src/utils/welcome/validator";
 
@@ -48,7 +50,8 @@ const EmailCheckForm = () => {
   const loginTheme = "default";
 
   const { width } = useWindowDimensions();
-  const isSmallScreen = width < 936;
+
+  const { isSmallScreen } = useScreen();
 
   const styles = createStyle(loginTheme, isSmallScreen);
 
