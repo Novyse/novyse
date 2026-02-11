@@ -6,9 +6,12 @@ import chatUtils from "@/src/utils/chat";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import SocketIO from "@/src/utils/backend-services/socket-io";
 import { LocalUserContext } from "@/context/LocalUserContext";
+import { ChatContext } from "@/context/ChatContext";
 
 const useChatData = (chatUUID, chatHandle = null) => {
   const { userUUID } = useContext(LocalUserContext);
+  const { setSelectedChatName, setSelectedChatPictureUUID } =
+    useContext(ChatContext);
   const [chat, setChat] = useState({});
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +40,8 @@ const useChatData = (chatUUID, chatHandle = null) => {
             type: chat.type,
             profilePictureUUID,
           }));
+          setSelectedChatName(name);
+          setSelectedChatPictureUUID(profilePictureUUID);
           setMessages((prev) => messages.reverse());
         } else {
           if (chatHandle) {
@@ -77,6 +82,8 @@ const useChatData = (chatUUID, chatHandle = null) => {
                 member,
                 profilePictureUUID,
               }));
+              setSelectedChatName(name);
+              setSelectedChatPictureUUID(profilePictureUUID);
             }
           }
         }

@@ -5,6 +5,7 @@ import Avatar from "./Avatar";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import { LocalUserContext } from "@/context/LocalUserContext";
+import { useAuth } from "@/context/AuthContext";
 
 import SmartBackground from "./SmartBackground";
 import SidebarItem from "./SidebarItem";
@@ -30,6 +31,7 @@ const Sidebar = ({
   const SIDEBAR_OVERLAY_SPEED = 175;
 
   const router = useRouter();
+  const { refreshLoginStatus } = useAuth();
 
   // 2. Sincronizza le animazioni con il cambio di isSidebarVisible
   useEffect(() => {
@@ -126,6 +128,7 @@ const Sidebar = ({
               iconName={"Logout03Icon"}
               onPress={() => {
                 toggleSidebar();
+                refreshLoginStatus(); 
                 logout(router);
               }}
             />

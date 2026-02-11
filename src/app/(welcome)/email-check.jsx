@@ -49,11 +49,11 @@ const EmailCheckForm = () => {
   const [remainingTime, setRemainingTime] = useState(0);
   const loginTheme = "default";
 
-  const { width } = useWindowDimensions();
-
   const { isSmallScreen } = useScreen();
 
   const styles = createStyle(loginTheme, isSmallScreen);
+
+  console.log("fsdsdf");
 
   const router = useRouter();
 

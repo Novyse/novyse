@@ -9,10 +9,9 @@ import Icon from "./Icon";
 import HeaderBase from "./HeaderBase";
 import BlurredView from "./BlurredView";
 
-const HeaderWithBackArrow = ({ goBackTo, title }) => {
+const HeaderWithBackArrow = ({ title, onBack }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-  const router = useRouter();
 
   const insets = useSafeAreaInsets();
 
@@ -30,15 +29,7 @@ const HeaderWithBackArrow = ({ goBackTo, title }) => {
       >
         <Icon
           name={"ArrowLeft02Icon"}
-          onPress={() => {
-            if (goBackTo) {
-              router.navigate(goBackTo);
-            } else if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.navigate("/chat");
-            }
-          }}
+          onPress={() => {onBack()}}
           style={styles.icon}
         />
         {title && (

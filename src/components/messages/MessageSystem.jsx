@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import BlurredView from "../BlurredView"; // Aggiunto import per BlurredView
 
-import chatUtils from "../../utils/chat/index";
+import chatUtils from "@/src/utils/chat/index";
 
 const MessageSystem = ({ type, data }) => {
   const { theme } = useContext(ThemeContext);

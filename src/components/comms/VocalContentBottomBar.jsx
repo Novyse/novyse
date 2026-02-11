@@ -15,7 +15,7 @@ import CameraArrowButton from "./CameraArrowButton";
 import BlurredView from "../BlurredView";
 import { useRouter } from "expo-router";
 
-import methods from "../../utils/webrtc/methods";
+import methods from "@/src/utils/webrtc/methods";
 const { get, self, check } = methods;
 
 const VocalContentBottomBar = ({ commUUID }) => {

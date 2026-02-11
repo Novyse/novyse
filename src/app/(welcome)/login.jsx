@@ -17,6 +17,7 @@ import {
 } from "react-native-keyboard-controller";
 
 import { useScreen } from "@/context/ScreenContext";
+import {useAuth } from "@/context/AuthContext";
 
 import auth from "@/src/utils/welcome/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -41,12 +42,12 @@ const LoginPassword = () => {
   const loginTheme = "default";
 
   const { isSmallScreen } = useScreen();
+  const { refreshLoginStatus } = useAuth();
   
 
   const styles = createStyle(loginTheme, isSmallScreen);
 
   useEffect(() => {
-    auth.checkShouldBeHere(router, false);
 
     const backAction = () => {
       router.navigate("/");
@@ -95,6 +96,7 @@ const LoginPassword = () => {
       } else {
         if (!twofa) {
           if (await auth.initializeApp()) {
+            await refreshLoginStatus(); 
             router.replace("/chat");
           }
         } else {

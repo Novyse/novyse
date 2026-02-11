@@ -27,3 +27,6 @@ export const NetworkProvider = ({ children }) => {
     <NetworkContext.Provider value={value}>{children}</NetworkContext.Provider>
   );
 };
+
+
+export const useNetworkContext = () => React.useContext(NetworkContext);

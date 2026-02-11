@@ -7,7 +7,7 @@ import {
   useAudioRecorderState,
 } from "expo-audio";
 
-import { RecordPreset } from "../../utils/record/audio/presets";
+import { RecordPreset } from "@/src/utils/record/audio/presets";
 
 const useVoiceRecord = (onSendMessage) => {
   // --- LOGICA AUDIO ---

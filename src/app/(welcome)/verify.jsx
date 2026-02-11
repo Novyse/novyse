@@ -9,6 +9,7 @@ import {
 } from "react-native";
 
 import { useScreen } from "@/context/ScreenContext";
+import {useAuth} from "@/context/AuthContext";
 
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -28,6 +29,7 @@ const Verify = ({}) => {
   const [error, setError] = useState(null);
   const loginTheme = "default";
   const { isSmallScreen } = useScreen();
+  const { refreshLoginStatus } = useAuth();
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -35,7 +37,6 @@ const Verify = ({}) => {
   const { token, verificationType } = useLocalSearchParams();
 
   useEffect(() => {
-    auth.checkShouldBeHere(router, false);
 
     const backAction = () => {
       router.navigate("/");
@@ -87,6 +88,7 @@ const Verify = ({}) => {
         console.log("OTP verificato con successo!");
         const success = await auth.initializeApp();
         if (success) {
+          await refreshLoginStatus();
           router.replace("/chat");
         }
       } else {

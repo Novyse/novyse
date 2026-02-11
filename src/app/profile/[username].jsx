@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { StyleSheet, View, Text } from "react-native";
 
 import { useLocalSearchParams } from "expo-router";
@@ -17,6 +17,8 @@ import Avatar from "@/src/components/Avatar";
 
 import Profile from "@/src/components/Profile";
 
+import database from "@/src/utils/storage/database";
+
 const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -24,13 +26,36 @@ const ProfilePage = () => {
   // pick username from url /profile/:username
   const { username } = useLocalSearchParams();
 
-  const {
-    name,
-    surname,
-    handle,
-    profilePictureUUID = "",
-    isLoading,
-  } = useContext(LocalUserContext);
+  const [name, setName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [profilePictureUUID, setProfilePictureUUID] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setIsLoading(true);
+        const userData = await database.user.get.byHandle(username);
+        if (userData) {
+          setName(userData.name);
+          setSurname(userData.surname);
+          setProfilePictureUUID(userData.profilePictureUUID);
+        }else{
+          setError("User not found");
+        }
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+        setError(err);
+      }
+      finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [username]);
+
 
   if (isLoading) {
     return (
@@ -43,13 +68,24 @@ const ProfilePage = () => {
     );
   }
 
+  if (error) {
+    return (
+      <ScreenLayout fullscreen={true}>
+        <View style={styles.container}>
+          <HeaderWithBackArrow title={"Profile"} />
+          <Text style={styles.loadingText}>Error loading profile: {error}</Text>
+        </View>
+      </ScreenLayout>
+    );
+  }
+
   return (
     <ScreenLayout fullscreen={true}>
       <HeaderWithBackArrow title={"Profile"} />
         <Profile
           name={name}
           surname={surname}
-          username={handle}
+          username={username}
           profilePictureUUID={profilePictureUUID}
           isOnline={true}
         />
@@ -109,7 +145,7 @@ const createStyle = (theme) =>
       color: theme.text,
       fontSize: 16,
       textAlign: "center",
-      marginTop: 50,
+      marginTop: 80,
     },
     profileImageSection: {
       alignItems: "center",

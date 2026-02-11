@@ -5,7 +5,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
 import Icon from "../Icon";
 
-import methods from "../../utils/webrtc/methods";
+import methods from "@/src/utils/webrtc/methods";
 const { get, check, self } = methods;
 
 let RTCView;

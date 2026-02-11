@@ -40,7 +40,6 @@ const ResetPassword = () => {
   const styles = createStyle(loginTheme, isSmallScreen);
 
   useEffect(() => {
-    auth.checkShouldBeHere(router, false);
 
     const backAction = () => {
       router.navigate("/");

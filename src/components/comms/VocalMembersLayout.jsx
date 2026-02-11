@@ -4,7 +4,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 import UserCard from "./UserCard";
 
-import methods from "../../utils/webrtc/methods";
+import methods from "@/src/utils/webrtc/methods";
 const { get, check, self } = methods;
 
 let RTCView;

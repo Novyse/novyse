@@ -37,8 +37,10 @@ const ChooseVerify = () => {
   const methods = verificationTypeList ? verificationTypeList.split(",") : [];
 
   useEffect(() => {
-    auth.checkShouldBeHere(router, true);
-  }, []);
+    if (!email || !token || !verificationTypeList) {
+      router.navigate("email-check");
+    }
+  },[(email, token, verificationTypeList)]);
 
   const handleChooseMethod = (method) => {
     setSelectedMethod(method);

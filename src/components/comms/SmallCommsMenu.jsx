@@ -12,7 +12,7 @@ import VocalBottomBarButton from "./VocalBottomBarButton";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 
-import methods from "../../utils/webrtc/methods";
+import methods from "@/src/utils/webrtc/methods";
 const { self, get } = methods;
 
 const SmallCommsMenu = () => {

@@ -22,7 +22,7 @@ export const LocalUserProvider = ({ children }) => {
       const userUUID = await auth.getUserUUID();
       if (userUUID) {
         
-        const localUser = await database.user.get(userUUID);
+        const localUser = await database.user.get.byUUID(userUUID);
 
         setUserUUID(userUUID);
         setProfilePictureUUID(localUser.profilePictureUUID);
@@ -64,7 +64,7 @@ export const LocalUserProvider = ({ children }) => {
         const uid = await auth.getUserUUID();
         if (!mounted || !uid) return;
 
-        const localUser = await database.user.get(uid);
+        const localUser = await database.user.get.byUUID(uid);
         if (!mounted) return;
         if (localUser) {
           setUserUUID(uid);
@@ -95,6 +95,7 @@ export const LocalUserProvider = ({ children }) => {
         surname,
         email,
         handle,
+        username: handle,
         isLoading,
       }}
     >
@@ -102,3 +103,5 @@ export const LocalUserProvider = ({ children }) => {
     </LocalUserContext.Provider>
   );
 };
+
+export const useLocalUserContext = () => React.useContext(LocalUserContext);
