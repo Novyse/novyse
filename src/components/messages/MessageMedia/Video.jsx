@@ -5,7 +5,7 @@ import useUriResolver from "@/src/hooks/file/useUriResolver";
 import { ThemeContext } from "@/context/ThemeContext";
 import { formatDuration } from "@/src/utils/storage/file/utils";
 import FileButton from "@/src/components/messages/Button";
-import VideoViewer from "@/src/app/(protected)/chat/VideoViewer";
+import VideoViewer from "@/src/components/modals/viewer/VideoViewer";
 
 const Video = ({ fileRef, uuid, duration, isSingle }) => {
   const { uri } = useUriResolver(fileRef);
