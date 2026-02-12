@@ -53,8 +53,6 @@ const EmailCheckForm = () => {
 
   const styles = createStyle(loginTheme, isSmallScreen);
 
-  console.log("fsdsdf");
-
   const router = useRouter();
 
   useEffect(() => {
@@ -87,7 +85,7 @@ const EmailCheckForm = () => {
               if (scanned) {
                 // QR code scanned, save tokens and navigate
                 if (await auth.initializeApp()) {
-                  router.replace("/chat");
+                  router.replace("/app");
                 }
 
                 setQrToken(null);

@@ -9,7 +9,7 @@ export default function WelcomeLayout() {
         contentStyle: { backgroundColor: "transparent" },
       }}
     >
-      <Stack.Screen name="email-check" options={{ headerShown: false }} />
+      <Stack.Screen name="welcome" options={{ headerShown: false }} />
     </Stack>
   );
 }

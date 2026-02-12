@@ -378,6 +378,7 @@ class Database {
 
       // Add files to file table and message_files table if present
       if (message.files && Array.isArray(message.files)) {
+        console.log;
         for (const file of message.files) {
           await this.db.runAsync(
             `INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size, waveform, duration) VALUES (?, ?, ?, ?, ?, ?, ?);`,
@@ -859,6 +860,113 @@ class Database {
       return false;
     }
   }
+  message = {
+    /**
+     * Add multiple messages to the database in a single query.
+     * @param {Array} messages - Array of message objects to add
+     * @returns {boolean} true if messages added successfully, false otherwise
+     */
+    addMultiple: async (messages) => {
+      try {
+        if (!messages || !Array.isArray(messages) || messages.length === 0) {
+          console.error("No messages to add.");
+          return false;
+        }
+        const placeholders = messages
+          .map(
+            () => `(?, ?, ?, ?, ?, ?, ?, ?)`, // 8 placeholders for each message field
+          )
+          .join(", ");
+        const values = [];
+        for (const message of messages) {
+          if (
+            message.id === undefined ||
+            !message.chatUUID ||
+            !message.senderUUID ||
+            !message.created_at
+          ) {
+            console.error("Missing required message fields:", message);
+            continue; // Skip this message and continue with the next one
+          }
+          values.push(
+            message.id,
+            message.chatUUID,
+            message.senderUUID,
+            message.content || null,
+            message.type || "message",
+            message.system_action || null,
+            message.created_at,
+            message.isPinned ? 1 : 0,
+          );
+        }
+        await this.db.runAsync(
+          `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, is_pinned) VALUES ${placeholders};`,
+          values,
+        );
+        console.log(`${messages.length} messages added successfully.`);
+
+        // Now add files for each message
+        const allFiles = [];
+        const allMessageFiles = [];
+        for (const message of messages) {
+          if (message.files && Array.isArray(message.files)) {
+            for (const file of message.files) {
+              if (!file.uuid || !file.name || !file.mimeType || file.size === undefined) {
+                console.warn("Skipping invalid file:", file);
+                continue;
+              }
+              allFiles.push(file);
+              allMessageFiles.push({
+                chatUUID: message.chatUUID,
+                messageID: message.id,
+                fileUUID: file.uuid,
+              });
+            }
+          }
+        }
+        if (allFiles.length > 0) {
+          const filePlaceholders = allFiles
+            .map(() => `(?, ?, ?, ?, ?, ?, ?)`)
+            .join(", ");
+          const fileValues = [];
+          for (const file of allFiles) {
+            fileValues.push(
+              file.uuid,
+              file.name,
+              file.ref || null,
+              file.mimeType,
+              file.size,
+              file.waveform ? JSON.stringify(file.waveform) : null,
+              file.duration || 0,
+            );
+          }
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size, waveform, duration) VALUES ${filePlaceholders};`,
+            fileValues,
+          );
+          console.log(`${allFiles.length} files added successfully.`);
+        }
+        if (allMessageFiles.length > 0) {
+          const mfPlaceholders = allMessageFiles
+            .map(() => `(?, ?, ?)`)
+            .join(", ");
+          const mfValues = [];
+          for (const mf of allMessageFiles) {
+            mfValues.push(mf.chatUUID, mf.messageID, mf.fileUUID);
+          }
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES ${mfPlaceholders};`,
+            mfValues,
+          );
+          console.log(`${allMessageFiles.length} message-file associations added successfully.`);
+        }
+        return true;
+      } catch (error) {
+        console.error("Error adding multiple messages:", error);
+        return false;
+      }
+    },
+  };
   user = {
     profile: {
       picture: {

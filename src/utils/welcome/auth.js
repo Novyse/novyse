@@ -56,13 +56,13 @@ const checkShouldBeHere = async (router, shouldBeLoggedIn = true) => {
   const loggedIn = await isLoggedIn();
   if (shouldBeLoggedIn && !loggedIn) {
     console.warn("User should be logged in but is not. Redirecting to login.");
-    router.replace("/email-check");
+    router.replace("/welcome");
     return false;
   } else if (!shouldBeLoggedIn && loggedIn) {
     console.warn(
       "User should not be logged in but is. Redirecting to messages."
     );
-    router.replace("/chat");
+    router.replace("/app");
     return false;
   }
   return true;
@@ -105,9 +105,7 @@ const initializeApp = async () => {
       await database.addChat(chat);
     }
 
-    for (const message of messages) {
-      await messageUtils.add(message);
-    }
+    await messageUtils.addMultiple(messages);
 
     console.log("All data stored in local database.");
     return true;
@@ -117,7 +115,7 @@ const initializeApp = async () => {
   return false;
 };
 
-const logout = async (router) => {
+const logout = async () => {
   console.log("Logging out user...");
   const success = await gateway.auth.logout();
   if (!success) {
@@ -130,7 +128,6 @@ const logout = async (router) => {
   
   await database.clear();
   await AsyncStorage.clear();
-  router.replace("/email-check");
 };
 
 const update = async () => {

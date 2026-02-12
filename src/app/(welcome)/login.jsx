@@ -97,7 +97,7 @@ const LoginPassword = () => {
         if (!twofa) {
           if (await auth.initializeApp()) {
             await refreshLoginStatus(); 
-            router.replace("/chat");
+            router.replace("/app");
           }
         } else {
           console.log("Login successful, 2FA required");

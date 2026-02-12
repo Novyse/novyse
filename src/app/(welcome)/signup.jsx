@@ -255,7 +255,7 @@ const Signup = () => {
       );
 
       if (signupResponse) {
-        router.navigate("/(welcome)/email-check?signedup=true&email=" + email);
+        router.navigate("/(welcome)/welcome?signedup=true&email=" + email);
       } else {
         setError("Signup failed. Please try again.");
       }

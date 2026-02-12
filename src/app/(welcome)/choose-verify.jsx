@@ -38,7 +38,7 @@ const ChooseVerify = () => {
 
   useEffect(() => {
     if (!email || !token || !verificationTypeList) {
-      router.navigate("email-check");
+      router.navigate("welcome");
     }
   },[(email, token, verificationTypeList)]);
 

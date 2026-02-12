@@ -11,7 +11,7 @@ export default function Index() {
       if (loggedIn) {
         router.replace('/app');
       } else {
-        router.replace('/email-check');
+        router.replace('/welcome');
       }
     };
     checkAndRedirect();
