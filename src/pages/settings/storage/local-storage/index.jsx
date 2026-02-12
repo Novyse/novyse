@@ -5,7 +5,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/settings/SettingsCard";
-import StorageBreakdown from "@/src/components/settings/Storage/StorageBreakdown";
+import StorageBreakdown from "@/src/components/settings/storage/StorageBreakdown";
 import useStorage from "@/src/hooks/settings/useStorage";
 
 const LocalStoragePage = ({ navigation }) => {

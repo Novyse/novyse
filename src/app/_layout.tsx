@@ -11,7 +11,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { useSQLiteContext, SQLiteProvider } from "expo-sqlite";
 import database from "@/src/utils/storage/database";
 
-import ErrorPage from "@/src/components/app/ErrorPage";
+import ErrorPage from "@/src/pages/ErrorPage";
 
 function RootLayoutContent() {
   const { isLoggedIn } = useAuth();

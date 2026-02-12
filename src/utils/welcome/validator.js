@@ -1,4 +1,9 @@
-const validate = {
+export const valid = {
+  twoFaMethods: ["email", "authenticator"],
+  loginMethods: ["password", "passkey"],
+};
+
+export const validate = {
   user: {
     email: (value) => {
       if (!value) return false;
@@ -33,7 +38,7 @@ const validate = {
       return chatNameRegex.test(value.trim()) && value.trim() !== "";
     },
     requirements: {
-      name: "Chat name must be 3-50 characters long and can include letters and numbers.", 
+      name: "Chat name must be 3-50 characters long and can include letters and numbers.",
     },
   },
   handle: (value) => {
@@ -46,6 +51,14 @@ const validate = {
     handle:
       "Handle must be 3-15 characters, lowercase letters, numbers, underscores, cannot start or end with underscore, no consecutive underscores.",
   },
+  twofa: {
+    code: (value) => {
+      if (!value) return false;
+      const codeRegex = /^\d{6}$/;
+      return codeRegex.test(value);
+    },
+    requirements: {
+      code: "Code must be exactly 6 digits.",
+    },
+  },
 };
-
-export default validate;

@@ -8,30 +8,30 @@ import { detailNavigationRef } from "@/src/utils/navigation/ref";
 import { useThemeContext } from "@/context/ThemeContext";
 import { useDetailStackContext } from "@/context/DetailStackContext";
 
-import EmptyDetail from "@/src/components/app/EmptyDetail";
+import EmptyDetail from "@/src/pages/EmptyDetail";
 import ChatContainer from "@/src/components/chat/container";
 
-import Account from "@/src/components/settings/Account";
-import AccountModify from "@/src/components/settings/Account/ModifyProfile";
+import Account from "@/src/pages/settings/account";
+import AccountModify from "@/src/pages/settings/account/modify-profile";
 
-import Customization from "@/src/components/settings/Customization";
-import CustomizationThemes from "@/src/components/settings/Customization/Theme";
+import Customization from "@/src/pages/settings/customization";
+import CustomizationThemes from "@/src/pages/settings/customization/theme";
 
-import PrivacyAndSecurity from "@/src/components/settings/PrivacyAndSecurity";
-import PrivacyAndSecurityChangePassword from "@/src/components/settings/PrivacyAndSecurity/ChangePassword";
-import PrivacyAndSecurityTwoFAMethods from "@/src/components/settings/PrivacyAndSecurity/TwoFAMethods";
+import PrivacyAndSecurity from "@/src/pages/settings/privacy-and-security";
+import PrivacyAndSecurityChangePassword from "@/src/pages/settings/privacy-and-security/change-password";
+import PrivacyAndSecurityTwoFAMethods from "@/src/pages/settings/privacy-and-security/twofa-methods";
 
-import Storage from "@/src/components/settings/Storage";
-import StorageLocalStorage from "@/src/components/settings/Storage/LocalStorage";
-import StorageCloudStorage from "@/src/components/settings/Storage/CloudStorage";
+import Storage from "@/src/pages/settings/storage";
+import StorageLocalStorage from "@/src/pages/settings/storage/local-storage";
+import StorageCloudStorage from "@/src/pages/settings/storage/cloud-storage";
 
-import Comms from "@/src/components/settings/Comms";
+import Comms from "@/src/pages/settings/comms";
 
-import Info from "@/src/components/settings/Info";
+import Info from "@/src/pages/settings/info";
 
-import Qrscanner from "@/src/components/settings/QRScanner";
+import Qrscanner from "@/src/pages/settings/qr-scanner";
 
-import Shortcuts from "@/src/components/settings/Shortcuts";
+import Shortcuts from "@/src/pages/settings/shortcuts";
 
 const Stack = createStackNavigator();
 

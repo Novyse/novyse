@@ -1,94 +1,80 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
 import ScreenLayout from "@/src/components/ScreenLayout";
-import { ThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import gateway from "@/src/utils/backend-services/api-gateway";
-import { useRouter } from "expo-router";
 import Icon from "@/src/components/Icon";
 import SettingsButton from "@/src/components/settings/SettingsButton";
 import ModalBackupCodes from "@/src/components/modals/ModalBackupCodes";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
+import ModalVerifyMethod from "@/src/components/settings/account/privacy-and-security/verify-method";
+import StatusMessage from "@/src/components/StatusMessage";
 
 const TwoFAMethods = ({ navigation }) => {
   const onBack = () => navigation.goBack();
-  const { theme } = useContext(ThemeContext);
+
+  const { theme } = useThemeContext();
   const styles = createStyle(theme);
-  const router = useRouter(); 
 
   const [methods, setMethods] = useState([]);
   const [activeMethods, setActiveMethods] = useState([]);
-  const [isModalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => {
-    const fetchMethods = async () => {
-      try {
-        const { success, methods, activeMethods } =
-          await gateway.auth.getTwofaMethods();
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  const [verifyMethodData, setVerifyMethodData] = useState({
+    token: null,
+    verificationType: null,
+    secret: null,
+    otpauth: null,
+  });
+
+  const [isBackupCodesModalVisible, setBackupCodesModalVisible] =
+    useState(false);
+  const [isVerifyMethodModalVisible, setVerifyMethodModalVisible] =
+    useState(false);
+
+  const fetchMethods = async () => {
+    try {
+      const { success, methods, activeMethods } =
+        await gateway.auth.getTwofaMethods();
+      if (success) {
         setMethods(methods);
         setActiveMethods(activeMethods);
-        console.log(data);
-      } catch (e) {
       }
-    };
-    fetchMethods();
-  }, []);
-
-  const handleDeleteMethod = async (method) => {
-    const { success, twoFactorToken, expiresIn } =
-      await gateway.auth.removeTwofaMethod(method);
-
-    try {
-      if (success) {
-        router.navigate({
-          pathname: "/settings/privacy-and-security/verify-method",
-          params: {
-            verificationType: method,
-            token: twoFactorToken,
-          },
-        });
-      } else {
-        console.log("Error");
-        return;
-      }
-    } catch (error) {
-      console.log(error);
+    } catch (e) {
+      setError("Failed to load 2FA methods. Please try again.");
     }
   };
+
+  useEffect(() => {
+    fetchMethods();
+  }, []);
 
   const handleAddMethod = async (method) => {
     const { success, twoFactorToken, secret, otpauth } =
       await gateway.auth.addTwofaMethod(method);
+    if (success) {
+      setVerifyMethodData({
+        token: twoFactorToken,
+        verificationType: method,
+        secret,
+        otpauth,
+      });
+      setVerifyMethodModalVisible(true);
+    }
+  };
 
-    console.log(method, secret, otpauth);
-
-    try {
-      if (success) {
-        if (method == "authenticator") {
-          router.navigate({
-            pathname: "/settings/privacy-and-security/verify-method",
-            params: {
-              verificationType: method,
-              token: twoFactorToken,
-              secret: secret,
-              otpauth: otpauth,
-            },
-          });
-        } else {
-          router.navigate({
-            pathname: "/settings/privacy-and-security/verify-method",
-            params: {
-              verificationType: method,
-              token: twoFactorToken,
-            },
-          });
-        }
-      } else {
-        console.log("Error");
-        return;
-      }
-    } catch (error) {
-      console.log(error);
+  const handleDeleteMethod = async (method) => {
+    const { success, twoFactorToken } =
+      await gateway.auth.removeTwofaMethod(method);
+    if (success) {
+      setVerifyMethodData({
+        token: twoFactorToken,
+        verificationType: method,
+      });
+      setVerifyMethodModalVisible(true);
     }
   };
 
@@ -110,15 +96,14 @@ const TwoFAMethods = ({ navigation }) => {
   };
 
   const handleShowBackupCodes = () => {
-    setModalVisible(!isModalVisible);
+    setBackupCodesModalVisible(!isBackupCodesModalVisible);
   };
 
   const handleResetBackupCodes = async () => {
     const success = await gateway.auth.regenerateTwofaRecoverCodes();
     if (success) {
-      console.log("🟢Recovery codes resetted successfully");
+      setMessage("Backup codes have been reset successfully.");
     }
-    //todo @Matt3opower - toast alert instead of console.log
   };
 
   return (
@@ -204,9 +189,39 @@ const TwoFAMethods = ({ navigation }) => {
           />
         </View>
         <ModalBackupCodes
-          visible={isModalVisible}
+          visible={isBackupCodesModalVisible}
           onClose={handleShowBackupCodes}
           theme={theme}
+        />
+        <ModalVerifyMethod
+          visible={isVerifyMethodModalVisible}
+          onClose={() => {
+            setVerifyMethodModalVisible(false);
+            setTimeout(() => {
+              fetchMethods();
+            }, 1000);
+          }}
+          theme={theme}
+          token={verifyMethodData.token}
+          verificationType={verifyMethodData.verificationType}
+          secret={verifyMethodData.secret}
+          otpauth={verifyMethodData.otpauth}
+        />
+        <StatusMessage
+          type="success"
+          content={[message]}
+          visible={!!message}
+          onClose={() => {
+            setMessage("");
+          }}
+        />
+        <StatusMessage
+          type="error"
+          content={[error]}
+          visible={!!error}
+          onClose={() => {
+            setError("");
+          }}
         />
       </SettingsPageScrollview>
     </ScreenLayout>

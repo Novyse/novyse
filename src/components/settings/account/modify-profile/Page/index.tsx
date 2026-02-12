@@ -9,7 +9,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import Banner from "@/src/components/Banner";
 import ProfileHeader from "@/src/components/Profile/ProfileHeader";
-import FormSection from "@/src/components/settings/Account/ModifyProfile/Page/FormSection";
+import FormSection from "@/src/components/settings/account/modify-profile/Page/FormSection";
 
 import { useThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
@@ -18,7 +18,6 @@ interface ModifyProfileProps {
   name: string;
   surname: string;
   username: string;
-  email: string;
   birthday: string;
   country: string;
   profilePictureUUID?: string;
@@ -28,7 +27,6 @@ export default function ModifyProfile({
   name,
   surname,
   username,
-  email,
   birthday,
   country,
   profilePictureUUID,

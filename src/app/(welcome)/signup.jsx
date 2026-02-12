@@ -20,7 +20,7 @@ import {
 
 import { useScreen } from "@/context/ScreenContext";
 
-import validate from "@/src/utils/welcome/validator";
+import {validate} from "@/src/utils/welcome/validator";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
 import { LinearGradient } from "expo-linear-gradient";

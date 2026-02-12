@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import SettingsMenuItem from "@/src/components/SettingsMenuItem";
+import SettingsMenuItem from "@/src/components/settings/SettingsMenuItem";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 

@@ -5,11 +5,14 @@ import * as Clipboard from "expo-clipboard";
 import Icon from "../Icon";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
+import useClipboard from "@/src/hooks/useClipboard";
+
 const ModalBackupCodes = ({ visible, onClose, theme }) => {
   const styles = createStyles(theme);
   const [codes, setCodes] = useState([]);
-  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { copyToClipboard, copied } = useClipboard();
 
   useEffect(() => {
     const getCodes = async () => {
@@ -26,11 +29,9 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
     if (visible) getCodes();
   }, [visible]);
 
-  const copyToClipboard = async () => {
-    // Note: Clipboard.setStringAsync expects a string. Joining the array.
-    await Clipboard.setStringAsync(codes.join("\n"));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    const codesText = codes.join("\n");
+    await copyToClipboard(codesText);
   };
 
   return (
@@ -56,7 +57,7 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
             </View>
             <Icon
               name={copied ? "Tick01Icon" : "Copy01Icon"}
-              onPress={copyToClipboard}
+              onPress={handleCopy}
             />
           </>
         ) : (

@@ -6,7 +6,7 @@ import { useScreen } from "@/context/ScreenContext";
 import SmartBackground from "@/src/components/SmartBackground";
 import BlurredView from "@/src/components/BlurredView";
 
-import SettingsMenuItem from "@/src/components/SettingsMenuItem";
+import SettingsMenuItem from "@/src/components/settings/SettingsMenuItem";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 
 const settingsList = [

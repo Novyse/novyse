@@ -27,7 +27,7 @@ import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 import MyStatusBar from "@/src/components/MyStatusBar";
 
-import validate from "@/src/utils/welcome/validator";
+import {validate} from "@/src/utils/welcome/validator";
 
 import logoNovyse from "@/assets/images/logo-novyse.png";
 

@@ -9,9 +9,9 @@ import {
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import ScreenLayout from "@/src/components/ScreenLayout";
-import SegmentedSelector from "@/src/components/settings/Comms/SegmentedSelector";
-import ThresholdSlider from "@/src/components/settings/Comms/ThresholdSlider";
-import InputDeviceDropdown from "@/src/components/settings/Comms/InputDeviceDropdown";
+import SegmentedSelector from "@/src/components/settings/comms/SegmentedSelector";
+import ThresholdSlider from "@/src/components/settings/comms/ThresholdSlider";
+import InputDeviceDropdown from "@/src/components/settings/comms/InputDeviceDropdown";
 import settingsManager from "@/src/utils/global/SettingsManager";
 import commsUtils from "@/src/utils/webrtc/methods";
 

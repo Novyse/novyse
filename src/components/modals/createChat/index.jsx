@@ -20,7 +20,7 @@ import Icon from "@/src/components/Icon";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
-import validate from "@/src/utils/welcome/validator";
+import {validate} from "@/src/utils/welcome/validator";
 
 const CreateChatModal = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);

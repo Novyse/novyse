@@ -13,7 +13,7 @@ import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import UploadProfilePicture from "@/src/components/modals/UploadProfilePicture";
 import Avatar from "@/src/components/Avatar";
 
-import Page from "@/src/components/settings/Account/ModifyProfile/Page";
+import Page from "@/src/components/settings/account/modify-profile/Page";
 
 const ProfilePage = ({ navigation }) => {
   const onBack = () => navigation.goBack();

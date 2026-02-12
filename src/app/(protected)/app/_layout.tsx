@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, useWindowDimensions, PanResponder } from "react-native";
 import { Slot } from "expo-router";
 
-import DetailStack from "@/src/components/app/DetailStack";
+import DetailStack from "@/src/pages/DetailStack";
 import { DetailStackProvider } from "@/context/DetailStackContext";
 
 import { useScreen } from "@/context/ScreenContext";
