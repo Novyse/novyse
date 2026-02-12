@@ -18,10 +18,10 @@ const ModalBase = ({
   children,
   theme,
   hideCloseX = false,
+  scrollable = true,
 }) => {
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { isSmallScreen } = useScreen();
-  const styles = createStyle(theme, screenWidth, screenHeight, isSmallScreen);
+  const styles = createStyle(theme,  isSmallScreen);
 
   const ContainerComponent = isSmallScreen ? View : BlurredView;
   const containerProps = isSmallScreen ? {} : { intensity: 40 };
@@ -35,29 +35,44 @@ const ModalBase = ({
     >
       <Pressable style={styles.overlay} onPress={onClose}>
         <ContainerComponent style={styles.container} {...containerProps}>
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.contentStyle}
-          >
-            <Pressable>
-              {!hideCloseX && (
-                <Icon
-                  name={"Cancel01Icon"}
-                  style={styles.closeIcon}
-                  onPress={onClose}
-                />
-              )}
-              {children}
-            </Pressable>
-          </ScrollView>
+          {scrollable ? (
+            <ScrollView
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.contentStyle}
+            >
+              <Pressable>
+                {!hideCloseX && (
+                  <Icon
+                    name={"Cancel01Icon"}
+                    style={styles.closeIcon}
+                    onPress={onClose}
+                  />
+                )}
+                {children}
+              </Pressable>
+            </ScrollView>
+          ) : (
+            <View style={styles.scrollView}>
+              <Pressable style={styles.contentStyle}>
+                {!hideCloseX && (
+                  <Icon
+                    name={"Cancel01Icon"}
+                    style={styles.closeIcon}
+                    onPress={onClose}
+                  />
+                )}
+                {children}
+              </Pressable>
+            </View>
+          )}
         </ContainerComponent>
       </Pressable>
     </Modal>
   );
 };
 
-function createStyle(theme, screenWidth, screenHeight, isSmallScreen) {
+function createStyle(theme, isSmallScreen) {
   return StyleSheet.create({
     overlay: {
       flex: 1,
@@ -66,7 +81,6 @@ function createStyle(theme, screenWidth, screenHeight, isSmallScreen) {
       alignItems: "center",
     },
     container: {
-      padding: 20,
       backgroundColor: isSmallScreen ? theme.backgroundModal : undefined,
       borderRadius: isSmallScreen ? 0 : 15,
       shadowColor: theme.shadowColor,
@@ -77,10 +91,10 @@ function createStyle(theme, screenWidth, screenHeight, isSmallScreen) {
       shadowOpacity: 0.25,
       shadowRadius: 4,
       elevation: 5,
-      width: isSmallScreen ? "100%" : "90%",
-      maxWidth: isSmallScreen ? "100%" : 500,
+      width: isSmallScreen ? "100%" : "auto",
       height: isSmallScreen ? "100%" : "auto",
-      maxHeight: isSmallScreen ? "100%" : screenHeight * 0.9,
+      maxWidth: isSmallScreen ? "100%" : "90%",
+      maxHeight: isSmallScreen ? "100%" : "90%",
       marginHorizontal: isSmallScreen ? 0 : 10,
     },
     scrollView: {

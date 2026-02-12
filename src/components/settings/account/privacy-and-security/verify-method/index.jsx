@@ -131,6 +131,7 @@ function createStyle(theme) {
     cardContent: {
       alignItems: "center",
       gap: 24,
+      padding: 20,
     },
     title: {
       fontSize: 28,

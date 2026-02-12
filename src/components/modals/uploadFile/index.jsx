@@ -113,6 +113,7 @@ const createStyles = (theme) =>
     container: {
       marginTop: 10,
       maxWidth: "100%",
+      padding: 20,
     },
   });
 

@@ -1,45 +1,52 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { StyleSheet, Pressable, View } from "react-native";
 import { Image as ExpoImage } from "expo-image";
-import { useRouter } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import FileButton from "@/src/components/messages/Button";
+import ImageViewer from "@/src/app/(protected)/chat/ImageViewer";
 
 const Image = ({ fileRef, uuid, isSingle }) => {
-  const router = useRouter();
   const { uri } = useUriResolver(fileRef);
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme, isSingle);
 
+  const [visible, setVisible] = useState(false);
+
   const handlePress = () => {
     if (!uri) return;
-    router.push({
-      pathname: "/chat/ImageViewer",
-      params: { uri: encodeURIComponent(uri) },
-    });
+    setVisible(true);
   };
 
   return (
-    <Pressable onPress={handlePress} style={styles.container}>
-      <ExpoImage
-        source={{ uri }}
-        style={styles.image}
-        contentFit="cover"
-        transition={200}
-      />
-      <View style={StyleSheet.absoluteFill}>
-        <View style={styles.overlay}>
-          <FileButton
-            uuid={uuid}
-            isAvailable={!!fileRef}
-            isReady={!!uri}
-            type={"IMAGE"}
-            handleDefaultPress={handlePress}
-          />
+    <>
+      <Pressable onPress={handlePress} style={styles.container}>
+        <ExpoImage
+          source={{ uri }}
+          style={styles.image}
+          contentFit="cover"
+          transition={200}
+        />
+        <View style={StyleSheet.absoluteFill}>
+          <View style={styles.overlay}>
+            <FileButton
+              uuid={uuid}
+              isAvailable={!!fileRef}
+              isReady={!!uri}
+              type={"IMAGE"}
+              handleDefaultPress={handlePress}
+            />
+          </View>
         </View>
-      </View>
-    </Pressable>
+      </Pressable>
+      <ImageViewer
+        visible={visible}
+        onClose={() => setVisible(false)}
+        uri={uri}
+        theme={theme}
+        scrollable={false}
+      />
+    </>
   );
 };
 

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import ModalBase from "./ModalBase";
-import * as Clipboard from "expo-clipboard";
 import Icon from "../Icon";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
@@ -74,6 +73,7 @@ function createStyles(theme) {
   return StyleSheet.create({
     contentContainer: {
       alignItems: "center",
+      padding: 20,
     },
     title: {
       fontSize: 20,

@@ -86,12 +86,14 @@ function createStyle(theme) {
       borderWidth: 1,
       borderColor: "#ffffff",
       paddingLeft: 16,
+      maxWidth: "70%",
     },
     secretText: {
       flex: 1,
       fontSize: 16,
       color: theme.text,
       marginRight: 8,
+      textAlign: "center",
     },
     copyButton: {
       paddingVertical: 14,

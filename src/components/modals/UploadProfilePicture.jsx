@@ -199,6 +199,7 @@ const createStyles = (theme) => {
   return StyleSheet.create({
     container: {
       marginTop: 10,
+      padding: 20,
       maxWidth: "100%",
     },
     closeButton: {

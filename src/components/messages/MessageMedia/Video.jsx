@@ -1,17 +1,17 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { View, StyleSheet, Pressable, Text } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
-import { useRouter } from "expo-router";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import { ThemeContext } from "@/context/ThemeContext";
 import { formatDuration } from "@/src/utils/storage/file/utils";
 import FileButton from "@/src/components/messages/Button";
+import VideoViewer from "@/src/app/(protected)/chat/VideoViewer";
 
 const Video = ({ fileRef, uuid, duration, isSingle }) => {
-  const router = useRouter();
   const { uri } = useUriResolver(fileRef);
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme, isSingle);
+  const [visible, setVisible] = useState(false);
 
   const player = useVideoPlayer(uri, (p) => {
     p.loop = false;
@@ -21,13 +21,11 @@ const Video = ({ fileRef, uuid, duration, isSingle }) => {
 
   const handlePress = () => {
     if (!uri) return;
-    router.push({
-      pathname: "/chat/VideoViewer",
-      params: { uri: encodeURIComponent(uri) },
-    });
+    setVisible(true);
   };
 
   return (
+    <>
     <Pressable onPress={handlePress} style={styles.container}>
       <View pointerEvents="none" style={styles.videoWrapper}>
         {uri && (
@@ -52,6 +50,8 @@ const Video = ({ fileRef, uuid, duration, isSingle }) => {
       </View>
       <Text style={styles.duration} selectable={false}>{formatDuration(duration)}</Text>
     </Pressable>
+    <VideoViewer visible={visible} onClose={() => setVisible(false)} uri={uri} theme={theme} />
+    </>
   );
 };
 
