@@ -34,6 +34,7 @@ const ChatContainer = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
 
   const { isSmallScreen } = useScreen();
+
   const [contentView, setContentView] = useState("chat");
 
   useEffect(() => {

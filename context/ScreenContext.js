@@ -1,20 +1,19 @@
 import { createContext, useState, useEffect, useContext } from "react";
+import { useWindowDimensions } from "react-native";
 
 export const ScreenContext = createContext();
 
 export const ScreenProvider = ({ children }) => {
   const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const { height, width } = useWindowDimensions();
 
   useEffect(() => {
-    const updateScreenSize = () => {
-      setIsSmallScreen(window.innerWidth <= 768);
+    const checkScreenSize = () => {
+      setIsSmallScreen(width < 768);
     };
-    updateScreenSize();
-    window.addEventListener("resize", updateScreenSize);
-    return () => {
-      window.removeEventListener("resize", updateScreenSize);
-    };
-  }, []);
+
+    checkScreenSize();
+  }, [width]);
 
   const value = {
     isSmallScreen,

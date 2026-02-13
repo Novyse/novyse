@@ -2,10 +2,8 @@ import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
-  Pressable,
   StyleSheet,
   TextInput,
-  BackHandler,
   ActivityIndicator,
   FlatList,
   Image,
@@ -17,84 +15,96 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
+import Icon from "@/src/components/Icon";
+
+import { detailsNavigator } from "@/src/utils/navigation/ref";
+
+interface SearchResult {
+  handle: string;
+  name: string;
+  surname?: string;
+  type?: string;
+  memberCount?: number;
+}
 
 const Search = () => {
-  const { theme } = useContext(ThemeContext);
+  const theme = (useContext(ThemeContext) as any).theme;
   const styles = createStyle(theme);
   const router = useRouter();
 
-  const [responseArray, setResponseArray] = useState([]);
+  const [responseArray, setResponseArray] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [timer, setTimer] = useState(null);
+  const [timer, setTimer] = useState<number | null>(null);
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
-    const backAction = () => {
-      router.navigate("/chat");
-      return true;
-    };
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-
     return () => {
-      backHandler.remove();
       if (timer) clearTimeout(timer);
     };
   }, [timer]);
 
-  const handleChange = (value) => {
-    // Pulisce il timer precedente se esiste
+  const handleChange = (value: string) => {
+    // Clear the previous timer if it exists
     if (timer) clearTimeout(timer);
-    setTimer(null); // Resetta lo stato del timer
+    setTimer(null); // Reset the timer state
 
     const trimmedValue = value.trim();
 
-    // Se il valore (dopo il trim) è vuoto oppure ha meno di 3 caratteri, resetta lo stato e non fare la chiamata API
+    // If the value (after trim) is empty or has less than 3 characters, reset the state and do not make the API call
     if (trimmedValue === "" || trimmedValue.length < 3) {
       setIsLoading(false);
       setResponseArray([]);
       setIsSearching(false);
-      // Non impostare un nuovo timer e non eseguire la chiamata API
+      // Do not set a new timer and do not execute the API call
       return;
     }
 
-    // Se il valore non è vuoto, mostra l'indicatore di caricamento
-    // e pianifica la chiamata API dopo un ritardo (debounce)
+    // If the value is not empty, show the loading indicator
+    // and schedule the API call after a delay (debounce)
     setIsLoading(true);
-    setResponseArray([]); // Pulisce i risultati precedenti mentre si caricano i nuovi
+    setResponseArray([]); // Clear previous results while loading new ones
     setIsSearching(true);
 
     const timerOnChange = setTimeout(async () => {
       try {
-        // Usa trimmedValue per la ricerca
-        const { success, data } = await gateway.search.all(trimmedValue);
+        // Use trimmedValue for the search
+        const result = (await gateway.search.all(trimmedValue)) as {
+          success: boolean;
+          data: any;
+        };
+        const { success, data } = result;
         if (!success) throw new Error("Search API call failed");
 
         const { users = [], chats = [], bots = [] } = data;
-        const searched_list = [
-          ...users.map((user) => ({ ...user, type: "USER" })),
-          ...chats.map((chat) => ({ ...chat })),
-          ...bots.map((bot) => ({ ...bot, type: "BOT" })),
+        const searched_list: SearchResult[] = [
+          ...users.map((user: any) => ({ ...user, type: "USER" })),
+          ...chats.map((chat: any) => ({ ...chat })),
+          ...bots.map((bot: any) => ({ ...bot, type: "BOT" })),
         ];
 
         setResponseArray(searched_list || []);
-        console.log("Lista ricerca:", searched_list);
+        console.log("Search list:", searched_list);
       } catch (error) {
-        console.error("Errore nella ricerca:", error);
-        setResponseArray([]); // Svuota i risultati in caso di errore
+        console.error("Error in search:", error);
+        setResponseArray([]); // Clear results in case of error
       } finally {
-        // Nasconde l'indicatore di caricamento alla fine, sia in caso di successo che di errore
+        // Hide the loading indicator at the end, both in success and error cases
         setIsLoading(false);
       }
-    }, 500); // Ritardo di 500ms (debounce)
+    }, 500); // Delay of 500ms (debounce)
 
-    // Salva il riferimento al nuovo timer
+    // Save the reference to the new timer
     setTimer(timerOnChange);
   };
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: SearchResult;
+    index: number;
+  }) => (
     <TouchableOpacity
       style={styles.resultItem}
       onPress={() => {
@@ -103,7 +113,7 @@ const Search = () => {
           handle: item.handle,
           type: item.type,
         });
-        router.navigate(`/chat/${item.handle}`);
+        detailsNavigator.navigate("chat", { chatUUIDorHandle: item.handle });
       }}
     >
       <Image
@@ -131,12 +141,38 @@ const Search = () => {
       colors={theme.backgroundSearchGradient}
       style={styles.container}
     >
-      <TextInput
-        placeholder="Search"
-        placeholderTextColor={theme.placeholderText}
-        style={styles.searchBar}
-        onChangeText={handleChange}
-      />
+      <View style={styles.searchContainer}>
+        <Icon
+          name="Search01Icon"
+          size={20}
+          color={theme.placeholderText}
+          hoverColor={theme.iconHover}
+          onPress={() => {}}
+          style={styles.searchIcon}
+        />
+        <TextInput
+          placeholder="Search"
+          placeholderTextColor={theme.placeholderText}
+          style={styles.searchBar}
+          value={searchText}
+          onChangeText={(text) => {
+            setSearchText(text);
+            handleChange(text);
+          }}
+        />
+        <Icon
+          name="Cancel01Icon"
+          size={20}
+          color={theme.placeholderText}
+          hoverColor={theme.iconHover}
+          onPress={() => {
+            router.back();
+            setSearchText("");
+            handleChange("");
+          }}
+          style={styles.closeIcon}
+        />
+      </View>
       {isLoading && (
         <ActivityIndicator
           size="large"
@@ -161,24 +197,35 @@ const Search = () => {
 
 export default Search;
 
-function createStyle(theme) {
+const createStyle = (theme: any) => {
   return StyleSheet.create({
     container: {
       flex: 1,
       padding: 10,
       paddingTop: 0,
     },
+    searchContainer: {
+      paddingHorizontal: 20,
+      paddingVertical: 14,
+      flexDirection: "row",
+      borderRadius: 99,
+      alignItems: "center",
+      backgroundColor: theme.backgroundCard,
+      marginTop: 10,
+    },
+    searchIcon: {
+      marginRight: 10,
+    },
+    closeIcon: {
+      marginLeft: 10,
+    },
     searchBar: {
       flex: 1,
-      backgroundColor: theme.backgroundTextField,
-      borderRadius: 15,
-      padding: 8,
-      fontSize: 18,
-      minWidth: 20,
+      fontSize: 16,
+      marginLeft: 5,
       color: theme.text,
-      placeholderTextColor: "#bfbfbf",
+      // @ts-ignore
       outlineStyle: "none",
-      maxHeight: 45,
     },
     loader: {
       marginTop: 20,
@@ -187,7 +234,7 @@ function createStyle(theme) {
       marginTop: 10,
       flex: 1,
       ...(Platform.OS === "web" && {
-        // Standard per Firefox (fisso, no active/drag change)
+        // Standard for Firefox (fixed, no active/drag change)
         scrollbarWidth: "thin",
         scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
 
@@ -211,7 +258,7 @@ function createStyle(theme) {
     resultItem: {
       flexDirection: "row",
       alignItems: "center",
-      padding: 10,
+      padding: 15,
       backgroundColor: theme.backgroundSearchResultItem,
       borderRadius: 13,
       marginBottom: 10,
@@ -219,24 +266,28 @@ function createStyle(theme) {
     resultText: {
       fontSize: 16,
       color: theme.text,
+      fontWeight: "500",
     },
     avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 10,
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      marginRight: 15,
     },
     noResults: {
       marginTop: 20,
       textAlign: "center",
       color: theme.text,
+      fontSize: 16,
     },
     textContainer: {
       flexDirection: "column",
+      flex: 1,
     },
     profileHandle: {
       color: theme.placeholderText,
       fontSize: 14,
+      marginTop: 2,
     },
   });
-}
+};

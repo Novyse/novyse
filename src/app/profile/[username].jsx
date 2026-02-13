@@ -1,23 +1,14 @@
 import React, { useContext, useState, useEffect } from "react";
 import { StyleSheet, View, Text } from "react-native";
-
 import { useLocalSearchParams } from "expo-router";
 
 import { ThemeContext } from "@/context/ThemeContext";
-import { LocalUserContext } from "@/context/LocalUserContext";
 
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import ScreenLayout from "@/src/components/ScreenLayout";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsCard from "@/src/components/settings/SettingsCard";
-import Icon from "@/src/components/Icon";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
-import UploadProfilePicture from "@/src/components/modals/UploadProfilePicture";
-import Avatar from "@/src/components/Avatar";
-
 import Profile from "@/src/components/Profile";
 
 import database from "@/src/utils/storage/database";
+import gateway from "@/src/utils/backend-services/api-gateway";
 
 const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
@@ -29,26 +20,50 @@ const ProfilePage = () => {
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [profilePictureUUID, setProfilePictureUUID] = useState("");
+  const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const fetchUserDataFromDatabase = async () => {
+    return await database.user.get.byHandle(username);
+  };
+
+  const fetchUserDataFromAPI = async () => {
+    try {
+      const { success, user: userData } =
+        await gateway.user.profile.get.byHandle(username);
+      if (success && userData) {
+        return userData;
+      }
+    } catch (err) {
+      console.error("Error fetching user data from API:", err);
+      setError(err.message);
+    }
+  };
+
+  const addDataToState = (userData) => {
+    setName(userData.name);
+    setSurname(userData.surname);
+    setProfilePictureUUID(userData.profilePictureUUID);
+    setDescription(userData.description);
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
-        const userData = await database.user.get.byHandle(username);
-        if (userData) {
-          setName(userData.name);
-          setSurname(userData.surname);
-          setProfilePictureUUID(userData.profilePictureUUID);
-        }else{
-          setError("User not found");
+        let userData = await fetchUserDataFromDatabase();
+        if (!userData) userData = await fetchUserDataFromAPI();
+        if (!userData) {
+          setError("User not found.");
+          return;
         }
+
+        addDataToState(userData);
       } catch (err) {
         console.error("Error fetching user data:", err);
         setError(err);
-      }
-      finally {
+      } finally {
         setIsLoading(false);
       }
     };
@@ -56,12 +71,10 @@ const ProfilePage = () => {
     fetchUserData();
   }, [username]);
 
-
   if (isLoading) {
     return (
       <ScreenLayout fullscreen={true}>
         <View style={styles.container}>
-          <HeaderWithBackArrow title={"Profile"} />
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </ScreenLayout>
@@ -72,7 +85,6 @@ const ProfilePage = () => {
     return (
       <ScreenLayout fullscreen={true}>
         <View style={styles.container}>
-          <HeaderWithBackArrow title={"Profile"} />
           <Text style={styles.loadingText}>Error loading profile: {error}</Text>
         </View>
       </ScreenLayout>
@@ -81,60 +93,14 @@ const ProfilePage = () => {
 
   return (
     <ScreenLayout fullscreen={true}>
-      <HeaderWithBackArrow title={"Profile"} />
-        <Profile
-          name={name}
-          surname={surname}
-          username={username}
-          profilePictureUUID={profilePictureUUID}
-          isOnline={true}
-        />
-    </ScreenLayout>
-  );
-
-  return (
-    <ScreenLayout fullscreen={true}>
-      <HeaderWithBackArrow title={"Account"} />
-      <SettingsPageScrollview>
-        <UploadProfilePicture
-          visible={isProfilePicModalVisible}
-          onClose={() => {
-            setIsProfilePicModalVisible(false);
-          }}
-        />
-        {/* Profile Image Section */}
-        <View style={styles.profileImageSection}>
-          {/* <HoverAndPressedButton
-            onPress={pickImage}
-            style={styles.profileImageContainer}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            <Avatar uuid={profilePictureUUID} size={120} theme={theme} />
-            {isHovered && (
-              <View style={styles.editIconContainer}>
-                <Icon name="PencilEdit02Icon" size={24} color={theme.text} />
-              </View>
-            )}
-          </HoverAndPressedButton> */}
-          {/* <Text style={styles.profileName}>
-            {name && surname ? `${name} ${surname}` : "Loading..."}
-          </Text> */}
-          <Text style={styles.profileHandle}>
-            {username ? `@${username}` : "Loading..."}
-          </Text>
-        </View>
-
-        {/* User Information Section */}
-        <SettingsCard>
-          <Text style={styles.sectionTitle}>Personal Information</Text>
-
-          {/* <ProfileField label="Name" value={name} />
-          <ProfileField label="Surname" value={surname} />
-          <ProfileField label="Username" value={handle} />
-          <ProfileField label="Email" value={email} /> */}
-        </SettingsCard>
-      </SettingsPageScrollview>
+      <Profile
+        name={name}
+        surname={surname}
+        username={username}
+        profilePictureUUID={profilePictureUUID}
+        description={description}
+        isOnline={true}
+      />
     </ScreenLayout>
   );
 };

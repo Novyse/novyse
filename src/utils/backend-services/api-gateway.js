@@ -734,6 +734,24 @@ const gateway = {
           return { success };
         },
       },
+      get: {
+        /**
+         * Get user's profile information by handle.
+         * @param {String} handle
+         * @returns {Object} { success: boolean, user?:{ name?: String, surname?: String, handle?: String, profilePictureUUID?: String, description?: String } }
+         */
+        async byHandle(handle) {
+          const response = await api.get(
+            `/user/profile/handle?handle=${handle}`,
+          );
+          const success = response.data.success;
+          if (success) {
+            const user = response.data.data;
+            return { success, user };
+          }
+          return { success };
+        },
+      },
     },
   },
 

@@ -27,11 +27,15 @@ const HeaderWithBackArrow = ({ title, onBack }) => {
           padding: 4,
         }}
       >
-        <Icon
-          name={"ArrowLeft02Icon"}
-          onPress={() => {onBack()}}
-          style={styles.icon}
-        />
+        {onBack && (
+          <Icon
+            name={"ArrowLeft02Icon"}
+            onPress={() => {
+              onBack();
+            }}
+            style={styles.icon}
+          />
+        )}
         {title && (
           <View style={styles.titleContainer}>
             <Text

@@ -30,7 +30,13 @@ export default function ProfileHeader({
 
   return (
     <View style={styles.profileHeader}>
-      <Avatar uuid={profilePictureUUID} size={120} theme={theme} isOnline={isOnline} onEdit={onEditAvatar}/>
+      <Avatar
+        uuid={profilePictureUUID}
+        size={120}
+        theme={theme}
+        isOnline={isOnline}
+        onEdit={onEditAvatar}
+      />
 
       <Text style={styles.nameSurnameText}>
         {name} {surname}

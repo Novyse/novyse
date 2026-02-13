@@ -911,7 +911,12 @@ class Database {
         for (const message of messages) {
           if (message.files && Array.isArray(message.files)) {
             for (const file of message.files) {
-              if (!file.uuid || !file.name || !file.mimeType || file.size === undefined) {
+              if (
+                !file.uuid ||
+                !file.name ||
+                !file.mimeType ||
+                file.size === undefined
+              ) {
                 console.warn("Skipping invalid file:", file);
                 continue;
               }
@@ -958,56 +963,15 @@ class Database {
             `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES ${mfPlaceholders};`,
             mfValues,
           );
-          console.log(`${allMessageFiles.length} message-file associations added successfully.`);
+          console.log(
+            `${allMessageFiles.length} message-file associations added successfully.`,
+          );
         }
         return true;
       } catch (error) {
         console.error("Error adding multiple messages:", error);
         return false;
       }
-    },
-  };
-  user = {
-    profile: {
-      picture: {
-        get: async (userUUID) => {
-          try {
-            const user = await this.db.getFirstAsync(
-              `SELECT profilePictureUUID FROM user WHERE uuid = ?;`,
-              [userUUID],
-            );
-            return user ? user.profilePictureUUID : null;
-          } catch (error) {
-            console.error("Error retrieving user profile picture:", error);
-            return null;
-          }
-        },
-        set: async (userUUID, pictureUUID) => {
-          try {
-            if (!userUUID || !pictureUUID) {
-              console.error(
-                "Missing required fields to set user profile picture.",
-              );
-              return false;
-            }
-            const result = await this.db.runAsync(
-              `UPDATE user SET profilePictureUUID = ? WHERE uuid = ?;`,
-              [pictureUUID, userUUID],
-            );
-            if (result.changes > 0) {
-              console.log(
-                "User profile picture updated successfully:",
-                userUUID,
-              );
-              return true;
-            }
-            return false;
-          } catch (error) {
-            console.error("Error updating user profile picture:", error);
-            return false;
-          }
-        },
-      },
     },
   };
   user = {
@@ -1065,41 +1029,78 @@ class Database {
           return null;
         }
       },
+    },
+    profile: {
+      picture: {
+        /**
+         * Update user profile picture UUID.
+         * @param {String} userUUID
+         * @param {String} profilePictureUUID
+         * @returns {boolean} true if profile picture updated successfully, false otherwise
+         */
 
-      profile: {
-        picture: {
-          /**
-           * Update user profile picture UUID.
-           * @param {String} userUUID
-           * @param {String} profilePictureUUID
-           * @returns {boolean} true if profile picture updated successfully, false otherwise
-           */
-
-          update: async (userUUID, profilePictureUUID) => {
-            try {
-              if (!userUUID || !profilePictureUUID) {
-                console.error(
-                  "Missing required fields to update user profile picture.",
-                );
-                return false;
-              }
-              const result = await this.db.runAsync(
-                `UPDATE user SET profilePictureUUID = ? WHERE uuid = ?;`,
-                [profilePictureUUID, userUUID],
+        update: async (userUUID, profilePictureUUID) => {
+          try {
+            if (!userUUID || !profilePictureUUID) {
+              console.error(
+                "Missing required fields to update user profile picture.",
               );
-              if (result.changes > 0) {
-                console.log(
-                  "User profile picture updated successfully:",
-                  userUUID,
-                );
-                return true;
-              }
-              return false;
-            } catch (error) {
-              console.error("Error updating user profile picture:", error);
               return false;
             }
-          },
+            const result = await this.db.runAsync(
+              `UPDATE user SET profilePictureUUID = ? WHERE uuid = ?;`,
+              [profilePictureUUID, userUUID],
+            );
+            if (result.changes > 0) {
+              console.log(
+                "User profile picture updated successfully:",
+                userUUID,
+              );
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error("Error updating user profile picture:", error);
+            return false;
+          }
+        },
+
+        get: async (userUUID) => {
+          try {
+            const user = await this.db.getFirstAsync(
+              `SELECT profilePictureUUID FROM user WHERE uuid = ?;`,
+              [userUUID],
+            );
+            return user ? user.profilePictureUUID : null;
+          } catch (error) {
+            console.error("Error retrieving user profile picture:", error);
+            return null;
+          }
+        },
+        set: async (userUUID, pictureUUID) => {
+          try {
+            if (!userUUID || !pictureUUID) {
+              console.error(
+                "Missing required fields to set user profile picture.",
+              );
+              return false;
+            }
+            const result = await this.db.runAsync(
+              `UPDATE user SET profilePictureUUID = ? WHERE uuid = ?;`,
+              [pictureUUID, userUUID],
+            );
+            if (result.changes > 0) {
+              console.log(
+                "User profile picture updated successfully:",
+                userUUID,
+              );
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error("Error updating user profile picture:", error);
+            return false;
+          }
         },
       },
     },

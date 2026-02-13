@@ -21,6 +21,7 @@ interface ModifyProfileProps {
   birthday: string;
   country: string;
   profilePictureUUID?: string;
+  onEditAvatar?: () => void;
 }
 
 export default function ModifyProfile({
@@ -30,6 +31,7 @@ export default function ModifyProfile({
   birthday,
   country,
   profilePictureUUID,
+  onEditAvatar,
 }: ModifyProfileProps) {
   const { theme } = useThemeContext();
   const { width, height } = useWindowDimensions();
@@ -70,7 +72,7 @@ export default function ModifyProfile({
                 icon: "SevenZ01Icon",
               },
             ]}
-            onEditAvatar={() => {}}
+            onEditAvatar={onEditAvatar}
           />
 
           <FormSection

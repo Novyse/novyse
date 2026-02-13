@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import HeaderBase from "@/src/components/HeaderBase";
 import BlurredView from "@/src/components/BlurredView";
@@ -20,7 +21,9 @@ const Header = ({
   onBack,
 }) => {
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
+  const insets = useSafeAreaInsets();
+
+  const styles = createStyle(theme, insets);
 
   const { currentUri } = useContext(AudioPlayerContext);
 
@@ -53,7 +56,7 @@ const Header = ({
   );
 };
 
-function createStyle(theme) {
+function createStyle(theme, insets) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -65,6 +68,7 @@ function createStyle(theme) {
       left: 0,
       right: 0,
       zIndex: 100,
+      paddingTop: insets.top,
     },
     headerBase: {
       overflow: "hidden",

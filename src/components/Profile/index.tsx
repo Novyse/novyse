@@ -33,8 +33,8 @@ interface ProfileProps {
   isOnline?: boolean;
   description?: string;
   connections?: Connection[];
-  onChannelPress?: () => void;
   onConnectionPress?: (connection: Connection) => void;
+  onEditAvatar?: () => void;
 }
 
 export default function Profile({
@@ -49,6 +49,7 @@ export default function Profile({
   description,
   connections,
   onConnectionPress,
+  onEditAvatar,
 }: ProfileProps) {
   const { theme } = useContext(ThemeContext);
   const { width, height } = useWindowDimensions();
@@ -87,6 +88,7 @@ export default function Profile({
                 icon: "SevenZ01Icon",
               },
             ]}
+            onEditAvatar={onEditAvatar}
           />
 
           {/* About Me Section */}

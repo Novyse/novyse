@@ -11,6 +11,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DateTime } from "luxon";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import SmartBackground from "@/src/components/SmartBackground";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
@@ -18,6 +19,8 @@ import Icon from "@/src/components/Icon";
 import HeaderBase from "@/src/components/HeaderBase";
 import Avatar from "@/src/components/Avatar";
 import ChatListItem from "@/src/components/chat/List/Item";
+import FloatingButton from "@/src/components/FloatingButton";
+import CreateChatModal from "@/src/components/modals/createChat";
 
 import useChats from "@/src/hooks/chat/useChats";
 import { LocalUserContext } from "@/context/LocalUserContext";
@@ -35,15 +38,20 @@ const ChatList = () => {
   };
 
   const { chatDetails } = useChats();
+
   const { isSmallScreen } = useScreen();
   const { theme } = useContext(ThemeContext);
+  const insets = useSafeAreaInsets();
 
-  const styles = createStyle(theme, isSmallScreen);
+  const styles = createStyle(theme, isSmallScreen, insets);
   const router = useRouter();
 
   const [selectedItems, setSelectedItems] = useState([]);
   const [orderedChats, setOrderedChats] = useState([]);
   const isSelectionMode = selectedItems.length > 0;
+
+  const [isCreateChatModalVisible, setIsCreateChatModalVisible] =
+    useState(false);
 
   useEffect(() => {
     const organizeChats = async () => {
@@ -178,16 +186,30 @@ const ChatList = () => {
           />
         </View>
       )}
+      <FloatingButton
+        onPress={() => setIsCreateChatModalVisible(true)}
+        iconName="ChatAddIcon"
+        size={isSmallScreen ? 16 : 24}
+        width={isSmallScreen ? 45 : 60}
+        height={isSmallScreen ? 45 : 60}
+        position={{ bottom: isSmallScreen ? 100 : 25, right: 20 }}
+      />
+
+      <CreateChatModal
+        visible={isCreateChatModalVisible}
+        onClose={() => setIsCreateChatModalVisible(false)}
+      />
     </SmartBackground>
   );
 };
 
-function createStyle(theme, isSmallScreen) {
+function createStyle(theme, isSmallScreen, insets) {
   return StyleSheet.create({
     chatListContainer: {
       flex: 1,
       position: "relative",
       padding: isSmallScreen ? 0 : 10,
+      paddingTop: insets.top,
     },
     chatListWrapper: {
       flex: 1,

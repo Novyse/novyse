@@ -12,7 +12,7 @@ const Avatar = ({
   size = 32,
   isOnline = false,
   theme,
-  onEdit = undefined,
+  onEdit,
 }) => {
   const styles = createStyles(size, theme);
   const { uri: resolvedUri } = useProfilePicture(uuid, uri);
@@ -53,7 +53,7 @@ const createStyles = (size, theme) =>
     avatar: {
       width: size,
       height: size,
-      borderRadius: 16,
+      borderRadius: 999,
       backgroundColor: "#00000000",
     },
     editIconContainer: {
