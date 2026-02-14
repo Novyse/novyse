@@ -1,6 +1,5 @@
 import React, { useContext, useState } from "react";
 import { StyleSheet, Text, View, TextInput } from "react-native";
-import ScreenLayout from "@/src/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -70,7 +69,7 @@ const ChangePassword = ({ navigation }) => {
   };
 
   return (
-    <ScreenLayout fullscreen={true}>
+    <>
       <HeaderWithBackArrow title={"Change Password"} onBack={onBack} />
       <SettingsPageScrollview>
         <Text style={styles.title}>Change Password</Text>
@@ -145,7 +144,7 @@ const ChangePassword = ({ navigation }) => {
           </View>
         </SettingsCard>
       </SettingsPageScrollview>
-    </ScreenLayout>
+    </>
   );
 };
 

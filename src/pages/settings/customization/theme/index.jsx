@@ -1,6 +1,5 @@
 import React, { useContext, useEffect } from "react";
 import { StyleSheet, Pressable, Text, View } from "react-native";
-import ScreenLayout from "@/src/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import { Colors } from "@/constants/Colors";
@@ -22,7 +21,7 @@ const Themes = ({ navigation }) => {
   }, [colorScheme, setColorScheme]);
 
   return (
-    <ScreenLayout fullscreen={true}>
+    <>
       <HeaderWithBackArrow title={"Themes"} onBack={onBack} />
       <SettingsPageScrollview>
         <Text style={styles.title}>Themes</Text>
@@ -63,7 +62,7 @@ const Themes = ({ navigation }) => {
           ))}
         </View>
       </SettingsPageScrollview>
-    </ScreenLayout>
+    </>
   );
 };
 

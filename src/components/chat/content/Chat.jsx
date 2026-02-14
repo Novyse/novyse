@@ -16,6 +16,7 @@ import {
 
 import { useRouter } from "expo-router";
 import "react-native-get-random-values";
+
 import SmartBackground from "@/src/components/SmartBackground";
 import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
 
@@ -252,7 +253,6 @@ const ChatContent = ({ onBack, contentView }) => {
 
 export default ChatContent;
 
-// Stili ridotti (come prima)
 function createStyle(theme) {
   return StyleSheet.create({
     container: {

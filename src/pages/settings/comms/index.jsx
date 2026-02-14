@@ -1,10 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
@@ -37,9 +32,8 @@ const CommsPage = ({ navigation }) => {
   const loadSettings = async () => {
     try {
       setIsLoading(true);
-      const settings = await settingsManager.getPageParameters(
-        "settings.comms"
-      );
+      const settings =
+        await settingsManager.getPageParameters("settings.comms");
       setAudioSettings(settings);
     } catch (error) {
       console.error("Error loading vocal chat settings:", error);
@@ -52,7 +46,7 @@ const CommsPage = ({ navigation }) => {
     try {
       const success = await settingsManager.setSingleParameter(
         `settings.comms.${key}`,
-        value
+        value,
       );
       if (success) {
         // Aggiorna lo stato locale immediatamente per UI reattiva
@@ -159,33 +153,33 @@ const CommsPage = ({ navigation }) => {
 
   if (isLoading) {
     return (
-      <ScreenLayout fullscreen={true}>
-        <HeaderWithBackArrow title={"Comms"} onBack={onBack}/>
+      <>
+        <HeaderWithBackArrow title={"Comms"} onBack={onBack} />
         <View style={styles.container}>
           <Text style={styles.loadingText}>Loading settings...</Text>
         </View>
-      </ScreenLayout>
+      </>
     );
   }
 
   // Se audioSettings è null o undefined, mostra un messaggio di errore
   if (!audioSettings) {
     return (
-      <ScreenLayout fullscreen={true}>
-        <HeaderWithBackArrow title={"Comms"} onBack={onBack}/>
+      <>
+        <HeaderWithBackArrow title={"Comms"} onBack={onBack} />
         <View style={styles.container}>
           <Text style={styles.errorText}>Error loading settings</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadSettings}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      </ScreenLayout>
+      </>
     );
   }
 
   return (
-    <ScreenLayout fullscreen={true}>
-      <HeaderWithBackArrow title={"Comms"} onBack={onBack}/>
+    <>
+      <HeaderWithBackArrow title={"Comms"} onBack={onBack} />
       <SettingsPageScrollview>
         {/* Input Devices Category */}
         <SettingsCard>
@@ -370,7 +364,7 @@ const CommsPage = ({ navigation }) => {
           </SettingsCard>
         )}
       </SettingsPageScrollview>
-    </ScreenLayout>
+    </>
   );
 };
 

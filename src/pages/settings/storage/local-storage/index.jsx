@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text } from "react-native";
-import ScreenLayout from "@/src/components/ScreenLayout";
+import { StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
@@ -22,19 +21,23 @@ const LocalStoragePage = ({ navigation }) => {
     totalUsed: (usedStorage / (1024 * 1024 * 1024)).toFixed(2),
     totalCapacity: null,
     categories: [
-      { name: "File", size: (usedStorage / (1024 * 1024 * 1024)).toFixed(2), color: "#0EA5E9" },
+      {
+        name: "File",
+        size: (usedStorage / (1024 * 1024 * 1024)).toFixed(2),
+        color: "#0EA5E9",
+      },
     ],
   };
 
   return (
-    <ScreenLayout fullscreen={true}>
+    <>
       <HeaderWithBackArrow title={"Local Storage"} onBack={onBack} />
       <SettingsPageScrollview>
         <SettingsCard style={{ marginTop: 30 }}>
           <StorageBreakdown storage={localData} />
         </SettingsCard>
       </SettingsPageScrollview>
-    </ScreenLayout>
+    </>
   );
 };
 

@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
 import { StyleSheet, Text, View, Linking } from "react-native";
-import ScreenLayout from "@/src/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import { APP_VERSION, BUILD_NUMBER, BUILD_DATE } from "@/app.config";
@@ -25,8 +24,8 @@ const Info = ({ navigation }) => {
   );
 
   return (
-    <ScreenLayout fullscreen={true}>
-      <HeaderWithBackArrow title={"Info"} onBack={onBack}/>
+    <>
+      <HeaderWithBackArrow title={"Info"} onBack={onBack} />
       <SettingsPageScrollview>
         {/* Sezione Informazioni Versione */}
         <SettingsCard>
@@ -103,7 +102,7 @@ const Info = ({ navigation }) => {
           </View>
         </SettingsCard>
       </SettingsPageScrollview>
-    </ScreenLayout>
+    </>
   );
 };
 

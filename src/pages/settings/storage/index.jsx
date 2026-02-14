@@ -1,9 +1,7 @@
 import React, { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import ScreenLayout from "@/src/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import { useRouter } from "expo-router";
 import auth from "@/src/utils/welcome/auth";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/settings/SettingsCard";
@@ -36,7 +34,7 @@ const StoragePage = ({ navigation }) => {
   const { usedStorage } = useStorage();
 
   return (
-    <ScreenLayout fullscreen={true}>
+    <>
       <HeaderWithBackArrow title={"Storage"} onBack={onBack} />
       <SettingsPageScrollview>
         <SettingsCard style={{ padding: 0, marginTop: 30 }}>
@@ -85,7 +83,7 @@ const StoragePage = ({ navigation }) => {
           </HoverAndPressedButton>
         </SettingsCard>
       </SettingsPageScrollview>
-    </ScreenLayout>
+    </>
   );
 };
 

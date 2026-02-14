@@ -23,17 +23,15 @@ const ProfilePage = ({ navigation }) => {
 
   if (isLoading) {
     return (
-      <ScreenLayout fullscreen={true}>
-        <View style={styles.container}>
-          <HeaderWithBackArrow title={"Account"} onBack={() => onBack()} />
-          <Text style={styles.loadingText}>Loading profile...</Text>
-        </View>
-      </ScreenLayout>
+      <View style={styles.container}>
+        <HeaderWithBackArrow title={"Account"} onBack={() => onBack()} />
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
     );
   }
 
   return (
-    <ScreenLayout fullscreen={true}>
+    <>
       <HeaderWithBackArrow title={"Account"} onBack={() => onBack()} />
       <Page
         name={name}
@@ -49,7 +47,7 @@ const ProfilePage = ({ navigation }) => {
           setIsProfilePicModalVisible(false);
         }}
       />
-    </ScreenLayout>
+    </>
   );
 };
 

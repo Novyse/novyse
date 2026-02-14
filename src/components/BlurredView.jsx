@@ -5,7 +5,6 @@ import { ThemeContext } from "@/context/ThemeContext";
 
 const BlurredView = ({ children, style, intensity = 75, tint }) => {
   const { theme } = useContext(ThemeContext);
-
   return (
     <BlurView
       style={[styles(theme).container, style]}

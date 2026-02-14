@@ -67,7 +67,7 @@ const DefaultBar = ({
 const createStyle = (theme) => ({
   container: {
     width: "100%",
-    padding: 10,
+    paddingHorizontal: 10,
     flexDirection: "row",
     alignItems: "center",
     minHeight: 55,

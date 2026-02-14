@@ -1,5 +1,6 @@
 import React from "react";
 import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import DefaultBar from "./default";
 import JoinBar from "./join";
@@ -20,12 +21,15 @@ const BottomBar = ({
   const showJoinBar =
     !chat.uuid && ["GROUP", "CHANNEL", "FORUM"].includes(chat.type);
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View
       onLayout={(event) =>
         setBottomBarHeight &&
         setBottomBarHeight(event.nativeEvent.layout.height)
       }
+      style={{ paddingBottom: insets.bottom }}
     >
       {showJoinBar ? (
         <JoinBar onJoin={onJoin} chat={chat} />

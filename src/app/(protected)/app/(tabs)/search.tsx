@@ -16,6 +16,7 @@ import { useRouter } from "expo-router";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
 import Icon from "@/src/components/Icon";
+import BlurredHeader from "@/src/components/BlurredHeader";
 
 import { detailsNavigator } from "@/src/utils/navigation/ref";
 
@@ -141,7 +142,7 @@ const Search = () => {
       colors={theme.backgroundSearchGradient}
       style={styles.container}
     >
-      <View style={styles.searchContainer}>
+      <BlurredHeader style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
         <Icon
           name="Search01Icon"
           size={20}
@@ -172,7 +173,7 @@ const Search = () => {
           }}
           style={styles.closeIcon}
         />
-      </View>
+      </BlurredHeader>
       {isLoading && (
         <ActivityIndicator
           size="large"

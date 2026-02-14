@@ -50,7 +50,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
               testID={options.tabBarTestID}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={styles.tabButton}
+              style={[styles.tabButton, isFocused && styles.activeTab]}
             >
               {options.tabBarIcon &&
                 options.tabBarIcon({
@@ -87,10 +87,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     alignSelf: "center",
+    padding: 5,
   },
   tabButton: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  activeTab: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 30,
+    width: "50%",
+    height: "100%",
   },
 });

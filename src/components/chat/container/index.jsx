@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo, useEffect } from "react";
+import React, { useState, useContext, useMemo, useEffect, use } from "react";
 import {
   View,
   StyleSheet,
@@ -30,9 +30,8 @@ const ChatContainer = ({ navigation, route }) => {
     selectedChatName,
     selectedChatPictureUUID,
   } = useContext(ChatContext);
-  const { theme } = useContext(ThemeContext);
-  const { width } = useWindowDimensions();
 
+  const { theme } = useContext(ThemeContext);
   const { isSmallScreen } = useScreen();
 
   const [contentView, setContentView] = useState("chat");

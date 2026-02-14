@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SmartBackground from "@/src/components/SmartBackground";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
-import HeaderBase from "@/src/components/HeaderBase";
+import BlurredHeader from "@/src/components/BlurredHeader";
 import Avatar from "@/src/components/Avatar";
 import ChatListItem from "@/src/components/chat/List/Item";
 import FloatingButton from "@/src/components/FloatingButton";
@@ -34,6 +34,7 @@ const PINNED_CHATS_STORAGE_KEY = "@chat_order";
 
 const ChatList = () => {
   const onChatSelect = (chatUUIDorHandle: String) => {
+    setActiveChatUUID(chatUUIDorHandle as string);
     detailsNavigator.navigate("chat", { chatUUIDorHandle });
   };
 
@@ -48,6 +49,7 @@ const ChatList = () => {
 
   const [selectedItems, setSelectedItems] = useState([]);
   const [orderedChats, setOrderedChats] = useState([]);
+  const [activeChatUUID, setActiveChatUUID] = useState("");
   const isSelectionMode = selectedItems.length > 0;
 
   const [isCreateChatModalVisible, setIsCreateChatModalVisible] =
@@ -115,7 +117,7 @@ const ChatList = () => {
 
   const renderDefaultHeader = useCallback(
     () => (
-      <HeaderBase>
+      <BlurredHeader style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
         <Image
           source={require("@/assets/images/logo-novyse.png")}
           style={styles.logo}
@@ -125,14 +127,14 @@ const ChatList = () => {
           size={24}
           onPress={() => router.push("/app/search")}
         />
-      </HeaderBase>
+      </BlurredHeader>
     ),
     [styles.logo, router],
   );
 
   const renderSelectionHeader = useCallback(
     () => (
-      <HeaderBase>
+      <BlurredHeader style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
         <Icon
           name={"Cancel01Icon"}
           size={24}
@@ -140,7 +142,7 @@ const ChatList = () => {
         />
         <Text style={styles.headerTitle}>{selectedItems.length} selected</Text>
         <Icon name={"PinIcon"} size={24} onPress={handlePinItems} />
-      </HeaderBase>
+      </BlurredHeader>
     ),
     [selectedItems.length, styles.headerTitle],
   );
@@ -149,6 +151,7 @@ const ChatList = () => {
     <ChatListItem
       item={item}
       isSelected={selectedItems.includes(item.uuid)}
+      isActive={item.uuid === activeChatUUID}
       onPress={handlePress}
       onLongPress={handleLongPress}
       theme={theme}
@@ -209,7 +212,6 @@ function createStyle(theme, isSmallScreen, insets) {
       flex: 1,
       position: "relative",
       padding: isSmallScreen ? 0 : 10,
-      paddingTop: insets.top,
     },
     chatListWrapper: {
       flex: 1,
@@ -239,6 +241,7 @@ function createStyle(theme, isSmallScreen, insets) {
           backgroundColor: theme.scrollbarHover,
         },
       }),
+      paddingTop: 75 + insets.top,
     },
     flatListContent: { padding: 10, gap: 10 },
     chatItem: { borderRadius: 15, height: 65 },

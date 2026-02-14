@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
-import ScreenLayout from "@/src/components/ScreenLayout";
 import { useThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -107,7 +106,7 @@ const TwoFAMethods = ({ navigation }) => {
   };
 
   return (
-    <ScreenLayout fullscreen={true}>
+    <>
       <HeaderWithBackArrow title={"2FA"} onBack={onBack} />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
@@ -224,7 +223,7 @@ const TwoFAMethods = ({ navigation }) => {
           }}
         />
       </SettingsPageScrollview>
-    </ScreenLayout>
+    </>
   );
 };
 

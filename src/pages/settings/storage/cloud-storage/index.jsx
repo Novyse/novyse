@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
 import { StyleSheet, Text } from "react-native";
-import ScreenLayout from "@/src/components/ScreenLayout";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
@@ -27,14 +26,14 @@ const CloudStoragePage = ({ navigation }) => {
   };
 
   return (
-    <ScreenLayout fullscreen={true}>
+    < >
       <HeaderWithBackArrow title={"Cloud Storage"} onBack={onBack} />
       <SettingsPageScrollview>
         <SettingsCard>
           <StorageBreakdown storage={cloudData} />
         </SettingsCard>
       </SettingsPageScrollview>
-    </ScreenLayout>
+    </>
   );
 };
 

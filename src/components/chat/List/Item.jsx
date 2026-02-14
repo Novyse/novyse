@@ -10,7 +10,7 @@ import Avatar from "@/src/components/Avatar";
 import { LocalUserContext } from "@/context/LocalUserContext";
 
 const ChatListItem = React.memo(
-  ({ item, isSelected, onPress, onLongPress, theme, styles }) => {
+  ({ item, isSelected, isActive, onPress, onLongPress, theme, styles }) => {
     const { userUUID } = useContext(LocalUserContext);
     const parseTime = (dateTimeMessage) => {
       if (!dateTimeMessage) return "";
@@ -46,7 +46,7 @@ const ChatListItem = React.memo(
     return (
       <SmartBackground
         colors={
-          isSelected
+          isSelected || isActive
             ? theme?.backgroundChatListItemSelectedGradient
             : theme?.backgroundChatListItemGradient
         }

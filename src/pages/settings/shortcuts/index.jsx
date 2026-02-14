@@ -2,7 +2,6 @@ import React, { useContext } from "react";
 import { StyleSheet, Text } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import ScreenLayout from "@/src/components/ScreenLayout";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/settings/SettingsCard";
 
@@ -12,7 +11,7 @@ const ShortcutsPage = ({ navigation }) => {
   const styles = createStyle(theme);
 
   return (
-    <ScreenLayout fullscreen={true}>
+    < >
       <HeaderWithBackArrow title={"Keyboard Shortcuts"} onBack={onBack} />
       <SettingsPageScrollview>
         <SettingsCard>
@@ -26,7 +25,7 @@ const ShortcutsPage = ({ navigation }) => {
           <Text style={styles.shortcutItem}>Mute: ctrl + F12</Text>
         </SettingsCard>
       </SettingsPageScrollview>
-    </ScreenLayout>
+    </>
   );
 };
 
