@@ -1,6 +1,10 @@
 import React, { useContext } from "react";
-import { View, Pressable, StyleSheet, Text, Image } from "react-native";
+import { View, Pressable, StyleSheet, Text } from "react-native";
+
 import { ThemeContext } from "@/context/ThemeContext";
+
+import useMessageAction from "@/src/hooks/chat/useMessageAction";
+
 import BlurredView from "../BlurredView";
 import { getFileType } from "@/src/utils/storage/file/type";
 import { defaultWaveform } from "@/src/utils/storage/file/media";
@@ -15,9 +19,29 @@ import MessageVoice from "./MessageVoice";
 
 import MessageText from "./MessageText";
 
-const MessageBase = ({ message, isSender, onLongPress }) => {
+const MessageBase = ({
+  message,
+  isSender,
+  isSelected,
+  setTriggeredMessage,
+  setTriggeredMessagePosition,
+  selectedMessage,
+  setSelectedMessage,
+}) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+
+  const {
+    onMessageRightPress,
+    onMessagePress,
+    onMessageDoublePress,
+    onMessageLongPress,
+  } = useMessageAction(
+    setTriggeredMessage,
+    setTriggeredMessagePosition,
+    selectedMessage,
+    setSelectedMessage,
+  );
 
   const {
     content,
@@ -60,11 +84,19 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
   );
 
   // Determina se ci sono solo media senza testo
-  const hasOnlyMedia = (!content || content.trim().length === 0) && (mediaMessages.true || []).length > 0;
+  const hasOnlyMedia =
+    (!content || content.trim().length === 0) &&
+    (mediaMessages.true || []).length > 0;
 
   const sharedContent = (
     <View
-      style={hasOnlyMedia ? styles.mediaContainer : (showSenderName ? styles.textContainerNoTop : styles.textContainer)}
+      style={
+        hasOnlyMedia
+          ? styles.mediaContainer
+          : showSenderName
+            ? styles.textContainerNoTop
+            : styles.textContainer
+      }
     >
       {/* images/videos print */}
       {mediaMessages && <MessageMedia medias={mediaMessages.true || []} />}
@@ -143,58 +175,64 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
     </View>
   );
 
-  if (isSender) {
-    return (
-      <BlurredView
-        // tint={"dark"}
-        style={[styles.senderBubble, showAvatar && styles.senderBubbleChained]}
-      >
-        <Pressable onLongPress={onLongPress} style={styles.pressable}>
-          {sharedContent}
-        </Pressable>
-      </BlurredView>
-    );
-  }
+  const blurredViewStyles = isSender
+    ? [styles.senderBubble, showAvatar && styles.senderBubbleChained]
+    : [styles.receiverBubble, showAvatar && styles.receiverBubbleWithAvatar];
 
-  // RECEIVER
+  const pressableStyles = isSender
+    ? styles.pressable
+    : styles.pressableReceiver;
+
   return (
-    <View style={styles.receiverContainer}>
-      <View style={styles.receiverRow}>
-        {showAvatar && <Avatar size={40} uuid={message.profile_picture_uuid} />}
-        <BlurredView
-          tint={"dark"}
-          style={[
-            styles.receiverBubble,
-            showAvatar && styles.receiverBubbleWithAvatar,
-          ]}
-        >
-          <Pressable onLongPress={onLongPress} style={styles.pressable}>
-            {showSenderName && (
-              <View style={styles.senderNameWrapper}>
-                <Text
-                  style={styles.senderName}
-                  numberOfLines={1}
-                  selectable={false}
-                >
-                  {sender_name}
-                </Text>
-              </View>
-            )}
-            {sharedContent}
-          </Pressable>
+    <>
+    <View style={styles.container}>
+      <Pressable
+        onPress={(event) => onMessagePress(event, message)}
+        onLongPress={(event) => onMessageLongPress(event, message)}
+        onContextMenu={(event) => {
+          event.preventDefault();
+          onMessageRightPress(event, message);
+        }}
+        onDoubleClick={(event) => onMessageDoublePress(event, message)}
+        style={pressableStyles}
+      >
+        {!isSender && showAvatar && (
+          <Avatar size={40} uuid={message.profile_picture_uuid} />
+        )}
+        <BlurredView style={blurredViewStyles}>
+          {!isSender && showSenderName && (
+            <View style={styles.senderNameWrapper}>
+              <Text
+                style={styles.senderName}
+                numberOfLines={1}
+                selectable={false}
+              >
+                {sender_name}
+              </Text>
+            </View>
+          )}
+          {sharedContent}
         </BlurredView>
-      </View>
+      </Pressable>
+      
     </View>
+    {isSelected && <View style={styles.selectedOverlay} />}
+    </>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    receiverContainer: {
-      alignSelf: "flex-start",
-      maxWidth: "80%",
+    container: {
+      width: "100%",
     },
-    receiverRow: {
+    pressable: {
+      padding: 0,
+      width: "100%",
+    },
+    pressableReceiver: {
+      padding: 0,
+      width: "100%",
       flexDirection: "row",
       alignItems: "flex-end",
     },
@@ -231,10 +269,6 @@ const createStyle = (theme) =>
     receiverBubbleWithAvatar: {
       marginLeft: 10,
       borderBottomLeftRadius: 4,
-    },
-    pressable: {
-      padding: 0,
-      width: "100%",
     },
     textContainer: {
       flexDirection: "column",
@@ -283,6 +317,15 @@ const createStyle = (theme) =>
       fontWeight: "600",
       color: theme.text,
       flexShrink: 1,
+    },
+    selectedOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(174, 213, 255, 0.2)",
+      zIndex: 1,
     },
   });
 

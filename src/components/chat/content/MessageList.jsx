@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { FlatList, StyleSheet, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import MessageBase from "../../messages/MessageBase";
-import MessageSystem from "../../messages/MessageSystem";
+import MessageBase from "@/src/components/messages/MessageBase";
+import MessageSystem from "@/src/components/messages/MessageSystem";
+
+import ActionMenu from "@/src/components/messages/ActionMenu";
 
 const createStyle = (theme, insets) =>
   StyleSheet.create({
@@ -41,6 +43,45 @@ const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme }) => {
   const insets = useSafeAreaInsets();
   const styles = createStyle(theme, insets);
 
+  const [triggeredMessage, setTriggeredMessage] = useState(null);
+  const [triggeredMessagePosition, setTriggeredMessagePosition] = useState({
+    x: 0,
+    y: 0,
+  });
+
+  const [selectedMessage, setSelectedMessage] = useState([]);
+
+  const onAction = (action) => {
+    console.log("Action selected:", action);
+    setTriggeredMessage(null);
+
+    switch (action) {
+      case "Reply":
+        // Implement reply logic here
+        console.log("Replying to message:", triggeredMessage);
+        break;
+      case "Forward":
+        // Implement forward logic here
+        console.log("Forwarding message:", triggeredMessage);
+        break;
+      case "Copy":
+        // Implement copy logic here
+        console.log("Copying message:", triggeredMessage);
+        break;
+      case "Select":
+        setSelectedMessage((prev) => {
+          return [...prev, triggeredMessage];
+        });
+        break;
+      case "Delete":
+        // Implement delete logic here
+        console.log("Deleting message:", triggeredMessage);
+        break;
+      default:
+        console.warn("Unknown action:", action);
+    }
+  };
+
   const renderMessageItem = ({ item }) => {
     if (item.type === "separator") {
       return <MessageSystem type={"date"} data={item.data} />;
@@ -52,26 +93,36 @@ const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme }) => {
         <MessageBase
           message={message}
           isSender={message.senderUUID === myUUID}
-          onLongPress={(e) => {
-            console.log("Long press on message:", message.id);
-          }}
+          isSelected={selectedMessage.includes(message)}
+          setTriggeredMessage={setTriggeredMessage}
+          setTriggeredMessagePosition={setTriggeredMessagePosition}
+          selectedMessage={selectedMessage}
+          setSelectedMessage={setSelectedMessage}
         />
       );
     }
   };
 
   return (
-    <FlatList
-      ref={flatListRef}
-      data={preparedMessages}
-      keyExtractor={(item) => item.uniqueKey}
-      renderItem={renderMessageItem}
-      style={styles.list}
-      contentContainerStyle={styles.listContent}
-      showsVerticalScrollIndicator={true}
-      scrollIndicatorInsets={{ right: 1 }}
-      inverted
-    />
+    <>
+      <FlatList
+        ref={flatListRef}
+        data={preparedMessages}
+        keyExtractor={(item) => item.uniqueKey}
+        renderItem={renderMessageItem}
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={true}
+        scrollIndicatorInsets={{ right: 1 }}
+        inverted
+      />
+      <ActionMenu
+        visible={triggeredMessage}
+        onAction={onAction}
+        onClose={() => setTriggeredMessage(null)}
+        position={triggeredMessagePosition}
+      />
+    </>
   );
 };
 

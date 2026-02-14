@@ -6,6 +6,7 @@ const HoverAndPressedButton = ({
   children,
   onPress,
   onLongPress = () => {},
+  onContextMenu = () => {},
   style = {},
   hoveredStyle = {},
   pressedStyle = {},
@@ -27,6 +28,7 @@ const HoverAndPressedButton = ({
       ]}
       onPress={onPress}
       onLongPress={onLongPress}
+      onContextMenu={onContextMenu}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       disabled={disabled}

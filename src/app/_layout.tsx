@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Stack } from "expo-router";
 
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -19,6 +19,15 @@ function RootLayoutContent() {
   const db = useSQLiteContext();
   database.setDb(db);
 
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+      document.addEventListener("contextmenu", handleContextMenu);
+      return () =>
+        document.removeEventListener("contextmenu", handleContextMenu);
+    }
+  }, []);
+
   return (
     <KeyboardProvider>
       <ScreenProvider>
@@ -38,7 +47,10 @@ function RootLayoutContent() {
                 />
               </Stack.Protected>
               <Stack.Screen name="profile" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="+not-found"
+                options={{ headerShown: false }}
+              />
             </Stack>
           </LanguageProvider>
         </ThemeProvider>
