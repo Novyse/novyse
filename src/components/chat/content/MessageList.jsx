@@ -1,13 +1,15 @@
 import React from "react";
 import { FlatList, StyleSheet, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import MessageBase from "../../messages/MessageBase";
 import MessageSystem from "../../messages/MessageSystem";
 
-const createStyle = (theme) =>
+const createStyle = (theme, insets) =>
   StyleSheet.create({
     list: {
       flex: 1,
-      paddingTop: 50,
+      paddingTop: 50 + insets.bottom,
       paddingBottom: 150,
       ...(Platform.OS === "web" && {
         scrollbarWidth: "thin",
@@ -36,7 +38,8 @@ const createStyle = (theme) =>
   });
 
 const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme }) => {
-  const styles = createStyle(theme);
+  const insets = useSafeAreaInsets();
+  const styles = createStyle(theme, insets);
 
   const renderMessageItem = ({ item }) => {
     if (item.type === "separator") {
