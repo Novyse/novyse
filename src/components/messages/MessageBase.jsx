@@ -1,7 +1,8 @@
-import React, { useContext } from "react";
+import React from "react";
 import { View, Pressable, StyleSheet, Text } from "react-native";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/context/ThemeContext";
+import { useScreen } from "@/context/ScreenContext";
 
 import useMessageAction from "@/src/hooks/chat/useMessageAction";
 
@@ -28,7 +29,8 @@ const MessageBase = ({
   selectedMessage,
   setSelectedMessage,
 }) => {
-  const { theme } = useContext(ThemeContext);
+  const { theme } = useThemeContext();
+  const { isSmallScreen } = useScreen();
   const styles = createStyle(theme);
 
   const {
@@ -185,38 +187,40 @@ const MessageBase = ({
 
   return (
     <>
-    <View style={styles.container}>
-      <Pressable
-        onPress={(event) => onMessagePress(event, message)}
-        onLongPress={(event) => onMessageLongPress(event, message)}
-        onContextMenu={(event) => {
-          event.preventDefault();
-          onMessageRightPress(event, message);
-        }}
-        onDoubleClick={(event) => onMessageDoublePress(event, message)}
-        style={pressableStyles}
-      >
-        {!isSender && showAvatar && (
-          <Avatar size={40} uuid={message.profile_picture_uuid} />
-        )}
-        <BlurredView style={blurredViewStyles}>
-          {!isSender && showSenderName && (
-            <View style={styles.senderNameWrapper}>
-              <Text
-                style={styles.senderName}
-                numberOfLines={1}
-                selectable={false}
-              >
-                {sender_name}
-              </Text>
-            </View>
+      <View style={styles.container}>
+        <Pressable
+          onPress={(event) => onMessagePress(event, message)}
+          onLongPress={(event) => onMessageLongPress(event, message)}
+          onContextMenu={(event) => {
+            event.preventDefault();
+            onMessageRightPress(event, message);
+          }}
+          onDoubleClick={(event) => onMessageDoublePress(event, message)}
+          style={pressableStyles}
+        >
+          {!isSender && showAvatar && (
+            <Avatar size={40} uuid={message.profile_picture_uuid} />
           )}
-          {sharedContent}
-        </BlurredView>
-      </Pressable>
-      
-    </View>
-    {isSelected && <View style={styles.selectedOverlay} />}
+          <BlurredView style={blurredViewStyles}>
+            {!isSender && showSenderName && (
+              <View style={styles.senderNameWrapper}>
+                <Text
+                  style={styles.senderName}
+                  numberOfLines={1}
+                  selectable={false}
+                >
+                  {sender_name}
+                </Text>
+              </View>
+            )}
+            {sharedContent}
+            {isSelected && !isSmallScreen && (
+              <View style={styles.selectedOverlay} />
+            )}
+          </BlurredView>
+        </Pressable>
+      </View>
+      {isSelected && isSmallScreen && <View style={styles.selectedOverlay} />}
     </>
   );
 };
@@ -229,6 +233,8 @@ const createStyle = (theme) =>
     pressable: {
       padding: 0,
       width: "100%",
+      paddingRight: 10,
+      paddingLeft: 10,
     },
     pressableReceiver: {
       padding: 0,
@@ -324,8 +330,9 @@ const createStyle = (theme) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: "rgba(174, 213, 255, 0.2)",
+      backgroundColor: "rgba(174, 213, 255, 0.5)",
       zIndex: 1,
+      pointerEvents: "none",
     },
   });
 

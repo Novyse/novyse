@@ -35,7 +35,8 @@ const createStyle = (theme, insets) =>
       }),
     },
     listContent: {
-      padding: 10,
+      paddingTop: 10,
+      paddingBottom: 10,
     },
   });
 
