@@ -10,13 +10,16 @@ import {
   TouchableOpacity,
   Platform,
 } from "react-native";
-import SmartBackground from "@/src/components/SmartBackground";
-import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { useThemeContext } from "@/context/ThemeContext";
+
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
 import Icon from "@/src/components/Icon";
 import BlurredHeader from "@/src/components/BlurredHeader";
+import ItemSearch from "@/src/components/chat/List/ItemSearch";
 
 import { detailsNavigator } from "@/src/utils/navigation/ref";
 
@@ -29,8 +32,10 @@ interface SearchResult {
 }
 
 const Search = () => {
-  const theme = (useContext(ThemeContext) as any).theme;
-  const styles = createStyle(theme);
+  const { theme } = useThemeContext();
+  const intets = useSafeAreaInsets();
+  const styles = createStyle(theme, intets);
+
   const router = useRouter();
 
   const [responseArray, setResponseArray] = useState<SearchResult[]>([]);
@@ -99,49 +104,17 @@ const Search = () => {
     setTimer(timerOnChange);
   };
 
-  const renderItem = ({
-    item,
-    index,
-  }: {
-    item: SearchResult;
-    index: number;
-  }) => (
-    <TouchableOpacity
-      style={styles.resultItem}
-      onPress={() => {
-        // Emit event with handle and close search
-        eventEmitter.emit("searchResultSelected", {
-          handle: item.handle,
-          type: item.type,
-        });
-        detailsNavigator.navigate("chat", { chatUUIDorHandle: item.handle });
+  const renderItem = ({ item }: { item: SearchResult }) => (
+    <ItemSearch
+      item={item}
+      onPress={(handle) => {
+        detailsNavigator.navigate("chat", { chatUUIDorHandle: handle });
       }}
-    >
-      <Image
-        source={{ uri: "https://picsum.photos/200" }}
-        style={styles.avatar}
-      />
-      <View style={styles.textContainer}>
-        <Text style={styles.resultText}>
-          {item.name} {item?.surname ? `${item?.surname}` : null}
-        </Text>
-        <Text style={styles.profileHandle}>
-          {item?.handle ? `@${item.handle}` : ""}
-          {item.type === "GROUP" ||
-          item.type === "FORUM" ||
-          item.type === "CHANNEL"
-            ? ` • ${item.memberCount} ${item.memberCount === 1 ? "member" : "members"}`
-            : ""}
-        </Text>
-      </View>
-    </TouchableOpacity>
+    />
   );
 
   return (
-    <SmartBackground
-      colors={theme.backgroundSearchGradient}
-      style={styles.container}
-    >
+    <>
       <BlurredHeader style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
         <Icon
           name="Search01Icon"
@@ -185,6 +158,7 @@ const Search = () => {
         <FlatList
           data={responseArray}
           renderItem={renderItem}
+          contentContainerStyle={styles.flatListContent}
           keyExtractor={(item, index) => index.toString()}
           style={styles.results}
         />
@@ -192,18 +166,17 @@ const Search = () => {
       {isSearching && !isLoading && responseArray.length === 0 && (
         <Text style={styles.noResults}>No results found</Text>
       )}
-    </SmartBackground>
+    </>
   );
 };
 
 export default Search;
 
-const createStyle = (theme: any) => {
+const createStyle = (theme: any, insets) => {
   return StyleSheet.create({
     container: {
       flex: 1,
       padding: 10,
-      paddingTop: 0,
     },
     searchContainer: {
       paddingHorizontal: 20,
@@ -229,10 +202,10 @@ const createStyle = (theme: any) => {
       outlineStyle: "none",
     },
     loader: {
-      marginTop: 20,
+      marginTop: 90 + insets.top,
     },
     results: {
-      marginTop: 10,
+      paddingTop: 75 + insets.top,
       flex: 1,
       ...(Platform.OS === "web" && {
         // Standard for Firefox (fixed, no active/drag change)
@@ -290,5 +263,6 @@ const createStyle = (theme: any) => {
       fontSize: 14,
       marginTop: 2,
     },
+    flatListContent: { padding: 10, gap: 10 },
   });
 };

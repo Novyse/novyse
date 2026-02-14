@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { DateTime } from "luxon";
 
 import SmartBackground from "@/src/components/SmartBackground";
@@ -8,9 +8,12 @@ import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
 
 import { LocalUserContext } from "@/context/LocalUserContext";
+import { ThemeContext } from "@/context/ThemeContext";
 
 const ChatListItem = React.memo(
-  ({ item, isSelected, isActive, onPress, onLongPress, theme, styles }) => {
+  ({ item, isSelected, isActive, onPress, onLongPress }) => {
+    const { theme } = useContext(ThemeContext);
+    const styles = createStyle(theme);
     const { userUUID } = useContext(LocalUserContext);
     const parseTime = (dateTimeMessage) => {
       if (!dateTimeMessage) return "";
@@ -104,5 +107,59 @@ const ChatListItem = React.memo(
     );
   },
 );
+
+function createStyle(theme) {
+  return StyleSheet.create({
+    chatItem: { borderRadius: 15, height: 65 },
+    chatItemPressable: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 10,
+      width: "100%",
+      flex: 1,
+      borderRadius: 15,
+    },
+    avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
+    chatTitle: { fontSize: 16, fontWeight: "bold", color: theme.text },
+    chatSubtitle: { fontSize: 14, color: theme.text },
+    chatItemGrid: {
+      flexDirection: "row",
+      flex: 1,
+      justifyContent: "space-between",
+    },
+    leftContainer: { flex: 1, flexDirection: "column" },
+    rightContainer: { flexDirection: "column", alignItems: "flex-end" },
+    gridText: { fontSize: 14, color: theme.text },
+    ball: {
+      borderRadius: 10,
+      width: 20,
+      height: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.badgeColor,
+    },
+    ballText: { textAlign: "center", color: theme.text, fontSize: 12 },
+    dateContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      marginBottom: 5,
+    },
+    chatDateText: {
+      fontSize: 14,
+      color: theme.text,
+      textAlign: "right",
+      marginLeft: 5,
+    },
+    selectionIndicator: {
+      position: "absolute",
+      top: 5,
+      left: 5,
+      zIndex: 1,
+      backgroundColor: "#25b34bff",
+      borderRadius: 999,
+    },
+  });
+}
 
 export default ChatListItem;

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { View, useWindowDimensions, PanResponder } from "react-native";
 import { Slot } from "expo-router";
 
+import { useThemeContext } from "@/context/ThemeContext";
+
 import DetailStack from "@/src/pages/DetailStack";
 import { DetailStackProvider } from "@/context/DetailStackContext";
 
@@ -23,6 +25,7 @@ export default function RootLayout() {
 
   // Pan responder for resizing the detail pane on larger screens
   const { isSmallScreen } = useScreen();
+  const { theme } = useThemeContext();
   const { width } = useWindowDimensions();
   const [detailWidth, setDetailWidth] = useState(
     Math.max(400, Math.min(width - 400, width * (2 / 3))),
@@ -52,7 +55,9 @@ export default function RootLayout() {
   // For small screens, we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {
     return (
-      <View style={{ flex: 1 }}>
+      <View
+        style={{ flex: 1, backgroundColor: theme.backgroundMainGradient[1] }}
+      >
         <Slot />
         <View
           style={{
@@ -78,9 +83,10 @@ export default function RootLayout() {
       style={{
         flexDirection: "row",
         flex: 1,
+        backgroundColor: theme.backgroundMainGradient[1],
       }}
     >
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, padding: 10 }}>
         <Slot />
       </View>
       <View

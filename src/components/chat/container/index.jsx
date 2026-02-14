@@ -10,7 +10,6 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 
 import ChatContent from "@/src/components/chat/content/Chat";
 import VocalContent from "@/src/components/chat/content/Vocal";
-import SmartBackground from "@/src/components/SmartBackground";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
 import Header from "@/src/components/chat/content/Header";
@@ -104,11 +103,7 @@ const ChatContainer = ({ navigation, route }) => {
   };
 
   return (
-    <SmartBackground
-      colors={theme?.backgroundChatContentGradient}
-      style={styles.container}
-      isSmallScreen={isSmallScreen}
-    >
+    <>
       <Header
         selectedChatName={selectedChatName}
         selectedChatPictureUUID={selectedChatPictureUUID}
@@ -118,7 +113,7 @@ const ChatContainer = ({ navigation, route }) => {
         onBack={onBack}
       />
       <View style={styles.contentWrapper}>{renderContent()}</View>
-    </SmartBackground>
+    </>
   );
 };
 

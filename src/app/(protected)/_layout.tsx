@@ -1,6 +1,5 @@
 import React from "react";
 import { Stack } from "expo-router";
-("react-native");
 
 import { AudioProvider } from "@/context/AudioContext";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
@@ -22,7 +21,6 @@ export default function ProtectedLayout() {
               <Stack
                 screenOptions={{
                   headerShown: false,
-                  contentStyle: { backgroundColor: "transparent" },
                 }}
               >
                 <Stack.Screen name="app" />

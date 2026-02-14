@@ -13,7 +13,6 @@ import { DateTime } from "luxon";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import SmartBackground from "@/src/components/SmartBackground";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import BlurredHeader from "@/src/components/BlurredHeader";
@@ -151,44 +150,24 @@ const ChatList = () => {
     <ChatListItem
       item={item}
       isSelected={selectedItems.includes(item.uuid)}
-      isActive={item.uuid === activeChatUUID}
+      isActive={item.uuid === activeChatUUID && !isSmallScreen}
       onPress={handlePress}
       onLongPress={handleLongPress}
-      theme={theme}
-      styles={styles}
     />
   );
 
   return (
-    <SmartBackground
-      colors={theme?.backgroundChatListGradient}
-      style={styles.chatListContainer}
-    >
-      {!isSmallScreen ? (
-        <BlurredView style={styles.chatListWrapper}>
-          {isSelectionMode ? renderSelectionHeader() : renderDefaultHeader()}
-          <FlatList
-            style={styles.flatList}
-            contentContainerStyle={styles.flatListContent}
-            data={orderedChats}
-            keyExtractor={(item) => item.uuid}
-            renderItem={renderItem}
-            extraData={selectedItems}
-          />
-        </BlurredView>
-      ) : (
-        <View style={styles.chatListWrapper}>
-          {isSelectionMode ? renderSelectionHeader() : renderDefaultHeader()}
-          <FlatList
-            style={styles.flatList}
-            contentContainerStyle={styles.flatListContent}
-            data={orderedChats}
-            keyExtractor={(item) => item.uuid}
-            renderItem={renderItem}
-            extraData={selectedItems}
-          />
-        </View>
-      )}
+    <>
+      {isSelectionMode ? renderSelectionHeader() : renderDefaultHeader()}
+      <FlatList
+        style={styles.flatList}
+        contentContainerStyle={styles.flatListContent}
+        data={orderedChats}
+        keyExtractor={(item) => item.uuid}
+        renderItem={renderItem}
+        extraData={selectedItems}
+      />
+
       <FloatingButton
         onPress={() => setIsCreateChatModalVisible(true)}
         iconName="ChatAddIcon"
@@ -202,23 +181,12 @@ const ChatList = () => {
         visible={isCreateChatModalVisible}
         onClose={() => setIsCreateChatModalVisible(false)}
       />
-    </SmartBackground>
+    </>
   );
 };
 
 function createStyle(theme, isSmallScreen, insets) {
   return StyleSheet.create({
-    chatListContainer: {
-      flex: 1,
-      position: "relative",
-      padding: isSmallScreen ? 0 : 10,
-    },
-    chatListWrapper: {
-      flex: 1,
-      position: "relative",
-      borderRadius: isSmallScreen ? 0 : 15,
-      overflow: "hidden",
-    },
     flatList: {
       flex: 1,
       ...(Platform.OS === "web" && {
@@ -244,57 +212,8 @@ function createStyle(theme, isSmallScreen, insets) {
       paddingTop: 75 + insets.top,
     },
     flatListContent: { padding: 10, gap: 10 },
-    chatItem: { borderRadius: 15, height: 65 },
-    chatItemPressable: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: 10,
-      width: "100%",
-      flex: 1,
-      borderRadius: 15,
-    },
-    avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
     logo: { width: 24, height: 24 },
-    chatTitle: { fontSize: 16, fontWeight: "bold", color: theme.text },
-    chatSubtitle: { fontSize: 14, color: theme.text },
-    chatItemGrid: {
-      flexDirection: "row",
-      flex: 1,
-      justifyContent: "space-between",
-    },
-    leftContainer: { flex: 1, flexDirection: "column" },
-    rightContainer: { flexDirection: "column", alignItems: "flex-end" },
-    gridText: { fontSize: 14, color: theme.text },
     headerTitle: { color: theme.text, fontSize: 18, fontWeight: "bold" },
-    ball: {
-      borderRadius: 10,
-      width: 20,
-      height: 20,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: theme.badgeColor,
-    },
-    ballText: { textAlign: "center", color: theme.text, fontSize: 12 },
-    dateContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      marginBottom: 5,
-    },
-    chatDateText: {
-      fontSize: 14,
-      color: theme.text,
-      textAlign: "right",
-      marginLeft: 5,
-    },
-    selectionIndicator: {
-      position: "absolute",
-      top: 5,
-      left: 5,
-      zIndex: 1,
-      backgroundColor: "#25b34bff",
-      borderRadius: 999,
-    },
   });
 }
 

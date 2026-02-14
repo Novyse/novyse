@@ -11,6 +11,7 @@ import { useThemeContext } from "@/context/ThemeContext";
 
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
+import BlurredView from "../../BlurredView";
 
 interface ActionMenuItem {
   action: string;
@@ -115,7 +116,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
         <TouchableWithoutFeedback onPress={onClose}>
           <View style={styles.overlayTouchable} />
         </TouchableWithoutFeedback>
-        <View
+        <BlurredView
           style={[
             styles.menuContainer,
             { position: "absolute", top: adjustedY, left: adjustedX },
@@ -124,7 +125,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
           <View style={styles.menuColumn}>
             {items.map((item) => renderMenuItem(item))}
           </View>
-        </View>
+        </BlurredView>
       </View>
     )
   );
@@ -149,7 +150,6 @@ const createStyle = (theme: any) =>
       bottom: 0,
     },
     menuContainer: {
-      backgroundColor: "#000000",
       borderRadius: 8,
       padding: 12,
       minWidth: 120,

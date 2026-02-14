@@ -17,7 +17,6 @@ import {
 import { useRouter } from "expo-router";
 import "react-native-get-random-values";
 
-import SmartBackground from "@/src/components/SmartBackground";
 import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -169,18 +168,14 @@ const ChatContent = ({ onBack, contentView }) => {
 
   if (loading) {
     return (
-      <SmartBackground
-        backgroundKey="backgroundChatContentGradient"
-        style={styles.container}
-      />
+      <Text style={{ color: theme.text, textAlign: "center", marginTop: 20 }}>
+        Loading chat...
+      </Text>
     );
   }
 
   return (
-    <SmartBackground
-      backgroundKey="backgroundChatContentGradient"
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={StyleSheet.absoluteFill}>
           <MessageList
@@ -247,7 +242,7 @@ const ChatContent = ({ onBack, contentView }) => {
           </View>
         </ChatIconsPickerModal>
       </GestureHandlerRootView>
-    </SmartBackground>
+    </View>
   );
 };
 

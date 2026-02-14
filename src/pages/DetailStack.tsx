@@ -36,116 +36,117 @@ import Shortcuts from "@/src/pages/settings/shortcuts";
 const Stack = createStackNavigator();
 
 export default function DetailStack() {
-  const { theme } = useThemeContext();
-
   // Needed to trigger re-render of DetailStack when detail navigator changes to update the header and other options based on the current screen
   const { saveState } = useDetailStackContext();
 
+  const { theme } = useThemeContext();
+
   return (
-    <NavigationIndependentTree>
-      <NavigationContainer
-        ref={detailNavigationRef}
-        onStateChange={saveState}
-        documentTitle={{
-          formatter: (options, route) => `App - Novyse`,
-        }}
-      >
-        <Stack.Navigator
-          screenOptions={{
-            cardStyle: { backgroundColor: theme.backgroundMainGradient[0] },
+
+      <NavigationIndependentTree>
+        <NavigationContainer
+          ref={detailNavigationRef}
+          onStateChange={saveState}
+          documentTitle={{
+            formatter: (options, route) => `Novyse - App`,
           }}
         >
-          <Stack.Screen
-            name="Empty"
-            component={EmptyDetail}
-            options={{ headerShown: false }}
-          />
+          <Stack.Navigator
+            screenOptions={{
+              cardStyle: { backgroundColor: theme.backgroundMainGradient[1] },
+            }}
+          >
+            <Stack.Screen
+              name="Empty"
+              component={EmptyDetail}
+              options={{ headerShown: false }}
+            />
 
-          <Stack.Screen
-            name="chat"
-            component={ChatContainer}
-            options={{ headerShown: false }}
-          />
+            <Stack.Screen
+              name="chat"
+              component={ChatContainer}
+              options={{ headerShown: false }}
+            />
 
-          <Stack.Screen
-            name="account"
-            component={Account}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="account/modify-profile"
-            component={AccountModify}
-            options={{ headerShown: false }}
-          />
+            <Stack.Screen
+              name="account"
+              component={Account}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="account/modify-profile"
+              component={AccountModify}
+              options={{ headerShown: false }}
+            />
 
-          <Stack.Screen
-            name="customization"
-            component={Customization}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="customization/themes"
-            component={CustomizationThemes}
-            options={{ headerShown: false }}
-          />
+            <Stack.Screen
+              name="customization"
+              component={Customization}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="customization/themes"
+              component={CustomizationThemes}
+              options={{ headerShown: false }}
+            />
 
-          <Stack.Screen
-            name="privacy-and-security"
-            component={PrivacyAndSecurity}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="privacy-and-security/change-password"
-            component={PrivacyAndSecurityChangePassword}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="privacy-and-security/twofa-methods"
-            component={PrivacyAndSecurityTwoFAMethods}
-            options={{ headerShown: false }}
-          />
+            <Stack.Screen
+              name="privacy-and-security"
+              component={PrivacyAndSecurity}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="privacy-and-security/change-password"
+              component={PrivacyAndSecurityChangePassword}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="privacy-and-security/twofa-methods"
+              component={PrivacyAndSecurityTwoFAMethods}
+              options={{ headerShown: false }}
+            />
 
-          <Stack.Screen
-            name="storage"
-            component={Storage}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="storage/local-storage"
-            component={StorageLocalStorage}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="storage/cloud-storage"
-            component={StorageCloudStorage}
-            options={{ headerShown: false }}
-          />
+            <Stack.Screen
+              name="storage"
+              component={Storage}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="storage/local-storage"
+              component={StorageLocalStorage}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="storage/cloud-storage"
+              component={StorageCloudStorage}
+              options={{ headerShown: false }}
+            />
 
-          <Stack.Screen
-            name="comms"
-            component={Comms}
-            options={{ headerShown: false }}
-          />
+            <Stack.Screen
+              name="comms"
+              component={Comms}
+              options={{ headerShown: false }}
+            />
 
-          <Stack.Screen
-            name="info"
-            component={Info}
-            options={{ headerShown: false }}
-          />
+            <Stack.Screen
+              name="info"
+              component={Info}
+              options={{ headerShown: false }}
+            />
 
-          <Stack.Screen
-            name="qrscanner"
-            component={Qrscanner}
-            options={{ headerShown: false }}
-          />
+            <Stack.Screen
+              name="qrscanner"
+              component={Qrscanner}
+              options={{ headerShown: false }}
+            />
 
-          <Stack.Screen
-            name="shortcuts"
-            component={Shortcuts}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </NavigationIndependentTree>
+            <Stack.Screen
+              name="shortcuts"
+              component={Shortcuts}
+              options={{ headerShown: false }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </NavigationIndependentTree>
   );
 }
