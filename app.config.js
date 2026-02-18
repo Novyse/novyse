@@ -160,7 +160,6 @@ export default {
         },
       ],
       "@livekit/react-native-expo-plugin",
-      "@config-plugins/react-native-webrtc",
     ],
     experiments: {
       typedRoutes: true,

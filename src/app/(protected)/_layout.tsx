@@ -7,10 +7,17 @@ import { CommsProvider } from "@/context/CommsContext";
 import { LocalUserProvider } from "@/context/LocalUserContext";
 import { NetworkProvider } from "@/context/NetworkContext";
 
+import { getPlatform } from "@/src/utils/device/type";
+
 import SetupGlobalEventReceiver from "@/src/utils/global/Events/EventReceiver";
 
 export default function ProtectedLayout() {
   SetupGlobalEventReceiver();
+
+  if (getPlatform() === "mobile") {
+    const { registerGlobals } = require("@livekit/react-native");
+    registerGlobals();
+  }
 
   return (
     <AudioPlayerProvider>

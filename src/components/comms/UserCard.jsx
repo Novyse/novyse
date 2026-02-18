@@ -9,7 +9,7 @@ let RTCView;
 if (Platform.OS === "web") {
   RTCView = require("react-native-webrtc-web-shim").RTCView;
 } else {
-  RTCView = require("react-native-webrtc").RTCView;
+  RTCView = require("@livekit/react-native-webrtc").RTCView;
 }
 
 const UserCard = memo(
@@ -118,37 +118,39 @@ const UserCard = memo(
   },
 );
 
-const VideoContent = memo(({
-  streamUUID,
-  stream,
-  isLocal,
-  displayName,
-  profilePictureUUID,
-  width,
-  height,
-}) => {
-  const streamActive =
-    stream && stream.getVideoTracks().some((track) => track.enabled);
-  return (
-    <View style={styles.videoContainer}>
-      {streamActive ? (
-        <RTCView
-          key={streamUUID}
-          stream={stream}
-          style={[styles.videoStream, { objectFit: "cover" }]}
-          muted={isLocal}
-        />
-      ) : (
-        <UserProfileAvatar
-          userHandle={displayName}
-          profilePictureUUID={profilePictureUUID}
-          containerWidth={width}
-          containerHeight={height}
-        />
-      )}
-    </View>
-  );
-});
+const VideoContent = memo(
+  ({
+    streamUUID,
+    stream,
+    isLocal,
+    displayName,
+    profilePictureUUID,
+    width,
+    height,
+  }) => {
+    const streamActive =
+      stream && stream.getVideoTracks().some((track) => track.enabled);
+    return (
+      <View style={styles.videoContainer}>
+        {streamActive ? (
+          <RTCView
+            key={streamUUID}
+            stream={stream}
+            style={[styles.videoStream, { objectFit: "cover" }]}
+            muted={isLocal}
+          />
+        ) : (
+          <UserProfileAvatar
+            userHandle={displayName}
+            profilePictureUUID={profilePictureUUID}
+            containerWidth={width}
+            containerHeight={height}
+          />
+        )}
+      </View>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   profile: {

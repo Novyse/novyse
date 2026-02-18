@@ -3,12 +3,11 @@ import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import ScreenLayout from "@/src/components/ScreenLayout";
+
 import SegmentedSelector from "@/src/components/settings/comms/SegmentedSelector";
 import ThresholdSlider from "@/src/components/settings/comms/ThresholdSlider";
 import InputDeviceDropdown from "@/src/components/settings/comms/InputDeviceDropdown";
 import settingsManager from "@/src/utils/global/SettingsManager";
-import commsUtils from "@/src/utils/webrtc/methods";
 
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/settings/SettingsCard";
@@ -67,6 +66,7 @@ const CommsPage = ({ navigation }) => {
   const loadDevices = async () => {
     try {
       setDevicesLoading(true);
+      return;
       const [audioDevs, videoDevs] = await Promise.all([
         commsUtils.get.audioDevices(),
         commsUtils.get.videoDevices(),
