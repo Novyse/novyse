@@ -1,6 +1,8 @@
 import React, { memo, useMemo } from "react";
 import { View, StyleSheet, Platform } from "react-native";
 
+import { getPlatform } from "@/src/utils/device/type";
+
 import UserProfileAvatar from "./UserProfileAvatar";
 import BlurredView from "../BlurredView";
 import Icon from "../Icon";
@@ -11,6 +13,8 @@ if (Platform.OS === "web") {
 } else {
   RTCView = require("@livekit/react-native-webrtc").RTCView;
 }
+
+const platform = getPlatform();
 
 const UserCard = memo(
   ({
@@ -130,15 +134,25 @@ const VideoContent = memo(
   }) => {
     const streamActive =
       stream && stream.getVideoTracks().some((track) => track.enabled);
+    
     return (
       <View style={styles.videoContainer}>
         {streamActive ? (
-          <RTCView
-            key={streamUUID}
-            stream={stream}
-            style={[styles.videoStream, { objectFit: "cover" }]}
-            muted={isLocal}
-          />
+          platform === "mobile" ? (
+            <RTCView
+              key={streamUUID}
+              streamURL={stream.toURL()}
+              style={[styles.videoStream, { objectFit: "cover" }]}
+              muted={isLocal}
+            />
+          ) : (
+            <RTCView
+              key={streamUUID}
+              stream={stream}
+              style={[styles.videoStream, { objectFit: "cover" }]}
+              muted={isLocal}
+            />
+          )
         ) : (
           <UserProfileAvatar
             userHandle={displayName}
