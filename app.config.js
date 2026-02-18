@@ -159,6 +159,8 @@ export default {
           androidFSTypes: ["mediaPlayback"],
         },
       ],
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc",
     ],
     experiments: {
       typedRoutes: true,

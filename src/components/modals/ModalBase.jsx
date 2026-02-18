@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
-  useWindowDimensions,
   View,
 } from "react-native";
 import Icon from "../Icon";

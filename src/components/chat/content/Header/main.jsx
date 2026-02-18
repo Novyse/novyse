@@ -8,8 +8,10 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { LocalUserContext } from "@/context/LocalUserContext";
 
 const MainHeader = ({
+  chatUUIDorHandle,
   selectedChatName,
   selectedChatPictureUUID,
+  navigation,
   contentView,
   setContentView,
   isSmallScreen,
@@ -42,14 +44,16 @@ const MainHeader = ({
           <Icon
             name="Message02Icon"
             style={styles.iconButton}
-            onPress={() => setContentView("chat")}
+            onPress={() => navigation.navigate("chat", { chatUUIDorHandle })}
           />
         )}
         {contentView !== "vocal" && (
           <Icon
             name="AudioWave01Icon"
             style={styles.iconButton}
-            onPress={() => {}}
+            onPress={() =>
+              navigation.navigate("chat/comms", { chatUUIDorHandle })
+            }
             //onPress={() => setContentView("vocal")}
           />
         )}

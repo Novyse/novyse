@@ -9,7 +9,6 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 
 import ChatContent from "@/src/components/chat/content/Chat";
-import VocalContent from "@/src/components/chat/content/Vocal";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
 import Header from "@/src/components/chat/content/Header";
@@ -83,7 +82,7 @@ const ChatContainer = ({ navigation, route }) => {
   const renderContent = () => {
     switch (contentView) {
       case "vocal":
-        return <VocalContent />;
+        // return <VocalContent />;
       case "both":
         return (
           <View style={styles.splitContainer}>
@@ -92,7 +91,7 @@ const ChatContainer = ({ navigation, route }) => {
             </View>
             <View style={styles.splitSeparator} />
             <View style={styles.splitPanel}>
-              <VocalContent />
+              {/* <VocalContent /> */}
             </View>
           </View>
         );
@@ -105,10 +104,12 @@ const ChatContainer = ({ navigation, route }) => {
   return (
     <>
       <Header
+        chatUUIDorHandle={chatUUIDorHandle}
         selectedChatName={selectedChatName}
         selectedChatPictureUUID={selectedChatPictureUUID}
         contentView={contentView}
         setContentView={setContentView}
+        navigation={navigation}
         isSmallScreen={isSmallScreen}
         onBack={onBack}
       />

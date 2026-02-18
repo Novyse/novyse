@@ -1,11 +1,15 @@
 import React from "react";
-import { StyleSheet } from "react-native";
-import Icon from "../Icon";
+import { StyleSheet, Platform } from "react-native";
+import Icon from "@/src/components/Icon";
 
-const MicrophoneArrowButton = ({ onPress, theme }) => {
+const CameraArrowButton = ({
+  onPress,
+  theme,
+  isMobile = Platform.OS !== "web",
+}) => {
   return (
     <Icon
-      name={"ArrowDown01Icon"}
+      name={isMobile ? "CameraRotated01Icon" : "ArrowDown01Icon"}
       style={[styles.arrowButton, { backgroundColor: theme?.background }]}
       onPress={onPress}
     />
@@ -35,4 +39,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MicrophoneArrowButton;
+export default CameraArrowButton;

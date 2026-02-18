@@ -1,9 +1,9 @@
 import React from "react";
 import { Stack } from "expo-router";
 
-import { AudioProvider } from "@/context/AudioContext";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
 import { ChatProvider } from "@/context/ChatContext";
+import { CommsProvider } from "@/context/CommsContext";
 import { LocalUserProvider } from "@/context/LocalUserContext";
 import { NetworkProvider } from "@/context/NetworkContext";
 
@@ -13,9 +13,9 @@ export default function ProtectedLayout() {
   SetupGlobalEventReceiver();
 
   return (
-    <AudioProvider>
-      <AudioPlayerProvider>
-        <ChatProvider>
+    <AudioPlayerProvider>
+      <ChatProvider>
+        <CommsProvider>
           <LocalUserProvider>
             <NetworkProvider>
               <Stack
@@ -27,8 +27,8 @@ export default function ProtectedLayout() {
               </Stack>
             </NetworkProvider>
           </LocalUserProvider>
-        </ChatProvider>
-      </AudioPlayerProvider>
-    </AudioProvider>
+        </CommsProvider>
+      </ChatProvider>
+    </AudioPlayerProvider>
   );
 }

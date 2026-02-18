@@ -12,7 +12,6 @@ export const ChatProvider = ({ children }) => {
   const [selectedChatPictureUUID, setSelectedChatPictureUUID] = useState(null);
 
   const [selectedSub, setSelectedSub] = useState(0);
-  const [selectedCommUUID, setSelectedCommUUID] = useState(null);
 
   useEffect(() => {
     const handleNewChat = async (chat) => {
@@ -39,14 +38,6 @@ export const ChatProvider = ({ children }) => {
     };
   }, [selectedChatUUID, selectedHandle]);
 
-  useEffect(() => {
-    if (selectedChatUUID !== null) {
-      setSelectedCommUUID(selectedChatUUID + "_" + selectedSub);
-    } else {
-      setSelectedCommUUID(null);
-    }
-  }, [selectedChatUUID, selectedSub]);
-
   return (
     <ChatContext.Provider
       value={{
@@ -60,8 +51,6 @@ export const ChatProvider = ({ children }) => {
         setSelectedChatPictureUUID,
         selectedSub,
         setSelectedSub,
-        selectedCommUUID,
-        setSelectedCommUUID,
       }}
     >
       {children}

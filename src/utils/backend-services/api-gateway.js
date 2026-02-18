@@ -1013,6 +1013,64 @@ const gateway = {
     },
   },
 
+  comms: {
+    /**
+     * Retrieve a token for the vocal communication server for a specific chat.
+     * @param {String} chatUUID
+     * @param {Number} sub - Optional sub identifier for forums
+     * @returns {Object} { success: boolean, token?: String, url?: String }
+     */
+    async getToken(chatUUID, sub = 0) {
+      try {
+        if (!chatUUID) {
+          throw new Error("chatUUID is required to get comms token");
+        }
+        const response = await api.get(
+          `/comms/token?chatUUID=${chatUUID}&sub=${sub}`,
+        );
+        const success = response.data.success;
+        if (success) {
+          const { token, url } = response.data.data;
+          return { success, token, url };
+        }
+        return { success };
+      } catch (error) {
+        console.error("Error in comms.getToken:", error);
+        throw error;
+      }
+    },
+    room: {
+      async get(chatUUID, sub = 0) {
+        try {
+          if (!chatUUID) {
+            throw new Error("chatUUID is required to get comms room");
+          }
+          const response = await api.get(
+            `/comms/room?chatUUID=${chatUUID}&sub=${sub}`,
+          );
+          const success = response.data.success;
+          if (success) {
+            console.log("comms room response data:", response.data);
+            const roomInfo = response.data.data.roomInfo;
+            const remoteParticipants = response.data.data.participants;
+            const room = {
+              roomInfo,
+              remoteParticipants,
+            };
+            return { success, room };
+          }
+          return { success };
+        } catch (error) {
+          if (error.response && error.response.status === 404) {
+            return { success: true, room: [] };
+          }
+          console.error("Error in comms.room.get:", error);
+          throw error;
+        }
+      },
+    },
+  },
+
   /**
    * Handle Socket.IO authentication errors by attempting to refresh the token.
    * If the refresh is successful, it emits an event to reconnect the socket with the new token.

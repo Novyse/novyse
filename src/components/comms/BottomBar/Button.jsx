@@ -1,9 +1,11 @@
 import React, { useContext } from "react";
-import { StyleSheet, Pressable } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
-import Icon from "../Icon";
+import { StyleSheet } from "react-native";
 
-const VocalBottomBarButton = ({ onPress, iconName, iconColor, hoverColor }) => {
+import { ThemeContext } from "@/context/ThemeContext";
+
+import Icon from "@/src/components/Icon";
+
+const CommsBottomBarButton = ({ onPress, iconName, iconColor, hoverColor }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -21,8 +23,7 @@ const VocalBottomBarButton = ({ onPress, iconName, iconColor, hoverColor }) => {
 const createStyle = (theme) =>
   StyleSheet.create({
     iconButton: {
-      backgroundColor:
-        "rgba(0, 0, 0, 0.1)",
+      backgroundColor: "rgba(0, 0, 0, 0.1)",
       borderRadius: 100,
       height: 45,
       width: 45,
@@ -31,4 +32,4 @@ const createStyle = (theme) =>
     },
   });
 
-export default VocalBottomBarButton;
+export default CommsBottomBarButton;

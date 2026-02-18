@@ -21,8 +21,12 @@ export const LocalUserProvider = ({ children }) => {
       setIsLoading(true);
       const userUUID = await auth.getUserUUID();
       if (userUUID) {
-        
         const localUser = await database.user.get.byUUID(userUUID);
+
+        if (!localUser) {
+          setIsLoading(false);
+          return;
+        }
 
         setUserUUID(userUUID);
         setProfilePictureUUID(localUser.profilePictureUUID);

@@ -13,8 +13,10 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 
 const Header = ({
+  chatUUIDorHandle,
   selectedChatName,
   selectedChatPictureUUID,
+  navigation,
   contentView,
   setContentView,
   isSmallScreen,
@@ -41,8 +43,10 @@ const Header = ({
           style={[styles.headerColumnContainer, { borderRadius: activeRadius }]}
         >
           <MainHeader
+            chatUUIDorHandle={chatUUIDorHandle}
             selectedChatName={selectedChatName}
             selectedChatPictureUUID={selectedChatPictureUUID}
+            navigation={navigation}
             contentView={contentView}
             setContentView={setContentView}
             isSmallScreen={isSmallScreen}

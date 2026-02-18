@@ -16,11 +16,15 @@
     "preset": "jest-expo"
   },
   "dependencies": {
+    "@config-plugins/react-native-webrtc": "^13.0.0",
     "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.2",
     "@gorhom/bottom-sheet": "^5.2.6",
     "@hugeicons/core-free-icons": "^3.1.1",
     "@hugeicons/react-native": "^1.0.11",
+    "@livekit/react-native": "^2.9.6",
+    "@livekit/react-native-expo-plugin": "^1.0.1",
+    "@livekit/react-native-webrtc": "^137.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-native-community/netinfo": "11.4.1",
@@ -50,6 +54,7 @@
     "expo-status-bar": "~3.0.8",
     "expo-video": "^3.0.14",
     "expo-web-browser": "^15.0.9",
+    "livekit-client": "^2.17.1",
     "localforage": "^1.10.0",
     "luxon": "^3.7.2",
     "react": "19.2.3",

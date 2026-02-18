@@ -1,15 +1,18 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { View, StyleSheet, Text, Image, Platform } from "react-native";
+import React, { useEffect, useMemo } from "react";
+import { View, StyleSheet, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { getFirstLetter } from "@/src/utils/colorUtils";
+
+import { useThemeContext } from "@/context/ThemeContext";
+
+import Avatar from "@/src/components/Avatar";
 
 const UserProfileAvatar = ({
   userHandle,
-  profileImageUri = null,
+  profilePictureUUID,
   containerWidth,
   containerHeight,
 }) => {
-  const [showFallback, setShowFallback] = useState(!profileImageUri);
+  const { theme } = useThemeContext();
 
   // Memoizza i colori del gradiente per evitare rigenerazioni continue
   const gradientColors = useMemo(() => {
@@ -40,17 +43,11 @@ const UserProfileAvatar = ({
     return gradientPalettes[index];
   }, [userHandle]);
 
-  // Estrai colori dall'immagine del profilo solo se necessario
-  useEffect(() => {
-    setShowFallback(!profileImageUri);
-  }, [profileImageUri]);
-
   // Calcola le dimensioni dell'avatar (circa 35% della dimensione del container)
   const avatarSize = Math.max(
     Math.min(containerWidth, containerHeight) * 0.35,
-    20
-  ); // Minimo 20px per evitare dimensioni zero
-  const fontSize = Math.max(avatarSize * 0.4, 10); // Minimo 10px per evitare dimensione zero del font
+    20,
+  );
 
   return (
     <View
@@ -76,31 +73,14 @@ const UserProfileAvatar = ({
               },
             ]}
           >
-            {showFallback ? (
-              <Text style={[styles.fallbackText, { fontSize }]}>
-                {getFirstLetter(userHandle)}
-              </Text>
-            ) : (
-              <Image
-                source={{ uri: profileImageUri }}
-                style={[
-                  styles.profileImage,
-                  {
-                    width: avatarSize,
-                    height: avatarSize,
-                    borderRadius: avatarSize / 2,
-                  },
-                ]}
-                resizeMode="cover"
-                onError={() => setShowFallback(true)}
-              />
-            )}
+            <Avatar uuid={profilePictureUUID} size={avatarSize} theme={theme} />
           </View>
           <View style={styles.nameContainer}>
             <Text
               style={styles.userName}
               numberOfLines={1}
               ellipsizeMode="tail"
+              selectable={false}
             >
               {userHandle || "Unknown User"}
             </Text>
@@ -129,19 +109,7 @@ const styles = StyleSheet.create({
   avatarContainer: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
     overflow: "hidden",
-    borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.4)",
-  },
-  profileImage: {
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.6)",
-  },
-  fallbackText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    textAlign: "center",
   },
   nameContainer: {
     position: "absolute",
