@@ -5,6 +5,10 @@ import { connectToLiveKit } from "@/src/utils/comms/livekit";
 
 import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
 
+// user-facing error text (HTML allowed for link)
+const DEVICE_ERROR_MESSAGE =
+  'We couldn\'t retrieve the device. Please try again. <a href="https://example.com/troubleshooting" target="_blank">Troubleshooting</a>';
+
 const useCommsAction = (chatUUID, sub) => {
   const {
     room,
@@ -22,6 +26,8 @@ const useCommsAction = (chatUUID, sub) => {
 
   const [connecting, setConnecting] = useState(false);
   const [roomMatch, setRoomMatch] = useState(false);
+  const [error, setError] = useState(null);
+  const clearError = () => setError(null);
 
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
@@ -29,6 +35,7 @@ const useCommsAction = (chatUUID, sub) => {
   const [microphoneDevice, setMicrophoneDevice] = useState(null);
   const [cameraDevice, setCameraDevice] = useState(null);
   const [speakerDevice, setSpeakerDevice] = useState(null);
+
   const [facingMode, setFacingMode] = useState("environment");
 
   useEffect(() => {
@@ -39,9 +46,17 @@ const useCommsAction = (chatUUID, sub) => {
     if (room && room.localParticipant) {
       setIsAudioEnabled(room.localParticipant.isMicrophoneEnabled);
       setIsVideoEnabled(room.localParticipant.isCameraEnabled);
+
+      setMicrophoneDevice(room.getActiveDevice("audioinput"));
+      setCameraDevice(room.getActiveDevice("videoinput"));
+      setSpeakerDevice(room.getActiveDevice("audiooutput"));
     } else {
       setIsAudioEnabled(false);
       setIsVideoEnabled(false);
+
+      setMicrophoneDevice(null);
+      setCameraDevice(null);
+      setSpeakerDevice(null);
     }
   }, [room]);
 
@@ -73,9 +88,15 @@ const useCommsAction = (chatUUID, sub) => {
 
     setTimeout(async () => {
       if (roomInstance.localParticipant) {
-        await roomInstance.localParticipant.setMicrophoneEnabled(true);
-        setMicrophoneDevice(roomInstance.getActiveDevice("audioinput"));
-        setIsAudioEnabled(true);
+        try {
+          await roomInstance.localParticipant.setMicrophoneEnabled(true);
+          setMicrophoneDevice(roomInstance.getActiveDevice("audioinput"));
+          setIsAudioEnabled(true);
+          setError(null);
+        } catch (err) {
+          console.error("Failed enabling microphone after join", err);
+          setError(DEVICE_ERROR_MESSAGE);
+        }
       }
     }, 1000);
   };
@@ -90,22 +111,38 @@ const useCommsAction = (chatUUID, sub) => {
 
   const toggleAudio = async () => {
     if (!room || !room.localParticipant) return;
-    const newState = !isAudioEnabled;
-    await room.localParticipant.setMicrophoneEnabled(newState);
-    setIsAudioEnabled(newState);
+    try {
+      const newState = !isAudioEnabled;
+      await room.localParticipant.setMicrophoneEnabled(newState);
+      setIsAudioEnabled(newState);
+    } catch (e) {
+      console.error("Failed switching microphone device", e);
+      setError(DEVICE_ERROR_MESSAGE);
+    }
   };
 
   const toggleVideo = async () => {
     if (!room || !room.localParticipant) return;
-    const newState = !isVideoEnabled;
-    await room.localParticipant.setCameraEnabled(newState);
-    setIsVideoEnabled(newState);
+    try {
+      const newState = !isVideoEnabled;
+      await room.localParticipant.setCameraEnabled(newState);
+      setIsVideoEnabled(newState);
+    } catch (e) {
+      console.error("Failed switching microphone device", e);
+      setError(DEVICE_ERROR_MESSAGE);
+    }
   };
 
   useEffect(() => {
     async function switchMicrophone() {
       if (!room || !room.localParticipant || !microphoneDevice) return;
-      await room.switchActiveDevice("audioinput", microphoneDevice);
+      try {
+        await room.switchActiveDevice("audioinput", microphoneDevice);
+        setError(null);
+      } catch (e) {
+        console.error("Failed switching microphone device", e);
+        setError(DEVICE_ERROR_MESSAGE);
+      }
     }
     switchMicrophone();
   }, [microphoneDevice]);
@@ -113,7 +150,13 @@ const useCommsAction = (chatUUID, sub) => {
   useEffect(() => {
     async function switchCamera() {
       if (!room || !room.localParticipant || !cameraDevice) return;
-      await room.switchActiveDevice("videoinput", cameraDevice);
+      try {
+        await room.switchActiveDevice("videoinput", cameraDevice);
+        setError(null);
+      } catch (e) {
+        console.error("Failed switching camera device", e);
+        setError(DEVICE_ERROR_MESSAGE);
+      }
     }
     switchCamera();
   }, [cameraDevice]);
@@ -121,7 +164,13 @@ const useCommsAction = (chatUUID, sub) => {
   useEffect(() => {
     async function switchSpeaker() {
       if (!room || !room.localParticipant || !speakerDevice) return;
-      await room.switchActiveDevice("audiooutput", speakerDevice);
+      try {
+        await room.switchActiveDevice("audiooutput", speakerDevice);
+        setError(null);
+      } catch (e) {
+        console.error("Failed switching speaker device", e);
+        setError(DEVICE_ERROR_MESSAGE);
+      }
     }
     switchSpeaker();
   }, [speakerDevice]);
@@ -187,6 +236,8 @@ const useCommsAction = (chatUUID, sub) => {
     stopScreenShare,
     setPinnedStreamUUID,
     setFullScreenStreamUUID,
+    error,
+    clearError,
   };
 };
 

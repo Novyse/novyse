@@ -48,11 +48,10 @@ const CommsMembersLayout = ({ participants = [], room }) => {
       return (
         <View style={styles.fullscreenContainer}>
           <UserCard
-            deviceUUID={item.participant.identity}
             streamUUID={item.streamUUID}
             stream={item.stream}
-            displayName={item.participant.name}
-            profilePictureUUID={null}
+            displayName={item.name}
+            metadata={item.metadata}
             isLocal={item.isLocal}
             isScreenShare={item.isScreenShare}
             isPinned={pinnedStreamUUID === item.streamUUID}
@@ -71,19 +70,17 @@ const CommsMembersLayout = ({ participants = [], room }) => {
   const renderRectangle = (
     streamUUID,
     stream,
-    displayName,
-    profilePictureUUID,
+    name,
+    metadata,
     isLocal,
     isScreenShare,
-    deviceUUID,
   ) => {
     return (
       <UserCard
-        deviceUUID={deviceUUID}
         streamUUID={streamUUID}
         stream={stream}
-        displayName={displayName}
-        profilePictureUUID={profilePictureUUID}
+        displayName={name}
+        metadata={metadata}
         isLocal={isLocal}
         isScreenShare={isScreenShare}
         isPinned={pinnedStreamUUID === streamUUID}
@@ -94,7 +91,7 @@ const CommsMembersLayout = ({ participants = [], room }) => {
         width={rectWidth}
         height={rectHeight}
         margin={margin}
-        isSpeaking={speakingStates[deviceUUID]}
+        isSpeaking={speakingStates[streamUUID]}
       />
     );
   };
@@ -115,23 +112,21 @@ const CommsMembersLayout = ({ participants = [], room }) => {
               const {
                 deviceUUID,
                 streamUUID,
-                participant,
+                name,
+                metadata,
                 stream,
                 isScreenShare,
                 isLocal,
               } = item;
-              const displayName = participant.name;
-              const profilePictureUUID = null; // Placeholder, da sostituire con il valore reale quando disponibile
               return (
                 <View key={`${deviceUUID}-${streamUUID}`}>
                   {renderRectangle(
                     streamUUID,
                     stream,
-                    displayName,
-                    profilePictureUUID,
+                    name,
+                    metadata,
                     isLocal,
                     isScreenShare,
-                    deviceUUID,
                   )}
                 </View>
               );

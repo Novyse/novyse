@@ -8,6 +8,7 @@ import MicrophoneSelector from "@/src/components/comms/BottomBar/MicrophoneSelec
 import MicrophoneArrowButton from "@/src/components/comms/BottomBar/MicrophoneArrowButton";
 import CameraSelector from "@/src/components/comms/BottomBar/CameraSelector";
 import CameraArrowButton from "@/src/components/comms/BottomBar/CameraArrowButton";
+import StatusMessage from "@/src/components/StatusMessage";
 
 import BlurredView from "@/src/components/BlurredView";
 
@@ -37,6 +38,8 @@ const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
     setCameraDevice,
     startScreenShare,
     stopScreenShare,
+    error,
+    clearError,
   } = useCommsAction(chatUUID, sub);
 
   // Shortcut: Ctrl+F12 per mutare il microfono (solo web)
@@ -55,6 +58,14 @@ const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
 
   return (
     <View style={styles.container}>
+      <StatusMessage
+        type="error"
+        visible={!!error}
+        content={[error]}
+        onClose={clearError}
+        timeout={5000}
+      />
+
       {!connected || !roomMatch ? (
         connecting ? (
           <BlurredView style={styles.iconButton}>

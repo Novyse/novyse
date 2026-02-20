@@ -78,13 +78,18 @@ const useLayout = (room, participants, containerDimensions) => {
 
     participants.forEach((participant) => {
       const deviceUUID = participant.identity;
+      const name = participant.name;
+      const metadata =
+        participant.metadata || participant.participantInfo.metadata || {};
+
       const isLocal = participant === room?.localParticipant;
       const videoStream = streams[deviceUUID];
       items.push({
         type: "user",
         deviceUUID,
         streamUUID: deviceUUID,
-        participant,
+        name,
+        metadata,
         stream: videoStream,
         isScreenShare: false,
         isLocal,
@@ -101,6 +106,8 @@ const useLayout = (room, participants, containerDimensions) => {
             type: "screen",
             deviceUUID,
             streamUUID: tp.trackSid,
+            name,
+            metadata,
             participant,
             stream: screenStream,
             isScreenShare: true,

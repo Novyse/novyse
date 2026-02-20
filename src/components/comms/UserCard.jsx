@@ -18,11 +18,10 @@ const platform = getPlatform();
 
 const UserCard = memo(
   ({
-    deviceUUID,
     streamUUID,
     stream = null,
     displayName,
-    profilePictureUUID,
+    metadata = {},
     isLocal = false,
     isScreenShare = false,
     isPinned = false,
@@ -35,6 +34,9 @@ const UserCard = memo(
     margin,
     isSpeaking,
   }) => {
+    const parsedMetadata = JSON.parse(metadata);
+    const profilePictureUUID = parsedMetadata.profilePictureUUID || null;
+
     const speakingOverlayStyle = useMemo(() => {
       const baseStyle = [styles.speakingOverlayContainer];
 
@@ -134,7 +136,7 @@ const VideoContent = memo(
   }) => {
     const streamActive =
       stream && stream.getVideoTracks().some((track) => track.enabled);
-    
+
     return (
       <View style={styles.videoContainer}>
         {streamActive ? (
