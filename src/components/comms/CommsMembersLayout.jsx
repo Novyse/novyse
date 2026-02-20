@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   fullscreenContainer: {
-    position: "fixed",
+    position: Platform.OS === "web" ? "fixed" : "absolute",
     top: 0,
     left: 0,
     right: 0,

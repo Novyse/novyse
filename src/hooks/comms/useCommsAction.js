@@ -133,6 +133,10 @@ const useCommsAction = (chatUUID, sub) => {
     }
   };
 
+  const toggleFacingMode = () => {
+    setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
+  };
+
   useEffect(() => {
     async function switchMicrophone() {
       if (!room || !room.localParticipant || !microphoneDevice) return;
@@ -178,12 +182,19 @@ const useCommsAction = (chatUUID, sub) => {
   useEffect(() => {
     async function switchFacingMode() {
       if (!room || !room.localParticipant) return;
-      return;
-      const videoTrack = room.localParticipant.videoTracks.get();
-      if (!videoTrack) return;
-      await videoTrack.restartTrack({
-        facingMode,
-      });
+      try {
+        const cameraInstance =
+          await room.localParticipant.setCameraEnabled(isVideoEnabled); // get camera instance
+        if (!cameraInstance) return;
+
+        const videoTrack = cameraInstance.track;
+        await videoTrack.restartTrack({
+          facingMode,
+        });
+      } catch (e) {
+        console.error("Failed switching camera facing mode", e);
+        setError(DEVICE_ERROR_MESSAGE);
+      }
     }
     switchFacingMode();
   }, [facingMode]);
@@ -228,6 +239,7 @@ const useCommsAction = (chatUUID, sub) => {
     leave,
     toggleAudio,
     toggleVideo,
+    toggleFacingMode,
     setMicrophoneDevice,
     setCameraDevice,
     setSpeakerDevice,

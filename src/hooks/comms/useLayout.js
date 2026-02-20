@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef } from "react";
-import { Platform } from "react-native";
+import { useCallback, useEffect } from "react";
+import { StatusBar } from "react-native";
 
 import { useScreen } from "@/context/ScreenContext";
 import { useCommsContext } from "@/context/CommsContext";
 
 import { Track } from "livekit-client";
+import Platform from "@/src/utils/device/type";
 
 const useLayout = (room, participants, containerDimensions) => {
   // Costants
@@ -14,6 +15,7 @@ const useLayout = (room, participants, containerDimensions) => {
   const WIDTH_MULTIPLYER = 1;
 
   const { isSmallScreen } = useScreen();
+  const isMobile = Platform === "mobile";
   const {
     pinnedStreamUUID,
     setPinnedStreamUUID,
@@ -38,24 +40,38 @@ const useLayout = (room, participants, containerDimensions) => {
     [setFullScreenStreamUUID],
   );
 
-  // Handle system fullscreen
+  // Handle fullscreen side–effects (web and mobile)
   useEffect(() => {
-    if (fullscreenStreamUUID && Platform.OS === "web") {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error("Error entering fullscreen:", err);
-      });
-    } else if (!fullscreenStreamUUID && Platform.OS === "web") {
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch((err) => {
-          console.error("Error exiting fullscreen:", err);
-        });
+    if (fullscreenStreamUUID) {
+      if (!isMobile) {
+        // request system fullscreen on web
+        document.documentElement
+          .requestFullscreen()
+          .catch((err) => {
+            console.error("Error entering fullscreen:", err);
+          });
+      } else {
+        // hide the status bar on native when a stream is in fullscreen
+        StatusBar.setHidden(true, "fade");
+      }
+    } else {
+      if (!isMobile) {
+        if (document.fullscreenElement) {
+          document
+            .exitFullscreen()
+            .catch((err) => {
+              console.error("Error exiting fullscreen:", err);
+            });
+        }
+      } else {
+        StatusBar.setHidden(false, "fade");
       }
     }
-  }, [fullscreenStreamUUID]);
+  }, [fullscreenStreamUUID, isMobile]);
 
-  // Listen for fullscreen changes to reset state when user presses ESC
+  // Listen for fullscreen changes to reset state when user presses ESC (only web)
   useEffect(() => {
-    if (Platform.OS === "web") {
+    if (!isMobile) {
       const handleFullscreenChange = () => {
         if (!document.fullscreenElement && fullscreenStreamUUID) {
           setFullScreenStreamUUID(null);

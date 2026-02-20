@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react";
+import React, { memo, useMemo, useEffect, useRef } from "react";
 import { View, StyleSheet, Platform } from "react-native";
 
 import { getPlatform } from "@/src/utils/device/type";
@@ -7,14 +7,13 @@ import UserProfileAvatar from "./UserProfileAvatar";
 import BlurredView from "../BlurredView";
 import Icon from "../Icon";
 
+const platform = getPlatform();
+
 let RTCView;
-if (Platform.OS === "web") {
-  RTCView = require("react-native-webrtc-web-shim").RTCView;
-} else {
+
+if (platform === "mobile") {
   RTCView = require("@livekit/react-native-webrtc").RTCView;
 }
-
-const platform = getPlatform();
 
 const UserCard = memo(
   ({
@@ -34,6 +33,13 @@ const UserCard = memo(
     margin,
     isSpeaking,
   }) => {
+    const videoRef = useRef(null);
+    useEffect(() => {
+      if (platform === "web" && videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    }, [stream]);
+
     const parsedMetadata = JSON.parse(metadata);
     const profilePictureUUID = parsedMetadata.profilePictureUUID || null;
 
@@ -137,6 +143,15 @@ const VideoContent = memo(
     const streamActive =
       stream && stream.getVideoTracks().some((track) => track.enabled);
 
+    // ref used only on web for the <video> element
+    const videoRef = useRef(null);
+
+    useEffect(() => {
+      if ((platform === "web" || platform === "desktop") && videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    }, [stream]);
+
     return (
       <View style={styles.videoContainer}>
         {streamActive ? (
@@ -148,11 +163,12 @@ const VideoContent = memo(
               muted={isLocal}
             />
           ) : (
-            <RTCView
-              key={streamUUID}
-              stream={stream}
-              style={[styles.videoStream, { objectFit: "cover" }]}
+            <video
+              ref={videoRef}
+              autoPlay
               muted={isLocal}
+              playsInline
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           )
         ) : (

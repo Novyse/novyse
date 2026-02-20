@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { View, StyleSheet, ActivityIndicator, Platform } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
@@ -14,9 +14,13 @@ import BlurredView from "@/src/components/BlurredView";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 
+import Platform from "@/src/utils/device/type";
+
 const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+
+  const isMobile = Platform === "mobile";
 
   const [showMicrophoneSelector, setShowMicrophoneSelector] = useState(false);
   const [showCameraSelector, setShowCameraSelector] = useState(false);
@@ -34,6 +38,7 @@ const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
     leave,
     toggleAudio,
     toggleVideo,
+    toggleFacingMode,
     setMicrophoneDevice,
     setCameraDevice,
     startScreenShare,
@@ -44,7 +49,7 @@ const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
 
   // Shortcut: Ctrl+F12 per mutare il microfono (solo web)
   useEffect(() => {
-    if (Platform.OS !== "web") return;
+    if (isMobile) return;
 
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.key === "F12") {
@@ -55,6 +60,11 @@ const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isAudioEnabled]);
+
+  const handleCameraArrowPress = () => {
+    if (!isMobile) setShowCameraSelector(true);
+    else toggleFacingMode();
+  };
 
   return (
     <View style={styles.container}>
@@ -88,12 +98,14 @@ const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
               onPress={toggleAudio}
               iconName={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
             />
-            <MicrophoneArrowButton
-              onPress={() => {
-                if (connected && roomMatch) setShowMicrophoneSelector(true);
-              }}
-              theme={theme}
-            />
+            {!isMobile && (
+              <MicrophoneArrowButton
+                onPress={() => {
+                  if (connected && roomMatch) setShowMicrophoneSelector(true);
+                }}
+                theme={theme}
+              />
+            )}
           </View>
           <View style={styles.cameraButtonContainer}>
             <CommsBottomBarButton
@@ -103,7 +115,7 @@ const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
 
             <CameraArrowButton
               onPress={() => {
-                if (connected && roomMatch) setShowCameraSelector(true);
+                if (connected && roomMatch) handleCameraArrowPress();
               }}
               theme={theme}
             />

@@ -88,7 +88,11 @@ export default {
           category: ["BROWSABLE", "DEFAULT"],
         },
       ],
-      permissions: ["FOREGROUND_SERVICE", "WAKE_LOCK"],
+      permissions: [
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_MEDIA_PROJECTION",
+        "WAKE_LOCK",
+      ],
     },
     web: {
       bundler: "metro",

@@ -1,11 +1,13 @@
 import React from "react";
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet } from "react-native";
 import Icon from "@/src/components/Icon";
+
+import Platform from "@/src/utils/device/type";
 
 const CameraArrowButton = ({
   onPress,
   theme,
-  isMobile = Platform.OS !== "web",
+  isMobile = Platform === "mobile",
 }) => {
   return (
     <Icon

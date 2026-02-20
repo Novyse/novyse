@@ -32,3 +32,7 @@ export const getPlatform = () => {
   // Native mobile app
   return "mobile"; // iOS o Android
 };
+
+const InternalPlatform = getPlatform();
+
+export default InternalPlatform;
