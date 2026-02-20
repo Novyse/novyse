@@ -1,12 +1,14 @@
-const path = '../../../assets/audio/';
+const path = "../../../assets/audio/";
 
-// 1. Dichiara la costante 'sounds'
 const sounds = {
-    comms_join_vocal : require(path + 'comms_join_vocal.mp3'),
-    comms_leave_vocal : require(path + 'comms_leave_vocal.mp3'),
-    comms_stream_started : require(path + 'comms_stream_started.mp3'),
-    comms_stream_stopped : require(path + 'comms_stream_stopped.mp3'),
+  comms: {
+    join: require(path + "comms/join.wav"),
+    leave: require(path + "comms/leave.wav"),
+    screen_share: {
+      start: require(path + "comms/screen_share/start.wav"),
+      stop: require(path + "comms/screen_share/stop.wav"),
+    },
+  },
 };
 
-// 2. Esportala come default
 export default sounds;

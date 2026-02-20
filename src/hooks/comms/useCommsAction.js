@@ -3,6 +3,8 @@ import { useCommsContext } from "@/context/CommsContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { connectToLiveKit } from "@/src/utils/comms/livekit";
 
+import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
+
 const useCommsAction = (chatUUID, sub) => {
   const {
     room,
@@ -65,6 +67,8 @@ const useCommsAction = (chatUUID, sub) => {
 
     setRoom(roomInstance);
 
+    SoundPlayer.getInstance().playSound("comms.join");
+
     setConnecting(false);
 
     setTimeout(async () => {
@@ -80,6 +84,7 @@ const useCommsAction = (chatUUID, sub) => {
     if (room) {
       room.disconnect();
       reset();
+      SoundPlayer.getInstance().playSound("comms.leave");
     }
   };
 

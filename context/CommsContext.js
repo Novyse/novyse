@@ -2,6 +2,8 @@ import { createContext, useState, useEffect, useContext, useRef } from "react";
 import { Track } from "livekit-client";
 import { Platform } from "react-native";
 
+import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
+
 export const CommsContext = createContext();
 
 export const CommsProvider = ({ children }) => {
@@ -47,10 +49,12 @@ export const CommsProvider = ({ children }) => {
         }
         return [...prev, participant];
       });
+      SoundPlayer.getInstance().playSound("comms.join");
     };
 
     const handleParticipantDisconnected = (participant) => {
       setParticipants((prev) => prev.filter((p) => p !== participant));
+      SoundPlayer.getInstance().playSound("comms.leave");
     };
 
     room.on("participantConnected", handleParticipantConnected);
@@ -131,6 +135,8 @@ export const CommsProvider = ({ children }) => {
           ...prev,
           [publication.trackSid]: screenStream,
         }));
+        // play a sound when anyone starts screen share
+        SoundPlayer.getInstance().playSound("comms.screen_share.start");
       }
 
       // Add mute listeners
@@ -166,6 +172,8 @@ export const CommsProvider = ({ children }) => {
           const { [publication.trackSid]: _, ...rest } = prev;
           return rest;
         });
+        // play sound when screen share stops
+        SoundPlayer.getInstance().playSound("comms.screen_share.stop");
       }
       // Reset pin or fullscreen if the track is removed
       if (publication.source === Track.Source.Camera) {
@@ -205,6 +213,8 @@ export const CommsProvider = ({ children }) => {
           ...prev,
           [publication.trackSid]: screenStream,
         }));
+        // local user started screen share
+        SoundPlayer.getInstance().playSound("comms.screen_share.start");
       }
       // Add mute listeners
       publication.on("muted", () => handleTrackMuted(publication, participant));
@@ -228,6 +238,8 @@ export const CommsProvider = ({ children }) => {
           const { [publication.trackSid]: _, ...rest } = prev;
           return rest;
         });
+        // local user stopped screen share
+        SoundPlayer.getInstance().playSound("comms.screen_share.stop");
       }
     };
 
