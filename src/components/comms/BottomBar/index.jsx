@@ -164,6 +164,7 @@ const createStyle = (theme) =>
       height: 60,
       minWidth: 200,
       maxWidth: 300,
+      zIndex: 100,
     },
     blurredContainer: {
       flex: 1,

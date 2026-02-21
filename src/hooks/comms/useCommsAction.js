@@ -3,6 +3,8 @@ import { useCommsContext } from "@/context/CommsContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { connectToLiveKit } from "@/src/utils/comms/livekit";
 
+import platform from "@/src/utils/device/type";
+
 import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
 
 // user-facing error text (HTML allowed for link)
@@ -22,6 +24,8 @@ const useCommsAction = (chatUUID, sub) => {
     setFullScreenStreamUUID,
     activeScreenShares,
     setActiveScreenShares,
+    facingMode,
+    setFacingMode,
   } = useCommsContext();
 
   const [connecting, setConnecting] = useState(false);
@@ -36,7 +40,7 @@ const useCommsAction = (chatUUID, sub) => {
   const [cameraDevice, setCameraDevice] = useState(null);
   const [speakerDevice, setSpeakerDevice] = useState(null);
 
-  const [facingMode, setFacingMode] = useState("environment");
+  const isMobile = platform === "mobile";
 
   useEffect(() => {
     setRoomMatch(checkRoomMatch(chatUUID, sub));
@@ -47,9 +51,13 @@ const useCommsAction = (chatUUID, sub) => {
       setIsAudioEnabled(room.localParticipant.isMicrophoneEnabled);
       setIsVideoEnabled(room.localParticipant.isCameraEnabled);
 
-      setMicrophoneDevice(room.getActiveDevice("audioinput"));
-      setCameraDevice(room.getActiveDevice("videoinput"));
-      setSpeakerDevice(room.getActiveDevice("audiooutput"));
+      const microphone = room.getActiveDevice("audioinput");
+      const camera = room.getActiveDevice("videoinput");
+      const speaker = room.getActiveDevice("audiooutput");
+
+      setMicrophoneDevice(microphone);
+      setCameraDevice(camera);
+      setSpeakerDevice(speaker);
     } else {
       setIsAudioEnabled(false);
       setIsVideoEnabled(false);
@@ -92,6 +100,7 @@ const useCommsAction = (chatUUID, sub) => {
           await roomInstance.localParticipant.setMicrophoneEnabled(true);
           setMicrophoneDevice(roomInstance.getActiveDevice("audioinput"));
           setIsAudioEnabled(true);
+          setFacingMode("environment");
           setError(null);
         } catch (err) {
           console.error("Failed enabling microphone after join", err);
@@ -167,7 +176,7 @@ const useCommsAction = (chatUUID, sub) => {
 
   useEffect(() => {
     async function switchSpeaker() {
-      if (!room || !room.localParticipant || !speakerDevice) return;
+      if (!room || !room.localParticipant || !speakerDevice || isMobile) return;
       try {
         await room.switchActiveDevice("audiooutput", speakerDevice);
         setError(null);

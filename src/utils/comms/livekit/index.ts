@@ -1,4 +1,7 @@
-import { Room, RoomEvent, VideoPresets } from "livekit-client";
+import {
+  Room,
+  VideoPresets,
+} from "livekit-client";
 
 export const connectToLiveKit = async (url: string, token: string) => {
   const room = new Room({

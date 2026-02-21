@@ -21,6 +21,8 @@ export const CommsProvider = ({ children }) => {
   const [fullscreenStreamUUID, setFullScreenStreamUUID] = useState(null);
   const [activeScreenShares, setActiveScreenShares] = useState({});
 
+  const [facingMode, setFacingMode] = useState("environment");
+
   useEffect(() => {
     setConnected(!!room);
   }, [room]);
@@ -361,6 +363,8 @@ export const CommsProvider = ({ children }) => {
     setFullScreenStreamUUID,
     activeScreenShares,
     setActiveScreenShares,
+    facingMode,
+    setFacingMode,
     participants,
     setParticipants,
     isSpeakingMap,
