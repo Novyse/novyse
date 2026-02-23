@@ -65,7 +65,6 @@ const useProfilePicture = (uuid, uri) => {
 
   useEffect(() => {
     const fetchRef = async () => {
-      console.log("Fetching profile picture ref for UUID:", uuid);
       if (uri) {
         setRef(null);
         return;
