@@ -86,7 +86,8 @@ function createStyle(theme) {
       justifyContent: "center",
     },
     headerCenter: {
-      flex: 2,
+      flex: 1,
+      gap: 10,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",

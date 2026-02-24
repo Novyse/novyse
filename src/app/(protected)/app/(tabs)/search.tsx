@@ -1,13 +1,10 @@
 import React, { useState, useContext, useEffect } from "react";
 import {
-  View,
   Text,
   StyleSheet,
   TextInput,
   ActivityIndicator,
   FlatList,
-  Image,
-  TouchableOpacity,
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -16,10 +13,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeContext } from "@/context/ThemeContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
-import eventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
 import Icon from "@/src/components/Icon";
 import BlurredHeader from "@/src/components/BlurredHeader";
-import ItemSearch from "@/src/components/chat/List/ItemSearch";
+import ItemSearch from "@/src/components/chat/list/ItemSearch";
 
 import { detailsNavigator } from "@/src/utils/navigation/ref";
 
@@ -172,7 +168,7 @@ const Search = () => {
 
 export default Search;
 
-const createStyle = (theme: any, insets) => {
+const createStyle = (theme: any, insets: any) => {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -198,8 +194,7 @@ const createStyle = (theme: any, insets) => {
       fontSize: 16,
       marginLeft: 5,
       color: theme.text,
-      // @ts-ignore
-      outlineStyle: "none",
+      outlineStyle: "none" as any,
     },
     loader: {
       marginTop: 90 + insets.top,

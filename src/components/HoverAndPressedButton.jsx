@@ -12,7 +12,7 @@ const HoverAndPressedButton = ({
   pressedStyle = {},
   onMouseEnter = () => {},
   onMouseLeave = () => {},
-  disabled,
+  disabled = false
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);

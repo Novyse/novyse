@@ -9,7 +9,7 @@ import { ChatContext } from "@/context/ChatContext";
 
 import useCommsData from "@/src/hooks/comms/useCommsData";
 
-import Header from "@/src/components/chat/content/Header";
+import Header from "@/src/components/chat/content/header";
 
 const VocalContent = ({ navigation, route }) => {
   const { chatUUIDorHandle } = route.params || {};

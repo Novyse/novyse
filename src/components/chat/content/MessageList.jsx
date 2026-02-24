@@ -40,7 +40,7 @@ const createStyle = (theme, insets) =>
     },
   });
 
-const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme }) => {
+const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme, onReply }) => {
   const insets = useSafeAreaInsets();
   const styles = createStyle(theme, insets);
 
@@ -51,6 +51,7 @@ const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme }) => {
   });
 
   const [selectedMessage, setSelectedMessage] = useState([]);
+  const [replyingTo, setReplyingTo] = useState(null);
 
   const onAction = (action) => {
     console.log("Action selected:", action);
@@ -58,8 +59,8 @@ const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme }) => {
 
     switch (action) {
       case "Reply":
-        // Implement reply logic here
-        console.log("Replying to message:", triggeredMessage);
+        setReplyingTo(triggeredMessage);
+        onReply && onReply(triggeredMessage);
         break;
       case "Forward":
         // Implement forward logic here

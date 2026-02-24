@@ -17,8 +17,14 @@ import MessageMedia from "./MessageMedia";
 import MessageOther from "./MessageOther";
 import MessageAudio from "./MessageAudio";
 import MessageVoice from "./MessageVoice";
-
 import MessageText from "./MessageText";
+import MessageReply from "./MessageReply";
+
+// Statico per test grafico — in futuro verrà da message.reply_to
+const STATIC_REPLY = {
+  sender_name: "Marco",
+  text: "Ci vediamo alle 18 davanti al bar, non fare tardi!",
+};
 
 const MessageBase = ({
   message,
@@ -55,7 +61,6 @@ const MessageBase = ({
     files = [],
   } = message;
 
-  // object.groupby non è (ancora) supportata su react native quindi tocca fare così
   const groupBy = (array, callback) => {
     return array.reduce((acc, item) => {
       const key = callback(item);
@@ -85,56 +90,59 @@ const MessageBase = ({
     ["DOCUMENT", "CODE", "ARCHIVE", "OTHER"].includes(getFileType(mimeType)),
   );
 
-  // Determina se ci sono solo media senza testo
   const hasOnlyMedia =
     (!content || content.trim().length === 0) &&
     (mediaMessages.true || []).length > 0;
+
+  // Statico per ora — in futuro: const replyTo = message.reply_to;
+  const replyTo = STATIC_REPLY;
 
   const sharedContent = (
     <View
       style={
         hasOnlyMedia
           ? styles.mediaContainer
-          : showSenderName
+          : showSenderName && !replyTo
             ? styles.textContainerNoTop
             : styles.textContainer
       }
     >
-      {/* images/videos print */}
+      {/* Reply preview */}
+      {replyTo && (
+        <MessageReply senderName={replyTo.sender_name} text={replyTo.text} />
+      )}
+
+      {/* images/videos */}
       {mediaMessages && <MessageMedia medias={mediaMessages.true || []} />}
 
-      {/* others print */}
-      {(otherMessages.true || []).map((otherMessage) => {
-        return (
-          <MessageOther
-            key={otherMessage.uuid}
-            fileRef={otherMessage.ref}
-            uuid={otherMessage.uuid}
-            mimeType={otherMessage.mimeType}
-            size={otherMessage.size}
-            name={otherMessage.name}
-          />
-        );
-      })}
+      {/* other files */}
+      {(otherMessages.true || []).map((otherMessage) => (
+        <MessageOther
+          key={otherMessage.uuid}
+          fileRef={otherMessage.ref}
+          uuid={otherMessage.uuid}
+          mimeType={otherMessage.mimeType}
+          size={otherMessage.size}
+          name={otherMessage.name}
+        />
+      ))}
 
-      {/* audios print */}
+      {/* audio */}
       <View style={{ width: "100%" }}>
-        {(audioMessages.true || []).map((audioMessage) => {
-          return (
-            <MessageAudio
-              key={audioMessage.uuid}
-              audioRef={audioMessage.ref}
-              uuid={audioMessage.uuid}
-              size={audioMessage.size}
-              name={audioMessage.name}
-              message={message}
-              duration={audioMessage.duration}
-            />
-          );
-        })}
+        {(audioMessages.true || []).map((audioMessage) => (
+          <MessageAudio
+            key={audioMessage.uuid}
+            audioRef={audioMessage.ref}
+            uuid={audioMessage.uuid}
+            size={audioMessage.size}
+            name={audioMessage.name}
+            message={message}
+            duration={audioMessage.duration}
+          />
+        ))}
       </View>
 
-      {/* voices print */}
+      {/* voice */}
       <View style={{ width: "100%" }}>
         {(voiceMessages.true || []).map((voiceMessage) => {
           const waveform = Array.isArray(voiceMessage.waveform)
@@ -155,7 +163,7 @@ const MessageBase = ({
         })}
       </View>
 
-      {/* Renderizza il testo e timestamp */}
+      {/* testo + timestamp */}
       {content &&
         content.trim().length > 0 &&
         (content.trim().length < 50 ? (
@@ -170,7 +178,6 @@ const MessageBase = ({
           </>
         ))}
 
-      {/* Se non c'è testo, mostra solo timestamp se necessario, cioè sempre */}
       {!content || content.trim().length === 0 ? (
         <MessageTimestamp time={created_at} />
       ) : null}

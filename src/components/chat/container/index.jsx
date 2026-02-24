@@ -11,7 +11,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import ChatContent from "@/src/components/chat/content/Chat";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
-import Header from "@/src/components/chat/content/Header";
+import Header from "@/src/components/chat/content/header";
 
 import { useScreen } from "@/context/ScreenContext";
 import { ChatContext } from "@/context/ChatContext";

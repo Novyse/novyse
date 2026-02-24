@@ -118,6 +118,7 @@ function createStyle(theme) {
       width: "100%",
       flex: 1,
       borderRadius: 15,
+      gap: 10,
     },
     avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
     chatTitle: { fontSize: 16, fontWeight: "bold", color: theme.text },

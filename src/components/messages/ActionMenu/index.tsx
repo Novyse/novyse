@@ -150,8 +150,8 @@ const createStyle = (theme: any) =>
       bottom: 0,
     },
     menuContainer: {
-      borderRadius: 8,
-      padding: 12,
+      borderRadius: 10,
+      padding: 10,
       minWidth: 120,
       maxWidth: 220,
       zIndex: 1000,
@@ -165,6 +165,7 @@ const createStyle = (theme: any) =>
       justifyContent: "center",
       paddingVertical: 6,
       paddingHorizontal: 8,
+      borderRadius: 10
     },
     menuItemContent: {
       flexDirection: "row",

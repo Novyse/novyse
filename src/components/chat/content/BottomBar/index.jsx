@@ -17,6 +17,8 @@ const BottomBar = ({
   onToggleEmoji,
   onInputFocus,
   setBottomBarHeight,
+  replyingTo,
+  onCancelReply,
 }) => {
   const showJoinBar =
     !chat.uuid && ["GROUP", "CHANNEL", "FORUM"].includes(chat.type);
@@ -29,7 +31,7 @@ const BottomBar = ({
         setBottomBarHeight &&
         setBottomBarHeight(event.nativeEvent.layout.height)
       }
-      style={{ paddingBottom: insets.bottom }}
+      style={{ paddingBottom: insets.bottom + 5 }}
     >
       {showJoinBar ? (
         <JoinBar onJoin={onJoin} chat={chat} />
@@ -43,6 +45,8 @@ const BottomBar = ({
           onTextChange={onTextChange}
           onSendMessage={onSendMessage}
           onInputFocus={onInputFocus}
+          replyingTo={replyingTo}
+          onCancelReply={onCancelReply}
         />
       )}
     </View>

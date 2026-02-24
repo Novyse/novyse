@@ -39,7 +39,7 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // New Components
-import BottomBar from "@/src/components/chat/content/BottomBar";
+import BottomBar from "@/src/components/chat/content/bottomBar";
 import MessageList from "@/src/components/chat/content/MessageList";
 import UploadFileOverlay from "@/src/components/chat/content/UploadFileOverlay";
 
@@ -57,6 +57,7 @@ const ChatContent = ({ onBack, contentView }) => {
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
   const [isMicClicked, setIsMicClicked] = useState(false);
   const [sheetIndex, setSheetIndex] = useState(-1);
+  const [replyingTo, setReplyingTo] = useState(null);
 
   const { selectedChatUUID, setSelectedChatUUID, selectedHandle } =
     useContext(ChatContext);
@@ -183,6 +184,7 @@ const ChatContent = ({ onBack, contentView }) => {
             preparedMessages={preparedMessages}
             myUUID={myUUID}
             theme={theme}
+            onReply={(msg) => setReplyingTo(msg)}
           />
         </View>
         <UploadFileModal
@@ -219,6 +221,8 @@ const ChatContent = ({ onBack, contentView }) => {
             onToggleEmoji={toggleEmojiPicker}
             onInputFocus={onInputFocus}
             setBottomBarHeight={setBottomBarHeight}
+            replyingTo={replyingTo}
+            onCancelReply={() => setReplyingTo(null)}
           />
         </KeyboardAvoidingView>
 

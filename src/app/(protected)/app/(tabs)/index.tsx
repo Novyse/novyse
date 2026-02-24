@@ -17,7 +17,7 @@ import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import BlurredHeader from "@/src/components/BlurredHeader";
 import Avatar from "@/src/components/Avatar";
-import ChatListItem from "@/src/components/chat/List/Item";
+import ChatListItem from "@/src/components/chat/list/Item";
 import FloatingButton from "@/src/components/FloatingButton";
 import CreateChatModal from "@/src/components/modals/createChat";
 
