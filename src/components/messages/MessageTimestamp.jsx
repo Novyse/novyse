@@ -5,7 +5,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "../Icon";
 import { DateTime } from "luxon";
 
-const MessageTimestamp = ({ time }) => {
+const MessageTimestamp = ({ time, sent = false, receivedByAll = false }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const [isHovered, setIsHovered] = useState(false);
@@ -93,6 +93,10 @@ const MessageTimestamp = ({ time }) => {
         </View>
       )}
       {Platform.OS === "web" && createPortal(tooltip, document.body)}
+      <View style={styles.iconContainer}>
+        {sent && <Icon name={"Tick01Icon"} size={16} color={theme.textTime}/>}
+        {receivedByAll && <Icon name={"TickDouble01Icon"} size={16} color={theme.textTime}/>}
+      </View>
     </View>
   );
 };
@@ -104,14 +108,21 @@ const createStyle = (theme) =>
       textAlign: "right",
       fontSize: 12,
       minWidth: 35,
-      paddingTop: 8,
     },
     alignContainer: {
       alignSelf: "flex-end",
       marginLeft: 10,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+      paddingTop: 6,
     },
     timeContainer: {
       position: "relative",
+    },
+    iconContainer: {
+      alignItems: "center",
+      justifyContent: "center",
     },
     tooltip: {
       position: "fixed",
@@ -133,4 +144,4 @@ const createStyle = (theme) =>
     },
   });
 
-export default MessageTimestamp;
+export default MessageTimestamp

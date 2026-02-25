@@ -108,9 +108,9 @@ const MessageBase = ({
       }
     >
       {/* Reply preview */}
-      {replyTo && (
+      {/* {replyTo && (
         <MessageReply senderName={replyTo.sender_name} text={replyTo.text} />
-      )}
+      )} */}
 
       {/* images/videos */}
       {mediaMessages && <MessageMedia medias={mediaMessages.true || []} />}
