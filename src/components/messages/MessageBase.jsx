@@ -343,4 +343,11 @@ const createStyle = (theme) =>
     },
   });
 
-export default MessageBase;
+export default React.memo(MessageBase, (prevProps, nextProps) => {
+  return (
+    prevProps.message === nextProps.message &&
+    prevProps.isSender === nextProps.isSender &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.selectedMessage === nextProps.selectedMessage
+  );
+});

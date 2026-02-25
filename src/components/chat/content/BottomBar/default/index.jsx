@@ -22,6 +22,8 @@ const DefaultBar = ({
   onInputFocus,
   replyingTo,
   onCancelReply,
+  editingMessage,
+  onCancelEdit,
 }) => {
   const {
     isRecording,
@@ -38,8 +40,31 @@ const DefaultBar = ({
 
   return (
     <View style={styles.container}>
-      {/* Reply Bar */}
-      {replyingTo && (
+      {/* Edit Bar — takes priority over Reply Bar */}
+      {editingMessage ? (
+        <BlurredView style={styles.replyBarContainer}>
+          <Icon
+            name="PencilEdit02Icon"
+            size={16}
+            color={theme.icon}
+          />
+          <View style={styles.editBarAccent} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.replyBarName, { color: theme.icon }]} numberOfLines={1}>
+              Editing
+            </Text>
+            <Text style={styles.replyBarText} numberOfLines={1}>
+              {editingMessage.content ?? ""}
+            </Text>
+          </View>
+          <Icon
+            name="Cancel01Icon"
+            size={18}
+            color={theme.placeholderText}
+            onPress={onCancelEdit}
+          />
+        </BlurredView>
+      ) : replyingTo ? (
         <BlurredView style={styles.replyBarContainer}>
           <View style={styles.replyBarAccent} />
           <View style={{ flex: 1 }}>
@@ -57,7 +82,7 @@ const DefaultBar = ({
             onPress={onCancelReply}
           />
         </BlurredView>
-      )}
+      ) : null}
       <View style={styles.inputRow}>
         <LeftButton
           isRecording={isRecording}
@@ -116,6 +141,12 @@ const createStyle = (theme) => ({
     gap: 8,
   },
   replyBarAccent: {
+    width: 3,
+    borderRadius: 2,
+    alignSelf: "stretch",
+    backgroundColor: theme.icon,
+  },
+  editBarAccent: {
     width: 3,
     borderRadius: 2,
     alignSelf: "stretch",

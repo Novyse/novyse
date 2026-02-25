@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { FlatList, StyleSheet, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -40,7 +40,7 @@ const createStyle = (theme, insets) =>
     },
   });
 
-const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme, onReply }) => {
+const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme, onReply, onEdit }) => {
   const insets = useSafeAreaInsets();
   const styles = createStyle(theme, insets);
 
@@ -53,7 +53,7 @@ const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme, onRepl
   const [selectedMessage, setSelectedMessage] = useState([]);
   const [replyingTo, setReplyingTo] = useState(null);
 
-  const onAction = (action) => {
+  const onAction = useCallback((action) => {
     console.log("Action selected:", action);
     setTriggeredMessage(null);
 
@@ -75,6 +75,9 @@ const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme, onRepl
           return [...prev, triggeredMessage];
         });
         break;
+      case "Modify":
+        onEdit && onEdit(triggeredMessage);
+        break;
       case "Delete":
         // Implement delete logic here
         console.log("Deleting message:", triggeredMessage);
@@ -82,9 +85,9 @@ const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme, onRepl
       default:
         console.warn("Unknown action:", action);
     }
-  };
+  }, [triggeredMessage, onReply, onEdit]);
 
-  const renderMessageItem = ({ item }) => {
+  const renderMessageItem = useCallback(({ item }) => {
     if (item.type === "separator") {
       return <MessageSystem type={"date"} data={item.data} />;
     } else if (item.type === "system") {
@@ -103,7 +106,9 @@ const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme, onRepl
         />
       );
     }
-  };
+  }, [myUUID, selectedMessage]);
+
+  const handleClose = useCallback(() => setTriggeredMessage(null), []);
 
   return (
     <>
@@ -121,11 +126,11 @@ const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme, onRepl
       <ActionMenu
         visible={triggeredMessage}
         onAction={onAction}
-        onClose={() => setTriggeredMessage(null)}
+        onClose={handleClose}
         position={triggeredMessagePosition}
       />
     </>
   );
 };
 
-export default MessageList;
+export default React.memo(MessageList);

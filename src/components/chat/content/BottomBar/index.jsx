@@ -19,6 +19,8 @@ const BottomBar = ({
   setBottomBarHeight,
   replyingTo,
   onCancelReply,
+  editingMessage,
+  onCancelEdit,
 }) => {
   const showJoinBar =
     !chat.uuid && ["GROUP", "CHANNEL", "FORUM"].includes(chat.type);
@@ -47,6 +49,8 @@ const BottomBar = ({
           onInputFocus={onInputFocus}
           replyingTo={replyingTo}
           onCancelReply={onCancelReply}
+          editingMessage={editingMessage}
+          onCancelEdit={onCancelEdit}
         />
       )}
     </View>

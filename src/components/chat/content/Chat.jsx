@@ -58,6 +58,7 @@ const ChatContent = ({ onBack, contentView }) => {
   const [isMicClicked, setIsMicClicked] = useState(false);
   const [sheetIndex, setSheetIndex] = useState(-1);
   const [replyingTo, setReplyingTo] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(null);
 
   const { selectedChatUUID, setSelectedChatUUID, selectedHandle } =
     useContext(ChatContext);
@@ -167,6 +168,52 @@ const ChatContent = ({ onBack, contentView }) => {
     }
   }, [sheetIndex]);
 
+  // --- Stable callbacks for Reply / Edit ---
+
+  const handleReply = useCallback((msg) => {
+    setReplyingTo(msg);
+    setEditingMessage(null);      // clear edit when replying
+    setNewMessageText("");
+  }, []);
+
+  const handleEdit = useCallback((msg) => {
+    setEditingMessage(msg);
+    setNewMessageText(msg.content || "");
+    setReplyingTo(null);          // clear reply when editing
+    textInputRef.current?.focus();
+  }, []);
+
+  const handleCancelReply = useCallback(() => {
+    setReplyingTo(null);
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingMessage(null);
+    setNewMessageText("");
+  }, []);
+
+  const handleTextChange = useCallback((text) => {
+    setNewMessageText(text);
+    handleTextChanging(text, isMicClicked);
+  }, [handleTextChanging, isMicClicked]);
+
+  const handleSendOrEdit = useCallback((type, content, files) => {
+    if (editingMessage) {
+      // Frontend-only: update message locally
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.uuid === editingMessage.uuid
+            ? { ...m, content: content, edited: true }
+            : m
+        )
+      );
+      setEditingMessage(null);
+      setNewMessageText("");
+    } else {
+      handleSendMessage(type, content, files);
+    }
+  }, [editingMessage, handleSendMessage, setMessages]);
+
   if (loading) {
     return (
       <Text style={{ color: theme.text, textAlign: "center", marginTop: 20 }}>
@@ -184,7 +231,8 @@ const ChatContent = ({ onBack, contentView }) => {
             preparedMessages={preparedMessages}
             myUUID={myUUID}
             theme={theme}
-            onReply={(msg) => setReplyingTo(msg)}
+            onReply={handleReply}
+            onEdit={handleEdit}
           />
         </View>
         <UploadFileModal
@@ -211,18 +259,17 @@ const ChatContent = ({ onBack, contentView }) => {
             onJoin={handleJoin}
             newMessageText={newMessageText}
             textInputRef={textInputRef}
-            onTextChange={(text) => {
-              setNewMessageText(text);
-              handleTextChanging(text, isMicClicked);
-            }}
-            onSendMessage={handleSendMessage}
+            onTextChange={handleTextChange}
+            onSendMessage={handleSendOrEdit}
             isAttachMenuOpen={isAttachMenuOpen}
             onToggleAttachMenu={handleToggleAttachMenu}
             onToggleEmoji={toggleEmojiPicker}
             onInputFocus={onInputFocus}
             setBottomBarHeight={setBottomBarHeight}
             replyingTo={replyingTo}
-            onCancelReply={() => setReplyingTo(null)}
+            onCancelReply={handleCancelReply}
+            editingMessage={editingMessage}
+            onCancelEdit={handleCancelEdit}
           />
         </KeyboardAvoidingView>
 
