@@ -6,18 +6,16 @@ import Icon from "@/src/components/Icon";
 
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
-const Avatar = ({
-  uuid,
-  uri,
-  size = 32,
-  isOnline = false,
-  theme,
-  onEdit,
-}) => {
+const INDICATOR_RATIO = 0.25;
+
+const Avatar = ({ uuid, uri, size = 32, isOnline = false, theme, onEdit }) => {
   const styles = createStyles(size, theme);
   const { uri: resolvedUri } = useProfilePicture(uuid, uri);
-
   const [isHovered, setIsHovered] = useState(false);
+
+  const indicatorSize = Math.max(Math.round(size * INDICATOR_RATIO), 8);
+
+  const offset = Math.round(indicatorSize * 0);
 
   const AvatarImage = () => (
     <View style={{ width: size, height: size }}>
@@ -26,7 +24,20 @@ const Avatar = ({
         source={{ uri: resolvedUri }}
         style={styles.avatar}
       />
-      {isOnline && <View style={styles.onlineIndicator} />}
+      {isOnline && (
+        <View
+          style={[
+            styles.indicator,
+            {
+              width: indicatorSize,
+              height: indicatorSize,
+              borderRadius: indicatorSize / 2,
+              bottom: -offset,
+              right: -offset,
+            },
+          ]}
+        />
+      )}
     </View>
   );
 
@@ -63,14 +74,9 @@ const createStyles = (size, theme) =>
       width: "100%",
       height: "100%",
     },
-    onlineIndicator: {
+    indicator: {
       position: "absolute",
-      bottom: 16,
-      right: 16,
-      width: size / 10,
-      height: size / 10,
-      backgroundColor: "#4CAF50",
-      borderRadius: 999,
+      backgroundColor: "#3DBA6F",
     },
   });
 
