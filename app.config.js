@@ -102,6 +102,7 @@ export default {
     },
     plugins: [
       "expo-router",
+      "expo-asset",
       "expo-web-browser",
       [
         "expo-splash-screen",
