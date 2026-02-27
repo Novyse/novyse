@@ -42,20 +42,24 @@ export const LocalUserProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    const handleUpdateProfilePicture = async (data) => {
+    const handleUpdateProfile = async (data) => {
       if (data.userUUID === userUUID) {
-        setProfilePictureUUID(data.profilePictureUUID);
+        if (data.name) {
+          setName(data.name);
+        }
+        if (data.surname) {
+          setSurname(data.surname);
+        }
+        if (data.profilePictureUUID) {
+          setProfilePictureUUID(data.profilePictureUUID);
+        }
       }
     };
 
-    eventEmitter
-      .getEmitter()
-      .on("user:profile:picture:update", handleUpdateProfilePicture);
+    eventEmitter.getEmitter().on("user:profile:update", handleUpdateProfile);
 
     return () => {
-      eventEmitter
-        .getEmitter()
-        .off("user:profile:picture:update", handleUpdateProfilePicture);
+      eventEmitter.getEmitter().off("user:profile:update", handleUpdateProfile);
     };
   }, [userUUID]);
 

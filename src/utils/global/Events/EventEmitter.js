@@ -13,7 +13,6 @@ class GlobalEventEmitter {
   }
 
   async newMessage(message) {
-    
     if (!message.fromSubscription) {
       await messageUtils.add(message);
     }
@@ -23,7 +22,6 @@ class GlobalEventEmitter {
   }
 
   async newChat(chat, messages = []) {
-    
     await database.addChat(chat);
 
     if (messages.length > 0) {
@@ -35,37 +33,51 @@ class GlobalEventEmitter {
   }
 
   async userJoined(chatUUID, user) {
-    
     await database.addMember(chatUUID, user);
     this.eventEmitter.emit("userJoined", { chatUUID, user });
   }
 
   async userLeft(chatUUID, user) {
-    
     await database.removeMember(chatUUID, user);
     this.eventEmitter.emit("userLeft", { chatUUID, user });
   }
 
   async fileReady(fileUUID, uri) {
-    
     await database.updateFileURI(fileUUID, uri);
     this.eventEmitter.emit("fileReady", { fileUUID });
   }
 
   user = {
     profile: {
-      picture: {
-        update: async (userUUID, profilePictureUUID) => {
-          
+      update: async (data) => {
+        const { userUUID, name, surname, description, profilePictureUUID } =
+          data;
+
+        if (!userUUID) return;
+
+        if (name !== undefined) {
+          await database.user.profile.name.update(userUUID, name);
+        }
+        if (surname !== undefined) {
+          await database.user.profile.surname.update(userUUID, surname);
+        }
+        if (description !== undefined) {
+          await database.user.profile.description.update(userUUID, description);
+        }
+        if (profilePictureUUID !== undefined) {
           await database.user.profile.picture.update(
             userUUID,
             profilePictureUUID,
           );
-          this.eventEmitter.emit("user:profile:picture:update", {
-            userUUID,
-            profilePictureUUID,
-          });
-        },
+        }
+
+        this.eventEmitter.emit("user:profile:update", {
+          userUUID,
+          name,
+          surname,
+          description,
+          profilePictureUUID,
+        });
       },
     },
   };
@@ -73,12 +85,10 @@ class GlobalEventEmitter {
   chat = {
     pin: {
       async add(chatUUID) {
-        
         await database.pinChat(chatUUID);
         this.eventEmitter.emit("chat:pin:add", { chatUUID });
       },
       async remove(chatUUID) {
-        
         await database.unpinChat(chatUUID);
         this.eventEmitter.emit("chat:pin:remove", { chatUUID });
       },

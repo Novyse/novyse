@@ -110,7 +110,7 @@ const ChatList = () => {
         PINNED_CHATS_STORAGE_KEY,
         JSON.stringify(newOrderedList.map((chat) => chat.uuid)),
       );
-    } catch (e) {}
+    } catch (e) { }
     setSelectedItems([]);
   };
 

@@ -24,19 +24,6 @@ const MiddleBar = ({
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const [audioLevel, setAudioLevel] = useState(-60);
-  useEffect(() => {
-    if (!isPaused) {
-      const interval = setInterval(() => {
-        // Genera un valore random tra -60 e 0 (dB)
-        setAudioLevel(Math.random() * 60 - 60);
-      }, 100);
-      return () => clearInterval(interval);
-    } else {
-      setAudioLevel(-60);
-    }
-  }, [isPaused]);
-
   return (
     <>
       {!isRecording ? (
@@ -72,7 +59,7 @@ const MiddleBar = ({
           </View>
 
           {/* Voice Activity */}
-          <SpeechIndicator audioLevel={audioLevel} />
+          <SpeechIndicator audioLevel={recorderState.metering} />
 
           {/* Pause/Resume button */}
           {!isPaused ? (

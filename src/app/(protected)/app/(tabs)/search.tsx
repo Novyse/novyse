@@ -117,7 +117,7 @@ const Search = () => {
           size={20}
           color={theme.placeholderText}
           hoverColor={theme.iconHover}
-          onPress={() => {}}
+          onPress={() => { }}
           style={styles.searchIcon}
         />
         <TextInput

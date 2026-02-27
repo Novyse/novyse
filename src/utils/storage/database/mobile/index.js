@@ -1037,6 +1037,92 @@ class Database {
       },
     },
     profile: {
+      name: {
+        /**
+         * Update user name.
+         * @param {String} userUUID
+         * @param {String} name
+         * @returns {boolean} true if name updated successfully, false otherwise
+         */
+        update: async (userUUID, name) => {
+          try {
+            if (!userUUID || !name) {
+              console.error("Missing required fields to update user name.");
+              return false;
+            }
+            const result = await this.db.runAsync(
+              `UPDATE user SET name = ? WHERE uuid = ?;`,
+              [name, userUUID],
+            );
+            if (result.changes > 0) {
+              console.log("User name updated successfully:", userUUID);
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error("Error updating user name:", error);
+            return false;
+          }
+        },
+      },
+      surname: {
+        /**
+         * Update user surname.
+         * @param {String} userUUID
+         * @param {String} surname
+         * @returns {boolean} true if surname updated successfully, false otherwise
+         */
+        update: async (userUUID, surname) => {
+          try {
+            if (!userUUID || !surname) {
+              console.error("Missing required fields to update user surname.");
+              return false;
+            }
+            const result = await this.db.runAsync(
+              `UPDATE user SET surname = ? WHERE uuid = ?;`,
+              [surname, userUUID],
+            );
+            if (result.changes > 0) {
+              console.log("User surname updated successfully:", userUUID);
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error("Error updating user surname:", error);
+            return false;
+          }
+        },
+      },
+      description: {
+        /**
+         * Update user description.
+         * @param {String} userUUID
+         * @param {String} description
+         * @returns {boolean} true if description updated successfully, false otherwise
+         */
+        update: async (userUUID, description) => {
+          try {
+            if (!userUUID || !description) {
+              console.error(
+                "Missing required fields to update user description.",
+              );
+              return false;
+            }
+            const result = await this.db.runAsync(
+              `UPDATE user SET description = ? WHERE uuid = ?;`,
+              [description, userUUID],
+            );
+            if (result.changes > 0) {
+              console.log("User description updated successfully:", userUUID);
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error("Error updating user description:", error);
+            return false;
+          }
+        },
+      },
       picture: {
         /**
          * Update user profile picture UUID.
