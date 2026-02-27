@@ -688,38 +688,44 @@ class Database {
         [chatUUID],
       );
       if (members.length === 1) {
-        // Return the single user
-        const user = await this.getUserByUUID(members[0].userUUID);
-        return user;
+        return await this.getUserByUUID(members[0].userUUID);
       } else if (members.length === 2) {
         const localUser = await this.getLocalUser();
-        if (!localUser || !localUser.uuid) {
-          console.error("Local user not found");
-          return null;
-        }
-        // Return the user that is not the local user
         const otherUserUUID = members.find(
-          (m) => m.userUUID !== localUser.uuid,
+          (m) => m.userUUID !== localUser?.uuid,
         )?.userUUID;
-        if (otherUserUUID) {
-          const user = await this.getUserByUUID(otherUserUUID);
-          return user;
-        }
-        return null;
-      } else {
-        // More than 2 or 0 members, return null
+        if (otherUserUUID) return await this.getUserByUUID(otherUserUUID);
         return null;
       }
+      return null;
     } catch (error) {
       console.error("Error retrieving user by chat UUID:", error);
       return null;
     }
   }
 
+  async getMembersByChatUUID(chatUUID) {
+    try {
+      const members = await this.db.getAllAsync(
+        `SELECT u.*, h.handle FROM member m
+         JOIN user u ON m.userUUID = u.uuid
+         LEFT JOIN handle h ON u.uuid = h.userUUID AND h.type = 'USER'
+         WHERE m.chatUUID = ?;`,
+        [chatUUID],
+      );
+      return members;
+    } catch (error) {
+      console.error("Error retrieving members by chat UUID:", error);
+      return [];
+    }
+  }
+
   async getUserByUUID(userUUID) {
     try {
       const user = await this.db.getFirstAsync(
-        `SELECT * FROM user WHERE uuid = ?;`,
+        `SELECT u.*, h.handle FROM user u
+         LEFT JOIN handle h ON u.uuid = h.userUUID AND h.type = 'USER'
+         WHERE u.uuid = ?;`,
         [userUUID],
       );
       return user || null;

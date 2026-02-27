@@ -21,6 +21,8 @@ const BottomBar = ({
   onCancelReply,
   editingMessage,
   onCancelEdit,
+  mentionMembers,
+  onSelectMention,
 }) => {
   const showJoinBar =
     !chat.uuid && ["GROUP", "CHANNEL", "FORUM"].includes(chat.type);
@@ -51,6 +53,8 @@ const BottomBar = ({
           onCancelReply={onCancelReply}
           editingMessage={editingMessage}
           onCancelEdit={onCancelEdit}
+          mentionMembers={mentionMembers}
+          onSelectMention={onSelectMention}
         />
       )}
     </View>

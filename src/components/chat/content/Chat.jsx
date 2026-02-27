@@ -22,6 +22,7 @@ import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
 import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
+import database from "@/src/utils/storage/database";
 
 // Hooks
 import useChatData from "@/src/hooks/chat/useChatData.js";
@@ -59,10 +60,11 @@ const ChatContent = ({ onBack, contentView }) => {
   const [sheetIndex, setSheetIndex] = useState(-1);
   const [replyingTo, setReplyingTo] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
+  const [mentionMembers, setMentionMembers] = useState([]);
 
   const { selectedChatUUID, setSelectedChatUUID, selectedHandle } =
     useContext(ChatContext);
-  const { chat, messages, setMessages, loading } = useChatData(
+  const { chat, messages, members, setMessages, loading } = useChatData(
     selectedChatUUID,
     selectedHandle,
   );
@@ -172,14 +174,14 @@ const ChatContent = ({ onBack, contentView }) => {
 
   const handleReply = useCallback((msg) => {
     setReplyingTo(msg);
-    setEditingMessage(null);      // clear edit when replying
+    setEditingMessage(null); // clear edit when replying
     setNewMessageText("");
   }, []);
 
   const handleEdit = useCallback((msg) => {
     setEditingMessage(msg);
     setNewMessageText(msg.content || "");
-    setReplyingTo(null);          // clear reply when editing
+    setReplyingTo(null); // clear reply when editing
     textInputRef.current?.focus();
   }, []);
 
@@ -192,27 +194,59 @@ const ChatContent = ({ onBack, contentView }) => {
     setNewMessageText("");
   }, []);
 
-  const handleTextChange = useCallback((text) => {
-    setNewMessageText(text);
-    handleTextChanging(text, isMicClicked);
-  }, [handleTextChanging, isMicClicked]);
+  const onSelectMention = useCallback((member) => {
+    setNewMessageText((prev) => {
+      const lastAtIndex = prev.lastIndexOf("@");
+      if (lastAtIndex === -1) return prev;
+      return prev.substring(0, lastAtIndex) + `@${member.handle} `;
+    });
+    setMentionMembers([]);
+    textInputRef.current?.focus();
+  }, []);
 
-  const handleSendOrEdit = useCallback((type, content, files) => {
-    if (editingMessage) {
-      // Frontend-only: update message locally
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.uuid === editingMessage.uuid
-            ? { ...m, content: content, edited: true }
-            : m
-        )
-      );
-      setEditingMessage(null);
-      setNewMessageText("");
-    } else {
-      handleSendMessage(type, content, files);
-    }
-  }, [editingMessage, handleSendMessage, setMessages]);
+  const handleTextChange = useCallback(
+    (text) => {
+      setNewMessageText(text);
+      handleTextChanging(text, isMicClicked);
+
+      // Robust mention detection: look for "@" at the end of the text or preceded by space
+      const mentionMatch = text.match(/(?:^|\s)@(\w*)$/);
+      if (mentionMatch) {
+        const query = mentionMatch[1].toLowerCase();
+        const filtered = members.filter(
+          (m) =>
+            m.uuid !== myUUID &&
+            ((m.handle && m.handle.toLowerCase().includes(query)) ||
+              (m.name && m.name.toLowerCase().includes(query)) ||
+              (m.surname && m.surname.toLowerCase().includes(query))),
+        );
+        setMentionMembers(filtered);
+      } else {
+        setMentionMembers([]);
+      }
+    },
+    [members, myUUID, handleTextChanging, isMicClicked],
+  );
+
+  const handleSendOrEdit = useCallback(
+    (type, content, files) => {
+      if (editingMessage) {
+        // Frontend-only: update message locally
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.uuid === editingMessage.uuid
+              ? { ...m, content: content, edited: true }
+              : m,
+          ),
+        );
+        setEditingMessage(null);
+        setNewMessageText("");
+      } else {
+        handleSendMessage(type, content, files);
+      }
+    },
+    [editingMessage, handleSendMessage, setMessages],
+  );
 
   if (loading) {
     return (
@@ -270,6 +304,8 @@ const ChatContent = ({ onBack, contentView }) => {
             onCancelReply={handleCancelReply}
             editingMessage={editingMessage}
             onCancelEdit={handleCancelEdit}
+            mentionMembers={mentionMembers}
+            onSelectMention={onSelectMention}
           />
         </KeyboardAvoidingView>
 

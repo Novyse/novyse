@@ -14,6 +14,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
     useContext(ChatContext);
   const [chat, setChat] = useState({});
   const [messages, setMessages] = useState([]);
+  const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -43,6 +44,9 @@ const useChatData = (chatUUID, chatHandle = null) => {
           setSelectedChatName(name);
           setSelectedChatPictureUUID(profilePictureUUID);
           setMessages((prev) => messages.reverse());
+
+          const members = await database.getMembersByChatUUID(chatUUID);
+          setMembers(members);
         } else {
           if (chatHandle) {
             const { success, data } = await gateway.gather.handle(
@@ -82,6 +86,21 @@ const useChatData = (chatUUID, chatHandle = null) => {
                 member,
                 profilePictureUUID,
               }));
+
+              // For non-local chats, we can resolve member objects if they aren't already full objects
+              if (member && member.length > 0) {
+                const resolvedMembers = await Promise.all(
+                  member.map(async (m) => {
+                    const uuid = m.userUUID || m;
+                    return (
+                      (await database.getUserByUUID(uuid)) ||
+                      (await database.user.get.byUUID(uuid))
+                    );
+                  }),
+                );
+                setMembers(resolvedMembers.filter((m) => m !== null));
+              }
+
               setSelectedChatName(name);
               setSelectedChatPictureUUID(profilePictureUUID);
             }
@@ -179,7 +198,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
     };
   }, [chatUUID, chatHandle]);
 
-  return { chat, messages, setMessages, loading, error };
+  return { chat, messages, members, setMessages, loading, error };
 };
 
 export default useChatData;

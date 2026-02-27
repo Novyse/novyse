@@ -11,6 +11,8 @@ import MiddleBar from "./middleBar";
 import RightButton from "./rightButton";
 import BlurredView from "@/src/components/BlurredView";
 
+import MentionBar from "../actions/MentionBar";
+
 const DefaultBar = ({
   isAttachMenuOpen,
   onToggleAttachMenu,
@@ -24,6 +26,8 @@ const DefaultBar = ({
   onCancelReply,
   editingMessage,
   onCancelEdit,
+  mentionMembers,
+  onSelectMention,
 }) => {
   const {
     isRecording,
@@ -40,6 +44,11 @@ const DefaultBar = ({
 
   return (
     <View style={styles.container}>
+      {/* Mention Bar */}
+      {mentionMembers && mentionMembers.length > 0 && (
+        <MentionBar members={mentionMembers} onSelectMember={onSelectMention} />
+      )}
+
       {/* Edit Bar — takes priority over Reply Bar */}
       {editingMessage ? (
         <BlurredView style={styles.replyBarContainer}>
@@ -120,7 +129,7 @@ const DefaultBar = ({
 const createStyle = (theme) => ({
   container: {
     width: "100%",
-    flexDirection: "column",  // ora colonna
+    flexDirection: "column", // ora colonna
     backgroundColor: theme.background,
     paddingHorizontal: 10,
   },
