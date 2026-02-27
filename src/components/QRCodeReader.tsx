@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, Button, Linking } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
+import { StyleSheet, Text, View, Button } from "react-native";
+import { CameraView, CameraType, useCameraPermissions, BarcodeScanningResult } from "expo-camera";
 
-export default function QRCodeReader({ onCodeScanned }) {
-  const [facing, setFacing] = useState("back");
+interface QRCodeReaderProps {
+  onCodeScanned: (data: string) => void;
+}
+
+export default function QRCodeReader({ onCodeScanned }: QRCodeReaderProps) {
+  const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
-  const [scanned, setScanned] = useState(false); // Stato per gestire se un codice è già stato scansionato
+  const [scanned, setScanned] = useState<boolean>(false);
 
-  const handleQRCodeScanned = ({ data }) => {
-    setScanned(true); // Imposta lo stato a true per evitare scansioni multiple
-    onCodeScanned(data); // Passa il codice scansionato al gestore esterno
+  const handleQRCodeScanned = ({ data }: BarcodeScanningResult) => {
+    setScanned(true);
+    onCodeScanned(data);
   };
 
   useEffect(() => {
@@ -18,7 +22,6 @@ export default function QRCodeReader({ onCodeScanned }) {
   }, [scanned]);
 
   if (!permission) {
-    // I permessi della fotocamera sono ancora in fase di caricamento
     return (
       <View style={styles.container}>
         <Text>Richiesta permessi...</Text>
@@ -27,7 +30,6 @@ export default function QRCodeReader({ onCodeScanned }) {
   }
 
   if (!permission.granted) {
-    // I permessi della fotocamera non sono stati concessi
     return (
       <View style={styles.container}>
         <Text style={{ textAlign: "center" }}>
@@ -44,16 +46,12 @@ export default function QRCodeReader({ onCodeScanned }) {
       <CameraView
         style={styles.camera}
         facing={facing}
-        // Abilita la scansione dei codici a barre e specifica di cercare solo i QR code
         barcodeScannerSettings={{
           barcodeTypes: ["qr"],
         }}
-        onBarcodeScanned={scanned ? undefined : handleQRCodeScanned} // La callback viene attivata solo se !scanned
+        onBarcodeScanned={scanned ? undefined : handleQRCodeScanned}
       >
-        <View style={styles.buttonContainer}>
-          {/* Button for toggling camera facing if needed, though not strictly necessary for QR scanning */}
-          {/* <Button onPress={() => setFacing(current => (current === 'back' ? 'front' : 'back'))} title="Flip Camera" /> */}
-        </View>
+        <View style={styles.buttonContainer} />
         {!scanned && (
           <View style={styles.overlay}>
             <View style={styles.qrFrame} />
@@ -62,9 +60,8 @@ export default function QRCodeReader({ onCodeScanned }) {
         )}
         {scanned && (
           <Button
-            title={"Tocca per scansionare di nuovo"}
+            title="Tocca per scansionare di nuovo"
             onPress={() => setScanned(false)}
-            style={styles.scanAgainButton}
           />
         )}
       </CameraView>
@@ -83,7 +80,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     justifyContent: "flex-end",
-    height: "100%"
+    height: "100%",
   },
   buttonContainer: {
     flexDirection: "row",

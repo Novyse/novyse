@@ -8,13 +8,28 @@ import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
 const INDICATOR_RATIO = 0.25;
 
-const Avatar = ({ uuid, uri, size = 32, isOnline = false, theme, onEdit }) => {
+interface AvatarProps {
+  uuid?: string;
+  uri?: string;
+  size?: number;
+  isOnline?: boolean;
+  theme: any;
+  onEdit?: () => void;
+}
+
+const Avatar = ({
+  uuid,
+  uri,
+  size = 32,
+  isOnline = false,
+  theme,
+  onEdit,
+}: AvatarProps) => {
   const styles = createStyles(size, theme);
   const { uri: resolvedUri } = useProfilePicture(uuid, uri);
-  const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
 
   const indicatorSize = Math.max(Math.round(size * INDICATOR_RATIO), 8);
-
   const offset = Math.round(indicatorSize * 0);
 
   const AvatarImage = () => (
@@ -59,7 +74,7 @@ const Avatar = ({ uuid, uri, size = 32, isOnline = false, theme, onEdit }) => {
   );
 };
 
-const createStyles = (size, theme) =>
+const createStyles = (size: number, theme: any) =>
   StyleSheet.create({
     avatar: {
       width: size,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
 import EmojiPicker from "./EmojiPicker";
@@ -15,19 +14,32 @@ const TABS = {
   EMOJI: "emoji",
   STICKER: "sticker",
   GIF: "gif",
-};
+} as const;
+
+type TabValue = typeof TABS[keyof typeof TABS];
+
+interface Anchor {
+  height?: number;
+}
+
+interface ChatIconsPickerModalProps {
+  visible: boolean;
+  children?: React.ReactNode;
+  anchor?: Anchor;
+  onEmojiSelected: (emoji: string) => void;
+}
 
 const ChatIconsPickerModal = ({
   visible,
   children,
   anchor,
   onEmojiSelected,
-}) => {
+}: ChatIconsPickerModalProps) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-  const [activeTab, setActiveTab] = useState(TABS.EMOJI);
+  const [activeTab, setActiveTab] = useState<TabValue>(TABS.EMOJI);
 
-  const renderContent = () => {
+  const renderContent = (): React.ReactNode => {
     switch (activeTab) {
       case TABS.EMOJI:
         return (
@@ -99,12 +111,12 @@ const ChatIconsPickerModal = ({
   );
 };
 
-const createStyle = (theme) =>
+const createStyle = (theme: any) =>
   StyleSheet.create({
     container: {
       position: "absolute",
       right: 10,
-      backgroundColor: theme.backgroundModal,
+      backgroundColor: (theme).backgroundModal,
       borderRadius: 8,
       shadowColor: "#000",
       shadowOffset: {
@@ -123,7 +135,7 @@ const createStyle = (theme) =>
     tabsContainer: {
       flexDirection: "row",
       borderBottomWidth: 1,
-      borderBottomColor: theme.ChatIconsPickerModalBorderColor,
+      borderBottomColor: (theme).ChatIconsPickerModalBorderColor,
     },
     tab: {
       flex: 1,
@@ -132,21 +144,21 @@ const createStyle = (theme) =>
     },
     activeTab: {
       borderBottomWidth: 2,
-      borderBottomColor: theme.primary,
+      borderBottomColor: (theme).primary,
     },
     tabText: {
-      color: theme.ChatIconsPickerModalTabInactiveText,
+      color: (theme).ChatIconsPickerModalTabInactiveText,
       fontSize: 14,
       fontWeight: "500",
     },
     activeTabText: {
-      color: theme.text,
+      color: (theme).text,
     },
     contentContainer: {
       height: 450,
     },
     contentText: {
-      color: theme.text,
+      color: (theme).text,
       fontSize: 24,
     },
   });

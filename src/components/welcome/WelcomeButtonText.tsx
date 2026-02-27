@@ -1,9 +1,15 @@
 import React from "react";
 import { StyleSheet, Text } from "react-native";
-import { LoginColors } from "@/constants/LoginColors";
+import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 
-const WelcomeButtonText = ({ type }) => {
-  const loginTheme = "default";
+type WelcomeButtonTextType = "submit" | "back";
+
+interface WelcomeButtonTextProps {
+  type: WelcomeButtonTextType;
+}
+
+const WelcomeButtonText = ({ type }: WelcomeButtonTextProps) => {
+  const loginTheme: LoginTheme = "default";
   const styles = createStyles(loginTheme, type);
 
   return (
@@ -13,7 +19,7 @@ const WelcomeButtonText = ({ type }) => {
   );
 };
 
-function createStyles(loginTheme, type) {
+function createStyles(loginTheme: LoginTheme, type: WelcomeButtonTextType) {
   return StyleSheet.create({
     text: {
       fontSize: 16,

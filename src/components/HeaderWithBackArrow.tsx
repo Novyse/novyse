@@ -5,7 +5,12 @@ import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "./Icon";
 import BlurredHeader from "./BlurredHeader";
 
-const HeaderWithBackArrow = ({ title, onBack }) => {
+interface HeaderWithBackArrowProps {
+  title?: string;
+  onBack?: () => void;
+}
+
+const HeaderWithBackArrow = ({ title, onBack }: HeaderWithBackArrowProps) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -13,7 +18,7 @@ const HeaderWithBackArrow = ({ title, onBack }) => {
     <BlurredHeader>
       {onBack && (
         <Icon
-          name={"ArrowLeft02Icon"}
+          name="ArrowLeft02Icon"
           onPress={() => {
             onBack();
           }}
@@ -34,7 +39,7 @@ const HeaderWithBackArrow = ({ title, onBack }) => {
   );
 };
 
-const createStyle = (theme) =>
+const createStyle = (theme: unknown) =>
   StyleSheet.create({
     icon: {
       width: 45,

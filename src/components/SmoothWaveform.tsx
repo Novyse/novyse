@@ -2,6 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, View, Pressable, ScrollView } from "react-native";
 import { defaultWaveform } from "@/src/utils/storage/file/media";
 
+interface SmoothWaveformProps {
+  waveformData?: number[];
+  currentValue: number;
+  maxValue: number;
+  playbackRate?: number;
+  onSeek: (value: number) => void;
+  reset: boolean;
+  isMoving: boolean;
+}
+
 export default function SmoothWaveform({
   waveformData = defaultWaveform,
   currentValue,
@@ -10,10 +20,10 @@ export default function SmoothWaveform({
   onSeek,
   reset,
   isMoving,
-}) {
+}: SmoothWaveformProps) {
   const progressAnim = useRef(new Animated.Value(0)).current;
-  const [progress, setProgress] = useState(0);
-  const waveformRef = useRef(null);
+  const [progress, setProgress] = useState<number>(0);
+  const waveformRef = useRef<View>(null);
 
   useEffect(() => {
     const listener = progressAnim.addListener(({ value }) => {
@@ -49,7 +59,9 @@ export default function SmoothWaveform({
     }
   }, [reset]);
 
-  const handleWaveformPress = (event) => {
+  const handleWaveformPress = (event: {
+    nativeEvent: { pageX: number };
+  }): void => {
     if (waveformRef.current) {
       waveformRef.current.measure((x, y, width, height, pageX, pageY) => {
         const relativeX = event.nativeEvent.pageX - pageX;

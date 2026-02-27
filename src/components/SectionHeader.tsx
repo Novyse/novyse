@@ -7,7 +7,7 @@ import Icon from "@/src/components/Icon";
 
 interface SectionHeaderProps {
   title: string;
-  icon?: string;
+  icon: string;
 }
 
 export default function SectionHeader({ title, icon }: SectionHeaderProps) {
