@@ -1,5 +1,24 @@
 import React, { useRef } from "react";
-import { View, TextInput, StyleSheet } from "react-native";
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  NativeSyntheticEvent,
+  TextInputKeyPressEventData,
+  ViewStyle,
+  TextStyle,
+} from "react-native";
+
+interface OtpDigitsInputProps {
+  value?: string[];
+  onChange: (otp: string[]) => void;
+  error?: boolean;
+  inputCount?: number;
+  style?: ViewStyle;
+  inputStyle?: TextStyle;
+  inputErrorStyle?: TextStyle;
+  autoFocus?: boolean;
+}
 
 const OtpDigitsInput = ({
   value = ["", "", "", "", "", ""],
@@ -10,10 +29,10 @@ const OtpDigitsInput = ({
   inputStyle,
   inputErrorStyle,
   autoFocus = false,
-}) => {
-  const refs = useRef([]);
+}: OtpDigitsInputProps) => {
+  const refs = useRef<(TextInput | null)[]>([]);
 
-  const handleChange = (text, index) => {
+  const handleChange = (text: string, index: number): void => {
     const newOtp = [...value];
 
     if (text.length === 1 && /^\d$/.test(text)) {
@@ -36,7 +55,10 @@ const OtpDigitsInput = ({
     // Ignora qualsiasi altro input senza fare nulla
   };
 
-  const handleKeyPress = (e, index) => {
+  const handleKeyPress = (
+    e: NativeSyntheticEvent<TextInputKeyPressEventData>,
+    index: number,
+  ): void => {
     if (e.nativeEvent.key === "Backspace") {
       if (value[index] === "" && index > 0) {
         refs.current[index - 1]?.focus();
@@ -66,7 +88,9 @@ const OtpDigitsInput = ({
           onKeyPress={(e) => handleKeyPress(e, index)}
           keyboardType="numeric"
           maxLength={inputCount}
-          ref={(el) => (refs.current[index] = el)}
+          ref={(el) => {
+            refs.current[index] = el;
+          }}
           autoFocus={autoFocus && index === 0}
           caretHidden={false}
         />
@@ -95,7 +119,7 @@ const styles = StyleSheet.create({
     color: "#222",
     backgroundColor: "white",
     outlineStyle: "none",
-  },
+  } as any,
   inputError: {
     borderColor: "rgba(255, 99, 99, 0.8)",
     backgroundColor: "rgba(255, 99, 99, 0.1)",

@@ -1,17 +1,22 @@
 import React, { useContext } from "react";
-// import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import SmartBackground from "./SmartBackground";
 import { ThemeContext } from "../../context/ThemeContext";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; 
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+interface ScreenLayoutProps {
+  children: React.ReactNode;
+  style?: object;
+  fullscreen?: boolean;
+}
 
 /**
  * Layout personalizzato per applicare il gradiente di sfondo a tutte le schermate
- * @param {React.ReactNode} children - Contenuto della schermata
- * @param {object} style - Stili aggiuntivi per il contenitore
+ * @param children - Contenuto della schermata
+ * @param style - Stili aggiuntivi per il contenitore
  */
-const ScreenLayout = ({ children, style = {}, fullscreen = false }) => {
+const ScreenLayout = ({ children, style = {}, fullscreen = false }: ScreenLayoutProps) => {
   const { theme } = useContext(ThemeContext);
-  const insets = useSafeAreaInsets(); 
+  const insets = useSafeAreaInsets();
 
   return (
     <SmartBackground

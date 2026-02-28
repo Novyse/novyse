@@ -1,4 +1,63 @@
-export const LoginColors = {
+export interface ThemeColors {
+  background: string[];
+  backgroundCard: string;
+  backgroundTextInput: string;
+  backgroundQRCode: string;
+  backgroundIcon: string;
+  backgroundLineDivider: string;
+  backgroundSubmitButton: string;
+  backgroundBackButton: string;
+  backgroundTimeline: string;
+  submitButtonTextColor: string;
+  backButtonTextColor: string;
+  hoveredSubmitButton: string;
+  pressedSubmitButton: string;
+  hoveredBackButton: string;
+  pressedBackButton: string;
+  iconBackButton: string;
+  iconSubmitButton: string;
+  placeholderTextInput: string;
+  borderTextInput: string;
+  errorBorder: string;
+  errorBackground: string;
+  successBorder: string;
+  successBackground: string;
+  pendingBorder: string;
+  pendingBackground: string;
+  currentBorder: string;
+  currentBackground: string;
+  completedBorder: string;
+  completedBackground: string;
+  borderQRCode: string;
+  QRCodeGradient: string[];
+  QRCodeLogoBacground: string;
+  text: string;
+  selectedOptionText: string;
+  link: string;
+  title: string;
+  subtitle: string;
+  textError: string;
+  checkboxTick: string;
+  icon: string;
+  iconLoading: string;
+  iconShowHideField: string;
+  timelineNumber: string;
+  signupReqGreen: string;
+  signupReqRed: string;
+  signupReqGray: string;
+}
+
+export type LoginTheme =
+  | "default"
+  | "christmas"
+  | "halloween"
+  | "easter"
+  | "valentineDay";
+
+export const LoginColors: Record<
+  LoginTheme,
+  ThemeColors | Record<string, never>
+> = {
   default: {
     // Background
     background: ["#013480", "#177FC0"],

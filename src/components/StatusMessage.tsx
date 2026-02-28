@@ -4,14 +4,35 @@ import { View, Text, StyleSheet, Animated } from "react-native";
 import HoverAndPressedButton from "./HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 
+type StatusMessageType = "success" | "error" | "warning" | "info";
+
+interface StatusMessageProps {
+  type: StatusMessageType;
+  visible?: boolean;
+  content?: string[];
+  timeout?: number | null;
+  onClose?: () => void;
+}
+
+interface ThemeColors {
+  bg: string;
+  text: string;
+}
+
+interface TypeValues {
+  title: string;
+  icon: { name: string; color: string };
+  theme: ThemeColors;
+}
+
 const StatusMessage = ({
   type,
   visible = true,
   content = [],
   timeout = null,
   onClose,
-}) => {
-  const [isVisible, setIsVisible] = useState(visible);
+}: StatusMessageProps) => {
+  const [isVisible, setIsVisible] = useState<boolean>(visible);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(10)).current;
@@ -39,7 +60,7 @@ const StatusMessage = ({
   };
 
   useEffect(() => {
-    let timer;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
     if (isVisible) {
       Animated.parallel([
@@ -72,7 +93,7 @@ const StatusMessage = ({
 
   if (!isVisible) return null;
 
-  const getTypeValues = () => {
+  const getTypeValues = (): TypeValues => {
     switch (type) {
       case "success":
         return {
@@ -137,7 +158,7 @@ const StatusMessage = ({
   );
 };
 
-const createStyles = (colors) => {
+const createStyles = (colors: ThemeColors) => {
   return StyleSheet.create({
     container: {
       backgroundColor: colors.bg,

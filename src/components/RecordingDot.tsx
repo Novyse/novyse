@@ -1,11 +1,15 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet } from "react-native";
 
-const RecordingDot = ({ isRecording = false }) => {
+interface RecordingDotProps {
+  isRecording?: boolean;
+}
+
+const RecordingDot = ({ isRecording = false }: RecordingDotProps) => {
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    let animation;
+    let animation: Animated.CompositeAnimation | undefined;
 
     if (isRecording) {
       animation = Animated.loop(
@@ -20,13 +24,14 @@ const RecordingDot = ({ isRecording = false }) => {
             duration: 800,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       );
       animation.start();
     } else {
       opacityAnim.setValue(1);
       opacityAnim.stopAnimation();
     }
+
     return () => {
       if (animation) animation.stop();
     };
@@ -35,7 +40,7 @@ const RecordingDot = ({ isRecording = false }) => {
   return <Animated.View style={[styles(opacityAnim).dot]} />;
 };
 
-const styles = (opacityAnim) =>
+const styles = (opacityAnim: Animated.Value) =>
   StyleSheet.create({
     dot: {
       shadowColor: "#000",

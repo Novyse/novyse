@@ -4,6 +4,16 @@ import Slider from "@react-native-community/slider";
 
 const AnimatedSlider = Animated.createAnimatedComponent(Slider);
 
+interface SmoothSliderProps {
+  currentValue: number;
+  maxValue: number;
+  playbackRate?: number;
+  onSeek: (value: number) => void;
+  reset: boolean;
+  isMoving: boolean;
+  showThumb?: boolean;
+}
+
 export default function SmoothSlider({
   currentValue,
   maxValue,
@@ -12,12 +22,12 @@ export default function SmoothSlider({
   reset,
   isMoving,
   showThumb = true,
-}) {
+}: SmoothSliderProps) {
 
   const thumbColor = showThumb ? "#307ecc" : "#307ecc";
 
   const sliderAnim = useRef(new Animated.Value(0)).current;
-  const isSeeking = useRef(false);
+  const isSeeking = useRef<boolean>(false);
 
   useEffect(() => {
     if (isMoving && maxValue > 0 && !isSeeking.current) {
@@ -27,7 +37,7 @@ export default function SmoothSlider({
 
       Animated.timing(sliderAnim, {
         toValue: maxValue,
-        duration: Math.max((maxValue - currentValue) * 1000, 100)/playbackRate,
+        duration: Math.max((maxValue - currentValue) * 1000, 100) / playbackRate,
         easing: Easing.linear,
         useNativeDriver: false,
       }).start();
@@ -42,18 +52,18 @@ export default function SmoothSlider({
     }
   }, [reset]);
 
-  const onSlidingStart = () => {
+  const onSlidingStart = (): void => {
     isSeeking.current = true;
     sliderAnim.stopAnimation();
   };
 
-  const onValueChange = (value) => {
+  const onValueChange = (value: number): void => {
     sliderAnim.setValue(value);
   };
 
-  const onSlidingComplete = (value) => {
+  const onSlidingComplete = (value: number): void => {
     if (isMoving) {
-      onSeek(seekValue);
+      onSeek(value); // fix: era `seekValue` (variabile non definita)
     }
     isSeeking.current = false;
 

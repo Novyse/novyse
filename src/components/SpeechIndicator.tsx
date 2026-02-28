@@ -7,7 +7,12 @@ import Animated, {
   interpolate,
 } from "react-native-reanimated";
 
-const BARS = [
+interface Bar {
+  id: number;
+  scale: number;
+}
+
+const BARS: Bar[] = [
   { id: 1, scale: 0.4 }, // Sinistra esterna (bassa)
   { id: 2, scale: 0.8 }, // Sinistra interna (media)
   { id: 3, scale: 1.0 }, // Centrale (massima)
@@ -18,13 +23,20 @@ const BARS = [
 const MIN_DB = -60;
 const MAX_DB = 0;
 
+interface SimpleWaveformProps {
+  audioLevel: number;
+  color?: string;
+  barWidth?: number;
+  maxHeight?: number;
+}
+
 const SimpleWaveform = ({
   audioLevel,
   color = "#ffffff",
   barWidth = 3,
   maxHeight = 40,
-}) => {
-  const intensity = useSharedValue(0);
+}: SimpleWaveformProps) => {
+  const intensity = useSharedValue<number>(0);
 
   useEffect(() => {
     let normalized = 0;
@@ -52,7 +64,7 @@ const SimpleWaveform = ({
           );
 
           return {
-            height: height,
+            height,
             backgroundColor: color,
           };
         });

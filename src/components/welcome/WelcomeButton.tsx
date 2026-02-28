@@ -1,13 +1,26 @@
 import React from "react";
 import { StyleSheet } from "react-native";
 import HoverAndPressedButton from "../HoverAndPressedButton";
-import { LoginColors } from "@/constants/LoginColors";
+import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 
-const WelcomeButton = ({ children, type, onPress, disabled }) => {
-  const loginTheme = "default";
+type WelcomeButtonType = "submit" | "back";
+
+interface WelcomeButtonProps {
+  children: React.ReactNode;
+  type: WelcomeButtonType;
+  onPress: () => void;
+  disabled?: boolean;
+}
+
+const WelcomeButton = ({
+  children,
+  type,
+  onPress,
+  disabled,
+}: WelcomeButtonProps) => {
+  const loginTheme: LoginTheme = "default";
   const styles = createStyles(loginTheme);
 
-  // 👉 Definiamo gli stili condizionali qui per pulizia
   const hoverColor =
     type === "submit"
       ? LoginColors[loginTheme].hoveredSubmitButton
@@ -31,7 +44,7 @@ const WelcomeButton = ({ children, type, onPress, disabled }) => {
   );
 };
 
-function createStyles(loginTheme) {
+function createStyles(loginTheme: LoginTheme) {
   return StyleSheet.create({
     submitButton: {
       backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
