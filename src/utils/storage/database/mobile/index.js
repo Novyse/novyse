@@ -128,6 +128,10 @@ class Database {
                 system_action TEXT,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 is_pinned BOOLEAN NOT NULL DEFAULT 0,
+                replyTo_chatUUID TEXT,
+                replyTo_messageID INTEGER,
+                replyTo_rangeStart INTEGER,
+                replyTo_rangeEnd INTEGER,
                 PRIMARY KEY (chatUUID, id),
                 FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
                 FOREIGN KEY (senderUUID) REFERENCES user(uuid)
@@ -150,6 +154,10 @@ class Database {
                 senderUUID TEXT,
                 content TEXT,
                 type TEXT,
+                replyTo_chatUUID TEXT,
+                replyTo_messageID INTEGER,
+                replyTo_rangeStart INTEGER,
+                replyTo_rangeEnd INTEGER,
                 PRIMARY KEY (id),
                 FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
                 FOREIGN KEY (senderUUID) REFERENCES user(uuid)
@@ -363,7 +371,7 @@ class Database {
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, is_pinned) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, is_pinned, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
@@ -373,6 +381,14 @@ class Database {
           message.system_action || null,
           message.created_at,
           message.isPinned ? 1 : 0,
+          message.replyTo?.chatUUID || null,
+          message.replyTo?.messageID || null,
+          message.replyTo?.rangeStart !== undefined
+            ? message.replyTo.rangeStart
+            : null,
+          message.replyTo?.rangeEnd !== undefined
+            ? message.replyTo.rangeEnd
+            : null,
         ],
       );
 
@@ -436,7 +452,7 @@ class Database {
         return false;
       }
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO pending_message (id, jobType, chatUUID, senderUUID, content, type) VALUES (?, ?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO pending_message (id, jobType, chatUUID, senderUUID, content, type, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           pendingMessage.id,
           pendingMessage.jobType,
@@ -444,6 +460,14 @@ class Database {
           pendingMessage.senderUUID,
           pendingMessage.content || null,
           pendingMessage.type || "message",
+          pendingMessage.replyTo?.chatUUID || null,
+          pendingMessage.replyTo?.messageID || null,
+          pendingMessage.replyTo?.rangeStart !== undefined
+            ? pendingMessage.replyTo.rangeStart
+            : null,
+          pendingMessage.replyTo?.rangeEnd !== undefined
+            ? pendingMessage.replyTo.rangeEnd
+            : null,
         ],
       );
 
@@ -502,6 +526,30 @@ class Database {
     }
   }
 
+  _mapMessageReplyTo(message) {
+    if (!message || message.replyTo_chatUUID === undefined) return message;
+    if (
+      message.replyTo_chatUUID ||
+      message.replyTo_messageID ||
+      (message.replyTo_rangeStart !== null &&
+        message.replyTo_rangeStart !== undefined) ||
+      (message.replyTo_rangeEnd !== null &&
+        message.replyTo_rangeEnd !== undefined)
+    ) {
+      message.replyTo = {
+        chatUUID: message.replyTo_chatUUID,
+        messageID: message.replyTo_messageID,
+        rangeStart: message.replyTo_rangeStart,
+        rangeEnd: message.replyTo_rangeEnd,
+      };
+    }
+    delete message.replyTo_chatUUID;
+    delete message.replyTo_messageID;
+    delete message.replyTo_rangeStart;
+    delete message.replyTo_rangeEnd;
+    return message;
+  }
+
   /**
    * Fetch all pending messages from the database.
    * @returns {Array} array of pending message objects
@@ -513,6 +561,7 @@ class Database {
         "SELECT * FROM pending_message;",
       );
       for (const message of pendingMessages) {
+        this._mapMessageReplyTo(message);
         const files = await this.db.getAllAsync(
           "SELECT * FROM pending_file WHERE pendingMessageID = ?;",
           [message.id],
@@ -539,6 +588,7 @@ class Database {
         [chatUUID],
       );
       for (const message of pendingMessages) {
+        this._mapMessageReplyTo(message);
         const files = await this.db.getAllAsync(
           "SELECT * FROM pending_file WHERE pendingMessageID = ?;",
           [message.id],
@@ -659,6 +709,7 @@ class Database {
         [chatUUID],
       );
       if (message) {
+        this._mapMessageReplyTo(message);
         // Retrieve associated files with mime types
         const files = await this.db.getAllAsync(
           `SELECT f.uuid, f.mimeType, f.name FROM file f
@@ -762,6 +813,7 @@ class Database {
       );
       // Add files to each message
       for (const message of messages) {
+        this._mapMessageReplyTo(message);
         const files = await this.db.getAllAsync(
           `SELECT f.* FROM file f
          JOIN message_files mf ON f.uuid = mf.fileUUID
@@ -880,7 +932,7 @@ class Database {
         }
         const placeholders = messages
           .map(
-            () => `(?, ?, ?, ?, ?, ?, ?, ?)`, // 8 placeholders for each message field
+            () => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, // 12 placeholders for each message field
           )
           .join(", ");
         const values = [];
@@ -903,10 +955,18 @@ class Database {
             message.system_action || null,
             message.created_at,
             message.isPinned ? 1 : 0,
+            message.replyTo?.chatUUID || null,
+            message.replyTo?.messageID || null,
+            message.replyTo?.rangeStart !== undefined
+              ? message.replyTo.rangeStart
+              : null,
+            message.replyTo?.rangeEnd !== undefined
+              ? message.replyTo.rangeEnd
+              : null,
           );
         }
         await this.db.runAsync(
-          `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, is_pinned) VALUES ${placeholders};`,
+          `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, is_pinned, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES ${placeholders};`,
           values,
         );
         console.log(`${messages.length} messages added successfully.`);
