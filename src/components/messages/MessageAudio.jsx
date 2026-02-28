@@ -11,6 +11,7 @@ import Icon from "../Icon";
 
 import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
+import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
 import {
   formatTime,
@@ -43,13 +44,16 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
   const styles = useMemo(() => createStyle(theme), [theme]);
 
   const isReady = !!playableUri;
+  const { uri: profilePictureUri } = useProfilePicture(message.senderUUID);
 
   const handlePlayPress = () => {
     addInfo(
       message.chatUUID,
       message.id,
       message.sender_name,
-      message.created_at
+      message.senderUUID,
+      profilePictureUri,
+      message.created_at,
     );
     handlePlayPause(playableUri);
   };

@@ -64,12 +64,16 @@ class Database {
                 email TEXT,
                 name TEXT NOT NULL,
                 surname TEXT NOT NULL,
-                profilePictureUUID TEXT
+                profilePictureUUID TEXT,
+                description TEXT,
+                birthday DATE,
+                region TEXT,
+                country TEXT
             );
 
             -- Insert system user for system messages
-            INSERT OR IGNORE INTO user (uuid, name, surname)
-            VALUES ('00000000-0000-0000-0000-000000000000', 'System', '');
+            INSERT OR IGNORE INTO user (uuid, name, surname, description)
+            VALUES ('00000000-0000-0000-0000-000000000000', 'System', '', 'System user');
 
             CREATE TABLE IF NOT EXISTS handle_type (
                 value TEXT PRIMARY KEY,
@@ -250,7 +254,7 @@ class Database {
 
   /**
    * Adds a user to the database.
-   * @param {Object} user - User object containing uuid, email, name, surname, profilePictureUuid, handle
+   * @param {Object} user - User object containing uuid, email, name, surname, profilePictureUuid, handle, description, birthday, region, country
    * @returns {boolean} true if user added successfully, false otherwise
    */
   async addUserInfo(user) {
@@ -271,7 +275,7 @@ class Database {
       // Insert user into the user table
       await this.db.runAsync(
         `
-        INSERT OR IGNORE INTO user (uuid, email, name, surname, profilePictureUUID) VALUES (?, ?, ?, ?, ?);
+        INSERT OR IGNORE INTO user (uuid, email, name, surname, profilePictureUUID, description, birthday, region, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
         [
           user.uuid,
@@ -279,6 +283,10 @@ class Database {
           user.name,
           user.surname,
           user.profilePictureUUID || null,
+          user.description || null,
+          user.birthday || null,
+          user.region || null,
+          user.country || null,
         ],
       );
       // Insert handle into the handle table
@@ -1047,6 +1055,9 @@ class Database {
            WHERE m.chatUUID = ? AND m.id = ?;`,
           [chatUUID, messageID],
         );
+        if (!message) {
+          return null;
+        }
         const files = await this.db.getAllAsync(
           `SELECT f.* FROM file f
          JOIN message_files mf ON f.uuid = mf.fileUUID
@@ -1298,6 +1309,90 @@ class Database {
             return false;
           } catch (error) {
             console.error("Error updating user profile picture:", error);
+            return false;
+          }
+        },
+      },
+      birthday: {
+        /**
+         * Update user birthday.
+         * @param {String} userUUID
+         * @param {String} birthday
+         * @returns {boolean} true if birthday updated successfully, false otherwise
+         */
+        update: async (userUUID, birthday) => {
+          try {
+            if (!userUUID || !birthday) {
+              console.error("Missing required fields to update user birthday.");
+              return false;
+            }
+            const result = await this.db.runAsync(
+              `UPDATE user SET birthday = ? WHERE uuid = ?;`,
+              [birthday, userUUID],
+            );
+            if (result.changes > 0) {
+              console.log("User birthday updated successfully:", userUUID);
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error("Error updating user birthday:", error);
+            return false;
+          }
+        },
+      },
+      region: {
+        /**
+         * Update user region.
+         * @param {String} userUUID
+         * @param {String} region
+         * @returns {boolean} true if region updated successfully, false otherwise
+         */
+        update: async (userUUID, region) => {
+          try {
+            if (!userUUID || !region) {
+              console.error("Missing required fields to update user region.");
+              return false;
+            }
+            const result = await this.db.runAsync(
+              `UPDATE user SET region = ? WHERE uuid = ?;`,
+              [region, userUUID],
+            );
+            if (result.changes > 0) {
+              console.log("User region updated successfully:", userUUID);
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error("Error updating user region:", error);
+            return false;
+          }
+        },
+      },
+      country: {
+        /**
+         * Update user country.
+         * @param {String} userUUID
+         * @param {String} country
+         * @returns {boolean} true if country updated successfully, false otherwise
+         */
+        update: async (userUUID, country) => {
+          try {
+            if (!userUUID || !country) {
+              console.error("Missing required fields to update user country.");
+              return false;
+            }
+            const result = await this.db.runAsync(
+              `UPDATE user SET country = ? WHERE uuid = ?;`,
+              [country, userUUID],
+            );
+            if (result.changes > 0) {
+              console.log("User country updated successfully:", userUUID);
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error("Error updating user country:", error);
             return false;
           }
         },

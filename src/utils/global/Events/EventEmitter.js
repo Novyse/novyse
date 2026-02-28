@@ -72,25 +72,42 @@ class GlobalEventEmitter {
   user = {
     profile: {
       update: async (data) => {
-        const { userUUID, name, surname, description, profilePictureUUID } =
-          data;
+        const {
+          userUUID,
+          name,
+          surname,
+          description,
+          profilePictureUUID,
+          birthday,
+          region,
+          country,
+        } = data;
 
         if (!userUUID) return;
 
-        if (name !== undefined) {
+        if (name) {
           await database.user.profile.name.update(userUUID, name);
         }
-        if (surname !== undefined) {
+        if (surname) {
           await database.user.profile.surname.update(userUUID, surname);
         }
-        if (description !== undefined) {
+        if (description) {
           await database.user.profile.description.update(userUUID, description);
         }
-        if (profilePictureUUID !== undefined) {
+        if (profilePictureUUID) {
           await database.user.profile.picture.update(
             userUUID,
             profilePictureUUID,
           );
+        }
+        if (birthday) {
+          await database.user.profile.birthday.update(userUUID, birthday);
+        }
+        if (region) {
+          await database.user.profile.region.update(userUUID, region);
+        }
+        if (country) {
+          await database.user.profile.country.update(userUUID, country);
         }
 
         this.eventEmitter.emit("user:profile:update", {
@@ -99,6 +116,9 @@ class GlobalEventEmitter {
           surname,
           description,
           profilePictureUUID,
+          birthday,
+          region,
+          country,
         });
       },
     },

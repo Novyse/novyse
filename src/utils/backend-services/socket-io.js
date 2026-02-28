@@ -43,7 +43,7 @@ const SocketIO = {
     try {
       if (isConnecting || SocketIO.isOpen()) {
         console.warn(
-          "Socket.IO connection already in progress or already connected"
+          "Socket.IO connection already in progress or already connected",
         );
         return socket;
       }

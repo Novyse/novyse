@@ -5,6 +5,7 @@ import {
   Text,
   StyleSheet,
   Dimensions,
+  Modal,
 } from "react-native";
 
 import { useThemeContext } from "@/context/ThemeContext";
@@ -121,8 +122,13 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   );
 
   return (
-    visible && (
-      <View style={[styles.overlay]}>
+    <Modal
+      transparent={true}
+      visible={visible}
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.overlay}>
         <TouchableWithoutFeedback onPress={onClose}>
           <View style={styles.overlayTouchable} />
         </TouchableWithoutFeedback>
@@ -137,7 +143,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
           </View>
         </BlurredView>
       </View>
-    )
+    </Modal>
   );
 };
 
@@ -146,11 +152,7 @@ export default ActionMenu;
 const createStyle = (theme: any) =>
   StyleSheet.create({
     overlay: {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      flex: 1,
     },
     overlayTouchable: {
       position: "absolute",

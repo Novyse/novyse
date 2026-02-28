@@ -32,6 +32,7 @@ const ProfilePage = () => {
     try {
       const { success, user: userData } =
         await gateway.user.profile.get.byHandle(username);
+      console.log(userData);
       if (success && userData) {
         return userData;
       }

@@ -734,6 +734,27 @@ const gateway = {
           return { success };
         },
       },
+      update: {
+        /**
+         * Update user's profile information.
+         * @param {String} name
+         * @param {String} surname
+         * @param {String} description
+         * @returns {Object} { success: boolean }
+         */
+        async all(name, surname, description) {
+          const response = await api.patch("/user/profile", {
+            name,
+            surname,
+            description,
+          });
+          const success = response.data.success;
+          if (success) {
+            return { success };
+          }
+          return { success };
+        },
+      },
       get: {
         /**
          * Get user's profile information by handle.

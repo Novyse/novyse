@@ -49,6 +49,7 @@ const CommsMembersLayout = ({ participants = [], room }) => {
         <View style={styles.fullscreenContainer}>
           <UserCard
             streamUUID={item.streamUUID}
+            deviceUUID={item.deviceUUID}
             stream={item.stream}
             displayName={item.name}
             metadata={item.metadata}
@@ -69,6 +70,7 @@ const CommsMembersLayout = ({ participants = [], room }) => {
 
   const renderRectangle = (
     streamUUID,
+    deviceUUID,
     stream,
     name,
     metadata,
@@ -78,6 +80,7 @@ const CommsMembersLayout = ({ participants = [], room }) => {
     return (
       <UserCard
         streamUUID={streamUUID}
+        deviceUUID={deviceUUID}
         stream={stream}
         displayName={name}
         metadata={metadata}
@@ -122,6 +125,7 @@ const CommsMembersLayout = ({ participants = [], room }) => {
                 <View key={`${deviceUUID}-${streamUUID}`}>
                   {renderRectangle(
                     streamUUID,
+                    deviceUUID,
                     stream,
                     name,
                     metadata,

@@ -10,9 +10,11 @@ import { NetworkProvider } from "@/context/NetworkContext";
 import { getPlatform } from "@/src/utils/device/type";
 
 import SetupGlobalEventReceiver from "@/src/utils/global/Events/EventReceiver";
+import SocketIO from "@/src/utils/backend-services/socket-io";
 
 export default function ProtectedLayout() {
   SetupGlobalEventReceiver();
+  SocketIO.open();
 
   if (getPlatform() === "mobile") {
     const { registerGlobals } = require("@livekit/react-native");

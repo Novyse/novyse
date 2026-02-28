@@ -11,45 +11,59 @@ import SelectInput from "@/src/components/input/SelectInput";
 import DateInput from "@/src/components/input/DateInput";
 
 interface PersonalInfoProps {
-  name: string;
-  surname: string;
-  username: string;
-  description?: string;
-  birthday?: string;
-  country?: string;
-  region?: string;
+  initialValues: {
+    name: string;
+    surname: string;
+    username: string;
+    description: string;
+    birthday: string;
+    country: string;
+    region: string;
+  };
+  onChangeField: (field: string, value: string) => void;
   isSmallScreen?: boolean;
 }
 
 export default function PersonalInfo({
-  name,
-  surname,
-  username,
-  description,
-  birthday,
-  country,
-  region,
+  initialValues,
+  onChangeField,
   isSmallScreen = false,
 }: PersonalInfoProps) {
   const { theme } = useContext(ThemeContext) as { theme: any };
   const styles = createStyles(theme, isSmallScreen);
 
-  const [nameValue, setNameValue] = useState(name || "");
-  const [surnameValue, setSurnameValue] = useState(surname || "");
-  const [usernameValue, setUsernameValue] = useState(username || "");
-  const [descriptionValue, setDescriptionValue] = useState(description || "");
-  const [birthdayValue, setBirthdayValue] = useState(birthday || "");
-  const [countryValue, setCountryValue] = useState(country || "");
-  const [regionValue, setRegionValue] = useState("");
-
-  const [charCount, setCharCount] = useState(
-    descriptionValue ? descriptionValue.length : 0,
+  const [nameVal, setNameVal] = useState(initialValues.name);
+  const [surnameVal, setSurnameVal] = useState(initialValues.surname);
+  const [usernameVal, setUsernameVal] = useState(initialValues.username);
+  const [descriptionVal, setDescriptionVal] = useState(
+    initialValues.description,
   );
-  const MAX_CHAR_COUNT = 2048;
+  const [birthdayVal, setBirthdayVal] = useState(initialValues.birthday);
+  const [countryVal, setCountryVal] = useState(initialValues.country);
+  const [regionVal, setRegionVal] = useState(initialValues.region);
 
+  // Sync internal state with external original values when parent tells us to restore
   useEffect(() => {
-    setCharCount(descriptionValue ? descriptionValue.length : 0);
-  }, [descriptionValue]);
+    setNameVal(initialValues.name);
+    setSurnameVal(initialValues.surname);
+    setUsernameVal(initialValues.username);
+    setDescriptionVal(initialValues.description);
+    setBirthdayVal(initialValues.birthday);
+    setCountryVal(initialValues.country);
+    setRegionVal(initialValues.region);
+  }, [initialValues]);
+
+  const handleFieldChange = (
+    field: string,
+    val: string,
+    setter: React.Dispatch<React.SetStateAction<string>>,
+  ) => {
+    setter(val);
+    onChangeField(field, val);
+  };
+
+  const MAX_CHAR_COUNT = 2048;
+  const descriptionLength = descriptionVal ? descriptionVal.length : 0;
 
   return (
     <>
@@ -58,11 +72,17 @@ export default function PersonalInfo({
       <View style={styles.row}>
         <View style={styles.halfInput}>
           <Label text={"Name"} />
-          <TextInput value={nameValue} onChange={setNameValue} />
+          <TextInput
+            value={nameVal}
+            onChange={(val) => handleFieldChange("name", val, setNameVal)}
+          />
         </View>
         <View style={styles.halfInput}>
           <Label text={"Surname"} />
-          <TextInput value={surnameValue} onChange={setSurnameValue} />
+          <TextInput
+            value={surnameVal}
+            onChange={(val) => handleFieldChange("surname", val, setSurnameVal)}
+          />
         </View>
       </View>
 
@@ -70,15 +90,17 @@ export default function PersonalInfo({
         <View style={styles.labelRow}>
           <Label text={"Description"} />
           <Text style={styles.charCount}>
-            {charCount}/{MAX_CHAR_COUNT}
+            {descriptionLength}/{MAX_CHAR_COUNT}
           </Text>
         </View>
         <TextInput
           placeholder="Tell us about yourself..."
-          value={descriptionValue}
+          value={descriptionVal}
           maxLenght={MAX_CHAR_COUNT}
           numberOfLines={4}
-          onChange={setDescriptionValue}
+          onChange={(val) =>
+            handleFieldChange("description", val, setDescriptionVal)
+          }
         />
       </View>
 
@@ -86,8 +108,11 @@ export default function PersonalInfo({
         <View style={styles.halfInput}>
           <Label text={"Username"} />
           <TextInput
-            value={usernameValue}
-            onChange={setUsernameValue}
+            value={usernameVal}
+            disabled={true}
+            onChange={(val) =>
+              handleFieldChange("username", val, setUsernameVal)
+            }
             prefix="@"
           />
         </View>
@@ -95,9 +120,11 @@ export default function PersonalInfo({
           <Label text={"Birthday"} />
           <DateInput
             placeholder="DD/MM/YYYY"
-            value={birthdayValue}
+            value={birthdayVal}
             disabled={true}
-            onChange={setBirthdayValue}
+            onChange={(val) =>
+              handleFieldChange("birthday", val, setBirthdayVal)
+            }
           />
         </View>
       </View>
@@ -106,13 +133,13 @@ export default function PersonalInfo({
         <View style={styles.halfInput}>
           <Label text={"Region"} />
           <SelectInput
-            options={regionList[countryValue as keyof typeof regionList] || []}
+            options={regionList[countryVal as keyof typeof regionList] || []}
             placeholder={
-              !countryValue ? "Select a country first" : "Select your region"
+              !countryVal ? "Select a country first" : "Select your region"
             }
-            value={regionValue}
-            disabled={!countryValue}
-            onChange={setRegionValue}
+            value={regionVal}
+            disabled={!countryVal}
+            onChange={(val) => handleFieldChange("region", val, setRegionVal)}
             isSmallScreen={isSmallScreen}
           />
         </View>
@@ -121,8 +148,9 @@ export default function PersonalInfo({
           <SelectInput
             options={countryList}
             placeholder="Select your country"
-            value={countryValue}
-            onChange={setCountryValue}
+            disabled={true}
+            value={countryVal}
+            onChange={(val) => handleFieldChange("country", val, setCountryVal)}
             isSmallScreen={isSmallScreen}
           />
         </View>

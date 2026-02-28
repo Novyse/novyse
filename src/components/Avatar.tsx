@@ -32,7 +32,7 @@ const Avatar = ({
   const indicatorSize = Math.max(Math.round(size * INDICATOR_RATIO), 8);
   const offset = Math.round(indicatorSize * 0);
 
-  const AvatarImage = () => (
+  const avatarImageContent = (
     <View style={{ width: size, height: size }}>
       <Image
         key={uuid || uri}
@@ -62,7 +62,7 @@ const Avatar = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <AvatarImage />
+      {avatarImageContent}
       {isHovered && (
         <View style={styles.editIconContainer}>
           <Icon name="PencilEdit02Icon" size={24} color={theme.text} />
@@ -70,7 +70,7 @@ const Avatar = ({
       )}
     </HoverAndPressedButton>
   ) : (
-    <AvatarImage />
+    avatarImageContent
   );
 };
 
@@ -84,10 +84,14 @@ const createStyles = (size: number, theme: any) =>
     },
     editIconContainer: {
       position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
       justifyContent: "center",
       alignItems: "center",
-      width: "100%",
-      height: "100%",
+      backgroundColor: "rgba(0, 0, 0, 0.2)",
+      borderRadius: 999,
     },
     indicator: {
       position: "absolute",
@@ -95,4 +99,4 @@ const createStyles = (size: number, theme: any) =>
     },
   });
 
-export default Avatar;
+export default React.memo(Avatar);

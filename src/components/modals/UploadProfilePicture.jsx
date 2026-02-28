@@ -102,10 +102,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       await database.file.update.ref(profilePictureUUID, ref);
 
       // Link to local user
-      await eventEmitter.user.profile.picture.update(
-        userUUID,
-        profilePictureUUID,
-      );
+      await eventEmitter.user.profile.update({ userUUID, profilePictureUUID });
     } catch (error) {
       console.error("Error uploading profile picture:", error);
       setError("Error uploading profile picture: " + error.message);

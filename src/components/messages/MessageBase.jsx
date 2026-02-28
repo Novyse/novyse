@@ -57,10 +57,15 @@ const MessageBase = ({
     files = [],
   } = message;
 
-  const { message: replyMessage } = useMessage(
+  const { message: replyMessage, isLoading: isReplyLoading } = useMessage(
     replyTo?.chatUUID,
     replyTo?.messageID,
   );
+
+  // Wait for reply message to load
+  if (replyTo?.messageID && isReplyLoading) {
+    return null;
+  }
 
   const groupBy = (array, callback) => {
     return array.reduce((acc, item) => {

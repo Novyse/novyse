@@ -7,13 +7,15 @@ const useMessage = (chatUUID, messageID) => {
   if (!chatUUID || !messageID) return { message: null };
 
   const [message, setMessage] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchMessage = async () => {
-      const message = await messageUtils.format(
-        await database.message.get(chatUUID, messageID),
-      );
-      setMessage(message);
+      setIsLoading(true);
+      const row = await database.message.get(chatUUID, messageID);
+      const formattedMessage = await messageUtils.format(row);
+      setMessage(formattedMessage || null);
+      setIsLoading(false);
     };
     fetchMessage();
 
@@ -28,7 +30,7 @@ const useMessage = (chatUUID, messageID) => {
     };
   }, [chatUUID, messageID, messageUtils]);
 
-  return { message };
+  return { message, isLoading };
 };
 
 export default useMessage;

@@ -15,6 +15,10 @@ export const LocalUserProvider = ({ children }) => {
   const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [handle, setHandle] = useState("");
+  const [description, setDescription] = useState("");
+  const [birthday, setBirthday] = useState(null);
+  const [region, setRegion] = useState(null);
+  const [country, setCountry] = useState(null);
 
   useEffect(() => {
     const fetchLocalUserData = async () => {
@@ -33,6 +37,10 @@ export const LocalUserProvider = ({ children }) => {
         setName(localUser.name);
         setSurname(localUser.surname);
         setEmail(localUser.email);
+        setDescription(localUser.description);
+        setBirthday(localUser.birthday);
+        setRegion(localUser.region);
+        setCountry(localUser.country);
         setHandle(localUser.handle);
       }
       setIsLoading(false);
@@ -52,6 +60,18 @@ export const LocalUserProvider = ({ children }) => {
         }
         if (data.profilePictureUUID) {
           setProfilePictureUUID(data.profilePictureUUID);
+        }
+        if (data.description) {
+          setDescription(data.description);
+        }
+        if (data.birthday) {
+          setBirthday(data.birthday);
+        }
+        if (data.region) {
+          setRegion(data.region);
+        }
+        if (data.country) {
+          setCountry(data.country);
         }
       }
     };
@@ -81,6 +101,10 @@ export const LocalUserProvider = ({ children }) => {
           setSurname(localUser.surname);
           setEmail(localUser.email);
           setHandle(localUser.handle);
+          setDescription(localUser.description);
+          setBirthday(localUser.birthday);
+          setRegion(localUser.region);
+          setCountry(localUser.country);
         }
       } catch (e) {
         // ignora errori e continua il polling
@@ -104,6 +128,10 @@ export const LocalUserProvider = ({ children }) => {
         email,
         handle,
         username: handle,
+        description,
+        birthday,
+        region,
+        country,
         isLoading,
       }}
     >
