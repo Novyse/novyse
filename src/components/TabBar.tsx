@@ -1,6 +1,18 @@
-import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useEffect } from "react";
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  LayoutChangeEvent,
+} from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  useDerivedValue,
+  useAnimatedReaction,
+} from "react-native-reanimated";
 
 import { useThemeContext } from "@/context/ThemeContext";
 
@@ -13,9 +25,52 @@ const TabBar: React.FC<BottomTabBarProps> = ({
 }) => {
   const { theme } = useThemeContext();
 
+  const visibleRoutes = state.routes.filter((route) => {
+    const { options } = descriptors[route.key];
+    return !!options.tabBarIcon;
+  });
+
+  const numTabs = visibleRoutes.length;
+  const translateX = useSharedValue(0);
+  const containerWidth = useSharedValue(0);
+
+  const tabWidth = useDerivedValue(() =>
+    containerWidth.value > 0 ? (containerWidth.value - 10) / numTabs : 0,
+  );
+
+  const activeVisibleIndex = useDerivedValue(() => {
+    return state.index;
+  });
+
+  // Niente useEffect — reagisce direttamente ai cambiamenti
+  useAnimatedReaction(
+    () => activeVisibleIndex.value * tabWidth.value,
+    (target) => {
+      translateX.value = withSpring(target, { damping: 70, stiffness: 1200 });
+    },
+  );
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+    width: tabWidth.value,
+  }));
+
+  const onLayout = (event: LayoutChangeEvent) => {
+    containerWidth.value = event.nativeEvent.layout.width;
+  };
+
   return (
     <View style={styles.container}>
-      <BlurredView intensity={50} tint="dark" style={styles.blurredContainer}>
+      <BlurredView
+        intensity={60}
+        tint="dark"
+        style={styles.blurredContainer}
+        onLayout={onLayout}
+      >
+        {numTabs > 0 && containerWidth.value > 0 && (
+          <Animated.View style={[styles.indicator, animatedStyle]} />
+        )}
+
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
@@ -47,17 +102,17 @@ const TabBar: React.FC<BottomTabBarProps> = ({
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
               accessibilityLabel={options.tabBarAccessibilityLabel}
-              testID={options.tabBarTestID}
+              testID={(options as any).tabBarTestID}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={[styles.tabButton, isFocused && styles.activeTab]}
+              style={styles.tabButton}
+              activeOpacity={0.7}
             >
-              {options.tabBarIcon &&
-                options.tabBarIcon({
-                  focused: isFocused,
-                  color: isFocused ? "#ffffff" : "#cccccc",
-                  size: 24,
-                })}
+              {options.tabBarIcon({
+                focused: isFocused,
+                color: isFocused ? "#ffffff" : "#aaaaaa",
+                size: 24,
+              })}
             </TouchableOpacity>
           );
         })}
@@ -76,7 +131,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     height: 60,
     minWidth: 200,
-    maxWidth: 300,
+    maxWidth: 230,
   },
   blurredContainer: {
     flex: 1,
@@ -88,16 +143,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     padding: 5,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   tabButton: {
     flex: 1,
+    height: "100%",
     justifyContent: "center",
     alignItems: "center",
+    zIndex: 1,
   },
-  activeTab: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: 30,
-    width: "50%",
-    height: "100%",
+  indicator: {
+    position: "absolute",
+    left: 5,
+    height: 50, // container 60 - padding 5*2
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: 25,
   },
 });

@@ -2,7 +2,7 @@ import { View, StyleSheet } from "react-native";
 
 import { Tabs } from "expo-router";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext, Theme } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 
 import TabBar from "@/src/components/TabBar";
@@ -19,6 +19,7 @@ export default function TabsLayout() {
         tabBar={(props) => <TabBar {...props} />}
         screenOptions={{
           sceneStyle: { backgroundColor: theme.backgroundMainGradient[0] },
+          animation: "shift",
         }}
       >
         <Tabs.Screen
@@ -57,7 +58,7 @@ export default function TabsLayout() {
   );
 }
 
-function createStyle(theme, isSmallScreen) {
+function createStyle(theme: Theme, isSmallScreen: boolean) {
   return StyleSheet.create({
     blurredContainer: {
       flex: 1,
