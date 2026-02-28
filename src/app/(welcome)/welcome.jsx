@@ -17,9 +17,10 @@ import {
 } from "react-native-keyboard-controller";
 
 import { useScreen } from "@/context/ScreenContext";
+import { useAuth } from "@/context/AuthContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
-import {validate} from "@/src/utils/welcome/validator";
+import { validate } from "@/src/utils/welcome/validator";
 
 import QRCode from "react-native-qrcode-svg";
 import { LinearGradient } from "expo-linear-gradient";
@@ -54,6 +55,7 @@ const EmailCheckForm = () => {
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const router = useRouter();
+  const { refreshLoginStatus } = useAuth();
 
   useEffect(() => {
     let pollingInterval;
@@ -85,6 +87,7 @@ const EmailCheckForm = () => {
               if (scanned) {
                 // QR code scanned, save tokens and navigate
                 if (await auth.initializeApp()) {
+                  await refreshLoginStatus();
                   router.replace("/app");
                 }
 
@@ -132,7 +135,7 @@ const EmailCheckForm = () => {
     };
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
-      backAction
+      backAction,
     );
     return () => backHandler.remove();
   }, []);
