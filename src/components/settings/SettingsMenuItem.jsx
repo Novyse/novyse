@@ -8,20 +8,16 @@ import Icon from "@/src/components/Icon";
 
 import { detailsNavigator } from "@/src/utils/navigation/ref";
 
-const SettingsMenuItem = ({ navToPage, pageName, iconName, onPress }) => {
+const SettingsMenuItem = ({ navToPage, pageName, iconName }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   const handlePress = () => {
-    if (onPress) {
-      onPress();
-    } else if (navToPage) {
       // internal page (starts with ./) -> push into settings stack
       if (navToPage.startsWith("./")) {
         const page = navToPage.replace("./", "");
         detailsNavigator.navigate(page);
       }
-    }
   };
 
   return (
