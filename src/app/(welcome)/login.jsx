@@ -17,7 +17,7 @@ import {
 } from "react-native-keyboard-controller";
 
 import { useScreen } from "@/context/ScreenContext";
-import {useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 import auth from "@/src/utils/welcome/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -27,7 +27,7 @@ import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 import MyStatusBar from "@/src/components/MyStatusBar";
 
-import {validate} from "@/src/utils/welcome/validator";
+import { validate } from "@/src/utils/welcome/validator";
 
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
@@ -43,19 +43,17 @@ const LoginPassword = () => {
 
   const { isSmallScreen } = useScreen();
   const { refreshLoginStatus } = useAuth();
-  
 
   const styles = createStyle(loginTheme, isSmallScreen);
 
   useEffect(() => {
-
     const backAction = () => {
       router.navigate("/");
       return true;
     };
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
-      backAction
+      backAction,
     );
     return () => backHandler.remove();
   }, []);
@@ -96,7 +94,7 @@ const LoginPassword = () => {
       } else {
         if (!twofa) {
           if (await auth.initializeApp()) {
-            await refreshLoginStatus(); 
+            await refreshLoginStatus();
             router.replace("/app");
           }
         } else {
@@ -138,7 +136,7 @@ const LoginPassword = () => {
 
       if (resetPassword) {
         setSuccessMessage(
-          "If the email exists, you will receive instructions to reset your password."
+          "If the email exists, you will receive instructions to reset your password.",
         );
       } else {
         setError("Unable to send reset instructions.");
@@ -209,10 +207,18 @@ const LoginPassword = () => {
               </View>
               {/* Container per i pulsanti Back e Login */}
               <View style={styles.buttonContainer}>
-                <WelcomeButton type={"back"} onPress={handleBack} disabled={isLoading}>
+                <WelcomeButton
+                  type={"back"}
+                  onPress={handleBack}
+                  disabled={isLoading}
+                >
                   <WelcomeButtonText type={"back"} />
                 </WelcomeButton>
-                <WelcomeButton type={"submit"} onPress={handleLogin} disabled={isLoading}>
+                <WelcomeButton
+                  type={"submit"}
+                  onPress={handleLogin}
+                  disabled={isLoading}
+                >
                   <WelcomeButtonText type={"submit"} />
                 </WelcomeButton>
               </View>
