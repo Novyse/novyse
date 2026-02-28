@@ -5,7 +5,6 @@ import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
 
 import { ThemeContext } from "@/context/ThemeContext";
-import { LocalUserContext } from "@/context/LocalUserContext";
 
 const MainHeader = ({
   chatUUIDorHandle,
@@ -44,26 +43,23 @@ const MainHeader = ({
           <Icon
             name="Message02Icon"
             style={styles.iconButton}
-            onPress={() => navigation.navigate("chat", { chatUUIDorHandle })}
+            onPress={() => setContentView("chat")}
           />
         )}
         {contentView !== "vocal" && (
           <Icon
             name="AudioWave01Icon"
             style={styles.iconButton}
-            onPress={() =>
-              navigation.navigate("chat/comms", { chatUUIDorHandle })
-            }
-            //onPress={() => setContentView("vocal")}
+            onPress={() => setContentView("vocal")}
           />
         )}
-        {/* {!isSmallScreen && contentView !== "both" && (
+        {!isSmallScreen && contentView !== "both" && (
           <Icon
             name="BorderVerticalIcon"
             style={styles.iconButton}
             onPress={() => setContentView("both")}
           />
-        )} */}
+        )}
       </View>
     </View>
   );

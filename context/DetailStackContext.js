@@ -16,7 +16,7 @@ export const useDetailStackContext = () => {
   return context;
 };
 
-export const DetailStackProvider = ({ children }) => {
+export const DetailStackProvider = ({ children, ...props }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export const DetailStackProvider = ({ children }) => {
   };
 
   return (
-    <DetailStackContext.Provider value={{ isLoaded, saveState }}>
+    <DetailStackContext.Provider value={{ isLoaded, saveState, ...props }}>
       {children}
     </DetailStackContext.Provider>
   );

@@ -1,17 +1,17 @@
-import React, { useState, useContext, useMemo, useEffect, use } from "react";
+import React, { useState, useContext, useMemo, useEffect } from "react";
 import {
   View,
   StyleSheet,
-  Image,
   Text,
   useWindowDimensions,
+  PanResponder,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
 
 import ChatContent from "@/src/components/chat/content/Chat";
-import Icon from "@/src/components/Icon";
-import BlurredView from "@/src/components/BlurredView";
 import Header from "@/src/components/chat/content/header";
+import VocalContent from "@/src/components/comms/container";
+import { useDetailStackContext } from "@/context/DetailStackContext";
+import useResizerStorage from "@/src/hooks/ui/useResizerStorage";
 
 import { useScreen } from "@/context/ScreenContext";
 import { ChatContext } from "@/context/ChatContext";
@@ -31,8 +31,69 @@ const ChatContainer = ({ navigation, route }) => {
 
   const { theme } = useContext(ThemeContext);
   const { isSmallScreen } = useScreen();
+  const detailStackContext = useDetailStackContext();
+  const setDetailWidth = detailStackContext?.setDetailWidth;
+  const setMinDetailWidth = detailStackContext?.setMinDetailWidth;
 
   const [contentView, setContentView] = useState("chat");
+
+  const [containerWidth, setContainerWidth] = useState(0);
+  const { width } = useWindowDimensions();
+  const [vocalWidth, setVocalWidth] = useResizerStorage(
+    "@novyse_chat_vocal_width",
+    Math.max(350, Math.min(width - 350, width / 2)),
+    350,
+  );
+
+  const vocalWidthRef = React.useRef(vocalWidth);
+  const startVocalWidthRef = React.useRef(vocalWidth);
+
+  useEffect(() => {
+    vocalWidthRef.current = vocalWidth;
+  }, [vocalWidth]);
+
+  useEffect(() => {
+    // Determine effective container width for math, but handle zero-width initialization gracefully
+    const cw = containerWidth || width;
+
+    setVocalWidth((prev) => Math.max(350, Math.min(cw - 350, prev)));
+  }, [containerWidth, width, contentView]);
+
+  useEffect(() => {
+    if (!setMinDetailWidth) return;
+
+    if (contentView === "both") {
+      setMinDetailWidth(700);
+    } else {
+      setMinDetailWidth(400); // Reset to default when leaving split view
+    }
+
+    // Cleanup when component unmounts to ensure we don't lock the app to 700px width forever
+    return () => {
+      setMinDetailWidth(400);
+    };
+  }, [contentView, setMinDetailWidth]);
+
+  const panResponder = React.useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => {
+          startVocalWidthRef.current = vocalWidthRef.current;
+        },
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderMove: (evt, gestureState) => {
+          const cw = containerWidth || width;
+          setVocalWidth(
+            Math.max(
+              350,
+              Math.min(cw - 350, startVocalWidthRef.current - gestureState.dx),
+            ),
+          );
+        },
+      }),
+    [containerWidth, width],
+  );
 
   useEffect(() => {
     if (chatUUIDorHandle) {
@@ -42,6 +103,7 @@ const ChatContainer = ({ navigation, route }) => {
       } else {
         setSelectedHandle(chatUUIDorHandle);
       }
+      setContentView("chat");
     }
   }, [chatUUIDorHandle, setSelectedChatUUID, setSelectedHandle]);
 
@@ -79,19 +141,63 @@ const ChatContainer = ({ navigation, route }) => {
     );
   }
 
+  const handleSetContentView = (view) => {
+    if (view === "both" && setDetailWidth) {
+      const cw = containerWidth || width;
+      if (cw < 700) {
+        // Force parent layout detail panel to expand to 700px
+        setDetailWidth(Math.max(700, Math.min(width - 400, width * (2 / 3))));
+      }
+    }
+    setContentView(view);
+  };
+
   const renderContent = () => {
     switch (contentView) {
       case "vocal":
-        // return <VocalContent />;
+        return (
+          <VocalContent
+            navigation={navigation}
+            chatUUIDorHandle={chatUUIDorHandle}
+          />
+        );
       case "both":
         return (
-          <View style={styles.splitContainer}>
-            <View style={styles.splitPanel}>
+          <View
+            style={styles.splitContainer}
+            onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+          >
+            <View style={{ flex: 1, height: "100%", minWidth: 350 }}>
               <ChatContent onBack={onBack} contentView="chat" />
             </View>
-            <View style={styles.splitSeparator} />
-            <View style={styles.splitPanel}>
-              {/* <VocalContent /> */}
+            <View
+              style={{
+                width: vocalWidth,
+                minWidth: 350,
+                height: "100%",
+                position: "relative",
+              }}
+            >
+              <View
+                style={{
+                  position: "absolute",
+                  left: -10,
+                  top: 0,
+                  bottom: 0,
+                  width: 20,
+                  backgroundColor: "transparent",
+                  cursor: "ew-resize",
+                  zIndex: 10,
+                  alignItems: "center",
+                }}
+                {...panResponder.panHandlers}
+              >
+                <View style={styles.splitSeparator} />
+              </View>
+              <VocalContent
+                navigation={navigation}
+                chatUUIDorHandle={chatUUIDorHandle}
+              />
             </View>
           </View>
         );
@@ -108,7 +214,7 @@ const ChatContainer = ({ navigation, route }) => {
         selectedChatName={selectedChatName}
         selectedChatPictureUUID={selectedChatPictureUUID}
         contentView={contentView}
-        setContentView={setContentView}
+        setContentView={handleSetContentView}
         navigation={navigation}
         isSmallScreen={isSmallScreen}
         onBack={onBack}
