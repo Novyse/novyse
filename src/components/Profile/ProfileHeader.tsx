@@ -37,6 +37,7 @@ export default function ProfileHeader({
         theme={theme}
         isOnline={isOnline}
         onEdit={onEditAvatar}
+        // style={styles.avatar}
       />
 
       <Text style={styles.nameSurnameText}>
@@ -66,6 +67,11 @@ const createStyles = (theme: any) =>
       backgroundColor: theme.backgroundCard,
       borderRadius: 999,
       padding: 6,
+    },
+    avatar: {
+      borderColor: "#123367",
+      borderWidth: 5,
+      backgroundColor: "#123367",
     },
     nameSurnameText: {
       fontSize: 24,
