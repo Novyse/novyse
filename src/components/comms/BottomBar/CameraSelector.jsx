@@ -6,7 +6,7 @@ import { Room } from "livekit-client";
 
 import { useThemeContext } from "@/context/ThemeContext";
 
-import ModalBase from "@/src/components/modals/ModalBase";
+import ModalBase from "../../modalSheets/ModalBase";
 import Icon from "@/src/components/Icon";
 
 const CameraSelector = ({

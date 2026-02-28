@@ -17,7 +17,7 @@ import Animated, {
   clamp,
   runOnJS,
 } from "react-native-reanimated";
-import ModalBase from "@/src/components/modals/ModalBase";
+import ModalBase from "../ModalBase";
 import { useScreen } from "@/context/ScreenContext";
 
 const ImageViewer = ({ visible, onClose, uri, theme }) => {

@@ -6,7 +6,7 @@ import { LocalUserContext } from "@/context/LocalUserContext";
 
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import ScreenLayout from "@/src/components/ScreenLayout";
-import UploadProfilePicture from "@/src/components/modals/UploadProfilePicture";
+import UploadProfilePicture from "@/src/components/modalSheets/UploadProfilePicture";
 
 import Page from "@/src/components/settings/account/modify-profile/Page";
 

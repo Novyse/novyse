@@ -5,7 +5,7 @@ import useUriResolver from "@/src/hooks/file/useUriResolver";
 import { ThemeContext } from "@/context/ThemeContext";
 import { formatDuration } from "@/src/utils/storage/file/utils";
 import FileButton from "@/src/components/messages/Button";
-import VideoViewer from "@/src/components/modals/viewer/VideoViewer";
+import VideoViewer from "@/src/components/modalSheets/viewer/VideoViewer";
 
 const Video = ({ fileRef, uuid, duration, isSingle }) => {
   const { uri } = useUriResolver(fileRef);
@@ -26,31 +26,38 @@ const Video = ({ fileRef, uuid, duration, isSingle }) => {
 
   return (
     <>
-    <Pressable onPress={handlePress} style={styles.container}>
-      <View pointerEvents="none" style={styles.videoWrapper}>
-        {uri && (
-          <VideoView
-            player={player}
-            style={styles.video}
-            contentFit="cover"
-            nativeControls={false}
-          />
-        )}
-      </View>
-      <View style={StyleSheet.absoluteFill}>
-        <View style={styles.overlay}>
-          <FileButton
-            uuid={uuid}
-            isAvailable={!!fileRef}
-            isReady={!!uri}
-            type={"VIDEO"}
-            handleDefaultPress={handlePress}
-          />
+      <Pressable onPress={handlePress} style={styles.container}>
+        <View pointerEvents="none" style={styles.videoWrapper}>
+          {uri && (
+            <VideoView
+              player={player}
+              style={styles.video}
+              contentFit="cover"
+              nativeControls={false}
+            />
+          )}
         </View>
-      </View>
-      <Text style={styles.duration} selectable={false}>{formatDuration(duration)}</Text>
-    </Pressable>
-    <VideoViewer visible={visible} onClose={() => setVisible(false)} uri={uri} theme={theme} />
+        <View style={StyleSheet.absoluteFill}>
+          <View style={styles.overlay}>
+            <FileButton
+              uuid={uuid}
+              isAvailable={!!fileRef}
+              isReady={!!uri}
+              type={"VIDEO"}
+              handleDefaultPress={handlePress}
+            />
+          </View>
+        </View>
+        <Text style={styles.duration} selectable={false}>
+          {formatDuration(duration)}
+        </Text>
+      </Pressable>
+      <VideoViewer
+        visible={visible}
+        onClose={() => setVisible(false)}
+        uri={uri}
+        theme={theme}
+      />
     </>
   );
 };

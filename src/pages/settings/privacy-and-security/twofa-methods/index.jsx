@@ -5,7 +5,7 @@ import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import Icon from "@/src/components/Icon";
 import SettingsButton from "@/src/components/settings/SettingsButton";
-import ModalBackupCodes from "@/src/components/modals/ModalBackupCodes";
+import ModalBackupCodes from "@/src/components/modalSheets/ModalBackupCodes";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import ModalVerifyMethod from "@/src/components/settings/account/privacy-and-security/verify-method";
 import StatusMessage from "@/src/components/StatusMessage";

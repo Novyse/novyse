@@ -1,4 +1,11 @@
-import React, { useState, useContext } from "react";
+import React, {
+  useState,
+  useContext,
+  useMemo,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+} from "react";
 import {
   View,
   Text,
@@ -6,6 +13,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   useWindowDimensions,
+  Platform,
 } from "react-native";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 
@@ -14,6 +22,7 @@ import { useRouter } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
 
 import ModalBase from "../ModalBase";
+import BottomSheetBase from "../BottomSheetBase";
 import SelectButton from "./Button";
 import StatusMessage from "../../StatusMessage";
 import Icon from "@/src/components/Icon";
@@ -22,10 +31,11 @@ import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import { validate } from "@/src/utils/welcome/validator";
 
-const CreateChatModal = ({ visible, onClose }) => {
+const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
   const { theme } = useContext(ThemeContext);
   const { width } = useWindowDimensions();
   const isNarrow = width <= 360;
+  const isMobile = Platform.OS !== "web";
   const styles = createStyle(theme, isNarrow);
 
   const router = useRouter();
@@ -45,6 +55,22 @@ const CreateChatModal = ({ visible, onClose }) => {
   // Error States
   const [handleError, setHandleError] = useState(null);
   const [nameError, setNameError] = useState(null);
+
+  const bottomSheetModalRef = useRef(null);
+  const snapPoints = useMemo(() => ["85%"], []);
+
+  useImperativeHandle(ref, () => ({
+    present: () => {
+      if (isMobile) {
+        bottomSheetModalRef.current?.present();
+      }
+    },
+    dismiss: () => {
+      if (isMobile) {
+        bottomSheetModalRef.current?.dismiss();
+      }
+    },
+  }));
 
   const resetFields = () => {
     setName("");
@@ -158,7 +184,11 @@ const CreateChatModal = ({ visible, onClose }) => {
       console.info("Chat created successfully", chat);
 
       resetFields();
-      onClose();
+      if (isMobile) {
+        bottomSheetModalRef.current?.dismiss();
+      } else {
+        onClose();
+      }
 
       // Notify other parts of the app about the new chat
       await eventEmitter.newChat(chat);
@@ -169,6 +199,201 @@ const CreateChatModal = ({ visible, onClose }) => {
     }
   };
 
+  const ModalContent = (
+    <View style={styles.contentContainer}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.modalTitle}>Create New Chat</Text>
+          <Text style={styles.modalSubtitle}>
+            Configure your new chat space settings below.
+          </Text>
+        </View>
+      </View>
+
+      {/* Chat Identity */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>CHAT IDENTITY</Text>
+        <Text style={styles.inputLabel}>Chat Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g., Novyse News"
+          placeholderTextColor="#8F90A6"
+          value={name}
+          onChangeText={handleNameChange}
+        />
+        <Text style={styles.helperText}>
+          This is the name that will be visible to your members.
+        </Text>
+      </View>
+
+      {/* Communication Style */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>COMMUNICATION STYLE</Text>
+        <View style={styles.cardsRow}>
+          <SelectButton
+            id="GROUP"
+            icon="UserGroupIcon"
+            title="Group"
+            subtitle="Best for small teams & friends."
+            selected={type}
+            onSelect={setType}
+            theme={theme}
+          />
+          <SelectButton
+            id="CHANNEL"
+            icon="Megaphone03Icon"
+            title="Channel"
+            subtitle="Broadcast to unlimited audiences."
+            selected={type}
+            onSelect={setType}
+            theme={theme}
+            disabled={true}
+          />
+          <SelectButton
+            id="FORUM"
+            icon="Comment01Icon"
+            title="Forum"
+            subtitle="Organized discussions by topic."
+            selected={type}
+            onSelect={setType}
+            theme={theme}
+            disabled={true}
+          />
+        </View>
+      </View>
+
+      {/* Privacy Settings */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>PRIVACY SETTINGS</Text>
+        <View style={styles.toggleContainer}>
+          <HoverAndPressedButton
+            style={[
+              styles.toggleBtn,
+              privacy === "PRIVATE" && styles.toggleBtnActive,
+            ]}
+            onPress={() => handlePrivacyChange("PRIVATE")}
+          >
+            <Icon
+              name="SquareLock02Icon"
+              size={16}
+              color={privacy === "PRIVATE" ? "#FFF" : "#8F90A6"}
+            />
+            <Text
+              style={[
+                styles.toggleText,
+                privacy === "PRIVATE" && styles.textWhite,
+              ]}
+            >
+              Private
+            </Text>
+          </HoverAndPressedButton>
+
+          <HoverAndPressedButton
+            style={[
+              styles.toggleBtn,
+              privacy === "PUBLIC" && styles.toggleBtnActive,
+            ]}
+            onPress={() => handlePrivacyChange("PUBLIC")}
+          >
+            <Icon
+              name="Globe02Icon"
+              size={16}
+              color={privacy === "PUBLIC" ? "#FFF" : "#8F90A6"}
+            />
+            <Text
+              style={[
+                styles.toggleText,
+                privacy === "PUBLIC" && styles.textWhite,
+              ]}
+            >
+              Public
+            </Text>
+          </HoverAndPressedButton>
+        </View>
+      </View>
+
+      {/* Chat Handle */}
+      {privacy === "PUBLIC" && (
+        <View style={styles.section}>
+          <Text style={styles.inputLabel}>Chat Handle</Text>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.prefix}>@</Text>
+            <TextInput
+              style={styles.inputWithPrefix}
+              placeholder="your-handle"
+              placeholderTextColor="#8F90A6"
+              value={handle}
+              onChangeText={handleHandleChange}
+            />
+            {isHandleLoading ? (
+              <ActivityIndicator
+                size="small"
+                color={theme.icon}
+                style={styles.loader}
+              />
+            ) : handleAvailability === true ? (
+              <Icon name="Tick02Icon" size={20} color="#27AE60" />
+            ) : handleAvailability === false ? (
+              <Icon name="MultiplicationSignIcon" size={20} color="#E74C3C" />
+            ) : null}
+          </View>
+          <Text style={styles.helperText}>
+            People can find your chat using this handle.
+          </Text>
+        </View>
+      )}
+
+      {/* Error Messages */}
+      <StatusMessage
+        type="error"
+        visible={!!(nameError || handleError)}
+        content={[nameError, handleError].filter(Boolean)}
+        onClose={() => {
+          nameError && setNameError(null);
+          handleError && setHandleError(null);
+        }}
+        theme={theme}
+      />
+
+      {/* Footer */}
+      <View style={[styles.footer, isNarrow && styles.footerNarrow]}>
+        <HoverAndPressedButton
+          onPress={() => {
+            if (isMobile) {
+              bottomSheetModalRef.current?.dismiss();
+            } else {
+              onClose();
+            }
+          }}
+          style={[styles.cancelBtn, isNarrow && styles.cancelBtnNarrow]}
+        >
+          <Text style={styles.cancelBtnText}>Cancel</Text>
+        </HoverAndPressedButton>
+        <HoverAndPressedButton
+          style={[styles.createBtn, isNarrow && styles.createBtnNarrow]}
+          onPress={handleCreateChat}
+        >
+          <Icon name="PlusSignIcon" size={18} color="#FFF" />
+          <Text style={styles.createBtnText}>Create Chat</Text>
+        </HoverAndPressedButton>
+      </View>
+    </View>
+  );
+
+  if (isMobile) {
+    return (
+      <BottomSheetBase
+        ref={bottomSheetModalRef}
+        snapPoints={snapPoints}
+        onClose={onClose}
+        theme={theme}
+      >
+        {ModalContent}
+      </BottomSheetBase>
+    );
+  }
+
   return (
     <ModalBase
       visible={visible}
@@ -176,182 +401,10 @@ const CreateChatModal = ({ visible, onClose }) => {
       theme={theme}
       hideCloseX={true}
     >
-      <View style={styles.contentContainer}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.modalTitle}>Create New Chat</Text>
-            <Text style={styles.modalSubtitle}>
-              Configure your new chat space settings below.
-            </Text>
-          </View>
-        </View>
-
-        {/* Chat Identity */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>CHAT IDENTITY</Text>
-          <Text style={styles.inputLabel}>Chat Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g., Novyse News"
-            placeholderTextColor="#8F90A6"
-            value={name}
-            onChangeText={handleNameChange}
-          />
-          <Text style={styles.helperText}>
-            This is the name that will be visible to your members.
-          </Text>
-        </View>
-
-        {/* Communication Style */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>COMMUNICATION STYLE</Text>
-          <View style={styles.cardsRow}>
-            <SelectButton
-              id="GROUP"
-              icon="UserGroupIcon"
-              title="Group"
-              subtitle="Best for small teams & friends."
-              selected={type}
-              onSelect={setType}
-              theme={theme}
-            />
-            <SelectButton
-              id="CHANNEL"
-              icon="Megaphone03Icon"
-              title="Channel"
-              subtitle="Broadcast to unlimited audiences."
-              selected={type}
-              onSelect={setType}
-              theme={theme}
-              disabled={true}
-            />
-            <SelectButton
-              id="FORUM"
-              icon="Comment01Icon"
-              title="Forum"
-              subtitle="Organized discussions by topic."
-              selected={type}
-              onSelect={setType}
-              theme={theme}
-              disabled={true}
-            />
-          </View>
-        </View>
-
-        {/* Privacy Settings */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>PRIVACY SETTINGS</Text>
-          <View style={styles.toggleContainer}>
-            <HoverAndPressedButton
-              style={[
-                styles.toggleBtn,
-                privacy === "PRIVATE" && styles.toggleBtnActive,
-              ]}
-              onPress={() => handlePrivacyChange("PRIVATE")}
-            >
-              <Icon
-                name="SquareLock02Icon"
-                size={16}
-                color={privacy === "PRIVATE" ? "#FFF" : "#8F90A6"}
-              />
-              <Text
-                style={[
-                  styles.toggleText,
-                  privacy === "PRIVATE" && styles.textWhite,
-                ]}
-              >
-                Private
-              </Text>
-            </HoverAndPressedButton>
-
-            <HoverAndPressedButton
-              style={[
-                styles.toggleBtn,
-                privacy === "PUBLIC" && styles.toggleBtnActive,
-              ]}
-              onPress={() => handlePrivacyChange("PUBLIC")}
-            >
-              <Icon
-                name="Globe02Icon"
-                size={16}
-                color={privacy === "PUBLIC" ? "#FFF" : "#8F90A6"}
-              />
-              <Text
-                style={[
-                  styles.toggleText,
-                  privacy === "PUBLIC" && styles.textWhite,
-                ]}
-              >
-                Public
-              </Text>
-            </HoverAndPressedButton>
-          </View>
-        </View>
-
-        {/* Chat Handle */}
-        {privacy === "PUBLIC" && (
-          <View style={styles.section}>
-            <Text style={styles.inputLabel}>Chat Handle</Text>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.prefix}>@</Text>
-              <TextInput
-                style={styles.inputWithPrefix}
-                placeholder="your-handle"
-                placeholderTextColor="#8F90A6"
-                value={handle}
-                onChangeText={handleHandleChange}
-              />
-              {isHandleLoading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={theme.icon}
-                  style={styles.loader}
-                />
-              ) : handleAvailability === true ? (
-                <Icon name="Tick02Icon" size={20} color="#27AE60" />
-              ) : handleAvailability === false ? (
-                <Icon name="MultiplicationSignIcon" size={20} color="#E74C3C" />
-              ) : null}
-            </View>
-            <Text style={styles.helperText}>
-              People can find your chat using this handle.
-            </Text>
-          </View>
-        )}
-
-        {/* Error Messages */}
-        <StatusMessage
-          type="error"
-          visible={!!(nameError || handleError)}
-          content={[nameError, handleError].filter(Boolean)}
-          onClose={() => {
-            nameError && setNameError(null);
-            handleError && setHandleError(null);
-          }}
-          theme={theme}
-        />
-
-        {/* Footer */}
-        <View style={[styles.footer, isNarrow && styles.footerNarrow]}>
-          <HoverAndPressedButton
-            onPress={() => onClose()}
-            style={[styles.cancelBtn, isNarrow && styles.cancelBtnNarrow]}
-          >
-            <Text style={styles.cancelBtnText}>Cancel</Text>
-          </HoverAndPressedButton>
-          <HoverAndPressedButton
-            style={[styles.createBtn, isNarrow && styles.createBtnNarrow]}
-            onPress={handleCreateChat}
-          >
-            <Icon name="PlusSignIcon" size={18} color="#FFF" />
-            <Text style={styles.createBtnText}>Create Chat</Text>
-          </HoverAndPressedButton>
-        </View>
-      </View>
+      {ModalContent}
     </ModalBase>
   );
-};
+});
 
 function createStyle(theme, isNarrow = false) {
   return StyleSheet.create({
@@ -517,6 +570,18 @@ function createStyle(theme, isNarrow = false) {
       fontWeight: "600",
       marginLeft: 4,
       textAlign: "center",
+    },
+    bottomSheetBackground: {
+      backgroundColor: theme.backgroundModal,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+    },
+    handleIndicator: {
+      backgroundColor: theme.iconSecondary,
+      width: 40,
+    },
+    bottomSheetView: {
+      flex: 1,
     },
   });
 }

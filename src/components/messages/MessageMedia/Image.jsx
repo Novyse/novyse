@@ -4,7 +4,7 @@ import { Image as ExpoImage } from "expo-image";
 import { ThemeContext } from "@/context/ThemeContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import FileButton from "@/src/components/messages/Button";
-import ImageViewer from "@/src/components/modals/viewer/ImageViewer";
+import ImageViewer from "@/src/components/modalSheets/viewer/ImageViewer";
 
 const Image = ({ fileRef, uuid, isSingle }) => {
   const { uri } = useUriResolver(fileRef);

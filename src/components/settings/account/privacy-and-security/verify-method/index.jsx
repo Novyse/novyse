@@ -16,7 +16,7 @@ import OtpDigitsInput from "@/src/components/OtpDigitsInput";
 import StatusMessage from "@/src/components/StatusMessage";
 import logoForQR from "@/assets/images/logo-novyse.png";
 
-import ModalBase from "@/src/components/modals/ModalBase";
+import ModalBase from "@/src/components/modalSheets/ModalBase";
 
 const ModalVerifyMethod = ({
   visible,

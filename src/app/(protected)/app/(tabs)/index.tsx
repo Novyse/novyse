@@ -1,4 +1,10 @@
-import React, { useState, useContext, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useContext,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import {
   View,
   Text,
@@ -19,7 +25,7 @@ import BlurredHeader from "@/src/components/BlurredHeader";
 import Avatar from "@/src/components/Avatar";
 import ChatListItem from "@/src/components/chat/list/Item";
 import FloatingButton from "@/src/components/FloatingButton";
-import CreateChatModal from "@/src/components/modals/createChat";
+import CreateChatModal from "@/src/components/modalSheets/createChat";
 
 import useChats from "@/src/hooks/chat/useChats";
 import { LocalUserContext } from "@/context/LocalUserContext";
@@ -53,6 +59,7 @@ const ChatList = () => {
 
   const [isCreateChatModalVisible, setIsCreateChatModalVisible] =
     useState(false);
+  const createChatModalRef = useRef(null);
 
   useEffect(() => {
     const organizeChats = async () => {
@@ -110,7 +117,7 @@ const ChatList = () => {
         PINNED_CHATS_STORAGE_KEY,
         JSON.stringify(newOrderedList.map((chat) => chat.uuid)),
       );
-    } catch (e) { }
+    } catch (e) {}
     setSelectedItems([]);
   };
 
@@ -169,7 +176,13 @@ const ChatList = () => {
       />
 
       <FloatingButton
-        onPress={() => setIsCreateChatModalVisible(true)}
+        onPress={() => {
+          if (Platform.OS !== "web") {
+            createChatModalRef.current?.present();
+          } else {
+            setIsCreateChatModalVisible(true);
+          }
+        }}
         iconName="ChatAddIcon"
         size={isSmallScreen ? 16 : 24}
         width={isSmallScreen ? 45 : 60}
@@ -178,6 +191,7 @@ const ChatList = () => {
       />
 
       <CreateChatModal
+        ref={createChatModalRef}
         visible={isCreateChatModalVisible}
         onClose={() => setIsCreateChatModalVisible(false)}
       />

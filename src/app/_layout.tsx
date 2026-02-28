@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Stack } from "expo-router";
 
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 import { ScreenProvider } from "@/context/ScreenContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -29,33 +31,40 @@ function RootLayoutContent() {
   }, []);
 
   return (
-    <KeyboardProvider>
-      <ScreenProvider>
-        <ThemeProvider>
-          <LanguageProvider>
-            <Stack>
-              <Stack.Protected guard={isLoggedIn}>
-                <Stack.Screen
-                  name="(protected)"
-                  options={{ headerShown: false }}
-                />
-              </Stack.Protected>
-              <Stack.Protected guard={!isLoggedIn}>
-                <Stack.Screen
-                  name="(welcome)"
-                  options={{ headerShown: false }}
-                />
-              </Stack.Protected>
-              <Stack.Screen name="profile" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="+not-found"
-                options={{ headerShown: false }}
-              />
-            </Stack>
-          </LanguageProvider>
-        </ThemeProvider>
-      </ScreenProvider>
-    </KeyboardProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <KeyboardProvider>
+        <ScreenProvider>
+          <ThemeProvider>
+            <LanguageProvider>
+              <BottomSheetModalProvider>
+                <Stack>
+                  <Stack.Protected guard={isLoggedIn}>
+                    <Stack.Screen
+                      name="(protected)"
+                      options={{ headerShown: false }}
+                    />
+                  </Stack.Protected>
+                  <Stack.Protected guard={!isLoggedIn}>
+                    <Stack.Screen
+                      name="(welcome)"
+                      options={{ headerShown: false }}
+                    />
+                  </Stack.Protected>
+                  <Stack.Screen
+                    name="profile"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="+not-found"
+                    options={{ headerShown: false }}
+                  />
+                </Stack>
+              </BottomSheetModalProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </ScreenProvider>
+      </KeyboardProvider>
+    </GestureHandlerRootView>
   );
 }
 

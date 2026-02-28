@@ -44,7 +44,7 @@ import BottomBar from "@/src/components/chat/content/bottomBar";
 import MessageList from "@/src/components/chat/content/MessageList";
 import UploadFileOverlay from "@/src/components/chat/content/UploadFileOverlay";
 
-import UploadFileModal from "@/src/components/modals/uploadFile";
+import UploadFileModal from "@/src/components/modalSheets/uploadFile";
 
 const ChatContent = ({ onBack, contentView }) => {
   const router = useRouter();

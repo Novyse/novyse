@@ -24,7 +24,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { getPlatform } from "@/src/utils/device/type";
-import ModalBase from "@/src/components/modals/ModalBase";
+import ModalBase from "../ModalBase";
 import { useScreen } from "@/context/ScreenContext";
 
 const formatTime = (seconds) => {
@@ -307,7 +307,8 @@ const createStyle = (
       backgroundColor: "#000",
       overflow: "hidden",
       minWidth: isSmallScreen || isFullScreen ? screenWidth : screenWidth * 0.9,
-      minHeight: isSmallScreen || isFullScreen ? screenHeight : screenHeight * 0.9,
+      minHeight:
+        isSmallScreen || isFullScreen ? screenHeight : screenHeight * 0.9,
     },
     videoContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
     video: {
