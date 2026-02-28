@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import CommsMembersLayout from "@/src/components/comms/CommsMembersLayout";
 import CommsBottomBar from "@/src/components/comms/BottomBar";
@@ -9,20 +9,13 @@ import { ChatContext } from "@/context/ChatContext";
 
 import useCommsData from "@/src/hooks/comms/useCommsData";
 
-import Header from "@/src/components/chat/content/header";
-
-const VocalContent = ({ navigation, route }) => {
-  const { chatUUIDorHandle } = route.params || {};
+const VocalContent = ({ navigation, chatUUIDorHandle }) => {
   const {
     selectedChatUUID,
     setSelectedChatUUID,
     selectedHandle,
     setSelectedHandle,
-    selectedChatName,
-    selectedChatPictureUUID,
   } = useContext(ChatContext);
-
-  const onBack = () => navigation.goBack();
 
   useEffect(() => {
     if (chatUUIDorHandle) {
@@ -41,21 +34,17 @@ const VocalContent = ({ navigation, route }) => {
   const { room, participants } = useCommsData(chatUUIDorHandle, 0);
 
   return (
-    <>
-      <Header
-        chatUUIDorHandle={chatUUIDorHandle}
-        selectedChatName={selectedChatName}
-        selectedChatPictureUUID={selectedChatPictureUUID}
-        contentView="vocal"
-        navigation={navigation}
-        onBack={onBack}
-      />
+    <View style={{ flex: 1 }}>
       <CommsMembersLayout participants={participants} room={room} />
 
       {selectedChatUUID && (
-        <CommsBottomBar chatUUID={selectedChatUUID} sub={0} navigation={navigation}/>
+        <CommsBottomBar
+          chatUUID={selectedChatUUID}
+          sub={0}
+          navigation={navigation}
+        />
       )}
-    </>
+    </View>
   );
 };
 

@@ -10,7 +10,6 @@ import { useDetailStackContext } from "@/context/DetailStackContext";
 
 import EmptyDetail from "@/src/pages/EmptyDetail";
 import ChatContainer from "@/src/components/chat/container";
-import CommsContainer from "@/src/components/comms/container";
 
 import Account from "@/src/pages/settings/account";
 import AccountModify from "@/src/pages/settings/account/modify-profile";
@@ -65,12 +64,6 @@ export default function DetailStack() {
           <Stack.Screen
             name="chat"
             component={ChatContainer}
-            options={{ headerShown: false }}
-          />
-
-          <Stack.Screen
-            name="chat/comms"
-            component={CommsContainer}
             options={{ headerShown: false }}
           />
 

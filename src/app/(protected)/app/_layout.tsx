@@ -9,6 +9,7 @@ import { DetailStackProvider } from "@/context/DetailStackContext";
 
 import { useScreen } from "@/context/ScreenContext";
 import { useNetworkContext } from "@/context/NetworkContext";
+import useResizerStorage from "@/src/hooks/ui/useResizerStorage";
 
 import { detailsNavigator } from "@/src/utils/navigation/ref";
 import queueManager from "@/src/utils/chat/queueManager";
@@ -27,23 +28,52 @@ export default function RootLayout() {
   const { isSmallScreen } = useScreen();
   const { theme } = useThemeContext();
   const { width } = useWindowDimensions();
-  const [detailWidth, setDetailWidth] = useState(
-    Math.max(400, Math.min(width - 400, width * (2 / 3))),
+  const [minDetailWidth, setMinDetailWidth] = useState(400);
+
+  const [detailWidth, setDetailWidth, isStorageReady] = useResizerStorage(
+    "@novyse_layout_detail_width",
+    Math.max(minDetailWidth, Math.min(width - 400, width * (2 / 3))),
+    minDetailWidth,
+  );
+
+  const detailWidthRef = React.useRef(detailWidth);
+  const startWidthRef = React.useRef(detailWidth);
+
+  useEffect(() => {
+    detailWidthRef.current = detailWidth;
+  }, [detailWidth]);
+
+  useEffect(() => {
+    setDetailWidth((prev: number) =>
+      Math.max(minDetailWidth, Math.min(width - 400, prev)),
+    );
+  }, [width, minDetailWidth, setDetailWidth]);
+
+  const panResponder = React.useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => {
+          startWidthRef.current = detailWidthRef.current;
+        },
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderMove: (evt, gestureState) => {
+          setDetailWidth(
+            Math.max(
+              minDetailWidth,
+              Math.min(width - 350, startWidthRef.current - gestureState.dx),
+            ),
+          );
+        },
+      }),
+    [width, minDetailWidth],
   );
 
   useEffect(() => {
-    setDetailWidth(Math.max(400, Math.min(width - 400, width * (2 / 3))));
-  }, [width]);
-
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onPanResponderTerminationRequest: () => false,
-    onPanResponderMove: (evt, gestureState) => {
-      setDetailWidth((prev) =>
-        Math.max(400, Math.min(width - 400, prev - gestureState.dx)),
-      );
-    },
-  });
+    if (detailWidth < minDetailWidth) {
+      setDetailWidth(Math.min(width, minDetailWidth));
+    }
+  }, [minDetailWidth, detailWidth, width, setDetailWidth]);
 
   // Listen for network connectivity changes to trigger queue manager retries
   const { isConnected } = useNetworkContext();
@@ -78,6 +108,14 @@ export default function RootLayout() {
   }
 
   // For larger screens, we show the detail stack in a resizable pane on the right
+  if (!isStorageReady) {
+    return (
+      <View
+        style={{ flex: 1, backgroundColor: theme.backgroundMainGradient[1] }}
+      />
+    );
+  }
+
   return (
     <View
       style={{
@@ -107,7 +145,10 @@ export default function RootLayout() {
           }}
           {...panResponder.panHandlers}
         />
-        <DetailStackProvider>
+        <DetailStackProvider
+          setDetailWidth={setDetailWidth}
+          setMinDetailWidth={setMinDetailWidth}
+        >
           <DetailStack />
         </DetailStackProvider>
       </View>
