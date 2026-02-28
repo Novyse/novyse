@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Image, StyleSheet } from "react-native";
+import { View, Image, StyleSheet, ImageStyle, StyleProp } from "react-native";
 
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
@@ -15,6 +15,7 @@ interface AvatarProps {
   isOnline?: boolean;
   theme: any;
   onEdit?: () => void;
+  style?: StyleProp<ImageStyle>;
 }
 
 const Avatar = ({
@@ -24,6 +25,7 @@ const Avatar = ({
   isOnline = false,
   theme,
   onEdit,
+  style,
 }: AvatarProps) => {
   const styles = createStyles(size, theme);
   const { uri: resolvedUri } = useProfilePicture(uuid, uri);
@@ -33,28 +35,55 @@ const Avatar = ({
   const offset = Math.round(indicatorSize * 0);
 
   const avatarImageContent = (
-    <View style={{ width: size, height: size }}>
+  <View
+    style={[
+      {
+        width: size,
+        height: size,
+        borderRadius: 999,
+      },
+      style, // border va qui, sul wrapper esterno
+    ]}
+  >
+    {/* View interna solo per clippare l'immagine */}
+    <View
+      style={{
+        width: "100%",
+        height: "100%",
+        borderRadius: 999,
+        overflow: "hidden",
+      }}
+    >
       <Image
         key={uuid || uri}
         source={{ uri: resolvedUri }}
-        style={styles.avatar}
+        style={{
+          width: "100%",
+          height: "100%",
+          backgroundColor: "#00000000",
+        }}
       />
-      {isOnline && (
-        <View
-          style={[
-            styles.indicator,
-            {
-              width: indicatorSize,
-              height: indicatorSize,
-              borderRadius: indicatorSize / 2,
-              bottom: -offset,
-              right: -offset,
-            },
-          ]}
-        />
-      )}
     </View>
-  );
+
+    {/* Pallino fuori dal clip, ma dentro il wrapper per il posizionamento */}
+    {isOnline && (
+      <View
+        style={[
+          styles.indicator,
+          {
+            width: indicatorSize,
+            height: indicatorSize,
+            borderRadius: indicatorSize / 2,
+            bottom: -offset,
+            right: -offset,
+            borderWidth: style?.borderWidth || 0,
+            borderColor: style?.borderColor || "#00000000",
+          },
+        ]}
+      />
+    )}
+  </View>
+);
 
   return onEdit ? (
     <HoverAndPressedButton
@@ -76,12 +105,6 @@ const Avatar = ({
 
 const createStyles = (size: number, theme: any) =>
   StyleSheet.create({
-    avatar: {
-      width: size,
-      height: size,
-      borderRadius: 999,
-      backgroundColor: "#00000000",
-    },
     editIconContainer: {
       position: "absolute",
       top: 0,
