@@ -50,7 +50,7 @@ class QueueManager {
         this.isConnected = connected;
         console.log(
           "Connection state changed:",
-          connected ? "connected" : "disconnected"
+          connected ? "connected" : "disconnected",
         );
         if (this.isConnected) {
           this.processQueue();
@@ -95,7 +95,7 @@ class QueueManager {
     message,
     chat,
     id = null,
-    status = "PENDING_SEND"
+    status = "PENDING_SEND",
   ) {
     // No id means no server UUID yet, so generate a UUIDv7
     if (!id) {
@@ -113,7 +113,7 @@ class QueueManager {
     // No chat UUID means chat is being created
     if (!params.chat.uuid) {
       params.status = "CREATING_CHAT";
-      
+
       // Check if chat is already pending creation, to avoid duplicate jobs just add message to pending messages attached to chat creation
       if (await database.isChatPendingCreation(id)) {
         console.log("Chat is already pending creation in queue:", id);
@@ -134,6 +134,7 @@ class QueueManager {
         created_at: undefined,
         senderUUID: message.senderUUID,
         type: message.type,
+        replyTo: message.replyTo,
         files: message.files || [],
         internal: true,
       });
@@ -273,13 +274,13 @@ class QueueManager {
         await Promise.all(
           filesToDownload.map(async (fileToDownload) => {
             const downloadedFile = downloadedFiles.find(
-              (df) => df.uuid === fileToDownload
+              (df) => df.uuid === fileToDownload,
             );
 
             if (downloadedFile && downloadedFile.downloadURL) {
               // Download file from S3 bucket
               const bytes = await S3Uploader.download(
-                downloadedFile.downloadURL
+                downloadedFile.downloadURL,
               );
 
               if (!bytes) {
@@ -298,7 +299,7 @@ class QueueManager {
               // Save file to storage
               const { ref, size } = await storage.save.byBytes(
                 bytes,
-                fileToDownload
+                fileToDownload,
               );
 
               if (!ref || !size || size <= 0) {
@@ -324,7 +325,7 @@ class QueueManager {
 
               const file_type = getFileType(
                 downloadedFile.mimeType,
-                downloadedFile.name
+                downloadedFile.name,
               );
 
               // Calculate duration if media file
@@ -353,7 +354,7 @@ class QueueManager {
             } else {
               throw new Error("Downloaded file info missing");
             }
-          })
+          }),
         );
       } else {
         throw new Error("Message download failed");
@@ -398,7 +399,7 @@ class QueueManager {
       "DM",
       job.params.chat.member,
       null,
-      null
+      null,
     );
     const success = response.success;
     const newChat = response.chat;
@@ -421,7 +422,7 @@ class QueueManager {
   // @SamueleOrazioDurante la logica qui è rimasta quella vecchia, da capire se è ottimizzata o va rifatta
   async processSendingMessageJob(job) {
     const chatUUID = job.params.chat.uuid;
-    const { content, type = "message", files } = job.params.message;
+    const { content, type = "message", replyTo, files } = job.params.message;
 
     let cleanFiles = [];
 
@@ -442,7 +443,8 @@ class QueueManager {
       chatUUID,
       content,
       type,
-      cleanFiles
+      replyTo,
+      cleanFiles,
     );
 
     if (success) {
@@ -469,7 +471,7 @@ class QueueManager {
           message,
           job.params.chat,
           message.messageUUID,
-          "PENDING_UPLOAD"
+          "PENDING_UPLOAD",
         );
       } else {
         throw new Error("Message sending failed");
@@ -509,7 +511,7 @@ class QueueManager {
       message,
       job.params.chat,
       v6(),
-      "PENDING_CONFIRM"
+      "PENDING_CONFIRM",
     );
   }
 
@@ -646,7 +648,6 @@ class QueueManager {
    */
   async saveJob(job) {
     try {
-      
       await database.addPendingMessage({
         id: job.id,
         jobType: job.type,
@@ -664,7 +665,6 @@ class QueueManager {
    */
   async removeJob(jobId) {
     try {
-      
       await database.removePendingMessage(jobId);
     } catch (error) {
       console.error("Error removing job from database:", error);
@@ -689,11 +689,10 @@ class QueueManager {
 
       // Update in database
       try {
-        
         await database.updatePendingMessageForUpload(
           jobId,
           params.messageUUID,
-          params.files
+          params.files,
         );
       } catch (error) {
         console.error("Error modifying job in database:", error);
@@ -721,7 +720,6 @@ class QueueManager {
 
       // Update in database
       try {
-        
         await database.updatePendingMessageToConfirm(jobId);
       } catch (error) {
         console.error("Error modifying job in database:", error);
@@ -736,14 +734,13 @@ class QueueManager {
 
   async loadQueue() {
     try {
-      
       const pendingMessages = await database.getPendingMessages();
 
       if (!pendingMessages) {
         this.queue = [];
         console.log(
           "Queue loaded from database, jobs count:",
-          this.queue.length
+          this.queue.length,
         );
         return;
       }
@@ -920,18 +917,16 @@ class QueueManager {
         break;
     }
 
-    
     await database.job.save(job);
   }
 
   async removeJob(jobId) {
     return;
-    
+
     await database.job.remove(jobId);
   }
 
   async loadJobs() {
-    
     const pendingMessages = await database.job.loadAll();
     return pendingMessages;
   }
@@ -968,7 +963,6 @@ class QueueManager {
       }
     }
 
-    
     await database.message.pending.add(messageData, fileData);
   }
 
@@ -979,16 +973,14 @@ class QueueManager {
    */
 
   async loadPendingMessagesForChatCreation(pendingChatUUID, newChat) {
-    
-    const pendingMessages = await database.message.pending.getByChatUUID(
-      pendingChatUUID
-    );
+    const pendingMessages =
+      await database.message.pending.getByChatUUID(pendingChatUUID);
     for (const pendingMessage of pendingMessages) {
       await database.message.pending.remove(pendingMessage.id);
       await this.addOutgoingMessageJob(
         pendingMessage,
         newChat,
-        pendingMessage.id
+        pendingMessage.id,
       );
     }
   }
@@ -1000,22 +992,18 @@ class QueueManager {
    * @param {String} fileUUID
    */
   async _getRef(fileUUID) {
-    
     return await database.file.get.ref(fileUUID);
   }
 
   async _addFileRef(fileUUID, ref) {
-    
     await database.file.update.ref(fileUUID, ref);
   }
 
   async _addFileDuration(fileUUID, duration) {
-    
     await database.file.update.duration(fileUUID, duration);
   }
 
   async _addFileWaveform(fileUUID, waveform) {
-    
     await database.file.update.waveform(fileUUID, waveform);
   }
 
@@ -1027,7 +1015,6 @@ class QueueManager {
    * @param {Object} message
    */
   async messageSent(tempId, message) {
-    
     await database.addMessage(message);
     eventEmitter.getEmitter().emit("message:sent", { tempId, message });
   }

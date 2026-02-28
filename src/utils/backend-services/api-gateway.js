@@ -898,6 +898,7 @@ const gateway = {
       chatUUID,
       content = undefined,
       type = "message",
+      replyTo = undefined,
       files = undefined,
     ) {
       try {
@@ -911,6 +912,7 @@ const gateway = {
           chatUUID,
           content,
           type,
+          replyTo,
           files,
         });
         const success = response.data.success;
@@ -943,16 +945,27 @@ const gateway = {
         throw error;
       }
     },
-    async delete(messageUUID) {
+    /**
+     * Delete a message from a chat.
+     * @param {String} chatUUID
+     * @param {String} messageID
+     * @returns Promise<{success: boolean}>
+     */
+    async delete(chatUUID, messageID) {
       try {
-        if (!messageUUID) {
+        if (!chatUUID || !messageID) {
           throw new Error(
             "Missing required fields for deleting message",
-            messageUUID,
+            chatUUID,
+            messageID,
           );
         }
+        console.log(chatUUID, messageID);
         const response = await api.delete("/message", {
-          messageUUID,
+          data: {
+            chatUUID,
+            messageID,
+          },
         });
         const success = response.data.success;
         return { success };
@@ -961,27 +974,35 @@ const gateway = {
         throw error;
       }
     },
-    async modify(messageUUID, newContent) {
+    /**
+     * Edit a message.
+     * @param {String} chatUUID
+     * @param {String} messageID
+     * @param {String} content
+     * @returns Promise<{success: boolean}>
+     */
+    async edit(chatUUID, messageID, content) {
       try {
-        if (!messageUUID || !newContent) {
+        if (!chatUUID || !messageID || !content) {
           throw new Error(
-            "Missing required fields for modifying message",
-            messageUUID,
-            newContent,
+            "Missing required fields for editing message",
+            chatUUID,
+            messageID,
+            content,
           );
         }
         const response = await api.patch("/message", {
-          messageUUID,
-          newContent,
+          chatUUID,
+          messageID,
+          content,
         });
         const success = response.data.success;
         if (success) {
-          const message = response.data.data;
-          return { success, message };
+          return { success };
         }
         return { success };
       } catch (error) {
-        console.error("Error in message.modify:", error);
+        console.error("Error in message.edit:", error);
         throw error;
       }
     },

@@ -158,10 +158,41 @@ const useChatData = (chatUUID, chatHandle = null) => {
         // Then replace the tempId with the new message, setting only id and timestamp, rest undefined
         return filteredMessages.map((msg) =>
           msg.id === tempId
-            ? { ...msg, id: message.id, created_at: message.created_at }
+            ? {
+                ...msg,
+                id: message.id,
+                replyTo: message.replyTo,
+                created_at: message.created_at,
+              }
             : msg,
         );
       });
+    };
+
+    const handleMessageUpdate = ({
+      chatUUID: eChatUUID,
+      messageID,
+      action,
+      data,
+    }) => {
+      if (chatUUID !== eChatUUID) return;
+
+      switch (action) {
+        case "edit":
+          setMessages((currentMessages) => {
+            return currentMessages.map((msg) =>
+              msg.id === messageID ? { ...msg, ...data } : msg,
+            );
+          });
+          break;
+        case "delete":
+          setMessages((currentMessages) => {
+            return currentMessages.filter((msg) => msg.id !== messageID);
+          });
+          break;
+        default:
+          break;
+      }
     };
 
     const handleFileDownloaded = ({ file }) => {
@@ -181,6 +212,8 @@ const useChatData = (chatUUID, chatHandle = null) => {
     eventEmitter.getEmitter().on("message:downloaded", handleMessageDownloaded);
     eventEmitter.getEmitter().on("message:sent", handleMessageSent);
 
+    eventEmitter.getEmitter().on("message:update", handleMessageUpdate);
+
     eventEmitter.getEmitter().on("file:downloaded", handleFileDownloaded);
 
     return () => {
@@ -193,6 +226,8 @@ const useChatData = (chatUUID, chatHandle = null) => {
         .getEmitter()
         .off("message:downloaded", handleMessageDownloaded);
       eventEmitter.getEmitter().off("message:sent", handleMessageSent);
+
+      eventEmitter.getEmitter().off("message:update", handleMessageUpdate);
 
       eventEmitter.getEmitter().off("file:downloaded", handleFileDownloaded);
     };

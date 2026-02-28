@@ -5,6 +5,7 @@ import { useThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 
 import useMessageAction from "@/src/hooks/chat/useMessageAction";
+import useMessage from "@/src/hooks/chat/useMessage";
 
 import BlurredView from "../BlurredView";
 import { getFileType } from "@/src/utils/storage/file/type";
@@ -19,12 +20,6 @@ import MessageAudio from "./MessageAudio";
 import MessageVoice from "./MessageVoice";
 import MessageText from "./MessageText";
 import MessageReply from "./MessageReply";
-
-// Statico per test grafico — in futuro verrà da message.reply_to
-const STATIC_REPLY = {
-  sender_name: "Marco",
-  text: "Ci vediamo alle 18 davanti al bar, non fare tardi!",
-};
 
 const MessageBase = ({
   message,
@@ -54,12 +49,18 @@ const MessageBase = ({
   const {
     content,
     created_at,
+    replyTo,
     showSenderName = false,
     showAvatar = false,
     sender_name,
     type,
     files = [],
   } = message;
+
+  const { message: replyMessage } = useMessage(
+    replyTo?.chatUUID,
+    replyTo?.messageID,
+  );
 
   const groupBy = (array, callback) => {
     return array.reduce((acc, item) => {
@@ -94,9 +95,6 @@ const MessageBase = ({
     (!content || content.trim().length === 0) &&
     (mediaMessages.true || []).length > 0;
 
-  // Statico per ora — in futuro: const replyTo = message.reply_to;
-  const replyTo = STATIC_REPLY;
-
   const sharedContent = (
     <View
       style={
@@ -108,9 +106,13 @@ const MessageBase = ({
       }
     >
       {/* Reply preview */}
-      {/* {replyTo && (
-        <MessageReply senderName={replyTo.sender_name} text={replyTo.text} />
-      )} */}
+
+      {replyMessage && (
+        <MessageReply
+          senderName={replyMessage.sender_name}
+          text={replyMessage.content}
+        />
+      )}
 
       {/* images/videos */}
       {mediaMessages && <MessageMedia medias={mediaMessages.true || []} />}

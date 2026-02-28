@@ -24,6 +24,8 @@ interface ActionMenuProps {
   onClose: () => void;
   onAction: (action: string) => void;
   position: { x: number; y: number };
+  isEditedAllowed: boolean;
+  isDeletedAllowed: boolean;
 }
 
 const ActionMenu: React.FC<ActionMenuProps> = ({
@@ -31,6 +33,8 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   onClose,
   onAction,
   position,
+  isEditedAllowed,
+  isDeletedAllowed,
 }) => {
   const { theme } = useThemeContext();
   const styles = createStyle(theme);
@@ -59,38 +63,44 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
     }
   }
 
-  const items: ActionMenuItem[] = [
-    {
-      action: "Reply",
-      iconName: "ArrowMoveUpLeftIcon",
-      color: theme.text,
-    },
-    {
-      action: "Pin",
-      iconName: "PinIcon",
-      color: theme.text,
-    },
-    {
-      action: "Modify",
-      iconName: "PencilEdit02Icon",
-      color: theme.text,
-    },
-    {
-      action: "Forward",
-      iconName: "LinkForwardIcon",
-      color: theme.text,
-    },
-    {
-      action: "Select",
-      iconName: "CheckmarkCircle02Icon",
-      color: theme.text,
-    },
-    {
-      action: "Delete",
-      iconName: "Delete02Icon",
-      color: "red",
-    },
-  ];
+  const items: ActionMenuItem[] = (
+    [
+      {
+        action: "Reply",
+        iconName: "ArrowMoveUpLeftIcon",
+        color: theme.text,
+      },
+      {
+        action: "Pin",
+        iconName: "PinIcon",
+        color: theme.text,
+      },
+      isEditedAllowed
+        ? {
+            action: "Edit",
+            iconName: "PencilEdit02Icon",
+            color: theme.text,
+          }
+        : undefined,
+      {
+        action: "Forward",
+        iconName: "LinkForwardIcon",
+        color: theme.text,
+      },
+      {
+        action: "Select",
+        iconName: "CheckmarkCircle02Icon",
+        color: theme.text,
+      },
+      isDeletedAllowed
+        ? {
+            action: "Delete",
+            iconName: "Delete02Icon",
+            color: "red",
+          }
+        : undefined,
+    ] as (ActionMenuItem | undefined)[]
+  ).filter((item): item is ActionMenuItem => item !== undefined);
 
   const handleMenuItemPress = (action: string) => {
     onAction(action);
@@ -165,7 +175,7 @@ const createStyle = (theme: any) =>
       justifyContent: "center",
       paddingVertical: 6,
       paddingHorizontal: 8,
-      borderRadius: 10
+      borderRadius: 10,
     },
     menuItemContent: {
       flexDirection: "row",

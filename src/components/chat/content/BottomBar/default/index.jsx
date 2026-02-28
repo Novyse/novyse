@@ -12,6 +12,8 @@ import RightButton from "./rightButton";
 import BlurredView from "@/src/components/BlurredView";
 
 import MentionBar from "../actions/MentionBar";
+import EditBar from "../actions/EditBar";
+import ReplyBar from "../actions/ReplyBar";
 
 const DefaultBar = ({
   isAttachMenuOpen,
@@ -51,46 +53,9 @@ const DefaultBar = ({
 
       {/* Edit Bar — takes priority over Reply Bar */}
       {editingMessage ? (
-        <BlurredView style={styles.replyBarContainer}>
-          <Icon
-            name="PencilEdit02Icon"
-            size={16}
-            color={theme.icon}
-          />
-          <View style={styles.editBarAccent} />
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.replyBarName, { color: theme.icon }]} numberOfLines={1}>
-              Editing
-            </Text>
-            <Text style={styles.replyBarText} numberOfLines={1}>
-              {editingMessage.content ?? ""}
-            </Text>
-          </View>
-          <Icon
-            name="Cancel01Icon"
-            size={18}
-            color={theme.placeholderText}
-            onPress={onCancelEdit}
-          />
-        </BlurredView>
+        <EditBar editingMessage={editingMessage} onCancelEdit={onCancelEdit} />
       ) : replyingTo ? (
-        <BlurredView style={styles.replyBarContainer}>
-          <View style={styles.replyBarAccent} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.replyBarName} numberOfLines={1}>
-              {replyingTo.sender_name ?? replyingTo.senderUUID}
-            </Text>
-            <Text style={styles.replyBarText} numberOfLines={1}>
-              {replyingTo.text ?? replyingTo.content ?? ""}
-            </Text>
-          </View>
-          <Icon
-            name="Cancel01Icon"
-            size={18}
-            color={theme.placeholderText}
-            onPress={onCancelReply}
-          />
-        </BlurredView>
+        <ReplyBar replyingTo={replyingTo} onCancelReply={onCancelReply} />
       ) : null}
       <View style={styles.inputRow}>
         <LeftButton

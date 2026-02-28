@@ -20,6 +20,17 @@ const eventReceiver = {
       await eventEmitter.newMessage(message);
     });
 
+    socket.on("message:update", async (data) => {
+      console.log("Received message:update event:", data);
+      await setLastUpdateTimestamp(data.updated_at);
+      await eventEmitter.message.update(
+        data.chatUUID,
+        data.messageID,
+        data.action,
+        data,
+      );
+    });
+
     socket.on("new_chat", async (data) => {
       console.log("Received new_chat event:", data);
 
@@ -67,8 +78,7 @@ const eventReceiver = {
     //   await setLastUpdateTimestamp(data.left_at);
     //   await eventEmitter.userLeft(data.chatUUID, data.user);;
     // });
-
-  }
+  },
 };
 
 const setLastUpdateTimestamp = async (timestamp) => {

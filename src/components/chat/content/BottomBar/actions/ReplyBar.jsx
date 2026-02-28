@@ -1,14 +1,23 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
+import messageUtils from "@/src/utils/chat/messageFormat";
 
 const ReplyBar = ({ replyingTo, onCancelReply }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-
   if (!replyingTo) return null;
+
+  const [content, setContent] = useState(null);
+  useEffect(() => {
+    const fetchContent = async () => {
+      const message = await messageUtils.format(replyingTo);
+      setContent(message.content);
+    };
+    fetchContent();
+  }, [replyingTo]);
 
   return (
     <BlurredView style={styles.actionContainer}>
@@ -19,7 +28,7 @@ const ReplyBar = ({ replyingTo, onCancelReply }) => {
           {replyingTo.sender_name ?? replyingTo.senderUUID}
         </Text>
         <Text style={styles.actionText} numberOfLines={1}>
-          {replyingTo.text ?? replyingTo.content ?? ""}
+          {content}
         </Text>
       </View>
       <Icon

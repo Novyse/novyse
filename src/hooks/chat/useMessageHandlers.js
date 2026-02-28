@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 
 import queueManager from "@/src/utils/chat/queueManager.js";
+import gateway from "@/src/utils/backend-services/api-gateway";
+import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
 
 import { defaultMimeType } from "@/src/utils/storage/file/type.js";
 
@@ -8,12 +10,13 @@ const useMessageHandlers = (
   chat,
   myUUID,
   setNewMessageText,
+  setEditingMessage,
   setVoiceMessage,
   setIsMicClicked,
-  setIsFileModalVisible
+  setIsFileModalVisible,
 ) => {
   const handleSendMessage = useCallback(
-    async (type = "message", content, files = []) => {
+    async (type = "message", content, replyTo, files = []) => {
       // no content and files, so nothing happens
       if (content.trim() === "" && files.length === 0) return;
 
@@ -30,6 +33,7 @@ const useMessageHandlers = (
         senderUUID: myUUID,
         content,
         type,
+        replyTo,
         files,
       };
 
@@ -39,7 +43,36 @@ const useMessageHandlers = (
       setVoiceMessage(true);
       setIsMicClicked(false);
     },
-    [chat, setNewMessageText, setVoiceMessage, setIsMicClicked]
+    [chat, setNewMessageText, setVoiceMessage, setIsMicClicked],
+  );
+
+  const handleDeleteMessage = useCallback(
+    async (messageID) => {
+      console.log(messageID, chat.uuid);
+      const response = await gateway.message.delete(chat.uuid, messageID);
+      if (response.success) {
+        await eventEmitter.message.update(chat.uuid, messageID, "delete");
+      }
+    },
+    [chat],
+  );
+
+  const handleEditMessage = useCallback(
+    async (messageID, content) => {
+      const response = await gateway.message.edit(
+        chat.uuid,
+        messageID,
+        content,
+      );
+      if (response.success) {
+        await eventEmitter.message.update(chat.uuid, messageID, "edit", {
+          content,
+        });
+      }
+      setEditingMessage(null);
+      setNewMessageText("");
+    },
+    [chat, setEditingMessage, setNewMessageText],
   );
 
   const handleSendFileMessage = useCallback(
@@ -57,20 +90,22 @@ const useMessageHandlers = (
       }));
       await handleSendMessage("message", "", cleanedFiles);
     },
-    [handleSendMessage]
+    [handleSendMessage],
   );
 
   const handleTextChanging = useCallback(
     (text, isMicClicked) => {
       setVoiceMessage(text.length === 0 && !isMicClicked);
     },
-    [setVoiceMessage]
+    [setVoiceMessage],
   );
 
   return {
     handleSendMessage,
     handleSendFileMessage,
     handleTextChanging,
+    handleDeleteMessage,
+    handleEditMessage,
   };
 };
 

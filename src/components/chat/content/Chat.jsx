@@ -64,7 +64,7 @@ const ChatContent = ({ onBack, contentView }) => {
 
   const { selectedChatUUID, setSelectedChatUUID, selectedHandle } =
     useContext(ChatContext);
-  const { chat, messages, members, setMessages, loading } = useChatData(
+  const { chat, messages, members, loading } = useChatData(
     selectedChatUUID,
     selectedHandle,
   );
@@ -79,14 +79,20 @@ const ChatContent = ({ onBack, contentView }) => {
   const preparedMessages = usePreparedMessages(messages);
 
   // Hook per message handlers
-  const { handleSendMessage, handleSendFileMessage, handleTextChanging } =
-    useMessageHandlers(
-      chat,
-      myUUID,
-      setNewMessageText,
-      setVoiceMessage,
-      setIsMicClicked,
-    );
+  const {
+    handleSendMessage,
+    handleEditMessage,
+    handleDeleteMessage,
+    handleSendFileMessage,
+    handleTextChanging,
+  } = useMessageHandlers(
+    chat,
+    myUUID,
+    setNewMessageText,
+    setEditingMessage,
+    setVoiceMessage,
+    setIsMicClicked,
+  );
 
   const { attachType, handleMenuItemPress, handleFilePick } = useAttachHandlers(
     setIsAttachMenuOpen,
@@ -194,6 +200,13 @@ const ChatContent = ({ onBack, contentView }) => {
     setNewMessageText("");
   }, []);
 
+  const handleDelete = useCallback(
+    (msg) => {
+      handleDeleteMessage(msg.id);
+    },
+    [handleDeleteMessage],
+  );
+
   const onSelectMention = useCallback((member) => {
     setNewMessageText((prev) => {
       const lastAtIndex = prev.lastIndexOf("@");
@@ -231,21 +244,17 @@ const ChatContent = ({ onBack, contentView }) => {
   const handleSendOrEdit = useCallback(
     (type, content, files) => {
       if (editingMessage) {
-        // Frontend-only: update message locally
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.uuid === editingMessage.uuid
-              ? { ...m, content: content, edited: true }
-              : m,
-          ),
-        );
-        setEditingMessage(null);
-        setNewMessageText("");
+        handleEditMessage(editingMessage.id, content);
       } else {
-        handleSendMessage(type, content, files);
+        let replyTo = undefined;
+        if (replyingTo) {
+          replyTo = { chatUUID: replyingTo.chatUUID, messageID: replyingTo.id };
+        }
+        setReplyingTo(null);
+        handleSendMessage(type, content, replyTo, files);
       }
     },
-    [editingMessage, handleSendMessage, setMessages],
+    [editingMessage, replyingTo, handleSendMessage, handleEditMessage],
   );
 
   if (loading) {
@@ -267,6 +276,7 @@ const ChatContent = ({ onBack, contentView }) => {
             theme={theme}
             onReply={handleReply}
             onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         </View>
         <UploadFileModal

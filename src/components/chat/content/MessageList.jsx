@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { FlatList, StyleSheet, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -40,7 +40,15 @@ const createStyle = (theme, insets) =>
     },
   });
 
-const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme, onReply, onEdit }) => {
+const MessageList = ({
+  ref: flatListRef,
+  preparedMessages,
+  myUUID,
+  theme,
+  onReply,
+  onEdit,
+  onDelete,
+}) => {
   const insets = useSafeAreaInsets();
   const styles = createStyle(theme, insets);
 
@@ -51,62 +59,78 @@ const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme, onRepl
   });
 
   const [selectedMessage, setSelectedMessage] = useState([]);
-  const [replyingTo, setReplyingTo] = useState(null);
+  const [isEditedAllowed, setIsEditedAllowed] = useState(false);
+  const [isDeletedAllowed, setIsDeletedAllowed] = useState(false);
 
-  const onAction = useCallback((action) => {
-    console.log("Action selected:", action);
-    setTriggeredMessage(null);
-
-    switch (action) {
-      case "Reply":
-        setReplyingTo(triggeredMessage);
-        onReply && onReply(triggeredMessage);
-        break;
-      case "Forward":
-        // Implement forward logic here
-        console.log("Forwarding message:", triggeredMessage);
-        break;
-      case "Copy":
-        // Implement copy logic here
-        console.log("Copying message:", triggeredMessage);
-        break;
-      case "Select":
-        setSelectedMessage((prev) => {
-          return [...prev, triggeredMessage];
-        });
-        break;
-      case "Modify":
-        onEdit && onEdit(triggeredMessage);
-        break;
-      case "Delete":
-        // Implement delete logic here
-        console.log("Deleting message:", triggeredMessage);
-        break;
-      default:
-        console.warn("Unknown action:", action);
-    }
-  }, [triggeredMessage, onReply, onEdit]);
-
-  const renderMessageItem = useCallback(({ item }) => {
-    if (item.type === "separator") {
-      return <MessageSystem type={"date"} data={item.data} />;
-    } else if (item.type === "system") {
-      return <MessageSystem type={"system"} data={item.data} />;
-    } else {
-      const message = item.data;
-      return (
-        <MessageBase
-          message={message}
-          isSender={message.senderUUID === myUUID}
-          isSelected={selectedMessage.includes(message)}
-          setTriggeredMessage={setTriggeredMessage}
-          setTriggeredMessagePosition={setTriggeredMessagePosition}
-          selectedMessage={selectedMessage}
-          setSelectedMessage={setSelectedMessage}
-        />
+  useEffect(() => {
+    if (triggeredMessage) {
+      setIsEditedAllowed(
+        onEdit !== null && triggeredMessage.senderUUID === myUUID,
+      );
+      setIsDeletedAllowed(
+        onDelete !== null && triggeredMessage.senderUUID === myUUID,
       );
     }
-  }, [myUUID, selectedMessage]);
+  }, [triggeredMessage, onEdit, onDelete]);
+
+  const onAction = useCallback(
+    (action) => {
+      console.log("Action selected:", action);
+      setTriggeredMessage(null);
+
+      switch (action) {
+        case "Reply":
+          onReply && onReply(triggeredMessage);
+          break;
+        case "Forward":
+          // Implement forward logic here
+          console.log("Forwarding message:", triggeredMessage);
+          break;
+        case "Copy":
+          // Implement copy logic here
+          console.log("Copying message:", triggeredMessage);
+          break;
+        case "Select":
+          setSelectedMessage((prev) => {
+            return [...prev, triggeredMessage];
+          });
+          break;
+        case "Edit":
+          onEdit && onEdit(triggeredMessage);
+          break;
+        case "Delete":
+          onDelete && onDelete(triggeredMessage);
+          break;
+        default:
+          console.warn("Unknown action:", action);
+      }
+    },
+    [triggeredMessage, onReply, onEdit, onDelete],
+  );
+
+  const renderMessageItem = useCallback(
+    ({ item }) => {
+      if (item.type === "separator") {
+        return <MessageSystem type={"date"} data={item.data} />;
+      } else if (item.type === "system") {
+        return <MessageSystem type={"system"} data={item.data} />;
+      } else {
+        const message = item.data;
+        return (
+          <MessageBase
+            message={message}
+            isSender={message.senderUUID === myUUID}
+            isSelected={selectedMessage.includes(message)}
+            setTriggeredMessage={setTriggeredMessage}
+            setTriggeredMessagePosition={setTriggeredMessagePosition}
+            selectedMessage={selectedMessage}
+            setSelectedMessage={setSelectedMessage}
+          />
+        );
+      }
+    },
+    [myUUID, selectedMessage],
+  );
 
   const handleClose = useCallback(() => setTriggeredMessage(null), []);
 
@@ -128,6 +152,8 @@ const MessageList = ({ ref: flatListRef, preparedMessages, myUUID, theme, onRepl
         onAction={onAction}
         onClose={handleClose}
         position={triggeredMessagePosition}
+        isEditedAllowed={isEditedAllowed}
+        isDeletedAllowed={isDeletedAllowed}
       />
     </>
   );

@@ -23,4 +23,5 @@ const addMultiple = async (messages) => {
     }
   });
 };
+
 export default { add, addMultiple };

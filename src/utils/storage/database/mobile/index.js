@@ -979,6 +979,53 @@ class Database {
         return false;
       }
     },
+    get: async (chatUUID, messageID) => {
+      try {
+        const message = await this.db.getFirstAsync(
+          `SELECT m.*, u.name as sender_name FROM message m 
+           JOIN user u ON m.senderUUID = u.uuid 
+           WHERE m.chatUUID = ? AND m.id = ?;`,
+          [chatUUID, messageID],
+        );
+        const files = await this.db.getAllAsync(
+          `SELECT f.* FROM file f
+         JOIN message_files mf ON f.uuid = mf.fileUUID
+         WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
+          [chatUUID, message.id],
+        );
+        message.files = files;
+        return message || null;
+      } catch (error) {
+        console.error("Error retrieving message:", error);
+        return null;
+      }
+    },
+    edit: async (chatUUID, messageID, content) => {
+      try {
+        await this.db.runAsync(
+          `UPDATE message SET content = ? WHERE chatUUID = ? AND id = ?;`,
+          [content, chatUUID, messageID],
+        );
+        console.log(`Message ${messageID} edited successfully.`);
+        return true;
+      } catch (error) {
+        console.error("Error editing message:", error);
+        return false;
+      }
+    },
+    delete: async (chatUUID, messageID) => {
+      try {
+        await this.db.runAsync(
+          `DELETE FROM message WHERE chatUUID = ? AND id = ?;`,
+          [chatUUID, messageID],
+        );
+        console.log(`Message ${messageID} deleted successfully.`);
+        return true;
+      } catch (error) {
+        console.error("Error deleting message:", error);
+        return false;
+      }
+    },
   };
   user = {
     get: {
