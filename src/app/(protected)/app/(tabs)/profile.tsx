@@ -43,7 +43,7 @@ const ProfilePage = () => {
   );
 };
 
-const createStyle = (theme) =>
+const createStyle = (theme: any) =>
   StyleSheet.create({
     loadingText: {
       color: theme.text,

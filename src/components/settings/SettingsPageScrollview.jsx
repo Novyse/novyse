@@ -3,11 +3,11 @@ import { StyleSheet, ScrollView, Platform } from "react-native";
 import { ThemeContext } from "../../../context/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context"; 
 
-const SettingsPageScrollview = ({ children, isMenu = false }) => {
+const SettingsPageScrollview = ({ children, isMenu = false, paddingTop = 90 }) => {
   const { theme } = useContext(ThemeContext);
   const insets = useSafeAreaInsets(); 
 
-  const styles = createStyle(theme, isMenu, insets);
+  const styles = createStyle(theme, isMenu, insets, paddingTop);
 
   return (
     <ScrollView
@@ -19,7 +19,7 @@ const SettingsPageScrollview = ({ children, isMenu = false }) => {
   );
 };
 
-function createStyle(theme, isMenu, insets) {
+function createStyle(theme, isMenu, insets, paddingTop) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -51,7 +51,7 @@ function createStyle(theme, isMenu, insets) {
     },
     contentContainer: {
       gap: isMenu ? 0 : 20,
-      paddingTop: 90 + insets.top,
+      paddingTop: paddingTop + insets.top,
       paddingBottom: isMenu ? 0 : 20,
       paddingHorizontal: isMenu ? 0 : 20,
     },

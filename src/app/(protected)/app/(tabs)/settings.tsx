@@ -57,7 +57,7 @@ const settingsList = [
 
 const SettingsList = () => {
   return (
-    <SettingsPageScrollview isMenu={true}>
+    <SettingsPageScrollview isMenu={true} paddingTop={0}>
       {settingsList.map((setting) => (
         <SettingsMenuItem
           key={setting.pageName}
