@@ -11,8 +11,17 @@ const ProfilePage = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const { name, surname, username, profilePictureUUID, isLoading } =
-    useLocalUserContext();
+  const {
+    name,
+    surname,
+    username,
+    profilePictureUUID,
+    description,
+    birthday,
+    region,
+    country,
+    isLoading,
+  } = useLocalUserContext();
 
   if (isLoading) {
     return <Text style={styles.loadingText}>Loading profile...</Text>;
@@ -24,6 +33,9 @@ const ProfilePage = () => {
       surname={surname}
       username={username}
       profilePictureUUID={profilePictureUUID}
+      description={description}
+      birthday={birthday}
+      country={country}
       isOnline={true}
     />
   );

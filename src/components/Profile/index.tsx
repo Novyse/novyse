@@ -95,7 +95,7 @@ export default function Profile({
           <AboutMe description={description} />
 
           {/* Birthday and Location Section */}
-          {birthday && (
+          {birthday || country && (
             <BirthdayLocation birthday={birthday} country={country} />
           )}
 
