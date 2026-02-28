@@ -148,7 +148,7 @@ const MessageList = ({
         inverted
       />
       <ActionMenu
-        visible={triggeredMessage}
+        visible={!!triggeredMessage}
         onAction={onAction}
         onClose={handleClose}
         position={triggeredMessagePosition}

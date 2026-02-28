@@ -10,20 +10,20 @@ interface BlurredViewProps {
   tint?: "light" | "dark" | "default" | "extraLight";
 }
 
-const BlurredView = ({ 
-  children, 
-  style, 
-  intensity = 75, 
-  tint 
+const BlurredView = ({
+  children,
+  style,
+  intensity = 75,
+  tint,
 }: BlurredViewProps) => {
-  const { theme } = (useContext(ThemeContext) as any);
-  
+  const { theme } = useContext(ThemeContext) as any;
+
   return (
     <BlurView
       style={[styles(theme).container, style]}
       intensity={intensity}
       // @ts-ignore - blurMethod is not always recognized but used in original
-      blurMethod="dimezisBlurView"
+      blurMethod="none"
       tint={tint || (theme.blurredViewTint as any)}
     >
       {children}

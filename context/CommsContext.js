@@ -59,12 +59,32 @@ export const CommsProvider = ({ children }) => {
       SoundPlayer.getInstance().playSound("comms.leave");
     };
 
+    const handleParticipantMetadataChanged = (metadata, participant) => {
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.identity === participant.identity ? participant : p,
+        ),
+      );
+    };
+
+    const handleParticipantNameChanged = (name, participant) => {
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.identity === participant.identity ? participant : p,
+        ),
+      );
+    };
+
     room.on("participantConnected", handleParticipantConnected);
     room.on("participantDisconnected", handleParticipantDisconnected);
+    room.on("participantMetadataChanged", handleParticipantMetadataChanged);
+    room.on("participantNameChanged", handleParticipantNameChanged);
 
     return () => {
       room.off("participantConnected", handleParticipantConnected);
       room.off("participantDisconnected", handleParticipantDisconnected);
+      room.off("participantMetadataChanged", handleParticipantMetadataChanged);
+      room.off("participantNameChanged", handleParticipantNameChanged);
     };
   }, [room, setParticipants]);
 

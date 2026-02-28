@@ -38,15 +38,25 @@ export const AudioPlayerProvider = ({ children }) => {
 
   useEffect(() => {
     if (status.didJustFinish) {
+      player.setActiveForLockScreen(false);
       setCurrentUri(null);
     }
   }, [status.didJustFinish]);
 
-  const addInfo = (chatUUID, messageID, senderName, timestamp) => {
+  const addInfo = (
+    chatUUID,
+    messageID,
+    senderName,
+    senderUUID,
+    profilePictureUri,
+    timestamp,
+  ) => {
     setAudioInfo({
       chatUUID,
       messageID,
       senderName,
+      senderUUID,
+      profilePictureUri,
       timestamp,
     });
   };
@@ -68,6 +78,12 @@ export const AudioPlayerProvider = ({ children }) => {
     try {
       player.play();
       setPlaybackRate(player.playbackRate);
+      player.setActiveForLockScreen(true, {
+        title: audioInfo.senderName,
+        artist: "Voice Message",
+        albumTitle: "Novyse",
+        artworkUrl: audioInfo.profilePictureUri,
+      });
     } catch (error) {
       console.error("Audio play error:", error);
     }
@@ -103,6 +119,7 @@ export const AudioPlayerProvider = ({ children }) => {
   };
 
   const removeAudio = () => {
+    player.setActiveForLockScreen(false);
     player.remove();
     setCurrentUri(null);
   };

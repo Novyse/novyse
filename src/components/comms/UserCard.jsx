@@ -18,6 +18,7 @@ if (platform === "mobile") {
 const UserCard = memo(
   ({
     streamUUID,
+    deviceUUID,
     stream = null,
     displayName,
     metadata = {},
@@ -116,6 +117,7 @@ const UserCard = memo(
         <View style={styles.videoContainer}>
           <VideoContent
             streamUUID={streamUUID}
+            deviceUUID={deviceUUID}
             stream={stream}
             isLocal={isLocal}
             displayName={displayName}
@@ -133,6 +135,7 @@ const UserCard = memo(
 const VideoContent = memo(
   ({
     streamUUID,
+    deviceUUID,
     stream,
     isLocal,
     displayName,
@@ -174,6 +177,7 @@ const VideoContent = memo(
         ) : (
           <UserProfileAvatar
             userHandle={displayName}
+            deviceUUID={deviceUUID}
             profilePictureUUID={profilePictureUUID}
             containerWidth={width}
             containerHeight={height}

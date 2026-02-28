@@ -8,6 +8,7 @@ import Avatar from "@/src/components/Avatar";
 
 const UserProfileAvatar = ({
   userHandle,
+  deviceUUID,
   profilePictureUUID,
   containerWidth,
   containerHeight,
@@ -16,11 +17,11 @@ const UserProfileAvatar = ({
 
   // Memoizza i colori del gradiente per evitare rigenerazioni continue
   const gradientColors = useMemo(() => {
-    // Genera colori deterministici basati su userHandle
+    // Genera colori deterministici basati su deviceUUID
     let hash = 0;
-    if (userHandle) {
-      for (let i = 0; i < userHandle.length; i++) {
-        const char = userHandle.charCodeAt(i);
+    if (deviceUUID) {
+      for (let i = 0; i < deviceUUID.length; i++) {
+        const char = deviceUUID.charCodeAt(i);
         hash = (hash << 5) - hash + char;
         hash = hash & hash;
       }
@@ -41,7 +42,7 @@ const UserProfileAvatar = ({
 
     const index = Math.abs(hash) % gradientPalettes.length;
     return gradientPalettes[index];
-  }, [userHandle]);
+  }, [deviceUUID]);
 
   // Calcola le dimensioni dell'avatar (circa 35% della dimensione del container)
   const avatarSize = Math.max(

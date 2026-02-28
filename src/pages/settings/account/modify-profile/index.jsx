@@ -15,8 +15,18 @@ const ProfilePage = ({ navigation }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const { name, surname, handle, email, profilePictureUUID, isLoading } =
-    useContext(LocalUserContext);
+  const {
+    name,
+    surname,
+    handle,
+    email,
+    profilePictureUUID,
+    description,
+    birthday,
+    region,
+    country,
+    isLoading,
+  } = useContext(LocalUserContext);
 
   const [isProfilePicModalVisible, setIsProfilePicModalVisible] =
     useState(false);
@@ -39,6 +49,10 @@ const ProfilePage = ({ navigation }) => {
         username={handle}
         email={email}
         profilePictureUUID={profilePictureUUID}
+        description={description}
+        birthday={birthday}
+        region={region}
+        country={country}
         onEditAvatar={() => setIsProfilePicModalVisible(true)}
       />
       <UploadProfilePicture

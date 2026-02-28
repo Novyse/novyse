@@ -4,22 +4,31 @@ import {
   ScrollView,
   StyleSheet,
   useWindowDimensions,
+  Text,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import Banner from "@/src/components/Banner";
 import ProfileHeader from "@/src/components/Profile/ProfileHeader";
 import FormSection from "@/src/components/settings/account/modify-profile/Page/FormSection";
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import StatusMessage from "@/src/components/StatusMessage";
 
 import { useThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
+import { useLocalUserContext } from "@/context/LocalUserContext";
+
+import gateway from "@/src/utils/backend-services/api-gateway";
+import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 
 interface ModifyProfileProps {
   name: string;
   surname: string;
   username: string;
+  description?: string;
   birthday: string;
   country: string;
+  region?: string;
   profilePictureUUID?: string;
   onEditAvatar?: () => void;
 }
@@ -28,8 +37,10 @@ export default function ModifyProfile({
   name,
   surname,
   username,
+  description = "",
   birthday,
   country,
+  region = "",
   profilePictureUUID,
   onEditAvatar,
 }: ModifyProfileProps) {
@@ -37,58 +48,185 @@ export default function ModifyProfile({
   const { width, height } = useWindowDimensions();
   const { isSmallScreen } = useScreen();
 
+  const { userUUID } = useLocalUserContext();
+
+  const [baseValues, setBaseValues] = React.useState({
+    name,
+    surname,
+    username,
+    description,
+    birthday,
+    country,
+    region,
+  });
+
+  const [formValues, setFormValues] = React.useState(baseValues);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [message, setMessage] = React.useState("");
+  const [error, setError] = React.useState("");
+
+  React.useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(""), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
+  React.useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(""), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  React.useEffect(() => {
+    const original = {
+      name,
+      surname,
+      username,
+      description,
+      birthday,
+      country,
+      region,
+    };
+    setBaseValues(original);
+    setFormValues(original);
+  }, [name, surname, username, description, birthday, country, region]);
+
+  const hasChanges = Object.keys(baseValues).some(
+    (key) =>
+      formValues[key as keyof typeof formValues] !==
+      baseValues[key as keyof typeof baseValues],
+  );
+
+  const handleChange = (field: string, value: string) => {
+    setFormValues((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleRestore = () => {
+    setFormValues(baseValues);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setMessage("");
+    setError("");
+    try {
+      const {
+        name,
+        surname,
+        username,
+        description,
+        birthday,
+        country,
+        region,
+      } = formValues;
+
+      const response = await gateway.user.profile.update.all(
+        name,
+        surname,
+        description,
+      );
+
+      if ((response as any).success) {
+        await eventEmitter.user.profile.update({
+          ...formValues,
+          userUUID,
+        });
+        setBaseValues(formValues);
+        setMessage("Profile updated successfully");
+      } else {
+        setError("Error updating profile");
+      }
+    } catch (e: any) {
+      console.error("Error saving profile", e);
+      setError(e.message || "Error saving profile");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const styles = createStyles(theme, isSmallScreen, height);
   return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Glass Card Container */}
-        <LinearGradient
-          colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.01)"]}
-          style={styles.glassPanel}
+    <>
+      <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          <Banner
-            theme={theme}
-            size={isSmallScreen ? 120 : 180}
-            onEdit={() => {}}
-          />
+          {/* Glass Card Container */}
+          <LinearGradient
+            colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.01)"]}
+            style={styles.glassPanel}
+          >
+            <Banner
+              theme={theme}
+              size={isSmallScreen ? 120 : 180}
+              onEdit={() => {}}
+            />
+            <ProfileHeader
+              name={name}
+              surname={surname}
+              profilePictureUUID={profilePictureUUID}
+              username={username}
+              badges={[
+                {
+                  text: "Alpha Tester",
+                  color: "rgba(16, 185, 129, 0.1)",
+                  icon: "AlphaIcon",
+                },
+              ]}
+              onEditAvatar={onEditAvatar}
+            />
 
-          <ProfileHeader
-            name={name}
-            surname={surname}
-            profilePictureUUID={profilePictureUUID}
-            username={username}
-            badges={[
-              {
-                text: "Pro Member",
-                color: "rgba(16, 185, 129, 0.1)",
-                icon: "FirstBracketCircleIcon",
-              },
-              {
-                text: "Artist",
-                color: "rgba(168, 85, 247, 0.1)",
-                icon: "SevenZ01Icon",
-              },
-            ]}
-            onEditAvatar={onEditAvatar}
-          />
+            <FormSection
+              values={formValues}
+              onChangeField={handleChange}
+              isSmallScreen={isSmallScreen}
+            />
 
-          <FormSection
-            name={name}
-            surname={surname}
-            username={username}
-            birthday={birthday}
-            country={country}
-            isSmallScreen={isSmallScreen}
-          />
-
-          {/* Spacer for bottom footer */}
-          <View style={{ height: 20 }} />
-        </LinearGradient>
-      </ScrollView>
-    </View>
+            {/* Spacer for bottom footer */}
+            <View style={{ height: hasChanges ? 80 : 20 }} />
+          </LinearGradient>
+        </ScrollView>
+      </View>
+      {!message && !error && hasChanges && (
+        <View style={styles.floatingBar}>
+          <Text style={styles.floatingText}>
+            Careful - you have unsaved changes!
+          </Text>
+          <View style={styles.floatingButtons}>
+            <HoverAndPressedButton
+              style={styles.restoreBtn}
+              onPress={handleRestore}
+            >
+              <Text style={styles.restoreText}>Restore</Text>
+            </HoverAndPressedButton>
+            <HoverAndPressedButton style={styles.saveBtn} onPress={handleSave}>
+              <Text style={styles.saveText}>
+                {isSaving ? "Saving..." : "Save"}
+              </Text>
+            </HoverAndPressedButton>
+          </View>
+        </View>
+      )}
+      <View style={styles.floatingMessageWrapper} pointerEvents="box-none">
+        <StatusMessage
+          type="success"
+          visible={!!message}
+          content={[message]}
+          timeout={5000}
+          onClose={() => setMessage("")}
+        />
+        <StatusMessage
+          type="error"
+          visible={!!error}
+          content={[error]}
+          timeout={5000}
+          onClose={() => setError("")}
+        />
+      </View>
+    </>
   );
 }
 
@@ -105,7 +243,7 @@ const createStyles = (
     scrollContent: {
       padding: isSmallScreen ? 0 : 16,
       alignItems: "center",
-      paddingTop: isSmallScreen ? 80 : 80,
+      paddingTop: isSmallScreen ? 120 : 80,
       paddingBottom: isSmallScreen ? 10 : 20,
     },
     glassPanel: {
@@ -117,5 +255,64 @@ const createStyles = (
       width: isSmallScreen ? "100%" : "90%",
       maxWidth: 600,
       minHeight: isSmallScreen ? screenHeight * 0.8 : 800,
+    },
+    floatingBar: {
+      position: "absolute",
+      bottom: isSmallScreen ? 20 : 40,
+      alignSelf: "center",
+      backgroundColor: "rgba(30, 41, 59, 0.6)",
+      borderRadius: 24,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      width: isSmallScreen ? "90%" : 500,
+      borderWidth: 1,
+      borderColor: "rgba(255, 255, 255, 0.1)",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 6,
+    },
+    floatingText: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: "500",
+      flex: 1,
+    },
+    floatingButtons: {
+      flexDirection: "row",
+      gap: 12,
+    },
+    restoreBtn: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      backgroundColor: "rgba(255, 255, 255, 0.05)",
+    },
+    restoreText: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    saveBtn: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      backgroundColor: "#2563eb",
+    },
+    saveText: {
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    floatingMessageWrapper: {
+      position: "absolute",
+      bottom: isSmallScreen ? 20 : 40,
+      alignSelf: "center",
+      width: isSmallScreen ? "90%" : 500,
+      zIndex: 100,
     },
   });
