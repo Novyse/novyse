@@ -14,14 +14,17 @@ const MessageMedia = ({ medias }) => {
       ) : (
         <View style={styles.grid}>
           <View style={styles.row}>
-            {medias.slice(0, 2).map((item, index) => renderGridCell(item, index))}
+            {medias
+              .slice(0, 2)
+              .map((item, index) => renderGridCell(item, index))}
           </View>
           {medias.length > 2 && (
             <View style={styles.row}>
-              {medias.length === 3 
+              {medias.length === 3
                 ? renderGridCell(medias[2], 2)
-                : medias.slice(2, 4).map((item, index) => renderGridCell(item, index + 2))
-              }
+                : medias
+                    .slice(2, 4)
+                    .map((item, index) => renderGridCell(item, index + 2))}
             </View>
           )}
         </View>
@@ -43,7 +46,14 @@ const renderMedia = (media, isSingle) => {
   if (fileType === "IMAGE") {
     return <Image fileRef={ref} uuid={uuid} isSingle={isSingle} />;
   } else if (fileType === "VIDEO") {
-    return <Video fileRef={ref} uuid={uuid} duration={duration} isSingle={isSingle} />;
+    return (
+      <Video
+        fileRef={ref}
+        uuid={uuid}
+        duration={duration}
+        isSingle={isSingle}
+      />
+    );
   }
   return null;
 };
@@ -52,7 +62,8 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     overflow: "hidden",
-    minWidth: 200, 
+    minWidth: 200,
+    maxHeight: 1000,
   },
   grid: {
     width: "100%",
@@ -61,7 +72,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     gap: 2,
-    height: 150, 
+    height: 150,
   },
   cell: {
     flex: 1,

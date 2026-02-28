@@ -88,7 +88,7 @@ const useMessageHandlers = (
             : defaultMimeType,
         size: file.size,
       }));
-      await handleSendMessage("message", "", cleanedFiles);
+      await handleSendMessage("message", "", undefined, cleanedFiles);
     },
     [handleSendMessage],
   );

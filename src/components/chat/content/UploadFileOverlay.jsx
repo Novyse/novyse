@@ -175,7 +175,7 @@ const createStyle = (theme) =>
     },
     menuItem: {
       alignItems: "center",
-      borderRadius: 10
+      borderRadius: 10,
     },
     menuText: {
       marginTop: 6,
