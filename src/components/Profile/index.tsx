@@ -23,6 +23,7 @@ interface Connection {
 }
 
 interface ProfileProps {
+  uuid: string;
   name: string;
   surname: string;
   username: string;
@@ -38,6 +39,7 @@ interface ProfileProps {
 }
 
 export default function Profile({
+  uuid,
   name,
   surname,
   username,
@@ -71,23 +73,12 @@ export default function Profile({
           <Banner theme={theme} size={isSmallScreen ? 120 : 180} />
 
           <ProfileHeader
+            uuid={uuid}
             name={name}
             surname={surname}
             username={username}
             profilePictureUUID={profilePictureUUID}
             isOnline={isOnline}
-            badges={[
-              {
-                text: "Founder",
-                color: "rgba(16, 185, 129, 0.1)",
-                icon: "FirstBracketCircleIcon",
-              },
-              {
-                text: "Pro del frontend",
-                color: "rgba(168, 85, 247, 0.1)",
-                icon: "SevenZ01Icon",
-              },
-            ]}
             onEditAvatar={onEditAvatar}
           />
 
@@ -95,9 +86,10 @@ export default function Profile({
           <AboutMe description={description} />
 
           {/* Birthday and Location Section */}
-          {birthday || country && (
-            <BirthdayLocation birthday={birthday} country={country} />
-          )}
+          {birthday ||
+            (country && (
+              <BirthdayLocation birthday={birthday} country={country} />
+            ))}
 
           {/* Connections Section */}
           {connections && (

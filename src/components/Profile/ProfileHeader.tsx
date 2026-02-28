@@ -5,24 +5,25 @@ import { ThemeContext } from "@/context/ThemeContext";
 
 import Avatar from "@/src/components/Avatar";
 import Icon from "@/src/components/Icon";
+import Badges from "@/src/components/badge/Badges";
 
 interface ProfileHeaderProps {
+  uuid: string;
   name: string;
   surname: string;
   username: string;
   profilePictureUUID?: string;
   isOnline?: boolean;
-  badges?: Array<{ text: string; color: string; icon: string }>;
   onEditAvatar?: () => void;
 }
 
 export default function ProfileHeader({
+  uuid,
   name,
   surname,
   username,
   profilePictureUUID,
   isOnline = false,
-  badges = [],
   onEditAvatar = undefined,
 }: ProfileHeaderProps) {
   const { theme } = useContext(ThemeContext);
@@ -43,20 +44,7 @@ export default function ProfileHeader({
       </Text>
       <Text style={styles.usernameText}>@{username}</Text>
 
-      <View style={styles.badgesRow}>
-        {badges.map((badge, index) => (
-          <View
-            key={index}
-            style={[
-              styles.badge,
-              { backgroundColor: badge.color, borderColor: badge.color },
-            ]}
-          >
-            <Icon name={badge.icon} size={12} color="white" />
-            <Text style={styles.badgeText}>{badge.text}</Text>
-          </View>
-        ))}
-      </View>
+      <Badges userUUID={uuid} />
     </View>
   );
 }

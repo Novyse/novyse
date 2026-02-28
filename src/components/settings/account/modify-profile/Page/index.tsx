@@ -165,17 +165,11 @@ export default function ModifyProfile({
               onEdit={() => {}}
             />
             <ProfileHeader
+              uuid={userUUID}
               name={name}
               surname={surname}
               profilePictureUUID={profilePictureUUID}
               username={username}
-              badges={[
-                {
-                  text: "Alpha Tester",
-                  color: "rgba(16, 185, 129, 0.1)",
-                  icon: "AlphaIcon",
-                },
-              ]}
               onEditAvatar={onEditAvatar}
             />
 

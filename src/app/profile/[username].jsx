@@ -17,6 +17,7 @@ const ProfilePage = () => {
   // pick username from url /profile/:username
   const { username } = useLocalSearchParams();
 
+  const [uuid, setUuid] = useState("");
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [profilePictureUUID, setProfilePictureUUID] = useState("");
@@ -43,6 +44,7 @@ const ProfilePage = () => {
   };
 
   const addDataToState = (userData) => {
+    setUuid(userData.uuid);
     setName(userData.name);
     setSurname(userData.surname);
     setProfilePictureUUID(userData.profilePictureUUID);
@@ -95,6 +97,7 @@ const ProfilePage = () => {
   return (
     <ScreenLayout fullscreen={true}>
       <Profile
+        uuid={uuid}
         name={name}
         surname={surname}
         username={username}

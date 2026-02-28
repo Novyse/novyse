@@ -755,6 +755,24 @@ const gateway = {
           return { success };
         },
       },
+      badges: {
+        /**
+         * Get user's badges.
+         * @param {String} userUUID
+         * @returns {Object} { success: boolean, badges?: Array }
+         */
+        async get(userUUID) {
+          const response = await api.get(
+            `/user/profile/badges?userUUID=${userUUID}`,
+          );
+          const success = response.data.success;
+          if (success) {
+            const badges = response.data.data;
+            return { success, badges };
+          }
+          return { success };
+        },
+      },
       get: {
         /**
          * Get user's profile information by handle.

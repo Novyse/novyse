@@ -12,6 +12,7 @@ const ProfilePage = () => {
   const styles = createStyle(theme);
 
   const {
+    userUUID,
     name,
     surname,
     username,
@@ -29,6 +30,7 @@ const ProfilePage = () => {
 
   return (
     <Profile
+      uuid={userUUID}
       name={name}
       surname={surname}
       username={username}
