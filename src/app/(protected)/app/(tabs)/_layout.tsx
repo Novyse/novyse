@@ -65,6 +65,7 @@ function createStyle(theme: Theme, isSmallScreen: boolean) {
       position: "relative",
       borderRadius: isSmallScreen ? 0 : 15,
       overflow: "hidden",
+      backgroundColor: theme.backgroundMainGradient[0],
     },
   });
 }
