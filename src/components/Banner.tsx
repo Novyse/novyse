@@ -8,7 +8,7 @@ import HoverAndPressedButton from "./HoverAndPressedButton";
 interface BannerProps {
   uuid?: string;
   uri?: string;
-  size?: number;
+  height?: number;
   theme: any;
   onEdit?: () => void;
 }
@@ -16,11 +16,11 @@ interface BannerProps {
 export default function Banner({
   uuid,
   uri,
-  size = 180,
+  height = 190,
   theme,
   onEdit = undefined,
 }: BannerProps) {
-  const styles = createStyles(theme, size);
+  const styles = createStyles(theme, height);
 
   const [isHovered, setIsHovered] = useState(false);
 
@@ -52,11 +52,11 @@ export default function Banner({
   );
 }
 
-const createStyles = (theme: any, size: number) =>
+const createStyles = (theme: any, height: number) =>
   StyleSheet.create({
     bannerImage: {
       width: "100%",
-      height: size,
+      height: height,
       resizeMode: "cover",
       backgroundColor: "#00000000",
     },
