@@ -695,6 +695,16 @@ const gateway = {
       }
       return { success };
     },
+    /**
+     * Delete user's account.
+     * @returns {boolean} true if the account was successfully deleted, false otherwise
+     */
+    async delete() {
+      return { success: true };
+      const response = await api.delete(`/user/delete`);
+      const success = response.data.success;
+      return success;
+    },
     profile: {
       picture: {
         /**

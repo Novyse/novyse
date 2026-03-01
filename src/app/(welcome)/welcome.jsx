@@ -38,8 +38,16 @@ import logoForQR from "@/assets/images/logo-novyse.png";
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
 const EmailCheckForm = () => {
-  const { email: urlEmail, signedup: urlSignedup } = useLocalSearchParams();
+  const {
+    email: urlEmail,
+    signedup: urlSignedup,
+    deleteAccount: urlDeleteAccount,
+  } = useLocalSearchParams();
+
   const [signedup, setSignedup] = useState(urlSignedup === "true");
+  const [deleteAccount, setDeleteAccount] = useState(
+    urlDeleteAccount === "true",
+  );
 
   const [email, setEmail] = useState(urlEmail || "");
   const [error, setError] = useState(null);
@@ -56,6 +64,12 @@ const EmailCheckForm = () => {
 
   const router = useRouter();
   const { refreshLoginStatus } = useAuth();
+
+  useEffect(() => {
+    if (urlSignedup === "true") setSignedup(true);
+    if (urlDeleteAccount === "true") setDeleteAccount(true);
+    if (urlEmail) setEmail(urlEmail);
+  }, [urlSignedup, urlDeleteAccount, urlEmail]);
 
   useEffect(() => {
     let pollingInterval;
@@ -159,6 +173,7 @@ const EmailCheckForm = () => {
 
   const handleSubmit = async () => {
     setSignedup(false);
+    setDeleteAccount(false);
     if (!email) {
       setError("Email cannot be empty");
       return;
@@ -267,17 +282,26 @@ const EmailCheckForm = () => {
                 setError(null);
               }}
             />
-            {signedup && (
-              <StatusMessage
-                type="success"
-                content={["Signup successful! Please log in using your email."]}
-                visible={true}
-                timeout={5000}
-                onClose={() => {
-                  setSignedup(false);
-                }}
-              />
-            )}
+
+            <StatusMessage
+              type="success"
+              content={["Signup successful! Please log in using your email."]}
+              visible={signedup}
+              timeout={5000}
+              onClose={() => {
+                setSignedup(false);
+              }}
+            />
+
+            <StatusMessage
+              type="success"
+              content={["Account deleted successfully!"]}
+              visible={deleteAccount}
+              timeout={5000}
+              onClose={() => {
+                setDeleteAccount(false);
+              }}
+            />
           </View>
         </View>
 

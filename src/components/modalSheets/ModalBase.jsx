@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Modal,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { Modal, StyleSheet, Pressable, ScrollView, View } from "react-native";
 import Icon from "../Icon";
 import BlurredView from "../BlurredView";
 
@@ -20,7 +14,7 @@ const ModalBase = ({
   scrollable = true,
 }) => {
   const { isSmallScreen } = useScreen();
-  const styles = createStyle(theme,  isSmallScreen);
+  const styles = createStyle(theme, isSmallScreen);
 
   const ContainerComponent = isSmallScreen ? View : BlurredView;
   const containerProps = isSmallScreen ? {} : { intensity: 40 };

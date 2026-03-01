@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
 import { useAuth } from "@/context/AuthContext";
+import { useThemeContext } from "@/context/ThemeContext";
 
 import SettingsMenuItem from "@/src/components/settings/SettingsMenuItem";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
+import DeleteAccount from "@/src/components/modalSheets/DeleteAccount";
 
 import auth from "@/src/utils/welcome/auth";
 
@@ -15,6 +17,10 @@ const AccountMenu = ({ navigation }) => {
   const onBack = () => navigation.goBack();
 
   const router = useRouter();
+
+  const { theme } = useThemeContext();
+  const [isDeleteAccountModalVisible, setIsDeleteAccountModalVisible] =
+    useState(false);
 
   return (
     <View style={styles.container}>
@@ -34,7 +40,18 @@ const AccountMenu = ({ navigation }) => {
             router.replace("/welcome");
           }}
         />
+        <SettingsMenuItem
+          pageName="Delete Account"
+          iconName={"Delete02Icon"}
+          onPress={async () => {
+            setIsDeleteAccountModalVisible(true);
+          }}
+        />
       </SettingsPageScrollview>
+      <DeleteAccount
+        visible={isDeleteAccountModalVisible}
+        onClose={() => setIsDeleteAccountModalVisible(false)}
+      />
     </View>
   );
 };
