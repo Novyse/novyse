@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Animated } from "react-native";
+import { View, Text, StyleSheet, Animated, Linking } from "react-native";
 
 import HoverAndPressedButton from "./HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
@@ -143,11 +143,43 @@ const StatusMessage = ({
 
         <View style={styles.contentContainer}>
           <Text style={styles.title}>{title}</Text>
-          {content.map((value, index) => (
-            <Text key={index} style={styles.contentText}>
-              {content.length > 1 ? `• ${value}` : value}
-            </Text>
-          ))}
+          {content.map((value, index) => {
+            const formattedText = content.length > 1 ? `• ${value}` : value;
+            const linkRegex =
+              /<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1[^>]*>(.*?)<\/a>/gi;
+            const parts = [];
+            let lastIndex = 0;
+            let match;
+
+            while ((match = linkRegex.exec(formattedText)) !== null) {
+              if (match.index > lastIndex) {
+                parts.push(formattedText.substring(lastIndex, match.index));
+              }
+              const url = match[2];
+              const linkText = match[3];
+
+              parts.push(
+                <Text
+                  key={`link-${index}-${lastIndex}`}
+                  style={styles.linkText}
+                  onPress={() => Linking.openURL(url)}
+                >
+                  {linkText}
+                </Text>,
+              );
+              lastIndex = linkRegex.lastIndex;
+            }
+
+            if (lastIndex < formattedText.length) {
+              parts.push(formattedText.substring(lastIndex));
+            }
+
+            return (
+              <Text key={index} style={styles.contentText}>
+                {parts.length > 0 ? parts : formattedText}
+              </Text>
+            );
+          })}
         </View>
 
         <HoverAndPressedButton onPress={handleClose} style={styles.closeButton}>
@@ -191,6 +223,10 @@ const createStyles = (colors: ThemeColors) => {
       lineHeight: 18,
       fontWeight: "500",
       opacity: 0.9,
+    },
+    linkText: {
+      textDecorationLine: "underline",
+      fontWeight: "700",
     },
     closeButton: {
       padding: 4,

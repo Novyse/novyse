@@ -9,7 +9,7 @@ import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
 
 // user-facing error text (HTML allowed for link)
 const DEVICE_ERROR_MESSAGE =
-  'We couldn\'t retrieve the device. Please try again. <a href="https://example.com/troubleshooting" target="_blank">Troubleshooting</a>';
+  'We couldn\'t retrieve the device. Please try again. <a href="https://www.novyse.com/help/troubleshooting/comms/devices" target="_blank">Troubleshooting</a>';
 
 const useCommsAction = (chatUUID, sub) => {
   const {
@@ -26,11 +26,12 @@ const useCommsAction = (chatUUID, sub) => {
     setActiveScreenShares,
     facingMode,
     setFacingMode,
+    error,
+    setError,
   } = useCommsContext();
 
   const [connecting, setConnecting] = useState(false);
   const [roomMatch, setRoomMatch] = useState(false);
-  const [error, setError] = useState(null);
   const clearError = () => setError(null);
 
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
@@ -74,40 +75,50 @@ const useCommsAction = (chatUUID, sub) => {
       leave();
     }
 
-    const { success, token, url } = await gateway.comms.getToken(chatUUID, sub);
+    try {
+      const { success, token, url } = await gateway.comms.getToken(
+        chatUUID,
+        sub,
+      );
 
-    if (!success) {
-      console.error("Failed to get token for LiveKit");
-      return;
-    }
-
-    const roomInstance = await connectToLiveKit(url, token);
-
-    if (!roomInstance) {
-      console.error("Failed to connect to LiveKit");
-      return;
-    }
-
-    setRoom(roomInstance);
-
-    SoundPlayer.getInstance().playSound("comms.join");
-
-    setConnecting(false);
-
-    setTimeout(async () => {
-      if (roomInstance.localParticipant) {
-        try {
-          await roomInstance.localParticipant.setMicrophoneEnabled(true);
-          setMicrophoneDevice(roomInstance.getActiveDevice("audioinput"));
-          setIsAudioEnabled(true);
-          setFacingMode("environment");
-          setError(null);
-        } catch (err) {
-          console.error("Failed enabling microphone after join", err);
-          setError(DEVICE_ERROR_MESSAGE);
-        }
+      if (!success) {
+        setError(
+          "Failed to get token for LiveKit. No instances available. Please try again later.",
+        );
+        return;
       }
-    }, 1000);
+
+      const roomInstance = await connectToLiveKit(url, token);
+
+      if (!roomInstance) {
+        setError("Failed to connect to LiveKit");
+        return;
+      }
+
+      setRoom(roomInstance);
+
+      SoundPlayer.getInstance().playSound("comms.join");
+
+      setConnecting(false);
+
+      setTimeout(async () => {
+        if (roomInstance.localParticipant) {
+          try {
+            await roomInstance.localParticipant.setMicrophoneEnabled(true);
+            setMicrophoneDevice(roomInstance.getActiveDevice("audioinput"));
+            setIsAudioEnabled(true);
+            setFacingMode("environment");
+            setError(null);
+          } catch (err) {
+            console.error("Failed enabling microphone after join", err);
+            setError(DEVICE_ERROR_MESSAGE);
+          }
+        }
+      }, 1000);
+    } catch (error) {
+      setError("Please try again later.");
+      return;
+    }
   };
 
   const leave = async () => {

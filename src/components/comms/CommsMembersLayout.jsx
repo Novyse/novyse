@@ -7,7 +7,6 @@ import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import useLayout from "@/src/hooks/comms/useLayout";
 
 import UserCard from "./UserCard";
-
 const CommsMembersLayout = ({ participants = [], room }) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,

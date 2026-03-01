@@ -23,6 +23,8 @@ export const CommsProvider = ({ children }) => {
 
   const [facingMode, setFacingMode] = useState("environment");
 
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     setConnected(!!room);
   }, [room]);
@@ -391,6 +393,8 @@ export const CommsProvider = ({ children }) => {
     streams,
     mutedStreams,
     reset,
+    error,
+    setError,
   };
 
   return (

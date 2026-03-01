@@ -68,14 +68,15 @@ const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusMessage
-        type="error"
-        visible={!!error}
-        content={[error]}
-        onClose={clearError}
-        timeout={5000}
-      />
-
+      <View style={styles.statusWrapper}>
+        <StatusMessage
+          type="error"
+          visible={!!error}
+          content={[error]}
+          onClose={clearError}
+          timeout={5000}
+        />
+      </View>
       {!connected || !roomMatch ? (
         connecting ? (
           <BlurredView style={styles.iconButton}>
@@ -165,6 +166,13 @@ const createStyle = (theme) =>
       minWidth: 200,
       maxWidth: 300,
       zIndex: 100,
+    },
+    statusWrapper: {
+      position: "absolute",
+      bottom: 70,
+      width: "100%",
+      alignSelf: "center",
+      zIndex: 200,
     },
     blurredContainer: {
       flex: 1,
