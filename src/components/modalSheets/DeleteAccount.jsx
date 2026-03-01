@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { View, Text, StyleSheet, TextInput } from "react-native";
+import { View, Text, StyleSheet, TextInput, Linking } from "react-native";
 
 import { useRouter } from "expo-router";
 
@@ -93,7 +93,17 @@ const DeleteAccount = ({ visible, onClose }) => {
           />
           <Text style={styles.helperText}>
             You will be logged out and your data will instantly be queued for
-            deletion.
+            deletion.{" "}
+            <Text
+              style={styles.linkText}
+              onPress={() =>
+                Linking.openURL(
+                  "https://www.novyse.com/help/guides/account/delete",
+                )
+              }
+            >
+              Learn more
+            </Text>
           </Text>
         </View>
 
@@ -183,6 +193,10 @@ const createStyles = (theme) => {
       fontSize: 12,
       color: theme.placeholderText,
       marginTop: 6,
+    },
+    linkText: {
+      color: "#1867FF",
+      textDecorationLine: "underline",
     },
     // Footer
     footer: {
