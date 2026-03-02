@@ -1,5 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Animated, Linking } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Linking } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from "react-native-reanimated";
 
 import HoverAndPressedButton from "./HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
@@ -33,63 +39,53 @@ const StatusMessage = ({
   onClose,
 }: StatusMessageProps) => {
   const [isVisible, setIsVisible] = useState<boolean>(visible);
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(10)).current;
+  const fade = useSharedValue(0);
+  const slide = useSharedValue(10);
+  const progress = useSharedValue(1);
+  const trackWidth = useSharedValue(0);
 
   useEffect(() => {
     setIsVisible(visible);
   }, [visible]);
 
+  const hide = () => {
+    setIsVisible(false);
+    onClose?.();
+  };
+
   const handleClose = () => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 10,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setIsVisible(false);
-      if (onClose) onClose();
-    });
+    fade.value = withTiming(0, { duration: 200 });
+    slide.value = withTiming(10, { duration: 200 }, () => runOnJS(hide)());
   };
 
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-
-    if (isVisible) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-
-      if (timeout) {
-        timer = setTimeout(() => {
-          handleClose();
-        }, timeout);
-      }
-    } else {
-      fadeAnim.setValue(0);
-      slideAnim.setValue(10);
+    if (!isVisible) {
+      fade.value = 0;
+      slide.value = 10;
+      progress.value = 1;
+      return;
     }
-
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
+    fade.value = withTiming(1, { duration: 300 });
+    slide.value = withTiming(0, { duration: 300 });
+    if (timeout) {
+      progress.value = 1;
+      progress.value = withTiming(0, { duration: timeout });
+      const t = setTimeout(handleClose, timeout);
+      return () => clearTimeout(t);
+    }
   }, [isVisible, timeout]);
+
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: fade.value,
+    transform: [{ translateY: slide.value }],
+  }));
+  const progressFillStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: -trackWidth.value / 2 },
+      { scaleX: progress.value },
+      { translateX: trackWidth.value / 2 },
+    ],
+  }));
 
   if (!isVisible) return null;
 
@@ -125,17 +121,10 @@ const StatusMessage = ({
 
   const { title, icon, theme: colors } = getTypeValues();
   const styles = createStyles(colors);
+  const list = Array.isArray(content) ? content : [];
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        },
-      ]}
-    >
+    <Animated.View style={[styles.container, containerStyle]}>
       <View style={styles.inner}>
         <View style={styles.iconContainer}>
           <Icon name={icon.name} size={20} color={icon.color} />
@@ -143,8 +132,9 @@ const StatusMessage = ({
 
         <View style={styles.contentContainer}>
           <Text style={styles.title}>{title}</Text>
-          {content.map((value, index) => {
-            const formattedText = content.length > 1 ? `• ${value}` : value;
+          {list.map((value, index) => {
+            const formattedText =
+              (list.length > 1 ? `• ${value}` : value) ?? "";
             const linkRegex =
               /<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1[^>]*>(.*?)<\/a>/gi;
             const parts = [];
@@ -186,6 +176,17 @@ const StatusMessage = ({
           <Icon name="Cancel01Icon" size={18} color={icon.color} />
         </HoverAndPressedButton>
       </View>
+
+      {timeout != null && timeout > 0 && (
+        <View
+          style={styles.progressTrack}
+          onLayout={(e) => (trackWidth.value = e.nativeEvent.layout.width)}
+        >
+          <Animated.View
+            style={[styles.progressFill, { backgroundColor: colors.text }, progressFillStyle]}
+          />
+        </View>
+      )}
     </Animated.View>
   );
 };
@@ -231,6 +232,24 @@ const createStyles = (colors: ThemeColors) => {
     closeButton: {
       padding: 4,
       marginLeft: 8,
+    },
+    progressTrack: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 3,
+      overflow: "hidden",
+      borderBottomLeftRadius: 12,
+      borderBottomRightRadius: 12,
+    },
+    progressFill: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      bottom: 0,
+      right: 0,
+      opacity: 0.7,
     },
   });
 };
