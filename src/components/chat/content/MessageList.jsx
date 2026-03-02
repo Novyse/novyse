@@ -9,50 +9,6 @@ import MessageSystem from "@/src/components/messages/MessageSystem";
 import ActionMenu from "@/src/components/messages/ActionMenu";
 import Icon from "@/src/components/Icon";
 
-const createStyle = (theme, insets) =>
-  StyleSheet.create({
-    list: {
-      flex: 1,
-      ...(Platform.OS === "web" && {
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
-        "::-webkit-scrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::-webkit-scrollbar-track": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::-webkit-scrollbar-thumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::-webkit-scrollbar-thumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
-    },
-    listContent: {
-      paddingTop: 70 + insets.top,
-      paddingBottom: 70 + insets.bottom,
-    },
-    scrollButtonContainer: {
-      position: "absolute",
-      right: 20,
-      bottom: 80 + insets.bottom,
-      width: 50,
-      height: 50,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: theme.primary,
-      borderRadius: 25,
-      elevation: 5,
-      zIndex: 10,
-    },
-  });
-
 const MessageList = ({
   ref: flatListRef,
   preparedMessages,
@@ -192,7 +148,7 @@ const MessageList = ({
         <View style={styles.scrollButtonContainer}>
           <Icon
             name="ArrowDown01Icon"
-            size={32}
+            size={33}
             color={theme.text}
             onPress={() => flatListRef.current?.scrollToEnd({ animated: true })}
           />
@@ -212,3 +168,49 @@ const MessageList = ({
 };
 
 export default React.memo(MessageList);
+
+
+
+const createStyle = (theme, insets) =>
+  StyleSheet.create({
+    list: {
+      flex: 1,
+      ...(Platform.OS === "web" && {
+        scrollbarWidth: "thin",
+        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
+
+        "::-webkit-scrollbar": {
+          width: 6,
+          backgroundColor: theme.backgroundScrollbar,
+        },
+        "::-webkit-scrollbar-track": {
+          backgroundColor: theme.backgroundScrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb": {
+          backgroundColor: theme.scrollbar,
+          borderRadius: 3,
+        },
+        "::-webkit-scrollbar-thumb:hover": {
+          backgroundColor: theme.scrollbarHover,
+        },
+      }),
+    },
+    listContent: {
+      paddingTop: 70 + insets.top,
+      paddingBottom: 70 + insets.bottom,
+    },
+    scrollButtonContainer: {
+      position: "absolute",
+      right: 10,
+      bottom: 80 + insets.bottom,
+      width: 45,
+      height: 45,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.primary,
+      borderRadius: 25,
+      elevation: 5,
+      zIndex: 10,
+    },
+  });

@@ -51,7 +51,7 @@ const ChatListItem = React.memo(
         colors={
           isSelected || isActive
             ? theme?.backgroundChatListItemSelectedGradient
-            : theme?.backgroundChatListItemGradient
+            : "transparent"
         }
         style={styles.chatItem}
       >

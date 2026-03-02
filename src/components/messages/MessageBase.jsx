@@ -213,7 +213,9 @@ const MessageBase = ({
           style={pressableStyles}
         >
           {!isSender && showAvatar && (
-            <Avatar size={40} uuid={message.profile_picture_uuid} />
+            <View style={styles.avatarWrapper}>
+              <Avatar size={45} uuid={message.profile_picture_uuid} />
+            </View>
           )}
           <BlurredView style={blurredViewStyles}>
             {!isSender && showSenderName && (
@@ -262,11 +264,6 @@ const createStyle = (theme) =>
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-end",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 3.84,
-      elevation: 5,
       overflow: "hidden",
     },
     senderBubbleChained: {
@@ -275,19 +272,14 @@ const createStyle = (theme) =>
     receiverBubble: {
       overflow: "visible",
       marginVertical: 4,
-      marginLeft: 58,
+      marginLeft: 65,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-start",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 3.84,
-      elevation: 5,
       overflow: "hidden",
     },
     receiverBubbleWithAvatar: {
-      marginLeft: 10,
+      marginLeft: 5,
       borderBottomLeftRadius: 4,
     },
     textContainer: {
@@ -321,13 +313,11 @@ const createStyle = (theme) =>
       flexWrap: "wrap",
     },
     avatarWrapper: {
+      marginLeft: 10,
       marginRight: 5,
       marginBottom: 5,
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 50,
+      width: 45,
+      height: 45,
     },
     senderNameWrapper: {
       paddingHorizontal: 12,

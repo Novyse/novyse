@@ -8,7 +8,7 @@ const DownloadButton = ({ uuid }) => {
     await queueManager.addInboundFileJob(uuid);
   };
 
-  return <Icon name="DownloadCircle01Icon" onPress={handleDownload} />;
+  return <Icon name="ArrowDown03Icon" size={33} onPress={handleDownload} />;
 };
 
 export default DownloadButton;

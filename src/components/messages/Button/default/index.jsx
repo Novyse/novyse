@@ -7,14 +7,14 @@ const DefaultButton = ({ type, isPlaying, handleDefaultPress }) => {
       case "VOICE":
       case "AUDIO":
         const iconName = isPlaying ? "PauseIcon" : "PlayIcon";
-        return <Icon name={iconName} onPress={handleDefaultPress} />;
+        return <Icon name={iconName} size={33} onPress={handleDefaultPress} />;
       case "VIDEO":
-        return <Icon name="PlayIcon" onPress={handleDefaultPress} />;
+        return <Icon name="PlayIcon" size={33} onPress={handleDefaultPress} />;
       case "IMAGE":
         return <></>;
       default:
         return (
-          <Icon name="DocumentAttachmentIcon" onPress={handleDefaultPress} />
+          <Icon name="DocumentAttachmentIcon" size={33} onPress={handleDefaultPress} />
         );
     }
   };
