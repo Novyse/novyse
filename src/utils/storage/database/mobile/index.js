@@ -386,7 +386,7 @@ class Database {
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
