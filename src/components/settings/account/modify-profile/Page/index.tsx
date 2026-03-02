@@ -204,7 +204,7 @@ export default function ModifyProfile({
           </View>
         </View>
       )}
-      <View style={styles.floatingMessageWrapper} pointerEvents="box-none">
+      <View style={styles.floatingMessageWrapper}>
         <StatusMessage
           type="success"
           visible={!!message}
@@ -308,5 +308,6 @@ const createStyles = (
       alignSelf: "center",
       width: isSmallScreen ? "90%" : 500,
       zIndex: 100,
+      pointerEvents: "none",
     },
   });

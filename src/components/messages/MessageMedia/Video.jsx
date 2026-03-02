@@ -27,7 +27,7 @@ const Video = ({ fileRef, uuid, duration, isSingle }) => {
   return (
     <>
       <Pressable onPress={handlePress} style={styles.container}>
-        <View pointerEvents="none" style={styles.videoWrapper}>
+        <View style={styles.videoWrapper}>
           {uri && (
             <VideoView
               player={player}
@@ -73,6 +73,7 @@ const createStyle = (theme, isSingle) =>
     videoWrapper: {
       width: "100%",
       height: "100%",
+      pointerEvents: "none"
     },
     video: {
       width: "100%",

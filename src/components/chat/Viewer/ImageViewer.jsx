@@ -150,7 +150,7 @@ const ImageViewer = () => {
         </GestureDetector>
 
         {controlsVisible && (
-          <SafeAreaView style={styles.header} pointerEvents="box-none">
+          <SafeAreaView style={styles.header}>
             <Pressable onPress={() => router.back()} style={styles.iconButton}>
               <Ionicons name="close" size={28} color="white" />
             </Pressable>
@@ -187,7 +187,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    // FIX WEB: Rende l'immagine "trasparente" ai gesti nativi del browser
     pointerEvents: "none",
   },
   header: {
@@ -200,6 +199,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     zIndex: 100,
+    pointerEvents: "none"
   },
   iconButton: {
     width: 44,

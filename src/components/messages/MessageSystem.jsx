@@ -64,10 +64,7 @@ const createStyles = (theme) => {
       color: theme.text,
       fontSize: 12,
       fontWeight: "600",
-      textAlign: "center",
-      textShadowColor: "rgba(0, 0, 0, 0.5)",
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 2,
+      textAlign: "center"
     },
   });
 };

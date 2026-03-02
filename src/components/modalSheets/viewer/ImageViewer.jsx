@@ -159,7 +159,7 @@ const ImageViewer = ({ visible, onClose, uri, theme }) => {
           </GestureDetector>
 
           {controlsVisible && (
-            <SafeAreaView style={styles.header} pointerEvents="box-none">
+            <SafeAreaView style={styles.header}>
               <Pressable onPress={onClose} style={styles.iconButton}>
                 <Ionicons name="close" size={28} color="white" />
               </Pressable>
@@ -213,6 +213,7 @@ const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) =>
       paddingHorizontal: 20,
       paddingTop: 10,
       zIndex: 100,
+      pointerEvents: "none"
     },
     iconButton: {
       width: 44,

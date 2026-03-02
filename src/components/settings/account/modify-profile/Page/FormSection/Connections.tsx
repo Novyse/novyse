@@ -67,7 +67,7 @@ export default function Connections() {
     <>
       <SectionHeader icon="Link02Icon" title="Connections" />
       <View style={styles.overlayWrapper}>
-        <View style={[styles.row, { pointerEvents: "none" }]}>
+        <View style={styles.row}>
           <ConnectionCard
             platform="twitter"
             icon="NewTwitterIcon"
@@ -113,6 +113,7 @@ const createStyles = (theme: any) =>
     },
     row: {
       flexDirection: "column",
+      pointerEvents: "none",
       gap: 12,
     },
 

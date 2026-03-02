@@ -123,7 +123,7 @@ const ChatList = () => {
 
   const renderDefaultHeader = useCallback(
     () => (
-      <BlurredHeader style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+      <BlurredHeader style={{ paddingHorizontal: 10, paddingVertical: 5, backgroundColor: "#2951a9" }}>
         <Image
           source={require("@/assets/images/logo-novyse.png")}
           style={styles.logo}
@@ -207,19 +207,19 @@ function createStyle(theme, isSmallScreen, insets) {
         scrollbarWidth: "thin",
         scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
 
-        "::-webkit-scrollbar": {
+        "::WebkitScrollbar": {
           width: 6,
           backgroundColor: theme.backgroundScrollbar,
         },
-        "::-webkit-scrollbar-track": {
+        "::WebkitScrollbarTrack": {
           backgroundColor: theme.backgroundScrollbar,
           borderRadius: 3,
         },
-        "::-webkit-scrollbar-thumb": {
+        "::WebkitScrollbarThumb": {
           backgroundColor: theme.scrollbar,
           borderRadius: 3,
         },
-        "::-webkit-scrollbar-thumb:hover": {
+        "::WebkitScrollbarThumb:hover": {
           backgroundColor: theme.scrollbarHover,
         },
       }),

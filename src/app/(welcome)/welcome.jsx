@@ -338,11 +338,11 @@ const EmailCheckForm = () => {
                 )}
               </View>
               <Text style={styles.qrcodeSubtitle}>Scan QR to login</Text>
-              {qrToken && (
+              {qrToken ? (
                 <Text style={styles.qrcodeSmallSubtitle}>
                   Expires in {formatTime(remainingTime)}
                 </Text>
-              )}
+              ) : null}
             </View>
           </>
         )}

@@ -16,7 +16,7 @@ export default function Appareance() {
     <>
       <SectionHeader icon="Pen01Icon" title="Appareance" />
       <View style={styles.overlayWrapper}>
-        <View style={[styles.row, { pointerEvents: "none" }]}>
+        <View style={styles.row}>
           <Label text={"Profile color"} />
           <View style={styles.colorRow}>
             <ColorDot color="#3b82f6" selected />
@@ -59,6 +59,7 @@ const createStyles = (theme: any) =>
     },
     row: {
       flexDirection: "row",
+      pointerEvents: "none",
       gap: 16,
       marginBottom: 20,
     },

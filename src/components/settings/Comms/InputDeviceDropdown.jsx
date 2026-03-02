@@ -176,19 +176,19 @@ const createStyles = (theme) =>
         scrollbarWidth: "thin",
         scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
 
-        "::-webkit-scrollbar": {
+        "::WebkitScrollbar": {
           width: 6,
           backgroundColor: theme.backgroundScrollbar,
         },
-        "::-webkit-scrollbar-track": {
+        "::WebkitScrollbarTrack": {
           backgroundColor: theme.backgroundScrollbar,
           borderRadius: 3,
         },
-        "::-webkit-scrollbar-thumb": {
+        "::WebkitScrollbarThumb": {
           backgroundColor: theme.scrollbar,
           borderRadius: 3,
         },
-        "::-webkit-scrollbar-thumb:hover": {
+        "::WebkitScrollbarThumb:hover": {
           backgroundColor: theme.scrollbarHover,
         },
       }),

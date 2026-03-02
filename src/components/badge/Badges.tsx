@@ -50,7 +50,7 @@ export default function Badges({ userUUID }: { userUUID: string }) {
   if (!badges || badges.length === 0) return null;
 
   return (
-    <View style={styles.badgesWrapper} pointerEvents="none">
+    <View style={styles.badgesWrapper}>
       {badges.map((b) => (
         <BadgeRenderer key={b.badge_id} badge={b} />
       ))}
@@ -65,5 +65,6 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 30,
     justifyContent: "center",
+    pointerEvents: "none",
   },
 });
