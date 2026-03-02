@@ -67,6 +67,14 @@ class GlobalEventEmitter {
         data,
       });
     },
+    pin: async (chatUUID, messageID) => {
+      await database.message.pin.add(chatUUID, messageID);
+      this.eventEmitter.emit("message:pinned", { chatUUID, messageID });
+    },
+    unpin: async (chatUUID, messageID) => {
+      await database.message.pin.remove(chatUUID, messageID);
+      this.eventEmitter.emit("message:unpinned", { chatUUID, messageID });
+    },
   };
 
   user = {

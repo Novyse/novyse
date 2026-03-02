@@ -16,6 +16,7 @@ const Header = ({
   chatUUIDorHandle,
   selectedChatName,
   selectedChatPictureUUID,
+  pinnedMessages,
   navigation,
   contentView,
   setContentView,
@@ -30,7 +31,7 @@ const Header = ({
   const { currentUri } = useContext(AudioPlayerContext);
 
   const isVoiceActive = !!currentUri;
-  const hasPinnedMessage = false; // Temp
+  const hasPinnedMessage = pinnedMessages && pinnedMessages.length > 0;
 
   const isHeaderExpanded = hasPinnedMessage || isVoiceActive;
 
@@ -52,7 +53,12 @@ const Header = ({
             isSmallScreen={isSmallScreen}
             onBack={onBack}
           />
-          {hasPinnedMessage && <PinnedMessageHeader />}
+          {hasPinnedMessage && (
+            <PinnedMessageHeader
+              chatUUID={chatUUIDorHandle}
+              pinnedMessages={pinnedMessages}
+            />
+          )}
           {isVoiceActive && <AudioHeader />}
         </BlurredView>
       </HeaderBase>

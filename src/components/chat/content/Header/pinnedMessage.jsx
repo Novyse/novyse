@@ -1,18 +1,69 @@
-import React, { useContext } from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useContext, useState, useEffect } from "react";
+import { View, StyleSheet, Text } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
-const PinnedMessageHeader = ({}) => {
+import useMessage from "@/src/hooks/chat/useMessage";
+import Icon from "@/src/components/Icon";
+
+const PinnedMessageHeader = ({ chatUUID, pinnedMessages }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+
+  const [currentIndex, setCurrentIndex] = useState(pinnedMessages.length - 1);
+
+  useEffect(() => {
+    setCurrentIndex(pinnedMessages.length - 1);
+  }, [pinnedMessages.length]);
+
+  const selectedMessageID = pinnedMessages[currentIndex];
+  const { message } = useMessage(chatUUID, selectedMessageID);
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % pinnedMessages.length);
+  };
+
+  const handlePrev = () => {
+    setCurrentIndex(
+      (prev) => (prev - 1 + pinnedMessages.length) % pinnedMessages.length,
+    );
+  };
+
+  const hasMultiple = pinnedMessages.length > 1;
 
   return (
     <View style={styles.headerSecondaryRow}>
       <View style={styles.pinnedContainer}>
-        <Text style={styles.pinnedText} numberOfLines={1}>
-          📌 Messaggio importante fissato in alto
-        </Text>
+        <View style={styles.pinnedContentRow}>
+          {hasMultiple && (
+            <Icon
+              name="ArrowLeft02Icon"
+              size={18}
+              onPress={handlePrev}
+              style={styles.navIcon}
+            />
+          )}
+
+          <View style={styles.pinnedTextContainer}>
+            <Text style={styles.pinnedText} numberOfLines={1}>
+              {message?.content || "Caricamento..."}
+            </Text>
+            {hasMultiple && (
+              <Text style={styles.indicatorText}>
+                {currentIndex + 1} / {pinnedMessages.length}
+              </Text>
+            )}
+          </View>
+
+          {hasMultiple && (
+            <Icon
+              name="ArrowRight02Icon"
+              size={18}
+              onPress={handleNext}
+              style={styles.navIcon}
+            />
+          )}
+        </View>
       </View>
     </View>
   );
@@ -82,6 +133,35 @@ function createStyle(theme) {
       borderRadius: 8,
       width: "100%",
     },
+    pinnedContentRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 4,
+    },
+    pinnedTextContainer: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginHorizontal: 8,
+    },
+    pinnedText: {
+      flex: 1,
+      fontSize: 12,
+      color: theme.text,
+      opacity: 0.9,
+    },
+    indicatorText: {
+      fontSize: 10,
+      color: theme.text,
+      opacity: 0.6,
+      marginLeft: 8,
+      fontVariant: ["tabular-nums"],
+    },
+    navIcon: {
+      padding: 4,
+    },
     voiceControlContainer: {
       height: 36,
       justifyContent: "center",
@@ -108,11 +188,6 @@ function createStyle(theme) {
       fontWeight: "600",
       textAlign: "center",
       flexShrink: 1,
-    },
-    pinnedText: {
-      fontSize: 12,
-      color: theme.text,
-      opacity: 0.9,
     },
     splitContainer: {
       flex: 1,

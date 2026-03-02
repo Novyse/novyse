@@ -56,9 +56,13 @@ const createStyle = (theme, insets) =>
 const MessageList = ({
   ref: flatListRef,
   preparedMessages,
+  pinnedMessages,
   myUUID,
   theme,
+  onPin,
+  onUnpin,
   onReply,
+  onCopy,
   onEdit,
   onDelete,
   onLoadMore,
@@ -104,6 +108,12 @@ const MessageList = ({
       setTriggeredMessage(null);
 
       switch (action) {
+        case "Pin":
+          onPin && onPin(triggeredMessage);
+          break;
+        case "Unpin":
+          onUnpin && onUnpin(triggeredMessage);
+          break;
         case "Reply":
           onReply && onReply(triggeredMessage);
           break;
@@ -112,8 +122,7 @@ const MessageList = ({
           console.log("Forwarding message:", triggeredMessage);
           break;
         case "Copy":
-          // Implement copy logic here
-          console.log("Copying message:", triggeredMessage);
+          onCopy && onCopy(triggeredMessage);
           break;
         case "Select":
           setSelectedMessage((prev) => {
@@ -194,6 +203,7 @@ const MessageList = ({
         onAction={onAction}
         onClose={handleClose}
         position={triggeredMessagePosition}
+        isPinned={pinnedMessages.includes(triggeredMessage?.id)}
         isEditedAllowed={isEditedAllowed}
         isDeletedAllowed={isDeletedAllowed}
       />

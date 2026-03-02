@@ -4,12 +4,15 @@ import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import messageUtils from "@/src/utils/chat/messageFormat";
 
 const useMessage = (chatUUID, messageID) => {
-  if (!chatUUID || !messageID) return { message: null };
-
   const [message, setMessage] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    if (!chatUUID || !messageID) {
+      setMessage(null);
+      setIsLoading(false);
+      return;
+    }
     const fetchMessage = async () => {
       setIsLoading(true);
       const row = await database.message.get(chatUUID, messageID);

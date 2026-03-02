@@ -14,6 +14,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
     useContext(ChatContext);
   const [chat, setChat] = useState({});
   const [messages, setMessages] = useState([]);
+  const [pinnedMessages, setPinnedMessages] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -28,6 +29,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
         setLoading(true);
         setChat({});
         setMessages([]);
+        setPinnedMessages([]);
         setOffset(0);
         setHasMore(true);
 
@@ -48,6 +50,9 @@ const useChatData = (chatUUID, chatHandle = null) => {
           const chat = await database.getChatByUUID(chatUUID);
           const { name, chatPictureUUID: profilePictureUUID } =
             await chatUtils.getChatNameAndProfilePicture(chat);
+
+          const pinnedMessages = await database.message.pin.get(chatUUID);
+
           setChat((prev) => ({
             uuid: chat.uuid,
             handle: chat.handle || chatHandle,
@@ -58,6 +63,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
           setSelectedChatName(name);
           setSelectedChatPictureUUID(profilePictureUUID);
           setMessages((prev) => messages.reverse());
+          setPinnedMessages(pinnedMessages);
 
           const members = await database.getMembersByChatUUID(chatUUID);
           setMembers(members);
@@ -209,6 +215,20 @@ const useChatData = (chatUUID, chatHandle = null) => {
       }
     };
 
+    const handleMessagePinned = ({ chatUUID: eChatUUID, messageID }) => {
+      if (chatUUID !== eChatUUID) return;
+      setPinnedMessages((currentPinnedMessages) => {
+        return [...currentPinnedMessages, messageID];
+      });
+    };
+
+    const handleMessageUnpinned = ({ chatUUID: eChatUUID, messageID }) => {
+      if (chatUUID !== eChatUUID) return;
+      setPinnedMessages((currentPinnedMessages) => {
+        return currentPinnedMessages.filter((id) => id !== messageID);
+      });
+    };
+
     const handleFileDownloaded = ({ file }) => {
       setMessages((currentMessages) => {
         return currentMessages.map((msg) => {
@@ -228,6 +248,9 @@ const useChatData = (chatUUID, chatHandle = null) => {
 
     eventEmitter.getEmitter().on("message:update", handleMessageUpdate);
 
+    eventEmitter.getEmitter().on("message:pinned", handleMessagePinned);
+    eventEmitter.getEmitter().on("message:unpinned", handleMessageUnpinned);
+
     eventEmitter.getEmitter().on("file:downloaded", handleFileDownloaded);
 
     return () => {
@@ -242,6 +265,9 @@ const useChatData = (chatUUID, chatHandle = null) => {
       eventEmitter.getEmitter().off("message:sent", handleMessageSent);
 
       eventEmitter.getEmitter().off("message:update", handleMessageUpdate);
+
+      eventEmitter.getEmitter().off("message:pinned", handleMessagePinned);
+      eventEmitter.getEmitter().off("message:unpinned", handleMessageUnpinned);
 
       eventEmitter.getEmitter().off("file:downloaded", handleFileDownloaded);
     };
@@ -275,6 +301,7 @@ const useChatData = (chatUUID, chatHandle = null) => {
   return {
     chat,
     messages,
+    pinnedMessages,
     members,
     setMessages,
     loading,

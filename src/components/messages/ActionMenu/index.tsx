@@ -25,6 +25,7 @@ interface ActionMenuProps {
   onClose: () => void;
   onAction: (action: string) => void;
   position: { x: number; y: number };
+  isPinned: boolean;
   isEditedAllowed: boolean;
   isDeletedAllowed: boolean;
 }
@@ -34,6 +35,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   onClose,
   onAction,
   position,
+  isPinned,
   isEditedAllowed,
   isDeletedAllowed,
 }) => {
@@ -71,9 +73,23 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
         iconName: "ArrowMoveUpLeftIcon",
         color: theme.text,
       },
+      !isPinned
+        ? {
+            action: "Pin",
+            iconName: "PinIcon",
+            color: theme.text,
+          }
+        : undefined,
+      isPinned
+        ? {
+            action: "Unpin",
+            iconName: "PinOffIcon",
+            color: theme.text,
+          }
+        : undefined,
       {
-        action: "Pin",
-        iconName: "PinIcon",
+        action: "Copy",
+        iconName: "Copy02Icon",
         color: theme.text,
       },
       isEditedAllowed

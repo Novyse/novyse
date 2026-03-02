@@ -22,24 +22,20 @@ import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
 import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
-import database from "@/src/utils/storage/database";
 
-// Hooks
 import useChatData from "@/src/hooks/chat/useChatData.js";
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers.js";
 import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers.js";
 import usePreparedMessages from "@/src/hooks/chat/usePreparedMessages.js";
+import useClipboard from "@/src/hooks/useClipboard";
 
-// Context
 import { ChatContext } from "@/context/ChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 import { LocalUserContext } from "@/context/LocalUserContext";
 
-// Keyboard Controller
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-// New Components
 import BottomBar from "@/src/components/chat/content/bottomBar";
 import MessageList from "@/src/components/chat/content/MessageList";
 import UploadFileOverlay from "@/src/components/chat/content/UploadFileOverlay";
@@ -64,10 +60,8 @@ const ChatContent = ({ onBack, contentView }) => {
 
   const { selectedChatUUID, setSelectedChatUUID, selectedHandle } =
     useContext(ChatContext);
-  const { chat, messages, members, loading, loadMoreMessages } = useChatData(
-    selectedChatUUID,
-    selectedHandle,
-  );
+  const { chat, messages, pinnedMessages, members, loading, loadMoreMessages } =
+    useChatData(selectedChatUUID, selectedHandle);
   const { userUUID: myUUID } = useContext(LocalUserContext);
 
   const flatListRef = useRef(null);
@@ -81,6 +75,8 @@ const ChatContent = ({ onBack, contentView }) => {
   // Hook per message handlers
   const {
     handleSendMessage,
+    handlePinMessage,
+    handleUnpinMessage,
     handleEditMessage,
     handleDeleteMessage,
     handleSendFileMessage,
@@ -100,6 +96,8 @@ const ChatContent = ({ onBack, contentView }) => {
     bottomSheetRef,
     setIsFileModalVisible,
   );
+
+  const { copyToClipboard } = useClipboard();
 
   const handleJoin = useCallback(async () => {
     const response = await gateway.chat.join(selectedHandle);
@@ -176,8 +174,6 @@ const ChatContent = ({ onBack, contentView }) => {
     }
   }, [sheetIndex]);
 
-  // --- Stable callbacks for Reply / Edit ---
-
   const handleReply = useCallback((msg) => {
     setReplyingTo(msg);
     setEditingMessage(null); // clear edit when replying
@@ -241,6 +237,24 @@ const ChatContent = ({ onBack, contentView }) => {
     [members, myUUID, handleTextChanging, isMicClicked],
   );
 
+  const handlePin = useCallback(
+    (msg) => {
+      handlePinMessage(msg.id);
+    },
+    [handlePinMessage],
+  );
+
+  const handleUnpin = useCallback(
+    (msg) => {
+      handleUnpinMessage(msg.id);
+    },
+    [handleUnpinMessage],
+  );
+
+  const handleCopy = useCallback((msg) => {
+    copyToClipboard(msg.content);
+  }, []);
+
   const handleSendOrEdit = useCallback(
     (type, content, files) => {
       if (editingMessage) {
@@ -272,9 +286,13 @@ const ChatContent = ({ onBack, contentView }) => {
           <MessageList
             ref={flatListRef}
             preparedMessages={preparedMessages}
+            pinnedMessages={pinnedMessages}
             myUUID={myUUID}
             theme={theme}
+            onPin={handlePin}
+            onUnpin={handleUnpin}
             onReply={handleReply}
+            onCopy={handleCopy}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onLoadMore={loadMoreMessages}

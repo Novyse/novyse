@@ -17,6 +17,8 @@ import { useScreen } from "@/context/ScreenContext";
 import { ChatContext } from "@/context/ChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 
+import useChatData from "@/src/hooks/chat/useChatData.js";
+
 const ChatContainer = ({ navigation, route }) => {
   const { chatUUIDorHandle } = route.params || {};
   const onBack = () => navigation.goBack();
@@ -28,6 +30,8 @@ const ChatContainer = ({ navigation, route }) => {
     selectedChatName,
     selectedChatPictureUUID,
   } = useContext(ChatContext);
+
+  const { pinnedMessages } = useChatData(selectedChatUUID, selectedHandle);
 
   const { theme } = useContext(ThemeContext);
   const { isSmallScreen } = useScreen();
@@ -213,6 +217,7 @@ const ChatContainer = ({ navigation, route }) => {
         chatUUIDorHandle={chatUUIDorHandle}
         selectedChatName={selectedChatName}
         selectedChatPictureUUID={selectedChatPictureUUID}
+        pinnedMessages={pinnedMessages}
         contentView={contentView}
         setContentView={handleSetContentView}
         navigation={navigation}

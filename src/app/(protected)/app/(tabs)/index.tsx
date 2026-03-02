@@ -228,7 +228,6 @@ function createStyle(theme, isSmallScreen, insets) {
     flatListContent: {
       padding: 10,
       gap: 10,
-      paddingRight: 10 - 6, // Removed scrollbar width
       paddingBottom: (isSmallScreen ? 180 : 90) + insets.bottom,
     },
     logo: { width: 24, height: 24 },

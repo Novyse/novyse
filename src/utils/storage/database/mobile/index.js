@@ -131,7 +131,6 @@ class Database {
                 type TEXT NOT NULL DEFAULT 'message',
                 system_action TEXT,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                is_pinned BOOLEAN NOT NULL DEFAULT 0,
                 replyTo_chatUUID TEXT,
                 replyTo_messageID INTEGER,
                 replyTo_rangeStart INTEGER,
@@ -139,6 +138,14 @@ class Database {
                 PRIMARY KEY (chatUUID, id),
                 FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
                 FOREIGN KEY (senderUUID) REFERENCES user(uuid)
+            );
+
+            CREATE TABLE IF NOT EXISTS pinned_message (
+                chatUUID TEXT NOT NULL,
+                messageID INTEGER NOT NULL,
+                PRIMARY KEY (chatUUID, messageID),
+                FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
+                FOREIGN KEY (messageID) REFERENCES message(id)
             );
 
             CREATE TABLE IF NOT EXISTS message_files (
@@ -379,7 +386,7 @@ class Database {
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, is_pinned, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
@@ -388,7 +395,6 @@ class Database {
           message.type || "message",
           message.system_action || null,
           message.created_at,
-          message.isPinned ? 1 : 0,
           message.replyTo?.chatUUID || null,
           message.replyTo?.messageID || null,
           message.replyTo?.rangeStart !== undefined
@@ -943,7 +949,7 @@ class Database {
         }
         const placeholders = messages
           .map(
-            () => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, // 12 placeholders for each message field
+            () => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, // 11 placeholders for each message field
           )
           .join(", ");
         const values = [];
@@ -965,7 +971,6 @@ class Database {
             message.type || "message",
             message.system_action || null,
             message.created_at,
-            message.isPinned ? 1 : 0,
             message.replyTo?.chatUUID || null,
             message.replyTo?.messageID || null,
             message.replyTo?.rangeStart !== undefined
@@ -977,7 +982,7 @@ class Database {
           );
         }
         await this.db.runAsync(
-          `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, is_pinned, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES ${placeholders};`,
+          `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES ${placeholders};`,
           values,
         );
         console.log(`${messages.length} messages added successfully.`);
@@ -1099,6 +1104,46 @@ class Database {
         console.error("Error deleting message:", error);
         return false;
       }
+    },
+    pin: {
+      add: async (chatUUID, messageID) => {
+        try {
+          await this.db.runAsync(
+            `INSERT INTO pinned_message (chatUUID, messageID) VALUES (?, ?);`,
+            [chatUUID, messageID],
+          );
+          console.log(`Message ${messageID} pinned successfully.`);
+          return true;
+        } catch (error) {
+          console.error("Error pinning message:", error);
+          return false;
+        }
+      },
+      remove: async (chatUUID, messageID) => {
+        try {
+          await this.db.runAsync(
+            `DELETE FROM pinned_message WHERE chatUUID = ? AND messageID = ?;`,
+            [chatUUID, messageID],
+          );
+          console.log(`Message ${messageID} unpinned successfully.`);
+          return true;
+        } catch (error) {
+          console.error("Error unpinning message:", error);
+          return false;
+        }
+      },
+      get: async (chatUUID) => {
+        try {
+          const pinnedMessages = await this.db.getAllAsync(
+            `SELECT messageID FROM pinned_message WHERE chatUUID = ?;`,
+            [chatUUID],
+          );
+          return pinnedMessages.map((m) => m.messageID);
+        } catch (error) {
+          console.error("Error retrieving pinned messages:", error);
+          return [];
+        }
+      },
     },
   };
   user = {

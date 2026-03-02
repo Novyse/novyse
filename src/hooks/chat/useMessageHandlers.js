@@ -46,6 +46,28 @@ const useMessageHandlers = (
     [chat, setNewMessageText, setVoiceMessage, setIsMicClicked],
   );
 
+  const handlePinMessage = useCallback(
+    async (messageID) => {
+      //const response = await gateway.message.pin(chat.uuid, messageID);
+      const response = { success: true };
+      if (response.success) {
+        await eventEmitter.message.pin(chat.uuid, messageID);
+      }
+    },
+    [chat],
+  );
+
+  const handleUnpinMessage = useCallback(
+    async (messageID) => {
+      //const response = await gateway.message.unpin(chat.uuid, messageID);
+      const response = { success: true };
+      if (response.success) {
+        await eventEmitter.message.unpin(chat.uuid, messageID);
+      }
+    },
+    [chat],
+  );
+
   const handleDeleteMessage = useCallback(
     async (messageID) => {
       console.log(messageID, chat.uuid);
@@ -103,6 +125,8 @@ const useMessageHandlers = (
   return {
     handleSendMessage,
     handleSendFileMessage,
+    handlePinMessage,
+    handleUnpinMessage,
     handleTextChanging,
     handleDeleteMessage,
     handleEditMessage,
