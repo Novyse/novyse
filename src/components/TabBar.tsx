@@ -38,9 +38,19 @@ const TabBar: React.FC<BottomTabBarProps> = ({
     containerWidth.value > 0 ? (containerWidth.value - 10) / numTabs : 0,
   );
 
+  const activeRoute = state.routes[state.index];
+  const visibleIndex = visibleRoutes.findIndex(
+    (r) => r.key === activeRoute.key,
+  );
+
+  const lastValidIndex = useSharedValue(0);
+
   const activeVisibleIndex = useDerivedValue(() => {
-    return state.index;
-  });
+    if (visibleIndex !== -1) {
+      lastValidIndex.value = visibleIndex;
+    }
+    return lastValidIndex.value;
+  }, [visibleIndex]);
 
   // Niente useEffect — reagisce direttamente ai cambiamenti
   useAnimatedReaction(
