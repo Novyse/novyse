@@ -809,16 +809,19 @@ class Database {
     }
   }
 
-  async getMessagesByChatUUID(chatUUID) {
+  async getMessagesByChatUUID(chatUUID, limit = 50, offset = 0) {
     await this.addDb();
     try {
-      const messages = await this.db.getAllAsync(
+      const results = await this.db.getAllAsync(
         `SELECT m.*, u.name as sender_name, u.profilePictureUUID as profile_picture_uuid FROM message m
              JOIN user u ON m.senderUUID = u.uuid
              WHERE m.chatUUID = ?
-                ORDER BY m.created_at ASC;`,
-        [chatUUID],
+                ORDER BY m.created_at DESC
+                LIMIT ? OFFSET ?;`,
+        [chatUUID, limit, offset],
       );
+      // Reverse to maintain chronological order after fetching mostly recent first
+      const messages = results.reverse();
       // Add files to each message
       for (const message of messages) {
         this._mapMessageReplyTo(message);

@@ -1,18 +1,18 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { FlatList, StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import MessageBase from "@/src/components/messages/MessageBase";
 import MessageSystem from "@/src/components/messages/MessageSystem";
 
 import ActionMenu from "@/src/components/messages/ActionMenu";
+import Icon from "@/src/components/Icon";
 
 const createStyle = (theme, insets) =>
   StyleSheet.create({
     list: {
       flex: 1,
-      paddingTop: 50 + insets.bottom,
-      paddingBottom: 150,
       ...(Platform.OS === "web" && {
         scrollbarWidth: "thin",
         scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
@@ -35,8 +35,21 @@ const createStyle = (theme, insets) =>
       }),
     },
     listContent: {
-      paddingTop: 10,
-      paddingBottom: 10,
+      paddingTop: 70 + insets.top,
+      paddingBottom: 70 + insets.bottom,
+    },
+    scrollButtonContainer: {
+      position: "absolute",
+      right: 20,
+      bottom: 80 + insets.bottom,
+      width: 50,
+      height: 50,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.primary,
+      borderRadius: 25,
+      elevation: 5,
+      zIndex: 10,
     },
   });
 
@@ -48,6 +61,7 @@ const MessageList = ({
   onReply,
   onEdit,
   onDelete,
+  onLoadMore,
 }) => {
   const insets = useSafeAreaInsets();
   const styles = createStyle(theme, insets);
@@ -61,6 +75,17 @@ const MessageList = ({
   const [selectedMessage, setSelectedMessage] = useState([]);
   const [isEditedAllowed, setIsEditedAllowed] = useState(false);
   const [isDeletedAllowed, setIsDeletedAllowed] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+
+  const handleScroll = useCallback((event) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    if (contentSize.height === 0) return;
+
+    // For startRenderingFromBottom: true, scrolling up means contentOffset.y decreases.
+    const distanceToBottom =
+      contentSize.height - layoutMeasurement.height - contentOffset.y;
+    setShowScrollButton(distanceToBottom > 200); // Only show when scrolling up significantly
+  }, []);
 
   useEffect(() => {
     if (triggeredMessage) {
@@ -136,7 +161,7 @@ const MessageList = ({
 
   return (
     <>
-      <FlatList
+      <FlashList
         ref={flatListRef}
         data={preparedMessages}
         keyExtractor={(item) => item.uniqueKey}
@@ -145,8 +170,25 @@ const MessageList = ({
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={true}
         scrollIndicatorInsets={{ right: 1 }}
-        inverted
+        maintainVisibleContentPosition={{
+          autoscrollToBottomThreshold: 0.2,
+          startRenderingFromBottom: true,
+        }}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        onStartReached={onLoadMore}
+        onStartReachedThreshold={0.5}
       />
+      {showScrollButton && (
+        <View style={styles.scrollButtonContainer}>
+          <Icon
+            name="ArrowDown01Icon"
+            size={32}
+            color={theme.text}
+            onPress={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          />
+        </View>
+      )}
       <ActionMenu
         visible={!!triggeredMessage}
         onAction={onAction}

@@ -44,7 +44,9 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
   const styles = useMemo(() => createStyle(theme), [theme]);
 
   const isReady = !!playableUri;
-  const { uri: profilePictureUri } = useProfilePicture(message.senderUUID);
+  const { uri: profilePictureUri } = useProfilePicture(
+    message.profile_picture_uuid,
+  );
 
   const handlePlayPress = () => {
     addInfo(

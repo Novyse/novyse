@@ -662,7 +662,7 @@ class Database {
     }
   }
 
-  async getMessagesByChatUUID(chatUUID) {
+  async getMessagesByChatUUID(chatUUID, limit = 50, offset = 0) {
     try {
       const messages = (await this.store.getItem("messages")) || [];
       const users = (await this.store.getItem("users")) || [];
@@ -670,7 +670,9 @@ class Database {
       const files = (await this.store.getItem("files")) || [];
       const chatMessages = messages
         .filter((m) => m.chatUUID === chatUUID)
-        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // sort DESC
+        .slice(offset, offset + limit) // take newest X msgs up to offset
+        .reverse() // sort ASC again
         .map((m) => {
           const sender = users.find((u) => u.uuid === m.senderUUID);
           return { ...m, sender_name: sender ? sender.name : null };

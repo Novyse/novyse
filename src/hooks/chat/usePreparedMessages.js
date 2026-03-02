@@ -9,7 +9,7 @@ const usePreparedMessages = (messages) => {
     if (!Array.isArray(msgs) || msgs.length === 0) return [];
 
     const sortedAsc = [...msgs].sort(
-      (a, b) => new Date(a.created_at) - new Date(b.created_at)
+      (a, b) => new Date(a.created_at) - new Date(b.created_at),
     );
 
     const isBreaking = (msg) =>
@@ -38,7 +38,7 @@ const usePreparedMessages = (messages) => {
         sortedAsc[i].sender_name === sender &&
         (DateTime.fromJSDate(new Date(sortedAsc[i].created_at)).isValid
           ? DateTime.fromJSDate(new Date(sortedAsc[i].created_at)).toFormat(
-              "yyyy-MM-dd"
+              "yyyy-MM-dd",
             )
           : null) === dateOfGroup
       ) {
@@ -58,7 +58,7 @@ const usePreparedMessages = (messages) => {
 
     // Ordina per visualizzazione (nuovi → vecchi)
     const sortedDesc = [...sortedAsc].sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      (a, b) => new Date(b.created_at) - new Date(a.created_at),
     );
 
     const prepared = [];
@@ -114,7 +114,7 @@ const usePreparedMessages = (messages) => {
       }
     }
 
-    return prepared;
+    return prepared.reverse();
   }, []);
 
   return useMemo(() => prepareMessages(messages), [messages, prepareMessages]);

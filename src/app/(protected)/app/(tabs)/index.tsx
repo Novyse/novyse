@@ -225,7 +225,12 @@ function createStyle(theme, isSmallScreen, insets) {
       }),
       paddingTop: 75 + insets.top,
     },
-    flatListContent: { padding: 10, gap: 10 },
+    flatListContent: {
+      padding: 10,
+      gap: 10,
+      paddingRight: 10 - 6, // Removed scrollbar width
+      paddingBottom: (isSmallScreen ? 180 : 90) + insets.bottom,
+    },
     logo: { width: 24, height: 24 },
     headerTitle: { color: theme.text, fontSize: 18, fontWeight: "bold" },
   });

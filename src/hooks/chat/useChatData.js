@@ -17,6 +17,10 @@ const useChatData = (chatUUID, chatHandle = null) => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const CHUNK_SIZE = 50;
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -24,9 +28,19 @@ const useChatData = (chatUUID, chatHandle = null) => {
         setLoading(true);
         setChat({});
         setMessages([]);
+        setOffset(0);
+        setHasMore(true);
 
         if (chatUUID) {
-          const messages = await database.getMessagesByChatUUID(chatUUID);
+          const messages = await database.getMessagesByChatUUID(
+            chatUUID,
+            CHUNK_SIZE,
+            0,
+          );
+          setOffset(CHUNK_SIZE);
+          if (messages.length < CHUNK_SIZE) {
+            setHasMore(false);
+          }
           const pendingMessage =
             await database.getPendingMessagesByChatUUID(chatUUID);
           messages.push(...pendingMessage);
@@ -233,7 +247,40 @@ const useChatData = (chatUUID, chatHandle = null) => {
     };
   }, [chatUUID, chatHandle]);
 
-  return { chat, messages, members, setMessages, loading, error };
+  const loadMoreMessages = async () => {
+    if (!hasMore || isLoadingMore || !chatUUID) return;
+
+    try {
+      setIsLoadingMore(true);
+      const moreMessages = await database.getMessagesByChatUUID(
+        chatUUID,
+        CHUNK_SIZE,
+        offset,
+      );
+      if (moreMessages.length < CHUNK_SIZE) {
+        setHasMore(false);
+      }
+      setOffset((prev) => prev + CHUNK_SIZE);
+
+      const descMoreMessages = moreMessages.reverse();
+
+      setMessages((prev) => [...prev, ...descMoreMessages]);
+    } catch (err) {
+      console.error("Error loading more messages:", err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  return {
+    chat,
+    messages,
+    members,
+    setMessages,
+    loading,
+    error,
+    loadMoreMessages,
+  };
 };
 
 export default useChatData;

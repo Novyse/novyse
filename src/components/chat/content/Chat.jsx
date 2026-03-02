@@ -64,7 +64,7 @@ const ChatContent = ({ onBack, contentView }) => {
 
   const { selectedChatUUID, setSelectedChatUUID, selectedHandle } =
     useContext(ChatContext);
-  const { chat, messages, members, loading } = useChatData(
+  const { chat, messages, members, loading, loadMoreMessages } = useChatData(
     selectedChatUUID,
     selectedHandle,
   );
@@ -277,6 +277,7 @@ const ChatContent = ({ onBack, contentView }) => {
             onReply={handleReply}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onLoadMore={loadMoreMessages}
           />
         </View>
         <UploadFileModal

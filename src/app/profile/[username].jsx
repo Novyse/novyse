@@ -4,7 +4,6 @@ import { useLocalSearchParams } from "expo-router";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
-import ScreenLayout from "@/src/components/ScreenLayout";
 import Profile from "@/src/components/Profile";
 
 import database from "@/src/utils/storage/database";
@@ -76,111 +75,52 @@ const ProfilePage = () => {
 
   if (isLoading) {
     return (
-      <ScreenLayout fullscreen={true}>
-        <View style={styles.container}>
-          <Text style={styles.loadingText}>Loading profile...</Text>
-        </View>
-      </ScreenLayout>
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
     );
   }
 
   if (error) {
     return (
-      <ScreenLayout fullscreen={true}>
-        <View style={styles.container}>
-          <Text style={styles.loadingText}>Error loading profile: {error}</Text>
-        </View>
-      </ScreenLayout>
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Error loading profile: {error}</Text>
+      </View>
     );
   }
 
   return (
-    <ScreenLayout fullscreen={true}>
-      <Profile
-        uuid={uuid}
-        name={name}
-        surname={surname}
-        username={username}
-        profilePictureUUID={profilePictureUUID}
-        description={description}
-        isOnline={true}
-      />
-    </ScreenLayout>
+    <View style={styles.container}>
+      <View style={styles.profileContainer}>
+        <Profile
+          uuid={uuid}
+          name={name}
+          surname={surname}
+          username={username}
+          profilePictureUUID={profilePictureUUID}
+          description={description}
+          isOnline={true}
+        />
+      </View>
+    </View>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    loadingText: {
-      color: theme.text,
-      fontSize: 16,
-      textAlign: "center",
-      marginTop: 80,
+    container: {
+      flex: 1,
+      backgroundColor: theme.backgroundMainGradient[0],
     },
-    profileImageSection: {
-      alignItems: "center",
-      paddingVertical: 30,
-      marginBottom: 20,
-    },
-    profileImageContainer: {
-      width: 120,
-      height: 120,
-      borderRadius: 60,
-      backgroundColor: theme.backgroundSettingsCards,
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 15,
-      borderWidth: 3,
-      borderColor: theme.primary,
+    profileContainer: {
+      flex: 1,
+      position: "relative",
+      borderRadius: 15,
       overflow: "hidden",
-    },
-    profileName: {
-      color: theme.text,
-      fontSize: 24,
-      fontWeight: "700",
-      textAlign: "center",
-      marginBottom: 5,
-    },
-    profileHandle: {
-      color: theme.text,
-      fontSize: 16,
-      textAlign: "center",
-    },
-    sectionTitle: {
-      color: theme.text,
-      fontSize: 18,
-      fontWeight: "700",
-      marginBottom: 20,
-    },
-    fieldContainer: {
-      marginBottom: 20,
-    },
-    fieldLabel: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "600",
-      marginBottom: 8,
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-    },
-    fieldValueContainer: {
-      backgroundColor: theme.inputBackground,
-      borderRadius: 8,
-      paddingHorizontal: 15,
-      paddingVertical: 12,
-      borderWidth: 1,
-      borderColor: theme.borderColor,
-    },
-    fieldValue: {
-      color: theme.text,
-      fontSize: 16,
-    },
-    editIconContainer: {
-      position: "absolute",
-      justifyContent: "center",
-      alignItems: "center",
-      width: "100%",
-      height: "100%",
+      backgroundColor: theme.backgroundMainGradient[0],
+      margin: 10,
+      width: "50%",
+      alignSelf: "center",
     },
   });
 
