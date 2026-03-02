@@ -301,63 +301,80 @@ const createStyle = (
   isSmallScreen,
   isFullScreen,
 ) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: "#000",
-      overflow: "hidden",
-      minWidth: isSmallScreen || isFullScreen ? screenWidth : screenWidth * 0.9,
-      minHeight:
-        isSmallScreen || isFullScreen ? screenHeight : screenHeight * 0.9,
-    },
-    videoContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-    video: {
-      flex: 1,
-      width: isSmallScreen || isFullScreen ? screenWidth : screenWidth * 0.9,
-      height: isSmallScreen || isFullScreen ? screenHeight : screenHeight * 0.9,
-    },
-    overlay: {
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.4)",
-      justifyContent: "space-between",
-    },
-    overlayLandscape: { paddingHorizontal: 40 },
-    header: { padding: 16 },
-    centerContainer: {
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: 50,
-    },
-    playButtonMain: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: "rgba(0,0,0,0.7)",
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.2)",
-    },
-    footerContainer: { paddingBottom: 20, paddingHorizontal: 20 },
-    sliderRow: { flexDirection: "row", alignItems: "center" },
-    slider: { flex: 1, marginHorizontal: 10, height: 40 },
-    timeText: { color: "#fff", fontSize: 12, fontWeight: "600", minWidth: 40 },
-    bottomActionsRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-    volumeContainer: { flexDirection: "row", alignItems: "center", width: 160 },
-    volumeSlider: { flex: 1, marginLeft: 10, height: 30 },
-    rightActions: { flexDirection: "row", alignItems: "center", gap: 20 },
-    speedButton: {
-      backgroundColor: "rgba(255,255,255,0.2)",
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 5,
-    },
-    speedText: { color: "white", fontSize: 12, fontWeight: "bold" },
-  });
+  // Per evitare che i video verticali vengano tagliati su schermi verticali,
+  // limitiamo l'aspect ratio massimo del contenitore a ~16:9.
+  // In questo modo `contentFit="contain"` riesce sempre a mostrare il video intero.
+  (() => {
+    const isFull = isSmallScreen || isFullScreen;
+    const baseWidth = isFull ? screenWidth : screenWidth * 0.9;
+    const baseMaxHeight = isFull ? screenHeight : screenHeight * 0.9;
+
+    // aspect ratio massimo verticale (circa 9:16)
+    const MAX_VERTICAL_AR = 16 / 9;
+    const idealHeight = baseWidth * MAX_VERTICAL_AR;
+    const constrainedHeight = Math.min(baseMaxHeight, idealHeight);
+
+    return StyleSheet.create({
+      container: {
+        flex: 1,
+        backgroundColor: "#000",
+        overflow: "hidden",
+        alignItems: "center",
+        justifyContent: "center",
+      },
+      videoContainer: {
+        width: baseWidth,
+        height: constrainedHeight,
+        justifyContent: "center",
+        alignItems: "center",
+      },
+      video: {
+        width: "100%",
+        height: "100%",
+      },
+      overlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.4)",
+        justifyContent: "space-between",
+      },
+      overlayLandscape: { paddingHorizontal: 40 },
+      header: { padding: 16 },
+      centerContainer: {
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 50,
+      },
+      playButtonMain: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: "rgba(0,0,0,0.7)",
+        justifyContent: "center",
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.2)",
+      },
+      footerContainer: { paddingBottom: 20, paddingHorizontal: 20 },
+      sliderRow: { flexDirection: "row", alignItems: "center" },
+      slider: { flex: 1, marginHorizontal: 10, height: 40 },
+      timeText: { color: "#fff", fontSize: 12, fontWeight: "600", minWidth: 40 },
+      bottomActionsRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      },
+      volumeContainer: { flexDirection: "row", alignItems: "center", width: 160 },
+      volumeSlider: { flex: 1, marginLeft: 10, height: 30 },
+      rightActions: { flexDirection: "row", alignItems: "center", gap: 20 },
+      speedButton: {
+        backgroundColor: "rgba(255,255,255,0.2)",
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 5,
+      },
+      speedText: { color: "white", fontSize: 12, fontWeight: "bold" },
+    });
+  })();
 
 export default VideoViewer;
