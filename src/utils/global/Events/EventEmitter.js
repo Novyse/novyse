@@ -1,5 +1,7 @@
 import EventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
 import database from "@/src/utils/storage/database";
+import notificationManager from "@/src/utils/notifications/NotificationManager";
+import storage from "@/src/utils/storage/file";
 
 import messageUtils from "@/src/utils/chat/message";
 
@@ -17,6 +19,17 @@ class GlobalEventEmitter {
       await messageUtils.add(message);
     }
     const msg = await database.addSenderNameToMessage(message);
+
+    if (!msg.localUser) {
+      await notificationManager.sendNotificationWhenInBackground(
+        msg.sender_name,
+        msg.content,
+        {
+          chatUUID: msg.chatUUID,
+          messageID: msg.id,
+        },
+      );
+    }
     //@SamueleOrazioDurante to be changes, devi usare un metodo che vada a carcare nel database, eventualmente lo vada a pullare dal server, ma solo temporaneamente (il pull completo viene fatto al join)
     this.eventEmitter.emit("message:new", msg);
   }
