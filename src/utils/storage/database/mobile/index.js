@@ -903,7 +903,13 @@ class Database {
       }
       const user = await this.getUserByUUID(message.senderUUID);
       if (user) {
-        return { ...message, sender_name: user.name };
+        const localUser = await this.getLocalUser();
+        return {
+          ...message,
+          sender_name: user.name,
+          sender_profile_picture_uuid: user.profilePictureUUID,
+          localUser: user.uuid === localUser?.uuid,
+        };
       }
       return message;
     } catch (error) {
