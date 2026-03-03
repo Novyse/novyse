@@ -24,6 +24,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from "react-native-reanimated";
+import useDownload from "@/src/hooks/file/useDownload";
 
 const formatTime = (seconds) => {
   if (!seconds) return "00:00";
@@ -44,6 +45,9 @@ const VideoViewer = () => {
   const [currentSpeedIndex, setCurrentSpeedIndex] = useState(3);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [seekTime, setSeekTime] = useState(0);
+
+  const { downloadFile } = useDownload();
+  const uuid = params.uuid || null;
 
   const lastVolumeRef = useRef(1);
   const wasPlayingBeforeSeek = useRef(false);
@@ -138,6 +142,11 @@ const VideoViewer = () => {
     handleUserActivity();
   };
 
+  const handleDownload = async () => {
+    if (!uuid) return;
+    await downloadFile({ uuid });
+  };
+
   if (!uri) return <View style={styles.container} />;
 
   return (
@@ -169,6 +178,15 @@ const VideoViewer = () => {
                   onPress={() => router.back()}
                   color="white"
                 />
+                <View style={styles.rightButtons}>
+                  {uuid && (
+                    <Icon
+                      name="Download01Icon"
+                      onPress={handleDownload}
+                      color="white"
+                    />
+                  )}
+                </View>
               </View>
 
               <View style={styles.centerContainer}>
@@ -278,7 +296,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   overlayLandscape: { paddingHorizontal: 40 },
-  header: { padding: 16 },
+  header: {
+    padding: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  rightButtons: {
+    flexDirection: "row",
+    gap: 15,
+  },
   centerContainer: {
     flexDirection: "row",
     justifyContent: "center",

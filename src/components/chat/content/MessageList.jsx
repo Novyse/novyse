@@ -19,6 +19,7 @@ const MessageList = ({
   onUnpin,
   onReply,
   onCopy,
+  onDownload,
   onEdit,
   onDelete,
   onLoadMore,
@@ -79,6 +80,9 @@ const MessageList = ({
           break;
         case "Copy":
           onCopy && onCopy(triggeredMessage);
+          break;
+        case "Download":
+          onDownload && onDownload(triggeredMessage);
           break;
         case "Select":
           setSelectedMessage((prev) => {
@@ -162,14 +166,13 @@ const MessageList = ({
         isPinned={pinnedMessages.includes(triggeredMessage?.id)}
         isEditedAllowed={isEditedAllowed}
         isDeletedAllowed={isDeletedAllowed}
+        isDownloadAllowed={triggeredMessage?.files?.length > 0}
       />
     </>
   );
 };
 
 export default React.memo(MessageList);
-
-
 
 const createStyle = (theme, insets) =>
   StyleSheet.create({

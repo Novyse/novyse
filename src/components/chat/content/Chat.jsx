@@ -28,6 +28,7 @@ import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers.js";
 import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers.js";
 import usePreparedMessages from "@/src/hooks/chat/usePreparedMessages.js";
 import useClipboard from "@/src/hooks/useClipboard";
+import useDownload from "@/src/hooks/file/useDownload";
 
 import { ChatContext } from "@/context/ChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -98,6 +99,7 @@ const ChatContent = ({ onBack, contentView }) => {
   );
 
   const { copyToClipboard } = useClipboard();
+  const { downloadFile } = useDownload();
 
   const handleJoin = useCallback(async () => {
     const response = await gateway.chat.join(selectedHandle);
@@ -255,9 +257,19 @@ const ChatContent = ({ onBack, contentView }) => {
     copyToClipboard(msg.content);
   }, []);
 
+  const handleDownload = useCallback((msg) => {
+    downloadFile(msg.files);
+  }, []);
+
   const handleSendOrEdit = useCallback(
     (type, content, files) => {
       if (editingMessage) {
+        // If content is the same then do nothing
+        if (editingMessage.content === content) {
+          setEditingMessage(null);
+          setNewMessageText("");
+          return;
+        }
         handleEditMessage(editingMessage.id, content);
       } else {
         let replyTo = undefined;
@@ -293,6 +305,7 @@ const ChatContent = ({ onBack, contentView }) => {
             onUnpin={handleUnpin}
             onReply={handleReply}
             onCopy={handleCopy}
+            onDownload={handleDownload}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onLoadMore={loadMoreMessages}
