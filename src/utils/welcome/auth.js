@@ -91,7 +91,7 @@ const initializeApp = async () => {
     // Set local user uuid in async storage
     await AsyncStorage.setItem("userUUID", user.uuid);
     await AsyncStorage.setItem("deviceUUID", device.uuid);
-    await AsyncStorage.setItem("init", false);
+    await AsyncStorage.setItem("init", "false");
 
     return true;
   }

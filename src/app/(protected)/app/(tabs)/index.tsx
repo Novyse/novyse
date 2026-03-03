@@ -140,7 +140,7 @@ const ChatList = () => {
 
   const renderSelectionHeader = useCallback(
     () => (
-      <BlurredHeader style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+      <BlurredHeader style={{ paddingHorizontal: 10, paddingVertical: 5, backgroundColor: "#2951a9" }}>
         <Icon
           name={"Cancel01Icon"}
           size={24}

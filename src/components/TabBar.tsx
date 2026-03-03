@@ -155,6 +155,7 @@ const styles = StyleSheet.create({
     padding: 5,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "#3660ba68"
   },
   tabButton: {
     flex: 1,
