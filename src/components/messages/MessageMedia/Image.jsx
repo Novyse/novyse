@@ -45,6 +45,7 @@ const Image = ({ fileRef, uuid, isSingle }) => {
         uri={uri}
         theme={theme}
         scrollable={false}
+        uuid={uuid}
       />
     </>
   );

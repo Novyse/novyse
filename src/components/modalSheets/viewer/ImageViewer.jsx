@@ -19,8 +19,10 @@ import Animated, {
 } from "react-native-reanimated";
 import ModalBase from "../ModalBase";
 import { useScreen } from "@/context/ScreenContext";
+import useDownload from "@/src/hooks/file/useDownload";
 
-const ImageViewer = ({ visible, onClose, uri, theme }) => {
+const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
+  const { downloadFile } = useDownload();
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const { isSmallScreen } = useScreen();
 
@@ -129,6 +131,11 @@ const ImageViewer = ({ visible, onClose, uri, theme }) => {
     }
   };
 
+  const handleDownload = async () => {
+    if (!uuid) return;
+    await downloadFile({ uuid });
+  };
+
   if (!uri) return <View style={styles.container} />;
 
   return (
@@ -163,9 +170,16 @@ const ImageViewer = ({ visible, onClose, uri, theme }) => {
               <Pressable onPress={onClose} style={styles.iconButton}>
                 <Ionicons name="close" size={28} color="white" />
               </Pressable>
-              <Pressable onPress={handleShare} style={styles.iconButton}>
-                <Ionicons name="share-outline" size={26} color="white" />
-              </Pressable>
+              <View style={styles.rightButtons}>
+                {uuid && (
+                  <Pressable onPress={handleDownload} style={styles.iconButton}>
+                    <Ionicons name="download-outline" size={26} color="white" />
+                  </Pressable>
+                )}
+                <Pressable onPress={handleShare} style={styles.iconButton}>
+                  <Ionicons name="share-outline" size={26} color="white" />
+                </Pressable>
+              </View>
             </SafeAreaView>
           )}
         </View>
@@ -213,7 +227,10 @@ const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) =>
       paddingHorizontal: 20,
       paddingTop: 10,
       zIndex: 100,
-      pointerEvents: "none"
+    },
+    rightButtons: {
+      flexDirection: "row",
+      gap: 10,
     },
     iconButton: {
       width: 44,

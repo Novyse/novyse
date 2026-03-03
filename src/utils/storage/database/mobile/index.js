@@ -1473,6 +1473,23 @@ class Database {
         }
       },
       /**
+       * Get all file info by UUID.
+       * @param {String} fileUUID
+       * @returns {Object} file object or null if not found
+       */
+      all: async (fileUUID) => {
+        try {
+          const file = await this.db.getFirstAsync(
+            `SELECT * FROM file WHERE uuid = ?;`,
+            [fileUUID],
+          );
+          return file || null;
+        } catch (error) {
+          console.error("Error retrieving all file info:", error);
+          return null;
+        }
+      },
+      /**
        * Get total size of all files in the database.
        * @returns {Number} total size in bytes
        */

@@ -29,7 +29,7 @@ function RootLayoutContent() {
           <ThemeProvider>
             <LanguageProvider>
               <BottomSheetModalProvider>
-                <Stack>
+                <Stack screenOptions={{ headerShown: false }}>
                   <Stack.Protected guard={isLoggedIn}>
                     <Stack.Screen
                       name="(protected)"

@@ -26,6 +26,7 @@ import Animated, {
 import { getPlatform } from "@/src/utils/device/type";
 import ModalBase from "../ModalBase";
 import { useScreen } from "@/context/ScreenContext";
+import useDownload from "@/src/hooks/file/useDownload";
 
 const formatTime = (seconds) => {
   if (!seconds) return "00:00";
@@ -36,7 +37,8 @@ const formatTime = (seconds) => {
 
 const speeds = [0.25, 0.5, 0.75, 1, 1.5, 2];
 
-const VideoViewer = ({ visible, onClose, uri, theme }) => {
+const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
+  const { downloadFile } = useDownload();
   const { isSmallScreen } = useScreen();
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
 
@@ -147,6 +149,11 @@ const VideoViewer = ({ visible, onClose, uri, theme }) => {
     handleUserActivity();
   };
 
+  const handleDownload = async () => {
+    if (!uuid) return;
+    await downloadFile({ uuid });
+  };
+
   if (!uri) return <View style={styles.container} />;
 
   return (
@@ -187,6 +194,15 @@ const VideoViewer = ({ visible, onClose, uri, theme }) => {
               >
                 <View style={styles.header}>
                   <Icon name="Cancel01Icon" onPress={onClose} color="white" />
+                  <View style={styles.rightButtons}>
+                    {uuid && (
+                      <Icon
+                        name="Download01Icon"
+                        onPress={handleDownload}
+                        color="white"
+                      />
+                    )}
+                  </View>
                 </View>
 
                 <View style={styles.centerContainer}>
@@ -338,7 +354,16 @@ const createStyle = (
         justifyContent: "space-between",
       },
       overlayLandscape: { paddingHorizontal: 40 },
-      header: { padding: 16 },
+      header: {
+        padding: 16,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      },
+      rightButtons: {
+        flexDirection: "row",
+        gap: 15,
+      },
       centerContainer: {
         flexDirection: "row",
         justifyContent: "center",
@@ -358,13 +383,22 @@ const createStyle = (
       footerContainer: { paddingBottom: 20, paddingHorizontal: 20 },
       sliderRow: { flexDirection: "row", alignItems: "center" },
       slider: { flex: 1, marginHorizontal: 10, height: 40 },
-      timeText: { color: "#fff", fontSize: 12, fontWeight: "600", minWidth: 40 },
+      timeText: {
+        color: "#fff",
+        fontSize: 12,
+        fontWeight: "600",
+        minWidth: 40,
+      },
       bottomActionsRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
       },
-      volumeContainer: { flexDirection: "row", alignItems: "center", width: 160 },
+      volumeContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: 160,
+      },
       volumeSlider: { flex: 1, marginLeft: 10, height: 30 },
       rightActions: { flexDirection: "row", alignItems: "center", gap: 20 },
       speedButton: {

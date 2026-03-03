@@ -28,6 +28,7 @@ interface ActionMenuProps {
   isPinned: boolean;
   isEditedAllowed: boolean;
   isDeletedAllowed: boolean;
+  isDownloadAllowed: boolean;
 }
 
 const ActionMenu: React.FC<ActionMenuProps> = ({
@@ -38,6 +39,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   isPinned,
   isEditedAllowed,
   isDeletedAllowed,
+  isDownloadAllowed,
 }) => {
   const { theme } = useThemeContext();
   const styles = createStyle(theme);
@@ -92,6 +94,13 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
         iconName: "Copy02Icon",
         color: theme.text,
       },
+      isDownloadAllowed
+        ? {
+            action: "Download",
+            iconName: "Download01Icon",
+            color: theme.text,
+          }
+        : undefined,
       isEditedAllowed
         ? {
             action: "Edit",

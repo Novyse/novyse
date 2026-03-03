@@ -57,6 +57,7 @@ const Video = ({ fileRef, uuid, duration, isSingle }) => {
         onClose={() => setVisible(false)}
         uri={uri}
         theme={theme}
+        uuid={uuid}
       />
     </>
   );
@@ -73,7 +74,7 @@ const createStyle = (theme, isSingle) =>
     videoWrapper: {
       width: "100%",
       height: "100%",
-      pointerEvents: "none"
+      pointerEvents: "none",
     },
     video: {
       width: "100%",

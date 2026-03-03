@@ -17,12 +17,15 @@ import Animated, {
   clamp,
   runOnJS,
 } from "react-native-reanimated";
+import useDownload from "@/src/hooks/file/useDownload";
 
 const ImageViewer = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const uri = params.uri ? decodeURIComponent(params.uri) : null;
+  const uuid = params.uuid || null;
 
+  const { downloadFile } = useDownload();
   const [controlsVisible, setControlsVisible] = useState(true);
 
   const scale = useSharedValue(1);
@@ -90,7 +93,7 @@ const ImageViewer = () => {
   const composedGestures = Gesture.Simultaneous(
     pinchGesture,
     panGesture,
-    tapGesture
+    tapGesture,
   );
 
   const onWheel = (event) => {
@@ -126,6 +129,11 @@ const ImageViewer = () => {
     }
   };
 
+  const handleDownload = async () => {
+    if (!uuid) return;
+    await downloadFile({ uuid });
+  };
+
   if (!uri) return <View style={styles.container} />;
 
   return (
@@ -154,9 +162,16 @@ const ImageViewer = () => {
             <Pressable onPress={() => router.back()} style={styles.iconButton}>
               <Ionicons name="close" size={28} color="white" />
             </Pressable>
-            <Pressable onPress={handleShare} style={styles.iconButton}>
-              <Ionicons name="share-outline" size={26} color="white" />
-            </Pressable>
+            <View style={styles.rightButtons}>
+              {uuid && (
+                <Pressable onPress={handleDownload} style={styles.iconButton}>
+                  <Ionicons name="download-outline" size={26} color="white" />
+                </Pressable>
+              )}
+              <Pressable onPress={handleShare} style={styles.iconButton}>
+                <Ionicons name="share-outline" size={26} color="white" />
+              </Pressable>
+            </View>
           </SafeAreaView>
         )}
       </View>
@@ -199,7 +214,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     zIndex: 100,
-    pointerEvents: "none"
+  },
+  rightButtons: {
+    flexDirection: "row",
+    gap: 10,
   },
   iconButton: {
     width: 44,
