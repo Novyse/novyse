@@ -1,21 +1,10 @@
-import { useEffect } from 'react';
-import { useRouter } from 'expo-router';
-import auth from '@/src/utils/welcome/auth';
+import { Redirect } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Index() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const checkAndRedirect = async () => {
-      const loggedIn = await auth.isLoggedIn();
-      if (loggedIn) {
-        router.replace('/app');
-      } else {
-        router.replace('/welcome');
-      }
-    };
-    checkAndRedirect();
-  }, [router]);
-
-  return null;
+  const { isLoggedIn } = useAuth();
+  if (isLoggedIn === undefined || isLoggedIn === null) {
+    return null;
+  }
+  return <Redirect href={isLoggedIn ? "/app" : "/welcome"} />;
 }
