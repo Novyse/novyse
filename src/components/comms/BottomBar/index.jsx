@@ -130,7 +130,7 @@ const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
             iconName={"Settings02Icon"}
           />
           <CommsBottomBarButton
-            onPress={() => { leave(); clearError(); }}
+            onPress={leave}
             iconName={"Call02Icon"}
             iconColor="red"
             hoverColor={theme.iconCommsOutHover}

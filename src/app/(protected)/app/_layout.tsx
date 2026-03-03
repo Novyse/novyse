@@ -14,6 +14,11 @@ import useResizerStorage from "@/src/hooks/ui/useResizerStorage";
 import { detailsNavigator } from "@/src/utils/navigation/ref";
 import queueManager from "@/src/utils/chat/queueManager";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import auth from "@/src/utils/welcome/auth";
+
+import InitPage from "@/src/pages/InitPage";
+
 export default function RootLayout() {
   // Listen for changes in the detail navigator to update the isDetailOpen state
   const [isDetailOpen, setIsDetailOpen] = useState(!detailsNavigator.isEmpty());
@@ -81,6 +86,35 @@ export default function RootLayout() {
   useEffect(() => {
     queueManager.initialize(() => isConnected);
   }, [isConnected]);
+
+  // Initialize database if needed
+  const [hasInitialized, setHasInitialized] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkInit = async () => {
+      try {
+        const initValue = await AsyncStorage.getItem("init");
+        if (initValue === "true") {
+          setHasInitialized(true);
+        } else {
+          setHasInitialized(false);
+          const success = await auth.initializeDatabase();
+          if (success) {
+            await AsyncStorage.setItem("init", "true");
+            setHasInitialized(true);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check or initialize database:", error);
+      }
+    };
+
+    checkInit();
+  }, []);
+
+  if (hasInitialized === false) {
+    return <InitPage />;
+  }
 
   // For small screens, we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {

@@ -60,7 +60,7 @@ const checkShouldBeHere = async (router, shouldBeLoggedIn = true) => {
     return false;
   } else if (!shouldBeLoggedIn && loggedIn) {
     console.warn(
-      "User should not be logged in but is. Redirecting to messages."
+      "User should not be logged in but is. Redirecting to messages.",
     );
     router.replace("/app");
     return false;
@@ -91,8 +91,20 @@ const initializeApp = async () => {
     // Set local user uuid in async storage
     await AsyncStorage.setItem("userUUID", user.uuid);
     await AsyncStorage.setItem("deviceUUID", device.uuid);
+    await AsyncStorage.setItem("init", false);
 
-    
+    return true;
+  }
+
+  console.error("Initialization failed.");
+  return false;
+};
+
+const initializeDatabase = async () => {
+  const { success, lastUpdateTime, user, device, chats, messages } =
+    await gateway.user.initialize();
+
+  if (success) {
     console.log("Database instance created:", database);
     await database.clear();
     await database.initialize();
@@ -110,8 +122,6 @@ const initializeApp = async () => {
     console.log("All data stored in local database.");
     return true;
   }
-
-  console.error("Initialization failed.");
   return false;
 };
 
@@ -120,12 +130,12 @@ const logout = async () => {
   const success = await gateway.auth.logout();
   if (!success) {
     console.error(
-      "Logout failed at API level, but proceeding with local cleanup."
+      "Logout failed at API level, but proceeding with local cleanup.",
     );
   } else {
     console.log("Logout successful at API level.");
   }
-  
+
   await database.clear();
   await AsyncStorage.clear();
 };
@@ -147,8 +157,6 @@ const update = async () => {
 
   if (success) {
     console.log("Update successful:", { user, chats, messages });
-
-    
 
     if (user) {
       // Do nothing
@@ -190,6 +198,7 @@ export default {
   getDeviceUUID,
   checkShouldBeHere,
   initializeApp,
+  initializeDatabase,
   logout,
   update,
 };

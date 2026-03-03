@@ -371,6 +371,7 @@ export const CommsProvider = ({ children }) => {
     setParticipants([]);
     setStreams({});
     setMutedStreams({});
+    setError(null);
   };
 
   const value = {
