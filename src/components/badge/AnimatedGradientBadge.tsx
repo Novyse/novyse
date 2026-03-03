@@ -1,74 +1,66 @@
-import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Animated, Platform } from "react-native";
+import React, { useEffect } from "react";
+import { View, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import BadgeContent from "./BadgeContent";
 
 const AnimatedGradientBadge = ({ badge }: any) => {
   const { name, icon, color } = badge;
   const { bgColors, textColor, borderColor } = color;
 
-  if (Platform.OS === "web") {
-    // Implementazione Web-first: Performance massime (60fps in GPU) tramite CSS nativo
-    const cssGradient = `linear-gradient(270deg, ${bgColors.join(", ")})`;
-
-    // Iniettiamo i keyframes globalmente (se non esistono) per animare il background
-    if (
-      typeof document !== "undefined" &&
-      !document.getElementById("badge-gradient-keyframes")
-    ) {
-      const style = document.createElement("style");
-      style.id = "badge-gradient-keyframes";
-      style.innerHTML = `
-        @keyframes badgeGradientFlow {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    return (
-      <View
-        style={[
-          styles.badgeContainer,
-          {
-            borderColor: borderColor || "transparent",
-            borderWidth: borderColor ? 1 : 0,
-            // Proprietà Web React Native passate forzando le stringhe CSS dirette
-            backgroundImage: cssGradient,
-            backgroundSize: "200% 200%",
-            animation: "badgeGradientFlow 3s ease infinite",
-          } as any, // Castato and any per iniettare raw CSS rules
-        ]}
-      >
-        <View style={styles.badgeInner}>
-          <BadgeContent name={name} icon={icon} textColor={textColor} />
-        </View>
-      </View>
-    );
-  }
-
-  // Fallback per Native (iOS/Android) usando il cross-fade di opacità supportato nativamente
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-  const reversedColors = [...bgColors].reverse();
+  const glareTranslateX = useSharedValue(-80);
+  const flowTranslateX = useSharedValue(-60);
 
   useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 2500,
-          useNativeDriver: true,
+    // Glare Movement
+    glareTranslateX.value = withRepeat(
+      withSequence(
+        withTiming(140, {
+          duration: 2200,
+          easing: Easing.inOut(Easing.ease),
         }),
-        Animated.timing(opacityAnim, {
-          toValue: 0,
-          duration: 2500,
-          useNativeDriver: true,
+        // reset
+        withTiming(-80, { duration: 0 }),
+      ),
+      -1,
+      false,
+    );
+
+    // Movement of the "color "flow" under the glare
+    flowTranslateX.value = withRepeat(
+      withSequence(
+        withTiming(80, {
+          duration: 3200,
+          easing: Easing.inOut(Easing.ease),
         }),
-      ]),
-    ).start();
-  }, [opacityAnim]);
+        withTiming(-60, {
+          duration: 0,
+        }),
+      ),
+      -1,
+      false,
+    );
+  }, [glareTranslateX, flowTranslateX]);
+
+  const glareStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: glareTranslateX.value },
+      { rotate: "18deg" },
+    ],
+    opacity: 0.6,
+  }));
+
+  const flowStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: flowTranslateX.value }],
+    opacity: 0.4,
+  }));
 
   return (
     <View
@@ -84,16 +76,28 @@ const AnimatedGradientBadge = ({ badge }: any) => {
         colors={bgColors as [string, string, ...string[]]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
-      <Animated.View
-        style={[StyleSheet.absoluteFillObject, { opacity: opacityAnim }]}
-      >
+      {/* Color under glare */}
+      <Animated.View style={[styles.flowOverlay, flowStyle, {pointerEvents:"none"}]} >
         <LinearGradient
-          colors={reversedColors as [string, string, ...string[]]}
+          colors={[bgColors[0], bgColors[bgColors.length - 1]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+      {/* Animated Glare */}
+      <Animated.View style={[styles.glareOverlay, glareStyle, {pointerEvents:"none"}]}>
+        <LinearGradient
+          colors={[
+            "rgba(255,255,255,0)",
+            "rgba(255,255,255,0.7)",
+            "rgba(255,255,255,0)",
+          ]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={StyleSheet.absoluteFill}
         />
       </Animated.View>
       <View style={styles.badgeInner}>
@@ -108,6 +112,18 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     position: "relative",
+  },
+  glareOverlay: {
+    position: "absolute",
+    top: -16,
+    bottom: -16,
+    width: "30%",
+  },
+  flowOverlay: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: "60%",
   },
   badgeInner: {
     flexDirection: "row",
