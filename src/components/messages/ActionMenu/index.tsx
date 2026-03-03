@@ -14,8 +14,6 @@ import HoverAndPressedButton from "../../HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import BlurredView from "../../BlurredView";
 
-import Platform from "@/src/utils/device/type";
-
 interface ActionMenuItem {
   action: string;
   iconName: string;
@@ -98,8 +96,8 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
       },
       isDownloadAllowed
         ? {
-            action: Platform === "mobile" ? "Share" : "Download",
-            iconName: Platform === "mobile" ? "Share01Icon" : "Download01Icon",
+            action: "Download",
+            iconName: "Download01Icon",
             color: theme.text,
           }
         : undefined,

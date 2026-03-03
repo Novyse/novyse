@@ -82,7 +82,6 @@ const MessageList = ({
           onCopy && onCopy(triggeredMessage);
           break;
         case "Download":
-        case "Share":
           onDownload && onDownload(triggeredMessage);
           break;
         case "Select":

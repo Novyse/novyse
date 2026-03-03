@@ -65,22 +65,19 @@ const useDownload = () => {
       document.body.removeChild(link);
     } else {
       try {
-        // Ricordati che quando expo-file-system si sveglia e ti da StorageAccessFramework allora questo diventa una funzione a parte
-        const { shareAsync, isAvailableAsync } = require("expo-sharing");
-        if (await isAvailableAsync()) {
-          const { File, Paths } = require("expo-file-system");
-          const originalFile = new File(uri);
-          const copiedFile = new File(Paths.cache, fileName);
-          try {
-            await originalFile.copy(copiedFile);
-          } catch (_) {}
-          await shareAsync(copiedFile.uri, {
-            mimeType,
-            dialogTitle: "Share file",
-          });
-        } else {
-          console.error("Android download failed: Sharing is not available");
+        const { File, Directory } = require("expo-file-system");
+
+        const directory = await Directory.pickDirectoryAsync();
+
+        if (!directory) {
+          console.error("Android download failed: No directory selected");
+          return;
         }
+
+        const sourceFile = new File(uri);
+        const file = directory.createFile(fileName, mimeType);
+        const bytes = await sourceFile.bytes();
+        file.write(bytes);
       } catch (err) {
         console.error("Android download failed:", err);
       }
