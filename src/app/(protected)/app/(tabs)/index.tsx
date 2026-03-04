@@ -146,15 +146,19 @@ const ChatList = () => {
     [selectedItems.length, styles.headerTitle, clearSelection, handlePinItems],
   );
 
-  const renderItem = ({ item }) => (
-    <ChatListItem
-      item={item}
-      isSelected={selectedItems.includes(item.uuid)}
-      isActive={item.uuid === activeChatUUID && !isSmallScreen}
-      onPress={handlePress}
-      onLongPress={handleLongPress}
-    />
-  );
+  const renderItem = ({ item }) => {
+    const isPinned = ((pinnedChats as any[]) || []).some((p) => p.chatUUID === item.uuid);
+    return (
+      <ChatListItem
+        item={item}
+        isSelected={selectedItems.includes(item.uuid)}
+        isActive={item.uuid === activeChatUUID && !isSmallScreen}
+        isPinned={isPinned}
+        onPress={handlePress}
+        onLongPress={handleLongPress}
+      />
+    );
+  };
 
   return (
     <>
