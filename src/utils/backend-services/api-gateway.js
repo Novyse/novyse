@@ -700,8 +700,7 @@ const gateway = {
      * @returns {boolean} true if the account was successfully deleted, false otherwise
      */
     async delete() {
-      return { success: true };
-      const response = await api.delete(`/user/delete`);
+      const response = await api.delete(`/auth/user`);
       const success = response.data.success;
       return success;
     },
