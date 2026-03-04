@@ -903,6 +903,46 @@ const gateway = {
         throw error;
       }
     },
+    pin: {
+      /**
+       * Pin a chat.
+       * @param {String} chatUUID
+       * @param {Number} position
+       * @returns { Object } { success: boolean, position: Number }
+       */
+      async add(chatUUID, position) {
+        try {
+          if (!chatUUID) {
+            throw new Error("Missing required fields to pin chat");
+          }
+          const response = await api.put(`/chat/pin`, { chatUUID, position });
+          const success = response.data.success;
+          const realPosition = response.data.data.position;
+          return { success, position: realPosition };
+        } catch (error) {
+          console.error("Error pinning chat:", error);
+          throw error;
+        }
+      },
+      /**
+       * Unpin a chat.
+       * @param {String} chatUUID
+       * @returns { Object } { success: boolean }
+       */
+      async remove(chatUUID) {
+        try {
+          if (!chatUUID) {
+            throw new Error("Missing required fields to unpin chat");
+          }
+          const response = await api.delete(`/chat/pin`, { chatUUID });
+          const success = response.data.success;
+          return { success };
+        } catch (error) {
+          console.error("Error unpinning chat:", error);
+          throw error;
+        }
+      },
+    }
   },
   message: {
     /**

@@ -104,6 +104,12 @@ class Database {
                 FOREIGN KEY (type) REFERENCES chat_type(value)
             );
 
+            CREATE TABLE IF NOT EXISTS chat_pin (
+                chatUUID TEXT PRIMARY KEY,
+                position INTEGER NOT NULL,
+                FOREIGN KEY (chatUUID) REFERENCES chat(uuid)
+            );
+
             CREATE TABLE IF NOT EXISTS member (
                 userUUID TEXT NOT NULL,
                 chatUUID TEXT NOT NULL,
@@ -941,6 +947,63 @@ class Database {
       return false;
     }
   }
+
+  chat = {
+    pin: {
+      add: async (chatUUID, position) => {
+        try {
+          if (!chatUUID) {
+            console.error("Missing required fields to pin chat.");
+            return false;
+          }
+          const result = await this.db.runAsync(
+            `INSERT INTO chat_pin (chatUUID, position) VALUES (?, ?) ON CONFLICT (chatUUID) DO UPDATE SET position = ?;`,
+            [chatUUID, position],
+          );
+          if (result.changes > 0) {
+            console.log(`Chat ${chatUUID} pinned successfully.`);
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Error pinning chat:", error);
+          return false;
+        }
+      },
+      remove: async (chatUUID) => {
+        try {
+          if (!chatUUID) {
+            console.error("Missing required fields to unpin chat.");
+            return false;
+          }
+          const result = await this.db.runAsync(
+            `DELETE FROM chat_pin WHERE chatUUID = ?;`,
+            [chatUUID],
+          );
+          if (result.changes > 0) {
+            console.log(`Chat ${chatUUID} unpinned successfully.`);
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Error unpinning chat:", error);
+          return false;
+        }
+      },
+      get: async () => {
+        try {
+          const result = await this.db.getAllAsync(
+            `SELECT * FROM chat_pin;`,
+          );
+          return result;
+        } catch (error) {
+          console.error("Error getting pinned chats:", error);
+          return [];
+        }
+      },
+    },
+  }
+
   message = {
     /**
      * Add multiple messages to the database in a single query.

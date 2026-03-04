@@ -59,18 +59,11 @@ const eventReceiver = {
       await eventEmitter.user.profile.update(data);
     });
 
-    socket.on("chat:pin:add", async (data) => {
-      console.log("Received chat_pinned event:", data);
+    socket.on("chat:update", async (data) => {
+      console.log("Received chat_update event:", data.action);
 
-      await setLastUpdateTimestamp(data.pinned_at);
-      await eventEmitter.chat.pin.add(data.chatUUID);
-    });
-
-    socket.on("chat:pin:remove", async (data) => {
-      console.log("Received chat_unpinned event:", data);
-
-      await setLastUpdateTimestamp(data.unpinned_at);
-      await eventEmitter.chat.pin.remove(data.chatUUID);
+      await setLastUpdateTimestamp(data.at);
+      await eventEmitter.chat.update(data.chatUUID, data.action, data);
     });
 
     // socket.on("user_left", async (data) => {

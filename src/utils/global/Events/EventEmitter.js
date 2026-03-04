@@ -144,15 +144,23 @@ class GlobalEventEmitter {
   };
 
   chat = {
-    pin: {
-      async add(chatUUID) {
-        await database.pinChat(chatUUID);
-        this.eventEmitter.emit("chat:pin:add", { chatUUID });
-      },
-      async remove(chatUUID) {
-        await database.unpinChat(chatUUID);
-        this.eventEmitter.emit("chat:pin:remove", { chatUUID });
-      },
+    update: async (chatUUID, action, data) => {
+      switch (action) {
+        case "pin_add":
+          await database.chat.pin.add(chatUUID, data.position);
+          break;
+        case "pin_remove":
+          await database.chat.pin.remove(chatUUID);
+          break;
+        default:
+          break;
+      }
+
+      this.eventEmitter.emit("chat:update", {
+        chatUUID,
+        action,
+        data,
+      });
     },
   };
 }

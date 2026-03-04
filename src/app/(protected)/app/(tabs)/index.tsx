@@ -12,30 +12,24 @@ import {
   FlatList,
   Image,
   Platform,
-  useWindowDimensions,
+
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { DateTime } from "luxon";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import BlurredHeader from "@/src/components/BlurredHeader";
-import Avatar from "@/src/components/Avatar";
 import ChatListItem from "@/src/components/chat/list/Item";
 import FloatingButton from "@/src/components/FloatingButton";
 import CreateChatModal from "@/src/components/modalSheets/createChat";
 
 import useChats from "@/src/hooks/chat/useChats";
-import { LocalUserContext } from "@/context/LocalUserContext";
-import BlurredView from "@/src/components/BlurredView";
+import useChatPin from "@/src/hooks/chat/useChatPin";
+import useSelection from "@/src/hooks/useSelection";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 
 import { detailsNavigator } from "@/src/utils/navigation/ref";
-
-const PINNED_CHATS_STORAGE_KEY = "@chat_order";
 
 const ChatList = () => {
   const onChatSelect = (chatUUIDorHandle: String) => {
@@ -44,6 +38,7 @@ const ChatList = () => {
   };
 
   const { chatDetails } = useChats();
+  const { pinnedChats, pinChat, unpinChat } = useChatPin();
 
   const { isSmallScreen } = useScreen();
   const { theme } = useContext(ThemeContext);
@@ -52,73 +47,71 @@ const ChatList = () => {
   const styles = createStyle(theme, isSmallScreen, insets);
   const router = useRouter();
 
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [orderedChats, setOrderedChats] = useState([]);
+  const {
+    selectedItems,
+    isSelectionMode,
+    toggleSelection,
+    initiateSelection,
+    clearSelection,
+  } = useSelection<string>();
+
+  const [orderedChats, setOrderedChats] = useState<any[]>([]);
   const [activeChatUUID, setActiveChatUUID] = useState("");
-  const isSelectionMode = selectedItems.length > 0;
 
   const [isCreateChatModalVisible, setIsCreateChatModalVisible] =
     useState(false);
   const createChatModalRef = useRef(null);
 
   useEffect(() => {
-    const organizeChats = async () => {
-      const allChats = Object.values(chatDetails);
-      if (allChats.length === 0) {
-        setOrderedChats([]);
-        return;
+    const allChats = Object.values(chatDetails);
+    if (allChats.length === 0) {
+      setOrderedChats([]);
+      return;
+    }
+
+    const orderMap = new Map(((pinnedChats as any[]) || []).map((p) => [p.chatUUID, p.position]));
+    const sortedChats = ([...allChats] as any[]).sort((a, b) => {
+      const pinA = orderMap.has(a.uuid);
+      const pinB = orderMap.has(b.uuid);
+
+      if (pinA && pinB) {
+        return orderMap.get(a.uuid) - orderMap.get(b.uuid);
+      } else if (pinA) {
+        return -1;
+      } else if (pinB) {
+        return 1;
+      } else {
+        const timeA = a.lastMessage?.created_at ? new Date(a.lastMessage.created_at).getTime() : 0;
+        const timeB = b.lastMessage?.created_at ? new Date(b.lastMessage.created_at).getTime() : 0;
+        return timeB - timeA;
       }
-      try {
-        const savedOrderJSON = await AsyncStorage.getItem(
-          PINNED_CHATS_STORAGE_KEY,
-        );
-        const savedOrderIds = savedOrderJSON ? JSON.parse(savedOrderJSON) : [];
-        const orderMap = new Map(savedOrderIds.map((id, index) => [id, index]));
-        const sortedChats = [...allChats].sort((a, b) => {
-          const indexA = orderMap.get(a.uuid) ?? Infinity;
-          const indexB = orderMap.get(b.uuid) ?? Infinity;
-          return indexA - indexB;
-        });
-        setOrderedChats(sortedChats);
-      } catch (e) {
-        setOrderedChats(allChats);
-      }
-    };
-    organizeChats();
-  }, [chatDetails]);
+    });
+
+    setOrderedChats(sortedChats);
+  }, [chatDetails, pinnedChats]);
 
   const handleLongPress = (chatUUID) => {
-    if (!isSelectionMode) setSelectedItems([chatUUID]);
+    if (!isSelectionMode) initiateSelection(chatUUID);
   };
 
   const handlePress = (chatUUID) => {
     if (isSelectionMode) {
-      setSelectedItems((current) =>
-        current.includes(chatUUID)
-          ? current.filter((id) => id !== chatUUID)
-          : [...current, chatUUID],
-      );
+      toggleSelection(chatUUID);
     } else {
       onChatSelect(chatUUID);
     }
   };
 
   const handlePinItems = async () => {
-    const selectedChats = orderedChats.filter((chat) =>
-      selectedItems.includes(chat.uuid),
-    );
-    const unselectedChats = orderedChats.filter(
-      (chat) => !selectedItems.includes(chat.uuid),
-    );
-    const newOrderedList = [...selectedChats, ...unselectedChats];
-    setOrderedChats(newOrderedList);
-    try {
-      await AsyncStorage.setItem(
-        PINNED_CHATS_STORAGE_KEY,
-        JSON.stringify(newOrderedList.map((chat) => chat.uuid)),
-      );
-    } catch (e) {}
-    setSelectedItems([]);
+    for (const chatUUID of selectedItems) {
+      const isPinned = ((pinnedChats as any[]) || []).some((p) => p.chatUUID === chatUUID);
+      if (isPinned) {
+        await unpinChat(chatUUID);
+      } else {
+        await pinChat(chatUUID, 0);
+      }
+    }
+    clearSelection();
   };
 
   const renderDefaultHeader = useCallback(
@@ -144,13 +137,13 @@ const ChatList = () => {
         <Icon
           name={"Cancel01Icon"}
           size={24}
-          onPress={() => setSelectedItems([])}
+          onPress={clearSelection}
         />
         <Text style={styles.headerTitle}>{selectedItems.length} selected</Text>
         <Icon name={"PinIcon"} size={24} onPress={handlePinItems} />
       </BlurredHeader>
     ),
-    [selectedItems.length, styles.headerTitle],
+    [selectedItems.length, styles.headerTitle, clearSelection, handlePinItems],
   );
 
   const renderItem = ({ item }) => (
