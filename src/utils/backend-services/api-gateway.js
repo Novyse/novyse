@@ -1054,6 +1054,68 @@ const gateway = {
         throw error;
       }
     },
+    pin: {
+      /**
+       * Pin a message.
+       * @param {String} chatUUID
+       * @param {String} messageID
+       * @returns Promise<{success: boolean}>
+       */
+      async add(chatUUID, messageID) {
+        try {
+          if (!chatUUID || !messageID) {
+            throw new Error(
+              "Missing required fields for pinning message",
+              chatUUID,
+              messageID,
+            );
+          }
+          const response = await api.put("/message/pin", {
+            chatUUID,
+            messageID,
+          });
+          const success = response.data.success;
+          if (success) {
+            return { success };
+          }
+          return { success };
+        } catch (error) {
+          console.error("Error in message.pin.add:", error);
+          throw error;
+        }
+      },
+      /**
+       * Unpin a message.
+       * @param {String} chatUUID
+       * @param {String} messageID
+       * @returns Promise<{success: boolean}>
+       */
+      async remove(chatUUID, messageID) {
+        try {
+          if (!chatUUID || !messageID) {
+            throw new Error(
+              "Missing required fields for unpinning message",
+              chatUUID,
+              messageID,
+            );
+          }
+          const response = await api.delete("/message/pin", {
+            data: {
+              chatUUID,
+              messageID,
+            },
+          });
+          const success = response.data.success;
+          if (success) {
+            return { success };
+          }
+          return { success };
+        } catch (error) {
+          console.error("Error in message.pin.remove:", error);
+          throw error;
+        }
+      },
+    },
   },
 
   file: {

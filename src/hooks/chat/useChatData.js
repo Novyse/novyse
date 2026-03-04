@@ -6,7 +6,7 @@ import chatUtils from "@/src/utils/chat";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import SocketIO from "@/src/utils/backend-services/socket-io";
 import { LocalUserContext } from "@/context/LocalUserContext";
-import { ChatContext } from "@/context/ChatContext";
+import { ChatContext } from "@/context/ActiveChatContext";
 
 const useChatData = (chatUUID, chatHandle = null) => {
   const { userUUID } = useContext(LocalUserContext);
@@ -161,9 +161,9 @@ const useChatData = (chatUUID, chatHandle = null) => {
         return currentMessages.map((msg) =>
           msg.id === message.id
             ? {
-                ...msg,
-                files: msg.files.map((f) => (f.uuid === file.uuid ? file : f)),
-              }
+              ...msg,
+              files: msg.files.map((f) => (f.uuid === file.uuid ? file : f)),
+            }
             : msg,
         );
       });
@@ -179,11 +179,11 @@ const useChatData = (chatUUID, chatHandle = null) => {
         return filteredMessages.map((msg) =>
           msg.id === tempId
             ? {
-                ...msg,
-                id: message.id,
-                replyTo: message.replyTo,
-                created_at: message.created_at,
-              }
+              ...msg,
+              id: message.id,
+              replyTo: message.replyTo,
+              created_at: message.created_at,
+            }
             : msg,
         );
       });
@@ -210,23 +210,19 @@ const useChatData = (chatUUID, chatHandle = null) => {
             return currentMessages.filter((msg) => msg.id !== messageID);
           });
           break;
+        case "pin_add":
+          setPinnedMessages((currentPinnedMessages) => {
+            return [...currentPinnedMessages, messageID];
+          });
+          break;
+        case "pin_remove":
+          setPinnedMessages((currentPinnedMessages) => {
+            return currentPinnedMessages.filter((id) => id !== messageID);
+          });
+          break;
         default:
           break;
       }
-    };
-
-    const handleMessagePinned = ({ chatUUID: eChatUUID, messageID }) => {
-      if (chatUUID !== eChatUUID) return;
-      setPinnedMessages((currentPinnedMessages) => {
-        return [...currentPinnedMessages, messageID];
-      });
-    };
-
-    const handleMessageUnpinned = ({ chatUUID: eChatUUID, messageID }) => {
-      if (chatUUID !== eChatUUID) return;
-      setPinnedMessages((currentPinnedMessages) => {
-        return currentPinnedMessages.filter((id) => id !== messageID);
-      });
     };
 
     const handleFileDownloaded = ({ file }) => {
@@ -248,9 +244,6 @@ const useChatData = (chatUUID, chatHandle = null) => {
 
     eventEmitter.getEmitter().on("message:update", handleMessageUpdate);
 
-    eventEmitter.getEmitter().on("message:pinned", handleMessagePinned);
-    eventEmitter.getEmitter().on("message:unpinned", handleMessageUnpinned);
-
     eventEmitter.getEmitter().on("file:downloaded", handleFileDownloaded);
 
     return () => {
@@ -265,9 +258,6 @@ const useChatData = (chatUUID, chatHandle = null) => {
       eventEmitter.getEmitter().off("message:sent", handleMessageSent);
 
       eventEmitter.getEmitter().off("message:update", handleMessageUpdate);
-
-      eventEmitter.getEmitter().off("message:pinned", handleMessagePinned);
-      eventEmitter.getEmitter().off("message:unpinned", handleMessageUnpinned);
 
       eventEmitter.getEmitter().off("file:downloaded", handleFileDownloaded);
     };

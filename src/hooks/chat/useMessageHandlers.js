@@ -48,10 +48,9 @@ const useMessageHandlers = (
 
   const handlePinMessage = useCallback(
     async (messageID) => {
-      //const response = await gateway.message.pin(chat.uuid, messageID);
-      const response = { success: true };
+      const response = await gateway.message.pin.add(chat.uuid, messageID);
       if (response.success) {
-        await eventEmitter.message.pin(chat.uuid, messageID);
+        await eventEmitter.message.update(chat.uuid, messageID, "pin_add");
       }
     },
     [chat],
@@ -59,10 +58,9 @@ const useMessageHandlers = (
 
   const handleUnpinMessage = useCallback(
     async (messageID) => {
-      //const response = await gateway.message.unpin(chat.uuid, messageID);
-      const response = { success: true };
+      const response = await gateway.message.pin.remove(chat.uuid, messageID);
       if (response.success) {
-        await eventEmitter.message.unpin(chat.uuid, messageID);
+        await eventEmitter.message.update(chat.uuid, messageID, "pin_remove");
       }
     },
     [chat],

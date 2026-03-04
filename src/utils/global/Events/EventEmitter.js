@@ -69,6 +69,12 @@ class GlobalEventEmitter {
         case "delete":
           await database.message.delete(chatUUID, messageID);
           break;
+        case "pin_add":
+          await database.message.pin.add(chatUUID, messageID);
+          break;
+        case "pin_remove":
+          await database.message.pin.remove(chatUUID, messageID);
+          break;
         default:
           break;
       }
@@ -79,14 +85,6 @@ class GlobalEventEmitter {
         action,
         data,
       });
-    },
-    pin: async (chatUUID, messageID) => {
-      await database.message.pin.add(chatUUID, messageID);
-      this.eventEmitter.emit("message:pinned", { chatUUID, messageID });
-    },
-    unpin: async (chatUUID, messageID) => {
-      await database.message.pin.remove(chatUUID, messageID);
-      this.eventEmitter.emit("message:unpinned", { chatUUID, messageID });
     },
   };
 
