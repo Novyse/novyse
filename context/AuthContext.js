@@ -4,11 +4,14 @@ import auth from "@/src/utils/welcome/auth";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const refreshLoginStatus = async () => {
+    setIsLoading(true);
     const loggedIn = await auth.isLoggedIn();
     setIsLoggedIn(loggedIn);
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -16,7 +19,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, refreshLoginStatus }}>
+    <AuthContext.Provider value={{ isLoggedIn, isLoading, refreshLoginStatus }}>
       {children}
     </AuthContext.Provider>
   );

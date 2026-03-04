@@ -9,9 +9,10 @@ import { ScreenProvider } from "@/context/ScreenContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import SplashScreen from "@/src/components/SplashScreen";
 
 function RootLayoutContent() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -22,6 +23,10 @@ function RootLayoutContent() {
     }
   }, []);
 
+  if (isLoading) {
+    return <SplashScreen />;
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
@@ -30,13 +35,13 @@ function RootLayoutContent() {
             <LanguageProvider>
               <BottomSheetModalProvider>
                 <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Protected guard={isLoggedIn}>
+                  <Stack.Protected guard={isLoggedIn === true}>
                     <Stack.Screen
                       name="(protected)"
                       options={{ headerShown: false }}
                     />
                   </Stack.Protected>
-                  <Stack.Protected guard={!isLoggedIn}>
+                  <Stack.Protected guard={isLoggedIn === false}>
                     <Stack.Screen
                       name="(welcome)"
                       options={{ headerShown: false }}
