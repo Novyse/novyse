@@ -82,6 +82,7 @@ const ChatContent = ({ onBack, contentView }) => {
     handleDeleteMessage,
     handleSendFileMessage,
     handleTextChanging,
+    handleCancelJob,
   } = useMessageHandlers(
     chat,
     myUUID,
@@ -270,7 +271,7 @@ const ChatContent = ({ onBack, contentView }) => {
           setNewMessageText("");
           return;
         }
-        handleEditMessage(editingMessage.id, content);
+        handleEditMessage(editingMessage.id, content, editingMessage.content);
       } else {
         let replyTo = undefined;
         if (replyingTo) {
@@ -307,6 +308,7 @@ const ChatContent = ({ onBack, contentView }) => {
             onCopy={handleCopy}
             onDownload={handleDownload}
             onEdit={handleEdit}
+            onCancel={handleCancelJob}
             onDelete={handleDelete}
             onLoadMore={loadMoreMessages}
           />

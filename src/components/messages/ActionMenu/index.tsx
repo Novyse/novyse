@@ -29,6 +29,8 @@ interface ActionMenuProps {
   isEditedAllowed: boolean;
   isDeletedAllowed: boolean;
   isDownloadAllowed: boolean;
+  isPendingSend?: boolean;
+  pendingEditJobId?: string | null;
 }
 
 const ActionMenu: React.FC<ActionMenuProps> = ({
@@ -40,6 +42,8 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   isEditedAllowed,
   isDeletedAllowed,
   isDownloadAllowed,
+  isPendingSend,
+  pendingEditJobId,
 }) => {
   const { theme } = useThemeContext();
   const styles = createStyle(theme);
@@ -68,65 +72,83 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
     }
   }
 
-  const items: ActionMenuItem[] = (
-    [
+  let items: ActionMenuItem[] = [];
+
+  if (isPendingSend) {
+    items = [
       {
-        action: "Reply",
-        iconName: "ArrowMoveUpLeftIcon",
-        color: theme.text,
+        action: "Cancel",
+        iconName: "Cancel01Icon",
+        color: "red",
       },
-      !isPinned
-        ? {
+    ];
+  } else {
+    items = (
+      [
+        {
+          action: "Reply",
+          iconName: "ArrowMoveUpLeftIcon",
+          color: theme.text,
+        },
+        !isPinned
+          ? {
             action: "Pin",
             iconName: "PinIcon",
             color: theme.text,
           }
-        : undefined,
-      isPinned
-        ? {
+          : undefined,
+        isPinned
+          ? {
             action: "Unpin",
             iconName: "PinOffIcon",
             color: theme.text,
           }
-        : undefined,
-      {
-        action: "Copy",
-        iconName: "Copy02Icon",
-        color: theme.text,
-      },
-      isDownloadAllowed
-        ? {
+          : undefined,
+        {
+          action: "Copy",
+          iconName: "Copy02Icon",
+          color: theme.text,
+        },
+        isDownloadAllowed
+          ? {
             action: "Download",
             iconName: "Download01Icon",
             color: theme.text,
           }
-        : undefined,
-      isEditedAllowed
-        ? {
-            action: "Edit",
-            iconName: "PencilEdit02Icon",
-            color: theme.text,
+          : undefined,
+        pendingEditJobId
+          ? {
+            action: "Cancel Edit",
+            iconName: "Cancel01Icon",
+            color: "red",
           }
-        : undefined,
-      {
-        action: "Forward",
-        iconName: "LinkForwardIcon",
-        color: theme.text,
-      },
-      {
-        action: "Select",
-        iconName: "CheckmarkCircle02Icon",
-        color: theme.text,
-      },
-      isDeletedAllowed
-        ? {
+          : isEditedAllowed
+            ? {
+              action: "Edit",
+              iconName: "PencilEdit02Icon",
+              color: theme.text,
+            }
+            : undefined,
+        {
+          action: "Forward",
+          iconName: "LinkForwardIcon",
+          color: theme.text,
+        },
+        {
+          action: "Select",
+          iconName: "CheckmarkCircle02Icon",
+          color: theme.text,
+        },
+        isDeletedAllowed
+          ? {
             action: "Delete",
             iconName: "Delete02Icon",
             color: "red",
           }
-        : undefined,
-    ] as (ActionMenuItem | undefined)[]
-  ).filter((item): item is ActionMenuItem => item !== undefined);
+          : undefined,
+      ] as (ActionMenuItem | undefined)[]
+    ).filter((item): item is ActionMenuItem => item !== undefined);
+  }
 
   const handleMenuItemPress = (action: string) => {
     onAction(action);

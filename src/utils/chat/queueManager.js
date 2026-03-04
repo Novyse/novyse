@@ -487,7 +487,19 @@ class QueueManager {
    */
 
   async processModifyMessageJob(job) {
-    console.warn("Modify message job processing not implemented yet");
+    const chatUUID = job.params.chat.uuid;
+    const { content, messageID } = job.params.message;
+    const response = await gateway.message.edit(chatUUID, messageID, content);
+
+    if (response.success) {
+      await eventEmitter.message.update(chatUUID, messageID, "edit", {
+        content,
+        pendingEditJobId: null,
+        isEdited: true,
+      });
+    } else {
+      throw new Error("Message modify failed");
+    }
   }
 
   /**
@@ -641,6 +653,45 @@ class QueueManager {
   }
 
   // ROBA VECCHIA
+  /**
+   * Cancel and remove a job from the queue and database
+   * @param {string} jobId
+   * @param {string} chatUUID
+   * @return {Promise<void>}
+   */
+  async cancelJob(jobId, chatUUID) {
+    const jobIndex = this.queue.findIndex((job) => job.id === jobId);
+
+    // Always attempt to remove from database
+    await this.removeJob(jobId);
+
+    if (jobIndex === -1) return;
+
+    const job = this.queue[jobIndex];
+    this.queue.splice(jobIndex, 1);
+
+    // Revert UI changes
+    if (job.type === "OUTGOING_MESSAGE") {
+      if (job.params.status === "PENDING_SEND" || job.params.status === "CREATING_CHAT") {
+        await eventEmitter.getEmitter().emit("message:update", {
+          chatUUID,
+          messageID: jobId,
+          action: "delete",
+        });
+      } else if (job.params.status === "PENDING_MODIFY") {
+        const { messageID, originalContent } = job.params.message;
+        await eventEmitter.getEmitter().emit("message:update", {
+          chatUUID,
+          messageID,
+          action: "edit",
+          data: { content: originalContent, pendingEditJobId: null },
+        });
+      }
+    }
+
+    console.info("Job cancelled successfully:", jobId);
+  }
+
   /**
    * Save a single job to the database
    * @param {string} job - The job to save

@@ -21,6 +21,7 @@ const MessageList = ({
   onCopy,
   onDownload,
   onEdit,
+  onCancel,
   onDelete,
   onLoadMore,
 }) => {
@@ -91,6 +92,10 @@ const MessageList = ({
           break;
         case "Edit":
           onEdit && onEdit(triggeredMessage);
+          break;
+        case "Cancel":
+        case "Cancel Edit":
+          onCancel && onCancel(triggeredMessage);
           break;
         case "Delete":
           onDelete && onDelete(triggeredMessage);
@@ -167,6 +172,8 @@ const MessageList = ({
         isEditedAllowed={isEditedAllowed}
         isDeletedAllowed={isDeletedAllowed}
         isDownloadAllowed={triggeredMessage?.files?.length > 0}
+        isPendingSend={triggeredMessage?.internal === true}
+        pendingEditJobId={triggeredMessage?.pendingEditJobId}
       />
     </>
   );

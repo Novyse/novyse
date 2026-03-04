@@ -78,21 +78,37 @@ const useMessageHandlers = (
   );
 
   const handleEditMessage = useCallback(
-    async (messageID, content) => {
-      const response = await gateway.message.edit(
-        chat.uuid,
-        messageID,
-        content,
+    async (messageID, content, originalContent) => {
+      const { v6 } = require("uuid");
+      const jobId = v6();
+      const messageParams = { messageID, content, originalContent };
+
+      await queueManager.addOutgoingMessageJob(
+        messageParams,
+        chat,
+        jobId,
+        "PENDING_MODIFY"
       );
-      if (response.success) {
-        await eventEmitter.message.update(chat.uuid, messageID, "edit", {
-          content,
-        });
-      }
+
+      await eventEmitter.message.update(chat.uuid, messageID, "edit", {
+        content,
+        pendingEditJobId: jobId,
+      });
+
       setEditingMessage(null);
       setNewMessageText("");
     },
     [chat, setEditingMessage, setNewMessageText],
+  );
+
+  const handleCancelJob = useCallback(
+    async (message) => {
+      const jobId = message.internal ? message.id : message.pendingEditJobId;
+      if (jobId) {
+        await queueManager.cancelJob(jobId, chat.uuid);
+      }
+    },
+    [chat],
   );
 
   const handleSendFileMessage = useCallback(
@@ -128,6 +144,7 @@ const useMessageHandlers = (
     handleTextChanging,
     handleDeleteMessage,
     handleEditMessage,
+    handleCancelJob,
   };
 };
 

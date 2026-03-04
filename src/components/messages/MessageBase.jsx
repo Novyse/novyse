@@ -155,8 +155,8 @@ const MessageBase = ({
           const waveform = Array.isArray(voiceMessage.waveform)
             ? voiceMessage.waveform
             : JSON.parse(
-                voiceMessage.waveform || JSON.stringify(defaultWaveform),
-              ) || defaultWaveform;
+              voiceMessage.waveform || JSON.stringify(defaultWaveform),
+            ) || defaultWaveform;
           return (
             <MessageVoice
               key={voiceMessage.uuid}
@@ -176,17 +176,29 @@ const MessageBase = ({
         (content.trim().length < 50 ? (
           <View style={styles.textRow}>
             <MessageText text={content} />
-            <MessageTimestamp time={created_at} />
+            <MessageTimestamp
+              time={created_at}
+              isEdited={message.isEdited}
+              isPendingEdit={!!message.pendingEditJobId}
+            />
           </View>
         ) : (
           <>
             <MessageText text={content} />
-            <MessageTimestamp time={created_at} />
+            <MessageTimestamp
+              time={created_at}
+              isEdited={message.isEdited}
+              isPendingEdit={!!message.pendingEditJobId}
+            />
           </>
         ))}
 
       {!content || content.trim().length === 0 ? (
-        <MessageTimestamp time={created_at} />
+        <MessageTimestamp
+          time={created_at}
+          isEdited={message.isEdited}
+          isPendingEdit={!!message.pendingEditJobId}
+        />
       ) : null}
     </View>
   );

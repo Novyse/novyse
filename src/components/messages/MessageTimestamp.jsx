@@ -5,7 +5,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "../Icon";
 import { DateTime } from "luxon";
 
-const MessageTimestamp = ({ time, sent = false, receivedByAll = false }) => {
+const MessageTimestamp = ({ time, sent = false, receivedByAll = false, isEdited = false, isPendingEdit = false }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const [isHovered, setIsHovered] = useState(false);
@@ -52,16 +52,17 @@ const MessageTimestamp = ({ time, sent = false, receivedByAll = false }) => {
     setIsHovered(false);
   };
 
-  if (parseTime(time) === "") {
+  if (!isPendingEdit && parseTime(time) === "") {
     return (
       <View style={styles.alignContainer}>
-        <Icon name={"Clock01Icon"} size={14} />
+        {(isEdited || isPendingEdit) && <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />}
+        <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
       </View>
     );
   }
 
   const tooltip =
-    Platform.OS === "web" && isHovered ? (
+    Platform.OS === "web" && isHovered && !isPendingEdit ? (
       <View
         style={[
           styles.tooltip,
@@ -74,28 +75,36 @@ const MessageTimestamp = ({ time, sent = false, receivedByAll = false }) => {
 
   return (
     <View style={styles.alignContainer}>
-      {Platform.OS === "web" ? (
-        <View
-          ref={timeRef}
-          style={styles.timeContainer}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
-          <Text style={styles.timeText} selectable={false}>
-            {parseTime(time)}
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.timeContainer}>
-          <Text style={styles.timeText} selectable={false}>
-            {parseTime(time)}
-          </Text>
-        </View>
+      {!isPendingEdit && (
+        Platform.OS === "web" ? (
+          <View
+            ref={timeRef}
+            style={styles.timeContainer}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            <Text style={styles.timeText} selectable={false}>
+              {parseTime(time)}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.timeContainer}>
+            <Text style={styles.timeText} selectable={false}>
+              {parseTime(time)}
+            </Text>
+          </View>
+        )
       )}
       {Platform.OS === "web" && createPortal(tooltip, document.body)}
       <View style={styles.iconContainer}>
-        {sent && <Icon name={"Tick01Icon"} size={16} color={theme.textTime}/>}
-        {receivedByAll && <Icon name={"TickDouble01Icon"} size={16} color={theme.textTime}/>}
+        {(isEdited || isPendingEdit) && (
+          <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
+        )}
+        {isPendingEdit && (
+          <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
+        )}
+        {sent && !isPendingEdit && <Icon name={"Tick01Icon"} size={16} color={theme.textTime} />}
+        {receivedByAll && !isPendingEdit && <Icon name={"TickDouble01Icon"} size={16} color={theme.textTime} />}
       </View>
     </View>
   );
