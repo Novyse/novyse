@@ -1,11 +1,24 @@
 import React from "react";
 import { View, Pressable, StyleSheet, Text } from "react-native";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  interpolate,
+  useAnimatedReaction,
+  useAnimatedProps,
+} from "react-native-reanimated";
+import Svg, { Circle } from "react-native-svg";
+import { scheduleOnRN } from "react-native-worklets";
+import * as Haptics from "expo-haptics";
 
 import { useThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
+import Icon from "../Icon";
 
 import useMessageAction from "@/src/hooks/chat/useMessageAction";
 import useMessage from "@/src/hooks/chat/useMessage";
+import { getPlatform } from "@/src/utils/device/type";
 
 import BlurredView from "../BlurredView";
 import { getFileType } from "@/src/utils/storage/file/type";
@@ -21,6 +34,104 @@ import MessageVoice from "./MessageVoice";
 import MessageText from "./MessageText";
 import MessageReply from "./MessageReply";
 
+const REPLY_THRESHOLD = 60;
+const MAX_SWIPE_DISTANCE = 90;
+const CIRCLE_SIZE = 36;
+const STROKE_WIDTH = 2;
+const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+const AnimatedCircle = Reanimated.createAnimatedComponent(Circle);
+
+const RightAction = ({ dragX, theme }) => {
+  const hasTriggeredHaptic = useSharedValue(false);
+
+  const triggerHaptic = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  useAnimatedReaction(
+    () => Math.abs(dragX.value),
+    (drag) => {
+      "worklet";
+      if (drag >= REPLY_THRESHOLD && !hasTriggeredHaptic.value) {
+        hasTriggeredHaptic.value = true;
+        scheduleOnRN(triggerHaptic);
+      } else if (drag < REPLY_THRESHOLD && hasTriggeredHaptic.value) {
+        hasTriggeredHaptic.value = false;
+      }
+    },
+  );
+
+  const animatedCircleProps = useAnimatedProps(() => {
+    const drag = Math.abs(dragX.value);
+    const percentage = Math.min(drag / REPLY_THRESHOLD, 1);
+    const strokeDashoffset = CIRCUMFERENCE * (1 - percentage);
+    return { strokeDashoffset };
+  });
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const drag = Math.abs(dragX.value);
+    const opacity = interpolate(drag, [0, 20], [0, 1], "clamp");
+    const scale = interpolate(drag, [0, REPLY_THRESHOLD], [0.7, 1.1], "clamp");
+    return { opacity, transform: [{ scale }] };
+  });
+
+  return (
+    <View style={rightActionStyles.container}>
+      <Reanimated.View style={[rightActionStyles.iconContainer, animatedStyle]}>
+        <Svg
+          width={CIRCLE_SIZE}
+          height={CIRCLE_SIZE}
+          style={rightActionStyles.svg}
+        >
+          <Circle
+            cx={CIRCLE_SIZE / 2}
+            cy={CIRCLE_SIZE / 2}
+            r={RADIUS}
+            stroke={theme.text}
+            strokeWidth={STROKE_WIDTH}
+            strokeOpacity={0.15}
+            fill="transparent"
+          />
+          <AnimatedCircle
+            cx={CIRCLE_SIZE / 2}
+            cy={CIRCLE_SIZE / 2}
+            r={RADIUS}
+            stroke={theme.text}
+            strokeWidth={STROKE_WIDTH}
+            fill="transparent"
+            strokeDasharray={CIRCUMFERENCE}
+            animatedProps={animatedCircleProps}
+            strokeLinecap="round"
+            rotation="-90"
+            origin={`${CIRCLE_SIZE / 2}, ${CIRCLE_SIZE / 2}`}
+          />
+        </Svg>
+        <Icon name="ArrowMoveUpLeftIcon" size={18} color={theme.text} />
+      </Reanimated.View>
+    </View>
+  );
+};
+
+const rightActionStyles = StyleSheet.create({
+  container: {
+    width: MAX_SWIPE_DISTANCE,
+    justifyContent: "center",
+    alignItems: "flex-end",
+    paddingRight: 5,
+  },
+  iconContainer: {
+    width: CIRCLE_SIZE,
+    height: CIRCLE_SIZE,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  svg: {
+    position: "absolute",
+  },
+});
+
 const MessageBase = ({
   message,
   isSender,
@@ -29,6 +140,7 @@ const MessageBase = ({
   setTriggeredMessagePosition,
   selectedMessage,
   setSelectedMessage,
+  onReply,
 }) => {
   const { theme } = useThemeContext();
   const { isSmallScreen } = useScreen();
@@ -46,26 +158,22 @@ const MessageBase = ({
     setSelectedMessage,
   );
 
+  const swipeableRef = React.useRef(null);
   const {
     content,
     created_at,
     replyTo,
-    showSenderName = false,
-    showAvatar = false,
+    showSenderName,
+    showAvatar,
     sender_name,
-    type,
     files = [],
   } = message;
-
   const { message: replyMessage, isLoading: isReplyLoading } = useMessage(
     replyTo?.chatUUID,
     replyTo?.messageID,
   );
 
-  // Wait for reply message to load
-  if (replyTo?.messageID && isReplyLoading) {
-    return null;
-  }
+  if (replyTo?.messageID && isReplyLoading) return null;
 
   const groupBy = (array, callback) => {
     return array.reduce((acc, item) => {
@@ -76,130 +184,77 @@ const MessageBase = ({
     }, {});
   };
 
-  const voiceMessages = groupBy(
-    files,
-    ({ mimeType, name }) => getFileType(mimeType, name) === "VOICE",
-  );
-
-  const audioMessages = groupBy(
-    files,
-    ({ mimeType, name }) => getFileType(mimeType, name) === "AUDIO",
-  );
-
-  const mediaMessages = groupBy(
-    files,
-    ({ mimeType }) =>
-      getFileType(mimeType) === "IMAGE" || getFileType(mimeType) === "VIDEO",
-  );
-
-  const otherMessages = groupBy(files, ({ mimeType }) =>
-    ["DOCUMENT", "CODE", "ARCHIVE", "OTHER"].includes(getFileType(mimeType)),
-  );
+  const fileGroups = {
+    voice: groupBy(files, (f) => getFileType(f.mimeType, f.name) === "VOICE"),
+    audio: groupBy(files, (f) => getFileType(f.mimeType, f.name) === "AUDIO"),
+    media: groupBy(files, (f) =>
+      ["IMAGE", "VIDEO"].includes(getFileType(f.mimeType)),
+    ),
+    other: groupBy(files, (f) =>
+      ["DOCUMENT", "CODE", "ARCHIVE", "OTHER"].includes(
+        getFileType(f.mimeType),
+      ),
+    ),
+  };
 
   const hasOnlyMedia =
     (!content || content.trim().length === 0) &&
-    (mediaMessages.true || []).length > 0;
+    (fileGroups.media.true || []).length > 0;
 
   const sharedContent = (
-    <View
-      style={
-        hasOnlyMedia
-          ? styles.mediaContainer
-          : showSenderName && !replyTo
-            ? styles.textContainerNoTop
-            : styles.textContainer
-      }
-    >
-      {/* Reply preview */}
-
+    <View style={hasOnlyMedia ? styles.mediaContainer : styles.textContainer}>
       {replyMessage && (
         <MessageReply
           senderName={replyMessage.sender_name}
           text={replyMessage.content}
         />
       )}
-
-      {/* images/videos */}
-      {mediaMessages && <MessageMedia medias={mediaMessages.true || []} />}
-
-      {/* other files */}
-      {(otherMessages.true || []).map((otherMessage) => (
-        <MessageOther
-          key={otherMessage.uuid}
-          fileRef={otherMessage.ref}
-          uuid={otherMessage.uuid}
-          mimeType={otherMessage.mimeType}
-          size={otherMessage.size}
-          name={otherMessage.name}
-        />
+      {fileGroups.media.true && <MessageMedia medias={fileGroups.media.true} />}
+      {(fileGroups.other.true || []).map((f) => (
+        <MessageOther key={f.uuid} {...f} fileRef={f.ref} />
       ))}
-
-      {/* audio */}
       <View style={{ width: "100%" }}>
-        {(audioMessages.true || []).map((audioMessage) => (
+        {(fileGroups.audio.true || []).map((f) => (
           <MessageAudio
-            key={audioMessage.uuid}
-            audioRef={audioMessage.ref}
-            uuid={audioMessage.uuid}
-            size={audioMessage.size}
-            name={audioMessage.name}
+            key={f.uuid}
+            {...f}
+            audioRef={f.ref}
             message={message}
-            duration={audioMessage.duration}
           />
         ))}
       </View>
-
-      {/* voice */}
       <View style={{ width: "100%" }}>
-        {(voiceMessages.true || []).map((voiceMessage) => {
-          const waveform = Array.isArray(voiceMessage.waveform)
-            ? voiceMessage.waveform
-            : JSON.parse(
-              voiceMessage.waveform || JSON.stringify(defaultWaveform),
-            ) || defaultWaveform;
-          return (
-            <MessageVoice
-              key={voiceMessage.uuid}
-              audioRef={voiceMessage.ref}
-              uuid={voiceMessage.uuid}
-              message={message}
-              duration={voiceMessage.duration}
-              waveform={waveform}
-            />
-          );
-        })}
-      </View>
-
-      {/* testo + timestamp */}
-      {content &&
-        content.trim().length > 0 &&
-        (content.trim().length < 50 ? (
-          <View style={styles.textRow}>
-            <MessageText text={content} />
-            <MessageTimestamp
-              time={created_at}
-              isEdited={message.isEdited}
-              isPendingEdit={!!message.pendingEditJobId}
-            />
-          </View>
-        ) : (
-          <>
-            <MessageText text={content} />
-            <MessageTimestamp
-              time={created_at}
-              isEdited={message.isEdited}
-              isPendingEdit={!!message.pendingEditJobId}
-            />
-          </>
+        {(fileGroups.voice.true || []).map((f) => (
+          <MessageVoice
+            key={f.uuid}
+            audioRef={f.ref}
+            message={message}
+            duration={f.duration}
+            waveform={
+              Array.isArray(f.waveform)
+                ? f.waveform
+                : JSON.parse(f.waveform || JSON.stringify(defaultWaveform))
+            }
+          />
         ))}
-
-      {!content || content.trim().length === 0 ? (
+      </View>
+      {content?.trim().length > 0 && (
+        <View style={content.trim().length < 50 ? styles.textRow : null}>
+          <MessageText text={content} />
+          <MessageTimestamp
+            time={created_at}
+            isEdited={message.isEdited}
+            isPendingEdit={!!message.pendingEditJobId}
+          />
+        </View>
+      )}
+      {!content?.trim() && (
         <MessageTimestamp
           time={created_at}
           isEdited={message.isEdited}
           isPendingEdit={!!message.pendingEditJobId}
         />
-      ) : null}
+      )}
     </View>
   );
 
@@ -207,46 +262,75 @@ const MessageBase = ({
     ? [styles.senderBubble, showAvatar && styles.senderBubbleChained]
     : [styles.receiverBubble, showAvatar && styles.receiverBubbleWithAvatar];
 
-  const pressableStyles = isSender
-    ? styles.pressable
-    : styles.pressableReceiver;
+  const messageContent = (
+    <Pressable
+      onPress={(e) => onMessagePress(e, message)}
+      onLongPress={(e) => onMessageLongPress(e, message)}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        onMessageRightPress(e, message);
+      }}
+      onDoubleClick={(e) => onMessageDoublePress(e, message)}
+      style={isSender ? styles.pressable : styles.pressableReceiver}
+    >
+      {!isSender && showAvatar && (
+        <View style={styles.avatarWrapper}>
+          <Avatar size={45} uuid={message.profile_picture_uuid} />
+        </View>
+      )}
+      <BlurredView isBorderActive={false} style={blurredViewStyles}>
+        {!isSender && (
+          <View style={styles.senderNameWrapper}>
+            {showSenderName && (
+              <Text style={styles.senderName} numberOfLines={1}>
+                {sender_name}
+              </Text>
+            )}
+            {getPlatform() !== "mobile" && (
+              <Text style={styles.replyText} onPress={() => onReply(message)}>
+                Reply
+              </Text>
+            )}
+          </View>
+        )}
+        {sharedContent}
+        {isSelected && !isSmallScreen && (
+          <View style={styles.selectedOverlay} />
+        )}
+      </BlurredView>
+    </Pressable>
+  );
 
   return (
     <>
       <View style={styles.container}>
-        <Pressable
-          onPress={(event) => onMessagePress(event, message)}
-          onLongPress={(event) => onMessageLongPress(event, message)}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            onMessageRightPress(event, message);
-          }}
-          onDoubleClick={(event) => onMessageDoublePress(event, message)}
-          style={pressableStyles}
-        >
-          {!isSender && showAvatar && (
-            <View style={styles.avatarWrapper}>
-              <Avatar size={45} uuid={message.profile_picture_uuid} />
-            </View>
-          )}
-          <BlurredView style={blurredViewStyles}>
-            {!isSender && showSenderName && (
-              <View style={styles.senderNameWrapper}>
-                <Text
-                  style={styles.senderName}
-                  numberOfLines={1}
-                  selectable={false}
-                >
-                  {sender_name}
-                </Text>
-              </View>
+        {isSmallScreen ? (
+          <ReanimatedSwipeable
+            ref={swipeableRef}
+            friction={1}
+            rightThreshold={REPLY_THRESHOLD}
+            overshootRight={false}
+            activeOffsetX={[-1, 1]}
+            failOffsetY={[-30, 30]}
+            animationOptions={{
+              damping: 25,
+              stiffness: 180,
+              mass: 0.8,
+              overshootClamping: true,
+            }}
+            renderRightActions={(_, dragX) => (
+              <RightAction dragX={dragX} theme={theme} />
             )}
-            {sharedContent}
-            {isSelected && !isSmallScreen && (
-              <View style={styles.selectedOverlay} />
-            )}
-          </BlurredView>
-        </Pressable>
+            onSwipeableWillOpen={() => {
+              onReply(message);
+              swipeableRef.current?.close();
+            }}
+          >
+            {messageContent}
+          </ReanimatedSwipeable>
+        ) : (
+          messageContent
+        )}
       </View>
       {isSelected && isSmallScreen && <View style={styles.selectedOverlay} />}
     </>
@@ -255,34 +339,22 @@ const MessageBase = ({
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    container: {
-      width: "100%",
-    },
-    pressable: {
-      padding: 0,
-      width: "100%",
-      paddingRight: 10,
-      paddingLeft: 10,
-    },
+    container: { width: "100%" },
+    pressable: { width: "100%", paddingHorizontal: 10 },
     pressableReceiver: {
-      padding: 0,
       width: "100%",
       flexDirection: "row",
       alignItems: "flex-end",
     },
     senderBubble: {
-      overflow: "visible",
       marginVertical: 4,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-end",
       overflow: "hidden",
     },
-    senderBubbleChained: {
-      borderBottomRightRadius: 4,
-    },
+    senderBubbleChained: { borderBottomRightRadius: 4 },
     receiverBubble: {
-      overflow: "visible",
       marginVertical: 4,
       marginLeft: 65,
       maxWidth: "80%",
@@ -290,34 +362,14 @@ const createStyle = (theme) =>
       alignSelf: "flex-start",
       overflow: "hidden",
     },
-    receiverBubbleWithAvatar: {
-      marginLeft: 5,
-      borderBottomLeftRadius: 4,
-    },
+    receiverBubbleWithAvatar: { marginLeft: 5, borderBottomLeftRadius: 4 },
     textContainer: {
       flexDirection: "column",
-      alignItems: "flex-start",
-      justifyContent: "flex-start",
       paddingHorizontal: 12,
       paddingBottom: 8,
-      paddingTop: 8,
+      width: "100%",
     },
-    textContainerNoTop: {
-      flexDirection: "column",
-      alignItems: "flex-start",
-      justifyContent: "flex-start",
-      paddingHorizontal: 12,
-      paddingBottom: 8,
-      paddingTop: 0,
-    },
-    mediaContainer: {
-      flexDirection: "column",
-      alignItems: "flex-start",
-      justifyContent: "flex-start",
-      paddingHorizontal: 0,
-      paddingBottom: 0,
-      paddingTop: 0,
-    },
+    mediaContainer: { flexDirection: "column", width: "100%" },
     textRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -334,29 +386,24 @@ const createStyle = (theme) =>
     senderNameWrapper: {
       paddingHorizontal: 12,
       paddingTop: 8,
+      flexDirection: "row",
+      justifyContent: "space-between",
     },
-    senderName: {
-      fontWeight: "600",
-      color: theme.text,
-      flexShrink: 1,
-    },
+    senderName: { fontWeight: "600", color: theme.text, flexShrink: 1 },
+    replyText: { color: "#c5d1dddb", marginLeft: "auto" },
     selectedOverlay: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      ...StyleSheet.absoluteFillObject,
       backgroundColor: "rgba(174, 213, 255, 0.5)",
       zIndex: 1,
       pointerEvents: "none",
     },
   });
 
-export default React.memo(MessageBase, (prevProps, nextProps) => {
-  return (
-    prevProps.message === nextProps.message &&
-    prevProps.isSender === nextProps.isSender &&
-    prevProps.isSelected === nextProps.isSelected &&
-    prevProps.selectedMessage === nextProps.selectedMessage
-  );
-});
+export default React.memo(
+  MessageBase,
+  (prev, next) =>
+    prev.message === next.message &&
+    prev.isSender === next.isSender &&
+    prev.isSelected === next.isSelected &&
+    prev.selectedMessage === next.selectedMessage,
+);

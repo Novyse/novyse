@@ -60,6 +60,21 @@ const MessageList = ({
     }
   }, [triggeredMessage, onEdit, onDelete]);
 
+  // Auto-scroll to bottom when user sends a new message
+  useEffect(() => {
+    if (preparedMessages.length > 0) {
+      const lastMessage = preparedMessages[preparedMessages.length - 1];
+      if (
+        lastMessage.type === "text" &&
+        lastMessage.data.senderUUID === myUUID
+      ) {
+        requestAnimationFrame(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        });
+      }
+    }
+  }, [preparedMessages, myUUID]);
+
   const onAction = useCallback(
     (action) => {
       console.log("Action selected:", action);
@@ -118,6 +133,7 @@ const MessageList = ({
         return (
           <MessageBase
             message={message}
+            onReply={onReply}
             isSender={message.senderUUID === myUUID}
             isSelected={selectedMessage.includes(message)}
             setTriggeredMessage={setTriggeredMessage}

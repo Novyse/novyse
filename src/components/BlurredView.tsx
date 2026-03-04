@@ -4,24 +4,25 @@ import { ThemeContext, Theme } from "@/context/ThemeContext";
 
 interface BlurredViewProps {
   children: ReactNode;
+  isBorderActive?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
-const BlurredView = ({ children, style, ...rest }: BlurredViewProps & any) => {
+const BlurredView = ({ children, style, isBorderActive = true, ...rest }: BlurredViewProps & any) => {
   const { theme } = useContext(ThemeContext) as any;
 
   return (
-    <View style={[styles(theme).container, style]} {...rest}>
+    <View style={[styles(theme, isBorderActive).container, style]} {...rest}>
       {children}
     </View>
   );
 };
 
-const styles = (theme: Theme) =>
+const styles = (theme: Theme, isBorderActive: boolean) =>
   StyleSheet.create({
     container: {
-      borderColor: theme.blurredViewBorder,
-      borderWidth: 1,
+      borderColor: isBorderActive ? theme.blurredViewBorder : "transparent",
+      borderWidth: isBorderActive ? 1 : 0,
       borderRadius: 1000,
       overflow: "hidden",
       backgroundColor: theme.backgroundMainGradient[0],

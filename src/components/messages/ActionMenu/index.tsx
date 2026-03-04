@@ -92,17 +92,17 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
         },
         !isPinned
           ? {
-            action: "Pin",
-            iconName: "PinIcon",
-            color: theme.text,
-          }
+              action: "Pin",
+              iconName: "PinIcon",
+              color: theme.text,
+            }
           : undefined,
         isPinned
           ? {
-            action: "Unpin",
-            iconName: "PinOffIcon",
-            color: theme.text,
-          }
+              action: "Unpin",
+              iconName: "PinOffIcon",
+              color: theme.text,
+            }
           : undefined,
         {
           action: "Copy",
@@ -111,23 +111,23 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
         },
         isDownloadAllowed
           ? {
-            action: "Download",
-            iconName: "Download01Icon",
-            color: theme.text,
-          }
+              action: "Download",
+              iconName: "Download01Icon",
+              color: theme.text,
+            }
           : undefined,
         pendingEditJobId
           ? {
-            action: "Cancel Edit",
-            iconName: "Cancel01Icon",
-            color: "red",
-          }
+              action: "Cancel Edit",
+              iconName: "Cancel01Icon",
+              color: "red",
+            }
           : isEditedAllowed
             ? {
-              action: "Edit",
-              iconName: "PencilEdit02Icon",
-              color: theme.text,
-            }
+                action: "Edit",
+                iconName: "PencilEdit02Icon",
+                color: theme.text,
+              }
             : undefined,
         {
           action: "Forward",
@@ -141,10 +141,10 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
         },
         isDeletedAllowed
           ? {
-            action: "Delete",
-            iconName: "Delete02Icon",
-            color: "red",
-          }
+              action: "Delete",
+              iconName: "Delete02Icon",
+              color: "red",
+            }
           : undefined,
       ] as (ActionMenuItem | undefined)[]
     ).filter((item): item is ActionMenuItem => item !== undefined);
@@ -163,7 +163,9 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
     >
       <View style={styles.menuItemContent}>
         <Icon name={item.iconName} size={20} color={item.color} />
-        <Text style={styles.menuText}>{item.action}</Text>
+        <Text style={styles.menuText} numberOfLines={1} ellipsizeMode="tail">
+          {item.action}
+        </Text>
       </View>
     </HoverAndPressedButton>
   );
@@ -212,7 +214,7 @@ const createStyle = (theme: any) =>
       borderRadius: 10,
       padding: 10,
       minWidth: 120,
-      maxWidth: 220,
+      maxWidth: 250,
       zIndex: 1000,
     },
     menuColumn: {
@@ -237,6 +239,5 @@ const createStyle = (theme: any) =>
       fontSize: 14,
       color: theme.text,
       textAlign: "left",
-      flex: 1,
     },
   });

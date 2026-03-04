@@ -30,6 +30,7 @@ const createStyle = (theme) =>
       marginBottom: 6,
       overflow: "hidden",
       minHeight: 42,
+      marginTop: 8,
     },
     accent: {
       width: 3,
