@@ -23,10 +23,10 @@ class QueueManager {
 
   // Initialize the queue manager
   async initialize(getConnectionStatus) {
-    if (this.initialized) return;
     if (getConnectionStatus) {
       this.getConnectionStatus = getConnectionStatus;
     }
+    if (this.initialized) return;
     await this.loadQueue();
     this.startConnectionMonitoring();
     this.processQueue();
