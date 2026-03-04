@@ -30,7 +30,7 @@ import usePreparedMessages from "@/src/hooks/chat/usePreparedMessages.js";
 import useClipboard from "@/src/hooks/useClipboard";
 import useDownload from "@/src/hooks/file/useDownload";
 
-import { ChatContext } from "@/context/ChatContext";
+import { ChatContext } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 import { LocalUserContext } from "@/context/LocalUserContext";
 

@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 
 import { useSQLiteContext, SQLiteProvider } from "expo-sqlite";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
-import { ChatProvider } from "@/context/ChatContext";
+import { ChatProvider } from "@/context/ActiveChatContext";
 import { CommsProvider } from "@/context/CommsContext";
 import { LocalUserProvider } from "@/context/LocalUserContext";
 import { NetworkProvider } from "@/context/NetworkContext";

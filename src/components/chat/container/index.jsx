@@ -14,7 +14,7 @@ import { useDetailStackContext } from "@/context/DetailStackContext";
 import useResizerStorage from "@/src/hooks/ui/useResizerStorage";
 
 import { useScreen } from "@/context/ScreenContext";
-import { ChatContext } from "@/context/ChatContext";
+import { ChatContext } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 
 import useChatData from "@/src/hooks/chat/useChatData.js";

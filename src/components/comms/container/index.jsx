@@ -5,7 +5,7 @@ import CommsMembersLayout from "@/src/components/comms/CommsMembersLayout";
 import CommsBottomBar from "@/src/components/comms/BottomBar";
 
 import { ThemeContext } from "@/context/ThemeContext";
-import { ChatContext } from "@/context/ChatContext";
+import { ChatContext } from "@/context/ActiveChatContext";
 
 import useCommsData from "@/src/hooks/comms/useCommsData";
 

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useState, useEffect } from "react";
 
 import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 import auth from "@/src/utils/welcome/auth";
@@ -19,7 +19,7 @@ export const ChatProvider = ({ children }) => {
       if (chat.type === "DM") {
         const userUUID = await auth.getUserUUID();
         const otherUser = chat.members.find(
-          (member) => member.uuid != userUUID
+          (member) => member.uuid != userUUID,
         );
         handle = otherUser.handle;
       } else {
