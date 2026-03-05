@@ -42,7 +42,7 @@ const DeleteAccount = ({ visible, onClose }) => {
 
   const handleButtonPress = async () => {
     const response = await gateway.user.delete();
-    if (response.success) {
+    if (response) {
       await auth.logout();
       await refreshLoginStatus();
       router.navigate("/welcome?deleteAccount=true");
