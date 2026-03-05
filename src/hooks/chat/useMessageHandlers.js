@@ -77,6 +77,26 @@ const useMessageHandlers = (
     [chat],
   );
 
+  const handlePausePendingMessage = useCallback(async (messageID) => {
+    return queueManager.pauseJob(messageID);
+  }, []);
+
+  const handleUpdatePendingMessage = useCallback(
+    async (messageID, content) => {
+      const success = queueManager.resumeAndModifyJob(messageID, content);
+      if (success) {
+        await eventEmitter.message.update(chat.uuid, messageID, "edit", {
+          content,
+          pendingEditJobId: null,
+        });
+        setEditingMessage(null);
+        setNewMessageText("");
+      }
+      return success;
+    },
+    [chat.uuid, setEditingMessage, setNewMessageText],
+  );
+
   const handleEditMessage = useCallback(
     async (messageID, content, originalContent) => {
       const { v6 } = require("uuid");
@@ -87,7 +107,7 @@ const useMessageHandlers = (
         messageParams,
         chat,
         jobId,
-        "PENDING_MODIFY"
+        "PENDING_MODIFY",
       );
 
       await eventEmitter.message.update(chat.uuid, messageID, "edit", {
@@ -145,6 +165,8 @@ const useMessageHandlers = (
     handleDeleteMessage,
     handleEditMessage,
     handleCancelJob,
+    handlePausePendingMessage,
+    handleUpdatePendingMessage,
   };
 };
 

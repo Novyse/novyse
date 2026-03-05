@@ -81,7 +81,14 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
         iconName: "Cancel01Icon",
         color: "red",
       },
-    ];
+      isEditedAllowed
+        ? {
+            action: "Edit",
+            iconName: "PencilEdit02Icon",
+            color: theme.text,
+          }
+        : undefined,
+    ].filter((item): item is ActionMenuItem => item !== undefined);
   } else {
     items = (
       [

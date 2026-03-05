@@ -83,6 +83,8 @@ const ChatContent = ({ onBack, contentView }) => {
     handleSendFileMessage,
     handleTextChanging,
     handleCancelJob,
+    handlePausePendingMessage,
+    handleUpdatePendingMessage,
   } = useMessageHandlers(
     chat,
     myUUID,
@@ -183,12 +185,21 @@ const ChatContent = ({ onBack, contentView }) => {
     setNewMessageText("");
   }, []);
 
-  const handleEdit = useCallback((msg) => {
-    setEditingMessage(msg);
-    setNewMessageText(msg.content || "");
-    setReplyingTo(null); // clear reply when editing
-    textInputRef.current?.focus();
-  }, []);
+  const handleEdit = useCallback(
+    async (msg) => {
+      if (msg.internal) {
+        const paused = await handlePausePendingMessage(msg.id);
+        if (paused) {
+          msg.isPendingEdit = true;
+        }
+      }
+      setEditingMessage(msg);
+      setNewMessageText(msg.content || "");
+      setReplyingTo(null); // clear reply when editing
+      textInputRef.current?.focus();
+    },
+    [handlePausePendingMessage],
+  );
 
   const handleCancelReply = useCallback(() => {
     setReplyingTo(null);
@@ -271,7 +282,11 @@ const ChatContent = ({ onBack, contentView }) => {
           setNewMessageText("");
           return;
         }
-        handleEditMessage(editingMessage.id, content, editingMessage.content);
+        if (editingMessage.isPendingEdit || editingMessage.internal) {
+          handleUpdatePendingMessage(editingMessage.id, content);
+        } else {
+          handleEditMessage(editingMessage.id, content, editingMessage.content);
+        }
       } else {
         let replyTo = undefined;
         if (replyingTo) {
@@ -281,7 +296,13 @@ const ChatContent = ({ onBack, contentView }) => {
         handleSendMessage(type, content, replyTo, files);
       }
     },
-    [editingMessage, replyingTo, handleSendMessage, handleEditMessage],
+    [
+      editingMessage,
+      replyingTo,
+      handleSendMessage,
+      handleEditMessage,
+      handleUpdatePendingMessage,
+    ],
   );
 
   if (loading) {

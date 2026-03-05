@@ -67,6 +67,40 @@ class QueueManager {
   }
 
   /**
+   * Pause a specific job in the queue
+   * @param {string} jobId
+   * @returns {boolean} true if job was found and paused
+   */
+  pauseJob(jobId) {
+    const job = this.queue.find((j) => j.id === jobId);
+    if (job) {
+      job.isPaused = true;
+      console.log(`Job ${jobId} paused for editing`);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Resume and modify a paused job's text content
+   * @param {string} jobId
+   * @param {string} newContent
+   * @returns {boolean} true if job was found and modified
+   */
+  resumeAndModifyJob(jobId, newContent) {
+    const job = this.queue.find((j) => j.id === jobId);
+    if (job) {
+      job.params.message.content = newContent;
+      job.isPaused = false;
+      console.log(`Job ${jobId} resumed with new content`);
+      // @SamueleOrazioDurante da aggiungere database modification
+      this.startProcessing();
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Add an inbound message job to the queue
    * @param {Object} message
    */
@@ -183,7 +217,16 @@ class QueueManager {
     this.isProcessing = true;
     console.log("Processing queue, jobs remaining:", this.queue.length);
 
-    const job = this.queue[0];
+    // Find the first non-paused job
+    const jobIndex = this.queue.findIndex((j) => !j.isPaused);
+    if (jobIndex === -1) {
+      console.log("All jobs in queue are currently paused.");
+      this.isProcessing = false;
+      setTimeout(() => this.processQueue(), this.processingInterval);
+      return;
+    }
+
+    const job = this.queue[jobIndex];
 
     try {
       switch (job.type) {
@@ -204,7 +247,10 @@ class QueueManager {
           throw new Error("Job type not recognized");
       }
       // After processing, remove job from queue
-      this.queue.shift();
+      const currentIndex = this.queue.findIndex((j) => j.id === job.id);
+      if (currentIndex !== -1) {
+        this.queue.splice(currentIndex, 1);
+      }
       await this.removeJob(job.id);
       console.info("Job completed successfully:", job.id);
     } catch (error) {
@@ -213,7 +259,10 @@ class QueueManager {
       job.params.attempts++;
       if (job.params.attempts >= job.params.maxRetries) {
         console.error("Job failed permanently, removing:", job.id);
-        this.queue.shift(); // Remove failed job after max retries
+        const failedIndex = this.queue.findIndex((j) => j.id === job.id);
+        if (failedIndex !== -1) {
+          this.queue.splice(failedIndex, 1);
+        }
         await this.removeJob(job.id);
       }
       // Wait errorDelay before continuing
@@ -672,7 +721,10 @@ class QueueManager {
 
     // Revert UI changes
     if (job.type === "OUTGOING_MESSAGE") {
-      if (job.params.status === "PENDING_SEND" || job.params.status === "CREATING_CHAT") {
+      if (
+        job.params.status === "PENDING_SEND" ||
+        job.params.status === "CREATING_CHAT"
+      ) {
         await eventEmitter.getEmitter().emit("message:update", {
           chatUUID,
           messageID: jobId,

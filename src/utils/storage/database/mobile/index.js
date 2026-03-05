@@ -992,9 +992,7 @@ class Database {
       },
       get: async () => {
         try {
-          const result = await this.db.getAllAsync(
-            `SELECT * FROM chat_pin;`,
-          );
+          const result = await this.db.getAllAsync(`SELECT * FROM chat_pin;`);
           return result;
         } catch (error) {
           console.error("Error getting pinned chats:", error);
@@ -1002,7 +1000,7 @@ class Database {
         }
       },
     },
-  }
+  };
 
   message = {
     /**
