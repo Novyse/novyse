@@ -11,6 +11,9 @@ const add = async (message) => {
   });
 };
 const addMultiple = async (messages) => {
+  if (!messages || messages.length === 0) {
+    return new Promise((resolve) => resolve(true));
+  }
   return new Promise(async (resolve, reject) => {
     try {
       if (await database.message.addMultiple(messages)) {

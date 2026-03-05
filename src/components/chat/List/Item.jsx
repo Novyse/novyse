@@ -16,7 +16,7 @@ const ChatListItem = React.memo(
     isSelected,
     isActive,
     isPinned,
-    unreadCount = Math.floor(Math.random() * 10),
+    unreadCount = item.lastMessage ? Math.floor(Math.random() * 10) : 0,
     onPress,
     onLongPress,
   }) => {
@@ -92,14 +92,18 @@ const ChatListItem = React.memo(
             </View>
             <View style={styles.rightContainer}>
               <View style={styles.dateContainer}>
-                {!item.lastMessage?.created_at ? (
-                  <Icon name={"Clock01Icon"} size={14} />
-                ) : (
+                {item.lastMessage && (
                   <>
-                    <Icon name={"TickDouble02Icon"} size={18} />
-                    <Text style={styles.chatDateText} selectable={false}>
-                      {parseTime(item.lastMessage?.created_at)}
-                    </Text>
+                    {!item.lastMessage.created_at ? (
+                      <Icon name={"Clock01Icon"} size={14} />
+                    ) : (
+                      <>
+                        <Icon name={"TickDouble02Icon"} size={18} />
+                        <Text style={styles.chatDateText} selectable={false}>
+                          {parseTime(item.lastMessage.created_at)}
+                        </Text>
+                      </>
+                    )}
                   </>
                 )}
               </View>
