@@ -16,7 +16,7 @@ const ChatListItem = React.memo(
     isSelected,
     isActive,
     isPinned,
-    unreadCount = item.lastMessage ? Math.floor(Math.random() * 10) : 0,
+    unreadCount = 0,
     onPress,
     onLongPress,
   }) => {

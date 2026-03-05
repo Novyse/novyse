@@ -956,15 +956,26 @@ class Database {
             console.error("Missing required fields to pin chat.");
             return false;
           }
-          const result = await this.db.runAsync(
-            `INSERT INTO chat_pin (chatUUID, position) VALUES (?, ?) ON CONFLICT (chatUUID) DO UPDATE SET position = ?;`,
+
+          // 1. Remove the chat if it already exists
+          await this.db.runAsync("DELETE FROM chat_pin WHERE chatUUID = ?;", [
+            chatUUID,
+          ]);
+
+          // 2. Shift existing pins: Increment positions that are >= target position
+          await this.db.runAsync(
+            "UPDATE chat_pin SET position = position + 1 WHERE position >= ?;",
+            [position],
+          );
+
+          // 3. Insert new pin
+          await this.db.runAsync(
+            "INSERT INTO chat_pin (chatUUID, position) VALUES (?, ?);",
             [chatUUID, position],
           );
-          if (result.changes > 0) {
-            console.log(`Chat ${chatUUID} pinned successfully.`);
-            return true;
-          }
-          return false;
+
+          console.log(`Chat ${chatUUID} pinned at position ${position}.`);
+          return true;
         } catch (error) {
           console.error("Error pinning chat:", error);
           return false;
@@ -976,15 +987,30 @@ class Database {
             console.error("Missing required fields to unpin chat.");
             return false;
           }
-          const result = await this.db.runAsync(
-            `DELETE FROM chat_pin WHERE chatUUID = ?;`,
+
+          // 1. Find the position of the pin to be removed
+          const pin = await this.db.getFirstAsync(
+            "SELECT position FROM chat_pin WHERE chatUUID = ?;",
             [chatUUID],
           );
-          if (result.changes > 0) {
-            console.log(`Chat ${chatUUID} unpinned successfully.`);
-            return true;
+
+          if (pin) {
+            const deletedPosition = pin.position;
+
+            // 2. Delete the pin
+            await this.db.runAsync("DELETE FROM chat_pin WHERE chatUUID = ?;", [
+              chatUUID,
+            ]);
+
+            // 3. Shift remaining pins down to fill the gap
+            await this.db.runAsync(
+              "UPDATE chat_pin SET position = position - 1 WHERE position > ?;",
+              [deletedPosition],
+            );
           }
-          return false;
+
+          console.log(`Chat ${chatUUID} unpinned successfully.`);
+          return true;
         } catch (error) {
           console.error("Error unpinning chat:", error);
           return false;
@@ -992,7 +1018,7 @@ class Database {
       },
       get: async () => {
         try {
-          const result = await this.db.getAllAsync(`SELECT * FROM chat_pin;`);
+          const result = await this.db.getAllAsync(`SELECT * FROM chat_pin`);
           return result;
         } catch (error) {
           console.error("Error getting pinned chats:", error);

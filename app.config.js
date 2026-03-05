@@ -2,7 +2,7 @@
 const APP_NAME = "Novyse"; // Novyse-dev Novyse
 const APP_NAME_LOWERCASE = "novyse";
 const APP_SLUG = "novyse";
-const APP_VERSION = "0.9";
+const APP_VERSION = "0.8.69";
 const BUILD_NUMBER = "1";
 const BUILD_DATE = "2026/01/28 12:13:00";
 const EXPO_OWNER = "novyse";

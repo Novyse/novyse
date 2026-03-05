@@ -29,6 +29,7 @@ const useChats = () => {
             type: chat.type,
             profilePictureUUID,
             lastMessage: lastMessage,
+            unreadCount: lastMessage ? Math.floor(Math.random() * 10) : 0,
           };
         }
         setChatDetails(details);

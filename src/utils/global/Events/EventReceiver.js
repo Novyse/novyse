@@ -14,14 +14,25 @@ export default function SetupGlobalEventReceiver() {
       auth.logout(router);
     };
 
+    const handleUpdateRequired = (data) => {
+      console.log("Client update required. Redirecting... 🚀", data);
+      router.replace({
+        pathname: "/updateRequired",
+        params: { minVersion: data?.minVersion },
+      });
+    };
+
     // ------------------> global event listeners
     // session invalid event
     eventEmitter.on("invalidSession", handleUserSessionInvalid);
+    // client update required event
+    eventEmitter.on("clientUpdateRequired", handleUpdateRequired);
 
     // ------------------> global event listeners END
 
     return () => {
       eventEmitter.off("invalidSession", handleUserSessionInvalid);
+      eventEmitter.off("clientUpdateRequired", handleUpdateRequired);
     };
   }, []);
 

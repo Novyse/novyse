@@ -127,6 +127,9 @@ api.interceptors.response.use(
       } finally {
         isRefreshing = false;
       }
+    } else if (error.response?.status === 426) {
+      console.warn("Client update required (426 Upgrade Required)");
+      eventEmitter.emit("clientUpdateRequired", error.response?.data?.data);
     } else if (error.response?.status === 500) {
       console.error("Server error 500:", error.response?.data || error.message);
       eventEmitter.emit("serverError");
@@ -934,7 +937,9 @@ const gateway = {
           if (!chatUUID) {
             throw new Error("Missing required fields to unpin chat");
           }
-          const response = await api.delete(`/chat/pin`, { chatUUID });
+          const response = await api.delete(`/chat/pin`, {
+            data: { chatUUID },
+          });
           const success = response.data.success;
           return { success };
         } catch (error) {
@@ -942,7 +947,7 @@ const gateway = {
           throw error;
         }
       },
-    }
+    },
   },
   message: {
     /**

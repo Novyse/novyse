@@ -12,7 +12,6 @@ import {
   FlatList,
   Image,
   Platform,
-
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -38,7 +37,7 @@ const ChatList = () => {
   };
 
   const { chatDetails } = useChats();
-  const { pinnedChats, pinChat, unpinChat } = useChatPin();
+  const { pinnedChats, pinChats, unpinChats } = useChatPin();
 
   const { isSmallScreen } = useScreen();
   const { theme } = useContext(ThemeContext);
@@ -69,7 +68,9 @@ const ChatList = () => {
       return;
     }
 
-    const orderMap = new Map(((pinnedChats as any[]) || []).map((p) => [p.chatUUID, p.position]));
+    const orderMap = new Map(
+      ((pinnedChats as any[]) || []).map((p) => [p.chatUUID, p.position]),
+    );
     const sortedChats = ([...allChats] as any[]).sort((a, b) => {
       const pinA = orderMap.has(a.uuid);
       const pinB = orderMap.has(b.uuid);
@@ -81,8 +82,12 @@ const ChatList = () => {
       } else if (pinB) {
         return 1;
       } else {
-        const timeA = a.lastMessage?.created_at ? new Date(a.lastMessage.created_at).getTime() : 0;
-        const timeB = b.lastMessage?.created_at ? new Date(b.lastMessage.created_at).getTime() : 0;
+        const timeA = a.lastMessage?.created_at
+          ? new Date(a.lastMessage.created_at).getTime()
+          : 0;
+        const timeB = b.lastMessage?.created_at
+          ? new Date(b.lastMessage.created_at).getTime()
+          : 0;
         return timeB - timeA;
       }
     });
@@ -103,20 +108,32 @@ const ChatList = () => {
   };
 
   const handlePinItems = async () => {
+    const chatsToPin = [];
+    const chatsToUnpin = [];
     for (const chatUUID of selectedItems) {
-      const isPinned = ((pinnedChats as any[]) || []).some((p) => p.chatUUID === chatUUID);
+      const isPinned = ((pinnedChats as any[]) || []).some(
+        (p) => p.chatUUID === chatUUID,
+      );
       if (isPinned) {
-        await unpinChat(chatUUID);
+        chatsToUnpin.push({ chatUUID });
       } else {
-        await pinChat(chatUUID, 0);
+        chatsToPin.push({ chatUUID, position: chatsToPin.length });
       }
     }
+    await unpinChats(chatsToUnpin);
+    await pinChats(chatsToPin);
     clearSelection();
   };
 
   const renderDefaultHeader = useCallback(
     () => (
-      <BlurredHeader style={{ paddingHorizontal: 10, paddingVertical: 5, backgroundColor: "#2951a9" }}>
+      <BlurredHeader
+        style={{
+          paddingHorizontal: 10,
+          paddingVertical: 5,
+          backgroundColor: "#2951a9",
+        }}
+      >
         <Image
           source={require("@/assets/images/logo-novyse.png")}
           style={styles.logo}
@@ -133,12 +150,14 @@ const ChatList = () => {
 
   const renderSelectionHeader = useCallback(
     () => (
-      <BlurredHeader style={{ paddingHorizontal: 10, paddingVertical: 5, backgroundColor: "#2951a9" }}>
-        <Icon
-          name={"Cancel01Icon"}
-          size={24}
-          onPress={clearSelection}
-        />
+      <BlurredHeader
+        style={{
+          paddingHorizontal: 10,
+          paddingVertical: 5,
+          backgroundColor: "#2951a9",
+        }}
+      >
+        <Icon name={"Cancel01Icon"} size={24} onPress={clearSelection} />
         <Text style={styles.headerTitle}>{selectedItems.length} selected</Text>
         <Icon name={"PinIcon"} size={24} onPress={handlePinItems} />
       </BlurredHeader>
@@ -147,13 +166,16 @@ const ChatList = () => {
   );
 
   const renderItem = ({ item }) => {
-    const isPinned = ((pinnedChats as any[]) || []).some((p) => p.chatUUID === item.uuid);
+    const isPinned = ((pinnedChats as any[]) || []).some(
+      (p) => p.chatUUID === item.uuid,
+    );
     return (
       <ChatListItem
         item={item}
         isSelected={selectedItems.includes(item.uuid)}
         isActive={item.uuid === activeChatUUID && !isSmallScreen}
         isPinned={isPinned}
+        unreadCount={item.unreadCount}
         onPress={handlePress}
         onLongPress={handleLongPress}
       />
