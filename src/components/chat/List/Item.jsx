@@ -11,7 +11,15 @@ import { LocalUserContext } from "@/context/LocalUserContext";
 import { ThemeContext } from "@/context/ThemeContext";
 
 const ChatListItem = React.memo(
-  ({ item, isSelected, isActive, onPress, onLongPress }) => {
+  ({
+    item,
+    isSelected,
+    isActive,
+    isPinned,
+    unreadCount = Math.floor(Math.random() * 10),
+    onPress,
+    onLongPress,
+  }) => {
     const { theme } = useContext(ThemeContext);
     const styles = createStyle(theme);
     const { userUUID } = useContext(LocalUserContext);
@@ -95,10 +103,18 @@ const ChatListItem = React.memo(
                   </>
                 )}
               </View>
-              <View style={[styles.ball]}>
-                <Text style={[styles.ballText]} selectable={false}>
-                  17
-                </Text>
+
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
+              >
+                {isPinned && <Icon name={"PinIcon"} size={16} />}
+                {unreadCount > 0 && (
+                  <View style={[styles.ball]}>
+                    <Text style={[styles.ballText]} selectable={false}>
+                      {unreadCount}
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
           </View>
