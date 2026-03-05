@@ -136,6 +136,7 @@ const MessageBase = ({
   message,
   isSender,
   isSelected,
+  isPinned,
   setTriggeredMessage,
   setTriggeredMessagePosition,
   selectedMessage,
@@ -245,6 +246,7 @@ const MessageBase = ({
             time={created_at}
             isEdited={message.isEdited}
             isPendingEdit={!!message.pendingEditJobId}
+            isPinned={isPinned}
           />
         </View>
       )}
@@ -253,6 +255,7 @@ const MessageBase = ({
           time={created_at}
           isEdited={message.isEdited}
           isPendingEdit={!!message.pendingEditJobId}
+          isPinned={isPinned}
         />
       )}
     </View>
@@ -405,5 +408,6 @@ export default React.memo(
     prev.message === next.message &&
     prev.isSender === next.isSender &&
     prev.isSelected === next.isSelected &&
-    prev.selectedMessage === next.selectedMessage,
+    prev.selectedMessage === next.selectedMessage &&
+    prev.isPinned === next.isPinned,
 );

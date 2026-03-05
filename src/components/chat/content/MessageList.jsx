@@ -136,6 +136,7 @@ const MessageList = ({
             onReply={onReply}
             isSender={message.senderUUID === myUUID}
             isSelected={selectedMessage.includes(message)}
+            isPinned={pinnedMessages.includes(message.id)}
             setTriggeredMessage={setTriggeredMessage}
             setTriggeredMessagePosition={setTriggeredMessagePosition}
             selectedMessage={selectedMessage}
@@ -144,7 +145,7 @@ const MessageList = ({
         );
       }
     },
-    [myUUID, selectedMessage],
+    [myUUID, selectedMessage, pinnedMessages],
   );
 
   const handleClose = useCallback(() => setTriggeredMessage(null), []);

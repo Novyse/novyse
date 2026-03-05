@@ -5,7 +5,14 @@ import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "../Icon";
 import { DateTime } from "luxon";
 
-const MessageTimestamp = ({ time, sent = false, receivedByAll = false, isEdited = false, isPendingEdit = false }) => {
+const MessageTimestamp = ({
+  time,
+  sent = false,
+  receivedByAll = false,
+  isEdited = false,
+  isPendingEdit = false,
+  isPinned = false,
+}) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const [isHovered, setIsHovered] = useState(false);
@@ -55,7 +62,9 @@ const MessageTimestamp = ({ time, sent = false, receivedByAll = false, isEdited 
   if (!isPendingEdit && parseTime(time) === "") {
     return (
       <View style={styles.alignContainer}>
-        {(isEdited || isPendingEdit) && <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />}
+        {(isEdited || isPendingEdit) && (
+          <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
+        )}
         <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
       </View>
     );
@@ -75,8 +84,8 @@ const MessageTimestamp = ({ time, sent = false, receivedByAll = false, isEdited 
 
   return (
     <View style={styles.alignContainer}>
-      {!isPendingEdit && (
-        Platform.OS === "web" ? (
+      {!isPendingEdit &&
+        (Platform.OS === "web" ? (
           <View
             ref={timeRef}
             style={styles.timeContainer}
@@ -93,18 +102,22 @@ const MessageTimestamp = ({ time, sent = false, receivedByAll = false, isEdited 
               {parseTime(time)}
             </Text>
           </View>
-        )
-      )}
+        ))}
       {Platform.OS === "web" && createPortal(tooltip, document.body)}
       <View style={styles.iconContainer}>
+        {isPinned && <Icon name={"PinIcon"} size={12} color={theme.textTime} />}
         {(isEdited || isPendingEdit) && (
           <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
         )}
         {isPendingEdit && (
           <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
         )}
-        {sent && !isPendingEdit && <Icon name={"Tick01Icon"} size={16} color={theme.textTime} />}
-        {receivedByAll && !isPendingEdit && <Icon name={"TickDouble01Icon"} size={16} color={theme.textTime} />}
+        {sent && !isPendingEdit && (
+          <Icon name={"Tick01Icon"} size={16} color={theme.textTime} />
+        )}
+        {receivedByAll && !isPendingEdit && (
+          <Icon name={"TickDouble01Icon"} size={16} color={theme.textTime} />
+        )}
       </View>
     </View>
   );
@@ -153,4 +166,4 @@ const createStyle = (theme) =>
     },
   });
 
-export default MessageTimestamp
+export default MessageTimestamp;
