@@ -142,6 +142,7 @@ const MessageBase = ({
   selectedMessage,
   setSelectedMessage,
   onReply,
+  onReaction,
 }) => {
   const { theme } = useThemeContext();
   const { isSmallScreen } = useScreen();
@@ -157,6 +158,8 @@ const MessageBase = ({
     setTriggeredMessagePosition,
     selectedMessage,
     setSelectedMessage,
+    onReply,
+    onReaction,
   );
 
   const swipeableRef = React.useRef(null);

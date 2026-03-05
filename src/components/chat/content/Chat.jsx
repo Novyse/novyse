@@ -185,6 +185,10 @@ const ChatContent = ({ onBack, contentView }) => {
     setNewMessageText("");
   }, []);
 
+  const handleReaction = useCallback((msg) => {
+    console.log("Reaction on message: to be implemented", msg);
+  }, []);
+
   const handleEdit = useCallback(
     async (msg) => {
       if (msg.internal) {
@@ -326,6 +330,7 @@ const ChatContent = ({ onBack, contentView }) => {
             onPin={handlePin}
             onUnpin={handleUnpin}
             onReply={handleReply}
+            onReaction={handleReaction}
             onCopy={handleCopy}
             onDownload={handleDownload}
             onEdit={handleEdit}

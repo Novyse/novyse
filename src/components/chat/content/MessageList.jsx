@@ -23,6 +23,7 @@ const MessageList = ({
   onEdit,
   onCancel,
   onDelete,
+  onReaction,
   onLoadMore,
 }) => {
   const insets = useSafeAreaInsets();
@@ -134,6 +135,7 @@ const MessageList = ({
           <MessageBase
             message={message}
             onReply={onReply}
+            onReaction={onReaction}
             isSender={message.senderUUID === myUUID}
             isSelected={selectedMessage.includes(message)}
             isPinned={pinnedMessages.includes(message.id)}

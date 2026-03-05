@@ -6,6 +6,8 @@ const useMessageAction = (
   setTriggeredMessagePosition,
   selectedMessage,
   setSelectedMessage,
+  replyToMessage,
+  reactionToMessage,
 ) => {
   const { isSmallScreen } = useScreen();
   const platform = getPlatform();
@@ -49,11 +51,12 @@ const useMessageAction = (
     if (isSelectionMode) {
       return;
     }
-
     if (platform === "mobile" || (platform === "web" && isSmallScreen)) {
       // Reaction
+      reactionToMessage(message);
     } else {
       // Reply
+      replyToMessage(message);
     }
   };
 
