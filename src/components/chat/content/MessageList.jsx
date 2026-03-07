@@ -186,6 +186,7 @@ const MessageList = ({
         visible={!!triggeredMessage}
         onAction={onAction}
         onClose={handleClose}
+        onReaction={onReaction}
         position={triggeredMessagePosition}
         isPinned={pinnedMessages.includes(triggeredMessage?.id)}
         isEditedAllowed={isEditedAllowed}
