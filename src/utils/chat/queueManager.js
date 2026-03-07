@@ -455,7 +455,7 @@ class QueueManager {
     if (success) {
       newChat.name = newChat.members[0].name;
       console.info("Chat created successfully:", newChat);
-      eventEmitter.getEmitter().emit("newChat", { chat: newChat, id: job.id });
+      eventEmitter.getEmitter().emit("chat:new", { chat: newChat, id: job.id });
 
       // Create new job for every message pending send in this chat
       await this.loadPendingMessagesForChatCreation(job.id, newChat);

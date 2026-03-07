@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Stack } from "expo-router";
 
 import { useSQLiteContext, SQLiteProvider } from "expo-sqlite";
@@ -17,16 +17,19 @@ import database from "@/src/utils/storage/database";
 import ErrorPage from "@/src/pages/ErrorPage";
 
 function ProtectedContent() {
+  const db = useSQLiteContext();
+  database.setDb(db);
+
   SetupGlobalEventReceiver();
-  SocketIO.open();
+
+  useEffect(() => {
+    SocketIO.open();
+  }, [SocketIO]);
 
   if (getPlatform() === "mobile") {
     const { registerGlobals } = require("@livekit/react-native");
     registerGlobals();
   }
-
-  const db = useSQLiteContext();
-  database.setDb(db);
 
   return (
     <AudioPlayerProvider>

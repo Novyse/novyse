@@ -42,7 +42,7 @@ class GlobalEventEmitter {
         await database.addMessage(message);
       }
     }
-    this.eventEmitter.emit("newChat", chat);
+    this.eventEmitter.emit("chat:new", chat);
   }
 
   async userJoined(chatUUID, user) {

@@ -154,6 +154,22 @@ class Database {
                 FOREIGN KEY (messageID) REFERENCES message(id)
             );
 
+            CREATE TABLE IF NOT EXISTS edited_message (
+                chatUUID TEXT NOT NULL,
+                messageID INTEGER NOT NULL,
+                PRIMARY KEY (chatUUID, messageID),
+                FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
+                FOREIGN KEY (messageID) REFERENCES message(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS deleted_message (
+                chatUUID TEXT NOT NULL,
+                messageID INTEGER NOT NULL,
+                PRIMARY KEY (chatUUID, messageID),
+                FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
+                FOREIGN KEY (messageID) REFERENCES message(id)
+            );
+
             CREATE TABLE IF NOT EXISTS message_files (
                 chatUUID TEXT NOT NULL,
                 messageID INTEGER NOT NULL,
@@ -1026,6 +1042,50 @@ class Database {
         }
       },
     },
+    get: {
+      all: async () => {
+        try {
+          const result = await this.db.getAllAsync(`SELECT * FROM chat`);
+          const localUser = await this.getLocalUser();
+
+          for (const chat of result) {
+            if (chat.type === "DM") {
+              const otherUser = await this.getUserByChatUUID(chat.uuid);
+              if (otherUser) {
+                if (localUser && otherUser.uuid === localUser.uuid) {
+                  chat.name = "Saved Messages";
+                  chat.profilePictureUUID = localUser.profilePictureUUID;
+                } else {
+                  chat.name = otherUser.name;
+                  chat.profilePictureUUID = otherUser.profilePictureUUID;
+                }
+              }
+            }
+
+            chat.messages = await this.message.last.get(chat.uuid);
+
+            chat.unreadCount = Math.floor(Math.random() * 10);
+
+            chat.pinnedMessages =
+              (await this.db.getAllAsync(
+                `SELECT * FROM pinned_message WHERE chatUUID = ?;`,
+                [chat.uuid],
+              )) || [];
+            chat.editedMessages =
+              (await this.db.getAllAsync(
+                `SELECT * FROM edited_message WHERE chatUUID = ?;`,
+                [chat.uuid],
+              )) || [];
+            chat.deletedMessages = [];
+          }
+
+          return result;
+        } catch (error) {
+          console.error("Error getting chats:", error);
+          return [];
+        }
+      },
+    },
   };
 
   message = {
@@ -1178,6 +1238,10 @@ class Database {
           `UPDATE message SET content = ? WHERE chatUUID = ? AND id = ?;`,
           [content, chatUUID, messageID],
         );
+        await this.db.runAsync(
+          `INSERT OR IGNORE INTO edited_message (chatUUID, messageID) VALUES (?, ?);`,
+          [chatUUID, messageID],
+        );
         console.log(`Message ${messageID} edited successfully.`);
         return true;
       } catch (error) {
@@ -1234,6 +1298,41 @@ class Database {
           return pinnedMessages.map((m) => m.messageID);
         } catch (error) {
           console.error("Error retrieving pinned messages:", error);
+          return [];
+        }
+      },
+    },
+    last: {
+      get: async (chatUUID) => {
+        try {
+          const result = await this.db.getAllAsync(
+            `SELECT m.*, u.name as sender_name 
+             FROM message m
+             JOIN user u ON m.senderUUID = u.uuid
+             WHERE m.chatUUID = ?
+             ORDER BY m.created_at DESC
+             LIMIT 1;`,
+            [chatUUID],
+          );
+
+          for (const message of result) {
+            this._mapMessageReplyTo(message);
+            message.files =
+              (await this.db.getAllAsync(
+                `SELECT f.uuid, f.mimeType, f.name FROM file f 
+                 JOIN message_files mf ON f.uuid = mf.fileUUID 
+                 WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
+                [message.chatUUID, message.id],
+              )) || [];
+          }
+
+          return result;
+        } catch (error) {
+          console.error(
+            "Error getting last message for chat:",
+            chatUUID,
+            error,
+          );
           return [];
         }
       },

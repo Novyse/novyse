@@ -9,6 +9,8 @@ import { DetailStackProvider } from "@/context/DetailStackContext";
 
 import { useScreen } from "@/context/ScreenContext";
 import { useNetworkContext } from "@/context/NetworkContext";
+import useChatStore from "@/context/ChatContext";
+
 import useResizerStorage from "@/src/hooks/ui/useResizerStorage";
 
 import { detailsNavigator } from "@/src/utils/navigation/ref";
@@ -115,6 +117,12 @@ export default function RootLayout() {
   if (hasInitialized === false) {
     return <InitPage />;
   }
+
+  // Load chats data in zustand
+  const loadChats = useChatStore((state) => state.load);
+  useEffect(() => {
+    loadChats();
+  }, [loadChats]);
 
   // For small screens, we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {
