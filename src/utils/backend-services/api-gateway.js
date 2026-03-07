@@ -1161,6 +1161,74 @@ const gateway = {
         }
       },
     },
+    reaction: {
+      /**
+       * Add a reaction to a message.
+       * @param {String} chatUUID
+       * @param {String} messageID
+       * @param {String} reaction
+       * @returns {Promise<{success: boolean}>}
+       */
+      async add(chatUUID, messageID, reaction) {
+        try {
+          if (!chatUUID || !messageID || !reaction) {
+            throw new Error(
+              "Missing required fields for adding reaction",
+              chatUUID,
+              messageID,
+              reaction,
+            );
+          }
+          const response = await api.put("/message/reaction", {
+            chatUUID,
+            messageID,
+            reaction,
+          });
+          const success = response.data.success;
+          if (success) {
+            return { success };
+          }
+          return { success };
+        } catch (error) {
+          console.error("Error in message.reaction.add:", error);
+          throw error;
+        }
+      },
+      /**
+       * Remove a reaction to a message.
+       * @param {String} chatUUID
+       * @param {String} messageID
+       * @param {String} reaction
+       * @returns {Promise<{success: boolean}>}
+       */
+      async remove(chatUUID, messageID, reaction) {
+        try {
+          if (!chatUUID || !messageID || !reaction) {
+            throw new Error(
+              "Missing required fields for removing reaction",
+              chatUUID,
+              messageID,
+              reaction,
+            );
+          }
+          const response = await api.delete("/message/reaction", {
+            data: {
+              chatUUID,
+              messageID,
+              reaction,
+            },
+          });
+          const success = response.data.success;
+          if (success) {
+            return { success };
+          }
+          return { success };
+        } catch (error) {
+          console.error("Error in message.reaction.remove:", error);
+          throw error;
+        }
+      },
+    },
   },
 
   file: {

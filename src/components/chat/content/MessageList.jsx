@@ -62,22 +62,28 @@ const MessageList = ({
   }, [triggeredMessage, onEdit, onDelete]);
 
   // Auto-scroll to bottom when user sends a new message
+  const [messagesLength, setMessagesLength] = useState(0);
+
   useEffect(() => {
     if (preparedMessages.length > 0) {
-      const lastMessage = preparedMessages[preparedMessages.length - 1];
-      if (
-        lastMessage.type === "text" &&
-        lastMessage.data.senderUUID === myUUID
-      ) {
-        requestAnimationFrame(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        });
+      // Only scroll if the number of messages has actually increased
+      if (preparedMessages.length > messagesLength) {
+        const lastMessage = preparedMessages[preparedMessages.length - 1];
+        if (
+          lastMessage.type === "text" &&
+          lastMessage.data.senderUUID === myUUID
+        ) {
+          requestAnimationFrame(() => {
+            flatListRef.current?.scrollToEnd({ animated: true });
+          });
+        }
       }
+      setMessagesLength(preparedMessages.length);
     }
-  }, [preparedMessages, myUUID]);
+  }, [preparedMessages, myUUID, messagesLength]);
 
   const onAction = useCallback(
-    (action) => {
+    (action, data = {}) => {
       console.log("Action selected:", action);
       setTriggeredMessage(null);
 
@@ -115,6 +121,9 @@ const MessageList = ({
           break;
         case "Delete":
           onDelete && onDelete(triggeredMessage);
+          break;
+        case "Reaction":
+          onReaction && onReaction(triggeredMessage, data.emoji);
           break;
         default:
           console.warn("Unknown action:", action);
@@ -184,9 +193,9 @@ const MessageList = ({
       )}
       <ActionMenu
         visible={!!triggeredMessage}
+        message={triggeredMessage}
         onAction={onAction}
         onClose={handleClose}
-        onReaction={onReaction}
         position={triggeredMessagePosition}
         isPinned={pinnedMessages.includes(triggeredMessage?.id)}
         isEditedAllowed={isEditedAllowed}

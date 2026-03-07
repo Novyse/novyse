@@ -170,6 +170,17 @@ class Database {
                 FOREIGN KEY (messageID) REFERENCES message(id)
             );
 
+            CREATE TABLE IF NOT EXISTS reaction_message (
+                chatUUID TEXT NOT NULL,
+                messageID INTEGER NOT NULL,
+                userUUID TEXT NOT NULL,
+                reaction TEXT NOT NULL,
+                PRIMARY KEY (chatUUID, messageID, userUUID, reaction),
+                FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
+                FOREIGN KEY (messageID) REFERENCES message(id),
+                FOREIGN KEY (userUUID) REFERENCES user(uuid)
+            );
+
             CREATE TABLE IF NOT EXISTS message_files (
                 chatUUID TEXT NOT NULL,
                 messageID INTEGER NOT NULL,
@@ -850,9 +861,27 @@ class Database {
       );
       // Reverse to maintain chronological order after fetching mostly recent first
       const messages = results.reverse();
-      // Add files to each message
+      // Add files and external entities to each message
       for (const message of messages) {
         this._mapMessageReplyTo(message);
+
+        // Fetch Reactions
+        const reactionsRaw = await this.db.getAllAsync(
+          `SELECT reaction, userUUID FROM reaction_message WHERE chatUUID = ? AND messageID = ?;`,
+          [chatUUID, message.id],
+        );
+        const reactionsMap = {};
+        for (const r of reactionsRaw) {
+          if (!reactionsMap[r.reaction]) {
+            reactionsMap[r.reaction] = [];
+          }
+          reactionsMap[r.reaction].push(r.userUUID);
+        }
+        message.reactions = Object.keys(reactionsMap).map((emoji) => ({
+          emoji,
+          userUUIDs: reactionsMap[emoji],
+        }));
+
         const files = await this.db.getAllAsync(
           `SELECT f.* FROM file f
          JOIN message_files mf ON f.uuid = mf.fileUUID
@@ -1334,6 +1363,34 @@ class Database {
             error,
           );
           return [];
+        }
+      },
+    },
+    reaction: {
+      add: async (chatUUID, messageID, reaction, userUUID) => {
+        try {
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO reaction_message (chatUUID, messageID, userUUID, reaction) VALUES (?, ?, ?, ?);`,
+            [chatUUID, messageID, userUUID, reaction],
+          );
+          console.log(`Reaction ${reaction} added successfully.`);
+          return true;
+        } catch (error) {
+          console.error("Error adding reaction:", error);
+          return false;
+        }
+      },
+      remove: async (chatUUID, messageID, reaction, userUUID) => {
+        try {
+          await this.db.runAsync(
+            `DELETE FROM reaction_message WHERE chatUUID = ? AND messageID = ? AND userUUID = ? AND reaction = ?;`,
+            [chatUUID, messageID, userUUID, reaction],
+          );
+          console.log(`Reaction ${reaction} removed successfully.`);
+          return true;
+        } catch (error) {
+          console.error("Error removing reaction:", error);
+          return false;
         }
       },
     },

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   TouchableWithoutFeedback,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Dimensions,
   Modal,
+  ScrollView,
 } from "react-native";
 
 import { useThemeContext } from "@/context/ThemeContext";
@@ -22,9 +23,9 @@ interface ActionMenuItem {
 
 interface ActionMenuProps {
   visible: boolean;
+  message?: any;
   onClose: () => void;
-  onAction: (action: string) => void;
-  onReaction: (emoji: string) => void;
+  onAction: (action: string, data?: Object) => void;
   position: { x: number; y: number };
   isPinned: boolean;
   isEditedAllowed: boolean;
@@ -36,9 +37,9 @@ interface ActionMenuProps {
 
 const ActionMenu: React.FC<ActionMenuProps> = ({
   visible,
+  message,
   onClose,
   onAction,
-  onReaction,
   position,
   isPinned,
   isEditedAllowed,
@@ -123,9 +124,21 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   };
 
   const handleReactionPress = (emoji: string) => {
-    onReaction(emoji);
+    const data = { emoji };
+    onAction("Reaction", data);
     onClose();
   };
+
+  const readsArray = message?.reads || [];
+  const readCount = readsArray.length;
+  const hasRead = readCount > 0;
+
+  const reactionsArray = message?.reactions || [];
+  const totalReactions = reactionsArray.reduce(
+    (acc: number, r: any) => acc + (r.userUUIDs?.length || 0),
+    0,
+  );
+  const hasReactions = totalReactions > 0;
 
   return (
     <Modal
@@ -160,6 +173,35 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
               ))}
             </View>
           </BlurredView>
+          {/* Read & Reactions Box */}
+          {hasRead ||
+            (hasReactions && (
+              <View style={{ marginTop: 8 }}>
+                <BlurredView style={styles.statsContainer}>
+                  <HoverAndPressedButton
+                    onPress={() => {}}
+                    style={styles.statsButton}
+                  >
+                    {hasRead && (
+                      <View style={styles.statsRow}>
+                        <Icon name="EyeIcon" size={16} color={theme.text} />
+                        <Text
+                          style={styles.statsText}
+                        >{`${readCount} Reads.`}</Text>
+                      </View>
+                    )}
+                    {hasReactions && (
+                      <View style={styles.statsRow}>
+                        <Icon name="SmileIcon" size={16} color={theme.text} />
+                        <Text style={styles.statsText}>
+                          {`${totalReactions} Reactions.`}
+                        </Text>
+                      </View>
+                    )}
+                  </HoverAndPressedButton>
+                </BlurredView>
+              </View>
+            ))}
         </View>
       </View>
     </Modal>
@@ -204,5 +246,89 @@ const createStyle = (theme: any) =>
       marginLeft: 8,
       fontSize: 14,
       color: theme.text,
+    },
+    statsContainer: {
+      borderRadius: 10,
+      minWidth: 120,
+      maxWidth: 175,
+      zIndex: 1000,
+      overflow: "hidden",
+    },
+    statsButton: {
+      padding: 10,
+      flexDirection: "column",
+      gap: 8,
+    },
+    statsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    statsText: {
+      fontSize: 13,
+      color: theme.text,
+      flexShrink: 1,
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: "flex-end",
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
+    },
+    detailsModalContent: {
+      backgroundColor: theme.background,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      maxHeight: "80%",
+    },
+    detailsModalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    detailsModalTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: theme.text,
+    },
+    detailsScrollView: {
+      flexGrow: 1,
+    },
+    detailsSectionTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: theme.text,
+      marginBottom: 8,
+    },
+    detailsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingVertical: 6,
+      paddingHorizontal: 4,
+    },
+    detailsText: {
+      fontSize: 14,
+      color: theme.text,
+    },
+    detailsEmptyText: {
+      fontSize: 14,
+      color: theme.text,
+      fontStyle: "italic",
+      opacity: 0.7,
+      marginBottom: 8,
+    },
+    detailsDivider: {
+      height: 1,
+      backgroundColor: theme.border || "rgba(255,255,255,0.1)",
+      marginVertical: 16,
+    },
+    reactionGroup: {
+      marginBottom: 12,
+    },
+    reactionGroupTitle: {
+      fontSize: 18,
+      marginBottom: 4,
     },
   });

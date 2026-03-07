@@ -161,9 +161,9 @@ const useChatData = (chatUUID, chatHandle = null) => {
         return currentMessages.map((msg) =>
           msg.id === message.id
             ? {
-              ...msg,
-              files: msg.files.map((f) => (f.uuid === file.uuid ? file : f)),
-            }
+                ...msg,
+                files: msg.files.map((f) => (f.uuid === file.uuid ? file : f)),
+              }
             : msg,
         );
       });
@@ -179,11 +179,11 @@ const useChatData = (chatUUID, chatHandle = null) => {
         return filteredMessages.map((msg) =>
           msg.id === tempId
             ? {
-              ...msg,
-              id: message.id,
-              replyTo: message.replyTo,
-              created_at: message.created_at,
-            }
+                ...msg,
+                id: message.id,
+                replyTo: message.replyTo,
+                created_at: message.created_at,
+              }
             : msg,
         );
       });
@@ -220,7 +220,64 @@ const useChatData = (chatUUID, chatHandle = null) => {
             return currentPinnedMessages.filter((id) => id !== messageID);
           });
           break;
-        default:
+        case "reaction_add":
+          setMessages((currentMessages) => {
+            return currentMessages.map((msg) => {
+              if (msg.id === messageID) {
+                const reactions = msg.reactions || [];
+                const existingReactionIndex = reactions.findIndex(
+                  (r) => r.emoji === data.reaction,
+                );
+                const newReactions = [...reactions];
+
+                if (existingReactionIndex >= 0) {
+                  const existingReaction = newReactions[existingReactionIndex];
+                  if (!existingReaction.userUUIDs.includes(data.userUUID)) {
+                    newReactions[existingReactionIndex] = {
+                      ...existingReaction,
+                      userUUIDs: [...existingReaction.userUUIDs, data.userUUID],
+                    };
+                  }
+                } else {
+                  newReactions.push({
+                    emoji: data.reaction,
+                    userUUIDs: [data.userUUID],
+                  });
+                }
+                return { ...msg, reactions: newReactions };
+              }
+              return msg;
+            });
+          });
+          break;
+        case "reaction_remove":
+          setMessages((currentMessages) => {
+            return currentMessages.map((msg) => {
+              if (msg.id === messageID && msg.reactions) {
+                const existingReactionIndex = msg.reactions.findIndex(
+                  (r) => r.emoji === data.reaction,
+                );
+                if (existingReactionIndex >= 0) {
+                  const newReactions = [...msg.reactions];
+                  const existingReaction = newReactions[existingReactionIndex];
+                  const newUserUUIDs = existingReaction.userUUIDs.filter(
+                    (id) => id !== data.userUUID,
+                  );
+
+                  if (newUserUUIDs.length === 0) {
+                    newReactions.splice(existingReactionIndex, 1);
+                  } else {
+                    newReactions[existingReactionIndex] = {
+                      ...existingReaction,
+                      userUUIDs: newUserUUIDs,
+                    };
+                  }
+                  return { ...msg, reactions: newReactions };
+                }
+              }
+              return msg;
+            });
+          });
           break;
       }
     };

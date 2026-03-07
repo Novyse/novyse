@@ -83,6 +83,7 @@ const ChatContent = ({ onBack, contentView }) => {
     handleSendFileMessage,
     handleTextChanging,
     handleCancelJob,
+    handleReaction,
     handlePausePendingMessage,
     handleUpdatePendingMessage,
   } = useMessageHandlers(
@@ -183,10 +184,6 @@ const ChatContent = ({ onBack, contentView }) => {
     setReplyingTo(msg);
     setEditingMessage(null); // clear edit when replying
     setNewMessageText("");
-  }, []);
-
-  const handleReaction = useCallback((msg) => {
-    console.log("Reaction on message: to be implemented", msg);
   }, []);
 
   const handleEdit = useCallback(

@@ -261,6 +261,23 @@ const MessageBase = ({
           isPinned={isPinned}
         />
       )}
+      {message.reactions && message.reactions.length > 0 && (
+        <View style={styles.reactionsContainer}>
+          {message.reactions.map((reactionObj, index) => {
+            return (
+              <Pressable
+                key={`${reactionObj.emoji}-${index}`}
+                style={styles.reactionPill}
+                onPress={() => onReaction(message, reactionObj.emoji)}
+              >
+                <Text style={styles.reactionPillText}>
+                  {reactionObj.emoji} {reactionObj.userUUIDs.length}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 
@@ -402,6 +419,27 @@ const createStyle = (theme) =>
       backgroundColor: "rgba(174, 213, 255, 0.5)",
       zIndex: 1,
       pointerEvents: "none",
+    },
+    reactionsContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginTop: 4,
+      gap: 4,
+    },
+    reactionPill: {
+      backgroundColor: theme.backgroundSecondary || "rgba(255,255,255,0.1)",
+      borderRadius: 12,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.1)",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    reactionPillText: {
+      fontSize: 12,
+      color: theme.text,
     },
   });
 

@@ -114,15 +114,21 @@ export default function RootLayout() {
     checkInit();
   }, []);
 
+  // Load chats data in zustand
+  const loadChats = useChatStore((state) => state.load);
+  useEffect(() => {
+    if (hasInitialized === true) {
+      loadChats();
+    }
+  }, [loadChats, hasInitialized]);
+
   if (hasInitialized === false) {
     return <InitPage />;
   }
 
-  // Load chats data in zustand
-  const loadChats = useChatStore((state) => state.load);
-  useEffect(() => {
-    loadChats();
-  }, [loadChats]);
+  if (hasInitialized === null) {
+    return null;
+  }
 
   // For small screens, we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {

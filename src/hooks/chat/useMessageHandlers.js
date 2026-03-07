@@ -131,6 +131,46 @@ const useMessageHandlers = (
     [chat],
   );
 
+  const handleReaction = useCallback(
+    async (message, emoji = "❤") => {
+      const existingReaction = message.reactions?.find(
+        (r) => r.emoji === emoji,
+      );
+      const hasReacted = existingReaction?.userUUIDs?.includes(myUUID);
+
+      if (hasReacted) {
+        const success = await gateway.message.reaction.remove(
+          chat.uuid,
+          message.id,
+          emoji,
+        );
+        if (success) {
+          await eventEmitter.message.update(
+            chat.uuid,
+            message.id,
+            "reaction_remove",
+            { userUUID: myUUID, reaction: emoji },
+          );
+        }
+      } else {
+        const success = await gateway.message.reaction.add(
+          chat.uuid,
+          message.id,
+          emoji,
+        );
+        if (success) {
+          await eventEmitter.message.update(
+            chat.uuid,
+            message.id,
+            "reaction_add",
+            { userUUID: myUUID, reaction: emoji },
+          );
+        }
+      }
+    },
+    [chat, myUUID],
+  );
+
   const handleSendFileMessage = useCallback(
     async (files) => {
       if (!files) return;
@@ -165,6 +205,7 @@ const useMessageHandlers = (
     handleDeleteMessage,
     handleEditMessage,
     handleCancelJob,
+    handleReaction,
     handlePausePendingMessage,
     handleUpdatePendingMessage,
   };

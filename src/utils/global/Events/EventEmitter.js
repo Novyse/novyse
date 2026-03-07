@@ -75,6 +75,22 @@ class GlobalEventEmitter {
         case "pin_remove":
           await database.message.pin.remove(chatUUID, messageID);
           break;
+        case "reaction_add":
+          await database.message.reaction.add(
+            chatUUID,
+            messageID,
+            data.reaction,
+            data.userUUID,
+          );
+          break;
+        case "reaction_remove":
+          await database.message.reaction.remove(
+            chatUUID,
+            messageID,
+            data.reaction,
+            data.userUUID,
+          );
+          break;
         default:
           break;
       }
