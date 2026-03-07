@@ -43,7 +43,7 @@ import UploadFileOverlay from "@/src/components/chat/content/UploadFileOverlay";
 
 import UploadFileModal from "@/src/components/modalSheets/uploadFile";
 
-const ChatContent = ({ onBack, contentView }) => {
+const ChatContent = ({ onBack, contentView, replyNavigation }) => {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
 
@@ -320,6 +320,7 @@ const ChatContent = ({ onBack, contentView }) => {
         <View style={StyleSheet.absoluteFill}>
           <MessageList
             ref={flatListRef}
+            replyNavigation={replyNavigation}
             preparedMessages={preparedMessages}
             pinnedMessages={pinnedMessages}
             myUUID={myUUID}

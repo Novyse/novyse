@@ -115,12 +115,12 @@ export default function RootLayout() {
   }, []);
 
   // Load chats data in zustand
-  const loadChats = useChatStore((state) => state.load);
+  const initChatContext = useChatStore((state) => state.init);
   useEffect(() => {
     if (hasInitialized === true) {
-      loadChats();
+      initChatContext();
     }
-  }, [loadChats, hasInitialized]);
+  }, [initChatContext, hasInitialized]);
 
   if (hasInitialized === false) {
     return <InitPage />;

@@ -1,17 +1,34 @@
-import { useRouter } from "expo-router";
+import { detailsNavigator } from "@/src/utils/navigation/ref";
 
 const useNavigation = () => {
-  const router = useRouter();
-
   const navigateToChat = (chatUUID) => {
-    router.push(`/chat/${chatUUID}`);
+    detailsNavigator.navigate("chat", { chatUUIDorHandle: chatUUID });
   };
   const navigateToMessage = (chatUUID, messageID) => {
-    router.push(`/chat/${chatUUID}?message=${messageID}`);
+    detailsNavigator.navigate("chat", {
+      chatUUIDorHandle: chatUUID,
+      messageID,
+      t: Date.now(),
+    });
+  };
+  const navigateToMessageWithHistory = (
+    chatUUID,
+    messageID,
+    oldChatUUID,
+    oldMessageID,
+  ) => {
+    detailsNavigator.navigate("chat", {
+      chatUUIDorHandle: chatUUID,
+      messageID,
+      oldChatUUID,
+      oldMessageID,
+      t: Date.now(),
+    });
   };
   return {
     navigateToChat,
     navigateToMessage,
+    navigateToMessageWithHistory,
   };
 };
 

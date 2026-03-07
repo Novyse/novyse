@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 
-import { useRouter } from "expo-router";
+import useNavigation from "@/src/hooks/chat/useNavigation";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
@@ -38,7 +38,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
   const isMobile = Platform.OS !== "web";
   const styles = createStyle(theme, isNarrow);
 
-  const router = useRouter();
+  const { navigateToChat } = useNavigation();
 
   const [name, setName] = useState("");
   const [type, setType] = useState("GROUP"); // 'GROUP', 'CHANNEL', 'FORUM'
@@ -193,7 +193,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
       // Notify other parts of the app about the new chat
       await eventEmitter.newChat(chat);
       // Clear the parameter after handling
-      router.navigate(`/chat/${chat.uuid}`);
+      navigateToChat(chat.uuid);
     } else {
       console.error("Error during chat creation");
     }

@@ -28,6 +28,11 @@ const ChatListItem = React.memo(
       return DateTime.fromJSDate(new Date(dateTimeMessage)).toFormat("HH:mm");
     };
 
+    const lastMessage =
+      item.messages?.length > 0
+        ? item.messages[item.messages.length - 1]
+        : item.lastMessage || null;
+
     const displayMessage = (message) => {
       if (!message) return null;
       let content = message.content;
@@ -88,19 +93,19 @@ const ChatListItem = React.memo(
               >
                 {item.name}
               </Text>
-              {displayMessage(item.lastMessage)}
+              {displayMessage(lastMessage)}
             </View>
             <View style={styles.rightContainer}>
               <View style={styles.dateContainer}>
-                {item.lastMessage && (
+                {lastMessage && (
                   <>
-                    {!item.lastMessage.created_at ? (
+                    {!lastMessage.created_at ? (
                       <Icon name={"Clock01Icon"} size={14} />
                     ) : (
                       <>
                         <Icon name={"TickDouble02Icon"} size={18} />
                         <Text style={styles.chatDateText} selectable={false}>
-                          {parseTime(item.lastMessage.created_at)}
+                          {parseTime(lastMessage.created_at)}
                         </Text>
                       </>
                     )}

@@ -20,7 +20,17 @@ import { ThemeContext } from "@/context/ThemeContext";
 import useChatData from "@/src/hooks/chat/useChatData.js";
 
 const ChatContainer = ({ navigation, route }) => {
-  const { chatUUIDorHandle } = route.params || {};
+  const { chatUUIDorHandle, messageID, oldChatUUID, oldMessageID, t } =
+    route.params || {};
+
+  const replyNavigation = {
+    chatUUID: chatUUIDorHandle,
+    messageID,
+    oldChatUUID,
+    oldMessageID,
+    time: t,
+  };
+
   const onBack = () => navigation.goBack();
   const {
     selectedChatUUID,
@@ -172,7 +182,11 @@ const ChatContainer = ({ navigation, route }) => {
             onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
           >
             <View style={{ flex: 1, height: "100%", minWidth: 350 }}>
-              <ChatContent onBack={onBack} contentView="chat" />
+              <ChatContent
+                onBack={onBack}
+                contentView="chat"
+                replyNavigation={replyNavigation}
+              />
             </View>
             <View
               style={{
@@ -207,7 +221,13 @@ const ChatContainer = ({ navigation, route }) => {
         );
       case "chat":
       default:
-        return <ChatContent onBack={onBack} contentView={contentView} />;
+        return (
+          <ChatContent
+            onBack={onBack}
+            contentView={contentView}
+            replyNavigation={replyNavigation}
+          />
+        );
     }
   };
 

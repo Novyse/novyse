@@ -22,21 +22,23 @@ import ChatListItem from "@/src/components/chat/list/Item";
 import FloatingButton from "@/src/components/FloatingButton";
 import CreateChatModal from "@/src/components/modalSheets/createChat";
 
-import useChats from "@/src/hooks/chat/useChats";
+import useChatStore from "@/context/ChatContext";
 import useChatPin from "@/src/hooks/chat/useChatPin";
 import useSelection from "@/src/hooks/useSelection";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 
-import { detailsNavigator } from "@/src/utils/navigation/ref";
+import useNavigation from "@/src/hooks/chat/useNavigation";
 
 const ChatList = () => {
+  const { navigateToChat } = useNavigation();
+
   const onChatSelect = (chatUUIDorHandle: String) => {
     setActiveChatUUID(chatUUIDorHandle as string);
-    detailsNavigator.navigate("chat", { chatUUIDorHandle });
+    navigateToChat(chatUUIDorHandle);
   };
 
-  const { chatDetails } = useChats();
+  const chats = useChatStore((state) => state.chats);
   const { pinnedChats, pinChats, unpinChats } = useChatPin();
 
   const { isSmallScreen } = useScreen();
@@ -62,8 +64,7 @@ const ChatList = () => {
   const createChatModalRef = useRef(null);
 
   useEffect(() => {
-    const allChats = Object.values(chatDetails);
-    if (allChats.length === 0) {
+    if (chats.length === 0) {
       setOrderedChats([]);
       return;
     }
@@ -71,7 +72,7 @@ const ChatList = () => {
     const orderMap = new Map(
       ((pinnedChats as any[]) || []).map((p) => [p.chatUUID, p.position]),
     );
-    const sortedChats = ([...allChats] as any[]).sort((a, b) => {
+    const sortedChats = ([...chats] as any[]).sort((a, b) => {
       const pinA = orderMap.has(a.uuid);
       const pinB = orderMap.has(b.uuid);
 
@@ -93,7 +94,7 @@ const ChatList = () => {
     });
 
     setOrderedChats(sortedChats);
-  }, [chatDetails, pinnedChats]);
+  }, [chats, pinnedChats]);
 
   const handleLongPress = (chatUUID) => {
     if (!isSelectionMode) initiateSelection(chatUUID);

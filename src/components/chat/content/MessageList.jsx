@@ -11,6 +11,7 @@ import Icon from "@/src/components/Icon";
 
 const MessageList = ({
   ref: flatListRef,
+  replyNavigation,
   preparedMessages,
   pinnedMessages,
   myUUID,
@@ -28,6 +29,42 @@ const MessageList = ({
 }) => {
   const insets = useSafeAreaInsets();
   const styles = createStyle(theme, insets);
+
+  const [highlightedID, setHighlightedID] = useState(null);
+
+  useEffect(() => {
+    if (
+      replyNavigation &&
+      replyNavigation.messageID &&
+      preparedMessages.length > 0
+    ) {
+      const { messageID, time } = replyNavigation;
+      const index = preparedMessages.findIndex(
+        (m) =>
+          m.type !== "separator" && String(m.data?.id) === String(messageID),
+      );
+
+      if (index !== -1) {
+        setHighlightedID(messageID);
+
+        // Clear highlight after 3 seconds
+        const hTimer = setTimeout(() => setHighlightedID(null), 3000);
+
+        const scrollTimer = setTimeout(() => {
+          flatListRef.current?.scrollToIndex({
+            index,
+            animated: true,
+            viewPosition: 0.5,
+          });
+        }, 300);
+
+        return () => {
+          clearTimeout(hTimer);
+          clearTimeout(scrollTimer);
+        };
+      }
+    }
+  }, [replyNavigation, preparedMessages, flatListRef]);
 
   const [triggeredMessage, setTriggeredMessage] = useState(null);
   const [triggeredMessagePosition, setTriggeredMessagePosition] = useState({
@@ -60,27 +97,6 @@ const MessageList = ({
       );
     }
   }, [triggeredMessage, onEdit, onDelete]);
-
-  // Auto-scroll to bottom when user sends a new message
-  const [messagesLength, setMessagesLength] = useState(0);
-
-  useEffect(() => {
-    if (preparedMessages.length > 0) {
-      // Only scroll if the number of messages has actually increased
-      if (preparedMessages.length > messagesLength) {
-        const lastMessage = preparedMessages[preparedMessages.length - 1];
-        if (
-          lastMessage.type === "text" &&
-          lastMessage.data.senderUUID === myUUID
-        ) {
-          requestAnimationFrame(() => {
-            flatListRef.current?.scrollToEnd({ animated: true });
-          });
-        }
-      }
-      setMessagesLength(preparedMessages.length);
-    }
-  }, [preparedMessages, myUUID, messagesLength]);
 
   const onAction = useCallback(
     (action, data = {}) => {
@@ -147,6 +163,7 @@ const MessageList = ({
             onReaction={onReaction}
             isSender={message.senderUUID === myUUID}
             isSelected={selectedMessage.includes(message)}
+            isHighlighted={message.id == highlightedID}
             isPinned={pinnedMessages.includes(message.id)}
             setTriggeredMessage={setTriggeredMessage}
             setTriggeredMessagePosition={setTriggeredMessagePosition}
@@ -156,10 +173,51 @@ const MessageList = ({
         );
       }
     },
-    [myUUID, selectedMessage, pinnedMessages],
+    [
+      myUUID,
+      selectedMessage,
+      pinnedMessages,
+      highlightedID,
+      onReply,
+      onReaction,
+    ],
   );
 
   const handleClose = useCallback(() => setTriggeredMessage(null), []);
+
+  const [isJumpBackMode, setIsJumpBackMode] = useState(false);
+
+  useEffect(() => {
+    if (replyNavigation?.oldMessageID) {
+      setIsJumpBackMode(true);
+      // Mode stays for a while after the jump
+      const timer = setTimeout(() => setIsJumpBackMode(false), 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [replyNavigation]);
+
+  const handleScrollButton = useCallback(() => {
+    if (isJumpBackMode && replyNavigation?.oldMessageID) {
+      const index = preparedMessages.findIndex(
+        (m) =>
+          m.type !== "separator" &&
+          String(m.data?.id) === String(replyNavigation.oldMessageID),
+      );
+
+      if (index !== -1) {
+        setHighlightedID(replyNavigation.oldMessageID);
+        flatListRef.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.5,
+        });
+        setIsJumpBackMode(false);
+        return;
+      }
+    }
+    // Default scroll to bottom
+    flatListRef.current?.scrollToEnd({ animated: true });
+  }, [isJumpBackMode, replyNavigation, preparedMessages, flatListRef]);
 
   return (
     <>
@@ -173,21 +231,22 @@ const MessageList = ({
         showsVerticalScrollIndicator={true}
         scrollIndicatorInsets={{ right: 1 }}
         maintainVisibleContentPosition={{
-          autoscrollToBottomThreshold: 0.2,
+          autoscrollToBottomThreshold: 0.1,
           startRenderingFromBottom: true,
         }}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         onStartReached={onLoadMore}
         onStartReachedThreshold={0.5}
+        estimatedItemSize={100}
       />
       {showScrollButton && (
         <View style={styles.scrollButtonContainer}>
           <Icon
-            name="ArrowDown01Icon"
+            name={"ArrowDown01Icon"}
             size={33}
             color={theme.text}
-            onPress={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            onPress={handleScrollButton}
           />
         </View>
       )}

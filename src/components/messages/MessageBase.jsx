@@ -7,6 +7,9 @@ import Reanimated, {
   interpolate,
   useAnimatedReaction,
   useAnimatedProps,
+  withTiming,
+  withSequence,
+  withDelay,
 } from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 import { scheduleOnRN } from "react-native-worklets";
@@ -137,6 +140,7 @@ const MessageBase = ({
   isSender,
   isSelected,
   isPinned,
+  isHighlighted,
   setTriggeredMessage,
   setTriggeredMessagePosition,
   selectedMessage,
@@ -177,6 +181,27 @@ const MessageBase = ({
     replyTo?.messageID,
   );
 
+  const highlightOpacity = useSharedValue(0);
+
+  React.useEffect(() => {
+    if (isHighlighted) {
+      highlightOpacity.value = withSequence(
+        withTiming(1, { duration: 400 }),
+        withDelay(400, withTiming(0.2, { duration: 600 })),
+        withTiming(1, { duration: 400 }),
+        withDelay(400, withTiming(0, { duration: 1000 })),
+      );
+    } else {
+      highlightOpacity.value = withTiming(0, { duration: 300 });
+    }
+  }, [isHighlighted]);
+
+  const animatedHighlightStyle = useAnimatedStyle(() => ({
+    backgroundColor: theme.primary || "#007AFF",
+    opacity: highlightOpacity.value * 0.4,
+    ...StyleSheet.absoluteFillObject,
+  }));
+
   if (replyTo?.messageID && isReplyLoading) return null;
 
   const groupBy = (array, callback) => {
@@ -211,6 +236,10 @@ const MessageBase = ({
         <MessageReply
           senderName={replyMessage.sender_name}
           text={replyMessage.content}
+          chatUUID={replyTo?.chatUUID}
+          messageID={replyTo?.messageID}
+          oldChatUUID={message.chatUUID}
+          oldMessageID={message.id}
         />
       )}
       {fileGroups.media.true && <MessageMedia medias={fileGroups.media.true} />}
@@ -327,6 +356,10 @@ const MessageBase = ({
   return (
     <>
       <View style={styles.container}>
+        <Reanimated.View
+          style={[animatedHighlightStyle, { zIndex: -1 }]}
+          pointerEvents="none"
+        />
         {isSmallScreen ? (
           <ReanimatedSwipeable
             ref={swipeableRef}
@@ -362,7 +395,7 @@ const MessageBase = ({
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    container: { width: "100%" },
+    container: { width: "100%", position: "relative" },
     pressable: { width: "100%", paddingHorizontal: 10 },
     pressableReceiver: {
       width: "100%",
@@ -450,5 +483,6 @@ export default React.memo(
     prev.isSender === next.isSender &&
     prev.isSelected === next.isSelected &&
     prev.selectedMessage === next.selectedMessage &&
+    prev.isHighlighted === next.isHighlighted &&
     prev.isPinned === next.isPinned,
 );

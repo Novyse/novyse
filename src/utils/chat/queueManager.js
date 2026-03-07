@@ -454,6 +454,7 @@ class QueueManager {
     const newChat = response.chat;
     if (success) {
       newChat.name = newChat.members[0].name;
+      newChat.messages = [];
       console.info("Chat created successfully:", newChat);
       eventEmitter.getEmitter().emit("chat:new", { chat: newChat, id: job.id });
 
