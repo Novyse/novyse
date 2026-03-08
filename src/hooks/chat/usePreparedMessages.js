@@ -8,9 +8,11 @@ const usePreparedMessages = (messages) => {
   const prepareMessages = useCallback((msgs = []) => {
     if (!Array.isArray(msgs) || msgs.length === 0) return [];
 
-    const sortedAsc = [...msgs].sort(
-      (a, b) => new Date(a.created_at) - new Date(b.created_at),
-    );
+    // We treat messages without a created_at (pending ones) as being created "now" for sorting purposes
+    const getSortTime = (msg) =>
+      msg.created_at ? new Date(msg.created_at).getTime() : Date.now();
+
+    const sortedAsc = [...msgs].sort((a, b) => getSortTime(a) - getSortTime(b));
 
     const isBreaking = (msg) =>
       !msg || msg.type === "system" || msg.type === "date";
@@ -25,22 +27,24 @@ const usePreparedMessages = (messages) => {
 
       const sender = msg.sender_name;
       const senderUUID = msg.senderUUID;
-      const dateTime = DateTime.fromJSDate(new Date(msg.created_at));
+      const msgTime = msg.created_at ? new Date(msg.created_at) : new Date();
+      const dateTime = DateTime.fromJSDate(msgTime);
       const dateOfGroup = dateTime.isValid
         ? dateTime.toFormat("yyyy-MM-dd")
         : null;
       const start = i;
 
-      // Avanza fino alla fine del gruppo
       while (
         i < sortedAsc.length &&
         !isBreaking(sortedAsc[i]) &&
         sortedAsc[i].sender_name === sender &&
-        (DateTime.fromJSDate(new Date(sortedAsc[i].created_at)).isValid
-          ? DateTime.fromJSDate(new Date(sortedAsc[i].created_at)).toFormat(
-              "yyyy-MM-dd",
-            )
-          : null) === dateOfGroup
+        (() => {
+          const t = sortedAsc[i].created_at
+            ? new Date(sortedAsc[i].created_at)
+            : new Date();
+          const dt = DateTime.fromJSDate(t);
+          return dt.isValid ? dt.toFormat("yyyy-MM-dd") : null;
+        })() === dateOfGroup
       ) {
         i++;
       }
@@ -58,7 +62,7 @@ const usePreparedMessages = (messages) => {
 
     // Ordina per visualizzazione (nuovi → vecchi)
     const sortedDesc = [...sortedAsc].sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at),
+      (a, b) => getSortTime(b) - getSortTime(a),
     );
 
     const prepared = [];
@@ -67,7 +71,9 @@ const usePreparedMessages = (messages) => {
     let buffer = [];
 
     for (const msg of sortedDesc) {
-      const dateTime = DateTime.fromJSDate(new Date(msg.created_at));
+      // For pending messages, use current date
+      const timestamp = msg.created_at ? new Date(msg.created_at) : new Date();
+      const dateTime = DateTime.fromJSDate(timestamp);
       const msgDate = dateTime.isValid ? dateTime.toFormat("yyyy-MM-dd") : null;
       const msgDisplay = dateTime.isValid
         ? dateTime.toFormat("MMMM d, yyyy")

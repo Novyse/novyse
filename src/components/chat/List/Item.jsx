@@ -11,6 +11,8 @@ import useUserStore from "@/context/UserContext";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import { ThemeContext } from "@/context/ThemeContext";
 
+import messageUtils from "@/src/utils/chat/messageFormat";
+
 const ChatListItem = React.memo(
   ({
     item,
@@ -39,7 +41,9 @@ const ChatListItem = React.memo(
 
     const displayMessage = (message) => {
       if (!message) return null;
-      let content = message.content;
+      const formattedMessage = messageUtils.format(message);
+      const content = formattedMessage.content;
+
       let sender = "";
       if (message.senderUUID === localUserUUID) {
         sender = "You: ";

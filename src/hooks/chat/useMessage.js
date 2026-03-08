@@ -16,7 +16,7 @@ const useMessage = (chatUUID, messageID) => {
     const fetchMessage = async () => {
       setIsLoading(true);
       const row = await database.message.get(chatUUID, messageID);
-      const formattedMessage = await messageUtils.format(row);
+      const formattedMessage = messageUtils.format(row);
       setMessage(formattedMessage || null);
       setIsLoading(false);
     };

@@ -133,7 +133,13 @@ const useChatStore = create<ChatState>((set, get) => ({
           0,
         );
         const pending = await database.getPendingMessagesByChatUUID(chatUUID);
-        const allMessages = [...messages, ...pending];
+        const allMessages = [
+          ...messages,
+          ...pending.map((pm: any) => ({
+            ...pm,
+            internal: true,
+          })),
+        ];
         const members = await database.getMembersByChatUUID(chatUUID);
 
         set((state) => ({
@@ -247,7 +253,12 @@ const useChatStore = create<ChatState>((set, get) => ({
           (message.chatHandle && (chat as any).handle === message.chatHandle);
         if (!isMatch) return chat;
         if (chat.messages.some((m: any) => m.id === message.id)) return chat;
-        return { ...chat, messages: [...chat.messages, message] };
+
+        const safeMessage = {
+          ...message,
+        };
+
+        return { ...chat, messages: [...chat.messages, safeMessage] };
       }),
     }));
   },
@@ -259,7 +270,9 @@ const useChatStore = create<ChatState>((set, get) => ({
         return {
           ...chat,
           messages: chat.messages.map((msg: any) =>
-            msg.id === tempId ? { ...message, id: message.messageUUID } : msg,
+            msg.id === tempId
+              ? { ...msg, ...message, id: message.messageUUID }
+              : msg,
           ),
         };
       }),
@@ -307,6 +320,7 @@ const useChatStore = create<ChatState>((set, get) => ({
                   id: message.id,
                   replyTo: message.replyTo,
                   created_at: message.created_at,
+                  internal: false,
                 }
               : msg,
           ),

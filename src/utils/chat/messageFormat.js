@@ -1,14 +1,14 @@
-import utils from "@/src/utils/chat";
 import { getFileType } from "@/src/utils/storage/file/type";
+import useUserStore from "@/context/UserContext";
 
-const format = async (messageRef) => {
+const format = (messageRef) => {
   if (!messageRef) return messageRef;
 
   const message = { ...messageRef };
 
   if (message && message.type) {
     if (message.type == "system") {
-      message.content = await utils.getSystemMessageText(message);
+      message.content = getSystemMessageText(message);
     } else if (message.type == "message") {
       if (!message.content) {
         if (message.files && message.files.length > 0) {
@@ -66,6 +66,45 @@ const format = async (messageRef) => {
     }
   }
   return message;
+};
+
+/**
+ * Get real text from system message object
+ * @param {Object} message
+ * @returns {String} text
+ */
+const getSystemMessageText = (message) => {
+  let text = "";
+  let name = "User";
+
+  const { localUserUUID, getUser } = useUserStore.getState();
+
+  switch (message.system_action) {
+    case "CHAT_CREATED":
+      text = "Chat created";
+      break;
+    case "USER_JOINED":
+      if (message.content === localUserUUID) {
+        name = "You";
+      } else {
+        const user = getUser(message.content);
+        name = user ? user.name : "User";
+      }
+      text = `${name} joined the chat`;
+      break;
+    case "USER_LEFT":
+      if (message.content === localUserUUID) {
+        name = "You";
+      } else {
+        const user = getUser(message.content);
+        name = user ? user.name : "User";
+      }
+      text = `${name} left the chat`;
+      break;
+    default:
+      text = "System message";
+  }
+  return text;
 };
 
 export default { format };

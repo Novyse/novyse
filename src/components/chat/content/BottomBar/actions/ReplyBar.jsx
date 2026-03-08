@@ -12,11 +12,10 @@ const ReplyBar = ({ replyingTo, onCancelReply }) => {
 
   const [content, setContent] = useState(null);
   useEffect(() => {
-    const fetchContent = async () => {
-      const message = await messageUtils.format(replyingTo);
+    if (replyingTo) {
+      const message = messageUtils.format(replyingTo);
       setContent(message.content);
-    };
-    fetchContent();
+    }
   }, [replyingTo]);
 
   return (
