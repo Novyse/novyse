@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, useWindowDimensions } from "react-native";
 import { Stack, usePathname } from "expo-router";
 
@@ -9,8 +9,10 @@ import TabNavigator from "@/src/components/tabs/TabNavigator";
 import { useScreen } from "@/context/ScreenContext";
 import { useNetworkContext } from "@/context/NetworkContext";
 import useChatStore from "@/context/ChatContext";
+import useUserStore from "@/context/UserContext";
 import useWindowSizeStore from "@/context/WindowSizeContext";
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
+import { tabNavigator } from "@/src/utils/navigation/tabRef";
 
 import queueManager from "@/src/utils/chat/queueManager";
 
@@ -24,6 +26,28 @@ export default function RootLayout() {
   // With flat structure, detail is open if path is NOT /app and NOT /app/
   const pathname = usePathname();
   const isDetailOpen = pathname !== "/app" && pathname !== "/app/";
+  const prevPathnameRef = useRef(pathname);
+
+  // @SamueleOrazioDurante da testare
+  // Sync tab navigator with Expo Router pathname
+  // This ensures that when navigating back (e.g.   Android swipe-back),
+  // the tab navigator switches to the correct tab
+  useEffect(() => {
+    const prevPathname = prevPathnameRef.current;
+    prevPathnameRef.current = pathname;
+
+    // When we leave a detail route back to /app, switch tab to match
+    // what the user was viewing before
+    if (pathname === "/app" || pathname === "/app/") {
+      // User just navigated back to the root — switch tab based on
+      // what detail route they were on before
+      if (prevPathname.includes("/settings")) {
+        tabNavigator.navigate("Settings");
+      } else if (prevPathname.includes("/chat")) {
+        tabNavigator.navigate("ChatList");
+      }
+    }
+  }, [pathname]);
 
   // Pan responder for resizing the detail pane on larger screens
   const { isSmallScreen } = useScreen();
@@ -83,13 +107,15 @@ export default function RootLayout() {
     checkInit();
   }, []);
 
-  // Load chats data in zustand
+  // Load chats & user data in zustand
   const initChatContext = useChatStore((state) => state.init);
+  const initUserContext = useUserStore((state) => state.init);
   useEffect(() => {
     if (hasInitialized === true) {
       initChatContext();
+      initUserContext();
     }
-  }, [initChatContext, hasInitialized]);
+  }, [initChatContext, initUserContext, hasInitialized]);
 
   if (hasInitialized === false) {
     return <InitPage />;
@@ -98,16 +124,6 @@ export default function RootLayout() {
   if (hasInitialized === null) {
     return null;
   }
-
-  // Wrapper for the Stack to ensure it takes full height/width
-  const renderStack = () => (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: theme.backgroundMainGradient[1] },
-      }}
-    />
-  );
 
   // For  we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {
@@ -126,7 +142,14 @@ export default function RootLayout() {
             zIndex: isDetailOpen ? 1 : -1,
           }}
         >
-          {renderStack()}
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: {
+                backgroundColor: theme.backgroundMainGradient[1],
+              },
+            }}
+          />
         </View>
       </View>
     );
@@ -171,7 +194,12 @@ export default function RootLayout() {
           }}
           {...resizerHandlers}
         />
-        {renderStack()}
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: theme.backgroundMainGradient[1] },
+          }}
+        />
       </View>
     </View>
   );

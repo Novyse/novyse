@@ -12,22 +12,17 @@ import { ChatContext } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 import useWindowSizeStore from "@/context/WindowSizeContext";
 
-import useChatData from "@/src/hooks/chat/useChatData.js";
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 
 const ChatPageRoute = () => {
   const params = useLocalSearchParams();
   const { chatUUIDorHandle, messageID, oldChatUUID, oldMessageID, t } = params;
 
-  const onBack = () => router.back();
-
   const {
     selectedChatUUID,
     setSelectedChatUUID,
     selectedHandle,
     setSelectedHandle,
-    selectedChatName,
-    selectedChatPictureUUID,
     jumpMessageID,
     setJumpMessageID,
   } = useContext(ChatContext);
@@ -49,8 +44,6 @@ const ChatPageRoute = () => {
       setJumpMessageID(null);
     }
   }, [jumpMessageID, setJumpMessageID]);
-
-  const { pinnedMessages } = useChatData(selectedChatUUID, selectedHandle);
 
   const { theme } = useContext(ThemeContext);
   const { isSmallScreen } = useScreen();
@@ -156,11 +149,7 @@ const ChatPageRoute = () => {
             onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
           >
             <View style={{ flex: 1, height: "100%", minWidth: 350 }}>
-              <ChatContent
-                onBack={onBack}
-                contentView="chat"
-                replyNavigation={replyNavigation}
-              />
+              <ChatContent replyNavigation={replyNavigation} />
             </View>
             <View
               style={{
@@ -192,13 +181,7 @@ const ChatPageRoute = () => {
         );
       case "chat":
       default:
-        return (
-          <ChatContent
-            onBack={onBack}
-            contentView={contentView}
-            replyNavigation={replyNavigation}
-          />
-        );
+        return <ChatContent replyNavigation={replyNavigation} />;
     }
   };
 
@@ -206,9 +189,6 @@ const ChatPageRoute = () => {
     <>
       <Header
         chatUUIDorHandle={chatUUIDorHandle as string}
-        selectedChatName={selectedChatName}
-        selectedChatPictureUUID={selectedChatPictureUUID}
-        pinnedMessages={pinnedMessages}
         contentView={contentView}
         setContentView={handleSetContentView}
         isSmallScreen={isSmallScreen}

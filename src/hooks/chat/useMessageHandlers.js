@@ -11,9 +11,7 @@ const useMessageHandlers = (
   myUUID,
   setNewMessageText,
   setEditingMessage,
-  setVoiceMessage,
   setIsMicClicked,
-  setIsFileModalVisible,
 ) => {
   const handleSendMessage = useCallback(
     async (type = "message", content, replyTo, files = []) => {
@@ -40,10 +38,9 @@ const useMessageHandlers = (
       await queueManager.addOutgoingMessageJob(message, chat);
 
       setNewMessageText("");
-      setVoiceMessage(true);
       setIsMicClicked(false);
     },
-    [chat, setNewMessageText, setVoiceMessage, setIsMicClicked],
+    [chat, setNewMessageText, setIsMicClicked],
   );
 
   const handlePinMessage = useCallback(
@@ -189,19 +186,11 @@ const useMessageHandlers = (
     [handleSendMessage],
   );
 
-  const handleTextChanging = useCallback(
-    (text, isMicClicked) => {
-      setVoiceMessage(text.length === 0 && !isMicClicked);
-    },
-    [setVoiceMessage],
-  );
-
   return {
     handleSendMessage,
     handleSendFileMessage,
     handlePinMessage,
     handleUnpinMessage,
-    handleTextChanging,
     handleDeleteMessage,
     handleEditMessage,
     handleCancelJob,

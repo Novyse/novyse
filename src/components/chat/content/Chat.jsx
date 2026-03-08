@@ -5,25 +5,15 @@ import React, {
   useRef,
   useCallback,
 } from "react";
-import {
-  Platform,
-  View,
-  Text,
-  BackHandler,
-  Animated,
-  StyleSheet,
-} from "react-native";
+import { Platform, View, Text, StyleSheet } from "react-native";
 
-import { useRouter } from "expo-router";
 import "react-native-get-random-values";
-
-import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
-
 import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
 
-import useChatData from "@/src/hooks/chat/useChatData.js";
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers.js";
 import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers.js";
 import usePreparedMessages from "@/src/hooks/chat/usePreparedMessages.js";
@@ -33,36 +23,66 @@ import useDownload from "@/src/hooks/file/useDownload";
 import { ChatContext } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 import { LocalUserContext } from "@/context/LocalUserContext";
-
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import useChatStore from "@/context/ChatContext";
 
 import BottomBar from "@/src/components/chat/content/bottomBar";
 import MessageList from "@/src/components/chat/content/MessageList";
 import UploadFileOverlay from "@/src/components/chat/content/UploadFileOverlay";
-
 import UploadFileModal from "@/src/components/modalSheets/uploadFile";
+import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
 
-const ChatContent = ({ onBack, contentView, replyNavigation }) => {
-  const router = useRouter();
+const ChatContent = ({ replyNavigation }) => {
   const { theme } = useContext(ThemeContext);
 
   const styles = createStyle(theme);
   const [newMessageText, setNewMessageText] = useState("");
-  const [isVoiceMessage, setVoiceMessage] = useState(true);
-  const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
-  const [isFileModalVisible, setIsFileModalVisible] = useState(false);
-  const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
-  const [isMicClicked, setIsMicClicked] = useState(false);
-  const [sheetIndex, setSheetIndex] = useState(-1);
-  const [replyingTo, setReplyingTo] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
   const [mentionMembers, setMentionMembers] = useState([]);
 
+  const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
+  const [isFileModalVisible, setIsFileModalVisible] = useState(false);
+  const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
+
+  const [isMicClicked, setIsMicClicked] = useState(false);
+  const [sheetIndex, setSheetIndex] = useState(-1);
+
+  const [replyingTo, setReplyingTo] = useState(null);
+
   const { selectedChatUUID, setSelectedChatUUID, selectedHandle } =
     useContext(ChatContext);
-  const { chat, messages, pinnedMessages, members, loading, loadMoreMessages } =
-    useChatData(selectedChatUUID, selectedHandle);
+  const selectChat = useChatStore((state) => state.selectChat);
+  const loadMoreMessages = useChatStore((state) => state.loadMoreMessages);
+
+  useEffect(() => {
+    selectChat(selectedChatUUID, selectedHandle);
+  }, [selectedChatUUID, selectedHandle, selectChat]);
+
+  const chat = useChatStore(
+    useCallback(
+      (state) =>
+        state.chats.find(
+          (c) =>
+            c.uuid === selectedChatUUID ||
+            (selectedHandle && c.handle === selectedHandle),
+        ),
+      [selectedChatUUID, selectedHandle],
+    ),
+  );
+
+  const messages = chat?.messages;
+  const members = chat?.members;
+
+  const loading = useChatStore(
+    useCallback(
+      (state) =>
+        state.loadingMessages[selectedChatUUID || selectedHandle || ""] ||
+        false,
+      [selectedChatUUID, selectedHandle],
+    ),
+  );
+
+  const pinnedMessages = chat?.pinnedMessages || [];
+
   const { userUUID: myUUID } = useContext(LocalUserContext);
 
   const flatListRef = useRef(null);
@@ -81,7 +101,6 @@ const ChatContent = ({ onBack, contentView, replyNavigation }) => {
     handleEditMessage,
     handleDeleteMessage,
     handleSendFileMessage,
-    handleTextChanging,
     handleCancelJob,
     handleReaction,
     handlePausePendingMessage,
@@ -91,7 +110,6 @@ const ChatContent = ({ onBack, contentView, replyNavigation }) => {
     myUUID,
     setNewMessageText,
     setEditingMessage,
-    setVoiceMessage,
     setIsMicClicked,
   );
 
@@ -119,24 +137,6 @@ const ChatContent = ({ onBack, contentView, replyNavigation }) => {
     }
   }, [selectedHandle, setSelectedChatUUID]);
 
-  useEffect(() => {
-    const backAction = () => {
-      if (onBack) {
-        onBack();
-      } else {
-        router.back();
-      }
-      return true;
-    };
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction,
-    );
-    return () => {
-      backHandler.remove();
-    };
-  }, [chat.uuid, onBack]);
-
   const toggleEmojiPicker = useCallback(() => {
     if (Platform.OS === "web") {
       setIsEmojiPickerVisible(!isEmojiPickerVisible);
@@ -146,9 +146,8 @@ const ChatContent = ({ onBack, contentView, replyNavigation }) => {
   const handleEmojiSelected = useCallback(
     (emoji) => {
       setNewMessageText((prevText) => prevText + emoji);
-      setVoiceMessage(false);
     },
-    [setNewMessageText, setVoiceMessage],
+    [setNewMessageText],
   );
 
   const handleSheetChange = useCallback((index) => {
@@ -231,7 +230,6 @@ const ChatContent = ({ onBack, contentView, replyNavigation }) => {
   const handleTextChange = useCallback(
     (text) => {
       setNewMessageText(text);
-      handleTextChanging(text, isMicClicked);
 
       // Robust mention detection: look for "@" at the end of the text or preceded by space
       const mentionMatch = text.match(/(?:^|\s)@(\w*)$/);
@@ -249,7 +247,7 @@ const ChatContent = ({ onBack, contentView, replyNavigation }) => {
         setMentionMembers([]);
       }
     },
-    [members, myUUID, handleTextChanging, isMicClicked],
+    [members, myUUID, isMicClicked],
   );
 
   const handlePin = useCallback(
@@ -334,7 +332,7 @@ const ChatContent = ({ onBack, contentView, replyNavigation }) => {
             onEdit={handleEdit}
             onCancel={handleCancelJob}
             onDelete={handleDelete}
-            onLoadMore={loadMoreMessages}
+            onLoadMore={() => loadMoreMessages(selectedChatUUID)}
           />
         </View>
         <UploadFileModal

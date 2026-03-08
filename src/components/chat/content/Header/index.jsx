@@ -11,12 +11,11 @@ import PinnedMessageHeader from "./pinnedMessage";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import { AudioPlayerContext } from "@/context/AudioPlayerContext";
+import useChatStore from "@/context/ChatContext";
+import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 
 const Header = ({
   chatUUIDorHandle,
-  selectedChatName,
-  selectedChatPictureUUID,
-  pinnedMessages,
   contentView,
   setContentView,
   isSmallScreen,
@@ -29,6 +28,15 @@ const Header = ({
   const { currentUri } = useContext(AudioPlayerContext);
 
   const isVoiceActive = !!currentUri;
+
+  const pinnedMessages = useChatStore((state) => {
+    const chat = state.chats.find(
+      (c) => c.uuid === chatUUIDorHandle || c.handle === chatUUIDorHandle,
+    );
+    return chat?.pinnedMessages || [];
+  });
+
+  const { name, profilePictureUUID } = useChatMetadata(chatUUIDorHandle);
   const hasPinnedMessage = pinnedMessages && pinnedMessages.length > 0;
 
   const isHeaderExpanded = hasPinnedMessage || isVoiceActive;
@@ -43,17 +51,14 @@ const Header = ({
         >
           <MainHeader
             chatUUIDorHandle={chatUUIDorHandle}
-            selectedChatName={selectedChatName}
-            selectedChatPictureUUID={selectedChatPictureUUID}
+            selectedChatName={name}
+            selectedChatPictureUUID={profilePictureUUID}
             contentView={contentView}
             setContentView={setContentView}
             isSmallScreen={isSmallScreen}
           />
           {hasPinnedMessage && (
-            <PinnedMessageHeader
-              chatUUID={chatUUIDorHandle}
-              pinnedMessages={pinnedMessages}
-            />
+            <PinnedMessageHeader pinnedMessages={pinnedMessages} />
           )}
           {isVoiceActive && <AudioHeader />}
         </BlurredView>

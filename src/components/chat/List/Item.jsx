@@ -8,6 +8,7 @@ import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
 
 import useUserStore from "@/context/UserContext";
+import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import { ThemeContext } from "@/context/ThemeContext";
 
 const ChatListItem = React.memo(
@@ -22,41 +23,9 @@ const ChatListItem = React.memo(
   }) => {
     const { theme } = useContext(ThemeContext);
     const styles = createStyle(theme);
-
     const localUserUUID = useUserStore((state) => state.localUserUUID);
-
-    // Determine the UUID of the user to display for DMs
-    const targetUUID =
-      item.type === "DM" && item.members
-        ? item.members.length === 1
-          ? localUserUUID // Self-chat
-          : item.members.find((m) => m.uuid !== localUserUUID)?.uuid
-        : null;
-
-    // Reactive subscription to the target user object
-    const targetUser = useUserStore((state) =>
-      targetUUID ? state.users[targetUUID] : null,
-    );
-
-    // Resolve display name & pfp
-    const dmInfo = (() => {
-      if (item.type !== "DM" || !targetUser) return null;
-
-      if (item.members?.length === 1) {
-        return {
-          name: "Saved Messages",
-          pfp: targetUser.profilePictureUUID,
-        };
-      }
-
-      return {
-        name: targetUser.name,
-        pfp: targetUser.profilePictureUUID,
-      };
-    })();
-
-    const displayName = dmInfo?.name ?? item.name ?? "";
-    const displayPfp = dmInfo?.pfp ?? item.profilePictureUUID ?? null;
+    const { name: displayName, profilePictureUUID: displayPfp } =
+      useChatMetadata(item);
 
     const parseTime = (dateTimeMessage) => {
       if (!dateTimeMessage) return "";

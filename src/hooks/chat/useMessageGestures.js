@@ -1,7 +1,7 @@
 import { getPlatform } from "@/src/utils/device/type";
 import { useScreen } from "@/context/ScreenContext";
 
-const useMessageAction = (
+const useMessageGestures = (
   setTriggeredMessage,
   setTriggeredMessagePosition,
   selectedMessage,
@@ -79,4 +79,4 @@ const useMessageAction = (
   };
 };
 
-export default useMessageAction;
+export default useMessageGestures;

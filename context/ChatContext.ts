@@ -6,10 +6,17 @@ interface ChatState {
   chats: Chat[];
   pinnedChats: { chatUUID: string; position: number }[];
   loading: boolean;
+  loadingMessages: Record<string, boolean>;
+  hasMore: Record<string, boolean>;
+  historyLoaded: Record<string, boolean>;
   init: () => Promise<void>;
   loadChats: () => Promise<void>;
   loadPinnedChats: () => Promise<void>;
   loadMoreMessages: (chatUUID: string) => Promise<void>;
+  selectChat: (
+    chatUUID: string | null,
+    chatHandle?: string | null,
+  ) => Promise<void>;
   _eventsSetup: boolean;
   setupEvents: () => Promise<void>;
   onNewChat: (chat: Chat) => void;
@@ -37,6 +44,9 @@ const useChatStore = create<ChatState>((set, get) => ({
   chats: [],
   pinnedChats: [],
   loading: false,
+  loadingMessages: {},
+  hasMore: {},
+  historyLoaded: {},
 
   init: async () => {
     set({ loading: true });
@@ -57,8 +67,14 @@ const useChatStore = create<ChatState>((set, get) => ({
   },
 
   loadMoreMessages: async (chatUUID: string) => {
+    if (get().loadingMessages[chatUUID] || !get().hasMore[chatUUID]) return;
+
     const currentChat = get().chats.find((c) => c.uuid === chatUUID);
     if (!currentChat) return;
+
+    set((state) => ({
+      loadingMessages: { ...state.loadingMessages, [chatUUID]: true },
+    }));
 
     const currentMessagesCount = currentChat.messages.length;
 
@@ -69,6 +85,11 @@ const useChatStore = create<ChatState>((set, get) => ({
     );
 
     set((state) => ({
+      loadingMessages: { ...state.loadingMessages, [chatUUID]: false },
+      hasMore: {
+        ...state.hasMore,
+        [chatUUID]: olderMessages.length === CHUNK_SIZE,
+      },
       chats: state.chats.map((chat) =>
         chat.uuid === chatUUID
           ? { ...chat, messages: [...olderMessages, ...chat.messages] }
@@ -76,11 +97,128 @@ const useChatStore = create<ChatState>((set, get) => ({
       ),
     }));
   },
+  // @SamueleOrazioDurante sto metodo è da vedere
+  selectChat: async (
+    chatUUID: string | null,
+    chatHandle: string | null = null,
+  ) => {
+    if (!chatUUID && !chatHandle) return;
+
+    // Check if we already have it in store
+    const existing = get().chats.find(
+      (c) =>
+        c.uuid === chatUUID || (chatHandle && (c as any).handle === chatHandle),
+    );
+
+    const targetID = chatUUID || chatHandle || "";
+
+    // Skip if already loading or if history already loaded for this session
+    if (
+      get().loadingMessages[targetID] ||
+      (chatUUID && get().historyLoaded[chatUUID])
+    ) {
+      return;
+    }
+
+    set((state) => ({
+      loadingMessages: { ...state.loadingMessages, [targetID]: true },
+    }));
+
+    try {
+      if (chatUUID) {
+        // Local load
+        const messages = await database.getMessagesByChatUUID(
+          chatUUID,
+          CHUNK_SIZE,
+          0,
+        );
+        const pending = await database.getPendingMessagesByChatUUID(chatUUID);
+        const allMessages = [...messages, ...pending];
+        const members = await database.getMembersByChatUUID(chatUUID);
+
+        set((state) => ({
+          loadingMessages: { ...state.loadingMessages, [chatUUID]: false },
+          hasMore: {
+            ...state.hasMore,
+            [chatUUID]: messages.length === CHUNK_SIZE,
+          },
+          historyLoaded: { ...state.historyLoaded, [chatUUID]: true },
+          chats: state.chats.map((c) =>
+            c.uuid === chatUUID ? { ...c, messages: allMessages, members } : c,
+          ),
+        }));
+      } else if (chatHandle) {
+        // Handle load (Discovery)
+        const { default: gateway }: any =
+          await import("@/src/utils/backend-services/api-gateway");
+        const { success, data }: any = await gateway.gather.handle(
+          chatHandle,
+          true,
+        );
+
+        if (success) {
+          const {
+            type,
+            handle,
+            profilePictureUUID,
+            messages = [],
+            members = [],
+            uuid,
+          } = data;
+
+          // Re-check if it exists by UUID now that we have it
+          const existingByUUID = get().chats.find((c) => c.uuid === uuid);
+          if (existingByUUID) {
+            get().selectChat(uuid);
+            return;
+          }
+
+          const newChat: Chat = {
+            uuid,
+            handle,
+            type,
+            name:
+              data.name ||
+              (type === "USER" ? `${data.name} ${data.surname}` : "Unknown"),
+            profilePictureUUID,
+            messages: messages.reverse(),
+            members: members.map((m: any) => ({
+              uuid: m.userUUID || m,
+              role: "member",
+              joinedAt: new Date(),
+            })),
+            unreadCount: 0,
+            pinnedMessages: [],
+            editedMessages: [],
+            deletedMessages: [],
+          };
+
+          set((state) => ({
+            loadingMessages: { ...state.loadingMessages, [chatHandle]: false },
+            historyLoaded: { ...state.historyLoaded, [uuid]: true },
+            chats: [...state.chats, newChat],
+          }));
+
+          if (type !== "USER") {
+            const { default: SocketIO }: any =
+              await import("@/src/utils/backend-services/socket-io");
+            SocketIO.send()?.subscribe(handle);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error selecting chat:", error);
+    } finally {
+      set((state) => ({
+        loadingMessages: { ...state.loadingMessages, [targetID]: false },
+      }));
+    }
+  },
 
   _eventsSetup: false,
   setupEvents: async () => {
     if (get()._eventsSetup) return;
-    const { default: eventEmitter } =
+    const { default: eventEmitter }: any =
       await import("@/src/utils/global/Events/EventEmitter");
 
     eventEmitter.getEmitter().on("chat:new", get().onNewChat);
@@ -214,7 +352,7 @@ const useChatStore = create<ChatState>((set, get) => ({
               ...chat,
               pinnedMessages: [
                 ...(chat.pinnedMessages || []),
-                messageID,
+                { chatUUID: eChatUUID, messageID },
               ] as any,
             };
 
@@ -222,7 +360,7 @@ const useChatStore = create<ChatState>((set, get) => ({
             return {
               ...chat,
               pinnedMessages: (chat.pinnedMessages || []).filter(
-                (id: any) => id !== messageID,
+                (p: any) => (p.messageID || p) !== messageID,
               ),
             };
 

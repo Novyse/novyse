@@ -19,7 +19,7 @@ import { useThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 import Icon from "../Icon";
 
-import useMessageAction from "@/src/hooks/chat/useMessageAction";
+import useMessageGestures from "@/src/hooks/chat/useMessageGestures";
 import useMessage from "@/src/hooks/chat/useMessage";
 import { getPlatform } from "@/src/utils/device/type";
 
@@ -157,7 +157,7 @@ const MessageBase = ({
     onMessagePress,
     onMessageDoublePress,
     onMessageLongPress,
-  } = useMessageAction(
+  } = useMessageGestures(
     setTriggeredMessage,
     setTriggeredMessagePosition,
     selectedMessage,

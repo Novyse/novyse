@@ -8,6 +8,7 @@ import MessageSystem from "@/src/components/messages/MessageSystem";
 
 import ActionMenu from "@/src/components/messages/ActionMenu";
 import Icon from "@/src/components/Icon";
+import useMessageActions from "@/src/hooks/chat/useMessageActions";
 
 const MessageList = ({
   ref: flatListRef,
@@ -66,17 +67,31 @@ const MessageList = ({
     }
   }, [replyNavigation, preparedMessages, flatListRef]);
 
-  const [triggeredMessage, setTriggeredMessage] = useState(null);
-  const [triggeredMessagePosition, setTriggeredMessagePosition] = useState({
-    x: 0,
-    y: 0,
+  const {
+    triggeredMessage,
+    setTriggeredMessage,
+    triggeredMessagePosition,
+    setTriggeredMessagePosition,
+    selectedMessage,
+    setSelectedMessage,
+    isEditedAllowed,
+    isDeletedAllowed,
+    onAction,
+    handleClose,
+  } = useMessageActions({
+    myUUID,
+    onPin,
+    onUnpin,
+    onReply,
+    onCopy,
+    onDownload,
+    onEdit,
+    onCancel,
+    onDelete,
+    onReaction,
   });
 
-  const [selectedMessage, setSelectedMessage] = useState([]);
-  const [isEditedAllowed, setIsEditedAllowed] = useState(false);
-  const [isDeletedAllowed, setIsDeletedAllowed] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
-
   const handleScroll = useCallback((event) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
     if (contentSize.height === 0) return;
@@ -86,67 +101,6 @@ const MessageList = ({
       contentSize.height - layoutMeasurement.height - contentOffset.y;
     setShowScrollButton(distanceToBottom > 200); // Only show when scrolling up significantly
   }, []);
-
-  useEffect(() => {
-    if (triggeredMessage) {
-      setIsEditedAllowed(
-        onEdit !== null && triggeredMessage.senderUUID === myUUID,
-      );
-      setIsDeletedAllowed(
-        onDelete !== null && triggeredMessage.senderUUID === myUUID,
-      );
-    }
-  }, [triggeredMessage, onEdit, onDelete]);
-
-  const onAction = useCallback(
-    (action, data = {}) => {
-      console.log("Action selected:", action);
-      setTriggeredMessage(null);
-
-      switch (action) {
-        case "Pin":
-          onPin && onPin(triggeredMessage);
-          break;
-        case "Unpin":
-          onUnpin && onUnpin(triggeredMessage);
-          break;
-        case "Reply":
-          onReply && onReply(triggeredMessage);
-          break;
-        case "Forward":
-          // Implement forward logic here
-          console.log("Forwarding message:", triggeredMessage);
-          break;
-        case "Copy":
-          onCopy && onCopy(triggeredMessage);
-          break;
-        case "Download":
-          onDownload && onDownload(triggeredMessage);
-          break;
-        case "Select":
-          setSelectedMessage((prev) => {
-            return [...prev, triggeredMessage];
-          });
-          break;
-        case "Edit":
-          onEdit && onEdit(triggeredMessage);
-          break;
-        case "Cancel":
-        case "Cancel Edit":
-          onCancel && onCancel(triggeredMessage);
-          break;
-        case "Delete":
-          onDelete && onDelete(triggeredMessage);
-          break;
-        case "Reaction":
-          onReaction && onReaction(triggeredMessage, data.emoji);
-          break;
-        default:
-          console.warn("Unknown action:", action);
-      }
-    },
-    [triggeredMessage, onReply, onEdit, onDelete],
-  );
 
   const renderMessageItem = useCallback(
     ({ item }) => {
@@ -164,7 +118,9 @@ const MessageList = ({
             isSender={message.senderUUID === myUUID}
             isSelected={selectedMessage.includes(message)}
             isHighlighted={message.id == highlightedID}
-            isPinned={pinnedMessages.includes(message.id)}
+            isPinned={pinnedMessages.some(
+              (p) => (p.messageID || p) == message.id,
+            )}
             setTriggeredMessage={setTriggeredMessage}
             setTriggeredMessagePosition={setTriggeredMessagePosition}
             selectedMessage={selectedMessage}
@@ -180,10 +136,11 @@ const MessageList = ({
       highlightedID,
       onReply,
       onReaction,
+      setTriggeredMessage,
+      setTriggeredMessagePosition,
+      setSelectedMessage,
     ],
   );
-
-  const handleClose = useCallback(() => setTriggeredMessage(null), []);
 
   const [isJumpBackMode, setIsJumpBackMode] = useState(false);
 
@@ -233,6 +190,7 @@ const MessageList = ({
         maintainVisibleContentPosition={{
           autoscrollToBottomThreshold: 0.1,
           startRenderingFromBottom: true,
+          animateAutoScrollToBottom: true,
         }}
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -256,7 +214,9 @@ const MessageList = ({
         onAction={onAction}
         onClose={handleClose}
         position={triggeredMessagePosition}
-        isPinned={pinnedMessages.includes(triggeredMessage?.id)}
+        isPinned={pinnedMessages.some(
+          (p) => (p.messageID || p) == triggeredMessage?.id,
+        )}
         isEditedAllowed={isEditedAllowed}
         isDeletedAllowed={isDeletedAllowed}
         isDownloadAllowed={triggeredMessage?.files?.length > 0}
