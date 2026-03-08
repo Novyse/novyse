@@ -1,80 +1,49 @@
 import React, { useState, useEffect } from "react";
-import { View, useWindowDimensions, PanResponder } from "react-native";
-import { Slot } from "expo-router";
+import { View, useWindowDimensions } from "react-native";
+import { Stack, usePathname } from "expo-router";
 
 import { useThemeContext } from "@/context/ThemeContext";
 
-import DetailStack from "@/src/pages/DetailStack";
-import { DetailStackProvider } from "@/context/DetailStackContext";
+import TabNavigator from "@/src/components/tabs/TabNavigator";
 
 import { useScreen } from "@/context/ScreenContext";
 import { useNetworkContext } from "@/context/NetworkContext";
 import useChatStore from "@/context/ChatContext";
+import useWindowSizeStore from "@/context/WindowSizeContext";
+import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 
-import useResizerStorage from "@/src/hooks/ui/useResizerStorage";
-
-import { detailsNavigator } from "@/src/utils/navigation/ref";
 import queueManager from "@/src/utils/chat/queueManager";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import auth from "@/src/utils/welcome/auth";
 
-import InitPage from "@/src/pages/InitPage";
+import InitPage from "@/src/components/pages/InitPage";
 
 export default function RootLayout() {
-  // Listen for changes in the detail navigator to update the isDetailOpen state
-  const [isDetailOpen, setIsDetailOpen] = useState(!detailsNavigator.isEmpty());
-  useEffect(() => {
-    const unsubscribe = detailsNavigator.subscribe((isEmpty) => {
-      setIsDetailOpen(!isEmpty);
-    });
-    return unsubscribe;
-  }, []);
+  // Listen for Expo Router pathname changes to determine if a detail is open
+  // With flat structure, detail is open if path is NOT /app and NOT /app/
+  const pathname = usePathname();
+  const isDetailOpen = pathname !== "/app" && pathname !== "/app/";
 
   // Pan responder for resizing the detail pane on larger screens
   const { isSmallScreen } = useScreen();
   const { theme } = useThemeContext();
   const { width } = useWindowDimensions();
-  const [minDetailWidth, setMinDetailWidth] = useState(400);
 
-  const [detailWidth, setDetailWidth, isStorageReady] = useResizerStorage(
-    "@novyse_layout_detail_width",
-    Math.max(minDetailWidth, Math.min(width - 400, width * (2 / 3))),
+  const {
+    detailWidth,
+    setDetailWidth,
     minDetailWidth,
-  );
+    setMinDetailWidth,
+    isStorageReady,
+  } = useWindowSizeStore();
 
-  const detailWidthRef = React.useRef(detailWidth);
-  const startWidthRef = React.useRef(detailWidth);
-
-  useEffect(() => {
-    detailWidthRef.current = detailWidth;
-  }, [detailWidth]);
-
-  useEffect(() => {
-    setDetailWidth((prev: number) =>
-      Math.max(minDetailWidth, Math.min(width - 400, prev)),
-    );
-  }, [width, minDetailWidth, setDetailWidth]);
-
-  const panResponder = React.useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onPanResponderGrant: () => {
-          startWidthRef.current = detailWidthRef.current;
-        },
-        onPanResponderTerminationRequest: () => false,
-        onPanResponderMove: (evt, gestureState) => {
-          setDetailWidth(
-            Math.max(
-              minDetailWidth,
-              Math.min(width - 350, startWidthRef.current - gestureState.dx),
-            ),
-          );
-        },
-      }),
-    [width, minDetailWidth],
-  );
+  const resizerHandlers = usePanelResizer({
+    currentWidth: detailWidth,
+    setWidth: setDetailWidth,
+    minWidth: minDetailWidth,
+    maxWidthPadding: 350,
+  });
 
   useEffect(() => {
     if (detailWidth < minDetailWidth) {
@@ -130,13 +99,23 @@ export default function RootLayout() {
     return null;
   }
 
-  // For small screens, we always show the detail stack as a full-screen overlay when a detail is open
+  // Wrapper for the Stack to ensure it takes full height/width
+  const renderStack = () => (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: theme.backgroundMainGradient[1] },
+      }}
+    />
+  );
+
+  // For  we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {
     return (
       <View
         style={{ flex: 1, backgroundColor: theme.backgroundMainGradient[1] }}
       >
-        <Slot />
+        <TabNavigator />
         <View
           style={{
             position: "absolute",
@@ -147,9 +126,7 @@ export default function RootLayout() {
             zIndex: isDetailOpen ? 1 : -1,
           }}
         >
-          <DetailStackProvider>
-            <DetailStack />
-          </DetailStackProvider>
+          {renderStack()}
         </View>
       </View>
     );
@@ -173,7 +150,7 @@ export default function RootLayout() {
       }}
     >
       <View style={{ flex: 1, padding: 10 }}>
-        <Slot />
+        <TabNavigator />
       </View>
       <View
         style={{
@@ -190,15 +167,11 @@ export default function RootLayout() {
             width: 20,
             backgroundColor: "transparent",
             cursor: "ew-resize",
+            zIndex: 10,
           }}
-          {...panResponder.panHandlers}
+          {...resizerHandlers}
         />
-        <DetailStackProvider
-          setDetailWidth={setDetailWidth}
-          setMinDetailWidth={setMinDetailWidth}
-        >
-          <DetailStack />
-        </DetailStackProvider>
+        {renderStack()}
       </View>
     </View>
   );

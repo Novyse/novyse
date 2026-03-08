@@ -9,7 +9,7 @@ import { ChatContext } from "@/context/ActiveChatContext";
 
 import useCommsData from "@/src/hooks/comms/useCommsData";
 
-const VocalContent = ({ navigation, chatUUIDorHandle }) => {
+const VocalContent = ({ chatUUIDorHandle }) => {
   const {
     selectedChatUUID,
     setSelectedChatUUID,
@@ -38,11 +38,7 @@ const VocalContent = ({ navigation, chatUUIDorHandle }) => {
       <CommsMembersLayout participants={participants} room={room} />
 
       {selectedChatUUID && (
-        <CommsBottomBar
-          chatUUID={selectedChatUUID}
-          sub={0}
-          navigation={navigation}
-        />
+        <CommsBottomBar chatUUID={selectedChatUUID} sub={0} />
       )}
     </View>
   );

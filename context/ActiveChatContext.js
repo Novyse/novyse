@@ -12,6 +12,7 @@ export const ChatProvider = ({ children }) => {
   const [selectedChatPictureUUID, setSelectedChatPictureUUID] = useState(null);
 
   const [selectedSub, setSelectedSub] = useState(0);
+  const [jumpMessageID, setJumpMessageID] = useState(null);
 
   useEffect(() => {
     const handleNewChat = async (chat) => {
@@ -51,6 +52,8 @@ export const ChatProvider = ({ children }) => {
         setSelectedChatPictureUUID,
         selectedSub,
         setSelectedSub,
+        jumpMessageID,
+        setJumpMessageID,
       }}
     >
       {children}

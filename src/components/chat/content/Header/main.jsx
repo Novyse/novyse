@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, Text } from "react-native";
+import { router } from "expo-router";
 
 import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
@@ -10,14 +11,14 @@ const MainHeader = ({
   chatUUIDorHandle,
   selectedChatName,
   selectedChatPictureUUID,
-  navigation,
   contentView,
   setContentView,
   isSmallScreen,
-  onBack,
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+
+  const onBack = () => router.back();
 
   return (
     <View style={styles.headerMainRow}>

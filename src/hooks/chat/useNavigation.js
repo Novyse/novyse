@@ -1,14 +1,14 @@
-import { detailsNavigator } from "@/src/utils/navigation/ref";
+import { router } from "expo-router";
 
 const useNavigation = () => {
   const navigateToChat = (chatUUID) => {
-    detailsNavigator.navigate("chat", { chatUUIDorHandle: chatUUID });
+    router.push({
+      pathname: `/app/chat/${chatUUID}`,
+    });
   };
   const navigateToMessage = (chatUUID, messageID) => {
-    detailsNavigator.navigate("chat", {
-      chatUUIDorHandle: chatUUID,
-      messageID,
-      t: Date.now(),
+    router.push({
+      pathname: `/app/chat/${chatUUID}/${messageID}`,
     });
   };
   const navigateToMessageWithHistory = (
@@ -17,12 +17,15 @@ const useNavigation = () => {
     oldChatUUID,
     oldMessageID,
   ) => {
-    detailsNavigator.navigate("chat", {
-      chatUUIDorHandle: chatUUID,
-      messageID,
-      oldChatUUID,
-      oldMessageID,
-      t: Date.now(),
+    // Note: oldChatUUID and oldMessageID are historically used for "jump back"
+    // We keep them as params for now if needed, but path is the priority
+    router.push({
+      pathname: `/app/chat/${chatUUID}/${messageID}`,
+      params: {
+        oldChatUUID,
+        oldMessageID,
+        t: Date.now(),
+      },
     });
   };
   return {

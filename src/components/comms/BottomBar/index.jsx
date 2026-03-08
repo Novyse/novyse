@@ -1,6 +1,8 @@
 import React, { useContext, useState, useEffect } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 
+import { router } from "expo-router";
+
 import { ThemeContext } from "@/context/ThemeContext";
 
 import CommsBottomBarButton from "@/src/components/comms/BottomBar/Button";
@@ -16,7 +18,7 @@ import useCommsAction from "@/src/hooks/comms/useCommsAction";
 
 import Platform from "@/src/utils/device/type";
 
-const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
+const CommsBottomBar = ({ chatUUID, sub }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -126,7 +128,7 @@ const CommsBottomBar = ({ chatUUID, sub, navigation }) => {
             iconName={"ComputerScreenShareIcon"}
           />
           <CommsBottomBarButton
-            onPress={() => navigation.navigate("comms")}
+            onPress={() => router.push("/app/settings/comms")}
             iconName={"Settings02Icon"}
           />
           <CommsBottomBarButton

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Stack } from "expo-router";
+import { Slot } from "expo-router";
 
 import { useSQLiteContext, SQLiteProvider } from "expo-sqlite";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
@@ -14,18 +14,22 @@ import SetupGlobalEventReceiver from "@/src/utils/global/Events/EventReceiver";
 import SocketIO from "@/src/utils/backend-services/socket-io";
 import database from "@/src/utils/storage/database";
 
-import ErrorPage from "@/src/pages/ErrorPage";
+import ErrorPage from "@/src/components/pages/ErrorPage";
 
 function ProtectedContent() {
+  // Init and set database instance
   const db = useSQLiteContext();
   database.setDb(db);
 
+  // Global event emitter receiver
   SetupGlobalEventReceiver();
 
+  // Open SocketIO
   useEffect(() => {
     SocketIO.open();
   }, [SocketIO]);
 
+  // Init livekit module for android/ios
   if (getPlatform() === "mobile") {
     const { registerGlobals } = require("@livekit/react-native");
     registerGlobals();
@@ -37,13 +41,7 @@ function ProtectedContent() {
         <CommsProvider>
           <LocalUserProvider>
             <NetworkProvider>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                }}
-              >
-                <Stack.Screen name="app" />
-              </Stack>
+              <Slot />
             </NetworkProvider>
           </LocalUserProvider>
         </CommsProvider>

@@ -17,11 +17,9 @@ const Header = ({
   selectedChatName,
   selectedChatPictureUUID,
   pinnedMessages,
-  navigation,
   contentView,
   setContentView,
   isSmallScreen,
-  onBack,
 }) => {
   const { theme } = useContext(ThemeContext);
   const insets = useSafeAreaInsets();
@@ -47,11 +45,9 @@ const Header = ({
             chatUUIDorHandle={chatUUIDorHandle}
             selectedChatName={selectedChatName}
             selectedChatPictureUUID={selectedChatPictureUUID}
-            navigation={navigation}
             contentView={contentView}
             setContentView={setContentView}
             isSmallScreen={isSmallScreen}
-            onBack={onBack}
           />
           {hasPinnedMessage && (
             <PinnedMessageHeader

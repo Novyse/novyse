@@ -25,6 +25,7 @@ interface ModifyProfileProps {
   name: string;
   surname: string;
   username: string;
+  email?: string;
   description?: string;
   birthday: string;
   country: string;
@@ -37,6 +38,7 @@ export default function ModifyProfile({
   name,
   surname,
   username,
+  email = "",
   description = "",
   birthday,
   country,
@@ -161,7 +163,7 @@ export default function ModifyProfile({
           >
             <Banner
               theme={theme}
-              size={isSmallScreen ? 120 : 180}
+              height={isSmallScreen ? 120 : 180}
               onEdit={() => {}}
             />
             <ProfileHeader
