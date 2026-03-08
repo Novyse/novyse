@@ -1075,25 +1075,12 @@ class Database {
       all: async () => {
         try {
           const result = await this.db.getAllAsync(`SELECT * FROM chat`);
-          const localUser = await this.getLocalUser();
-
           for (const chat of result) {
-            if (chat.type === "DM") {
-              const otherUser = await this.getUserByChatUUID(chat.uuid);
-              if (otherUser) {
-                if (localUser && otherUser.uuid === localUser.uuid) {
-                  chat.name = "Saved Messages";
-                  chat.profilePictureUUID = localUser.profilePictureUUID;
-                } else {
-                  chat.name = otherUser.name;
-                  chat.profilePictureUUID = otherUser.profilePictureUUID;
-                }
-              }
-            }
-
             chat.messages = await this.message.last.get(chat.uuid);
 
             chat.unreadCount = Math.floor(Math.random() * 10);
+
+            chat.members = await this.getMembersByChatUUID(chat.uuid);
 
             chat.pinnedMessages =
               (await this.db.getAllAsync(
@@ -1422,6 +1409,22 @@ class Database {
         } catch (error) {
           console.error("Error retrieving user by UUID:", error);
           return null;
+        }
+      },
+      /**
+       * Get all users from the database.
+       * @returns {Array} array of user objects with handles
+       */
+      all: async () => {
+        try {
+          const users = await this.db.getAllAsync(
+            `SELECT u.*, h.handle FROM user u
+             LEFT JOIN handle h ON u.uuid = h.userUUID AND h.type = 'USER';`,
+          );
+          return users || [];
+        } catch (error) {
+          console.error("Error retrieving all users:", error);
+          return [];
         }
       },
       /**

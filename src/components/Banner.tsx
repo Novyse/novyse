@@ -13,44 +13,42 @@ interface BannerProps {
   onEdit?: () => void;
 }
 
-export default function Banner({
-  uuid,
-  uri,
-  height = 190,
-  theme,
-  onEdit = undefined,
-}: BannerProps) {
-  const styles = createStyles(theme, height);
+const Banner = React.memo(
+  ({ uuid, uri, height = 190, theme, onEdit = undefined }: BannerProps) => {
+    const styles = createStyles(theme, height);
 
-  const [isHovered, setIsHovered] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
 
-  const BannerImage = () => (
-    <Image
-      source={{
-        uri: uri || "https://www.novyse.com/images/banner/default.jpg",
-      }}
-      style={styles.bannerImage}
-    />
-  );
+    const renderBannerImage = () => (
+      <Image
+        source={{
+          uri: uri || "https://www.novyse.com/images/banner/default.jpg",
+        }}
+        style={styles.bannerImage}
+      />
+    );
 
-  return onEdit ? (
-    <HoverAndPressedButton
-      onPress={onEdit}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={styles.hoverButtonContainer}
-    >
-      <BannerImage />
-      {isHovered && (
-        <View style={styles.editIconContainer}>
-          <Icon name="UnavailableIcon" size={24} color={theme.text} />
-        </View>
-      )}
-    </HoverAndPressedButton>
-  ) : (
-    <BannerImage />
-  );
-}
+    return onEdit ? (
+      <HoverAndPressedButton
+        onPress={onEdit}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={styles.hoverButtonContainer}
+      >
+        {renderBannerImage()}
+        {isHovered && (
+          <View style={styles.editIconContainer}>
+            <Icon name="UnavailableIcon" size={24} color={theme.text} />
+          </View>
+        )}
+      </HoverAndPressedButton>
+    ) : (
+      renderBannerImage()
+    );
+  },
+);
+
+export default Banner;
 
 const createStyles = (theme: any, height: number) =>
   StyleSheet.create({

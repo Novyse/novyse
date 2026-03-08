@@ -7,7 +7,7 @@ import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
 
-import { LocalUserContext } from "@/context/LocalUserContext";
+import useUserStore from "@/context/UserContext";
 import { ThemeContext } from "@/context/ThemeContext";
 
 const ChatListItem = React.memo(
@@ -22,7 +22,42 @@ const ChatListItem = React.memo(
   }) => {
     const { theme } = useContext(ThemeContext);
     const styles = createStyle(theme);
-    const { userUUID } = useContext(LocalUserContext);
+
+    const localUserUUID = useUserStore((state) => state.localUserUUID);
+
+    // Determine the UUID of the user to display for DMs
+    const targetUUID =
+      item.type === "DM" && item.members
+        ? item.members.length === 1
+          ? localUserUUID // Self-chat
+          : item.members.find((m) => m.uuid !== localUserUUID)?.uuid
+        : null;
+
+    // Reactive subscription to the target user object
+    const targetUser = useUserStore((state) =>
+      targetUUID ? state.users[targetUUID] : null,
+    );
+
+    // Resolve display name & pfp
+    const dmInfo = (() => {
+      if (item.type !== "DM" || !targetUser) return null;
+
+      if (item.members?.length === 1) {
+        return {
+          name: "Saved Messages",
+          pfp: targetUser.profilePictureUUID,
+        };
+      }
+
+      return {
+        name: targetUser.name,
+        pfp: targetUser.profilePictureUUID,
+      };
+    })();
+
+    const displayName = dmInfo?.name ?? item.name ?? "";
+    const displayPfp = dmInfo?.pfp ?? item.profilePictureUUID ?? null;
+
     const parseTime = (dateTimeMessage) => {
       if (!dateTimeMessage) return "";
       return DateTime.fromJSDate(new Date(dateTimeMessage)).toFormat("HH:mm");
@@ -37,7 +72,7 @@ const ChatListItem = React.memo(
       if (!message) return null;
       let content = message.content;
       let sender = "";
-      if (message.senderUUID === userUUID) {
+      if (message.senderUUID === localUserUUID) {
         sender = "You: ";
       } else if (message.senderUUID && message.sender_name) {
         sender = `${message.sender_name}: `;
@@ -78,11 +113,7 @@ const ChatListItem = React.memo(
               <Icon name={"Tick02Icon"} size={24} />
             </View>
           )}
-          <Avatar
-            uuid={item.profilePictureUUID}
-            theme={theme}
-            style={styles.avatar}
-          />
+          <Avatar uuid={displayPfp} theme={theme} style={styles.avatar} />
           <View style={styles.chatItemGrid}>
             <View style={styles.leftContainer}>
               <Text
@@ -91,7 +122,7 @@ const ChatListItem = React.memo(
                 ellipsizeMode="tail"
                 selectable={false}
               >
-                {item.name}
+                {displayName}
               </Text>
               {displayMessage(lastMessage)}
             </View>
