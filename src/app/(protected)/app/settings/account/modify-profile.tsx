@@ -3,7 +3,7 @@ import { StyleSheet, View, Text } from "react-native";
 import { router } from "expo-router";
 
 import { ThemeContext } from "@/context/ThemeContext";
-import { LocalUserContext } from "@/context/LocalUserContext";
+import useUserStore from "@/context/UserContext";
 
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import UploadProfilePicture from "@/src/components/modalSheets/UploadProfilePicture";
@@ -15,23 +15,13 @@ export default function AccountModifyRoute() {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const {
-    name,
-    surname,
-    handle,
-    email,
-    profilePictureUUID,
-    description,
-    birthday,
-    region,
-    country,
-    isLoading,
-  } = useContext(LocalUserContext);
+  const { localUserUUID, getUser, loading } = useUserStore();
+  const user = localUserUUID ? getUser(localUserUUID) : null;
 
   const [isProfilePicModalVisible, setIsProfilePicModalVisible] =
     useState(false);
 
-  if (isLoading) {
+  if (loading || !user) {
     return (
       <View style={styles.container}>
         <HeaderWithBackArrow title={"Account"} onBack={() => onBack()} />
@@ -44,15 +34,15 @@ export default function AccountModifyRoute() {
     <>
       <HeaderWithBackArrow title={"Account"} onBack={() => onBack()} />
       <Page
-        name={name}
-        surname={surname}
-        username={handle}
-        email={email}
-        profilePictureUUID={profilePictureUUID}
-        description={description}
-        birthday={birthday}
-        region={region}
-        country={country}
+        name={user.name}
+        surname={user.surname}
+        username={user.handle}
+        email={user.email ?? ""}
+        profilePictureUUID={user.profilePictureUUID ?? ""}
+        description={user.description ?? ""}
+        birthday={user.birthday ?? ""}
+        region={user.region ?? ""}
+        country={user.country ?? ""}
         onEditAvatar={() => setIsProfilePicModalVisible(true)}
       />
       <UploadProfilePicture

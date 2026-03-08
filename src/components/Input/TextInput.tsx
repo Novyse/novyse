@@ -33,7 +33,7 @@ export default function TextInput({
 
       <RNTextInput
         style={styles.TextInput}
-        value={value}
+        value={value ?? ""}
         placeholder={placeholder}
         editable={!disabled}
         onChangeText={onChange}

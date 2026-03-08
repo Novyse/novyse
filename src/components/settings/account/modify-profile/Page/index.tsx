@@ -16,7 +16,7 @@ import StatusMessage from "@/src/components/StatusMessage";
 
 import { useThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
-import { useLocalUserContext } from "@/context/LocalUserContext";
+import useUserStore from "@/context/UserContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
@@ -50,16 +50,18 @@ export default function ModifyProfile({
   const { width, height } = useWindowDimensions();
   const { isSmallScreen } = useScreen();
 
-  const { userUUID } = useLocalUserContext();
+  const { localUserUUID, getUser } = useUserStore();
+  const userUUID = localUserUUID as string;
+  const user = localUserUUID ? getUser(localUserUUID) : null;
 
   const [baseValues, setBaseValues] = React.useState({
     name,
     surname,
     username,
-    description,
-    birthday,
-    country,
-    region,
+    description: description ?? "",
+    birthday: birthday ?? "",
+    country: country ?? "",
+    region: region ?? "",
   });
 
   const [formValues, setFormValues] = React.useState(baseValues);
@@ -86,10 +88,10 @@ export default function ModifyProfile({
       name,
       surname,
       username,
-      description,
-      birthday,
-      country,
-      region,
+      description: description ?? "",
+      birthday: birthday ?? "",
+      country: country ?? "",
+      region: region ?? "",
     };
     setBaseValues(original);
     setFormValues(original);
@@ -133,7 +135,7 @@ export default function ModifyProfile({
       if ((response as any).success) {
         await eventEmitter.user.profile.update({
           ...formValues,
-          userUUID,
+          userUUID: userUUID as string,
         });
         setBaseValues(formValues);
         setMessage("Profile updated successfully");
