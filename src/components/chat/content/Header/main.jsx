@@ -78,7 +78,6 @@ function createStyle(theme) {
       width: "100%",
     },
     headerLeft: {
-      flex: 1,
       alignItems: "flex-start",
       justifyContent: "center",
     },
@@ -90,7 +89,6 @@ function createStyle(theme) {
       justifyContent: "center",
     },
     headerRight: {
-      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "flex-end",
