@@ -80,6 +80,7 @@ class GlobalEventEmitter {
             chatUUID,
             messageID,
             data.reaction,
+            data.at,
             data.userUUID,
           );
           break;

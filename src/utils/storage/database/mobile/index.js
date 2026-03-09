@@ -175,6 +175,7 @@ class Database {
                 messageID INTEGER NOT NULL,
                 userUUID TEXT NOT NULL,
                 reaction TEXT NOT NULL,
+                at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (chatUUID, messageID, userUUID, reaction),
                 FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
                 FOREIGN KEY (messageID) REFERENCES message(id),
@@ -865,9 +866,8 @@ class Database {
       for (const message of messages) {
         this._mapMessageReplyTo(message);
 
-        // Fetch Reactions
         const reactionsRaw = await this.db.getAllAsync(
-          `SELECT reaction, userUUID FROM reaction_message WHERE chatUUID = ? AND messageID = ?;`,
+          `SELECT reaction, userUUID, at FROM reaction_message WHERE chatUUID = ? AND messageID = ?;`,
           [chatUUID, message.id],
         );
         const reactionsMap = {};
@@ -875,11 +875,12 @@ class Database {
           if (!reactionsMap[r.reaction]) {
             reactionsMap[r.reaction] = [];
           }
-          reactionsMap[r.reaction].push(r.userUUID);
+          reactionsMap[r.reaction].push({ userUUID: r.userUUID, at: r.at });
         }
         message.reactions = Object.keys(reactionsMap).map((emoji) => ({
           emoji,
-          userUUIDs: reactionsMap[emoji],
+          userUUIDs: reactionsMap[emoji].map((r) => r.userUUID),
+          details: reactionsMap[emoji], // Include full details with 'at'
         }));
 
         const files = await this.db.getAllAsync(
@@ -1354,11 +1355,17 @@ class Database {
       },
     },
     reaction: {
-      add: async (chatUUID, messageID, reaction, userUUID) => {
+      add: async (chatUUID, messageID, reaction, at, userUUID) => {
         try {
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO reaction_message (chatUUID, messageID, userUUID, reaction) VALUES (?, ?, ?, ?);`,
-            [chatUUID, messageID, userUUID, reaction],
+            `INSERT OR IGNORE INTO reaction_message (chatUUID, messageID, userUUID, reaction, at) VALUES (?, ?, ?, ?, ?);`,
+            [
+              chatUUID,
+              messageID,
+              userUUID,
+              reaction,
+              at || new Date().toISOString(),
+            ],
           );
           console.log(`Reaction ${reaction} added successfully.`);
           return true;

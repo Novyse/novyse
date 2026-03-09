@@ -394,12 +394,15 @@ const useChatStore = create<ChatState>((set, get) => ({
                     newReactions[existingIdx] = {
                       ...existing,
                       userUUIDs: [...existing.userUUIDs, data.userUUID],
+                      at: data.at || new Date().toISOString(),
                     };
                   }
                 } else {
                   newReactions.push({
                     emoji: data.reaction,
                     userUUIDs: [data.userUUID],
+
+                    at: data.at || new Date().toISOString(),
                   });
                 }
                 return { ...msg, reactions: newReactions };

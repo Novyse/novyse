@@ -1,5 +1,11 @@
 import { File } from "./file";
 
+export interface Reaction {
+  emoji: string;
+  userUUIDs: string[];
+  at: string | Date;
+}
+
 export interface Message {
   id: number;
   chatUUID: string;
@@ -7,6 +13,7 @@ export interface Message {
   content: string;
   timestamp: Date;
   files: File[];
+  reactions?: Reaction[];
 }
 
 export interface PinnedMessage {

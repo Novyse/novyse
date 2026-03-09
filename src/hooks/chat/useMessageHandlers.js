@@ -150,17 +150,17 @@ const useMessageHandlers = (
           );
         }
       } else {
-        const success = await gateway.message.reaction.add(
+        const response = await gateway.message.reaction.add(
           chat.uuid,
           message.id,
           emoji,
         );
-        if (success) {
+        if (response.success) {
           await eventEmitter.message.update(
             chat.uuid,
             message.id,
             "reaction_add",
-            { userUUID: myUUID, reaction: emoji },
+            { userUUID: myUUID, reaction: emoji, at: response.at },
           );
         }
       }

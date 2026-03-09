@@ -1167,7 +1167,7 @@ const gateway = {
        * @param {String} chatUUID
        * @param {String} messageID
        * @param {String} reaction
-       * @returns {Promise<{success: boolean}>}
+       * @returns {Promise<{success: boolean, at: Timestamp}>}
        */
       async add(chatUUID, messageID, reaction) {
         try {
@@ -1185,8 +1185,9 @@ const gateway = {
             reaction,
           });
           const success = response.data.success;
+          const at = response.data.data.at;
           if (success) {
-            return { success };
+            return { success, at };
           }
           return { success };
         } catch (error) {
