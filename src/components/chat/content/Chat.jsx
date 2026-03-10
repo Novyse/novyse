@@ -92,7 +92,7 @@ const ChatContent = ({ replyNavigation }) => {
   const bottomSheetRef = useRef(null);
 
   // Hook per prepared messages
-  const preparedMessages = usePreparedMessages(messages);
+  const preparedMessages = usePreparedMessages(messages, chat.type);
 
   // Hook per message handlers
   const {

@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
-  TouchableWithoutFeedback,
+  Pressable,
   Text,
   StyleSheet,
   Dimensions,
   Modal,
-  ScrollView,
 } from "react-native";
 
 import { useThemeContext } from "@/context/ThemeContext";
@@ -147,11 +146,14 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={onClose}>
-          <View style={styles.overlayTouchable} />
-        </TouchableWithoutFeedback>
-
+      <Pressable
+        onPress={onClose}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          onClose();
+        }}
+        style={styles.overlay}
+      >
         <View style={[styles.wrapper, { top: adjustedY, left: adjustedX }]}>
           {!isPendingSend && <ReactionMenu onReaction={handleReactionPress} />}
 
@@ -203,7 +205,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
               </View>
             ))}
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 };
@@ -214,9 +216,6 @@ const createStyle = (theme: any) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
-    },
-    overlayTouchable: {
-      ...StyleSheet.absoluteFillObject,
     },
     wrapper: {
       position: "absolute",
