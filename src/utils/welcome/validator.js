@@ -34,11 +34,11 @@ export const validate = {
   chat: {
     name: (value) => {
       if (!value) return false;
-      const chatNameRegex = /^[a-zA-Z0-9\s]{3,50}$/;
-      return chatNameRegex.test(value.trim()) && value.trim() !== "";
+      const trimmed = value.trim();
+      return trimmed.length >= 3 && trimmed.length <= 50;
     },
     requirements: {
-      name: "Chat name must be 3-50 characters long and can include letters and numbers.",
+      name: "Chat name must be 3-50 characters long.",
     },
   },
   handle: (value) => {
