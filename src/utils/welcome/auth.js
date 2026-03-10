@@ -112,6 +112,11 @@ const initializeDatabase = async () => {
     // Store user
     await database.addUserInfo(local.user);
 
+    // Store pinned chat
+    for (const pinnedChat of local.pinnedChats) {
+      await database.chat.pin.add(pinnedChat.chatUUID, pinnedChat.position);
+    }
+
     for (const user of users) {
       await database.addUserInfo(user);
     }

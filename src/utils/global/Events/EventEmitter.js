@@ -70,7 +70,12 @@ class GlobalEventEmitter {
           await database.message.delete(chatUUID, messageID);
           break;
         case "pin_add":
-          await database.message.pin.add(chatUUID, messageID);
+          await database.message.pin.add(
+            chatUUID,
+            messageID,
+            data.pinned_at,
+            data.userUUID,
+          );
           break;
         case "pin_remove":
           await database.message.pin.remove(chatUUID, messageID);

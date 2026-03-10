@@ -149,6 +149,8 @@ class Database {
             CREATE TABLE IF NOT EXISTS pinned_message (
                 chatUUID TEXT NOT NULL,
                 messageID INTEGER NOT NULL,
+                pinned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                pinned_by TEXT NOT NULL,
                 PRIMARY KEY (chatUUID, messageID),
                 FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
                 FOREIGN KEY (messageID) REFERENCES message(id)
@@ -406,6 +408,17 @@ class Database {
       // Insert members into the member table
       for (const member of chat.members) {
         await this.addMember(chat.uuid, member);
+      }
+      // Insert pinned messages into the pinned_message table
+      if (chat.pinnedMessages) {
+        for (const pinnedMessage of chat.pinnedMessages) {
+          await this.message.pin.add(
+            chat.uuid,
+            pinnedMessage.messageID,
+            pinnedMessage.pinned_at,
+            pinnedMessage.pinned_by,
+          );
+        }
       }
       return true;
     } catch (error) {
@@ -1385,11 +1398,16 @@ class Database {
       }
     },
     pin: {
-      add: async (chatUUID, messageID) => {
+      add: async (
+        chatUUID,
+        messageID,
+        pinnedAt = new Date().toISOString(),
+        pinnedBy,
+      ) => {
         try {
           await this.db.runAsync(
-            `INSERT INTO pinned_message (chatUUID, messageID) VALUES (?, ?);`,
-            [chatUUID, messageID],
+            `INSERT INTO pinned_message (chatUUID, messageID, pinned_at, pinned_by) VALUES (?, ?, ?, ?);`,
+            [chatUUID, messageID, pinnedAt, pinnedBy],
           );
           console.log(`Message ${messageID} pinned successfully.`);
           return true;

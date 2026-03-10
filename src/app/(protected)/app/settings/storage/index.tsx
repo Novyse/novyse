@@ -22,7 +22,7 @@ export default function StorageRoute() {
   };
 
   const handleResetDatabase = () => {
-    auth.initializeApp();
+    auth.initializeDatabase();
   };
 
   const handleNavigateToLocal = () => {

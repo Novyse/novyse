@@ -47,7 +47,10 @@ const useMessageHandlers = (
     async (messageID) => {
       const response = await gateway.message.pin.add(chat.uuid, messageID);
       if (response.success) {
-        await eventEmitter.message.update(chat.uuid, messageID, "pin_add");
+        await eventEmitter.message.update(chat.uuid, messageID, "pin_add", {
+          pinned_at: response.pinned_at,
+          userUUID: myUUID,
+        });
       }
     },
     [chat],
