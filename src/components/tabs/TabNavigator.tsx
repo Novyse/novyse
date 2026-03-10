@@ -37,7 +37,7 @@ export default function TabNavigator() {
           <Tab.Navigator
             tabBar={(props) => <TabBar {...props} />}
             screenOptions={{
-              sceneStyle: { backgroundColor: theme.backgroundMainGradient[0] },
+              sceneStyle: { backgroundColor: "transparent" },
               animation: "shift",
             }}
           >
@@ -91,7 +91,9 @@ function createStyle(theme: Theme, isSmallScreen: boolean) {
       position: "relative",
       borderRadius: isSmallScreen ? 0 : 15,
       overflow: "hidden",
-      backgroundColor: theme.backgroundMainGradient[0],
+      backgroundColor: isSmallScreen
+        ? theme.backgroundMainGradient[0]
+        : "transparent",
     },
   });
 }

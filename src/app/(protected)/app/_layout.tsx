@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, useWindowDimensions } from "react-native";
-import { Stack, usePathname } from "expo-router";
+import { Slot, usePathname } from "expo-router";
 
 import { useThemeContext } from "@/context/ThemeContext";
 
@@ -128,9 +128,7 @@ export default function RootLayout() {
   // For  we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {
     return (
-      <View
-        style={{ flex: 1, backgroundColor: theme.backgroundMainGradient[1] }}
-      >
+      <View style={{ flex: 1, backgroundColor: "transparent" }}>
         <TabNavigator />
         <View
           style={{
@@ -139,17 +137,11 @@ export default function RootLayout() {
             left: 0,
             right: 0,
             bottom: 0,
+            backgroundColor: theme.backgroundMainGradient[1],
             zIndex: isDetailOpen ? 1 : -1,
           }}
         >
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: {
-                backgroundColor: theme.backgroundMainGradient[1],
-              },
-            }}
-          />
+          <Slot />
         </View>
       </View>
     );
@@ -194,12 +186,7 @@ export default function RootLayout() {
           }}
           {...resizerHandlers}
         />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: theme.backgroundMainGradient[1] },
-          }}
-        />
+        <Slot />
       </View>
     </View>
   );

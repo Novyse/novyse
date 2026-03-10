@@ -26,7 +26,6 @@ function RootLayoutContent() {
   if (isLoading) {
     return <SplashScreen />;
   }
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
