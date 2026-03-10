@@ -145,6 +145,7 @@ const createStyle = (theme) =>
     iconContainer: {
       alignItems: "center",
       justifyContent: "center",
+      flexDirection: "row",
     },
     tooltip: {
       position: "fixed",
