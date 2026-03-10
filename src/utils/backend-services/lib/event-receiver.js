@@ -14,15 +14,22 @@ const eventReceiver = {
     socket = sock;
     initialized = true;
 
-    socket.on("new_message", async (message) => {
-      await setLastUpdateTimestamp(message.created_at);
+    socket.onAny(async (eventName, ...args) => {
+      const data = args[0];
+      console.log(`[Socket event] ${eventName}:`, data);
 
+      if (data && data.at) {
+        await _setLastUpdateTimestamp(data.at);
+      } else {
+        console.warn("No timestamp found for event:", eventName);
+      }
+    });
+
+    socket.on("message:new", async (message) => {
       await eventEmitter.newMessage(message);
     });
 
     socket.on("message:update", async (data) => {
-      console.log("Received message:update event:", data);
-      await setLastUpdateTimestamp(data.updated_at);
       await eventEmitter.message.update(
         data.chatUUID,
         data.messageID,
@@ -31,39 +38,22 @@ const eventReceiver = {
       );
     });
 
-    socket.on("new_chat", async (data) => {
-      console.log("Received new_chat event:", data);
-
+    socket.on("chat:new", async (data) => {
       const { chat, messages } = data;
-
-      const timestamp =
-        messages && messages.length > 0
-          ? messages[messages.length - 1].created_at
-          : chat.created_at;
-      await setLastUpdateTimestamp(timestamp);
 
       await eventEmitter.newChat(chat, messages);
     });
 
-    socket.on("user_joined", async (data) => {
-      console.log("Received user_joined event:", data);
+    socket.on("chat:update", async (data) => {
+      await eventEmitter.chat.update(data.chatUUID, data.action, data);
+    });
 
-      await setLastUpdateTimestamp(data.user.joined_at);
+    socket.on("user_joined", async (data) => {
       await eventEmitter.userJoined(data.chatUUID, data.user);
     });
 
     socket.on("user:profile:update", async (data) => {
-      console.log("Received user:profile:update event:", data);
-      await setLastUpdateTimestamp(data.updated_at);
-
       await eventEmitter.user.profile.update(data);
-    });
-
-    socket.on("chat:update", async (data) => {
-      console.log("Received chat_update event:", data.action);
-
-      await setLastUpdateTimestamp(data.at);
-      await eventEmitter.chat.update(data.chatUUID, data.action, data);
     });
 
     // socket.on("user_left", async (data) => {
@@ -74,7 +64,7 @@ const eventReceiver = {
   },
 };
 
-const setLastUpdateTimestamp = async (timestamp) => {
+const _setLastUpdateTimestamp = async (timestamp) => {
   await auth.setLastUpdateTimestamp(timestamp);
 };
 

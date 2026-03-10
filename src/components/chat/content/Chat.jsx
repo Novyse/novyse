@@ -46,7 +46,7 @@ const ChatContent = ({ replyNavigation }) => {
   const [isMicClicked, setIsMicClicked] = useState(false);
   const [sheetIndex, setSheetIndex] = useState(-1);
 
-  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyingTo, setReplyingTo] = useState([]);
 
   const { selectedChatUUID, setSelectedChatUUID, selectedHandle } =
     useContext(ChatContext);
@@ -81,6 +81,7 @@ const ChatContent = ({ replyNavigation }) => {
     ),
   );
 
+  const editedMessages = chat?.editedMessages || [];
   const pinnedMessages = chat?.pinnedMessages || [];
 
   const { userUUID: myUUID } = useContext(LocalUserContext);
@@ -179,11 +180,20 @@ const ChatContent = ({ replyNavigation }) => {
     }
   }, [sheetIndex]);
 
-  const handleReply = useCallback((msg) => {
-    setReplyingTo(msg);
-    setEditingMessage(null); // clear edit when replying
-    setNewMessageText("");
-  }, []);
+  const handleReply = useCallback(
+    (msg) => {
+      if (replyingTo.length >= 3) {
+        setReplyingTo((prev) => [...prev.slice(1), msg]);
+        return;
+      }
+      setReplyingTo((prev) => {
+        if (prev.find((r) => r.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+      setEditingMessage(null); // clear edit when replying
+    },
+    [replyingTo],
+  );
 
   const handleEdit = useCallback(
     async (msg) => {
@@ -195,14 +205,18 @@ const ChatContent = ({ replyNavigation }) => {
       }
       setEditingMessage(msg);
       setNewMessageText(msg.content || "");
-      setReplyingTo(null); // clear reply when editing
+      setReplyingTo([]); // clear reply when editing
       textInputRef.current?.focus();
     },
     [handlePausePendingMessage],
   );
 
-  const handleCancelReply = useCallback(() => {
-    setReplyingTo(null);
+  const handleCancelReply = useCallback((messageID) => {
+    if (!messageID) {
+      setReplyingTo([]);
+    } else {
+      setReplyingTo((prev) => prev.filter((r) => r.id !== messageID));
+    }
   }, []);
 
   const handleCancelEdit = useCallback(() => {
@@ -287,12 +301,12 @@ const ChatContent = ({ replyNavigation }) => {
           handleEditMessage(editingMessage.id, content, editingMessage.content);
         }
       } else {
-        let replyTo = undefined;
-        if (replyingTo) {
-          replyTo = { chatUUID: replyingTo.chatUUID, messageID: replyingTo.id };
-        }
-        setReplyingTo(null);
-        handleSendMessage(type, content, replyTo, files);
+        const replyTos = replyingTo.map((msg) => ({
+          chatUUID: msg.chatUUID,
+          messageID: msg.id,
+        }));
+        setReplyingTo([]);
+        handleSendMessage(type, content, files, replyTos);
       }
     },
     [
@@ -320,6 +334,7 @@ const ChatContent = ({ replyNavigation }) => {
             ref={flatListRef}
             replyNavigation={replyNavigation}
             preparedMessages={preparedMessages}
+            editedMessages={editedMessages}
             pinnedMessages={pinnedMessages}
             myUUID={myUUID}
             theme={theme}

@@ -54,7 +54,7 @@ const DefaultBar = ({
       {/* Edit Bar — takes priority over Reply Bar */}
       {editingMessage ? (
         <EditBar editingMessage={editingMessage} onCancelEdit={onCancelEdit} />
-      ) : replyingTo ? (
+      ) : replyingTo && replyingTo.length > 0 ? (
         <ReplyBar replyingTo={replyingTo} onCancelReply={onCancelReply} />
       ) : null}
       <View style={styles.inputRow}>
@@ -75,7 +75,6 @@ const DefaultBar = ({
           isPaused={isPaused}
           recorderState={recorderState}
           handleTogglePause={handleTogglePause}
-          replyingTo={replyingTo}
           onCancelReply={onCancelReply}
         />
 

@@ -14,6 +14,7 @@ const MessageList = ({
   ref: flatListRef,
   replyNavigation,
   preparedMessages,
+  editedMessages,
   pinnedMessages,
   myUUID,
   theme,
@@ -118,6 +119,9 @@ const MessageList = ({
             isSender={message.senderUUID === myUUID}
             isSelected={selectedMessage.includes(message)}
             isHighlighted={message.id == highlightedID}
+            isEdited={editedMessages.some(
+              (p) => (p.messageID || p) == message.id,
+            )}
             isPinned={pinnedMessages.some(
               (p) => (p.messageID || p) == message.id,
             )}
@@ -132,6 +136,7 @@ const MessageList = ({
     [
       myUUID,
       selectedMessage,
+      editedMessages,
       pinnedMessages,
       highlightedID,
       onReply,
@@ -141,7 +146,6 @@ const MessageList = ({
       setSelectedMessage,
     ],
   );
-
   const [isJumpBackMode, setIsJumpBackMode] = useState(false);
 
   useEffect(() => {

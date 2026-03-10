@@ -659,15 +659,15 @@ const gateway = {
   user: {
     /**
      * Initialize user data after login.
-     * @returns {Object} { success: boolean, lastUpdateTime: String, user?:{ uuid?: String, email?: String, name?: String, surname?: String, handle?: String}, device?:{uuid?: String}, chats?: Array[{uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}], messages?: Array[@SamueleOrazioDurante da completare]}
+     * @returns {Object} { success: boolean, local, chats, users, messages}
      */
     async initialize() {
       const response = await api.get("/user/initialize");
       const success = response.data.success;
       if (success) {
-        const { lastUpdateTime, user, device, chats, messages } =
+        const { local, devices, chats, users, messages, at } =
           response.data.data;
-        return { success, lastUpdateTime, user, device, chats, messages };
+        return { success, local, devices, chats, users, messages, at };
       }
       return { success };
     },
@@ -991,8 +991,8 @@ const gateway = {
       chatUUID,
       content = undefined,
       type = "message",
-      replyTo = undefined,
       files = undefined,
+      replyTos = undefined,
     ) {
       try {
         if (!chatUUID) {
@@ -1005,8 +1005,8 @@ const gateway = {
           chatUUID,
           content,
           type,
-          replyTo,
           files,
+          replyTos,
         });
         const success = response.data.success;
         if (success) {

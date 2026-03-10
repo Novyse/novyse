@@ -14,7 +14,7 @@ const useMessageHandlers = (
   setIsMicClicked,
 ) => {
   const handleSendMessage = useCallback(
-    async (type = "message", content, replyTo, files = []) => {
+    async (type = "message", content, files = [], replyTos = []) => {
       // no content and files, so nothing happens
       if (content.trim() === "" && files.length === 0) return;
 
@@ -31,7 +31,7 @@ const useMessageHandlers = (
         senderUUID: myUUID,
         content,
         type,
-        replyTo,
+        replyTos,
         files,
       };
 
@@ -40,7 +40,7 @@ const useMessageHandlers = (
       setNewMessageText("");
       setIsMicClicked(false);
     },
-    [chat, setNewMessageText, setIsMicClicked],
+    [chat, setNewMessageText, setIsMicClicked, myUUID],
   );
 
   const handlePinMessage = useCallback(

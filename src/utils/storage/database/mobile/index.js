@@ -192,6 +192,19 @@ class Database {
                 FOREIGN KEY (fileUUID) REFERENCES file(uuid)
             );
 
+            CREATE TABLE IF NOT EXISTS message_reply (
+                chatUUID TEXT NOT NULL,
+                messageID INTEGER NOT NULL,
+                replyTo_chatUUID TEXT NOT NULL,
+                replyTo_messageID INTEGER NOT NULL,
+                replyTo_rangeStart INTEGER,
+                replyTo_rangeEnd INTEGER,
+                PRIMARY KEY (chatUUID, messageID, replyTo_chatUUID, replyTo_messageID),
+                FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id)
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_message_reply_chat_msg ON message_reply(chatUUID, messageID);
+
             CREATE TABLE IF NOT EXISTS pending_message (
                 id TEXT NOT NULL,
                 jobType TEXT NOT NULL,
@@ -439,6 +452,23 @@ class Database {
             : null,
         ],
       );
+
+      // Add multiple replyTos to message_reply table
+      if (message.replyTos && Array.isArray(message.replyTos)) {
+        for (const reply of message.replyTos) {
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO message_reply (chatUUID, messageID, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?);`,
+            [
+              message.chatUUID,
+              message.id,
+              reply.chatUUID,
+              reply.messageID,
+              reply.rangeStart !== undefined ? reply.rangeStart : null,
+              reply.rangeEnd !== undefined ? reply.rangeEnd : null,
+            ],
+          );
+        }
+      }
 
       // Add files to file table and message_files table if present
       if (message.files && Array.isArray(message.files)) {
@@ -757,7 +787,16 @@ class Database {
         [chatUUID],
       );
       if (message) {
-        this._mapMessageReplyTo(message);
+        const replyTosRaw = await this.db.getAllAsync(
+          `SELECT * FROM message_reply WHERE chatUUID = ? AND messageID = ?;`,
+          [chatUUID, message.id],
+        );
+        message.replyTos = replyTosRaw.map((r) => ({
+          chatUUID: r.replyTo_chatUUID,
+          messageID: r.replyTo_messageID,
+          rangeStart: r.replyTo_rangeStart,
+          rangeEnd: r.replyTo_rangeEnd,
+        }));
         // Retrieve associated files with mime types
         const files = await this.db.getAllAsync(
           `SELECT f.uuid, f.mimeType, f.name FROM file f
@@ -864,7 +903,17 @@ class Database {
       const messages = results.reverse();
       // Add files and external entities to each message
       for (const message of messages) {
-        this._mapMessageReplyTo(message);
+        const replyTosRaw = await this.db.getAllAsync(
+          `SELECT * FROM message_reply WHERE chatUUID = ? AND messageID = ?;`,
+          [chatUUID, message.id],
+        );
+
+        message.replyTos = replyTosRaw.map((r) => ({
+          chatUUID: r.replyTo_chatUUID,
+          messageID: r.replyTo_messageID,
+          rangeStart: r.replyTo_rangeStart,
+          rangeEnd: r.replyTo_rangeEnd,
+        }));
 
         const reactionsRaw = await this.db.getAllAsync(
           `SELECT reaction, userUUID, at FROM reaction_message WHERE chatUUID = ? AND messageID = ?;`,
@@ -984,8 +1033,6 @@ class Database {
         `INSERT OR IGNORE INTO member (userUUID, chatUUID) VALUES (?, ?);`,
         [user.uuid, chatUUID],
       );
-      // Insert member user info into the user table
-      await this.addUserInfo(user);
       console.log(`User ${user.uuid} added to chat ${chatUUID} successfully.`);
       return true;
     } catch (error) {
@@ -1157,6 +1204,53 @@ class Database {
         );
         console.log(`${messages.length} messages added successfully.`);
 
+        // Now add replyTos for each message
+        for (const message of messages) {
+          if (message.replyTos && Array.isArray(message.replyTos)) {
+            for (const reply of message.replyTos) {
+              await this.db.runAsync(
+                `INSERT OR IGNORE INTO message_reply (chatUUID, messageID, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?);`,
+                [
+                  message.chatUUID,
+                  message.id,
+                  reply.chatUUID,
+                  reply.messageID,
+                  reply.rangeStart !== undefined ? reply.rangeStart : null,
+                  reply.rangeEnd !== undefined ? reply.rangeEnd : null,
+                ],
+              );
+            }
+          }
+        }
+
+        // Now add edited message if its edited
+        for (const message of messages) {
+          if (message.edited) {
+            await this.db.runAsync(
+              `INSERT OR IGNORE INTO edited_message (chatUUID, messageID) VALUES (?, ?);`,
+              [message.chatUUID, message.id],
+            );
+          }
+        }
+
+        // Now add reactions for each message
+        for (const message of messages) {
+          if (message.reactions && Array.isArray(message.reactions)) {
+            for (const reaction of message.reactions) {
+              await this.db.runAsync(
+                `INSERT OR IGNORE INTO reaction_message (chatUUID, messageID, userUUID, reaction, at) VALUES (?, ?, ?, ?, ?);`,
+                [
+                  message.chatUUID,
+                  message.id,
+                  reaction.userUUID,
+                  reaction.reaction,
+                  reaction.created_at,
+                ],
+              );
+            }
+          }
+        }
+
         // Now add files for each message
         const allFiles = [];
         const allMessageFiles = [];
@@ -1236,6 +1330,17 @@ class Database {
         if (!message) {
           return null;
         }
+        const replyTosRaw = await this.db.getAllAsync(
+          `SELECT * FROM message_reply WHERE chatUUID = ? AND messageID = ?;`,
+          [chatUUID, message.id],
+        );
+        message.replyTos = replyTosRaw.map((r) => ({
+          chatUUID: r.replyTo_chatUUID,
+          messageID: r.replyTo_messageID,
+          rangeStart: r.replyTo_rangeStart,
+          rangeEnd: r.replyTo_rangeEnd,
+        }));
+
         const files = await this.db.getAllAsync(
           `SELECT f.* FROM file f
          JOIN message_files mf ON f.uuid = mf.fileUUID
@@ -1333,7 +1438,16 @@ class Database {
           );
 
           for (const message of result) {
-            this._mapMessageReplyTo(message);
+            const replyTosRaw = await this.db.getAllAsync(
+              `SELECT * FROM message_reply WHERE chatUUID = ? AND messageID = ?;`,
+              [message.chatUUID, message.id],
+            );
+            message.replyTos = replyTosRaw.map((r) => ({
+              chatUUID: r.replyTo_chatUUID,
+              messageID: r.replyTo_messageID,
+              rangeStart: r.replyTo_rangeStart,
+              rangeEnd: r.replyTo_rangeEnd,
+            }));
             message.files =
               (await this.db.getAllAsync(
                 `SELECT f.uuid, f.mimeType, f.name FROM file f 
@@ -1359,13 +1473,7 @@ class Database {
         try {
           await this.db.runAsync(
             `INSERT OR IGNORE INTO reaction_message (chatUUID, messageID, userUUID, reaction, at) VALUES (?, ?, ?, ?, ?);`,
-            [
-              chatUUID,
-              messageID,
-              userUUID,
-              reaction,
-              at || new Date().toISOString(),
-            ],
+            [chatUUID, messageID, userUUID, reaction, at],
           );
           console.log(`Reaction ${reaction} added successfully.`);
           return true;

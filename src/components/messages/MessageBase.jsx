@@ -135,11 +135,32 @@ const rightActionStyles = StyleSheet.create({
   },
 });
 
+const MessageReplyWrapper = ({ replyTo, oldChatUUID, oldMessageID }) => {
+  const { message: replyMessage, isLoading: isReplyLoading } = useMessage(
+    replyTo?.chatUUID,
+    replyTo?.messageID,
+  );
+
+  if (isReplyLoading || !replyMessage) return null;
+
+  return (
+    <MessageReply
+      senderName={replyMessage.sender_name}
+      text={replyMessage.content}
+      chatUUID={replyTo?.chatUUID}
+      messageID={replyTo?.messageID}
+      oldChatUUID={oldChatUUID}
+      oldMessageID={oldMessageID}
+    />
+  );
+};
+
 const MessageBase = ({
   message,
   isSender,
   isSelected,
   isPinned,
+  isEdited,
   isHighlighted,
   setTriggeredMessage,
   setTriggeredMessagePosition,
@@ -170,16 +191,12 @@ const MessageBase = ({
   const {
     content,
     created_at,
-    replyTo,
     showSenderName,
     showAvatar,
     sender_name,
     files = [],
+    replyTos,
   } = message;
-  const { message: replyMessage, isLoading: isReplyLoading } = useMessage(
-    replyTo?.chatUUID,
-    replyTo?.messageID,
-  );
 
   const highlightOpacity = useSharedValue(0);
 
@@ -201,8 +218,6 @@ const MessageBase = ({
     opacity: highlightOpacity.value * 0.4,
     ...StyleSheet.absoluteFillObject,
   }));
-
-  if (replyTo?.messageID && isReplyLoading) return null;
 
   const groupBy = (array, callback) => {
     return array.reduce((acc, item) => {
@@ -232,15 +247,17 @@ const MessageBase = ({
 
   const sharedContent = (
     <View style={hasOnlyMedia ? styles.mediaContainer : styles.textContainer}>
-      {replyMessage && (
-        <MessageReply
-          senderName={replyMessage.sender_name}
-          text={replyMessage.content}
-          chatUUID={replyTo?.chatUUID}
-          messageID={replyTo?.messageID}
-          oldChatUUID={message.chatUUID}
-          oldMessageID={message.id}
-        />
+      {replyTos && replyTos.length > 0 && (
+        <View style={styles.replyTosContainer}>
+          {replyTos.map((reply, index) => (
+            <MessageReplyWrapper
+              key={`${reply.chatUUID}-${reply.messageID}-${index}`}
+              replyTo={reply}
+              oldChatUUID={message.chatUUID}
+              oldMessageID={message.id}
+            />
+          ))}
+        </View>
       )}
       {fileGroups.media.true && <MessageMedia medias={fileGroups.media.true} />}
       {(fileGroups.other.true || []).map((f) => (
@@ -276,7 +293,7 @@ const MessageBase = ({
           <MessageText text={content} />
           <MessageTimestamp
             time={created_at}
-            isEdited={message.isEdited}
+            isEdited={isEdited}
             isPendingEdit={!!message.pendingEditJobId}
             isPinned={isPinned}
           />
@@ -285,7 +302,7 @@ const MessageBase = ({
       {!content?.trim() && (
         <MessageTimestamp
           time={created_at}
-          isEdited={message.isEdited}
+          isEdited={isEdited}
           isPendingEdit={!!message.pendingEditJobId}
           isPinned={isPinned}
         />
@@ -426,6 +443,9 @@ const createStyle = (theme) =>
       width: "100%",
     },
     mediaContainer: { flexDirection: "column", width: "100%" },
+    replyTosContainer: {
+      marginBottom: 4,
+    },
     textRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -484,5 +504,6 @@ export default React.memo(
     prev.isSelected === next.isSelected &&
     prev.selectedMessage === next.selectedMessage &&
     prev.isHighlighted === next.isHighlighted &&
-    prev.isPinned === next.isPinned,
+    prev.isPinned === next.isPinned &&
+    prev.isEdited === next.isEdited,
 );

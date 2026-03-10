@@ -168,7 +168,7 @@ class QueueManager {
         created_at: undefined,
         senderUUID: message.senderUUID,
         type: message.type,
-        replyTo: message.replyTo,
+        replyTos: message.replyTos || [],
         files: message.files || [],
         internal: true,
       });
@@ -472,7 +472,7 @@ class QueueManager {
   // @SamueleOrazioDurante la logica qui è rimasta quella vecchia, da capire se è ottimizzata o va rifatta
   async processSendingMessageJob(job) {
     const chatUUID = job.params.chat.uuid;
-    const { content, type = "message", replyTo, files } = job.params.message;
+    const { content, type = "message", files, replyTos } = job.params.message;
 
     let cleanFiles = [];
 
@@ -493,8 +493,8 @@ class QueueManager {
       chatUUID,
       content,
       type,
-      replyTo,
       cleanFiles,
+      replyTos,
     );
 
     if (success) {
@@ -545,7 +545,6 @@ class QueueManager {
       await eventEmitter.message.update(chatUUID, messageID, "edit", {
         content,
         pendingEditJobId: null,
-        isEdited: true,
       });
     } else {
       throw new Error("Message modify failed");

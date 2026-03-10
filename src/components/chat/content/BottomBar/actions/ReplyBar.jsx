@@ -5,26 +5,25 @@ import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
 import messageUtils from "@/src/utils/chat/messageFormat";
 
-const ReplyBar = ({ replyingTo, onCancelReply }) => {
+const ReplyItem = ({ message, onCancel }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-  if (!replyingTo) return null;
-
   const [content, setContent] = useState(null);
+
   useEffect(() => {
-    if (replyingTo) {
-      const message = messageUtils.format(replyingTo);
-      setContent(message.content);
+    if (message) {
+      const formatted = messageUtils.format(message);
+      setContent(formatted.content);
     }
-  }, [replyingTo]);
+  }, [message]);
 
   return (
-    <BlurredView style={styles.actionContainer}>
+    <View style={styles.actionContainer}>
       <Icon name="ArrowMoveUpLeftIcon" size={16} color={theme.icon} />
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
         <Text style={styles.actionName} numberOfLines={1}>
-          {replyingTo.sender_name ?? replyingTo.senderUUID}
+          {message.sender_name ?? message.senderUUID}
         </Text>
         <Text style={styles.actionText} numberOfLines={1}>
           {content}
@@ -34,23 +33,47 @@ const ReplyBar = ({ replyingTo, onCancelReply }) => {
         name="Cancel01Icon"
         size={18}
         color={theme.placeholderText}
-        onPress={onCancelReply}
+        onPress={() => onCancel(message.id)}
       />
+    </View>
+  );
+};
+
+const ReplyBar = ({ replyingTo, onCancelReply }) => {
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyle(theme);
+
+  if (!replyingTo || replyingTo.length === 0) return null;
+
+  return (
+    <BlurredView style={styles.listContainer}>
+      {replyingTo.map((msg) => (
+        <ReplyItem
+          key={"reply-" + msg.id}
+          message={msg}
+          onCancel={onCancelReply}
+        />
+      ))}
     </BlurredView>
   );
 };
 
 const createStyle = (theme) =>
   StyleSheet.create({
+    listContainer: {
+      backgroundColor: theme.backgroundCard,
+      borderRadius: 18,
+      marginBottom: 4,
+      overflow: "hidden",
+    },
     actionContainer: {
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 14,
       paddingVertical: 8,
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 18,
-      marginBottom: 4,
       gap: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: "rgba(0,0,0,0.05)",
     },
     actionAccent: {
       width: 3,

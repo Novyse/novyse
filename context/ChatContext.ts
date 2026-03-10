@@ -318,7 +318,7 @@ const useChatStore = create<ChatState>((set, get) => ({
               ? {
                   ...msg,
                   id: message.id,
-                  replyTo: message.replyTo,
+                  replyTos: message.replyTos,
                   created_at: message.created_at,
                   internal: false,
                 }
@@ -348,6 +348,10 @@ const useChatStore = create<ChatState>((set, get) => ({
           case "edit":
             return {
               ...chat,
+              editedMessages: [
+                ...(chat.editedMessages || []),
+                messageID,
+              ] as any,
               messages: chat.messages.map((msg: any) =>
                 msg.id === messageID ? { ...msg, ...data } : msg,
               ),

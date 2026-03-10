@@ -70,27 +70,27 @@ const checkShouldBeHere = async (router, shouldBeLoggedIn = true) => {
 
 const initializeApp = async () => {
   console.log("Initializing app...");
-  const { success, lastUpdateTime, user, device, chats, messages } =
+  const { success, local, devices, chats, users, messages, at } =
     await gateway.user.initialize();
 
   if (success) {
     console.info("Initialization successful:", {
-      lastUpdateTime,
-      user,
-      device,
-      chatsCount: chats,
-      messagesCount: messages,
+      local,
+      devices,
+      chats,
+      users,
+      messages: messages.length,
     });
 
     // Set last update timestamp
-    if (lastUpdateTime) {
-      await setLastUpdateTimestamp(lastUpdateTime);
-      console.log("Last update timestamp set to:", lastUpdateTime);
+    if (at) {
+      await setLastUpdateTimestamp(at);
+      console.log("Last update timestamp set to:", at);
     }
 
     // Set local user uuid in async storage
-    await AsyncStorage.setItem("userUUID", user.uuid);
-    await AsyncStorage.setItem("deviceUUID", device.uuid);
+    await AsyncStorage.setItem("userUUID", local.user.uuid);
+    await AsyncStorage.setItem("deviceUUID", local.device.uuid);
     await AsyncStorage.setItem("init", "false");
 
     return true;
@@ -101,7 +101,7 @@ const initializeApp = async () => {
 };
 
 const initializeDatabase = async () => {
-  const { success, lastUpdateTime, user, device, chats, messages } =
+  const { success, local, devices, chats, users, messages, at } =
     await gateway.user.initialize();
 
   if (success) {
@@ -110,7 +110,11 @@ const initializeDatabase = async () => {
     await database.initialize();
 
     // Store user
-    await database.addUserInfo(user);
+    await database.addUserInfo(local.user);
+
+    for (const user of users) {
+      await database.addUserInfo(user);
+    }
 
     // Store chats and messages in database
     for (const chat of chats) {
