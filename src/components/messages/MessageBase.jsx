@@ -21,7 +21,6 @@ import useChatStore from "@/context/ChatContext";
 import Icon from "../Icon";
 
 import useMessageGestures from "@/src/hooks/chat/useMessageGestures";
-import useMessage from "@/src/hooks/chat/useMessage";
 import { getPlatform } from "@/src/utils/device/type";
 
 import BlurredView from "../BlurredView";
@@ -260,15 +259,18 @@ const MessageBase = ({
       )}
       {fileGroups.media.true && <MessageMedia medias={fileGroups.media.true} />}
       {(fileGroups.other.true || []).map((f) => (
-        <MessageOther key={f.uuid} {...f} fileRef={f.ref} />
+        <MessageOther key={f.uuid} fileRef={f.ref} uuid={f.uuid} mimeType={f.mimeType} size={f.size} name={f.name} />
       ))}
       <View style={{ width: "100%" }}>
         {(fileGroups.audio.true || []).map((f) => (
           <MessageAudio
             key={f.uuid}
-            {...f}
             audioRef={f.ref}
+            uuid={f.uuid}
+            size={f.size}
+            name={f.name}
             message={message}
+            duration={f.duration}
           />
         ))}
       </View>
@@ -277,6 +279,7 @@ const MessageBase = ({
           <MessageVoice
             key={f.uuid}
             audioRef={f.ref}
+            uuid={f.uuid}
             message={message}
             duration={f.duration}
             waveform={
