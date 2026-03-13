@@ -27,6 +27,8 @@ const useUploadFile = (
     setInvalidFiles([]);
     const invalidIndices = [];
 
+    
+
     // Check total file count
     if (newFiles.length > maxFile) {
       setError("Too many files. Maximum allowed: " + maxFile);
@@ -46,11 +48,16 @@ const useUploadFile = (
     const invalidFilesData = [];
     newFiles.forEach((file, index) => {
       const errors = [];
-      if ((file.size || file.fileSize) > maxSingleSize) {
+      const fileSize = file.size || file.fileSize || 0;
+      if (fileSize > maxSingleSize) {
         errors.push(
           "File size exceeds maximum allowed size of " +
             formatFileSize(maxSingleSize),
         );
+      }
+
+      if (fileSize === 0) {
+        errors.push("File size is 0. Please select a valid file.");
       }
 
       if (fileType !== "All") {
