@@ -2,8 +2,8 @@ import React, { useContext, useState, useEffect } from "react";
 import { View, StyleSheet, Text } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
+import useChatStore from "@/context/ChatContext";
 
-import useMessage from "@/src/hooks/chat/useMessage";
 import Icon from "@/src/components/Icon";
 
 const PinnedMessageHeader = ({ pinnedMessages }) => {
@@ -27,10 +27,10 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
   }, [pinnedMessages.length, prevLength]);
 
   const pinnedMessage = pinnedMessages[currentIndex];
-  const { message } = useMessage(
-    pinnedMessage?.chatUUID,
-    pinnedMessage?.messageID,
-  );
+  // retrieve the full message details using the custom useChatStore
+  const chatStore = useChatStore();
+  const message = chatStore.getMessage(pinnedMessage?.chatUUID, pinnedMessage?.messageID);
+
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % pinnedMessages.length);

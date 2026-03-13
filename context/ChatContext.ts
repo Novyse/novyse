@@ -17,6 +17,7 @@ interface ChatState {
     chatUUID: string | null,
     chatHandle?: string | null,
   ) => Promise<void>;
+  getMessage: (chatUUID: string, messageID: string) => any;
   _eventsSetup: boolean;
   setupEvents: () => Promise<void>;
   onNewChat: (chat: Chat) => void;
@@ -219,6 +220,30 @@ const useChatStore = create<ChatState>((set, get) => ({
         loadingMessages: { ...state.loadingMessages, [targetID]: false },
       }));
     }
+  },
+
+  getMessage: (chatUUID: string, messageID: string) => {
+    const chat = get().chats.find((c) => c.uuid === chatUUID);
+    if (!chat) return null;
+
+    const cachedMessage =
+      chat.messages.find((m: any) => String(m.id) === String(messageID)) ||
+      null;
+    if (cachedMessage) return cachedMessage;
+    return null;
+    // @SamueleOrazioDurante pull da db se non è in cache
+    // const databaseMessage = await database.message.get(chat.uuid,messageID);
+    // // If found then cache it in the store for future retrievals
+    // if(databaseMessage) {
+    //   set((state) => ({
+    //     chats: state.chats.map((c) =>
+    //       c.uuid === chatUUID
+    //         ? { ...c, messages: [...c.messages, databaseMessage] }
+    //         : c,
+    //     ),
+    //   }));
+    // }
+    // return databaseMessage || null;
   },
 
   _eventsSetup: false,

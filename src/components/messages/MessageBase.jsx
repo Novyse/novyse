@@ -17,6 +17,7 @@ import * as Haptics from "expo-haptics";
 
 import { useThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
+import useChatStore from "@/context/ChatContext";
 import Icon from "../Icon";
 
 import useMessageGestures from "@/src/hooks/chat/useMessageGestures";
@@ -136,12 +137,10 @@ const rightActionStyles = StyleSheet.create({
 });
 
 const MessageReplyWrapper = ({ replyTo, oldChatUUID, oldMessageID }) => {
-  const { message: replyMessage, isLoading: isReplyLoading } = useMessage(
-    replyTo?.chatUUID,
-    replyTo?.messageID,
-  );
+  const chatStore = useChatStore();
+  const replyMessage = chatStore.getMessage(replyTo?.chatUUID, replyTo?.messageID);
 
-  if (isReplyLoading || !replyMessage) return null;
+  if (!replyMessage) return null;
 
   return (
     <MessageReply
