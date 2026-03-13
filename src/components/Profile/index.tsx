@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   View,
   ScrollView,
@@ -11,10 +11,12 @@ import ProfileHeader from "./ProfileHeader";
 import AboutMe from "./AboutMe";
 import Connections from "./Connections";
 import BirthdayLocation from "./BirthdayLocation";
+import QRCodeModal from "./QRCodeModal";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 import SmartBackground from "../SmartBackground";
+import Icon from "@/src/components/Icon";
 
 interface Connection {
   name: string;
@@ -56,6 +58,7 @@ export default function Profile({
   const { theme } = useContext(ThemeContext);
   const { width, height } = useWindowDimensions();
   const { isSmallScreen } = useScreen();
+  const [isQrModalVisible, setIsQrModalVisible] = useState(false);
 
   const styles = createStyles(theme, isSmallScreen, height);
 
@@ -71,7 +74,12 @@ export default function Profile({
           
           style={styles.glassPanel}
         >
-          <Banner theme={theme} />
+          <View style={{ position: "relative" }}>
+            <Banner theme={theme} />
+    
+              <Icon name="QrCodeIcon" size={24} color={"#FFFFFF"} onPress={() => setIsQrModalVisible(true)} style={styles.qrIconContainer}/>
+
+          </View>
 
           <ProfileHeader
             uuid={uuid}
@@ -101,6 +109,15 @@ export default function Profile({
           )}
         </SmartBackground>
       </ScrollView>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        visible={isQrModalVisible}
+        onClose={() => setIsQrModalVisible(false)}
+        username={username}
+        profilePictureUUID={profilePictureUUID}
+        theme={theme}
+      />
     </View>
   );
 }
@@ -120,5 +137,11 @@ const createStyles = (
     glassPanel: {
       overflow: "hidden",
       flex: 1
+    },
+    qrIconContainer: {
+      position: "absolute",
+      top: 10,
+      left: 10,
+      zIndex: 10, 
     },
   });
