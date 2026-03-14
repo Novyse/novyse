@@ -1,14 +1,9 @@
 import React, { useContext } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet, FlatList } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
 import Avatar from "@/src/components/Avatar";
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 
 const MentionBar = ({ members, onSelectMember }) => {
   const { theme } = useContext(ThemeContext);
@@ -17,7 +12,7 @@ const MentionBar = ({ members, onSelectMember }) => {
   if (!members || members.length === 0) return null;
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity
+    <HoverAndPressedButton
       style={styles.memberItem}
       onPress={() => onSelectMember(item)}
     >
@@ -35,7 +30,7 @@ const MentionBar = ({ members, onSelectMember }) => {
           @{item.handle}
         </Text>
       </View>
-    </TouchableOpacity>
+    </HoverAndPressedButton>
   );
 
   return (
@@ -57,23 +52,26 @@ const createStyle = (theme) =>
   StyleSheet.create({
     container: {
       maxHeight: 220,
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 18,
-      marginBottom: 8,
+      borderRadius: 20,
+      marginBottom: 5,
       overflow: "hidden",
     },
     listContent: {
-      paddingVertical: 8,
+      gap: 0,
     },
     memberItem: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 14,
+      gap: 10,
+      borderRadius: 0,
+      paddingHorizontal: 10,
       paddingVertical: 10,
-      gap: 12,
     },
     memberInfo: {
       flex: 1,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
     },
     memberName: {
       color: theme.text,
@@ -82,12 +80,12 @@ const createStyle = (theme) =>
     },
     memberHandle: {
       color: theme.placeholderText,
-      fontSize: 12,
+      fontSize: 14,
     },
     separator: {
       height: 1,
       backgroundColor: theme.separator,
-      marginHorizontal: 14,
+      marginHorizontal: 15,
       opacity: 0.1,
     },
   });

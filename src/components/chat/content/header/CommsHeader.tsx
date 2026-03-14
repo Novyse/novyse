@@ -115,8 +115,8 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
 };
 
 function createStyle(theme: any, connected: boolean) {
-  const HEADER_MAIN_HEIGHT = 55;
-  const ICON_SIZE = 40;
+  const HEADER_MAIN_HEIGHT = 60;
+  const ICON_SIZE = 34;
 
   return StyleSheet.create({
     headerMainRow: {
@@ -125,9 +125,8 @@ function createStyle(theme: any, connected: boolean) {
       justifyContent: "space-between",
       height: HEADER_MAIN_HEIGHT,
       width: "100%",
-      paddingHorizontal: 8,
-      marginBottom: 8,
-      borderRadius: 8,
+      paddingHorizontal: 10,
+      borderRadius: 100,
       backgroundColor: connected ? theme.primary : "transparent",
     },
     headerLeft: {
@@ -135,6 +134,7 @@ function createStyle(theme: any, connected: boolean) {
       alignItems: "center",
       gap: 8,
       paddingLeft: 8,
+      paddingRight: 50,
     },
     headerRight: {
       flexDirection: "row",

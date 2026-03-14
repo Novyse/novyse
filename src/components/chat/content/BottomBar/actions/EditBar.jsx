@@ -37,12 +37,11 @@ const createStyle = (theme) =>
     actionContainer: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 18,
-      marginBottom: 4,
-      gap: 8,
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      borderRadius: 20,
+      marginBottom: 5,
+      gap: 10,
     },
     actionAccent: {
       width: 3,
@@ -51,6 +50,7 @@ const createStyle = (theme) =>
       backgroundColor: theme.icon,
     },
     actionName: {
+      color: theme.text,
       fontWeight: "600",
       fontSize: 13,
     },

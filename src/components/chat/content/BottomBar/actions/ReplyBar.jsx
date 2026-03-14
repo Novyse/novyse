@@ -61,19 +61,17 @@ const ReplyBar = ({ replyingTo, onCancelReply }) => {
 const createStyle = (theme) =>
   StyleSheet.create({
     listContainer: {
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 18,
-      marginBottom: 4,
+      borderRadius: 20,
+      marginBottom: 5,
       overflow: "hidden",
+      paddingVertical: 10,
+      gap: 10,
     },
     actionContainer: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      gap: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: "rgba(0,0,0,0.05)",
+      paddingHorizontal: 15,
+      gap: 10,
     },
     actionAccent: {
       width: 3,

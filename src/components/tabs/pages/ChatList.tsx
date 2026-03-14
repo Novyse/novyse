@@ -51,7 +51,7 @@ const ChatList = () => {
   const { theme } = useContext(ThemeContext);
   const insets = useSafeAreaInsets();
 
-  const styles = createStyle(theme, isSmallScreen, insets);
+  const styles = createStyle(theme, isSmallScreen, insets, hasComms);
 
   const {
     selectedItems,
@@ -131,6 +131,14 @@ const ChatList = () => {
     clearSelection();
   };
 
+  const commsHeaderComponent = hasComms ? (
+    <CommsHeader
+      connected={connected}
+      roomName={room?.roomInfo.name}
+      participantsCount={participants.length}
+    />
+  ) : null;
+
   const renderDefaultHeader = useCallback(
     () => (
       <BlurredHeader
@@ -139,6 +147,7 @@ const ChatList = () => {
           paddingVertical: 5,
           backgroundColor: "#2951a9",
         }}
+        commsHeader={commsHeaderComponent}
       >
         <Image
           source={require("@/assets/images/logo-novyse.png")}
@@ -151,7 +160,7 @@ const ChatList = () => {
         />
       </BlurredHeader>
     ),
-    [styles.logo],
+    [styles.logo, commsHeaderComponent],
   );
 
   const renderSelectionHeader = useCallback(
@@ -162,13 +171,20 @@ const ChatList = () => {
           paddingVertical: 5,
           backgroundColor: "#2951a9",
         }}
+        commsHeader={commsHeaderComponent}
       >
         <Icon name={"Cancel01Icon"} size={24} onPress={clearSelection} />
         <Text style={styles.headerTitle}>{selectedItems.length} selected</Text>
         <Icon name={"PinIcon"} size={24} onPress={handlePinItems} />
       </BlurredHeader>
     ),
-    [selectedItems.length, styles.headerTitle, clearSelection, handlePinItems],
+    [
+      selectedItems.length,
+      styles.headerTitle,
+      clearSelection,
+      handlePinItems,
+      commsHeaderComponent,
+    ],
   );
 
   const renderItem = ({ item }) => {
@@ -191,22 +207,6 @@ const ChatList = () => {
   return (
     <>
       {isSelectionMode ? renderSelectionHeader() : renderDefaultHeader()}
-
-      {isSmallScreen && hasComms && (
-        <BlurredHeader
-          style={{
-            paddingHorizontal: 10,
-            paddingVertical: 5,
-            backgroundColor: "#2951a9",
-          }}
-        >
-          <CommsHeader
-            connected={connected}
-            roomName={room?.roomInfo.name}
-            participantsCount={participants.length}
-          />
-        </BlurredHeader>
-      )}
 
       <FlatList
         style={styles.flatList}
@@ -241,7 +241,7 @@ const ChatList = () => {
   );
 };
 
-function createStyle(theme, isSmallScreen, insets) {
+function createStyle(theme, isSmallScreen, insets, hasComms) {
   return StyleSheet.create({
     flatList: {
       flex: 1,
@@ -265,15 +265,22 @@ function createStyle(theme, isSmallScreen, insets) {
           backgroundColor: theme.scrollbarHover,
         },
       }),
-      paddingTop: 75 + insets.top,
+      paddingTop: (hasComms ? 140 : 75) + insets.top,
     },
     flatListContent: {
       padding: 10,
       gap: 10,
       paddingBottom: (isSmallScreen ? 180 : 90) + insets.bottom,
     },
-    logo: { width: 24, height: 24 },
-    headerTitle: { color: theme.text, fontSize: 18, fontWeight: "bold" },
+    logo: {
+      width: 24,
+      height: 24,
+    },
+    headerTitle: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
   });
 }
 
