@@ -107,4 +107,4 @@ const getSystemMessageText = (message) => {
   return text;
 };
 
-export default { format };
+export default { format, getSystemMessageText };

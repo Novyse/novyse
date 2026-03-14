@@ -110,7 +110,7 @@ const initializeDatabase = async () => {
     await database.initialize();
 
     // Store user
-    await database.addUserInfo(local.user);
+    await database.user.add(local.user);
 
     // Store pinned chat
     for (const pinnedChat of local.pinnedChats) {
@@ -118,12 +118,12 @@ const initializeDatabase = async () => {
     }
 
     for (const user of users) {
-      await database.addUserInfo(user);
+      await database.user.add(user);
     }
 
     // Store chats and messages in database
     for (const chat of chats) {
-      await database.addChat(chat);
+      await database.chat.add(chat);
     }
 
     await messageUtils.addMultiple(messages);
@@ -169,7 +169,7 @@ const update = async () => {
 
     if (user) {
       // Do nothing
-      //await database.addUserInfo(user);
+      //await database.user.add(user);
     }
 
     if (chats && chats.length > 0) {
@@ -181,7 +181,7 @@ const update = async () => {
           handle: member.handle,
           profilePictureUUID: member.profilePictureUUID,
         }));
-        await database.addChat(chat);
+        await database.chat.add(chat);
       }
     }
 

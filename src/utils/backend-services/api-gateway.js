@@ -4,7 +4,7 @@ import { getOs, getPlatform } from "../device/type.js";
 
 import token from "../welcome/token.js";
 
-import { BRANCH, API_BASE_URL, APP_VERSION } from "../../../app.config.js";
+import { BRANCH, API_BASE_URL, APP_VERSION } from "../../../app.config";
 
 let path;
 

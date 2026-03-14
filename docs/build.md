@@ -16,7 +16,7 @@
 ## Intro
 
 > [!IMPORTANT]  
-> Before building the application, ensure you update the `app.config.js` file to switch the environment from `development` to `preview` or `production`, depending on your target build. This configuration affects various aspects of the app, such as API endpoints, logging levels, and feature toggles.
+> Before building the application, ensure you update the `app.config.ts` file to switch the environment from `development` to `preview` or `production`, depending on your target build. This configuration affects various aspects of the app, such as API endpoints, logging levels, and feature toggles.
 
 Additionally, update related values in the config file accordingly, including:
 

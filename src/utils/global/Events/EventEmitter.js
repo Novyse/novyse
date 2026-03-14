@@ -35,11 +35,11 @@ class GlobalEventEmitter {
   }
 
   async newChat(chat, messages = []) {
-    await database.addChat(chat);
+    await database.chat.add(chat);
 
     if (messages.length > 0) {
       for (const message of messages) {
-        await database.addMessage(message);
+        await database.message.add(message);
       }
     }
     this.eventEmitter.emit("chat:new", chat);

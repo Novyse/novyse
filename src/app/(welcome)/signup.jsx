@@ -33,7 +33,7 @@ import Icon from "@/src/components/Icon";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 
-import { PRIVACY_POLICY_URL, TOS_URL } from "@/app.config.js";
+import { PRIVACY_POLICY_URL, TOS_URL } from "@/app.config";
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
 const Signup = () => {

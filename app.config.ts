@@ -10,6 +10,9 @@ const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
 const API_BASE_URL = "https://api.novyse.com";
 const SOCKET_BASE_URL = "wss://io.novyse.com";
 const BRANCH = "development";
+const APP_URL =
+  BRANCH === "development" ? "http://localhost:8081" : "https://web.novyse.com";
+const TINY_APP_URL = "https://vyse.me";
 const LANDING_PAGE_URL = "https://www.novyse.com";
 const PRIVACY_POLICY_URL = LANDING_PAGE_URL + "/legal/privacy-policy";
 const TOS_URL = LANDING_PAGE_URL + "/legal/terms-of-service";
@@ -22,6 +25,8 @@ export {
   APP_VERSION,
   BUILD_NUMBER,
   BUILD_DATE,
+  APP_URL,
+  TINY_APP_URL,
   LANDING_PAGE_URL,
   PRIVACY_POLICY_URL,
   TOS_URL,
@@ -34,7 +39,7 @@ const getDevSuffix = () => {
 };
 
 // Genera il percorso base delle immagini in base al BRANCH
-const getImagePath = (imageName) => {
+const getImagePath = (imageName: String | undefined = undefined) => {
   const branch = BRANCH || "main";
   const name = imageName ? `-${imageName}` : "";
   const basePath =

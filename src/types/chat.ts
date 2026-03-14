@@ -30,7 +30,7 @@ export interface DMChat extends BaseChat {
   type: "DM";
   name: never;
   profilePictureUUID: never;
-  members: [Member] | [Member, Member]; // 1 or 2 members (depends on if it's a self-chat)
+  members: Member[]; // 1 or 2 members (depends on if it's a self-chat)
 }
 
 export type Chat = PublicGroup | PrivateGroup | DMChat;

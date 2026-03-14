@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import BlurredView from "../BlurredView"; // Aggiunto import per BlurredView
 
-import chatUtils from "@/src/utils/chat/index";
+import messageUtils from "@/src/utils/chat/messageFormat";
 
 const MessageSystem = ({ type, data }) => {
   const { theme } = useContext(ThemeContext);
@@ -14,7 +14,7 @@ const MessageSystem = ({ type, data }) => {
   useEffect(() => {
     if (type === "system") {
       const loadSystemText = async () => {
-        const text = await chatUtils.getSystemMessageText(data);
+        const text = messageUtils.getSystemMessageText(data);
         setSystemText(text);
       };
       loadSystemText();

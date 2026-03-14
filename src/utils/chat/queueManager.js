@@ -1118,7 +1118,7 @@ class QueueManager {
    * @param {Object} message
    */
   async messageSent(tempId, message) {
-    await database.addMessage(message);
+    await database.message.add(message);
     eventEmitter.getEmitter().emit("message:sent", { tempId, message });
   }
 

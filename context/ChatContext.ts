@@ -79,7 +79,7 @@ const useChatStore = create<ChatState>((set, get) => ({
 
     const currentMessagesCount = currentChat.messages.length;
 
-    const olderMessages = await database.getMessagesByChatUUID(
+    const olderMessages = await database.message.get.by.chatUUID(
       chatUUID,
       CHUNK_SIZE,
       currentMessagesCount,
@@ -128,7 +128,7 @@ const useChatStore = create<ChatState>((set, get) => ({
     try {
       if (chatUUID) {
         // Local load
-        const messages = await database.getMessagesByChatUUID(
+        const messages = await database.message.get.by.chatUUID(
           chatUUID,
           CHUNK_SIZE,
           0,
@@ -141,7 +141,7 @@ const useChatStore = create<ChatState>((set, get) => ({
             internal: true,
           })),
         ];
-        const members = await database.getMembersByChatUUID(chatUUID);
+        const members = await database.chat.member.get.by.chatUUID(chatUUID);
 
         set((state) => ({
           loadingMessages: { ...state.loadingMessages, [chatUUID]: false },

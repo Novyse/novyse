@@ -5,6 +5,7 @@ import QRCode from "react-native-qrcode-svg";
 import useClipboard from "@/src/hooks/useClipboard";
 
 import logoForQR from "@/assets/images/logo-novyse.png";
+import { APP_URL } from "@/app.config";
 
 import ModalBase from "@/src/components/modalSheets/ModalBase";
 import Icon from "@/src/components/Icon";
@@ -30,10 +31,7 @@ const QRCodeModal = ({
 
   const { copyToClipboard, copied } = useClipboard();
 
-  // Assuming your app runs on localhost:8081 for web or just link profile
-  // If we're on mobile we probably just want a deep link like "novyse://profile/username"
-  // But strictly following user's request:
-  const profileLink = `http://localhost:8081/profile/${username}`;
+  const profileLink = `${APP_URL}/profile/${username}`;
 
   const handleCopy = () => {
     copyToClipboard(profileLink);

@@ -7,7 +7,7 @@ import eventEmitter from "../global/Events/EventEmitter.js";
 import eventReceiver from "./lib/event-receiver.js";
 import eventSender from "./lib/event-sender.js";
 
-import { BRANCH, SOCKET_BASE_URL } from "../../../app.config.js";
+import { BRANCH, SOCKET_BASE_URL } from "../../../app.config";
 import { Platform } from "react-native";
 
 let path;
