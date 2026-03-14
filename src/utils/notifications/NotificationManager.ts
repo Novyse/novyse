@@ -1,6 +1,10 @@
 import { Platform, AppState } from "react-native";
-import * as Notifications from "expo-notifications";
 
+// Conditionally require expo-notifications to avoid web SSR crash (localStorage)
+let Notifications: any;
+if (Platform.OS !== "web") {
+  Notifications = require("expo-notifications");
+}
 class NotificationManager {
   constructor() {
     this.init();
