@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const setAccessToken = async (accessToken) => {
   try {
-    await AsyncStorage.setItem("accessToken", accessToken);
+    await AsyncStorage.setItem("accessToken", String(accessToken));
     console.log("Access token stored successfully");
   } catch (error) {
     console.log("Error storing access token:", error);
@@ -11,8 +11,8 @@ const setAccessToken = async (accessToken) => {
 
 const setBothTokens = async (accessToken, refreshToken) => {
   try {
-    await AsyncStorage.setItem("accessToken", accessToken);
-    await AsyncStorage.setItem("refreshToken", refreshToken);
+    await AsyncStorage.setItem("accessToken", String(accessToken));
+    await AsyncStorage.setItem("refreshToken", String(refreshToken));
     console.log("Both tokens stored successfully");
   } catch (error) {
     console.log("Error storing tokens:", error);

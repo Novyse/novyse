@@ -71,6 +71,15 @@ For a development build on Android, follow these steps:
 > `C:\Users\{LOCAL_USER}\AppData\Local\Android\Sdk\cmake\{VERSION}\bin`  
 > (For example, in my case was: `C:\Users\ISRaiken\AppData\Local\Android\Sdk\cmake\3.22.1\bin`)
 
+> [!WARNING]
+> If you encounter a "react-native-audio-api: Restored missing prebuilt binaries" error on Windows (or a similar errore related to react-native-audio-api), you need to do this:
+
+> ```
+> react-native-audio-api: Restored missing prebuilt binaries (
+> libopusfile.a
+> , jniLibs, etc.) by executing the package's internal download script. This resolves the ninja: error that was causing the build to fail.
+> ```
+
 ### Production Build
 
 For a production build on Android, follow these steps:
