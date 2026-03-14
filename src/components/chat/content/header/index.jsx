@@ -33,7 +33,7 @@ const Header = ({
     const chat = state.chats.find(
       (c) => c.uuid === chatUUIDorHandle || c.handle === chatUUIDorHandle,
     );
-    return chat?.pinnedMessages || [];
+    return chat?.pinnedMessages;
   });
 
   const { name, profilePictureUUID } = useChatMetadata(chatUUIDorHandle);

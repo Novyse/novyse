@@ -191,9 +191,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
       // Notify other parts of the app about the new chat
       await eventEmitter.newChat(chat);
       // Navigate to the newly created chat
-      router.push({
-        pathname: `/app/chat/${chat.uuid}`,
-      });
+      router.push(`/app/chat/${chat.uuid}`);
     } else {
       console.error("Error during chat creation");
     }
