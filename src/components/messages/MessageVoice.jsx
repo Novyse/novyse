@@ -92,7 +92,8 @@ function createStyle(theme) {
     container: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 8,
+      paddingHorizontal: 10,
+      paddingTop: 5,
       minWidth: 180,
     },
     progressContainer: {
@@ -109,7 +110,6 @@ function createStyle(theme) {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginTop: 6,
     },
     durationText: {
       fontSize: 12,
@@ -117,12 +117,6 @@ function createStyle(theme) {
       textAlign: "left",
       fontVariant: ["tabular-nums"],
       opacity: 0.8,
-    },
-    sizeText: {
-      fontSize: 11,
-      color: theme.text,
-      opacity: 0.6,
-      textAlign: "right",
     },
   });
 }

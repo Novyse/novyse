@@ -29,8 +29,10 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
   const pinnedMessage = pinnedMessages[currentIndex];
   // retrieve the full message details using the custom useChatStore
   const chatStore = useChatStore();
-  const message = chatStore.getMessage(pinnedMessage?.chatUUID, pinnedMessage?.messageID);
-
+  const message = chatStore.getMessage(
+    pinnedMessage?.chatUUID,
+    pinnedMessage?.messageID,
+  );
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % pinnedMessages.length);
@@ -48,31 +50,35 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
     <View style={styles.headerSecondaryRow}>
       <View style={styles.pinnedContainer}>
         <View style={styles.pinnedContentRow}>
-          <Icon
-            name="ArrowLeft02Icon"
-            size={18}
-            onPress={handlePrev}
-            style={styles.navIcon}
-            disabled={!hasMultiple}
-          />
+          {hasMultiple && (
+            <Icon
+              name="ArrowLeft02Icon"
+              size={18}
+              onPress={handlePrev}
+              style={styles.navIcon}
+              disabled={!hasMultiple}
+            />
+          )}
 
           <View style={styles.pinnedTextContainer}>
             <Text style={styles.pinnedText} numberOfLines={1}>
               {message?.content}
             </Text>
-
-            <Text style={styles.indicatorText}>
-              {currentIndex + 1} / {pinnedMessages.length}
-            </Text>
+            {hasMultiple && (
+              <Text style={styles.indicatorText}>
+                {currentIndex + 1} / {pinnedMessages.length}
+              </Text>
+            )}
           </View>
-
-          <Icon
-            name="ArrowRight02Icon"
-            size={18}
-            onPress={handleNext}
-            style={styles.navIcon}
-            disabled={!hasMultiple}
-          />
+          {hasMultiple && (
+            <Icon
+              name="ArrowRight02Icon"
+              size={18}
+              onPress={handleNext}
+              style={styles.navIcon}
+              disabled={!hasMultiple}
+            />
+          )}
         </View>
       </View>
     </View>
@@ -133,7 +139,6 @@ function createStyle(theme) {
     },
     headerSecondaryRow: {
       width: "100%",
-      paddingHorizontal: 12,
       paddingBottom: 8,
       justifyContent: "center",
     },
