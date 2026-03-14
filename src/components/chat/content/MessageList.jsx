@@ -16,6 +16,8 @@ const MessageList = ({
   preparedMessages,
   editedMessages,
   pinnedMessages,
+  selectedMessages,
+  setSelectedMessages,
   myUUID,
   theme,
   onPin,
@@ -73,14 +75,14 @@ const MessageList = ({
     setTriggeredMessage,
     triggeredMessagePosition,
     setTriggeredMessagePosition,
-    selectedMessage,
-    setSelectedMessage,
     isEditedAllowed,
     isDeletedAllowed,
     onAction,
     handleClose,
   } = useMessageActions({
     myUUID,
+    onSelected: (currentMsg) =>
+      setSelectedMessages((prev) => [...prev, currentMsg]),
     onPin,
     onUnpin,
     onReply,
@@ -117,7 +119,7 @@ const MessageList = ({
             onReply={onReply}
             onReaction={onReaction}
             isSender={message.senderUUID === myUUID}
-            isSelected={selectedMessage.includes(message)}
+            isSelected={selectedMessages.includes(message)}
             isHighlighted={message.id == highlightedID}
             isEdited={editedMessages.some(
               (p) => (p.messageID || p) == message.id,
@@ -128,15 +130,15 @@ const MessageList = ({
             repliedCount={message.repliedFroms.length || 0}
             setTriggeredMessage={setTriggeredMessage}
             setTriggeredMessagePosition={setTriggeredMessagePosition}
-            selectedMessage={selectedMessage}
-            setSelectedMessage={setSelectedMessage}
+            selectedMessages={selectedMessages}
+            setSelectedMessages={setSelectedMessages}
           />
         );
       }
     },
     [
       myUUID,
-      selectedMessage,
+      selectedMessages,
       editedMessages,
       pinnedMessages,
       highlightedID,
@@ -144,7 +146,9 @@ const MessageList = ({
       onReaction,
       setTriggeredMessage,
       setTriggeredMessagePosition,
-      setSelectedMessage,
+      setTriggeredMessage,
+      setTriggeredMessagePosition,
+      setSelectedMessages,
     ],
   );
   const [isJumpBackMode, setIsJumpBackMode] = useState(false);

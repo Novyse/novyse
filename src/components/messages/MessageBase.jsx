@@ -166,8 +166,8 @@ const MessageBase = ({
   repliedCount,
   setTriggeredMessage,
   setTriggeredMessagePosition,
-  selectedMessage,
-  setSelectedMessage,
+  selectedMessages,
+  setSelectedMessages,
   onReply,
   onReaction,
 }) => {
@@ -183,8 +183,8 @@ const MessageBase = ({
   } = useMessageGestures(
     setTriggeredMessage,
     setTriggeredMessagePosition,
-    selectedMessage,
-    setSelectedMessage,
+    selectedMessages,
+    setSelectedMessages,
     onReply,
     onReaction,
   );
@@ -557,7 +557,7 @@ export default React.memo(
     prev.message === next.message &&
     prev.isSender === next.isSender &&
     prev.isSelected === next.isSelected &&
-    prev.selectedMessage === next.selectedMessage &&
+    prev.selectedMessages === next.selectedMessages &&
     prev.isHighlighted === next.isHighlighted &&
     prev.repliedCount === next.repliedCount &&
     prev.isPinned === next.isPinned &&

@@ -31,7 +31,13 @@ import UploadFileOverlay from "@/src/components/chat/content/UploadFileOverlay";
 import UploadFileModal from "@/src/components/modalSheets/uploadFile";
 import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
 
-const ChatContent = ({ replyNavigation }) => {
+const ChatContent = ({
+  replyNavigation,
+  selectedMessages,
+  setSelectedMessages,
+  replyingTo,
+  setReplyingTo,
+}) => {
   const { theme } = useContext(ThemeContext);
 
   const styles = createStyle(theme);
@@ -45,8 +51,6 @@ const ChatContent = ({ replyNavigation }) => {
 
   const [isMicClicked, setIsMicClicked] = useState(false);
   const [sheetIndex, setSheetIndex] = useState(-1);
-
-  const [replyingTo, setReplyingTo] = useState([]);
 
   const { selectedChatUUID, setSelectedChatUUID, selectedHandle } =
     useContext(ChatContext);
@@ -336,6 +340,8 @@ const ChatContent = ({ replyNavigation }) => {
             preparedMessages={preparedMessages}
             editedMessages={editedMessages}
             pinnedMessages={pinnedMessages}
+            selectedMessages={selectedMessages}
+            setSelectedMessages={setSelectedMessages}
             myUUID={myUUID}
             theme={theme}
             onPin={handlePin}

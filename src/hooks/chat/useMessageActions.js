@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 
 const useMessageActions = ({
   myUUID,
+  onSelected,
   onPin,
   onUnpin,
   onReply,
@@ -17,7 +18,6 @@ const useMessageActions = ({
     x: 0,
     y: 0,
   });
-  const [selectedMessage, setSelectedMessage] = useState([]);
   const [isEditedAllowed, setIsEditedAllowed] = useState(false);
   const [isDeletedAllowed, setIsDeletedAllowed] = useState(false);
 
@@ -60,7 +60,7 @@ const useMessageActions = ({
           onDownload?.(currentMsg);
           break;
         case "Select":
-          setSelectedMessage((prev) => [...prev, currentMsg]);
+          onSelected?.(currentMsg);
           break;
         case "Edit":
           onEdit?.(currentMsg);
@@ -100,8 +100,6 @@ const useMessageActions = ({
     setTriggeredMessage,
     triggeredMessagePosition,
     setTriggeredMessagePosition,
-    selectedMessage,
-    setSelectedMessage,
     isEditedAllowed,
     isDeletedAllowed,
     onAction,
