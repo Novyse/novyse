@@ -1,23 +1,21 @@
-import React, { useRef } from "react";
+import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
+
+import useClipboard from "@/src/hooks/useClipboard";
 
 import logoForQR from "@/assets/images/logo-novyse.png";
 
 import ModalBase from "@/src/components/modalSheets/ModalBase";
 import Icon from "@/src/components/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
-import useClipboard from "@/src/hooks/useClipboard";
-import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 import Avatar from "@/src/components/Avatar";
 
 interface QRCodeModalProps {
   visible: boolean;
   onClose: () => void;
   username: string;
-  profilePictureUUID: string;
+  profilePictureUUID?: string;
   theme: any;
 }
 
@@ -31,7 +29,6 @@ const QRCodeModal = ({
   const styles = createStyles(theme);
 
   const { copyToClipboard, copied } = useClipboard();
-  const { uri } = useProfilePicture(profilePictureUUID);
 
   // Assuming your app runs on localhost:8081 for web or just link profile
   // If we're on mobile we probably just want a deep link like "novyse://profile/username"
@@ -40,10 +37,6 @@ const QRCodeModal = ({
 
   const handleCopy = () => {
     copyToClipboard(profileLink);
-  };
-
-  const handleShare = async () => {
-    return;
   };
 
   return (

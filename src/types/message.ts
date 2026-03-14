@@ -6,6 +6,18 @@ export interface Reaction {
   at: string | Date;
 }
 
+export interface ReplyTo {
+  chatUUID: string;
+  messageID: number;
+  rangeStart: number;
+  rangeEnd: number;
+}
+
+export interface RepliedFrom {
+  chatUUID: string;
+  messageID: number;
+}
+
 export interface Message {
   id: number;
   senderUUID: string;
@@ -13,6 +25,8 @@ export interface Message {
   timestamp: Date;
   files: File[];
   reactions?: Reaction[];
+  replyTos?: ReplyTo[];
+  repliedFroms?: RepliedFrom[];
 }
 
 export interface PinnedMessage {

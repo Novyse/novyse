@@ -281,9 +281,30 @@ const useChatStore = create<ChatState>((set, get) => ({
 
         const safeMessage = {
           ...message,
+          repliedFroms: [],
         };
 
-        return { ...chat, messages: [...chat.messages, safeMessage] };
+        let updatedMessages = [...chat.messages];
+        if (message.replyTos && Array.isArray(message.replyTos)) {
+          message.replyTos.forEach((replyTo: any) => {
+            if (replyTo.chatUUID === chat.uuid) {
+              updatedMessages = updatedMessages.map((m: any) => {
+                if (m.id === replyTo.messageID) {
+                  return {
+                    ...m,
+                    repliedFroms: [
+                      ...(m.repliedFroms || []),
+                      { chatUUID: message.chatUUID, messageID: message.id },
+                    ],
+                  };
+                }
+                return m;
+              });
+            }
+          });
+        }
+
+        return { ...chat, messages: [...updatedMessages, safeMessage] };
       }),
     }));
   },

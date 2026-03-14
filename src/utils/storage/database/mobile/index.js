@@ -800,6 +800,7 @@ class Database {
         [chatUUID],
       );
       if (message) {
+        // Get all replyTos for the message
         const replyTosRaw = await this.db.getAllAsync(
           `SELECT * FROM message_reply WHERE chatUUID = ? AND messageID = ?;`,
           [chatUUID, message.id],
@@ -810,6 +811,17 @@ class Database {
           rangeStart: r.replyTo_rangeStart,
           rangeEnd: r.replyTo_rangeEnd,
         }));
+
+        // Get all messages that reply to this message
+        const repliedFromRaw = await this.db.getAllAsync(
+          `SELECT chatUUID, messageID FROM message_reply WHERE replyTo_chatUUID = ? AND replyTo_messageID = ?;`,
+          [chatUUID, message.id],
+        );
+        message.repliedFroms = repliedFromRaw.map((r) => ({
+          chatUUID: r.chatUUID,
+          messageID: r.messageID,
+        }));
+
         // Retrieve associated files with mime types
         const files = await this.db.getAllAsync(
           `SELECT f.uuid, f.mimeType, f.name FROM file f
@@ -902,7 +914,6 @@ class Database {
   }
 
   async getMessagesByChatUUID(chatUUID, limit = 50, offset = 0) {
-    await this.addDb();
     try {
       const results = await this.db.getAllAsync(
         `SELECT m.*, u.name as sender_name, u.profilePictureUUID as profile_picture_uuid FROM message m
@@ -916,42 +927,7 @@ class Database {
       const messages = results.reverse();
       // Add files and external entities to each message
       for (const message of messages) {
-        const replyTosRaw = await this.db.getAllAsync(
-          `SELECT * FROM message_reply WHERE chatUUID = ? AND messageID = ?;`,
-          [chatUUID, message.id],
-        );
-
-        message.replyTos = replyTosRaw.map((r) => ({
-          chatUUID: r.replyTo_chatUUID,
-          messageID: r.replyTo_messageID,
-          rangeStart: r.replyTo_rangeStart,
-          rangeEnd: r.replyTo_rangeEnd,
-        }));
-
-        const reactionsRaw = await this.db.getAllAsync(
-          `SELECT reaction, userUUID, at FROM reaction_message WHERE chatUUID = ? AND messageID = ?;`,
-          [chatUUID, message.id],
-        );
-        const reactionsMap = {};
-        for (const r of reactionsRaw) {
-          if (!reactionsMap[r.reaction]) {
-            reactionsMap[r.reaction] = [];
-          }
-          reactionsMap[r.reaction].push({ userUUID: r.userUUID, at: r.at });
-        }
-        message.reactions = Object.keys(reactionsMap).map((emoji) => ({
-          emoji,
-          userUUIDs: reactionsMap[emoji].map((r) => r.userUUID),
-          details: reactionsMap[emoji], // Include full details with 'at'
-        }));
-
-        const files = await this.db.getAllAsync(
-          `SELECT f.* FROM file f
-         JOIN message_files mf ON f.uuid = mf.fileUUID
-         WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
-          [chatUUID, message.id],
-        );
-        message.files = files;
+        await this.message._addInfos(message);
       }
       return messages;
     } catch (error) {
@@ -1166,7 +1142,69 @@ class Database {
   };
 
   message = {
-    /**
+    _addInfos: async (message) => {
+      if (!message) return message;
+      this.message._addReplyTos(message);
+      this.message._addRepliedFroms(message);
+      this.message._addReactions(message);
+      this.message._addFiles(message);
+      return message;
+    },
+    _addReplyTos: async (message) => {
+      if (!message) return;
+      const replyTosRaw = await this.db.getAllAsync(
+        `SELECT * FROM message_reply WHERE chatUUID = ? AND messageID = ?;`,
+        [message.chatUUID, message.id],
+      );
+      message.replyTos = replyTosRaw.map((r) => ({
+        chatUUID: r.replyTo_chatUUID,
+        messageID: r.replyTo_messageID,
+        rangeStart: r.replyTo_rangeStart,
+        rangeEnd: r.replyTo_rangeEnd,
+      }));
+    },
+    _addRepliedFroms: async (message) => {
+      if (!message) return;
+      const repliedFromRaw = await this.db.getAllAsync(
+        `SELECT chatUUID, messageID FROM message_reply WHERE replyTo_chatUUID = ? AND replyTo_messageID = ?;`,
+        [message.chatUUID, message.id],
+      );
+      message.repliedFroms = repliedFromRaw.map((r) => ({
+        chatUUID: r.chatUUID,
+        messageID: r.messageID,
+      }));
+    },
+    _addReactions: async (message) => {
+      if (!message) return;
+      const reactionsRaw = await this.db.getAllAsync(
+        `SELECT reaction, userUUID, at FROM reaction_message WHERE chatUUID = ? AND messageID = ?;`,
+        [message.chatUUID, message.id],
+      );
+      const reactionsMap = {};
+      for (const r of reactionsRaw) {
+        if (!reactionsMap[r.reaction]) {
+          reactionsMap[r.reaction] = [];
+        }
+        reactionsMap[r.reaction].push({ userUUID: r.userUUID, at: r.at });
+      }
+      message.reactions = Object.keys(reactionsMap).map((emoji) => ({
+        emoji,
+        userUUIDs: reactionsMap[emoji].map((r) => r.userUUID),
+        details: reactionsMap[emoji], // Include full details with 'at'
+      }));
+    },
+    _addFiles: async (message) => {
+      if (!message) return;
+      const files = await this.db.getAllAsync(
+        `SELECT f.* FROM file f
+         JOIN message_files mf ON f.uuid = mf.fileUUID
+         WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
+        [message.chatUUID, message.id],
+      );
+      message.files = files;
+    },
+
+    /*
      * Add multiple messages to the database in a single query.
      * @param {Array} messages - Array of message objects to add
      * @returns {boolean} true if messages added successfully, false otherwise
@@ -1456,23 +1494,7 @@ class Database {
           );
 
           for (const message of result) {
-            const replyTosRaw = await this.db.getAllAsync(
-              `SELECT * FROM message_reply WHERE chatUUID = ? AND messageID = ?;`,
-              [message.chatUUID, message.id],
-            );
-            message.replyTos = replyTosRaw.map((r) => ({
-              chatUUID: r.replyTo_chatUUID,
-              messageID: r.replyTo_messageID,
-              rangeStart: r.replyTo_rangeStart,
-              rangeEnd: r.replyTo_rangeEnd,
-            }));
-            message.files =
-              (await this.db.getAllAsync(
-                `SELECT f.uuid, f.mimeType, f.name FROM file f 
-                 JOIN message_files mf ON f.uuid = mf.fileUUID 
-                 WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
-                [message.chatUUID, message.id],
-              )) || [];
+            await this.message._addInfos(message);
           }
 
           return result;
