@@ -39,7 +39,7 @@ import MessageReply from "./MessageReply";
 import MessageTimestamp from "./MessageTimestamp";
 
 const { getUser } = useUserStore.getState();
-const chatStore = useChatStore();
+const chatStore = useChatStore.getState();
 
 const REPLY_THRESHOLD = 60;
 const MAX_SWIPE_DISTANCE = 90;
