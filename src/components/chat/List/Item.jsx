@@ -40,7 +40,13 @@ const ChatListItem = React.memo(
         : item.lastMessage || null;
 
     const displayMessage = (message) => {
-      if (!message) return null;
+      if (!message) {
+        return (
+          <Text style={[styles.chatSubtitle, styles.gridText, { opacity: 0 }]} selectable={false}>
+            Placeholder
+          </Text>
+        );
+      }
       const formattedMessage = messageUtils.format(message);
       const content = formattedMessage.content;
 
@@ -90,17 +96,17 @@ const ChatListItem = React.memo(
           <View style={styles.chatItemGrid}>
             <View style={styles.leftContainer}>
               <Text
-                style={[styles.chatTitle, styles.gridText, { marginBottom: 5 }]}
+                style={[styles.chatTitle, styles.gridText]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
                 selectable={false}
               >
                 {displayName}
               </Text>
-              {displayMessage(lastMessage)}
+              <View style={{ marginTop: 2 }}>{displayMessage(lastMessage)}</View>
             </View>
             <View style={styles.rightContainer}>
-              <View style={styles.dateContainer}>
+              <View style={[styles.dateContainer, !lastMessage && { opacity: 0 }]}>
                 {lastMessage && (
                   <>
                     {!lastMessage.created_at ? (
@@ -115,18 +121,23 @@ const ChatListItem = React.memo(
                     )}
                   </>
                 )}
+                {!lastMessage && (
+                  <Text style={styles.chatDateText}>00:00</Text>
+                )}
               </View>
 
               <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
+                style={{ flexDirection: "row", alignItems: "center", gap: 5, minHeight: 20 }}
               >
                 {isPinned && <Icon name={"PinIcon"} size={16} />}
-                {unreadCount > 0 && (
+                {unreadCount > 0 ? (
                   <View style={[styles.ball]}>
                     <Text style={[styles.ballText]} selectable={false}>
                       {unreadCount}
                     </Text>
                   </View>
+                ) : (
+                  <View style={{ height: 20 }} />
                 )}
               </View>
             </View>
@@ -139,27 +150,52 @@ const ChatListItem = React.memo(
 
 function createStyle(theme) {
   return StyleSheet.create({
-    chatItem: { borderRadius: 15, height: 65 },
+    chatItem: {
+      borderRadius: 100,
+      height: 60,
+    },
     chatItemPressable: {
       flexDirection: "row",
       alignItems: "center",
-      padding: 10,
+      paddingLeft: 10,
+      paddingRight: 15,
       width: "100%",
       flex: 1,
-      borderRadius: 15,
+      borderRadius: 100,
       gap: 10,
     },
-    avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
-    chatTitle: { fontSize: 16, fontWeight: "bold", color: theme.text },
-    chatSubtitle: { fontSize: 14, color: theme.text },
+    avatar: {
+      width: 45,
+      height: 45,
+      borderRadius: 20,
+      marginRight: 10,
+    },
+    chatTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: theme.text,
+    },
+    chatSubtitle: {
+      fontSize: 14,
+      color: theme.text,
+    },
     chatItemGrid: {
       flexDirection: "row",
       flex: 1,
       justifyContent: "space-between",
     },
-    leftContainer: { flex: 1, flexDirection: "column" },
-    rightContainer: { flexDirection: "column", alignItems: "flex-end" },
-    gridText: { fontSize: 14, color: theme.text },
+    leftContainer: {
+      flex: 1,
+      flexDirection: "column",
+    },
+    rightContainer: {
+      flexDirection: "column",
+      alignItems: "flex-end",
+    },
+    gridText: {
+      fontSize: 14,
+      color: theme.text,
+    },
     ball: {
       borderRadius: 10,
       width: 20,
@@ -168,7 +204,11 @@ function createStyle(theme) {
       alignItems: "center",
       backgroundColor: theme.badgeColor,
     },
-    ballText: { textAlign: "center", color: theme.text, fontSize: 12 },
+    ballText: {
+      textAlign: "center",
+      color: theme.text,
+      fontSize: 12,
+    },
     dateContainer: {
       flexDirection: "row",
       alignItems: "center",

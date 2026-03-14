@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import HeaderBase from "./HeaderBase";
 import BlurredView from "./BlurredView";
@@ -9,6 +9,7 @@ interface BlurredHeaderProps {
   style?: object;
   intensity?: number;
   tint?: "light" | "dark" | "default";
+  commsHeader?: React.ReactNode;
 }
 
 const BlurredHeader = ({
@@ -16,6 +17,7 @@ const BlurredHeader = ({
   style,
   intensity,
   tint,
+  commsHeader,
 }: BlurredHeaderProps) => {
   const styles = createStyles();
   return (
@@ -27,6 +29,7 @@ const BlurredHeader = ({
       >
         {children}
       </BlurredView>
+      {commsHeader && <View style={{ width: "100%" }}>{commsHeader}</View>}
     </HeaderBase>
   );
 };
