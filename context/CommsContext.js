@@ -12,6 +12,9 @@ export const CommsProvider = ({ children }) => {
   const [room, setRoom] = useState(null);
   const [participants, setParticipants] = useState([]);
 
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+
   const [isSpeakingMap, setIsSpeakingMap] = useState(new Map());
   const audioElementsRef = useRef(new Map());
   const [streams, setStreams] = useState({});
@@ -371,13 +374,14 @@ export const CommsProvider = ({ children }) => {
     setParticipants([]);
     setStreams({});
     setMutedStreams({});
+    setIsAudioEnabled(false);
+    setIsVideoEnabled(false);
     setError(null);
   };
 
   const value = {
     room,
     setRoom,
-    participants,
     connected,
     checkRoomMatch,
     pinnedStreamUUID,
@@ -388,6 +392,10 @@ export const CommsProvider = ({ children }) => {
     setActiveScreenShares,
     facingMode,
     setFacingMode,
+    isAudioEnabled,
+    setIsAudioEnabled,
+    isVideoEnabled,
+    setIsVideoEnabled,
     participants,
     setParticipants,
     isSpeakingMap,

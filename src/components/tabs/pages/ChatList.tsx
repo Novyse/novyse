@@ -21,12 +21,14 @@ import BlurredHeader from "@/src/components/BlurredHeader";
 import ChatListItem from "@/src/components/chat/list/Item";
 import FloatingButton from "@/src/components/FloatingButton";
 import CreateChatModal from "@/src/components/modalSheets/createChat";
+import CommsHeader from "@/src/components/chat/content/header/CommsHeader";
 
 import useChatStore from "@/context/ChatContext";
 import useChatPin from "@/src/hooks/chat/useChatPin";
 import useSelection from "@/src/hooks/useSelection";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
+import { useCommsContext } from "@/context/CommsContext";
 
 import useNavigation from "@/src/hooks/chat/useNavigation";
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
@@ -41,6 +43,9 @@ const ChatList = () => {
 
   const chats = useChatStore((state) => state.chats);
   const { pinnedChats, pinChats, unpinChats } = useChatPin();
+
+  const { connected, room, participants } = useCommsContext();
+  const hasComms = connected;
 
   const { isSmallScreen } = useScreen();
   const { theme } = useContext(ThemeContext);
@@ -186,6 +191,23 @@ const ChatList = () => {
   return (
     <>
       {isSelectionMode ? renderSelectionHeader() : renderDefaultHeader()}
+
+      {isSmallScreen && hasComms && (
+        <BlurredHeader
+          style={{
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            backgroundColor: "#2951a9",
+          }}
+        >
+          <CommsHeader
+            connected={connected}
+            roomName={room?.roomInfo.name}
+            participantsCount={participants.length}
+          />
+        </BlurredHeader>
+      )}
+
       <FlatList
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}

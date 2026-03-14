@@ -9,10 +9,13 @@ import MainHeader from "./main";
 import SelectedHeader from "./SelectedHeader";
 import AudioHeader from "./audio";
 import PinnedMessageHeader from "./pinnedMessage";
+import CommsHeader from "./CommsHeader";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 import useChatStore from "@/context/ChatContext";
+import { useCommsContext } from "@/context/CommsContext";
+
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 
 const Header = ({
@@ -43,9 +46,13 @@ const Header = ({
   });
 
   const { name, profilePictureUUID } = useChatMetadata(chatUUIDorHandle);
-  const hasPinnedMessage = pinnedMessages && pinnedMessages.length > 0;
 
-  const isHeaderExpanded = hasPinnedMessage || isVoiceActive;
+  const { connected, room, participants } = useCommsContext();
+
+  const hasPinnedMessage = pinnedMessages && pinnedMessages.length > 0;
+  const hasComms = connected;
+
+  const isHeaderExpanded = hasPinnedMessage || hasComms || isVoiceActive;
 
   const activeRadius = isHeaderExpanded ? 15 : 100;
 
@@ -81,6 +88,13 @@ const Header = ({
             <PinnedMessageHeader pinnedMessages={pinnedMessages} />
           )}
           {isVoiceActive && <AudioHeader />}
+          {hasComms && (
+            <CommsHeader
+              connected={connected}
+              roomName={room?.roomInfo.name}
+              participantsCount={participants.length}
+            />
+          )}
         </BlurredView>
       </HeaderBase>
     </View>

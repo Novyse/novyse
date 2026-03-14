@@ -7,7 +7,7 @@ import Animated, {
   useSharedValue,
   Easing,
 } from "react-native-reanimated";
-import SmartBackground from "../SmartBackground";
+import SmartBackground from "../../SmartBackground";
 import VocalBottomBarButton from "./VocalBottomBarButton";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
@@ -15,7 +15,7 @@ import { useRouter } from "expo-router";
 import methods from "@/src/utils/webrtc/methods";
 const { self, get } = methods;
 
-const BigFloatingCommsMenu = () => {
+const SmallCommsMenu = () => {
   const { colorScheme, theme } = useContext(ThemeContext);
   const styles = createStyle(theme, colorScheme);
   const router = useRouter();
@@ -89,12 +89,12 @@ const BigFloatingCommsMenu = () => {
     self.left(); // Poi esci dalla chiamata
   };
 
+  // Funzione per navigare alla vocal view
   const navigateToVocalView = () => {
-    const commUUID = get.commUUID();
-    const chatUUID = commUUID ? commUUID.split("_")[0] : null;
-    if (chatUUID) {
-      router.setParams({ chatUUIDorHandle: chatUUID });
-      router.navigate(`/chat/${chatUUID}`, { replace: true });
+    const commsId = get.commUUID();
+    if (commsId) {
+      // Usa setParams per non ricaricare la pagina
+      router.push(`/chat/${commsId}`);
 
       // Imposta direttamente la vista vocal
       setTimeout(() => {
@@ -106,13 +106,9 @@ const BigFloatingCommsMenu = () => {
   };
 
   if (!isVisible) return null;
-
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
-      <Pressable
-        onPress={navigateToVocalView}
-        style={styles.pressableContainer}
-      >
+    <Pressable onPress={navigateToVocalView}>
+      <Animated.View style={[styles.container, animatedStyle]}>
         <SmartBackground
           colors={theme?.backgroundCommsFloatingBarGradient}
           style={styles.gradientBackground}
@@ -134,29 +130,21 @@ const BigFloatingCommsMenu = () => {
             />
           </Animated.View>
         </SmartBackground>
-      </Pressable>
-    </Animated.View>
+      </Animated.View>
+    </Pressable>
   );
 };
 
 function createStyle(theme, colorScheme) {
   return StyleSheet.create({
     container: {
-      position: "absolute",
-      zIndex: 999,
       alignItems: "center",
-      bottom: 15,
-      left: 15,
-      right: 15,
       borderRadius: 13,
-    },
-    pressableContainer: {
-      width: "100%",
-      borderRadius: 13,
+      margin: 10,
     },
     gradientBackground: {
       paddingHorizontal: 10,
-      paddingVertical: 30,
+      paddingVertical: 10,
       borderRadius: 13,
       width: "100%",
       alignItems: "center",
@@ -169,4 +157,4 @@ function createStyle(theme, colorScheme) {
   });
 }
 
-export default BigFloatingCommsMenu;
+export default SmallCommsMenu;

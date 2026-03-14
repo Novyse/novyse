@@ -26,6 +26,10 @@ const useCommsAction = (chatUUID, sub) => {
     setActiveScreenShares,
     facingMode,
     setFacingMode,
+    isAudioEnabled,
+    setIsAudioEnabled,
+    isVideoEnabled,
+    setIsVideoEnabled,
     error,
     setError,
   } = useCommsContext();
@@ -33,9 +37,6 @@ const useCommsAction = (chatUUID, sub) => {
   const [connecting, setConnecting] = useState(false);
   const [roomMatch, setRoomMatch] = useState(false);
   const clearError = () => setError(null);
-
-  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
 
   const [microphoneDevice, setMicrophoneDevice] = useState(null);
   const [cameraDevice, setCameraDevice] = useState(null);
@@ -136,7 +137,7 @@ const useCommsAction = (chatUUID, sub) => {
       await room.localParticipant.setMicrophoneEnabled(newState);
       setIsAudioEnabled(newState);
     } catch (e) {
-      console.error("Failed switching microphone device", e);
+      console.error("Failed toggling microphone state", e);
       setError(DEVICE_ERROR_MESSAGE);
     }
   };
@@ -148,7 +149,7 @@ const useCommsAction = (chatUUID, sub) => {
       await room.localParticipant.setCameraEnabled(newState);
       setIsVideoEnabled(newState);
     } catch (e) {
-      console.error("Failed switching microphone device", e);
+      console.error("Failed toggling video state", e);
       setError(DEVICE_ERROR_MESSAGE);
     }
   };
@@ -189,15 +190,21 @@ const useCommsAction = (chatUUID, sub) => {
     async function switchSpeaker() {
       if (!room || !room.localParticipant || !speakerDevice || isMobile) return;
       try {
-        await room.switchActiveDevice("audiooutput", speakerDevice);
+        const deviceId =
+          typeof speakerDevice === "string"
+            ? speakerDevice
+            : speakerDevice.deviceId;
+        if (!deviceId || room.getActiveDevice("audiooutput") === deviceId)
+          return;
+
+        await room.switchActiveDevice("audiooutput", deviceId);
         setError(null);
       } catch (e) {
         console.error("Failed switching speaker device", e);
-        setError(DEVICE_ERROR_MESSAGE);
       }
     }
     switchSpeaker();
-  }, [speakerDevice]);
+  }, [speakerDevice, room, isMobile]);
 
   useEffect(() => {
     async function switchFacingMode() {
