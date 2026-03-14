@@ -18,7 +18,7 @@ import * as Haptics from "expo-haptics";
 import { useThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 import useChatStore from "@/context/ChatContext";
-import useUserStore from "@/context/UserContext"; 
+import useUserStore from "@/context/UserContext";
 import Icon from "../Icon";
 
 import useMessageGestures from "@/src/hooks/chat/useMessageGestures";
@@ -39,6 +39,7 @@ import MessageReply from "./MessageReply";
 import MessageTimestamp from "./MessageTimestamp";
 
 const { getUser } = useUserStore.getState();
+const chatStore = useChatStore();
 
 const REPLY_THRESHOLD = 60;
 const MAX_SWIPE_DISTANCE = 90;
@@ -144,14 +145,13 @@ const MessageReplyWrapper = ({
   oldMessageID,
   navigateToMessageWithHistory,
 }) => {
-  const chatStore = useChatStore();
   const replyMessage = chatStore.getMessage(
     replyTo?.chatUUID,
     replyTo?.messageID,
   );
 
   if (!replyMessage) return null;
-  
+
   const senderName = getUser(replyMessage.senderUUID)?.name || "Unknown User";
 
   return (
@@ -210,6 +210,9 @@ const MessageBase = ({
     files = [],
     replyTos,
   } = message;
+
+  const chat = chatStore.chats.find((c) => c.uuid === message.chatUUID);
+  const chatType = chat?.type || "GROUP";
 
   const highlightOpacity = useSharedValue(0);
 
@@ -398,7 +401,10 @@ const MessageBase = ({
     >
       {!isSender && showAvatar && (
         <View style={styles.avatarWrapper}>
-          <Avatar size={45} uuid={getUser(message.senderUUID)?.profilePictureUUID} />
+          <Avatar
+            size={45}
+            uuid={getUser(message.senderUUID)?.profilePictureUUID}
+          />
         </View>
       )}
       <BlurredView isBorderActive={false} style={blurredViewStyles}>
