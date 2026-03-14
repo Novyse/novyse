@@ -26,14 +26,16 @@ const MessageReply = ({
         )
       }
     >
-      <View style={styles.accent} />
-      <View style={styles.content}>
-        <Text style={styles.senderName} numberOfLines={1} selectable={false}>
-          {senderName ?? "Unknown"}
-        </Text>
-        <Text style={styles.text} numberOfLines={2} selectable={false}>
-          {text ?? ""}
-        </Text>
+      <View style={styles.innerContainer}>
+        <View style={styles.accent} />
+        <View style={styles.content}>
+          <Text style={styles.senderName} numberOfLines={1} selectable={false}>
+            {senderName ?? "Unknown"}
+          </Text>
+          <Text style={styles.text} numberOfLines={2} selectable={false}>
+            {text ?? ""}
+          </Text>
+        </View>
       </View>
     </Pressable>
   );
@@ -42,13 +44,15 @@ const MessageReply = ({
 const createStyle = (theme) =>
   StyleSheet.create({
     container: {
+      paddingHorizontal: 10,
+      paddingTop: 10,
+    },
+    innerContainer: {
       flexDirection: "row",
       backgroundColor: "rgba(0,0,0,0.08)",
       borderRadius: 10,
-      marginBottom: 6,
       overflow: "hidden",
-      minHeight: 42,
-      marginTop: 8,
+      minHeight: 45,
     },
     accent: {
       width: 3,

@@ -12,6 +12,7 @@ const MessageTimestamp = ({
   isEdited = false,
   isPendingEdit = false,
   isPinned = false,
+  replyCount = 0,
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -65,6 +66,9 @@ const MessageTimestamp = ({
         {(isEdited || isPendingEdit) && (
           <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
         )}
+        {replyCount > 0 && (
+          <Icon name={"ArrowMoveUpLeftIcon"} size={14} color={theme.textTime} />
+        )}
         <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
       </View>
     );
@@ -84,6 +88,31 @@ const MessageTimestamp = ({
 
   return (
     <View style={styles.alignContainer}>
+      <View style={styles.iconContainer}>
+        {isPinned && <Icon name={"PinIcon"} size={14} color={theme.textTime} />}
+        {(isEdited || isPendingEdit) && (
+          <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
+        )}
+        {isPendingEdit && (
+          <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
+        )}
+        {sent && !isPendingEdit && (
+          <Icon name={"Tick01Icon"} size={14} color={theme.textTime} />
+        )}
+        {receivedByAll && !isPendingEdit && (
+          <Icon name={"TickDouble01Icon"} size={14} color={theme.textTime} />
+        )}
+        {replyCount > 0 && !isPendingEdit && (
+          <>
+            <Icon
+              name={"ArrowMoveUpLeftIcon"}
+              size={14}
+              color={theme.textTime}
+            />
+            <Text style={styles.replyCountText}>{replyCount}</Text>
+          </>
+        )}
+      </View>
       {!isPendingEdit &&
         (Platform.OS === "web" ? (
           <View
@@ -104,21 +133,6 @@ const MessageTimestamp = ({
           </View>
         ))}
       {Platform.OS === "web" && createPortal(tooltip, document.body)}
-      <View style={styles.iconContainer}>
-        {isPinned && <Icon name={"PinIcon"} size={12} color={theme.textTime} />}
-        {(isEdited || isPendingEdit) && (
-          <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
-        )}
-        {isPendingEdit && (
-          <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
-        )}
-        {sent && !isPendingEdit && (
-          <Icon name={"Tick01Icon"} size={16} color={theme.textTime} />
-        )}
-        {receivedByAll && !isPendingEdit && (
-          <Icon name={"TickDouble01Icon"} size={16} color={theme.textTime} />
-        )}
-      </View>
     </View>
   );
 };
@@ -131,13 +145,20 @@ const createStyle = (theme) =>
       fontSize: 12,
       minWidth: 35,
     },
+    replyCountText: {
+      color: theme.textTime,
+      textAlign: "right",
+      fontSize: 12,
+      paddingLeft: 2
+    },
     alignContainer: {
       alignSelf: "flex-end",
       marginLeft: 10,
       flexDirection: "row",
       alignItems: "center",
       gap: 2,
-      paddingTop: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 10,
     },
     timeContainer: {
       position: "relative",
@@ -151,11 +172,11 @@ const createStyle = (theme) =>
       position: "fixed",
       backgroundColor: theme.background || "#333",
       padding: 10,
-      borderRadius: 6,
+      borderRadius: 5,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.8,
-      shadowRadius: 4,
+      shadowRadius: 5,
       elevation: 5,
       zIndex: 1000,
       minWidth: 150,

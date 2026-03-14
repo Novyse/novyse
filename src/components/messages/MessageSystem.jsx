@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
-import BlurredView from "../BlurredView"; // Aggiunto import per BlurredView
+import BlurredView from "../BlurredView";
 
 import chatUtils from "@/src/utils/chat/index";
 
@@ -47,18 +47,9 @@ const createStyles = (theme) => {
     container: {
       alignSelf: "center",
       borderRadius: 20,
-      paddingHorizontal: 14,
-      paddingVertical: 6,
+      paddingHorizontal: 15,
+      paddingVertical: 5,
       marginVertical: 6,
-      shadowColor: theme.shadowColor || "#000",
-      shadowOffset: {
-        width: 0,
-        height: 3,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 4.5,
-
-      elevation: 5,
     },
     text: {
       color: theme.text,

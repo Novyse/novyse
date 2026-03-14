@@ -27,15 +27,15 @@ import BlurredView from "../BlurredView";
 import { getFileType } from "@/src/utils/storage/file/type";
 import { defaultWaveform } from "@/src/utils/storage/file/media";
 
-import MessageTimestamp from "./MessageTimestamp";
 import Avatar from "../Avatar";
 
+import MessageText from "./MessageText";
 import MessageMedia from "./MessageMedia";
 import MessageOther from "./MessageOther";
 import MessageAudio from "./MessageAudio";
 import MessageVoice from "./MessageVoice";
-import MessageText from "./MessageText";
 import MessageReply from "./MessageReply";
+import MessageTimestamp from "./MessageTimestamp";
 
 const REPLY_THRESHOLD = 60;
 const MAX_SWIPE_DISTANCE = 90;
@@ -137,7 +137,10 @@ const rightActionStyles = StyleSheet.create({
 
 const MessageReplyWrapper = ({ replyTo, oldChatUUID, oldMessageID }) => {
   const chatStore = useChatStore();
-  const replyMessage = chatStore.getMessage(replyTo?.chatUUID, replyTo?.messageID);
+  const replyMessage = chatStore.getMessage(
+    replyTo?.chatUUID,
+    replyTo?.messageID,
+  );
 
   if (!replyMessage) return null;
 
@@ -160,6 +163,7 @@ const MessageBase = ({
   isPinned,
   isEdited,
   isHighlighted,
+  repliedCount,
   setTriggeredMessage,
   setTriggeredMessagePosition,
   selectedMessage,
@@ -214,7 +218,7 @@ const MessageBase = ({
   const animatedHighlightStyle = useAnimatedStyle(() => ({
     backgroundColor: theme.primary || "#007AFF",
     opacity: highlightOpacity.value * 0.4,
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   }));
 
   const groupBy = (array, callback) => {
@@ -243,8 +247,10 @@ const MessageBase = ({
     (!content || content.trim().length === 0) &&
     (fileGroups.media.true || []).length > 0;
 
+  const hasReactions = message.reactions && message.reactions.length > 0;
+
   const sharedContent = (
-    <View style={hasOnlyMedia ? styles.mediaContainer : styles.textContainer}>
+    <View style={hasOnlyMedia ? styles.mediaContainer : null}>
       {replyTos && replyTos.length > 0 && (
         <View style={styles.replyTosContainer}>
           {replyTos.map((reply, index) => (
@@ -259,7 +265,14 @@ const MessageBase = ({
       )}
       {fileGroups.media.true && <MessageMedia medias={fileGroups.media.true} />}
       {(fileGroups.other.true || []).map((f) => (
-        <MessageOther key={f.uuid} fileRef={f.ref} uuid={f.uuid} mimeType={f.mimeType} size={f.size} name={f.name} />
+        <MessageOther
+          key={f.uuid}
+          fileRef={f.ref}
+          uuid={f.uuid}
+          mimeType={f.mimeType}
+          size={f.size}
+          name={f.name}
+        />
       ))}
       <View style={{ width: "100%" }}>
         {(fileGroups.audio.true || []).map((f) => (
@@ -290,29 +303,45 @@ const MessageBase = ({
           />
         ))}
       </View>
+
       {content?.trim().length > 0 && (
-        <View style={content.trim().length < 50 ? styles.textRow : null}>
-          <MessageText text={content} />
-          <MessageTimestamp
-            time={created_at}
-            isEdited={isEdited}
-            isPendingEdit={!!message.pendingEditJobId}
-            isPinned={isPinned}
+        <View style={styles.textContainer}>
+          <MessageText
+            text={content}
+            // Passa 0 come timestampWidth quando ci sono reazioni:
+            // il timestamp non è più inline nel testo ma va sotto
+            timestampWidth={hasReactions ? 0 : 80}
           />
+          {/* Timestamp inline (overlay) solo se NON ci sono reazioni */}
+          {!hasReactions && (
+            <View style={styles.timestampOverlay}>
+              <MessageTimestamp
+                time={created_at}
+                isEdited={isEdited}
+                isPendingEdit={!!message.pendingEditJobId}
+                isPinned={isPinned}
+                replyCount={repliedCount}
+              />
+            </View>
+          )}
         </View>
       )}
-      {!content?.trim() && (
+
+      {!content?.trim() && !hasReactions && (
         <MessageTimestamp
           time={created_at}
           isEdited={isEdited}
           isPendingEdit={!!message.pendingEditJobId}
           isPinned={isPinned}
+          replyCount={repliedCount}
         />
       )}
-      {message.reactions && message.reactions.length > 0 && (
-        <View style={styles.reactionsContainer}>
-          {message.reactions.map((reactionObj, index) => {
-            return (
+
+      {/* Reazioni + timestamp sotto, stile Telegram */}
+      {hasReactions && (
+        <View style={styles.reactionsRow}>
+          <View style={styles.reactionsContainer}>
+            {message.reactions.map((reactionObj, index) => (
               <Pressable
                 key={`${reactionObj.emoji}-${index}`}
                 style={styles.reactionPill}
@@ -322,10 +351,21 @@ const MessageBase = ({
                   {reactionObj.emoji} {reactionObj.userUUIDs.length}
                 </Text>
               </Pressable>
-            );
-          })}
+            ))}
+          </View>
+          {/* Timestamp allineato a destra accanto/sotto le reazioni */}
+          <MessageTimestamp
+            time={created_at}
+            isEdited={isEdited}
+            isPendingEdit={!!message.pendingEditJobId}
+            isPinned={isPinned}
+            replyCount={repliedCount}
+          />
         </View>
       )}
+
+      {/* Messaggio senza testo ma CON reazioni: timestamp nella reactionsRow sopra */}
+      {!content?.trim() && hasReactions && null}
     </View>
   );
 
@@ -422,7 +462,7 @@ const createStyle = (theme) =>
       alignItems: "flex-end",
     },
     senderBubble: {
-      marginVertical: 4,
+      marginVertical: 5,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-end",
@@ -430,28 +470,32 @@ const createStyle = (theme) =>
     },
     senderBubbleChained: { borderBottomRightRadius: 4 },
     receiverBubble: {
-      marginVertical: 4,
+      marginVertical: 5,
       marginLeft: 65,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-start",
       overflow: "hidden",
     },
-    receiverBubbleWithAvatar: { marginLeft: 5, borderBottomLeftRadius: 4 },
+    receiverBubbleWithAvatar: { marginLeft: 5, borderBottomLeftRadius: 5 },
     textContainer: {
-      flexDirection: "column",
-      paddingHorizontal: 12,
-      paddingBottom: 8,
-      width: "100%",
+      position: "relative",
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+    },
+    timestampOverlay: {
+      position: "absolute",
+      bottom: 0,
+      right: 0,
     },
     mediaContainer: { flexDirection: "column", width: "100%" },
     replyTosContainer: {
-      marginBottom: 4,
+      marginBottom: 0,
     },
     textRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-      alignItems: "flex-end",
+      alignItems: "baseline",
       flexWrap: "wrap",
     },
     avatarWrapper: {
@@ -462,8 +506,8 @@ const createStyle = (theme) =>
       height: 45,
     },
     senderNameWrapper: {
-      paddingHorizontal: 12,
-      paddingTop: 8,
+      paddingHorizontal: 10,
+      paddingTop: 5,
       flexDirection: "row",
       justifyContent: "space-between",
     },
@@ -475,16 +519,25 @@ const createStyle = (theme) =>
       zIndex: 1,
       pointerEvents: "none",
     },
+    reactionsRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      flexWrap: "wrap",
+      gap: 5,
+    },
     reactionsContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
-      marginTop: 4,
-      gap: 4,
+      flex: 1,
+      gap: 5,
+      paddingHorizontal: 10,
+      paddingBottom: 10,
     },
     reactionPill: {
       backgroundColor: theme.backgroundSecondary || "rgba(255,255,255,0.1)",
       borderRadius: 12,
-      paddingHorizontal: 6,
+      paddingHorizontal: 5,
       paddingVertical: 2,
       borderWidth: 1,
       borderColor: "rgba(255,255,255,0.1)",
@@ -506,6 +559,7 @@ export default React.memo(
     prev.isSelected === next.isSelected &&
     prev.selectedMessage === next.selectedMessage &&
     prev.isHighlighted === next.isHighlighted &&
+    prev.repliedCount === next.repliedCount &&
     prev.isPinned === next.isPinned &&
     prev.isEdited === next.isEdited,
 );
