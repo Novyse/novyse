@@ -32,8 +32,9 @@ const getDeviceUUID = async () => {
  */
 
 const setLastUpdateTimestamp = async (timestamp) => {
-  await AsyncStorage.setItem("lastUpdateTimestamp", timestamp);
+  await AsyncStorage.setItem("lastUpdateTimestamp", String(timestamp));
 };
+
 
 /**
  * Get the last update timestamp from AsyncStorage.
@@ -89,8 +90,8 @@ const initializeApp = async () => {
     }
 
     // Set local user uuid in async storage
-    await AsyncStorage.setItem("userUUID", local.user.uuid);
-    await AsyncStorage.setItem("deviceUUID", local.device.uuid);
+    await AsyncStorage.setItem("userUUID", String(local.user.uuid));
+    await AsyncStorage.setItem("deviceUUID", String(local.device.uuid));
     await AsyncStorage.setItem("init", "false");
 
     return true;
@@ -191,7 +192,7 @@ const update = async () => {
       }
     }
 
-    await AsyncStorage.setItem("lastUpdateTimestamp", updated_at);
+    await AsyncStorage.setItem("lastUpdateTimestamp", String(updated_at));
 
     return true;
   }

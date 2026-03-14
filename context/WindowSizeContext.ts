@@ -71,7 +71,8 @@ const saveToStorage = async (state: WindowSizeState) => {
   }
 };
 
-// Start initialization immediately
-useWindowSizeStore.getState().init();
-
+// Start initialization immediately on the client
+if (typeof window !== "undefined") {
+  useWindowSizeStore.getState().init();
+}
 export default useWindowSizeStore;

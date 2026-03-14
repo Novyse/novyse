@@ -17,12 +17,14 @@ import database from "@/src/utils/storage/database";
 import ErrorPage from "@/src/components/pages/ErrorPage";
 
 function ProtectedContent() {
-  // Init and set database instance
   const db = useSQLiteContext();
-  database.setDb(db);
-
-  // Global event emitter receiver
   SetupGlobalEventReceiver();
+  // Init and set database instance & global event receiver
+  useEffect(() => {
+    if (db) {
+      database.setDb(db);
+    }
+  }, [db]);
 
   // Open SocketIO
   useEffect(() => {
@@ -61,7 +63,8 @@ export default function ProtectedLayout() {
     <SQLiteProvider
       databaseName="novyse"
       onError={(e) => {
-        setSqliteError(true);
+        // Defer state update to avoid "update during render" error
+        setTimeout(() => setSqliteError(true), 0);
       }}
     >
       <ProtectedContent />
