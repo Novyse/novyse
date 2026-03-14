@@ -1,7 +1,13 @@
-import React, { useState, useContext, useMemo, useEffect } from "react";
+import React, {
+  useState,
+  useContext,
+  useMemo,
+  useEffect,
+  useCallback,
+} from "react";
 import { View, StyleSheet, Text, useWindowDimensions } from "react-native";
 
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 
 import ChatContent from "@/src/components/chat/content/Chat";
 import Header from "@/src/components/chat/content/header";
@@ -49,6 +55,8 @@ const ChatPageRoute = () => {
   const { isSmallScreen } = useScreen();
 
   const [contentView, setContentView] = useState("chat");
+  const [selectedMessages, setSelectedMessages] = useState([]);
+  const [replyingTo, setReplyingTo] = useState([]);
 
   const [containerWidth, setContainerWidth] = useState(0);
   const { width } = useWindowDimensions();
@@ -149,7 +157,13 @@ const ChatPageRoute = () => {
             onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
           >
             <View style={{ flex: 1, height: "100%", minWidth: 350 }}>
-              <ChatContent replyNavigation={replyNavigation} />
+              <ChatContent
+                replyNavigation={replyNavigation}
+                selectedMessages={selectedMessages}
+                setSelectedMessages={setSelectedMessages}
+                replyingTo={replyingTo}
+                setReplyingTo={setReplyingTo}
+              />
             </View>
             <View
               style={{
@@ -181,7 +195,15 @@ const ChatPageRoute = () => {
         );
       case "chat":
       default:
-        return <ChatContent replyNavigation={replyNavigation} />;
+        return (
+          <ChatContent
+            replyNavigation={replyNavigation}
+            selectedMessages={selectedMessages}
+            setSelectedMessages={setSelectedMessages}
+            replyingTo={replyingTo}
+            setReplyingTo={setReplyingTo}
+          />
+        );
     }
   };
 
@@ -191,7 +213,12 @@ const ChatPageRoute = () => {
         chatUUIDorHandle={chatUUIDorHandle as string}
         contentView={contentView}
         setContentView={handleSetContentView}
+        selectedMessages={selectedMessages}
+        setSelectedMessages={setSelectedMessages}
         isSmallScreen={isSmallScreen}
+        onReply={() => {}}
+        onForward={() => {}}
+        onDelete={() => {}}
       />
       <View style={styles.contentWrapper}>{renderContent()}</View>
     </>

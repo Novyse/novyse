@@ -4,15 +4,15 @@ import { useScreen } from "@/context/ScreenContext";
 const useMessageGestures = (
   setTriggeredMessage,
   setTriggeredMessagePosition,
-  selectedMessage,
-  setSelectedMessage,
+  selectedMessages,
+  setSelectedMessages,
   replyToMessage,
   reactionToMessage,
 ) => {
   const { isSmallScreen } = useScreen();
   const platform = getPlatform();
 
-  const isSelectionMode = selectedMessage.length > 0;
+  const isSelectionMode = selectedMessages.length > 0;
 
   // Opens action menu
   const onMessageRightPress = async (event, message) => {
@@ -62,7 +62,7 @@ const useMessageGestures = (
 
   // Select message (desktop and mobile)
   const onMessageLongPress = async (event, message) => {
-    setSelectedMessage((prev) => {
+    setSelectedMessages((prev) => {
       if (prev.some((msg) => msg.id === message.id)) {
         return prev.filter((msg) => msg.id !== message.id);
       } else {

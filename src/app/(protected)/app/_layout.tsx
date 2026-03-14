@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, useWindowDimensions } from "react-native";
+import { View, Text, useWindowDimensions, StyleSheet } from "react-native";
 import { Slot, usePathname } from "expo-router";
 
 import { useThemeContext } from "@/context/ThemeContext";
@@ -141,7 +141,7 @@ export default function RootLayout() {
             zIndex: isDetailOpen ? 1 : -1,
           }}
         >
-          <Slot />
+          {isDetailOpen ? <Slot /> : null}
         </View>
       </View>
     );
@@ -186,7 +186,11 @@ export default function RootLayout() {
           }}
           {...resizerHandlers}
         />
-        <Slot />
+        {isDetailOpen ? <Slot /> : (
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "transparent" }}>
+            <Text style={{ fontSize: 18, color: "white" }}>Nothing selected.</Text>
+          </View>
+        )}
       </View>
     </View>
   );

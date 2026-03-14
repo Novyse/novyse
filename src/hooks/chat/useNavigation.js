@@ -2,14 +2,10 @@ import { router } from "expo-router";
 
 const useNavigation = () => {
   const navigateToChat = (chatUUID) => {
-    router.push({
-      pathname: `/app/chat/${chatUUID}`,
-    });
+    router.push(`/app/chat/${chatUUID}`);
   };
   const navigateToMessage = (chatUUID, messageID) => {
-    router.push({
-      pathname: `/app/chat/${chatUUID}/${messageID}`,
-    });
+    router.push(`/app/chat/${chatUUID}/${messageID}`);
   };
   const navigateToMessageWithHistory = (
     chatUUID,

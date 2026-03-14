@@ -6,6 +6,7 @@ import HeaderBase from "@/src/components/HeaderBase";
 import BlurredView from "@/src/components/BlurredView";
 
 import MainHeader from "./main";
+import SelectedHeader from "./SelectedHeader";
 import AudioHeader from "./audio";
 import PinnedMessageHeader from "./pinnedMessage";
 
@@ -18,7 +19,12 @@ const Header = ({
   chatUUIDorHandle,
   contentView,
   setContentView,
+  selectedMessages,
+  setSelectedMessages,
   isSmallScreen,
+  onReply,
+  onForward,
+  onDelete,
 }) => {
   const { theme } = useContext(ThemeContext);
   const insets = useSafeAreaInsets();
@@ -33,7 +39,7 @@ const Header = ({
     const chat = state.chats.find(
       (c) => c.uuid === chatUUIDorHandle || c.handle === chatUUIDorHandle,
     );
-    return chat?.pinnedMessages || [];
+    return chat?.pinnedMessages;
   });
 
   const { name, profilePictureUUID } = useChatMetadata(chatUUIDorHandle);
@@ -49,14 +55,28 @@ const Header = ({
         <BlurredView
           style={[styles.headerColumnContainer, { borderRadius: activeRadius }]}
         >
-          <MainHeader
-            chatUUIDorHandle={chatUUIDorHandle}
-            selectedChatName={name}
-            selectedChatPictureUUID={profilePictureUUID}
-            contentView={contentView}
-            setContentView={setContentView}
-            isSmallScreen={isSmallScreen}
-          />
+          {(!selectedMessages || selectedMessages.length === 0) && (
+            <MainHeader
+              chatUUIDorHandle={chatUUIDorHandle}
+              selectedChatName={name}
+              selectedChatPictureUUID={profilePictureUUID}
+              contentView={contentView}
+              setContentView={setContentView}
+              isSmallScreen={isSmallScreen}
+            />
+          )}
+          {selectedMessages && selectedMessages.length > 0 && (
+            <SelectedHeader
+              chatUUIDorHandle={chatUUIDorHandle}
+              selectedMessages={selectedMessages}
+              setSelectedMessages={setSelectedMessages}
+              isSmallScreen={isSmallScreen}
+              onReply={onReply}
+              onForward={onForward}
+              onDelete={onDelete}
+            />
+          )}
+
           {hasPinnedMessage && (
             <PinnedMessageHeader pinnedMessages={pinnedMessages} />
           )}

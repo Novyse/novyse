@@ -103,9 +103,7 @@ const Search = () => {
     <ItemSearch
       item={item}
       onPress={(handle) => {
-        router.push({
-          pathname: `/app/chat/${handle}` as any,
-        });
+        router.push(`/app/chat/${handle}` as any);
       }}
     />
   );
