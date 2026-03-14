@@ -1,13 +1,7 @@
-import React, {
-  useState,
-  useContext,
-  useMemo,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { useState, useContext, useMemo, useEffect } from "react";
 import { View, StyleSheet, Text, useWindowDimensions } from "react-native";
 
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 import ChatContent from "@/src/components/chat/content/Chat";
 import Header from "@/src/components/chat/content/header";
@@ -19,44 +13,35 @@ import { ThemeContext } from "@/context/ThemeContext";
 import useWindowSizeStore from "@/context/WindowSizeContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
+import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
+import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 
 const ChatPageRoute = () => {
   const params = useLocalSearchParams();
-  const { chatUUIDorHandle, messageID, oldChatUUID, oldMessageID, t } = params;
+  const { chatUUIDorHandle } = params;
 
   const {
     selectedChatUUID,
     setSelectedChatUUID,
     selectedHandle,
     setSelectedHandle,
-    jumpMessageID,
-    setJumpMessageID,
+    selectedMessages,
+    setSelectedMessages,
+    setReplyingTo,
+    setNewMessageText,
+    setEditingMessage,
   } = useContext(ChatContext);
 
-  // Use messageID from params or fallback to jumpMessageID from context
-  const effectiveMessageID = messageID || jumpMessageID;
-
-  const replyNavigation = {
-    chatUUID: chatUUIDorHandle,
-    messageID: effectiveMessageID,
-    oldChatUUID,
-    oldMessageID,
-    time: t,
-  };
-
-  // Clear jumpMessageID from context after it's been mapped to replyNavigation
-  useEffect(() => {
-    if (jumpMessageID) {
-      setJumpMessageID(null);
-    }
-  }, [jumpMessageID, setJumpMessageID]);
+  const { handleDeleteMessage } = useMessageHandlers(
+    setNewMessageText,
+    setEditingMessage,
+  );
 
   const { theme } = useContext(ThemeContext);
   const { isSmallScreen } = useScreen();
 
   const [contentView, setContentView] = useState("chat");
-  const [selectedMessages, setSelectedMessages] = useState([]);
-  const [replyingTo, setReplyingTo] = useState([]);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
   const [containerWidth, setContainerWidth] = useState(0);
   const { width } = useWindowDimensions();
@@ -135,6 +120,12 @@ const ChatPageRoute = () => {
     );
   }
 
+  const handleBulkReply = () => {
+    if (selectedMessages.length === 0) return;
+    setReplyingTo(selectedMessages.slice(-3));
+    setSelectedMessages([]);
+  };
+
   const handleSetContentView = (view) => {
     if (view === "both" && setDetailWidth) {
       const cw = containerWidth || width;
@@ -157,13 +148,7 @@ const ChatPageRoute = () => {
             onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
           >
             <View style={{ flex: 1, height: "100%", minWidth: 350 }}>
-              <ChatContent
-                replyNavigation={replyNavigation}
-                selectedMessages={selectedMessages}
-                setSelectedMessages={setSelectedMessages}
-                replyingTo={replyingTo}
-                setReplyingTo={setReplyingTo}
-              />
+              <ChatContent />
             </View>
             <View
               style={{
@@ -195,15 +180,7 @@ const ChatPageRoute = () => {
         );
       case "chat":
       default:
-        return (
-          <ChatContent
-            replyNavigation={replyNavigation}
-            selectedMessages={selectedMessages}
-            setSelectedMessages={setSelectedMessages}
-            replyingTo={replyingTo}
-            setReplyingTo={setReplyingTo}
-          />
-        );
+        return <ChatContent />;
     }
   };
 
@@ -215,12 +192,27 @@ const ChatPageRoute = () => {
         setContentView={handleSetContentView}
         selectedMessages={selectedMessages}
         setSelectedMessages={setSelectedMessages}
+        onBack={() => router.push("/app")}
         isSmallScreen={isSmallScreen}
-        onReply={() => {}}
+        onReply={handleBulkReply}
         onForward={() => {}}
-        onDelete={() => {}}
+        onDelete={() => {
+          setDeleteModalVisible(true);
+        }}
       />
       <View style={styles.contentWrapper}>{renderContent()}</View>
+      <DeleteMessageModal
+        visible={deleteModalVisible}
+        onClose={() => setDeleteModalVisible(false)}
+        onDelete={() => {
+          selectedMessages.forEach((msg: any) => handleDeleteMessage(msg.id));
+          setSelectedMessages([]);
+          setDeleteModalVisible(false);
+        }}
+        messageCount={selectedMessages.length}
+        fullscreen={false}
+        theme={theme}
+      />
     </>
   );
 };

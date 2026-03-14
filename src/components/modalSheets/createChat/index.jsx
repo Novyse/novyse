@@ -20,6 +20,7 @@ import HoverAndPressedButton from "../../HoverAndPressedButton";
 import { router } from "expo-router";
 
 import { ThemeContext } from "@/context/ThemeContext";
+import { ChatContext } from "@/context/ActiveChatContext";
 
 import ModalBase from "../ModalBase";
 import BottomSheetBase from "../BottomSheetBase";
@@ -33,6 +34,7 @@ import { validate } from "@/src/utils/welcome/validator";
 
 const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
   const { theme } = useContext(ThemeContext);
+  const { setSelectedChatUUID } = useContext(ChatContext);
   const { width } = useWindowDimensions();
   const isNarrow = width <= 360;
   const isMobile = Platform.OS !== "web";
@@ -191,7 +193,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
       // Notify other parts of the app about the new chat
       await eventEmitter.newChat(chat);
       // Navigate to the newly created chat
-      router.push(`/app/chat/${chat.uuid}`);
+      setSelectedChatUUID(chat.uuid);
     } else {
       console.error("Error during chat creation");
     }

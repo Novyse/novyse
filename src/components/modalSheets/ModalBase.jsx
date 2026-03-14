@@ -12,9 +12,11 @@ const ModalBase = ({
   theme,
   hideCloseX = false,
   scrollable = true,
+  fullscreen = true,
 }) => {
   const { isSmallScreen } = useScreen();
-  const styles = createStyle(theme, isSmallScreen);
+  const shouldUseFullscreen = fullscreen && isSmallScreen;
+  const styles = createStyle(theme, isSmallScreen, shouldUseFullscreen);
 
   const ContainerComponent = isSmallScreen ? View : BlurredView;
   const containerProps = isSmallScreen ? {} : { intensity: 40 };
@@ -65,7 +67,7 @@ const ModalBase = ({
   );
 };
 
-function createStyle(theme, isSmallScreen) {
+function createStyle(theme, isSmallScreen, shouldUseFullscreen) {
   return StyleSheet.create({
     overlay: {
       flex: 1,
@@ -75,7 +77,7 @@ function createStyle(theme, isSmallScreen) {
     },
     container: {
       backgroundColor: isSmallScreen ? theme.backgroundModal : undefined,
-      borderRadius: isSmallScreen ? 0 : 15,
+      borderRadius: shouldUseFullscreen ? 0 : 15,
       shadowColor: theme.shadowColor,
       shadowOffset: {
         width: 0,
@@ -84,11 +86,11 @@ function createStyle(theme, isSmallScreen) {
       shadowOpacity: 0.25,
       shadowRadius: 4,
       elevation: 5,
-      width: isSmallScreen ? "100%" : "auto",
-      height: isSmallScreen ? "100%" : "auto",
-      maxWidth: isSmallScreen ? "100%" : "90%",
-      maxHeight: isSmallScreen ? "100%" : "90%",
-      marginHorizontal: isSmallScreen ? 0 : 10,
+      width: shouldUseFullscreen ? "100%" : "auto",
+      height: shouldUseFullscreen ? "100%" : "auto",
+      maxWidth: shouldUseFullscreen ? "100%" : "90%",
+      maxHeight: shouldUseFullscreen ? "100%" : "90%",
+      marginHorizontal: shouldUseFullscreen ? 0 : 10,
     },
     scrollView: {
       maxHeight: "100%",

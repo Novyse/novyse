@@ -18,6 +18,7 @@ import * as Haptics from "expo-haptics";
 import { useThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 import useChatStore from "@/context/ChatContext";
+import useUserStore from "@/context/UserContext"; 
 import Icon from "../Icon";
 
 import useMessageGestures from "@/src/hooks/chat/useMessageGestures";
@@ -36,6 +37,8 @@ import MessageAudio from "./MessageAudio";
 import MessageVoice from "./MessageVoice";
 import MessageReply from "./MessageReply";
 import MessageTimestamp from "./MessageTimestamp";
+
+const { getUser } = useUserStore.getState();
 
 const REPLY_THRESHOLD = 60;
 const MAX_SWIPE_DISTANCE = 90;
@@ -135,7 +138,12 @@ const rightActionStyles = StyleSheet.create({
   },
 });
 
-const MessageReplyWrapper = ({ replyTo, oldChatUUID, oldMessageID }) => {
+const MessageReplyWrapper = ({
+  replyTo,
+  oldChatUUID,
+  oldMessageID,
+  navigateToMessageWithHistory,
+}) => {
   const chatStore = useChatStore();
   const replyMessage = chatStore.getMessage(
     replyTo?.chatUUID,
@@ -143,15 +151,18 @@ const MessageReplyWrapper = ({ replyTo, oldChatUUID, oldMessageID }) => {
   );
 
   if (!replyMessage) return null;
+  
+  const senderName = getUser(replyMessage.senderUUID)?.name || "Unknown User";
 
   return (
     <MessageReply
-      senderName={replyMessage.sender_name}
+      senderName={senderName}
       text={replyMessage.content}
       chatUUID={replyTo?.chatUUID}
       messageID={replyTo?.messageID}
       oldChatUUID={oldChatUUID}
       oldMessageID={oldMessageID}
+      navigateToMessageWithHistory={navigateToMessageWithHistory}
     />
   );
 };
@@ -170,6 +181,7 @@ const MessageBase = ({
   setSelectedMessages,
   onReply,
   onReaction,
+  navigateToMessageWithHistory,
 }) => {
   const { theme } = useThemeContext();
   const { isSmallScreen } = useScreen();
@@ -195,7 +207,6 @@ const MessageBase = ({
     created_at,
     showSenderName,
     showAvatar,
-    sender_name,
     files = [],
     replyTos,
   } = message;
@@ -259,6 +270,7 @@ const MessageBase = ({
               replyTo={reply}
               oldChatUUID={message.chatUUID}
               oldMessageID={message.id}
+              navigateToMessageWithHistory={navigateToMessageWithHistory}
             />
           ))}
         </View>
@@ -386,7 +398,7 @@ const MessageBase = ({
     >
       {!isSender && showAvatar && (
         <View style={styles.avatarWrapper}>
-          <Avatar size={45} uuid={message.profile_picture_uuid} />
+          <Avatar size={45} uuid={getUser(message.senderUUID)?.profilePictureUUID} />
         </View>
       )}
       <BlurredView isBorderActive={false} style={blurredViewStyles}>
@@ -394,7 +406,7 @@ const MessageBase = ({
           <View style={styles.senderNameWrapper}>
             {showSenderName && (
               <Text style={styles.senderName} numberOfLines={1}>
-                {sender_name}
+                {getUser(message.senderUUID)?.name || "Unknown User"}
               </Text>
             )}
             {getPlatform() !== "mobile" && (

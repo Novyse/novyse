@@ -13,12 +13,11 @@ const MainHeader = ({
   selectedChatPictureUUID,
   contentView,
   setContentView,
+  onBack = () => router.back(),
   isSmallScreen,
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-
-  const onBack = () => router.back();
 
   return (
     <View style={styles.headerMainRow}>

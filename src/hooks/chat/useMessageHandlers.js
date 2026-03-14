@@ -1,4 +1,7 @@
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
+
+import { ChatContext } from "@/context/ActiveChatContext";
+import { useLocalUserContext } from "@/context/LocalUserContext";
 
 import queueManager from "@/src/utils/chat/queueManager.js";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -6,23 +9,20 @@ import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
 
 import { defaultMimeType } from "@/src/utils/storage/file/type.js";
 
-const useMessageHandlers = (
-  chat,
-  myUUID,
-  setNewMessageText,
-  setEditingMessage,
-  setIsMicClicked,
-) => {
+const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
+  const { selectedChatUUID: chatUUID } = useContext(ChatContext);
+  const { userUUID: myUUID } = useLocalUserContext();
+
   const handleSendMessage = useCallback(
     async (type = "message", content, files = [], replyTos = []) => {
       // no content and files, so nothing happens
       if (content.trim() === "" && files.length === 0) return;
 
       /*
-      // If chat is pending creation, remove chat.uuid and put it as job uuid
+      // If chat is pending creation, remove chatUUID and put it as job uuid
       if (chat.pendingCreation){
-        const id = chat.uuid;
-        chat.uuid = null;
+        const id = chatUUID;
+        chatUUID = null;
         await queueManager.addOutgoingMessageJob(message,chat,id);
         return;
       }
@@ -35,46 +35,49 @@ const useMessageHandlers = (
         files,
       };
 
+      const chat = {
+        uuid: chatUUID,
+      };
+
       await queueManager.addOutgoingMessageJob(message, chat);
 
       setNewMessageText("");
-      setIsMicClicked(false);
     },
-    [chat, setNewMessageText, setIsMicClicked, myUUID],
+    [chatUUID, myUUID, setNewMessageText],
   );
 
   const handlePinMessage = useCallback(
     async (messageID) => {
-      const response = await gateway.message.pin.add(chat.uuid, messageID);
+      const response = await gateway.message.pin.add(chatUUID, messageID);
       if (response.success) {
-        await eventEmitter.message.update(chat.uuid, messageID, "pin_add", {
+        await eventEmitter.message.update(chatUUID, messageID, "pin_add", {
           pinned_at: response.pinned_at,
           userUUID: myUUID,
         });
       }
     },
-    [chat],
+    [chatUUID, myUUID],
   );
 
   const handleUnpinMessage = useCallback(
     async (messageID) => {
-      const response = await gateway.message.pin.remove(chat.uuid, messageID);
+      const response = await gateway.message.pin.remove(chatUUID, messageID);
       if (response.success) {
-        await eventEmitter.message.update(chat.uuid, messageID, "pin_remove");
+        await eventEmitter.message.update(chatUUID, messageID, "pin_remove");
       }
     },
-    [chat],
+    [chatUUID],
   );
 
   const handleDeleteMessage = useCallback(
     async (messageID) => {
-      console.log(messageID, chat.uuid);
-      const response = await gateway.message.delete(chat.uuid, messageID);
+      console.log(messageID, chatUUID);
+      const response = await gateway.message.delete(chatUUID, messageID);
       if (response.success) {
-        await eventEmitter.message.update(chat.uuid, messageID, "delete");
+        await eventEmitter.message.update(chatUUID, messageID, "delete");
       }
     },
-    [chat],
+    [chatUUID],
   );
 
   const handlePausePendingMessage = useCallback(async (messageID) => {
@@ -85,7 +88,7 @@ const useMessageHandlers = (
     async (messageID, content) => {
       const success = queueManager.resumeAndModifyJob(messageID, content);
       if (success) {
-        await eventEmitter.message.update(chat.uuid, messageID, "edit", {
+        await eventEmitter.message.update(chatUUID, messageID, "edit", {
           content,
           pendingEditJobId: null,
         });
@@ -94,7 +97,7 @@ const useMessageHandlers = (
       }
       return success;
     },
-    [chat.uuid, setEditingMessage, setNewMessageText],
+    [chatUUID, setEditingMessage, setNewMessageText],
   );
 
   const handleEditMessage = useCallback(
@@ -110,7 +113,7 @@ const useMessageHandlers = (
         "PENDING_MODIFY",
       );
 
-      await eventEmitter.message.update(chat.uuid, messageID, "edit", {
+      await eventEmitter.message.update(chatUUID, messageID, "edit", {
         content,
         pendingEditJobId: jobId,
       });
@@ -118,17 +121,17 @@ const useMessageHandlers = (
       setEditingMessage(null);
       setNewMessageText("");
     },
-    [chat, setEditingMessage, setNewMessageText],
+    [chatUUID, setEditingMessage, setNewMessageText],
   );
 
   const handleCancelJob = useCallback(
     async (message) => {
       const jobId = message.internal ? message.id : message.pendingEditJobId;
       if (jobId) {
-        await queueManager.cancelJob(jobId, chat.uuid);
+        await queueManager.cancelJob(jobId, chatUUID);
       }
     },
-    [chat],
+    [chatUUID],
   );
 
   const handleReaction = useCallback(
@@ -140,13 +143,13 @@ const useMessageHandlers = (
 
       if (hasReacted) {
         const success = await gateway.message.reaction.remove(
-          chat.uuid,
+          chatUUID,
           message.id,
           emoji,
         );
         if (success) {
           await eventEmitter.message.update(
-            chat.uuid,
+            chatUUID,
             message.id,
             "reaction_remove",
             { userUUID: myUUID, reaction: emoji },
@@ -154,13 +157,13 @@ const useMessageHandlers = (
         }
       } else {
         const response = await gateway.message.reaction.add(
-          chat.uuid,
+          chatUUID,
           message.id,
           emoji,
         );
         if (response.success) {
           await eventEmitter.message.update(
-            chat.uuid,
+            chatUUID,
             message.id,
             "reaction_add",
             { userUUID: myUUID, reaction: emoji, at: response.at },
@@ -168,7 +171,7 @@ const useMessageHandlers = (
         }
       }
     },
-    [chat, myUUID],
+    [chatUUID, myUUID],
   );
 
   const handleSendFileMessage = useCallback(

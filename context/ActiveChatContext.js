@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
+import { router } from "expo-router";
 
 import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 import auth from "@/src/utils/welcome/auth";
@@ -8,11 +9,12 @@ export const ChatContext = createContext();
 export const ChatProvider = ({ children }) => {
   const [selectedChatUUID, setSelectedChatUUID] = useState(null);
   const [selectedHandle, setSelectedHandle] = useState(null);
-  const [selectedChatName, setSelectedChatName] = useState(null);
-  const [selectedChatPictureUUID, setSelectedChatPictureUUID] = useState(null);
-
   const [selectedSub, setSelectedSub] = useState(0);
-  const [jumpMessageID, setJumpMessageID] = useState(null);
+
+  const [newMessageText, setNewMessageText] = useState("");
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [selectedMessages, setSelectedMessages] = useState([]);
+  const [replyingTo, setReplyingTo] = useState([]);
 
   useEffect(() => {
     const handleNewChat = async (chat) => {
@@ -39,6 +41,14 @@ export const ChatProvider = ({ children }) => {
     };
   }, [selectedChatUUID, selectedHandle]);
 
+  useEffect(() => {
+    if (selectedChatUUID) {
+      router.push(`/app/chat/${selectedChatUUID}`);
+    } else if (selectedHandle) {
+      router.push(`/app/chat/${selectedHandle}`);
+    }
+  }, [selectedChatUUID, selectedHandle]);
+
   return (
     <ChatContext.Provider
       value={{
@@ -46,14 +56,16 @@ export const ChatProvider = ({ children }) => {
         setSelectedChatUUID,
         selectedHandle,
         setSelectedHandle,
-        selectedChatName,
-        setSelectedChatName,
-        selectedChatPictureUUID,
-        setSelectedChatPictureUUID,
         selectedSub,
         setSelectedSub,
-        jumpMessageID,
-        setJumpMessageID,
+        newMessageText,
+        setNewMessageText,
+        editingMessage,
+        setEditingMessage,
+        selectedMessages,
+        setSelectedMessages,
+        replyingTo,
+        setReplyingTo,
       }}
     >
       {children}

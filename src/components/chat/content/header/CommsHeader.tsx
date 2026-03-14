@@ -10,6 +10,7 @@ import Icon from "@/src/components/Icon";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import { useCommsContext } from "@/context/CommsContext";
+import { ChatContext } from "@/context/ActiveChatContext";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 
@@ -26,6 +27,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const { room, isSpeakingMap } = useCommsContext();
+  const { setSelectedChatUUID } = useContext(ChatContext);
   const styles = createStyle(theme, connected);
 
   const localIdentity = room?.localParticipant?.identity;
@@ -53,7 +55,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
   } = useCommsAction(chatUUID, sub);
 
   const handlePress = () => {
-    router.push(`/app/chat/${chatUUID}`);
+    setSelectedChatUUID(chatUUID);
   };
 
   return (

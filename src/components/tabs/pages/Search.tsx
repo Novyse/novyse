@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useThemeContext } from "@/context/ThemeContext";
+import { ChatContext } from "@/context/ActiveChatContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import Icon from "@/src/components/Icon";
@@ -30,6 +31,7 @@ interface SearchResult {
 
 const Search = () => {
   const { theme } = useThemeContext();
+  const { setSelectedChatUUID } = useContext(ChatContext);
   const intets = useSafeAreaInsets();
   const styles = createStyle(theme, intets);
 
@@ -103,7 +105,7 @@ const Search = () => {
     <ItemSearch
       item={item}
       onPress={(handle) => {
-        router.push(`/app/chat/${handle}` as any);
+        setSelectedHandle(handle);
       }}
     />
   );

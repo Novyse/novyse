@@ -28,7 +28,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
   };
 
   const selectedCount = selectedMessages.length;
-  const canReply = selectedCount > 0 && selectedCount <= 5;
+  const canReply = selectedCount > 0 && selectedCount <= 3;
 
   return (
     <View style={styles.headerMainRow}>
@@ -44,11 +44,13 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
       </View>
 
       <View style={styles.headerRight}>
-        <Icon
-          name="ArrowMoveUpLeftIcon"
-          style={[styles.iconButton, !canReply && styles.disabledIcon]}
-          onPress={canReply ? onReply : undefined}
-        />
+        {canReply && (
+          <Icon
+            name="ArrowMoveUpLeftIcon"
+            style={[styles.iconButton]}
+            onPress={onReply}
+          />
+        )}
         <Icon
           name="LinkForwardIcon"
           style={styles.iconButton}
@@ -93,9 +95,6 @@ function createStyle(theme: any) {
       height: ICON_SIZE,
       justifyContent: "center",
       alignItems: "center",
-    },
-    disabledIcon: {
-      opacity: 0.3,
     },
     chatTitle: {
       fontSize: 16,
