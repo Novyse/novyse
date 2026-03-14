@@ -10,8 +10,6 @@ import SmoothSlider from "@/src/components/SmoothSlider";
 import { ThemeContext } from "@/context/ThemeContext";
 import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 
-import useNavigation from "@/src/hooks/chat/useNavigation";
-
 const AudioHeader = ({}) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -30,14 +28,13 @@ const AudioHeader = ({}) => {
     removeAudio,
   } = useContext(AudioPlayerContext);
 
-  const { navigateToMessage } = useNavigation();
-
   const isValidDuration = duration && Number.isFinite(duration) && duration > 0;
   const safeDuration = isValidDuration ? duration : 0;
 
   return (
+    // da gestire un eventuale evento per navigare allo specifico messaggio @SamueleOrazioDurante
     <Pressable
-      onPress={() => navigateToMessage(audioInfo.chatUUID, audioInfo.messageID)}
+      onPress={() => {}}
       style={styles.container}
     >
       <View style={{ flexDirection: "row" }}>
@@ -55,12 +52,11 @@ const AudioHeader = ({}) => {
                 style={styles.subtitleText}
                 selectable={false}
                 // numberOfLines={1}
-                
               >
                 {audioInfo.senderName} |{" "}
                 {DateTime.fromJSDate(new Date(audioInfo.timestamp)).isValid
                   ? DateTime.fromJSDate(new Date(audioInfo.timestamp)).toFormat(
-                      "yyyy-MM-dd HH:mm"
+                      "yyyy-MM-dd HH:mm",
                     )
                   : audioInfo.timestamp}
               </Text>

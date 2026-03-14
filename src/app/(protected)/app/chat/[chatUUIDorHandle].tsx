@@ -22,34 +22,14 @@ import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 
 const ChatPageRoute = () => {
   const params = useLocalSearchParams();
-  const { chatUUIDorHandle, messageID, oldChatUUID, oldMessageID, t } = params;
+  const { chatUUIDorHandle} = params;
 
   const {
     selectedChatUUID,
     setSelectedChatUUID,
     selectedHandle,
     setSelectedHandle,
-    jumpMessageID,
-    setJumpMessageID,
   } = useContext(ChatContext);
-
-  // Use messageID from params or fallback to jumpMessageID from context
-  const effectiveMessageID = messageID || jumpMessageID;
-
-  const replyNavigation = {
-    chatUUID: chatUUIDorHandle,
-    messageID: effectiveMessageID,
-    oldChatUUID,
-    oldMessageID,
-    time: t,
-  };
-
-  // Clear jumpMessageID from context after it's been mapped to replyNavigation
-  useEffect(() => {
-    if (jumpMessageID) {
-      setJumpMessageID(null);
-    }
-  }, [jumpMessageID, setJumpMessageID]);
 
   const { theme } = useContext(ThemeContext);
   const { isSmallScreen } = useScreen();
@@ -158,7 +138,6 @@ const ChatPageRoute = () => {
           >
             <View style={{ flex: 1, height: "100%", minWidth: 350 }}>
               <ChatContent
-                replyNavigation={replyNavigation}
                 selectedMessages={selectedMessages}
                 setSelectedMessages={setSelectedMessages}
                 replyingTo={replyingTo}
@@ -197,7 +176,6 @@ const ChatPageRoute = () => {
       default:
         return (
           <ChatContent
-            replyNavigation={replyNavigation}
             selectedMessages={selectedMessages}
             setSelectedMessages={setSelectedMessages}
             replyingTo={replyingTo}

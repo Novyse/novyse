@@ -29,16 +29,15 @@ import useSelection from "@/src/hooks/useSelection";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 import { useCommsContext } from "@/context/CommsContext";
+import { ChatContext } from "@/context/ActiveChatContext";
 
-import useNavigation from "@/src/hooks/chat/useNavigation";
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 
 const ChatList = () => {
-  const { navigateToChat } = useNavigation();
+  const { setSelectedChatUUID, selectedChatUUID } = useContext(ChatContext);
 
   const onChatSelect = (chatUUIDorHandle: String) => {
-    setActiveChatUUID(chatUUIDorHandle as string);
-    navigateToChat(chatUUIDorHandle);
+    setSelectedChatUUID(chatUUIDorHandle as string);
   };
 
   const chats = useChatStore((state) => state.chats);
@@ -62,7 +61,6 @@ const ChatList = () => {
   } = useSelection<string>();
 
   const [orderedChats, setOrderedChats] = useState<any[]>([]);
-  const [activeChatUUID, setActiveChatUUID] = useState("");
 
   const [isCreateChatModalVisible, setIsCreateChatModalVisible] =
     useState(false);
@@ -179,7 +177,7 @@ const ChatList = () => {
       <ChatListItem
         item={item}
         isSelected={selectedItems.includes(item.uuid)}
-        isActive={item.uuid === activeChatUUID && !isSmallScreen}
+        isActive={item.uuid === selectedChatUUID && !isSmallScreen}
         isPinned={isPinned}
         unreadCount={item.unreadCount}
         onPress={handlePress}

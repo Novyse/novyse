@@ -32,7 +32,6 @@ import UploadFileModal from "@/src/components/modalSheets/uploadFile";
 import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
 
 const ChatContent = ({
-  replyNavigation,
   selectedMessages,
   setSelectedMessages,
   replyingTo,
@@ -336,7 +335,6 @@ const ChatContent = ({
         <View style={StyleSheet.absoluteFill}>
           <MessageList
             ref={flatListRef}
-            replyNavigation={replyNavigation}
             preparedMessages={preparedMessages}
             editedMessages={editedMessages}
             pinnedMessages={pinnedMessages}
