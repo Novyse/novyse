@@ -18,20 +18,19 @@ class GlobalEventEmitter {
     if (!message.fromSubscription) {
       await messageUtils.add(message);
     }
-    const msg = await database.addSenderNameToMessage(message);
 
-    if (!msg.localUser) {
-      await notificationManager.sendNotificationWhenInBackground(
-        msg.sender_name,
-        msg.content,
-        {
-          chatUUID: msg.chatUUID,
-          messageID: msg.id,
-        },
-      );
-    }
+    // if (!msg.localUser) {
+    //   await notificationManager.sendNotificationWhenInBackground(
+    //     msg.sender_name,
+    //     msg.content,
+    //     {
+    //       chatUUID: msg.chatUUID,
+    //       messageID: msg.id,
+    //     },
+    //   );
+    // }
     //@SamueleOrazioDurante to be changes, devi usare un metodo che vada a carcare nel database, eventualmente lo vada a pullare dal server, ma solo temporaneamente (il pull completo viene fatto al join)
-    this.eventEmitter.emit("message:new", msg);
+    this.eventEmitter.emit("message:new", message);
   }
 
   async newChat(chat, messages = []) {

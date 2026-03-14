@@ -57,8 +57,36 @@ const useChatStore = create<ChatState>((set, get) => ({
   },
 
   loadChats: async () => {
-    const chats = await database.chat.get.all();
-    set({ chats });
+    const fetchedChats = await database.chat.get.all();
+    set((state) => {
+      const mergedChats = fetchedChats.map((fetchedChat: any) => {
+        const existingChat = state.chats.find(
+          (c) => c.uuid === fetchedChat.uuid,
+        );
+
+        const existingMessagesLen = existingChat?.messages?.length || 0;
+        const fetchedMessagesLen = fetchedChat?.messages?.length || 0;
+
+        if (
+          existingChat &&
+          (state.historyLoaded[fetchedChat.uuid] ||
+            state.loadingMessages[fetchedChat.uuid] ||
+            existingMessagesLen > fetchedMessagesLen)
+        ) {
+          return {
+            ...fetchedChat,
+            messages: existingChat.messages || fetchedChat.messages,
+            members: existingChat.members || fetchedChat.members,
+          };
+        }
+        return fetchedChat;
+      });
+
+      const fetchedIds = new Set(mergedChats.map((c: any) => c.uuid));
+      const memoryChats = state.chats.filter((c) => !fetchedIds.has(c.uuid));
+
+      return { chats: [...mergedChats, ...memoryChats] };
+    });
     get().setupEvents();
   },
 
