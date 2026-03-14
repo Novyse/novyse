@@ -185,7 +185,7 @@ const MessageBase = ({
 }) => {
   const { theme } = useThemeContext();
   const { isSmallScreen } = useScreen();
-  const styles = createStyle(theme);
+  
 
   const {
     onMessageRightPress,
@@ -213,6 +213,7 @@ const MessageBase = ({
 
   const chat = chatStore.chats.find((c) => c.uuid === message.chatUUID);
   const chatType = chat?.type || "GROUP";
+  const styles = createStyle(theme, chatType);
 
   const highlightOpacity = useSharedValue(0);
 
@@ -415,11 +416,6 @@ const MessageBase = ({
                 {getUser(message.senderUUID)?.name || "Unknown User"}
               </Text>
             )}
-            {getPlatform() !== "mobile" && (
-              <Text style={styles.replyText} onPress={() => onReply(message)}>
-                Reply
-              </Text>
-            )}
           </View>
         )}
         {sharedContent}
@@ -470,7 +466,7 @@ const MessageBase = ({
   );
 };
 
-const createStyle = (theme) =>
+const createStyle = (theme, chatType) =>
   StyleSheet.create({
     container: { width: "100%", position: "relative" },
     pressable: { width: "100%", paddingHorizontal: 10 },
@@ -489,7 +485,7 @@ const createStyle = (theme) =>
     senderBubbleChained: { borderBottomRightRadius: 4 },
     receiverBubble: {
       marginVertical: 5,
-      marginLeft: 65,
+      marginLeft: chatType === "DM" ? 10: 65,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-start",
