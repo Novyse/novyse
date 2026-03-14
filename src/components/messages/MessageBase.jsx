@@ -111,8 +111,6 @@ const RightAction = ({ dragX, theme }) => {
             strokeDasharray={CIRCUMFERENCE}
             animatedProps={animatedCircleProps}
             strokeLinecap="round"
-            rotation="-90"
-            origin={`${CIRCLE_SIZE / 2}, ${CIRCLE_SIZE / 2}`}
           />
         </Svg>
         <Icon name="ArrowMoveUpLeftIcon" size={18} color={theme.text} />
