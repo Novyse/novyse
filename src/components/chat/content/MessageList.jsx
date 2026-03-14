@@ -12,7 +12,6 @@ import useMessageActions from "@/src/hooks/chat/useMessageActions";
 
 const MessageList = ({
   ref: flatListRef,
-  replyNavigation,
   preparedMessages,
   editedMessages,
   pinnedMessages,
@@ -35,40 +34,35 @@ const MessageList = ({
   const styles = createStyle(theme, insets);
 
   const [highlightedID, setHighlightedID] = useState(null);
+  const [historyStack, setHistoryStack] = useState([]);
 
-  useEffect(() => {
-    if (
-      replyNavigation &&
-      replyNavigation.messageID &&
-      preparedMessages.length > 0
-    ) {
-      const { messageID, time } = replyNavigation;
+  const navigateToMessageWithHistory = useCallback(
+    (chatUUID, messageID, oldChatUUID, oldMessageID) => {
       const index = preparedMessages.findIndex(
         (m) =>
-          m.type !== "separator" && String(m.data?.id) === String(messageID),
+          m.type !== "separator" &&
+          String(m.data?.id) === String(messageID) &&
+          String(m.data?.chatUUID) === String(chatUUID),
       );
 
       if (index !== -1) {
+        if (oldMessageID) {
+          setHistoryStack((prev) => [...prev, oldMessageID]);
+        }
+        
         setHighlightedID(messageID);
+        flatListRef.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.5,
+        });
 
-        // Clear highlight after 3 seconds
-        const hTimer = setTimeout(() => setHighlightedID(null), 3000);
-
-        const scrollTimer = setTimeout(() => {
-          flatListRef.current?.scrollToIndex({
-            index,
-            animated: true,
-            viewPosition: 0.5,
-          });
-        }, 300);
-
-        return () => {
-          clearTimeout(hTimer);
-          clearTimeout(scrollTimer);
-        };
+        // Autoclear highlight after a short delay
+        setTimeout(() => setHighlightedID(null), 2000);
       }
-    }
-  }, [replyNavigation, preparedMessages, flatListRef]);
+    },
+    [preparedMessages, flatListRef]
+  );
 
   const {
     triggeredMessage,
@@ -103,6 +97,11 @@ const MessageList = ({
     const distanceToBottom =
       contentSize.height - layoutMeasurement.height - contentOffset.y;
     setShowScrollButton(distanceToBottom > 200); // Only show when scrolling up significantly
+    
+    // Se l'utente scrolla manualmente fino in fondo spezziamo la history 
+    if (distanceToBottom < 20) {
+      setHistoryStack([]);
+    }
   }, []);
 
   const renderMessageItem = useCallback(
@@ -132,6 +131,7 @@ const MessageList = ({
             setTriggeredMessagePosition={setTriggeredMessagePosition}
             selectedMessages={selectedMessages}
             setSelectedMessages={setSelectedMessages}
+            navigateToMessageWithHistory={navigateToMessageWithHistory}
           />
         );
       }
@@ -151,39 +151,30 @@ const MessageList = ({
       setSelectedMessages,
     ],
   );
-  const [isJumpBackMode, setIsJumpBackMode] = useState(false);
-
-  useEffect(() => {
-    if (replyNavigation?.oldMessageID) {
-      setIsJumpBackMode(true);
-      // Mode stays for a while after the jump
-      const timer = setTimeout(() => setIsJumpBackMode(false), 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [replyNavigation]);
 
   const handleScrollButton = useCallback(() => {
-    if (isJumpBackMode && replyNavigation?.oldMessageID) {
+    if (historyStack.length > 0) {
+      const lastHistoryId = historyStack[historyStack.length - 1];
       const index = preparedMessages.findIndex(
-        (m) =>
-          m.type !== "separator" &&
-          String(m.data?.id) === String(replyNavigation.oldMessageID),
+        (m) => m.type !== "separator" && String(m.data?.id) === String(lastHistoryId)
       );
 
       if (index !== -1) {
-        setHighlightedID(replyNavigation.oldMessageID);
         flatListRef.current?.scrollToIndex({
           index,
           animated: true,
           viewPosition: 0.5,
         });
-        setIsJumpBackMode(false);
-        return;
+        setHighlightedID(lastHistoryId);
+        setTimeout(() => setHighlightedID(null), 2000);
       }
+      
+      setHistoryStack((prev) => prev.slice(0, -1));
+    } else {
+      // Default scroll to bottom
+      flatListRef.current?.scrollToEnd({ animated: true });
     }
-    // Default scroll to bottom
-    flatListRef.current?.scrollToEnd({ animated: true });
-  }, [isJumpBackMode, replyNavigation, preparedMessages, flatListRef]);
+  }, [flatListRef, historyStack, preparedMessages]);
 
   return (
     <>

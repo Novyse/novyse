@@ -135,7 +135,12 @@ const rightActionStyles = StyleSheet.create({
   },
 });
 
-const MessageReplyWrapper = ({ replyTo, oldChatUUID, oldMessageID }) => {
+const MessageReplyWrapper = ({
+  replyTo,
+  oldChatUUID,
+  oldMessageID,
+  navigateToMessageWithHistory,
+}) => {
   const chatStore = useChatStore();
   const replyMessage = chatStore.getMessage(
     replyTo?.chatUUID,
@@ -152,6 +157,7 @@ const MessageReplyWrapper = ({ replyTo, oldChatUUID, oldMessageID }) => {
       messageID={replyTo?.messageID}
       oldChatUUID={oldChatUUID}
       oldMessageID={oldMessageID}
+      navigateToMessageWithHistory={navigateToMessageWithHistory}
     />
   );
 };
@@ -170,6 +176,7 @@ const MessageBase = ({
   setSelectedMessages,
   onReply,
   onReaction,
+  navigateToMessageWithHistory,
 }) => {
   const { theme } = useThemeContext();
   const { isSmallScreen } = useScreen();
@@ -259,6 +266,7 @@ const MessageBase = ({
               replyTo={reply}
               oldChatUUID={message.chatUUID}
               oldMessageID={message.id}
+              navigateToMessageWithHistory={navigateToMessageWithHistory}
             />
           ))}
         </View>

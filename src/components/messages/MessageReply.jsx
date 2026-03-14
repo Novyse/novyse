@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useThemeContext } from "@/context/ThemeContext";
-import useNavigation from "@/src/hooks/chat/useNavigation";
 
 const MessageReply = ({
   senderName,
@@ -9,10 +8,10 @@ const MessageReply = ({
   messageID,
   oldChatUUID,
   oldMessageID,
+  navigateToMessageWithHistory,
 }) => {
   const { theme } = useThemeContext();
   const styles = createStyle(theme);
-  const { navigateToMessageWithHistory } = useNavigation();
 
   return (
     <Pressable
