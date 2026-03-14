@@ -1,13 +1,7 @@
-import React, {
-  useState,
-  useContext,
-  useMemo,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { useState, useContext, useMemo, useEffect } from "react";
 import { View, StyleSheet, Text, useWindowDimensions } from "react-native";
 
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 import ChatContent from "@/src/components/chat/content/Chat";
 import Header from "@/src/components/chat/content/header";
@@ -22,7 +16,7 @@ import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 
 const ChatPageRoute = () => {
   const params = useLocalSearchParams();
-  const { chatUUIDorHandle} = params;
+  const { chatUUIDorHandle } = params;
 
   const {
     selectedChatUUID,
@@ -193,6 +187,7 @@ const ChatPageRoute = () => {
         setContentView={handleSetContentView}
         selectedMessages={selectedMessages}
         setSelectedMessages={setSelectedMessages}
+        onBack={() => router.push("/app")}
         isSmallScreen={isSmallScreen}
         onReply={() => {}}
         onForward={() => {}}

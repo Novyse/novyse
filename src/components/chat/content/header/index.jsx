@@ -24,6 +24,7 @@ const Header = ({
   setContentView,
   selectedMessages,
   setSelectedMessages,
+  onBack,
   isSmallScreen,
   onReply,
   onForward,
@@ -69,6 +70,7 @@ const Header = ({
               selectedChatPictureUUID={profilePictureUUID}
               contentView={contentView}
               setContentView={setContentView}
+              onBack={onBack}
               isSmallScreen={isSmallScreen}
             />
           )}
