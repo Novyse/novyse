@@ -35,7 +35,6 @@ const setLastUpdateTimestamp = async (timestamp) => {
   await AsyncStorage.setItem("lastUpdateTimestamp", String(timestamp));
 };
 
-
 /**
  * Get the last update timestamp from AsyncStorage.
  * @returns {string|null} The last update timestamp or null if not set.
@@ -200,6 +199,15 @@ const update = async () => {
   return false;
 };
 
+const updateDatabase = async () => {
+  return;
+  const lastUpdateTimestamp = await getLastUpdateTimestamp();
+  console.log("Last update timestamp:", lastUpdateTimestamp);
+
+  const { success, user, chats, messages, updated_at } =
+    await gateway.user.update(lastUpdateTimestamp);
+};
+
 export default {
   isLoggedIn,
   getLastUpdateTimestamp,
@@ -209,6 +217,7 @@ export default {
   checkShouldBeHere,
   initializeApp,
   initializeDatabase,
+  updateDatabase,
   logout,
   update,
 };

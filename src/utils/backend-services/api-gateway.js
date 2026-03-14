@@ -689,11 +689,13 @@ const gateway = {
         return { success: false };
       }
       const response = await api.get(`/user/update?at=${lastUpdateTime}`);
+      console.log(response);
       const success = response.data.success;
       if (success) {
         const { user, chats, messages, updated_at } = response.data.data;
         return { success, user, chats, messages, updated_at };
       }
+      
       return { success };
     },
     /**

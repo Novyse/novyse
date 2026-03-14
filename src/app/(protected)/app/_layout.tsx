@@ -90,6 +90,7 @@ export default function RootLayout() {
       try {
         const initValue = await AsyncStorage.getItem("init");
         if (initValue === "true") {
+          await auth.updateDatabase();
           setHasInitialized(true);
         } else {
           setHasInitialized(false);
