@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { getColors } from "react-native-image-colors";
 
 import { useThemeContext } from "@/context/ThemeContext";
+import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
 import Avatar from "@/src/components/Avatar";
 
@@ -14,35 +16,45 @@ const UserProfileAvatar = ({
   containerHeight,
 }) => {
   const { theme } = useThemeContext();
+  const { uri } = useProfilePicture(profilePictureUUID);
 
-  // Memoizza i colori del gradiente per evitare rigenerazioni continue
-  const gradientColors = useMemo(() => {
-    // Genera colori deterministici basati su deviceUUID
-    let hash = 0;
-    if (deviceUUID) {
-      for (let i = 0; i < deviceUUID.length; i++) {
-        const char = deviceUUID.charCodeAt(i);
-        hash = (hash << 5) - hash + char;
-        hash = hash & hash;
+  const fallbackColors = ["#667eea", "#764ba2"];
+  const [gradientColors, setGradientColors] = useState(fallbackColors);
+
+  const [isMounted, setIsMounted] = useState(true);
+
+  useEffect(() => {
+    const getGradientColors = async () => {
+      if (uri) {
+        try {
+          const extractedColors = await getColors(uri, { cache: true });
+          const nextGradient = [
+            extractedColors?.dominant,
+            extractedColors?.vibrant,
+          ];
+
+          if (isMounted) {
+            setGradientColors(nextGradient);
+          }
+        } catch (error) {
+          console.warn("Error extracting colors from image:", error);
+          if (isMounted) {
+            setGradientColors(fallbackColors);
+          }
+        }
+      } else {
+        if (isMounted) {
+          setGradientColors(fallbackColors);
+        }
       }
-    }
+    };
 
-    const gradientPalettes = [
-      ["#667eea", "#764ba2"], // Purple blue
-      ["#f093fb", "#f5576c"], // Pink red
-      ["#4facfe", "#00f2fe"], // Blue cyan
-      ["#43e97b", "#38f9d7"], // Green cyan
-      ["#fa709a", "#fee140"], // Pink yellow
-      ["#a8edea", "#fed6e3"], // Cyan pink light
-      ["#ffecd2", "#fcb69f"], // Orange peach
-      ["#ff9a9e", "#fecfef"], // Pink purple light
-      ["#d299c2", "#fef9d7"], // Purple yellow
-      ["#89f7fe", "#66a6ff"], // Light blue
-    ];
+    getGradientColors();
 
-    const index = Math.abs(hash) % gradientPalettes.length;
-    return gradientPalettes[index];
-  }, [deviceUUID]);
+    return () => {
+      setIsMounted(false);
+    };
+  }, [uri]);
 
   // Calcola le dimensioni dell'avatar (circa 35% della dimensione del container)
   const avatarSize = Math.max(
