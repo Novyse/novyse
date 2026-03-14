@@ -7,18 +7,15 @@ import React, {
 } from "react";
 import { Platform, View, Text, StyleSheet } from "react-native";
 
-import "react-native-get-random-values";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-
-import gateway from "@/src/utils/backend-services/api-gateway";
-import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
 
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers.js";
 import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers.js";
 import usePreparedMessages from "@/src/hooks/chat/usePreparedMessages.js";
 import useClipboard from "@/src/hooks/useClipboard";
 import useDownload from "@/src/hooks/file/useDownload";
+import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
 
 import { ChatContext } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -30,29 +27,35 @@ import MessageList from "@/src/components/chat/content/MessageList";
 import UploadFileOverlay from "@/src/components/chat/content/UploadFileOverlay";
 import UploadFileModal from "@/src/components/modalSheets/uploadFile";
 import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
+import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 
-const ChatContent = ({
-  selectedMessages,
-  setSelectedMessages,
-  replyingTo,
-  setReplyingTo,
-}) => {
+const ChatContent = () => {
   const { theme } = useContext(ThemeContext);
 
   const styles = createStyle(theme);
-  const [newMessageText, setNewMessageText] = useState("");
-  const [editingMessage, setEditingMessage] = useState(null);
   const [mentionMembers, setMentionMembers] = useState([]);
+  const [messageToDelete, setMessageToDelete] = useState(null);
 
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
   const [isFileModalVisible, setIsFileModalVisible] = useState(false);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
 
-  const [isMicClicked, setIsMicClicked] = useState(false);
   const [sheetIndex, setSheetIndex] = useState(-1);
 
-  const { selectedChatUUID, setSelectedChatUUID, selectedHandle } =
-    useContext(ChatContext);
+  const {
+    selectedChatUUID,
+    setSelectedChatUUID,
+    selectedHandle,
+    selectedMessages,
+    setSelectedMessages,
+    replyingTo,
+    setReplyingTo,
+    newMessageText,
+    setNewMessageText,
+    editingMessage,
+    setEditingMessage,
+  } = useContext(ChatContext);
+
   const selectChat = useChatStore((state) => state.selectChat);
   const loadMoreMessages = useChatStore((state) => state.loadMoreMessages);
 
@@ -94,10 +97,10 @@ const ChatContent = ({
   const textInputRef = useRef(null);
   const bottomSheetRef = useRef(null);
 
-  // Hook per prepared messages
   const preparedMessages = usePreparedMessages(messages, chat.type);
 
-  // Hook per message handlers
+  const { handleJoin } = useChatHandlers(selectedHandle, setSelectedChatUUID);
+
   const {
     handleSendMessage,
     handlePinMessage,
@@ -109,13 +112,7 @@ const ChatContent = ({
     handleReaction,
     handlePausePendingMessage,
     handleUpdatePendingMessage,
-  } = useMessageHandlers(
-    chat,
-    myUUID,
-    setNewMessageText,
-    setEditingMessage,
-    setIsMicClicked,
-  );
+  } = useMessageHandlers(setNewMessageText, setEditingMessage);
 
   const { attachType, handleMenuItemPress, handleFilePick } = useAttachHandlers(
     setIsAttachMenuOpen,
@@ -126,20 +123,6 @@ const ChatContent = ({
 
   const { copyToClipboard } = useClipboard();
   const { downloadFile } = useDownload();
-
-  const handleJoin = useCallback(async () => {
-    const response = await gateway.chat.join(selectedHandle);
-    const success = response.success;
-    if (success) {
-      const newChat = response.chat;
-      const newMessages = response.messages;
-      console.log("Chat joined successfully:", newChat);
-      await eventEmitter.newChat(newChat, newMessages);
-      setSelectedChatUUID(newChat.uuid);
-    } else {
-      console.error("Failed to join chat");
-    }
-  }, [selectedHandle, setSelectedChatUUID]);
 
   const toggleEmojiPicker = useCallback(() => {
     if (Platform.OS === "web") {
@@ -229,9 +212,9 @@ const ChatContent = ({
 
   const handleDelete = useCallback(
     (msg) => {
-      handleDeleteMessage(msg.id);
+      setMessageToDelete(msg);
     },
-    [handleDeleteMessage],
+    [setMessageToDelete],
   );
 
   const onSelectMention = useCallback((member) => {
@@ -264,7 +247,7 @@ const ChatContent = ({
         setMentionMembers([]);
       }
     },
-    [members, myUUID, isMicClicked],
+    [members, myUUID],
   );
 
   const handlePin = useCallback(
@@ -402,6 +385,15 @@ const ChatContent = ({
           onSendMessage={handleSendFileMessage}
           bottomSheetRef={bottomSheetRef}
           theme={theme}
+        />
+
+        <DeleteMessageModal
+          visible={!!messageToDelete}
+          onClose={() => setMessageToDelete(null)}
+          onDelete={() => handleDeleteMessage(messageToDelete.id)}
+          messageCount={1}
+          theme={theme}
+          fullscreen={false}
         />
 
         <ChatIconsPickerModal

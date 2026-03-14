@@ -9,8 +9,12 @@ export const ChatContext = createContext();
 export const ChatProvider = ({ children }) => {
   const [selectedChatUUID, setSelectedChatUUID] = useState(null);
   const [selectedHandle, setSelectedHandle] = useState(null);
-
   const [selectedSub, setSelectedSub] = useState(0);
+
+  const [newMessageText, setNewMessageText] = useState("");
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [selectedMessages, setSelectedMessages] = useState([]);
+  const [replyingTo, setReplyingTo] = useState([]);
 
   useEffect(() => {
     const handleNewChat = async (chat) => {
@@ -38,7 +42,6 @@ export const ChatProvider = ({ children }) => {
   }, [selectedChatUUID, selectedHandle]);
 
   useEffect(() => {
-    console.log("Selected chat changed:", { selectedChatUUID, selectedHandle });
     if (selectedChatUUID) {
       router.push(`/app/chat/${selectedChatUUID}`);
     } else if (selectedHandle) {
@@ -55,6 +58,14 @@ export const ChatProvider = ({ children }) => {
         setSelectedHandle,
         selectedSub,
         setSelectedSub,
+        newMessageText,
+        setNewMessageText,
+        editingMessage,
+        setEditingMessage,
+        selectedMessages,
+        setSelectedMessages,
+        replyingTo,
+        setReplyingTo,
       }}
     >
       {children}

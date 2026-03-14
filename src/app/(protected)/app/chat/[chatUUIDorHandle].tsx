@@ -13,6 +13,8 @@ import { ThemeContext } from "@/context/ThemeContext";
 import useWindowSizeStore from "@/context/WindowSizeContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
+import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
+import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 
 const ChatPageRoute = () => {
   const params = useLocalSearchParams();
@@ -23,14 +25,23 @@ const ChatPageRoute = () => {
     setSelectedChatUUID,
     selectedHandle,
     setSelectedHandle,
+    selectedMessages,
+    setSelectedMessages,
+    setReplyingTo,
+    setNewMessageText,
+    setEditingMessage,
   } = useContext(ChatContext);
+
+  const { handleDeleteMessage } = useMessageHandlers(
+    setNewMessageText,
+    setEditingMessage,
+  );
 
   const { theme } = useContext(ThemeContext);
   const { isSmallScreen } = useScreen();
 
   const [contentView, setContentView] = useState("chat");
-  const [selectedMessages, setSelectedMessages] = useState([]);
-  const [replyingTo, setReplyingTo] = useState([]);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
   const [containerWidth, setContainerWidth] = useState(0);
   const { width } = useWindowDimensions();
@@ -109,6 +120,12 @@ const ChatPageRoute = () => {
     );
   }
 
+  const handleBulkReply = () => {
+    if (selectedMessages.length === 0) return;
+    setReplyingTo(selectedMessages.slice(-3));
+    setSelectedMessages([]);
+  };
+
   const handleSetContentView = (view) => {
     if (view === "both" && setDetailWidth) {
       const cw = containerWidth || width;
@@ -131,12 +148,7 @@ const ChatPageRoute = () => {
             onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
           >
             <View style={{ flex: 1, height: "100%", minWidth: 350 }}>
-              <ChatContent
-                selectedMessages={selectedMessages}
-                setSelectedMessages={setSelectedMessages}
-                replyingTo={replyingTo}
-                setReplyingTo={setReplyingTo}
-              />
+              <ChatContent />
             </View>
             <View
               style={{
@@ -168,14 +180,7 @@ const ChatPageRoute = () => {
         );
       case "chat":
       default:
-        return (
-          <ChatContent
-            selectedMessages={selectedMessages}
-            setSelectedMessages={setSelectedMessages}
-            replyingTo={replyingTo}
-            setReplyingTo={setReplyingTo}
-          />
-        );
+        return <ChatContent />;
     }
   };
 
@@ -189,11 +194,25 @@ const ChatPageRoute = () => {
         setSelectedMessages={setSelectedMessages}
         onBack={() => router.push("/app")}
         isSmallScreen={isSmallScreen}
-        onReply={() => {}}
+        onReply={handleBulkReply}
         onForward={() => {}}
-        onDelete={() => {}}
+        onDelete={() => {
+          setDeleteModalVisible(true);
+        }}
       />
       <View style={styles.contentWrapper}>{renderContent()}</View>
+      <DeleteMessageModal
+        visible={deleteModalVisible}
+        onClose={() => setDeleteModalVisible(false)}
+        onDelete={() => {
+          selectedMessages.forEach((msg: any) => handleDeleteMessage(msg.id));
+          setSelectedMessages([]);
+          setDeleteModalVisible(false);
+        }}
+        messageCount={selectedMessages.length}
+        fullscreen={false}
+        theme={theme}
+      />
     </>
   );
 };
