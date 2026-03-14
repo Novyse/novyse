@@ -192,7 +192,11 @@ const ChatPageRoute = () => {
         setContentView={handleSetContentView}
         selectedMessages={selectedMessages}
         setSelectedMessages={setSelectedMessages}
-        onBack={() => router.push("/app")}
+        onBack={() => {
+          setSelectedChatUUID(null);
+          setSelectedHandle(null);
+          router.push("/app");
+        }}
         isSmallScreen={isSmallScreen}
         onReply={handleBulkReply}
         onForward={() => {}}
