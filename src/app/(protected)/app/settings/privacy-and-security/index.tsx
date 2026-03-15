@@ -5,7 +5,7 @@ import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 
 export default function PrivacyAndSecurityRoute() {
-  const onBack = () => router.back();
+  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
 
   return (
     <>

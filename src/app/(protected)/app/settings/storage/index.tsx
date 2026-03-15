@@ -13,7 +13,7 @@ import Icon from "@/src/components/Icon";
 import useStorage from "@/src/hooks/settings/useStorage";
 
 export default function StorageRoute() {
-  const onBack = () => router.back();
+  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 

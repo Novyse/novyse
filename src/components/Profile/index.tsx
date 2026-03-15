@@ -5,6 +5,7 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Banner from "@/src/components/Banner";
 import ProfileHeader from "./ProfileHeader";
@@ -58,9 +59,11 @@ export default function Profile({
   const { theme } = useContext(ThemeContext);
   const { width, height } = useWindowDimensions();
   const { isSmallScreen } = useScreen();
+  const insets = useSafeAreaInsets();
+
   const [isQrModalVisible, setIsQrModalVisible] = useState(false);
 
-  const styles = createStyles(theme, isSmallScreen, height);
+  const styles = createStyles(theme, isSmallScreen, height, insets);
 
   return (
     <View style={styles.container}>
@@ -71,14 +74,19 @@ export default function Profile({
         {/* Glass Card Container */}
         <SmartBackground
           // colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.15)"]}
-          
+
           style={styles.glassPanel}
         >
           <View style={{ position: "relative" }}>
             <Banner theme={theme} />
-    
-              <Icon name="QrCodeIcon" size={24} color={"#FFFFFF"} onPress={() => setIsQrModalVisible(true)} style={styles.qrIconContainer}/>
 
+            <Icon
+              name="QrCodeIcon"
+              size={24}
+              color={"#FFFFFF"}
+              onPress={() => setIsQrModalVisible(true)}
+              style={styles.qrIconContainer}
+            />
           </View>
 
           <ProfileHeader
@@ -126,22 +134,24 @@ const createStyles = (
   theme: any,
   isSmallScreen: boolean,
   screenHeight: number,
+  insets: { top: number; bottom: number; left: number; right: number },
 ) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      paddingTop: insets.top,
     },
     scrollContent: {
-      flex: 1
+      flex: 1,
     },
     glassPanel: {
       overflow: "hidden",
-      flex: 1
+      flex: 1,
     },
     qrIconContainer: {
       position: "absolute",
       top: 10,
       left: 10,
-      zIndex: 10, 
+      zIndex: 10,
     },
   });

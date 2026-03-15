@@ -20,7 +20,9 @@ import Search from "@/src/components/tabs/pages/Search";
 
 const Tab = createBottomTabNavigator();
 
-export default function TabNavigator() {
+let globalNavState: any = undefined;
+
+export default function TabNavigator({ isDetailOpen }: { isDetailOpen?: boolean }) {
   const { theme } = useThemeContext();
   const { isSmallScreen } = useScreen();
   const styles = createStyle(theme, isSmallScreen);
@@ -30,12 +32,17 @@ export default function TabNavigator() {
       <NavigationIndependentTree>
         <NavigationContainer
           ref={tabNavigationRef}
+          initialState={globalNavState}
+          onStateChange={(state) => {
+            globalNavState = state;
+          }}
           documentTitle={{
             formatter: (options, route) => `Novyse - App`,
           }}
         >
           <Tab.Navigator
             tabBar={(props) => <TabBar {...props} />}
+            backBehavior={isDetailOpen ? "none" : "firstRoute"}
             screenOptions={{
               sceneStyle: { backgroundColor: "transparent" },
               animation: "shift",

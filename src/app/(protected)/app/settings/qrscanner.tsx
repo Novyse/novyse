@@ -11,7 +11,7 @@ import QRCodeReader from "@/src/components/QRCodeReader";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
 export default function QrscannerRoute() {
-  const onBack = () => router.back();
+  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 

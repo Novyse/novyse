@@ -8,7 +8,7 @@ import SettingsCard from "@/src/components/settings/SettingsCard";
 import StorageBreakdown from "@/src/components/settings/storage/StorageBreakdown";
 
 export default function CloudStorageRoute() {
-  const onBack = () => router.back();
+  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 

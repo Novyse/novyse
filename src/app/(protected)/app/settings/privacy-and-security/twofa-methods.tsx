@@ -12,7 +12,7 @@ import ModalVerifyMethod from "@/src/components/settings/account/privacy-and-sec
 import StatusMessage from "@/src/components/StatusMessage";
 
 export default function TwoFAMethodsRoute() {
-  const onBack = () => router.back();
+  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
 
   const { theme } = useThemeContext();
   const styles = createStyle(theme);

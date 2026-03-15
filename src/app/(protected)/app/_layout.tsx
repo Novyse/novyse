@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, useWindowDimensions, StyleSheet } from "react-native";
+import { View, Text, useWindowDimensions, StyleSheet, Animated } from "react-native";
 import { Slot, usePathname } from "expo-router";
 
 import { useThemeContext } from "@/context/ThemeContext";
@@ -12,7 +12,6 @@ import useChatStore from "@/context/ChatContext";
 import useUserStore from "@/context/UserContext";
 import useWindowSizeStore from "@/context/WindowSizeContext";
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
-import { tabNavigator } from "@/src/utils/navigation/tabRef";
 
 import queueManager from "@/src/utils/chat/queueManager";
 
@@ -26,33 +25,21 @@ export default function RootLayout() {
   // With flat structure, detail is open if path is NOT /app and NOT /app/
   const pathname = usePathname();
   const isDetailOpen = pathname !== "/app" && pathname !== "/app/";
-  const prevPathnameRef = useRef(pathname);
-
-  // @SamueleOrazioDurante da testare
-  // Sync tab navigator with Expo Router pathname
-  // This ensures that when navigating back (e.g.   Android swipe-back),
-  // the tab navigator switches to the correct tab
-  useEffect(() => {
-    const prevPathname = prevPathnameRef.current;
-    prevPathnameRef.current = pathname;
-
-    // When we leave a detail route back to /app, switch tab to match
-    // what the user was viewing before
-    if (pathname === "/app" || pathname === "/app/") {
-      // User just navigated back to the root — switch tab based on
-      // what detail route they were on before
-      if (prevPathname.includes("/settings")) {
-        tabNavigator.navigate("Settings");
-      } else if (prevPathname.includes("/chat")) {
-        tabNavigator.navigate("ChatList");
-      }
-    }
-  }, [pathname]);
 
   // Pan responder for resizing the detail pane on larger screens
   const { isSmallScreen } = useScreen();
   const { theme } = useThemeContext();
   const { width } = useWindowDimensions();
+
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: isDetailOpen ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isDetailOpen]);
 
   const {
     detailWidth,
@@ -130,8 +117,8 @@ export default function RootLayout() {
   if (isSmallScreen) {
     return (
       <View style={{ flex: 1, backgroundColor: "transparent" }}>
-        <TabNavigator />
-        <View
+        <TabNavigator isDetailOpen={isDetailOpen} />
+        <Animated.View
           style={{
             position: "absolute",
             top: 0,
@@ -139,11 +126,20 @@ export default function RootLayout() {
             right: 0,
             bottom: 0,
             backgroundColor: theme.backgroundMainGradient[1],
-            zIndex: isDetailOpen ? 1 : -1,
+            transform: [
+              {
+                translateX: slideAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [width, 0],
+                }),
+              },
+            ],
+            zIndex: 1, 
           }}
+          pointerEvents={isDetailOpen ? "auto" : "none"}
         >
           {isDetailOpen ? <Slot /> : null}
-        </View>
+        </Animated.View>
       </View>
     );
   }
@@ -166,7 +162,7 @@ export default function RootLayout() {
       }}
     >
       <View style={{ flex: 1, padding: 10 }}>
-        <TabNavigator />
+        <TabNavigator isDetailOpen={isDetailOpen} />
       </View>
       <View
         style={{

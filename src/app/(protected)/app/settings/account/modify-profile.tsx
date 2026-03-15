@@ -11,7 +11,7 @@ import UploadProfilePicture from "@/src/components/modalSheets/UploadProfilePict
 import Page from "@/src/components/settings/account/modify-profile/Page";
 
 export default function AccountModifyRoute() {
-  const onBack = () => router.back();
+  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 

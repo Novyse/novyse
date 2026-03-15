@@ -14,7 +14,7 @@ import auth from "@/src/utils/welcome/auth";
 
 export default function AccountRoute() {
   const { refreshLoginStatus } = useAuth();
-  const onBack = () => router.back();
+  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const router = useRouter();
 
   const { theme } = useThemeContext();

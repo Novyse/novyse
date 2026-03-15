@@ -8,7 +8,7 @@ import SettingsPageScrollview from "@/src/components/settings/SettingsPageScroll
 import SettingsCard from "@/src/components/settings/SettingsCard";
 
 export default function ShortcutsRoute() {
-  const onBack = () => router.back();
+  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 

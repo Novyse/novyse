@@ -7,7 +7,7 @@ import { Colors } from "@/constants/Colors";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 
 export default function ThemesRoute() {
-  const onBack = () => router.back();
+  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const { setColorScheme, theme, colorScheme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
