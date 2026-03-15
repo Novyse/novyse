@@ -224,7 +224,7 @@ const createStyle = (theme: any) =>
     },
     menuContainer: {
       borderRadius: 10,
-      padding: 10,
+      padding: 0,
       minWidth: 120,
       maxWidth: 175,
       zIndex: 1000,
@@ -233,16 +233,16 @@ const createStyle = (theme: any) =>
       flexDirection: "column",
     },
     menuItem: {
-      paddingVertical: 6,
-      paddingHorizontal: 8,
-      borderRadius: 10,
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      borderRadius: 0,
     },
     menuItemContent: {
       flexDirection: "row",
       alignItems: "center",
+      gap: 15,
     },
     menuText: {
-      marginLeft: 8,
       fontSize: 14,
       color: theme.text,
     },
@@ -254,17 +254,19 @@ const createStyle = (theme: any) =>
       overflow: "hidden",
     },
     statsButton: {
-      padding: 10,
+      paddingVertical: 10,
+      paddingHorizontal: 15,
       flexDirection: "column",
       gap: 8,
+      borderRadius: 0,
     },
     statsRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
+      gap: 15,
     },
     statsText: {
-      fontSize: 13,
+      fontSize: 14,
       color: theme.text,
       flexShrink: 1,
     },

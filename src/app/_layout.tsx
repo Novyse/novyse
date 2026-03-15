@@ -6,13 +6,38 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 import { ScreenProvider } from "@/context/ScreenContext";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { ThemeProvider, useThemeContext } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import SplashScreen from "@/src/components/SplashScreen";
 
+function StackLayout() {
+  const { isLoggedIn } = useAuth();
+  const { theme } = useThemeContext();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: {
+          backgroundColor: theme.backgroundMainGradient[0],
+        },
+      }}
+    >
+      <Stack.Protected guard={isLoggedIn === true}>
+        <Stack.Screen name="(protected)" options={{ headerShown: false }} />
+      </Stack.Protected>
+      <Stack.Protected guard={isLoggedIn === false}>
+        <Stack.Screen name="(welcome)" options={{ headerShown: false }} />
+      </Stack.Protected>
+      <Stack.Screen name="profile" options={{ headerShown: false }} />
+      <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+    </Stack>
+  );
+}
+
 function RootLayoutContent() {
-  const { isLoggedIn, isLoading } = useAuth();
+  const { isLoading } = useAuth();
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -33,28 +58,7 @@ function RootLayoutContent() {
           <ThemeProvider>
             <LanguageProvider>
               <BottomSheetModalProvider>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Protected guard={isLoggedIn === true}>
-                    <Stack.Screen
-                      name="(protected)"
-                      options={{ headerShown: false }}
-                    />
-                  </Stack.Protected>
-                  <Stack.Protected guard={isLoggedIn === false}>
-                    <Stack.Screen
-                      name="(welcome)"
-                      options={{ headerShown: false }}
-                    />
-                  </Stack.Protected>
-                  <Stack.Screen
-                    name="profile"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="+not-found"
-                    options={{ headerShown: false }}
-                  />
-                </Stack>
+                <StackLayout />
               </BottomSheetModalProvider>
             </LanguageProvider>
           </ThemeProvider>

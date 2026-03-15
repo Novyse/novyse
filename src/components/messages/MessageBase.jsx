@@ -38,9 +38,6 @@ import MessageVoice from "./MessageVoice";
 import MessageReply from "./MessageReply";
 import MessageTimestamp from "./MessageTimestamp";
 
-const { getUser } = useUserStore.getState();
-const chatStore = useChatStore.getState();
-
 const REPLY_THRESHOLD = 60;
 const MAX_SWIPE_DISTANCE = 90;
 const CIRCLE_SIZE = 36;
@@ -143,10 +140,9 @@ const MessageReplyWrapper = ({
   oldMessageID,
   navigateToMessageWithHistory,
 }) => {
-  const replyMessage = chatStore.getMessage(
-    replyTo?.chatUUID,
-    replyTo?.messageID,
-  );
+  const getMessage = useChatStore((state) => state.getMessage);
+  const getUser = useUserStore((state) => state.getUser);
+  const replyMessage = getMessage(replyTo?.chatUUID, replyTo?.messageID);
 
   if (!replyMessage) return null;
 
@@ -183,7 +179,8 @@ const MessageBase = ({
 }) => {
   const { theme } = useThemeContext();
   const { isSmallScreen } = useScreen();
-  
+  const getUser = useUserStore((state) => state.getUser);
+  const chats = useChatStore((state) => state.chats);
 
   const {
     onMessageRightPress,
@@ -209,7 +206,7 @@ const MessageBase = ({
     replyTos,
   } = message;
 
-  const chat = chatStore.chats.find((c) => c.uuid === message.chatUUID);
+  const chat = chats.find((c) => c.uuid === message.chatUUID);
   const chatType = chat?.type || "GROUP";
   const styles = createStyle(theme, chatType);
 
@@ -533,16 +530,15 @@ const createStyle = (theme, chatType) =>
     },
     reactionsRow: {
       flexDirection: "row",
-      alignItems: "flex-end",
-      justifyContent: "space-between",
+      alignItems: "center",
       flexWrap: "wrap",
       gap: 5,
     },
     reactionsContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
-      flex: 1,
       gap: 5,
+      alignItems: "center",
       paddingHorizontal: 10,
       paddingBottom: 10,
     },

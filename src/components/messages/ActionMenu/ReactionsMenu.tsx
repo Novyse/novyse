@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, ScrollView, Platform } from "react-native";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 import BlurredView from "../../BlurredView";
 import { useThemeContext } from "@/context/ThemeContext";
@@ -13,10 +13,20 @@ const REACTIONS = ["😂", "👍", "👎", "😭", "🐄", "🤡"];
 const ReactionMenu: React.FC<ReactionMenuProps> = ({ onReaction }) => {
   const { theme } = useThemeContext();
   const styles = createStyle(theme);
+  const isWeb = Platform.OS === "web";
 
   return (
     <BlurredView style={styles.container}>
-      <View style={styles.reactionRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={isWeb}
+        contentContainerStyle={[
+          styles.reactionRow,
+          isWeb && styles.reactionRowWeb,
+        ]}
+        bounces={false}
+        style={styles.scrollView}
+      >
         {REACTIONS.map((emoji) => (
           <HoverAndPressedButton
             key={emoji}
@@ -26,7 +36,7 @@ const ReactionMenu: React.FC<ReactionMenuProps> = ({ onReaction }) => {
             <Text style={styles.reactionText}>{emoji}</Text>
           </HoverAndPressedButton>
         ))}
-      </View>
+      </ScrollView>
     </BlurredView>
   );
 };
@@ -37,27 +47,35 @@ const createStyle = (theme: any) =>
   StyleSheet.create({
     container: {
       borderRadius: 10,
-      paddingHorizontal: 8,
+      paddingHorizontal: 4,
       paddingVertical: 4,
       marginBottom: 8,
       alignSelf: "flex-start",
-      maxWidth: 175
+      maxWidth: 175,
+    },
+    scrollView: {
+      flexGrow: 0,
+      flexShrink: 1,
     },
     reactionRow: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+      gap: 2,
+    },
+    reactionRowWeb: {
+      paddingBottom: 10,
     },
     reactionButton: {
-      padding: 8,
+      padding: 4,
       borderRadius: 20,
       alignItems: "center",
       justifyContent: "center",
-      width: 25,
-      height: 25,
+      width: 36,
+      height: 36,
     },
     reactionText: {
       fontSize: 20,
+      lineHeight: 26,
       color: theme.text,
     },
   });

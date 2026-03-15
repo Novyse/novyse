@@ -348,7 +348,7 @@ const ChatContent = () => {
         />
         <KeyboardAvoidingView
           behavior="padding"
-          keyboardVerticalOffset={30}
+          keyboardVerticalOffset={0}
           style={{
             position: "absolute",
             bottom: 0,

@@ -8,6 +8,8 @@ const URL_REGEX =
   /(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])(\S*)/g;
 const MENTION_REGEX = /@(\w+)/g;
 
+
+
 const MessageText = ({ text, timestampWidth = 80 }) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
@@ -17,11 +19,10 @@ const MessageText = ({ text, timestampWidth = 80 }) => {
 
   const normalized = text.trimStart();
 
-  // Phantom spacer: riserva spazio per il timestamp sulla stessa riga
   const spacer = (
     <Text key="spacer" style={{ opacity: 0, fontSize: 12 }}>
       {"  "}
-      {"_".repeat(Math.ceil(timestampWidth / 6))}
+      {"\u00A0".repeat(Math.ceil(timestampWidth / 4))}
     </Text>
   );
 
