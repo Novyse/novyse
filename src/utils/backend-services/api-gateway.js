@@ -688,12 +688,12 @@ const gateway = {
         console.error("lastUpdateTime is not a valid ISO 8601 timestamp");
         return { success: false };
       }
-      const response = await api.get(`/user/update?at=${lastUpdateTime}`);
+      const response = await api.get(`/user/update?at=${encodeURIComponent(lastUpdateTime)}`);
       console.log(response);
       const success = response.data.success;
       if (success) {
-        const { user, chats, messages, updated_at } = response.data.data;
-        return { success, user, chats, messages, updated_at };
+        const { local, user, chat, message, at } = response.data.data;
+        return { success, local, user, chat, message, at };
       }
       
       return { success };

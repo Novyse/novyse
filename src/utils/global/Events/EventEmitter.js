@@ -19,6 +19,18 @@ class GlobalEventEmitter {
       await messageUtils.add(message);
     }
 
+    if (message.reactions && Array.isArray(message.reactions)) {
+      for (const reaction of message.reactions) {
+        await database.message.reaction.add(
+          message.chatUUID,
+          message.id,
+          reaction.reaction,
+          reaction.created_at,
+          reaction.userUUID
+        );
+      }
+    }
+
     // if (!msg.localUser) {
     //   await notificationManager.sendNotificationWhenInBackground(
     //     msg.sender_name,

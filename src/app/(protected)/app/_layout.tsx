@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, useWindowDimensions, StyleSheet, Animated } from "react-native";
+import {
+  View,
+  Text,
+  useWindowDimensions,
+  Animated,
+} from "react-native";
 import { Slot, usePathname } from "expo-router";
 
 import { useThemeContext } from "@/context/ThemeContext";
@@ -124,7 +129,7 @@ export default function RootLayout() {
                 }),
               },
             ],
-            zIndex: 1, 
+            zIndex: 1,
           }}
           pointerEvents={isDetailOpen ? "auto" : "none"}
         >
@@ -161,6 +166,7 @@ export default function RootLayout() {
         }}
       >
         <View
+          //@ts-ignore
           style={{
             position: "absolute",
             left: -10,
@@ -173,9 +179,20 @@ export default function RootLayout() {
           }}
           {...resizerHandlers}
         />
-        {isDetailOpen ? <Slot /> : (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "transparent" }}>
-            <Text style={{ fontSize: 18, color: "white" }}>Nothing selected.</Text>
+        {isDetailOpen ? (
+          <Slot />
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "transparent",
+            }}
+          >
+            <Text style={{ fontSize: 18, color: "white" }}>
+              Nothing selected.
+            </Text>
           </View>
         )}
       </View>

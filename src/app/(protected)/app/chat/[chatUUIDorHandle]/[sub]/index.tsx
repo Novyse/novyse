@@ -162,6 +162,7 @@ const ChatPageRoute = () => {
               }}
             >
               <View
+                //@ts-ignore
                 style={{
                   position: "absolute",
                   left: -10,
@@ -198,6 +199,7 @@ const ChatPageRoute = () => {
         onBack={() => {
           setSelectedChatUUID(null);
           setSelectedHandle(null);
+          //@ts-ignore
           router.push("/app");
         }}
         isSmallScreen={isSmallScreen}
@@ -224,7 +226,7 @@ const ChatPageRoute = () => {
   );
 };
 
-function createStyle(theme, isSmallScreen) {
+function createStyle(theme: any, isSmallScreen: boolean) {
   return StyleSheet.create({
     container: { flex: 1, overflow: "hidden" },
     contentWrapper: { flex: 1 },

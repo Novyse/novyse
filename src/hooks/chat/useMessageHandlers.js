@@ -105,6 +105,7 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
       const { v6 } = require("uuid");
       const jobId = v6();
       const messageParams = { messageID, content, originalContent };
+      const chat = { uuid: chatUUID };
 
       await queueManager.addOutgoingMessageJob(
         messageParams,

@@ -149,63 +149,184 @@ const logout = async () => {
   await AsyncStorage.clear();
 };
 
-const update = async () => {
-  const loggedIn = await isLoggedIn();
-  if (!loggedIn) {
-    console.warn("User is not logged in. Skipping update.");
-    return false;
-  }
-
-  console.log("Starting update process...");
-
+const updateDatabase = async () => {
   const lastUpdateTimestamp = await getLastUpdateTimestamp();
   console.log("Last update timestamp:", lastUpdateTimestamp);
 
-  const { success, user, chats, messages, updated_at } =
-    await gateway.user.update(lastUpdateTimestamp);
+  // Il timestamp da getLastUpdateTimestamp è già una stringa ISO "2026-03-15T17:46:04.013057+00:00"
+  // Quindi lo passiamo direttamente, o calcoliamo la data solo in caso sia un numero (in secondi come in precedenza)
+  let atTime = lastUpdateTimestamp;
+  if (
+    lastUpdateTimestamp &&
+    !isNaN(lastUpdateTimestamp) &&
+    !lastUpdateTimestamp.includes("T")
+  ) {
+    atTime = new Date(Number(lastUpdateTimestamp) * 1000).toISOString();
+  }
+
+  const { success, local, user, chat, message, at } =
+    await gateway.user.update(atTime);
 
   if (success) {
-    console.log("Update successful:", { user, chats, messages });
+    if (local) {
+      if (local.user) {
+        await EventEmitter.user.profile.update(local.user);
+      }
+      if (local.pinnedChats && Array.isArray(local.pinnedChats)) {
+        const existingPins = await database.chat.pin.get();
+        const newPinnedUUIDs = local.pinnedChats.map((p) => p.chatUUID);
 
-    if (user) {
-      // Do nothing
-      //await database.user.add(user);
-    }
+        if (existingPins && Array.isArray(existingPins)) {
+          for (const existingPin of existingPins) {
+            if (!newPinnedUUIDs.includes(existingPin.chatUUID)) {
+              await database.chat.pin.remove(existingPin.chatUUID);
+            }
+          }
+        }
 
-    if (chats && chats.length > 0) {
-      for (const chat of chats) {
-        chat.members = chat.members.map((member) => ({
-          uuid: member.uuid,
-          name: member.name,
-          surname: member.surname,
-          handle: member.handle,
-          profilePictureUUID: member.profilePictureUUID,
-        }));
-        await database.chat.add(chat);
+        for (const pin of local.pinnedChats) {
+          if (pin.chatUUID && typeof pin.position === "number") {
+            await database.chat.pin.add(pin.chatUUID, pin.position);
+          }
+        }
       }
     }
 
-    if (messages && messages.length > 0) {
-      for (const message of messages) {
-        await EventEmitter.newMessage(message);
+    if (user?.profile?.update && Array.isArray(user.profile.update)) {
+      for (const u of user.profile.update) {
+        await EventEmitter.user.profile.update(u);
       }
     }
 
-    await AsyncStorage.setItem("lastUpdateTimestamp", String(updated_at));
+    if (chat?.new && Array.isArray(chat.new)) {
+      for (const c of chat.new) {
+        await EventEmitter.newChat(c, []);
+      }
+    }
 
-    return true;
+    if (chat?.update) {
+      const updates = Array.isArray(chat.update)
+        ? chat.update
+        : Object.values(chat.update);
+      for (const c of updates) {
+        if (c.chatUUID) {
+          await EventEmitter.chat.update(c.chatUUID, c.action, c);
+        }
+      }
+    }
+
+    if (message?.new && Array.isArray(message.new)) {
+      for (const m of message.new) {
+        await EventEmitter.newMessage(m);
+      }
+    }
+
+    if (message?.update && Array.isArray(message.update)) {
+      for (const m of message.update) {
+        if (m.action === "update" || m.action === "edit") {
+          const chatUUID = m.chatUUID;
+          const messageID = m.id || m.messageID;
+
+          const oldMessage = await database.message.get.by.id(
+            chatUUID,
+            messageID,
+          );
+
+          if (oldMessage && m.content && oldMessage.content !== m.content) {
+            await EventEmitter.message.update(chatUUID, messageID, "edit", {
+              content: m.content,
+            });
+          }
+
+          if (m.reactions && Array.isArray(m.reactions)) {
+            const oldReactionsRaw = await database.db.getAllAsync(
+              "SELECT reaction, userUUID FROM reaction_message WHERE chatUUID = ? AND messageID = ?",
+              [chatUUID, messageID],
+            );
+
+            for (const newR of m.reactions) {
+              const exists = oldReactionsRaw.some(
+                (oldR) =>
+                  oldR.reaction === newR.reaction &&
+                  oldR.userUUID === newR.userUUID,
+              );
+              if (!exists) {
+                await EventEmitter.message.update(
+                  chatUUID,
+                  messageID,
+                  "reaction_add",
+                  {
+                    reaction: newR.reaction,
+                    at: newR.created_at,
+                    userUUID: newR.userUUID,
+                  },
+                );
+              }
+            }
+
+            for (const oldR of oldReactionsRaw) {
+              const stillExists = m.reactions.some(
+                (newR) =>
+                  newR.reaction === oldR.reaction &&
+                  newR.userUUID === oldR.userUUID,
+              );
+              if (!stillExists) {
+                await EventEmitter.message.update(
+                  chatUUID,
+                  messageID,
+                  "reaction_remove",
+                  {
+                    reaction: oldR.reaction,
+                    userUUID: oldR.userUUID,
+                  },
+                );
+              }
+            }
+          }
+
+          const isPinnedInNew = !!m.pinned_at;
+          const pinnedIds = (await database.message.pin.get(chatUUID)) || [];
+          const isPinnedInDb = pinnedIds
+            .map(String)
+            .includes(String(messageID));
+
+          if (isPinnedInNew && !isPinnedInDb) {
+            await EventEmitter.message.update(chatUUID, messageID, "pin_add", {
+              pinned_at: m.pinned_at,
+              userUUID: m.pinned_by || m.userUUID,
+            });
+          } else if (!isPinnedInNew && isPinnedInDb) {
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "pin_remove",
+              {},
+            );
+          }
+
+          if (m.action === "edit") {
+            await EventEmitter.message.update(
+              m.chatUUID,
+              m.id || m.messageID,
+              m.action,
+              m,
+            );
+          }
+        } else {
+          await EventEmitter.message.update(
+            m.chatUUID,
+            m.id || m.messageID,
+            m.action,
+            m,
+          );
+        }
+      }
+    }
+
+    if (at) {
+      await setLastUpdateTimestamp(at);
+    }
   }
-  console.error("Update failed.");
-  return false;
-};
-
-const updateDatabase = async () => {
-  return;
-  const lastUpdateTimestamp = await getLastUpdateTimestamp();
-  console.log("Last update timestamp:", lastUpdateTimestamp);
-
-  const { success, user, chats, messages, updated_at } =
-    await gateway.user.update(lastUpdateTimestamp);
 };
 
 export default {
@@ -219,5 +340,4 @@ export default {
   initializeDatabase,
   updateDatabase,
   logout,
-  update,
 };
