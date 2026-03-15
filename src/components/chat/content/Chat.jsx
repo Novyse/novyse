@@ -176,6 +176,7 @@ const ChatContent = () => {
         if (prev.find((r) => r.id === msg.id)) return prev;
         return [...prev, msg];
       });
+      if(editingMessage) setNewMessageText("");
       setEditingMessage(null); // clear edit when replying
     },
     [replyingTo],

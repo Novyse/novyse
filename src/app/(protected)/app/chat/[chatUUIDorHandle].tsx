@@ -29,6 +29,7 @@ const ChatPageRoute = () => {
     setSelectedMessages,
     setReplyingTo,
     setNewMessageText,
+    editingMessage,
     setEditingMessage,
   } = useContext(ChatContext);
 
@@ -123,6 +124,8 @@ const ChatPageRoute = () => {
   const handleBulkReply = () => {
     if (selectedMessages.length === 0) return;
     setReplyingTo(selectedMessages.slice(-3));
+    if (editingMessage) setNewMessageText("");
+    setEditingMessage(null);
     setSelectedMessages([]);
   };
 
