@@ -139,7 +139,6 @@ const createStyles = (
   StyleSheet.create({
     container: {
       flex: 1,
-      paddingTop: insets.top,
     },
     scrollContent: {
       flex: 1,
@@ -150,7 +149,7 @@ const createStyles = (
     },
     qrIconContainer: {
       position: "absolute",
-      top: 10,
+      top: 10 + insets.top,
       left: 10,
       zIndex: 10,
     },

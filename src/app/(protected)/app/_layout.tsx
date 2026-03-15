@@ -7,13 +7,10 @@ import { useThemeContext } from "@/context/ThemeContext";
 import TabNavigator from "@/src/components/tabs/TabNavigator";
 
 import { useScreen } from "@/context/ScreenContext";
-import { useNetworkContext } from "@/context/NetworkContext";
 import useChatStore from "@/context/ChatContext";
 import useUserStore from "@/context/UserContext";
 import useWindowSizeStore from "@/context/WindowSizeContext";
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
-
-import queueManager from "@/src/utils/chat/queueManager";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import auth from "@/src/utils/welcome/auth";
@@ -61,13 +58,6 @@ export default function RootLayout() {
       setDetailWidth(Math.min(width, minDetailWidth));
     }
   }, [minDetailWidth, detailWidth, width, setDetailWidth]);
-
-  // Listen for network connectivity changes to trigger queue manager retries
-  const { isConnected } = useNetworkContext();
-
-  useEffect(() => {
-    queueManager.initialize(() => isConnected);
-  }, [isConnected]);
 
   // Initialize database if needed
   const [hasInitialized, setHasInitialized] = useState<boolean | null>(null);

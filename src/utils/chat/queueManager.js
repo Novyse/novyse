@@ -1,5 +1,7 @@
 import { v6 } from "uuid";
 
+import useNetworkStore from "@/context/NetworkContext";
+
 import gateway from "@/src/utils/backend-services/api-gateway.js";
 import database from "@/src/utils/storage/database";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
@@ -18,34 +20,19 @@ class QueueManager {
     this.processingInterval = 100; // 0.1 seconds
     this.errorDelay = 5000; // 5 seconds
     this.maxRetries = 5;
-    this.getConnectionStatus = undefined;
   }
 
   // Initialize the queue manager
-  async initialize(getConnectionStatus) {
-    if (getConnectionStatus) {
-      this.getConnectionStatus = getConnectionStatus;
-    }
+  async initialize() {
     if (this.initialized) return;
-    await this.loadQueue();
-    this.startConnectionMonitoring();
-    this.processQueue();
     this.initialized = true;
 
-    eventEmitter.getEmitter().on("message:new", (message) => {
-      if (!message.fromSubscription && !message.internal) {
-        if (message.files && message.files.length > 0) {
-          this.addInboundMessageJob(message);
-        }
-      }
-    });
-  }
+    await this.loadQueue();
 
-  // Start monitoring connection state
-  startConnectionMonitoring() {
-    // Check connection every 2 seconds
-    setInterval(() => {
-      const connected = this.getConnectionStatus();
+    this.isConnected = useNetworkStore.getState().isConnected;
+
+    useNetworkStore.subscribe((state) => {
+      const connected = state.isConnected;
       if (connected !== this.isConnected) {
         this.isConnected = connected;
         console.log(
@@ -56,7 +43,17 @@ class QueueManager {
           this.processQueue();
         }
       }
-    }, 2000);
+    });
+
+    this.processQueue();
+
+    eventEmitter.getEmitter().on("message:new", (message) => {
+      if (!message.fromSubscription && !message.internal) {
+        if (message.files && message.files.length > 0) {
+          this.addInboundMessageJob(message);
+        }
+      }
+    });
   }
 
   startProcessing() {
@@ -196,6 +193,9 @@ class QueueManager {
    */
 
   async addJob(id, type, params) {
+    if (!this.initialized) {
+      await this.initialize();
+    }
     const job = {
       id,
       type,

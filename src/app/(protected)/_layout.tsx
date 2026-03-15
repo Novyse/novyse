@@ -6,7 +6,7 @@ import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
 import { ChatProvider } from "@/context/ActiveChatContext";
 import { CommsProvider } from "@/context/CommsContext";
 import { LocalUserProvider } from "@/context/LocalUserContext";
-import { NetworkProvider } from "@/context/NetworkContext";
+import useNetworkStore from "@/context/NetworkContext";
 
 import { getPlatform } from "@/src/utils/device/type";
 
@@ -18,13 +18,15 @@ import ErrorPage from "@/src/components/pages/ErrorPage";
 
 function ProtectedContent() {
   const db = useSQLiteContext();
+  const initNetwork = useNetworkStore((state) => state.init);
   SetupGlobalEventReceiver();
   // Init and set database instance & global event receiver
   useEffect(() => {
+    initNetwork();
     if (db) {
       database.setDb(db);
     }
-  }, [db]);
+  }, [db, initNetwork]);
 
   // Open SocketIO
   useEffect(() => {
@@ -42,9 +44,7 @@ function ProtectedContent() {
       <ChatProvider>
         <CommsProvider>
           <LocalUserProvider>
-            <NetworkProvider>
-              <Slot />
-            </NetworkProvider>
+            <Slot />
           </LocalUserProvider>
         </CommsProvider>
       </ChatProvider>
