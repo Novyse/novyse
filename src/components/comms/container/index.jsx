@@ -1,17 +1,15 @@
-import React, { useContext } from "react";
-import { StyleSheet, View } from "react-native";
+import React from "react";
+import { View } from "react-native";
+
+import { ChatContext } from "@/context/ActiveChatContext";
 
 import CommsMembersLayout from "@/src/components/comms/CommsMembersLayout";
 import CommsBottomBar from "@/src/components/comms/BottomBar";
 
-import { ThemeContext } from "@/context/ThemeContext";
-
 import useCommsData from "@/src/hooks/comms/useCommsData";
 
-const VocalContent = ({ chatUUIDorHandle }) => {
-  const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
-
+const VocalContent = () => {
+  const { selectedChatUUID: chatUUIDorHandle } = React.useContext(ChatContext);
   const { room, participants } = useCommsData(chatUUIDorHandle, 0);
 
   return (
@@ -26,5 +24,3 @@ const VocalContent = ({ chatUUIDorHandle }) => {
 };
 
 export default VocalContent;
-
-const createStyle = (theme) => StyleSheet.create({});

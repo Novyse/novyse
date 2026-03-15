@@ -27,7 +27,8 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const { room, isSpeakingMap } = useCommsContext();
-  const { setSelectedChatUUID } = useContext(ChatContext);
+  const { selectedChatUUID, setSelectedChatUUID, setContentView } =
+    useContext(ChatContext);
   const styles = createStyle(theme, connected);
 
   const localIdentity = room?.localParticipant?.identity;
@@ -55,6 +56,10 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
   } = useCommsAction(chatUUID, sub);
 
   const handlePress = () => {
+    if (selectedChatUUID === chatUUID) {
+      setContentView("vocal");
+      return;
+    }
     setSelectedChatUUID(chatUUID);
   };
 
@@ -169,7 +174,7 @@ function createStyle(theme: any, connected: boolean) {
     },
     speakingOverlay: {
       backgroundColor: "#2ECC71",
-      borderRadius: 8,
+      borderRadius: 100,
     },
   });
 }

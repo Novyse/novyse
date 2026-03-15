@@ -6,10 +6,13 @@ import auth from "@/src/utils/welcome/auth";
 
 export const ChatContext = createContext();
 
+// @SamueleOrazioDurante il context verrà riscritto in zustand per la draft, ogni chat avrà il suo active chat context con dentro le proprie variabili per tenere lo stato di ogni chat sepraatamente
+
 export const ChatProvider = ({ children }) => {
   const [selectedChatUUID, setSelectedChatUUID] = useState(null);
   const [selectedHandle, setSelectedHandle] = useState(null);
   const [selectedSub, setSelectedSub] = useState(0);
+  const [contentView, setContentView] = useState("chat");
 
   const [newMessageText, setNewMessageText] = useState("");
   const [editingMessage, setEditingMessage] = useState(null);
@@ -47,6 +50,10 @@ export const ChatProvider = ({ children }) => {
     } else if (selectedHandle) {
       router.push(`/app/chat/${selectedHandle}/${selectedSub}`);
     }
+    setNewMessageText("");
+    setEditingMessage(null);
+    setSelectedMessages([]);
+    setReplyingTo([]);
   }, [selectedChatUUID, selectedHandle, selectedSub]);
 
   return (
@@ -58,6 +65,8 @@ export const ChatProvider = ({ children }) => {
         setSelectedHandle,
         selectedSub,
         setSelectedSub,
+        contentView,
+        setContentView,
         newMessageText,
         setNewMessageText,
         editingMessage,

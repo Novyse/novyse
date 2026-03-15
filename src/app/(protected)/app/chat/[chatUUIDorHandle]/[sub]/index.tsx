@@ -27,6 +27,8 @@ const ChatPageRoute = () => {
     setSelectedHandle,
     selectedMessages,
     setSelectedMessages,
+    contentView,
+    setContentView,
     setReplyingTo,
     setNewMessageText,
     editingMessage,
@@ -41,7 +43,6 @@ const ChatPageRoute = () => {
   const { theme } = useContext(ThemeContext);
   const { isSmallScreen } = useScreen();
 
-  const [contentView, setContentView] = useState("chat");
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
   const [containerWidth, setContainerWidth] = useState(0);
@@ -83,7 +84,6 @@ const ChatPageRoute = () => {
       } else {
         setSelectedHandle(chatUUIDorHandle);
       }
-      setContentView("chat");
     }
   }, [chatUUIDorHandle, setSelectedChatUUID, setSelectedHandle]);
 
@@ -129,7 +129,7 @@ const ChatPageRoute = () => {
     setSelectedMessages([]);
   };
 
-  const handleSetContentView = (view) => {
+  const handleSetContentView = (view: "chat" | "vocal" | "both") => {
     if (view === "both" && setDetailWidth) {
       const cw = containerWidth || width;
       if (cw < 700) {
@@ -143,7 +143,7 @@ const ChatPageRoute = () => {
   const renderContent = () => {
     switch (contentView) {
       case "vocal":
-        return <VocalContent chatUUIDorHandle={chatUUIDorHandle as string} />;
+        return <VocalContent />;
       case "both":
         return (
           <View
@@ -177,7 +177,7 @@ const ChatPageRoute = () => {
               >
                 <View style={styles.splitSeparator} />
               </View>
-              <VocalContent chatUUIDorHandle={chatUUIDorHandle as string} />
+              <VocalContent />
             </View>
           </View>
         );
