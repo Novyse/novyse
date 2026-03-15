@@ -5,7 +5,7 @@ import auth from "@/src/utils/welcome/auth";
 
 interface UserState {
   /** UUID of the logged-in user */
-  localUserUUID: string | null;
+  localUserUUID: string;
   /** Cache of all users keyed by UUID */
   users: Record<string, User>;
   loading: boolean;
@@ -33,7 +33,7 @@ const mapRawToUser = (raw: any): User => ({
 });
 
 const useUserStore = create<UserState>((set, get) => ({
-  localUserUUID: null,
+  localUserUUID: "",
   users: {},
   loading: false,
 

@@ -8,7 +8,7 @@ import Footer from "./uploadFile/Footer";
 import StatusMessage from "../StatusMessage";
 
 import { ThemeContext } from "@/context/ThemeContext";
-import { LocalUserContext } from "@/context/LocalUserContext";
+import useUserStore from "@/context/UserContext";
 
 import useUploadFile from "@/src/hooks/modal/useUploadFile.js";
 import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers.js";
@@ -22,8 +22,11 @@ import database from "@/src/utils/storage/database";
 const UploadProfilePicture = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
-  const { userUUID, profilePictureUUID: myProfilePictureUUID } =
-    useContext(LocalUserContext);
+  
+  const myUUID = useUserStore((state) => state.localUserUUID);
+  const myProfilePictureUUID = useUserStore(
+    (state) => state.users[myUUID]?.profilePictureUUID,
+  );
 
   const maxFile = 1;
   const maxSingleSize = 52428800; // 50MB

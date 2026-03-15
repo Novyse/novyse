@@ -1,7 +1,7 @@
 import { useCallback, useContext } from "react";
 
 import { ChatContext } from "@/context/ActiveChatContext";
-import { useLocalUserContext } from "@/context/LocalUserContext";
+import useUserStore from "@/context/UserContext";
 
 import queueManager from "@/src/utils/chat/queueManager.js";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -11,7 +11,7 @@ import { defaultMimeType } from "@/src/utils/storage/file/type.js";
 
 const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
   const { selectedChatUUID: chatUUID } = useContext(ChatContext);
-  const { userUUID: myUUID } = useLocalUserContext();
+  const myUUID = useUserStore((state) => state.localUserUUID);
 
   const handleSendMessage = useCallback(
     async (type = "message", content, files = [], replyTos = []) => {

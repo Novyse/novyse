@@ -5,7 +5,6 @@ import { useSQLiteContext, SQLiteProvider } from "expo-sqlite";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
 import { ChatProvider } from "@/context/ActiveChatContext";
 import { CommsProvider } from "@/context/CommsContext";
-import { LocalUserProvider } from "@/context/LocalUserContext";
 import useNetworkStore from "@/context/NetworkContext";
 
 import { getPlatform } from "@/src/utils/device/type";
@@ -43,9 +42,7 @@ function ProtectedContent() {
     <AudioPlayerProvider>
       <ChatProvider>
         <CommsProvider>
-          <LocalUserProvider>
             <Slot />
-          </LocalUserProvider>
         </CommsProvider>
       </ChatProvider>
     </AudioPlayerProvider>

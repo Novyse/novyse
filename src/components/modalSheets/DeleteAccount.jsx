@@ -9,7 +9,7 @@ import ModalBase from "@/src/components/modalSheets/ModalBase";
 import StatusMessage from "@/src/components/StatusMessage";
 
 import { ThemeContext } from "@/context/ThemeContext";
-import { LocalUserContext } from "@/context/LocalUserContext";
+import useUserStore from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -22,7 +22,8 @@ const DeleteAccount = ({ visible, onClose }) => {
   const router = useRouter();
   const { refreshLoginStatus } = useAuth();
 
-  const { username } = useContext(LocalUserContext);
+  const myUUID = useUserStore((state) => state.localUserUUID);
+  const username = useUserStore((state) => state.users[myUUID]?.handle);
 
   const [inputUsername, setInputUsername] = useState("");
   const [error, setError] = useState(null);

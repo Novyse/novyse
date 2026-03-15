@@ -1,32 +1,22 @@
-import React, { useContext } from "react";
-import { StyleSheet, Text } from "react-native";
+import React from "react";
 
-import { ThemeContext } from "@/context/ThemeContext";
-
-import { useLocalUserContext } from "@/context/LocalUserContext";
+import useUserStore from "@/context/UserContext";
 
 import Profile from "@/src/components/Profile";
 
 const ProfilePage = () => {
-  const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
-
-  const {
-    userUUID,
-    name,
-    surname,
-    username,
-    profilePictureUUID,
-    description,
-    birthday,
-    region,
-    country,
-    isLoading,
-  } = useLocalUserContext();
-
-  if (isLoading) {
-    return <Text style={styles.loadingText}>Loading profile...</Text>;
-  }
+  const userUUID = useUserStore((state) => state.localUserUUID);
+  const name = useUserStore((state) => state.users[userUUID]?.name);
+  const surname = useUserStore((state) => state.users[userUUID]?.surname);
+  const username = useUserStore((state) => state.users[userUUID]?.handle);
+  const profilePictureUUID = useUserStore(
+    (state) => state.users[userUUID]?.profilePictureUUID,
+  );
+  const description = useUserStore(
+    (state) => state.users[userUUID]?.description,
+  );
+  const birthday = useUserStore((state) => state.users[userUUID]?.birthday);
+  const country = useUserStore((state) => state.users[userUUID]?.country);
 
   return (
     <Profile
@@ -42,13 +32,5 @@ const ProfilePage = () => {
     />
   );
 };
-
-const createStyle = (theme: any) =>
-  StyleSheet.create({
-    loadingText: {
-      color: theme.text,
-      fontSize: 18,
-    },
-  });
 
 export default ProfilePage;

@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useContext } from "react";
 import { DateTime } from "luxon";
-import { LocalUserContext } from "@/context/LocalUserContext";
+import useUserStore from "@/context/UserContext";
 
 const usePreparedMessages = (messages, chatType) => {
-  const { userUUID } = useContext(LocalUserContext);
+  const userUUID = useUserStore((state) => state.localUserUUID);
 
   const prepareMessages = useCallback(
     (msgs = []) => {

@@ -19,7 +19,7 @@ import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
 
 import { ChatContext } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
-import { LocalUserContext } from "@/context/LocalUserContext";
+import useUserStore from "@/context/UserContext";
 import useChatStore from "@/context/ChatContext";
 
 import BottomBar from "@/src/components/chat/content/bottomBar";
@@ -41,6 +41,8 @@ const ChatContent = () => {
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
 
   const [sheetIndex, setSheetIndex] = useState(-1);
+
+  const myUUID = useUserStore((state) => state.localUserUUID);
 
   const {
     selectedChatUUID,
@@ -89,8 +91,6 @@ const ChatContent = () => {
 
   const editedMessages = chat?.editedMessages || [];
   const pinnedMessages = chat?.pinnedMessages || [];
-
-  const { userUUID: myUUID } = useContext(LocalUserContext);
 
   const flatListRef = useRef(null);
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
