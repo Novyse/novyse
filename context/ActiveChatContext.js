@@ -43,11 +43,11 @@ export const ChatProvider = ({ children }) => {
 
   useEffect(() => {
     if (selectedChatUUID) {
-      router.push(`/app/chat/${selectedChatUUID}`);
+      router.push(`/app/chat/${selectedChatUUID}/${selectedSub}`);
     } else if (selectedHandle) {
-      router.push(`/app/chat/${selectedHandle}`);
+      router.push(`/app/chat/${selectedHandle}/${selectedSub}`);
     }
-  }, [selectedChatUUID, selectedHandle]);
+  }, [selectedChatUUID, selectedHandle, selectedSub]);
 
   return (
     <ChatContext.Provider
