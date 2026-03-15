@@ -17,8 +17,9 @@ import ErrorPage from "@/src/components/pages/ErrorPage";
 
 function ProtectedContent() {
   const db = useSQLiteContext();
-  const initNetwork = useNetworkStore((state) => state.init);
+  const initNetwork = useNetworkStore((state: any) => state.init);
   SetupGlobalEventReceiver();
+
   // Init and set database instance & global event receiver
   useEffect(() => {
     initNetwork();

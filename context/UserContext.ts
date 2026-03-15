@@ -53,7 +53,7 @@ const useUserStore = create<UserState>((set, get) => ({
 
     set({
       users: usersMap,
-      localUserUUID: localUserUUID || null,
+      localUserUUID: localUserUUID || "",
       loading: false,
     });
 
