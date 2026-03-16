@@ -57,7 +57,7 @@ class GlobalEventEmitter {
   }
 
   async userJoined(chatUUID, user) {
-    await database.addMember(chatUUID, user);
+    await database.chat.member.add(chatUUID, user);
     this.eventEmitter.emit("userJoined", { chatUUID, user });
   }
 

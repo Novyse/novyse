@@ -44,17 +44,28 @@ export const ChatProvider = ({ children }) => {
     };
   }, [selectedChatUUID, selectedHandle]);
 
-  useEffect(() => {
-    if (selectedChatUUID) {
-      router.push(`/app/chat/${selectedChatUUID}/${selectedSub}`);
-    } else if (selectedHandle) {
-      router.push(`/app/chat/${selectedHandle}/${selectedSub}`);
-    }
+  const reset = () => {
     setNewMessageText("");
     setEditingMessage(null);
     setSelectedMessages([]);
     setReplyingTo([]);
-  }, [selectedChatUUID, selectedHandle, selectedSub]);
+  };
+
+  useEffect(() => {
+    if (selectedChatUUID) {
+      setSelectedHandle(null);
+      router.push(`/app/chat/${selectedChatUUID}/${selectedSub}`);
+    }
+    reset();
+  }, [selectedChatUUID, selectedSub]);
+
+  useEffect(() => {
+    if (selectedHandle) {
+      setSelectedChatUUID(null);
+      router.push(`/app/chat/${selectedHandle}/${selectedSub}`);
+    }
+    reset();
+  }, [selectedHandle, selectedSub]);
 
   return (
     <ChatContext.Provider

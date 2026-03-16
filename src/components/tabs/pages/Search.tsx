@@ -18,7 +18,6 @@ import Icon from "@/src/components/Icon";
 import BlurredHeader from "@/src/components/BlurredHeader";
 import ItemSearch from "@/src/components/chat/list/ItemSearch";
 
-import { router } from "expo-router";
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 
 interface SearchResult {
@@ -31,7 +30,7 @@ interface SearchResult {
 
 const Search = () => {
   const { theme } = useThemeContext();
-  const { setSelectedChatUUID } = useContext(ChatContext);
+  const { setSelectedHandle } = useContext(ChatContext);
   const intets = useSafeAreaInsets();
   const styles = createStyle(theme, intets);
 
