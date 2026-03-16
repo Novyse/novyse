@@ -75,6 +75,7 @@ export default {
         backgroundColor: "#ffffff",
       },
       package: `com.${APP_SLUG}${devSuffix}`,
+      softwareKeyboardLayoutMode: "pan",
       intentFilters: [
         {
           action: "VIEW",

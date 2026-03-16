@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { Platform, View, Text, StyleSheet } from "react-native";
 
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { KeyboardStickyView } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers.js";
@@ -315,6 +315,15 @@ const ChatContent = () => {
 
   return (
     <View style={styles.container}>
+      <UploadFileModal
+        visible={isFileModalVisible}
+        onClose={() => {
+          setIsFileModalVisible(false);
+        }}
+        type={attachType}
+        handleFilePick={handleFilePick}
+        handleSendMessage={handleSendFileMessage}
+      />
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={StyleSheet.absoluteFill}>
           <MessageList
@@ -338,18 +347,9 @@ const ChatContent = () => {
             onLoadMore={() => loadMoreMessages(selectedChatUUID)}
           />
         </View>
-        <UploadFileModal
-          visible={isFileModalVisible}
-          onClose={() => {
-            setIsFileModalVisible(false);
-          }}
-          type={attachType}
-          handleFilePick={handleFilePick}
-          handleSendMessage={handleSendFileMessage}
-        />
-        <KeyboardAvoidingView
-          behavior="padding"
-          keyboardVerticalOffset={0}
+
+        <KeyboardStickyView
+          offset={{ closed: 0, opened: 0 }}
           style={{
             position: "absolute",
             bottom: 0,
@@ -376,7 +376,7 @@ const ChatContent = () => {
             mentionMembers={mentionMembers}
             onSelectMention={onSelectMention}
           />
-        </KeyboardAvoidingView>
+        </KeyboardStickyView>
 
         <UploadFileOverlay
           platform={Platform.OS}
