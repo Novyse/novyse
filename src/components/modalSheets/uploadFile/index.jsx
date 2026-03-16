@@ -10,6 +10,7 @@ import StatusMessage from "../../StatusMessage";
 import { ThemeContext } from "@/context/ThemeContext";
 
 import useUploadFile from "@/src/hooks/modal/useUploadFile";
+import WebDropZone from "../../input/WebDropZone";
 
 const UploadFile = ({
   visible,
@@ -45,12 +46,16 @@ const UploadFile = ({
 
     if (!result) return;
 
+    onFileDrop(result);
+  };
+
+  const onFileDrop = async (result) => {
     const newFiles = [...files, ...result];
     setFiles(newFiles);
 
     // Validate files
     checkErrors(newFiles);
-  };
+  }
 
   const handleFooterRightButtonPress = () => {
     if (files.length === 0) return;
@@ -104,6 +109,7 @@ const UploadFile = ({
           />
         )}
       </View>
+      <WebDropZone onFilesDropped={onFileDrop}/>
     </ModalBase>
   );
 };

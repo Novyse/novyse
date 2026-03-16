@@ -62,9 +62,10 @@ const useUploadFile = (
 
       if (fileType !== "All") {
         const allowedType = fileType.toLowerCase();
+        const fileMimeType = file.mimeType||file.type;
         if (
-          (allowedType === "image" && !file.mimeType.startsWith("image/")) ||
-          (allowedType === "video" && !file.mimeType.startsWith("video/"))
+          (allowedType === "image" && !fileMimeType.startsWith("image/")) ||
+          (allowedType === "video" && !fileMimeType.startsWith("video/"))
         ) {
           errors.push("File type not allowed. Allowed types: " + fileType);
         }
