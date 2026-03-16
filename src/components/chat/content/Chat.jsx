@@ -308,11 +308,7 @@ const ChatContent = () => {
   );
 
   if (loading) {
-    return (
-      <Text style={{ color: theme.text, textAlign: "center", marginTop: 20 }}>
-        Loading chat...
-      </Text>
-    );
+    return null;
   }
 
   return (

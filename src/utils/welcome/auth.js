@@ -151,7 +151,6 @@ const logout = async () => {
 
 const updateDatabase = async () => {
   const lastUpdateTimestamp = await getLastUpdateTimestamp();
-  console.log("Last update timestamp:", lastUpdateTimestamp);
 
   // Il timestamp da getLastUpdateTimestamp è già una stringa ISO "2026-03-15T17:46:04.013057+00:00"
   // Quindi lo passiamo direttamente, o calcoliamo la data solo in caso sia un numero (in secondi come in precedenza)

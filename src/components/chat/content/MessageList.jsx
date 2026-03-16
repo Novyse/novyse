@@ -131,7 +131,7 @@ const MessageList = ({
             isPinned={pinnedMessages.some(
               (p) => (p.messageID || p) == message.id,
             )}
-            repliedCount={message.repliedFroms.length || 0}
+            repliedCount={message.repliedFroms?.length || 0}
             setTriggeredMessage={setTriggeredMessage}
             setTriggeredMessagePosition={setTriggeredMessagePosition}
             selectedMessages={selectedMessages}

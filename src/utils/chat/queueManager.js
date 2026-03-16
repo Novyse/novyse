@@ -146,7 +146,7 @@ class QueueManager {
       params.status = "CREATING_CHAT";
 
       // Check if chat is already pending creation, to avoid duplicate jobs just add message to pending messages attached to chat creation
-      if (await database.isChatPendingCreation(id)) {
+      if (false){//await database.isChatPendingCreation(id)) { @SamueleOrazioDurante da gestire correttamente quando verra sistemata la logica di salvataggio nel databasae
         console.log("Chat is already pending creation in queue:", id);
         await this.addPendingMessagesForChatCreation(id, message);
         return;
@@ -446,7 +446,7 @@ class QueueManager {
   async processCreatingChatJob(job) {
     const response = await gateway.chat.create(
       "DM",
-      job.params.chat.member,
+      job.params.chat.memberUUIDs,
       null,
       null,
     );
@@ -456,10 +456,10 @@ class QueueManager {
       newChat.name = newChat.members[0].name;
       newChat.messages = [];
       console.info("Chat created successfully:", newChat);
-      eventEmitter.getEmitter().emit("chat:new", { chat: newChat, id: job.id });
+      eventEmitter.getEmitter().emit("chat:new", newChat);
 
       // Create new job for every message pending send in this chat
-      await this.loadPendingMessagesForChatCreation(job.id, newChat);
+      // await this.loadPendingMessagesForChatCreation(job.id, newChat); @SamueleOrazioDurante da gestire correttamente quando verra sistemata la logica di salvataggio nel databasae
     } else {
       throw new Error("Failed to create chat");
     }

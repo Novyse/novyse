@@ -295,7 +295,12 @@ const useChatStore = create<ChatState>((set, get) => ({
   },
 
   onNewChat: (chat: Chat) => {
-    set((state) => ({ chats: [...state.chats, chat] }));
+    set((state) => {
+      if (state.chats.some((c) => c.uuid === chat.uuid)) {
+        return state;
+      }
+      return { chats: [...state.chats, chat] };
+    });
   },
 
   onNewMessage: (message: any) => {

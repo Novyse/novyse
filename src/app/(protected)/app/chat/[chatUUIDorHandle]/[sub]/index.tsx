@@ -127,22 +127,7 @@ const ChatPageRoute = () => {
   // Se i dati non sono pronti o non corrispondono all'URL, mostriamo uno stato di caricamento
   // ma manteniamo la struttura per evitare salti visivi eccessivi
   if (!isDataReady) {
-    return (
-      <View
-        style={[
-          styles.container,
-          {
-            backgroundColor: theme.backgroundChatContentGradient?.[0] || "#000",
-            justifyContent: "center",
-            alignItems: "center",
-          },
-        ]}
-      >
-        <Text style={{ color: "white", fontSize: 18 }}>
-          Loading {chatUUIDorHandle}...
-        </Text>
-      </View>
-    );
+    return null;
   }
 
   // Prevent loading children like ChatContent if `chat` is totally missing

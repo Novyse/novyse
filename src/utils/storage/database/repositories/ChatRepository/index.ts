@@ -170,6 +170,7 @@ export class ChatRepository {
           chat.messages = await database.message.last.get(chat.uuid);
           chat.unreadCount = Math.floor(Math.random() * 10);
           chat.members = await this.member.get.by.chatUUID(chat.uuid);
+          chat.handle = await database.handle.get.by.uuid("chat", chat.uuid);
 
           chat.pinnedMessages =
             (await this.db.getAllAsync(

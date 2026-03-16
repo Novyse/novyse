@@ -27,7 +27,7 @@ export interface ActiveChatState extends ChatUIState {
   selectedChatUUID: string | null;
   selectedHandle: string | null;
   selectedSub: number;
-  
+
   chatUIStates: Record<string, ChatUIState>;
   activeChatData: any | null;
   isVolatile: boolean;
@@ -36,7 +36,13 @@ export interface ActiveChatState extends ChatUIState {
   saveCurrentUIState: () => void;
   loadUIState: (id: string | null) => ChatUIState;
 
-  setContentView: (view: "chat" | "vocal" | "both" | ((prev: "chat" | "vocal" | "both") => "chat" | "vocal" | "both")) => void;
+  setContentView: (
+    view:
+      | "chat"
+      | "vocal"
+      | "both"
+      | ((prev: "chat" | "vocal" | "both") => "chat" | "vocal" | "both"),
+  ) => void;
   setNewMessageText: (text: string | ((prev: string) => string)) => void;
   setEditingMessage: (msg: any | ((prev: any) => any)) => void;
   setSelectedMessages: (msgs: any[] | ((prev: any[]) => any[])) => void;
@@ -56,7 +62,9 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     let handle;
     if (chat.type === "DM") {
       const userUUID = await auth.getUserUUID();
-      const otherUser = chat.members.find((member: any) => member.uuid !== userUUID);
+      const otherUser = chat.members.find(
+        (member: any) => member.uuid !== userUUID,
+      );
       handle = otherUser.handle;
     } else {
       handle = chat.handle;
@@ -72,10 +80,10 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     selectedChatUUID: null,
     selectedHandle: null,
     selectedSub: 0,
-    
+
     // Default current UI
     ...defaultUIState,
-    
+
     // Record to store UI state for each chat by its UUID or handle
     chatUIStates: {},
 
@@ -85,48 +93,73 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     getCurrentChat: () => get().activeChatData,
 
     saveCurrentUIState: () => {
-       const state = get();
-       const id = state.selectedChatUUID || state.selectedHandle;
-       if (!id) return;
-       const uiState = {
-         contentView: state.contentView,
-         newMessageText: state.newMessageText,
-         editingMessage: state.editingMessage,
-         selectedMessages: state.selectedMessages,
-         replyingTo: state.replyingTo,
-       };
-       set((s) => ({
-         chatUIStates: { ...s.chatUIStates, [id]: uiState }
-       }));
+      const state = get();
+      const id = state.selectedChatUUID || state.selectedHandle;
+      if (!id) return;
+      const uiState = {
+        contentView: state.contentView,
+        newMessageText: state.newMessageText,
+        editingMessage: state.editingMessage,
+        selectedMessages: state.selectedMessages,
+        replyingTo: state.replyingTo,
+      };
+      set((s) => ({
+        chatUIStates: { ...s.chatUIStates, [id]: uiState },
+      }));
     },
 
     loadUIState: (id: string | null) => {
-       if (!id) return defaultUIState;
-       const state = get();
-       return state.chatUIStates[id] || defaultUIState;
+      if (!id) return defaultUIState;
+      const state = get();
+      return state.chatUIStates[id] || defaultUIState;
     },
 
     setContentView: (view) => {
-        set((state) => ({ contentView: typeof view === "function" ? (view as any)(state.contentView) : view }));
-        get().saveCurrentUIState();
+      set((state) => ({
+        contentView:
+          typeof view === "function" ? (view as any)(state.contentView) : view,
+      }));
+      get().saveCurrentUIState();
     },
     setNewMessageText: (text) => {
-        set((state) => ({ newMessageText: typeof text === "function" ? (text as any)(state.newMessageText) : text }));
-        get().saveCurrentUIState();
+      set((state) => ({
+        newMessageText:
+          typeof text === "function"
+            ? (text as any)(state.newMessageText)
+            : text,
+      }));
+      get().saveCurrentUIState();
     },
     setEditingMessage: (msg) => {
-        set((state) => ({ editingMessage: typeof msg === "function" ? (msg as any)(state.editingMessage) : msg }));
-        get().saveCurrentUIState();
+      set((state) => ({
+        editingMessage:
+          typeof msg === "function" ? (msg as any)(state.editingMessage) : msg,
+      }));
+      get().saveCurrentUIState();
     },
     setSelectedMessages: (msgs) => {
-        set((state) => ({ selectedMessages: typeof msgs === "function" ? (msgs as any)(state.selectedMessages) : msgs }));
-        get().saveCurrentUIState();
+      set((state) => ({
+        selectedMessages:
+          typeof msgs === "function"
+            ? (msgs as any)(state.selectedMessages)
+            : msgs,
+      }));
+      get().saveCurrentUIState();
     },
     setReplyingTo: (reply) => {
-        set((state) => ({ replyingTo: typeof reply === "function" ? (reply as any)(state.replyingTo) : reply }));
-        get().saveCurrentUIState();
+      set((state) => ({
+        replyingTo:
+          typeof reply === "function"
+            ? (reply as any)(state.replyingTo)
+            : reply,
+      }));
+      get().saveCurrentUIState();
     },
-    setSelectedSub: (sub) => set((state) => ({ selectedSub: typeof sub === "function" ? (sub as any)(state.selectedSub) : sub })),
+    setSelectedSub: (sub) =>
+      set((state) => ({
+        selectedSub:
+          typeof sub === "function" ? (sub as any)(state.selectedSub) : sub,
+      })),
 
     cleanupVolatileEvents: () => {
       // socket.off etc
@@ -137,32 +170,39 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
         if (!state.activeChatData) return state;
         return {
           activeChatData: {
-             ...state.activeChatData,
-             messages: state.activeChatData.messages ? [...state.activeChatData.messages, eventData] : [eventData]
-          }
+            ...state.activeChatData,
+            messages: state.activeChatData.messages
+              ? [...state.activeChatData.messages, eventData]
+              : [eventData],
+          },
         };
       });
     },
 
     setSelectedChatUUID: async (uuid: string | null) => {
       if (uuid !== null && get().selectedChatUUID === uuid) return;
-      
-      const { selectedSub, cleanupVolatileEvents, saveCurrentUIState, loadUIState } = get();
-      
+
+      const {
+        selectedSub,
+        cleanupVolatileEvents,
+        saveCurrentUIState,
+        loadUIState,
+      } = get();
+
       saveCurrentUIState();
       cleanupVolatileEvents();
-      
+
       const localChats = useChatStore.getState().chats || [];
       const chatData = localChats.find((c: any) => c.uuid === uuid) || null;
-      
+
       const newUI = loadUIState(uuid);
 
-      set({ 
-        selectedChatUUID: uuid, 
-        selectedHandle: null, 
+      set({
+        selectedChatUUID: uuid,
+        selectedHandle: null,
         activeChatData: chatData,
         isVolatile: false,
-        ...newUI
+        ...newUI,
       });
 
       if (uuid) {
@@ -173,34 +213,43 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     setSelectedHandle: async (handle: string | null) => {
       if (handle !== null && get().selectedHandle === handle) return;
 
-      const { selectedSub, cleanupVolatileEvents, volatileEventListener, saveCurrentUIState, loadUIState } = get();
-      
+      const {
+        selectedSub,
+        cleanupVolatileEvents,
+        volatileEventListener,
+        saveCurrentUIState,
+        loadUIState,
+      } = get();
+
       saveCurrentUIState();
       cleanupVolatileEvents();
-      
+
       const localChats = useChatStore.getState().chats || [];
-      const localChat = localChats.find((c: any) => c.handle === handle) || null;
+      const localChat =
+        localChats.find(
+          (c: any) => c.handle?.toLowerCase() === handle?.toLowerCase(),
+        ) || null;
 
       if (localChat) {
-         const newUI = loadUIState(handle);
-         set({
-           selectedHandle: handle,
-           selectedChatUUID: null,
-           activeChatData: localChat,
-           isVolatile: false,
-           ...newUI
-         });
-         if (handle) {
-           router.replace(`/app/chat/${handle}/${selectedSub}`);
-         }
-         return;
+        const newUI = loadUIState(localChat.uuid);
+        set({
+          selectedHandle: null,
+          selectedChatUUID: localChat.uuid,
+          activeChatData: localChat,
+          isVolatile: false,
+          ...newUI,
+        });
+        if (localChat.uuid) {
+          router.replace(`/app/chat/${localChat.uuid}/${selectedSub}`);
+        }
+        return;
       }
 
-      set({ 
-        selectedHandle: handle, 
+      set({
+        selectedHandle: handle,
         selectedChatUUID: null,
         activeChatData: null,
-        isVolatile: true 
+        isVolatile: true,
       });
 
       let fetchedChat = null;
@@ -208,20 +257,45 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
         try {
           const response = await gateway.gather.handle(handle, true);
           if (response.success && response.data) {
-             fetchedChat = response.data;
+            fetchedChat = response.data;
+
+            if (fetchedChat.type === "USER") {
+              // If it's a user, we create a DM chat with them, so i need to set its UUID as a memberUUID
+              fetchedChat.members = [{ uuid: fetchedChat.uuid }];
+            }
+
+            // Check if we actually already have this chat by UUID locally
+            // This happens when you search for a handle but the chat was already in your DB
+            const existingByUUID = useChatStore
+              .getState()
+              .chats.find((c) => c.uuid === fetchedChat.uuid);
+
+            if (existingByUUID) {
+              const newUI = loadUIState(fetchedChat.uuid);
+              set({
+                selectedChatUUID: fetchedChat.uuid,
+                selectedHandle: null,
+                activeChatData: existingByUUID,
+                isVolatile: false,
+                ...newUI,
+              });
+              router.navigate(`/app/chat/${fetchedChat.uuid}/${selectedSub}`);
+              return;
+            }
           }
         } catch (error) {
-           console.error("error fetching api handled chat", error);
+          console.error("error fetching api handled chat", error);
         }
       }
 
       const currentState = get();
-      if (currentState.selectedHandle !== handle || !currentState.isVolatile) return;
+      if (currentState.selectedHandle !== handle || !currentState.isVolatile)
+        return;
 
       const newUI = loadUIState(handle);
       set({
         activeChatData: fetchedChat,
-        ...newUI
+        ...newUI,
       });
 
       if (handle) {
@@ -230,36 +304,40 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     },
 
     reset: () => {
-       const { cleanupVolatileEvents, saveCurrentUIState } = get();
-       saveCurrentUIState();
-       cleanupVolatileEvents();
-       set({
-         selectedChatUUID: null,
-         selectedHandle: null,
-         activeChatData: null,
-         isVolatile: false,
-         ...defaultUIState
-       });
+      const { cleanupVolatileEvents, saveCurrentUIState } = get();
+      saveCurrentUIState();
+      cleanupVolatileEvents();
+      set({
+        selectedChatUUID: null,
+        selectedHandle: null,
+        activeChatData: null,
+        isVolatile: false,
+        ...defaultUIState,
+      });
     },
   };
 });
 
 useChatStore.subscribe((state) => {
   const activeState = useActiveChatStore.getState();
-  
+
   let updatedChat = null;
-  
+
   if (activeState.selectedChatUUID) {
-    updatedChat = state.chats?.find((c: any) => c.uuid === activeState.selectedChatUUID);
+    updatedChat = state.chats?.find(
+      (c: any) => c.uuid === activeState.selectedChatUUID,
+    );
   } else if (activeState.selectedHandle) {
-    updatedChat = state.chats?.find((c: any) => c.handle === activeState.selectedHandle);
+    updatedChat = state.chats?.find(
+      (c: any) => c.handle === activeState.selectedHandle,
+    );
   }
 
   if (updatedChat) {
     if (activeState.activeChatData !== updatedChat || activeState.isVolatile) {
-      useActiveChatStore.setState({ 
+      useActiveChatStore.setState({
         activeChatData: updatedChat,
-        isVolatile: false
+        isVolatile: false,
       });
     }
   }
