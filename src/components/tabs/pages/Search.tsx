@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useThemeContext } from "@/context/ThemeContext";
-import { ChatContext } from "@/context/ActiveChatContext";
+import { useActiveChatStore } from "@/context/ActiveChatContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import Icon from "@/src/components/Icon";
@@ -30,7 +30,7 @@ interface SearchResult {
 
 const Search = () => {
   const { theme } = useThemeContext();
-  const { setSelectedHandle } = useContext(ChatContext);
+  const setSelectedHandle = useActiveChatStore((state) => state.setSelectedHandle);
   const intets = useSafeAreaInsets();
   const styles = createStyle(theme, intets);
 

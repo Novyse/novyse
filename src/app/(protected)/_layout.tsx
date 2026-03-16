@@ -3,7 +3,7 @@ import { Slot } from "expo-router";
 
 import { useSQLiteContext, SQLiteProvider } from "expo-sqlite";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
-import { ChatProvider } from "@/context/ActiveChatContext";
+
 import { CommsProvider } from "@/context/CommsContext";
 import useNetworkStore from "@/context/NetworkContext";
 
@@ -41,11 +41,11 @@ function ProtectedContent() {
 
   return (
     <AudioPlayerProvider>
-      <ChatProvider>
+      
         <CommsProvider>
             <Slot />
         </CommsProvider>
-      </ChatProvider>
+      
     </AudioPlayerProvider>
   );
 }

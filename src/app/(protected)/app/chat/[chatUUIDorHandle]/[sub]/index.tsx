@@ -8,7 +8,7 @@ import Header from "@/src/components/chat/content/header";
 import VocalContent from "@/src/components/comms/container";
 
 import { useScreen } from "@/context/ScreenContext";
-import { ChatContext } from "@/context/ActiveChatContext";
+import { useActiveChatStore } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 import useChatStore from "@/context/ChatContext";
 import useWindowSizeStore from "@/context/WindowSizeContext";
@@ -21,32 +21,34 @@ const ChatPageRoute = () => {
   const params = useLocalSearchParams();
   const { chatUUIDorHandle } = params;
 
-  const {
-    selectedChatUUID,
-    setSelectedChatUUID,
-    selectedHandle,
-    setSelectedHandle,
-    selectedMessages,
-    setSelectedMessages,
-    contentView,
-    setContentView,
-    setReplyingTo,
-    setNewMessageText,
-    editingMessage,
-    setEditingMessage,
-  } = useContext(ChatContext);
+  const selectedChatUUID = useActiveChatStore(
+    (state) => state.selectedChatUUID,
+  );
+  const setSelectedChatUUID = useActiveChatStore(
+    (state) => state.setSelectedChatUUID,
+  );
+  const selectedHandle = useActiveChatStore((state) => state.selectedHandle);
+  const setSelectedHandle = useActiveChatStore(
+    (state) => state.setSelectedHandle,
+  );
+  const selectedMessages = useActiveChatStore(
+    (state) => state.selectedMessages,
+  );
+  const setSelectedMessages = useActiveChatStore(
+    (state) => state.setSelectedMessages,
+  );
+  const contentView = useActiveChatStore((state) => state.contentView);
+  const setContentView = useActiveChatStore((state) => state.setContentView);
+  const setReplyingTo = useActiveChatStore((state) => state.setReplyingTo);
+  const setNewMessageText = useActiveChatStore(
+    (state) => state.setNewMessageText,
+  );
+  const editingMessage = useActiveChatStore((state) => state.editingMessage);
+  const setEditingMessage = useActiveChatStore(
+    (state) => state.setEditingMessage,
+  );
 
-  const currentId = selectedChatUUID || selectedHandle || chatUUIDorHandle;
-
-  const chat = useChatStore((state) => {
-    if (!currentId || !Array.isArray(state.chats)) return null;
-    return (
-      state.chats.find(
-        (c) =>
-          c.uuid === currentId || ("handle" in c && c.handle === currentId),
-      ) || null
-    );
-  });
+  const chat = useActiveChatStore((state) => state.activeChatData);
 
   const { handleDeleteMessage } = useMessageHandlers(
     setNewMessageText,
@@ -91,11 +93,18 @@ const ChatPageRoute = () => {
 
   useEffect(() => {
     if (chatUUIDorHandle) {
+      const state = useActiveChatStore.getState();
+      if (
+        chatUUIDorHandle === state.selectedChatUUID ||
+        chatUUIDorHandle === state.selectedHandle
+      )
+        return;
+
       // Assume if it contains '-', it's a UUID, else handle
-      if (chatUUIDorHandle.includes("-")) {
-        setSelectedChatUUID(chatUUIDorHandle);
+      if ((chatUUIDorHandle as string).includes("-")) {
+        setSelectedChatUUID(chatUUIDorHandle as string);
       } else {
-        setSelectedHandle(chatUUIDorHandle);
+        setSelectedHandle(chatUUIDorHandle as string);
       }
     }
   }, [chatUUIDorHandle, setSelectedChatUUID, setSelectedHandle]);
@@ -175,6 +184,8 @@ const ChatPageRoute = () => {
 
   const renderContent = () => {
     switch (contentView) {
+      case "chat":
+        return <ChatContent />;
       case "vocal":
         return <VocalContent />;
       case "both":
@@ -215,9 +226,6 @@ const ChatPageRoute = () => {
             </View>
           </View>
         );
-      case "chat":
-      default:
-        return <ChatContent />;
     }
   };
 

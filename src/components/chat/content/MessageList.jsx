@@ -123,7 +123,7 @@ const MessageList = ({
             onReply={onReply}
             onReaction={onReaction}
             isSender={message.senderUUID === myUUID}
-            isSelected={selectedMessages.includes(message)}
+            isSelected={selectedMessages.some((msg) => msg.id === message.id)}
             isHighlighted={message.id == highlightedID}
             isEdited={editedMessages.some(
               (p) => (p.messageID || p) == message.id,

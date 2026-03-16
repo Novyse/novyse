@@ -10,7 +10,7 @@ import Icon from "@/src/components/Icon";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import { useCommsContext } from "@/context/CommsContext";
-import { ChatContext } from "@/context/ActiveChatContext";
+import { useActiveChatStore } from "@/context/ActiveChatContext";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 
@@ -27,8 +27,9 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const { room, isSpeakingMap } = useCommsContext();
-  const { selectedChatUUID, setSelectedChatUUID, setContentView } =
-    useContext(ChatContext);
+  const selectedChatUUID = useActiveChatStore((state) => state.selectedChatUUID);
+  const setSelectedChatUUID = useActiveChatStore((state) => state.setSelectedChatUUID);
+  const setContentView = useActiveChatStore((state) => state.setContentView);
   const styles = createStyle(theme, connected);
 
   const localIdentity = room?.localParticipant?.identity;

@@ -29,12 +29,13 @@ import useSelection from "@/src/hooks/useSelection";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 import { useCommsContext } from "@/context/CommsContext";
-import { ChatContext } from "@/context/ActiveChatContext";
+import { useActiveChatStore } from "@/context/ActiveChatContext";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 
 const ChatList = () => {
-  const { setSelectedChatUUID, selectedChatUUID } = useContext(ChatContext);
+  const selectedChatUUID = useActiveChatStore((state) => state.selectedChatUUID);
+  const setSelectedChatUUID = useActiveChatStore((state) => state.setSelectedChatUUID);
 
   const onChatSelect = (chatUUIDorHandle: String) => {
     setSelectedChatUUID(chatUUIDorHandle as string);

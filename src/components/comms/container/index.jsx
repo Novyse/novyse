@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 
-import { ChatContext } from "@/context/ActiveChatContext";
+import { useActiveChatStore } from "@/context/ActiveChatContext";
 
 import CommsMembersLayout from "@/src/components/comms/CommsMembersLayout";
 import CommsBottomBar from "@/src/components/comms/BottomBar";
@@ -9,7 +9,7 @@ import CommsBottomBar from "@/src/components/comms/BottomBar";
 import useCommsData from "@/src/hooks/comms/useCommsData";
 
 const VocalContent = () => {
-  const { selectedChatUUID: chatUUIDorHandle } = React.useContext(ChatContext);
+  const chatUUIDorHandle = useActiveChatStore((state) => state.selectedChatUUID);
   const { room, participants } = useCommsData(chatUUIDorHandle, 0);
 
   return (

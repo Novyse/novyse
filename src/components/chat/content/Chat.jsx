@@ -17,7 +17,7 @@ import useClipboard from "@/src/hooks/useClipboard";
 import useDownload from "@/src/hooks/file/useDownload";
 import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
 
-import { ChatContext } from "@/context/ActiveChatContext";
+import { useActiveChatStore } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
 import useUserStore from "@/context/UserContext";
 import useChatStore from "@/context/ChatContext";
@@ -44,38 +44,40 @@ const ChatContent = () => {
 
   const myUUID = useUserStore((state) => state.localUserUUID);
 
-  const {
-    selectedChatUUID,
-    setSelectedChatUUID,
-    selectedHandle,
-    selectedMessages,
-    setSelectedMessages,
-    replyingTo,
-    setReplyingTo,
-    newMessageText,
-    setNewMessageText,
-    editingMessage,
-    setEditingMessage,
-  } = useContext(ChatContext);
+  const selectedChatUUID = useActiveChatStore(
+    (state) => state.selectedChatUUID,
+  );
+  const setSelectedChatUUID = useActiveChatStore(
+    (state) => state.setSelectedChatUUID,
+  );
+  const selectedHandle = useActiveChatStore((state) => state.selectedHandle);
+  const selectedMessages = useActiveChatStore(
+    (state) => state.selectedMessages,
+  );
+  const setSelectedMessages = useActiveChatStore(
+    (state) => state.setSelectedMessages,
+  );
+  const replyingTo = useActiveChatStore((state) => state.replyingTo);
+  const setReplyingTo = useActiveChatStore((state) => state.setReplyingTo);
+  const newMessageText = useActiveChatStore((state) => state.newMessageText);
+  const setNewMessageText = useActiveChatStore(
+    (state) => state.setNewMessageText,
+  );
+  const editingMessage = useActiveChatStore((state) => state.editingMessage);
+  const setEditingMessage = useActiveChatStore(
+    (state) => state.setEditingMessage,
+  );
 
   const selectChat = useChatStore((state) => state.selectChat);
   const loadMoreMessages = useChatStore((state) => state.loadMoreMessages);
 
   useEffect(() => {
-    selectChat(selectedChatUUID, selectedHandle);
-  }, [selectedChatUUID, selectedHandle, selectChat]);
+    if (selectedChatUUID) {
+      selectChat(selectedChatUUID);
+    }
+  }, [selectedChatUUID, selectChat]);
 
-  const chat = useChatStore(
-    useCallback(
-      (state) =>
-        state.chats.find(
-          (c) =>
-            c.uuid === selectedChatUUID ||
-            (selectedHandle && c.handle === selectedHandle),
-        ),
-      [selectedChatUUID, selectedHandle],
-    ),
-  );
+  const chat = useActiveChatStore((state) => state.activeChatData);
 
   const messages = chat?.messages;
   const members = chat?.members;
@@ -176,7 +178,7 @@ const ChatContent = () => {
         if (prev.find((r) => r.id === msg.id)) return prev;
         return [...prev, msg];
       });
-      if(editingMessage) setNewMessageText("");
+      if (editingMessage) setNewMessageText("");
       setEditingMessage(null); // clear edit when replying
     },
     [replyingTo],
