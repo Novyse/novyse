@@ -10,6 +10,7 @@ import VocalContent from "@/src/components/comms/container";
 import { useScreen } from "@/context/ScreenContext";
 import { ChatContext } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
+import useChatStore from "@/context/ChatContext";
 import useWindowSizeStore from "@/context/WindowSizeContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
@@ -34,6 +35,18 @@ const ChatPageRoute = () => {
     editingMessage,
     setEditingMessage,
   } = useContext(ChatContext);
+
+  const currentId = selectedChatUUID || selectedHandle || chatUUIDorHandle;
+
+  const chat = useChatStore((state) => {
+    if (!currentId || !Array.isArray(state.chats)) return null;
+    return (
+      state.chats.find(
+        (c) =>
+          c.uuid === currentId || ("handle" in c && c.handle === currentId),
+      ) || null
+    );
+  });
 
   const { handleDeleteMessage } = useMessageHandlers(
     setNewMessageText,
@@ -116,6 +129,26 @@ const ChatPageRoute = () => {
       >
         <Text style={{ color: "white", fontSize: 18 }}>
           Loading {chatUUIDorHandle}...
+        </Text>
+      </View>
+    );
+  }
+
+  // Prevent loading children like ChatContent if `chat` is totally missing
+  if (!chat) {
+    return (
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: theme.backgroundChatContentGradient?.[0] || "#000",
+            justifyContent: "center",
+            alignItems: "center",
+          },
+        ]}
+      >
+        <Text style={{ color: "white", fontSize: 18 }}>
+          Fetching chat data...
         </Text>
       </View>
     );

@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  useWindowDimensions,
-  Animated,
-} from "react-native";
+import { View, Text, useWindowDimensions, Animated } from "react-native";
 import { Slot, usePathname } from "expo-router";
 
 import { useThemeContext } from "@/context/ThemeContext";
@@ -133,7 +128,7 @@ export default function RootLayout() {
           }}
           pointerEvents={isDetailOpen ? "auto" : "none"}
         >
-          {isDetailOpen ? <Slot /> : null}
+          <Slot />
         </Animated.View>
       </View>
     );
@@ -179,22 +174,7 @@ export default function RootLayout() {
           }}
           {...resizerHandlers}
         />
-        {isDetailOpen ? (
-          <Slot />
-        ) : (
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: "transparent",
-            }}
-          >
-            <Text style={{ fontSize: 18, color: "white" }}>
-              Nothing selected.
-            </Text>
-          </View>
-        )}
+        <Slot />
       </View>
     </View>
   );
