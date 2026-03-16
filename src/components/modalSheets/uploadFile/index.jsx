@@ -10,7 +10,7 @@ import StatusMessage from "../../StatusMessage";
 import { ThemeContext } from "@/context/ThemeContext";
 
 import useUploadFile from "@/src/hooks/modal/useUploadFile";
-import WebDropZone from "../../input/WebDropZone";
+import WebDropZone from "@/src/components/input/WebDropZone";
 
 const UploadFile = ({
   visible,

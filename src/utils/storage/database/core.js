@@ -3,6 +3,7 @@ import { SQLiteDatabase } from "expo-sqlite";
 import INIT_SQL from "./init.sql.ts";
 
 import { UserRepository } from "./repositories/UserRepository";
+import { HandleRepository } from "./repositories/HandleRepository";
 import { ChatRepository } from "./repositories/ChatRepository";
 import { MessageRepository } from "./repositories/MessageRepository";
 import { FileRepository } from "./repositories/FileRepository";
@@ -11,6 +12,7 @@ class Database {
   constructor(db) {
     this.db = db;
     this.user = new UserRepository(db);
+    this.handle = new HandleRepository(db);
     this.chat = new ChatRepository(db);
     this.message = new MessageRepository(db);
     this.file = new FileRepository(db);
@@ -19,6 +21,7 @@ class Database {
   setDb(db) {
     this.db = db;
     this.user.setDb(db);
+    this.handle.setDb(db);
     this.chat.setDb(db);
     this.message.setDb(db);
     this.file.setDb(db);

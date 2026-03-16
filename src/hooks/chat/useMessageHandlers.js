@@ -9,8 +9,13 @@ import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
 
 import { defaultMimeType } from "@/src/utils/storage/file/type.js";
 
-const useMessageHandlers = (newMessageText, setNewMessageText, setEditingMessage) => {
+const useMessageHandlers = (
+  newMessageText,
+  setNewMessageText,
+  setEditingMessage,
+) => {
   const chatUUID = useActiveChatStore((state) => state.selectedChatUUID);
+  const activeChatData = useActiveChatStore((state) => state.activeChatData);
   const myUUID = useUserStore((state) => state.localUserUUID);
 
   const handleSendMessage = useCallback(
@@ -37,13 +42,14 @@ const useMessageHandlers = (newMessageText, setNewMessageText, setEditingMessage
 
       const chat = {
         uuid: chatUUID,
+        memberUUIDs: !chatUUID ? activeChatData?.members?.map((m) => m.uuid) : undefined, 
       };
 
       await queueManager.addOutgoingMessageJob(message, chat);
 
       setNewMessageText("");
     },
-    [chatUUID, myUUID, setNewMessageText],
+    [chatUUID, myUUID, setNewMessageText, activeChatData],
   );
 
   const handlePinMessage = useCallback(
@@ -188,7 +194,12 @@ const useMessageHandlers = (newMessageText, setNewMessageText, setEditingMessage
             : defaultMimeType,
         size: file.size,
       }));
-      await handleSendMessage("message", newMessageText, cleanedFiles, undefined);
+      await handleSendMessage(
+        "message",
+        newMessageText,
+        cleanedFiles,
+        undefined,
+      );
     },
     [handleSendMessage, newMessageText],
   );
