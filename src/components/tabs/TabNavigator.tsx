@@ -99,7 +99,7 @@ function createStyle(theme: Theme, isSmallScreen: boolean) {
       borderRadius: isSmallScreen ? 0 : 15,
       overflow: "hidden",
       backgroundColor: isSmallScreen
-        ? theme.backgroundMainGradient[0]
+        ? theme.backgroundMainGradient[1]
         : "transparent",
     },
   });

@@ -33,7 +33,7 @@ const ReactionMenu: React.FC<ReactionMenuProps> = ({ onReaction }) => {
             style={styles.reactionButton}
             onPress={() => onReaction(emoji)}
           >
-            <Text style={styles.reactionText}>{emoji}</Text>
+            <Text style={styles.reactionText} selectable={false}>{emoji}</Text>
           </HoverAndPressedButton>
         ))}
       </ScrollView>

@@ -52,7 +52,6 @@ const createStyle = (width: number, height: number) =>
       justifyContent: "center",
       alignItems: "center",
       borderRadius: 999,
-      backgroundColor: "#3660ba68"
     },
   });
 
