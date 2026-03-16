@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { StyleSheet, Platform, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { KeyboardChatScrollView } from "react-native-keyboard-controller";
 
 import MessageBase from "@/src/components/messages/MessageBase";
 import MessageSystem from "@/src/components/messages/MessageSystem";
@@ -9,6 +10,10 @@ import MessageSystem from "@/src/components/messages/MessageSystem";
 import ActionMenu from "@/src/components/messages/ActionMenu";
 import Icon from "@/src/components/Icon";
 import useMessageActions from "@/src/hooks/chat/useMessageActions";
+
+const RenderScrollComponent = React.forwardRef((props, ref) => (
+  <KeyboardChatScrollView {...props} ref={ref} />
+));
 
 const MessageList = ({
   ref: flatListRef,
@@ -183,6 +188,7 @@ const MessageList = ({
         data={preparedMessages}
         keyExtractor={(item) => item.uniqueKey}
         renderItem={renderMessageItem}
+        renderScrollComponent={RenderScrollComponent}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={true}
