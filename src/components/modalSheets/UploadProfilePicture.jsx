@@ -18,11 +18,12 @@ import gateway from "@/src/utils/backend-services/api-gateway";
 import S3Uploader from "@/src/utils/storage/file/s3Bucket";
 import storage from "@/src/utils/storage/file";
 import database from "@/src/utils/storage/database";
+import WebDropZone from "../input/WebDropZone";
 
 const UploadProfilePicture = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
-  
+
   const myUUID = useUserStore((state) => state.localUserUUID);
   const myProfilePictureUUID = useUserStore(
     (state) => state.users[myUUID]?.profilePictureUUID,
@@ -53,7 +54,12 @@ const UploadProfilePicture = ({ visible, onClose }) => {
 
     if (!result) return;
 
-    const newFiles = [...result];
+    onFileDrop(result);
+  };
+
+  const onFileDrop = async (result) => {
+    console.log(result);
+    const newFiles = [...files, ...result];
     setFiles(newFiles);
 
     // Validate files
@@ -67,7 +73,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       // Get presigned URL from backend
       const presignResponse = await gateway.user.profile.picture.update(
         file.name || file.fileName,
-        file.mimeType,
+        file.type||file.mimeType,
         file.size || file.fileSize,
       );
       const { success, fileUUID, uploadURL, expiresAt } = presignResponse;
@@ -105,7 +111,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       await database.file.update.ref(profilePictureUUID, ref);
 
       // Link to local user
-      await eventEmitter.user.profile.update({ userUUID, profilePictureUUID });
+      await eventEmitter.user.profile.update({ userUUID: myUUID, profilePictureUUID });
     } catch (error) {
       console.error("Error uploading profile picture:", error);
       setError("Error uploading profile picture: " + error.message);
@@ -191,6 +197,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
           />
         )}
       </View>
+      <WebDropZone onFilesDropped={onFileDrop}/>
     </ModalBase>
   );
 };
