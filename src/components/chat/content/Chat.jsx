@@ -114,7 +114,7 @@ const ChatContent = () => {
     handleReaction,
     handlePausePendingMessage,
     handleUpdatePendingMessage,
-  } = useMessageHandlers(setNewMessageText, setEditingMessage);
+  } = useMessageHandlers(newMessageText, setNewMessageText, setEditingMessage);
 
   const { attachType, handleMenuItemPress, handleFilePick } = useAttachHandlers(
     setIsAttachMenuOpen,

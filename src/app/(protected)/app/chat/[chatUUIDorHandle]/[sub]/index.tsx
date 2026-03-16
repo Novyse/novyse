@@ -43,6 +43,7 @@ const ChatPageRoute = () => {
   const setNewMessageText = useActiveChatStore(
     (state) => state.setNewMessageText,
   );
+  const newMessageText = useActiveChatStore((state) => state.newMessageText);
   const editingMessage = useActiveChatStore((state) => state.editingMessage);
   const setEditingMessage = useActiveChatStore(
     (state) => state.setEditingMessage,
@@ -51,6 +52,7 @@ const ChatPageRoute = () => {
   const chat = useActiveChatStore((state) => state.activeChatData);
 
   const { handleDeleteMessage } = useMessageHandlers(
+    newMessageText,
     setNewMessageText,
     setEditingMessage,
   );

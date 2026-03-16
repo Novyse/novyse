@@ -9,7 +9,7 @@ import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
 
 import { defaultMimeType } from "@/src/utils/storage/file/type.js";
 
-const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
+const useMessageHandlers = (newMessageText, setNewMessageText, setEditingMessage) => {
   const chatUUID = useActiveChatStore((state) => state.selectedChatUUID);
   const myUUID = useUserStore((state) => state.localUserUUID);
 
@@ -188,9 +188,9 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
             : defaultMimeType,
         size: file.size,
       }));
-      await handleSendMessage("message", "", cleanedFiles, undefined);
+      await handleSendMessage("message", newMessageText, cleanedFiles, undefined);
     },
-    [handleSendMessage],
+    [handleSendMessage, newMessageText],
   );
 
   return {
