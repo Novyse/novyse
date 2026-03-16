@@ -17,8 +17,6 @@ import {
 } from "react-native";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 
-import { router } from "expo-router";
-
 import { ThemeContext } from "@/context/ThemeContext";
 import { ChatContext } from "@/context/ActiveChatContext";
 
@@ -92,7 +90,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
   };
 
   const handleHandleChange = (value) => {
-    setHandle(value);
+    setHandle(value.toLowerCase());
     console.log("Validating handle:", validate.handle(value));
     if (validate.handle(value)) {
       setIsHandleLoading(true);
@@ -325,6 +323,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
               placeholderTextColor="#8F90A6"
               value={handle}
               onChangeText={handleHandleChange}
+              autoCapitalize="none"
             />
             {isHandleLoading ? (
               <ActivityIndicator

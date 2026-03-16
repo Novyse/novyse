@@ -33,6 +33,13 @@ const ModalVerifyMethod = ({
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
+  React.useEffect(() => {
+    const fullOtp = otp.join("");
+    if (fullOtp.length === 6 && /^\d+$/.test(fullOtp) && !isLoading) {
+      handlePress();
+    }
+  }, [otp]);
+
   const getFormattedVerificationType = () => {
     switch (verificationType) {
       case "email":

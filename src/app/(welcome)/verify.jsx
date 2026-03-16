@@ -14,7 +14,6 @@ import {useAuth} from "@/context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
-import MyStatusBar from "@/src/components/MyStatusBar";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import auth from "@/src/utils/welcome/auth";
 import OtpDigitsInput from "@/src/components/OtpDigitsInput";
@@ -48,6 +47,13 @@ const Verify = ({}) => {
     );
     return () => backHandler.remove();
   }, []);
+
+  useEffect(() => {
+    const fullOtp = otp.join("");
+    if (fullOtp.length === 6 && /^\d+$/.test(fullOtp) && !isLoading) {
+      handleVerifyOtp();
+    }
+  }, [otp]);
 
   const getFormattedVerificationType = () => {
     if (!verificationType) {
