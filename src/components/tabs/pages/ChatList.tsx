@@ -34,8 +34,12 @@ import { useActiveChatStore } from "@/context/ActiveChatContext";
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 
 const ChatList = () => {
-  const selectedChatUUID = useActiveChatStore((state) => state.selectedChatUUID);
-  const setSelectedChatUUID = useActiveChatStore((state) => state.setSelectedChatUUID);
+  const selectedChatUUID = useActiveChatStore(
+    (state) => state.selectedChatUUID,
+  );
+  const setSelectedChatUUID = useActiveChatStore(
+    (state) => state.setSelectedChatUUID,
+  );
 
   const onChatSelect = (chatUUIDorHandle: String) => {
     setSelectedChatUUID(chatUUIDorHandle as string);
@@ -44,12 +48,12 @@ const ChatList = () => {
   const chats = useChatStore((state) => state.chats);
   const { pinnedChats, pinChats, unpinChats } = useChatPin();
 
-  const { connected, room, participants } = useCommsContext();
-  const hasComms = connected;
-
   const { isSmallScreen } = useScreen();
   const { theme } = useContext(ThemeContext);
   const insets = useSafeAreaInsets();
+
+  const { connected, room, participants } = useCommsContext();
+  const hasComms = connected && isSmallScreen;
 
   const styles = createStyle(theme, isSmallScreen, insets, hasComms);
 

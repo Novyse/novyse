@@ -1,7 +1,4 @@
-import {
-  Room,
-  VideoPresets,
-} from "livekit-client";
+import { Room, VideoPresets, ScreenSharePresets } from "livekit-client";
 
 export const connectToLiveKit = async (url: string, token: string) => {
   const room = new Room({
@@ -11,9 +8,26 @@ export const connectToLiveKit = async (url: string, token: string) => {
     // optimize publishing bandwidth and CPU for published tracks
     dynacast: true,
 
+    // default publish settings
+    publishDefaults: {
+      audioPreset: {
+        maxBitrate: 48_000,
+      },
+      videoEncoding: VideoPresets.h1080.encoding,
+      simulcast: true,
+    },
+
+    // default audio settings
+    audioCaptureDefaults: {
+      autoGainControl: true,
+      echoCancellation: true,
+      noiseSuppression: true,
+    },
+
     // default capture settings
     videoCaptureDefaults: {
       resolution: VideoPresets.h1080.resolution,
+      frameRate: 60,
     },
   });
 
