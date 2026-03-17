@@ -1,11 +1,12 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, StyleSheet } from "react-native";
 
-import ModalBase from "./ModalBase";
-import Avatar from "../Avatar";
-import Dropzone from "./uploadFile/Dropzone";
-import Footer from "./uploadFile/Footer";
-import StatusMessage from "../StatusMessage";
+import ModalBase from "@/src/components/modalSheets/ModalBase";
+import Avatar from "@/src/components/Avatar";
+import Dropzone from "@/src/components/modalSheets/uploadFile/Dropzone";
+import Footer from "@/src/components/modalSheets/uploadFile/Footer";
+import StatusMessage from "@/src/components/StatusMessage";
+import WebDropZone from "@/src/components/input/WebDropZone";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import useUserStore from "@/context/UserContext";
@@ -72,7 +73,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       // Get presigned URL from backend
       const presignResponse = await gateway.user.profile.picture.update(
         file.name || file.fileName,
-        file.type||file.mimeType,
+        file.type || file.mimeType,
         file.size || file.fileSize,
       );
       const { success, fileUUID, uploadURL, expiresAt } = presignResponse;
@@ -110,7 +111,10 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       await database.file.update.ref(profilePictureUUID, ref);
 
       // Link to local user
-      await eventEmitter.user.profile.update({ userUUID: myUUID, profilePictureUUID });
+      await eventEmitter.user.profile.update({
+        userUUID: myUUID,
+        profilePictureUUID,
+      });
     } catch (error) {
       console.error("Error uploading profile picture:", error);
       setError("Error uploading profile picture: " + error.message);
@@ -196,7 +200,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
           />
         )}
       </View>
-      <WebDropZone onFilesDropped={onFileDrop}/>
+      <WebDropZone onFilesDropped={onFileDrop} />
     </ModalBase>
   );
 };
