@@ -113,8 +113,6 @@ const ChatContent = () => {
 
   const preparedMessages = usePreparedMessages(messages, chat.type);
 
-  const { handleJoin } = useChatHandlers(selectedHandle, setSelectedChatUUID);
-
   const {
     handleSendMessage,
     handlePinMessage,
@@ -399,8 +397,6 @@ const ChatContent = () => {
           }}
         >
           <BottomBar
-            chat={chat}
-            onJoin={handleJoin}
             newMessageText={newMessageText}
             files={files}
             textInputRef={textInputRef}

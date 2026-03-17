@@ -2,10 +2,9 @@ import { create } from "zustand";
 import { router } from "expo-router";
 
 import EventEmitter from "@/src/utils/global/Events/EventEmitter";
-import auth from "@/src/utils/welcome/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";
-import socketService from "@/src/utils/backend-services/socket-io";
 import useChatStore from "./ChatContext";
+import useUserStore from "./UserContext";
 
 export interface ChatUIState {
   contentView: "chat" | "vocal" | "both";
@@ -34,7 +33,6 @@ export interface ActiveChatState extends ChatUIState {
 
   chatUIStates: Record<string, ChatUIState>;
   activeChatData: any | null;
-  isVolatile: boolean;
 
   getCurrentChat: () => any;
   saveCurrentUIState: () => void;
@@ -55,29 +53,36 @@ export interface ActiveChatState extends ChatUIState {
   setReplyingTo: (reply: any[] | ((prev: any[]) => any[])) => void;
   setSelectedSub: (sub: number | ((prev: number) => number)) => void;
 
-  cleanupVolatileEvents: () => void;
-  volatileEventListener: (eventData: any) => void;
-
   setSelectedChatUUID: (uuid: string | null) => Promise<void>;
   setSelectedHandle: (handle: string | null) => Promise<void>;
   reset: () => void;
 }
 
 export const useActiveChatStore = create<ActiveChatState>((set, get) => {
-  EventEmitter.getEmitter().on("newChat", async (chat: any) => {
+  EventEmitter.getEmitter().on("chat:new", (data) => {
+    const { chat, users } = data;
     let handle;
     if (chat.type === "DM") {
-      const userUUID = await auth.getUserUUID();
-      const otherUser = chat.members.find(
-        (member: any) => member.uuid !== userUUID,
+      const userUUID = useUserStore.getState().localUserUUID;
+      const otherUser = chat.members?.find(
+        (member: any) =>
+          member.uuid !== userUUID && member.userUUID !== userUUID,
       );
-      handle = otherUser.handle;
+      const otherDataUser = users?.find((u: any) => u.uuid !== userUUID);
+      handle =
+        otherUser?.handle ||
+        otherUser?.user?.handle ||
+        otherDataUser?.handle ||
+        chat.handle;
     } else {
       handle = chat.handle;
     }
 
     const { selectedChatUUID, selectedHandle, setSelectedChatUUID } = get();
-    if (selectedChatUUID === null && selectedHandle === handle) {
+    if (
+      selectedChatUUID === null &&
+      selectedHandle?.toLowerCase() === handle?.toLowerCase()
+    ) {
       setSelectedChatUUID(chat.uuid);
     }
   });
@@ -94,7 +99,6 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     chatUIStates: {},
 
     activeChatData: null,
-    isVolatile: false,
 
     getCurrentChat: () => get().activeChatData,
 
@@ -140,13 +144,17 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     },
     setFiles: (files) => {
       set((state) => ({
-        files: typeof files === "function" ? (files as any)(state.files) : files,
+        files:
+          typeof files === "function" ? (files as any)(state.files) : files,
       }));
       get().saveCurrentUIState();
     },
     setInvalidFiles: (invalids) => {
       set((state) => ({
-        invalidFiles: typeof invalids === "function" ? (invalids as any)(state.invalidFiles) : invalids,
+        invalidFiles:
+          typeof invalids === "function"
+            ? (invalids as any)(state.invalidFiles)
+            : invalids,
       }));
       get().saveCurrentUIState();
     },
@@ -181,36 +189,12 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
           typeof sub === "function" ? (sub as any)(state.selectedSub) : sub,
       })),
 
-    cleanupVolatileEvents: () => {
-      // socket.off etc
-    },
-
-    volatileEventListener: (eventData: any) => {
-      set((state) => {
-        if (!state.activeChatData) return state;
-        return {
-          activeChatData: {
-            ...state.activeChatData,
-            messages: state.activeChatData.messages
-              ? [...state.activeChatData.messages, eventData]
-              : [eventData],
-          },
-        };
-      });
-    },
-
     setSelectedChatUUID: async (uuid: string | null) => {
       if (uuid !== null && get().selectedChatUUID === uuid) return;
 
-      const {
-        selectedSub,
-        cleanupVolatileEvents,
-        saveCurrentUIState,
-        loadUIState,
-      } = get();
+      const { selectedSub, saveCurrentUIState, loadUIState } = get();
 
       saveCurrentUIState();
-      cleanupVolatileEvents();
 
       const localChats = useChatStore.getState().chats || [];
       const chatData = localChats.find((c: any) => c.uuid === uuid) || null;
@@ -221,7 +205,6 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
         selectedChatUUID: uuid,
         selectedHandle: null,
         activeChatData: chatData,
-        isVolatile: false,
         ...newUI,
       });
 
@@ -233,22 +216,30 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     setSelectedHandle: async (handle: string | null) => {
       if (handle !== null && get().selectedHandle === handle) return;
 
-      const {
-        selectedSub,
-        cleanupVolatileEvents,
-        volatileEventListener,
-        saveCurrentUIState,
-        loadUIState,
-      } = get();
+      const { selectedSub, saveCurrentUIState, loadUIState } = get();
 
       saveCurrentUIState();
-      cleanupVolatileEvents();
 
       const localChats = useChatStore.getState().chats || [];
       const localChat =
-        localChats.find(
-          (c: any) => c.handle?.toLowerCase() === handle?.toLowerCase(),
-        ) || null;
+        localChats.find((c: any) => {
+          if (c.handle) {
+            return c.handle.toLowerCase() === handle?.toLowerCase();
+          }
+          if (c.type === "DM") {
+            const userUUID = useUserStore.getState().localUserUUID;
+            if (c.members) {
+              const otherUser = c.members.find(
+                (m: any) => (m.uuid || m.userUUID) !== userUUID,
+              );
+              const otherHandle = otherUser?.handle || otherUser?.user?.handle;
+              if (otherHandle) {
+                return otherHandle.toLowerCase() === handle?.toLowerCase();
+              }
+            }
+          }
+          return false;
+        }) || null;
 
       if (localChat) {
         const newUI = loadUIState(localChat.uuid);
@@ -256,7 +247,6 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
           selectedHandle: null,
           selectedChatUUID: localChat.uuid,
           activeChatData: localChat,
-          isVolatile: false,
           ...newUI,
         });
         if (localChat.uuid) {
@@ -269,15 +259,22 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
         selectedHandle: handle,
         selectedChatUUID: null,
         activeChatData: null,
-        isVolatile: true,
       });
 
-      let fetchedChat = null;
+      interface FetchedChat {
+        uuid: string;
+        handle: string;
+        type: string;
+        members?: any[];
+      }
+      let fetchedChat: FetchedChat | null = null;
       if (handle) {
         try {
-          const response = await gateway.gather.handle(handle, true);
+          const response: any = await gateway.gather.handle(handle, true);
           if (response.success && response.data) {
             fetchedChat = response.data;
+
+            if (!fetchedChat) return;
 
             if (fetchedChat.type === "USER") {
               // If it's a user, we create a DM chat with them, so i need to set its UUID as a memberUUID
@@ -296,10 +293,9 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
                 selectedChatUUID: fetchedChat.uuid,
                 selectedHandle: null,
                 activeChatData: existingByUUID,
-                isVolatile: false,
                 ...newUI,
               });
-              router.navigate(`/app/chat/${fetchedChat.uuid}/${selectedSub}`);
+              router.push(`/app/chat/${fetchedChat.uuid}/${selectedSub}`);
               return;
             }
           }
@@ -309,8 +305,7 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
       }
 
       const currentState = get();
-      if (currentState.selectedHandle !== handle || !currentState.isVolatile)
-        return;
+      if (currentState.selectedHandle !== handle) return;
 
       const newUI = loadUIState(handle);
       set({
@@ -324,14 +319,12 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     },
 
     reset: () => {
-      const { cleanupVolatileEvents, saveCurrentUIState } = get();
+      const { saveCurrentUIState } = get();
       saveCurrentUIState();
-      cleanupVolatileEvents();
       set({
         selectedChatUUID: null,
         selectedHandle: null,
         activeChatData: null,
-        isVolatile: false,
         ...defaultUIState,
       });
     },
@@ -354,10 +347,9 @@ useChatStore.subscribe((state) => {
   }
 
   if (updatedChat) {
-    if (activeState.activeChatData !== updatedChat || activeState.isVolatile) {
+    if (activeState.activeChatData !== updatedChat) {
       useActiveChatStore.setState({
         activeChatData: updatedChat,
-        isVolatile: false,
       });
     }
   }

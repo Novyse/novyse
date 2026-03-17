@@ -62,7 +62,6 @@ export class ChatRepository {
           [chat.uuid, chat.handle],
         );
       }
-
       for (const member of chat.members) {
         await this.member.add(chat.uuid, member);
       }
@@ -87,7 +86,7 @@ export class ChatRepository {
 
   pin = {
     add: async (chatUUID: any, position: any): Promise<any> => {
-      try {
+      try { 
         if (!chatUUID) {
           console.error("Missing required fields to pin chat.");
           return false;

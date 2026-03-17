@@ -3,11 +3,8 @@ import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import DefaultBar from "./default";
-import JoinBar from "./join";
 
 const BottomBar = ({
-  chat,
-  onJoin,
   newMessageText,
   files,
   textInputRef,
@@ -26,8 +23,6 @@ const BottomBar = ({
   mentionMembers,
   onSelectMention,
 }) => {
-  const showJoinBar =
-    !chat.uuid && ["GROUP", "CHANNEL", "FORUM"].includes(chat.type);
 
   const insets = useSafeAreaInsets();
 
@@ -39,28 +34,24 @@ const BottomBar = ({
       }
       style={{ paddingBottom: insets.bottom + 5 }}
     >
-      {showJoinBar ? (
-        <JoinBar onJoin={onJoin} chat={chat} />
-      ) : (
-        <DefaultBar
-          isAttachMenuOpen={isAttachMenuOpen}
-          onToggleAttachMenu={onToggleAttachMenu}
-          onToggleEmoji={onToggleEmoji}
-          textInputRef={textInputRef}
-          newMessageText={newMessageText}
-          files={files}
-          onTextChange={onTextChange}
-          onSendMessage={onSendMessage}
-          onFileAppend={onFileAppend}
-          onInputFocus={onInputFocus}
-          replyingTo={replyingTo}
-          onCancelReply={onCancelReply}
-          editingMessage={editingMessage}
-          onCancelEdit={onCancelEdit}
-          mentionMembers={mentionMembers}
-          onSelectMention={onSelectMention}
-        />
-      )}
+      <DefaultBar
+        isAttachMenuOpen={isAttachMenuOpen}
+        onToggleAttachMenu={onToggleAttachMenu}
+        onToggleEmoji={onToggleEmoji}
+        textInputRef={textInputRef}
+        newMessageText={newMessageText}
+        files={files}
+        onTextChange={onTextChange}
+        onSendMessage={onSendMessage}
+        onFileAppend={onFileAppend}
+        onInputFocus={onInputFocus}
+        replyingTo={replyingTo}
+        onCancelReply={onCancelReply}
+        editingMessage={editingMessage}
+        onCancelEdit={onCancelEdit}
+        mentionMembers={mentionMembers}
+        onSelectMention={onSelectMention}
+      />
     </View>
   );
 };

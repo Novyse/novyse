@@ -1,5 +1,7 @@
 import { create } from "zustand";
-import { Chat } from "@/src/types";
+
+import { Chat, User } from "@/src/types";
+
 import database from "@/src/utils/storage/database";
 
 interface ChatState {
@@ -20,7 +22,8 @@ interface ChatState {
   getMessage: (chatUUID: string, messageID: string) => any;
   _eventsSetup: boolean;
   setupEvents: () => Promise<void>;
-  onNewChat: (chat: Chat) => void;
+  onNewChat: (data: { chat: Chat; users: User[] }) => void;
+  onMemberJoin: (payload: { chatUUID: string; user: any }) => void;
   onNewMessage: (message: any) => void;
   onMessageUpload: (payload: { tempId: string; message: any }) => void;
   onMessageDownloaded: (payload: { message: any; file: any }) => void;
@@ -58,6 +61,7 @@ const useChatStore = create<ChatState>((set, get) => ({
 
   loadChats: async () => {
     const fetchedChats = await database.chat.get.all();
+
     set((state) => {
       const mergedChats = fetchedChats.map((fetchedChat: any) => {
         const existingChat = state.chats.find(
@@ -288,6 +292,7 @@ const useChatStore = create<ChatState>((set, get) => ({
       await import("@/src/utils/global/Events/EventEmitter");
 
     eventEmitter.getEmitter().on("chat:new", get().onNewChat);
+    eventEmitter.getEmitter().on("chat:member:joined", get().onMemberJoin);
     eventEmitter.getEmitter().on("message:new", get().onNewMessage);
     eventEmitter.getEmitter().on("message:upload", get().onMessageUpload);
     eventEmitter
@@ -301,13 +306,30 @@ const useChatStore = create<ChatState>((set, get) => ({
     set({ _eventsSetup: true });
   },
 
-  onNewChat: (chat: Chat) => {
+  onNewChat: (data) => {
+    const { chat } = data;
     set((state) => {
       if (state.chats.some((c) => c.uuid === chat.uuid)) {
         return state;
       }
       return { chats: [...state.chats, chat] };
     });
+  },
+
+  onMemberJoin: ({ chatUUID, user }) => {
+    set((state) => ({
+      chats: state.chats.map((chat) => {
+        if (chat.uuid !== chatUUID) return chat;
+        if (chat.members.some((m) => m.uuid === user.uuid)) return chat;
+        return {
+          ...chat,
+          members: [
+            ...chat.members,
+            { uuid: user.uuid, role: "member", joinedAt: new Date() },
+          ],
+        };
+      }),
+    }));
   },
 
   onNewMessage: (message: any) => {
@@ -343,7 +365,6 @@ const useChatStore = create<ChatState>((set, get) => ({
             }
           });
         }
-
         return { ...chat, messages: [...updatedMessages, safeMessage] };
       }),
     }));

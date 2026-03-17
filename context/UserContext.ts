@@ -17,6 +17,8 @@ interface UserState {
   _eventsSetup: boolean;
   setupEvents: () => Promise<void>;
   onProfileUpdate: (data: Partial<User> & { userUUID: string }) => void;
+  onNewChat: (data: { chat: any; users: User[] }) => void;
+  onNewMember: (data: { chatUUID: string; user: User }) => void;
 }
 
 const mapRawToUser = (raw: any): User => ({
@@ -76,6 +78,8 @@ const useUserStore = create<UserState>((set, get) => ({
       await import("@/src/utils/global/Events/EventEmitter");
 
     eventEmitter.getEmitter().on("user:profile:update", get().onProfileUpdate);
+    eventEmitter.getEmitter().on("chat:new", get().onNewChat);
+    eventEmitter.getEmitter().on("chat:member:joined", get().onNewMember);
 
     set({ _eventsSetup: true });
   },
@@ -95,6 +99,26 @@ const useUserStore = create<UserState>((set, get) => ({
       const updated = { ...existing, ...cleanUpdates };
       return { users: { ...state.users, [userUUID]: updated } };
     });
+  },
+
+  onNewChat: (data) => {
+    const { users } = data;
+    const usersMap: Record<string, User> = {};
+    for (const raw of users) {
+      const user = mapRawToUser(raw);
+      if (usersMap[user.uuid]) continue;
+      usersMap[user.uuid] = user;
+    }
+
+    set((state) => ({ users: { ...state.users, ...usersMap } }));
+  },
+
+  onNewMember: (data) => {
+    const { user } = data;
+    const mappedUser = mapRawToUser(user);
+    set((state) => ({
+      users: { ...state.users, [mappedUser.uuid]: mappedUser },
+    }));
   },
 }));
 

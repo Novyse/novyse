@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import useChatStore from "@/context/ChatContext";
 import useUserStore from "@/context/UserContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
 import { Chat } from "@/src/types";
 
 export const useChatMetadata = (
@@ -11,26 +10,12 @@ export const useChatMetadata = (
   const users = useUserStore((state) => state.users);
 
   // If we got a string, find the chat in the store
-  const localChat = useChatStore((state) => {
+  const chat = useChatStore((state) => {
     if (typeof chatUUIDorHandle !== "string") return chatUUIDorHandle;
     return state.chats.find(
       (c: any) => c.uuid === chatUUIDorHandle || c.handle === chatUUIDorHandle,
     );
   });
-
-  const activeChatData = useActiveChatStore((state) => state.activeChatData);
-  const isVolatile = useActiveChatStore((state) => state.isVolatile);
-  const activeChat =
-    typeof chatUUIDorHandle === "string" &&
-    isVolatile &&
-    activeChatData?.handle === chatUUIDorHandle
-      ? activeChatData
-      : typeof chatUUIDorHandle !== "string"
-        ? chatUUIDorHandle
-        : null;
-
-  // Choose between the local chat (from store) and the active chat (which might be volatile)
-  const chat = localChat || activeChat;
 
   return useMemo(() => {
     if (!chat) return { name: "Loading...", profilePictureUUID: null };
@@ -50,7 +35,7 @@ export const useChatMetadata = (
       return {
         name: targetUser?.name || "User",
         profilePictureUUID: targetUser?.profilePictureUUID || null,
-      };
+      };  
     }
 
     // Default for Groups/Channels

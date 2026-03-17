@@ -189,7 +189,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
       }
 
       // Notify other parts of the app about the new chat
-      await eventEmitter.newChat(chat);
+      await eventEmitter.chat.new(chat, []);
       // Navigate to the newly created chat
       setSelectedChatUUID(chat.uuid);
     } else {

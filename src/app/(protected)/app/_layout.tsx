@@ -110,7 +110,7 @@ export default function RootLayout() {
   // For  we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {
     return (
-      <View style={{ flex: 1, backgroundColor: "transparent" }}>
+      <View style={{ flex: 1, backgroundColor: "transparent", overflow: "hidden" }}>
         <TabNavigator isDetailOpen={isDetailOpen} />
         <Animated.View
           style={{

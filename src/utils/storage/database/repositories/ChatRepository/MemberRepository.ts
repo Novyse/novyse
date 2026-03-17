@@ -47,15 +47,18 @@ export class MemberRepository {
             return [];
           }
 
-          const members = await this.db.getAllAsync<Member>(
-            `SELECT u.*, h.handle FROM member m
-         JOIN user u ON m.userUUID = u.uuid
-         LEFT JOIN handle h ON u.uuid = h.userUUID AND h.type = 'USER'
-         WHERE m.chatUUID = ?;`,
+          const members = await this.db.getAllAsync<any>(
+            `SELECT m.userUUID as uuid
+             FROM member m
+             WHERE m.chatUUID = ?;`,
             [chatUUID],
           );
 
-          return members;
+          return members.map((m) => ({
+            uuid: m.uuid,
+            role: "member",
+            joinedAt: new Date(),
+          }));
         } catch (error) {
           console.error("Error retrieving members by chat UUID:", error);
           return [];

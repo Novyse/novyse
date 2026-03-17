@@ -31,15 +31,7 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
         }));
         files = cleanedFiles;
       }
-      /*
-      // If chat is pending creation, remove chatUUID and put it as job uuid
-      if (chat.pendingCreation){
-        const id = chatUUID;
-        chatUUID = null;
-        await queueManager.addOutgoingMessageJob(message,chat,id);
-        return;
-      }
-      */
+
       const message = {
         senderUUID: myUUID,
         content,

@@ -15,10 +15,11 @@ import useWindowSizeStore from "@/context/WindowSizeContext";
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
+import JoinCreateChat from "@/src/components/chat/JoinCreateChat";
 
 const ChatPageRoute = () => {
   const params = useLocalSearchParams();
-  const { chatUUIDorHandle } = params;
+  const { chatUUIDorHandle, sub } = params;
 
   const selectedChatUUID = useActiveChatStore(
     (state) => state.selectedChatUUID,
@@ -30,6 +31,7 @@ const ChatPageRoute = () => {
   const setSelectedHandle = useActiveChatStore(
     (state) => state.setSelectedHandle,
   );
+  const setSelectedSub = useActiveChatStore((state) => state.setSelectedSub);
   const selectedMessages = useActiveChatStore(
     (state) => state.selectedMessages,
   );
@@ -94,6 +96,12 @@ const ChatPageRoute = () => {
   useEffect(() => {
     if (chatUUIDorHandle) {
       const state = useActiveChatStore.getState();
+
+      const subIndex = params.sub ? parseInt(params.sub as string, 10) : 0;
+      if (state.selectedSub !== subIndex) {
+        setSelectedSub(subIndex);
+      }
+
       if (
         chatUUIDorHandle === state.selectedChatUUID ||
         chatUUIDorHandle === state.selectedHandle
@@ -107,7 +115,13 @@ const ChatPageRoute = () => {
         setSelectedHandle(chatUUIDorHandle as string);
       }
     }
-  }, [chatUUIDorHandle, setSelectedChatUUID, setSelectedHandle]);
+  }, [
+    chatUUIDorHandle,
+    sub,
+    setSelectedChatUUID,
+    setSelectedHandle,
+    setSelectedSub,
+  ]);
 
   const styles = useMemo(
     () => createStyle(theme, isSmallScreen),
@@ -145,6 +159,19 @@ const ChatPageRoute = () => {
           Fetching chat data...
         </Text>
       </View>
+    );
+  }
+
+  const isJoinMode = !selectedChatUUID && !!selectedHandle;
+
+  if (isJoinMode && chat) {
+    return (
+      <JoinCreateChat
+        chat={chat}
+        sub={params.sub as string}
+        setSelectedHandle={setSelectedHandle}
+        setSelectedChatUUID={setSelectedChatUUID}
+      />
     );
   }
 

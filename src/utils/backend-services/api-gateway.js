@@ -688,14 +688,16 @@ const gateway = {
         console.error("lastUpdateTime is not a valid ISO 8601 timestamp");
         return { success: false };
       }
-      const response = await api.get(`/user/update?at=${encodeURIComponent(lastUpdateTime)}`);
+      const response = await api.get(
+        `/user/update?at=${encodeURIComponent(lastUpdateTime)}`,
+      );
       console.log(response);
       const success = response.data.success;
       if (success) {
         const { local, user, chat, message, at } = response.data.data;
         return { success, local, user, chat, message, at };
       }
-      
+
       return { success };
     },
     /**
@@ -875,8 +877,9 @@ const gateway = {
         });
         const success = response.data.success;
         if (success) {
-          const chat = response.data.data;
-          return { success, chat };
+          const chat = response.data.data.chat;
+          const users = response.data.data.users;
+          return { success, chat, users };
         }
         return { success };
       } catch (error) {
@@ -897,8 +900,8 @@ const gateway = {
         const response = await api.post("/chat/join", { handle });
         const success = response.data.success;
         if (success) {
-          const { chat, messages } = response.data.data;
-          return { success, chat, messages };
+          const { chat, users } = response.data.data;
+          return { success, chat, users };
         }
         return { success };
       } catch (error) {

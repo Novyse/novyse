@@ -199,7 +199,7 @@ const updateDatabase = async () => {
 
     if (chat?.new && Array.isArray(chat.new)) {
       for (const c of chat.new) {
-        await EventEmitter.newChat(c, []);
+        await EventEmitter.chat.new(c, []);
       }
     }
 
@@ -216,7 +216,7 @@ const updateDatabase = async () => {
 
     if (message?.new && Array.isArray(message.new)) {
       for (const m of message.new) {
-        await EventEmitter.newMessage(m);
+        await EventEmitter.message.new(m);
       }
     }
 

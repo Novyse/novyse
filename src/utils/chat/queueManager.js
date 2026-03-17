@@ -141,22 +141,9 @@ class QueueManager {
       maxRetries: this.maxRetries,
     };
 
-    // No chat UUID means chat is being created
-    if (!params.chat.uuid) {
-      params.status = "CREATING_CHAT";
-
-      // Check if chat is already pending creation, to avoid duplicate jobs just add message to pending messages attached to chat creation
-      if (false){//await database.isChatPendingCreation(id)) { @SamueleOrazioDurante da gestire correttamente quando verra sistemata la logica di salvataggio nel databasae
-        console.log("Chat is already pending creation in queue:", id);
-        await this.addPendingMessagesForChatCreation(id, message);
-        return;
-      }
-    }
-
     await this.addJob(id, "OUTGOING_MESSAGE", params);
 
-    // @SamueleOrazioDurante da capire sto eventEmitter
-    if (status === "PENDING_SEND" || status === "CREATING_CHAT") {
+    if (status === "PENDING_SEND") {
       // Emit event for new message added to queue
       await eventEmitter.getEmitter().emit("message:new", {
         chatUUID: chat.uuid,
@@ -419,9 +406,6 @@ class QueueManager {
    */
   async processOutgoingMessageJob(job) {
     switch (job.params.status) {
-      case "CREATING_CHAT":
-        await this.processCreatingChatJob(job);
-        break;
       case "PENDING_SEND":
         await this.processSendingMessageJob(job);
         break;
@@ -436,32 +420,6 @@ class QueueManager {
         break;
       default:
         throw new Error("Unknown outgoing message job status");
-    }
-  }
-
-  /**
-   * Process a creating chat job
-   * @param {Object} job
-   */
-  async processCreatingChatJob(job) {
-    const response = await gateway.chat.create(
-      "DM",
-      job.params.chat.memberUUIDs,
-      null,
-      null,
-    );
-    const success = response.success;
-    const newChat = response.chat;
-    if (success) {
-      newChat.name = newChat.members[0].name;
-      newChat.messages = [];
-      console.info("Chat created successfully:", newChat);
-      eventEmitter.getEmitter().emit("chat:new", newChat);
-
-      // Create new job for every message pending send in this chat
-      // await this.loadPendingMessagesForChatCreation(job.id, newChat); @SamueleOrazioDurante da gestire correttamente quando verra sistemata la logica di salvataggio nel databasae
-    } else {
-      throw new Error("Failed to create chat");
     }
   }
 
@@ -722,8 +680,7 @@ class QueueManager {
     // Revert UI changes
     if (job.type === "OUTGOING_MESSAGE") {
       if (
-        job.params.status === "PENDING_SEND" ||
-        job.params.status === "CREATING_CHAT"
+        job.params.status === "PENDING_SEND"
       ) {
         await eventEmitter.getEmitter().emit("message:update", {
           chatUUID,
@@ -1067,25 +1024,6 @@ class QueueManager {
     }
 
     await database.message.pending.add(messageData, fileData);
-  }
-
-  /**
-   * Load pending messages to queue for a chat that has just been created
-   * @param {String} pendingChatUUID
-   * @param {Object} newChat { uuid, name, type, handle, profilePictureUUID, member }
-   */
-
-  async loadPendingMessagesForChatCreation(pendingChatUUID, newChat) {
-    const pendingMessages =
-      await database.message.pending.getByChatUUID(pendingChatUUID);
-    for (const pendingMessage of pendingMessages) {
-      await database.message.pending.remove(pendingMessage.id);
-      await this.addOutgoingMessageJob(
-        pendingMessage,
-        newChat,
-        pendingMessage.id,
-      );
-    }
   }
 
   // Download utilities

@@ -26,7 +26,7 @@ const eventReceiver = {
     });
 
     socket.on("message:new", async (message) => {
-      await eventEmitter.newMessage(message);
+      await eventEmitter.message.new(message);
     });
 
     socket.on("message:update", async (data) => {
@@ -39,27 +39,26 @@ const eventReceiver = {
     });
 
     socket.on("chat:new", async (data) => {
-      const { chat, messages } = data;
-
-      await eventEmitter.newChat(chat, messages);
+      await eventEmitter.chat.new(data.chat, data.users);
     });
 
     socket.on("chat:update", async (data) => {
       await eventEmitter.chat.update(data.chatUUID, data.action, data);
     });
 
-    socket.on("user_joined", async (data) => {
-      await eventEmitter.userJoined(data.chatUUID, data.user);
+    socket.on("chat:member:joined", async (data) => {
+      const chatUUID = data.chat.uuid;
+      await eventEmitter.chat.member.join(chatUUID, data.user);
     });
 
     socket.on("user:profile:update", async (data) => {
       await eventEmitter.user.profile.update(data);
     });
 
-    // socket.on("user_left", async (data) => {
+    // socket.on("chat:member:left", async (data) => {
     //   console.log("Received user_left event:", data);
     //   await setLastUpdateTimestamp(data.left_at);
-    //   await eventEmitter.userLeft(data.chatUUID, data.user);;
+    //   await eventEmitter.chat.member.leave(data.chatUUID, data.user);;
     // });
   },
 };
