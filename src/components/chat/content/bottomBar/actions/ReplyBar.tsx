@@ -1,14 +1,26 @@
 import React, { useContext, useState, useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
 import messageUtils from "@/src/utils/chat/messageFormat";
 
-const ReplyItem = ({ message, onCancel }) => {
+interface Message {
+  id: string | number;
+  sender_name?: string;
+  senderUUID?: string;
+  [key: string]: any; 
+}
+
+interface ReplyItemProps {
+  message: Message;
+  onCancel: (id: string | number) => void;
+}
+
+const ReplyItem: React.FC<ReplyItemProps> = ({ message, onCancel }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-  const [content, setContent] = useState(null);
+  const [content, setContent] = useState<string | null>(null);
 
   useEffect(() => {
     if (message) {
@@ -19,7 +31,7 @@ const ReplyItem = ({ message, onCancel }) => {
 
   return (
     <View style={styles.actionContainer}>
-      <Icon name="ArrowMoveUpLeftIcon" size={16} color={theme.icon} />
+      <Icon name="ArrowMoveUpLeftIcon" size={18} color={theme.icon} />
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
         <Text style={styles.actionName} numberOfLines={1}>
@@ -39,7 +51,12 @@ const ReplyItem = ({ message, onCancel }) => {
   );
 };
 
-const ReplyBar = ({ replyingTo, onCancelReply }) => {
+interface ReplyBarProps {
+  replyingTo: Message[] | null;
+  onCancelReply: (id: string | number) => void;
+}
+
+const ReplyBar: React.FC<ReplyBarProps> = ({ replyingTo, onCancelReply }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -58,7 +75,15 @@ const ReplyBar = ({ replyingTo, onCancelReply }) => {
   );
 };
 
-const createStyle = (theme) =>
+interface Styles {
+  listContainer: ViewStyle;
+  actionContainer: ViewStyle;
+  actionAccent: ViewStyle;
+  actionName: TextStyle;
+  actionText: TextStyle;
+}
+
+const createStyle = (theme: any): Styles =>
   StyleSheet.create({
     listContainer: {
       borderRadius: 20,
@@ -70,7 +95,7 @@ const createStyle = (theme) =>
     actionContainer: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 15,
+      paddingHorizontal: 10,
       gap: 10,
     },
     actionAccent: {

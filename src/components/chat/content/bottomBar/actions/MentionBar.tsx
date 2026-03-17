@@ -1,17 +1,31 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, Text, StyleSheet, FlatList, ListRenderItem, ViewStyle, TextStyle } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
 import Avatar from "@/src/components/Avatar";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 
-const MentionBar = ({ members, onSelectMember }) => {
+interface Member {
+  uuid?: string;
+  userUUID?: string;
+  name: string;
+  surname: string;
+  profilePictureUUID: string;
+  handle: string;
+}
+
+interface MentionBarProps {
+  members: Member[] | null;
+  onSelectMember: (member: Member) => void;
+}
+
+const MentionBar: React.FC<MentionBarProps> = ({ members, onSelectMember }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   if (!members || members.length === 0) return null;
 
-  const renderItem = ({ item }) => (
+  const renderItem: ListRenderItem<Member> = ({ item }) => (
     <HoverAndPressedButton
       style={styles.memberItem}
       onPress={() => onSelectMember(item)}
@@ -38,7 +52,7 @@ const MentionBar = ({ members, onSelectMember }) => {
       <FlatList
         data={members}
         renderItem={renderItem}
-        keyExtractor={(item) => item.uuid || item.userUUID}
+        keyExtractor={(item) => (item.uuid || item.userUUID || "").toString()}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="always"
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -48,7 +62,17 @@ const MentionBar = ({ members, onSelectMember }) => {
   );
 };
 
-const createStyle = (theme) =>
+interface Styles {
+  container: ViewStyle;
+  listContent: ViewStyle;
+  memberItem: ViewStyle;
+  memberInfo: ViewStyle;
+  memberName: TextStyle;
+  memberHandle: TextStyle;
+  separator: ViewStyle;
+}
+
+const createStyle = (theme: any): Styles =>
   StyleSheet.create({
     container: {
       maxHeight: 220,

@@ -238,14 +238,14 @@ const createStyle = (theme: any) =>
       flexDirection: "column",
     },
     menuItem: {
-      paddingVertical: 10,
-      paddingHorizontal: 15,
+      paddingVertical: 5,
+      paddingHorizontal: 10,
       borderRadius: 0,
     },
     menuItemContent: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 15,
+      gap: 10,
     },
     menuText: {
       fontSize: 14,

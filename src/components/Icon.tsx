@@ -75,13 +75,13 @@ const Icon = ({
     />
   );
 
-  // Usa Pressable solo se onPress è definito
-  if (onPress) {
+
     return (
       <Pressable
         onPress={onPress}
         onHoverIn={() => setIsHovered(true)}
         onHoverOut={() => setIsHovered(false)}
+        disabled={onPress ? false : true}
         style={({ pressed }) => [
           // style di base se non viene passato altro
           {
@@ -100,10 +100,6 @@ const Icon = ({
         {iconElement}
       </Pressable>
     );
-  }
-
-  // Altrimenti, restituisci solo l'icona senza Pressable
-  return iconElement({ pressed: false });
 };
 
 export default Icon;

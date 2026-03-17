@@ -1,10 +1,20 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
 
-const EditBar = ({ editingMessage, onCancelEdit }) => {
+interface EditingMessage {
+  content?: string;
+  [key: string]: any;
+}
+
+interface EditBarProps {
+  editingMessage: EditingMessage | null;
+  onCancelEdit: () => void;
+}
+
+const EditBar: React.FC<EditBarProps> = ({ editingMessage, onCancelEdit }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -12,7 +22,7 @@ const EditBar = ({ editingMessage, onCancelEdit }) => {
 
   return (
     <BlurredView style={styles.actionContainer}>
-      <Icon name="PencilEdit02Icon" size={16} color={theme.icon} />
+      <Icon name="PencilEdit02Icon" size={18} color={theme.icon} />
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
         <Text style={[styles.actionName, { color: theme.icon }]} numberOfLines={1}>
@@ -32,12 +42,19 @@ const EditBar = ({ editingMessage, onCancelEdit }) => {
   );
 };
 
-const createStyle = (theme) =>
+interface Styles {
+  actionContainer: ViewStyle;
+  actionAccent: ViewStyle;
+  actionName: TextStyle;
+  actionText: TextStyle;
+}
+
+const createStyle = (theme: any): Styles =>
   StyleSheet.create({
     actionContainer: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 15,
+      paddingHorizontal: 10,
       paddingVertical: 10,
       borderRadius: 20,
       marginBottom: 5,
