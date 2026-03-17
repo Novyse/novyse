@@ -144,7 +144,6 @@ const ChatList = () => {
         style={{
           paddingHorizontal: 10,
           paddingVertical: 5,
-          backgroundColor: "#2951a9",
         }}
         commsHeader={commsHeaderComponent}
       >

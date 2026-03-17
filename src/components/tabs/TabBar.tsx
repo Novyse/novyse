@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   View,
   TouchableOpacity,
@@ -14,8 +14,6 @@ import Animated, {
   useAnimatedReaction,
 } from "react-native-reanimated";
 
-import { useThemeContext } from "@/context/ThemeContext";
-
 import BlurredView from "../BlurredView";
 
 const TabBar: React.FC<BottomTabBarProps> = ({
@@ -23,7 +21,6 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   descriptors,
   navigation,
 }) => {
-  const { theme } = useThemeContext();
 
   const visibleRoutes = state.routes.filter((route) => {
     const { options } = descriptors[route.key];
@@ -155,7 +152,6 @@ const styles = StyleSheet.create({
     padding: 5,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.1)",
-    backgroundColor: "#3660ba68",
   },
   tabButton: {
     flex: 1,

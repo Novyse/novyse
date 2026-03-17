@@ -167,7 +167,11 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
                 >
                   <View style={styles.menuItemContent}>
                     <Icon name={item.iconName} size={20} color={item.color} />
-                    <Text style={styles.menuText} numberOfLines={1}>
+                    <Text
+                      style={styles.menuText}
+                      numberOfLines={1}
+                      selectable={false}
+                    >
                       {item.action}
                     </Text>
                   </View>
@@ -189,13 +193,14 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
                         <Icon name="EyeIcon" size={16} color={theme.text} />
                         <Text
                           style={styles.statsText}
+                          selectable={false}
                         >{`${readCount} Reads.`}</Text>
                       </View>
                     )}
                     {hasReactions && (
                       <View style={styles.statsRow}>
                         <Icon name="SmileIcon" size={16} color={theme.text} />
-                        <Text style={styles.statsText}>
+                        <Text style={styles.statsText} selectable={false}>
                           {`${totalReactions} Reactions.`}
                         </Text>
                       </View>

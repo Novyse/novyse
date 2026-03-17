@@ -24,7 +24,6 @@ const ChatListItemSearch = React.memo(
 
     return (
       <SmartBackground
-        colors={theme?.backgroundChatListItemGradient}
         style={styles.chatItem}
       >
         <HoverAndPressedButton
@@ -74,12 +73,27 @@ function createStyle(theme) {
       padding: 10,
       width: "100%",
       flex: 1,
-      borderRadius: 15,
+      borderRadius: 150,
     },
-    avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
-    resultText: { fontSize: 16, fontWeight: "bold", color: theme.text },
-    profileHandle: { fontSize: 14, color: theme.text },
-    textContainer: { flex: 1, marginLeft: 10 },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 10,
+    },
+    resultText: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: theme.text,
+    },
+    profileHandle: {
+      fontSize: 14,
+      color: theme.text,
+    },
+    textContainer: {
+      flex: 1,
+      marginLeft: 10,
+    },
   });
 }
 
