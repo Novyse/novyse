@@ -1,19 +1,18 @@
 import React, { useContext } from "react";
-import { View, Text } from "react-native";
+import { View} from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
 import useVoiceRecord from "@/src/hooks/chat/useVoiceRecord";
-import Icon from "@/src/components/Icon";
 
 import LeftButton from "./leftButton";
 import MiddleBar from "./middleBar";
 import RightButton from "./rightButton";
-import BlurredView from "@/src/components/BlurredView";
 
 import MentionBar from "../actions/MentionBar";
 import EditBar from "../actions/EditBar";
 import ReplyBar from "../actions/ReplyBar";
+import FilesBar from "../actions/FilesBar";
 
 const DefaultBar = ({
   isAttachMenuOpen,
@@ -21,8 +20,10 @@ const DefaultBar = ({
   onToggleEmoji,
   textInputRef,
   newMessageText = "",
+  files = [],
   onTextChange,
   onSendMessage,
+  onFileAppend,
   onInputFocus,
   replyingTo,
   onCancelReply,
@@ -37,6 +38,7 @@ const DefaultBar = ({
     recorderState,
     handleStartRecording,
     handleStopAndSend,
+    handleStopAndDraft,
     handleTogglePause,
     handleCancelRecording,
   } = useVoiceRecord(onSendMessage);
@@ -57,6 +59,9 @@ const DefaultBar = ({
       ) : replyingTo && replyingTo.length > 0 ? (
         <ReplyBar replyingTo={replyingTo} onCancelReply={onCancelReply} />
       ) : null}
+
+      <FilesBar />
+      
       <View style={styles.inputRow}>
         <LeftButton
           isRecording={isRecording}
@@ -75,6 +80,7 @@ const DefaultBar = ({
           isPaused={isPaused}
           recorderState={recorderState}
           handleTogglePause={handleTogglePause}
+          handleStopAndDraft={() => handleStopAndDraft(onFileAppend)}
           onCancelReply={onCancelReply}
         />
 
@@ -84,6 +90,7 @@ const DefaultBar = ({
           handleStartRecording={handleStartRecording}
           handleStopAndSend={handleStopAndSend}
           newMessageText={newMessageText}
+          hasFiles={files?.length > 0}
         />
       </View>
     </View>

@@ -10,6 +10,8 @@ import useChatStore from "./ChatContext";
 export interface ChatUIState {
   contentView: "chat" | "vocal" | "both";
   newMessageText: string;
+  files: any[];
+  invalidFiles: any[];
   editingMessage: any | null;
   selectedMessages: any[];
   replyingTo: any[];
@@ -18,6 +20,8 @@ export interface ChatUIState {
 const defaultUIState: ChatUIState = {
   contentView: "chat",
   newMessageText: "",
+  files: [],
+  invalidFiles: [],
   editingMessage: null,
   selectedMessages: [],
   replyingTo: [],
@@ -44,6 +48,8 @@ export interface ActiveChatState extends ChatUIState {
       | ((prev: "chat" | "vocal" | "both") => "chat" | "vocal" | "both"),
   ) => void;
   setNewMessageText: (text: string | ((prev: string) => string)) => void;
+  setFiles: (files: any[] | ((prev: any[]) => any[])) => void;
+  setInvalidFiles: (invalids: any[] | ((prev: any[]) => any[])) => void;
   setEditingMessage: (msg: any | ((prev: any) => any)) => void;
   setSelectedMessages: (msgs: any[] | ((prev: any[]) => any[])) => void;
   setReplyingTo: (reply: any[] | ((prev: any[]) => any[])) => void;
@@ -99,6 +105,8 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
       const uiState = {
         contentView: state.contentView,
         newMessageText: state.newMessageText,
+        files: state.files,
+        invalidFiles: state.invalidFiles,
         editingMessage: state.editingMessage,
         selectedMessages: state.selectedMessages,
         replyingTo: state.replyingTo,
@@ -127,6 +135,18 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
           typeof text === "function"
             ? (text as any)(state.newMessageText)
             : text,
+      }));
+      get().saveCurrentUIState();
+    },
+    setFiles: (files) => {
+      set((state) => ({
+        files: typeof files === "function" ? (files as any)(state.files) : files,
+      }));
+      get().saveCurrentUIState();
+    },
+    setInvalidFiles: (invalids) => {
+      set((state) => ({
+        invalidFiles: typeof invalids === "function" ? (invalids as any)(state.invalidFiles) : invalids,
       }));
       get().saveCurrentUIState();
     },

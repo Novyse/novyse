@@ -6,6 +6,14 @@ import {
   DeletedMessage,
 } from "./message";
 
+interface ChatSettings {
+  file: {
+    singleFileSize: number;
+    totalFileSize: number;
+    maxFiles: number;
+  };
+}
+
 interface BaseChat {
   uuid: string;
   messages: Message[];
@@ -13,6 +21,7 @@ interface BaseChat {
   pinnedMessages: PinnedMessage[];
   editedMessages: EditedMessage[];
   deletedMessages: DeletedMessage[];
+  settings: ChatSettings;
 }
 
 export interface PrivateGroup extends BaseChat {

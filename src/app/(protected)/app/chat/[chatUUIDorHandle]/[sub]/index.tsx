@@ -10,7 +10,6 @@ import VocalContent from "@/src/components/comms/container";
 import { useScreen } from "@/context/ScreenContext";
 import { useActiveChatStore } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
-import useChatStore from "@/context/ChatContext";
 import useWindowSizeStore from "@/context/WindowSizeContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
@@ -52,7 +51,6 @@ const ChatPageRoute = () => {
   const chat = useActiveChatStore((state) => state.activeChatData);
 
   const { handleDeleteMessage } = useMessageHandlers(
-    newMessageText,
     setNewMessageText,
     setEditingMessage,
   );

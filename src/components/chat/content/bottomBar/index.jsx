@@ -9,9 +9,11 @@ const BottomBar = ({
   chat,
   onJoin,
   newMessageText,
+  files,
   textInputRef,
   onTextChange,
   onSendMessage,
+  onFileAppend,
   isAttachMenuOpen,
   onToggleAttachMenu,
   onToggleEmoji,
@@ -46,8 +48,10 @@ const BottomBar = ({
           onToggleEmoji={onToggleEmoji}
           textInputRef={textInputRef}
           newMessageText={newMessageText}
+          files={files}
           onTextChange={onTextChange}
           onSendMessage={onSendMessage}
+          onFileAppend={onFileAppend}
           onInputFocus={onInputFocus}
           replyingTo={replyingTo}
           onCancelReply={onCancelReply}

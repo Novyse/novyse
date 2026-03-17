@@ -9,7 +9,6 @@ const useAttachHandlers = (
   setIsAttachMenuOpen,
   setSheetIndex,
   bottomSheetRef,
-  setIsFileModalVisible,
 ) => {
   const [attachType, setAttachType] = useState(null);
 
@@ -41,8 +40,7 @@ const useAttachHandlers = (
 
     switch (getPlatform()) {
       case "web":
-        setIsFileModalVisible(true);
-        break;
+        return await openNativeFileMenu(type);
       case "mobile":
         return await openNativeFileMenu(type);
       default:

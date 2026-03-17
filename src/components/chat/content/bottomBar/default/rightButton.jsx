@@ -8,6 +8,7 @@ import BlurredView from "@/src/components/BlurredView";
 const RightButton = ({
   isRecording,
   newMessageText,
+  hasFiles,
   onSendMessage,
   handleStartRecording,
   handleStopAndSend,
@@ -23,7 +24,7 @@ const RightButton = ({
           onPress={() => handleStopAndSend()}
           style={styles.icon}
         />
-      ) : newMessageText.length > 0 || isRecording ? (
+      ) : newMessageText.length > 0 || hasFiles || isRecording ? (
         // There is text or files to send -> Send message BUTTON
         <Icon
           name="SentIcon"

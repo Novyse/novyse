@@ -9,11 +9,11 @@ const format = (messageRef) => {
   if (message && message.type) {
     if (message.type == "system") {
       message.content = getSystemMessageText(message);
-    } else if (message.type == "message") {
-      if (!message.content) {
+    } else if (message.type == "message" || message.type == "DRAFT") {
+      if (!message.content || message.content.trim() === "") {
         if (message.files && message.files.length > 0) {
           const types = message.files.map((file) =>
-            getFileType(file.mimeType, file.name),
+            getFileType(file.mimeType || file.type, file.name),
           );
           const uniqueTypes = [...new Set(types)];
           if (uniqueTypes.length === 1) {

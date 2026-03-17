@@ -20,6 +20,7 @@ const MiddleBar = ({
   isPaused,
   recorderState,
   handleTogglePause,
+  handleStopAndDraft,
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -53,28 +54,39 @@ const MiddleBar = ({
 
             <Text style={styles.durationText}>
               {Duration.fromMillis(recorderState?.durationMillis || 0).toFormat(
-                "m:ss.SSS"
+                "m:ss.SSS",
               )}
             </Text>
           </View>
 
           {/* Voice Activity */}
-          <SpeechIndicator audioLevel={recorderState.metering} />
+          <View style={styles.speechContainer}>
+            <SpeechIndicator audioLevel={recorderState.metering} />
+          </View>
 
-          {/* Pause/Resume button */}
-          {!isPaused ? (
+          <View style={styles.actionsContainer}>
+            {/* Stop and Draft button */}
             <Icon
-              name="PauseIcon"
+              name="Add01Icon"
               style={styles.pauseResumeIcon}
-              onPress={handleTogglePause}
+              onPress={handleStopAndDraft}
             />
-          ) : (
-            <Icon
-              name="PlayIcon"
-              style={styles.pauseResumeIcon}
-              onPress={handleTogglePause}
-            />
-          )}
+
+            {/* Pause/Resume button */}
+            {!isPaused ? (
+              <Icon
+                name="PauseIcon"
+                style={styles.pauseResumeIcon}
+                onPress={handleTogglePause}
+              />
+            ) : (
+              <Icon
+                name="PlayIcon"
+                style={styles.pauseResumeIcon}
+                onPress={handleTogglePause}
+              />
+            )}
+          </View>
         </BlurredView>
       )}
     </>
@@ -124,6 +136,15 @@ const createStyle = (theme) =>
       flexDirection: "row",
       marginLeft: 10,
     },
+    actionsContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    speechContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    }
   });
 
 export default MiddleBar;

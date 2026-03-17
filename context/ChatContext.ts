@@ -226,6 +226,13 @@ const useChatStore = create<ChatState>((set, get) => ({
             pinnedMessages: [],
             editedMessages: [],
             deletedMessages: [],
+            settings: data.settings || {
+              file: {
+                singleFileSize: 52428800, // 50MB
+                totalFileSize: 2147483648, // 2GB
+                maxFiles: 100,
+              },
+            },
           };
 
           set((state) => ({

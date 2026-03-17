@@ -18,7 +18,6 @@ import gateway from "@/src/utils/backend-services/api-gateway";
 import S3Uploader from "@/src/utils/storage/file/s3Bucket";
 import storage from "@/src/utils/storage/file";
 import database from "@/src/utils/storage/database";
-import WebDropZone from "@/src/components/input/WebDropZone";
 
 const UploadProfilePicture = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);

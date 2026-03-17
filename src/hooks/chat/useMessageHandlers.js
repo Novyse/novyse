@@ -9,11 +9,7 @@ import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
 
 import { defaultMimeType } from "@/src/utils/storage/file/type.js";
 
-const useMessageHandlers = (
-  newMessageText,
-  setNewMessageText,
-  setEditingMessage,
-) => {
+const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
   const chatUUID = useActiveChatStore((state) => state.selectedChatUUID);
   const activeChatData = useActiveChatStore((state) => state.activeChatData);
   const myUUID = useUserStore((state) => state.localUserUUID);
@@ -23,6 +19,18 @@ const useMessageHandlers = (
       // no content and files, so nothing happens
       if (content.trim() === "" && files.length === 0) return;
 
+      if (files.length > 0) {
+        const cleanedFiles = files.map((file) => ({
+          uri: file.uri,
+          name: file.name || file.fileName || "novyse_file_" + Date.now(),
+          mimeType:
+            file.mimeType && file.mimeType !== ""
+              ? file.mimeType
+              : defaultMimeType,
+          size: file.size,
+        }));
+        files = cleanedFiles;
+      }
       /*
       // If chat is pending creation, remove chatUUID and put it as job uuid
       if (chat.pendingCreation){
@@ -42,7 +50,9 @@ const useMessageHandlers = (
 
       const chat = {
         uuid: chatUUID,
-        memberUUIDs: !chatUUID ? activeChatData?.members?.map((m) => m.uuid) : undefined, 
+        memberUUIDs: !chatUUID
+          ? activeChatData?.members?.map((m) => m.uuid)
+          : undefined,
       };
 
       await queueManager.addOutgoingMessageJob(message, chat);
@@ -181,32 +191,8 @@ const useMessageHandlers = (
     [chatUUID, myUUID],
   );
 
-  const handleSendFileMessage = useCallback(
-    async (files) => {
-      if (!files) return;
-
-      const cleanedFiles = files.map((file) => ({
-        uri: file.uri,
-        name: file.name || file.fileName || "novyse_file_" + Date.now(),
-        mimeType:
-          file.mimeType && file.mimeType !== ""
-            ? file.mimeType
-            : defaultMimeType,
-        size: file.size,
-      }));
-      await handleSendMessage(
-        "message",
-        newMessageText,
-        cleanedFiles,
-        undefined,
-      );
-    },
-    [handleSendMessage, newMessageText],
-  );
-
   return {
     handleSendMessage,
-    handleSendFileMessage,
     handlePinMessage,
     handleUnpinMessage,
     handleDeleteMessage,
