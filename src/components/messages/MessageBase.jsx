@@ -151,7 +151,7 @@ const MessageReplyWrapper = ({
   return (
     <MessageReply
       senderName={senderName}
-      text={replyMessage.content}
+      message={replyMessage}
       chatUUID={replyTo?.chatUUID}
       messageID={replyTo?.messageID}
       oldChatUUID={oldChatUUID}

@@ -1,9 +1,12 @@
+import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useThemeContext } from "@/context/ThemeContext";
 
+import messageUtils from "@/src/utils/chat/messageFormat";
+
 const MessageReply = ({
   senderName,
-  text,
+  message,
   chatUUID,
   messageID,
   oldChatUUID,
@@ -12,6 +15,12 @@ const MessageReply = ({
 }) => {
   const { theme } = useThemeContext();
   const styles = createStyle(theme);
+
+  const [text, setText] = useState("");
+  useEffect(() => {
+    const formatted = messageUtils.format(message);
+    setText(formatted.content);
+  }, [message]);
 
   return (
     <Pressable
