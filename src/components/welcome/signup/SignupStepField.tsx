@@ -109,7 +109,7 @@ export default function SignupStepField({
           return (
             <View key={field} style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.subtitle }]}>
-                Nome
+                Display Name
               </Text>
               <View
                 style={[
@@ -124,7 +124,7 @@ export default function SignupStepField({
                 <TextInput
                   style={[styles.textInput, { color: colors.text }]}
                   value={form[field]}
-                  placeholder="Nome"
+                  placeholder="Display Name"
                   placeholderTextColor={colors.placeholderTextInput}
                   onChangeText={(v) => onChangeField(field, v)}
                   autoCapitalize="sentences"
