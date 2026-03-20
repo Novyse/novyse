@@ -53,9 +53,7 @@ function createStyles(loginTheme: LoginTheme) {
       borderRadius: 25,
       justifyContent: "center",
       alignItems: "center",
-      maxWidth: 300,
       width: "100%",
-      flex: 1,
       height: 45,
     },
     backButton: {
@@ -65,11 +63,8 @@ function createStyles(loginTheme: LoginTheme) {
       borderRadius: 25,
       justifyContent: "center",
       alignItems: "center",
-      maxWidth: 300,
       width: "100%",
-      flex: 1,
       height: 45,
-      marginRight: 16,
     },
   });
 }

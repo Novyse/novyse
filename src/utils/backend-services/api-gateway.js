@@ -545,18 +545,6 @@ const gateway = {
       return success;
     },
     /**
-     * Request a password reset email.
-     * @param {String} email
-     * @returns {boolean} true if the password reset email was successfully sent, false otherwise
-     */
-    async requestPasswordReset(email) {
-      const response = await api.post("/auth/reset/password/request", {
-        email,
-      });
-      const success = response.data.success;
-      return true;
-    },
-    /**
      *
      * @param {String} email
      * @param {String} resetToken

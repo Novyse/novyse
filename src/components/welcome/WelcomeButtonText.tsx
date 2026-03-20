@@ -6,15 +6,16 @@ type WelcomeButtonTextType = "submit" | "back";
 
 interface WelcomeButtonTextProps {
   type: WelcomeButtonTextType;
+  label: string;
 }
 
-const WelcomeButtonText = ({ type }: WelcomeButtonTextProps) => {
+const WelcomeButtonText = ({ type, label }: WelcomeButtonTextProps) => {
   const loginTheme: LoginTheme = "default";
   const styles = createStyles(loginTheme, type);
 
   return (
     <Text style={styles.text} selectable={false}>
-      {type === "submit" ? "Continue" : "Back"}
+      {label}
     </Text>
   );
 };
