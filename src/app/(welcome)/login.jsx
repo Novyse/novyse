@@ -265,7 +265,7 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     card: {
       padding: isSmallScreen ? 16 : 24,
-      borderRadius: isSmallScreen ? 0 : 20,
+      borderRadius: isSmallScreen ? 0 : 25,
       overflow: "hidden",
       backgroundColor: LoginColors[loginTheme].backgroundCard,
       width: isSmallScreen ? "100%" : "auto",
@@ -314,7 +314,7 @@ function createStyle(loginTheme, isSmallScreen) {
       width: "100%",
       maxWidth: 300,
       marginBottom: 16,
-      borderRadius: 6,
+      borderRadius: 25,
       backgroundColor: LoginColors[loginTheme].backgroundTextInput,
       borderColor: LoginColors[loginTheme].borderTextInput,
       borderWidth: 1.5,
@@ -325,10 +325,12 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     textInput: {
       flex: 1,
-      padding: 10,
+      paddingVertical: 10,
+      paddingHorizontal: 15,
       fontSize: 16,
       color: LoginColors[loginTheme].text,
       outlineStyle: "none",
+      overflow: "hidden"
     },
     eyeButton: {
       width: 40,

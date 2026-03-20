@@ -7,7 +7,6 @@ import {
   BackHandler,
   Platform,
   Image,
-  useWindowDimensions,
   ActivityIndicator,
 } from "react-native";
 
@@ -363,7 +362,7 @@ function createStyle(loginTheme, isSmallScreen) {
     },
     card: {
       padding: isSmallScreen ? 16 : 24,
-      borderRadius: isSmallScreen ? 0 : 20,
+      borderRadius: isSmallScreen ? 0 : 25,
       overflow: "hidden",
       flexDirection: isSmallScreen ? "column" : "row",
       backgroundColor: LoginColors[loginTheme].backgroundCard,
@@ -408,8 +407,9 @@ function createStyle(loginTheme, isSmallScreen) {
       alignItems: "center",
     },
     textInput: {
-      padding: 10,
-      borderRadius: 6,
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      borderRadius: 25,
       marginBottom: 16,
       fontSize: 16,
       maxWidth: 300,
@@ -428,10 +428,10 @@ function createStyle(loginTheme, isSmallScreen) {
       height: 250,
       width: 250,
       backgroundColor: LoginColors[loginTheme].backgroundQRCode,
-      borderRadius: 12,
+      borderRadius: 25,
       borderColor: LoginColors[loginTheme].borderQRCode,
       borderWidth: 1.5,
-      padding: 10,
+      padding: 15,
     },
     logo: {
       alignSelf: "center",

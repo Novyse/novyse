@@ -67,7 +67,7 @@ export const LoginColors: Record<
     backgroundIcon: "#177FC0",
     backgroundLineDivider: "#696969",
     backgroundSubmitButton: "#013480",
-    backgroundBackButton: "#d0d0d0ff",
+    backgroundBackButton: "rgb(255, 255, 255)",
     backgroundTimeline: "#E0E0E0",
 
     // Bottoni

@@ -49,8 +49,8 @@ function createStyles(loginTheme: LoginTheme) {
     submitButton: {
       backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
       paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 6,
+      paddingVertical: 8,
+      borderRadius: 25,
       justifyContent: "center",
       alignItems: "center",
       maxWidth: 300,
@@ -61,8 +61,8 @@ function createStyles(loginTheme: LoginTheme) {
     backButton: {
       backgroundColor: LoginColors[loginTheme].backgroundBackButton,
       paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 6,
+      paddingVertical: 8,
+      borderRadius: 25,
       justifyContent: "center",
       alignItems: "center",
       maxWidth: 300,
