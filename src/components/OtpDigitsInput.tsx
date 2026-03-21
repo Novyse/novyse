@@ -18,6 +18,7 @@ interface OtpDigitsInputProps {
   inputStyle?: TextStyle;
   inputErrorStyle?: TextStyle;
   autoFocus?: boolean;
+  allowLetters?: boolean;
 }
 
 const OtpDigitsInput = ({
@@ -29,21 +30,38 @@ const OtpDigitsInput = ({
   inputStyle,
   inputErrorStyle,
   autoFocus = false,
+  allowLetters = false,
 }: OtpDigitsInputProps) => {
   const refs = useRef<(TextInput | null)[]>([]);
+
+  const isValidChar = (text: string): boolean => {
+    if (allowLetters) {
+      return /^[A-Za-z0-9]$/.test(text);
+    }
+    return /^\d$/.test(text);
+  };
+
+  const isValidFullInput = (text: string): boolean => {
+    if (allowLetters) {
+      return new RegExp(`^[A-Za-z0-9]{${inputCount}}$`).test(text);
+    }
+    return new RegExp(`^\\d{${inputCount}}$`).test(text);
+  };
 
   const handleChange = (text: string, index: number): void => {
     const newOtp = [...value];
 
-    if (text.length === 1 && /^\d$/.test(text)) {
-      newOtp[index] = text;
+    if (text.length === 1 && isValidChar(text)) {
+      const char = allowLetters ? text.toUpperCase() : text;
+      newOtp[index] = char;
       onChange(newOtp);
       if (index < inputCount - 1) {
         refs.current[index + 1]?.focus();
       }
-    } else if (text.length === 6 && /^\d{6}$/.test(text)) {
+    } else if (text.length === inputCount && isValidFullInput(text)) {
+      const upperText = allowLetters ? text.toUpperCase() : text;
       for (let i = 0; i < inputCount; i++) {
-        newOtp[i] = text.charAt(i);
+        newOtp[i] = upperText.charAt(i);
       }
       onChange(newOtp);
       const lastFilledIndex = inputCount - 1;
@@ -86,7 +104,7 @@ const OtpDigitsInput = ({
           value={value[index]}
           onChangeText={(text) => handleChange(text, index)}
           onKeyPress={(e) => handleKeyPress(e, index)}
-          keyboardType="numeric"
+          keyboardType={allowLetters ? "default" : "numeric"}
           maxLength={inputCount}
           ref={(el) => {
             refs.current[index] = el;

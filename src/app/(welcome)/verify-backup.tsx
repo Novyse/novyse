@@ -15,14 +15,14 @@ import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
-type VerificationType = "email" | "email_verification" | "authenticator";
-
 type SearchParams = {
   token: string;
-  verificationType: VerificationType;
 };
 
-const Verify: React.FC = () => {
+const BACKUP_CODE_LENGTH = 8;
+const BACKUP_CODE_REGEX = /^[A-Z0-9]+$/;
+
+const VerifyBackup: React.FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,36 +31,35 @@ const Verify: React.FC = () => {
   const { refreshLoginStatus } = useAuth();
   const styles = createStyle(loginTheme, isSmallScreen);
 
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [code, setCode] = useState<string[]>(
+    Array(BACKUP_CODE_LENGTH).fill(""),
+  );
 
-  const { token, verificationType } = useLocalSearchParams<SearchParams>();
+  const { token } = useLocalSearchParams<SearchParams>();
 
   useEffect(() => {
-    const fullOtp = otp.join("");
-    if (fullOtp.length === 6 && /^\d+$/.test(fullOtp) && !isLoading) {
-      handleVerifyOtp();
+    const fullCode = code.join("");
+    if (
+      fullCode.length === BACKUP_CODE_LENGTH &&
+      BACKUP_CODE_REGEX.test(fullCode) &&
+      !isLoading
+    ) {
+      handleVerifyBackupCode();
     }
-  }, [otp]);
+  }, [code]);
 
-  const getFormattedVerificationType = (): string => {
-    if (!verificationType) return "Verify Code";
-
-    switch (verificationType) {
-      case "email":
-        return "Email OTP";
-      case "email_verification":
-        return "Verify Email";
-      case "authenticator":
-        return "Authenticator App";
-      default:
-        return "Verify Code";
-    }
+  const handleCodeChange = (newValue: string[]) => {
+    setCode(newValue);
   };
 
-  const handleVerifyOtp = async (): Promise<void> => {
-    const fullOtp = otp.join("");
-    if (fullOtp.length !== 6 || !/^\d+$/.test(fullOtp)) {
-      setError("Enter a valid code");
+  const handleVerifyBackupCode = async (): Promise<void> => {
+    const fullCode = code.join("");
+
+    if (
+      fullCode.length !== BACKUP_CODE_LENGTH ||
+      !BACKUP_CODE_REGEX.test(fullCode)
+    ) {
+      setError("Enter a valid 8-character backup code (letters and numbers).");
       return;
     }
 
@@ -68,28 +67,28 @@ const Verify: React.FC = () => {
     setIsLoading(true);
 
     try {
-      console.log("Verifying OTP:", fullOtp);
+      console.log("Verifying backup code:", fullCode);
       console.log("Token:", token);
 
-      const otpVerificationSuccess = await gateway.auth.verifyTwofaCode(
+      const backupCodeVerificationSuccess = await gateway.auth.verifyBackupCode(
         token,
-        fullOtp,
+        fullCode,
       );
 
-      if (otpVerificationSuccess) {
-        console.log("OTP verificato con successo!");
+      if (backupCodeVerificationSuccess) {
+        console.log("Backup code verified successfully!");
         const success = await auth.initializeApp();
         if (success) {
           await refreshLoginStatus();
           router.replace("/app");
         }
       } else {
-        console.log("Errore nella verifica OTP");
-        setError("Codice OTP non valido. Riprova.");
+        console.log("Backup code verification failed");
+        setError("Invalid backup code. Please try again.");
       }
     } catch (apiError) {
-      console.error("Errore durante la verifica OTP:", apiError);
-      setError("Si è verificato un errore durante la verifica. Riprova.");
+      console.error("Error during backup code verification:", apiError);
+      setError("An error occurred during verification. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -110,17 +109,18 @@ const Verify: React.FC = () => {
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
 
-          <Text style={styles.title}>{getFormattedVerificationType()}</Text>
+          <Text style={styles.title}>Backup Code</Text>
           <Text style={styles.subtitle}>
-            Enter the code you received in your email.
+            Enter one of your 8-character backup codes to access your account.
           </Text>
 
           <View style={styles.inputWrapper}>
             <OtpDigitsInput
-              value={otp}
-              onChange={setOtp}
+              value={code}
+              onChange={handleCodeChange}
               error={!!error}
-              inputCount={6}
+              inputCount={BACKUP_CODE_LENGTH}
+              allowLetters={true}
             />
 
             <View style={styles.buttonsContainer}>
@@ -131,7 +131,7 @@ const Verify: React.FC = () => {
               </View>
               <View style={styles.buttonWrapper}>
                 <WelcomeButton
-                  onPress={handleVerifyOtp}
+                  onPress={handleVerifyBackupCode}
                   disabled={isLoading}
                   type="submit"
                 >
@@ -160,7 +160,7 @@ const Verify: React.FC = () => {
   );
 };
 
-export default Verify;
+export default VerifyBackup;
 
 function createStyle(loginTheme: "default", isSmallScreen: boolean) {
   return StyleSheet.create({
