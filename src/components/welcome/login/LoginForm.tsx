@@ -106,12 +106,28 @@ const LoginForm = ({
               onPress={() => setSecureTextEntry((v) => !v)}
             />
           </View>
+          {/* OPAQUE link */}
+          <View style={styles.opaqueLink}>
+            <Text style={styles.opaqueLinkText}>
+              Secured by{" "}
+              <TextLink
+                style={styles.opaqueLinkTextBold}
+                href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
+              >
+                OPAQUE
+              </TextLink>
+            </Text>
+          </View>
 
           {/* Login + Passkey buttons */}
           <View style={styles.buttonRow}>
             <View style={styles.buttonWrapper}>
               <WelcomeButton
-                onPress={router.back}
+                onPress={() => {
+                  router.canGoBack()
+                    ? router.back()
+                    : router.navigate("/");
+                }}
                 disabled={isLoading}
                 type={"back"}
               >
@@ -228,7 +244,6 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       alignItems: "center",
       width: "100%",
       maxWidth: 300,
-      marginBottom: 16,
       borderRadius: 25,
       backgroundColor: LoginColors[loginTheme].backgroundTextInput,
       borderColor: LoginColors[loginTheme].borderTextInput,
@@ -273,13 +288,28 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       marginTop: 20,
       alignItems: "center",
     },
+    opaqueLink: {
+      marginBottom: 20,
+      marginTop: 5,
+      flexDirection: "row",
+    },
     linkText: {
       fontSize: 14,
       color: LoginColors[loginTheme].subtitle,
     },
+    opaqueLinkText: {
+      fontSize: 11,
+      color: LoginColors[loginTheme].subtitle2,
+    },
     linkTextBold: {
       color: LoginColors[loginTheme].title,
       fontWeight: "600",
+      fontSize: 14,
+    },
+    opaqueLinkTextBold: {
+      color: LoginColors[loginTheme].title,
+      fontWeight: "600",
+      fontSize: 11,
     },
   });
 }

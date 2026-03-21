@@ -36,6 +36,7 @@ export interface ThemeColors {
   link: string;
   title: string;
   subtitle: string;
+  subtitle2: string;
   textError: string;
   checkboxTick: string;
   icon: string;
@@ -105,6 +106,7 @@ export const LoginColors: Record<
     link: "#013480",
     title: "#013480",
     subtitle: "#2D2D2D",
+    subtitle2: "#5f5f5f",
     textError: "rgba(255, 99, 99, 0.9)",
 
     // Icone

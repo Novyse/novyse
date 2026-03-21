@@ -2,17 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
-  BackHandler,
   Image,
   ScrollView,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 
 import { useScreen } from "@/context/ScreenContext";
 import { validate } from "@/src/utils/welcome/validator";
@@ -96,14 +94,6 @@ export default function Signup() {
     directionRef.current = next > currentStep ? 1 : -1;
     animateStep(() => setCurrentStep(next));
   };
-
-  useEffect(() => {
-    const handler = BackHandler.addEventListener("hardwareBackPress", () => {
-      router.navigate("/");
-      return true;
-    });
-    return () => handler.remove();
-  }, []);
 
   const isFormValid =
     !!form.password &&

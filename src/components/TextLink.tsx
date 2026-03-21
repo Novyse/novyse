@@ -6,7 +6,7 @@ import {
   StyleProp,
   StyleSheet,
   TextStyle,
-  TouchableWithoutFeedback,
+  Pressable,
 } from "react-native";
 
 interface TextLinkProps {
@@ -56,7 +56,7 @@ export default function TextLink({
   const showUnderline = isHovered || isPressed;
 
   return (
-    <TouchableWithoutFeedback
+    <Pressable
       onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -75,7 +75,7 @@ export default function TextLink({
       >
         {children}
       </Animated.Text>
-    </TouchableWithoutFeedback>
+    </Pressable>
   );
 }
 

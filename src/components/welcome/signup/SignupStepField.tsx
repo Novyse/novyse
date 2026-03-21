@@ -8,6 +8,7 @@ import {
 import { LoginColors } from "@/constants/LoginColors";
 import { validate } from "@/src/utils/welcome/validator";
 import Icon from "@/src/components/Icon";
+import TextLink from "../../TextLink";
 
 const PASSWORD_REQUIREMENTS = [
   { label: "At least 8 characters", check: (p: string) => p.length >= 8 },
@@ -73,6 +74,7 @@ export default function SignupStepField({
   loginTheme = "default",
 }: Props) {
   const colors = LoginColors[loginTheme];
+  const styles = createStyles(colors);
 
   const RequirementRow = ({ label, met }: { label: string; met: boolean }) => (
     <View style={styles.reqItem}>
@@ -217,6 +219,18 @@ export default function SignupStepField({
               onPress={onToggleConfirmPassword}
             />
           </View>
+          {/* OPAQUE link */}
+          <View style={styles.opaqueLink}>
+            <Text style={styles.opaqueLinkText}>
+              Secured by{" "}
+              <TextLink
+                style={styles.opaqueLinkTextBold}
+                href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
+              >
+                OPAQUE
+              </TextLink>
+            </Text>
+          </View>
         </View>
 
         <View style={styles.requirements}>
@@ -313,7 +327,8 @@ export default function SignupStepField({
   return null;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => {
+  return StyleSheet.create({
   group: {
     width: "100%",
     alignItems: "center",
@@ -373,4 +388,21 @@ const styles = StyleSheet.create({
   reqText: {
     fontSize: 12,
   },
+  opaqueLink: {
+    marginBottom: 20,
+    marginTop: 5,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  opaqueLinkText: {
+    fontSize: 11,
+    color: colors.subtitle2,
+  },
+  opaqueLinkTextBold: {
+    color: colors.title,
+    fontWeight: "600",
+    fontSize: 11,
+  },
 });
+}

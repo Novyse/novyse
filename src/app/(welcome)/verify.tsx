@@ -1,15 +1,8 @@
-import React, { useEffect, useState, useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  BackHandler,
-  Image,
-} from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, ActivityIndicator, Image } from "react-native";
 
 import { useScreen } from "@/context/ScreenContext";
-import {useAuth} from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -22,31 +15,25 @@ import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
-const Verify = ({}) => {
+type VerificationType = "email" | "email_verification" | "authenticator";
+
+type SearchParams = {
+  token: string;
+  verificationType: VerificationType;
+};
+
+const Verify: React.FC = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const loginTheme = "default";
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const loginTheme = "default" as const;
   const { isSmallScreen } = useScreen();
   const { refreshLoginStatus } = useAuth();
   const styles = createStyle(loginTheme, isSmallScreen);
 
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
 
-  const { token, verificationType } = useLocalSearchParams();
-
-  useEffect(() => {
-
-    const backAction = () => {
-      router.navigate("/");
-      return true;
-    };
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-    return () => backHandler.remove();
-  }, []);
+  const { token, verificationType } = useLocalSearchParams<SearchParams>();
 
   useEffect(() => {
     const fullOtp = otp.join("");
@@ -55,15 +42,14 @@ const Verify = ({}) => {
     }
   }, [otp]);
 
-  const getFormattedVerificationType = () => {
-    if (!verificationType) {
-      return "Verify Code";
-    }
+  const getFormattedVerificationType = (): string => {
+    if (!verificationType) return "Verify Code";
+
     switch (verificationType) {
       case "email":
         return "Email OTP";
       case "email_verification":
-        return "Verify Email ";
+        return "Verify Email";
       case "authenticator":
         return "Authenticator App";
       default:
@@ -71,7 +57,7 @@ const Verify = ({}) => {
     }
   };
 
-  const handleVerifyOtp = async () => {
+  const handleVerifyOtp = async (): Promise<void> => {
     const fullOtp = otp.join("");
     if (fullOtp.length !== 6 || !/^\d+$/.test(fullOtp)) {
       setError("Enter a valid code");
@@ -87,7 +73,7 @@ const Verify = ({}) => {
 
       const otpVerificationSuccess = await gateway.auth.verifyTwofaCode(
         token,
-        fullOtp
+        fullOtp,
       );
 
       if (otpVerificationSuccess) {
@@ -109,7 +95,7 @@ const Verify = ({}) => {
     }
   };
 
-  const handleBack = () => {
+  const handleBack = (): void => {
     router.navigate("/login");
   };
 
@@ -138,13 +124,13 @@ const Verify = ({}) => {
             />
 
             <View style={styles.buttonsContainer}>
-              <WelcomeButton onPress={handleBack} type={"back"}>
-                <WelcomeButtonText type={"back"} />
+              <WelcomeButton onPress={handleBack} type="back">
+                <WelcomeButtonText type="back" />
               </WelcomeButton>
               <WelcomeButton
                 onPress={handleVerifyOtp}
                 disabled={isLoading}
-                type={"submit"}
+                type="submit"
               >
                 {isLoading ? (
                   <ActivityIndicator
@@ -152,18 +138,17 @@ const Verify = ({}) => {
                     color={LoginColors[loginTheme].iconLoading}
                   />
                 ) : (
-                  <WelcomeButtonText type={"submit"} />
+                  <WelcomeButtonText type="submit" />
                 )}
               </WelcomeButton>
             </View>
           </View>
+
           <StatusMessage
             type="error"
             content={[error]}
             visible={!!error}
-            onClose={() => {
-              setError(null);
-            }}
+            onClose={() => setError(null)}
           />
         </View>
       </View>
@@ -173,7 +158,7 @@ const Verify = ({}) => {
 
 export default Verify;
 
-function createStyle(loginTheme, isSmallScreen) {
+function createStyle(loginTheme: "default", isSmallScreen: boolean) {
   return StyleSheet.create({
     container: {
       flex: 1,
