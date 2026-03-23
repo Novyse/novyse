@@ -1,5 +1,4 @@
-import axios from "axios";
-import { API_LINK } from "../config";
+import { authApi } from "../config";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
@@ -11,8 +10,6 @@ export const fetchToken = async (): Promise<string | null> => {
   try {
     const headers: Record<string, string> = {};
 
-    let url = `${API_LINK}/auth/token`;
-
     if (Platform.OS !== "web") {
       const sessionId = await SecureStore.getItemAsync("sessionId");
       if (sessionId) {
@@ -20,7 +17,7 @@ export const fetchToken = async (): Promise<string | null> => {
       }
     }
 
-    const response = await axios.post(url, null, {
+    const response = await authApi.post("/auth/token", null, {
       headers,
       withCredentials: true,
     });

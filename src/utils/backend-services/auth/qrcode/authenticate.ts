@@ -1,6 +1,4 @@
-import { API_LINK } from "../../config";
-
-const API_URL = API_LINK + "/auth";
+import { authApi } from "../../config";
 
 /**
  * Authorizes a QR Code authentication session from a logged-in device.
@@ -9,23 +7,21 @@ const API_URL = API_LINK + "/auth";
  */
 export async function authenticateQRCode(token: string, userJwt: string) {
   try {
-    const response = await fetch(
-      `${API_URL}/signin/qrcode/authenticate/${token}`,
+    const response = await authApi.post(
+      `/auth/signin/qrcode/authenticate/${token}`,
+      {},
       {
-        method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${userJwt}`,
         },
       },
     );
 
-    const data = await response.json();
-    if (!response.ok)
-      throw new Error(data.error || "Failed to authorize device");
-
-    return { success: true, data };
+    return { success: true, data: response.data };
   } catch (err: any) {
-    return { success: false, error: err.message };
+    return {
+      success: false,
+      error: err.response?.data?.message || err.message,
+    };
   }
 }

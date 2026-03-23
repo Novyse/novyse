@@ -1,6 +1,7 @@
 import "react-native-get-random-values";
 import React, { useEffect } from "react";
 import { Stack } from "expo-router";
+import { Platform } from "react-native";
 
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -14,6 +15,10 @@ import useAuthSession from "@/src/hooks/auth/useAuthSession";
 
 function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {
   const { theme } = useThemeContext();
+
+if (Platform.OS !== "web") {
+  require("react-native-quick-crypto").install(); // Crypto polyfill for mobile (used in cloudflare-opaque)
+}
 
   return (
     <Stack

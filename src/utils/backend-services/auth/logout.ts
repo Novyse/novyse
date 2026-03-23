@@ -1,14 +1,8 @@
-import axios from "axios";
-import { API_LINK } from "../config";
+import { authApi } from "../config";
 
 export const logout = async (): Promise<boolean> => {
   try {
-    const headers: Record<string, string> = {};
-
-    let url = `${API_LINK}/auth/logout`;
-
-    const response = await axios.post(url, null, {
-      headers,
+    const response = await authApi.post("/auth/logout", null, {
       withCredentials: true,
     });
 

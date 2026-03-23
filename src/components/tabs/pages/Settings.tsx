@@ -21,9 +21,9 @@ const settingsList = [
     navToPage: "./settings/storage",
   },
   {
-    pageName: "Privacy and Security",
+    pageName: "Security",
     iconName: "BlockedIcon",
-    navToPage: "./settings/privacy-and-security",
+    navToPage: "./settings/security",
   },
   {
     pageName: "Comms",

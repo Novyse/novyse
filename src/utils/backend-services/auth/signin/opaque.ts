@@ -4,10 +4,11 @@ import {
   OpaqueID,
   KE2,
 } from "@cloudflare/opaque-ts";
+import { authApi } from "../../config";
 import { setCurrentToken } from "../token-manager";
-import { API_LINK } from "../../config";
 
-const API_URL = API_LINK + "/auth";
+const API_PATH = "/auth/signin/opaque";
+
 
 export async function signInOpaque(
   username: string,
@@ -32,18 +33,11 @@ export async function signInOpaque(
       turnstileToken,
     };
 
-    const challengeRes = await fetch(`${API_URL}/signin/opaque/challenge`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bodyPayload),
-      credentials: "include",
+    const challengeRes = await authApi.post(`${API_PATH}/challenge`, bodyPayload, {
+      withCredentials: true,
     });
 
-    const challengeText = await challengeRes.text();
-    const challengeData = challengeText ? JSON.parse(challengeText) : {};
-
-    if (!challengeRes.ok)
-      throw new Error(challengeData.error || `HTTP ${challengeRes.status}`);
+    const challengeData = challengeRes.data;
 
     const ke2B64 =
       challengeData.ke2 ??
@@ -64,18 +58,14 @@ export async function signInOpaque(
 
     const ke3Bytes = Uint8Array.from(finish.ke3.serialize());
 
-    const completeRes = await fetch(`${API_URL}/signin/opaque/complete`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        username,
-        ke3: btoa(String.fromCharCode(...ke3Bytes)),
-      }),
+    const completeRes = await authApi.post(`${API_PATH}/complete`, {
+      username,
+      ke3: btoa(String.fromCharCode(...ke3Bytes)),
+    }, {
+      withCredentials: true,
     });
 
-    const completeData = await completeRes.json();
-    if (!completeRes.ok) throw new Error(completeData.error);
+    const completeData = completeRes.data;
 
     if (completeData.requires2FA) {
       // Returning the status so the UI can handle the 2FA flow

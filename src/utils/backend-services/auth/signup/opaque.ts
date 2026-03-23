@@ -4,9 +4,10 @@ import {
   OpaqueID,
   RegistrationResponse,
 } from "@cloudflare/opaque-ts";
-import { API_LINK } from "../../config";
+import { authApi } from "../../config";
 
-const API_URL = API_LINK + "/auth";
+const API_PATH = "/auth/signup/opaque";
+
 
 export async function signUpOpaque(
   username: string,
@@ -26,21 +27,17 @@ export async function signUpOpaque(
       registrationRequest.serialize(),
     );
 
-    const challengeRes = await fetch(`${API_URL}/signup/opaque/challenge`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username,
-        registrationRequest: btoa(
-          String.fromCharCode(...registrationRequestBytes),
-        ),
-        turnstileToken,
-      }),
-      credentials: "include",
+    const challengeRes = await authApi.post(`${API_PATH}/challenge`, {
+      username,
+      registrationRequest: btoa(
+        String.fromCharCode(...registrationRequestBytes),
+      ),
+      turnstileToken,
+    }, {
+      withCredentials: true,
     });
 
-    const challengeData = await challengeRes.json();
-    if (!challengeRes.ok) throw new Error(challengeData.error);
+    const challengeData = challengeRes.data;
 
     const registrationResponseBytes = new Uint8Array(
       atob(challengeData.registrationResponse)
@@ -63,23 +60,19 @@ export async function signUpOpaque(
       registrationFinish.record.serialize(),
     );
 
-    const completeRes = await fetch(`${API_URL}/signup/opaque/complete`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username,
-        name,
-        registrationRecord: btoa(
-          String.fromCharCode(...registrationRecordBytes),
-        ),
-        privacyPolicyAccepted: gdpr.privacy,
-        termsOfServiceAccepted: gdpr.tos,
-      }),
-      credentials: "include",
+    const completeRes = await authApi.post(`${API_PATH}/complete`, {
+      username,
+      name,
+      registrationRecord: btoa(
+        String.fromCharCode(...registrationRecordBytes),
+      ),
+      privacyPolicyAccepted: gdpr.privacy,
+      termsOfServiceAccepted: gdpr.tos,
+    }, {
+      withCredentials: true,
     });
 
-    const completeData = await completeRes.json();
-    if (!completeRes.ok) throw new Error(completeData.error);
+    const completeData = completeRes.data;
 
     return { success: true, data: completeData };
   } catch (err: any) {

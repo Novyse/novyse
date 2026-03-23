@@ -1,8 +1,8 @@
-import { Platform } from "react-native";
-import { API_LINK } from "../../config";
+import { authApi } from "../../config";
 import { setCurrentToken } from "../token-manager";
+import { performPasskeyRegistration } from "../lib/passkey";
 
-const API_URL = API_LINK + "/auth";
+const API_PATH = "/auth/signup/passkey";
 
 export async function signUpPasskey(
   handle: string,
@@ -10,39 +10,21 @@ export async function signUpPasskey(
   turnstileToken: string,
 ) {
   try {
-    const optionsRes = await fetch(`${API_URL}/signup/passkey/challenge`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: handle, turnstileToken }),
-    });
+    const optionsRes = await authApi.post(`${API_PATH}/challenge`, { username: handle, turnstileToken });
+    const options = optionsRes.data;
 
-    const options = await optionsRes.json();
-    if (!optionsRes.ok) throw new Error(options.error);
 
-    let registrationResponse;
+    const registrationResponse = await performPasskeyRegistration(options);
 
-    if (Platform.OS === "web") {
-      const { startRegistration } = require("@simplewebauthn/browser");
-      registrationResponse = await startRegistration({ optionsJSON: options });
-    } else {
-      const Passkey = require("react-native-passkey").default;
-      registrationResponse = await Passkey.register(options);
-    }
-
-    const completeRes = await fetch(`${API_URL}/signup/passkey/complete`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const completeRes = await authApi.post(`${API_PATH}/complete`, {
         username: handle,
         name: name,
         registrationResponse,
         privacyPolicyAccepted: true,
         termsOfServiceAccepted: true,
-      }),
     });
 
-    const completeData = await completeRes.json();
-    if (!completeRes.ok) throw new Error(completeData.error);
+    const completeData = completeRes.data;
 
     if (completeData.token) {
       setCurrentToken(completeData.token);
