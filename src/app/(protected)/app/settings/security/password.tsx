@@ -10,12 +10,6 @@ import StatusMessage from "@/src/components/StatusMessage";
 import Icon from "@/src/components/Icon";
 
 import auth from "@/src/utils/backend-services/auth";
-import {
-  OpaqueClient,
-  getOpaqueConfig,
-  OpaqueID,
-  RegistrationResponse,
-} from "@cloudflare/opaque-ts";
 
 export default function PasswordRoute() {
   const onBack = () =>
@@ -28,7 +22,6 @@ export default function PasswordRoute() {
     null,
   );
 
-  const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -49,63 +42,10 @@ export default function PasswordRoute() {
   }, []);
 
   const resetForm = () => {
-    setOldPassword("");
     setNewPassword("");
     setConfirmPassword("");
     setShowForm(null);
     setError(null);
-  };
-
-  // will be moved later @SamueleOrazioDurante
-  const runOpaqueRegistration = async (password: string) => {
-    const cfg = getOpaqueConfig(OpaqueID.OPAQUE_P256);
-    const client = new OpaqueClient(cfg);
-
-    // 1. Init
-    const registrationRequest = await client.registerInit(password);
-    if (registrationRequest instanceof Error) throw registrationRequest;
-
-    const registrationRequestBase64 = btoa(
-      String.fromCharCode(...registrationRequest.serialize()),
-    );
-
-    // 2. Challenge
-    const challengeRes = await auth.settings.opaque.setupChallenge(
-      registrationRequestBase64,
-    );
-    if (!challengeRes.success)
-      throw new Error(challengeRes.error || "Challenge failed");
-
-    const registrationResponseBytes = new Uint8Array(
-      atob(challengeRes.data.registrationResponse)
-        .split("")
-        .map((c) => c.charCodeAt(0)),
-    );
-
-    const opaqueRegistrationResponse = RegistrationResponse.deserialize(
-      cfg,
-      Array.from(registrationResponseBytes),
-    );
-
-    // 3. Finish
-    const registrationFinish = await client.registerFinish(
-      opaqueRegistrationResponse,
-      "novyse-auth-service",
-    );
-    if (registrationFinish instanceof Error) throw registrationFinish;
-
-    const registrationRecordBase64 = btoa(
-      String.fromCharCode(...registrationFinish.record.serialize()),
-    );
-
-    // 4. Complete
-    const completeRes = await auth.settings.opaque.setupComplete(
-      registrationRecordBase64,
-    );
-    if (!completeRes.success)
-      throw new Error(completeRes.error || "Completion failed");
-
-    return completeRes.data;
   };
 
   const handleSetPassword = async () => {
@@ -119,10 +59,14 @@ export default function PasswordRoute() {
     }
     setIsLoading(true);
     try {
-      await runOpaqueRegistration(newPassword);
-      setHasPassword(true);
-      setSuccess("Password set successfully");
-      resetForm();
+      const response = await auth.settings.opaque.setup(newPassword);
+      if (response.success) {
+        setHasPassword(true);
+        setSuccess("Password set successfully");
+        resetForm();
+      } else {
+        setError(response.error || "Failed to set password");
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -131,7 +75,7 @@ export default function PasswordRoute() {
   };
 
   const handleChangePassword = async () => {
-    if (!oldPassword || !newPassword || !confirmPassword) {
+    if (!newPassword || !confirmPassword) {
       setError("Please fill in all fields");
       return;
     }
@@ -141,9 +85,13 @@ export default function PasswordRoute() {
     }
     setIsLoading(true);
     try {
-      await runOpaqueRegistration(newPassword);
-      setSuccess("Password changed successfully");
-      resetForm();
+      const response = await auth.settings.opaque.setup(newPassword);
+      if (response.success) {
+        setSuccess("Password changed successfully");
+        resetForm();
+      } else {
+        setError(response.error || "Failed to change password");
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -292,18 +240,6 @@ export default function PasswordRoute() {
             />
 
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Current Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter current password"
-                placeholderTextColor={theme.placeholderText}
-                value={oldPassword}
-                onChangeText={setOldPassword}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-            </View>
-            <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>New Password</Text>
               <TextInput
                 style={styles.input}
@@ -363,19 +299,6 @@ export default function PasswordRoute() {
               visible={!!error}
               onClose={() => setError(null)}
             />
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Current Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter current password"
-                placeholderTextColor={theme.placeholderText}
-                value={oldPassword}
-                onChangeText={setOldPassword}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-            </View>
 
             <View style={styles.formButtons}>
               <SettingsButton
