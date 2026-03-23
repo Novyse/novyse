@@ -6,10 +6,9 @@ const config = getDefaultConfig(__dirname);
 // Add wasm asset support
 config.resolver.assetExts.push("wasm");
 
-
 // Crypto polyfill for mobile (used in cloudflare-opaque)
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (moduleName === "crypto") {
+  if (platform !== "web" && moduleName === "crypto") {
     // when importing crypto, resolve to react-native-quick-crypto
     return context.resolveRequest(
       context,
