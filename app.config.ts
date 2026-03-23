@@ -16,6 +16,7 @@ const TINY_APP_URL = "https://vyse.me";
 const LANDING_PAGE_URL = "https://www.novyse.com";
 const PRIVACY_POLICY_URL = LANDING_PAGE_URL + "/legal/privacy-policy";
 const TOS_URL = LANDING_PAGE_URL + "/legal/terms-of-service";
+const CLOUDFLARE_TURNSTILE_PUBLIC = "0x4AAAAAACvBX17HadrEqUCS";
 //.ENV
 
 export {
@@ -30,6 +31,7 @@ export {
   LANDING_PAGE_URL,
   PRIVACY_POLICY_URL,
   TOS_URL,
+  CLOUDFLARE_TURNSTILE_PUBLIC,
 };
 
 // Genera suffisso per dev mode

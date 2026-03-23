@@ -22,6 +22,7 @@ import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 import SignupTimeline from "@/src/components/welcome/signup/SignupTimeline";
 import SignupStepField from "@/src/components/welcome/signup/SignupStepField";
 import SignupCheckboxes from "@/src/components/welcome/signup/SignupCheckboxes";
+import TurnstileCaptcha from "@/src/components/auth/TurnstileCaptcha";
 
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
@@ -59,6 +60,7 @@ export default function Signup() {
     handlePasskeySignup,
     goToStep,
     validateStep,
+    setCaptchaToken,
   } = useSignup();
 
   const isLastStep = currentStep === STEPS.length - 1;
@@ -158,14 +160,17 @@ export default function Signup() {
                   </View>
                 )}
                 {isLastStep && (
-                  <SignupCheckboxes
-                    privacyAccepted={privacyAccepted}
-                    tosAccepted={privacyAccepted}
-                    ageConfirmed={ageConfirmed}
-                    onTogglePrivacyTos={() => setPrivacyAccepted((p: boolean) => !p)}
-                    onToggleAge={() => setAgeConfirmed((p: boolean) => !p)}
-                    loginTheme={LOGIN_THEME}
-                  />
+                  <>
+                    <TurnstileCaptcha onVerify={setCaptchaToken} />
+                    <SignupCheckboxes
+                      privacyAccepted={privacyAccepted}
+                      tosAccepted={privacyAccepted}
+                      ageConfirmed={ageConfirmed}
+                      onTogglePrivacyTos={() => setPrivacyAccepted((p: boolean) => !p)}
+                      onToggleAge={() => setAgeConfirmed((p: boolean) => !p)}
+                      loginTheme={LOGIN_THEME}
+                    />
+                  </>
                 )}
               </Animated.View>
 

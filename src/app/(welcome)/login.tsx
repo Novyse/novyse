@@ -16,7 +16,7 @@ const LoginPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (username: string, password: string) => {
+  const handleLogin = async (username: string, password: string, captchaToken: string) => {
     if (!username) {
       setError("Username cannot be empty");
       return;
@@ -31,7 +31,7 @@ const LoginPassword = () => {
 
     try {
       const { success, requires2FA, twoFactorToken, data } =
-        await auth.signin.opaque(username, password);
+        await auth.signin.opaque(username, password, captchaToken);
 
       if (!success) {
         setError("Incorrect username or password");
@@ -64,12 +64,12 @@ const LoginPassword = () => {
     }
   };
 
-  const handleLoginWithPasskey = async () => {
+  const handleLoginWithPasskey = async (captchaToken: string) => {
     setError(null);
     setIsLoading(true);
 
     try {
-      const ok = await auth.signin.passkey();
+      const ok = await auth.signin.passkey(captchaToken);
 
       if (!ok.success) {
         setError(ok.error || "Passkey login failed");

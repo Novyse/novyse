@@ -20,10 +20,11 @@ import { router } from "expo-router";
 
 import logoNovyse from "@/assets/images/logo-novyse.png";
 import TextLink from "../../TextLink";
+import TurnstileCaptcha from "../../auth/TurnstileCaptcha";
 
 interface LoginFormProps {
-  onLogin: (username: string, password: string) => void;
-  onLoginWithPasskey: () => void;
+  onLogin: (username: string, password: string, captchaToken: string) => void;
+  onLoginWithPasskey: (captchaToken: string) => void;
   onSignup: () => void;
   isLoading?: boolean;
   error?: string | null;
@@ -45,10 +46,11 @@ const LoginForm = ({
   urlType,
 }: LoginFormProps) => {
   const [loginMode, setLoginMode] = useState<"password" | "passkey">(
-    urlType === "passkey" ? "passkey" : "password"
+    urlType === "passkey" ? "passkey" : "password",
   );
   const [username, setUsername] = useState(urlUsername || "");
   const [password, setPassword] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [signedup, setSignedup] = useState(urlSignedup);
 
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -58,7 +60,7 @@ const LoginForm = ({
   const styles = createStyles(loginTheme, isSmallScreen);
 
   const handleSubmit = () => {
-    onLogin(username, password);
+    onLogin(username, password, captchaToken!);
   };
 
   return (
@@ -123,7 +125,9 @@ const LoginForm = ({
                   if (error) onErrorDismiss?.();
                 }}
                 placeholder="Username"
-                placeholderTextColor={LoginColors[loginTheme].placeholderTextInput}
+                placeholderTextColor={
+                  LoginColors[loginTheme].placeholderTextInput
+                }
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!isLoading}
@@ -131,7 +135,10 @@ const LoginForm = ({
 
               {/* Password */}
               <View
-                style={[styles.passwordContainer, error ? styles.inputError : null]}
+                style={[
+                  styles.passwordContainer,
+                  error ? styles.inputError : null,
+                ]}
               >
                 <TextInput
                   style={styles.passwordInput}
@@ -147,7 +154,9 @@ const LoginForm = ({
                   secureTextEntry={secureTextEntry}
                   autoCapitalize="none"
                   editable={!isLoading}
-                  onSubmitEditing={Platform.OS === "web" ? handleSubmit : undefined}
+                  onSubmitEditing={
+                    Platform.OS === "web" ? handleSubmit : undefined
+                  }
                 />
                 <Icon
                   name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
@@ -157,7 +166,6 @@ const LoginForm = ({
                 />
               </View>
 
-              {/* OPAQUE link */}
               <View style={styles.opaqueLink}>
                 <Text style={styles.opaqueLinkText}>
                   Secured by{" "}
@@ -185,7 +193,9 @@ const LoginForm = ({
                 <View style={styles.buttonWrapper}>
                   <WelcomeButton
                     onPress={handleSubmit}
-                    disabled={isLoading || !username || !password}
+                    disabled={
+                      isLoading || !username || !password || !captchaToken
+                    }
                     type={"submit"}
                   >
                     <WelcomeButtonText label="Log In" type={"submit"} />
@@ -196,13 +206,14 @@ const LoginForm = ({
           ) : (
             <View style={styles.passkeyModeContent}>
               <Text style={styles.passkeyDescription}>
-                Log in quickly and securely using your biometric data or device credentials.
+                Log in quickly and securely using your biometric data or device
+                credentials.
               </Text>
-              
+
               <View style={styles.passkeyButtonWrapperLarge}>
                 <WelcomeButton
-                  onPress={onLoginWithPasskey}
-                  disabled={isLoading}
+                  onPress={() => onLoginWithPasskey(captchaToken!)}
+                  disabled={isLoading || !captchaToken}
                   type={"submit"}
                 >
                   <View style={styles.passkeyButtonContent}>
@@ -211,7 +222,10 @@ const LoginForm = ({
                       color={LoginColors[loginTheme].icon}
                       size={24}
                     />
-                    <WelcomeButtonText label="Login with Passkey" type={"submit"} />
+                    <WelcomeButtonText
+                      label="Login with Passkey"
+                      type={"submit"}
+                    />
                   </View>
                 </WelcomeButton>
               </View>
@@ -254,6 +268,8 @@ const LoginForm = ({
               }}
             />
           </View>
+
+          <TurnstileCaptcha onVerify={setCaptchaToken} />
 
           {/* Signup link */}
           <View style={styles.link}>

@@ -25,6 +25,7 @@ export const useSignup = () => {
   const [handleError, setHandleError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const handleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -100,9 +101,10 @@ export const useSignup = () => {
     validateStep(2) &&
     privacyAccepted &&
     ageConfirmed &&
+    !!captchaToken &&
     !isLoading;
 
-  const isPasskeyValid = validateStep(0) && validateStep(1) && privacyAccepted && ageConfirmed;
+  const isPasskeyValid = validateStep(0) && validateStep(1) && privacyAccepted && ageConfirmed && !!captchaToken;
 
   const handleChange = (field: string, value: string) => {
     const v = field === "handle" ? value.toLowerCase() : value;
@@ -143,10 +145,10 @@ export const useSignup = () => {
     setIsLoading(true);
     try {
       const { password, name, handle } = form;
-      const ok = await auth.signup.opaque(handle, password, name, {
-        privacy: privacyAccepted,
-        tos: privacyAccepted,
-      });
+        const ok = await auth.signup.opaque(handle, password, name, {
+          privacy: privacyAccepted,
+          tos: privacyAccepted,
+        }, captchaToken!);
       if (ok.success) {
         router.navigate(`/(welcome)/login?signedup=true&username=${handle}&type=opaque`);
       } else {
@@ -164,7 +166,7 @@ export const useSignup = () => {
     setIsLoading(true);
     try {
       const { name, handle } = form;
-      const ok = await auth.signup.passkey(handle, name);
+      const ok = await auth.signup.passkey(handle, name, captchaToken!);
       if (ok?.success) {
         router.navigate(`/(welcome)/login?signedup=true&username=${handle}&type=passkey`);
       } else {
@@ -224,5 +226,6 @@ export const useSignup = () => {
     handlePasskeySignup,
     goToStep,
     validateStep,
+    setCaptchaToken,
   };
 };
