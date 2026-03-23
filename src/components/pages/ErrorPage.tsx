@@ -1,36 +1,113 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Image } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { LoginColors } from "@/constants/LoginColors";
+import { useScreen } from "@/context/ScreenContext";
+import logoNovyse from "@/assets/images/logo-novyse.png";
+import Icon from "@/src/components/Icon";
+
+const LOGIN_THEME = "default";
 
 export default function ErrorPage() {
+  const { isSmallScreen } = useScreen();
+  const styles = createStyle(isSmallScreen);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Error</Text>
-      <Text style={styles.message}>
-        This app can only be opened in one browser window at a time. Please
-        close any other instances of the app and try again. Additionally, this
-        app is not usable in incognito mode.
-      </Text>
-    </View>
+    <LinearGradient
+      colors={LoginColors[LOGIN_THEME].background as any}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <View style={styles.card}>
+        <View style={styles.cardContent}>
+          <Image style={styles.logo} source={logoNovyse} />
+          
+          <View style={styles.iconCircle}>
+            <Icon name="Note01Icon" color={LoginColors[LOGIN_THEME].title} size={48} />
+          </View>
+
+          <Text style={styles.title}>System Restriction</Text>
+          <Text style={styles.message}>
+            This app can only be opened in one browser window at a time. Please
+            close any other instances of the app and try again.
+          </Text>
+          <Text style={styles.messageSecondary}>
+            Additionally, this app is not usable in incognito mode due to security requirements.
+          </Text>
+          <Text style={styles.messageTertiary}>
+            If you think this is an error, try reloading the page or restarting the application.
+          </Text>
+        </View>
+      </View>
+    </LinearGradient>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "#121212",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#ffffff",
-  },
-  message: {
-    fontSize: 16,
-    textAlign: "center",
-    color: "#ffffff",
-  },
-});
+function createStyle(isSmallScreen: boolean) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: isSmallScreen ? 0 : 24,
+    },
+    card: {
+      padding: isSmallScreen ? 24 : 40,
+      borderRadius: isSmallScreen ? 0 : 20,
+      backgroundColor: LoginColors[LOGIN_THEME].backgroundCard,
+      width: isSmallScreen ? "100%" : 450,
+      height: isSmallScreen ? "100%" : "auto",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    cardContent: {
+      width: "100%",
+      alignItems: "center",
+    },
+    logo: {
+      height: 100,
+      width: 100,
+      marginBottom: 32,
+    },
+    iconCircle: {
+       width: 80,
+       height: 80,
+       borderRadius: 40,
+       backgroundColor: "rgba(1, 52, 128, 0.1)",
+       justifyContent: "center",
+       alignItems: "center",
+       marginBottom: 24,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: "700",
+      color: LoginColors[LOGIN_THEME].title,
+      marginBottom: 20,
+      textAlign: "center",
+    },
+    message: {
+      fontSize: 18,
+      color: LoginColors[LOGIN_THEME].subtitle,
+      textAlign: "center",
+      marginBottom: 16,
+      lineHeight: 26,
+      fontWeight: "500",
+    },
+    messageSecondary: {
+      fontSize: 14,
+      color: LoginColors[LOGIN_THEME].subtitle2,
+      textAlign: "center",
+      lineHeight: 20,
+      fontStyle: "italic",
+      marginBottom: 24,
+    },
+    messageTertiary: {
+      fontSize: 13,
+      color: LoginColors[LOGIN_THEME].subtitle2,
+      textAlign: "center",
+      lineHeight: 18,
+      opacity: 0.8,
+    },
+  });
+}
