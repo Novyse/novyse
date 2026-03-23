@@ -2,7 +2,7 @@ import React from "react";
 
 import useUserStore from "@/context/UserContext";
 
-import Profile from "@/src/components/Profile";
+import Profile from "@/src/components/profile";
 
 const ProfilePage = () => {
   const userUUID = useUserStore((state) => state.localUserUUID);

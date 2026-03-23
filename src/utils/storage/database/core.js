@@ -36,11 +36,10 @@ class Database {
       const tables = await this.db.getAllAsync(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';",
       );
-      const dropStatements = tables
-        .map((table) => `DROP TABLE IF EXISTS ${table.name};`)
-        .join(" ");
-      if (dropStatements) {
-        await this.db.execAsync(dropStatements);
+      if (tables && tables.length > 0) {
+        for (const table of tables) {
+          await this.db.execAsync(`DROP TABLE IF EXISTS ${table.name};`);
+        }
       }
       console.log("Database cleared successfully.");
     } catch (error) {

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
-import { useAuth } from "@/context/AuthContext";
 import { useThemeContext } from "@/context/ThemeContext";
 
 import SettingsMenuItem from "@/src/components/settings/SettingsMenuItem";
@@ -13,7 +12,6 @@ import DeleteAccount from "@/src/components/modalSheets/DeleteAccount";
 import auth from "@/src/utils/welcome/auth";
 
 export default function AccountRoute() {
-  const { refreshLoginStatus } = useAuth();
   const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const router = useRouter();
 
@@ -35,7 +33,6 @@ export default function AccountRoute() {
           iconName={"Logout03Icon"}
           onPress={async () => {
             await auth.logout();
-            await refreshLoginStatus();
             router.replace("/welcome");
           }}
         />

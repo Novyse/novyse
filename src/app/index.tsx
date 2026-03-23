@@ -1,10 +1,10 @@
 import React from "react";
 import { Redirect } from "expo-router";
-import { useAuth } from "@/context/AuthContext";
+import useAuthSession from "@/src/hooks/auth/useAuthSession";
 import SplashScreen from "@/src/components/SplashScreen";
 
 export default function Index() {
-  const { isLoggedIn, isLoading } = useAuth();
+  const { isLoggedIn, isLoading } = useAuthSession();
 
   if (isLoading) {
     return <SplashScreen />;

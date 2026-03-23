@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, Image } from "react-native";
 
 import { useScreen } from "@/context/ScreenContext";
-import { useAuth } from "@/context/AuthContext";
 
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -28,7 +27,6 @@ const VerifyBackup: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const loginTheme = "default" as const;
   const { isSmallScreen } = useScreen();
-  const { refreshLoginStatus } = useAuth();
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const [code, setCode] = useState<string[]>(
@@ -79,7 +77,6 @@ const VerifyBackup: React.FC = () => {
         console.log("Backup code verified successfully!");
         const success = await auth.initializeApp();
         if (success) {
-          await refreshLoginStatus();
           router.replace("/app");
         }
       } else {

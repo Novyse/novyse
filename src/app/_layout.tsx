@@ -9,11 +9,10 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { ScreenProvider } from "@/context/ScreenContext";
 import { ThemeProvider, useThemeContext } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
 import SplashScreen from "@/src/components/SplashScreen";
+import useAuthSession from "@/src/hooks/auth/useAuthSession";
 
-function StackLayout() {
-  const { isLoggedIn } = useAuth();
+function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {
   const { theme } = useThemeContext();
 
   return (
@@ -25,12 +24,12 @@ function StackLayout() {
         },
       }}
     >
-      <Stack.Protected guard={isLoggedIn === true}>
+      {isLoggedIn && (
         <Stack.Screen name="(protected)" options={{ headerShown: false }} />
-      </Stack.Protected>
-      <Stack.Protected guard={isLoggedIn === false}>
+      )}
+      {!isLoggedIn && (
         <Stack.Screen name="(welcome)" options={{ headerShown: false }} />
-      </Stack.Protected>
+      )}
       <Stack.Screen name="profile" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" options={{ headerShown: false }} />
     </Stack>
@@ -38,7 +37,7 @@ function StackLayout() {
 }
 
 function RootLayoutContent() {
-  const { isLoading } = useAuth();
+  const { isLoggedIn, isLoading } = useAuthSession();
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -49,7 +48,7 @@ function RootLayoutContent() {
     }
   }, []);
 
-  if (isLoading) {
+  if (isLoading || isLoggedIn === null) {
     return <SplashScreen />;
   }
   return (
@@ -59,7 +58,7 @@ function RootLayoutContent() {
           <ThemeProvider>
             <LanguageProvider>
               <BottomSheetModalProvider>
-                <StackLayout />
+                <StackLayout isLoggedIn={isLoggedIn} />
               </BottomSheetModalProvider>
             </LanguageProvider>
           </ThemeProvider>
@@ -70,9 +69,5 @@ function RootLayoutContent() {
 }
 
 export default function RootLayout() {
-  return (
-    <AuthProvider>
-      <RootLayoutContent />
-    </AuthProvider>
-  );
+  return <RootLayoutContent />;
 }

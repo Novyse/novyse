@@ -10,7 +10,6 @@ import StatusMessage from "@/src/components/StatusMessage";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import useUserStore from "@/context/UserContext";
-import { useAuth } from "@/context/AuthContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import auth from "@/src/utils/welcome/auth";
@@ -20,7 +19,6 @@ const DeleteAccount = ({ visible, onClose }) => {
   const styles = createStyles(theme);
 
   const router = useRouter();
-  const { refreshLoginStatus } = useAuth();
 
   const myUUID = useUserStore((state) => state.localUserUUID);
   const username = useUserStore((state) => state.users[myUUID]?.handle);
@@ -45,7 +43,6 @@ const DeleteAccount = ({ visible, onClose }) => {
     const response = await gateway.user.delete();
     if (response) {
       await auth.logout();
-      await refreshLoginStatus();
       router.navigate("/welcome?deleteAccount=true");
     } else {
       setError("Something went wrong. Please try again later.");

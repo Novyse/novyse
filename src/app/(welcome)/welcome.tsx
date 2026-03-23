@@ -1,10 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { View, StyleSheet, Text, Image, ActivityIndicator } from "react-native";
 
 import { useScreen } from "@/context/ScreenContext";
-import { useAuth } from "@/context/AuthContext";
-
-import gateway from "@/src/utils/backend-services/api-gateway";
 
 import QRCode from "react-native-qrcode-svg";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,83 +13,29 @@ import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 
 import auth from "@/src/utils/welcome/auth";
+import useQRCode from "@/src/hooks/auth/useQRCode";
+import { LoginTheme } from "@/constants/LoginColors";
 
 import logoForQR from "@/assets/images/logo-novyse.png";
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
 const Welcome = () => {
-  const [qrToken, setQrToken] = useState<string>("");
-  const [isNavigating, setIsNavigating] = useState<boolean>(false);
-  const [remainingTime, setRemainingTime] = useState<number>(0);
-  const loginTheme = "default";
+  const loginTheme: LoginTheme = "default";
 
   const { isSmallScreen } = useScreen();
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const router = useRouter();
-  const { refreshLoginStatus } = useAuth();
-
-  useEffect(() => {
-    let pollingInterval: ReturnType<typeof setInterval> | undefined;
-    let isMounted = true;
-
-    const fetchQrToken = async () => {
-      if (isNavigating) return;
-
-      const { qrCodeToken, expiresIn } =
-        await gateway.auth.generateQRCodeToken();
-
-      if (isMounted) {
-        setQrToken(qrCodeToken);
-        setRemainingTime(parseExpiresIn(expiresIn));
-      }
-
-      if (qrCodeToken) {
-        pollingInterval = setInterval(async () => {
-          try {
-            if (!isMounted) {
-              clearInterval(pollingInterval);
-              return;
-            }
-
-            const response = await gateway.auth.checkQRCodeToken(qrCodeToken);
-            const { success, scanned } = response;
-
-            if (success) {
-              if (scanned) {
-                if (await auth.initializeApp()) {
-                  await refreshLoginStatus();
-                  router.replace("/app");
-                }
-                setQrToken("");
-                clearInterval(pollingInterval);
-              }
-            } else {
-              throw new Error("Failed to check QR code status");
-            }
-          } catch {
-            setQrToken("");
-            clearInterval(pollingInterval);
-            fetchQrToken();
-          }
-        }, 5000);
-      }
-    };
-
-    if (!isSmallScreen) fetchQrToken();
-
-    return () => {
-      isMounted = false;
-      if (pollingInterval) clearInterval(pollingInterval);
-    };
-  }, [isNavigating, isSmallScreen, router]);
-
-  useEffect(() => {
-    if (remainingTime > 0) {
-      const timer = setTimeout(() => setRemainingTime(remainingTime - 1), 1000);
-      return () => clearTimeout(timer);
+  const handleAuthorized = useCallback(async () => {
+    if (await auth.initializeApp()) {
+      router.replace("/app");
     }
-  }, [remainingTime]);
+  }, [router]);
+
+  const { qrToken, remainingTime } = useQRCode(
+    isSmallScreen,
+    handleAuthorized,
+  );
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -100,30 +43,17 @@ const Welcome = () => {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const parseExpiresIn = (expiresIn: string | number): number => {
-    if (typeof expiresIn === "string") {
-      if (expiresIn.endsWith("m")) {
-        return parseInt(expiresIn.slice(0, -1)) * 60;
-      } else if (expiresIn.endsWith("s")) {
-        return parseInt(expiresIn.slice(0, -1));
-      }
-    }
-    return expiresIn as number;
-  };
-
   const handleLogin = () => {
-    setIsNavigating(true);
     router.navigate("/login");
   };
 
   const handleSignup = () => {
-    setIsNavigating(true);
     router.navigate("/signup");
   };
 
   return (
     <LinearGradient
-      colors={LoginColors[loginTheme].background}
+      colors={LoginColors[loginTheme].background as any}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -171,7 +101,9 @@ const Welcome = () => {
                     logo={logoForQR}
                     size={styles.qrcodeContainer.width}
                     enableLinearGradient={true}
-                    linearGradient={LoginColors[loginTheme].QRCodeGradient}
+                    linearGradient={
+                      LoginColors[loginTheme].QRCodeGradient as any
+                    }
                     logoBorderRadius={100}
                     logoMargin={5}
                     logoBackgroundColor={

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -10,13 +10,10 @@ import {
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
 
 import { useScreen } from "@/context/ScreenContext";
-import { validate } from "@/src/utils/welcome/validator";
-import gateway from "@/src/utils/backend-services/api-gateway";
 import { LoginColors } from "@/constants/LoginColors";
-import { PRIVACY_POLICY_URL, TOS_URL } from "@/app.config";
+import { useSignup } from "@/src/hooks/welcome/useSignup";
 
 import StatusMessage from "@/src/components/StatusMessage";
 import Icon from "@/src/components/Icon";
@@ -33,170 +30,38 @@ const STEPS = [{ id: 1 }, { id: 2 }, { id: 3 }];
 const LOGIN_THEME = "default";
 
 export default function Signup() {
-  const router = useRouter();
   const { isSmallScreen } = useScreen();
   const styles = createStyle(isSmallScreen);
-
-  const [form, setForm] = useState({
-    name: "",
-    password: "",
-    confirmPassword: "",
-    handle: "",
-  });
-  const [showPassword, setShowPassword] = useState(true);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(true);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState(new Set<number>());
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
-  const [handleAvailable, setHandleAvailable] = useState<boolean | null>(null);
-  const [handleError, setHandleError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const handleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Animation
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-  const directionRef = useRef(1);
-
-  const animateStep = (next: () => void) => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: -40 * directionRef.current,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      next();
-      slideAnim.setValue(40 * directionRef.current);
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    });
-  };
-
-  const goToStep = (next: number) => {
-    directionRef.current = next > currentStep ? 1 : -1;
-    animateStep(() => setCurrentStep(next));
-  };
-
-  const isFormValid =
-    !!form.password &&
-    !!form.name &&
-    !!form.handle &&
-    form.password === form.confirmPassword &&
-    handleAvailable === true &&
-    !handleError &&
-    !isLoading &&
-    privacyAccepted &&
-    ageConfirmed;
-
-  const validateStep = (step: number) => {
-    if (step === 0)
-      return (
-        validate.user.name(form.name)
-      );
-    if (step === 1)
-      return (
-        validate.user.password(form.password) &&
-        form.password === form.confirmPassword
-      );
-    if (step === 2)
-      return (
-        !!form.handle.trim() &&
-        validate.handle(form.handle) &&
-        handleAvailable === true &&
-        !handleError
-      );
-    return false;
-  };
-
-  const handleChange = (field: string, value: string) => {
-    const v = field === "handle" ? value.toLowerCase() : value;
-    setForm((prev) => ({ ...prev, [field]: v }));
-    if (error) setError(null);
-
-    if (field !== "handle") return;
-
-    setHandleAvailable(null);
-    setHandleError(null);
-    if (handleTimer.current) clearTimeout(handleTimer.current);
-    if (!v.trim()) {
-      setIsLoading(false);
-      return;
-    }
-    if (!validate.handle(v)) {
-      setHandleError("Invalid format. Use a-z, 0-9, and single '_'.");
-      setIsLoading(false);
-      return;
-    }
-    setIsLoading(true);
-    handleTimer.current = setTimeout(async () => {
-      const { free } = await gateway.check.handle(v);
-      setHandleAvailable(free);
-      if (!free) setHandleError("This handle is already in use.");
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  const handleSignup = async () => {
-    setError(null);
-    setIsLoading(true);
-    try {
-      const { password, name, handle } = form;
-      const ok = await gateway.auth.register(
-        password,
-        name,
-        handle,
-        privacyAccepted,
-        privacyAccepted,
-        ageConfirmed,
-      );
-      if (ok)
-        router.navigate(`/(welcome)/welcome?signedup=true&handle=${handle}`);
-      else setError("Signup failed. Please try again.");
-    } catch {
-      setError("An unexpected error occurred.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    form,
+    showPassword,
+    showConfirmPassword,
+    currentStep,
+    completedSteps,
+    privacyAccepted,
+    ageConfirmed,
+    handleAvailable,
+    handleError,
+    isLoading,
+    error,
+    slideAnim,
+    fadeAnim,
+    isFormValid,
+    isPasskeyValid,
+    setShowPassword,
+    setShowConfirmPassword,
+    setPrivacyAccepted,
+    setAgeConfirmed,
+    setError,
+    handleChange,
+    handleNext,
+    handleBack,
+    handlePasskeySignup,
+    goToStep,
+    validateStep,
+  } = useSignup();
 
   const isLastStep = currentStep === STEPS.length - 1;
-  const canNext = isLastStep ? isFormValid : validateStep(currentStep);
-
-  const handleNext = () => {
-    if (!canNext) return;
-    if (isLastStep) {
-      handleSignup();
-      return;
-    }
-    setCompletedSteps((prev) => new Set([...prev, currentStep]));
-    goToStep(currentStep + 1);
-  };
-
-  const handleBack = () => {
-    if (currentStep === 0) {
-      router.navigate("/");
-      return;
-    }
-    goToStep(currentStep - 1);
-  };
 
   return (
     <LinearGradient
@@ -243,13 +108,62 @@ export default function Signup() {
                   }
                   loginTheme={LOGIN_THEME}
                 />
+                {currentStep === 2 && (
+                  <View style={styles.passkeyWrapper}>
+                    <View style={styles.divider}>
+                      <View
+                        style={[
+                          styles.line,
+                          {
+                            backgroundColor:
+                              LoginColors[LOGIN_THEME].backgroundLineDivider,
+                          },
+                        ]}
+                      />
+                      <Text
+                        style={[
+                          styles.dividerText,
+                          { color: LoginColors[LOGIN_THEME].subtitle2 },
+                        ]}
+                      >
+                        OR
+                      </Text>
+                      <View
+                        style={[
+                          styles.line,
+                          {
+                            backgroundColor:
+                              LoginColors[LOGIN_THEME].backgroundLineDivider,
+                          },
+                        ]}
+                      />
+                    </View>
+                    <WelcomeButton
+                      disabled={!isPasskeyValid || isLoading}
+                      onPress={handlePasskeySignup}
+                      type="submit"
+                    >
+                      <View style={styles.passkeyButtonContent}>
+                        <Icon
+                          name="FingerPrintIcon"
+                          color={LoginColors[LOGIN_THEME].icon}
+                          size={20}
+                        />
+                        <WelcomeButtonText
+                          type="submit"
+                          label="Sign up with Passkey"
+                        />
+                      </View>
+                    </WelcomeButton>
+                  </View>
+                )}
                 {isLastStep && (
                   <SignupCheckboxes
                     privacyAccepted={privacyAccepted}
                     tosAccepted={privacyAccepted}
                     ageConfirmed={ageConfirmed}
-                    onTogglePrivacyTos={() => setPrivacyAccepted((p) => !p)}
-                    onToggleAge={() => setAgeConfirmed((p) => !p)}
+                    onTogglePrivacyTos={() => setPrivacyAccepted((p: boolean) => !p)}
+                    onToggleAge={() => setAgeConfirmed((p: boolean) => !p)}
                     loginTheme={LOGIN_THEME}
                   />
                 )}
@@ -270,7 +184,11 @@ export default function Signup() {
                 </View>
                 <View style={styles.buttonWrapper}>
                   <WelcomeButton
-                    disabled={!canNext || (isLastStep && isLoading)}
+                    disabled={
+                      (isLastStep && !isFormValid) ||
+                      (!isLastStep && isLoading) ||
+                      (!isLastStep && currentStep === 1 && !validateStep(1))
+                    }
                     onPress={handleNext}
                     type="submit"
                   >
@@ -293,7 +211,7 @@ export default function Signup() {
 
               <StatusMessage
                 type="error"
-                content={[error]}
+                content={error ? [error] : []}
                 visible={!!error}
                 onClose={() => setError(null)}
               />
@@ -352,6 +270,39 @@ function createStyle(isSmallScreen: boolean) {
     },
     buttonWrapper: {
       flex: 1,
+      marginHorizontal: 4,
+    },
+    passkeyWrapper: {
+      width: "100%",
+      maxWidth: 300,
+      alignItems: "center",
+      marginTop: 10,
+    },
+    passkeyContainer: {
+      width: "100%",
+      marginTop: 16,
+    },
+    passkeyButtonContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    },
+    divider: {
+      flexDirection: "row",
+      alignItems: "center",
+      width: "100%",
+      marginVertical: 15,
+    },
+    line: {
+      flex: 1,
+      height: 1,
+      opacity: 0.3,
+    },
+    dividerText: {
+      marginHorizontal: 10,
+      fontSize: 12,
+      fontWeight: "700",
     },
   });
 }

@@ -17,12 +17,12 @@ export class UserRepository {
 
   /**
    * Adds a user to the database.
-   * @param {Object} user - User object containing uuid, email, name, surname, profilePictureUuid, handle, description, birthday, region, country
+   * @param {Object} user - User object containing uuid, name, surname, profilePictureUuid, handle, description, birthday, region, country
    * @returns {boolean} true if user added successfully, false otherwise
    */
   async add(user: any): Promise<boolean> {
     try {
-      if (!user || !user.uuid || !user.name || !user.surname || !user.handle) {
+      if (!user || !user.uuid || !user.name || !user.handle) {
         console.error(
           "Missing required user fields:",
           JSON.stringify({
@@ -38,13 +38,12 @@ export class UserRepository {
       // Insert user into the user table
       await this.db.runAsync(
         `
-        INSERT OR IGNORE INTO user (uuid, email, name, surname, profilePictureUUID, description, birthday, region, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        INSERT OR IGNORE INTO user (uuid, name, surname, profilePictureUUID, description, birthday, region, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
       `,
         [
           user.uuid,
-          user.email || null,
           user.name,
-          user.surname,
+          user.surname || null,
           user.profilePictureUUID || null,
           user.description || null,
           user.birthday || null,

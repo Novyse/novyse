@@ -1,14 +1,17 @@
 import React, { useState } from "react";
-import { useRouter } from "expo-router";
-import { useAuth } from "@/context/AuthContext";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
-import auth from "@/src/utils/welcome/auth";
-import gateway from "@/src/utils/backend-services/api-gateway";
+import authInit from "@/src/utils/welcome/auth";
+import auth from "@/src/utils/backend-services/auth";
 import LoginForm from "@/src/components/welcome/login/LoginForm";
 
 const LoginPassword = () => {
   const router = useRouter();
-  const { refreshLoginStatus } = useAuth();
+  const {
+    username: urlUsername,
+    signedup: urlSignedup,
+    type: urlType,
+  } = useLocalSearchParams();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,43 +30,31 @@ const LoginPassword = () => {
     setIsLoading(true);
 
     try {
-      const {
-        success,
-        twofa,
-        choose,
-        methods,
-        twoFactorToken,
-        chooseTwoFactorToken,
-      } = await gateway.auth.login(username, password);
+      const { success, requires2FA, twoFactorToken, data } =
+        await auth.signin.opaque(username, password);
 
       if (!success) {
         setError("Incorrect username or password");
         return;
       }
 
-      if (!twofa) {
-        if (await auth.initializeApp()) {
-          await refreshLoginStatus();
+      if (!requires2FA) {
+        if (await authInit.initializeApp()) {
+          // data should contain accessToken (web) or sessionId (mobile) and userUUID
+          await authInit.setLogin({
+            userUUID: data.userUUID,
+            accessToken: data.token,
+            sessionId: data.sessionId,
+          });
           router.replace("/app");
         }
       } else {
-        if (choose) {
-          router.navigate({
-            pathname: "/choose-verify",
-            params: {
-              verificationTypeList: methods,
-              token: chooseTwoFactorToken,
-            },
-          });
-        } else {
-          router.navigate({
-            pathname: "/verify",
-            params: {
-              verificationType: methods[0],
-              token: twoFactorToken,
-            },
-          });
-        }
+        router.navigate({
+          pathname: "/verify",
+          params: {
+            token: twoFactorToken,
+          },
+        });
       }
     } catch (e) {
       console.error(e);
@@ -73,8 +64,33 @@ const LoginPassword = () => {
     }
   };
 
-  const handleLoginWithPasskey = () => {
-    // logica passkey — da implementare
+  const handleLoginWithPasskey = async () => {
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const ok = await auth.signin.passkey();
+
+      if (!ok.success) {
+        setError(ok.error || "Passkey login failed");
+        return;
+      }
+
+      const { data } = ok;
+      if (await authInit.initializeApp()) {
+        await authInit.setLogin({
+          userUUID: data.userUUID,
+          accessToken: data.token,
+          sessionId: data.sessionId,
+        });
+        router.replace("/app");
+      }
+    } catch (e: any) {
+      console.error(e);
+      setError("An unexpected error occurred during passkey login");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSignup = () => {
@@ -89,6 +105,9 @@ const LoginPassword = () => {
       isLoading={isLoading}
       error={error}
       onErrorDismiss={() => setError(null)}
+      urlUsername={urlUsername as string}
+      urlSignedup={urlSignedup === "true"}
+      urlType={urlType as "opaque" | "passkey"}
     />
   );
 };

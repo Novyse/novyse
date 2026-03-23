@@ -1,7 +1,6 @@
 import { io } from "socket.io-client";
 
-import gateway from "./api-gateway.js";
-import token from "../welcome/token.js";
+import { getAuthToken } from "./auth/token-manager";
 
 import eventEmitter from "../global/Events/EventEmitter.js";
 import eventReceiver from "./lib/event-receiver.js";
@@ -50,7 +49,7 @@ const SocketIO = {
 
       isConnecting = true;
 
-      const accessToken = await token.getAccessToken();
+      const accessToken = await getAuthToken();
 
       socket = io(SOCKET_BASE_URL, {
         path: path,
@@ -84,7 +83,16 @@ const SocketIO = {
           error.message.includes("Authentication error") ||
           error.message.includes("jwt expired")
         ) {
-          await gateway.handleSocketAuthError();
+          console.warn(
+            "Socket authentication error, attempting to reconnection...",
+          );
+          if (socket) {
+            socket.disconnect();
+            socket = null;
+          }
+          setTimeout(() => {
+            SocketIO.open();
+          }, 1000);
         }
       });
 

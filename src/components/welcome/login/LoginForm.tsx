@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Platform,
   Image,
+  TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
@@ -27,6 +28,9 @@ interface LoginFormProps {
   isLoading?: boolean;
   error?: string | null;
   onErrorDismiss?: () => void;
+  urlUsername?: string;
+  urlSignedup?: boolean;
+  urlType?: "opaque" | "passkey";
 }
 
 const LoginForm = ({
@@ -36,9 +40,17 @@ const LoginForm = ({
   isLoading = false,
   error,
   onErrorDismiss,
+  urlUsername,
+  urlSignedup,
+  urlType,
 }: LoginFormProps) => {
-  const [username, setUsername] = useState("");
+  const [loginMode, setLoginMode] = useState<"password" | "passkey">(
+    urlType === "passkey" ? "passkey" : "password"
+  );
+  const [username, setUsername] = useState(urlUsername || "");
   const [password, setPassword] = useState("");
+  const [signedup, setSignedup] = useState(urlSignedup);
+
   const [secureTextEntry, setSecureTextEntry] = useState(true);
 
   const loginTheme: LoginTheme = "default";
@@ -64,105 +76,183 @@ const LoginForm = ({
           <Text style={styles.title}>Login</Text>
           <Text style={styles.subtitle}>Enter your credentials to login</Text>
 
-          {/* Username */}
-          <TextInput
-            style={[styles.textInput, error ? styles.inputError : null]}
-            value={username}
-            onChangeText={(text) => {
-              setUsername(text);
-              if (error) onErrorDismiss?.();
-            }}
-            placeholder="Username"
-            placeholderTextColor={LoginColors[loginTheme].placeholderTextInput}
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={!isLoading}
-          />
-
-          {/* Password */}
-          <View
-            style={[styles.passwordContainer, error ? styles.inputError : null]}
-          >
-            <TextInput
-              style={styles.passwordInput}
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (error) onErrorDismiss?.();
-              }}
-              placeholder="Password"
-              placeholderTextColor={
-                LoginColors[loginTheme].placeholderTextInput
-              }
-              secureTextEntry={secureTextEntry}
-              autoCapitalize="none"
-              editable={!isLoading}
-              onSubmitEditing={Platform.OS === "web" ? handleSubmit : undefined}
-            />
-            <Icon
-              name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
-              color={LoginColors[loginTheme].iconShowHideField}
-              style={styles.eyeButton}
-              onPress={() => setSecureTextEntry((v) => !v)}
-            />
-          </View>
-          {/* OPAQUE link */}
-          <View style={styles.opaqueLink}>
-            <Text style={styles.opaqueLinkText}>
-              Secured by{" "}
-              <TextLink
-                style={styles.opaqueLinkTextBold}
-                href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
+          {/* Mode Toggle */}
+          <View style={styles.toggleContainer}>
+            <TouchableOpacity
+              style={[
+                styles.toggleButton,
+                loginMode === "password" && styles.toggleButtonActive,
+              ]}
+              onPress={() => setLoginMode("password")}
+            >
+              <Text
+                style={[
+                  styles.toggleText,
+                  loginMode === "password" && styles.toggleTextActive,
+                ]}
               >
-                OPAQUE
-              </TextLink>
-            </Text>
+                Password
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.toggleButton,
+                loginMode === "passkey" && styles.toggleButtonActive,
+              ]}
+              onPress={() => setLoginMode("passkey")}
+            >
+              <Text
+                style={[
+                  styles.toggleText,
+                  loginMode === "passkey" && styles.toggleTextActive,
+                ]}
+              >
+                Passkey
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Login + Passkey buttons */}
-          <View style={styles.buttonRow}>
-            <View style={styles.buttonWrapper}>
-              <WelcomeButton
-                onPress={() => {
-                  router.canGoBack()
-                    ? router.back()
-                    : router.navigate("/");
+          {loginMode === "password" ? (
+            <>
+              {/* Username */}
+              <TextInput
+                style={[styles.textInput, error ? styles.inputError : null]}
+                value={username}
+                onChangeText={(text) => {
+                  setUsername(text);
+                  if (error) onErrorDismiss?.();
                 }}
-                disabled={isLoading}
-                type={"back"}
+                placeholder="Username"
+                placeholderTextColor={LoginColors[loginTheme].placeholderTextInput}
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!isLoading}
+              />
+
+              {/* Password */}
+              <View
+                style={[styles.passwordContainer, error ? styles.inputError : null]}
               >
-                <WelcomeButtonText label="Back" type={"back"} />
-              </WelcomeButton>
+                <TextInput
+                  style={styles.passwordInput}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (error) onErrorDismiss?.();
+                  }}
+                  placeholder="Password"
+                  placeholderTextColor={
+                    LoginColors[loginTheme].placeholderTextInput
+                  }
+                  secureTextEntry={secureTextEntry}
+                  autoCapitalize="none"
+                  editable={!isLoading}
+                  onSubmitEditing={Platform.OS === "web" ? handleSubmit : undefined}
+                />
+                <Icon
+                  name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
+                  color={LoginColors[loginTheme].iconShowHideField}
+                  style={styles.eyeButton}
+                  onPress={() => setSecureTextEntry((v) => !v)}
+                />
+              </View>
+
+              {/* OPAQUE link */}
+              <View style={styles.opaqueLink}>
+                <Text style={styles.opaqueLinkText}>
+                  Secured by{" "}
+                  <TextLink
+                    style={styles.opaqueLinkTextBold}
+                    href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
+                  >
+                    OPAQUE
+                  </TextLink>
+                </Text>
+              </View>
+
+              <View style={styles.buttonRow}>
+                <View style={styles.buttonWrapper}>
+                  <WelcomeButton
+                    onPress={() => {
+                      router.canGoBack() ? router.back() : router.navigate("/");
+                    }}
+                    disabled={isLoading}
+                    type={"back"}
+                  >
+                    <WelcomeButtonText label="Back" type={"back"} />
+                  </WelcomeButton>
+                </View>
+                <View style={styles.buttonWrapper}>
+                  <WelcomeButton
+                    onPress={handleSubmit}
+                    disabled={isLoading || !username || !password}
+                    type={"submit"}
+                  >
+                    <WelcomeButtonText label="Log In" type={"submit"} />
+                  </WelcomeButton>
+                </View>
+              </View>
+            </>
+          ) : (
+            <View style={styles.passkeyModeContent}>
+              <Text style={styles.passkeyDescription}>
+                Log in quickly and securely using your biometric data or device credentials.
+              </Text>
+              
+              <View style={styles.passkeyButtonWrapperLarge}>
+                <WelcomeButton
+                  onPress={onLoginWithPasskey}
+                  disabled={isLoading}
+                  type={"submit"}
+                >
+                  <View style={styles.passkeyButtonContent}>
+                    <Icon
+                      name="FingerPrintIcon"
+                      color={LoginColors[loginTheme].icon}
+                      size={24}
+                    />
+                    <WelcomeButtonText label="Login with Passkey" type={"submit"} />
+                  </View>
+                </WelcomeButton>
+              </View>
+
+              <View style={styles.buttonRow}>
+                <View style={styles.buttonWrapper}>
+                  <WelcomeButton
+                    onPress={() => {
+                      router.canGoBack() ? router.back() : router.navigate("/");
+                    }}
+                    disabled={isLoading}
+                    type={"back"}
+                  >
+                    <WelcomeButtonText label="Back" type={"back"} />
+                  </WelcomeButton>
+                </View>
+              </View>
             </View>
-            <View style={styles.buttonWrapper}>
-              <WelcomeButton
-                onPress={handleSubmit}
-                disabled={isLoading}
-                type={"submit"}
-              >
-                <WelcomeButtonText label="Log In" type={"submit"} />
-              </WelcomeButton>
-            </View>
-          </View>
+          )}
 
           {/* Status messages */}
           <View style={styles.containerStatus}>
             <StatusMessage
               type="error"
-              content={[error]}
+              content={[error as string]}
               visible={!!error}
               onClose={onErrorDismiss}
             />
-          </View>
-
-          {/* Passkey link */}
-          <View style={styles.link}>
-            <Text style={styles.linkText}>
-              Use passkey instead?{" "}
-              <TextLink style={styles.linkTextBold} onPress={onSignup}>
-                Login with passkey
-              </TextLink>
-            </Text>
+            <StatusMessage
+              type="success"
+              content={[
+                urlType === "passkey"
+                  ? "Signup successful! Log in using your passkey."
+                  : "Signup successful! Please log in using your credentials.",
+              ]}
+              visible={signedup}
+              timeout={5000}
+              onClose={() => {
+                setSignedup(false);
+              }}
+            />
           </View>
 
           {/* Signup link */}
@@ -224,6 +314,37 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       lineHeight: 20,
       paddingHorizontal: 20,
     },
+    toggleContainer: {
+      flexDirection: "row",
+      backgroundColor: "rgba(0, 0, 0, 0.05)",
+      borderRadius: 15,
+      padding: 4,
+      marginBottom: 24,
+      width: "100%",
+      maxWidth: 300,
+    },
+    toggleButton: {
+      flex: 1,
+      paddingVertical: 8,
+      alignItems: "center",
+      borderRadius: 12,
+    },
+    toggleButtonActive: {
+      backgroundColor: LoginColors[loginTheme].backgroundIcon,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    toggleText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: LoginColors[loginTheme].subtitle2,
+    },
+    toggleTextActive: {
+      color: "#fff",
+    },
     textInput: {
       paddingVertical: 10,
       paddingHorizontal: 15,
@@ -275,6 +396,7 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       gap: 12,
       width: "100%",
       maxWidth: 300,
+      marginTop: 20,
     },
     buttonWrapper: {
       flex: 1,
@@ -310,6 +432,30 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       color: LoginColors[loginTheme].title,
       fontWeight: "600",
       fontSize: 11,
+    },
+    passkeyModeContent: {
+      width: "100%",
+      maxWidth: 300,
+      alignItems: "center",
+      paddingTop: 10,
+    },
+    passkeyDescription: {
+      fontSize: 14,
+      color: LoginColors[loginTheme].subtitle2,
+      textAlign: "center",
+      marginBottom: 32,
+      lineHeight: 20,
+    },
+    passkeyButtonWrapperLarge: {
+      width: "100%",
+      alignItems: "center",
+      marginBottom: 10,
+    },
+    passkeyButtonContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 12,
     },
   });
 }

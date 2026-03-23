@@ -9,7 +9,7 @@ const EXPO_OWNER = "novyse";
 const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
 const API_BASE_URL = "https://api.novyse.com";
 const SOCKET_BASE_URL = "wss://io.novyse.com";
-const BRANCH = "development";
+const BRANCH: "development" | "preview" | "production" = "development";
 const APP_URL =
   BRANCH === "development" ? "http://localhost:8081" : "https://web.novyse.com";
 const TINY_APP_URL = "https://vyse.me";

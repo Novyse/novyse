@@ -9,7 +9,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 
 import Banner from "@/src/components/Banner";
-import ProfileHeader from "@/src/components/Profile/ProfileHeader";
+import ProfileHeader from "@/src/components/profile/ProfileHeader";
 import FormSection from "@/src/components/settings/account/modify-profile/Page/FormSection";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import StatusMessage from "@/src/components/StatusMessage";

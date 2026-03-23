@@ -1,5 +1,8 @@
+import { Platform } from "react-native";
+import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import auth from "@/src/utils/backend-services/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import database from "@/src/utils/storage/database";
 import EventEmitter from "@/src/utils/global/Events/EventEmitter";
@@ -7,22 +10,31 @@ import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 import messageUtils from "@/src/utils/chat/message";
 
 /**
- * Check if the user is logged in by verifying the presence of an access token in AsyncStorage.
+ * Check if the user is logged in by verifying local session markers.
+ * Web: Checks for the existence of the 'userUUID' in AsyncStorage.
+ * Mobile: Checks for the 'sessionId' in SecureStore.
  * @returns {Boolean} true if the user is logged in, false otherwise
  */
 const isLoggedIn = async () => {
-  const token = await AsyncStorage.getItem("accessToken");
-  return token !== null;
+  if (Platform.OS === "web") {
+    // We use the presence of 'userUUID' as marker.
+    const userUUID = await AsyncStorage.getItem("userUUID");
+    return userUUID !== null;
+  } else {
+    // On Mobile, we check for the sessionId in SecureStore.
+    try {
+      const sessionId = await SecureStore.getItemAsync("sessionId");
+      return sessionId !== null;
+    } catch (error) {
+      console.error("Error checking mobile session:", error);
+      return false;
+    }
+  }
 };
 
 const getUserUUID = async () => {
   const userUUID = await AsyncStorage.getItem("userUUID");
   return userUUID;
-};
-
-const getDeviceUUID = async () => {
-  const deviceUUID = await AsyncStorage.getItem("deviceUUID");
-  return deviceUUID;
 };
 
 /**
@@ -70,13 +82,13 @@ const checkShouldBeHere = async (router, shouldBeLoggedIn = true) => {
 
 const initializeApp = async () => {
   console.log("Initializing app...");
-  const { success, local, devices, chats, users, messages, at } =
+  const { success, local, sessions, chats, users, messages, at } =
     await gateway.user.initialize();
 
   if (success) {
     console.info("Initialization successful:", {
       local,
-      devices,
+      sessions,
       chats,
       users,
       messages: messages.length,
@@ -90,7 +102,7 @@ const initializeApp = async () => {
 
     // Set local user uuid in async storage
     await AsyncStorage.setItem("userUUID", String(local.user.uuid));
-    await AsyncStorage.setItem("deviceUUID", String(local.device.uuid));
+    await AsyncStorage.setItem("sessionUUID", String(local.session.uuid));
     await AsyncStorage.setItem("init", "false");
 
     return true;
@@ -101,7 +113,7 @@ const initializeApp = async () => {
 };
 
 const initializeDatabase = async () => {
-  const { success, local, devices, chats, users, messages, at } =
+  const { success, local, sessions, chats, users, messages, at } =
     await gateway.user.initialize();
 
   if (success) {
@@ -136,7 +148,7 @@ const initializeDatabase = async () => {
 
 const logout = async () => {
   console.log("Logging out user...");
-  const success = await gateway.auth.logout();
+  const success = await auth.logout();
   if (!success) {
     console.error(
       "Logout failed at API level, but proceeding with local cleanup.",
@@ -328,13 +340,26 @@ const updateDatabase = async () => {
   }
 };
 
+const setLogin = async ({ userUUID, accessToken, sessionId }) => {
+  try {
+    if (userUUID) {
+      await AsyncStorage.setItem("userUUID", String(userUUID));
+    }
+    if (Platform.OS !== "web" && sessionId) {
+      await SecureStore.setItemAsync("sessionId", String(sessionId));
+    }
+  } catch (error) {
+    console.error("Error during setLogin:", error);
+  }
+};
+
 export default {
   isLoggedIn,
   getLastUpdateTimestamp,
   setLastUpdateTimestamp,
   getUserUUID,
-  getDeviceUUID,
   checkShouldBeHere,
+  setLogin,
   initializeApp,
   initializeDatabase,
   updateDatabase,

@@ -73,7 +73,7 @@ export default function SignupStepField({
   onToggleConfirmPassword,
   loginTheme = "default",
 }: Props) {
-  const colors = LoginColors[loginTheme];
+  const colors = (LoginColors as any)[loginTheme];
   const styles = createStyles(colors);
 
   const RequirementRow = ({ label, met }: { label: string; met: boolean }) => (
@@ -106,7 +106,7 @@ export default function SignupStepField({
       <View style={styles.group}>
         {(() => {
           const field = "name";
-          const isValid = validate.user.name(form[field]);
+          const isValid = validate.user.name(form[field as keyof typeof form]);
 
           return (
             <View key={field} style={styles.inputGroup}>
@@ -120,12 +120,12 @@ export default function SignupStepField({
                     borderColor: colors.borderTextInput,
                     backgroundColor: colors.backgroundTextInput,
                   },
-                  inputBorder(isValid, form[field]),
+                  inputBorder(isValid, form[field as keyof typeof form]),
                 ]}
               >
                 <TextInput
                   style={[styles.textInput, { color: colors.text }]}
-                  value={form[field]}
+                  value={form[field as keyof typeof form]}
                   placeholder="Display Name"
                   placeholderTextColor={colors.placeholderTextInput}
                   onChangeText={(v) => onChangeField(field, v)}
@@ -146,6 +146,85 @@ export default function SignupStepField({
   }
 
   if (currentStep === 1) {
+    const showAvailability = form.handle.trim() && validate.handle(form.handle);
+    return (
+      <View style={styles.group}>
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.subtitle }]}>Username</Text>
+          <View
+            style={[
+              styles.inputContainer,
+              {
+                borderColor: colors.borderTextInput,
+                backgroundColor: colors.backgroundTextInput,
+              },
+              handleError
+                ? {
+                    borderColor: colors.errorBorder,
+                    backgroundColor: colors.errorBackground,
+                  }
+                : handleAvailable === true && form.handle
+                  ? {
+                      borderColor: colors.successBorder,
+                      backgroundColor: colors.successBackground,
+                    }
+                  : {},
+            ]}
+          >
+            <TextInput
+              style={[styles.textInput, { color: colors.text }]}
+              value={form.handle}
+              placeholder="Username"
+              placeholderTextColor={colors.placeholderTextInput}
+              onChangeText={(v) => onChangeField("handle", v)}
+              autoCapitalize="none"
+            />
+            {isLoading && (
+              <ActivityIndicator
+                size="small"
+                color={colors.iconLoading}
+                style={{ marginRight: 10 }}
+              />
+            )}
+          </View>
+          <View style={styles.requirements}>
+            {HANDLE_REQUIREMENTS.map((r) => (
+              <RequirementRow
+                key={r.label}
+                label={r.label}
+                met={r.check(form.handle)}
+              />
+            ))}
+            {!!showAvailability && (
+              <View style={styles.reqItem}>
+                <Text
+                  style={[
+                    styles.reqIcon,
+                    isLoading
+                      ? { color: colors.signupReqGray }
+                      : handleAvailable
+                        ? styles.reqGreen
+                        : styles.reqRed,
+                  ]}
+                >
+                  {isLoading ? "⟳" : handleAvailable ? "✓" : "✗"}
+                </Text>
+                <Text style={[styles.reqText, { color: colors.subtitle }]}>
+                  {isLoading
+                    ? "Checking..."
+                    : handleAvailable
+                      ? "Available"
+                      : "Already in use"}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  if (currentStep === 2) {
     const valid = validate.user.password(form.password);
     const passwordsMatch =
       form.confirmPassword.length > 0 && form.password === form.confirmPassword;
@@ -247,162 +326,85 @@ export default function SignupStepField({
     );
   }
 
-  if (currentStep === 2) {
-    const showAvailability = form.handle.trim() && validate.handle(form.handle);
-    return (
-      <View style={styles.inputGroup}>
-        <Text style={[styles.label, { color: colors.subtitle }]}>Username</Text>
-        <View
-          style={[
-            styles.inputContainer,
-            {
-              borderColor: colors.borderTextInput,
-              backgroundColor: colors.backgroundTextInput,
-            },
-            handleError
-              ? {
-                  borderColor: colors.errorBorder,
-                  backgroundColor: colors.errorBackground,
-                }
-              : handleAvailable === true && form.handle
-                ? {
-                    borderColor: colors.successBorder,
-                    backgroundColor: colors.successBackground,
-                  }
-                : {},
-          ]}
-        >
-          <TextInput
-            style={[styles.textInput, { color: colors.text }]}
-            value={form.handle}
-            placeholder="Username"
-            placeholderTextColor={colors.placeholderTextInput}
-            onChangeText={(v) => onChangeField("handle", v)}
-            autoCapitalize="none"
-          />
-          {isLoading && (
-            <ActivityIndicator
-              size="small"
-              color={colors.iconLoading}
-              style={{ marginRight: 10 }}
-            />
-          )}
-        </View>
-        <View style={styles.requirements}>
-          {HANDLE_REQUIREMENTS.map((r) => (
-            <RequirementRow
-              key={r.label}
-              label={r.label}
-              met={r.check(form.handle)}
-            />
-          ))}
-          {!!showAvailability && (
-            <View style={styles.reqItem}>
-              <Text
-                style={[
-                  styles.reqIcon,
-                  isLoading
-                    ? { color: colors.signupReqGray }
-                    : handleAvailable
-                      ? styles.reqGreen
-                      : styles.reqRed,
-                ]}
-              >
-                {isLoading ? "⟳" : handleAvailable ? "✓" : "✗"}
-              </Text>
-              <Text style={[styles.reqText, { color: colors.subtitle }]}>
-                {isLoading
-                  ? "Checking..."
-                  : handleAvailable
-                    ? "Available"
-                    : "Already in use"}
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
-    );
-  }
-
   return null;
 }
 
 const createStyles = (colors: any) => {
   return StyleSheet.create({
-  group: {
-    width: "100%",
-    alignItems: "center",
-  },
-  inputGroup: {
-    marginBottom: 16,
-    width: "100%",
-    maxWidth: 300,
-  },
-  label: {
-    fontSize: 14,
-    marginBottom: 8,
-    fontWeight: "500",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 25,
-    borderWidth: 1.5,
-    minHeight: 45,
-    overflow: "hidden",
-  },
-  textInput: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    outlineStyle: "none" as any,
-  },
-  eyeButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  requirements: {
-    marginTop: 4,
-    width: "100%",
-    maxWidth: 300,
-  },
-  reqItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  reqIcon: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginRight: 8,
-  },
-  reqGreen: {
-    color: "#22c55e",
-  },
-  reqRed: {
-    color: "#ef4444",
-  },
-  reqText: {
-    fontSize: 12,
-  },
-  opaqueLink: {
-    marginBottom: 20,
-    marginTop: 5,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  opaqueLinkText: {
-    fontSize: 11,
-    color: colors.subtitle2,
-  },
-  opaqueLinkTextBold: {
-    color: colors.title,
-    fontWeight: "600",
-    fontSize: 11,
-  },
-});
-}
+    group: {
+      width: "100%",
+      alignItems: "center",
+    },
+    inputGroup: {
+      marginBottom: 16,
+      width: "100%",
+      maxWidth: 300,
+    },
+    label: {
+      fontSize: 14,
+      marginBottom: 8,
+      fontWeight: "500",
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderRadius: 25,
+      borderWidth: 1.5,
+      minHeight: 45,
+      overflow: "hidden",
+    },
+    textInput: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      fontSize: 16,
+      outlineStyle: "none" as any,
+    },
+    eyeButton: {
+      width: 40,
+      height: 40,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    requirements: {
+      marginTop: 4,
+      width: "100%",
+      maxWidth: 300,
+    },
+    reqItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 4,
+    },
+    reqIcon: {
+      fontSize: 12,
+      fontWeight: "bold",
+      marginRight: 8,
+    },
+    reqGreen: {
+      color: "#22c55e",
+    },
+    reqRed: {
+      color: "#ef4444",
+    },
+    reqText: {
+      fontSize: 12,
+    },
+    opaqueLink: {
+      marginBottom: 20,
+      marginTop: 5,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    opaqueLinkText: {
+      fontSize: 11,
+      color: colors.subtitle2,
+    },
+    opaqueLinkTextBold: {
+      color: colors.title,
+      fontWeight: "600",
+      fontSize: 11,
+    },
+  });
+};

@@ -13,9 +13,8 @@ VALUES
 
 CREATE TABLE IF NOT EXISTS user (
     uuid TEXT PRIMARY KEY,
-    email TEXT,
     name TEXT NOT NULL,
-    surname TEXT NOT NULL,
+    surname TEXT,
     profilePictureUUID TEXT,
     description TEXT,
     birthday DATE,
