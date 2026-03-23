@@ -159,6 +159,14 @@ const logout = async () => {
 
   await database.clear();
   await AsyncStorage.clear();
+
+  if (Platform.OS !== "web") {
+    try {
+      await SecureStore.deleteItemAsync("sessionId");
+    } catch (error) {
+      console.error("Error clearing mobile session:", error);
+    }
+  }
 };
 
 const updateDatabase = async () => {

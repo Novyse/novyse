@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   TouchableOpacity,
@@ -28,6 +28,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   });
 
   const numTabs = visibleRoutes.length;
+  const [isLayoutReady, setIsLayoutReady] = useState(false);
   const translateX = useSharedValue(0);
   const containerWidth = useSharedValue(0);
 
@@ -64,6 +65,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
 
   const onLayout = (event: LayoutChangeEvent) => {
     containerWidth.value = event.nativeEvent.layout.width;
+    if (!isLayoutReady) setIsLayoutReady(true);
   };
 
   return (
@@ -74,7 +76,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
         style={styles.blurredContainer}
         onLayout={onLayout}
       >
-        {numTabs > 0 && containerWidth.value > 0 && (
+        {numTabs > 0 && isLayoutReady && (
           <Animated.View style={[styles.indicator, animatedStyle]} />
         )}
 
