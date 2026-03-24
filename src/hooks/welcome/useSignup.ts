@@ -17,7 +17,7 @@ export const useSignup = () => {
 
   //true showPassword means password hidden by default
   const [showPassword, setShowPassword] = useState(true);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(new Set<number>());
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
