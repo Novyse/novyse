@@ -15,7 +15,8 @@ export const useSignup = () => {
     handle: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
+  //true showPassword means password hidden by default
+  const [showPassword, setShowPassword] = useState(true);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(new Set<number>());
