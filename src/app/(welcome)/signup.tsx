@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -24,7 +24,7 @@ import SignupStepField from "@/src/components/welcome/signup/SignupStepField";
 import SignupCheckboxes from "@/src/components/welcome/signup/SignupCheckboxes";
 import TurnstileCaptcha from "@/src/components/auth/TurnstileCaptcha";
 
-import logoNovyse from "@/assets/images/logo-novyse.png";
+// import logoNovyse from "@/assets/images/logo-novyse.png";
 
 const STEPS = [{ id: 1 }, { id: 2 }, { id: 3 }];
 
@@ -63,6 +63,10 @@ export default function Signup() {
     setCaptchaToken,
   } = useSignup();
 
+  const [signupMode, setSignupMode] = useState<"password" | "passkey">(
+    "password",
+  );
+
   const isLastStep = currentStep === STEPS.length - 1;
 
   return (
@@ -75,7 +79,7 @@ export default function Signup() {
       <View style={styles.card}>
         <KeyboardAvoidingView behavior="position">
           <ScrollView contentContainerStyle={styles.cardContent}>
-            <Image style={styles.logo} source={logoNovyse} />
+            {/* <Image style={styles.logo} source={logoNovyse} /> */}
             <Text style={styles.title}>Sign Up</Text>
 
             <SignupTimeline
@@ -97,6 +101,8 @@ export default function Signup() {
               >
                 <SignupStepField
                   currentStep={currentStep}
+                  signupMode={signupMode}
+                  onSignupModeChange={setSignupMode}
                   form={form}
                   showPassword={showPassword}
                   showConfirmPassword={showConfirmPassword}
@@ -110,55 +116,6 @@ export default function Signup() {
                   }
                   loginTheme={LOGIN_THEME}
                 />
-                {currentStep === 2 && (
-                  <View style={styles.passkeyWrapper}>
-                    <View style={styles.divider}>
-                      <View
-                        style={[
-                          styles.line,
-                          {
-                            backgroundColor:
-                              LoginColors[LOGIN_THEME].backgroundLineDivider,
-                          },
-                        ]}
-                      />
-                      <Text
-                        style={[
-                          styles.dividerText,
-                          { color: LoginColors[LOGIN_THEME].subtitle2 },
-                        ]}
-                      >
-                        OR
-                      </Text>
-                      <View
-                        style={[
-                          styles.line,
-                          {
-                            backgroundColor:
-                              LoginColors[LOGIN_THEME].backgroundLineDivider,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <WelcomeButton
-                      disabled={!isPasskeyValid || isLoading}
-                      onPress={handlePasskeySignup}
-                      type="submit"
-                    >
-                      <View style={styles.passkeyButtonContent}>
-                        <Icon
-                          name="FingerPrintIcon"
-                          color={LoginColors[LOGIN_THEME].icon}
-                          size={20}
-                        />
-                        <WelcomeButtonText
-                          type="submit"
-                          label="Sign up with Passkey"
-                        />
-                      </View>
-                    </WelcomeButton>
-                  </View>
-                )}
                 {isLastStep && (
                   <>
                     <TurnstileCaptcha onVerify={setCaptchaToken} />
@@ -166,7 +123,9 @@ export default function Signup() {
                       privacyAccepted={privacyAccepted}
                       tosAccepted={privacyAccepted}
                       ageConfirmed={ageConfirmed}
-                      onTogglePrivacyTos={() => setPrivacyAccepted((p: boolean) => !p)}
+                      onTogglePrivacyTos={() =>
+                        setPrivacyAccepted((p: boolean) => !p)
+                      }
                       onToggleAge={() => setAgeConfirmed((p: boolean) => !p)}
                       loginTheme={LOGIN_THEME}
                     />
@@ -188,29 +147,54 @@ export default function Signup() {
                   </WelcomeButton>
                 </View>
                 <View style={styles.buttonWrapper}>
-                  <WelcomeButton
-                    disabled={
-                      (isLastStep && !isFormValid) ||
-                      (!isLastStep && isLoading) ||
-                      (!isLastStep && currentStep === 1 && !validateStep(1))
-                    }
-                    onPress={handleNext}
-                    type="submit"
-                  >
-                    {isLoading && isLastStep ? (
-                      <ActivityIndicator
-                        size="small"
-                        color={LoginColors[LOGIN_THEME].iconLoading}
-                      />
-                    ) : isLastStep ? (
-                      <WelcomeButtonText type="submit" label="Sign up" />
-                    ) : (
-                      <Icon
-                        name="ArrowRight02Icon"
-                        color={LoginColors[LOGIN_THEME].icon}
-                      />
-                    )}
-                  </WelcomeButton>
+                  {currentStep === 2 && signupMode === "passkey" ? (
+                    // In passkey mode at step 2, the main CTA becomes "Sign up with Passkey"
+                    <WelcomeButton
+                      disabled={!isPasskeyValid || isLoading}
+                      onPress={handlePasskeySignup}
+                      type="submit"
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator
+                          size="small"
+                          color={LoginColors[LOGIN_THEME].iconLoading}
+                        />
+                      ) : (
+                        <View style={styles.passkeyButtonContent}>
+                          <Icon
+                            name="FingerPrintIcon"
+                            color={LoginColors[LOGIN_THEME].icon}
+                            size={20}
+                          />
+                          <WelcomeButtonText type="submit" label="Sign up" />
+                        </View>
+                      )}
+                    </WelcomeButton>
+                  ) : (
+                    <WelcomeButton
+                      disabled={
+                        (isLastStep && !isFormValid) ||
+                        (!isLastStep && isLoading) ||
+                        (!isLastStep && currentStep === 1 && !validateStep(1))
+                      }
+                      onPress={handleNext}
+                      type="submit"
+                    >
+                      {isLoading && isLastStep ? (
+                        <ActivityIndicator
+                          size="small"
+                          color={LoginColors[LOGIN_THEME].iconLoading}
+                        />
+                      ) : isLastStep ? (
+                        <WelcomeButtonText type="submit" label="Sign up" />
+                      ) : (
+                        <Icon
+                          name="ArrowRight02Icon"
+                          color={LoginColors[LOGIN_THEME].icon}
+                        />
+                      )}
+                    </WelcomeButton>
+                  )}
                 </View>
               </View>
 
@@ -250,7 +234,6 @@ function createStyle(isSmallScreen: boolean) {
     cardContent: {
       width: "100%",
       alignItems: "center",
-      paddingVertical: 32,
     },
     logo: { height: 150, width: 150, marginBottom: 20 },
     title: {
@@ -277,37 +260,11 @@ function createStyle(isSmallScreen: boolean) {
       flex: 1,
       marginHorizontal: 4,
     },
-    passkeyWrapper: {
-      width: "100%",
-      maxWidth: 300,
-      alignItems: "center",
-      marginTop: 10,
-    },
-    passkeyContainer: {
-      width: "100%",
-      marginTop: 16,
-    },
     passkeyButtonContent: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       gap: 8,
-    },
-    divider: {
-      flexDirection: "row",
-      alignItems: "center",
-      width: "100%",
-      marginVertical: 15,
-    },
-    line: {
-      flex: 1,
-      height: 1,
-      opacity: 0.3,
-    },
-    dividerText: {
-      marginHorizontal: 10,
-      fontSize: 12,
-      fontWeight: "700",
     },
   });
 }

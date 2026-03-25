@@ -8,7 +8,8 @@ import {
 import { LoginColors } from "@/constants/LoginColors";
 import { validate } from "@/src/utils/welcome/validator";
 import Icon from "@/src/components/Icon";
-import TextLink from "../../TextLink";
+import TextLink from "@/src/components/TextLink";
+import ToggleSelector from "@/src/components/ToggleSelector";
 
 const PASSWORD_REQUIREMENTS = [
   { label: "At least 8 characters", check: (p: string) => p.length >= 8 },
@@ -41,8 +42,15 @@ const HANDLE_REQUIREMENTS = [
   { label: "No consecutive underscores", check: (h: string) => !/__/.test(h) },
 ];
 
+const SIGNUP_MODE_OPTIONS: ToggleOption<"password" | "passkey">[] = [
+  { value: "password", label: "Password" },
+  { value: "passkey", label: "Passkey" },
+];
+
 interface Props {
   currentStep: number;
+  signupMode?: "password" | "passkey";
+  onSignupModeChange?: (mode: "password" | "passkey") => void;
   form: {
     name: string;
     password: string;
@@ -62,6 +70,8 @@ interface Props {
 
 export default function SignupStepField({
   currentStep,
+  signupMode = "password",
+  onSignupModeChange,
   form,
   showPassword,
   showConfirmPassword,
@@ -82,7 +92,11 @@ export default function SignupStepField({
         style={[styles.reqIcon, met ? styles.reqGreen : styles.reqRed]}
         selectable={false}
       >
-        {met ? "✓" : "✗"}
+        {met ? (
+          <Icon name="Tick01Icon" color={colors.signupReqGreen} size={16} />
+        ) : (
+          <Icon name="Cancel01Icon" color={colors.signupReqRed} size={16} />
+        )}
       </Text>
       <Text style={[styles.reqText, { color: colors.subtitle }]}>{label}</Text>
     </View>
@@ -102,39 +116,34 @@ export default function SignupStepField({
   };
 
   if (currentStep === 0) {
+    const field = "name";
+    const isValid = validate.user.name(form[field as keyof typeof form]);
     return (
       <View style={styles.group}>
-        {(() => {
-          const field = "name";
-          const isValid = validate.user.name(form[field as keyof typeof form]);
-
-          return (
-            <View key={field} style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.subtitle }]}>
-                Display Name
-              </Text>
-              <View
-                style={[
-                  styles.inputContainer,
-                  {
-                    borderColor: colors.borderTextInput,
-                    backgroundColor: colors.backgroundTextInput,
-                  },
-                  inputBorder(isValid, form[field as keyof typeof form]),
-                ]}
-              >
-                <TextInput
-                  style={[styles.textInput, { color: colors.text }]}
-                  value={form[field as keyof typeof form]}
-                  placeholder="Display Name"
-                  placeholderTextColor={colors.placeholderTextInput}
-                  onChangeText={(v) => onChangeField(field, v)}
-                  autoCapitalize="sentences"
-                />
-              </View>
-            </View>
-          );
-        })()}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.subtitle }]}>
+            Display Name
+          </Text>
+          <View
+            style={[
+              styles.inputContainer,
+              {
+                borderColor: colors.borderTextInput,
+                backgroundColor: colors.backgroundTextInput,
+              },
+              inputBorder(isValid, form[field as keyof typeof form]),
+            ]}
+          >
+            <TextInput
+              style={[styles.textInput, { color: colors.text }]}
+              value={form[field as keyof typeof form]}
+              placeholder="Display Name"
+              placeholderTextColor={colors.placeholderTextInput}
+              onChangeText={(v) => onChangeField(field, v)}
+              autoCapitalize="sentences"
+            />
+          </View>
+        </View>
         <View style={styles.requirements}>
           <RequirementRow
             label="Name: only letters and spaces"
@@ -150,7 +159,9 @@ export default function SignupStepField({
     return (
       <View style={styles.group}>
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.subtitle }]}>Username</Text>
+          <Text style={[styles.label, { color: colors.subtitle }]}>
+            Username
+          </Text>
           <View
             style={[
               styles.inputContainer,
@@ -207,7 +218,25 @@ export default function SignupStepField({
                         : styles.reqRed,
                   ]}
                 >
-                  {isLoading ? "⟳" : handleAvailable ? "✓" : "✗"}
+                  {isLoading ? (
+                    <Icon
+                      name="MoreHorizontalIcon"
+                      color={colors.signupReqGray}
+                      size={16}
+                    />
+                  ) : handleAvailable ? (
+                    <Icon
+                      name="Tick01Icon"
+                      color={colors.signupReqGreen}
+                      size={16}
+                    />
+                  ) : (
+                    <Icon
+                      name="Cancel01Icon"
+                      color={colors.signupReqRed}
+                      size={16}
+                    />
+                  )}
                 </Text>
                 <Text style={[styles.reqText, { color: colors.subtitle }]}>
                   {isLoading
@@ -233,86 +262,95 @@ export default function SignupStepField({
 
     return (
       <View style={styles.group}>
-        <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.subtitle }]}>
-            Password
-          </Text>
-          <View
-            style={[
-              styles.inputContainer,
-              {
-                borderColor: colors.borderTextInput,
-                backgroundColor: colors.backgroundTextInput,
-              },
-              inputBorder(valid, form.password),
-            ]}
-          >
-            <TextInput
-              style={[styles.textInput, { color: colors.text }]}
-              value={form.password}
-              placeholder="Password"
-              placeholderTextColor={colors.placeholderTextInput}
-              secureTextEntry={showPassword}
-              onChangeText={(v) => onChangeField("password", v)}
-              autoCapitalize="none"
-            />
-            <Icon
-              name={showPassword ? "ViewIcon" : "ViewOffIcon"}
-              color={colors.iconShowHideField}
-              style={styles.eyeButton}
-              onPress={onTogglePassword}
-            />
-          </View>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.subtitle }]}>
-            Confirm Password
-          </Text>
-          <View
-            style={[
-              styles.inputContainer,
-              {
-                borderColor: colors.borderTextInput,
-                backgroundColor: colors.backgroundTextInput,
-              },
-              inputBorder(
-                passwordsMatch ? true : confirmMismatch ? false : null,
-                form.confirmPassword,
-              ),
-            ]}
-          >
-            <TextInput
-              style={[styles.textInput, { color: colors.text }]}
-              value={form.confirmPassword}
-              placeholder="Confirm Password"
-              placeholderTextColor={colors.placeholderTextInput}
-              secureTextEntry={showConfirmPassword}
-              onChangeText={(v) => onChangeField("confirmPassword", v)}
-              autoCapitalize="none"
-            />
-            <Icon
-              name={showConfirmPassword ? "ViewIcon" : "ViewOffIcon"}
-              color={colors.iconShowHideField}
-              style={styles.eyeButton}
-              onPress={onToggleConfirmPassword}
-            />
-          </View>
-          {/* OPAQUE link */}
-          <View style={styles.opaqueLink}>
-            <Text style={styles.opaqueLinkText}>
-              Secured by{" "}
-              <TextLink
-                style={styles.opaqueLinkTextBold}
-                href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
+        {onSignupModeChange && (
+          <ToggleSelector
+            options={SIGNUP_MODE_OPTIONS}
+            value={signupMode}
+            onChange={onSignupModeChange}
+            disabled={isLoading}
+          />
+        )}
+        {signupMode === "password" && (
+          <>
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: colors.subtitle }]}>
+                Password
+              </Text>
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: colors.borderTextInput,
+                    backgroundColor: colors.backgroundTextInput,
+                  },
+                  inputBorder(valid, form.password),
+                ]}
               >
-                OPAQUE
-              </TextLink>
-            </Text>
-          </View>
-        </View>
+                <TextInput
+                  style={[styles.textInput, { color: colors.text }]}
+                  value={form.password}
+                  placeholder="Password"
+                  placeholderTextColor={colors.placeholderTextInput}
+                  secureTextEntry={showPassword}
+                  onChangeText={(v) => onChangeField("password", v)}
+                  autoCapitalize="none"
+                />
+                <Icon
+                  name={showPassword ? "ViewIcon" : "ViewOffIcon"}
+                  color={colors.iconShowHideField}
+                  style={styles.eyeButton}
+                  onPress={onTogglePassword}
+                />
+              </View>
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: colors.subtitle }]}>
+                Confirm Password
+              </Text>
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: colors.borderTextInput,
+                    backgroundColor: colors.backgroundTextInput,
+                  },
+                  inputBorder(
+                    passwordsMatch ? true : confirmMismatch ? false : null,
+                    form.confirmPassword,
+                  ),
+                ]}
+              >
+                <TextInput
+                  style={[styles.textInput, { color: colors.text }]}
+                  value={form.confirmPassword}
+                  placeholder="Confirm Password"
+                  placeholderTextColor={colors.placeholderTextInput}
+                  secureTextEntry={showConfirmPassword}
+                  onChangeText={(v) => onChangeField("confirmPassword", v)}
+                  autoCapitalize="none"
+                />
+                <Icon
+                  name={showConfirmPassword ? "ViewIcon" : "ViewOffIcon"}
+                  color={colors.iconShowHideField}
+                  style={styles.eyeButton}
+                  onPress={onToggleConfirmPassword}
+                />
+              </View>
+              {/* OPAQUE link */}
+              <View style={styles.opaqueLink}>
+                <Text style={styles.opaqueLinkText}>
+                  Secured by{" "}
+                  <TextLink
+                    style={styles.opaqueLinkTextBold}
+                    href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
+                  >
+                    OPAQUE
+                  </TextLink>
+                </Text>
+              </View>
+            </View>
 
-        <View style={styles.requirements}>
+            {/* <View style={styles.requirements}>
           {PASSWORD_REQUIREMENTS.map((r) => (
             <RequirementRow
               key={r.label}
@@ -321,12 +359,12 @@ export default function SignupStepField({
             />
           ))}
           <RequirementRow label="Passwords match" met={passwordsMatch} />
-        </View>
+          </View> */}
+          </>
+        )}
       </View>
     );
   }
-
-  return null;
 }
 
 const createStyles = (colors: any) => {
@@ -379,7 +417,6 @@ const createStyles = (colors: any) => {
     reqIcon: {
       fontSize: 12,
       fontWeight: "bold",
-      marginRight: 8,
     },
     reqGreen: {
       color: "#22c55e",
@@ -397,14 +434,26 @@ const createStyles = (colors: any) => {
       justifyContent: "center",
       alignItems: "center",
     },
-    opaqueLinkText: {
-      fontSize: 11,
-      color: colors.subtitle2,
-    },
+    opaqueLinkText: { fontSize: 11, color: colors.subtitle2 },
     opaqueLinkTextBold: {
       color: colors.title,
       fontWeight: "600",
       fontSize: 11,
+    },
+    passkeyContent: {
+      width: "100%",
+      maxWidth: 300,
+      alignItems: "center",
+      paddingVertical: 16,
+      gap: 12,
+    },
+    passkeyIcon: { marginBottom: 4, opacity: 0.6 },
+    passkeyTitle: { fontSize: 18, fontWeight: "600", textAlign: "center" },
+    passkeyDescription: {
+      fontSize: 14,
+      textAlign: "center",
+      lineHeight: 20,
+      paddingHorizontal: 8,
     },
   });
 };

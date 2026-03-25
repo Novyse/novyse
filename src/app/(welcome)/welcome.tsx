@@ -16,7 +16,7 @@ import auth from "@/src/utils/welcome/auth";
 import useQRCode from "@/src/hooks/auth/useQRCode";
 import { LoginTheme } from "@/constants/LoginColors";
 
-import logoForQR from "@/assets/images/logo-novyse.png";
+
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
 const Welcome = () => {
@@ -98,7 +98,7 @@ const Welcome = () => {
                 {qrToken ? (
                   <QRCode
                     value={qrToken}
-                    logo={logoForQR}
+                    logo={logoNovyse}
                     size={styles.qrcodeContainer.width}
                     enableLinearGradient={true}
                     linearGradient={

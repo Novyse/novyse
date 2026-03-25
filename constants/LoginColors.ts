@@ -117,7 +117,7 @@ export const LoginColors: Record<
 
     // Timeline & Signup
     timelineNumber: "#fff",
-    signupReqGreen: "green",
+    signupReqGreen: "#27942f",
     signupReqRed: "red",
     signupReqGray: "gray",
   },

@@ -12,7 +12,7 @@ import OtpDigitsInput from "@/src/components/OtpDigitsInput";
 import StatusMessage from "@/src/components/StatusMessage";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
-import logoNovyse from "@/assets/images/logo-novyse.png";
+// import logoNovyse from "@/assets/images/logo-novyse.png";
 
 type VerificationType = "email" | "email_verification" | "authenticator";
 
@@ -107,7 +107,7 @@ const Verify: React.FC = () => {
     >
       <View style={styles.card}>
         <View style={styles.cardContent}>
-          <Image style={styles.logo} source={logoNovyse} />
+          {/* <Image style={styles.logo} source={logoNovyse} /> */}
 
           <Text style={styles.title}>{getFormattedVerificationType()}</Text>
           <Text style={styles.subtitle}>
