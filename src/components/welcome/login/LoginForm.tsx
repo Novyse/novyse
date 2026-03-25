@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Platform,
   Image,
-  TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
@@ -21,6 +20,7 @@ import { router } from "expo-router";
 import logoNovyse from "@/assets/images/logo-novyse.png";
 import TextLink from "../../TextLink";
 import TurnstileCaptcha from "../../auth/TurnstileCaptcha";
+import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
 
 interface LoginFormProps {
   onLogin: (username: string, password: string, captchaToken: string) => void;
@@ -33,6 +33,11 @@ interface LoginFormProps {
   urlSignedup?: boolean;
   urlType?: "opaque" | "passkey";
 }
+
+const LOGIN_MODE_OPTIONS: ToggleOption<"password" | "passkey">[] = [
+  { value: "password", label: "Password" },
+  { value: "passkey", label: "Passkey" },
+];
 
 const LoginForm = ({
   onLogin,
@@ -74,45 +79,17 @@ const LoginForm = ({
 
       <View style={styles.card}>
         <View style={styles.cardContent}>
-          <Image style={styles.logo} source={logoNovyse} />
+          {/* <Image style={styles.logo} source={logoNovyse} /> */}
           <Text style={styles.title}>Login</Text>
           <Text style={styles.subtitle}>Enter your credentials to login</Text>
 
           {/* Mode Toggle */}
-          <View style={styles.toggleContainer}>
-            <TouchableOpacity
-              style={[
-                styles.toggleButton,
-                loginMode === "password" && styles.toggleButtonActive,
-              ]}
-              onPress={() => setLoginMode("password")}
-            >
-              <Text
-                style={[
-                  styles.toggleText,
-                  loginMode === "password" && styles.toggleTextActive,
-                ]}
-              >
-                Password
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.toggleButton,
-                loginMode === "passkey" && styles.toggleButtonActive,
-              ]}
-              onPress={() => setLoginMode("passkey")}
-            >
-              <Text
-                style={[
-                  styles.toggleText,
-                  loginMode === "passkey" && styles.toggleTextActive,
-                ]}
-              >
-                Passkey
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <ToggleSelector
+            options={LOGIN_MODE_OPTIONS}
+            value={loginMode}
+            onChange={setLoginMode}
+            disabled={isLoading}
+          />
 
           {loginMode === "password" ? (
             <>
@@ -329,37 +306,6 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       marginBottom: 32,
       lineHeight: 20,
       paddingHorizontal: 20,
-    },
-    toggleContainer: {
-      flexDirection: "row",
-      backgroundColor: "rgba(0, 0, 0, 0.05)",
-      borderRadius: 15,
-      padding: 4,
-      marginBottom: 24,
-      width: "100%",
-      maxWidth: 300,
-    },
-    toggleButton: {
-      flex: 1,
-      paddingVertical: 8,
-      alignItems: "center",
-      borderRadius: 12,
-    },
-    toggleButtonActive: {
-      backgroundColor: LoginColors[loginTheme].backgroundIcon,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    toggleText: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: LoginColors[loginTheme].subtitle2,
-    },
-    toggleTextActive: {
-      color: "#fff",
     },
     textInput: {
       paddingVertical: 10,
