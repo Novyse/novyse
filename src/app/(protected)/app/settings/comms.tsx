@@ -5,8 +5,7 @@ import { router } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 
-import SegmentedSelector from "@/src/components/settings/comms/SegmentedSelector";
-import ThresholdSlider from "@/src/components/settings/comms/ThresholdSlider";
+import ToggleSelector from "@/src/components/ToggleSelector";
 import InputDeviceDropdown from "@/src/components/settings/comms/InputDeviceDropdown";
 import settingsManager from "@/src/utils/global/SettingsManager";
 
@@ -23,7 +22,6 @@ export default function CommsRoute() {
   const [devicesLoading, setDevicesLoading] = useState(true);
   const styles = createStyle(theme);
 
-  // Carica le impostazioni al mount del componente
   useEffect(() => {
     loadSettings();
     loadDevices();
@@ -49,7 +47,6 @@ export default function CommsRoute() {
         value,
       );
       if (success) {
-        // Aggiorna lo stato locale immediatamente per UI reattiva
         setAudioSettings((prev: any) => ({
           ...prev,
           [key]: value,
@@ -57,7 +54,6 @@ export default function CommsRoute() {
       }
     } catch (error) {
       console.error("Error updating setting:", error);
-      // In caso di errore, ricarica le impostazioni
       await loadSettings();
     }
   };
@@ -65,7 +61,6 @@ export default function CommsRoute() {
   const loadDevices = async () => {
     try {
       setDevicesLoading(true);
-      // Placeholder for device loading logic
       return;
     } catch (error) {
       console.error("Error loading devices:", error);
@@ -92,18 +87,18 @@ export default function CommsRoute() {
   ];
 
   const qualityOptions = [
-    { label: "HD (720p)", value: "HD" },
-    { label: "Full HD (1080p)", value: "FULL_HD" },
-    { label: "2K (1440p)", value: "2K" },
-    { label: "4K (2160p)", value: "4K" },
+    { label: "HD", value: "HD" },
+    { label: "Full HD", value: "FULL_HD" },
+    { label: "2K", value: "2K" },
+    { label: "4K", value: "4K" },
   ];
 
   const fpsOptions = [
-    { label: "15 FPS", value: 15 },
-    { label: "24 FPS", value: 24 },
-    { label: "30 FPS", value: 30 },
-    { label: "60 FPS", value: 60 },
-    { label: "120 FPS", value: 120 },
+    { label: "15", value: "15" },
+    { label: "24", value: "24" },
+    { label: "30", value: "30" },
+    { label: "60", value: "60" },
+    { label: "120", value: "120" },
   ];
 
   const audioOptions = [
@@ -112,28 +107,36 @@ export default function CommsRoute() {
   ];
 
   const noiseSuppressionOptions = [
-    { label: "Disabled", value: "OFF" },
+    { label: "Off", value: "OFF" },
     { label: "Low", value: "LOW" },
     { label: "Medium", value: "MEDIUM" },
     { label: "High", value: "HIGH" },
   ];
 
   const expanderOptions = [
-    { label: "Disabled", value: "OFF" },
+    { label: "Off", value: "OFF" },
     { label: "Low", value: "LOW" },
     { label: "Medium", value: "MEDIUM" },
     { label: "High", value: "HIGH" },
   ];
 
   const noiseGateOptions = [
-    { label: "Disabled", value: "OFF" },
+    { label: "Off", value: "OFF" },
     { label: "Adaptive", value: "ADAPTIVE" },
     { label: "Hybrid", value: "HYBRID" },
     { label: "Manual", value: "MANUAL" },
   ];
 
+  // Threshold expressed as string options (dB steps)
+  const noiseGateThresholdOptions = [
+    { label: "-60 dB", value: "-60" },
+    { label: "-40 dB", value: "-40" },
+    { label: "-20 dB", value: "-20" },
+    { label: "0 dB", value: "0" },
+  ];
+
   const typingAttenuationOptions = [
-    { label: "Disabled", value: "OFF" },
+    { label: "Off", value: "OFF" },
     { label: "Low", value: "LOW" },
     { label: "Medium", value: "MEDIUM" },
     { label: "High", value: "HIGH" },
@@ -224,114 +227,101 @@ export default function CommsRoute() {
               />
             </>
           )}
-          <SegmentedSelector
-            label="Entry Mode"
-            value={audioSettings.entryMode || "AUDIO_ONLY"}
+
+          <Text style={styles.fieldLabel}>Entry Mode</Text>
+          <ToggleSelector
             options={entryModeOptions}
-            onValueChange={(value) => updateSetting("entryMode", value)}
-            theme={theme}
+            value={audioSettings.entryMode || "AUDIO_ONLY"}
+            onChange={(value) => updateSetting("entryMode", value)}
           />
         </SettingsCard>
 
         <SettingsCard>
           <Text style={styles.sectionTitle}>Video Settings</Text>
-          <SegmentedSelector
-            label="Webcam Quality"
-            value={audioSettings.webcamQuality || "HD"}
+          <Text style={styles.fieldLabel}>Webcam Quality</Text>
+          <ToggleSelector
             options={qualityOptions}
-            onValueChange={(value) => updateSetting("webcamQuality", value)}
-            theme={theme}
+            value={audioSettings.webcamQuality || "HD"}
+            onChange={(value) => updateSetting("webcamQuality", value)}
           />
-          <SegmentedSelector
-            label="Webcam FPS"
-            value={audioSettings.webcamFPS || 30}
+          <Text style={styles.fieldLabel}>Webcam FPS</Text>
+          <ToggleSelector
             options={fpsOptions}
-            onValueChange={(value) => updateSetting("webcamFPS", value)}
-            theme={theme}
+            value={String(audioSettings.webcamFPS || 30)}
+            onChange={(value) => updateSetting("webcamFPS", Number(value))}
           />
         </SettingsCard>
 
         <SettingsCard>
           <Text style={styles.sectionTitle}>Screen Share Settings</Text>
-          <SegmentedSelector
-            label="Screen Share Quality"
-            value={audioSettings.screenShareQuality || "HD"}
+          <Text style={styles.fieldLabel}>Screen Share Quality</Text>
+          <ToggleSelector
             options={qualityOptions}
-            onValueChange={(value) =>
-              updateSetting("screenShareQuality", value)
-            }
-            theme={theme}
+            value={audioSettings.screenShareQuality || "HD"}
+            onChange={(value) => updateSetting("screenShareQuality", value)}
           />
-          <SegmentedSelector
-            label="Screen Share FPS"
-            value={audioSettings.screenShareFPS || 30}
+          <Text style={styles.fieldLabel}>Screen Share FPS</Text>
+          <ToggleSelector
             options={fpsOptions}
-            onValueChange={(value) => updateSetting("screenShareFPS", value)}
-            theme={theme}
+            value={String(audioSettings.screenShareFPS || 30)}
+            onChange={(value) => updateSetting("screenShareFPS", Number(value))}
           />
-          <SegmentedSelector
-            label="Screen Share Audio"
-            value={audioSettings.screenShareAudio ? "ON" : "OFF"}
+          <Text style={styles.fieldLabel}>Screen Share Audio</Text>
+          <ToggleSelector
             options={audioOptions}
-            onValueChange={(value) =>
+            value={audioSettings.screenShareAudio ? "ON" : "OFF"}
+            onChange={(value) =>
               updateSetting("screenShareAudio", value === "ON")
             }
-            theme={theme}
           />
         </SettingsCard>
 
         <SettingsCard>
           <Text style={styles.sectionTitle}>Audio Processing</Text>
-          <SegmentedSelector
-            label="Noise Suppression"
-            value={audioSettings.noiseSuppressionLevel || "MEDIUM"}
+          <Text style={styles.fieldLabel}>Noise Suppression</Text>
+          <ToggleSelector
             options={noiseSuppressionOptions}
-            onValueChange={(value) =>
+            value={audioSettings.noiseSuppressionLevel || "MEDIUM"}
+            onChange={(value) =>
               updateSetting("noiseSuppressionLevel", value)
             }
-            theme={theme}
           />
 
-          <SegmentedSelector
-            label="Expander"
-            value={audioSettings.expanderLevel || "MEDIUM"}
+          <Text style={styles.fieldLabel}>Expander</Text>
+          <ToggleSelector
             options={expanderOptions}
-            onValueChange={(value) => updateSetting("expanderLevel", value)}
-            theme={theme}
+            value={audioSettings.expanderLevel || "MEDIUM"}
+            onChange={(value) => updateSetting("expanderLevel", value)}
           />
 
-          <SegmentedSelector
-            label="Noise Gate"
-            value={audioSettings.noiseGateType || "ADAPTIVE"}
+          <Text style={styles.fieldLabel}>Noise Gate</Text>
+          <ToggleSelector
             options={noiseGateOptions}
-            onValueChange={(value) => updateSetting("noiseGateType", value)}
-            theme={theme}
+            value={audioSettings.noiseGateType || "ADAPTIVE"}
+            onChange={(value) => updateSetting("noiseGateType", value)}
           />
 
           {(audioSettings.noiseGateType === "HYBRID" ||
             audioSettings.noiseGateType === "MANUAL") && (
-            <ThresholdSlider
-              label="Noise Gate Threshold"
-              value={audioSettings.noiseGateThreshold || -20}
-              onValueChange={(value) =>
-                updateSetting("noiseGateThreshold", Math.round(value))
-              }
-              theme={theme}
-              min={-60}
-              max={0}
-              step={1}
-              unit="dB"
-            />
+            <>
+              <Text style={styles.fieldLabel}>Noise Gate Threshold</Text>
+              <ToggleSelector
+                options={noiseGateThresholdOptions}
+                value={String(audioSettings.noiseGateThreshold || -20)}
+                onChange={(value) =>
+                  updateSetting("noiseGateThreshold", Number(value))
+                }
+              />
+            </>
           )}
 
-          <SegmentedSelector
-            label="Typing Attenuation"
-            value={audioSettings.typingAttenuationLevel || "MEDIUM"}
+          <Text style={styles.fieldLabel}>Typing Attenuation</Text>
+          <ToggleSelector
             options={typingAttenuationOptions}
-            onValueChange={(value) =>
+            value={audioSettings.typingAttenuationLevel || "MEDIUM"}
+            onChange={(value) =>
               updateSetting("typingAttenuationLevel", value)
             }
-            theme={theme}
           />
         </SettingsCard>
 
@@ -382,6 +372,12 @@ const createStyle = (theme: any) =>
       color: theme.text,
       fontSize: 16,
       fontWeight: "600",
+    },
+    fieldLabel: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: "600",
+      marginBottom: 8,
     },
     sectionTitle: {
       color: theme.text,

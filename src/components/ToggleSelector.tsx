@@ -96,7 +96,6 @@ function createStyles(theme: any) {
       padding: 5,
       marginBottom: 25,
       width: "100%",
-      maxWidth: 300,
       position: "relative",
     },
     animatedBackground: {
