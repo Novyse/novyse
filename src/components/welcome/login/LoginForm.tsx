@@ -83,13 +83,15 @@ const LoginForm = ({
           <Text style={styles.title}>Login</Text>
           <Text style={styles.subtitle}>Enter your credentials to login</Text>
 
-          {/* Mode Toggle */}
-          <ToggleSelector
-            options={LOGIN_MODE_OPTIONS}
-            value={loginMode}
-            onChange={setLoginMode}
-            disabled={isLoading}
-          />
+          <View style={{width: 300}}>
+            {/* Mode Toggle */}
+            <ToggleSelector
+              options={LOGIN_MODE_OPTIONS}
+              value={loginMode}
+              onChange={setLoginMode}
+              disabled={isLoading}
+            />
+          </View>
 
           {loginMode === "password" ? (
             <>
