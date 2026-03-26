@@ -336,17 +336,14 @@ export default function SignupStepField({
                   onPress={onToggleConfirmPassword}
                 />
               </View>
-              {/* OPAQUE link */}
               <View style={styles.opaqueLink}>
-                <Text style={styles.opaqueLinkText}>
-                  Secured by{" "}
-                  <TextLink
-                    style={styles.opaqueLinkTextBold}
-                    href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
-                  >
-                    OPAQUE
-                  </TextLink>
-                </Text>
+                <Text style={styles.opaqueLinkText}>Secured by </Text>
+                <TextLink
+                  style={styles.opaqueLinkTextBold}
+                  href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
+                >
+                  OPAQUE
+                </TextLink>
               </View>
             </View>
 

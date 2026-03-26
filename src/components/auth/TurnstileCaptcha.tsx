@@ -158,13 +158,23 @@ const TurnstileCaptcha: React.FC<TurnstileCaptchaProps> = ({ onVerify }) => {
     <View style={styles.container}>
       <WebView
         originWhitelist={["*"]}
-        source={{ html }}
+        source={{ html, baseUrl: "https://novyse.com" }}
         onMessage={onMessage}
         style={styles.webview}
         scrollEnabled={false}
         javaScriptEnabled={true}
         transparent={true}
         mixedContentMode="always"
+        domStorageEnabled={true}
+        userAgent="Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36"
+        onError={(syntheticEvent: any) => {
+          const { nativeEvent } = syntheticEvent;
+          console.warn("WebView error: ", nativeEvent);
+        }}
+        onHttpError={(syntheticEvent: any) => {
+          const { nativeEvent } = syntheticEvent;
+          console.warn("WebView HTTP error: ", nativeEvent);
+        }}
       />
     </View>
   );

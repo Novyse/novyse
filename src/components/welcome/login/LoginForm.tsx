@@ -146,15 +146,13 @@ const LoginForm = ({
               </View>
 
               <View style={styles.opaqueLink}>
-                <Text style={styles.opaqueLinkText}>
-                  Secured by{" "}
-                  <TextLink
-                    style={styles.opaqueLinkTextBold}
-                    href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
-                  >
-                    OPAQUE
-                  </TextLink>
-                </Text>
+                <Text style={styles.opaqueLinkText}>Secured by </Text>
+                <TextLink
+                  style={styles.opaqueLinkTextBold}
+                  href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
+                >
+                  OPAQUE
+                </TextLink>
               </View>
 
               <View style={styles.buttonRow}>
@@ -375,9 +373,13 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       alignItems: "center",
     },
     opaqueLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "100%",
+      maxWidth: 300,
       marginBottom: 20,
       marginTop: 5,
-      flexDirection: "row",
     },
     linkText: {
       fontSize: 14,
