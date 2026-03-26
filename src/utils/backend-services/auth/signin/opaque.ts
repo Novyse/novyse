@@ -26,10 +26,8 @@ export async function signInOpaque(
     const loginRequestB64 = btoa(String.fromCharCode(...loginRequestBytes));
 
     const bodyPayload = {
-      username,
-      loginRequest: loginRequestB64,
+      username, 
       ke1: loginRequestB64,
-      authRequest: loginRequestB64,
       turnstileToken,
     };
 
@@ -38,11 +36,9 @@ export async function signInOpaque(
     });
 
     const challengeData = challengeRes.data;
+    const challengeId = challengeData.challengeId;
 
-    const ke2B64 =
-      challengeData.ke2 ??
-      challengeData.authResponse ??
-      challengeData.loginResponse;
+    const ke2B64 = challengeData.ke2;
 
     if (!ke2B64) throw new Error("(KE2) missing response from server");
 
@@ -59,7 +55,7 @@ export async function signInOpaque(
     const ke3Bytes = Uint8Array.from(finish.ke3.serialize());
 
     const completeRes = await authApi.post(`${API_PATH}/complete`, {
-      username,
+      challengeId,
       ke3: btoa(String.fromCharCode(...ke3Bytes)),
     }, {
       withCredentials: true,

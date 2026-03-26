@@ -149,6 +149,7 @@ export const useSignup = () => {
         const ok = await auth.signup.opaque(handle, password, name, {
           privacy: privacyAccepted,
           tos: privacyAccepted,
+          isOver16: ageConfirmed,
         }, captchaToken!);
       if (ok.success) {
         router.navigate(`/(welcome)/login?signedup=true&username=${handle}&type=opaque`);

@@ -13,7 +13,7 @@ export async function signUpOpaque(
   username: string,
   password: string,
   name: string,
-  gdpr: { tos: boolean; privacy: boolean },
+  gdpr: { tos: boolean; privacy: boolean, isOver16: boolean },
   turnstileToken: string,
 ) {
   try {
@@ -38,6 +38,7 @@ export async function signUpOpaque(
     });
 
     const challengeData = challengeRes.data;
+    const signupId = challengeData.signupId;
 
     const registrationResponseBytes = new Uint8Array(
       atob(challengeData.registrationResponse)
@@ -61,6 +62,7 @@ export async function signUpOpaque(
     );
 
     const completeRes = await authApi.post(`${API_PATH}/complete`, {
+      signupId,
       username,
       name,
       registrationRecord: btoa(
@@ -68,6 +70,7 @@ export async function signUpOpaque(
       ),
       privacyPolicyAccepted: gdpr.privacy,
       termsOfServiceAccepted: gdpr.tos,
+      isOver16: gdpr.isOver16,
     }, {
       withCredentials: true,
     });
