@@ -12,13 +12,14 @@ import { ThemeProvider, useThemeContext } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import SplashScreen from "@/src/components/SplashScreen";
 import useAuthSession from "@/src/hooks/auth/useAuthSession";
+import notificationManager from "@/src/utils/notifications/NotificationManager";
 
 function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {
   const { theme } = useThemeContext();
 
-if (Platform.OS !== "web") {
-  require("react-native-quick-crypto").install(); // Crypto polyfill for mobile (used in cloudflare-opaque)
-}
+  if (Platform.OS !== "web") {
+    require("react-native-quick-crypto").install(); // Crypto polyfill for mobile (used in cloudflare-opaque)
+  }
 
   return (
     <Stack
@@ -52,6 +53,10 @@ function RootLayoutContent() {
         document.removeEventListener("contextmenu", handleContextMenu);
     }
   }, []);
+
+  useEffect(() => {
+    notificationManager.updatePushToken();
+  }, [isLoggedIn]);
 
   if (isLoading || isLoggedIn === null) {
     return <SplashScreen />;

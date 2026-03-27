@@ -1,10 +1,15 @@
 import { Platform, AppState } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import gateway from "../backend-services/api-gateway";
 
 // Conditionally require expo-notifications to avoid web SSR crash (localStorage)
 let Notifications: any;
 if (Platform.OS !== "web") {
   Notifications = require("expo-notifications");
 }
+
+const EXPO_PUSH_TOKEN_KEY = "expo_push_token";
+
 class NotificationManager {
   constructor() {
     this.init();
@@ -32,6 +37,39 @@ class NotificationManager {
       await this.requestPermissionsMobile();
     } else {
       await this.requestPermissionsWeb();
+    }
+  }
+
+  async updatePushToken() {
+    if (Platform.OS === "web") return;
+
+    try {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== "granted") {
+        console.warn("Permessi per le notifiche mobile non concessi");
+        return;
+      }
+
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      const newToken = tokenData.data;
+
+      const savedToken = await AsyncStorage.getItem(EXPO_PUSH_TOKEN_KEY);
+
+      if (newToken !== savedToken) {
+        const success = await gateway.notification.setExpoToken(newToken);
+        if (success) {
+          await AsyncStorage.setItem(EXPO_PUSH_TOKEN_KEY, newToken);
+          console.log("Expo push token updated successfully", newToken);
+        }
+      }
+    } catch (error) {
+      console.error("Error updating Expo push token:", error);
     }
   }
 
@@ -128,7 +166,12 @@ class NotificationManager {
     }
   }
 
-  async _sendMobileNotification(title, body, data, subtitle?: string) {
+  async _sendMobileNotification(
+    title?: string,
+    body?: string,
+    data?: any,
+    subtitle?: string,
+  ) {
     await Notifications.scheduleNotificationAsync({
       content: {
         title,

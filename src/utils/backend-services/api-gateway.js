@@ -745,5 +745,27 @@ const gateway = {
       },
     },
   },
+
+  notification: {
+    /**
+     * Set the Expo push token for the current user.
+     * @param {String} token
+     * @returns {Promise<boolean>}
+     */
+    async setExpoToken(token) {
+      try {
+        if (!token) {
+          throw new Error("token is required to set expo token");
+        }
+        const response = await api.patch("/notification/expo-push-token", {
+          token,
+        });
+        return response.data.success;
+      } catch (error) {
+        console.error("Error in notification.setExpoToken:", error);
+        throw error;
+      }
+    },
+  },
 };
 export default gateway;
