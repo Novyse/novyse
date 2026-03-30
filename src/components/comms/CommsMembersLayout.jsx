@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { View, StyleSheet, Text, Platform } from "react-native";
+import { createPortal } from "react-dom";
 
 import { useCommsContext } from "@/context/CommsContext";
 
@@ -44,7 +45,7 @@ const CommsMembersLayout = ({ participants = [], room }) => {
   if (fullscreenStreamUUID) {
     const item = layoutItems.find((i) => i.streamUUID === fullscreenStreamUUID);
     if (item) {
-      return (
+      const fullscreenContent = (
         <View style={styles.fullscreenContainer}>
           <UserCard
             streamUUID={item.streamUUID}
@@ -64,6 +65,10 @@ const CommsMembersLayout = ({ participants = [], room }) => {
           />
         </View>
       );
+      if (Platform.OS === "web") {
+        return createPortal(fullscreenContent, document.body);
+      }
+      return fullscreenContent;
     }
   }
 

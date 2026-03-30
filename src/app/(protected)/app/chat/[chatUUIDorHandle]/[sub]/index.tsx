@@ -44,7 +44,6 @@ const ChatPageRoute = () => {
   const setNewMessageText = useActiveChatStore(
     (state) => state.setNewMessageText,
   );
-  const newMessageText = useActiveChatStore((state) => state.newMessageText);
   const editingMessage = useActiveChatStore((state) => state.editingMessage);
   const setEditingMessage = useActiveChatStore(
     (state) => state.setEditingMessage,
@@ -123,10 +122,7 @@ const ChatPageRoute = () => {
     setSelectedSub,
   ]);
 
-  const styles = useMemo(
-    () => createStyle(theme, isSmallScreen),
-    [theme, isSmallScreen],
-  );
+  const styles = useMemo(() => createStyle(theme), [theme]);
 
   // Verifica se i dati nel context appartengono effettivamente alla chat aperta nell'URL
   const isDataReady = useMemo(() => {
@@ -242,7 +238,7 @@ const ChatPageRoute = () => {
   };
 
   return (
-    <>
+    <View style={styles.contentWrapper}>
       <Header
         chatUUIDorHandle={chatUUIDorHandle as string}
         contentView={contentView}
@@ -262,7 +258,7 @@ const ChatPageRoute = () => {
           setDeleteModalVisible(true);
         }}
       />
-      <View style={styles.contentWrapper}>{renderContent()}</View>
+      {renderContent()}
       <DeleteMessageModal
         visible={deleteModalVisible}
         onClose={() => setDeleteModalVisible(false)}
@@ -275,61 +271,14 @@ const ChatPageRoute = () => {
         fullscreen={false}
         theme={theme}
       />
-    </>
+    </View>
   );
 };
 
-function createStyle(theme: any, isSmallScreen: boolean) {
+function createStyle(theme: any) {
   return StyleSheet.create({
     container: { flex: 1, overflow: "hidden" },
     contentWrapper: { flex: 1 },
-    headerWrapper: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 100,
-    },
-    headerBase: { overflow: "hidden", borderRadius: 100 },
-    headerColumnContainer: {
-      flexDirection: "column",
-      width: "100%",
-      borderRadius: 100,
-    },
-    headerMainRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      height: 55,
-      paddingHorizontal: 8,
-      width: "100%",
-    },
-    headerLeft: { flex: 1, alignItems: "flex-start", justifyContent: "center" },
-    headerCenter: {
-      flex: 2,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    headerRight: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: 4,
-    },
-    iconButton: {
-      width: 40,
-      height: 40,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    avatar: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      marginRight: 8,
-      backgroundColor: "#ccc",
-    },
     chatTitle: {
       fontSize: 15,
       color: theme.text,
