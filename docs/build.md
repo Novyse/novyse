@@ -49,7 +49,10 @@ For a development build on Android, follow these steps:
 2. Create a `local.properties` file inside the `android/` folder with the following content (adjust the SDK path based on your system):
    ```
    # example
+   ## Windows
    sdk.dir=C:\\Users\\ISRaiken\\AppData\\Local\\Android\\Sdk
+   ## Linux
+   sdk.dir=/home/israiken/Android/Sdk
    ```
 3. Run the Android build:
    ```
