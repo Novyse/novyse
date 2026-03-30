@@ -9,7 +9,7 @@ const EXPO_OWNER = "novyse";
 const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
 const API_BASE_URL = "https://api.novyse.com";
 const SOCKET_BASE_URL = "wss://io.novyse.com";
-const BRANCH: "development" | "preview" | "production" = "development";
+const BRANCH = "development" as "development" | "preview" | "production";
 const APP_URL =
   BRANCH === "development" ? "http://localhost:8081" : "https://web.novyse.com";
 const TINY_APP_URL = "https://vyse.me";
@@ -37,7 +37,9 @@ export {
 // Genera suffisso per dev mode
 const getDevSuffix = () => {
   const branch = BRANCH || "main";
-  return branch === "development" ? ".dev" : "";
+  if (branch === "development") return ".dev";
+  if (branch === "preview") return ".preview";
+  return "";
 };
 
 // Genera il percorso base delle immagini in base al BRANCH
@@ -56,7 +58,7 @@ const devSuffix = getDevSuffix();
 export default {
   expo: {
     name: `${APP_NAME}${devSuffix}`,
-    slug: `${APP_SLUG}${devSuffix}`,
+    slug: APP_SLUG,
     version: APP_VERSION,
     orientation: "portrait",
     icon: getImagePath(),
@@ -101,6 +103,7 @@ export default {
         "FOREGROUND_SERVICE_MEDIA_PROJECTION",
         "WAKE_LOCK",
       ],
+      googleServicesFile: "./google-services.json",
     },
     web: {
       bundler: "metro",
