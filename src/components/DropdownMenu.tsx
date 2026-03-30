@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -6,8 +6,22 @@ import {
   TouchableOpacity,
   Animated,
   ScrollView,
-  Platform
+  Platform,
 } from "react-native";
+
+interface DropdownOption {
+  label: string;
+  value: string;
+}
+
+interface DropdownMenuProps {
+  label: string;
+  value: string;
+  options: DropdownOption[];
+  onValueChange: (value: string) => void;
+  theme: any;
+  disabled?: boolean;
+}
 
 const DropdownMenu = ({
   label,
@@ -16,10 +30,10 @@ const DropdownMenu = ({
   onValueChange,
   theme,
   disabled = false,
-}) => {
+}: DropdownMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownHeight = useRef(new Animated.Value(0)).current;
-  const maxHeight = Math.min(options.length * 50, 200); // Max height for dropdown
+  const maxHeight = Math.min(options.length * 50, 200);
 
   const toggleDropdown = () => {
     if (disabled) return;
@@ -33,12 +47,12 @@ const DropdownMenu = ({
     }).start();
   };
 
-  const handleSelect = (selectedValue) => {
+  const handleSelect = (selectedValue: string) => {
     onValueChange(selectedValue);
     toggleDropdown();
   };
 
-  const getDisplayText = () => {
+  const getDisplayText = (): string => {
     const option = options.find((opt) => opt.value === value);
     return option ? option.label : value;
   };
@@ -114,7 +128,7 @@ const DropdownMenu = ({
   );
 };
 
-const createStyles = (theme) =>
+const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       marginVertical: 10,
@@ -132,8 +146,6 @@ const createStyles = (theme) =>
       alignItems: "center",
       borderRadius: 10,
       padding: 15,
-      borderWidth: 1,
-      borderColor: theme.borderColor,
       backgroundColor: theme.backgroundTextField,
     },
     dropdownHeaderOpen: {
@@ -165,14 +177,11 @@ const createStyles = (theme) =>
       backgroundColor: theme.backgroundTextField,
       borderBottomLeftRadius: 10,
       borderBottomRightRadius: 10,
-      borderWidth: 1,
       borderTopWidth: 0,
-      borderColor: theme.borderColor,
     },
     dropdownList: {
       width: "100%",
       ...(Platform.OS === "web" && {
-        // Standard per Firefox (fisso, no active/drag change)
         scrollbarWidth: "thin",
         scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
 
@@ -195,8 +204,6 @@ const createStyles = (theme) =>
     },
     option: {
       padding: 15,
-      borderTopWidth: 1,
-      borderTopColor: theme.borderColor,
     },
     selectedOption: {
       backgroundColor: theme.backgroundDeviceDropdown,

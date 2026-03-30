@@ -6,7 +6,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 
 import ToggleSelector from "@/src/components/ToggleSelector";
-import InputDeviceDropdown from "@/src/components/settings/comms/InputDeviceDropdown";
+import InputDeviceDropdown from "@/src/components/DropdownMenu";
 import settingsManager from "@/src/utils/global/SettingsManager";
 
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";

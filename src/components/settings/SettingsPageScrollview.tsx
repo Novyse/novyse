@@ -1,11 +1,21 @@
 import React, { useContext } from "react";
 import { StyleSheet, ScrollView, Platform } from "react-native";
-import { ThemeContext } from "../../../context/ThemeContext";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; 
+import { ThemeContext } from "@/context/ThemeContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const SettingsPageScrollview = ({ children, isMenu = false, paddingTop = 90 }) => {
+interface SettingsPageScrollviewProps {
+  children: React.ReactNode;
+  isMenu?: boolean;
+  paddingTop?: number;
+}
+
+const SettingsPageScrollview = ({
+  children,
+  isMenu = false,
+  paddingTop = 90,
+}: SettingsPageScrollviewProps) => {
   const { theme } = useContext(ThemeContext);
-  const insets = useSafeAreaInsets(); 
+  const insets = useSafeAreaInsets();
 
   const styles = createStyle(theme, isMenu, insets, paddingTop);
 
@@ -19,7 +29,12 @@ const SettingsPageScrollview = ({ children, isMenu = false, paddingTop = 90 }) =
   );
 };
 
-function createStyle(theme, isMenu, insets, paddingTop) {
+function createStyle(
+  theme: any,
+  isMenu: boolean,
+  insets: { top: number },
+  paddingTop: number,
+) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -27,7 +42,7 @@ function createStyle(theme, isMenu, insets, paddingTop) {
       height: "100%",
       maxWidth: 768,
       alignSelf: "center",
-      
+
       ...(Platform.OS === "web" && {
         scrollbarWidth: "thin",
         scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,

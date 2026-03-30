@@ -3,8 +3,12 @@ import Icon from "@/src/components/Icon";
 
 import queueManager from "@/src/utils/chat/queueManager";
 
-const DownloadButton = ({ uuid }) => {
-  const handleDownload = async () => {
+interface DownloadButtonProps {
+  uuid: string;
+}
+
+const DownloadButton = ({ uuid }: DownloadButtonProps) => {
+  const handleDownload = async (): Promise<void> => {
     await queueManager.addInboundFileJob(uuid);
   };
 

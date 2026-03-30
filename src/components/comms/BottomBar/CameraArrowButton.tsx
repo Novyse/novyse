@@ -4,12 +4,21 @@ import Icon from "@/src/components/Icon";
 
 import Platform from "@/src/utils/device/type";
 
+interface CameraArrowButtonProps {
+  onPress: () => void;
+  theme?: {
+    background: string;
+  };
+  isMobile?: boolean;
+}
+
 const CameraArrowButton = ({
   onPress,
   theme,
   isMobile = Platform === "mobile",
-}) => {
+}: CameraArrowButtonProps) => {
   const styles = createStyles(theme, isMobile);
+
   return (
     <Icon
       name={isMobile ? "CameraRotated01Icon" : "ArrowDown01Icon"}
@@ -19,7 +28,10 @@ const CameraArrowButton = ({
   );
 };
 
-const createStyles = (theme, isMobile) =>
+const createStyles = (
+  theme: CameraArrowButtonProps["theme"],
+  isMobile: boolean,
+) =>
   StyleSheet.create({
     arrowButton: {
       position: "absolute",
@@ -32,14 +44,6 @@ const createStyles = (theme, isMobile) =>
       justifyContent: "center",
       borderWidth: 1,
       borderColor: "rgba(255, 255, 255, 0.3)",
-      elevation: 2,
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.22,
-      shadowRadius: 2.22,
     },
   });
 

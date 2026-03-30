@@ -2,7 +2,17 @@ import React from "react";
 import { StyleSheet } from "react-native";
 import Icon from "@/src/components/Icon";
 
-const MicrophoneArrowButton = ({ onPress, theme }) => {
+interface MicrophoneArrowButtonProps {
+  onPress: () => void;
+  theme?: {
+    background: string;
+  };
+}
+
+const MicrophoneArrowButton = ({
+  onPress,
+  theme,
+}: MicrophoneArrowButtonProps) => {
   return (
     <Icon
       name={"ArrowDown01Icon"}
@@ -24,14 +34,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.3)",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
   },
 });
 

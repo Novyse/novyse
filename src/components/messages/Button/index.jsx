@@ -4,7 +4,7 @@ import { View, ActivityIndicator } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 
 import DefaultButton from "./default";
-import DownloadButton from "./download";
+import DownloadButton from "./DownloadButton";
 
 const Button = ({
   uuid,

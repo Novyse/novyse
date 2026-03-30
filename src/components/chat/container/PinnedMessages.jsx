@@ -1,6 +1,5 @@
-import React, { useState, useContext } from "react";
-import { View, StyleSheet, Text } from "react-native";
-import { useRouter } from "expo-router";
+import React, { useContext } from "react";
+import { StyleSheet, Text } from "react-native";
 import BlurredView from "@/src/components/BlurredView";
 import Icon from "@/src/components/Icon";
 
@@ -12,8 +11,10 @@ const PinnedMessages = ({ isSmallScreen }) => {
 
   return (
     <BlurredView style={styles.container}>
-      <Text ellipsizeMode="tail" style={styles.text}>Messaggio pinnato</Text>
-      <Icon name={"Cancel01Icon"} onPress={()=>{}}/>
+      <Text ellipsizeMode="tail" style={styles.text}>
+        Messaggio pinnato
+      </Text>
+      <Icon name={"Cancel01Icon"} onPress={() => {}} />
     </BlurredView>
   );
 };
@@ -34,8 +35,8 @@ function createStyle(theme, isSmallScreen) {
       flexDirection: "row",
     },
     text: {
-      color: theme.text
-    }
+      color: theme.text,
+    },
   });
 }
 
