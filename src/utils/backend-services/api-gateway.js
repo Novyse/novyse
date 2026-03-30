@@ -1,4 +1,6 @@
 import axios from "axios";
+import { Platform } from "react-native";
+import * as SecureStore from "expo-secure-store";
 import { getOs, getPlatform } from "../device/type.js";
 
 import { getAuthToken } from "./auth/token-manager";
@@ -49,7 +51,14 @@ api.interceptors.request.use((request) => {
   return request;
 });
 
-api.interceptors.response.use((response) => {
+api.interceptors.response.use(async (response) => {
+  if (Platform.OS !== "web") {
+    const newSessionId = response.headers["x-set-session-id"];
+    if (newSessionId) {
+      await SecureStore.setItemAsync("sessionId", String(newSessionId));
+    }
+  }
+
   if (BRANCH !== "production") {
     console.log(
       `Response: ${response.config.method.toUpperCase()} ${response.config.url}`,

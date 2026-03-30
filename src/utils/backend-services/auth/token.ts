@@ -23,6 +23,9 @@ export const fetchToken = async (): Promise<string | null> => {
     });
 
     if (response.data.success) {
+      if (Platform.OS !== "web" && response.data.sessionId) {
+        await SecureStore.setItemAsync("sessionId", String(response.data.sessionId));
+      }
       return response.data.token;
     }
     return null;
