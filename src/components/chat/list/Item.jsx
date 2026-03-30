@@ -106,16 +106,19 @@ const ChatListItem = React.memo(
           )}
           <Avatar uuid={displayPfp} theme={theme} style={styles.avatar} />
           <View style={styles.chatItemGrid}>
+            {/* LEFT */}
             <View style={styles.leftContainer}>
-              <Text
-                style={[styles.chatTitle, styles.gridText]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                selectable={false}
-              >
-                {displayName}
-              </Text>
-              <View style={{ marginTop: 2 }}>
+              <View style={styles.titleRow}>
+                <Text
+                  style={[styles.chatTitle, styles.gridText]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  selectable={false}
+                >
+                  {displayName}
+                </Text>
+              </View>
+              <View style={styles.subtitleRow}>
                 {displayMessage(
                   draftText || draftFiles?.length > 0
                     ? {
@@ -127,10 +130,10 @@ const ChatListItem = React.memo(
                 )}
               </View>
             </View>
+
+            {/* RIGHT */}
             <View style={styles.rightContainer}>
-              <View
-                style={[styles.dateContainer, !lastMessage && { opacity: 0 }]}
-              >
+              <View style={styles.dateRow}>
                 {lastMessage && (
                   <>
                     {!lastMessage.created_at ? (
@@ -147,23 +150,14 @@ const ChatListItem = React.memo(
                 )}
               </View>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 5,
-                  minHeight: 20,
-                }}
-              >
+              <View style={styles.badgeRow}>
                 {isPinned && <Icon name={"PinIcon"} size={16} />}
-                {unreadCount > 0 ? (
-                  <View style={[styles.ball]}>
-                    <Text style={[styles.ballText]} selectable={false}>
+                {unreadCount > 0 && (
+                  <View style={styles.ball}>
+                    <Text style={styles.ballText} selectable={false}>
                       {unreadCount}
                     </Text>
                   </View>
-                ) : (
-                  <View style={{ height: 20 }} />
                 )}
               </View>
             </View>
@@ -210,14 +204,6 @@ function createStyle(theme) {
       flex: 1,
       justifyContent: "space-between",
     },
-    leftContainer: {
-      flex: 1,
-      flexDirection: "column",
-    },
-    rightContainer: {
-      flexDirection: "column",
-      alignItems: "flex-end",
-    },
     gridText: {
       fontSize: 14,
       color: theme.text,
@@ -235,12 +221,6 @@ function createStyle(theme) {
       color: theme.text,
       fontSize: 12,
     },
-    dateContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      marginBottom: 5,
-    },
     chatDateText: {
       fontSize: 14,
       color: theme.text,
@@ -254,6 +234,38 @@ function createStyle(theme) {
       zIndex: 1,
       backgroundColor: "#25b34bff",
       borderRadius: 999,
+    },
+    leftContainer: {
+      flex: 1,
+      flexDirection: "column",
+      justifyContent: "center",
+    },
+    titleRow: {
+      height: 22,
+      justifyContent: "center",
+    },
+    subtitleRow: {
+      height: 20,
+      justifyContent: "center",
+    },
+    rightContainer: {
+      flexDirection: "column",
+      alignItems: "flex-end",
+      justifyContent: "center",
+    },
+    dateRow: {
+      height: 22,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 3,
+    },
+    badgeRow: {
+      height: 20,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 5,
     },
   });
 }
