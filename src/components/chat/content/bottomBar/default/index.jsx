@@ -76,6 +76,7 @@ const DefaultBar = ({
           onInputFocus={onInputFocus}
           onToggleEmoji={onToggleEmoji}
           onSendMessage={onSendMessage}
+          onFileAppend={onFileAppend}
           isRecording={isRecording}
           isPaused={isPaused}
           recorderState={recorderState}

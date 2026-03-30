@@ -1,18 +1,12 @@
 import React, { useRef, useState, useCallback } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-/**
- * Struttura compatibile con expo-document-picker / expo-image-picker.
- * `uri` è un blob URL utilizzabile ovunque ci si aspetti un URI in RN web.
- */
 export interface DroppedFile {
-  uri: string;      // blob URL — es. "blob:http://localhost:8081/abc-123"
+  uri: string;
   name: string;
   size: number;
   mimeType: string;
-  file: File;       // oggetto File nativo, utile per FormData / upload diretti
+  file: File;
 }
 
 interface WebDropZoneProps {
@@ -22,9 +16,7 @@ interface WebDropZoneProps {
   children?: React.ReactNode;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function hasFiles(dataTransfer: DataTransfer | null): boolean {
+  function hasFiles(dataTransfer: DataTransfer | null): boolean {
   if (!dataTransfer) return false;
   return Array.from(dataTransfer.types).includes("Files");
 }
@@ -51,10 +43,9 @@ function filterFiles(fileList: FileList, accept?: string): File[] {
   );
 }
 
-/** Converte un File nativo in DroppedFile con blob URI. */
-function toDroppedFile(file: File): DroppedFile {
+export function toDroppedFile(file: File): DroppedFile {
   return {
-    uri: URL.createObjectURL(file), // <-- questo è l'uri che mancava
+    uri: URL.createObjectURL(file), 
     name: file.name,
     size: file.size,
     mimeType: file.type || "application/octet-stream",
@@ -62,11 +53,7 @@ function toDroppedFile(file: File): DroppedFile {
   };
 }
 
-// ─── Mobile: no-op ───────────────────────────────────────────────────────────
-
 const WebDropZoneNoop: React.FC<WebDropZoneProps> = () => null;
-
-// ─── Web component ────────────────────────────────────────────────────────────
 
 const WebDropZoneWeb: React.FC<WebDropZoneProps> = ({
   onFilesDropped,
@@ -110,7 +97,6 @@ const WebDropZoneWeb: React.FC<WebDropZoneProps> = ({
       const filtered = filterFiles(e.dataTransfer.files, accept);
       if (filtered.length === 0) return;
 
-      // Converti ogni File in DroppedFile con blob URI
       const droppedFiles: DroppedFile[] = filtered.map(toDroppedFile);
       onFilesDropped(droppedFiles);
     },
@@ -174,8 +160,6 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
 });
-
-// ─── Single export ────────────────────────────────────────────────────────────
 
 const WebDropZone: React.FC<WebDropZoneProps> =
   Platform.OS === "web" ? WebDropZoneWeb : WebDropZoneNoop;

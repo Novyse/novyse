@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Platform, StyleSheet, Text, TextInput, View } from "react-native";
 import { Duration } from "luxon";
 
 import { ThemeContext } from "@/context/ThemeContext";
@@ -8,6 +8,7 @@ import BlurredView from "@/src/components/BlurredView";
 import RecordingDot from "@/src/components/RecordingDot";
 import SpeechIndicator from "@/src/components/SpeechIndicator";
 import { getPlatform } from "@/src/utils/device/type";
+import { toDroppedFile } from "@/src/components/input/WebDropZone";
 
 const MiddleBar = ({
   newMessageText,
@@ -16,6 +17,7 @@ const MiddleBar = ({
   onInputFocus,
   onToggleEmoji,
   onSendMessage,
+  onFileAppend,
   isRecording,
   isPaused,
   recorderState,
@@ -24,6 +26,33 @@ const MiddleBar = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+
+  // Web: intercept CTRL+V to paste images from clipboard
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+
+    const node = textInputRef?.current;
+    const domNode = node && (node instanceof HTMLElement ? node : node._node);
+    if (!domNode) return;
+
+    const handlePaste = (e) => {
+      const items = e.clipboardData?.files;
+      if (!items || items.length === 0) return;
+
+      const imageFiles = Array.from(items).filter((f) =>
+        f.type.startsWith("image/"),
+      );
+      if (imageFiles.length === 0) return;
+
+      e.preventDefault();
+
+      const droppedFiles = imageFiles.map(toDroppedFile);
+      onFileAppend?.(droppedFiles);
+    };
+
+    domNode.addEventListener("paste", handlePaste);
+    return () => domNode.removeEventListener("paste", handlePaste);
+  }, [textInputRef, onFileAppend]);
 
   return (
     <>
@@ -144,7 +173,7 @@ const createStyle = (theme) =>
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-    }
+    },
   });
 
 export default MiddleBar;
