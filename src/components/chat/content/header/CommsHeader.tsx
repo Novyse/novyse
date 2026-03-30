@@ -6,6 +6,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+
 import Icon from "@/src/components/Icon";
 
 import { ThemeContext } from "@/context/ThemeContext";
@@ -35,11 +36,13 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
   const localIdentity = room?.localParticipant?.identity;
   const isSpeaking = localIdentity ? isSpeakingMap.get(localIdentity) : false;
 
-  const animatedOverlayStyle = useAnimatedStyle(() => {
+  const animatedMicStyle = useAnimatedStyle(() => {
     return {
       opacity: withTiming(isSpeaking ? 1 : 0, { duration: 150 }),
     };
   });
+
+
 
   if (!connected && !roomName) {
     return null;
@@ -66,16 +69,6 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
 
   return (
     <Pressable style={styles.headerMainRow} onPress={handlePress}>
-      {connected && (
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFillObject,
-            styles.speakingOverlay,
-            animatedOverlayStyle,
-          ]}
-          pointerEvents="none"
-        />
-      )}
       <View style={styles.headerLeft}>
         <Icon
           name="UserMultipleIcon"
@@ -96,12 +89,25 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
               style={styles.iconButton}
               onPress={toggleVideo}
             />
-            <Icon
-              name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
-              color={"#fff"}
-              style={styles.iconButton}
-              onPress={toggleAudio}
-            />
+            <View style={styles.iconButton}>
+              <Icon
+                name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
+                color={"#fff"}
+                onPress={toggleAudio}
+              />
+              <Animated.View
+                style={[
+                  StyleSheet.absoluteFillObject,
+                  animatedMicStyle,
+                  { pointerEvents: "none" },
+                ]}
+              >
+                <Icon
+                  name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
+                  color={"#2ECC71"}
+                />
+              </Animated.View>
+            </View>
             <Icon
               name={"Call02Icon"}
               color="red"
@@ -112,7 +118,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
         ) : (
           <Icon
             name="Call02Icon"
-            color={"#green"}
+            color={"#2ECC71"}
             hoverColor={theme.iconCommsInHover}
             onPress={() => join()}
           />
@@ -134,8 +140,9 @@ function createStyle(theme: any, connected: boolean) {
       height: HEADER_MAIN_HEIGHT,
       width: "100%",
       paddingHorizontal: 10,
-      borderRadius: 100,
-      backgroundColor: connected ? theme.primary : "transparent",
+      borderRadius: 15,
+      backgroundColor: "transparent",
+      marginBottom: 10,
     },
     headerLeft: {
       flexDirection: "row",
@@ -173,10 +180,7 @@ function createStyle(theme: any, connected: boolean) {
       color: connected ? "#fff" : theme.text,
       fontWeight: "600",
     },
-    speakingOverlay: {
-      backgroundColor: "#2ECC71",
-      borderRadius: 100,
-    },
+
   });
 }
 
