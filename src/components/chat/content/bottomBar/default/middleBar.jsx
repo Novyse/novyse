@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { Platform, StyleSheet, Text, TextInput, View } from "react-native";
 import { Duration } from "luxon";
 

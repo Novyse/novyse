@@ -12,6 +12,9 @@ interface SettingsMenuItemProps {
   navToPage?: string;
   pageName: string;
   iconName: string;
+  nameColor?: string;
+  iconColor?: string;
+  disabled?: boolean;
   onPress?: () => void | Promise<void>;
 }
 
@@ -19,16 +22,18 @@ const SettingsMenuItem = ({
   navToPage,
   pageName,
   iconName,
+  nameColor,
+  iconColor,
+  disabled = false,
   onPress,
 }: SettingsMenuItemProps) => {
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
+  const styles = createStyle(theme, nameColor);
 
   const handlePress = () => {
     if (onPress) {
       onPress();
     } else if (navToPage) {
-      // internal page (starts with ./) -> push into detail via expo-router
       if (navToPage.startsWith("./")) {
         const page = navToPage.replace("./", "");
         router.push(("/app/" + page) as any);
@@ -37,16 +42,16 @@ const SettingsMenuItem = ({
   };
 
   return (
-    <HoverAndPressedButton onPress={handlePress} style={styles.menuItem}>
+    <HoverAndPressedButton onPress={handlePress} style={styles.menuItem} disabled={disabled}>
       <View style={styles.menuItemIcon}>
-        <Icon name={iconName} />
+        <Icon name={iconName} color={iconColor || theme.text} />
       </View>
       <Text style={styles.menuItemText}>{pageName}</Text>
     </HoverAndPressedButton>
   );
 };
 
-const createStyle = (theme: any) =>
+const createStyle = (theme: any, nameColor?: string) =>
   StyleSheet.create({
     menuItem: {
       flexDirection: "row",
@@ -58,7 +63,7 @@ const createStyle = (theme: any) =>
       height: 60,
     },
     menuItemText: {
-      color: theme.text,
+      color: nameColor || theme.text,
       fontSize: 16,
     },
     menuItemIcon: {

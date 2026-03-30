@@ -25,6 +25,7 @@ export default function SecurityRoute() {
           navToPage="./settings/security/mfa"
           pageName="MFA (WIP)"
           iconName={"TwoFactorAccessIcon"}
+          disabled={true}
         />
         <SettingsMenuItem
           navToPage="./settings/security/sessions"
@@ -40,6 +41,7 @@ export default function SecurityRoute() {
           navToPage="./settings/security/notifications"
           pageName="Notifications (WIP)"
           iconName={"Notification03Icon"}
+          disabled={true}
         />
       </SettingsPageScrollview>
     </>

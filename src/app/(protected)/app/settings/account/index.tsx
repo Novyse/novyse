@@ -39,6 +39,8 @@ export default function AccountRoute() {
         <SettingsMenuItem
           pageName="Delete Account"
           iconName={"Delete02Icon"}
+          nameColor={"red"}
+          iconColor={"red"}
           onPress={async () => {
             setIsDeleteAccountModalVisible(true);
           }}

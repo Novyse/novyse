@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { View} from "react-native";
+import { View } from "react-native";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
@@ -61,7 +61,7 @@ const DefaultBar = ({
       ) : null}
 
       <FilesBar />
-      
+
       <View style={styles.inputRow}>
         <LeftButton
           isRecording={isRecording}

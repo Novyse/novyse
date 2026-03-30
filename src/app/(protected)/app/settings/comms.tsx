@@ -171,6 +171,11 @@ export default function CommsRoute() {
     <>
       <HeaderWithBackArrow title={"Comms"} onBack={onBack} />
       <SettingsPageScrollview>
+        <View style={styles.bannerContainer}>
+          <Text style={styles.bannerText}>
+            Developer Note: This page is currently a UI preview only. All functional features are under development and will be included in the version 1.2 release.
+          </Text>
+        </View>
         <SettingsCard>
           <Text style={styles.sectionTitle}>Input Devices</Text>
           <View style={styles.warningContainer}>
@@ -418,6 +423,21 @@ const createStyle = (theme: any) =>
     },
     warningText: {
       fontSize: 14,
+      lineHeight: 20,
+    },
+    bannerContainer: {
+      backgroundColor: "#d32f2f",
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: "#b71c1c",
+    },
+    bannerText: {
+      color: "#ffffff",
+      fontSize: 14,
+      fontWeight: "bold",
+      textAlign: "center",
       lineHeight: 20,
     },
   });
