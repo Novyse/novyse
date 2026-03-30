@@ -102,7 +102,7 @@ const initializeApp = async () => {
 
     // Set local user uuid in async storage
     await AsyncStorage.setItem("userUUID", String(local.user.uuid));
-    await AsyncStorage.setItem("sessionUUID", String(local.session.uuid));
+    await AsyncStorage.setItem("sessionID", String(local.session.id));
     await AsyncStorage.setItem("init", "false");
 
     return true;

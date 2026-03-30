@@ -37,10 +37,10 @@ export const session = {
   /**
    * Revoke a specific session
    */
-  async revoke(sessionUUID: string) {
+  async revoke(sessionID: number) {
     try {
       const token = await getAuthToken();
-      const response = await authApi.post(`${API_PATH}/revoke`, { sessionUUID }, {
+      const response = await authApi.post(`${API_PATH}/revoke`, { id: sessionID }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       return { success: true, data: response.data };

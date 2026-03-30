@@ -54,7 +54,7 @@ export default function SessionsRoute() {
     const response = await auth.settings.session.list();
     if (response.success) {
       const mapped = response.data.map((s: any) => ({
-        id: s.uuid,
+        id: s.id,
         device: s.userAgent || "Unknown Device",
         deviceType: s.platform === "mobile" ? "mobile" : "desktop",
         ip: s.ipAddress || "Unknown",
@@ -72,7 +72,7 @@ export default function SessionsRoute() {
     fetchSessions();
   }, []);
 
-  const handleDisconnect = async (id: string) => {
+  const handleDisconnect = async (id: number) => {
     const response = await auth.settings.session.revoke(id);
     if (response.success) {
       setSuccess("Session disconnected");
@@ -93,7 +93,6 @@ export default function SessionsRoute() {
   };
 
   const otherSessionsCount = sessions.filter((s) => !s.isCurrent).length;
-
 
   return (
     <>
@@ -130,7 +129,7 @@ export default function SessionsRoute() {
               isHighlighted={session.isCurrent}
               onDelete={
                 !session.isCurrent
-                  ? () => handleDisconnect(session.id)
+                  ? () => handleDisconnect(parseInt(session.id))
                   : undefined
               }
             />
