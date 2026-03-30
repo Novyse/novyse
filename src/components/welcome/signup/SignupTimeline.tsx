@@ -2,13 +2,8 @@ import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { LoginColors } from "@/constants/LoginColors";
 
-interface Step {
-  id: number;
-  label: string;
-}
-
 interface Props {
-  steps: Step[];
+  steps: { id: number }[];
   currentStep: number;
   completedSteps: Set<number>;
   onStepPress: (index: number) => void;
@@ -84,10 +79,6 @@ const styles = StyleSheet.create({
   number: {
     fontWeight: "bold",
     fontSize: 16,
-  },
-  label: {
-    fontSize: 10,
-    fontWeight: "500",
   },
   line: {
     flex: 1,
