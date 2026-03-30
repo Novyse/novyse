@@ -56,6 +56,7 @@ const LoginForm = ({
   const [username, setUsername] = useState(urlUsername || "");
   const [password, setPassword] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
   const [signedup, setSignedup] = useState(urlSignedup);
 
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -66,6 +67,7 @@ const LoginForm = ({
 
   const handleSubmit = () => {
     onLogin(username, password, captchaToken!);
+    setCaptchaKey((prev) => prev + 1);
   };
 
   return (
@@ -189,7 +191,10 @@ const LoginForm = ({
 
               <View style={styles.passkeyButtonWrapperLarge}>
                 <WelcomeButton
-                  onPress={() => onLoginWithPasskey(captchaToken!)}
+                  onPress={() => {
+                    onLoginWithPasskey(captchaToken!);
+                    setCaptchaKey((prev) => prev + 1);
+                  }}
                   disabled={isLoading || !captchaToken}
                   type={"submit"}
                 >
@@ -246,7 +251,7 @@ const LoginForm = ({
             />
           </View>
 
-          <TurnstileCaptcha onVerify={setCaptchaToken} />
+          <TurnstileCaptcha key={captchaKey} onVerify={setCaptchaToken} />
 
           {/* Signup link */}
           <View style={styles.link}>

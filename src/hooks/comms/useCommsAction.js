@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useCommsContext } from "@/context/CommsContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { connectToLiveKit } from "@/src/utils/comms/livekit";
+import { Room } from "livekit-client";
 
 import platform from "@/src/utils/device/type";
 
@@ -44,6 +45,44 @@ const useCommsAction = (chatUUID, sub) => {
 
   const isMobile = platform === "mobile";
 
+  // @SamueleOrazioDurante temp init function, this will be removed in the 1.2 with the comms settings menù implementation
+  const initHardwareDevices = async (roomInstance) => {
+    if (!roomInstance || !roomInstance.localParticipant) return;
+
+    let microphone = roomInstance.getActiveDevice("audioinput");
+    let camera = roomInstance.getActiveDevice("videoinput");
+    let speaker = roomInstance.getActiveDevice("audiooutput");
+
+    // Force selecting a real hardware ID if the current one is "default" or null
+    if (!microphone || microphone === "default") {
+      try {
+        const devices = await Room.getLocalDevices("audioinput");
+        if (devices.length > 0) {
+          microphone = devices[0].deviceId;
+          await roomInstance.switchActiveDevice("audioinput", microphone);
+        }
+      } catch (e) {
+        console.error("Failed to list audio devices", e);
+      }
+    }
+
+    if (!camera || camera === "default") {
+      try {
+        const devices = await Room.getLocalDevices("videoinput");
+        if (devices.length > 0) {
+          camera = devices[0].deviceId;
+          await roomInstance.switchActiveDevice("videoinput", camera);
+        }
+      } catch (e) {
+        console.error("Failed to list video devices", e);
+      }
+    }
+
+    setMicrophoneDevice(microphone);
+    setCameraDevice(camera);
+    setSpeakerDevice(speaker);
+  };
+
   useEffect(() => {
     setRoomMatch(checkRoomMatch(chatUUID, sub));
   }, [chatUUID, sub, checkRoomMatch]);
@@ -53,13 +92,11 @@ const useCommsAction = (chatUUID, sub) => {
       setIsAudioEnabled(room.localParticipant.isMicrophoneEnabled);
       setIsVideoEnabled(room.localParticipant.isCameraEnabled);
 
-      const microphone = room.getActiveDevice("audioinput");
-      const camera = room.getActiveDevice("videoinput");
-      const speaker = room.getActiveDevice("audiooutput");
+      const refresh = async () => {
+        await initHardwareDevices(room);
+      };
 
-      setMicrophoneDevice(microphone);
-      setCameraDevice(camera);
-      setSpeakerDevice(speaker);
+      refresh();
     } else {
       setIsAudioEnabled(false);
       setIsVideoEnabled(false);

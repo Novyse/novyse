@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Animated,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -33,6 +32,7 @@ const LOGIN_THEME = "default";
 export default function Signup() {
   const { isSmallScreen } = useScreen();
   const styles = createStyle(isSmallScreen);
+  const [captchaKey, setCaptchaKey] = useState(0);
   const {
     form,
     showPassword,
@@ -118,7 +118,7 @@ export default function Signup() {
                 />
                 {isLastStep && (
                   <>
-                    <TurnstileCaptcha onVerify={setCaptchaToken} />
+                    <TurnstileCaptcha key={captchaKey} onVerify={setCaptchaToken} />
                     <SignupCheckboxes
                       privacyAccepted={privacyAccepted}
                       tosAccepted={privacyAccepted}
@@ -151,7 +151,10 @@ export default function Signup() {
                     // In passkey mode at step 2, the main CTA becomes "Sign up with Passkey"
                     <WelcomeButton
                       disabled={!isPasskeyValid || isLoading}
-                      onPress={handlePasskeySignup}
+                      onPress={() => {
+                        handlePasskeySignup();
+                        setCaptchaKey((prev) => prev + 1);
+                      }}
                       type="submit"
                     >
                       {isLoading ? (
@@ -177,7 +180,12 @@ export default function Signup() {
                         (!isLastStep && isLoading) ||
                         (!isLastStep && currentStep === 1 && !validateStep(1))
                       }
-                      onPress={handleNext}
+                      onPress={() => {
+                        handleNext();
+                        if (currentStep === 2) {
+                          setCaptchaKey((prev) => prev + 1);
+                        }
+                      }}
                       type="submit"
                     >
                       {isLoading && isLastStep ? (

@@ -257,14 +257,11 @@ const gateway = {
      * @returns {Object} { success: boolean, data?: { uuid?: String, type?: [USER, CHAT], name?: String, surname?: String, handle?: String, profilePictureUUID?: String, chatType?: [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]} }
      */
     async handle(query, detailed = false) {
+      let response;
       if (detailed) {
-        response = await api.get(`/gather/handle?query=${query}`, {
-          skipAuth: true,
-        });
+        response = await api.get(`/gather/handle?query=${query}`);
       } else {
-        response = await api.get(`/gather/handle/essentials?query=${query}`, {
-          skipAuth: true,
-        });
+        response = await api.get(`/gather/handle/essentials?query=${query}`);
       }
       const success = response.data.success;
       if (success) {
