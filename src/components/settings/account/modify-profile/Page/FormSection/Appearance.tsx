@@ -33,7 +33,7 @@ export default function Appareance() {
           </View>
         </View>
         <View style={styles.infoContainer}>
-          <Icon name="UnavailableIcon" size={24} color="white" />
+          <Icon name="UnavailableIcon"  color="white" />
         </View>
       </View>
     </>

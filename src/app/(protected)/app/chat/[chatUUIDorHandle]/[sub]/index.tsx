@@ -251,6 +251,7 @@ const ChatPageRoute = () => {
           //@ts-ignore
           router.push("/app");
         }}
+        navToOverview={() => {router.push(`/app/chat/${chatUUIDorHandle}/overview`)}}
         isSmallScreen={isSmallScreen}
         onReply={handleBulkReply}
         onForward={() => {}}

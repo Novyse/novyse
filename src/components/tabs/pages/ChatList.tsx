@@ -157,7 +157,7 @@ const ChatList = () => {
         />
         <Icon
           name={"Search02Icon"}
-          size={24}
+          
           onPress={() => tabNavigator.navigate("Search")}
         />
       </BlurredHeader>
@@ -175,9 +175,9 @@ const ChatList = () => {
         }}
         commsHeader={commsHeaderComponent}
       >
-        <Icon name={"Cancel01Icon"} size={24} onPress={clearSelection} />
+        <Icon name={"Cancel01Icon"}  onPress={clearSelection} />
         <Text style={styles.headerTitle}>{selectedItems.length} selected</Text>
-        <Icon name={"PinIcon"} size={24} onPress={handlePinItems} />
+        <Icon name={"PinIcon"}  onPress={handlePinItems} />
       </BlurredHeader>
     ),
     [

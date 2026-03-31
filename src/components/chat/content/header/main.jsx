@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, Pressable } from "react-native";
 import { router } from "expo-router";
 
 import Icon from "@/src/components/Icon";
@@ -14,6 +14,7 @@ const MainHeader = ({
   contentView,
   setContentView,
   onBack = () => router.back(),
+  navToOverview,
   isSmallScreen,
 }) => {
   const { theme } = useContext(ThemeContext);
@@ -31,12 +32,12 @@ const MainHeader = ({
         />
       </View>
 
-      <View style={styles.headerCenter}>
-        <Avatar uuid={selectedChatPictureUUID} theme={theme} />
-        <Text style={styles.chatTitle} numberOfLines={1}>
-          {selectedChatName}
-        </Text>
-      </View>
+        <Pressable onPress={navToOverview} style={styles.headerCenter}>
+          <Avatar uuid={selectedChatPictureUUID} theme={theme} />
+          <Text style={styles.chatTitle} numberOfLines={1}>
+            {selectedChatName}
+          </Text>
+        </Pressable>
 
       <View style={styles.headerRight}>
         {contentView !== "chat" && (

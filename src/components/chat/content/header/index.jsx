@@ -23,6 +23,7 @@ const Header = ({
   selectedMessages,
   setSelectedMessages,
   onBack,
+  navToOverview,
   isSmallScreen,
   onReply,
   onForward,
@@ -65,6 +66,7 @@ const Header = ({
             contentView={contentView}
             setContentView={setContentView}
             onBack={onBack}
+            navToOverview={navToOverview}
             isSmallScreen={isSmallScreen}
           />
         )}

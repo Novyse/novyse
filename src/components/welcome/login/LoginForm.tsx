@@ -202,7 +202,7 @@ const LoginForm = ({
                     <Icon
                       name="FingerPrintIcon"
                       color={LoginColors[loginTheme].icon}
-                      size={24}
+                      
                     />
                     <WelcomeButtonText
                       label="Login with Passkey"

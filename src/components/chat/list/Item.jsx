@@ -101,7 +101,7 @@ const ChatListItem = React.memo(
         >
           {isSelected && (
             <View style={styles.selectionIndicator}>
-              <Icon name={"Tick02Icon"} size={24} />
+              <Icon name={"Tick02Icon"}  />
             </View>
           )}
           <Avatar uuid={displayPfp} theme={theme} style={styles.avatar} />

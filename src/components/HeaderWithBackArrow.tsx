@@ -22,7 +22,7 @@ const HeaderWithBackArrow = ({ title, onBack }: HeaderWithBackArrowProps) => {
           onPress={() => {
             onBack();
           }}
-          size={24}
+          
           style={styles.icon}
         />
       )}

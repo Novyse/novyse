@@ -14,7 +14,7 @@ const Button = ({ id, icon, title, subtitle, selected, onSelect, theme, disabled
       <View style={styles.cardIconContainer}>
         <Icon
           name={icon}
-          size={24}
+          
           color={selected === id ? "#FFFFFF" : "#8F90A6"}
         />
       </View>

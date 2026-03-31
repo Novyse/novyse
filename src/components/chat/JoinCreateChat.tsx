@@ -9,6 +9,7 @@ import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 
 import { useThemeContext } from "@/context/ThemeContext";
+import Icon from "@/src/components/Icon";
 
 interface JoinCreateChatProps {
   chat: any;
@@ -68,9 +69,9 @@ const JoinCreateChat = ({
           <Text style={styles.handle}>@{chat?.handle}</Text>
 
           <View style={styles.infoBox}>
-            <Ionicons
-              name="information-circle-outline"
-              size={24}
+            <Icon
+              name="InformationCircleIcon"
+              
               color={"white"}
             />
             <Text style={styles.infoText}>

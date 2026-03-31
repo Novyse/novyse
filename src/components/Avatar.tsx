@@ -94,7 +94,7 @@ const Avatar = ({
       {avatarImageContent}
       {isHovered && (
         <View style={styles.editIconContainer}>
-          <Icon name="PencilEdit02Icon" size={24} color={theme.text} />
+          <Icon name="PencilEdit02Icon"  color={theme.text} />
         </View>
       )}
     </HoverAndPressedButton>

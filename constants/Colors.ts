@@ -11,7 +11,7 @@ export const Colors = {
     placeholderText: "#c9c9c9ff",
     primary: "#4f8cff",
     text: "white",
-    subtitle2: "#5f5f5f",
+    subtitle2: "#bababa",
     textTime: "#c9d1d9",
     errorText: "#972323ff",
 

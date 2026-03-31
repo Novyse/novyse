@@ -26,7 +26,7 @@ const Dropzone = ({
   return (
     <View style={styles.container}>
       <View style={styles.uploadIconCircle}>
-        <Icon name="CloudUploadIcon" size={24} color={theme.text} />
+        <Icon name="CloudUploadIcon"  color={theme.text} />
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.note}>
