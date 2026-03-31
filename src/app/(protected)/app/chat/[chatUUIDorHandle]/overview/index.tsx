@@ -41,8 +41,6 @@ const ChatOverview = () => {
   const localUserUUID = useUserStore((state) => state.localUserUUID);
   const users = useUserStore((state) => state.users);
 
-  console.table(users);
-
   const dmUser = useMemo(() => {
     if (!isDM || !chat?.members) return null;
     const other = chat.members.find(
@@ -56,7 +54,7 @@ const ChatOverview = () => {
   const [selectedDMTab, setSelectedDMTab] = useState<DMTab>("media");
 
   const groupTabs: ToggleOption<GroupTab>[] = [
-    { value: "members", label: "Membri" },
+    { value: "members", label: "Members" },
     { value: "media", label: "Media" },
     { value: "files", label: "Files" },
     { value: "links", label: "Links" },
@@ -132,7 +130,7 @@ const ChatOverview = () => {
 
   const renderMembers = () => {
     if (!chat?.members || chat.members.length === 0) {
-      return <Text style={styles.emptyText}>Nessun membro trovato</Text>;
+      return <Text style={styles.emptyText}>No members found</Text>;
     }
 
     return (
@@ -145,7 +143,9 @@ const ChatOverview = () => {
             <Pressable
               key={mUUID || index}
               style={styles.memberItem}
-              onPress={() => {router.navigate(`/profile/${user.handle}`)}}
+              onPress={() => {
+                router.navigate(`/profile/${user.handle}`);
+              }}
             >
               {user.profilePictureUUID ? (
                 <Avatar
@@ -167,9 +167,9 @@ const ChatOverview = () => {
               )}
               <View style={styles.memberInfo}>
                 <Text style={styles.memberName}>
-                  {user.name || user.handle || "Membro"}
+                  {user.name || user.handle || "Member"}
                 </Text>
-                <Text style={styles.memberRole}>{member.role || "Membro"}</Text>
+                <Text style={styles.memberRole}>{member.role || "Member"}</Text>
               </View>
             </Pressable>
           );
@@ -183,7 +183,7 @@ const ChatOverview = () => {
       return (
         <View style={styles.emptyContainer}>
           <Icon name="Folder01Icon" size={48} color={theme.subtitle2} />
-          <Text style={styles.emptyText}>Nessun file condiviso ancora</Text>
+          <Text style={styles.emptyText}>No files shared yet</Text>
         </View>
       );
     }
