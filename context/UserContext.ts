@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { User } from "@/src/types";
 import database from "@/src/utils/storage/database";
-import auth from "@/src/utils/welcome/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface UserState {
   /** UUID of the logged-in user */
@@ -52,7 +52,7 @@ const useUserStore = create<UserState>((set, get) => ({
     }
 
     // Get local user UUID
-    const localUserUUID = await auth.getUserUUID();
+    const localUserUUID = await AsyncStorage.getItem("userUUID");
 
     set({
       users: usersMap,

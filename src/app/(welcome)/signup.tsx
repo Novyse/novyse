@@ -153,6 +153,7 @@ export default function Signup() {
                       disabled={!isPasskeyValid || isLoading}
                       onPress={() => {
                         handlePasskeySignup();
+                        setCaptchaToken(null);
                         setCaptchaKey((prev) => prev + 1);
                       }}
                       type="submit"
@@ -183,6 +184,7 @@ export default function Signup() {
                       onPress={() => {
                         handleNext();
                         if (currentStep === 2) {
+                          setCaptchaToken(null);
                           setCaptchaKey((prev) => prev + 1);
                         }
                       }}

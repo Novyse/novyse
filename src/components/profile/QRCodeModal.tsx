@@ -61,7 +61,7 @@ const QRCodeModal = ({
             logoBackgroundColor={"#fff"}
           />
           <Text style={styles.usernameText}>
-            @{username.toLocaleUpperCase()}
+            @{username ? username.toLocaleUpperCase() : ""}
           </Text>
         </View>
 

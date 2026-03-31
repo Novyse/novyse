@@ -1,10 +1,5 @@
-import {
-  OpaqueClient,
-  getOpaqueConfig,
-  OpaqueID,
-  RegistrationResponse,
-} from "@cloudflare/opaque-ts";
-import { authApi } from "../../config";
+import * as opaqueLib from "react-native-opaque";
+import { authApi, OPAQUE_SERVER_IDENTITY } from "../../config";
 import { getAuthToken } from "../token-manager";
 
 const API_PATH = `/auth/settings/opaque`;
@@ -34,52 +29,43 @@ export const opaque = {
   async setup(password: string) {
     try {
       const token = await getAuthToken();
-      const cfg = getOpaqueConfig(OpaqueID.OPAQUE_P256);
-      const client = new OpaqueClient(cfg);
+      await opaqueLib.ready;
 
-      // 1. Init
-      const registrationRequest = await client.registerInit(password);
-      if (registrationRequest instanceof Error) throw registrationRequest;
+      // 1. Start Registration
+      const { clientRegistrationState, registrationRequest } =
+        opaqueLib.client.startRegistration({
+          password,
+        });
 
-      const registrationRequestBase64 = btoa(
-        String.fromCharCode(...registrationRequest.serialize()),
-      );
-
-      // 2. Challenge
+      // 2. Send Registration Request (Challenge)
       const challengeRes = await authApi.post(
         `${API_PATH}/setup/challenge`,
-        { registrationRequest: registrationRequestBase64 },
+        { registrationRequest },
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
 
-      const registrationResponseBytes = new Uint8Array(
-        atob(challengeRes.data.registrationResponse)
-          .split("")
-          .map((c) => c.charCodeAt(0)),
-      );
+      const registrationResponse = challengeRes.data.registrationResponse;
 
-      const opaqueRegistrationResponse = RegistrationResponse.deserialize(
-        cfg,
-        Array.from(registrationResponseBytes),
-      );
+      if (!registrationResponse) {
+        throw new Error("Registration response missing from server");
+      }
 
-      // 3. Finish
-      const registrationFinish = await client.registerFinish(
-        opaqueRegistrationResponse,
-        "novyse-auth-service",
-      );
-      if (registrationFinish instanceof Error) throw registrationFinish;
+      // 3. Finish Registration
+      const { registrationRecord } = opaqueLib.client.finishRegistration({
+        password,
+        clientRegistrationState,
+        registrationResponse,
+        identifiers: {
+          server: OPAQUE_SERVER_IDENTITY,
+        },
+      });
 
-      const registrationRecordBase64 = btoa(
-        String.fromCharCode(...registrationFinish.record.serialize()),
-      );
-
-      // 4. Complete
+      // 4. Complete Registration on Server
       const completeRes = await authApi.post(
         `${API_PATH}/setup/complete`,
-        { registrationRecord: registrationRecordBase64 },
+        { registrationRecord },
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -87,6 +73,7 @@ export const opaque = {
 
       return { success: true, data: completeRes.data };
     } catch (error: any) {
+      console.error("Settings OPAQUE setup error:", error);
       return {
         success: false,
         error: error.response?.data?.message || error.message,

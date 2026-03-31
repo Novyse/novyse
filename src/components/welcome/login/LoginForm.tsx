@@ -67,6 +67,7 @@ const LoginForm = ({
 
   const handleSubmit = () => {
     onLogin(username, password, captchaToken!);
+    setCaptchaToken(null);
     setCaptchaKey((prev) => prev + 1);
   };
 
@@ -193,6 +194,7 @@ const LoginForm = ({
                 <WelcomeButton
                   onPress={() => {
                     onLoginWithPasskey(captchaToken!);
+                    setCaptchaToken(null);
                     setCaptchaKey((prev) => prev + 1);
                   }}
                   disabled={isLoading || !captchaToken}

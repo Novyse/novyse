@@ -1,84 +1,77 @@
-import {
-  OpaqueClient,
-  getOpaqueConfig,
-  OpaqueID,
-  RegistrationResponse,
-} from "@cloudflare/opaque-ts";
-import { authApi } from "../../config";
+import * as opaque from "react-native-opaque";
+import { authApi, OPAQUE_SERVER_IDENTITY } from "../../config";
 
 const API_PATH = "/auth/signup/opaque";
-
 
 export async function signUpOpaque(
   username: string,
   password: string,
   name: string,
-  gdpr: { tos: boolean; privacy: boolean, isOver16: boolean },
+  gdpr: { tos: boolean; privacy: boolean; isOver16: boolean },
   turnstileToken: string,
 ) {
   try {
-    const cfg = getOpaqueConfig(OpaqueID.OPAQUE_P256);
-    const client = new OpaqueClient(cfg);
+    await opaque.ready;
 
-    const registrationRequest = await client.registerInit(password);
-    if (registrationRequest instanceof Error) throw registrationRequest;
+    // 1. Start Registration
+    const { clientRegistrationState, registrationRequest } =
+      opaque.client.startRegistration({
+        password,
+      });
 
-    const registrationRequestBytes = Uint8Array.from(
-      registrationRequest.serialize(),
+    // 2. Send Registration Request to Server (Challenge)
+    const challengeRes = await authApi.post(
+      `${API_PATH}/challenge`,
+      {
+        username,
+        registrationRequest,
+        turnstileToken,
+      },
+      {
+        withCredentials: true,
+      },
     );
-
-    const challengeRes = await authApi.post(`${API_PATH}/challenge`, {
-      username,
-      registrationRequest: btoa(
-        String.fromCharCode(...registrationRequestBytes),
-      ),
-      turnstileToken,
-    }, {
-      withCredentials: true,
-    });
 
     const challengeData = challengeRes.data;
     const signupId = challengeData.signupId;
+    const registrationResponse = challengeData.registrationResponse;
 
-    const registrationResponseBytes = new Uint8Array(
-      atob(challengeData.registrationResponse)
-        .split("")
-        .map((c) => c.charCodeAt(0)),
-    );
+    if (!registrationResponse) {
+      throw new Error("Registration response missing from server");
+    }
 
-    const opaqueRegistrationResponse = RegistrationResponse.deserialize(
-      cfg,
-      Array.from(registrationResponseBytes),
-    );
-
-    const registrationFinish = await client.registerFinish(
-      opaqueRegistrationResponse,
-      "novyse-auth-service",
-    );
-    if (registrationFinish instanceof Error) throw registrationFinish;
-
-    const registrationRecordBytes = Uint8Array.from(
-      registrationFinish.record.serialize(),
-    );
-
-    const completeRes = await authApi.post(`${API_PATH}/complete`, {
-      signupId,
-      username,
-      name,
-      registrationRecord: btoa(
-        String.fromCharCode(...registrationRecordBytes),
-      ),
-      privacyPolicyAccepted: gdpr.privacy,
-      termsOfServiceAccepted: gdpr.tos,
-      isOver16: gdpr.isOver16,
-    }, {
-      withCredentials: true,
+    // 3. Finish Registration
+    const { registrationRecord } = opaque.client.finishRegistration({
+      password,
+      clientRegistrationState,
+      registrationResponse,
+      identifiers: {
+        server: OPAQUE_SERVER_IDENTITY,
+      },
     });
+
+    // 4. Complete Registration on Server
+    const completeRes = await authApi.post(
+      `${API_PATH}/complete`,
+      {
+        signupId,
+        username,
+        name,
+        registrationRecord,
+        privacyPolicyAccepted: gdpr.privacy,
+        termsOfServiceAccepted: gdpr.tos,
+        isOver16: gdpr.isOver16,
+      },
+      {
+        withCredentials: true,
+      },
+    );
 
     const completeData = completeRes.data;
 
     return { success: true, data: completeData };
   } catch (err: any) {
+    console.error("Signup OPAQUE error:", err);
     return { success: false, error: err.message };
   }
 }

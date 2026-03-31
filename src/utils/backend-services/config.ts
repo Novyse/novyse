@@ -3,6 +3,9 @@ import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { BRANCH, API_BASE_URL } from "../../../app.config";
 
+// Opaque specific
+export const OPAQUE_SERVER_IDENTITY = "novyse-auth-service";
+
 export const API_LINK = API_BASE_URL + "/" + BRANCH;
 
 export const authApi = axios.create({

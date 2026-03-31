@@ -104,9 +104,6 @@ export default {
         "WAKE_LOCK",
       ],
       googleServicesFile: "./google-services.json",
-      gradleProperties: {
-        "android.packagingOptions.pickFirsts": "**/libcrypto.so",
-      },//@SamueleOrazioDurante da rimuovere dopo aver messo il nuovo serenity kit
     },
     web: {
       bundler: "metro",

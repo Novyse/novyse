@@ -9,7 +9,7 @@ import { LoginColors } from "@/constants/LoginColors";
 import { validate } from "@/src/utils/welcome/validator";
 import Icon from "@/src/components/Icon";
 import TextLink from "@/src/components/TextLink";
-import ToggleSelector from "@/src/components/ToggleSelector";
+import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
 
 const PASSWORD_REQUIREMENTS = [
   { label: "At least 8 characters", check: (p: string) => p.length >= 8 },
@@ -340,7 +340,7 @@ export default function SignupStepField({
                 <Text style={styles.opaqueLinkText}>Secured by </Text>
                 <TextLink
                   style={styles.opaqueLinkTextBold}
-                  href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
+                  href="https://opaque-auth.com/"
                 >
                   OPAQUE
                 </TextLink>
