@@ -9,6 +9,9 @@ import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 
 import messageUtils from "@/src/utils/chat/message";
 import notificationManager from "@/src/utils/notifications/NotificationManager";
+import useUserStore from "@/context/UserContext";
+import useChatStore from "@/context/ChatContext";
+import { useActiveChatStore } from "@/context/ActiveChatContext";
 
 /**
  * Check if the user is logged in by verifying local session markers.
@@ -171,6 +174,11 @@ const logout = async () => {
       console.error("Error clearing mobile session:", error);
     }
   }
+
+  // Clear every context/store
+  useUserStore.getState().clear();
+  useChatStore.getState().clear();
+  useActiveChatStore.getState().clear();
 };
 
 const updateDatabase = async () => {

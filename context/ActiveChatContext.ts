@@ -55,7 +55,7 @@ export interface ActiveChatState extends ChatUIState {
 
   setSelectedChatUUID: (uuid: string | null) => Promise<void>;
   setSelectedHandle: (handle: string | null) => Promise<void>;
-  reset: () => void;
+  clear: () => void;
 }
 
 export const useActiveChatStore = create<ActiveChatState>((set, get) => {
@@ -318,7 +318,7 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
       }
     },
 
-    reset: () => {
+    clear: () => {
       const { saveCurrentUIState } = get();
       saveCurrentUIState();
       set({

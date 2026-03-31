@@ -40,6 +40,7 @@ interface ChatState {
     action: string;
     data: any;
   }) => void;
+  clear: () => void;
 }
 
 const CHUNK_SIZE = 50;
@@ -614,6 +615,18 @@ const useChatStore = create<ChatState>((set, get) => ({
         };
       });
     }
+  },
+
+  clear: () => {
+    set({
+      chats: [],
+      pinnedChats: [],
+      loading: false,
+      loadingMessages: {},
+      hasMore: {},
+      historyLoaded: {},
+      _eventsSetup: false,
+    });
   },
 }));
 

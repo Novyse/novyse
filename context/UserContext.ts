@@ -19,6 +19,7 @@ interface UserState {
   onProfileUpdate: (data: Partial<User> & { userUUID: string }) => void;
   onNewChat: (data: { chat: any; users: User[] }) => void;
   onNewMember: (data: { chatUUID: string; user: User }) => void;
+  clear: () => void;
 }
 
 const mapRawToUser = (raw: any): User => ({
@@ -119,6 +120,15 @@ const useUserStore = create<UserState>((set, get) => ({
     set((state) => ({
       users: { ...state.users, [mappedUser.uuid]: mappedUser },
     }));
+  },
+
+  clear: () => {
+    set({
+      localUserUUID: "",
+      users: {},
+      loading: false,
+      _eventsSetup: false,
+    });
   },
 }));
 
