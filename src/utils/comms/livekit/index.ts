@@ -8,6 +8,9 @@ export const connectToLiveKit = async (url: string, token: string) => {
     // optimize publishing bandwidth and CPU for published tracks
     dynacast: true,
 
+    // fix web playback issues
+    webAudioMix: true,
+
     // default publish settings
     publishDefaults: {
       audioPreset: {
