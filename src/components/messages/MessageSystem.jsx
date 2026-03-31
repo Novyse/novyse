@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useContext } from "react";
+import { Text, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
+import useUserStore from "@/context/UserContext";
 import BlurredView from "../BlurredView";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
@@ -8,18 +9,12 @@ import messageUtils from "@/src/utils/chat/messageFormat";
 const MessageSystem = ({ type, data }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
-  // Used to calculate system message text
-  const [systemText, setSystemText] = useState("");
 
-  useEffect(() => {
-    if (type === "system") {
-      const loadSystemText = async () => {
-        const text = messageUtils.getSystemMessageText(data);
-        setSystemText(text);
-      };
-      loadSystemText();
-    }
-  }, [type, data]);
+  // trigger re-renders when user data changes
+  useUserStore((state) => state.users[data?.content]);
+
+  const systemText =
+    type === "system" ? messageUtils.getSystemMessageText(data) : "";
 
   const renderPill = (content) => (
     <BlurredView
@@ -55,7 +50,7 @@ const createStyles = (theme) => {
       color: theme.text,
       fontSize: 12,
       fontWeight: "600",
-      textAlign: "center"
+      textAlign: "center",
     },
   });
 };

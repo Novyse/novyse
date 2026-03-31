@@ -3,13 +3,14 @@ import { View, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
+import useUserStore from "@/context/UserContext";
 import messageUtils from "@/src/utils/chat/messageFormat";
 
 interface Message {
   id: string | number;
   sender_name?: string;
   senderUUID?: string;
-  [key: string]: any; 
+  [key: string]: any;
 }
 
 interface ReplyItemProps {
@@ -20,14 +21,13 @@ interface ReplyItemProps {
 const ReplyItem: React.FC<ReplyItemProps> = ({ message, onCancel }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
-  const [content, setContent] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (message) {
-      const formatted = messageUtils.format(message);
-      setContent(formatted.content);
-    }
-  }, [message]);
+  const relevantUUID =
+    message?.type === "system" ? message?.content : message?.senderUUID;
+  // Trigger re-renders
+  useUserStore((state) => state.users[relevantUUID]);
+
+  const content = message ? messageUtils.format(message).content : null;
 
   return (
     <View style={styles.actionContainer}>

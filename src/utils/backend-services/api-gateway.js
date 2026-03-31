@@ -188,7 +188,7 @@ const gateway = {
          * @param {String} description
          * @returns {Object} { success: boolean }
          */
-        async all(name, surname, description) {
+        async all(name = "", surname = "", description = "") {
           const response = await api.patch("/user/profile", {
             name,
             surname,

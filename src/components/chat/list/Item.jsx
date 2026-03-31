@@ -47,6 +47,12 @@ const ChatListItem = React.memo(
         ? item.messages[item.messages.length - 1]
         : item.lastMessage || null;
 
+    const relevantUUID =
+      lastMessage?.type === "system"
+        ? lastMessage?.content
+        : lastMessage?.senderUUID;
+    const relevantUser = useUserStore((state) => state.users[relevantUUID]);
+
     const displayMessage = (message) => {
       if (!message) return null;
 
@@ -63,7 +69,7 @@ const ChatListItem = React.memo(
       } else if (message.senderUUID === localUserUUID) {
         sender = "You: ";
       } else if (message.senderUUID) {
-        sender = `${useUserStore.getState().getUser(message.senderUUID)?.name}: `;
+        sender = `${relevantUser?.name || "Unknown"}: `;
       } else {
         sender = "Unknown: ";
       }
