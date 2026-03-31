@@ -146,9 +146,6 @@ export const CommsProvider = ({ children }) => {
             .play()
             .catch((err) => console.error("Errore riproduzione audio:", err));
           audioElementsRef.current.set(publication.trackSid, audioEl);
-        } else {
-          // Mobile: attach audio track
-          track.attach();
         }
       }
       // Add video streams to state
@@ -186,9 +183,6 @@ export const CommsProvider = ({ children }) => {
             audioEl.remove();
             audioElementsRef.current.delete(publication.trackSid);
           }
-        } else {
-          // Mobile: detach audio track
-          track.detach();
         }
       }
       // Remove streams from state
