@@ -21,6 +21,9 @@ import Search from "@/src/components/tabs/pages/Search";
 const Tab = createBottomTabNavigator();
 
 let globalNavState: any = undefined;
+export const resetGlobalNavState = () => {
+  globalNavState = undefined;
+};
 
 export default function TabNavigator({ isDetailOpen }: { isDetailOpen?: boolean }) {
   const { theme } = useThemeContext();

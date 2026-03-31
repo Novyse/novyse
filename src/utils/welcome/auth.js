@@ -12,6 +12,7 @@ import notificationManager from "@/src/utils/notifications/NotificationManager";
 import useUserStore from "@/context/UserContext";
 import useChatStore from "@/context/ChatContext";
 import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { resetGlobalNavState } from "@/src/components/tabs/TabNavigator";
 
 /**
  * Check if the user is logged in by verifying local session markers.
@@ -179,6 +180,7 @@ const logout = async () => {
   useUserStore.getState().clear();
   useChatStore.getState().clear();
   useActiveChatStore.getState().clear();
+  resetGlobalNavState();
 };
 
 const updateDatabase = async () => {
