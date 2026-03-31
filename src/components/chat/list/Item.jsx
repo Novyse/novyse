@@ -58,12 +58,12 @@ const ChatListItem = React.memo(
 
       if (isDraft) {
         sender = "Draft: ";
+      } else if (message.type === "system") {
+        sender = "";
       } else if (message.senderUUID === localUserUUID) {
         sender = "You: ";
       } else if (message.senderUUID) {
         sender = `${useUserStore.getState().getUser(message.senderUUID)?.name}: `;
-      } else if (message.type === "system") {
-        sender = "";
       } else {
         sender = "Unknown: ";
       }
@@ -101,7 +101,7 @@ const ChatListItem = React.memo(
         >
           {isSelected && (
             <View style={styles.selectionIndicator}>
-              <Icon name={"Tick02Icon"}  />
+              <Icon name={"Tick02Icon"} />
             </View>
           )}
           <Avatar uuid={displayPfp} theme={theme} style={styles.avatar} />
