@@ -135,16 +135,21 @@ export const CommsProvider = ({ children }) => {
     };
 
     const handleTrackSubscribed = (track, publication, participant) => {
-      if (Platform.OS === "web" && track.kind === "audio") {
-        const audioEl = document.createElement("audio");
-        audioEl.srcObject = track.mediaStream;
-        audioEl.autoplay = true;
-        audioEl.volume = 1;
-        document.body.appendChild(audioEl);
-        audioEl
-          .play()
-          .catch((err) => console.error("Errore riproduzione audio:", err));
-        audioElementsRef.current.set(publication.trackSid, audioEl);
+      if (track.kind === "audio") {
+        if (Platform.OS === "web") {
+          const audioEl = document.createElement("audio");
+          audioEl.srcObject = track.mediaStream;
+          audioEl.autoplay = true;
+          audioEl.volume = 1;
+          document.body.appendChild(audioEl);
+          audioEl
+            .play()
+            .catch((err) => console.error("Errore riproduzione audio:", err));
+          audioElementsRef.current.set(publication.trackSid, audioEl);
+        } else {
+          // Mobile: attach audio track
+          track.attach();
+        }
       }
       // Add video streams to state
       if (
@@ -174,11 +179,16 @@ export const CommsProvider = ({ children }) => {
     };
 
     const handleTrackUnsubscribed = (track, publication, participant) => {
-      if (Platform.OS === "web" && track.kind === "audio") {
-        const audioEl = audioElementsRef.current.get(publication.trackSid);
-        if (audioEl) {
-          audioEl.remove();
-          audioElementsRef.current.delete(publication.trackSid);
+      if (track.kind === "audio") {
+        if (Platform.OS === "web") {
+          const audioEl = audioElementsRef.current.get(publication.trackSid);
+          if (audioEl) {
+            audioEl.remove();
+            audioElementsRef.current.delete(publication.trackSid);
+          }
+        } else {
+          // Mobile: detach audio track
+          track.detach();
         }
       }
       // Remove streams from state
@@ -278,20 +288,28 @@ export const CommsProvider = ({ children }) => {
     // Initialize existing tracks
     Array.from(room.remoteParticipants.values()).forEach((participant) => {
       participant.getTrackPublications().forEach((publication) => {
-        if (publication.kind === "video" && publication.track) {
-          const stream = new MediaStream([publication.track.mediaStreamTrack]);
-          const key =
-            publication.source === Track.Source.Camera
-              ? participant.identity
-              : publication.trackSid;
-          if (
-            publication.source === Track.Source.Camera &&
-            publication.track.isMuted
-          ) {
-            setMutedStreams((prev) => ({ ...prev, [key]: stream }));
-          } else {
-            setStreams((prev) => ({ ...prev, [key]: stream }));
+        if (publication.track) {
+          if (publication.kind === "video") {
+            const stream = new MediaStream([
+              publication.track.mediaStreamTrack,
+            ]);
+            const key =
+              publication.source === Track.Source.Camera
+                ? participant.identity
+                : publication.trackSid;
+            if (
+              publication.source === Track.Source.Camera &&
+              publication.track.isMuted
+            ) {
+              setMutedStreams((prev) => ({ ...prev, [key]: stream }));
+            } else {
+              setStreams((prev) => ({ ...prev, [key]: stream }));
+            }
+          } else if (publication.kind === "audio") {
+            // Handle existing audio tracks
+            handleTrackSubscribed(publication.track, publication, participant);
           }
+
           // Add listeners
           publication.on("muted", () =>
             handleTrackMuted(publication, participant),
