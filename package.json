@@ -10,7 +10,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "postinstall": "sed -i 's/CMAKE_CXX_STANDARD 11/CMAKE_CXX_STANDARD 20/' node_modules/react-native-opaque/android/CMakeLists.txt"
   },
   "jest": {
     "preset": "jest-expo"
