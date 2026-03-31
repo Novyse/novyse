@@ -162,7 +162,7 @@ const VideoContent = memo(
             <RTCView
               key={streamUUID}
               streamURL={stream.toURL()}
-              style={[styles.videoStream, { objectFit: "cover" }]}
+              style={[styles.videoStream, { objectFit: "contain" }]}
               muted={isLocal}
             />
           ) : (
@@ -171,7 +171,7 @@ const VideoContent = memo(
               autoPlay
               muted={isLocal}
               playsInline
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
             />
           )
         ) : (
