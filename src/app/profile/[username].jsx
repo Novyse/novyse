@@ -115,11 +115,10 @@ const createStyle = (theme) =>
     profileContainer: {
       flex: 1,
       position: "relative",
-      borderRadius: 15,
       overflow: "hidden",
       backgroundColor: theme.backgroundMainGradient[0],
-      margin: 10,
-      width: "50%",
+      width:"100%",
+      maxWidth: 1024,
       alignSelf: "center",
     },
   });

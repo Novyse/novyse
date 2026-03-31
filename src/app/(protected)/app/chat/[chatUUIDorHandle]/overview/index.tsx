@@ -1,10 +1,16 @@
 import React, { useState, useContext, useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { Image } from "expo-image";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Pressable,
+} from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import { useActiveChatStore } from "@/context/ActiveChatContext";
+import useUserStore from "@/context/UserContext";
 import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
 import Icon from "@/src/components/Icon";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
@@ -31,6 +37,20 @@ const ChatOverview = () => {
   );
 
   const isDM = chat?.type === "DM";
+
+  const localUserUUID = useUserStore((state) => state.localUserUUID);
+  const users = useUserStore((state) => state.users);
+
+  console.table(users);
+
+  const dmUser = useMemo(() => {
+    if (!isDM || !chat?.members) return null;
+    const other = chat.members.find(
+      (m: any) => (m.uuid || m.userUUID) !== localUserUUID,
+    );
+    const targetId = other?.uuid || other?.userUUID;
+    return targetId ? users[targetId] || other : null;
+  }, [isDM, chat?.members, localUserUUID, users]);
 
   const [selectedGroupTab, setSelectedGroupTab] = useState<GroupTab>("members");
   const [selectedDMTab, setSelectedDMTab] = useState<DMTab>("media");
@@ -68,70 +88,47 @@ const ChatOverview = () => {
       .flatMap((msg: any) => msg.files);
   }, [chat?.messages]);
 
-  const renderDMUserInfo = () => (
-    <View style={styles.dmInfoContainer}>
-      {/* Placeholder: sostituire con i dati reali dell'utente */}
-      <View style={styles.dmInfoRow}>
-        <View
-          style={[
-            styles.dmInfoIconContainer,
-            { backgroundColor: theme.primary + "15" },
-          ]}
-        >
-          <Icon name="UserIcon" color={theme.primary} />
-        </View>
-        <View style={styles.dmInfoContent}>
-          <Text style={styles.dmInfoLabel}>Username</Text>
-          <Text style={styles.dmInfoValue}>@placeholder_handle</Text>
-        </View>
-      </View>
+  const renderDMUserInfo = () => {
+    if (!dmUser) return null;
 
-      <View style={styles.dmInfoRow}>
-        <View
-          style={[
-            styles.dmInfoIconContainer,
-            { backgroundColor: theme.primary + "15" },
-          ]}
-        >
-          <Icon name="SmartphoneIcon" color={theme.primary} />
+    return (
+      <View style={styles.dmInfoContainer}>
+        <View style={styles.dmInfoRow}>
+          <View
+            style={[
+              styles.dmInfoIconContainer,
+              { backgroundColor: theme.primary + "15" },
+            ]}
+          >
+            <Icon name="UserIcon" color={theme.primary} />
+          </View>
+          <View style={styles.dmInfoContent}>
+            <Text style={styles.dmInfoLabel}>Username</Text>
+            <Text style={styles.dmInfoValue}>
+              {dmUser.handle ? `@${dmUser.handle}` : "Non specificato"}
+            </Text>
+          </View>
         </View>
-        <View style={styles.dmInfoContent}>
-          <Text style={styles.dmInfoLabel}>Telefono</Text>
-          <Text style={styles.dmInfoValue}>+00 000 000 0000</Text>
-        </View>
-      </View>
 
-      <View style={styles.dmInfoRow}>
-        <View
-          style={[
-            styles.dmInfoIconContainer,
-            { backgroundColor: theme.primary + "15" },
-          ]}
-        >
-          <Icon name="Mail01Icon" color={theme.primary} />
-        </View>
-        <View style={styles.dmInfoContent}>
-          <Text style={styles.dmInfoLabel}>Email</Text>
-          <Text style={styles.dmInfoValue}>placeholder@email.com</Text>
-        </View>
-      </View>
-
-      <View style={[styles.dmInfoRow, { borderBottomWidth: 0 }]}>
-        <View
-          style={[
-            styles.dmInfoIconContainer,
-            { backgroundColor: theme.primary + "15" },
-          ]}
-        >
-          <Icon name="InformationCircleIcon" color={theme.primary} />
-        </View>
-        <View style={styles.dmInfoContent}>
-          <Text style={styles.dmInfoLabel}>Bio</Text>
-          <Text style={styles.dmInfoValue}>Placeholder bio dell'utente...</Text>
+        <View style={[styles.dmInfoRow, { borderBottomWidth: 0 }]}>
+          <View
+            style={[
+              styles.dmInfoIconContainer,
+              { backgroundColor: theme.primary + "15" },
+            ]}
+          >
+            <Icon name="InformationCircleIcon" color={theme.primary} />
+          </View>
+          <View style={styles.dmInfoContent}>
+            <Text style={styles.dmInfoLabel}>Description</Text>
+            <Text style={styles.dmInfoValue}>
+              {dmUser.description || "No description yet"}
+            </Text>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderMembers = () => {
     if (!chat?.members || chat.members.length === 0) {
@@ -140,33 +137,43 @@ const ChatOverview = () => {
 
     return (
       <View style={styles.listContainer}>
-        {chat.members.map((member: any, index: number) => (
-          <View key={member.id || index} style={styles.memberItem}>
-            {member.profilePictureUUID ? (
-              <Image
-                source={{ uri: member.profilePictureUUID }}
-                style={styles.memberAvatar}
-              />
-            ) : (
-              <View
-                style={[
-                  styles.memberAvatar,
-                  { backgroundColor: theme.primary + "33" },
-                ]}
-              >
-                <Text style={{ color: theme.primary, fontWeight: "600" }}>
-                  {(member.name || member.handle || "?")[0].toUpperCase()}
+        {chat.members.map((member: any, index: number) => {
+          const mUUID = member.uuid || member.userUUID;
+          const user = mUUID ? users[mUUID] || member : member;
+
+          return (
+            <Pressable
+              key={mUUID || index}
+              style={styles.memberItem}
+              onPress={() => {router.navigate(`/profile/${user.handle}`)}}
+            >
+              {user.profilePictureUUID ? (
+                <Avatar
+                  uuid={user.profilePictureUUID || undefined}
+                  theme={theme}
+                  style={styles.memberAvatar}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.memberAvatar,
+                    { backgroundColor: theme.primary + "33" },
+                  ]}
+                >
+                  <Text style={{ color: theme.primary, fontWeight: "600" }}>
+                    {(user.name || user.handle || "?")[0].toUpperCase()}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.memberInfo}>
+                <Text style={styles.memberName}>
+                  {user.name || user.handle || "Membro"}
                 </Text>
+                <Text style={styles.memberRole}>{member.role || "Membro"}</Text>
               </View>
-            )}
-            <View style={styles.memberInfo}>
-              <Text style={styles.memberName}>
-                {member.name || member.handle || "Membro"}
-              </Text>
-              <Text style={styles.memberRole}>{member.role || "Membro"}</Text>
-            </View>
-          </View>
-        ))}
+            </Pressable>
+          );
+        })}
       </View>
     );
   };
@@ -274,7 +281,11 @@ const ChatOverview = () => {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => {}}
+            disabled
+          >
             <View
               style={[
                 styles.actionIconContainer,
@@ -282,7 +293,7 @@ const ChatOverview = () => {
               ]}
             >
               <Icon
-                name={isDM ? "BlockIcon" : "Logout01Icon"}
+                name={isDM ? "UnavailableIcon" : "Logout01Icon"}
                 color="#FF4D4D"
               />
             </View>
