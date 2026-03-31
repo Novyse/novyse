@@ -5,7 +5,15 @@ import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "../Icon";
 import { DateTime } from "luxon";
 
-const MessageTimestamp = ({ time }) => {
+const MessageTimestamp = ({
+  time,
+  sent = false,
+  receivedByAll = false,
+  isEdited = false,
+  isPendingEdit = false,
+  isPinned = false,
+  replyCount = 0,
+}) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
   const [isHovered, setIsHovered] = useState(false);
@@ -52,16 +60,22 @@ const MessageTimestamp = ({ time }) => {
     setIsHovered(false);
   };
 
-  if (parseTime(time) === "") {
+  if (!isPendingEdit && parseTime(time) === "") {
     return (
       <View style={styles.alignContainer}>
-        <Icon name={"Clock01Icon"} size={14} />
+        {(isEdited || isPendingEdit) && (
+          <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
+        )}
+        {replyCount > 0 && (
+          <Icon name={"ArrowMoveUpLeftIcon"} size={14} color={theme.textTime} />
+        )}
+        <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
       </View>
     );
   }
 
   const tooltip =
-    Platform.OS === "web" && isHovered ? (
+    Platform.OS === "web" && isHovered && !isPendingEdit ? (
       <View
         style={[
           styles.tooltip,
@@ -74,24 +88,50 @@ const MessageTimestamp = ({ time }) => {
 
   return (
     <View style={styles.alignContainer}>
-      {Platform.OS === "web" ? (
-        <View
-          ref={timeRef}
-          style={styles.timeContainer}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
-          <Text style={styles.timeText} selectable={false}>
-            {parseTime(time)}
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.timeContainer}>
-          <Text style={styles.timeText} selectable={false}>
-            {parseTime(time)}
-          </Text>
-        </View>
-      )}
+      <View style={styles.iconContainer}>
+        {isPinned && <Icon name={"PinIcon"} size={14} color={theme.textTime} />}
+        {(isEdited || isPendingEdit) && (
+          <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
+        )}
+        {isPendingEdit && (
+          <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
+        )}
+        {sent && !isPendingEdit && (
+          <Icon name={"Tick01Icon"} size={14} color={theme.textTime} />
+        )}
+        {receivedByAll && !isPendingEdit && (
+          <Icon name={"TickDouble01Icon"} size={14} color={theme.textTime} />
+        )}
+        {replyCount > 0 && !isPendingEdit && (
+          <>
+            <Icon
+              name={"ArrowMoveUpLeftIcon"}
+              size={14}
+              color={theme.textTime}
+            />
+            <Text style={styles.replyCountText}>{replyCount}</Text>
+          </>
+        )}
+      </View>
+      {!isPendingEdit &&
+        (Platform.OS === "web" ? (
+          <View
+            ref={timeRef}
+            style={styles.timeContainer}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            <Text style={styles.timeText} selectable={false}>
+              {parseTime(time)}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.timeContainer}>
+            <Text style={styles.timeText} selectable={false}>
+              {parseTime(time)}
+            </Text>
+          </View>
+        ))}
       {Platform.OS === "web" && createPortal(tooltip, document.body)}
     </View>
   );
@@ -104,24 +144,39 @@ const createStyle = (theme) =>
       textAlign: "right",
       fontSize: 12,
       minWidth: 35,
-      padding: 8
+    },
+    replyCountText: {
+      color: theme.textTime,
+      textAlign: "right",
+      fontSize: 12,
+      paddingLeft: 2
     },
     alignContainer: {
       alignSelf: "flex-end",
       marginLeft: 10,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+      paddingHorizontal: 10,
+      paddingVertical: 10,
     },
     timeContainer: {
       position: "relative",
+    },
+    iconContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
     },
     tooltip: {
       position: "fixed",
       backgroundColor: theme.background || "#333",
       padding: 10,
-      borderRadius: 6,
+      borderRadius: 5,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.8,
-      shadowRadius: 4,
+      shadowRadius: 5,
       elevation: 5,
       zIndex: 1000,
       minWidth: 150,

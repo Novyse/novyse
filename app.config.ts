@@ -1,0 +1,189 @@
+//.ENV
+const APP_NAME = "Novyse"; // Novyse-dev Novyse
+const APP_NAME_LOWERCASE = "novyse";
+const APP_SLUG = "novyse";
+const APP_VERSION = "0.9.1";
+const BUILD_NUMBER = "1";
+const BUILD_DATE = "2026/01/28 12:13:00";
+const EXPO_OWNER = "novyse";
+const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
+const API_BASE_URL = "https://api.novyse.com";
+const SOCKET_BASE_URL = "wss://io.novyse.com";
+const BRANCH = "development" as "development" | "preview" | "production";
+const APP_URL =
+  BRANCH === "development" ? "http://localhost:8081" : "https://web.novyse.com";
+const TINY_APP_URL = "https://vyse.me";
+const LANDING_PAGE_URL = "https://www.novyse.com";
+const PRIVACY_POLICY_URL = LANDING_PAGE_URL + "/legal/privacy-policy";
+const TOS_URL = LANDING_PAGE_URL + "/legal/terms-of-service";
+const CLOUDFLARE_TURNSTILE_PUBLIC = "0x4AAAAAACvBX17HadrEqUCS";
+//.ENV
+
+export {
+  BRANCH,
+  API_BASE_URL,
+  SOCKET_BASE_URL,
+  APP_VERSION,
+  BUILD_NUMBER,
+  BUILD_DATE,
+  APP_URL,
+  TINY_APP_URL,
+  LANDING_PAGE_URL,
+  PRIVACY_POLICY_URL,
+  TOS_URL,
+  CLOUDFLARE_TURNSTILE_PUBLIC,
+};
+
+// Genera suffisso per dev mode
+const getDevSuffix = () => {
+  const branch = BRANCH || "main";
+  if (branch === "development") return ".dev";
+  if (branch === "preview") return ".preview";
+  return "";
+};
+
+// Genera il percorso base delle immagini in base al BRANCH
+const getImagePath = (imageName: String | undefined = undefined) => {
+  const branch = BRANCH || "main";
+  const name = imageName ? `-${imageName}` : "";
+  const basePath =
+    branch === "development"
+      ? `./assets/images/development/logo-${APP_NAME_LOWERCASE}${name}.png`
+      : `./assets/images/logo-${APP_NAME_LOWERCASE}${name}-bg.png`;
+  return basePath;
+};
+
+const devSuffix = getDevSuffix();
+
+export default {
+  expo: {
+    name: `${APP_NAME}${devSuffix}`,
+    slug: APP_SLUG,
+    version: APP_VERSION,
+    orientation: "portrait",
+    icon: getImagePath(),
+    scheme: `${APP_SLUG}${devSuffix}`,
+    owner: EXPO_OWNER,
+    userInterfaceStyle: "automatic",
+    newArchEnabled: true,
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: `com.${APP_SLUG}${devSuffix}`,
+      infoPlist: {
+        UIBackgroundModes: ["audio"],
+      },
+    },
+    android: {
+      adaptiveIcon: {
+        foregroundImage: getImagePath(),
+        backgroundColor: "#ffffff",
+      },
+      package: `com.${APP_SLUG}${devSuffix}`,
+      softwareKeyboardLayoutMode: "pan",
+      intentFilters: [
+        {
+          action: "VIEW",
+          data: {
+            scheme: `${APP_SLUG}${devSuffix}`,
+          },
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+        {
+          action: "VIEW",
+          data: {
+            scheme: "https",
+            host: "web.novyse.com",
+            pathPrefix: "/",
+          },
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+      ],
+      permissions: [
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_MEDIA_PROJECTION",
+        "WAKE_LOCK",
+      ],
+      googleServicesFile: "./google-services.json",
+    },
+    web: {
+      bundler: "metro",
+      output: "static",
+      favicon: getImagePath(),
+      title: APP_NAME,
+    },
+    plugins: [
+      "expo-router",
+      "expo-asset",
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          image: getImagePath(),
+          imageWidth: 200,
+          resizeMode: "contain",
+          backgroundColor: "#ffffff",
+        },
+      ],
+      [
+        "expo-sqlite",
+        {
+          useSQLCipher: true,
+        },
+      ],
+      [
+        "expo-audio",
+        {
+          microphonePermission:
+            "Allow $(PRODUCT_NAME) to access your microphone.",
+          enableBackgroundPlayback: true,
+        },
+      ],
+      [
+        "expo-video",
+        {
+          supportsBackgroundPlayback: true,
+          supportsPictureInPicture: true,
+        },
+      ],
+      [
+        "expo-camera",
+        {
+          cameraPermission: "Allow $(PRODUCT_NAME) to access your camera",
+          microphonePermission:
+            "Allow $(PRODUCT_NAME) to access your microphone",
+          recordAudioAndroid: true,
+        },
+      ],
+      [
+        "expo-image-picker",
+        {
+          photosPermission:
+            "The app accesses your photos to let you share them with your friends.",
+        },
+      ],
+      [
+        "react-native-audio-api",
+        {
+          iosBackgroundMode: true,
+          iosMicrophonePermission:
+            "This app requires access to the microphone to record audio.",
+          androidPermissions: ["android.permission.MODIFY_AUDIO_SETTINGS"],
+          androidForegroundService: true,
+          androidFSTypes: ["mediaPlayback"],
+        },
+      ],
+      "@livekit/react-native-expo-plugin",
+    ],
+    experiments: {
+      typedRoutes: true,
+    },
+    extra: {
+      router: {
+        origin: false,
+      },
+      eas: {
+        projectId: EAS_PROJECT_ID,
+      },
+    },
+  },
+};

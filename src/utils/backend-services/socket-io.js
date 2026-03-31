@@ -1,13 +1,12 @@
 import { io } from "socket.io-client";
 
-import gateway from "./api-gateway.js";
-import token from "../welcome/token.js";
+import { getAuthToken } from "./auth/token-manager";
 
 import eventEmitter from "../global/Events/EventEmitter.js";
 import eventReceiver from "./lib/event-receiver.js";
 import eventSender from "./lib/event-sender.js";
 
-import { BRANCH, SOCKET_BASE_URL } from "../../../app.config.js";
+import { BRANCH, SOCKET_BASE_URL } from "../../../app.config";
 import { Platform } from "react-native";
 
 let path;
@@ -43,14 +42,14 @@ const SocketIO = {
     try {
       if (isConnecting || SocketIO.isOpen()) {
         console.warn(
-          "Socket.IO connection already in progress or already connected"
+          "Socket.IO connection already in progress or already connected",
         );
         return socket;
       }
 
       isConnecting = true;
 
-      const accessToken = await token.getAccessToken();
+      const accessToken = await getAuthToken();
 
       socket = io(SOCKET_BASE_URL, {
         path: path,
@@ -84,7 +83,16 @@ const SocketIO = {
           error.message.includes("Authentication error") ||
           error.message.includes("jwt expired")
         ) {
-          await gateway.handleSocketAuthError();
+          console.warn(
+            "Socket authentication error, attempting to reconnection...",
+          );
+          if (socket) {
+            socket.disconnect();
+            socket = null;
+          }
+          setTimeout(() => {
+            SocketIO.open();
+          }, 1000);
         }
       });
 

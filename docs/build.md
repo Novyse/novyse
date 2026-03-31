@@ -16,7 +16,7 @@
 ## Intro
 
 > [!IMPORTANT]  
-> Before building the application, ensure you update the `app.config.js` file to switch the environment from `development` to `preview` or `production`, depending on your target build. This configuration affects various aspects of the app, such as API endpoints, logging levels, and feature toggles.
+> Before building the application, ensure you update the `app.config.ts` file to switch the environment from `development` to `preview` or `production`, depending on your target build. This configuration affects various aspects of the app, such as API endpoints, logging levels, and feature toggles.
 
 Additionally, update related values in the config file accordingly, including:
 
@@ -49,7 +49,10 @@ For a development build on Android, follow these steps:
 2. Create a `local.properties` file inside the `android/` folder with the following content (adjust the SDK path based on your system):
    ```
    # example
+   ## Windows
    sdk.dir=C:\\Users\\ISRaiken\\AppData\\Local\\Android\\Sdk
+   ## Linux
+   sdk.dir=/home/israiken/Android/Sdk
    ```
 3. Run the Android build:
    ```
@@ -70,6 +73,15 @@ For a development build on Android, follow these steps:
 > To ensure compatibility with the latest build tools, download the latest Ninja .exe from the [Ninja repository releases](https://github.com/ninja-build/ninja/releases). Replace the existing `ninja.exe` in the following path:  
 > `C:\Users\{LOCAL_USER}\AppData\Local\Android\Sdk\cmake\{VERSION}\bin`  
 > (For example, in my case was: `C:\Users\ISRaiken\AppData\Local\Android\Sdk\cmake\3.22.1\bin`)
+
+> [!WARNING]
+> If you encounter a "react-native-audio-api: Restored missing prebuilt binaries" error on Windows (or a similar errore related to react-native-audio-api), you need to do this:
+
+> ```
+> react-native-audio-api: Restored missing prebuilt binaries (
+> libopusfile.a
+> , jniLibs, etc.) by executing the package's internal download script. This resolves the ninja: error that was causing the build to fail.
+> ```
 
 ### Production Build
 

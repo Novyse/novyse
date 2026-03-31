@@ -7,7 +7,8 @@ import {
   useAudioRecorderState,
 } from "expo-audio";
 
-import { RecordPreset } from "../../utils/record/audio/presets";
+import storage from "@/src/utils/storage/file";
+import { RecordPreset } from "@/src/utils/record/audio/presets";
 
 const useVoiceRecord = (onSendMessage) => {
   // --- LOGICA AUDIO ---
@@ -34,7 +35,7 @@ const useVoiceRecord = (onSendMessage) => {
       if (status !== "granted") {
         Alert.alert(
           "Permesso negato",
-          "Serve il microfono per registrare audio."
+          "Serve il microfono per registrare audio.",
         );
         return;
       }
@@ -80,6 +81,35 @@ const useVoiceRecord = (onSendMessage) => {
     }
   };
 
+  const handleStopAndDraft = async (onAppendFilesToDraft) => {
+    if (!isRecording) return;
+
+    try {
+      await audioRecorder.stop();
+      const tempUri = audioRecorder.uri;
+
+      setIsRecording(false);
+
+      if (onAppendFilesToDraft && tempUri) {
+        const { ref, size } = await storage.save.byUri(tempUri);
+
+        const files = [
+          {
+            name: `novyse_vocal_${Date.now()}.m4a`,
+            uri: tempUri,
+            mimeType: "audio/aac",
+            ref,
+            size,
+          },
+        ];
+
+        onAppendFilesToDraft(files);
+      }
+    } catch (err) {
+      console.error("Errore draft recording:", err);
+    }
+  };
+
   // Annulla
   const handleCancelRecording = async () => {
     if (!isRecording) return;
@@ -111,6 +141,7 @@ const useVoiceRecord = (onSendMessage) => {
     recorderState,
     handleStartRecording,
     handleStopAndSend,
+    handleStopAndDraft,
     handleCancelRecording,
     handleTogglePause,
   };

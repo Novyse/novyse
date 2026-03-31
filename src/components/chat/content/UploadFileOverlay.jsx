@@ -13,7 +13,7 @@ const UploadFileOverlay = ({
   sheetIndex,
   onSheetChange,
   onMenuItemPress,
-  onSendMessage,
+  onFileSelected,
   bottomSheetRef,
   theme,
 }) => {
@@ -56,7 +56,7 @@ const UploadFileOverlay = ({
   const handleMenuItemPress = async (action) => {
     const files = await onMenuItemPress(action);
     if (files && (action === "Media" || action === "File")) {
-      onSendMessage(files);
+      onFileSelected(files);
     }
   };
 
@@ -175,7 +175,7 @@ const createStyle = (theme) =>
     },
     menuItem: {
       alignItems: "center",
-      borderRadius: 10
+      borderRadius: 10,
     },
     menuText: {
       marginTop: 6,

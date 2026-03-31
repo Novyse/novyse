@@ -6,6 +6,8 @@ Run
 
 # dependencies
 node_modules/
+android/
+ios/
 
 # Expo
 .expo/
@@ -53,3 +55,6 @@ dist.zip
 
 # android
 .kotlin
+
+# firebase
+google-services.json

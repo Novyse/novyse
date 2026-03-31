@@ -1,0 +1,139 @@
+import React, { useContext } from "react";
+import { View, ViewStyle } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { ThemeContext } from "../../context/ThemeContext";
+
+interface GradientPoint {
+  x: number;
+  y: number;
+}
+
+interface SmartBackgroundProps {
+  colors?: string | string[];
+  backgroundKey?: string;
+  isSmallScreen?: boolean;
+  style?: ViewStyle | ViewStyle[];
+  start?: GradientPoint;
+  end?: GradientPoint;
+  children?: React.ReactNode;
+  [key: string]: unknown; // per ...props
+}
+
+/**
+ * Componente intelligente per la gestione degli sfondi
+ * - Se il colore è "transparent" -> restituisce una View trasparente
+ * - Se il colore è un array con tutti "transparent" -> restituisce una View trasparente
+ * - Se il colore è un singolo colore -> restituisce una View con quel colore
+ * - Se il colore è un array di colori -> restituisce un LinearGradient
+ *
+ * @param colors - I colori da utilizzare (può essere una stringa, un array, o una chiave del tema)
+ * @param backgroundKey - La chiave del colore nel tema (alternativa a colors)
+ * @param style - Stili aggiuntivi da applicare
+ * @param start - Punto di inizio del gradiente (default: { x: 0, y: 0 })
+ * @param end - Punto di fine del gradiente (default: { x: 1, y: 1 })
+ * @param children - Componenti figli
+ */
+const SmartBackground = ({
+  colors,
+  backgroundKey,
+  isSmallScreen = false,
+  style = {},
+  start = { x: 0, y: 0 },
+  end = { x: 1, y: 1 },
+  children,
+  ...props
+}: SmartBackgroundProps) => {
+  const { theme } = useContext(ThemeContext);
+
+  // Ottieni il valore del colore dal tema o usa i colors passati direttamente
+  const colorValue: string | string[] | null =
+    colors || (backgroundKey ? (theme as any)[backgroundKey] : null);
+
+  // Se non esiste la chiave, restituisci una View trasparente
+  if (!colorValue) {
+    return (
+      <View
+        style={[{ backgroundColor: "transparent" }, style as ViewStyle]}
+        {...props}
+      >
+        {children}
+      </View>
+    );
+  }
+
+  // Se è "transparent" (stringa), restituisci una View trasparente
+  if (colorValue === "transparent") {
+    if (!isSmallScreen) {
+      return (
+        <View
+          style={[{ backgroundColor: "transparent" }, style as ViewStyle]}
+          {...props}
+        >
+          {children}
+        </View>
+      );
+    }
+    // Per mobile, usa uno SmartBackground con un colore preso dal main background del tema
+    return (
+      <SmartBackground
+        colors={(theme as any).backgroundMainGradient}
+        style={style}
+        {...props}
+      >
+        {children}
+      </SmartBackground>
+    );
+  }
+
+  // Se è un array (gradiente)
+  if (Array.isArray(colorValue)) {
+    // Controlla se tutti i colori nell'array sono "transparent"
+    const allTransparent = colorValue.every((color) => color === "transparent");
+
+    if (allTransparent) {
+      if (!isSmallScreen) {
+        return (
+          <View
+            style={[{ backgroundColor: "transparent" }, style as ViewStyle]}
+            {...props}
+          >
+            {children}
+          </View>
+        );
+      } else {
+        // Per mobile, usa uno SmartBackground con un colore preso dal main background del tema
+        return (
+          <SmartBackground
+            colors={(theme as any).backgroundMainGradient}
+            style={style}
+            {...props}
+          >
+            {children}
+          </SmartBackground>
+        );
+      }
+    } else {
+      // Se è un gradiente valido, usa LinearGradient
+      return (
+        <LinearGradient
+          colors={colorValue as [string, string, ...string[]]}
+          start={start}
+          end={end}
+          style={style as ViewStyle}
+          {...props}
+        >
+          {children}
+        </LinearGradient>
+      );
+    }
+  }
+
+  // Se è un colore singolo (stringa), usa una View normale
+  return (
+    <View style={[{ backgroundColor: colorValue }, style]} {...props}>
+      {children}
+    </View>
+  );
+};
+
+export default SmartBackground;

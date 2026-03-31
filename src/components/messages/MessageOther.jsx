@@ -16,7 +16,7 @@ const MessageOther = ({ fileRef, uuid, mimeType, size, name }) => {
   const handlePress = () => {
     if (fileUri) {
       Linking.openURL(fileUri).catch((err) =>
-        console.error("Failed to open file:", err)
+        console.error("Failed to open file:", err),
       );
     }
   };
@@ -45,9 +45,8 @@ const createStyle = (theme) =>
     container: {
       flexDirection: "row",
       alignItems: "center",
-      padding: 8,
-      borderRadius: 8,
-      marginVertical: 4,
+      paddingHorizontal: 10,
+      paddingTop: 10,
     },
     detailsContainer: {
       flex: 1,

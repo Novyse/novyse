@@ -11,6 +11,7 @@ export const Colors = {
     placeholderText: "#c9c9c9ff",
     primary: "#4f8cff",
     text: "white",
+    subtitle2: "#bababa",
     textTime: "#c9d1d9",
     errorText: "#972323ff",
 
@@ -35,7 +36,7 @@ export const Colors = {
     borderModal: "#000000",
     badgeColor: "#20566eff",
     shadowColor: "#000",
-    blurredViewTint: "default",
+    blurredViewTint: "dark",
     blurredViewBorder: "#ffffff1e",
     statusBarTextColor: "light",
 
@@ -80,6 +81,7 @@ export const Colors = {
     sideBarBackground: "#f8f9fa",
     backgroundModal: "#ffffff",
     messagesLink: "#2399C3",
+    blurredViewTint: "light",
     // Colori aggiuntivi per componenti
     borderModal: "#cccccc",
     placeholderText: "#999999",
@@ -123,6 +125,7 @@ export const Colors = {
     sideBarBackground: "#1e1e1e",
     backgroundModal: "#2d2d2d",
     messagesLink: "#bb86fc",
+    blurredViewTint: "dark",
     // Colori aggiuntivi per componenti
     borderModal: "#555555",
     placeholderText: "#999999",
@@ -166,6 +169,7 @@ export const Colors = {
     sideBarBackground: "#000000",
     backgroundModal: "#0d0d0d",
     messagesLink: "#00ff88",
+    blurredViewTint: "dark",
     // Colori aggiuntivi per componenti
     borderModal: "#333333",
     placeholderText: "#666666",
@@ -209,6 +213,7 @@ export const Colors = {
     sideBarBackground: "#000000",
     backgroundModal: "#000000",
     messagesLink: "#00ff88",
+    blurredViewTint: "dark",
     // Colori aggiuntivi per componenti
     borderModal: "#222222",
     placeholderText: "#555555",
@@ -234,6 +239,10 @@ export const Colors = {
     backgroundSearchGradient: ["#000000", "#000000"],
     settingPagesGradient: ["#000000", "#000000", "#000000"],
     badgeColor: "#000000",
+    // Scrollbar
+    scrollbar: "#333333",
+    backgroundScrollbar: "transparent",
+    scrollbarHover: "#555555",
   },
   unifi: {
     // 🎨 Colori primari e di base
@@ -279,6 +288,7 @@ export const Colors = {
     backgroundSearchGradient: ["transparent", "transparent"],
     settingPagesGradient: ["#0e283a", "#16638e"],
     backgroundSideBarGradient: ["#2b5278", "#405770", "#53709a"],
+    blurredViewTint: "dark",
 
     // ⚙️ Settings aggiuntivi
     ChatIconsPickerModalBorderColor: "#ffffffff",
