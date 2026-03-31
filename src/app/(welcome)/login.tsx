@@ -44,7 +44,7 @@ const LoginPassword = () => {
           await authInit.setLogin({
             userUUID: data.userUUID,
             accessToken: data.token,
-            sessionId: data.sessionId,
+            sessionId: data.session_id,
           });
           router.replace("/app");
         }
@@ -81,7 +81,7 @@ const LoginPassword = () => {
         await authInit.setLogin({
           userUUID: data.userUUID,
           accessToken: data.token,
-          sessionId: data.sessionId,
+          sessionId: data.session_id,
         });
         router.replace("/app");
       }

@@ -55,7 +55,9 @@ function RootLayoutContent() {
   }, []);
 
   useEffect(() => {
-    notificationManager.updatePushToken();
+    if (isLoggedIn) {
+      notificationManager.updatePushToken();
+    }
   }, [isLoggedIn]);
 
   if (isLoading || isLoggedIn === null) {

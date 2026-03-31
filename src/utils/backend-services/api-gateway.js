@@ -764,7 +764,7 @@ const gateway = {
           throw new Error("token is required to set expo token");
         }
         const response = await api.patch("/notification/expo-push-token", {
-          token,
+          expoPushToken: token,
         });
         return response.data.success;
       } catch (error) {

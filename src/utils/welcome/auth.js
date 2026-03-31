@@ -8,6 +8,7 @@ import database from "@/src/utils/storage/database";
 import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 
 import messageUtils from "@/src/utils/chat/message";
+import notificationManager from "@/src/utils/notifications/NotificationManager";
 
 /**
  * Check if the user is logged in by verifying local session markers.
@@ -99,6 +100,9 @@ const initializeApp = async () => {
       await setLastUpdateTimestamp(at);
       console.log("Last update timestamp set to:", at);
     }
+
+    // Add expo push token if mobile
+    await notificationManager.updatePushToken();
 
     // Set local user uuid in async storage
     await AsyncStorage.setItem("userUUID", String(local.user.uuid));
