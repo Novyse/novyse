@@ -14,7 +14,7 @@ import useAuthSession from "@/src/hooks/auth/useAuthSession";
 import notificationManager from "@/src/utils/notifications/NotificationManager";
 
 function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {
-  const { theme } = useThemeContext()
+  const { theme } = useThemeContext();
 
   return (
     <Stack
@@ -25,12 +25,12 @@ function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {
         },
       }}
     >
-      {isLoggedIn && (
+      <Stack.Protected guard={isLoggedIn === true}>
         <Stack.Screen name="(protected)" options={{ headerShown: false }} />
-      )}
-      {!isLoggedIn && (
+      </Stack.Protected>
+      <Stack.Protected guard={isLoggedIn === false}>
         <Stack.Screen name="(welcome)" options={{ headerShown: false }} />
-      )}
+      </Stack.Protected>
       <Stack.Screen name="profile" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" options={{ headerShown: false }} />
     </Stack>
