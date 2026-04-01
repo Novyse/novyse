@@ -24,13 +24,13 @@ const MessageTimestamp = ({
 
   const parseTime = (dateTime) => {
     if (!dateTime) return "";
-    const dt = DateTime.fromJSDate(new Date(dateTime));
+    const dt = DateTime.fromISO(dateTime, { zone: "utc" }).toLocal();
     return dt.isValid ? dt.toFormat("HH:mm") : "";
   };
 
   const parseFullTime = (dateTime) => {
     if (!dateTime) return "";
-    const dt = DateTime.fromJSDate(new Date(dateTime));
+    const dt = DateTime.fromISO(dateTime, { zone: "utc" }).toLocal();
     return dt.isValid ? dt.toFormat("EEEE dd MMMM HH:mm:ss") : "";
   };
 
@@ -149,7 +149,7 @@ const createStyle = (theme) =>
       color: theme.textTime,
       textAlign: "right",
       fontSize: 12,
-      paddingLeft: 2
+      paddingLeft: 2,
     },
     alignContainer: {
       alignSelf: "flex-end",
