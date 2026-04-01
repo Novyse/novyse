@@ -83,6 +83,54 @@ For a development build on Android, follow these steps:
 > , jniLibs, etc.) by executing the package's internal download script. This resolves the ninja: error that was causing the build to fail.
 > ```
 
+### Preview Build
+
+For a preview build on Android, follow these steps:
+
+1. Clean and prepare the native project:
+   ```
+   npx expo prebuild --clean
+   ```
+2. Build the app (local is advised):
+   ```
+   cd android
+   ./gradlew assembleRelease
+   ```
+
+> [!WARNING]
+> By default a single fat apk will be built, if you want to build separately for various platforms insert this script inside android/app/build.gradle inside the android object
+
+```gradle
+    // APK splitting
+    splits {
+        abi {
+            // Enable APK splitting wrt architecture
+            enable true
+
+            // Reset the architectures for which you need to build the APKs for
+            reset()
+
+            // Include the architectures for which Gradle is building APKs
+            include 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+
+            // Set this to false if you don't want an APK that has native code for all architectures
+            universalApk false
+        }
+    }
+
+    // Assign codes to each architecture
+    project.ext.versionCodes = ['x86': 0, 'x86_64': 1, 'armeabi-v7a': 2, 'arm64-v8a': 3]
+
+    // Add the architecture-specific codes above to base version code, i.e. the version code specified in the defaultConfig{} block
+    // Example: 2000 is the base version code -> 2000 (x86), 2001 (x86_64), 2002 (armeabi-v7a) & 2003 (arm64-v8a) would be the version codes for the generated APK files
+    android.applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            output.versionCodeOverride = project.ext.versionCodes.get(output.getFilter(com.android.build.OutputFile.ABI), 0) * 1 + android.defaultConfig.versionCode
+        }
+    }
+
+```
+
 ### Production Build
 
 For a production build on Android, follow these steps:
@@ -93,7 +141,7 @@ For a production build on Android, follow these steps:
    ```
 2. Build the app:
    ```
-   npx eas build --platform android
+   npx eas build --platform android --profile=production
    ```
 
 ## iOS
