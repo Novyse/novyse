@@ -11,6 +11,7 @@ import messageUtils from "@/src/utils/chat/message";
 import notificationManager from "@/src/utils/notifications/NotificationManager";
 import useUserStore from "@/context/UserContext";
 import useChatStore from "@/context/ChatContext";
+
 import { useActiveChatStore } from "@/context/ActiveChatContext";
 import { resetGlobalNavState } from "@/src/components/tabs/TabNavigator";
 
@@ -181,6 +182,8 @@ const logout = async () => {
   useChatStore.getState().clear();
   useActiveChatStore.getState().clear();
   resetGlobalNavState();
+
+  EventEmitter.getEmitter().emit("auth:changed");
 };
 
 const updateDatabase = async () => {
@@ -370,6 +373,8 @@ const setLogin = async ({ userUUID, accessToken, sessionId }) => {
     if (Platform.OS !== "web" && sessionId) {
       await SecureStore.setItemAsync("sessionId", String(sessionId));
     }
+
+    EventEmitter.getEmitter().emit("auth:changed");
   } catch (error) {
     console.error("Error during setLogin:", error);
   }
