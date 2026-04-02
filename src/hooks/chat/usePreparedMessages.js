@@ -11,7 +11,9 @@ const usePreparedMessages = (messages, chatType) => {
 
       // We treat messages without a created_at (pending ones) as being created "now" for sorting purposes
       const getSortTime = (msg) =>
-        msg.created_at ? new Date(msg.created_at).getTime() : Date.now();
+        msg.created_at
+          ? DateTime.fromISO(msg.created_at, { zone: "utc" }).toMillis()
+          : Date.now();
 
       const sortedAsc = [...msgs].sort(
         (a, b) => getSortTime(a) - getSortTime(b),
@@ -33,8 +35,9 @@ const usePreparedMessages = (messages, chatType) => {
 
         const sender = msg.sender_name;
         const senderUUID = msg.senderUUID;
-        const msgTime = msg.created_at ? new Date(msg.created_at) : new Date();
-        const dateTime = DateTime.fromJSDate(msgTime);
+        const dateTime = msg.created_at
+          ? DateTime.fromISO(msg.created_at, { zone: "utc" }).toLocal()
+          : DateTime.now();
         const dateOfGroup = dateTime.isValid
           ? dateTime.toFormat("yyyy-MM-dd")
           : null;
@@ -45,10 +48,11 @@ const usePreparedMessages = (messages, chatType) => {
           !isBreaking(sortedAsc[i]) &&
           sortedAsc[i].sender_name === sender &&
           (() => {
-            const t = sortedAsc[i].created_at
-              ? new Date(sortedAsc[i].created_at)
-              : new Date();
-            const dt = DateTime.fromJSDate(t);
+            const dt = sortedAsc[i].created_at
+              ? DateTime.fromISO(sortedAsc[i].created_at, {
+                  zone: "utc",
+                }).toLocal()
+              : DateTime.now();
             return dt.isValid ? dt.toFormat("yyyy-MM-dd") : null;
           })() === dateOfGroup
         ) {
@@ -81,10 +85,9 @@ const usePreparedMessages = (messages, chatType) => {
 
       for (const msg of sortedDesc) {
         // For pending messages, use current date
-        const timestamp = msg.created_at
-          ? new Date(msg.created_at)
-          : new Date();
-        const dateTime = DateTime.fromJSDate(timestamp);
+        const dateTime = msg.created_at
+          ? DateTime.fromISO(msg.created_at, { zone: "utc" }).toLocal()
+          : DateTime.now();
         const msgDate = dateTime.isValid
           ? dateTime.toFormat("yyyy-MM-dd")
           : null;

@@ -39,7 +39,9 @@ const ChatListItem = React.memo(
 
     const parseTime = (dateTimeMessage) => {
       if (!dateTimeMessage) return "";
-      return DateTime.fromJSDate(new Date(dateTimeMessage)).toFormat("HH:mm");
+      return DateTime.fromISO(dateTimeMessage, { zone: "utc" })
+        .toLocal()
+        .toFormat("HH:mm");
     };
 
     const lastMessage =

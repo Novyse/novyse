@@ -92,7 +92,8 @@ export default {
         "FOREGROUND_SERVICE_MEDIA_PROJECTION",
         "WAKE_LOCK",
       ],
-      googleServicesFile: process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
+      googleServicesFile:
+        process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
     },
     web: {
       bundler: "metro",

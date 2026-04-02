@@ -6,7 +6,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-
 import Icon from "@/src/components/Icon";
 
 import { ThemeContext } from "@/context/ThemeContext";
@@ -28,8 +27,12 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const { room, isSpeakingMap } = useCommsContext();
-  const selectedChatUUID = useActiveChatStore((state) => state.selectedChatUUID);
-  const setSelectedChatUUID = useActiveChatStore((state) => state.setSelectedChatUUID);
+  const selectedChatUUID = useActiveChatStore(
+    (state) => state.selectedChatUUID,
+  );
+  const setSelectedChatUUID = useActiveChatStore(
+    (state) => state.setSelectedChatUUID,
+  );
   const setContentView = useActiveChatStore((state) => state.setContentView);
   const styles = createStyle(theme, connected);
 
@@ -41,8 +44,6 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
       opacity: withTiming(isSpeaking ? 1 : 0, { duration: 150 }),
     };
   });
-
-
 
   if (!connected && !roomName) {
     return null;
@@ -89,11 +90,10 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
               style={styles.iconButton}
               onPress={toggleVideo}
             />
-            <View style={styles.iconButton}>
+            <Pressable style={styles.iconButton} onPress={toggleAudio}>
               <Icon
                 name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
                 color={"#fff"}
-                onPress={toggleAudio}
               />
               <Animated.View
                 style={[
@@ -107,7 +107,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
                   color={"#2ECC71"}
                 />
               </Animated.View>
-            </View>
+            </Pressable>
             <Icon
               name={"Call02Icon"}
               color="red"
@@ -180,7 +180,6 @@ function createStyle(theme: any, connected: boolean) {
       color: connected ? "#fff" : theme.text,
       fontWeight: "600",
     },
-
   });
 }
 
