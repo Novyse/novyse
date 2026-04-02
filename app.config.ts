@@ -42,17 +42,6 @@ const getDevSuffix = () => {
   return "";
 };
 
-// Genera il percorso base delle immagini in base al BRANCH
-const getImagePath = (imageName: String | undefined = undefined) => {
-  const branch = BRANCH || "main";
-  const name = imageName ? `-${imageName}` : "";
-  const basePath =
-    branch === "development"
-      ? `./assets/images/development/logo-${APP_NAME_LOWERCASE}${name}.png`
-      : `./assets/images/logo-${APP_NAME_LOWERCASE}${name}-bg.png`;
-  return basePath;
-};
-
 const devSuffix = getDevSuffix();
 
 export default {
@@ -61,7 +50,7 @@ export default {
     slug: APP_SLUG,
     version: APP_VERSION,
     orientation: "portrait",
-    icon: getImagePath(),
+    icon: "./assets/images/novyse-icon-logo.png",
     scheme: `${APP_SLUG}${devSuffix}`,
     owner: EXPO_OWNER,
     userInterfaceStyle: "automatic",
@@ -75,7 +64,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: getImagePath(),
+        foregroundImage: "./assets/images/novyse-icon-logo.png",
         backgroundColor: "#ffffff",
       },
       package: `com.${APP_SLUG}${devSuffix}`,
@@ -108,17 +97,24 @@ export default {
     web: {
       bundler: "metro",
       output: "static",
-      favicon: getImagePath(),
+      favicon: "./assets/images/favicon.png",
       title: APP_NAME,
     },
     plugins: [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#ffffff"
+        }
+      ],
       "expo-router",
       "expo-asset",
       "expo-web-browser",
       [
         "expo-splash-screen",
         {
-          image: getImagePath(),
+          image: "./assets/images/novyse-icon-logo.png",
           imageWidth: 200,
           resizeMode: "contain",
           backgroundColor: "#ffffff",
