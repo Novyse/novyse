@@ -86,9 +86,11 @@ const useUserStore = create<UserState>((set, get) => ({
       await import("@/src/utils/global/Events/EventEmitter");
 
     eventEmitter.getEmitter().on("user:profile:update", get().onProfileUpdate);
+    eventEmitter
+      .getEmitter()
+      .on("user:presence:update", get().onPresenceUpdate);
     eventEmitter.getEmitter().on("chat:new", get().onNewChat);
     eventEmitter.getEmitter().on("chat:member:joined", get().onNewMember);
-    eventEmitter.getEmitter().on("presence:update", get().onPresenceUpdate);
 
     set({ _eventsSetup: true });
   },

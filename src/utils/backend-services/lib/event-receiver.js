@@ -25,6 +25,18 @@ const eventReceiver = {
       }
     });
 
+    socket.on("user:profile:update", async (data) => {
+      await eventEmitter.user.profile.update(data);
+    });
+
+    socket.on("user:presence:online", async (data) => {
+      await eventEmitter.user.presence.update(data.userUUID, true);
+    });
+
+    socket.on("user:presence:offline", async (data) => {
+      await eventEmitter.user.presence.update(data.userUUID, false);
+    });
+
     socket.on("message:new", async (message) => {
       await eventEmitter.message.new(message);
     });
@@ -51,16 +63,12 @@ const eventReceiver = {
       await eventEmitter.chat.member.join(chatUUID, data.user);
     });
 
-    socket.on("user:profile:update", async (data) => {
-      await eventEmitter.user.profile.update(data);
-    });
-    
-    socket.on("user_online", async (data) => {
-      await eventEmitter.presence.update(data.userUUID, true);
-    });
-
-    socket.on("user_offline", async (data) => {
-      await eventEmitter.presence.update(data.userUUID, false);
+    socket.on("chat:member:activity", async (data) => {
+      await eventEmitter.chat.member.activity(
+        data.chatUUID,
+        data.userUUID,
+        data.action,
+      );
     });
 
     // socket.on("chat:member:left", async (data) => {

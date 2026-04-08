@@ -149,7 +149,7 @@ class GlobalEventEmitter {
     },
     presence: {
       update: async (userUUID, isOnline) => {
-        this.eventEmitter.emit("presence:update", { userUUID, isOnline });
+        this.eventEmitter.emit("user:presence:update", { userUUID, isOnline });
       },
     },
   };
@@ -198,6 +198,13 @@ class GlobalEventEmitter {
       leave: async (chatUUID, user) => {
         await database.chat.member.remove(chatUUID, user);
         this.eventEmitter.emit("chat:member:left", { chatUUID, user });
+      },
+      activity: async (chatUUID, userUUID, action) => {
+        this.eventEmitter.emit("chat:member:activity", {
+          chatUUID,
+          userUUID,
+          action,
+        });
       },
     },
   };

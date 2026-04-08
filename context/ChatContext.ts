@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { Chat, User } from "@/src/types";
+import { Chat, User, Member } from "@/src/types";
 
 import database from "@/src/utils/storage/database";
 
@@ -39,6 +39,11 @@ interface ChatState {
     chatUUID: string;
     action: string;
     data: any;
+  }) => void;
+  onActivity: (payload: {
+    chatUUID: string;
+    userUUID: string;
+    action: Member["action"];
   }) => void;
   clear: () => void;
 }
@@ -294,6 +299,7 @@ const useChatStore = create<ChatState>((set, get) => ({
 
     eventEmitter.getEmitter().on("chat:new", get().onNewChat);
     eventEmitter.getEmitter().on("chat:member:joined", get().onMemberJoin);
+    eventEmitter.getEmitter().on("chat:member:activity", get().onActivity);
     eventEmitter.getEmitter().on("message:new", get().onNewMessage);
     eventEmitter.getEmitter().on("message:upload", get().onMessageUpload);
     eventEmitter
@@ -326,7 +332,12 @@ const useChatStore = create<ChatState>((set, get) => ({
           ...chat,
           members: [
             ...chat.members,
-            { uuid: user.uuid, role: "member", joinedAt: new Date() },
+            {
+              uuid: user.uuid,
+              role: "member",
+              joinedAt: new Date(),
+              action: null,
+            },
           ],
         };
       }),
@@ -615,6 +626,27 @@ const useChatStore = create<ChatState>((set, get) => ({
         };
       });
     }
+  },
+  onActivity: ({
+    chatUUID,
+    userUUID,
+    action,
+  }: {
+    chatUUID: string;
+    userUUID: string;
+    action: Member["action"];
+  }) => {
+    set((state) => ({
+      chats: state.chats.map((chat) => {
+        if (chat.uuid !== chatUUID) return chat;
+        return {
+          ...chat,
+          members: chat.members.map((member) =>
+            member.uuid === userUUID ? { ...member, action } : member,
+          ),
+        };
+      }),
+    }));
   },
 
   clear: () => {
