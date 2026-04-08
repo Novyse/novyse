@@ -1,6 +1,5 @@
 //.ENV
 const APP_NAME = "Novyse"; // Novyse-dev Novyse
-const APP_NAME_LOWERCASE = "novyse";
 const APP_SLUG = "novyse";
 const APP_VERSION = "0.9.1";
 const BUILD_NUMBER = "1";
@@ -11,7 +10,11 @@ const API_BASE_URL = "https://api.novyse.com";
 const SOCKET_BASE_URL = "wss://io.novyse.com";
 const BRANCH = "development" as "development" | "preview" | "production";
 const APP_URL =
-  BRANCH === "development" ? "http://localhost:8081" : "https://web.novyse.com";
+  BRANCH === "development"
+    ? "http://localhost:8081"
+    : BRANCH === "preview"
+      ? "https://preview.novyse.com"
+      : "https://web.novyse.com";
 const TINY_APP_URL = "https://vyse.me";
 const LANDING_PAGE_URL = "https://www.novyse.com";
 const PRIVACY_POLICY_URL = LANDING_PAGE_URL + "/legal/privacy-policy";
@@ -105,9 +108,9 @@ export default {
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/notification-icon.png",
-          "color": "#ffffff"
-        }
+          icon: "./assets/images/notification-icon.png",
+          color: "#ffffff",
+        },
       ],
       "expo-router",
       "expo-asset",
