@@ -42,7 +42,13 @@ const Header = ({
     return chat?.pinnedMessages;
   });
 
-  const { name, profilePictureUUID } = useChatMetadata(chatUUIDorHandle);
+  const {
+    name,
+    profilePictureUUID,
+    type: chatType,
+    memberCount,
+    onlineMembersCount,
+  } = useChatMetadata(chatUUIDorHandle);
 
   const { connected, room, participants } = useCommsContext();
 
@@ -61,8 +67,11 @@ const Header = ({
         {(!selectedMessages || selectedMessages.length === 0) && (
           <MainHeader
             chatUUIDorHandle={chatUUIDorHandle}
+            chatType={chatType}
             selectedChatName={name}
             selectedChatPictureUUID={profilePictureUUID}
+            memberCount={memberCount}
+            onlineMembersCount={onlineMembersCount}
             contentView={contentView}
             setContentView={setContentView}
             onBack={onBack}

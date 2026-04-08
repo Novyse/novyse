@@ -19,6 +19,7 @@ interface UserState {
   onProfileUpdate: (data: Partial<User> & { userUUID: string }) => void;
   onNewChat: (data: { chat: any; users: User[] }) => void;
   onNewMember: (data: { chatUUID: string; user: User }) => void;
+  onPresenceUpdate: (data: { userUUID: string; isOnline: boolean }) => void;
   clear: () => void;
 }
 
@@ -33,6 +34,7 @@ const mapRawToUser = (raw: any): User => ({
   birthday: raw.birthday ?? null,
   region: raw.region ?? null,
   country: raw.country ?? null,
+  isOnline: raw.isOnline ?? false,
 });
 
 const useUserStore = create<UserState>((set, get) => ({
@@ -53,6 +55,11 @@ const useUserStore = create<UserState>((set, get) => ({
 
     // Get local user UUID
     const localUserUUID = await AsyncStorage.getItem("userUUID");
+
+    // Set ONLINE status of local user
+    if (localUserUUID) {
+      usersMap[localUserUUID] = { ...usersMap[localUserUUID], isOnline: true };
+    }
 
     set({
       users: usersMap,
@@ -81,6 +88,7 @@ const useUserStore = create<UserState>((set, get) => ({
     eventEmitter.getEmitter().on("user:profile:update", get().onProfileUpdate);
     eventEmitter.getEmitter().on("chat:new", get().onNewChat);
     eventEmitter.getEmitter().on("chat:member:joined", get().onNewMember);
+    eventEmitter.getEmitter().on("presence:update", get().onPresenceUpdate);
 
     set({ _eventsSetup: true });
   },
@@ -120,6 +128,17 @@ const useUserStore = create<UserState>((set, get) => ({
     set((state) => ({
       users: { ...state.users, [mappedUser.uuid]: mappedUser },
     }));
+  },
+
+  onPresenceUpdate: (data) => {
+    const { userUUID, isOnline } = data;
+    set((state) => {
+      const existing = state.users[userUUID];
+      if (!existing) return state;
+
+      const updated = { ...existing, isOnline };
+      return { users: { ...state.users, [userUUID]: updated } };
+    });
   },
 
   clear: () => {

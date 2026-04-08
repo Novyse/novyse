@@ -32,9 +32,13 @@ const ChatOverview = () => {
   const { theme } = useContext(ThemeContext);
   const { chatUUIDorHandle } = useLocalSearchParams();
   const chat = useActiveChatStore((state) => state.activeChatData);
-  const { name, profilePictureUUID } = useChatMetadata(
-    chatUUIDorHandle as string,
-  );
+  const {
+    name,
+    profilePictureUUID,
+    type: chatType,
+    memberCount,
+    onlineMembersCount,
+  } = useChatMetadata(chatUUIDorHandle as string);
 
   const isDM = chat?.type === "DM";
 
@@ -150,6 +154,7 @@ const ChatOverview = () => {
               {user.profilePictureUUID ? (
                 <Avatar
                   uuid={user.profilePictureUUID || undefined}
+                  isOnline={chatType === "DM" ? user.isOnline : false}
                   theme={theme}
                   style={styles.memberAvatar}
                 />

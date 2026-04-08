@@ -54,6 +54,14 @@ const eventReceiver = {
     socket.on("user:profile:update", async (data) => {
       await eventEmitter.user.profile.update(data);
     });
+    
+    socket.on("user_online", async (data) => {
+      await eventEmitter.presence.update(data.userUUID, true);
+    });
+
+    socket.on("user_offline", async (data) => {
+      await eventEmitter.presence.update(data.userUUID, false);
+    });
 
     // socket.on("chat:member:left", async (data) => {
     //   console.log("Received user_left event:", data);

@@ -9,4 +9,5 @@ export interface User {
   birthday: string | null;
   region: string | null;
   country: string | null;
+  isOnline: boolean;
 }

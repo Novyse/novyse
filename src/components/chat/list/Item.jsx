@@ -27,8 +27,12 @@ const ChatListItem = React.memo(
     const { theme } = useContext(ThemeContext);
     const styles = React.useMemo(() => createStyle(theme), [theme]);
     const localUserUUID = useUserStore((state) => state.localUserUUID);
-    const { name: displayName, profilePictureUUID: displayPfp } =
-      useChatMetadata(item);
+    const {
+      name: displayName,
+      profilePictureUUID: displayPfp,
+      type: chatType,
+      onlineMembersCount,
+    } = useChatMetadata(item);
 
     const draftText = useActiveChatStore(
       (state) => state.chatUIStates[item.uuid || item.handle]?.newMessageText,
@@ -112,7 +116,12 @@ const ChatListItem = React.memo(
               <Icon name={"Tick02Icon"} />
             </View>
           )}
-          <Avatar uuid={displayPfp} theme={theme} style={styles.avatar} />
+          <Avatar
+            uuid={displayPfp}
+            theme={theme}
+            style={styles.avatar}
+            isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
+          />
           <View style={styles.chatItemGrid}>
             {/* LEFT */}
             <View style={styles.leftContainer}>

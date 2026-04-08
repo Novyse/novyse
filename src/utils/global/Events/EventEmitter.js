@@ -147,6 +147,11 @@ class GlobalEventEmitter {
         });
       },
     },
+    presence: {
+      update: async (userUUID, isOnline) => {
+        this.eventEmitter.emit("presence:update", { userUUID, isOnline });
+      },
+    },
   };
 
   chat = {

@@ -9,8 +9,11 @@ import { ThemeContext } from "@/context/ThemeContext";
 
 const MainHeader = ({
   chatUUIDorHandle,
+  chatType,
   selectedChatName,
   selectedChatPictureUUID,
+  memberCount,
+  onlineMembersCount,
   contentView,
   setContentView,
   onBack = () => router.back(),
@@ -32,12 +35,27 @@ const MainHeader = ({
         />
       </View>
 
-        <Pressable onPress={navToOverview} style={styles.headerCenter}>
-          <Avatar uuid={selectedChatPictureUUID} theme={theme} />
+      <Pressable onPress={navToOverview} style={styles.headerCenter}>
+        <Avatar
+          uuid={selectedChatPictureUUID}
+          theme={theme}
+          isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
+        />
+        <View style={styles.headerCenterText}>
           <Text style={styles.chatTitle} numberOfLines={1}>
             {selectedChatName}
           </Text>
-        </Pressable>
+          {chatType === "GROUP" && (
+            <Text style={styles.chatSubtitle} numberOfLines={1}>
+              {memberCount +
+                " members" +
+                (onlineMembersCount > 0
+                  ? ", " + onlineMembersCount + " online"
+                  : "")}
+            </Text>
+          )}
+        </View>
+      </Pressable>
 
       <View style={styles.headerRight}>
         {contentView !== "chat" && (
@@ -100,10 +118,21 @@ function createStyle(theme) {
       justifyContent: "center",
       alignItems: "center",
     },
+    headerCenterText: {
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+    },
     chatTitle: {
       fontSize: 15,
       color: theme.text,
       fontWeight: "600",
+      textAlign: "center",
+      flexShrink: 1,
+    },
+    chatSubtitle: {
+      fontSize: 12,
+      color: theme.text,
       textAlign: "center",
       flexShrink: 1,
     },

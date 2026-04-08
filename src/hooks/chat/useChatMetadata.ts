@@ -29,19 +29,29 @@ export const useChatMetadata = (
         return {
           name: "Saved Messages",
           profilePictureUUID: targetUser?.profilePictureUUID || null,
+          type: chat.type,
+          memberCount: 1,
+          onlineMembersCount: 1,
         };
       }
 
       return {
         name: targetUser?.name || "User",
         profilePictureUUID: targetUser?.profilePictureUUID || null,
-      };  
+        type: chat.type,
+        memberCount: 2,
+        onlineMembersCount: targetUser?.isOnline ? 2 : 1,
+      };
     }
 
     // Default for Groups/Channels
     return {
       name: chat.name || "Group",
       profilePictureUUID: chat.profilePictureUUID || null,
+      type: chat.type,
+      memberCount: chat.members?.length || 0,
+      onlineMembersCount:
+        chat.members?.filter((m) => users[m.uuid]?.isOnline).length || 0,
     };
   }, [chat, localUserUUID, users]);
 };
