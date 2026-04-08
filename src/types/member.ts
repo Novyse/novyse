@@ -2,7 +2,7 @@ export interface Member {
   uuid: string;
   role: string;
   action:
-    | "WRITING"
+    | "TYPING"
     | "RECORDING_VOICE"
     | "RECORDING_VIDEO"
     | "UPLOADING_FILE"

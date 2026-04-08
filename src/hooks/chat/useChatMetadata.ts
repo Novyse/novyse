@@ -1,11 +1,8 @@
 import { useMemo } from "react";
 import useChatStore from "@/context/ChatContext";
 import useUserStore from "@/context/UserContext";
-import { Chat } from "@/src/types";
 
-export const useChatMetadata = (
-  chatUUIDorHandle: string | Chat | undefined,
-) => {
+export const useChatMetadata = (chatUUIDorHandle: string | undefined) => {
   const localUserUUID = useUserStore((state) => state.localUserUUID);
   const users = useUserStore((state) => state.users);
 
@@ -32,6 +29,7 @@ export const useChatMetadata = (
           type: chat.type,
           memberCount: 1,
           onlineMembersCount: 1,
+          memberActivityData: [],
         };
       }
 
@@ -41,10 +39,19 @@ export const useChatMetadata = (
         type: chat.type,
         memberCount: 2,
         onlineMembersCount: targetUser?.isOnline ? 2 : 1,
+        memberActivityData: otherMember?.action
+          ? [
+              {
+                action: otherMember.action,
+                userUUID: targetUUID,
+              },
+            ]
+          : [],
       };
     }
 
     // Default for Groups/Channels
+
     return {
       name: chat.name || "Group",
       profilePictureUUID: chat.profilePictureUUID || null,
@@ -52,6 +59,15 @@ export const useChatMetadata = (
       memberCount: chat.members?.length || 0,
       onlineMembersCount:
         chat.members?.filter((m) => users[m.uuid]?.isOnline).length || 0,
+      memberActivityData:
+        chat.members
+          ?.filter((member) => member.action)
+          .map((member) => {
+            return {
+              action: member.action,
+              userUUID: member.uuid,
+            };
+          }) || [],
     };
   }, [chat, localUserUUID, users]);
 };

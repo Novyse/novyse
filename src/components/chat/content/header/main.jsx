@@ -7,6 +7,8 @@ import Avatar from "@/src/components/Avatar";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
+import chatUtils from "@/src/utils/chat/messageFormat";
+
 const MainHeader = ({
   chatUUIDorHandle,
   chatType,
@@ -14,6 +16,7 @@ const MainHeader = ({
   selectedChatPictureUUID,
   memberCount,
   onlineMembersCount,
+  memberActivityData,
   contentView,
   setContentView,
   onBack = () => router.back(),
@@ -45,14 +48,20 @@ const MainHeader = ({
           <Text style={styles.chatTitle} numberOfLines={1}>
             {selectedChatName}
           </Text>
-          {chatType === "GROUP" && (
+          {memberActivityData && memberActivityData.length > 0 ? (
             <Text style={styles.chatSubtitle} numberOfLines={1}>
-              {memberCount +
-                " members" +
-                (onlineMembersCount > 0
-                  ? ", " + onlineMembersCount + " online"
-                  : "")}
+              {chatUtils.formatActivity(memberActivityData, chatType)}
             </Text>
+          ) : (
+            chatType === "GROUP" && (
+              <Text style={styles.chatSubtitle} numberOfLines={1}>
+                {memberCount +
+                  " members" +
+                  (onlineMembersCount > 0
+                    ? ", " + onlineMembersCount + " online"
+                    : "")}
+              </Text>
+            )
           )}
         </View>
       </Pressable>

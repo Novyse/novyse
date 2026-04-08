@@ -48,6 +48,7 @@ const Header = ({
     type: chatType,
     memberCount,
     onlineMembersCount,
+    memberActivityData,
   } = useChatMetadata(chatUUIDorHandle);
 
   const { connected, room, participants } = useCommsContext();
@@ -72,6 +73,7 @@ const Header = ({
             selectedChatPictureUUID={profilePictureUUID}
             memberCount={memberCount}
             onlineMembersCount={onlineMembersCount}
+            memberActivityData={memberActivityData}
             contentView={contentView}
             setContentView={setContentView}
             onBack={onBack}

@@ -107,4 +107,57 @@ const getSystemMessageText = (message) => {
   return text;
 };
 
-export default { format, getSystemMessageText };
+/**
+ * Get real text from member activity data
+ * @param {Array} memberActivityData
+ * @returns {String} text
+ */
+const formatActivity = (memberActivityData, chatType) => {
+  if (!memberActivityData || memberActivityData.length === 0) return "";
+
+  const { localUserUUID, getUser } = useUserStore.getState();
+
+  const activeActivities = memberActivityData.filter(
+    (a) => a.action && a.userUUID !== localUserUUID,
+  );
+
+  if (activeActivities.length === 0) return "";
+
+  const getActionText = (action, name = "") => {
+    const prefix = name ? `${name} ` : "";
+    switch (action) {
+      case "TYPING":
+        return `${prefix}is typing`;
+      case "RECORDING_VOICE":
+        return `${prefix}is recording a voice message`;
+      case "RECORDING_VIDEO":
+        return `${prefix}is recording a video message`;
+      case "UPLOADING_FILE":
+        return `${prefix}is uploading`;
+      default:
+        return "";
+    }
+  };
+
+  if (chatType === "DM") {
+    const { action } = activeActivities[0];
+    const text = getActionText(action);
+    return text ? text + "..." : "";
+  }
+
+  // GROUP
+  const activityTexts = activeActivities
+    .map((a) => {
+      const user = getUser(a.userUUID);
+      const name = user ? user.name : "User";
+      return getActionText(a.action, name);
+    })
+    .filter((t) => t !== "");
+
+  if (activityTexts.length === 0) return "";
+  if (activityTexts.length === 1) return activityTexts[0] + "...";
+
+  return activityTexts.join(", ") + "...";
+};
+
+export default { format, getSystemMessageText, formatActivity };
