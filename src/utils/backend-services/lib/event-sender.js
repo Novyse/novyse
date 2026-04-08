@@ -5,13 +5,8 @@ const eventSender = {
     socket = sock;
   },
 
-  // ------ CHAT SUBSCRIBTION ------
-
-  subscribe(chatHandle) {
-    socket.emit("chat_subscribe", { handle: chatHandle });
-  },
-  unsubscribe() {
-    socket.emit("chat_unsubscribe");
+  activity(chatUUID, action) {
+    socket.emit("chat:member:activity", { chatUUID, action });
   },
 };
 

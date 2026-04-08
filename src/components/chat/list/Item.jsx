@@ -32,6 +32,7 @@ const ChatListItem = React.memo(
       profilePictureUUID: displayPfp,
       type: chatType,
       onlineMembersCount,
+      memberActivityData,
     } = useChatMetadata(item);
 
     const draftText = useActiveChatStore(
@@ -136,14 +137,20 @@ const ChatListItem = React.memo(
                 </Text>
               </View>
               <View style={styles.subtitleRow}>
-                {displayMessage(
-                  draftText || draftFiles?.length > 0
-                    ? {
-                        type: "DRAFT",
-                        content: draftText || "",
-                        files: draftFiles,
-                      }
-                    : lastMessage,
+                {memberActivityData && memberActivityData.length > 0 ? (
+                  <Text style={styles.chatSubtitle} selectable={false}>
+                    {messageUtils.formatActivity(memberActivityData)}
+                  </Text>
+                ) : (
+                  displayMessage(
+                    draftText || draftFiles?.length > 0
+                      ? {
+                          type: "DRAFT",
+                          content: draftText || "",
+                          files: draftFiles,
+                        }
+                      : lastMessage,
+                  )
                 )}
               </View>
             </View>

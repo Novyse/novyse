@@ -15,7 +15,7 @@ import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers.js";
 import usePreparedMessages from "@/src/hooks/chat/usePreparedMessages.js";
 import useClipboard from "@/src/hooks/useClipboard";
 import useDownload from "@/src/hooks/file/useDownload";
-import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
+import useActivityEmitter from "@/src/hooks/chat/useActivityEmitter";
 
 import { useActiveChatStore } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -81,6 +81,9 @@ const ChatContent = () => {
       selectChat(selectedChatUUID);
     }
   }, [selectedChatUUID, selectChat]);
+
+  const { emitTyping, stopTyping, emitRecording } =
+    useActivityEmitter(selectedChatUUID);
 
   const chat = useActiveChatStore((state) => state.activeChatData);
 
@@ -282,6 +285,16 @@ const ChatContent = () => {
     [members, myUUID],
   );
 
+  const handleTextChangeWithActivity = useCallback(
+    (text) => {
+      handleTextChange(text);
+      if (text.length > 0) {
+        emitTyping();
+      }
+    },
+    [handleTextChange, emitTyping],
+  );
+
   const handlePin = useCallback(
     (msg) => {
       handlePinMessage(msg.id);
@@ -331,10 +344,14 @@ const ChatContent = () => {
           messageID: msg.id,
         }));
         setReplyingTo([]);
+
         setFiles([]);
         setInvalidFiles([]);
         handleSendMessage(type, realContent, allFiles, replyTos);
       }
+
+      // Stop any current activity on send
+      stopTyping();
     },
     [
       editingMessage,
@@ -346,6 +363,7 @@ const ChatContent = () => {
       handleUpdatePendingMessage,
       setFiles,
       setInvalidFiles,
+      stopTyping,
     ],
   );
 
@@ -400,7 +418,7 @@ const ChatContent = () => {
             newMessageText={newMessageText}
             files={files}
             textInputRef={textInputRef}
-            onTextChange={handleTextChange}
+            onTextChange={handleTextChangeWithActivity}
             onSendMessage={handleSendOrEdit}
             onFileAppend={handleAppendFilesToDraft}
             isAttachMenuOpen={isAttachMenuOpen}
@@ -414,6 +432,7 @@ const ChatContent = () => {
             onCancelEdit={handleCancelEdit}
             mentionMembers={mentionMembers}
             onSelectMention={onSelectMention}
+            onRecordingActivityChange={emitRecording}
           />
         </KeyboardStickyView>
 

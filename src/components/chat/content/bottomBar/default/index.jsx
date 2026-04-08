@@ -31,6 +31,7 @@ const DefaultBar = ({
   onCancelEdit,
   mentionMembers,
   onSelectMention,
+  onRecordingActivityChange,
 }) => {
   const {
     isRecording,
@@ -41,7 +42,7 @@ const DefaultBar = ({
     handleStopAndDraft,
     handleTogglePause,
     handleCancelRecording,
-  } = useVoiceRecord(onSendMessage);
+  } = useVoiceRecord(onSendMessage, onRecordingActivityChange);
 
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
