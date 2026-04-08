@@ -1,10 +1,14 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
+
+import { DateTime } from "luxon";
+
 import { router } from "expo-router";
+
 import { ThemeContext } from "@/context/ThemeContext";
+
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsButton from "@/src/components/settings/SettingsButton";
 import StatusMessage from "@/src/components/StatusMessage";
 import SecurityListCard from "@/src/components/settings/security/SecurityListCard";
 import SessionInfo from "@/src/components/settings/security/SessionInfo";
@@ -34,9 +38,9 @@ export default function SessionsRoute() {
 
   const formatLastActive = (dateStr: string) => {
     try {
-      const date = new Date(dateStr);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
+      const date = DateTime.fromISO(dateStr, { zone: "utc" }).toLocal();
+      const now = DateTime.now();
+      const diffMs = now.toMillis() - date.toMillis();
       const diffMins = Math.floor(diffMs / 60000);
       const diffHours = Math.floor(diffMins / 60);
       const diffDays = Math.floor(diffHours / 24);
@@ -45,7 +49,7 @@ export default function SessionsRoute() {
       if (diffMins < 60) return `${diffMins}m ago`;
       if (diffHours < 24) return `${diffHours}h ago`;
       if (diffDays === 1) return `Yesterday`;
-      return date.toLocaleDateString();
+      return date.toFormat("MMMM d, yyyy");
     } catch (e) {
       return "Unknown";
     }
