@@ -7,7 +7,7 @@ interface SecurityListCardProps {
   iconName: string;
   iconColor?: string;
   title: string;
-  subtitle?: string;
+  subtitle?: string | React.ReactNode;
   badge?: string;
   badgeColor?: string;
   isHighlighted?: boolean;
@@ -30,33 +30,48 @@ const SecurityListCard = ({
   onDelete,
   children,
 }: SecurityListCardProps) => {
-
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   return (
-    <View style={[
-      styles.card, 
-      isHighlighted && { borderColor: badgeColor },
-      !active && { opacity: 0.6 }
-    ]}>
+    <View
+      style={[
+        styles.card,
+        isHighlighted && { borderColor: badgeColor },
+        !active && { opacity: 0.6 },
+      ]}
+    >
       <View style={styles.row}>
         <View style={styles.info}>
-          <View style={[
-            styles.iconContainer, 
-            { backgroundColor: active ? iconColor : "#a0a0a0" }
-          ]}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: active ? iconColor : "#a0a0a0" },
+            ]}
+          >
             <Icon name={iconName} color="#fff" />
           </View>
           <View style={styles.details}>
-            <Text style={[styles.title, !active && { color: "#a0a0a0" }]}>{title}</Text>
-            {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+            <Text style={[styles.title, !active && { color: "#a0a0a0" }]}>
+              {title}
+            </Text>
+            {subtitle &&
+              (typeof subtitle === "string" ? (
+                <Text style={styles.subtitle}>{subtitle}</Text>
+              ) : (
+                subtitle
+              ))}
           </View>
         </View>
 
         <View style={styles.actions}>
           {badge && (
-            <View style={[styles.badge, { backgroundColor: active ? badgeColor : "#a0a0a0" }]}>
+            <View
+              style={[
+                styles.badge,
+                { backgroundColor: active ? badgeColor : "#a0a0a0" },
+              ]}
+            >
               <Text style={styles.badgeText}>{badge}</Text>
             </View>
           )}
@@ -67,12 +82,12 @@ const SecurityListCard = ({
                 styles.toggleButton,
                 hovered && styles.toggleButtonHovered,
                 pressed && styles.toggleButtonPressed,
-                !active && { backgroundColor: "#00C851" } // Green to re-enable
+                !active && { backgroundColor: "#00C851" }
               ]}
             >
-              <Icon 
-                name={active ? "ViewOffIcon" : "ViewIcon"} 
-                color="#fff" 
+              <Icon
+                name={active ? "ViewOffIcon" : "ViewIcon"}
+                color="#fff"
                 size={20}
               />
             </Pressable>
@@ -191,7 +206,6 @@ const createStyle = (theme: any) =>
       opacity: 0.9,
     },
     childrenContainer: {
-
       marginTop: 16,
     },
   });

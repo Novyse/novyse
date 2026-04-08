@@ -7,6 +7,7 @@ import SettingsPageScrollview from "@/src/components/settings/SettingsPageScroll
 import SettingsButton from "@/src/components/settings/SettingsButton";
 import StatusMessage from "@/src/components/StatusMessage";
 import SecurityListCard from "@/src/components/settings/security/SecurityListCard";
+import SessionInfo from "@/src/components/settings/security/SessionInfo";
 
 import auth from "@/src/utils/backend-services/auth";
 
@@ -15,6 +16,7 @@ interface Session {
   device: string;
   deviceType: "desktop" | "mobile";
   ip: string;
+  createdAt: string;
   lastActive: string;
   isCurrent: boolean;
 }
@@ -58,7 +60,8 @@ export default function SessionsRoute() {
         device: s.userAgent || "Unknown Device",
         deviceType: s.platform === "mobile" ? "mobile" : "desktop",
         ip: s.ipAddress || "Unknown",
-        lastActive: formatLastActive(s.createdAt),
+        createdAt: formatLastActive(s.createdAt),
+        lastActive: formatLastActive(s.lastActiveAt),
         isCurrent: s.isCurrent,
       }));
       setSessions(mapped);
@@ -123,7 +126,13 @@ export default function SessionsRoute() {
               }
               iconColor={session.isCurrent ? "#00C851" : "#6366f1"}
               title={session.device}
-              subtitle={`${session.ip} · ${session.lastActive}`}
+              subtitle={
+                <SessionInfo
+                  ip={session.ip}
+                  createdAt={session.createdAt}
+                  lastActive={session.lastActive}
+                />
+              }
               badge={session.isCurrent ? "Current" : undefined}
               badgeColor="#00C851"
               isHighlighted={session.isCurrent}
