@@ -49,6 +49,11 @@ const settingsList = [
       ]
     : []),
   {
+    pageName: "Language & Time",
+    iconName: "GlobalIcon",
+    navToPage: "./settings/language",
+  },
+  {
     pageName: "Info",
     iconName: "InformationCircleIcon",
     navToPage: "./settings/info",

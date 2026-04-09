@@ -1,5 +1,6 @@
 import { getFileType } from "@/src/utils/storage/file/type";
 import useUserStore from "@/context/UserContext";
+import i18n from "@/src/i18n";
 
 const format = (messageRef) => {
   if (!messageRef) return messageRef;
@@ -20,34 +21,34 @@ const format = (messageRef) => {
             const type = uniqueTypes[0];
             const count = types.length;
             const fileTypeMap = {
-              IMAGE: { emoji: "📷", singular: "Image", plural: "Images" },
-              VIDEO: { emoji: "📹", singular: "Video", plural: "Videos" },
-              AUDIO: { emoji: "🎵", singular: "Audio", plural: "Audios" },
+              IMAGE: { emoji: "📷", singular: i18n.t("messageFormat.fileType.image.singular"), plural: i18n.t("messageFormat.fileType.image.plural") },
+              VIDEO: { emoji: "📹", singular: i18n.t("messageFormat.fileType.video.singular"), plural: i18n.t("messageFormat.fileType.video.plural") },
+              AUDIO: { emoji: "🎵", singular: i18n.t("messageFormat.fileType.audio.singular"), plural: i18n.t("messageFormat.fileType.audio.plural") },
               VOICE: {
                 emoji: "🎤",
-                singular: "Voice Message",
-                plural: "Voice Messages",
+                singular: i18n.t("messageFormat.fileType.voice.singular"),
+                plural: i18n.t("messageFormat.fileType.voice.plural"),
               },
               DOCUMENT: {
                 emoji: "📄",
-                singular: "Document",
-                plural: "Documents",
+                singular: i18n.t("messageFormat.fileType.document.singular"),
+                plural: i18n.t("messageFormat.fileType.document.plural"),
               },
               CODE: {
                 emoji: "💻",
-                singular: "Code File",
-                plural: "Code Files",
+                singular: i18n.t("messageFormat.fileType.code.singular"),
+                plural: i18n.t("messageFormat.fileType.code.plural"),
               },
               ARCHIVE: {
                 emoji: "🗄️",
-                singular: "Archive File",
-                plural: "Archive Files",
+                singular: i18n.t("messageFormat.fileType.archive.singular"),
+                plural: i18n.t("messageFormat.fileType.archive.plural"),
               },
             };
             const { emoji, singular, plural } = fileTypeMap[type] || {
               emoji: "📎",
-              singular: "File",
-              plural: "Files",
+              singular: i18n.t("messageFormat.fileType.default.singular"),
+              plural: i18n.t("messageFormat.fileType.default.plural"),
             };
             message.content =
               count === 1
@@ -58,8 +59,8 @@ const format = (messageRef) => {
               (type) => type === "IMAGE" || type === "VIDEO",
             );
             message.content = hasOnlyMedia
-              ? `${message.files.length} 📎 Media`
-              : `${message.files.length} 📎 Files`;
+              ? `${message.files.length} 📎 ${i18n.t("messageFormat.media")}`
+              : `${message.files.length} 📎 ${i18n.t("messageFormat.files")}`;
           }
         }
       }
@@ -81,28 +82,28 @@ const getSystemMessageText = (message) => {
 
   switch (message.system_action) {
     case "CHAT_CREATED":
-      text = "Chat created";
+      text = i18n.t("messageFormat.system.chatCreated");
       break;
     case "USER_JOINED":
       if (message.content === localUserUUID) {
-        name = "You";
+        name = i18n.t("messageFormat.system.you");
       } else {
         const user = getUser(message.content);
-        name = user ? user.name : "User";
+        name = user ? user.name : i18n.t("messageFormat.system.user");
       }
-      text = `${name} joined the chat`;
+      text = i18n.t("messageFormat.system.userJoined", { name });
       break;
     case "USER_LEFT":
       if (message.content === localUserUUID) {
-        name = "You";
+        name = i18n.t("messageFormat.system.you");
       } else {
         const user = getUser(message.content);
-        name = user ? user.name : "User";
+        name = user ? user.name : i18n.t("messageFormat.system.user");
       }
-      text = `${name} left the chat`;
+      text = i18n.t("messageFormat.system.userLeft", { name });
       break;
     default:
-      text = "System message";
+      text = i18n.t("messageFormat.system.systemMessage");
   }
   return text;
 };
@@ -150,35 +151,31 @@ const formatActivity = (memberActivityData, chatType) => {
   const count = participants.length;
   const names = participants.map((p) => {
     const user = getUser(p.userUUID);
-    return user ? user.name : "User";
+    return user ? user.name : i18n.t("messageFormat.system.user");
   });
 
-  const getActionVerb = (action, isPlural) => {
-    const verb = isPlural ? "are" : "is";
+  const getActionI18nKey = (action) => {
     switch (action) {
-      case "TYPING":
-        return `${verb} typing`;
-      case "RECORDING_VOICE":
-        return `${verb} recording a voice message`;
-      case "RECORDING_VIDEO":
-        return `${verb} recording a video message`;
-      case "UPLOADING_FILE":
-        return `${verb} uploading`;
-      default:
-        return `${verb} active`;
+      case "TYPING": return "typing";
+      case "RECORDING_VOICE": return "recording_voice";
+      case "RECORDING_VIDEO": return "recording_video";
+      case "UPLOADING_FILE": return "uploading_file";
+      default: return "active";
     }
   };
 
+  const actionKey = getActionI18nKey(majorityAction);
+  
   let formattedActivity = "";
   if (count === 1) {
-    formattedActivity = `${names[0]} ${getActionVerb(majorityAction, false)}`;
+    formattedActivity = i18n.t(`messageFormat.activity.${actionKey}_one`, { name: names[0] });
   } else if (count === 2) {
-    formattedActivity = `${names[0]} and ${names[1]} ${getActionVerb(majorityAction, true)}`;
+    formattedActivity = i18n.t(`messageFormat.activity.${actionKey}_two`, { name: names[0], name2: names[1] });
   } else {
-    formattedActivity = `${names[0]}, ${names[1]} and others ${count - 2} ${getActionVerb(majorityAction, true)}`;
+    formattedActivity = i18n.t(`messageFormat.activity.${actionKey}_other`, { name: names[0], name2: names[1], count: count - 2 });
   }
 
-  return formattedActivity + "...";
+  return formattedActivity;
 };
 
 export default { format, getSystemMessageText, formatActivity };
