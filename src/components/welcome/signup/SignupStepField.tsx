@@ -11,21 +11,6 @@ import Icon from "@/src/components/Icon";
 import TextLink from "@/src/components/TextLink";
 import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
 
-const PASSWORD_REQUIREMENTS = [
-  { label: "At least 8 characters", check: (p: string) => p.length >= 8 },
-  { label: "One uppercase letter", check: (p: string) => /[A-Z]/.test(p) },
-  { label: "One lowercase letter", check: (p: string) => /[a-z]/.test(p) },
-  { label: "One number", check: (p: string) => /[0-9]/.test(p) },
-  {
-    label: "One special character (@$!%*?&)",
-    check: (p: string) => /[@$!%*?&]/.test(p),
-  },
-  {
-    label: "Only allowed characters",
-    check: (p: string) => /^[a-zA-Z0-9@$!%*?&]+$/.test(p),
-  },
-];
-
 const HANDLE_REQUIREMENTS = [
   {
     label: "Starts with a letter or number",
@@ -274,7 +259,7 @@ export default function SignupStepField({
           <>
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.subtitle }]}>
-                Password
+                Password {"(min 16)"}
               </Text>
               <View
                 style={[
@@ -346,17 +331,6 @@ export default function SignupStepField({
                 </TextLink>
               </View>
             </View>
-
-            {/* <View style={styles.requirements}>
-          {PASSWORD_REQUIREMENTS.map((r) => (
-            <RequirementRow
-              key={r.label}
-              label={r.label}
-              met={r.check(form.password)}
-            />
-          ))}
-          <RequirementRow label="Passwords match" met={passwordsMatch} />
-          </View> */}
           </>
         )}
       </View>

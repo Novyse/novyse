@@ -12,8 +12,7 @@ export const validate = {
     },
     password: (value) => {
       if (!value) return false;
-      const passwordRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[a-zA-Z0-9@$!%*?&]{8,128}$/;
+      const passwordRegex = /^.{16,256}$/;
       return passwordRegex.test(value);
     },
     name: (value) => {
@@ -28,7 +27,7 @@ export const validate = {
     },
     requirements: {
       password:
-        "Password must be 8-128 chars, include upper/lowercase, a number and a special character (@, $, !, %, *, ?, &)",
+        "Password must be 16-256 chars",
     },
   },
   chat: {

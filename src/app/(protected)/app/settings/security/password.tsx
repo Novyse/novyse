@@ -275,10 +275,7 @@ export default function PasswordRoute() {
 
             <View style={styles.securityNote}>
               <Text style={styles.noteText}>
-                • Password must be 8-128 characters long{"\n"}• Must include
-                uppercase and lowercase letters{"\n"}• Must include at least one
-                number{"\n"}• Must include at least one special character (@, $,
-                !, %, *, ?, &)
+                • Password must be 16-256 characters long •
               </Text>
             </View>
           </SettingsCard>
