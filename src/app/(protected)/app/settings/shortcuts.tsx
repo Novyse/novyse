@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
 
 import { ThemeContext } from "@/context/ThemeContext";
@@ -16,18 +17,14 @@ export default function ShortcutsRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow title={"Keyboard Shortcuts"} onBack={onBack} />
+      <HeaderWithBackArrow translationKey="settings.menu.shortcuts" onBack={onBack} />
       <SettingsPageScrollview>
         <View style={styles.bannerContainer}>
-          <Text style={styles.bannerText}>
-            Developer Note: This page is currently a UI preview only. All
-            functional features are under development and will be included in
-            the version 1.2 release.
-          </Text>
+          <AppText style={styles.bannerText} translationKey="common.developerNote" />
         </View>
         <SettingsCard>
           <ShortcutItem
-            label="Mute / Unmute"
+            translationKey="settings.shortcuts.muteUnmute"
             keys={["ctrl", "f12"]}
             onPress={() => console.log("Change mute shortcut")}
           />

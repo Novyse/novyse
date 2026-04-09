@@ -5,14 +5,8 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Image,
-  Platform,
-} from "react-native";
+import { StyleSheet, FlatList, Image, Platform } from "react-native";
+import AppText from "@/src/components/AppText";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -157,7 +151,6 @@ const ChatList = () => {
         />
         <Icon
           name={"Search02Icon"}
-          
           onPress={() => tabNavigator.navigate("Search")}
         />
       </BlurredHeader>
@@ -175,9 +168,13 @@ const ChatList = () => {
         }}
         commsHeader={commsHeaderComponent}
       >
-        <Icon name={"Cancel01Icon"}  onPress={clearSelection} />
-        <Text style={styles.headerTitle}>{selectedItems.length} selected</Text>
-        <Icon name={"PinIcon"}  onPress={handlePinItems} />
+        <Icon name={"Cancel01Icon"} onPress={clearSelection} />
+        <AppText
+          style={styles.headerTitle}
+          translationKey="tabs.chatList.selected"
+          translationOptions={{ count: selectedItems.length }}
+        />
+        <Icon name={"PinIcon"} onPress={handlePinItems} />
       </BlurredHeader>
     ),
     [

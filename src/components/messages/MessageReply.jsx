@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
 import { useThemeContext } from "@/context/ThemeContext";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
@@ -37,12 +38,18 @@ const MessageReply = ({
       <View style={styles.innerContainer}>
         <View style={styles.accent} />
         <View style={styles.content}>
-          <Text style={styles.senderName} numberOfLines={1} selectable={false}>
-            {senderName ?? "Unknown"}
-          </Text>
-          <Text style={styles.text} numberOfLines={2} selectable={false}>
-            {text ?? ""}
-          </Text>
+          <AppText
+            style={styles.senderName}
+            numberOfLines={1}
+            selectable={false}
+            text={senderName ?? "Unknown"}
+          />
+          <AppText
+            style={styles.text}
+            numberOfLines={2}
+            selectable={false}
+            text={text ?? ""}
+          />
         </View>
       </View>
     </Pressable>

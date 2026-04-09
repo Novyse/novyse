@@ -1,5 +1,6 @@
 import React, { useContext, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Animated } from "react-native";
+import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "../../Icon";
 
@@ -57,26 +58,25 @@ const StorageBreakdownChart = () => {
 
     return (
       <View style={styles.storageCard}>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => toggleExpand(storage.type)}
           activeOpacity={0.7}
         >
           <View style={styles.storageLabelRow}>
             <View style={styles.storageLabelLeft}>
               <View style={styles.iconContainer}>
-                <Icon
-                  name={storage.iconName}
-                  size={18}
-                  color="#FFFFFF"
-                />
+                <Icon name={storage.iconName} size={18} color="#FFFFFF" />
               </View>
-              <Text style={styles.storageTitle}>{storage.title}</Text>
+              <AppText
+                style={styles.storageTitle}
+                translationKey={`settings.storage.${storage.type === "local" ? "localStorage" : "cloudStorage"}`}
+              />
             </View>
             <View style={styles.storageRight}>
-              <Text style={styles.storageStat}>
+              <AppText style={styles.storageStat}>
                 {storage.totalUsed}{" "}
                 {storage.totalCapacity ? `/ ${storage.totalCapacity}` : ""} GB
-              </Text>
+              </AppText>
               <Icon
                 name={isExpanded ? "ArrowUp01Icon" : "ArrowDown01Icon"}
                 size={20}
@@ -107,20 +107,33 @@ const StorageBreakdownChart = () => {
         {isExpanded && (
           <View style={styles.categoriesContainer}>
             {storage.categories.map((category, catIndex) => {
-              const segments = getSegmentWidths(storage.categories, storage.totalUsed);
+              const segments = getSegmentWidths(
+                storage.categories,
+                storage.totalUsed,
+              );
               const percentage = segments[catIndex].percentage;
 
               return (
                 <View key={category.name} style={styles.categoryItem}>
                   <View style={styles.categoryLeft}>
                     <View
-                      style={[styles.colorDot, { backgroundColor: category.color }]}
+                      style={[
+                        styles.colorDot,
+                        { backgroundColor: category.color },
+                      ]}
                     />
-                    <Text style={styles.categoryName}>{category.name}</Text>
+                    <AppText
+                      style={styles.categoryName}
+                      translationKey={`settings.storage.${category.name.toLowerCase()}`}
+                    />
                   </View>
                   <View style={styles.categoryRight}>
-                    <Text style={styles.categorySize}>{category.size} GB</Text>
-                    <Text style={styles.categoryPercentage}>{percentage}%</Text>
+                    <AppText style={styles.categorySize}>
+                      {category.size} GB
+                    </AppText>
+                    <AppText style={styles.categoryPercentage}>
+                      {percentage}%
+                    </AppText>
                   </View>
                 </View>
               );

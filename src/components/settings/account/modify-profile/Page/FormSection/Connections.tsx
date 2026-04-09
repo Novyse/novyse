@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 
 import SectionHeader from "@/src/components/SectionHeader";
@@ -9,8 +10,10 @@ import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 interface ConnectionCardProps {
   platform: string;
   icon: string;
-  title: string;
-  subtitle: string;
+  title?: string;
+  subtitle?: string;
+  translationKeyTitle?: string;
+  translationKeySubtitle?: string;
   connected: boolean;
   onConnect?: () => void;
   onDisconnect?: () => void;
@@ -21,6 +24,8 @@ function ConnectionCard({
   icon,
   title,
   subtitle,
+  translationKeyTitle,
+  translationKeySubtitle,
   connected,
   onConnect,
   onDisconnect,
@@ -43,17 +48,30 @@ function ConnectionCard({
           <Icon name={icon} size={20} color={connected ? "#1DA1F2" : "#888"} />
         </View>
         <View>
-          <Text style={styles.connTitle}>{title}</Text>
-          <Text style={styles.connSub}>{subtitle}</Text>
+          <AppText
+            style={styles.connTitle}
+            translationKey={translationKeyTitle}
+            text={title}
+          />
+          <AppText
+            style={styles.connSub}
+            translationKey={translationKeySubtitle}
+            text={subtitle}
+          />
         </View>
       </View>
       <HoverAndPressedButton
         style={connected ? styles.disconnectBtn : styles.connectBtn}
         onPress={connected ? onDisconnect : onConnect}
       >
-        <Text style={connected ? styles.disconnectText : styles.connectText}>
-          {connected ? "Unlink" : "Link"}
-        </Text>
+        <AppText
+          style={connected ? styles.disconnectText : styles.connectText}
+          translationKey={
+            connected
+              ? "settings.modifyProfile.unlink"
+              : "settings.modifyProfile.link"
+          }
+        />
       </HoverAndPressedButton>
     </View>
   );
@@ -65,13 +83,16 @@ export default function Connections() {
 
   return (
     <>
-      <SectionHeader icon="Link02Icon" title="Connections" />
+      <SectionHeader
+        icon="Link02Icon"
+        translationKey="settings.modifyProfile.connections"
+      />
       <View style={styles.overlayWrapper}>
         <View style={styles.row}>
           <ConnectionCard
             platform="twitter"
             icon="NewTwitterIcon"
-            title="Twitter"
+            translationKeyTitle="settings.modifyProfile.twitter"
             subtitle="@novyse_official"
             connected={true}
             onDisconnect={() => {}}
@@ -80,14 +101,14 @@ export default function Connections() {
           <ConnectionCard
             platform="github"
             icon="Github01Icon"
-            title="GitHub"
-            subtitle="Share repo"
+            translationKeyTitle="settings.modifyProfile.github"
+            translationKeySubtitle="settings.modifyProfile.shareRepo"
             connected={false}
             onConnect={() => {}}
           />
         </View>
         <View style={styles.infoContainer}>
-          <Icon name="UnavailableIcon"  color="white" />
+          <Icon name="UnavailableIcon" color="white" />
         </View>
       </View>
     </>

@@ -3,9 +3,11 @@ import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useThemeContext } from "@/context/ThemeContext";
 import StatusMessage from "@/src/components/StatusMessage";
+import { useTranslation } from "react-i18next";
 
 const InitPage = () => {
   const { theme } = useThemeContext();
+  const { t } = useTranslation();
 
   return (
     <LinearGradient
@@ -18,7 +20,7 @@ const InitPage = () => {
           color={"#ffffff"}
           style={styles.loader}
         />
-        <StatusMessage type="info" content={["Loading your data..."]} />
+        <StatusMessage type="info" content={[t("layout.loadingData")]} />
       </View>
     </LinearGradient>
   );

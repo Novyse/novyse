@@ -1,6 +1,8 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
+import AppText from "@/src/components/AppText";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
@@ -24,6 +26,7 @@ const JoinCreateChat = ({
   setSelectedHandle,
   setSelectedChatUUID,
 }: JoinCreateChatProps) => {
+  const { t } = useTranslation();
   const { theme } = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -50,8 +53,8 @@ const JoinCreateChat = ({
   }, [chat, isUser]);
 
   const title = isUser
-    ? "Start DM"
-    : `Join ${chat?.type ? chat.type.charAt(0).toUpperCase() + chat.type.slice(1).toLowerCase() : "Chat"}`;
+    ? t("chat.joinCreate.startDm")
+    : `${t("chat.joinCreate.join")} ${chat?.type ? chat.type.charAt(0).toUpperCase() + chat.type.slice(1).toLowerCase() : t("chat.joinCreate.joinChat")}`;
 
   return (
     <View style={styles.container}>
@@ -65,8 +68,8 @@ const JoinCreateChat = ({
             style={styles.avatar}
           />
 
-          <Text style={styles.title}>{displayName}</Text>
-          <Text style={styles.handle}>@{chat?.handle}</Text>
+          <AppText style={styles.title} text={displayName} />
+          <AppText style={styles.handle} text={`@${chat?.handle}`} />
 
           <View style={styles.infoBox}>
             <Icon
@@ -74,11 +77,10 @@ const JoinCreateChat = ({
               
               color={"white"}
             />
-            <Text style={styles.infoText}>
-              {isUser
-                ? "Create a new direct message conversation with this user."
-                : "This is a public chat. Join to see messages and participate."}
-            </Text>
+            <AppText
+              style={styles.infoText}
+              translationKey={isUser ? "chat.joinCreate.joinUserDesc" : "chat.joinCreate.joinChatDesc"}
+            />
           </View>
 
           <View style={styles.extraInfoContainer}>
@@ -86,23 +88,23 @@ const JoinCreateChat = ({
               <Ionicons
                 name="shield-checkmark-outline"
                 size={20}
-                color={theme.textSecondary}
+                color={theme.iconSecondary}
               />
-              <Text style={styles.extraInfoText}>
-                {isUser
-                  ? "(WIP) End-to-End Encrypted conversation. Your data remains secure."
-                  : "Messages in public channels are visible to all members."}
-              </Text>
+              <AppText
+                style={styles.extraInfoText}
+                translationKey={isUser ? "chat.joinCreate.securityWip" : "chat.joinCreate.publicChannelDesc"}
+              />
             </View>
             <View style={styles.extraInfoItem}>
               <Ionicons
                 name="notifications-off-outline"
                 size={20}
-                color={theme.textSecondary}
+                color={theme.iconSecondary}
               />
-              <Text style={styles.extraInfoText}>
-                You can always mute notifications or leave the chat later.
-              </Text>
+              <AppText
+                style={styles.extraInfoText}
+                translationKey="chat.joinCreate.notificationMuteDesc"
+              />
             </View>
           </View>
 
@@ -113,9 +115,10 @@ const JoinCreateChat = ({
               style={[styles.button, styles.primaryButton]}
               pressedStyle={styles.buttonPressed}
             >
-              <Text style={styles.primaryButtonText}>
-                {isJoining ? "Processing..." : title}
-              </Text>
+              <AppText
+                style={styles.primaryButtonText}
+                text={isJoining ? t("chat.joinCreate.processing") : title}
+              />
             </HoverAndPressedButton>
           </View>
         </View>
@@ -153,7 +156,7 @@ const createStyles = (theme: any) =>
     },
     handle: {
       fontSize: 18,
-      color: theme.textSecondary,
+      color: theme.iconSecondary,
       marginBottom: 32,
     },
     infoBox: {
@@ -185,7 +188,7 @@ const createStyles = (theme: any) =>
     },
     extraInfoText: {
       flex: 1,
-      color: theme.textSecondary,
+      color: theme.iconSecondary,
       fontSize: 13,
       lineHeight: 18,
     },

@@ -8,6 +8,7 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
+import AppText from "./AppText";
 
 interface DropdownOption {
   label: string;
@@ -61,7 +62,7 @@ const DropdownMenu = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      <AppText style={styles.label} text={label} />
 
       <TouchableOpacity
         style={[
@@ -72,18 +73,18 @@ const DropdownMenu = ({
         onPress={toggleDropdown}
         disabled={disabled}
       >
-        <Text style={[styles.dropdownText, disabled && styles.disabledText]}>
-          {getDisplayText()}
-        </Text>
-        <Text
+        <AppText
+          style={[styles.dropdownText, disabled && styles.disabledText]}
+          text={getDisplayText()}
+        />
+        <AppText
           style={[
             styles.arrow,
             disabled && styles.disabledText,
             isOpen && styles.arrowUp,
           ]}
-        >
-          ▼
-        </Text>
+          text="▼"
+        />
       </TouchableOpacity>
 
       <Animated.View
@@ -112,14 +113,13 @@ const DropdownMenu = ({
               ]}
               onPress={() => handleSelect(item.value)}
             >
-              <Text
+              <AppText
                 style={[
                   styles.optionText,
                   item.value === value && styles.selectedOptionText,
                 ]}
-              >
-                {item.label}
-              </Text>
+                text={item.label}
+              />
             </TouchableOpacity>
           ))}
         </ScrollView>

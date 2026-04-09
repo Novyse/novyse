@@ -14,17 +14,17 @@ export default function Appareance() {
 
   return (
     <>
-      <SectionHeader icon="Pen01Icon" title="Appareance" />
+      <SectionHeader icon="Pen01Icon" translationKey="settings.modifyProfile.appearance" />
       <View style={styles.overlayWrapper}>
         <View style={styles.row}>
-          <Label text={"Profile color"} />
+          <Label translationKey="settings.modifyProfile.profileColor" />
           <View style={styles.colorRow}>
             <ColorDot color="#3b82f6" selected />
             <ColorDot color="#a855f7" />
             <ColorDot color="#10b981" />
             <ColorDot color="#f43f5e" />
           </View>
-          <Label text={"Background color"} />
+          <Label translationKey="settings.modifyProfile.backgroundColor" />
           <View style={styles.colorRow}>
             <ColorDot color="#3b82f6" />
             <ColorDot color="#a855f7" />

@@ -6,34 +6,34 @@ import SettingsPageScrollview from "@/src/components/settings/SettingsPageScroll
 
 const settingsList = [
   {
-    pageName: "Account",
+    translationKey: "settings.menu.account",
     iconName: "UserIcon",
     navToPage: "./settings/account",
   },
   {
-    pageName: "Customization",
+    translationKey: "settings.menu.customization",
     iconName: "PencilEdit01Icon",
     navToPage: "./settings/customization",
   },
   {
-    pageName: "Storage",
+    translationKey: "settings.menu.storage",
     iconName: "Folder01Icon",
     navToPage: "./settings/storage",
   },
   {
-    pageName: "Security",
+    translationKey: "settings.menu.security",
     iconName: "BlockedIcon",
     navToPage: "./settings/security",
   },
   {
-    pageName: "Comms",
+    translationKey: "settings.menu.comms",
     iconName: "VolumeHighIcon",
     navToPage: "./settings/comms",
   },
   ...(Platform.OS === "android"
     ? [
         {
-          pageName: "QR Scanner",
+          translationKey: "settings.menu.qrScanner",
           iconName: "QrCode01Icon",
           navToPage: "./settings/qrscanner",
         },
@@ -42,19 +42,19 @@ const settingsList = [
   ...(Platform.OS === "web"
     ? [
         {
-          pageName: "Shortcuts",
+          translationKey: "settings.menu.shortcuts",
           iconName: "KeyboardIcon",
           navToPage: "./settings/shortcuts",
         },
       ]
     : []),
   {
-    pageName: "Language & Time",
+    translationKey: "settings.languageAndTime",
     iconName: "GlobalIcon",
     navToPage: "./settings/language",
   },
   {
-    pageName: "Info",
+    translationKey: "settings.menu.info",
     iconName: "InformationCircleIcon",
     navToPage: "./settings/info",
   },
@@ -65,8 +65,8 @@ const SettingsList = () => {
     <SettingsPageScrollview isMenu={true} paddingTop={0}>
       {settingsList.map((setting) => (
         <SettingsMenuItem
-          key={setting.pageName}
-          pageName={setting.pageName}
+          key={setting.translationKey}
+          translationKey={setting.translationKey}
           iconName={setting.iconName}
           navToPage={setting.navToPage}
         />

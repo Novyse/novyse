@@ -1,5 +1,6 @@
 import React, { useContext, useState } from "react";
-import { View, StyleSheet, Pressable, Text } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
 import { VideoView, useVideoPlayer } from "expo-video";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -48,9 +49,7 @@ const Video = ({ fileRef, uuid, duration, isSingle }) => {
             />
           </View>
         </View>
-        <Text style={styles.duration} selectable={false}>
-          {formatDuration(duration)}
-        </Text>
+        <AppText style={styles.duration} selectable={false} text={formatDuration(duration)} />
       </Pressable>
       <VideoViewer
         visible={visible}

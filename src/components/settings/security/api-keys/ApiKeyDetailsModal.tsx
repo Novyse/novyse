@@ -1,8 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import ModalBase from "../../../modalSheets/ModalBase";
 import Icon from "../../../Icon";
 import CopyLabel from "../../../CopyLabel";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 
 interface ApiKeyDetailsModalProps {
   visible: boolean;
@@ -17,6 +19,7 @@ export default function ApiKeyDetailsModal({
   apiKey,
   theme,
 }: ApiKeyDetailsModalProps) {
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   return (
@@ -25,13 +28,10 @@ export default function ApiKeyDetailsModal({
         <View style={styles.successIconContainer}>
           <Icon name="CheckmarkCircle02Icon" color="#10b981" size={48} />
         </View>
-        <Text style={styles.title}>API Key Created</Text>
-        <Text style={styles.subtitle}>
-          Please copy your API key now. For security reasons, you won't be able
-          to see it again.
-        </Text>
+        <AppText style={styles.title} translationKey="settings.security.apiKeys.detailsModal.title" />
+        <AppText style={styles.subtitle} translationKey="settings.security.apiKeys.detailsModal.subtitle" />
 
-        <CopyLabel text={apiKey} label="Your API Key" />
+        <CopyLabel text={apiKey} label={t("settings.security.apiKeys.detailsModal.label")} />
 
         <Pressable
           onPress={onClose}
@@ -41,7 +41,7 @@ export default function ApiKeyDetailsModal({
             pressed && styles.buttonPressed,
           ]}
         >
-          <Text style={styles.buttonText}>I've saved it</Text>
+          <AppText style={styles.buttonText} translationKey="settings.security.apiKeys.detailsModal.saved" />
         </Pressable>
       </View>
     </ModalBase>

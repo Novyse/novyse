@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Pressable, StyleSheet, FlatList } from "react-native";
+import { View, Pressable, StyleSheet, FlatList } from "react-native";
 import { Platform } from "react-native";
 
 import { Room } from "livekit-client";
@@ -8,6 +8,7 @@ import { useThemeContext } from "@/context/ThemeContext";
 
 import ModalBase from "../../modalSheets/ModalBase";
 import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/AppText";
 
 const CameraSelector = ({
   visible,
@@ -59,11 +60,19 @@ const CameraSelector = ({
           color={isSelected ? "#4CAF50" : theme.text}
         />
         <View style={styles.cameraInfo}>
-          <Text style={[styles.cameraName, isSelected && styles.selectedText]}>
-            {item.label || `Camera ${item.deviceId}`}
-          </Text>
+          <AppText
+            style={[styles.cameraName, isSelected && styles.selectedText]}
+          >
+            {item.label ||
+              t("chat.comms.selectors.camera.defaultName", {
+                id: item.deviceId,
+              })}
+          </AppText>
           {isSelected && (
-            <Text style={styles.currentLabel}>Currently Selected</Text>
+            <AppText
+              style={styles.currentLabel}
+              translationKey="chat.comms.selectors.camera.currentlySelected"
+            />
           )}
         </View>
         {isSelected && <Icon name={"Tick02Icon"} color="#4CAF50" />}
@@ -74,12 +83,18 @@ const CameraSelector = ({
   return (
     <ModalBase visible={visible} onClose={onClose} theme={theme}>
       <View style={styles.header}>
-        <Text style={styles.title}>Select Camera</Text>
+        <AppText
+          style={styles.title}
+          translationKey="chat.comms.selectors.camera.title"
+        />
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading cameras...</Text>
+          <AppText
+            style={styles.loadingText}
+            translationKey="chat.comms.selectors.camera.loading"
+          />
         </View>
       ) : (
         <FlatList

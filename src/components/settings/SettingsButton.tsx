@@ -1,17 +1,18 @@
 import React, { useContext } from "react";
 import {
   StyleSheet,
-  Text,
   StyleProp,
   ViewStyle,
   TextStyle,
 } from "react-native";
 import { Theme, ThemeContext } from "@/context/ThemeContext";
 import HoverAndPressedButton from "../HoverAndPressedButton";
+import AppText from "@/src/components/AppText";
 
 interface SettingsButtonProps {
   onPress: () => void | Promise<void>;
   text?: string;
+  translationKey?: string;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   disabled?: boolean;
@@ -20,6 +21,7 @@ interface SettingsButtonProps {
 const SettingsButton = ({
   onPress,
   text,
+  translationKey,
   style,
   textStyle,
   disabled = false,
@@ -35,7 +37,11 @@ const SettingsButton = ({
       onPress={onPress}
       disabled={disabled}
     >
-      {text && <Text style={[styles.buttonText, textStyle]}>{text}</Text>}
+      {translationKey ? (
+        <AppText style={[styles.buttonText, textStyle]} translationKey={translationKey} />
+      ) : text ? (
+        <AppText style={[styles.buttonText, textStyle]} text={text} />
+      ) : null}
     </HoverAndPressedButton>
   );
 };

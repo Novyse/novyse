@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { APP_VERSION, BUILD_NUMBER, BUILD_DATE } from "@/app.config";
 import SettingsCard from "@/src/components/settings/SettingsCard";
 
@@ -11,28 +12,40 @@ const InfoVersionCard = ({ theme }: { theme: any }) => {
     <SettingsCard style={styles.card}>
       <View style={styles.container}>
         <View style={styles.tile}>
-          <Text style={[styles.label, { color: theme.text }]}>VERSION</Text>
-          <Text style={[styles.value, { color: theme.text }]}>
-            {APP_VERSION}
-          </Text>
+          <AppText
+            style={[styles.label, { color: theme.text }]}
+            translationKey="settings.info.version"
+          />
+          <AppText
+            style={[styles.value, { color: theme.text }]}
+            text={APP_VERSION}
+          />
         </View>
 
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
         <View style={styles.tile}>
-          <Text style={[styles.label, { color: theme.text }]}>BUILD</Text>
-          <Text style={[styles.value, { color: theme.text }]}>
-            {BUILD_NUMBER}
-          </Text>
+          <AppText
+            style={[styles.label, { color: theme.text }]}
+            translationKey="settings.info.build"
+          />
+          <AppText
+            style={[styles.value, { color: theme.text }]}
+            text={String(BUILD_NUMBER)}
+          />
         </View>
 
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
         <View style={styles.tile}>
-          <Text style={[styles.label, { color: theme.text }]}>RELEASED</Text>
-          <Text style={[styles.value, { color: theme.text }]}>
-            {formattedDate}
-          </Text>
+          <AppText
+            style={[styles.label, { color: theme.text }]}
+            translationKey="settings.info.released"
+          />
+          <AppText
+            style={[styles.value, { color: theme.text }]}
+            text={formattedDate}
+          />
         </View>
       </View>
     </SettingsCard>

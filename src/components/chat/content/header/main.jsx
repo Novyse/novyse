@@ -1,6 +1,8 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Text, Pressable } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
@@ -23,6 +25,7 @@ const MainHeader = ({
   navToOverview,
   isSmallScreen,
 }) => {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -45,22 +48,12 @@ const MainHeader = ({
           isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
         />
         <View style={styles.headerCenterText}>
-          <Text style={styles.chatTitle} numberOfLines={1}>
-            {selectedChatName}
-          </Text>
+          <AppText style={styles.chatTitle} numberOfLines={1} text={selectedChatName} />
           {memberActivityData && memberActivityData.length > 0 ? (
-            <Text style={styles.chatSubtitle} numberOfLines={1}>
-              {chatUtils.formatActivity(memberActivityData, chatType)}
-            </Text>
+            <AppText style={styles.chatSubtitle} numberOfLines={1} text={chatUtils.formatActivity(memberActivityData, chatType)} />
           ) : (
             chatType === "GROUP" && (
-              <Text style={styles.chatSubtitle} numberOfLines={1}>
-                {memberCount +
-                  " members" +
-                  (onlineMembersCount > 0
-                    ? ", " + onlineMembersCount + " online"
-                    : "")}
-              </Text>
+              <AppText style={styles.chatSubtitle} numberOfLines={1} text={`${t("chat.header.members", { count: memberCount })}${onlineMembersCount > 0 ? `, ${t("chat.header.online", { count: onlineMembersCount })}` : ""}`} />
             )
           )}
         </View>

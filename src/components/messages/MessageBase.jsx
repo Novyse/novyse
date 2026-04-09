@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Pressable, StyleSheet, Text } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import Reanimated, {
   useSharedValue,
@@ -358,9 +359,10 @@ const MessageBase = ({
                 style={styles.reactionPill}
                 onPress={() => onReaction(message, reactionObj.emoji)}
               >
-                <Text style={styles.reactionPillText}>
-                  {reactionObj.emoji} {reactionObj.userUUIDs.length}
-                </Text>
+                <AppText
+                  style={styles.reactionPillText}
+                  text={`${reactionObj.emoji} ${reactionObj.userUUIDs.length}`}
+                />
               </Pressable>
             ))}
           </View>
@@ -400,6 +402,7 @@ const MessageBase = ({
           <Avatar
             size={45}
             uuid={getUser(message.senderUUID)?.profilePictureUUID}
+            theme={theme}
           />
         </View>
       )}
@@ -407,9 +410,12 @@ const MessageBase = ({
         {!isSender && (
           <View style={styles.senderNameWrapper}>
             {showSenderName && (
-              <Text style={styles.senderName} numberOfLines={1}>
-                {getUser(message.senderUUID)?.name || "Unknown User"}
-              </Text>
+              <AppText
+                style={styles.senderName}
+                numberOfLines={1}
+                text={getUser(message.senderUUID)?.name}
+                translationKey="chat.unknownUser"
+              />
             )}
           </View>
         )}
@@ -480,7 +486,7 @@ const createStyle = (theme, chatType) =>
     senderBubbleChained: { borderBottomRightRadius: 4 },
     receiverBubble: {
       marginVertical: 5,
-      marginLeft: chatType === "DM" ? 10: 65,
+      marginLeft: chatType === "DM" ? 10 : 65,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-start",

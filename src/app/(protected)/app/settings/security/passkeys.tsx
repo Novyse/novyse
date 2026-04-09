@@ -1,6 +1,8 @@
 import React, { useContext, useState } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
@@ -16,6 +18,7 @@ interface Passkey {
 }
 
 export default function PasskeysRoute() {
+  const { t } = useTranslation();
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
@@ -33,14 +36,14 @@ export default function PasskeysRoute() {
       const passkeysData = response.data.passkeys || [];
       const mapped = passkeysData.map((p: any) => ({
         id: p.id,
-        name: p.name || "Unnamed Passkey",
+        name: p.name || t("settings.security.unnamedPasskey"),
         createdAt: p.created_at
           ? new Date(p.created_at).toLocaleDateString()
-          : "Unknown",
+          : t("settings.security.unknown"),
       }));
       setPasskeys(mapped);
     } else {
-      setError(response.error || "Failed to load passkeys");
+      setError(response.error || t("settings.security.failedToLoadPasskeys"));
     }
     setIsLoading(false);
   };
@@ -53,10 +56,10 @@ export default function PasskeysRoute() {
     setIsLoading(true);
     const response = await auth.settings.passkey.add();
     if (response.success) {
-      setSuccess("Passkey added successfully");
+      setSuccess(t("settings.security.passkeyAddedSuccess"));
       fetchPasskeys();
     } else {
-      setError(response.error || "Failed to add passkey");
+      setError(response.error || t("settings.security.passkeyAddedFailed"));
     }
     setIsLoading(false);
   };
@@ -64,22 +67,20 @@ export default function PasskeysRoute() {
   const handleDeletePasskey = async (id: string) => {
     const response = await auth.settings.passkey.remove(id);
     if (response.success) {
-      setSuccess("Passkey removed successfully");
+      setSuccess(t("settings.security.passkeyRemovedSuccess"));
       fetchPasskeys();
     } else {
-      setError(response.error || "Failed to remove passkey");
+      setError(response.error || t("settings.security.passkeyRemovedFailed"));
     }
   };
 
   return (
     <>
-      <HeaderWithBackArrow title="Passkeys" onBack={onBack} />
+      <HeaderWithBackArrow translationKey="settings.security.passkeys" onBack={onBack} />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Passkeys</Text>
-          <Text style={styles.subtitle}>
-            Manage your registered passkeys for passwordless login
-          </Text>
+          <AppText style={styles.title} translationKey="settings.security.passkeys" />
+          <AppText style={styles.subtitle} translationKey="settings.security.managePasskeys" />
         </View>
 
         <StatusMessage
@@ -93,10 +94,8 @@ export default function PasskeysRoute() {
           {passkeys.length === 0 ? (
             <View style={styles.emptyState}>
               <Icon name="FingerPrintIcon" color="#a0a0a0" size={48} />
-              <Text style={styles.emptyText}>No passkeys registered</Text>
-              <Text style={styles.emptySubtext}>
-                Add a passkey for a faster and more secure login
-              </Text>
+              <AppText style={styles.emptyText} translationKey="settings.security.noPasskeys" />
+              <AppText style={styles.emptySubtext} translationKey="settings.security.addPasskeyPrompt" />
             </View>
           ) : (
             passkeys.map((passkey) => (
@@ -105,7 +104,7 @@ export default function PasskeysRoute() {
                 iconName="FingerPrintIcon"
                 iconColor="#6366f1"
                 title={passkey.name}
-                subtitle={`Added ${passkey.createdAt}`}
+                subtitle={`${t("settings.security.added")} ${passkey.createdAt}`}
                 onDelete={() => handleDeletePasskey(passkey.id)}
               />
             ))
@@ -122,7 +121,7 @@ export default function PasskeysRoute() {
             ]}
           >
             <Icon name="PlusSignCircleIcon" color="#fff" />
-            <Text style={styles.addButtonText}>Add Passkey</Text>
+            <AppText style={styles.addButtonText} translationKey="settings.security.addPasskey" />
           </Pressable>
         </View>
 

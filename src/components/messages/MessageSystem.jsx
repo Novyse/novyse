@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
-import { Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 import useUserStore from "@/context/UserContext";
 import BlurredView from "../BlurredView";
@@ -21,9 +22,7 @@ const MessageSystem = ({ type, data }) => {
       colors={theme.backgroundDateSeparator}
       style={styles.container}
     >
-      <Text style={styles.text} selectable={false}>
-        {content}
-      </Text>
+      <AppText style={styles.text} selectable={false} text={content} />
     </BlurredView>
   );
 

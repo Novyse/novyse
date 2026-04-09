@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, Image } from "react-native";
+import { View, StyleSheet, ActivityIndicator, Image } from "react-native";
+import AppText from "@/src/components/AppText";
 
 import { useScreen } from "@/context/ScreenContext";
 
@@ -97,7 +98,7 @@ const VerifyBackup: React.FC = () => {
 
   return (
     <LinearGradient
-      colors={(LoginColors[loginTheme] as ThemeColors).background}
+      colors={(LoginColors[loginTheme] as ThemeColors).background as any}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -106,10 +107,8 @@ const VerifyBackup: React.FC = () => {
         <View style={styles.cardContent}>
           {/* <Image style={styles.logo} source={logoNovyse} /> */}
 
-          <Text style={styles.title}>Backup Code</Text>
-          <Text style={styles.subtitle}>
-            Enter one of your 8-character backup codes to access your account.
-          </Text>
+          <AppText style={styles.title} translationKey="auth.verifyBackup.title" />
+          <AppText style={styles.subtitle} translationKey="auth.verifyBackup.subtitle" />
 
           <View style={styles.inputWrapper}>
             <OtpDigitsInput
@@ -123,7 +122,7 @@ const VerifyBackup: React.FC = () => {
             <View style={styles.buttonsContainer}>
               <View style={styles.buttonWrapper}>
                 <WelcomeButton onPress={handleBack} type="back">
-                  <WelcomeButtonText type="back" label="Back" />
+                  <WelcomeButtonText type="back" translationKey="auth.signup.back" />
                 </WelcomeButton>
               </View>
               <View style={styles.buttonWrapper}>
@@ -138,7 +137,7 @@ const VerifyBackup: React.FC = () => {
                       color={LoginColors[loginTheme].iconLoading}
                     />
                   ) : (
-                    <WelcomeButtonText type="submit" label="Verify" />
+                    <WelcomeButtonText type="submit" translationKey="auth.verify.verifyBtn" />
                   )}
                 </WelcomeButton>
               </View>

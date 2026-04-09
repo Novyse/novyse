@@ -1,6 +1,7 @@
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
 import * as Linking from "expo-linking";
-import { LoginColors } from "@/constants/LoginColors";
+import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 import { PRIVACY_POLICY_URL, TOS_URL } from "@/app.config";
 import TextLink from "@/src/components/TextLink";
 
@@ -20,7 +21,7 @@ export default function SignupCheckboxes({
   onToggleAge,
   loginTheme = "default",
 }: Props) {
-  const colors = LoginColors[loginTheme];
+  const colors = LoginColors[loginTheme as LoginTheme];
 
   const openUrl = (url: string) => {
     if (Platform.OS === "web") window.open(url, "_blank");
@@ -45,7 +46,10 @@ export default function SignupCheckboxes({
       ]}
     >
       {checked && (
-        <Text style={[styles.tick, { color: colors.checkboxTick }]}>✓</Text>
+        <AppText
+          style={[styles.tick, { color: colors.checkboxTick }]}
+          text="✓"
+        />
       )}
     </Pressable>
   );
@@ -54,27 +58,27 @@ export default function SignupCheckboxes({
     <View style={styles.container}>
       <View style={styles.row}>
         <Checkbox checked={privacyAccepted} onPress={onTogglePrivacyTos} />
-        <Text style={styles.text}>
-          I accept{" "}
+        <AppText style={styles.text}>
+          <AppText translationKey="auth.signupStep.iAccept" />
           <TextLink
             onPress={() => openUrl(PRIVACY_POLICY_URL)}
             style={{ color: colors.link, fontSize: 14 }}
           >
-            privacy policy
-          </TextLink>{" "}
-          and{" "}
+            <AppText translationKey="auth.signupStep.privacyPolicy" />
+          </TextLink>
+          <AppText translationKey="auth.signupStep.and" />
           <TextLink
             onPress={() => openUrl(TOS_URL)}
             style={{ color: colors.link, fontSize: 14 }}
           >
-            terms of service
+            <AppText translationKey="auth.signupStep.termsOfService" />
           </TextLink>
-        </Text>
+        </AppText>
       </View>
 
       <View style={[styles.row, { marginTop: 10 }]}>
         <Checkbox checked={ageConfirmed} onPress={onToggleAge} />
-        <Text style={styles.text}>I am 16 or older.</Text>
+        <AppText style={styles.text} translationKey="auth.signupStep.iAm16" />
       </View>
     </View>
   );

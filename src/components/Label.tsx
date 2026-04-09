@@ -1,17 +1,23 @@
 import React, { useContext } from "react";
-import { Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
 interface LabelProps {
-  text: string;
+  text?: string;
+  translationKey?: string;
 }
 
-export default function Label({ text }: LabelProps) {
+export default function Label({ text, translationKey }: LabelProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
-  return <Text style={styles.label}>{text}</Text>;
+  return translationKey ? (
+    <AppText style={styles.label} translationKey={translationKey} />
+  ) : text ? (
+    <AppText style={styles.label} text={text} />
+  ) : null;
 }
 
 const createStyles = (theme: any) =>

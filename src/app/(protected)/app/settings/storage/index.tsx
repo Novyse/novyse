@@ -1,6 +1,8 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
@@ -13,6 +15,7 @@ import Icon from "@/src/components/Icon";
 import useStorage from "@/src/hooks/settings/useStorage";
 
 export default function StorageRoute() {
+  const { t } = useTranslation();
   const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -37,20 +40,18 @@ export default function StorageRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow title={"Storage"} onBack={onBack} />
+      <HeaderWithBackArrow translationKey="settings.menu.storage" onBack={onBack} />
       <SettingsPageScrollview>
         <SettingsCard style={{ padding: 0, marginTop: 30 }}>
           <HoverAndPressedButton
             style={styles.storagePressable}
             onPress={handleNavigateToLocal}
           >
-            <Text style={styles.storageTitle}>Local Storage</Text>
+            <AppText style={styles.storageTitle} translationKey="settings.storage.localStorage" />
             <View
               style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
             >
-              <Text style={styles.storageUsage}>
-                {(usedStorage / (1024 * 1024 * 1024)).toFixed(2)} GB used
-              </Text>
+              <AppText style={styles.storageUsage} text={`${(usedStorage / (1024 * 1024 * 1024)).toFixed(2)} ${t("settings.storage.gbUsed")}`} />
               <Icon name={"ArrowRight02Icon"} />
             </View>
           </HoverAndPressedButton>
@@ -62,11 +63,11 @@ export default function StorageRoute() {
             onPress={handleNavigateToCloud}
             disabled={true}
           >
-            <Text style={styles.storageTitle}>Cloud Storage (Coming Soon)</Text>
+            <AppText style={styles.storageTitle} translationKey="settings.storage.cloudStorageComingSoon" />
             <View
               style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
             >
-              <Text style={styles.storageUsage}>0 / 0 GB</Text>
+              <AppText style={styles.storageUsage} text="0 / 0 GB" />
               <Icon name={"ArrowRight02Icon"} />
             </View>
           </HoverAndPressedButton>
@@ -76,12 +77,8 @@ export default function StorageRoute() {
             style={styles.resetButton}
             onPress={handleResetDatabase}
           >
-            <Text style={styles.resetButtonText}>Reset Database</Text>
-            <Text style={styles.resetButtonSubtitle}>
-              {" "}
-              (This will completely clean local database and request server all
-              your data)
-            </Text>
+            <AppText style={styles.resetButtonText} translationKey="settings.storage.resetDatabase" />
+            <AppText style={styles.resetButtonSubtitle} translationKey="settings.storage.resetDatabaseSubtitle" />
           </HoverAndPressedButton>
         </SettingsCard>
       </SettingsPageScrollview>

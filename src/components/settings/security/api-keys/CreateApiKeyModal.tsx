@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import ModalBase from "../../../modalSheets/ModalBase";
 import TextInput from "../../../input/TextInput";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 
 interface CreateApiKeyModalProps {
   visible: boolean;
@@ -19,6 +21,7 @@ export default function CreateApiKeyModal({
   theme,
 }: CreateApiKeyModalProps) {
   const [name, setName] = useState("");
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   const handleConfirm = () => {
@@ -31,12 +34,10 @@ export default function CreateApiKeyModal({
   return (
     <ModalBase visible={visible} onClose={onClose} theme={theme}>
       <View style={styles.container}>
-        <Text style={styles.title}>Create New API Key</Text>
-        <Text style={styles.subtitle}>
-          Give your API key a descriptive name to identify it later.
-        </Text>
+        <AppText style={styles.title} translationKey="settings.security.apiKeys.createModal.title" />
+        <AppText style={styles.subtitle} translationKey="settings.security.apiKeys.createModal.subtitle" />
         <TextInput
-          placeholder="e.g. Production Server"
+          placeholder={t("settings.security.apiKeys.createModal.placeholder")}
           value={name}
           onChange={setName}
         />
@@ -50,9 +51,10 @@ export default function CreateApiKeyModal({
           ]}
           disabled={!name.trim() || isLoading}
         >
-          <Text style={styles.buttonText}>
-            {isLoading ? "Creating..." : "Create API Key"}
-          </Text>
+          <AppText 
+            style={styles.buttonText}
+            translationKey={isLoading ? "settings.security.apiKeys.createModal.creating" : "settings.security.apiKeys.createModal.create"}
+          />
         </Pressable>
       </View>
     </ModalBase>

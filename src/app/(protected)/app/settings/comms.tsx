@@ -1,6 +1,8 @@
 import React, { useContext, useState, useEffect } from "react";
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, View, TouchableOpacity } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
@@ -13,7 +15,9 @@ import SettingsPageScrollview from "@/src/components/settings/SettingsPageScroll
 import SettingsCard from "@/src/components/settings/SettingsCard";
 
 export default function CommsRoute() {
-  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
+  const { t } = useTranslation();
+  const onBack = () =>
+    router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const [audioSettings, setAudioSettings] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,10 +84,10 @@ export default function CommsRoute() {
   }));
 
   const entryModeOptions = [
-    { label: "OFF", value: "OFF" },
-    { label: "Audio Only", value: "AUDIO_ONLY" },
-    { label: "Video Only", value: "VIDEO_ONLY" },
-    { label: "Both", value: "BOTH" },
+    { label: t("settings.comms.off"), value: "OFF" },
+    { label: t("settings.comms.audioOnly"), value: "AUDIO_ONLY" },
+    { label: t("settings.comms.videoOnly"), value: "VIDEO_ONLY" },
+    { label: t("settings.comms.both"), value: "BOTH" },
   ];
 
   const qualityOptions = [
@@ -102,29 +106,29 @@ export default function CommsRoute() {
   ];
 
   const audioOptions = [
-    { label: "OFF", value: "OFF" },
-    { label: "ON", value: "ON" },
+    { label: t("settings.comms.off"), value: "OFF" },
+    { label: t("settings.comms.on"), value: "ON" },
   ];
 
   const noiseSuppressionOptions = [
-    { label: "Off", value: "OFF" },
-    { label: "Low", value: "LOW" },
-    { label: "Medium", value: "MEDIUM" },
-    { label: "High", value: "HIGH" },
+    { label: t("settings.comms.off"), value: "OFF" },
+    { label: t("settings.comms.low"), value: "LOW" },
+    { label: t("settings.comms.medium"), value: "MEDIUM" },
+    { label: t("settings.comms.high"), value: "HIGH" },
   ];
 
   const expanderOptions = [
-    { label: "Off", value: "OFF" },
-    { label: "Low", value: "LOW" },
-    { label: "Medium", value: "MEDIUM" },
-    { label: "High", value: "HIGH" },
+    { label: t("settings.comms.off"), value: "OFF" },
+    { label: t("settings.comms.low"), value: "LOW" },
+    { label: t("settings.comms.medium"), value: "MEDIUM" },
+    { label: t("settings.comms.high"), value: "HIGH" },
   ];
 
   const noiseGateOptions = [
-    { label: "Off", value: "OFF" },
-    { label: "Adaptive", value: "ADAPTIVE" },
-    { label: "Hybrid", value: "HYBRID" },
-    { label: "Manual", value: "MANUAL" },
+    { label: t("settings.comms.off"), value: "OFF" },
+    { label: t("settings.comms.adaptive"), value: "ADAPTIVE" },
+    { label: t("settings.comms.hybrid"), value: "HYBRID" },
+    { label: t("settings.comms.manual"), value: "MANUAL" },
   ];
 
   // Threshold expressed as string options (dB steps)
@@ -136,18 +140,24 @@ export default function CommsRoute() {
   ];
 
   const typingAttenuationOptions = [
-    { label: "Off", value: "OFF" },
-    { label: "Low", value: "LOW" },
-    { label: "Medium", value: "MEDIUM" },
-    { label: "High", value: "HIGH" },
+    { label: t("settings.comms.off"), value: "OFF" },
+    { label: t("settings.comms.low"), value: "LOW" },
+    { label: t("settings.comms.medium"), value: "MEDIUM" },
+    { label: t("settings.comms.high"), value: "HIGH" },
   ];
 
   if (isLoading) {
     return (
       <>
-        <HeaderWithBackArrow title={"Comms"} onBack={onBack} />
+        <HeaderWithBackArrow
+          translationKey="settings.menu.comms"
+          onBack={onBack}
+        />
         <View style={styles.container}>
-          <Text style={styles.loadingText}>Loading settings...</Text>
+          <AppText
+            style={styles.loadingText}
+            translationKey="settings.comms.loadingSettings"
+          />
         </View>
       </>
     );
@@ -156,11 +166,20 @@ export default function CommsRoute() {
   if (!audioSettings) {
     return (
       <>
-        <HeaderWithBackArrow title={"Comms"} onBack={onBack} />
+        <HeaderWithBackArrow
+          translationKey="settings.menu.comms"
+          onBack={onBack}
+        />
         <View style={styles.container}>
-          <Text style={styles.errorText}>Error loading settings</Text>
+          <AppText
+            style={styles.errorText}
+            translationKey="settings.comms.errorLoadingSettings"
+          />
           <TouchableOpacity style={styles.retryButton} onPress={loadSettings}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <AppText
+              style={styles.retryButtonText}
+              translationKey="settings.comms.retry"
+            />
           </TouchableOpacity>
         </View>
       </>
@@ -169,30 +188,40 @@ export default function CommsRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow title={"Comms"} onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.menu.comms"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
         <View style={styles.bannerContainer}>
-          <Text style={styles.bannerText}>
-            Developer Note: This page is currently a UI preview only. All functional features are under development and will be included in the version 1.2 release.
-          </Text>
+          <AppText
+            style={styles.bannerText}
+            translationKey="common.developerNote"
+          />
         </View>
         <SettingsCard>
-          <Text style={styles.sectionTitle}>Input Devices</Text>
+          <AppText
+            style={styles.sectionTitle}
+            translationKey="settings.comms.inputDevices"
+          />
           <View style={styles.warningContainer}>
-            <Text style={[styles.warningText, { color: "yellow" }]}>
-              ⚠️ Warning: Changes to input devices will not affect chat
-              functionality at the moment.
-            </Text>
+            <AppText
+              style={[styles.warningText, { color: "yellow" }]}
+              translationKey="settings.comms.inputDevicesWarning"
+            />
           </View>
 
           {devicesLoading ? (
             <View style={styles.disabledField}>
-              <Text style={styles.label}>Loading devices...</Text>
+              <AppText
+                style={styles.label}
+                translationKey="settings.comms.loadingDevices"
+              />
             </View>
           ) : (
             <>
               <InputDeviceDropdown
-                label="Microphone"
+                label={t("settings.comms.microphone")}
                 value={
                   audioSettings.microphoneDeviceId ||
                   (audioDeviceOptions.length > 0
@@ -202,7 +231,12 @@ export default function CommsRoute() {
                 options={
                   audioDeviceOptions.length > 0
                     ? audioDeviceOptions
-                    : [{ label: "No microphones found", value: "" }]
+                    : [
+                        {
+                          label: t("settings.comms.noMicrophonesFound"),
+                          value: "",
+                        },
+                      ]
                 }
                 onValueChange={(value) =>
                   updateSetting("microphoneDeviceId", value)
@@ -212,7 +246,7 @@ export default function CommsRoute() {
               />
 
               <InputDeviceDropdown
-                label="Webcam"
+                label={t("settings.comms.webcam")}
                 value={
                   audioSettings.webcamDeviceId ||
                   (videoDeviceOptions.length > 0
@@ -222,7 +256,7 @@ export default function CommsRoute() {
                 options={
                   videoDeviceOptions.length > 0
                     ? videoDeviceOptions
-                    : [{ label: "No cameras found", value: "" }]
+                    : [{ label: t("settings.comms.noCamerasFound"), value: "" }]
                 }
                 onValueChange={(value) =>
                   updateSetting("webcamDeviceId", value)
@@ -233,7 +267,10 @@ export default function CommsRoute() {
             </>
           )}
 
-          <Text style={styles.fieldLabel}>Entry Mode</Text>
+          <AppText
+            style={styles.fieldLabel}
+            translationKey="settings.comms.entryMode"
+          />
           <ToggleSelector
             options={entryModeOptions}
             value={audioSettings.entryMode || "AUDIO_ONLY"}
@@ -242,14 +279,23 @@ export default function CommsRoute() {
         </SettingsCard>
 
         <SettingsCard>
-          <Text style={styles.sectionTitle}>Video Settings</Text>
-          <Text style={styles.fieldLabel}>Webcam Quality</Text>
+          <AppText
+            style={styles.sectionTitle}
+            translationKey="settings.comms.videoSettings"
+          />
+          <AppText
+            style={styles.fieldLabel}
+            translationKey="settings.comms.webcamQuality"
+          />
           <ToggleSelector
             options={qualityOptions}
             value={audioSettings.webcamQuality || "HD"}
             onChange={(value) => updateSetting("webcamQuality", value)}
           />
-          <Text style={styles.fieldLabel}>Webcam FPS</Text>
+          <AppText
+            style={styles.fieldLabel}
+            translationKey="settings.comms.webcamFPS"
+          />
           <ToggleSelector
             options={fpsOptions}
             value={String(audioSettings.webcamFPS || 30)}
@@ -258,20 +304,32 @@ export default function CommsRoute() {
         </SettingsCard>
 
         <SettingsCard>
-          <Text style={styles.sectionTitle}>Screen Share Settings</Text>
-          <Text style={styles.fieldLabel}>Screen Share Quality</Text>
+          <AppText
+            style={styles.sectionTitle}
+            translationKey="settings.comms.screenShareSettings"
+          />
+          <AppText
+            style={styles.fieldLabel}
+            translationKey="settings.comms.screenShareQuality"
+          />
           <ToggleSelector
             options={qualityOptions}
             value={audioSettings.screenShareQuality || "HD"}
             onChange={(value) => updateSetting("screenShareQuality", value)}
           />
-          <Text style={styles.fieldLabel}>Screen Share FPS</Text>
+          <AppText
+            style={styles.fieldLabel}
+            translationKey="settings.comms.screenShareFPS"
+          />
           <ToggleSelector
             options={fpsOptions}
             value={String(audioSettings.screenShareFPS || 30)}
             onChange={(value) => updateSetting("screenShareFPS", Number(value))}
           />
-          <Text style={styles.fieldLabel}>Screen Share Audio</Text>
+          <AppText
+            style={styles.fieldLabel}
+            translationKey="settings.comms.screenShareAudio"
+          />
           <ToggleSelector
             options={audioOptions}
             value={audioSettings.screenShareAudio ? "ON" : "OFF"}
@@ -282,24 +340,34 @@ export default function CommsRoute() {
         </SettingsCard>
 
         <SettingsCard>
-          <Text style={styles.sectionTitle}>Audio Processing</Text>
-          <Text style={styles.fieldLabel}>Noise Suppression</Text>
+          <AppText
+            style={styles.sectionTitle}
+            translationKey="settings.comms.audioProcessing"
+          />
+          <AppText
+            style={styles.fieldLabel}
+            translationKey="settings.comms.noiseSuppression"
+          />
           <ToggleSelector
             options={noiseSuppressionOptions}
             value={audioSettings.noiseSuppressionLevel || "MEDIUM"}
-            onChange={(value) =>
-              updateSetting("noiseSuppressionLevel", value)
-            }
+            onChange={(value) => updateSetting("noiseSuppressionLevel", value)}
           />
 
-          <Text style={styles.fieldLabel}>Expander</Text>
+          <AppText
+            style={styles.fieldLabel}
+            translationKey="settings.comms.expander"
+          />
           <ToggleSelector
             options={expanderOptions}
             value={audioSettings.expanderLevel || "MEDIUM"}
             onChange={(value) => updateSetting("expanderLevel", value)}
           />
 
-          <Text style={styles.fieldLabel}>Noise Gate</Text>
+          <AppText
+            style={styles.fieldLabel}
+            translationKey="settings.comms.noiseGate"
+          />
           <ToggleSelector
             options={noiseGateOptions}
             value={audioSettings.noiseGateType || "ADAPTIVE"}
@@ -309,7 +377,10 @@ export default function CommsRoute() {
           {(audioSettings.noiseGateType === "HYBRID" ||
             audioSettings.noiseGateType === "MANUAL") && (
             <>
-              <Text style={styles.fieldLabel}>Noise Gate Threshold</Text>
+              <AppText
+                style={styles.fieldLabel}
+                translationKey="settings.comms.noiseGateThreshold"
+              />
               <ToggleSelector
                 options={noiseGateThresholdOptions}
                 value={String(audioSettings.noiseGateThreshold || -20)}
@@ -320,22 +391,26 @@ export default function CommsRoute() {
             </>
           )}
 
-          <Text style={styles.fieldLabel}>Typing Attenuation</Text>
+          <AppText
+            style={styles.fieldLabel}
+            translationKey="settings.comms.typingAttenuation"
+          />
           <ToggleSelector
             options={typingAttenuationOptions}
             value={audioSettings.typingAttenuationLevel || "MEDIUM"}
-            onChange={(value) =>
-              updateSetting("typingAttenuationLevel", value)
-            }
+            onChange={(value) => updateSetting("typingAttenuationLevel", value)}
           />
         </SettingsCard>
 
         {__DEV__ && (
           <SettingsCard>
-            <Text style={styles.debugTitle}>Current Settings:</Text>
-            <Text style={styles.debugText}>
+            <AppText
+              style={styles.debugTitle}
+              translationKey="settings.comms.currentSettings"
+            />
+            <AppText style={styles.debugText}>
               {JSON.stringify(audioSettings, null, 2)}
-            </Text>
+            </AppText>
           </SettingsCard>
         )}
       </SettingsPageScrollview>

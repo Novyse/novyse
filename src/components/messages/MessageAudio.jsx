@@ -1,13 +1,7 @@
 import React, { useContext, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
-import Icon from "../Icon";
 
 import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
@@ -72,9 +66,7 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
       />
 
       <View style={{ flexDirection: "column" }}>
-        <Text style={styles.fileName} selectable={false}>
-          {name}
-        </Text>
+        <AppText style={styles.fileName} selectable={false} text={name} />
         <View style={styles.progressContainer}>
           <SmoothSlider
             currentValue={thisCurrentTime}
@@ -85,12 +77,16 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
             isMoving={isThisPlaying}
           />
           <View style={styles.textContainer}>
-            <Text style={styles.durationText} selectable={false}>
-              {formatTime(thisCurrentTime)} / {formatDuration(duration)}
-            </Text>
-            <Text style={styles.sizeText} selectable={false}>
-              {formatFileSize(size)}
-            </Text>
+            <AppText
+              style={styles.durationText}
+              selectable={false}
+              text={`${formatTime(thisCurrentTime)} / ${formatDuration(duration)}`}
+            />
+            <AppText
+              style={styles.sizeText}
+              selectable={false}
+              text={formatFileSize(size)}
+            />
           </View>
         </View>
       </View>

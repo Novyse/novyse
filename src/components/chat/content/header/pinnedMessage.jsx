@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import useChatStore from "@/context/ChatContext";
@@ -61,13 +62,9 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
           )}
 
           <View style={styles.pinnedTextContainer}>
-            <Text style={styles.pinnedText} numberOfLines={1}>
-              {message?.content}
-            </Text>
+            <AppText style={styles.pinnedText} numberOfLines={1} text={message?.content} />
             {hasMultiple && (
-              <Text style={styles.indicatorText}>
-                {currentIndex + 1} / {pinnedMessages.length}
-              </Text>
+              <AppText style={styles.indicatorText} text={`${currentIndex + 1} / ${pinnedMessages.length}`} />
             )}
           </View>
           {hasMultiple && (

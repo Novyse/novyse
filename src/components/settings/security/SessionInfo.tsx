@@ -1,5 +1,6 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
 
 interface SessionInfoProps {
   ip: string;
@@ -10,18 +11,27 @@ interface SessionInfoProps {
 const SessionInfo = ({ ip, createdAt, lastActive }: SessionInfoProps) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.row}>
-        <Text style={styles.label}>IP: </Text>
-        {ip}
-      </Text>
-      <Text style={styles.row}>
-        <Text style={styles.label}>Created: </Text>
-        {createdAt}
-      </Text>
-      <Text style={styles.row}>
-        <Text style={styles.label}>Last activity: </Text>
-        {lastActive}
-      </Text>
+      <AppText style={styles.row}>
+        <AppText
+          style={styles.label}
+          translationKey="settings.security.sessions.ip"
+        />
+        : {ip}
+      </AppText>
+      <AppText style={styles.row}>
+        <AppText
+          style={styles.label}
+          translationKey="settings.security.sessions.created"
+        />
+        : {createdAt}
+      </AppText>
+      <AppText style={styles.row}>
+        <AppText
+          style={styles.label}
+          translationKey="settings.security.sessions.lastActivity"
+        />
+        : {lastActive}
+      </AppText>
     </View>
   );
 };

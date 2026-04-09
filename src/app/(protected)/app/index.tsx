@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
+import AppText from "@/src/components/AppText";
 
 export default function RootLayout() {
   return (
@@ -11,7 +12,10 @@ export default function RootLayout() {
         backgroundColor: "transparent",
       }}
     >
-      <Text style={{ fontSize: 18, color: "white" }}>Nothing selected.</Text>
+      <AppText
+        style={{ fontSize: 18, color: "white" }}
+        translationKey="layout.nothingSelected"
+      />
     </View>
   );
 }

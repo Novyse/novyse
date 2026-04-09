@@ -2,11 +2,12 @@ import React from "react";
 import {
   View,
   Pressable,
-  Text,
   StyleSheet,
   Dimensions,
   Modal,
 } from "react-native";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 
 import { useThemeContext } from "@/context/ThemeContext";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
@@ -16,6 +17,7 @@ import ReactionMenu from "./ReactionsMenu";
 
 interface ActionMenuItem {
   action: string;
+  translationKey: string;
   iconName: string;
   color: string;
 }
@@ -47,6 +49,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   isPendingSend,
   pendingEditJobId,
 }) => {
+  const { t } = useTranslation();
   const { theme } = useThemeContext();
   const styles = createStyle(theme);
   const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -75,43 +78,91 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
 
   if (isPendingSend) {
     items = [
-      { action: "Cancel", iconName: "Cancel01Icon", color: "red" },
+      {
+        action: "Cancel",
+        translationKey: "chat.messageActions.cancel",
+        iconName: "Cancel01Icon",
+        color: "red",
+      },
       isEditedAllowed
-        ? { action: "Edit", iconName: "PencilEdit02Icon", color: theme.text }
+        ? {
+            action: "Edit",
+            translationKey: "chat.messageActions.edit",
+            iconName: "PencilEdit02Icon",
+            color: theme.text,
+          }
         : undefined,
     ].filter((item): item is ActionMenuItem => item !== undefined);
   } else {
     items = (
       [
-        { action: "Reply", iconName: "ArrowMoveUpLeftIcon", color: theme.text },
+        {
+          action: "Reply",
+          translationKey: "chat.messageActions.reply",
+          iconName: "ArrowMoveUpLeftIcon",
+          color: theme.text,
+        },
         !isPinned
-          ? { action: "Pin", iconName: "PinIcon", color: theme.text }
-          : { action: "Unpin", iconName: "PinOffIcon", color: theme.text },
-        { action: "Copy", iconName: "Copy02Icon", color: theme.text },
+          ? {
+              action: "Pin",
+              translationKey: "chat.messageActions.pin",
+              iconName: "PinIcon",
+              color: theme.text,
+            }
+          : {
+              action: "Unpin",
+              translationKey: "chat.messageActions.unpin",
+              iconName: "PinOffIcon",
+              color: theme.text,
+            },
+        {
+          action: "Copy",
+          translationKey: "chat.messageActions.copy",
+          iconName: "Copy02Icon",
+          color: theme.text,
+        },
         isDownloadAllowed
           ? {
               action: "Download",
+              translationKey: "chat.messageActions.download",
               iconName: "Download01Icon",
               color: theme.text,
             }
           : undefined,
         pendingEditJobId
-          ? { action: "Cancel Edit", iconName: "Cancel01Icon", color: "red" }
+          ? {
+              action: "Cancel Edit",
+              translationKey: "chat.messageActions.cancelEdit",
+              iconName: "Cancel01Icon",
+              color: "red",
+            }
           : isEditedAllowed
             ? {
                 action: "Edit",
+                translationKey: "chat.messageActions.edit",
                 iconName: "PencilEdit02Icon",
                 color: theme.text,
               }
             : undefined,
-        { action: "Forward", iconName: "LinkForwardIcon", color: theme.text },
+        {
+          action: "Forward",
+          translationKey: "chat.messageActions.forward",
+          iconName: "LinkForwardIcon",
+          color: theme.text,
+        },
         {
           action: "Select",
+          translationKey: "chat.messageActions.select",
           iconName: "CheckmarkCircle02Icon",
           color: theme.text,
         },
         isDeletedAllowed
-          ? { action: "Delete", iconName: "Delete02Icon", color: "red" }
+          ? {
+              action: "Delete",
+              translationKey: "chat.messageActions.delete",
+              iconName: "Delete02Icon",
+              color: "red",
+            }
           : undefined,
       ] as (ActionMenuItem | undefined)[]
     ).filter((item): item is ActionMenuItem => item !== undefined);
@@ -148,6 +199,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
     >
       <Pressable
         onPress={onClose}
+        // @ts-ignore
         onContextMenu={(e) => {
           e.preventDefault();
           onClose();
@@ -167,48 +219,49 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
                 >
                   <View style={styles.menuItemContent}>
                     <Icon name={item.iconName} size={20} color={item.color} />
-                    <Text
+                    <AppText
                       style={styles.menuText}
                       numberOfLines={1}
                       selectable={false}
-                    >
-                      {item.action}
-                    </Text>
+                      translationKey={item.translationKey}
+                    />
                   </View>
                 </HoverAndPressedButton>
               ))}
             </View>
           </BlurredView>
           {/* Read & Reactions Box */}
-          {hasRead ||
-            (hasReactions && (
-              <View style={{ marginTop: 8 }}>
-                <BlurredView style={styles.statsContainer}>
-                  <HoverAndPressedButton
-                    onPress={() => {}}
-                    style={styles.statsButton}
-                  >
-                    {hasRead && (
-                      <View style={styles.statsRow}>
-                        <Icon name="EyeIcon" size={16} color={theme.text} />
-                        <Text
-                          style={styles.statsText}
-                          selectable={false}
-                        >{`${readCount} Reads.`}</Text>
-                      </View>
-                    )}
-                    {hasReactions && (
-                      <View style={styles.statsRow}>
-                        <Icon name="SmileIcon" size={16} color={theme.text} />
-                        <Text style={styles.statsText} selectable={false}>
-                          {`${totalReactions} Reactions.`}
-                        </Text>
-                      </View>
-                    )}
-                  </HoverAndPressedButton>
-                </BlurredView>
-              </View>
-            ))}
+          {(hasRead || hasReactions) && (
+            <View style={{ marginTop: 8 }}>
+              <BlurredView style={styles.statsContainer}>
+                <HoverAndPressedButton
+                  onPress={() => {}}
+                  style={styles.statsButton}
+                >
+                  {hasRead && (
+                    <View style={styles.statsRow}>
+                      <Icon name="EyeIcon" size={16} color={theme.text} />
+                      <AppText
+                        style={styles.statsText}
+                        selectable={false}
+                        text={t(`chat.messageActions.reads.${readCount === 1 ? "one" : "other"}`, { count: readCount })}
+                      />
+                    </View>
+                  )}
+                  {hasReactions && (
+                    <View style={styles.statsRow}>
+                      <Icon name="SmileIcon" size={16} color={theme.text} />
+                      <AppText
+                        style={styles.statsText}
+                        selectable={false}
+                        text={t(`chat.messageActions.reactions.${totalReactions === 1 ? "one" : "other"}`, { count: totalReactions })}
+                      />
+                    </View>
+                  )}
+                </HoverAndPressedButton>
+              </BlurredView>
+            </View>
+          )}
         </View>
       </Pressable>
     </Modal>

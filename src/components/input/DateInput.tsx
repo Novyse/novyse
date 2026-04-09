@@ -8,6 +8,8 @@ import {
   TextInput,
   Platform,
 } from "react-native";
+import AppText from "../AppText";
+import { useTranslation } from "react-i18next";
 import DatePicker from "react-native-date-picker";
 import { DateTime } from "luxon";
 
@@ -26,6 +28,7 @@ export default function DateInput({
   disabled = false,
   onChange,
 }: DateInputProps) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext) as { theme: any };
   const styles = createStyles(theme, disabled);
 
@@ -46,7 +49,7 @@ export default function DateInput({
     setOpen(true);
   };
 
-  const displayValue = value || placeholder || "Select date";
+  const displayValue = value || t(placeholder || "common.inputs.select_date");
 
   return (
     <View style={styles.inputContainer}>
@@ -55,9 +58,10 @@ export default function DateInput({
         style={styles.pressable}
         disabled={disabled}
       >
-        <Text style={[styles.text, !value && styles.placeholder]}>
-          {displayValue}
-        </Text>
+        <AppText
+          style={[styles.text, !value && styles.placeholder]}
+          text={displayValue}
+        />
       </Pressable>
       <Modal visible={open} transparent animationType="slide">
         <View style={styles.modalContainer}>
@@ -66,7 +70,7 @@ export default function DateInput({
               web: (
                 <input
                   type="date"
-                  value={DateTime.fromJSDate(date).toISODate()}
+                  value={DateTime.fromJSDate(date).toISODate() || ""}
                   onChange={(e) => setDate(new Date(e.target.value))}
                   style={{
                     color: theme.text,
@@ -89,7 +93,10 @@ export default function DateInput({
               ),
             })}
             <Pressable onPress={confirmDate} style={styles.confirmButton}>
-              <Text style={styles.confirmText}>Confirm</Text>
+              <AppText
+                style={styles.confirmText}
+                translationKey="common.inputs.confirm"
+              />
             </Pressable>
           </View>
         </View>

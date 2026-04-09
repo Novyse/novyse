@@ -1,6 +1,8 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { DateTime } from "luxon";
+import { useTranslation } from "react-i18next";
 
 import SmartBackground from "@/src/components/SmartBackground";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
@@ -24,6 +26,7 @@ const ChatListItem = React.memo(
     onPress,
     onLongPress,
   }) => {
+    const { t } = useTranslation();
     const { theme } = useContext(ThemeContext);
     const styles = React.useMemo(() => createStyle(theme), [theme]);
     const localUserUUID = useUserStore((state) => state.localUserUUID);
@@ -70,18 +73,18 @@ const ChatListItem = React.memo(
       const isDraft = message.type === "DRAFT";
 
       if (isDraft) {
-        sender = "Draft: ";
+        sender = `${t("chat.listItem.draft")}: `;
       } else if (message.type === "system") {
         sender = "";
       } else if (message.senderUUID === localUserUUID) {
-        sender = "You: ";
+        sender = `${t("chat.listItem.you")}: `;
       } else if (message.senderUUID) {
-        sender = `${relevantUser?.name || "Unknown"}: `;
+        sender = `${relevantUser?.name || t("chat.listItem.unknown")}: `;
       } else {
-        sender = "Unknown: ";
+        sender = `${t("chat.listItem.unknown")}: `;
       }
       return (
-        <Text
+        <AppText
           style={[
             styles.chatSubtitle,
             styles.gridText,
@@ -90,10 +93,8 @@ const ChatListItem = React.memo(
           numberOfLines={1}
           ellipsizeMode="tail"
           selectable={false}
-        >
-          {sender}
-          {content}
-        </Text>
+          text={`${sender}${content}`}
+        />
       );
     };
 
@@ -127,20 +128,17 @@ const ChatListItem = React.memo(
             {/* LEFT */}
             <View style={styles.leftContainer}>
               <View style={styles.titleRow}>
-                <Text
+                <AppText
                   style={[styles.chatTitle, styles.gridText]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                   selectable={false}
-                >
-                  {displayName}
-                </Text>
+                  text={displayName}
+                />
               </View>
               <View style={styles.subtitleRow}>
                 {memberActivityData && memberActivityData.length > 0 ? (
-                  <Text style={styles.chatSubtitle} selectable={false}>
-                    {messageUtils.formatActivity(memberActivityData)}
-                  </Text>
+                  <AppText style={styles.chatSubtitle} selectable={false} text={messageUtils.formatActivity(memberActivityData)} />
                 ) : (
                   displayMessage(
                     draftText || draftFiles?.length > 0
@@ -165,9 +163,7 @@ const ChatListItem = React.memo(
                     ) : (
                       <>
                         <Icon name={"TickDouble02Icon"} size={18} />
-                        <Text style={styles.chatDateText} selectable={false}>
-                          {parseTime(lastMessage.created_at)}
-                        </Text>
+                        <AppText style={styles.chatDateText} selectable={false} text={parseTime(lastMessage.created_at)} />
                       </>
                     )}
                   </>
@@ -178,9 +174,7 @@ const ChatListItem = React.memo(
                 {isPinned && <Icon name={"PinIcon"} size={16} />}
                 {unreadCount > 0 && (
                   <View style={styles.ball}>
-                    <Text style={styles.ballText} selectable={false}>
-                      {unreadCount}
-                    </Text>
+                    <AppText style={styles.ballText} selectable={false} text={unreadCount} />
                   </View>
                 )}
               </View>

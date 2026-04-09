@@ -1,5 +1,6 @@
 import React, { useContext, useState } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
 
 import { ThemeContext } from "@/context/ThemeContext";
@@ -24,15 +25,15 @@ export default function AccountModifyRoute() {
   if (loading || !user) {
     return (
       <View style={styles.container}>
-        <HeaderWithBackArrow title={"Account"} onBack={() => onBack()} />
-        <Text style={styles.loadingText}>Loading profile...</Text>
+        <HeaderWithBackArrow translationKey="settings.account.title" onBack={() => onBack()} />
+        <AppText style={styles.loadingText} translationKey="common.loadingProfile" />
       </View>
     );
   }
 
   return (
     <>
-      <HeaderWithBackArrow title={"Account"} onBack={() => onBack()} />
+      <HeaderWithBackArrow translationKey="settings.account.title" onBack={() => onBack()} />
       <Page
         name={user.name}
         surname={user.surname}

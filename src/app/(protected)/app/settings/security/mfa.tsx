@@ -1,6 +1,8 @@
 import React, { useContext, useState } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
@@ -17,6 +19,7 @@ interface MfaMethod {
 }
 
 export default function MfaRoute() {
+  const { t } = useTranslation();
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
@@ -26,15 +29,15 @@ export default function MfaRoute() {
   const [methods, setMethods] = useState<MfaMethod[]>([
     {
       id: "authenticator",
-      name: "Authenticator",
-      description: "Authentication App",
+      name: t("settings.security.authenticator"),
+      description: t("settings.security.authAppDesc"),
       iconName: "SecurityIcon",
       isActive: true,
     },
     {
       id: "email",
-      name: "Email",
-      description: "Code via Email",
+      name: t("settings.security.email"),
+      description: t("settings.security.emailCodeDesc"),
       iconName: "Mail01Icon",
       isActive: false,
     },
@@ -47,18 +50,18 @@ export default function MfaRoute() {
     // TODO: API call to add method
     console.log("Add MFA method", methodId);
     setMethods((prev) =>
-      prev.map((m) => (m.id === methodId ? { ...m, isActive: true } : m))
+      prev.map((m) => (m.id === methodId ? { ...m, isActive: true } : m)),
     );
-    setSuccess("MFA method added successfully");
+    setSuccess(t("settings.security.mfaMethodAdded"));
   };
 
   const handleRemoveMethod = (methodId: string) => {
     // TODO: API call to remove method
     console.log("Remove MFA method", methodId);
     setMethods((prev) =>
-      prev.map((m) => (m.id === methodId ? { ...m, isActive: false } : m))
+      prev.map((m) => (m.id === methodId ? { ...m, isActive: false } : m)),
     );
-    setSuccess("MFA method removed successfully");
+    setSuccess(t("settings.security.mfaMethodRemoved"));
   };
 
   const handleShowBackupCodes = () => {
@@ -69,18 +72,25 @@ export default function MfaRoute() {
   const handleResetBackupCodes = () => {
     // TODO: API call
     console.log("Reset backup codes");
-    setSuccess("Backup codes have been reset successfully");
+    setSuccess(t("settings.security.backupCodesResetSuccess"));
   };
 
   return (
     <>
-      <HeaderWithBackArrow title="MFA" onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.security.mfa"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Multi-Factor Authentication</Text>
-          <Text style={styles.subtitle}>
-            Manage your authentication methods
-          </Text>
+          <AppText
+            style={styles.title}
+            translationKey="settings.security.mfaTitle"
+          />
+          <AppText
+            style={styles.subtitle}
+            translationKey="settings.security.manageAuthMethods"
+          />
         </View>
 
         <StatusMessage
@@ -105,10 +115,11 @@ export default function MfaRoute() {
                     <Icon name={method.iconName} color="#fff" />
                   </View>
                   <View style={styles.methodDetails}>
-                    <Text style={styles.methodName}>{method.name}</Text>
-                    <Text style={styles.methodDescription}>
-                      {method.description}
-                    </Text>
+                    <AppText style={styles.methodName} text={method.name} />
+                    <AppText
+                      style={styles.methodDescription}
+                      text={method.description}
+                    />
                   </View>
                 </View>
 
@@ -116,7 +127,10 @@ export default function MfaRoute() {
                   {method.isActive ? (
                     <View style={styles.activeSection}>
                       <View style={styles.statusBadge}>
-                        <Text style={styles.statusText}>Active</Text>
+                        <AppText
+                          style={styles.statusText}
+                          translationKey="settings.security.active"
+                        />
                       </View>
                       <Pressable
                         onPress={() => handleRemoveMethod(method.id)}
@@ -139,7 +153,10 @@ export default function MfaRoute() {
                       ]}
                     >
                       <Icon name="PlusSignCircleIcon" color="#fff" />
-                      <Text style={styles.addButtonText}>Add</Text>
+                      <AppText
+                        style={styles.addButtonText}
+                        translationKey="settings.security.add"
+                      />
                     </Pressable>
                   )}
                 </View>
@@ -150,11 +167,11 @@ export default function MfaRoute() {
 
         <View style={styles.buttonContainer}>
           <SettingsButton
-            text="Show Backup Codes"
+            translationKey="settings.security.showBackupCodes"
             onPress={handleShowBackupCodes}
           />
           <SettingsButton
-            text="Reset Backup Codes"
+            translationKey="settings.security.resetBackupCodes"
             onPress={handleResetBackupCodes}
           />
         </View>

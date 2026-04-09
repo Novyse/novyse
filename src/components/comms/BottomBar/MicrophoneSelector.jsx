@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Pressable, StyleSheet, FlatList } from "react-native";
+import { View, Pressable, StyleSheet, FlatList } from "react-native";
 import { Platform } from "react-native";
 
 import { Room } from "livekit-client";
@@ -8,6 +8,7 @@ import { useThemeContext } from "@/context/ThemeContext";
 
 import ModalBase from "../../modalSheets/ModalBase";
 import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/AppText";
 
 const MicrophoneSelector = ({
   visible,
@@ -56,13 +57,19 @@ const MicrophoneSelector = ({
       >
         <Icon name={"Mic02Icon"} color={isSelected ? "#4CAF50" : theme.text} />
         <View style={styles.microphoneInfo}>
-          <Text
+          <AppText
             style={[styles.microphoneName, isSelected && styles.selectedText]}
           >
-            {item.label || `Microphone ${item.deviceId}`}
-          </Text>
+            {item.label ||
+              t("chat.comms.selectors.microphone.defaultName", {
+                id: item.deviceId,
+              })}
+          </AppText>
           {isSelected && (
-            <Text style={styles.currentLabel}>Currently Selected</Text>
+            <AppText
+              style={styles.currentLabel}
+              translationKey="chat.comms.selectors.microphone.currentlySelected"
+            />
           )}
         </View>
         {isSelected && <Icon name={"Tick02Icon"} color="#4CAF50" />}
@@ -73,12 +80,18 @@ const MicrophoneSelector = ({
   return (
     <ModalBase visible={visible} onClose={onClose} theme={theme}>
       <View style={styles.header}>
-        <Text style={styles.title}>Select Microphone</Text>
+        <AppText
+          style={styles.title}
+          translationKey="chat.comms.selectors.microphone.title"
+        />
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading microphones...</Text>
+          <AppText
+            style={styles.loadingText}
+            translationKey="chat.comms.selectors.microphone.loading"
+          />
         </View>
       ) : (
         <FlatList

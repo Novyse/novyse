@@ -1,6 +1,8 @@
 import React, { useContext, useState } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
@@ -16,17 +18,17 @@ interface NotificationMethod {
 }
 
 export default function NotificationsRoute() {
+  const { t } = useTranslation();
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  // Mock data
   const [methods, setMethods] = useState<NotificationMethod[]>([
     {
       id: "1",
       name: "Novyse",
-      type: "In-app notifications",
+      type: t("settings.security.inAppNotifications"),
       isDefault: true,
     },
   ]);
@@ -42,18 +44,25 @@ export default function NotificationsRoute() {
     // TODO: API call
     console.log("Delete notification method", id);
     setMethods((prev) => prev.filter((m) => m.id !== id));
-    setSuccess("Notification method removed");
+    setSuccess(t("settings.security.notificationMethodRemoved"));
   };
 
   return (
     <>
-      <HeaderWithBackArrow title="Notifications" onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.security.notifications"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Notification Methods</Text>
-          <Text style={styles.subtitle}>
-            Manage how you receive security notifications
-          </Text>
+          <AppText
+            style={styles.title}
+            translationKey="settings.security.notificationMethods"
+          />
+          <AppText
+            style={styles.subtitle}
+            translationKey="settings.security.manageNotifications"
+          />
         </View>
 
         <StatusMessage
@@ -71,7 +80,9 @@ export default function NotificationsRoute() {
               iconColor={method.isDefault ? "#00C851" : "#6366f1"}
               title={method.name}
               subtitle={method.type}
-              badge={method.isDefault ? "Default" : undefined}
+              badge={
+                method.isDefault ? t("settings.security.default") : undefined
+              }
               badgeColor="#6366f1"
               isHighlighted={method.isDefault}
               onDelete={
@@ -93,7 +104,10 @@ export default function NotificationsRoute() {
             ]}
           >
             <Icon name="PlusSignCircleIcon" color="#fff" />
-            <Text style={styles.addButtonText}>Add Notification Method</Text>
+            <AppText
+              style={styles.addButtonText}
+              translationKey="settings.security.addNotificationMethod"
+            />
           </Pressable>
         </View>
 

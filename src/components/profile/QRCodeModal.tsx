@@ -1,5 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 import QRCode from "react-native-qrcode-svg";
 
 import useClipboard from "@/src/hooks/useClipboard";
@@ -27,6 +29,7 @@ const QRCodeModal = ({
   profilePictureUUID,
   theme,
 }: QRCodeModalProps) => {
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   const { copyToClipboard, copied } = useClipboard();
@@ -60,9 +63,10 @@ const QRCodeModal = ({
             logoMargin={5}
             logoBackgroundColor={"#fff"}
           />
-          <Text style={styles.usernameText}>
-            @{username ? username.toLocaleUpperCase() : ""}
-          </Text>
+          <AppText
+            style={styles.usernameText}
+            text={`@${username ? username.toLocaleUpperCase() : ""}`}
+          />
         </View>
 
         <View style={styles.linkContainer}>
@@ -71,13 +75,12 @@ const QRCodeModal = ({
             style={styles.copyBox}
             disabled={copied}
           >
-            <Text
+            <AppText
               style={[styles.linkText, { color: theme.text }]}
               numberOfLines={1}
               ellipsizeMode="middle"
-            >
-              {profileLink}
-            </Text>
+              text={copied ? t("profile.qrModal.copied") : profileLink}
+            />
             <Icon
               name={copied ? "Tick01Icon" : "Copy01Icon"}
               size={20}

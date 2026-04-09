@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, Text, View, Linking } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
 
 import { ThemeContext } from "@/context/ThemeContext";
@@ -21,20 +22,20 @@ export default function InfoRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow title={"Info"} onBack={onBack} />
+      <HeaderWithBackArrow translationKey="settings.menu.info" onBack={onBack} />
       <SettingsPageScrollview>
         <InfoVersionCard theme={theme} />
 
         <SettingsCard>
-          <Text style={styles.sectionTitle}>Connect</Text>
+          <AppText style={styles.sectionTitle} translationKey="settings.info.connect" />
           <InfoLinkItem
-            label="View on GitHub"
+            translationKey="settings.info.viewOnGithub"
             icon="GithubIcon"
             theme={theme}
             onPress={() => openLink("https://github.com/Novyse/novyse")}
           />
           <InfoLinkItem
-            label="Roadmap"
+            translationKey="settings.info.roadmap"
             icon="GlobalIcon"
             theme={theme}
             onPress={() => openLink("https://www.novyse.com/roadmap")}
@@ -42,9 +43,9 @@ export default function InfoRoute() {
         </SettingsCard>
 
         <SettingsCard>
-          <Text style={styles.sectionTitle}>Legal</Text>
+          <AppText style={styles.sectionTitle} translationKey="settings.info.legal" />
           <InfoLinkItem
-            label="Privacy Policy"
+            translationKey="settings.info.privacyPolicy"
             icon="Shield01Icon"
             theme={theme}
             onPress={() =>
@@ -52,7 +53,7 @@ export default function InfoRoute() {
             }
           />
           <InfoLinkItem
-            label="Terms of Service"
+            translationKey="settings.info.termsOfService"
             icon="AlignBoxTopCenterIcon"
             theme={theme}
             onPress={() =>
@@ -60,7 +61,7 @@ export default function InfoRoute() {
             }
           />
           <InfoLinkItem
-            label="Cookie Policy"
+            translationKey="settings.info.cookiePolicy"
             icon="CookieIcon"
             theme={theme}
             onPress={() =>

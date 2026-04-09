@@ -5,41 +5,45 @@ import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 
 export default function SecurityRoute() {
-  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
+  const onBack = () =>
+    router.canGoBack() ? router.back() : router.push("/app");
 
   return (
     <>
-      <HeaderWithBackArrow title={"Security"} onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.menu.security"
+        onBack={onBack}
+      />
       <SettingsPageScrollview isMenu={true}>
         <SettingsMenuItem
           navToPage="./settings/security/password"
-          pageName="Password"
+          translationKey="settings.security.password"
           iconName={"LockPasswordIcon"}
         />
         <SettingsMenuItem
           navToPage="./settings/security/passkeys"
-          pageName="Passkeys"
+          translationKey="settings.security.passkeys"
           iconName={"FingerPrintIcon"}
         />
         <SettingsMenuItem
           navToPage="./settings/security/mfa"
-          pageName="MFA (WIP)"
+          translationKey="settings.security.mfa"
           iconName={"TwoFactorAccessIcon"}
           disabled={true}
         />
         <SettingsMenuItem
           navToPage="./settings/security/sessions"
-          pageName="Sessions"
+          translationKey="settings.security.sessionsLabel"
           iconName={"ComputerIcon"}
         />
         <SettingsMenuItem
           navToPage="./settings/security/api-keys"
-          pageName="API Keys"
+          translationKey="settings.security.apiKeys"
           iconName={"Key01Icon"}
         />
         <SettingsMenuItem
           navToPage="./settings/security/notifications"
-          pageName="Notifications (WIP)"
+          translationKey="settings.security.notifications"
           iconName={"Notification03Icon"}
           disabled={true}
         />

@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import ModalBase from "./ModalBase";
+import AppText from "../AppText";
 
 const DeleteMessage = ({
   visible,
@@ -18,30 +19,41 @@ const DeleteMessage = ({
   };
 
   return (
-    <ModalBase visible={visible} onClose={onClose} theme={theme} fullscreen={fullscreen}>
+    <ModalBase
+      visible={visible}
+      onClose={onClose}
+      theme={theme}
+      fullscreen={fullscreen}
+    >
       <View style={styles.contentContainer}>
-        <Text style={styles.title}>Delete Messages</Text>
-        <Text style={styles.subtitle}>
-          Are you sure you want to delete {messageCount} message
-          {messageCount > 1 ? "s" : ""}? This will delete for everyone.
-        </Text>
+        <AppText
+          style={styles.title}
+          translationKey="modals.delete_message.title"
+        />
+        <AppText
+          style={styles.subtitle}
+          translationKey="modals.delete_message.subtitle"
+          translationOptions={{ count: messageCount }}
+        />
 
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.button, styles.cancelButton]}
             onPress={onClose}
           >
-            <Text style={[styles.buttonText, styles.cancelButtonText]}>
-              Cancel
-            </Text>
+            <AppText
+              style={[styles.buttonText, styles.cancelButtonText]}
+              translationKey="modals.delete_message.cancel"
+            />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.deleteButton]}
             onPress={onDeletePress}
           >
-            <Text style={[styles.buttonText, styles.deleteButtonText]}>
-              Delete
-            </Text>
+            <AppText
+              style={[styles.buttonText, styles.deleteButtonText]}
+              translationKey="modals.delete_message.delete"
+            />
           </TouchableOpacity>
         </View>
       </View>

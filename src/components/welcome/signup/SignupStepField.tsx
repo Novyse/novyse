@@ -1,10 +1,6 @@
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import AppText from "@/src/components/AppText";
 import { LoginColors } from "@/constants/LoginColors";
 import { validate } from "@/src/utils/welcome/validator";
 import Icon from "@/src/components/Icon";
@@ -13,18 +9,21 @@ import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
 
 const HANDLE_REQUIREMENTS = [
   {
-    label: "Starts with a letter or number",
+    labelKey: "auth.signupStep.startsLetterNumber",
     check: (h: string) => /^[a-z0-9]/.test(h),
   },
   {
-    label: "Ends with a letter or number",
+    labelKey: "auth.signupStep.endsLetterNumber",
     check: (h: string) => /[a-z0-9]$/.test(h),
   },
   {
-    label: "Only letters, numbers, and underscores",
+    labelKey: "auth.signupStep.onlyLettersNumbers",
     check: (h: string) => /^[a-z0-9_]+$/.test(h),
   },
-  { label: "No consecutive underscores", check: (h: string) => !/__/.test(h) },
+  {
+    labelKey: "auth.signupStep.noConsecutiveUnderscores",
+    check: (h: string) => !/__/.test(h),
+  },
 ];
 
 const SIGNUP_MODE_OPTIONS: ToggleOption<"password" | "passkey">[] = [
@@ -68,12 +67,19 @@ export default function SignupStepField({
   onToggleConfirmPassword,
   loginTheme = "default",
 }: Props) {
+  const { t } = useTranslation();
   const colors = (LoginColors as any)[loginTheme];
   const styles = createStyles(colors);
 
-  const RequirementRow = ({ label, met }: { label: string; met: boolean }) => (
+  const RequirementRow = ({
+    labelKey,
+    met,
+  }: {
+    labelKey: string;
+    met?: boolean;
+  }) => (
     <View style={styles.reqItem}>
-      <Text
+      <AppText
         style={[styles.reqIcon, met ? styles.reqGreen : styles.reqRed]}
         selectable={false}
       >
@@ -82,8 +88,11 @@ export default function SignupStepField({
         ) : (
           <Icon name="Cancel01Icon" color={colors.signupReqRed} size={16} />
         )}
-      </Text>
-      <Text style={[styles.reqText, { color: colors.subtitle }]}>{label}</Text>
+      </AppText>
+      <AppText
+        style={[styles.reqText, { color: colors.subtitle }]}
+        translationKey={labelKey}
+      />
     </View>
   );
 
@@ -106,9 +115,10 @@ export default function SignupStepField({
     return (
       <View style={styles.group}>
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.subtitle }]}>
-            Display Name
-          </Text>
+          <AppText
+            style={[styles.label, { color: colors.subtitle }]}
+            translationKey="auth.signupStep.displayName"
+          />
           <View
             style={[
               styles.inputContainer,
@@ -122,7 +132,7 @@ export default function SignupStepField({
             <TextInput
               style={[styles.textInput, { color: colors.text }]}
               value={form[field as keyof typeof form]}
-              placeholder="Display Name"
+              placeholder={t("auth.signupStep.displayNamePlaceholder")}
               placeholderTextColor={colors.placeholderTextInput}
               onChangeText={(v) => onChangeField(field, v)}
               autoCapitalize="sentences"
@@ -131,7 +141,7 @@ export default function SignupStepField({
         </View>
         <View style={styles.requirements}>
           <RequirementRow
-            label="Name: only letters and spaces"
+            labelKey="auth.signupStep.nameLettersOnly"
             met={validate.user.name(form.name)}
           />
         </View>
@@ -144,9 +154,10 @@ export default function SignupStepField({
     return (
       <View style={styles.group}>
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.subtitle }]}>
-            Username
-          </Text>
+          <AppText
+            style={[styles.label, { color: colors.subtitle }]}
+            translationKey="auth.signupStep.username"
+          />
           <View
             style={[
               styles.inputContainer,
@@ -170,7 +181,7 @@ export default function SignupStepField({
             <TextInput
               style={[styles.textInput, { color: colors.text }]}
               value={form.handle}
-              placeholder="Username"
+              placeholder={t("auth.signupStep.usernamePlaceholder")}
               placeholderTextColor={colors.placeholderTextInput}
               onChangeText={(v) => onChangeField("handle", v)}
               autoCapitalize="none"
@@ -186,14 +197,14 @@ export default function SignupStepField({
           <View style={styles.requirements}>
             {HANDLE_REQUIREMENTS.map((r) => (
               <RequirementRow
-                key={r.label}
-                label={r.label}
+                key={r.labelKey}
+                labelKey={r.labelKey}
                 met={r.check(form.handle)}
               />
             ))}
             {!!showAvailability && (
               <View style={styles.reqItem}>
-                <Text
+                <AppText
                   style={[
                     styles.reqIcon,
                     isLoading
@@ -222,14 +233,17 @@ export default function SignupStepField({
                       size={16}
                     />
                   )}
-                </Text>
-                <Text style={[styles.reqText, { color: colors.subtitle }]}>
-                  {isLoading
-                    ? "Checking..."
-                    : handleAvailable
-                      ? "Available"
-                      : "Already in use"}
-                </Text>
+                </AppText>
+                <AppText
+                  style={[styles.reqText, { color: colors.subtitle }]}
+                  translationKey={
+                    isLoading
+                      ? "auth.signupStep.checking"
+                      : handleAvailable
+                        ? "auth.signupStep.available"
+                        : "auth.signupStep.alreadyInUse"
+                  }
+                />
               </View>
             )}
           </View>
@@ -258,9 +272,10 @@ export default function SignupStepField({
         {signupMode === "password" && (
           <>
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.subtitle }]}>
-                Password {"(min 16)"}
-              </Text>
+              <AppText
+                style={[styles.label, { color: colors.subtitle }]}
+                translationKey="auth.signupStep.passwordMin16"
+              />
               <View
                 style={[
                   styles.inputContainer,
@@ -274,7 +289,7 @@ export default function SignupStepField({
                 <TextInput
                   style={[styles.textInput, { color: colors.text }]}
                   value={form.password}
-                  placeholder="Password"
+                  placeholder={t("auth.signupStep.password")}
                   placeholderTextColor={colors.placeholderTextInput}
                   secureTextEntry={showPassword}
                   onChangeText={(v) => onChangeField("password", v)}
@@ -289,9 +304,10 @@ export default function SignupStepField({
               </View>
             </View>
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.subtitle }]}>
-                Confirm Password
-              </Text>
+              <AppText
+                style={[styles.label, { color: colors.subtitle }]}
+                translationKey="auth.signupStep.confirmPassword"
+              />
               <View
                 style={[
                   styles.inputContainer,
@@ -308,7 +324,7 @@ export default function SignupStepField({
                 <TextInput
                   style={[styles.textInput, { color: colors.text }]}
                   value={form.confirmPassword}
-                  placeholder="Confirm Password"
+                  placeholder={t("auth.signupStep.confirmPasswordPlaceholder")}
                   placeholderTextColor={colors.placeholderTextInput}
                   secureTextEntry={showConfirmPassword}
                   onChangeText={(v) => onChangeField("confirmPassword", v)}
@@ -322,7 +338,10 @@ export default function SignupStepField({
                 />
               </View>
               <View style={styles.opaqueLink}>
-                <Text style={styles.opaqueLinkText}>Secured by </Text>
+                <AppText
+                  style={styles.opaqueLinkText}
+                  translationKey="auth.login.securedBy"
+                />
                 <TextLink
                   style={styles.opaqueLinkTextBold}
                   href="https://opaque-auth.com/"

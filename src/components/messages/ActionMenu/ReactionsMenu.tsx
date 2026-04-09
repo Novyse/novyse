@@ -1,5 +1,6 @@
 import React from "react";
-import { View, StyleSheet, Text, ScrollView, Platform } from "react-native";
+import { StyleSheet, ScrollView, Platform } from "react-native";
+import AppText from "@/src/components/AppText";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 import BlurredView from "../../BlurredView";
 import { useThemeContext } from "@/context/ThemeContext";
@@ -33,7 +34,11 @@ const ReactionMenu: React.FC<ReactionMenuProps> = ({ onReaction }) => {
             style={styles.reactionButton}
             onPress={() => onReaction(emoji)}
           >
-            <Text style={styles.reactionText} selectable={false}>{emoji}</Text>
+            <AppText
+              style={styles.reactionText}
+              selectable={false}
+              text={emoji}
+            />
           </HoverAndPressedButton>
         ))}
       </ScrollView>

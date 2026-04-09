@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
+import AppText from "@/src/components/AppText";
 import Banner from "@/src/components/Banner";
 import ProfileHeader from "@/src/components/profile/ProfileHeader";
 import FormSection from "@/src/components/settings/account/modify-profile/Page/FormSection";
@@ -138,13 +139,13 @@ export default function ModifyProfile({
           userUUID: userUUID as string,
         });
         setBaseValues(formValues);
-        setMessage("Profile updated successfully");
+        setMessage("settings.modifyProfile.success");
       } else {
-        setError("Error updating profile");
+        setError("settings.modifyProfile.error");
       }
     } catch (e: any) {
       console.error("Error saving profile", e);
-      setError(e.message || "Error saving profile");
+      setError("settings.modifyProfile.saveError");
     } finally {
       setIsSaving(false);
     }
@@ -190,20 +191,29 @@ export default function ModifyProfile({
       </View>
       {!message && !error && hasChanges && (
         <View style={styles.floatingBar}>
-          <Text style={styles.floatingText}>
-            Careful - you have unsaved changes!
-          </Text>
+          <AppText
+            style={styles.floatingText}
+            translationKey="settings.modifyProfile.unsavedChanges"
+          />
           <View style={styles.floatingButtons}>
             <HoverAndPressedButton
               style={styles.restoreBtn}
               onPress={handleRestore}
             >
-              <Text style={styles.restoreText}>Restore</Text>
+              <AppText
+                style={styles.restoreText}
+                translationKey="settings.modifyProfile.restore"
+              />
             </HoverAndPressedButton>
             <HoverAndPressedButton style={styles.saveBtn} onPress={handleSave}>
-              <Text style={styles.saveText}>
-                {isSaving ? "Saving..." : "Save"}
-              </Text>
+              <AppText
+                style={styles.saveText}
+                translationKey={
+                  isSaving
+                    ? "settings.modifyProfile.saving"
+                    : "settings.modifyProfile.save"
+                }
+              />
             </HoverAndPressedButton>
           </View>
         </View>
@@ -212,14 +222,14 @@ export default function ModifyProfile({
         <StatusMessage
           type="success"
           visible={!!message}
-          content={[message]}
+          translationKey={message}
           timeout={5000}
           onClose={() => setMessage("")}
         />
         <StatusMessage
           type="error"
           visible={!!error}
-          content={[error]}
+          translationKey={error}
           timeout={5000}
           onClose={() => setError("")}
         />

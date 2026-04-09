@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
-  Text,
   Pressable,
   SafeAreaView,
   StatusBar,
 } from "react-native";
+import AppText from "@/src/components/AppText";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useEvent } from "expo";
 import Slider from "@react-native-community/slider";
@@ -232,9 +232,10 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
 
                 <View style={styles.footerContainer}>
                   <View style={styles.sliderRow}>
-                    <Text style={styles.timeText}>
-                      {formatTime(isSeeking ? seekTime : currentTime)}
-                    </Text>
+                    <AppText
+                      style={styles.timeText}
+                      text={formatTime(isSeeking ? seekTime : currentTime)}
+                    />
                     <Slider
                       style={styles.slider}
                       minimumValue={0}
@@ -255,7 +256,10 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                       minimumTrackTintColor="#3b82f6"
                       thumbTintColor="#ffffff"
                     />
-                    <Text style={styles.timeText}>{formatTime(duration)}</Text>
+                    <AppText
+                      style={styles.timeText}
+                      text={formatTime(duration)}
+                    />
                   </View>
 
                   <View style={styles.bottomActionsRow}>
@@ -283,9 +287,10 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                         style={styles.speedButton}
                         onPress={cycleSpeed}
                       >
-                        <Text style={styles.speedText}>
-                          {speeds[currentSpeedIndex]}x
-                        </Text>
+                        <AppText
+                          style={styles.speedText}
+                          text={`${speeds[currentSpeedIndex]}x`}
+                        />
                       </Pressable>
                       {getPlatform() === "web" && (
                         <Icon

@@ -1,5 +1,6 @@
 import React, { useContext, useEffect } from "react";
-import { StyleSheet, Pressable, Text, View } from "react-native";
+import { StyleSheet, Pressable, View } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
@@ -23,10 +24,10 @@ export default function ThemesRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow title={"Themes"} onBack={onBack} />
+      <HeaderWithBackArrow translationKey="settings.customization.themes" onBack={onBack} />
       <SettingsPageScrollview>
-        <Text style={styles.title}>Themes</Text>
-        <Text style={styles.subtitle}>Choose your preferred color scheme</Text>
+        <AppText style={styles.title} translationKey="settings.customization.themes" />
+        <AppText style={styles.subtitle} translationKey="settings.customization.themesSubtitle" />
 
         <View style={styles.themesContainer}>
           {availableThemes.map((themeName) => (
@@ -49,13 +50,11 @@ export default function ThemesRoute() {
                       },
                     ]}
                   />
-                  <Text style={styles.themeText}>
-                    {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
-                  </Text>
+                  <AppText style={styles.themeText} text={themeName.charAt(0).toUpperCase() + themeName.slice(1)} />
                 </View>
                 {colorScheme === themeName && (
                   <View style={styles.activeIndicator}>
-                    <Text style={styles.checkmark}>✓</Text>
+                    <AppText style={styles.checkmark} text="✓" />
                   </View>
                 )}
               </View>

@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
-  Text,
   Pressable,
   SafeAreaView,
   Platform,
   StatusBar,
 } from "react-native";
+import AppText from "@/src/components/AppText";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useEvent } from "expo";
@@ -216,9 +216,10 @@ const VideoViewer = () => {
 
               <View style={styles.footerContainer}>
                 <View style={styles.sliderRow}>
-                  <Text style={styles.timeText}>
-                    {formatTime(isSeeking ? seekTime : currentTime)}
-                  </Text>
+                  <AppText
+                    style={styles.timeText}
+                    text={formatTime(isSeeking ? seekTime : currentTime)}
+                  />
                   <Slider
                     style={styles.slider}
                     minimumValue={0}
@@ -239,7 +240,10 @@ const VideoViewer = () => {
                     minimumTrackTintColor="#3b82f6"
                     thumbTintColor="#ffffff"
                   />
-                  <Text style={styles.timeText}>{formatTime(duration)}</Text>
+                  <AppText
+                    style={styles.timeText}
+                    text={formatTime(duration)}
+                  />
                 </View>
 
                 <View style={styles.bottomActionsRow}>
@@ -264,9 +268,10 @@ const VideoViewer = () => {
                   </View>
                   <View style={styles.rightActions}>
                     <Pressable style={styles.speedButton} onPress={cycleSpeed}>
-                      <Text style={styles.speedText}>
-                        {speeds[currentSpeedIndex]}x
-                      </Text>
+                      <AppText
+                        style={styles.speedText}
+                        text={`${speeds[currentSpeedIndex]}x`}
+                      />
                     </Pressable>
                     <Icon
                       name={

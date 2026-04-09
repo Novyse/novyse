@@ -1,5 +1,6 @@
 import React from "react";
-import { View, TouchableWithoutFeedback, Text, StyleSheet } from "react-native";
+import { View, TouchableWithoutFeedback, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { OverKeyboardView } from "react-native-keyboard-controller";
@@ -22,31 +23,42 @@ const UploadFileOverlay = ({
   const items = [
     {
       action: "Media",
+      translationKey: "chat.uploadOverlay.media",
       iconName: "Album01Icon",
       color: "white",
       disabled: false,
     },
     {
       action: "Camera",
+      translationKey: "chat.uploadOverlay.camera",
       iconName: "Camera01Icon",
       color: "white",
       disabled: true,
     },
-    { action: "File", iconName: "File01Icon", color: "white", disabled: false },
+    {
+      action: "File",
+      translationKey: "chat.uploadOverlay.file",
+      iconName: "File01Icon",
+      color: "white",
+      disabled: false,
+    },
     {
       action: "Location",
+      translationKey: "chat.uploadOverlay.location",
       iconName: "Location06Icon",
       color: "white",
       disabled: true,
     },
     {
       action: "Todo",
+      translationKey: "chat.uploadOverlay.todo",
       iconName: "TaskAdd01Icon",
       color: "white",
       disabled: true,
     },
     {
       action: "Poll",
+      translationKey: "chat.uploadOverlay.poll",
       iconName: "TaskEdit01Icon",
       color: "white",
       disabled: true,
@@ -60,7 +72,13 @@ const UploadFileOverlay = ({
     }
   };
 
-  const renderMenuItem = (action, iconName, color, disabled) => (
+  const renderMenuItem = (
+    action,
+    iconName,
+    color,
+    disabled,
+    translationKey,
+  ) => (
     <HoverAndPressedButton
       key={action}
       style={styles.menuItem}
@@ -68,7 +86,7 @@ const UploadFileOverlay = ({
       disabled={disabled}
     >
       <Icon name={iconName} size={32} color={color} />
-      <Text style={styles.menuText}>{action}</Text>
+      <AppText style={styles.menuText} translationKey={translationKey} />
     </HoverAndPressedButton>
   );
 
@@ -89,6 +107,7 @@ const UploadFileOverlay = ({
                     item.iconName,
                     item.color,
                     item.disabled,
+                    item.translationKey,
                   ),
                 )}
               </View>
@@ -130,6 +149,7 @@ const UploadFileOverlay = ({
                           item.iconName,
                           item.color,
                           item.disabled,
+                          item.translationKey,
                         ),
                       )}
                     </View>

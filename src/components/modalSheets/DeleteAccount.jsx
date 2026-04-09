@@ -1,5 +1,6 @@
 import React, { useContext, useState } from "react";
-import { View, Text, StyleSheet, TextInput, Linking } from "react-native";
+import { View, StyleSheet, TextInput, Linking } from "react-native";
+import AppText from "@/src/components/AppText";
 
 import { useRouter } from "expo-router";
 
@@ -60,26 +61,36 @@ const DeleteAccount = ({ visible, onClose }) => {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.modalTitle}>Delete Account</Text>
-            <Text style={styles.modalSubtitle}>
-              Warning: All your user data will be permanently deleted. This
-              action cannot be reversed.
-            </Text>
+            <AppText
+              style={styles.modalTitle}
+              translationKey="modals.delete_account.title"
+            />
+            <AppText
+              style={styles.modalSubtitle}
+              translationKey="modals.delete_account.warning"
+            />
           </View>
         </View>
 
         {/* Confirmation Identity */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel} selectable={false}>
-            CONFIRMATION IDENTITY
-          </Text>
-          <Text style={styles.inputLabel} selectable={false}>
-            Please type{" "}
-            <Text style={styles.boldUsername} selectable={true}>
-              {username}
-            </Text>{" "}
-            to confirm.
-          </Text>
+          <AppText
+            style={styles.sectionLabel}
+            selectable={false}
+            translationKey="modals.delete_account.confirmation_identity"
+          />
+          <AppText
+            style={styles.inputLabel}
+            selectable={false}
+            translationKey="modals.delete_account.confirm_instruction"
+            translationOptions={{ username }}
+          >
+            <AppText
+              style={styles.boldUsername}
+              selectable={true}
+              text={username}
+            />
+          </AppText>
           <TextInput
             style={styles.input}
             value={inputUsername}
@@ -89,20 +100,18 @@ const DeleteAccount = ({ visible, onClose }) => {
             autoCapitalize="none"
             autoCorrect={false}
           />
-          <Text style={styles.helperText}>
-            You will be logged out and your data will instantly be queued for
-            deletion.{" "}
-            <Text
+          <AppText style={styles.helperText}>
+            <AppText translationKey="modals.delete_account.helper_text" />{" "}
+            <AppText
               style={styles.linkText}
               onPress={() =>
                 Linking.openURL(
                   "https://www.novyse.com/help/guides/account/delete",
                 )
               }
-            >
-              Learn more
-            </Text>
-          </Text>
+              translationKey="modals.delete_account.learn_more"
+            />
+          </AppText>
         </View>
 
         <StatusMessage
@@ -115,9 +124,11 @@ const DeleteAccount = ({ visible, onClose }) => {
         {/* Footer */}
         <View style={styles.footer}>
           <HoverAndPressedButton onPress={handleClose} style={styles.cancelBtn}>
-            <Text style={styles.cancelBtnText} selectable={false}>
-              Cancel
-            </Text>
+            <AppText
+              style={styles.cancelBtnText}
+              selectable={false}
+              translationKey="modals.delete_account.cancel"
+            />
           </HoverAndPressedButton>
           <HoverAndPressedButton
             style={[styles.createBtn, !isMatch && styles.createBtnDisabled]}
@@ -125,9 +136,11 @@ const DeleteAccount = ({ visible, onClose }) => {
             onPress={onConfirm}
           >
             <Icon name="Delete02Icon" size={18} color="#FFF" />
-            <Text style={styles.createBtnText} selectable={false}>
-              Delete
-            </Text>
+            <AppText
+              style={styles.createBtnText}
+              selectable={false}
+              translationKey="modals.delete_account.delete"
+            />
           </HoverAndPressedButton>
         </View>
       </View>

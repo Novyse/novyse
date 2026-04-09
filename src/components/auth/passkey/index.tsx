@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 
 const PasskeyPage = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Methods not supported</Text>
+      <AppText style={styles.text} translationKey="auth.passkey.notSupported" />
     </View>
   );
 };
@@ -12,12 +12,12 @@ const PasskeyPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   text: {
     fontSize: 18,
-    color: 'red',
+    color: "red",
   },
 });
 

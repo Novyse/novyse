@@ -1,6 +1,8 @@
 import React, { useContext, useState } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
@@ -20,6 +22,7 @@ interface ApiKey {
 }
 
 export default function ApiKeysRoute() {
+  const { t } = useTranslation();
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
@@ -48,15 +51,15 @@ export default function ApiKeysRoute() {
         name: k.name,
         createdAt: k.created_at
           ? new Date(k.created_at).toLocaleDateString()
-          : "Unknown",
+          : t("settings.security.unknown"),
         lastUsed: k.last_used_at
           ? new Date(k.last_used_at).toLocaleDateString()
-          : "Never",
+          : t("settings.security.never"),
         active: k.active ?? true,
       }));
       setApiKeys(mapped);
     } else {
-      setError(response.error || "Failed to load API keys");
+      setError(response.error || t("settings.security.failedToLoadApiKeys"));
     }
     setIsLoading(false);
   };
@@ -69,7 +72,7 @@ export default function ApiKeysRoute() {
     setIsLoading(true);
     const response = await auth.apikey.create(name);
     if (response.success) {
-      setSuccess("API key created successfully");
+      setSuccess(t("settings.security.apiKeyCreatedSuccess"));
       setShowCreateModal(false);
       fetchApiKeys();
 
@@ -78,7 +81,7 @@ export default function ApiKeysRoute() {
         setShowDetailsModal(true);
       }
     } else {
-      setError(response.error || "Failed to create API key");
+      setError(response.error || t("settings.security.apiKeyCreatedFailed"));
     }
     setIsLoading(false);
   };
@@ -87,31 +90,31 @@ export default function ApiKeysRoute() {
     const response = await auth.apikey.toggleActive(parseInt(id), active);
     if (response.success) {
       setSuccess(
-        `API key ${active ? "activated" : "deactivated"} successfully`,
+        active ? t("settings.security.apiKeyActivatedSuccess") : t("settings.security.apiKeyDeactivatedSuccess"),
       );
       fetchApiKeys();
     } else {
-      setError(response.error || "Failed to update API key status");
+      setError(response.error || t("settings.security.apiKeyStatusUpdateFailed"));
     }
   };
 
   const handleDeleteKey = async (id: string) => {
     const response = await auth.apikey.revoke(parseInt(id));
     if (response.success) {
-      setSuccess("API key revoked successfully");
+      setSuccess(t("settings.security.apiKeyRevokedSuccess"));
       fetchApiKeys();
     } else {
-      setError(response.error || "Failed to revoke API key");
+      setError(response.error || t("settings.security.apiKeyRevokeFailed"));
     }
   };
 
   return (
     <>
-      <HeaderWithBackArrow title="API Keys" onBack={onBack} />
+      <HeaderWithBackArrow translationKey="settings.security.apiKeys" onBack={onBack} />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>API Keys</Text>
-          <Text style={styles.subtitle}>Manage your active API keys</Text>
+          <AppText style={styles.title} translationKey="settings.security.apiKeys" />
+          <AppText style={styles.subtitle} translationKey="settings.security.manageApiKeys" />
         </View>
 
         <StatusMessage
@@ -125,10 +128,8 @@ export default function ApiKeysRoute() {
           {apiKeys.length === 0 ? (
             <View style={styles.emptyState}>
               <Icon name="Key01Icon" color="#a0a0a0" size={48} />
-              <Text style={styles.emptyText}>No API keys</Text>
-              <Text style={styles.emptySubtext}>
-                Create an API key to access the Novyse API
-              </Text>
+              <AppText style={styles.emptyText} translationKey="settings.security.noApiKeys" />
+              <AppText style={styles.emptySubtext} translationKey="settings.security.createApiKeyPrompt" />
             </View>
           ) : (
             apiKeys.map((apiKey) => (
@@ -137,7 +138,7 @@ export default function ApiKeysRoute() {
                 iconName="Key01Icon"
                 iconColor={apiKey.active ? "#6366f1" : "#a0a0a0"}
                 title={apiKey.name}
-                subtitle={`Created ${apiKey.createdAt} · Last used ${apiKey.lastUsed}`}
+                subtitle={`${t("settings.security.created")} ${apiKey.createdAt} · ${t("settings.security.lastUsed")} ${apiKey.lastUsed}`}
                 active={apiKey.active}
                 onToggle={(active: boolean) =>
                   handleToggleKey(apiKey.id, active)
@@ -158,7 +159,7 @@ export default function ApiKeysRoute() {
             ]}
           >
             <Icon name="PlusSignCircleIcon" color="#fff" />
-            <Text style={styles.addButtonText}>Create New API Key</Text>
+            <AppText style={styles.addButtonText} translationKey="settings.security.createNewApiKey" />
           </Pressable>
         </View>
 

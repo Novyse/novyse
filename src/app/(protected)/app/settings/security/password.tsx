@@ -1,6 +1,8 @@
 import React, { useContext, useState, useEffect } from "react";
-import { StyleSheet, Text, View, TextInput } from "react-native";
+import { StyleSheet, View, TextInput } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
@@ -12,6 +14,7 @@ import Icon from "@/src/components/Icon";
 import auth from "@/src/utils/backend-services/auth";
 
 export default function PasswordRoute() {
+  const { t } = useTranslation();
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
@@ -50,11 +53,11 @@ export default function PasswordRoute() {
 
   const handleSetPassword = async () => {
     if (!newPassword || !confirmPassword) {
-      setError("Please fill in all fields");
+      setError(t("settings.security.fillAllFields"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("Passwords don't match");
+      setError(t("settings.security.passwordsDontMatch"));
       return;
     }
     setIsLoading(true);
@@ -62,10 +65,10 @@ export default function PasswordRoute() {
       const response = await auth.settings.opaque.setup(newPassword);
       if (response.success) {
         setHasPassword(true);
-        setSuccess("Password set successfully");
+        setSuccess(t("settings.security.setPasswordSuccess"));
         resetForm();
       } else {
-        setError(response.error || "Failed to set password");
+        setError(response.error || t("settings.security.setPasswordFailed"));
       }
     } catch (err: any) {
       setError(err.message);
@@ -76,21 +79,21 @@ export default function PasswordRoute() {
 
   const handleChangePassword = async () => {
     if (!newPassword || !confirmPassword) {
-      setError("Please fill in all fields");
+      setError(t("settings.security.fillAllFields"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("New passwords don't match");
+      setError(t("settings.security.newPasswordsDontMatch"));
       return;
     }
     setIsLoading(true);
     try {
       const response = await auth.settings.opaque.setup(newPassword);
       if (response.success) {
-        setSuccess("Password changed successfully");
+        setSuccess(t("settings.security.changePasswordSuccess"));
         resetForm();
       } else {
-        setError(response.error || "Failed to change password");
+        setError(response.error || t("settings.security.changePasswordFailed"));
       }
     } catch (err: any) {
       setError(err.message);
@@ -105,10 +108,12 @@ export default function PasswordRoute() {
       const response = await auth.settings.opaque.deactivate();
       if (response.success) {
         setHasPassword(false);
-        setSuccess("Password deactivated successfully");
+        setSuccess(t("settings.security.deactivatePasswordSuccess"));
         resetForm();
       } else {
-        setError(response.error || "Failed to deactivate password");
+        setError(
+          response.error || t("settings.security.deactivatePasswordFailed"),
+        );
       }
     } catch (err: any) {
       setError(err.message);
@@ -119,11 +124,20 @@ export default function PasswordRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow title="Password" onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.security.password"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Password</Text>
-          <Text style={styles.subtitle}>Manage your account password</Text>
+          <AppText
+            style={styles.title}
+            translationKey="settings.security.password"
+          />
+          <AppText
+            style={styles.subtitle}
+            translationKey="settings.security.managePassword"
+          />
         </View>
 
         {/* Status Card */}
@@ -143,14 +157,16 @@ export default function PasswordRoute() {
                 />
               </View>
               <View>
-                <Text style={styles.statusTitle}>
-                  {hasPassword ? "Password Active" : "No Password Set"}
-                </Text>
-                <Text style={styles.statusSubtitle}>
+                <AppText style={styles.statusTitle}>
                   {hasPassword
-                    ? "Your account is protected with a password"
-                    : "Add a password for additional security"}
-                </Text>
+                    ? t("settings.security.passwordActive")
+                    : t("settings.security.noPasswordSet")}
+                </AppText>
+                <AppText style={styles.statusSubtitle}>
+                  {hasPassword
+                    ? t("settings.security.passwordProtected")
+                    : t("settings.security.addPasswordSecurity")}
+                </AppText>
               </View>
             </View>
           </View>
@@ -161,17 +177,17 @@ export default function PasswordRoute() {
           <View style={styles.buttonGroup}>
             {!hasPassword ? (
               <SettingsButton
-                text="Set Password"
+                translationKey="settings.security.setPassword"
                 onPress={() => setShowForm("set")}
               />
             ) : (
               <>
                 <SettingsButton
-                  text="Change Password"
+                  translationKey="settings.security.changePassword"
                   onPress={() => setShowForm("change")}
                 />
                 <SettingsButton
-                  text="Remove Password"
+                  translationKey="settings.security.removePassword"
                   onPress={() => setShowForm("remove")}
                 />
               </>
@@ -182,7 +198,10 @@ export default function PasswordRoute() {
         {/* Set Password Form */}
         {showForm === "set" && (
           <SettingsCard>
-            <Text style={styles.formTitle}>Set Password</Text>
+            <AppText
+              style={styles.formTitle}
+              translationKey="settings.security.setPassword"
+            />
 
             <StatusMessage
               type="error"
@@ -192,10 +211,13 @@ export default function PasswordRoute() {
             />
 
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>New Password</Text>
+              <AppText
+                style={styles.inputLabel}
+                translationKey="settings.security.newPassword"
+              />
               <TextInput
                 style={styles.input}
-                placeholder="Enter new password"
+                placeholder={t("settings.security.enterNewPassword")}
                 placeholderTextColor={theme.placeholderText}
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -204,10 +226,13 @@ export default function PasswordRoute() {
               />
             </View>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Confirm Password</Text>
+              <AppText
+                style={styles.inputLabel}
+                translationKey="settings.security.confirmPassword"
+              />
               <TextInput
                 style={styles.input}
-                placeholder="Confirm new password"
+                placeholder={t("settings.security.confirmNewPasswordInput")}
                 placeholderTextColor={theme.placeholderText}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -218,11 +243,18 @@ export default function PasswordRoute() {
 
             <View style={styles.formButtons}>
               <SettingsButton
-                text={isLoading ? "Setting..." : "Set Password"}
+                text={
+                  isLoading
+                    ? t("settings.security.setting")
+                    : t("settings.security.setPassword")
+                }
                 onPress={handleSetPassword}
                 disabled={isLoading}
               />
-              <SettingsButton text="Cancel" onPress={resetForm} />
+              <SettingsButton
+                translationKey="settings.security.cancel"
+                onPress={resetForm}
+              />
             </View>
           </SettingsCard>
         )}
@@ -230,7 +262,10 @@ export default function PasswordRoute() {
         {/* Change Password Form */}
         {showForm === "change" && (
           <SettingsCard>
-            <Text style={styles.formTitle}>Change Password</Text>
+            <AppText
+              style={styles.formTitle}
+              translationKey="settings.security.changePassword"
+            />
 
             <StatusMessage
               type="error"
@@ -240,10 +275,13 @@ export default function PasswordRoute() {
             />
 
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>New Password</Text>
+              <AppText
+                style={styles.inputLabel}
+                translationKey="settings.security.newPassword"
+              />
               <TextInput
                 style={styles.input}
-                placeholder="Enter new password"
+                placeholder={t("settings.security.enterNewPassword")}
                 placeholderTextColor={theme.placeholderText}
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -252,10 +290,13 @@ export default function PasswordRoute() {
               />
             </View>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Confirm New Password</Text>
+              <AppText
+                style={styles.inputLabel}
+                translationKey="settings.security.confirmNewPassword"
+              />
               <TextInput
                 style={styles.input}
-                placeholder="Confirm new password"
+                placeholder={t("settings.security.confirmNewPasswordInput")}
                 placeholderTextColor={theme.placeholderText}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -266,17 +307,25 @@ export default function PasswordRoute() {
 
             <View style={styles.formButtons}>
               <SettingsButton
-                text={isLoading ? "Changing..." : "Change Password"}
+                text={
+                  isLoading
+                    ? t("settings.security.changing")
+                    : t("settings.security.changePassword")
+                }
                 onPress={handleChangePassword}
                 disabled={isLoading}
               />
-              <SettingsButton text="Cancel" onPress={resetForm} />
+              <SettingsButton
+                translationKey="settings.security.cancel"
+                onPress={resetForm}
+              />
             </View>
 
             <View style={styles.securityNote}>
-              <Text style={styles.noteText}>
-                • Password must be 16-256 characters long •
-              </Text>
+              <AppText
+                style={styles.noteText}
+                translationKey="settings.security.passwordNote"
+              />
             </View>
           </SettingsCard>
         )}
@@ -284,11 +333,14 @@ export default function PasswordRoute() {
         {/* Remove Password Form */}
         {showForm === "remove" && (
           <SettingsCard>
-            <Text style={styles.formTitle}>Remove Password</Text>
-            <Text style={styles.warningText}>
-              Enter your current password to confirm removal. Make sure you have
-              another login method (e.g. Passkey) active.
-            </Text>
+            <AppText
+              style={styles.formTitle}
+              translationKey="settings.security.removePassword"
+            />
+            <AppText
+              style={styles.warningText}
+              translationKey="settings.security.removePasswordWarning"
+            />
 
             <StatusMessage
               type="error"
@@ -299,12 +351,19 @@ export default function PasswordRoute() {
 
             <View style={styles.formButtons}>
               <SettingsButton
-                text={isLoading ? "Removing..." : "Remove Password"}
+                text={
+                  isLoading
+                    ? t("settings.security.removing")
+                    : t("settings.security.removePassword")
+                }
                 onPress={handleRemovePassword}
                 disabled={isLoading}
                 style={{ backgroundColor: "#FF4757" } as any}
               />
-              <SettingsButton text="Cancel" onPress={resetForm} />
+              <SettingsButton
+                translationKey="settings.security.cancel"
+                onPress={resetForm}
+              />
             </View>
           </SettingsCard>
         )}

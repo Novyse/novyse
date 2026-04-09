@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import ModalBase from "./ModalBase";
 import Icon from "../Icon";
+import AppText from "../AppText";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
 import useClipboard from "@/src/hooks/useClipboard";
@@ -36,11 +37,14 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
   return (
     <ModalBase visible={visible} onClose={onClose} theme={theme}>
       <View style={styles.contentContainer}>
-        <Text style={styles.title}>Save your Backup Codes</Text>
-        <Text style={styles.subtitle}>
-          Keep these codes in a safe place. You will need them to recover your
-          account.
-        </Text>
+        <AppText
+          style={styles.title}
+          translationKey="modals.backup_codes.title"
+        />
+        <AppText
+          style={styles.subtitle}
+          translationKey="modals.backup_codes.subtitle"
+        />
         {loading ? (
           <View style={styles.iconButton}>
             <ActivityIndicator color={theme.icon} size="small" />
@@ -50,7 +54,7 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
             <View style={styles.codesGrid}>
               {codes.map((code, index) => (
                 <View key={index} style={styles.codeItem}>
-                  <Text style={styles.codeText}>{code}</Text>
+                  <AppText style={styles.codeText} text={code} />
                 </View>
               ))}
             </View>
@@ -60,9 +64,10 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
             />
           </>
         ) : (
-          <Text style={styles.error}>
-            All codes has been used, regenerate them
-          </Text>
+          <AppText
+            style={styles.error}
+            translationKey="modals.backup_codes.error"
+          />
         )}
       </View>
     </ModalBase>

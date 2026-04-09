@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "../../AppText";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 
 const Footer = ({
@@ -21,7 +22,7 @@ const Footer = ({
         onPress={leftBtnOnPress}
         disabled={leftBtnDisabled}
       >
-        <Text style={styles.leftBtnText}>{leftButtonText}</Text>
+        <AppText style={styles.leftBtnText} text={leftButtonText} />
       </HoverAndPressedButton>
 
       <HoverAndPressedButton
@@ -29,7 +30,7 @@ const Footer = ({
         onPress={rightButtonOnPress}
         disabled={rightBtnDisabled}
       >
-        <Text style={styles.rightBtnText}>{rightButtonText}</Text>
+        <AppText style={styles.rightBtnText} text={rightButtonText} />
       </HoverAndPressedButton>
     </View>
   );

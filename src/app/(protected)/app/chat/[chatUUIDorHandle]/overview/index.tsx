@@ -12,6 +12,8 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { useActiveChatStore } from "@/context/ActiveChatContext";
 import useUserStore from "@/context/UserContext";
 import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 import Icon from "@/src/components/Icon";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import Avatar from "@/src/components/Avatar";
@@ -31,6 +33,7 @@ type DMTab = "media" | "files" | "links" | "music" | "voice" | "gifs";
 const ChatOverview = () => {
   const { theme } = useContext(ThemeContext);
   const { chatUUIDorHandle } = useLocalSearchParams();
+  const { t } = useTranslation();
   const chat = useActiveChatStore((state) => state.activeChatData);
   const {
     name,
@@ -105,10 +108,18 @@ const ChatOverview = () => {
             <Icon name="UserIcon" color={theme.primary} />
           </View>
           <View style={styles.dmInfoContent}>
-            <Text style={styles.dmInfoLabel}>Username</Text>
-            <Text style={styles.dmInfoValue}>
-              {dmUser.handle ? `@${dmUser.handle}` : "Non specificato"}
-            </Text>
+            <AppText
+              style={styles.dmInfoLabel}
+              translationKey="settings.modifyProfile.username"
+            />
+            <AppText
+              style={styles.dmInfoValue}
+              text={
+                dmUser.handle
+                  ? `@${dmUser.handle}`
+                  : t("chat.overview.notSpecified")
+              }
+            />
           </View>
         </View>
 
@@ -122,10 +133,14 @@ const ChatOverview = () => {
             <Icon name="InformationCircleIcon" color={theme.primary} />
           </View>
           <View style={styles.dmInfoContent}>
-            <Text style={styles.dmInfoLabel}>Description</Text>
-            <Text style={styles.dmInfoValue}>
-              {dmUser.description || "No description yet"}
-            </Text>
+            <AppText
+              style={styles.dmInfoLabel}
+              translationKey="settings.modifyProfile.description"
+            />
+            <AppText
+              style={styles.dmInfoValue}
+              text={dmUser.description || t("chat.overview.noDescriptionYet")}
+            />
           </View>
         </View>
       </View>
@@ -134,7 +149,12 @@ const ChatOverview = () => {
 
   const renderMembers = () => {
     if (!chat?.members || chat.members.length === 0) {
-      return <Text style={styles.emptyText}>No members found</Text>;
+      return (
+        <AppText
+          style={styles.emptyText}
+          translationKey="chat.overview.noMembers"
+        />
+      );
     }
 
     return (
@@ -165,16 +185,18 @@ const ChatOverview = () => {
                     { backgroundColor: theme.primary + "33" },
                   ]}
                 >
-                  <Text style={{ color: theme.primary, fontWeight: "600" }}>
+                  <AppText style={{ color: theme.primary, fontWeight: "600" }}>
                     {(user.name || user.handle || "?")[0].toUpperCase()}
-                  </Text>
+                  </AppText>
                 </View>
               )}
               <View style={styles.memberInfo}>
-                <Text style={styles.memberName}>
-                  {user.name || user.handle || "Member"}
-                </Text>
-                <Text style={styles.memberRole}>{member.role || "Member"}</Text>
+                <AppText style={styles.memberName}>
+                  {user.name || user.handle || t("chat.listItem.unknown")}
+                </AppText>
+                <AppText style={styles.memberRole}>
+                  {member.role || t("messageFormat.system.user")}
+                </AppText>
               </View>
             </Pressable>
           );
@@ -188,7 +210,10 @@ const ChatOverview = () => {
       return (
         <View style={styles.emptyContainer}>
           <Icon name="Folder01Icon" size={48} color={theme.subtitle2} />
-          <Text style={styles.emptyText}>No files shared yet</Text>
+          <AppText
+            style={styles.emptyText}
+            translationKey="chat.overview.noFiles"
+          />
         </View>
       );
     }
@@ -199,12 +224,13 @@ const ChatOverview = () => {
           <View key={file.id || index} style={styles.fileItem}>
             <Icon name="File02Icon" size={32} color={theme.primary} />
             <View style={styles.fileInfo}>
-              <Text style={styles.fileName}>
-                {file.name || "File senza nome"}
-              </Text>
-              <Text style={styles.fileSize}>
-                {(file.size / 1024).toFixed(2)} KB
-              </Text>
+              <AppText style={styles.fileName}>
+                {file.name || t("common.unnamedFile")}
+              </AppText>
+              <AppText
+                style={styles.fileSize}
+                text={`${(file.size / 1024).toFixed(2)} KB`}
+              />
             </View>
             <Icon
               name="Download01Icon"
@@ -240,9 +266,9 @@ const ChatOverview = () => {
               theme={theme}
               style={styles.profilePicture}
             />
-            <Text style={styles.membersLabel}>
-              {isDM ? name : `${membersCount} Members`}
-            </Text>
+            <AppText style={styles.membersLabel}>
+              {isDM ? name : t("chat.header.members", { count: membersCount })}
+            </AppText>
           </View>
         </View>
 
@@ -280,9 +306,10 @@ const ChatOverview = () => {
               >
                 <Icon name="Settings01Icon" color={theme.primary} />
               </View>
-              <Text style={[styles.actionText, { color: theme.primary }]}>
-                Settings
-              </Text>
+              <AppText
+                style={[styles.actionText, { color: theme.primary }]}
+                translationKey="common.settings"
+              />
             </TouchableOpacity>
           )}
 
@@ -302,9 +329,10 @@ const ChatOverview = () => {
                 color="#FF4D4D"
               />
             </View>
-            <Text style={[styles.actionText, { color: "#FF4D4D" }]}>
-              {isDM ? "Block" : "Leave"}
-            </Text>
+            <AppText
+              style={[styles.actionText, { color: "#FF4D4D" }]}
+              translationKey={isDM ? "common.block" : "common.leave"}
+            />
           </TouchableOpacity>
         </View>
       </SettingsPageScrollview>

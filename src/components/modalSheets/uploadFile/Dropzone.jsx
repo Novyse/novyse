@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
+import AppText from "@/src/components/AppText";
 
 import Icon from "@/src/components/Icon";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
@@ -26,26 +27,32 @@ const Dropzone = ({
   return (
     <View style={styles.container}>
       <View style={styles.uploadIconCircle}>
-        <Icon name="CloudUploadIcon"  color={theme.text} />
+        <Icon name="CloudUploadIcon" color={theme.text} />
       </View>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.note}>
+      <AppText style={styles.title} text={title} />
+      <AppText style={styles.note}>
         {subtitle} Max single size: {formatFileSize(maxSingleSize)} Max total
         size: {formatFileSize(maxTotalSize)} File Number: {maxFile}
-      </Text>
+      </AppText>
       <HoverAndPressedButton
         style={styles.chooseFileBtn}
         onPress={onChooseFile}
         disabled={!onChooseFile}
       >
-        <Text style={styles.chooseFileText}>Choose File</Text>
+        <AppText
+          style={styles.chooseFileText}
+          translationKey="chat.uploadFile.chooseFile"
+        />
       </HoverAndPressedButton>
       <HoverAndPressedButton
         style={styles.removeAllFilesBtn}
         onPress={removeAllFiles}
         disabled={!removeAllFiles || files.length === 0}
       >
-        <Text style={styles.removeAllFilesText}>Remove all files</Text>
+        <AppText
+          style={styles.removeAllFilesText}
+          translationKey="chat.uploadFile.removeAll"
+        />
       </HoverAndPressedButton>
       {files && files.length > 0 && (
         <ScrollView style={styles.fileList}>
@@ -55,20 +62,20 @@ const Dropzone = ({
             );
             const isInvalid = !!invalidFile;
             return (
-              <>
-                <View key={index} style={styles.fileItem}>
+              <React.Fragment key={index}>
+                <View style={styles.fileItem}>
                   <Icon name="FileIcon" size={16} color={theme.text} />
-                  <Text
+                  <AppText
                     style={[
                       styles.fileName,
                       isInvalid && styles.invalidFileName,
                     ]}
-                  >
-                    {file.name || file.fileName}
-                  </Text>
-                  <Text style={styles.fileSize}>
-                    {formatFileSize(file.size || file.fileSize)}
-                  </Text>
+                    text={file.name || file.fileName}
+                  />
+                  <AppText
+                    style={styles.fileSize}
+                    text={formatFileSize(file.size || file.fileSize)}
+                  />
                   <HoverAndPressedButton
                     style={styles.removeBtn}
                     onPress={() => onRemoveFile(index)}
@@ -77,11 +84,12 @@ const Dropzone = ({
                   </HoverAndPressedButton>
                 </View>
                 {isInvalid && (
-                  <Text style={styles.fileError}>
-                    {invalidFile.errors.join(", ")}
-                  </Text>
+                  <AppText
+                    style={styles.fileError}
+                    text={invalidFile.errors.join(", ")}
+                  />
                 )}
-              </>
+              </React.Fragment>
             );
           })}
         </ScrollView>

@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
+import AppText from "./AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "./Icon";
 import useClipboard from "@/src/hooks/useClipboard";
@@ -10,7 +11,11 @@ interface CopyLabelProps {
   containerStyle?: any;
 }
 
-export default function CopyLabel({ text, label, containerStyle }: CopyLabelProps) {
+export default function CopyLabel({
+  text,
+  label,
+  containerStyle,
+}: CopyLabelProps) {
   const { theme } = useContext(ThemeContext);
   const { copyToClipboard, copied } = useClipboard();
   const styles = createStyles(theme);
@@ -21,12 +26,15 @@ export default function CopyLabel({ text, label, containerStyle }: CopyLabelProp
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <AppText style={styles.label} text={label} />}
       <View style={styles.contentContainer}>
         <View style={styles.textContainer}>
-          <Text style={styles.text} numberOfLines={1} ellipsizeMode="middle">
-            {text}
-          </Text>
+          <AppText
+            style={styles.text}
+            numberOfLines={1}
+            ellipsizeMode="middle"
+            text={text}
+          />
         </View>
         <Pressable
           onPress={handleCopy}

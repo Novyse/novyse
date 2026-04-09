@@ -1,5 +1,7 @@
 import React, { useContext, useEffect } from "react";
-import { Platform, StyleSheet, Text, TextInput, View } from "react-native";
+import { Platform, StyleSheet, TextInput, View } from "react-native";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 import { Duration } from "luxon";
 
 import { ThemeContext } from "@/context/ThemeContext";
@@ -24,6 +26,7 @@ const MiddleBar = ({
   handleTogglePause,
   handleStopAndDraft,
 }) => {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -64,7 +67,7 @@ const MiddleBar = ({
             maxLength={2000}
             value={newMessageText}
             onChangeText={onTextChange}
-            placeholder={"Message"}
+            placeholder={t("chat.bottomBar.placeholder")}
             placeholderTextColor={theme.placeholderText}
             cursorColor={theme.placeholderText}
             onSubmitEditing={
@@ -81,11 +84,12 @@ const MiddleBar = ({
           <View style={styles.recordState}>
             <RecordingDot isRecording={!isPaused} />
 
-            <Text style={styles.durationText}>
-              {Duration.fromMillis(recorderState?.durationMillis || 0).toFormat(
-                "m:ss.SSS",
-              )}
-            </Text>
+            <AppText
+              style={styles.durationText}
+              text={Duration.fromMillis(
+                recorderState?.durationMillis || 0,
+              ).toFormat("m:ss.SSS")}
+            />
           </View>
 
           {/* Voice Activity */}

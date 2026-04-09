@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
-import { Text, StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform } from "react-native";
+import AppText from "@/src/components/AppText";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -7,8 +8,6 @@ import { ThemeContext } from "@/context/ThemeContext";
 const URL_REGEX =
   /(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])(\S*)/g;
 const MENTION_REGEX = /@(\w+)/g;
-
-
 
 const MessageText = ({ text, timestampWidth = 80 }) => {
   const { theme } = useContext(ThemeContext);
@@ -20,10 +19,11 @@ const MessageText = ({ text, timestampWidth = 80 }) => {
   const normalized = text.trimStart();
 
   const spacer = (
-    <Text key="spacer" style={{ opacity: 0, fontSize: 12 }}>
-      {"  "}
-      {"\u00A0".repeat(Math.ceil(timestampWidth / 4))}
-    </Text>
+    <AppText
+      key="spacer"
+      style={{ opacity: 0, fontSize: 12 }}
+      text={`  ${"\u00A0".repeat(Math.ceil(timestampWidth / 4))}`}
+    />
   );
 
   const segments = parseSegments(normalized);
@@ -31,7 +31,7 @@ const MessageText = ({ text, timestampWidth = 80 }) => {
   const parts = segments.map(({ type, value, url, username }, i) => {
     if (type === "url") {
       return (
-        <Text
+        <AppText
           key={i}
           style={styles.link}
           onPress={() =>
@@ -39,34 +39,28 @@ const MessageText = ({ text, timestampWidth = 80 }) => {
               ? window.open(url, "_blank")
               : Linking.openURL(url)
           }
-        >
-          {value}
-        </Text>
+          text={value}
+        />
       );
     }
     if (type === "mention") {
       return (
-        <Text
+        <AppText
           key={i}
           style={styles.link}
           onPress={() => router.push(`/profile/${username.toLowerCase()}`)}
-        >
-          {value}
-        </Text>
+          text={value}
+        />
       );
     }
-    return (
-      <Text key={i} style={styles.text}>
-        {value}
-      </Text>
-    );
+    return <AppText key={i} style={styles.text} text={value} />;
   });
 
   return (
-    <Text style={styles.text}>
+    <AppText style={styles.text}>
       {parts}
       {spacer}
-    </Text>
+    </AppText>
   );
 };
 
@@ -122,7 +116,6 @@ function parseSegments(text) {
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    
     text: {
       color: theme.text,
       fontSize: 15,

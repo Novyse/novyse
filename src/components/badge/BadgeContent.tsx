@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 
 const BadgeContent = ({ name, icon, textColor }: any) => {
@@ -7,12 +8,11 @@ const BadgeContent = ({ name, icon, textColor }: any) => {
   return (
     <>
       {icon && <Icon name={icon} size={12} color={defaultTextColor} />}
-      <Text
+      <AppText
         selectable={false}
         style={[styles.badgeText, { color: defaultTextColor }]}
-      >
-        {name}
-      </Text>
+        text={name}
+      />
     </>
   );
 };

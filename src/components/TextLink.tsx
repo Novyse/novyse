@@ -8,6 +8,9 @@ import {
   TextStyle,
   Pressable,
 } from "react-native";
+import AppText from "./AppText";
+
+const AnimatedAppText = Animated.createAnimatedComponent(AppText);
 
 interface TextLinkProps {
   children: React.ReactNode;
@@ -62,7 +65,7 @@ export default function TextLink({
       onPressOut={handlePressOut}
       accessibilityRole="link"
     >
-      <Animated.Text
+      <AnimatedAppText
         style={[
           styles.base,
           showUnderline && styles.underline,
@@ -74,7 +77,7 @@ export default function TextLink({
         onMouseLeave={() => setIsHovered(false)}
       >
         {children}
-      </Animated.Text>
+      </AnimatedAppText>
     </Pressable>
   );
 }

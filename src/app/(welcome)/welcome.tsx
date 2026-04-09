@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, StyleSheet, Text, Image, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Image, ActivityIndicator } from "react-native";
+import AppText from "@/src/components/AppText";
 
 import { useScreen } from "@/context/ScreenContext";
 
@@ -66,19 +67,19 @@ const Welcome = () => {
         <View style={styles.cardContent}>
           <View style={styles.logoAndTitleContainer}>
             <Image style={styles.logo} source={logoNovyse} />
-            <Text style={styles.title}>Welcome</Text>
+            <AppText style={styles.title} translationKey="auth.welcome.title" />
           </View>
 
           {/* Login / Signup buttons */}
           <View style={styles.buttonRow}>
             <View style={styles.buttonWrapper}>
               <WelcomeButton type={"back"} onPress={handleSignup}>
-                <WelcomeButtonText type={"back"} label="Sign Up" />
+                <WelcomeButtonText type={"back"} translationKey="auth.welcome.signup" />
               </WelcomeButton>
             </View>
             <View style={styles.buttonWrapper}>
               <WelcomeButton type={"submit"} onPress={handleLogin}>
-                <WelcomeButtonText type={"submit"} label="Log In" />
+                <WelcomeButtonText type={"submit"} translationKey="auth.welcome.login" />
               </WelcomeButton>
             </View>
           </View>
@@ -89,7 +90,7 @@ const Welcome = () => {
           <>
             <View style={styles.divider}>
               <View style={styles.lineDivider} />
-              <Text style={styles.textDivider}>OR</Text>
+              <AppText style={styles.textDivider} translationKey="auth.welcome.or" />
               <View style={styles.lineDivider} />
             </View>
 
@@ -117,11 +118,13 @@ const Welcome = () => {
                   />
                 )}
               </View>
-              <Text style={styles.qrcodeSubtitle}>Scan QR to login</Text>
+              <AppText style={styles.qrcodeSubtitle} translationKey="auth.welcome.scanQr" />
               {qrToken ? (
-                <Text style={styles.qrcodeSmallSubtitle}>
-                  Expires in {formatTime(remainingTime)}
-                </Text>
+                <AppText 
+                   style={styles.qrcodeSmallSubtitle} 
+                   translationKey="auth.welcome.expiresIn" 
+                   translationOptions={{ time: formatTime(remainingTime) }} 
+                />
               ) : null}
             </View>
           </>
@@ -133,7 +136,7 @@ const Welcome = () => {
 
 export default Welcome;
 
-function createStyle(loginTheme: string, isSmallScreen: boolean) {
+function createStyle(loginTheme: LoginTheme, isSmallScreen: boolean) {
   return StyleSheet.create({
     container: {
       flex: 1,

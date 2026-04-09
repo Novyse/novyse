@@ -1,14 +1,13 @@
 import React, { useContext, useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Modal,
   FlatList,
-  Platform,
-  TextInput,
 } from "react-native";
+import AppText from "../AppText";
+import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
@@ -29,6 +28,7 @@ export default function SelectInput({
   disabled = false,
   isSmallScreen = false,
 }: SelectInputProps) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext) as { theme: any };
   const styles = createStyles(theme);
 
@@ -40,7 +40,9 @@ export default function SelectInput({
   };
 
   const hasOptions = options.length > 0;
-  const displayText = hasOptions ? value || placeholder : "No options";
+  const displayText = hasOptions
+    ? value || t(placeholder || "common.inputs.select_placeholder")
+    : t("common.inputs.no_options");
 
   if (!isSmallScreen) {
     return (
@@ -62,7 +64,7 @@ export default function SelectInput({
           }}
         >
           <option value="" disabled>
-            {placeholder}
+            {t(placeholder || "common.inputs.select_placeholder")}
           </option>
           {options.map((option) => (
             <option key={option} value={option}>
@@ -81,13 +83,12 @@ export default function SelectInput({
         onPress={() => !disabled && setModalVisible(true)}
         disabled={disabled}
       >
-        <Text
+        <AppText
           style={[styles.text, !value && styles.placeholder]}
           numberOfLines={1}
-        >
-          {displayText}
-        </Text>
-        <Text style={styles.arrow}>▼</Text>
+          text={displayText}
+        />
+        <AppText style={styles.arrow} text="▼" />
       </TouchableOpacity>
 
       <Modal
@@ -113,14 +114,13 @@ export default function SelectInput({
                   ]}
                   onPress={() => handleSelect(item)}
                 >
-                  <Text
+                  <AppText
                     style={[
                       styles.optionText,
                       item === value && styles.selectedOptionText,
                     ]}
-                  >
-                    {item}
-                  </Text>
+                    text={item}
+                  />
                 </TouchableOpacity>
               )}
               ItemSeparatorComponent={() => <View style={styles.separator} />}

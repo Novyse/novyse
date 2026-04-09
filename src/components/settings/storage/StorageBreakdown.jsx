@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
@@ -24,19 +25,18 @@ const StorageBreakdown = ({ storage }) => {
       <View style={styles.storageLabelRow}>
         <View style={styles.storageLabelLeft}>
           <View style={styles.iconContainer}>
-            <Icon
-              name={storage.iconName}
-              size={18}
-              color="#FFFFFF"
-            />
+            <Icon name={storage.iconName} size={18} color="#FFFFFF" />
           </View>
-          <Text style={styles.storageTitle}>{storage.title}</Text>
+          <AppText
+            style={styles.storageTitle}
+            translationKey={`settings.storage.${storage.type === "local" ? "localStorage" : "cloudStorage"}`}
+          />
         </View>
         <View style={styles.storageRight}>
-          <Text style={styles.storageStat}>
-            {storage.totalUsed}{" "}
-            {storage.totalCapacity ? `/ ${storage.totalCapacity}` : ""} GB
-          </Text>
+          <AppText
+            style={styles.storageStat}
+            text={`${storage.totalUsed} ${storage.totalCapacity ? `/ ${storage.totalCapacity}` : ""} GB`}
+          />
         </View>
       </View>
 
@@ -67,11 +67,21 @@ const StorageBreakdown = ({ storage }) => {
                 <View
                   style={[styles.colorDot, { backgroundColor: category.color }]}
                 />
-                <Text style={styles.categoryName}>{category.name}</Text>
+                <AppText
+                  style={styles.categoryName}
+                  translationKey={`settings.storage.${category.name.toLowerCase()}`}
+                  text={category.name}
+                />
               </View>
               <View style={styles.categoryRight}>
-                <Text style={styles.categorySize}>{category.size} GB</Text>
-                <Text style={styles.categoryPercentage}>{percentage}%</Text>
+                <AppText
+                  style={styles.categorySize}
+                  text={`${category.size} GB`}
+                />
+                <AppText
+                  style={styles.categoryPercentage}
+                  text={`${percentage}%`}
+                />
               </View>
             </View>
           );

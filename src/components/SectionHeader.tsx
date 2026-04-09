@@ -1,16 +1,18 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
 import Icon from "@/src/components/Icon";
 
 interface SectionHeaderProps {
-  title: string;
+  title?: string;
+  translationKey?: string;
   icon: string;
 }
 
-export default function SectionHeader({ title, icon }: SectionHeaderProps) {
+export default function SectionHeader({ title, translationKey, icon }: SectionHeaderProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
@@ -22,7 +24,11 @@ export default function SectionHeader({ title, icon }: SectionHeaderProps) {
         color={theme.icon}
         style={{ marginRight: 8 }}
       />
-      <Text style={styles.sectionTitle}>{title}</Text>
+      {translationKey ? (
+        <AppText style={styles.sectionTitle} translationKey={translationKey} />
+      ) : title ? (
+        <AppText style={styles.sectionTitle} text={title} />
+      ) : null}
     </View>
   );
 }

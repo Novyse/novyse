@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
@@ -52,12 +53,13 @@ const SecurityListCard = ({
             <Icon name={iconName} color="#fff" />
           </View>
           <View style={styles.details}>
-            <Text style={[styles.title, !active && { color: "#a0a0a0" }]}>
-              {title}
-            </Text>
+            <AppText
+              style={[styles.title, !active && { color: "#a0a0a0" }]}
+              text={title}
+            />
             {subtitle &&
               (typeof subtitle === "string" ? (
-                <Text style={styles.subtitle}>{subtitle}</Text>
+                <AppText style={styles.subtitle} text={subtitle} />
               ) : (
                 subtitle
               ))}
@@ -72,7 +74,7 @@ const SecurityListCard = ({
                 { backgroundColor: active ? badgeColor : "#a0a0a0" },
               ]}
             >
-              <Text style={styles.badgeText}>{badge}</Text>
+              <AppText style={styles.badgeText} text={badge} />
             </View>
           )}
           {onToggle && (
@@ -82,7 +84,7 @@ const SecurityListCard = ({
                 styles.toggleButton,
                 hovered && styles.toggleButtonHovered,
                 pressed && styles.toggleButtonPressed,
-                !active && { backgroundColor: "#00C851" }
+                !active && { backgroundColor: "#00C851" },
               ]}
             >
               <Icon

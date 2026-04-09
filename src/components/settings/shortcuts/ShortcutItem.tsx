@@ -1,15 +1,18 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { StyleSheet, View, TouchableOpacity } from "react-native";
+import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 
 interface ShortcutItemProps {
-  label: string;
+  label?: string;
+  translationKey?: string;
   keys: string[];
   onPress?: () => void;
 }
 
 const ShortcutItem = ({
   label,
+  translationKey,
   keys,
   onPress = () => {},
 }: ShortcutItemProps) => {
@@ -18,14 +21,20 @@ const ShortcutItem = ({
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Text style={styles.label}>{label}</Text>
+      {translationKey ? (
+        <AppText style={styles.label} translationKey={translationKey} />
+      ) : (
+        <AppText style={styles.label} text={label} />
+      )}
       <View style={styles.keysContainer}>
         {keys.map((key, index) => (
           <React.Fragment key={index}>
             <View style={styles.keyBox}>
-              <Text style={styles.keyText}>{key.toUpperCase()}</Text>
+              <AppText style={styles.keyText} text={key.toUpperCase()} />
             </View>
-            {index < keys.length - 1 && <Text style={styles.plus}>+</Text>}
+            {index < keys.length - 1 && (
+              <AppText style={styles.plus} text="+" />
+            )}
           </React.Fragment>
         ))}
       </View>

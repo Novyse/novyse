@@ -1,5 +1,6 @@
-import React, { useContext, useState, useEffect } from "react";
-import { View, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
+import React, { useContext } from "react";
+import { View, StyleSheet, ViewStyle, TextStyle } from "react-native";
+import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
@@ -34,12 +35,8 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ message, onCancel }) => {
       <Icon name="ArrowMoveUpLeftIcon" size={18} color={theme.icon} />
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
-        <Text style={styles.actionName} numberOfLines={1}>
-          {message.sender_name ?? message.senderUUID}
-        </Text>
-        <Text style={styles.actionText} numberOfLines={1}>
-          {content}
-        </Text>
+        <AppText style={styles.actionName} numberOfLines={1} text={message.sender_name ?? message.senderUUID} />
+        <AppText style={styles.actionText} numberOfLines={1} text={content} />
       </View>
       <Icon
         name="Cancel01Icon"

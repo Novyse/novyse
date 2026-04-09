@@ -1,5 +1,7 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 
 import Icon from "@/src/components/Icon";
 
@@ -20,6 +22,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
   onDelete,
   onReply,
 }) => {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -38,9 +41,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
           onPress={handleClose}
           style={styles.iconButton}
         />
-        <Text style={styles.chatTitle} numberOfLines={1}>
-          {selectedCount} selected
-        </Text>
+        <AppText style={styles.chatTitle} numberOfLines={1} text={t("chat.header.selected", { count: selectedCount })} />
       </View>
 
       <View style={styles.headerRight}>

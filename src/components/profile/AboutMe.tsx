@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { ThemeContext } from "@/context/ThemeContext";
@@ -12,9 +13,6 @@ export default function AboutMe({ description }: AboutMeProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
-  // Se description non è presente, mostra il messaggio di default
-  const displayText = description || "We don't know anything about him :(";
-
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -22,8 +20,15 @@ export default function AboutMe({ description }: AboutMeProps) {
         style={styles.glassCard}
       >
         <View style={styles.content}>
-          <Text style={styles.title}>ABOUT ME</Text>
-          <Text style={styles.description}>{displayText}</Text>
+          <AppText
+            style={styles.title}
+            translationKey="profile.aboutMe.title"
+          />
+          <AppText
+            style={styles.description}
+            text={description}
+            translationKey={"profile.aboutMe.noDescription"}
+          />
         </View>
       </LinearGradient>
     </View>

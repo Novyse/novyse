@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { StyleSheet, Alert, View } from "react-native";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import MyStatusBar from "@/src/components/MyStatusBar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -11,6 +12,7 @@ import QRCodeReader from "@/src/components/QRCodeReader";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
 export default function QrscannerRoute() {
+  const { t } = useTranslation();
   const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -24,13 +26,13 @@ export default function QrscannerRoute() {
       const success = await gateway.auth.scanQRCodeToken(content);
 
       if (!success) {
-        Alert.alert("Errore", "QR Code non valido o già scansionato.");
+        Alert.alert(t("common.error"), t("settings.qrScanner.invalidCode"));
         return;
       }
 
       Alert.alert(
-        "Successo",
-        "L'accesso verrà eseguito a breve, attendi quale istante...",
+        t("common.success"),
+        t("settings.qrScanner.loginSuccess"),
       );
     } catch (error) {
       Alert.alert("Errore", "Impossibile gestire la scansione del codice QR.");
@@ -46,7 +48,7 @@ export default function QrscannerRoute() {
         hidden={true}
       />
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
-        <HeaderWithBackArrow title={"QR Scanner"} onBack={onBack} />
+        <HeaderWithBackArrow translationKey="settings.menu.qrScanner" onBack={onBack} />
       </View>
       <QRCodeReader onCodeScanned={handleCodeScanned} />
     </View>

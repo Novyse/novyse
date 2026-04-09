@@ -5,7 +5,8 @@ import React, {
   useRef,
   useCallback,
 } from "react";
-import { Platform, View, Text, StyleSheet } from "react-native";
+import { Platform, View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 
 import { KeyboardStickyView } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -461,7 +462,7 @@ const ChatContent = () => {
           onEmojiSelected={handleEmojiSelected}
         >
           <View style={styles.emojiPickerContainer}>
-            <Text style={styles.placeholderText}>Emoji Picker Content</Text>
+            <AppText style={styles.placeholderText} text="Emoji Picker Content" />
           </View>
         </ChatIconsPickerModal>
       </GestureHandlerRootView>

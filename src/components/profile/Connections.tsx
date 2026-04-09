@@ -1,6 +1,8 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Linking } from "react-native";
+import AppText from "@/src/components/AppText";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "@/src/components/Icon";
@@ -20,6 +22,7 @@ export default function Connections({
   connections,
   onConnectionPress,
 }: ConnectionsProps) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
@@ -45,7 +48,7 @@ export default function Connections({
         style={styles.glassCard}
       >
         <View style={styles.content}>
-          <Text style={styles.title}>CONNECTIONS</Text>
+          <AppText style={styles.title} translationKey="profile.connections.title" />
           <View style={styles.connectionsList}>
             {connections.map((connection, index) => (
               <TouchableOpacity
@@ -58,7 +61,7 @@ export default function Connections({
                   <View style={styles.iconCircle}>
                     <Icon name={connection.icon} size={18} color="white" />
                   </View>
-                  <Text style={styles.connectionName}>{connection.name}</Text>
+                  <AppText style={styles.connectionName} text={connection.name} />
                 </View>
                 <Icon name="ArrowUpRightIcon" size={14} color={theme.text} />
               </TouchableOpacity>

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useMemo, useEffect } from "react";
-import { View, StyleSheet, Text, useWindowDimensions } from "react-native";
+import { View, StyleSheet, useWindowDimensions } from "react-native";
 
 import { router, useLocalSearchParams } from "expo-router";
 
@@ -14,8 +14,10 @@ import useWindowSizeStore from "@/context/WindowSizeContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
+
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 import JoinCreateChat from "@/src/components/chat/JoinCreateChat";
+import AppText from "@/src/components/AppText";
 
 const ChatPageRoute = () => {
   const params = useLocalSearchParams();
@@ -151,9 +153,10 @@ const ChatPageRoute = () => {
           },
         ]}
       >
-        <Text style={{ color: "white", fontSize: 18 }}>
-          Fetching chat data...
-        </Text>
+        <AppText
+          style={{ color: "white", fontSize: 18 }}
+          translationKey="chat.loading"
+        />
       </View>
     );
   }
@@ -251,7 +254,9 @@ const ChatPageRoute = () => {
           //@ts-ignore
           router.push("/app");
         }}
-        navToOverview={() => {router.push(`/app/chat/${chatUUIDorHandle}/overview`)}}
+        navToOverview={() => {
+          router.push(`/app/chat/${chatUUIDorHandle}/overview`);
+        }}
         isSmallScreen={isSmallScreen}
         onReply={handleBulkReply}
         onForward={() => {}}

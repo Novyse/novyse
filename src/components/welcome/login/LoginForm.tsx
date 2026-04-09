@@ -1,13 +1,8 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  Platform,
-  Image,
-} from "react-native";
+import { View, TextInput, StyleSheet, Platform, Image } from "react-native";
+import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
+import AppText from "@/src/components/AppText";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 import { useScreen } from "@/context/ScreenContext";
 import Icon from "@/src/components/Icon";
@@ -50,6 +45,7 @@ const LoginForm = ({
   urlSignedup,
   urlType,
 }: LoginFormProps) => {
+  const { t } = useTranslation();
   const [loginMode, setLoginMode] = useState<"password" | "passkey">(
     urlType === "passkey" ? "passkey" : "password",
   );
@@ -73,7 +69,7 @@ const LoginForm = ({
 
   return (
     <LinearGradient
-      colors={LoginColors[loginTheme].background}
+      colors={LoginColors[loginTheme].background as any}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -83,10 +79,13 @@ const LoginForm = ({
       <View style={styles.card}>
         <View style={styles.cardContent}>
           {/* <Image style={styles.logo} source={logoNovyse} /> */}
-          <Text style={styles.title}>Login</Text>
-          <Text style={styles.subtitle}>Enter your credentials to login</Text>
+          <AppText style={styles.title} translationKey="auth.login.title" />
+          <AppText
+            style={styles.subtitle}
+            translationKey="auth.login.subtitle"
+          />
 
-          <View style={{width: 300}}>
+          <View style={{ width: 300 }}>
             {/* Mode Toggle */}
             <ToggleSelector
               options={LOGIN_MODE_OPTIONS}
@@ -106,7 +105,7 @@ const LoginForm = ({
                   setUsername(text);
                   if (error) onErrorDismiss?.();
                 }}
-                placeholder="Username"
+                placeholder={t("auth.signupStep.usernamePlaceholder")}
                 placeholderTextColor={
                   LoginColors[loginTheme].placeholderTextInput
                 }
@@ -129,7 +128,7 @@ const LoginForm = ({
                     setPassword(text);
                     if (error) onErrorDismiss?.();
                   }}
-                  placeholder="Password"
+                  placeholder={t("auth.signupStep.password")}
                   placeholderTextColor={
                     LoginColors[loginTheme].placeholderTextInput
                   }
@@ -149,7 +148,10 @@ const LoginForm = ({
               </View>
 
               <View style={styles.opaqueLink}>
-                <Text style={styles.opaqueLinkText}>Secured by </Text>
+                <AppText
+                  style={styles.opaqueLinkText}
+                  translationKey="auth.login.securedBy"
+                />
                 <TextLink
                   style={styles.opaqueLinkTextBold}
                   href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
@@ -167,7 +169,10 @@ const LoginForm = ({
                     disabled={isLoading}
                     type={"back"}
                   >
-                    <WelcomeButtonText label="Back" type={"back"} />
+                    <WelcomeButtonText
+                      translationKey="auth.login.back"
+                      type={"back"}
+                    />
                   </WelcomeButton>
                 </View>
                 <View style={styles.buttonWrapper}>
@@ -178,17 +183,20 @@ const LoginForm = ({
                     }
                     type={"submit"}
                   >
-                    <WelcomeButtonText label="Log In" type={"submit"} />
+                    <WelcomeButtonText
+                      translationKey="auth.welcome.login"
+                      type={"submit"}
+                    />
                   </WelcomeButton>
                 </View>
               </View>
             </>
           ) : (
             <View style={styles.passkeyModeContent}>
-              <Text style={styles.passkeyDescription}>
-                Log in quickly and securely using your biometric data or device
-                credentials.
-              </Text>
+              <AppText
+                style={styles.passkeyDescription}
+                translationKey="auth.login.passkeyDesc"
+              />
 
               <View style={styles.passkeyButtonWrapperLarge}>
                 <WelcomeButton
@@ -204,10 +212,9 @@ const LoginForm = ({
                     <Icon
                       name="FingerPrintIcon"
                       color={LoginColors[loginTheme].icon}
-                      
                     />
                     <WelcomeButtonText
-                      label="Login with Passkey"
+                      translationKey="auth.login.loginWithPasskey"
                       type={"submit"}
                     />
                   </View>
@@ -223,7 +230,10 @@ const LoginForm = ({
                     disabled={isLoading}
                     type={"back"}
                   >
-                    <WelcomeButtonText label="Back" type={"back"} />
+                    <WelcomeButtonText
+                      translationKey="auth.login.back"
+                      type={"back"}
+                    />
                   </WelcomeButton>
                 </View>
               </View>
@@ -240,11 +250,11 @@ const LoginForm = ({
             />
             <StatusMessage
               type="success"
-              content={[
+              translationKey={
                 urlType === "passkey"
-                  ? "Signup successful! Log in using your passkey."
-                  : "Signup successful! Please log in using your credentials.",
-              ]}
+                  ? "auth.signupStep.signupSuccessPasskey"
+                  : "auth.signupStep.signupSuccessPassword"
+              }
               visible={signedup}
               timeout={5000}
               onClose={() => {
@@ -257,12 +267,12 @@ const LoginForm = ({
 
           {/* Signup link */}
           <View style={styles.link}>
-            <Text style={styles.linkText}>
-              Don't have an account?{" "}
+            <AppText style={styles.linkText}>
+              <AppText translationKey="auth.login.dontHaveAccount" />
               <TextLink style={styles.linkTextBold} onPress={onSignup}>
-                Sign up
+                <AppText translationKey="auth.welcome.signup" />
               </TextLink>
-            </Text>
+            </AppText>
           </View>
         </View>
       </View>

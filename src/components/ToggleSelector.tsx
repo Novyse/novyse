@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   LayoutChangeEvent,
@@ -12,6 +11,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { ThemeContext } from "@/context/ThemeContext";
+import AppText from "./AppText";
 
 export interface ToggleOption<T extends string = string> {
   value: T;
@@ -75,11 +75,10 @@ function ToggleSelector<T extends string = string>({
             accessibilityRole="button"
             accessibilityState={{ selected: isActive }}
           >
-            <Text
+            <AppText
               style={[styles.toggleText, isActive && styles.toggleTextActive]}
-            >
-              {option.label}
-            </Text>
+              text={option.label}
+            />
           </TouchableOpacity>
         );
       })}

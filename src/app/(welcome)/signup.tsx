@@ -4,11 +4,11 @@ import {
   Animated,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { LinearGradient } from "expo-linear-gradient";
+import AppText from "@/src/components/AppText";
 
 import { useScreen } from "@/context/ScreenContext";
 import { LoginColors } from "@/constants/LoginColors";
@@ -71,7 +71,7 @@ export default function Signup() {
 
   return (
     <LinearGradient
-      colors={LoginColors[LOGIN_THEME].background}
+      colors={LoginColors[LOGIN_THEME].background as any}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -80,7 +80,7 @@ export default function Signup() {
         <KeyboardAvoidingView behavior="position">
           <ScrollView contentContainerStyle={styles.cardContent}>
             {/* <Image style={styles.logo} source={logoNovyse} /> */}
-            <Text style={styles.title}>Sign Up</Text>
+            <AppText style={styles.title} translationKey="auth.signup.title" />
 
             <SignupTimeline
               steps={STEPS}
@@ -137,7 +137,7 @@ export default function Signup() {
                 <View style={styles.buttonWrapper}>
                   <WelcomeButton onPress={handleBack} type="back">
                     {currentStep === 0 ? (
-                      <WelcomeButtonText type="back" label="Back" />
+                      <WelcomeButtonText type="back" translationKey="auth.signup.back" />
                     ) : (
                       <Icon
                         name="ArrowLeft02Icon"
@@ -170,7 +170,7 @@ export default function Signup() {
                             color={LoginColors[LOGIN_THEME].icon}
                             size={20}
                           />
-                          <WelcomeButtonText type="submit" label="Sign up" />
+                          <WelcomeButtonText type="submit" translationKey="auth.signup.signupBtn" />
                         </View>
                       )}
                     </WelcomeButton>
@@ -196,7 +196,7 @@ export default function Signup() {
                           color={LoginColors[LOGIN_THEME].iconLoading}
                         />
                       ) : isLastStep ? (
-                        <WelcomeButtonText type="submit" label="Sign up" />
+                        <WelcomeButtonText type="submit" translationKey="auth.signup.signupBtn" />
                       ) : (
                         <Icon
                           name="ArrowRight02Icon"
@@ -249,7 +249,7 @@ function createStyle(isSmallScreen: boolean) {
     title: {
       fontSize: 42,
       fontWeight: "600",
-      color: LoginColors[LOGIN_THEME].title,
+      color: LoginColors[LOGIN_THEME].title as any,
       textAlign: "center",
       marginBottom: 16,
     },

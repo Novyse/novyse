@@ -1,5 +1,6 @@
 import React, { useContext, useState, useRef } from "react";
-import { Text, StyleSheet, View, Platform } from "react-native";
+import { StyleSheet, View, Platform } from "react-native";
+import AppText from "@/src/components/AppText";
 import { createPortal } from "react-dom";
 import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "../Icon";
@@ -82,7 +83,7 @@ const MessageTimestamp = ({
           { top: tooltipPosition.top, left: tooltipPosition.left },
         ]}
       >
-        <Text style={styles.tooltipText}>{parseFullTime(time)}</Text>
+        <AppText style={styles.tooltipText} text={parseFullTime(time)} />
       </View>
     ) : null;
 
@@ -109,7 +110,7 @@ const MessageTimestamp = ({
               size={14}
               color={theme.textTime}
             />
-            <Text style={styles.replyCountText}>{replyCount}</Text>
+            <AppText style={styles.replyCountText} text={String(replyCount)} />
           </>
         )}
       </View>
@@ -121,15 +122,19 @@ const MessageTimestamp = ({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <Text style={styles.timeText} selectable={false}>
-              {parseTime(time)}
-            </Text>
+            <AppText
+              style={styles.timeText}
+              selectable={false}
+              text={parseTime(time)}
+            />
           </View>
         ) : (
           <View style={styles.timeContainer}>
-            <Text style={styles.timeText} selectable={false}>
-              {parseTime(time)}
-            </Text>
+            <AppText
+              style={styles.timeText}
+              selectable={false}
+              text={parseTime(time)}
+            />
           </View>
         ))}
       {Platform.OS === "web" && createPortal(tooltip, document.body)}

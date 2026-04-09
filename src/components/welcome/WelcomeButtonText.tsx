@@ -1,22 +1,22 @@
 import React from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 
 type WelcomeButtonTextType = "submit" | "back";
 
 interface WelcomeButtonTextProps {
   type: WelcomeButtonTextType;
-  label: string;
+  label?: string;
+  translationKey?: string;
 }
 
-const WelcomeButtonText = ({ type, label }: WelcomeButtonTextProps) => {
+const WelcomeButtonText = ({ type, label, translationKey }: WelcomeButtonTextProps) => {
   const loginTheme: LoginTheme = "default";
   const styles = createStyles(loginTheme, type);
 
   return (
-    <Text style={styles.text} selectable={false}>
-      {label}
-    </Text>
+    <AppText style={styles.text} selectable={false} text={label} translationKey={translationKey} />
   );
 };
 

@@ -1,11 +1,172 @@
 {
   "common": {
     "hello": "Hello!",
-    "settings": "Settings"
+    "settings": "Settings",
+    "loadingProfile": "Loading profile...",
+    "error": "Error",
+    "success": "Success",
+    "status": {
+      "error": "Error",
+      "warning": "Warning",
+      "success": "Success"
+    },
+    "developerNote": "Developer Note: This page is currently a UI preview only. All functional features are under development and will be included in the version 1.2 release.",
+    "errorPage": {
+      "title": "System Restriction",
+      "message": "This app can only be opened in one browser window at a time. Please close any other instances of the app and try again.",
+      "messageSecondary": "Additionally, this app is not usable in incognito mode due to security requirements.",
+      "messageTertiary": "If you think this is an error, try reloading the page or restarting the application."
+    },
+    "qrReader": {
+      "requestingPermissions": "Requesting permissions...",
+      "needPermissions": "We need permission to access the camera to scan QR codes.",
+      "grantPermission": "Grant Permission",
+      "instruction": "Frame a QR code",
+      "scanAgain": "Tap to scan again"
+    },
+    "videoViewer": {
+      "speed": "Playback Speed",
+      "saved": "I've saved it"
+    },
+    "unnamedFile": "Unnamed File",
+    "block": "Block",
+    "leave": "Leave",
+    "troubleshooting": "Troubleshooting"
   },
   "chat": {
     "typeMessage": "Type a message...",
-    "send": "Send"
+    "send": "Send",
+    "unknownUser": "Unknown User",
+    "loading": "Loading...",
+    "listItem": {
+      "draft": "Draft",
+      "you": "You",
+      "unknown": "Unknown"
+    },
+    "joinCreate": {
+      "startDm": "Start DM",
+      "join": "Join",
+      "joinChat": "Join Chat",
+      "joinUserDesc": "Create a new direct message conversation with this user.",
+      "joinChatDesc": "This is a public chat. Join to see messages and participate.",
+      "securityWip": "(WIP) End-to-End Encrypted conversation. Your data remains secure.",
+      "publicChannelDesc": "Messages in public channels are visible to all members.",
+      "notificationMuteDesc": "You can always mute notifications or leave the chat later.",
+      "processing": "Processing..."
+    },
+    "header": {
+      "members": "{{count}} members",
+      "call_participants": "{{count}} in call",
+      "status": {
+        "success": "Success",
+        "error": "Error",
+        "warning": "Warning",
+        "info": "Info"
+      },
+      "inputs": {
+        "select_placeholder": "Select an option",
+        "no_options": "No options",
+        "select_date": "Select date",
+        "confirm": "Confirm"
+      },
+      "online": "{{count}} online",
+      "selected": "{{count}} selected"
+    },
+    "bottomBar": {
+      "editing": "Editing",
+      "placeholder": "Message",
+      "files": {
+        "one": "{{count}} file",
+        "other": "{{count}} files",
+        "file": "File",
+        "errors": {
+          "maxFiles": "Max {{count}} files",
+          "totalSize": "Total exceeds {{size}}",
+          "fileSize": "Exceeds {{size}}",
+          "empty": "Empty file"
+        }
+      },
+      "uploadOverlay": {
+        "media": "Media",
+        "camera": "Camera",
+        "file": "File",
+        "location": "Location",
+        "todo": "Todo",
+        "poll": "Poll"
+      },
+      "uploadFile": {
+        "chooseFile": "Choose File",
+        "removeAll": "Remove All"
+      },
+      "messageActions": {
+        "reply": "Reply",
+        "pin": "Pin",
+        "unpin": "Unpin",
+        "copy": "Copy",
+        "download": "Download",
+        "cancelEdit": "Cancel Edit",
+        "edit": "Edit",
+        "forward": "Forward",
+        "select": "Select",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "reads": {
+          "one": "{{count}} Read",
+          "other": "{{count}} Reads"
+        },
+        "reactions": {
+          "one": "{{count}} Reaction",
+          "other": "{{count}} Reactions"
+        }
+      },
+      "iconsPicker": {
+        "emoji": "Emoji",
+        "sticker": "Sticker",
+        "gif": "GIF"
+      },
+      "overview": {
+        "tabs": {
+          "members": "Members",
+          "media": "Media",
+          "files": "Files",
+          "links": "Links",
+          "music": "Music",
+          "voice": "Voice",
+          "gifs": "GIFs"
+        },
+        "noMembers": "No members found",
+        "noFiles": "No files shared yet",
+        "notSpecified": "Not specified",
+        "noDescriptionYet": "No description yet",
+        "actions": {
+          "settings": "Settings",
+          "block": "Block",
+          "leave": "Leave"
+        },
+        "errors": {
+          "deviceError": "We couldn't retrieve the device. Please try again. <a href=\"{{link}}\" target=\"_blank\">{{troubleshooting}}</a>",
+          "troubleshootingLink": "https://www.novyse.com/help/troubleshooting/comms/devices"
+        }
+      }
+    },
+    "comms": {
+      "participantsInCall": "{{count}} participants in call",
+      "noParticipants": "There is no one here.",
+      "selectors": {
+        "camera": {
+          "title": "Select Camera",
+          "loading": "Loading cameras...",
+          "currentlySelected": "Currently Selected",
+          "defaultName": "Camera {{id}}"
+        },
+        "microphone": {
+          "title": "Select Microphone",
+          "loading": "Loading microphones...",
+          "currentlySelected": "Currently Selected",
+          "defaultName": "Microphone {{id}}"
+        }
+      }
+    }
   },
   "settings": {
     "languageAndTime": "Language & Time",
@@ -13,6 +174,370 @@
       "select": "App Language",
       "english": "English",
       "italian": "Italian"
+    },
+    "menu": {
+      "account": "Account",
+      "customization": "Customization",
+      "storage": "Storage",
+      "security": "Security",
+      "comms": "Comms",
+      "qrScanner": "QR Scanner",
+      "shortcuts": "Shortcuts",
+      "info": "Info"
+    },
+    "account": {
+      "title": "Account",
+      "modifyProfile": "Modify Profile",
+      "logout": "Logout",
+      "deleteAccount": "Delete Account"
+    },
+    "customization": {
+      "title": "Customization",
+      "themes": "Themes",
+      "themesSubtitle": "Choose your preferred color scheme"
+    },
+    "modifyProfile": {
+      "personalInfo": "Personal Info",
+      "name": "Name",
+      "surname": "Surname",
+      "description": "Description",
+      "descriptionPlaceholder": "Tell us about yourself...",
+      "username": "Username",
+      "birthday": "Birthday",
+      "region": "Region",
+      "selectRegion": "Select your region",
+      "selectCountryFirst": "Select a country first",
+      "country": "Country",
+      "selectCountry": "Select your country",
+      "appearance": "Appearance",
+      "profileColor": "Profile color",
+      "backgroundColor": "Background color",
+      "connections": "Connections",
+      "link": "Link",
+      "unlink": "Unlink",
+      "twitter": "Twitter",
+      "github": "GitHub",
+      "shareRepo": "Share repo",
+      "unsavedChanges": "Careful - you have unsaved changes!",
+      "restore": "Restore",
+      "save": "Save",
+      "saving": "Saving...",
+      "success": "Profile updated successfully",
+      "error": "Error updating profile",
+      "saveError": "Error saving profile",
+      "birthdayFormat": "DD/MM/YYYY"
+    },
+    "info": {
+      "version": "VERSION",
+      "build": "BUILD",
+      "released": "RELEASED",
+      "connect": "Connect",
+      "viewOnGithub": "View on GitHub",
+      "roadmap": "Roadmap",
+      "legal": "Legal",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service",
+      "cookiePolicy": "Cookie Policy"
+    },
+    "qrScanner": {
+      "invalidCode": "Invalid QR Code or already scanned.",
+      "loginSuccess": "Login will be completed shortly, please wait..."
+    },
+    "shortcuts": {
+      "muteUnmute": "Mute / Unmute"
+    },
+    "comms": {
+      "title": "Comms",
+      "loadingSettings": "Loading settings...",
+      "errorLoadingSettings": "Error loading settings",
+      "retry": "Retry",
+      "inputDevices": "Input Devices",
+      "inputDevicesWarning": "⚠️ Warning: Changes to input devices will not affect chat functionality at the moment.",
+      "loadingDevices": "Loading devices...",
+      "microphone": "Microphone",
+      "noMicrophonesFound": "No microphones found",
+      "webcam": "Webcam",
+      "noCamerasFound": "No cameras found",
+      "entryMode": "Entry Mode",
+      "videoSettings": "Video Settings",
+      "webcamQuality": "Webcam Quality",
+      "webcamFPS": "Webcam FPS",
+      "screenShareSettings": "Screen Share Settings",
+      "screenShareQuality": "Screen Share Quality",
+      "screenShareFPS": "Screen Share FPS",
+      "screenShareAudio": "Screen Share Audio",
+      "audioProcessing": "Audio Processing",
+      "noiseSuppression": "Noise Suppression",
+      "expander": "Expander",
+      "noiseGate": "Noise Gate",
+      "noiseGateThreshold": "Noise Gate Threshold",
+      "typingAttenuation": "Typing Attenuation",
+      "currentSettings": "Current Settings:",
+      "on": "ON",
+      "off": "OFF",
+      "audioOnly": "Audio Only",
+      "videoOnly": "Video Only",
+      "both": "Both",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "adaptive": "Adaptive",
+      "hybrid": "Hybrid",
+      "manual": "Manual"
+    },
+    "storage": {
+      "localStorage": "Local Storage",
+      "gbUsed": "GB used",
+      "cloudStorageComingSoon": "Cloud Storage (Coming Soon)",
+      "resetDatabase": "Reset Database",
+      "resetDatabaseSubtitle": " (This will completely clean local database and request server all your data)",
+      "cloudStorage": "Cloud Storage",
+      "file": "File",
+      "videos": "Videos",
+      "images": "Images",
+      "documents": "Documents",
+      "others": "Others"
+    },
+    "security": {
+      "title": "Security",
+      "sessions": {
+        "ip": "IP",
+        "created": "Created",
+        "lastActivity": "Last activity"
+      },
+      "password": "Password",
+      "managePassword": "Manage your account password",
+      "passwordActive": "Password Active",
+      "noPasswordSet": "No Password Set",
+      "passwordProtected": "Your account is protected with a password",
+      "addPasswordSecurity": "Add a password for additional security",
+      "setPassword": "Set Password",
+      "changePassword": "Change Password",
+      "removePassword": "Remove Password",
+      "fillAllFields": "Please fill in all fields",
+      "passwordsDontMatch": "Passwords don't match",
+      "newPasswordsDontMatch": "New passwords don't match",
+      "setPasswordSuccess": "Password set successfully",
+      "setPasswordFailed": "Failed to set password",
+      "changePasswordSuccess": "Password changed successfully",
+      "changePasswordFailed": "Failed to change password",
+      "deactivatePasswordSuccess": "Password deactivated successfully",
+      "deactivatePasswordFailed": "Failed to deactivate password",
+      "newPassword": "New Password",
+      "enterNewPassword": "Enter new password",
+      "confirmPassword": "Confirm Password",
+      "confirmNewPasswordInput": "Confirm new password",
+      "setting": "Setting...",
+      "changing": "Changing...",
+      "removing": "Removing...",
+      "cancel": "Cancel",
+      "passwordNote": "• Password must be 16-256 characters long •",
+      "removePasswordWarning": "Enter your current password to confirm removal. Make sure you have another login method (e.g. Passkey) active.",
+      "confirmNewPassword": "Confirm New Password",
+      "passkeys": "Passkeys",
+      "mfa": "MFA (WIP)",
+      "sessionsLabel": "Sessions",
+      "sessionsTitle": "Sessions",
+      "apiKeys": "API Keys",
+      "notifications": "Notifications (WIP)",
+      "authenticator": "Authenticator",
+      "authAppDesc": "Authentication App",
+      "email": "Email",
+      "emailCodeDesc": "Code via Email",
+      "mfaMethodAdded": "MFA method added successfully",
+      "mfaMethodRemoved": "MFA method removed successfully",
+      "backupCodesResetSuccess": "Backup codes have been reset successfully",
+      "mfaTitle": "Multi-Factor Authentication",
+      "manageAuthMethods": "Manage your authentication methods",
+      "active": "Active",
+      "add": "Add",
+      "showBackupCodes": "Show Backup Codes",
+      "resetBackupCodes": "Reset Backup Codes",
+      "manageApiKeys": "Manage your active API keys",
+      "failedToLoadApiKeys": "Failed to load API keys",
+      "noApiKeys": "No API keys",
+      "createApiKeyPrompt": "Create an API key to access the Novyse API",
+      "apiKeyCreatedSuccess": "API key created successfully",
+      "apiKeyCreatedFailed": "Failed to create API key",
+      "apiKeyActivatedSuccess": "API key activated successfully",
+      "apiKeyDeactivatedSuccess": "API key deactivated successfully",
+      "apiKeyStatusUpdateFailed": "Failed to update API key status",
+      "apiKeyRevokedSuccess": "API key revoked successfully",
+      "apiKeyRevokeFailed": "Failed to revoke API key",
+      "createNewApiKey": "Create New API Key",
+      "createModal": {
+        "title": "Create New API Key",
+        "subtitle": "Give your API key a descriptive name to identify it later.",
+        "placeholder": "e.g. Production Server",
+        "creating": "Creating...",
+        "create": "Create API Key"
+      },
+      "detailsModal": {
+        "title": "API Key Created",
+        "subtitle": "Please copy your API key now. For security reasons, you won't be able to see it again.",
+        "label": "Your API Key",
+        "saved": "I've saved it"
+      },
+      "created": "Created",
+      "lastUsed": "Last used",
+      "unknown": "Unknown",
+      "never": "Never",
+      "managePasskeys": "Manage your registered passkeys for passwordless login",
+      "unnamedPasskey": "Unnamed Passkey",
+      "failedToLoadPasskeys": "Failed to load passkeys",
+      "passkeyAddedSuccess": "Passkey added successfully",
+      "passkeyAddedFailed": "Failed to add passkey",
+      "passkeyRemovedSuccess": "Passkey removed successfully",
+      "passkeyRemovedFailed": "Failed to remove passkey",
+      "noPasskeys": "No passkeys registered",
+      "addPasskeyPrompt": "Add a passkey for a faster and more secure login",
+      "added": "Added",
+      "addPasskey": "Add Passkey",
+      "activeSessions": "Active Sessions",
+      "manageSessions": "Manage your active sessions across devices",
+      "unknownDevice": "Unknown Device",
+      "failedToLoadSessions": "Failed to load sessions",
+      "justNow": "Just now",
+      "mAgo": "m ago",
+      "hAgo": "h ago",
+      "yesterday": "Yesterday",
+      "sessionDisconnected": "Session disconnected",
+      "sessionDisconnectFailed": "Failed to disconnect session",
+      "allOtherSessionsDisconnected": "All other sessions disconnected",
+      "allOtherSessionsDisconnectFailed": "Failed to disconnect other sessions",
+      "current": "Current",
+      "disconnectAllOtherSessions": "Disconnect All Other Sessions",
+      "notificationMethods": "Notification Methods",
+      "manageNotifications": "Manage how you receive security notifications",
+      "inAppNotifications": "In-app notifications",
+      "notificationMethodRemoved": "Notification method removed",
+      "default": "Default",
+      "addNotificationMethod": "Add Notification Method"
+    }
+  },
+  "layout": {
+    "loadingData": "Loading your data...",
+    "nothingSelected": "Nothing selected.",
+    "notFound": {
+      "title": "404",
+      "subtitle": "Oops! Page Not Found",
+      "message": "The page you're looking for doesn't exist or has been moved.",
+      "goHome": "Go Home"
+    },
+    "updateRequired": {
+      "title": "Update Required",
+      "subtitle": "A new version of Novyse is available and required to continue.\n\nPlease update to access the latest features and security improvements.",
+      "currentVersion": "Current: {{version}}",
+      "requiredVersion": "Required: {{version}}",
+      "downloadLatestVersion": "Download Latest Version",
+      "warning": "Note: If you continue without updating, online features will be unavailable.",
+      "goBack": "Go back to Novyse",
+      "helperText": "Visit {link} to get the update for your device."
+    }
+  },
+  "tabs": {
+    "chatList": {
+      "selected": "{{count}} selected"
+    },
+    "search": {
+      "search": "Search",
+      "noResults": "No results found"
+    }
+  },
+  "profile": {
+    "aboutMe": {
+      "title": "ABOUT ME",
+      "noDescription": "We don't know anything about him :("
+    },
+    "birthdayLocation": {
+      "born": "BORN",
+      "location": "LOCATION"
+    },
+    "connections": {
+      "title": "CONNECTIONS"
+    },
+    "qrModal": {
+      "copied": "Copied"
+    },
+    "loading": "Loading profile...",
+    "error": "Error loading profile: {{error}}",
+    "notFound": "User not found."
+  },
+  "auth": {
+    "welcome": {
+      "title": "Welcome",
+      "or": "OR",
+      "scanQr": "Scan QR to login",
+      "expiresIn": "Expires in {{time}}",
+      "signup": "Sign Up",
+      "login": "Log In"
+    },
+    "passkey": {
+      "notSupported": "Methods not supported"
+    },
+    "login": {
+      "title": "Login",
+      "subtitle": "Enter your credentials to login",
+      "securedBy": "Secured by ",
+      "passkeyDesc": "Log in quickly and securely using your biometric data or device credentials.",
+      "loginWithPasskey": "Login with Passkey",
+      "dontHaveAccount": "Don't have an account? ",
+      "back": "Back"
+    },
+    "signup": {
+      "title": "Sign Up",
+      "back": "Back",
+      "signupBtn": "Sign up"
+    },
+    "signupStep": {
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "Display Name",
+      "nameLettersOnly": "Name: only letters and spaces",
+      "username": "Username",
+      "usernamePlaceholder": "Username",
+      "checking": "Checking...",
+      "available": "Available",
+      "alreadyInUse": "Already in use",
+      "password": "Password",
+      "passwordMin16": "Password (min 16)",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm Password",
+      "startsLetterNumber": "Starts with a letter or number",
+      "endsLetterNumber": "Ends with a letter or number",
+      "onlyLettersNumbers": "Only letters, numbers, and underscores",
+      "noConsecutiveUnderscores": "No consecutive underscores",
+      "iAccept": "I accept ",
+      "privacyPolicy": "privacy policy",
+      "and": " and ",
+      "termsOfService": "terms of service",
+      "iAm16": "I am 16 or older.",
+      "signupSuccessPasskey": "Signup successful! Log in using your passkey.",
+      "signupSuccessPassword": "Signup successful! Please log in using your credentials."
+    },
+    "chooseVerify": {
+      "title": "Choose Verification Method",
+      "subtitle": "Please select how you'd like to receive your verification code.",
+      "email": "Email",
+      "sms": "SMS",
+      "authenticator": "Authenticator App",
+      "authAppDesc": "Authentication App",
+      "back": "Back",
+      "verify": "Verify"
+    },
+    "verify": {
+      "titleEmailOtp": "Email OTP",
+      "titleVerifyEmail": "Verify Email",
+      "titleAuthenticatorApp": "Authenticator App",
+      "titleVerifyCode": "Verify Code",
+      "subtitle": "Enter the code you received in your email.",
+      "subtitleAuthApp": "Scan the QR code or manually enter the code in your authenticator app, then enter the generated code.",
+      "subtitleDefault": "Enter the verification code.",
+      "verifyBtn": "Verify",
+      "verifyCode": "Verify Code"
+    },
+    "verifyBackup": {
+      "title": "Backup Code",
+      "subtitle": "Enter one of your 8-character backup codes to access your account."
     }
   },
   "messageFormat": {
@@ -78,177 +603,59 @@
       "active_other": "{{name}}, {{name2}} and {{count}} others are active..."
     }
   },
-  "fetching_chat_data_1": "Fetching chat data...",
-  "username_2": "Username",
-  "description_3": "Description",
-  "no_members_found_4": "No members found",
-  "no_files_shared_yet_5": "No files shared yet",
-  "settings_6": "Settings",
-  "nothing_selected_7": "Nothing selected.",
-  "loading_profile_8": "Loading profile...",
-  "loading_settings_9": "Loading settings...",
-  "error_loading_settings_10": "Error loading settings",
-  "retry_11": "Retry",
-  "developer_note_this_page_12": "Developer Note: This page is currently a UI preview only. All functional features are under development and will be included in the version 1.2 release.",
-  "input_devices_13": "Input Devices",
-  "_warning_changes_to_14": "⚠️ Warning: Changes to input devices will not affect chat functionality at the moment.",
-  "loading_devices_15": "Loading devices...",
-  "entry_mode_16": "Entry Mode",
-  "video_settings_17": "Video Settings",
-  "webcam_quality_18": "Webcam Quality",
-  "webcam_fps_19": "Webcam FPS",
-  "screen_share_settings_20": "Screen Share Settings",
-  "screen_share_quality_21": "Screen Share Quality",
-  "screen_share_fps_22": "Screen Share FPS",
-  "screen_share_audio_23": "Screen Share Audio",
-  "audio_processing_24": "Audio Processing",
-  "noise_suppression_25": "Noise Suppression",
-  "expander_26": "Expander",
-  "noise_gate_27": "Noise Gate",
-  "noise_gate_threshold_28": "Noise Gate Threshold",
-  "typing_attenuation_29": "Typing Attenuation",
-  "current_settings_30": "Current Settings:",
-  "themes_31": "Themes",
-  "choose_your_preferred_color_32": "Choose your preferred color scheme",
-  "text_33": "✓",
-  "connect_34": "Connect",
-  "legal_35": "Legal",
-  "api_keys_36": "API Keys",
-  "manage_your_active_api_37": "Manage your active API keys",
-  "no_api_keys_38": "No API keys",
-  "create_an_api_key_39": "Create an API key to access the Novyse API",
-  "create_new_api_key_40": "Create New API Key",
-  "multifactor_authentication_41": "Multi-Factor Authentication",
-  "manage_your_authentication_methods_42": "Manage your authentication methods",
-  "active_43": "Active",
-  "add_44": "Add",
-  "notification_methods_45": "Notification Methods",
-  "manage_how_you_receive_46": "Manage how you receive security notifications",
-  "add_notification_method_47": "Add Notification Method",
-  "passkeys_48": "Passkeys",
-  "manage_your_registered_passkeys_49": "Manage your registered passkeys for passwordless login",
-  "no_passkeys_registered_50": "No passkeys registered",
-  "add_a_passkey_for_51": "Add a passkey for a faster and more secure login",
-  "add_passkey_52": "Add Passkey",
-  "password_53": "Password",
-  "manage_your_account_password_54": "Manage your account password",
-  "set_password_55": "Set Password",
-  "new_password_56": "New Password",
-  "confirm_password_57": "Confirm Password",
-  "change_password_58": "Change Password",
-  "new_password_59": "New Password",
-  "confirm_new_password_60": "Confirm New Password",
-  "_password_must_be_61": "• Password must be 16-256 characters long •",
-  "remove_password_62": "Remove Password",
-  "enter_your_current_password_63": "Enter your current password to confirm removal. Make sure you have another login method (e.g. Passkey) active.",
-  "active_sessions_64": "Active Sessions",
-  "manage_your_active_sessions_65": "Manage your active sessions across devices",
-  "developer_note_this_page_66": "Developer Note: This page is currently a UI preview only. All functional features are under development and will be included in the version 1.2 release.",
-  "local_storage_67": "Local Storage",
-  "cloud_storage_coming_soon_68": "Cloud Storage (Coming Soon)",
-  "0__0_gb_69": "0 / 0 GB",
-  "reset_database_70": "Reset Database",
-  "choose_verification_method_71": "Choose Verification Method",
-  "please_select_how_youd_72": "Please select how you'd like to receive your verification code.",
-  "sign_up_73": "Sign Up",
-  "backup_code_74": "Backup Code",
-  "enter_one_of_your_75": "Enter one of your 8-character backup codes to access your account.",
-  "enter_the_code_you_76": "Enter the code you received in your email.",
-  "welcome_77": "Welcome",
-  "or_78": "OR",
-  "scan_qr_to_login_79": "Scan QR to login",
-  "404_80": "404",
-  "oops_page_not_found_81": "Oops! Page Not Found",
-  "the_page_youre_looking_82": "The page you're looking for doesn't exist or has been moved.",
-  "loading_profile_83": "Loading profile...",
-  "update_required_84": "Update Required",
-  "download_latest_version_85": "Download Latest Version",
-  "note_if_you_continue_86": "Note: If you continue without updating, online features will be unavailable.",
-  "go_back_to_novyse_87": "Go back to Novyse",
-  "novysecom_88": "novyse.com",
-  "2_89": "2",
-  "3_90": "3",
-  "emoji_91": "Emoji",
-  "sticker_92": "Sticker",
-  "gif_93": "GIF",
-  "text_94": "▼",
-  "richiesta_permessi_95": "Richiesta permessi...",
-  "abbiamo_bisogno_del_permesso_96": "Abbiamo bisogno del permesso per accedere alla fotocamera per scansionare i codici QR.",
-  "inquadra_un_codice_qr_97": "Inquadra un codice QR",
-  "methods_not_supported_98": "Methods not supported",
-  "you_can_always_mute_99": "You can always mute notifications or leave the chat later.",
-  "emoji_picker_content_100": "Emoji Picker Content",
-  "editing_101": "Editing",
-  "currently_selected_102": "Currently Selected",
-  "select_camera_103": "Select Camera",
-  "loading_cameras_104": "Loading cameras...",
-  "currently_selected_105": "Currently Selected",
-  "select_microphone_106": "Select Microphone",
-  "loading_microphones_107": "Loading microphones...",
-  "there_is_no_one_108": "There is no one here.",
-  "confirm_109": "Confirm",
-  "text_110": "▼",
-  "delete_account_111": "Delete Account",
-  "warning_all_your_user_112": "Warning: All your user data will be permanently deleted. This action cannot be reversed.",
-  "confirmation_identity_113": "CONFIRMATION IDENTITY",
-  "learn_more_114": "Learn more",
-  "cancel_115": "Cancel",
-  "delete_116": "Delete",
-  "delete_messages_117": "Delete Messages",
-  "cancel_118": "Cancel",
-  "delete_119": "Delete",
-  "save_your_backup_codes_120": "Save your Backup Codes",
-  "keep_these_codes_in_121": "Keep these codes in a safe place. You will need them to recover your account.",
-  "all_codes_has_been_122": "All codes has been used, regenerate them",
-  "create_new_chat_123": "Create New Chat",
-  "configure_your_new_chat_124": "Configure your new chat space settings below.",
-  "chat_identity_125": "CHAT IDENTITY",
-  "chat_name_126": "Chat Name",
-  "this_is_the_name_127": "This is the name that will be visible to your members.",
-  "communication_style_128": "COMMUNICATION STYLE",
-  "privacy_settings_129": "PRIVACY SETTINGS",
-  "private_130": "Private",
-  "public_131": "Public",
-  "chat_handle_132": "Chat Handle",
-  "text_133": "@",
-  "people_can_find_your_134": "People can find your chat using this handle.",
-  "cancel_135": "Cancel",
-  "create_chat_136": "Create Chat",
-  "choose_file_137": "Choose File",
-  "remove_all_files_138": "Remove all files",
-  "system_restriction_139": "System Restriction",
-  "this_app_can_only_140": "This app can only be opened in one browser window at a time. Please close any other instances of the app and try again.",
-  "additionally_this_app_is_141": "Additionally, this app is not usable in incognito mode due to security requirements.",
-  "if_you_think_this_142": "If you think this is an error, try reloading the page or restarting the application.",
-  "about_me_143": "ABOUT ME",
-  "born_144": "BORN",
-  "location_145": "LOCATION",
-  "connections_146": "CONNECTIONS",
-  "careful__you_have_147": "Careful - you have unsaved changes!",
-  "restore_148": "Restore",
-  "verify_code_149": "Verify code",
-  "version_150": "VERSION",
-  "build_151": "BUILD",
-  "released_152": "RELEASED",
-  "ip_153": "IP:",
-  "created_154": "Created:",
-  "last_activity_155": "Last activity:",
-  "api_key_created_156": "API Key Created",
-  "please_copy_your_api_157": "Please copy your API key now. For security reasons, you won't be able to see it again.",
-  "ive_saved_it_158": "I've saved it",
-  "create_new_api_key_159": "Create New API Key",
-  "give_your_api_key_160": "Give your API key a descriptive name to identify it later.",
-  "text_161": "+",
-  "no_results_found_162": "No results found",
-  "login_163": "Login",
-  "enter_your_credentials_to_164": "Enter your credentials to login",
-  "secured_by_165": "Secured by",
-  "log_in_quickly_and_166": "Log in quickly and securely using your biometric data or device credentials.",
-  "text_167": "✓",
-  "i_am_16_or_168": "I am 16 or older.",
-  "display_name_169": "Display Name",
-  "username_170": "Username",
-  "confirm_password_171": "Confirm Password",
-  "secured_by_172": "Secured by",
-  "extracted": {}
+  "modals": {
+    "delete_account": {
+      "title": "Delete Account",
+      "warning": "This action cannot be undone. All your data will be permanently deleted.",
+      "confirmation_identity": "Confirm Identity",
+      "confirm_instruction": "Please type your username {{username}} to confirm.",
+      "helper_text": "This is a permanent action.",
+      "learn_more": "Learn More",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "backup_codes": {
+      "title": "Backup Codes",
+      "subtitle": "Use these codes to access your account if you lose access to your secondary authentication method.",
+      "error": "Failed to load backup codes"
+    },
+    "create_chat": {
+      "title": "Create New Chat",
+      "subtitle": "Configure your new chat space settings below.",
+      "sections": {
+        "identity": "CHAT IDENTITY",
+        "commsStyle": "COMMUNICATION STYLE",
+        "privacy": "PRIVACY SETTINGS"
+      },
+      "fields": {
+        "name": "Chat Name",
+        "namePlaceholder": "e.g., Novyse News",
+        "nameHelper": "This is the name that will be visible to your members.",
+        "handle": "Chat Handle",
+        "handlePlaceholder": "your-handle",
+        "handleHelper": "People can find your chat using this handle.",
+        "publicRequired": "(Required for public chats)"
+      },
+      "types": {
+        "group": "Group",
+        "groupDesc": "Best for small teams & friends.",
+        "channel": "Channel",
+        "channelDesc": "Broadcast to unlimited audiences.",
+        "forum": "Forum",
+        "forumDesc": "Organized discussions by topic."
+      },
+      "privacy": {
+        "private": "Private",
+        "public": "Public"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "create": "Create Chat"
+      },
+      "errors": {
+        "handleTaken": "Handle already in use",
+        "handleError": "Error checking handle availability"
+      }
+    }
+  }
 }

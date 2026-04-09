@@ -9,6 +9,7 @@ import Animated, {
 
 import HoverAndPressedButton from "./HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
+import AppText from "./AppText";
 
 type StatusMessageType = "success" | "error" | "warning" | "info";
 
@@ -16,6 +17,7 @@ interface StatusMessageProps {
   type: StatusMessageType;
   visible?: boolean;
   content?: string[];
+  translationKey?: string;
   timeout?: number | null;
   onClose?: () => void;
 }
@@ -35,6 +37,7 @@ const StatusMessage = ({
   type,
   visible = true,
   content = [],
+  translationKey,
   timeout = null,
   onClose,
 }: StatusMessageProps) => {
@@ -119,7 +122,7 @@ const StatusMessage = ({
     }
   };
 
-  const { title, icon, theme: colors } = getTypeValues();
+  const { title: titleKey, icon, theme: colors } = getTypeValues();
   const styles = createStyles(colors);
   const list = Array.isArray(content) ? content : [];
 
@@ -131,45 +134,58 @@ const StatusMessage = ({
         </View>
 
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>{title}</Text>
-          {list.map((value, index) => {
-            const formattedText =
-              (list.length > 1 ? `• ${value}` : value) ?? "";
-            const linkRegex =
-              /<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1[^>]*>(.*?)<\/a>/gi;
-            const parts = [];
-            let lastIndex = 0;
-            let match;
+          <AppText
+            style={styles.title}
+            translationKey={`common.status.${titleKey.toLowerCase()}`}
+          />
+          {translationKey ? (
+            <AppText
+              style={styles.contentText}
+              translationKey={translationKey}
+            />
+          ) : (
+            list.map((value, index) => {
+              const formattedText =
+                (list.length > 1 ? `• ${value}` : value) ?? "";
+              const linkRegex =
+                /<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1[^>]*>(.*?)<\/a>/gi;
+              const parts = [];
+              let lastIndex = 0;
+              let match;
 
-            while ((match = linkRegex.exec(formattedText)) !== null) {
-              if (match.index > lastIndex) {
-                parts.push(formattedText.substring(lastIndex, match.index));
+              while ((match = linkRegex.exec(formattedText)) !== null) {
+                if (match.index > lastIndex) {
+                  parts.push(formattedText.substring(lastIndex, match.index));
+                }
+                const url = match[2];
+                const linkText = match[3];
+
+                parts.push(
+                  <AppText
+                    key={`link-${index}-${lastIndex}`}
+                    style={styles.linkText}
+                    onPress={() => Linking.openURL(url)}
+                    text={linkText}
+                  />,
+                );
+                lastIndex = linkRegex.lastIndex;
               }
-              const url = match[2];
-              const linkText = match[3];
 
-              parts.push(
-                <Text
-                  key={`link-${index}-${lastIndex}`}
-                  style={styles.linkText}
-                  onPress={() => Linking.openURL(url)}
+              if (lastIndex < formattedText.length) {
+                parts.push(formattedText.substring(lastIndex));
+              }
+
+              return (
+                <AppText
+                  key={index}
+                  style={styles.contentText}
+                  text={parts.length > 0 ? undefined : formattedText}
                 >
-                  {linkText}
-                </Text>,
+                  {parts.length > 0 ? parts : null}
+                </AppText>
               );
-              lastIndex = linkRegex.lastIndex;
-            }
-
-            if (lastIndex < formattedText.length) {
-              parts.push(formattedText.substring(lastIndex));
-            }
-
-            return (
-              <Text key={index} style={styles.contentText}>
-                {parts.length > 0 ? parts : formattedText}
-              </Text>
-            );
-          })}
+            })
+          )}
         </View>
 
         <HoverAndPressedButton onPress={handleClose} style={styles.closeButton}>
@@ -183,7 +199,11 @@ const StatusMessage = ({
           onLayout={(e) => (trackWidth.value = e.nativeEvent.layout.width)}
         >
           <Animated.View
-            style={[styles.progressFill, { backgroundColor: colors.text }, progressFillStyle]}
+            style={[
+              styles.progressFill,
+              { backgroundColor: colors.text },
+              progressFillStyle,
+            ]}
           />
         </View>
       )}

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { View, StyleSheet, Text, Platform } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
+import AppText from "@/src/components/AppText";
 import { createPortal } from "react-dom";
 
 import { useCommsContext } from "@/context/CommsContext";
@@ -141,7 +142,7 @@ const CommsMembersLayout = ({ participants = [], room }) => {
             })}
           </>
         ) : (
-          <Text style={styles.emptyChatText}>There is no one here.</Text>
+          <AppText style={styles.emptyChatText} translationKey="chat.comms.noParticipants" />
         )}
       </View>
     </View>

@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { ThemeContext } from "@/context/ThemeContext";
@@ -31,24 +32,50 @@ export default function BirthdayLocation({
         <View style={styles.content}>
           {birthday && (
             <View style={styles.item}>
-              <View style={[styles.iconContainer, { backgroundColor: "rgba(168, 100, 255, 0.2)" }]}>
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: "rgba(168, 100, 255, 0.2)" },
+                ]}
+              >
                 <Icon name="BirthdayIcon" size={16} color="#A864FF" />
               </View>
               <View style={styles.textContainer}>
-                <Text style={styles.label}>BORN</Text>
-                <Text style={styles.value}>{birthday}</Text>
+                <AppText
+                  style={styles.label}
+                  translationKey="profile.birthdayLocation.born"
+                />
+                <AppText style={styles.value} text={birthday} />
               </View>
             </View>
           )}
 
           {country && (
-            <View style={[styles.item, birthday && { marginTop: 16, borderTopWidth: 1, borderTopColor: "rgba(255, 255, 255, 0.1)", paddingTop: 16 }]}>
-              <View style={[styles.iconContainer, { backgroundColor: "rgba(16, 185, 129, 0.2)" }]}>
+            <View
+              style={[
+                styles.item,
+                birthday && {
+                  marginTop: 16,
+                  borderTopWidth: 1,
+                  borderTopColor: "rgba(255, 255, 255, 0.1)",
+                  paddingTop: 16,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: "rgba(16, 185, 129, 0.2)" },
+                ]}
+              >
                 <Icon name="LocationIcon" size={16} color="#10B981" />
               </View>
               <View style={styles.textContainer}>
-                <Text style={styles.label}>LOCATION</Text>
-                <Text style={styles.value}>{country}</Text>
+                <AppText
+                  style={styles.label}
+                  translationKey="profile.birthdayLocation.location"
+                />
+                <AppText style={styles.value} text={country} />
               </View>
             </View>
           )}

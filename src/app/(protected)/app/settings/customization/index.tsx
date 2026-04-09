@@ -9,11 +9,11 @@ export default function CustomizationMenuRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow title={"Customization"} onBack={onBack} />
+      <HeaderWithBackArrow translationKey="settings.customization.title" onBack={onBack} />
       <SettingsPageScrollview isMenu={true}>
         <SettingsMenuItem
           navToPage="./settings/customization/themes"
-          pageName="Themes"
+          translationKey="settings.customization.themes"
           iconName={"PaintBoardIcon"}
         />
       </SettingsPageScrollview>

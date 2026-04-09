@@ -1,12 +1,13 @@
 import React, { useState, useContext, useEffect } from "react";
 import {
-  Text,
   StyleSheet,
   TextInput,
   ActivityIndicator,
   FlatList,
   Platform,
 } from "react-native";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -24,13 +25,17 @@ interface SearchResult {
   handle: string;
   name: string;
   surname?: string;
-  type?: string;
+  type: "USER" | "GROUP" | "FORUM" | "CHANNEL";
+  profilePictureUUID?: string;
   memberCount?: number;
 }
 
 const Search = () => {
+  const { t } = useTranslation();
   const { theme } = useThemeContext();
-  const setSelectedHandle = useActiveChatStore((state) => state.setSelectedHandle);
+  const setSelectedHandle = useActiveChatStore(
+    (state) => state.setSelectedHandle,
+  );
   const intets = useSafeAreaInsets();
   const styles = createStyle(theme, intets);
 
@@ -78,11 +83,13 @@ const Search = () => {
         const { success, data } = result;
         if (!success) throw new Error("Search API call failed");
 
-        const { users = [], chats = [], bots = [] } = data;
+        const { users = [], chats = []} = data;
         const searched_list: SearchResult[] = [
-          ...users.map((user: any) => ({ ...user, type: "USER" })),
-          ...chats.map((chat: any) => ({ ...chat })),
-          ...bots.map((bot: any) => ({ ...bot, type: "BOT" })),
+          ...users.map((user: any) => ({ ...user, type: "USER" as const })),
+          ...chats.map((chat: any) => ({
+            ...chat,
+            type: (chat.type || "GROUP") as "GROUP" | "FORUM" | "CHANNEL",
+          })),
         ];
 
         setResponseArray(searched_list || []);
@@ -121,7 +128,7 @@ const Search = () => {
           style={styles.searchIcon}
         />
         <TextInput
-          placeholder="Search"
+          placeholder={t("tabs.search.search")}
           placeholderTextColor={theme.placeholderText}
           style={styles.searchBar}
           value={searchText}
@@ -160,7 +167,10 @@ const Search = () => {
         />
       )}
       {isSearching && !isLoading && responseArray.length === 0 && (
-        <Text style={styles.noResults}>No results found</Text>
+        <AppText
+          style={styles.noResults}
+          translationKey="tabs.search.noResults"
+        />
       )}
     </>
   );

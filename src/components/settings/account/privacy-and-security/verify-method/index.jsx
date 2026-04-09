@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   ActivityIndicator,
   Pressable,
@@ -40,28 +39,28 @@ const ModalVerifyMethod = ({
     }
   }, [otp]);
 
-  const getFormattedVerificationType = () => {
+  const getFormattedVerificationTypeKey = () => {
     switch (verificationType) {
       case "email":
-        return "Email OTP";
+        return "auth.verify.titleEmailOtp";
       case "email_verification":
-        return "Email Verification";
+        return "auth.verify.titleVerifyEmail";
       case "authenticator":
-        return "Authenticator App";
+        return "auth.verify.titleAuthenticatorApp";
       default:
-        return "Verify Code";
+        return "auth.verify.verifyCode";
     }
   };
 
-  const getSubtitleText = () => {
+  const getSubtitleTextKey = () => {
     switch (verificationType) {
       case "email":
       case "email_verification":
-        return "Enter the code you received in your email.";
+        return "auth.verify.subtitle";
       case "authenticator":
-        return "Scan the QR code or manually enter the code in your authenticator app, then enter the generated code.";
+        return "auth.verify.subtitleAuthApp";
       default:
-        return "Enter the verification code.";
+        return "auth.verify.subtitleDefault";
     }
   };
 
@@ -86,8 +85,14 @@ const ModalVerifyMethod = ({
       hideCloseX={false}
     >
       <View style={styles.cardContent}>
-        <Text style={styles.title}>{getFormattedVerificationType()}</Text>
-        <Text style={styles.subtitle}>{getSubtitleText()}</Text>
+        <AppText
+          style={styles.title}
+          translationKey={getFormattedVerificationTypeKey()}
+        />
+        <AppText
+          style={styles.subtitle}
+          translationKey={getSubtitleTextKey()}
+        />
 
         {verificationType === "authenticator" && secret && otpauth && (
           <AddAuthenticator
@@ -117,7 +122,10 @@ const ModalVerifyMethod = ({
             {isLoading ? (
               <ActivityIndicator size="small" color={theme.textInverted} />
             ) : (
-              <Text style={styles.submitButtonText}>Verify code</Text>
+              <AppText
+                style={styles.submitButtonText}
+                translationKey="auth.verify.verifyBtn"
+              />
             )}
           </Pressable>
         </View>

@@ -1,16 +1,18 @@
 import React from "react";
 import {
   View,
-  Text,
   StyleSheet,
-  Platform,
   Linking,
   TouchableOpacity,
   Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useThemeContext } from "../../context/ThemeContext";
 import { useLocalSearchParams, useRouter } from "expo-router";
+
+import { useThemeContext } from "../../context/ThemeContext";
+
+import AppText from "@/src/components/AppText";
+
 import { APP_VERSION } from "../../app.config";
 
 const DOWNLOAD_URL = "https://novyse.com/#download";
@@ -45,54 +47,70 @@ export default function UpdateRequiredScreen() {
           resizeMode="contain"
         />
       </View>
-
       {/* Text content */}
-      <Text style={styles.title}>Update Required</Text>
-      <Text style={styles.subtitle}>
-        A new version of Novyse is available and required to continue.{"\n"}
-        Please update to access the latest features and security improvements.
-      </Text>
-
+      <AppText
+        style={styles.title}
+        translationKey="layout.updateRequired.title"
+      />
+      <AppText
+        style={styles.subtitle}
+        translationKey="layout.updateRequired.subtitle"
+      />
       {/* Version Info */}
       <View style={styles.versionContainer}>
-        <Text style={styles.versionText}>Current: {APP_VERSION}</Text>
+        <AppText
+          style={styles.versionText}
+          translationKey="layout.updateRequired.currentVersion"
+          translationOptions={{
+            version: APP_VERSION,
+          }}
+        />
         {minVersion && (
-          <Text style={styles.versionText}>Required: {minVersion}</Text>
+          <AppText
+            style={styles.versionText}
+            translationKey="layout.updateRequired.requiredVersion"
+            translationOptions={{
+              version: minVersion,
+            }}
+          />
         )}
       </View>
-
       {/* CTA Button */}
       <TouchableOpacity
         style={styles.button}
         onPress={handleUpdatePress}
         activeOpacity={0.85}
       >
-        <Text style={styles.buttonText}>Download Latest Version</Text>
+        <AppText
+          style={styles.buttonText}
+          translationKey="layout.updateRequired.downloadLatestVersion"
+        />
       </TouchableOpacity>
-
       {/* Go Back Button & Warning */}
       <View style={styles.backContainer}>
-        <Text style={styles.warningText}>
-          Note: If you continue without updating, online features will be
-          unavailable.
-        </Text>
+        <AppText
+          style={styles.warningText}
+          translationKey="layout.updateRequired.warning"
+        />
         <TouchableOpacity
           style={styles.secondaryButton}
           onPress={handleGoBack}
           activeOpacity={0.7}
         >
-          <Text style={styles.secondaryButtonText}>Go back to Novyse</Text>
+          <AppText
+            style={styles.secondaryButtonText}
+            translationKey="layout.updateRequired.goBack"
+          />
         </TouchableOpacity>
       </View>
-
       {/* Helper link */}
-      <Text style={styles.helperText}>
-        Visit{" "}
-        <Text style={styles.linkText} onPress={handleUpdatePress}>
-          novyse.com
-        </Text>{" "}
-        to get the update for your device.
-      </Text>
+      <AppText
+        style={styles.helperText}
+        translationKey="layout.updateRequired.helperText"
+        translationOptions={{
+          link: "https://novyse.com/#download",
+        }}
+      />
     </LinearGradient>
   );
 }

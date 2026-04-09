@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet, Pressable, Linking } from "react-native";
+import { View, StyleSheet, Pressable, Linking } from "react-native";
+import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 
 import useUriResolver from "@/src/hooks/file/useUriResolver";
@@ -31,10 +32,8 @@ const MessageOther = ({ fileRef, uuid, mimeType, size, name }) => {
         handleDefaultPress={handlePress}
       />
       <View style={styles.detailsContainer}>
-        <Text style={styles.name} numberOfLines={1}>
-          {name}
-        </Text>
-        <Text style={styles.fileSize}>{formatFileSize(size)}</Text>
+        <AppText style={styles.name} numberOfLines={1} text={name} />
+        <AppText style={styles.fileSize} text={formatFileSize(size)} />
       </View>
     </Pressable>
   );

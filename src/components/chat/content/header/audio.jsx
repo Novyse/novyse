@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Text, Pressable } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
 import { DateTime } from "luxon";
 import Icon from "@/src/components/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
@@ -33,10 +34,7 @@ const AudioHeader = ({}) => {
 
   return (
     // da gestire un eventuale evento per navigare allo specifico messaggio @SamueleOrazioDurante
-    <Pressable
-      onPress={() => {}}
-      style={styles.container}
-    >
+    <Pressable onPress={() => {}} style={styles.container}>
       <View style={{ flexDirection: "row" }}>
         <HoverAndPressedButton
           style={styles.iconButton}
@@ -47,23 +45,19 @@ const AudioHeader = ({}) => {
         </HoverAndPressedButton>
         <View style={styles.contentContainer}>
           <View style={styles.infoRow}>
-            <Text style={styles.titleText}>
-              <Text
+            <AppText style={styles.titleText}>
+              <AppText
                 style={styles.subtitleText}
                 selectable={false}
-                // numberOfLines={1}
-              >
-                {audioInfo.senderName} |{" "}
-                {DateTime.fromJSDate(new Date(audioInfo.timestamp)).isValid
-                  ? DateTime.fromJSDate(new Date(audioInfo.timestamp)).toFormat(
-                      "yyyy-MM-dd HH:mm",
-                    )
-                  : audioInfo.timestamp}
-              </Text>
-            </Text>
-            <Text style={styles.timeText} selectable={false} numberOfLines={1}>
-              {formatTime(currentTime)} / {formatTime(safeDuration)}
-            </Text>
+                text={`${audioInfo.senderName} | ${DateTime.fromJSDate(new Date(audioInfo.timestamp)).isValid ? DateTime.fromJSDate(new Date(audioInfo.timestamp)).toFormat("yyyy-MM-dd HH:mm") : audioInfo.timestamp}`}
+              />
+            </AppText>
+            <AppText
+              style={styles.timeText}
+              selectable={false}
+              numberOfLines={1}
+              text={`${formatTime(currentTime)} / ${formatTime(safeDuration)}`}
+            />
           </View>
         </View>
         <View style={styles.rightControls}>
@@ -73,9 +67,11 @@ const AudioHeader = ({}) => {
               handleChangePlaybackRate();
             }}
           >
-            <Text style={styles.speedText} selectable={false}>
-              {playbackRate}x
-            </Text>
+            <AppText
+              style={styles.speedText}
+              selectable={false}
+              text={`${playbackRate}x`}
+            />
           </HoverAndPressedButton>
           <HoverAndPressedButton
             style={styles.iconButton}

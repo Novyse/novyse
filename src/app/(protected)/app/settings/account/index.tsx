@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
-import { useThemeContext } from "@/context/ThemeContext";
-
 import SettingsMenuItem from "@/src/components/settings/SettingsMenuItem";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
@@ -15,21 +13,20 @@ export default function AccountRoute() {
   const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const router = useRouter();
 
-  const { theme } = useThemeContext();
   const [isDeleteAccountModalVisible, setIsDeleteAccountModalVisible] =
     useState(false);
 
   return (
     <View style={styles.container}>
-      <HeaderWithBackArrow title={"Account"} onBack={onBack} />
+      <HeaderWithBackArrow translationKey="settings.account.title" onBack={onBack} />
       <SettingsPageScrollview isMenu={true}>
         <SettingsMenuItem
           navToPage="./settings/account/modify-profile"
-          pageName="Modify Profile"
+          translationKey="settings.account.modifyProfile"
           iconName={"UserEdit01Icon"}
         />
         <SettingsMenuItem
-          pageName="Logout"
+          translationKey="settings.account.logout"
           iconName={"Logout03Icon"}
           onPress={async () => {
             await auth.logout();
@@ -37,7 +34,7 @@ export default function AccountRoute() {
           }}
         />
         <SettingsMenuItem
-          pageName="Delete Account"
+          translationKey="settings.account.deleteAccount"
           iconName={"Delete02Icon"}
           nameColor={"red"}
           iconColor={"red"}

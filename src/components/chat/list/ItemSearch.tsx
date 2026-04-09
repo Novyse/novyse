@@ -1,5 +1,7 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 
 import SmartBackground from "@/src/components/SmartBackground";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
@@ -22,6 +24,7 @@ interface ChatListItemSearchProps {
 const ChatListItemSearch = React.memo(
   ({ item, onPress }: ChatListItemSearchProps) => {
     const { theme } = useContext(ThemeContext);
+    const { t } = useTranslation();
     const styles = createStyle(theme);
 
     return (
@@ -33,27 +36,26 @@ const ChatListItemSearch = React.memo(
         >
           <Avatar uuid={item.profilePictureUUID} theme={theme} />
           <View style={styles.textContainer}>
-            <Text
+            <AppText
               style={styles.resultText}
               numberOfLines={1}
               ellipsizeMode="tail"
               selectable={false}
-            >
-              {item.name} {item?.surname ? `${item?.surname}` : null}
-            </Text>
-            <Text
+              text={`${item.name}${item?.surname ? ` ${item?.surname}` : ""}`}
+            />
+            <AppText
               style={styles.profileHandle}
               numberOfLines={1}
               ellipsizeMode="tail"
               selectable={false}
-            >
-              {item?.handle ? `@${item.handle}` : ""}
-              {item.type === "GROUP" ||
-              item.type === "FORUM" ||
-              item.type === "CHANNEL"
-                ? ` • ${item.memberCount} ${item.memberCount === 1 ? "member" : "members"}`
-                : ""}
-            </Text>
+              text={`${item?.handle ? `@${item.handle}` : ""}${
+                item.type === "GROUP" ||
+                item.type === "FORUM" ||
+                item.type === "CHANNEL"
+                  ? ` • ${t(`chat.memberCount.${item.memberCount === 1 ? "one" : "other"}`, { count: item.memberCount })}`
+                  : ""
+              }`}
+            />
           </View>
         </HoverAndPressedButton>
       </SmartBackground>

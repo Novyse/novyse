@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Text, Pressable } from "react-native";
-import { router } from "expo-router";
+import { View, StyleSheet, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
+
 import Animated, {
   useAnimatedStyle,
   withTiming,
@@ -76,9 +77,12 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
           color={connected ? "#fff" : theme.text}
           style={styles.iconButtonSmall}
         />
-        <Text style={styles.participantsText} numberOfLines={1}>
-          {participantsCount} in call
-        </Text>
+        <AppText
+          style={styles.participantsText}
+          numberOfLines={1}
+          translationKey="chat.comms.participantsInCall"
+          translationOptions={{ count: participantsCount }}
+        />
       </View>
 
       <View style={styles.headerRight}>

@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, Button } from "react-native";
-import { CameraView, CameraType, useCameraPermissions, BarcodeScanningResult } from "expo-camera";
+import {
+  CameraView,
+  CameraType,
+  useCameraPermissions,
+  BarcodeScanningResult,
+} from "expo-camera";
+
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 
 interface QRCodeReaderProps {
   onCodeScanned: (data: string) => void;
 }
 
 export default function QRCodeReader({ onCodeScanned }: QRCodeReaderProps) {
+  const { t } = useTranslation();
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState<boolean>(false);
@@ -24,7 +33,7 @@ export default function QRCodeReader({ onCodeScanned }: QRCodeReaderProps) {
   if (!permission) {
     return (
       <View style={styles.container}>
-        <Text>Richiesta permessi...</Text>
+        <AppText translationKey="common.qrReader.requestingPermissions" />
       </View>
     );
   }
@@ -32,11 +41,14 @@ export default function QRCodeReader({ onCodeScanned }: QRCodeReaderProps) {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Text style={{ textAlign: "center" }}>
-          Abbiamo bisogno del permesso per accedere alla fotocamera per
-          scansionare i codici QR.
-        </Text>
-        <Button onPress={requestPermission} title="Concedi Permesso" />
+        <AppText
+          style={{ textAlign: "center" }}
+          translationKey="common.qrReader.needPermissions"
+        />
+        <Button
+          onPress={requestPermission}
+          title={t("common.qrReader.grantPermission")}
+        />
       </View>
     );
   }
@@ -55,12 +67,15 @@ export default function QRCodeReader({ onCodeScanned }: QRCodeReaderProps) {
         {!scanned && (
           <View style={styles.overlay}>
             <View style={styles.qrFrame} />
-            <Text style={styles.instructionText}>Inquadra un codice QR</Text>
+            <AppText
+              style={styles.instructionText}
+              translationKey="common.qrReader.instruction"
+            />
           </View>
         )}
         {scanned && (
           <Button
-            title="Tocca per scansionare di nuovo"
+            title={t("common.qrReader.scanAgain")}
             onPress={() => setScanned(false)}
           />
         )}

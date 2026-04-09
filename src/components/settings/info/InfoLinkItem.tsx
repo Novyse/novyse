@@ -1,15 +1,17 @@
 import React from "react";
-import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
+import { TouchableOpacity, View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 
 interface InfoLinkItemProps {
-  label: string;
+  label?: string;
+  translationKey?: string;
   icon: string;
   onPress: () => void;
   theme: any;
 }
 
-const InfoLinkItem = ({ label, icon, onPress, theme }: InfoLinkItemProps) => {
+const InfoLinkItem = ({ label, translationKey, icon, onPress, theme }: InfoLinkItemProps) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.leftContent}>
@@ -25,7 +27,7 @@ const InfoLinkItem = ({ label, icon, onPress, theme }: InfoLinkItemProps) => {
         >
           <Icon name={icon} color={theme.text} size={18} />
         </View>
-        <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
+        {translationKey ? <AppText style={[styles.label, { color: theme.text }]} translationKey={translationKey} /> : <AppText style={[styles.label, { color: theme.text }]} text={label} />}
       </View>
       <Icon name="ArrowRight01Icon" color={theme.textSecondary} size={18} />
     </TouchableOpacity>
