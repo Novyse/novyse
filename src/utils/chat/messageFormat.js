@@ -123,41 +123,62 @@ const formatActivity = (memberActivityData, chatType) => {
 
   if (activeActivities.length === 0) return "";
 
-  const getActionText = (action, name = "") => {
-    const prefix = name ? `${name} ` : "";
+  // Group by action to find majority
+  const actionsMap = {};
+  const actionOrder = [];
+  activeActivities.forEach((a) => {
+    if (!actionsMap[a.action]) {
+      actionsMap[a.action] = [];
+      actionOrder.push(a.action);
+    }
+    actionsMap[a.action].push(a);
+  });
+
+  // Find the action with the most participants (majority)
+  let majorityAction = actionOrder[0];
+  let maxCount = actionsMap[majorityAction].length;
+
+  actionOrder.forEach((action) => {
+    const count = actionsMap[action].length;
+    if (count > maxCount) {
+      maxCount = count;
+      majorityAction = action;
+    }
+  });
+
+  const participants = actionsMap[majorityAction];
+  const count = participants.length;
+  const names = participants.map((p) => {
+    const user = getUser(p.userUUID);
+    return user ? user.name : "User";
+  });
+
+  const getActionVerb = (action, isPlural) => {
+    const verb = isPlural ? "are" : "is";
     switch (action) {
       case "TYPING":
-        return `${prefix}is typing`;
+        return `${verb} typing`;
       case "RECORDING_VOICE":
-        return `${prefix}is recording a voice message`;
+        return `${verb} recording a voice message`;
       case "RECORDING_VIDEO":
-        return `${prefix}is recording a video message`;
+        return `${verb} recording a video message`;
       case "UPLOADING_FILE":
-        return `${prefix}is uploading`;
+        return `${verb} uploading`;
       default:
-        return "";
+        return `${verb} active`;
     }
   };
 
-  if (chatType === "DM") {
-    const { action } = activeActivities[0];
-    const text = getActionText(action);
-    return text ? text + "..." : "";
+  let formattedActivity = "";
+  if (count === 1) {
+    formattedActivity = `${names[0]} ${getActionVerb(majorityAction, false)}`;
+  } else if (count === 2) {
+    formattedActivity = `${names[0]} and ${names[1]} ${getActionVerb(majorityAction, true)}`;
+  } else {
+    formattedActivity = `${names[0]}, ${names[1]} and others ${count - 2} ${getActionVerb(majorityAction, true)}`;
   }
 
-  // GROUP
-  const activityTexts = activeActivities
-    .map((a) => {
-      const user = getUser(a.userUUID);
-      const name = user ? user.name : "User";
-      return getActionText(a.action, name);
-    })
-    .filter((t) => t !== "");
-
-  if (activityTexts.length === 0) return "";
-  if (activityTexts.length === 1) return activityTexts[0] + "...";
-
-  return activityTexts.join(", ") + "...";
+  return formattedActivity + "...";
 };
 
 export default { format, getSystemMessageText, formatActivity };
