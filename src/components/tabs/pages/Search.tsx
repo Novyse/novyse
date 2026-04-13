@@ -268,6 +268,10 @@ const createStyle = (theme: any, insets: any) => {
       fontSize: 14,
       marginTop: 2,
     },
-    flatListContent: { padding: 10, gap: 10 },
+    flatListContent: {
+      padding: 10,
+      gap: 10,
+      paddingBottom: 10 + insets.bottom,
+    },
   });
 };

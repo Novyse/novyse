@@ -21,7 +21,14 @@ const ScreenLayout = ({ children, style = {}, fullscreen = false }: ScreenLayout
   return (
     <SmartBackground
       colors={theme.backgroundMainGradient}
-      style={[{ flex: 1, paddingTop: fullscreen ? null : insets.top }, style]}
+      style={[
+        {
+          flex: 1,
+          paddingTop: fullscreen ? null : insets.top,
+          paddingBottom: fullscreen ? null : insets.bottom,
+        },
+        style,
+      ]}
     >
       {children}
     </SmartBackground>
