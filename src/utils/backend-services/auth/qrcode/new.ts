@@ -6,7 +6,7 @@ import { authApi } from "../../config";
  */
 export async function newQRCodeAuth() {
   try {
-    const response = await authApi.post("/auth/signin/qrcode/new");
+    const response = await authApi.post("/signin/qrcode/new");
     return { success: true, data: response.data };
   } catch (err: any) {
     return {

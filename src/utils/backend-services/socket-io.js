@@ -9,21 +9,6 @@ import eventSender from "./lib/event-sender.js";
 import { BRANCH, SOCKET_BASE_URL } from "../../../app.config";
 import { Platform } from "react-native";
 
-let path;
-
-switch (BRANCH) {
-  case "development":
-    path = "/development";
-    break;
-  case "preview":
-    path = "/preview";
-    break;
-  default:
-    path = "/production";
-}
-
-path += "/socket.io";
-
 let socket = null;
 let isConnecting = false;
 
@@ -52,7 +37,7 @@ const SocketIO = {
       const accessToken = await getAuthToken();
 
       socket = io(SOCKET_BASE_URL, {
-        path: path,
+        path: "/socket.io",
         transports: transportsMethods,
         autoConnect: true,
         reconnectionAttempts: -1,

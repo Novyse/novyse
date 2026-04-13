@@ -17,7 +17,7 @@ export const fetchToken = async (): Promise<string | null> => {
       }
     }
 
-    const response = await authApi.post("/auth/token", null, {
+    const response = await authApi.post("/token", null, {
       headers,
       withCredentials: true,
     });

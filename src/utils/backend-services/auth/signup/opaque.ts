@@ -1,7 +1,7 @@
 import * as opaque from "react-native-opaque";
 import { authApi, OPAQUE_SERVER_IDENTITY } from "../../config";
 
-const API_PATH = "/auth/signup/opaque";
+const API_PATH = "/signup/opaque";
 
 export async function signUpOpaque(
   username: string,

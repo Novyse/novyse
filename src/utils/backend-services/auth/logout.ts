@@ -2,7 +2,7 @@ import { authApi } from "../config";
 
 export const logout = async (): Promise<boolean> => {
   try {
-    const response = await authApi.post("/auth/logout", null, {
+    const response = await authApi.post("/logout", null, {
       withCredentials: true,
     });
 

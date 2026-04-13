@@ -4,12 +4,10 @@ import * as SecureStore from "expo-secure-store";
 import { getOs, getPlatform } from "../device/type.js";
 
 import { getAuthToken } from "./auth/token-manager";
-import { API_LINK } from "./config";
-
-import { BRANCH, APP_VERSION } from "../../../app.config";
+import { BRANCH, APP_VERSION, API_BASE_URL } from "../../../app.config";
 
 const api = axios.create({
-  baseURL: API_LINK,
+  baseURL: API_BASE_URL,
   withCredentials: false,
   timeout: 10000,
   headers: {
@@ -137,7 +135,7 @@ const gateway = {
      * @returns {boolean} true if the account was successfully deleted, false otherwise
      */
     async delete() {
-      const response = await api.delete(`/auth/user`);
+      const response = await api.delete(`/user`);
       const success = response.data.success;
       return success;
     },
@@ -754,21 +752,21 @@ const gateway = {
 
   notification: {
     /**
-     * Set the Expo push token for the current user.
+     * Set the FCM push token for the current user.
      * @param {String} token
      * @returns {Promise<boolean>}
      */
-    async setExpoToken(token) {
+    async setFCMToken(token) {
       try {
         if (!token) {
-          throw new Error("token is required to set expo token");
+          throw new Error("token is required to set FCM token");
         }
-        const response = await api.patch("/notification/expo-push-token", {
-          expoPushToken: token,
+        const response = await api.patch("/notification/push-token", {
+          pushToken: token,
         });
         return response.data.success;
       } catch (error) {
-        console.error("Error in notification.setExpoToken:", error);
+        console.error("Error in notification.setFCMToken:", error);
         throw error;
       }
     },

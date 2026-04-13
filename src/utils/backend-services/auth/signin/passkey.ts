@@ -2,7 +2,7 @@ import { authApi } from "../../config";
 import { setCurrentToken } from "../token-manager";
 import { performPasskeyAuthentication } from "../lib/passkey";
 
-const API_PATH = "/auth/signin/passkey";
+const API_PATH = "/signin/passkey";
 
 export async function signInPasskey(turnstileToken: string) {
   try {

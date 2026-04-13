@@ -2,7 +2,7 @@ import * as opaqueLib from "react-native-opaque";
 import { authApi, OPAQUE_SERVER_IDENTITY } from "../../config";
 import { getAuthToken } from "../token-manager";
 
-const API_PATH = `/auth/settings/opaque`;
+const API_PATH = `/settings/opaque`;
 
 export const opaque = {
   /**

@@ -2,7 +2,7 @@ import { authApi } from "../../config";
 import { setCurrentToken } from "../token-manager";
 import { performPasskeyRegistration } from "../lib/passkey";
 
-const API_PATH = "/auth/signup/passkey";
+const API_PATH = "/signup/passkey";
 
 export async function signUpPasskey(
   handle: string,

@@ -1,5 +1,4 @@
 import { Platform } from "react-native";
-
 /**
  * Handle passkey registration (creation)
  */
@@ -8,8 +7,8 @@ export async function performPasskeyRegistration(options: any) {
     const { startRegistration } = require("@simplewebauthn/browser");
     return await startRegistration({ optionsJSON: options });
   } else {
-    const Passkey = require("react-native-passkey").default;
-    return await Passkey.register(options);
+    const { Passkey } = require("react-native-passkey");
+    return await Passkey.create(options);
   }
 }
 
@@ -21,7 +20,7 @@ export async function performPasskeyAuthentication(options: any) {
     const { startAuthentication } = require("@simplewebauthn/browser");
     return await startAuthentication({ optionsJSON: options });
   } else {
-    const Passkey = require("react-native-passkey").default;
-    return await Passkey.auth(options);
+    const { Passkey } = require("react-native-passkey");
+    return await Passkey.get(options);
   }
 }

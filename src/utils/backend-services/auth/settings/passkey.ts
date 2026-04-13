@@ -2,7 +2,7 @@ import { authApi } from "../../config";
 import { getAuthToken } from "../token-manager";
 import { performPasskeyRegistration } from "../lib/passkey";
 
-const API_PATH = `/auth/settings/passkey`;
+const API_PATH = `/settings/passkey`;
 
 export const passkey = {
   /**

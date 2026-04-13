@@ -7,7 +7,7 @@ import { authApi } from "../../config";
  */
 export async function getQRCodeStatus(token: string) {
   try {
-    const response = await authApi.get(`/auth/signin/qrcode/status/${token}`);
+    const response = await authApi.get(`/signin/qrcode/status/${token}`);
     return { success: true, data: response.data };
   } catch (err: any) {
     return {

@@ -8,7 +8,7 @@ import { authApi } from "../../config";
 export async function authenticateQRCode(token: string, userJwt: string) {
   try {
     const response = await authApi.post(
-      `/auth/signin/qrcode/authenticate/${token}`,
+      `/signin/qrcode/authenticate/${token}`,
       {},
       {
         headers: {
