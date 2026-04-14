@@ -105,7 +105,12 @@ export const useSignup = () => {
     !!captchaToken &&
     !isLoading;
 
-  const isPasskeyValid = validateStep(0) && validateStep(1) && privacyAccepted && ageConfirmed && !!captchaToken;
+  const isPasskeyValid =
+    validateStep(0) &&
+    validateStep(1) &&
+    privacyAccepted &&
+    ageConfirmed &&
+    !!captchaToken;
 
   const handleChange = (field: string, value: string) => {
     const v = field === "handle" ? value.toLowerCase() : value;
@@ -146,13 +151,21 @@ export const useSignup = () => {
     setIsLoading(true);
     try {
       const { password, name, handle } = form;
-        const ok = await auth.signup.opaque(handle, password, name, {
+      const ok = await auth.signup.opaque(
+        handle,
+        password,
+        name,
+        {
           privacy: privacyAccepted,
           tos: privacyAccepted,
           isOver16: ageConfirmed,
-        }, captchaToken!);
+        },
+        captchaToken!,
+      );
       if (ok.success) {
-        router.navigate(`/(welcome)/login?signedup=true&username=${handle}&type=opaque`);
+        router.navigate(
+          `/(welcome)/login?signedup=true&username=${handle}&type=opaque`,
+        );
       } else {
         setError(ok.error || "Signup failed. Please try again.");
       }
@@ -168,9 +181,20 @@ export const useSignup = () => {
     setIsLoading(true);
     try {
       const { name, handle } = form;
-      const ok = await auth.signup.passkey(handle, name, captchaToken!);
+      const ok = await auth.signup.passkey(
+        handle,
+        name,
+        {
+          privacy: privacyAccepted,
+          tos: privacyAccepted,
+          isOver16: ageConfirmed,
+        },
+        captchaToken!,
+      );
       if (ok?.success) {
-        router.navigate(`/(welcome)/login?signedup=true&username=${handle}&type=passkey`);
+        router.navigate(
+          `/(welcome)/login?signedup=true&username=${handle}&type=passkey`,
+        );
       } else {
         setError(ok?.error || "Passkey signup failed.");
       }

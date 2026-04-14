@@ -6,24 +6,38 @@ const BUILD_NUMBER = "1";
 const BUILD_DATE = "2026/01/28 12:13:00";
 const EXPO_OWNER = "novyse";
 const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
-const API_BASE_URL = "https://api.novyse.com";
-const SOCKET_BASE_URL = "wss://io.novyse.com";
 const BRANCH = "development" as "development" | "preview" | "production";
+
+const getDomain = (sub: string) => {
+  const suffix =
+    BRANCH === "production" ? "" : BRANCH === "preview" ? ".preview" : ".dev";
+  return `${sub}${suffix}.novyse.com`;
+};
+
+const API_BASE = getDomain("api");
+const AUTH_BASE = getDomain("auth");
+const API_BASE_URL = `https://${API_BASE}`;
+const AUTH_BASE_URL = `https://${AUTH_BASE}`;
+
+const SOCKET_BASE_URL = `wss://${getDomain("io")}`;
+
 const APP_URL =
   BRANCH === "development"
     ? "http://localhost:8081"
     : BRANCH === "preview"
       ? "https://preview.novyse.com"
       : "https://web.novyse.com";
+
 const TINY_APP_URL = "https://vyse.me";
 const LANDING_PAGE_URL = "https://www.novyse.com";
-const PRIVACY_POLICY_URL = LANDING_PAGE_URL + "/legal/privacy-policy";
-const TOS_URL = LANDING_PAGE_URL + "/legal/terms-of-service";
+const PRIVACY_POLICY_URL = `${LANDING_PAGE_URL}/legal/privacy-policy`;
+const TOS_URL = `${LANDING_PAGE_URL}/legal/terms-of-service`;
 const CLOUDFLARE_TURNSTILE_PUBLIC = "0x4AAAAAACvBX17HadrEqUCS";
 //.ENV
 
 export {
   BRANCH,
+  AUTH_BASE_URL,
   API_BASE_URL,
   SOCKET_BASE_URL,
   APP_VERSION,
@@ -61,9 +75,11 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: `com.${APP_SLUG}${devSuffix}`,
+      associatedDomains: [`webcredentials:${AUTH_BASE}`],
       infoPlist: {
         UIBackgroundModes: ["audio"],
       },
+      googleServicesFile: "./GoogleService-Info.plist",
     },
     android: {
       adaptiveIcon: {
@@ -77,6 +93,15 @@ export default {
           action: "VIEW",
           data: {
             scheme: `${APP_SLUG}${devSuffix}`,
+          },
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: {
+            scheme: "https",
+            host: AUTH_BASE,
           },
           category: ["BROWSABLE", "DEFAULT"],
         },
@@ -105,13 +130,7 @@ export default {
       title: APP_NAME,
     },
     plugins: [
-      [
-        "expo-notifications",
-        {
-          icon: "./assets/images/notification-icon.png",
-          color: "#ffffff",
-        },
-      ],
+      "@react-native-firebase/app",
       "expo-router",
       "expo-asset",
       "expo-web-browser",

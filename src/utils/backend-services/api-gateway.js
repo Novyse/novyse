@@ -1,10 +1,10 @@
 import axios from "axios";
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { getOs, getPlatform } from "../device/type.js";
+import { getOs, getPlatform } from "@/src/utils/device/type";
 
-import { getAuthToken } from "./auth/token-manager";
-import { BRANCH, APP_VERSION, API_BASE_URL } from "../../../app.config";
+import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
+import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
 
 const api = axios.create({
   baseURL: API_BASE_URL,

@@ -1,6 +1,7 @@
 import * as opaque from "react-native-opaque";
-import { authApi, OPAQUE_SERVER_IDENTITY } from "../../config";
-import { setCurrentToken } from "../token-manager";
+import { authApi, OPAQUE_SERVER_IDENTITY } from "@/src/utils/backend-services/config";
+import InternalPlatform from "@/src/utils/device/type";
+import { setCurrentToken } from "@/src/utils/backend-services/auth/token-manager";
 
 const API_PATH = "/signin/opaque";
 
@@ -61,8 +62,12 @@ export async function signInOpaque(
       },
       {
         withCredentials: true,
+        headers: {
+          "x-platform": InternalPlatform,
+        },
       },
     );
+
 
     const completeData = completeRes.data;
 

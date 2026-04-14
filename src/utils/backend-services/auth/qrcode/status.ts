@@ -1,4 +1,5 @@
-import { authApi } from "../../config";
+import { authApi } from "@/src/utils/backend-services/config";
+import InternalPlatform from "@/src/utils/device/type";
 
 /**
  * Polls the status of a QR Code authentication session.
@@ -7,7 +8,12 @@ import { authApi } from "../../config";
  */
 export async function getQRCodeStatus(token: string) {
   try {
-    const response = await authApi.get(`/signin/qrcode/status/${token}`);
+    const response = await authApi.get(`/signin/qrcode/status/${token}`, {
+      headers: {
+        "x-platform": InternalPlatform,
+      },
+    });
+
     return { success: true, data: response.data };
   } catch (err: any) {
     return {
