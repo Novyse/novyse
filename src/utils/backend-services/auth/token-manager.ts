@@ -1,3 +1,4 @@
+import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 import { fetchToken } from "./token";
 
 // Module-level variables to store the token for non-React access
@@ -45,6 +46,10 @@ export const getAuthToken = async (): Promise<string | null> => {
       } else {
         currentToken = null;
         currentTokenExpiry = 0;
+
+        // If fetchToken returns null, it means the session is probably invalid
+        // or there's a serious network error. Trigger logout.
+        EventEmitter.getEmitter().emit("invalidSession");
       }
 
       if (onTokenUpdate) {
