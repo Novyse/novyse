@@ -203,18 +203,17 @@ const ChatContent = () => {
 
   const handleReply = useCallback(
     (msg) => {
-      if (replyingTo.length >= 3) {
-        setReplyingTo((prev) => [...prev.slice(1), msg]);
-        return;
-      }
       setReplyingTo((prev) => {
         if (prev.find((r) => r.id === msg.id)) return prev;
+        if (prev.length >= 3) {
+          return [...prev.slice(1), msg];
+        }
         return [...prev, msg];
       });
-      if (editingMessage) setNewMessageText("");
+      setNewMessageText("");
       setEditingMessage(null); // clear edit when replying
     },
-    [replyingTo],
+    [setReplyingTo, setNewMessageText, setEditingMessage],
   );
 
   const handleEdit = useCallback(
@@ -462,7 +461,10 @@ const ChatContent = () => {
           onEmojiSelected={handleEmojiSelected}
         >
           <View style={styles.emojiPickerContainer}>
-            <AppText style={styles.placeholderText} text="Emoji Picker Content" />
+            <AppText
+              style={styles.placeholderText}
+              text="Emoji Picker Content"
+            />
           </View>
         </ChatIconsPickerModal>
       </GestureHandlerRootView>

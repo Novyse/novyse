@@ -575,5 +575,7 @@ export default React.memo(
     prev.isHighlighted === next.isHighlighted &&
     prev.repliedCount === next.repliedCount &&
     prev.isPinned === next.isPinned &&
-    prev.isEdited === next.isEdited,
+    prev.isEdited === next.isEdited &&
+    prev.onReply === next.onReply &&
+    prev.onReaction === next.onReaction,
 );
