@@ -15,11 +15,11 @@ const getDomain = (sub: string) => {
 };
 
 const API_BASE = getDomain("api");
+const SOCKET_BASE_URL = `wss://${getDomain("io")}`;
+const WEB_BASE = getDomain("web");
 const AUTH_BASE = getDomain("auth");
 const API_BASE_URL = `https://${API_BASE}`;
 const AUTH_BASE_URL = `https://${AUTH_BASE}`;
-
-const SOCKET_BASE_URL = `wss://${getDomain("io")}`;
 
 const APP_URL =
   BRANCH === "development"
@@ -75,7 +75,11 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: `com.${APP_SLUG}${devSuffix}`,
-      associatedDomains: [`webcredentials:${AUTH_BASE}`],
+      associatedDomains: [
+        `webcredentials:${AUTH_BASE}`,
+        `applinks:${AUTH_BASE}`,
+        `applinks:${WEB_BASE}`,
+      ],
       infoPlist: {
         UIBackgroundModes: ["audio"],
       },
@@ -107,10 +111,10 @@ export default {
         },
         {
           action: "VIEW",
+          autoVerify: true,
           data: {
             scheme: "https",
-            host: "web.novyse.com",
-            pathPrefix: "/",
+            host: WEB_BASE,
           },
           category: ["BROWSABLE", "DEFAULT"],
         },
