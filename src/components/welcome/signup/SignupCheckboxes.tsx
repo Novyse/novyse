@@ -22,6 +22,7 @@ export default function SignupCheckboxes({
   loginTheme = "default",
 }: Props) {
   const colors = LoginColors[loginTheme as LoginTheme];
+  const styles = createStyles(colors);
 
   const openUrl = (url: string) => {
     if (Platform.OS === "web") window.open(url, "_blank");
@@ -59,20 +60,18 @@ export default function SignupCheckboxes({
       <View style={styles.row}>
         <Checkbox checked={privacyAccepted} onPress={onTogglePrivacyTos} />
         <AppText style={styles.text}>
-          <AppText translationKey="auth.signupStep.iAccept" />
-          <TextLink
+          <AppText translationKey="auth.signupStep.iAccept" />{" "}
+          <AppText
+            translationKey="auth.signupStep.privacyPolicy"
+            style={{ color: colors.link }}
             onPress={() => openUrl(PRIVACY_POLICY_URL)}
-            style={{ color: colors.link, fontSize: 14 }}
-          >
-            <AppText translationKey="auth.signupStep.privacyPolicy" />
-          </TextLink>
-          <AppText translationKey="auth.signupStep.and" />
-          <TextLink
+          />{" "}
+          <AppText translationKey="auth.signupStep.and" />{" "}
+          <AppText
+            translationKey="auth.signupStep.termsOfService"
+            style={{ color: colors.link }}
             onPress={() => openUrl(TOS_URL)}
-            style={{ color: colors.link, fontSize: 14 }}
-          >
-            <AppText translationKey="auth.signupStep.termsOfService" />
-          </TextLink>
+          />
         </AppText>
       </View>
 
@@ -84,19 +83,25 @@ export default function SignupCheckboxes({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { marginBottom: 16, maxWidth: 300 },
-  row: { flexDirection: "row", alignItems: "flex-start" },
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    borderWidth: 2,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
-    marginTop: 1,
-  },
-  tick: { fontWeight: "bold", fontSize: 12 },
-  text: { fontSize: 14, lineHeight: 20, flex: 1 },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      marginBottom: 16,
+      maxWidth: 300,
+      width: "100%",
+      alignSelf: "center",
+    },
+    row: { flexDirection: "row", alignItems: "flex-start", width: "100%" },
+    checkbox: {
+      width: 18,
+      height: 18,
+      borderRadius: 4,
+      borderWidth: 2,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 8,
+      marginTop: 1,
+    },
+    tick: { fontWeight: "bold", fontSize: 12 },
+    text: { fontSize: 14, lineHeight: 20, flex: 1, color: colors.subtitle },
+  });
