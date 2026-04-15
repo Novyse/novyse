@@ -36,6 +36,7 @@ const useCommsAction = (chatUUID, sub) => {
     setIsVideoEnabled,
     error,
     setError,
+    setStreams,
   } = useCommsContext();
 
   const { t } = useTranslation();
@@ -260,6 +261,15 @@ const useCommsAction = (chatUUID, sub) => {
         await videoTrack.restartTrack({
           facingMode,
         });
+
+        // Refresh the local stream in context to trigger UI update
+        if (room.localParticipant) {
+          const newStream = new MediaStream([videoTrack.mediaStreamTrack]);
+          setStreams((prev) => ({
+            ...prev,
+            [room.localParticipant.identity]: newStream,
+          }));
+        }
       } catch (e) {
         console.error("Failed switching camera facing mode", e);
         setError(getDeviceErrorMessage(t));

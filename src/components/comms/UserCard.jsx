@@ -33,6 +33,7 @@ const UserCard = memo(
     height,
     margin,
     isSpeaking,
+    facingMode,
   }) => {
     const videoRef = useRef(null);
     useEffect(() => {
@@ -124,6 +125,7 @@ const UserCard = memo(
             profilePictureUUID={profilePictureUUID}
             width={width}
             height={height}
+            facingMode={facingMode}
           />
           <View style={speakingOverlayStyle} />
         </View>
@@ -142,6 +144,7 @@ const VideoContent = memo(
     profilePictureUUID,
     width,
     height,
+    facingMode,
   }) => {
     const streamActive =
       stream && stream.getVideoTracks().some((track) => track.enabled);
@@ -160,7 +163,7 @@ const VideoContent = memo(
         {streamActive ? (
           platform === "mobile" ? (
             <RTCView
-              key={streamUUID}
+              key={`${streamUUID}_${isLocal ? facingMode : ""}`}
               streamURL={stream.toURL()}
               style={[styles.videoStream, { objectFit: "contain" }]}
               muted={isLocal}

@@ -40,8 +40,12 @@ const CommsMembersLayout = ({ participants = [], room }) => {
     return map;
   }, [isSpeakingMap, layoutItems]);
 
-  const { pinnedStreamUUID, fullscreenStreamUUID, stopScreenShare } =
-    useCommsAction();
+  const {
+    pinnedStreamUUID,
+    fullscreenStreamUUID,
+    stopScreenShare,
+    facingMode,
+  } = useCommsAction();
 
   if (fullscreenStreamUUID) {
     const item = layoutItems.find((i) => i.streamUUID === fullscreenStreamUUID);
@@ -63,6 +67,7 @@ const CommsMembersLayout = ({ participants = [], room }) => {
             stopScreenShare={stopScreenShare}
             margin={0}
             isSpeaking={speakingStates[item.participant.identity]}
+            facingMode={facingMode}
           />
         </View>
       );
@@ -100,6 +105,7 @@ const CommsMembersLayout = ({ participants = [], room }) => {
         height={rectHeight}
         margin={margin}
         isSpeaking={speakingStates[streamUUID]}
+        facingMode={facingMode}
       />
     );
   };
