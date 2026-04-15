@@ -182,7 +182,7 @@ const createStyle = (theme) =>
       width: "100%",
       height: "100%",
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent: "space-evenly",
       alignItems: "center",
       alignSelf: "center",
       padding: 5,
@@ -200,11 +200,9 @@ const createStyle = (theme) =>
     },
     microphoneButtonContainer: {
       position: "relative",
-      flex: 1,
     },
     cameraButtonContainer: {
       position: "relative",
-      flex: 1,
     },
     iconButton: {
       position: "absolute",
