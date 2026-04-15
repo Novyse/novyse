@@ -31,7 +31,18 @@
     "unnamedFile": "File senza nome",
     "block": "Blocca",
     "leave": "Abbandona",
-    "troubleshooting": "Risoluzione dei problemi"
+    "troubleshooting": "Risoluzione dei problemi",
+    "validation": {
+      "invalidEmail": "Email non valida",
+      "passwordTooShort": "La password deve contenere almeno 8 caratteri",
+      "required": "Campo obbligatorio",
+      "invalidName": "Il nome può contenere solo lettere e spazi",
+      "handleTooShort": "L'handle deve contenere almeno 3 caratteri",
+      "handleTooLong": "L'handle non può superare i 15 caratteri",
+      "invalidHandle": "L'handle può contenere solo lettere minuscole, numeri e trattini bassi, e deve iniziare e finire con una lettera o un numero",
+      "handleConsecutiveUnderscores": "Non sono ammessi trattini bassi consecutivi",
+      "invalidInput": "Input non valido"
+    }
   },
   "chat": {
     "typeMessage": "Scrivi un messaggio...",
@@ -489,8 +500,8 @@
       "signupBtn": "Registrati"
     },
     "signupStep": {
-      "displayName": "Nome Visualizzato",
-      "displayNamePlaceholder": "Nome Visualizzato",
+      "displayName": "Nome",
+      "displayNamePlaceholder": "Inserisci il tuo nome",
       "nameLettersOnly": "Nome: solo lettere e spazi",
       "username": "Username",
       "usernamePlaceholder": "Username",
@@ -501,8 +512,7 @@
       "passwordMin16": "Password (min 16)",
       "confirmPassword": "Conferma Password",
       "confirmPasswordPlaceholder": "Conferma Password",
-      "startsLetterNumber": "Inizia con lettera o numero",
-      "endsLetterNumber": "Finisce con lettera o numero",
+      "passwordsMismatch": "Le password non coincidono",
       "onlyLettersNumbers": "Solo lettere, numeri o trattini bassi",
       "noConsecutiveUnderscores": "Nessun trattino basso consecutivo",
       "iAccept": "Accetto ",
@@ -510,6 +520,7 @@
       "and": " e ",
       "termsOfService": "i termini di servizio",
       "iAm16": "Ho almeno 16 anni.",
+      "invalidHandle": "Handle non valido. Segui i requisiti indicati.",
       "signupSuccessPasskey": "Registrazione completata! Accedi usando la tua passkey.",
       "signupSuccessPassword": "Registrazione completata! Accedi usando le tue credenziali."
     },

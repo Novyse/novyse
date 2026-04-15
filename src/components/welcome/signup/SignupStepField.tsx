@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import AppText from "@/src/components/AppText";
@@ -6,25 +7,7 @@ import { validate } from "@/src/utils/welcome/validator";
 import Icon from "@/src/components/Icon";
 import TextLink from "@/src/components/TextLink";
 import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
-
-const HANDLE_REQUIREMENTS = [
-  {
-    labelKey: "auth.signupStep.startsLetterNumber",
-    check: (h: string) => /^[a-z0-9]/.test(h),
-  },
-  {
-    labelKey: "auth.signupStep.endsLetterNumber",
-    check: (h: string) => /[a-z0-9]$/.test(h),
-  },
-  {
-    labelKey: "auth.signupStep.onlyLettersNumbers",
-    check: (h: string) => /^[a-z0-9_]+$/.test(h),
-  },
-  {
-    labelKey: "auth.signupStep.noConsecutiveUnderscores",
-    check: (h: string) => !/__/.test(h),
-  },
-];
+import StatusMessage from "@/src/components/StatusMessage";
 
 const SIGNUP_MODE_OPTIONS: ToggleOption<"password" | "passkey">[] = [
   { value: "password", label: "Password" },
@@ -71,47 +54,27 @@ export default function SignupStepField({
   const colors = (LoginColors as any)[loginTheme];
   const styles = createStyles(colors);
 
-  const RequirementRow = ({
-    labelKey,
-    met,
-  }: {
-    labelKey: string;
-    met?: boolean;
-  }) => (
-    <View style={styles.reqItem}>
-      <AppText
-        style={[styles.reqIcon, met ? styles.reqGreen : styles.reqRed]}
-        selectable={false}
-      >
-        {met ? (
-          <Icon name="Tick01Icon" color={colors.signupReqGreen} size={16} />
-        ) : (
-          <Icon name="Cancel01Icon" color={colors.signupReqRed} size={16} />
-        )}
-      </AppText>
-      <AppText
-        style={[styles.reqText, { color: colors.subtitle }]}
-        translationKey={labelKey}
-      />
-    </View>
-  );
-
-  const inputBorder = (valid: boolean | null, value: string) => {
+  const inputBorder = (
+    valid: { success: boolean; error?: string } | null,
+    value: string,
+  ) => {
     if (!value) return {};
-    return valid
+    return valid?.success
       ? {
           borderColor: colors.successBorder,
           backgroundColor: colors.successBackground,
         }
-      : {
-          borderColor: colors.errorBorder,
-          backgroundColor: colors.errorBackground,
-        };
+      : valid?.success === false
+        ? {
+            borderColor: colors.errorBorder,
+            backgroundColor: colors.errorBackground,
+          }
+        : {};
   };
 
   if (currentStep === 0) {
     const field = "name";
-    const isValid = validate.user.name(form[field as keyof typeof form]);
+    const validation = validate.user.name(form[field as keyof typeof form]);
     return (
       <View style={styles.group}>
         <View style={styles.inputGroup}>
@@ -126,7 +89,7 @@ export default function SignupStepField({
                 borderColor: colors.borderTextInput,
                 backgroundColor: colors.backgroundTextInput,
               },
-              inputBorder(isValid, form[field as keyof typeof form]),
+              inputBorder(validation, form[field as keyof typeof form]),
             ]}
           >
             <TextInput
@@ -138,19 +101,19 @@ export default function SignupStepField({
               autoCapitalize="sentences"
             />
           </View>
-        </View>
-        <View style={styles.requirements}>
-          <RequirementRow
-            labelKey="auth.signupStep.nameLettersOnly"
-            met={validate.user.name(form.name)}
-          />
+          {!validation.success && form.name && (
+            <StatusMessage
+              type="error"
+              content={[validation.error]}
+              visible={true}
+            />
+          )}
         </View>
       </View>
     );
   }
 
   if (currentStep === 1) {
-    const showAvailability = form.handle.trim() && validate.handle(form.handle);
     return (
       <View style={styles.group}>
         <View style={styles.inputGroup}>
@@ -183,68 +146,44 @@ export default function SignupStepField({
               value={form.handle}
               placeholder={t("auth.signupStep.usernamePlaceholder")}
               placeholderTextColor={colors.placeholderTextInput}
-              onChangeText={(v) => onChangeField("handle", v)}
+              onChangeText={(v) => onChangeField("handle", v.toLowerCase())}
               autoCapitalize="none"
             />
-            {isLoading && (
+            {isLoading ? (
               <ActivityIndicator
                 size="small"
                 color={colors.iconLoading}
                 style={{ marginRight: 10 }}
               />
-            )}
+            ) : handleAvailable === true && !handleError ? (
+              <Icon
+                name="Tick01Icon"
+                color={colors.signupReqGreen}
+                size={18}
+                style={{ marginRight: 10 }}
+              />
+            ) : handleAvailable === false && !handleError ? (
+              <Icon
+                name="Cancel01Icon"
+                color={colors.signupReqRed}
+                size={18}
+                style={{ marginRight: 10 }}
+              />
+            ) : null}
           </View>
           <View style={styles.requirements}>
-            {HANDLE_REQUIREMENTS.map((r) => (
-              <RequirementRow
-                key={r.labelKey}
-                labelKey={r.labelKey}
-                met={r.check(form.handle)}
+            {handleError && form.handle && (
+              <StatusMessage type="error" content={[handleError]} />
+            )}
+            {handleAvailable === true && !handleError && form.handle && (
+              <AppText
+                style={{
+                  color: colors.signupReqGreen,
+                  fontSize: 13,
+                  marginTop: 4,
+                }}
+                translationKey="common.auth.signupStep.available"
               />
-            ))}
-            {!!showAvailability && (
-              <View style={styles.reqItem}>
-                <AppText
-                  style={[
-                    styles.reqIcon,
-                    isLoading
-                      ? { color: colors.signupReqGray }
-                      : handleAvailable
-                        ? styles.reqGreen
-                        : styles.reqRed,
-                  ]}
-                >
-                  {isLoading ? (
-                    <Icon
-                      name="MoreHorizontalIcon"
-                      color={colors.signupReqGray}
-                      size={16}
-                    />
-                  ) : handleAvailable ? (
-                    <Icon
-                      name="Tick01Icon"
-                      color={colors.signupReqGreen}
-                      size={16}
-                    />
-                  ) : (
-                    <Icon
-                      name="Cancel01Icon"
-                      color={colors.signupReqRed}
-                      size={16}
-                    />
-                  )}
-                </AppText>
-                <AppText
-                  style={[styles.reqText, { color: colors.subtitle }]}
-                  translationKey={
-                    isLoading
-                      ? "auth.signupStep.checking"
-                      : handleAvailable
-                        ? "auth.signupStep.available"
-                        : "auth.signupStep.alreadyInUse"
-                  }
-                />
-              </View>
             )}
           </View>
         </View>
@@ -253,11 +192,19 @@ export default function SignupStepField({
   }
 
   if (currentStep === 2) {
-    const valid = validate.user.password(form.password);
     const passwordsMatch =
       form.confirmPassword.length > 0 && form.password === form.confirmPassword;
     const confirmMismatch =
       form.confirmPassword.length > 0 && form.password !== form.confirmPassword;
+
+    const passwordErrors = [];
+    const passwordValidation = validate.user.password(form.password);
+    if (!passwordValidation.success && form.password) {
+      passwordErrors.push(passwordValidation.error);
+    }
+    if (confirmMismatch) {
+      passwordErrors.push(t("common.auth.signupStep.passwordsMismatch"));
+    }
 
     return (
       <View style={styles.group}>
@@ -274,7 +221,7 @@ export default function SignupStepField({
             <View style={styles.inputGroup}>
               <AppText
                 style={[styles.label, { color: colors.subtitle }]}
-                translationKey="auth.signupStep.passwordMin16"
+                translationKey="auth.signupStep.password"
               />
               <View
                 style={[
@@ -283,7 +230,10 @@ export default function SignupStepField({
                     borderColor: colors.borderTextInput,
                     backgroundColor: colors.backgroundTextInput,
                   },
-                  inputBorder(valid, form.password),
+                  inputBorder(
+                    validate.user.password(form.password),
+                    form.password,
+                  ),
                 ]}
               >
                 <TextInput
@@ -303,6 +253,7 @@ export default function SignupStepField({
                 />
               </View>
             </View>
+
             <View style={styles.inputGroup}>
               <AppText
                 style={[styles.label, { color: colors.subtitle }]}
@@ -316,7 +267,11 @@ export default function SignupStepField({
                     backgroundColor: colors.backgroundTextInput,
                   },
                   inputBorder(
-                    passwordsMatch ? true : confirmMismatch ? false : null,
+                    passwordsMatch
+                      ? { success: true }
+                      : confirmMismatch
+                        ? { success: false }
+                        : null,
                     form.confirmPassword,
                   ),
                 ]}
@@ -337,18 +292,25 @@ export default function SignupStepField({
                   onPress={onToggleConfirmPassword}
                 />
               </View>
-              <View style={styles.opaqueLink}>
-                <AppText
-                  style={styles.opaqueLinkText}
-                  translationKey="auth.login.securedBy"
-                />
-                <TextLink
-                  style={styles.opaqueLinkTextBold}
-                  href="https://opaque-auth.com/"
-                >
-                  OPAQUE
-                </TextLink>
+            </View>
+
+            {passwordErrors.length > 0 && (
+              <View style={{ width: "100%", maxWidth: 300, marginBottom: 16, marginTop: -8 }}>
+                <StatusMessage type="error" content={passwordErrors} />
               </View>
+            )}
+
+            <View style={styles.opaqueLink}>
+              <AppText
+                style={styles.opaqueLinkText}
+                translationKey="auth.login.securedBy"
+              />
+              <TextLink
+                style={styles.opaqueLinkTextBold}
+                href="https://opaque-auth.com/"
+              >
+                OPAQUE
+              </TextLink>
             </View>
           </>
         )}

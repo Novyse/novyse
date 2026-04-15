@@ -31,7 +31,18 @@
     "unnamedFile": "Unnamed File",
     "block": "Block",
     "leave": "Leave",
-    "troubleshooting": "Troubleshooting"
+    "troubleshooting": "Troubleshooting",
+    "validation": {
+      "invalidEmail": "Invalid email",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "required": "Required field",
+      "invalidName": "Name can only contain letters and spaces",
+      "handleTooShort": "Handle must be at least 3 characters",
+      "handleTooLong": "Handle cannot exceed 15 characters",
+      "invalidHandle": "Handle can only contain lowercase letters, numbers, and underscores, and must start and end with a letter or number",
+      "handleConsecutiveUnderscores": "Consecutive underscores are not allowed",
+      "invalidInput": "Invalid input"
+    }
   },
   "chat": {
     "typeMessage": "Type a message...",
@@ -490,11 +501,11 @@
       "signupBtn": "Sign up"
     },
     "signupStep": {
-      "displayName": "Display Name",
-      "displayNamePlaceholder": "Display Name",
-      "nameLettersOnly": "Name: only letters and spaces",
+      "displayName": "Name",
+      "displayNamePlaceholder": "Enter your name",
       "username": "Username",
       "usernamePlaceholder": "Username",
+      "nameLettersOnly": "Name: only letters and spaces",
       "checking": "Checking...",
       "available": "Available",
       "alreadyInUse": "Already in use",
@@ -502,8 +513,7 @@
       "passwordMin16": "Password (min 16)",
       "confirmPassword": "Confirm Password",
       "confirmPasswordPlaceholder": "Confirm Password",
-      "startsLetterNumber": "Starts with a letter or number",
-      "endsLetterNumber": "Ends with a letter or number",
+      "passwordsMismatch": "Passwords do not match",
       "onlyLettersNumbers": "Only letters, numbers, and underscores",
       "noConsecutiveUnderscores": "No consecutive underscores",
       "iAccept": "I accept ",
@@ -511,6 +521,7 @@
       "and": " and ",
       "termsOfService": "terms of service",
       "iAm16": "I am 16 or older.",
+      "invalidHandle": "Invalid handle. Please follow the requirements.",
       "signupSuccessPasskey": "Signup successful! Log in using your passkey.",
       "signupSuccessPassword": "Signup successful! Please log in using your credentials."
     },

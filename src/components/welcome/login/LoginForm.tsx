@@ -16,6 +16,7 @@ import logoNovyse from "@/assets/images/logo-novyse.png";
 import TextLink from "../../TextLink";
 import TurnstileCaptcha from "../../auth/TurnstileCaptcha";
 import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
+import { validate } from "@/src/utils/welcome/validator";
 
 interface LoginFormProps {
   onLogin: (username: string, password: string, captchaToken: string) => void;
@@ -102,7 +103,8 @@ const LoginForm = ({
                 style={[styles.textInput, error ? styles.inputError : null]}
                 value={username}
                 onChangeText={(text) => {
-                  setUsername(text);
+                  const lowerText = text.toLowerCase();
+                  setUsername(lowerText);
                   if (error) onErrorDismiss?.();
                 }}
                 placeholder={t("auth.signupStep.usernamePlaceholder")}
