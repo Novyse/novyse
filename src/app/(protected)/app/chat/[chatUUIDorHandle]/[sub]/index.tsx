@@ -50,6 +50,7 @@ const ChatPageRoute = () => {
   const setEditingMessage = useActiveChatStore(
     (state) => state.setEditingMessage,
   );
+  const clear = useActiveChatStore((state) => state.clear);
 
   const chat = useActiveChatStore((state) => state.activeChatData);
 
@@ -93,6 +94,12 @@ const ChatPageRoute = () => {
       setMinDetailWidth(400);
     };
   }, [contentView, setMinDetailWidth]);
+
+  useEffect(() => {
+    return () => {
+      clear();
+    };
+  }, [clear]);
 
   useEffect(() => {
     if (chatUUIDorHandle) {
