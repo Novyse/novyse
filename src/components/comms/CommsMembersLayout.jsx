@@ -66,7 +66,7 @@ const CommsMembersLayout = ({ participants = [], room }) => {
             onFullScreen={handleFullScreen}
             stopScreenShare={stopScreenShare}
             margin={0}
-            isSpeaking={speakingStates[item.participant.identity]}
+            isSpeaking={speakingStates[item.deviceUUID]}
             facingMode={facingMode}
           />
         </View>
@@ -104,7 +104,7 @@ const CommsMembersLayout = ({ participants = [], room }) => {
         width={rectWidth}
         height={rectHeight}
         margin={margin}
-        isSpeaking={speakingStates[streamUUID]}
+        isSpeaking={speakingStates[deviceUUID]}
         facingMode={facingMode}
       />
     );

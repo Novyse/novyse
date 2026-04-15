@@ -107,6 +107,7 @@ const useLayout = (room, participants, containerDimensions) => {
         name,
         metadata,
         stream: videoStream,
+        participant,
         isScreenShare: false,
         isLocal,
       });
