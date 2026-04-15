@@ -50,7 +50,7 @@ const LoginForm = ({
   const [loginMode, setLoginMode] = useState<"password" | "passkey">(
     urlType === "passkey" ? "passkey" : "password",
   );
-  const [username, setUsername] = useState(urlUsername || "");
+  const [username, setUsername] = useState((urlUsername || "").toLowerCase());
   const [password, setPassword] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaKey, setCaptchaKey] = useState(0);
