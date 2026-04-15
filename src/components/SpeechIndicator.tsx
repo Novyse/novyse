@@ -60,7 +60,7 @@ const SimpleWaveform = ({
           const height = interpolate(
             intensity.value,
             [0, 1],
-            [barWidth, maxHeight * bar.scale]
+            [barWidth, maxHeight * bar.scale],
           );
 
           return {
@@ -94,7 +94,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    height: 60,
   },
   bar: {},
 });

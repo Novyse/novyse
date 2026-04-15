@@ -154,8 +154,11 @@ const createStyle = (theme) =>
     },
     durationText: {
       color: theme.text,
-      fontSize: 16,
+      fontSize: 14,
       marginHorizontal: 10,
+      fontFamily: "monospace",
+      fontVariant: ["tabular-nums"],
+      minWidth: 70,
     },
     pauseResumeIcon: {
       height: 45,
