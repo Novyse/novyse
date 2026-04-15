@@ -1,0 +1,446 @@
+import notifee, {
+  AndroidStyle,
+  AndroidImportance,
+  EventType,
+  Notification,
+  NotificationAndroid,
+  AndroidMessagingStyle,
+  AndroidCategory,
+  AndroidBadgeIconType,
+  AndroidChannel,
+  AndroidPerson,
+  EventDetail,
+} from "react-native-notify-kit";
+import { Platform } from "react-native";
+import { router } from "expo-router";
+import { DateTime } from "luxon";
+import messageFormat from "../../chat/messageFormat";
+import gateway from "../../backend-services/api-gateway";
+
+class MobileNotificationManager {
+  private processedMessageIds = new Set<string>();
+
+  constructor() {
+    this.setupChannels();
+    this.setupActionListeners();
+  }
+
+  async setupChannels() {
+    if (Platform.OS !== "android") return;
+
+    try {
+      await notifee.createChannel({
+        id: "chat_messages",
+        name: "Chat Messages",
+        importance: AndroidImportance.HIGH,
+        vibration: true,
+      });
+      console.log(
+        "[MobileNotificationManager] Channel 'chat_messages' created/verified.",
+      );
+
+      const settings = await notifee.getNotificationSettings();
+      console.log(
+        "[MobileNotificationManager] Notification permissions status:",
+        settings.authorizationStatus,
+      );
+    } catch (e) {
+      console.error("[MobileNotificationManager] Error in setupChannels:", e);
+    }
+  }
+
+  setupActionListeners() {
+    notifee.onForegroundEvent(async ({ type, detail }) => {
+      this.handleEvent(type, detail);
+    });
+
+    notifee.onBackgroundEvent(async ({ type, detail }) => {
+      this.handleEvent(type, detail);
+    });
+  }
+
+  private async handleEvent(type: EventType, detail: EventDetail) {
+    const { notification, pressAction } = detail;
+
+    switch (type) {
+      case EventType.PRESS:
+        const chatUUID = notification?.data?.chatUUID;
+        if (chatUUID) {
+          router.push(`/app/chat/${chatUUID}/0`);
+        }
+        if (notification?.id) {
+          await notifee.cancelNotification(notification.id);
+        }
+        break;
+
+      case EventType.ACTION_PRESS:
+        if (pressAction?.id === "decline_call") {
+          if (notification?.id) {
+            await notifee.cancelNotification(notification.id);
+          }
+        } else if (pressAction?.id === "answer_call") {
+          const chatUUID = notification?.data?.chatUUID;
+          if (chatUUID) {
+            router.push(`/app/chat/${chatUUID}/0`);
+          }
+          if (notification?.id) {
+            await notifee.cancelNotification(notification.id);
+          }
+        }
+        break;
+    }
+  }
+
+  async displayMessage(remoteMessage: any) {
+    if (Platform.OS === "web") return;
+
+    const { data } = remoteMessage;
+    if (!data) return;
+
+    console.log(
+      "[MobileNotificationManager] displayMessage called with data:",
+      JSON.stringify(data),
+    );
+
+    try {
+      // 1. Ensure permissions
+      const settings = await notifee.requestPermission();
+      console.log(
+        "[MobileNotificationManager] Permission status:",
+        settings.authorizationStatus,
+      );
+
+      // 2. Ensure channel exists (idempotent)
+      const channelId = "chat_messages_v4";
+      const channelSettings: AndroidChannel = {
+        id: channelId,
+        name: "Chat Messages",
+        importance: AndroidImportance.HIGH,
+        vibration: true,
+        badge: true,
+      };
+      await notifee.createChannel(channelSettings);
+
+      const chatUUID = data.chatUUID;
+
+      // --- 2.5 Resolve Message Data ---
+      let messageData: any = null;
+      if (data.message) {
+        if (typeof data.message === "string") {
+          try {
+            messageData = JSON.parse(data.message);
+          } catch (e) {
+            console.error("[MobileNotificationManager] Parse failed:", e);
+          }
+        } else {
+          messageData = data.message;
+        }
+      }
+
+      // --- 2.6 Deduplication ---
+      const internalId = String(
+        messageData?.id || data.messageId || data.id || Date.now(),
+      );
+
+      if (this.processedMessageIds.has(internalId)) {
+        console.log(
+          `[MobileNotificationManager] Duplicate message ${internalId} ignored.`,
+        );
+        return;
+      }
+      this.processedMessageIds.add(internalId);
+      if (this.processedMessageIds.size > 100) {
+        const first = this.processedMessageIds.values().next().value;
+        if (first !== undefined) this.processedMessageIds.delete(first);
+      }
+
+      // --- 2.7 Resolve context data (Store + DB Fallback) ---
+      const useChatStore = (await import("@/context/ChatContext")).default;
+      const useUserStore = (await import("@/context/UserContext")).default;
+      const database = (await import("../../storage/database")).default;
+
+      // 3.1 Resolve Chat
+      let chat = chatUUID
+        ? useChatStore.getState().chats.find((c) => c.uuid === chatUUID)
+        : null;
+
+      if (!chat && chatUUID) {
+        try {
+          const chatRow: any = await database.chat.db.getFirstAsync(
+            "SELECT * FROM chat WHERE uuid = ?",
+            [chatUUID],
+          );
+          if (chatRow) {
+            chat = {
+              ...chatRow,
+              members: await database.chat.member.get.by.chatUUID(chatUUID),
+            };
+          }
+        } catch (e) {}
+      }
+
+      // 3.2 Resolve Sender
+      let senderUUID = data.senderUUID || messageData?.senderUUID;
+      let senderUser = senderUUID
+        ? useUserStore.getState().users[senderUUID]
+        : null;
+
+      if (!senderUser && senderUUID) {
+        try {
+          senderUser = await database.user.get.byUUID(senderUUID);
+        } catch (e) {}
+      }
+
+      const localUserUUID = useUserStore.getState().localUserUUID;
+
+      // --- 4. Resolve Identity (precise alignment with useChatMetadata) ---
+      let chatName = data.chatName || data.title || chat?.name || "Novyse";
+      let chatImageUUID =
+        data.chatIcon ||
+        chat?.profilePictureUUID ||
+        "00000000-0000-0000-0000-000000000000";
+
+      if (chat && chat.type === "DM") {
+        const otherMember = chat.members?.find(
+          (m: any) => m.uuid !== localUserUUID,
+        );
+        const targetUUID = otherMember?.uuid || localUserUUID;
+        let targetUser = useUserStore.getState().users[targetUUID || ""];
+        if (!targetUser && targetUUID) {
+          targetUser = await database.user.get.byUUID(targetUUID);
+        }
+
+        if (chat.members?.length === 1 || !otherMember) {
+          chatName = "Saved Messages";
+          chatImageUUID = targetUser?.profilePictureUUID || null;
+        } else {
+          chatName = targetUser?.name || "User";
+          chatImageUUID = targetUser?.profilePictureUUID || null;
+        }
+      }
+
+      let senderName = senderUser?.name;
+      let senderImageUUID = senderUser?.profilePictureUUID;
+
+      // --- 5. Resolve Avatars (Local Storage) ---
+      let senderAvatarURI: string | undefined = undefined;
+      let chatAvatarURI: string | undefined = undefined;
+
+      const resolveLocalURI = async (uuid: string | null | undefined) => {
+        if (!uuid || typeof uuid !== "string") return undefined;
+        if (uuid.startsWith("http")) return uuid;
+        if (uuid.length < 20) return undefined;
+        try {
+          // 1. Try local storage
+          const storage = (await import("../../storage/file")).default;
+          const ref = await database.file.get.ref(uuid);
+          if (ref) {
+            const local = await storage.read(ref);
+            if (local) return local;
+          }
+
+          // 2. Fallback to Gateway (Remote)
+          const gateway = (await import("../../backend-services/api-gateway"))
+            .default;
+          const res = (await gateway.file.retrieve(uuid)) as any;
+          if (res?.success && res?.downloadURL) return res.downloadURL;
+        } catch (e) {
+          console.error(
+            "[MobileNotificationManager] Avatar resolution failed for:",
+            uuid,
+            e,
+          );
+        }
+        return undefined;
+      };
+
+      chatAvatarURI = (await resolveLocalURI(chatImageUUID)) as
+        | string
+        | undefined;
+      senderAvatarURI = (await resolveLocalURI(senderImageUUID)) as
+        | string
+        | undefined;
+
+      console.log(
+        `[MobileNotificationManager] Decided Avatars: Chat=[${chatAvatarURI ? "YES" : "NO"}] Sender=[${senderAvatarURI ? "YES" : "NO"}]`,
+      );
+
+      // Telegram style: DM large icon is the other person's avatar
+      if (!chatAvatarURI && chat?.type === "DM" && senderAvatarURI) {
+        chatAvatarURI = senderAvatarURI;
+      }
+
+      // --- 7. Resolve Text Content & Timestamp ---
+      const formatted = messageFormat.format(messageData || data);
+      const safeContent =
+        formatted?.content && String(formatted.content).trim().length > 0
+          ? String(formatted.content)
+          : data.content || data.body || messageData?.content || " ";
+
+      // --- 7.5 Resolve Unread Counts & Badges ---
+      const chats = useChatStore.getState().chats;
+
+      // Use Luxon for localized timestamp (UTC -> Local)
+      let messageTimestamp = Date.now();
+      if (messageData?.at) {
+        try {
+          messageTimestamp = DateTime.fromISO(messageData.at, { zone: "utc" })
+            .toLocal()
+            .toMillis();
+        } catch (e) {
+          console.warn("[MobileNotificationManager] Luxon parse failed:", e);
+        }
+      }
+
+      // --- 8. Resolve Conversational History ---
+      const notificationId = chatUUID;
+      const displayed = await notifee.getDisplayedNotifications();
+      const existing = displayed.find((n) => n.id === notificationId);
+
+      let messageHistory: any[] = [];
+      if (
+        existing &&
+        existing.notification.android?.style?.type === AndroidStyle.MESSAGING
+      ) {
+        messageHistory =
+          (existing.notification.android.style as any).messages || [];
+      }
+
+      const person: AndroidPerson = {
+        name: senderName || "Unknown",
+        id: senderUUID,
+      };
+      if (senderAvatarURI && senderAvatarURI.trim().length > 0) {
+        person.icon = senderAvatarURI;
+      }
+
+      messageHistory.push({
+        text: safeContent,
+        timestamp: messageTimestamp,
+        person,
+      });
+
+      // Limit history to 10 messages
+      if (messageHistory.length > 10) {
+        messageHistory = messageHistory.slice(-10);
+      }
+
+      const chatUnreadCount = messageHistory.length;
+
+      try {
+        await notifee.setBadgeCount(chatUnreadCount);
+      } catch (e) {
+        console.warn(
+          "[MobileNotificationManager] Failed to set badge count",
+          e,
+        );
+      }
+
+      const messagingStyle: AndroidMessagingStyle = {
+        type: AndroidStyle.MESSAGING,
+        person: {
+          name: "Me",
+          id: localUserUUID || "me",
+        },
+        messages: messageHistory,
+        title: chatName,
+        group: chat?.type === "DM" ? false : true,
+      };
+
+      const androidConfig: NotificationAndroid = {
+        channelId: "chat_messages_v4",
+        groupId: chatUUID,
+        smallIcon: "notification_icon",
+        color: "#4f8cff",
+        importance: AndroidImportance.HIGH,
+        pressAction: { id: "default" },
+        category: AndroidCategory.MESSAGE,
+        badgeCount: chatUnreadCount,
+        badgeIconType: AndroidBadgeIconType.LARGE,
+        sound: "default",
+        showTimestamp: true,
+        timestamp: messageTimestamp,
+        circularLargeIcon: true,
+        largeIcon: chatAvatarURI,
+        actions: [
+          {
+            title: "Reply",
+            pressAction: { id: "reply" },
+            input: { placeholder: "Type a message..." },
+          },
+          {
+            title: "Mark as read",
+            pressAction: { id: "mark_read" },
+          },
+        ],
+        style: messagingStyle,
+      };
+
+      const notificationPayload: Notification = {
+        id: notificationId,
+        title: chatName,
+        body: safeContent,
+        data: {
+          chatUUID: chatUUID || "",
+          messageID: internalId || "",
+        },
+        android: androidConfig,
+      };
+
+      console.log(
+        `[MobileNotificationManager] FINAL RESOLVED: [${chatName}] ${senderName}: ${safeContent} (History: ${messageHistory.length})`,
+      );
+      await notifee.displayNotification(notificationPayload);
+      console.log(
+        "[MobileNotificationManager] Display call completed successfully.",
+      );
+    } catch (error: any) {
+      console.error("[MobileNotificationManager] CRITICAL FAILURE:", error);
+    }
+  }
+
+  async displayCallNotification(callData: any) {
+    await notifee.displayNotification({
+      title: "Incoming Call",
+      subtitle: "Novyse",
+      id: "incoming_call_test",
+      body: "Drag up to see options",
+
+      android: {
+        channelId: "chat_messages_v4",
+        category: AndroidCategory.CALL,
+        importance: AndroidImportance.HIGH,
+        smallIcon: "notification_icon",
+        ongoing: true,
+        asForegroundService: true,
+        loopSound: true,
+        vibrationPattern: [300, 500], // Loop: vibrate 500ms, pause 300ms
+        fullScreenAction: {
+          id: "default",
+          launchActivity: "default",
+        },
+        pressAction: {
+          id: "default",
+          launchActivity: "default",
+        },
+        actions: [
+          {
+            title: "Answer",
+            pressAction: { id: "answer_call", launchActivity: "default" },
+          },
+          {
+            title: "Decline",
+            pressAction: { id: "decline_call" },
+          },
+        ],
+      },
+      data: {
+        type: "incoming_call",
+        chatUUID: callData.chatUUID,
+      },
+    });
+  }
+}
+
+const mobileNotificationManager = new MobileNotificationManager();
+export default mobileNotificationManager;

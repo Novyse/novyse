@@ -1,9 +1,5 @@
 import EventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
 import database from "@/src/utils/storage/database";
-import notificationManager from "@/src/utils/notifications/NotificationManager";
-import storage from "@/src/utils/storage/file";
-
-import messageUtils from "@/src/utils/chat/message";
 
 class GlobalEventEmitter {
   constructor() {
@@ -32,17 +28,6 @@ class GlobalEventEmitter {
           );
         }
       }
-
-      // if (!msg.localUser) {
-      //   await notificationManager.sendNotificationWhenInBackground(
-      //     msg.sender_name,
-      //     msg.content,
-      //     {
-      //       chatUUID: msg.chatUUID,
-      //       messageID: msg.id,
-      //     },
-      //   );
-      // }
       this.eventEmitter.emit("message:new", message);
     },
     update: async (chatUUID, messageID, action, data) => {

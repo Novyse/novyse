@@ -12,7 +12,7 @@ import { ThemeProvider, useThemeContext } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import SplashScreen from "@/src/components/SplashScreen";
 import useAuthSession from "@/src/hooks/auth/useAuthSession";
-import notificationManager from "@/src/utils/notifications/NotificationManager";
+import notificationManager from "@/src/utils/notifications/manager";
 
 function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {
   const { theme } = useThemeContext();

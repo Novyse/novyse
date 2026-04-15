@@ -119,6 +119,8 @@ export default {
         "FOREGROUND_SERVICE",
         "FOREGROUND_SERVICE_MEDIA_PROJECTION",
         "WAKE_LOCK",
+        "USE_FULL_SCREEN_INTENT",
+        "VIBRATE",
       ],
       googleServicesFile:
         process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
@@ -130,6 +132,12 @@ export default {
       title: APP_NAME,
     },
     plugins: [
+      [
+        "./plugins/withAndroidNotificationIcon",
+        {
+          iconName: "assets/images/notification_icon.png",
+        },
+      ],
       "@react-native-firebase/app",
       "expo-router",
       "expo-asset",

@@ -26,6 +26,7 @@ export const setCurrentToken = (token: string | null) => {
  * Can be used outside React components (e.g., in api-gateway or socket-io).
  */
 export const getAuthToken = async (): Promise<string | null> => {
+
   // If token is valid, return it
   if (currentToken && Date.now() < currentTokenExpiry - 10000) {
     return currentToken;

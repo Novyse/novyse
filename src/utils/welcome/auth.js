@@ -8,7 +8,7 @@ import database from "@/src/utils/storage/database";
 import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 
 import messageUtils from "@/src/utils/chat/message";
-import notificationManager from "@/src/utils/notifications/NotificationManager";
+import notificationManager from "@/src/utils/notifications/manager";
 import useUserStore from "@/context/UserContext";
 import useChatStore from "@/context/ChatContext";
 
