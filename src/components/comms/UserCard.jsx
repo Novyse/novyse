@@ -1,7 +1,9 @@
 import React, { memo, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet, Platform, Pressable } from "react-native";
 
 import { getPlatform } from "@/src/utils/device/type";
+import { useCommsContext } from "@/context/CommsContext";
+import { useTranslation } from "react-i18next";
 
 import UserProfileAvatar from "./UserProfileAvatar";
 import BlurredView from "../BlurredView";
@@ -19,6 +21,8 @@ const UserCard = memo(
   ({
     streamUUID,
     deviceUUID,
+    chatUUID,
+    sub,
     stream = null,
     displayName,
     metadata = {},
@@ -35,6 +39,9 @@ const UserCard = memo(
     isSpeaking,
     facingMode,
   }) => {
+    const { t } = useTranslation();
+    const { connected, checkRoomMatch, setTriggeredStream, setTriggeredPosition } = useCommsContext();
+
     const videoRef = useRef(null);
     useEffect(() => {
       if (platform === "web" && videoRef.current) {
@@ -44,6 +51,10 @@ const UserCard = memo(
 
     const parsedMetadata = JSON.parse(metadata);
     const profilePictureUUID = parsedMetadata.profilePictureUUID || null;
+
+    const finalDisplayName = isLocal
+      ? `${displayName} (${t("chat.listItem.you")})`
+      : displayName;
 
     const speakingOverlayStyle = useMemo(() => {
       const baseStyle = [styles.speakingOverlayContainer];
@@ -67,6 +78,27 @@ const UserCard = memo(
 
     const hasControls =
       (stream && stream.active && !isLocal) || (isScreenShare && isLocal);
+
+    const handlePress = (event) => {
+      if (!connected || !checkRoomMatch(chatUUID, sub)) {
+        return;
+      }
+      
+      if (event && event.preventDefault) {
+        event.preventDefault();
+      }
+
+      const { pageX, pageY } = event?.nativeEvent || {};
+
+      setTriggeredPosition({ x: pageX || 0, y: pageY || 0 });
+      setTriggeredStream({
+        streamUUID,
+        deviceUUID,
+        displayName: finalDisplayName,
+        isScreenShare,
+        isLocal,
+      });
+    };
 
     return (
       <View
@@ -115,20 +147,27 @@ const UserCard = memo(
           </View>
         )}
 
-        <View style={styles.videoContainer}>
+        <Pressable
+          style={styles.videoContainer}
+          onPress={handlePress}
+          onLongPress={handlePress}
+          // @ts-ignore
+          onContextMenu={handlePress}
+          delayLongPress={500}
+        >
           <VideoContent
             streamUUID={streamUUID}
             deviceUUID={deviceUUID}
             stream={stream}
             isLocal={isLocal}
-            displayName={displayName}
+            displayName={finalDisplayName}
             profilePictureUUID={profilePictureUUID}
             width={width}
             height={height}
             facingMode={facingMode}
           />
           <View style={speakingOverlayStyle} />
-        </View>
+        </Pressable>
       </View>
     );
   },

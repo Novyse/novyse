@@ -9,11 +9,20 @@ import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import useLayout from "@/src/hooks/comms/useLayout";
 
 import UserCard from "./UserCard";
-const CommsMembersLayout = ({ participants = [], room }) => {
+import CommsMenu from "./CommsMenu";
+
+const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
     height: 0,
   });
+
+  const {
+    triggeredStream,
+    setTriggeredStream,
+    triggeredPosition,
+    isSpeakingMap,
+  } = useCommsContext();
 
   const {
     layoutItems,
@@ -29,8 +38,6 @@ const CommsMembersLayout = ({ participants = [], room }) => {
     const { width, height } = event.nativeEvent.layout;
     setContainerDimensions({ width, height });
   }, []);
-
-  const { isSpeakingMap } = useCommsContext();
 
   const speakingStates = useMemo(() => {
     const map = {};
@@ -55,6 +62,8 @@ const CommsMembersLayout = ({ participants = [], room }) => {
           <UserCard
             streamUUID={item.streamUUID}
             deviceUUID={item.deviceUUID}
+            chatUUID={chatUUID}
+            sub={sub}
             stream={item.stream}
             displayName={item.name}
             metadata={item.metadata}
@@ -68,6 +77,16 @@ const CommsMembersLayout = ({ participants = [], room }) => {
             margin={0}
             isSpeaking={speakingStates[item.deviceUUID]}
             facingMode={facingMode}
+          />
+          <CommsMenu
+            visible={!!triggeredStream}
+            onClose={() => setTriggeredStream(null)}
+            streamUUID={triggeredStream?.streamUUID}
+            deviceUUID={triggeredStream?.deviceUUID}
+            displayName={triggeredStream?.displayName}
+            isScreenShare={triggeredStream?.isScreenShare}
+            isLocal={triggeredStream?.isLocal}
+            position={triggeredPosition}
           />
         </View>
       );
@@ -91,6 +110,8 @@ const CommsMembersLayout = ({ participants = [], room }) => {
       <UserCard
         streamUUID={streamUUID}
         deviceUUID={deviceUUID}
+        chatUUID={chatUUID}
+        sub={sub}
         stream={stream}
         displayName={name}
         metadata={metadata}
@@ -148,9 +169,22 @@ const CommsMembersLayout = ({ participants = [], room }) => {
             })}
           </>
         ) : (
-          <AppText style={styles.emptyChatText} translationKey="chat.comms.noParticipants" />
+          <AppText
+            style={styles.emptyChatText}
+            translationKey="chat.comms.noParticipants"
+          />
         )}
       </View>
+      <CommsMenu
+        visible={!!triggeredStream}
+        onClose={() => setTriggeredStream(null)}
+        streamUUID={triggeredStream?.streamUUID}
+        deviceUUID={triggeredStream?.deviceUUID}
+        displayName={triggeredStream?.displayName}
+        isScreenShare={triggeredStream?.isScreenShare}
+        isLocal={triggeredStream?.isLocal}
+        position={triggeredPosition}
+      />
     </View>
   );
 };

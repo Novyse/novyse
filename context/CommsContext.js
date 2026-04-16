@@ -1,10 +1,14 @@
 import { createContext, useState, useEffect, useContext, useRef } from "react";
 import { Track } from "livekit-client";
 import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
 
 export const CommsContext = createContext();
+
+const VOLUMES_MAX_SAVED = 2000;
+const VOLUMES_STORAGE_KEY = "novyse_comms_remote_volumes";
 
 export const CommsProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
@@ -24,9 +28,30 @@ export const CommsProvider = ({ children }) => {
   const [fullscreenStreamUUID, setFullScreenStreamUUID] = useState(null);
   const [activeScreenShares, setActiveScreenShares] = useState({});
 
+  const [triggeredStream, setTriggeredStream] = useState(null);
+  const [triggeredPosition, setTriggeredPosition] = useState({ x: 0, y: 0 });
+
+  const [remoteVolumes, setRemoteVolumes] = useState({});
+  const [localMuted, setLocalMuted] = useState({});
+
   const [facingMode, setFacingMode] = useState("environment");
 
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadVolumes = async () => {
+      try {
+        const saved = await AsyncStorage.getItem(VOLUMES_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setRemoteVolumes(parsed);
+        }
+      } catch (e) {
+        console.error("[CommsContext] Failed to load remote volumes:", e);
+      }
+    };
+    loadVolumes();
+  }, [connected]);
 
   useEffect(() => {
     setConnected(!!room);
@@ -388,8 +413,125 @@ export const CommsProvider = ({ children }) => {
     setMutedStreams({});
     setIsAudioEnabled(false);
     setIsVideoEnabled(false);
+    setRemoteVolumes({});
+    setLocalMuted({});
+    setTriggeredStream(null);
+    setTriggeredPosition({ x: 0, y: 0 });
     setError(null);
   };
+
+  /**
+   * Sets the local volume for a specific stream/participant in dB.
+   * @param {string} id - The streamUUID or deviceUUID.
+   * @param {number} dbValue - Volume level in dB (e.g. -30 to 30).
+   * @param {boolean} shouldPersist - Whether to save to local storage.
+   */
+  const setRemoteVolume = async (id, dbValue, shouldPersist = true) => {
+    setRemoteVolumes((prev) => {
+      let updated = {
+        ...prev,
+        [id]: dbValue,
+      };
+      if (shouldPersist) {
+        const keys = Object.keys(updated);
+        if (keys.length > VOLUMES_MAX_SAVED) {
+          const oldestKey = keys[0];
+          const { [oldestKey]: _, ...rest } = updated;
+          updated = rest;
+        }
+        const json = JSON.stringify(updated);
+        AsyncStorage.setItem(VOLUMES_STORAGE_KEY, json).catch((e) =>
+          console.error("[CommsContext] Error saving volumes:", e),
+        );
+      }
+      return updated;
+    });
+  };
+
+  /**
+   * Toggles local mute for a specific stream/participant.
+   * @param {string} id - The participant identity or trackSid of screenshare.
+   */
+  const toggleLocalMute = (id) => {
+    setLocalMuted((prev) => {
+      const newState = !prev[id];
+      return {
+        ...prev,
+        [id]: newState,
+      };
+    });
+  };
+
+  /**
+   * Utility to convert dB to linear gain (0.0 to 1.0).
+   * Note: Web-standard formula. 1.0 is the baseline (0dB).
+   */
+  const dbToLinear = (db) => {
+    if (db <= -30) return 0;
+    // Standard formula: 10^(dB/20)
+    // 0dB = 1.0, -20dB = 0.1, -30dB = 0.03
+    const linear = Math.pow(10, db / 20);
+    return Math.min(1.0, linear);
+  };
+
+  /**
+   * Effect to apply remote volumes whenever they change using native LiveKit track.setVolume()
+   */
+  useEffect(() => {
+    if (!room) {
+      return;
+    }
+
+    room.remoteParticipants.forEach((participant) => {
+      // 1. Handle Microphone volume (People)
+      const micPub = participant.getTrackPublication(Track.Source.Microphone);
+      if (micPub) {
+        const volKey = participant.identity;
+        const db = remoteVolumes[volKey] ?? 0;
+        const isMuted = localMuted[volKey] ?? false;
+        const targetVolume = isMuted ? 0 : dbToLinear(db);
+
+        // Native LiveKit volume control
+        if (micPub.track && typeof micPub.track.setVolume === "function") {
+          micPub.track.setVolume(targetVolume);
+        }
+
+        // Web Audio element synchronization
+        if (Platform.OS === "web" && micPub.trackSid) {
+          const audioEl = audioElementsRef.current.get(micPub.trackSid);
+          if (audioEl && audioEl.volume !== targetVolume) {
+            audioEl.volume = targetVolume;
+          }
+        }
+      }
+
+      // 2. Handle ScreenShareAudio volume
+      const screenPub = participant.getTrackPublication(
+        Track.Source.ScreenShareAudio,
+      );
+      if (screenPub) {
+        const volKey = screenPub.trackSid;
+        const db = remoteVolumes[volKey] ?? 0;
+        const isMuted = localMuted[volKey] ?? false;
+        const targetVolume = isMuted ? 0 : dbToLinear(db);
+
+        if (
+          screenPub.track &&
+          typeof screenPub.track.setVolume === "function"
+        ) {
+          screenPub.track.setVolume(targetVolume);
+        }
+
+        // Web Audio element synchronization
+        if (Platform.OS === "web") {
+          const audioEl = audioElementsRef.current.get(screenPub.trackSid);
+          if (audioEl && audioEl.volume !== targetVolume) {
+            audioEl.volume = targetVolume;
+          }
+        }
+      }
+    });
+  }, [remoteVolumes, localMuted, room]);
 
   const value = {
     room,
@@ -415,6 +557,14 @@ export const CommsProvider = ({ children }) => {
     setStreams,
     mutedStreams,
     setMutedStreams,
+    remoteVolumes,
+    setRemoteVolume,
+    localMuted,
+    toggleLocalMute,
+    triggeredStream,
+    setTriggeredStream,
+    triggeredPosition,
+    setTriggeredPosition,
     reset,
     error,
     setError,
