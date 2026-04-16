@@ -48,6 +48,68 @@
     "typeMessage": "Type a message...",
     "send": "Send",
     "unknownUser": "Unknown User",
+    "messageActions": {
+      "reply": "Reply",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "copy": "Copy",
+      "download": "Download",
+      "cancelEdit": "Cancel Edit",
+      "edit": "Edit",
+      "forward": "Forward",
+      "select": "Select",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "reads": {
+        "one": "{{count}} Read",
+        "other": "{{count}} Reads"
+      },
+      "reactions": {
+        "one": "{{count}} Reaction",
+        "other": "{{count}} Reactions"
+      }
+    },
+    "uploadOverlay": {
+      "media": "Media",
+      "camera": "Camera",
+      "file": "File",
+      "location": "Location",
+      "todo": "Todo",
+      "poll": "Poll"
+    },
+    "uploadFile": {
+      "chooseFile": "Choose File",
+      "removeAll": "Remove All"
+    },
+    "iconsPicker": {
+      "emoji": "Emoji",
+      "sticker": "Sticker",
+      "gif": "GIF"
+    },
+    "overview": {
+      "tabs": {
+        "members": "Members",
+        "media": "Media",
+        "files": "Files",
+        "links": "Links",
+        "music": "Music",
+        "voice": "Voice",
+        "gifs": "GIFs"
+      },
+      "noMembers": "No members found",
+      "noFiles": "No files shared yet",
+      "notSpecified": "Not specified",
+      "noDescriptionYet": "No description yet",
+      "actions": {
+        "settings": "Settings",
+        "block": "Block",
+        "leave": "Leave"
+      },
+      "errors": {
+        "deviceError": "We couldn't retrieve the device. Please try again. <a href=\"{{link}}\" target=\"_blank\">{{troubleshooting}}</a>",
+        "troubleshootingLink": "https://www.novyse.com/help/troubleshooting/comms/devices"
+      }
+    },
     "loading": "Loading...",
     "listItem": {
       "draft": "Draft",
@@ -95,68 +157,6 @@
           "totalSize": "Total exceeds {{size}}",
           "fileSize": "Exceeds {{size}}",
           "empty": "Empty file"
-        }
-      },
-      "uploadOverlay": {
-        "media": "Media",
-        "camera": "Camera",
-        "file": "File",
-        "location": "Location",
-        "todo": "Todo",
-        "poll": "Poll"
-      },
-      "uploadFile": {
-        "chooseFile": "Choose File",
-        "removeAll": "Remove All"
-      },
-      "messageActions": {
-        "reply": "Reply",
-        "pin": "Pin",
-        "unpin": "Unpin",
-        "copy": "Copy",
-        "download": "Download",
-        "cancelEdit": "Cancel Edit",
-        "edit": "Edit",
-        "forward": "Forward",
-        "select": "Select",
-        "delete": "Delete",
-        "cancel": "Cancel",
-        "reads": {
-          "one": "{{count}} Read",
-          "other": "{{count}} Reads"
-        },
-        "reactions": {
-          "one": "{{count}} Reaction",
-          "other": "{{count}} Reactions"
-        }
-      },
-      "iconsPicker": {
-        "emoji": "Emoji",
-        "sticker": "Sticker",
-        "gif": "GIF"
-      },
-      "overview": {
-        "tabs": {
-          "members": "Members",
-          "media": "Media",
-          "files": "Files",
-          "links": "Links",
-          "music": "Music",
-          "voice": "Voice",
-          "gifs": "GIFs"
-        },
-        "noMembers": "No members found",
-        "noFiles": "No files shared yet",
-        "notSpecified": "Not specified",
-        "noDescriptionYet": "No description yet",
-        "actions": {
-          "settings": "Settings",
-          "block": "Block",
-          "leave": "Leave"
-        },
-        "errors": {
-          "deviceError": "We couldn't retrieve the device. Please try again. <a href=\"{{link}}\" target=\"_blank\">{{troubleshooting}}</a>",
-          "troubleshootingLink": "https://www.novyse.com/help/troubleshooting/comms/devices"
         }
       }
     },
@@ -449,7 +449,8 @@
   "tabs": {
     "chatList": {
       "selected": "{{count}} selected",
-      "intentSharing": "Select chat"
+      "intentSharing": "Select chat",
+      "forwarding": "Forward to..."
     },
     "search": {
       "search": "Search",

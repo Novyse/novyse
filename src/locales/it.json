@@ -48,6 +48,67 @@
     "typeMessage": "Scrivi un messaggio...",
     "send": "Invia",
     "unknownUser": "Sconosciuto",
+    "messageActions": {
+      "reply": "Rispondi",
+      "pin": "Fissa",
+      "unpin": "Rimuovi",
+      "copy": "Copia",
+      "download": "Scarica",
+      "cancelEdit": "Annulla Modifica",
+      "edit": "Modifica",
+      "forward": "Inoltra",
+      "select": "Seleziona",
+      "delete": "Elimina",
+      "cancel": "Annulla",
+      "reads": {
+        "one": "{{count}} Lettura",
+        "other": "{{count}} Letture"
+      },
+      "reactions": {
+        "one": "{{count}} Reazione",
+        "other": "{{count}} Reazioni"
+      }
+    },
+    "uploadOverlay": {
+      "media": "Media",
+      "camera": "Fotocamera",
+      "file": "File",
+      "location": "Posizione",
+      "todo": "Lista",
+      "poll": "Sondaggio"
+    },
+    "uploadFile": {
+      "chooseFile": "Scegli File",
+      "removeAll": "Rimuovi tutti i file"
+    },
+    "iconsPicker": {
+      "emoji": "Emoji",
+      "sticker": "Sticker",
+      "gif": "GIF"
+    },
+    "overview": {
+      "tabs": {
+        "members": "Membri",
+        "media": "Media",
+        "files": "File",
+        "links": "Link",
+        "music": "Musica",
+        "voice": "Vocali",
+        "gifs": "GIF"
+      },
+      "noMembers": "Nessun membro trovato",
+      "noFiles": "Nessun file condiviso",
+      "notSpecified": "Non specificato",
+      "noDescriptionYet": "Nessuna descrizione ancora",
+      "actions": {
+        "settings": "Impostazioni",
+        "block": "Blocca",
+        "leave": "Abbandona"
+      },
+      "errors": {
+        "deviceError": "Non siamo riusciti a recuperare il dispositivo. Per favore riprova. <a href=\"https://www.novyse.com/help/troubleshooting/comms/devices\" target=\"_blank\">{{troubleshooting}}</a>"
+      }
+    },
     "loading": "Caricamento...",
     "listItem": {
       "draft": "Bozza",
@@ -95,67 +156,6 @@
           "totalSize": "Il totale supera {{size}}",
           "fileSize": "Supera {{size}}",
           "empty": "File vuoto"
-        }
-      },
-      "uploadOverlay": {
-        "media": "Media",
-        "camera": "Fotocamera",
-        "file": "File",
-        "location": "Posizione",
-        "todo": "Da fare",
-        "poll": "Sondaggio"
-      },
-      "uploadFile": {
-        "chooseFile": "Scegli File",
-        "removeAll": "Rimuovi tutti i file"
-      },
-      "messageActions": {
-        "reply": "Rispondi",
-        "pin": "Fissa",
-        "unpin": "Rimuovi",
-        "copy": "Copia",
-        "download": "Scarica",
-        "cancelEdit": "Annulla Modifica",
-        "edit": "Modifica",
-        "forward": "Inoltra",
-        "select": "Seleziona",
-        "delete": "Elimina",
-        "cancel": "Annulla",
-        "reads": {
-          "one": "{{count}} Lettura",
-          "other": "{{count}} Letture"
-        },
-        "reactions": {
-          "one": "{{count}} Reazione",
-          "other": "{{count}} Reazioni"
-        }
-      },
-      "iconsPicker": {
-        "emoji": "Emoji",
-        "sticker": "Sticker",
-        "gif": "GIF"
-      },
-      "overview": {
-        "tabs": {
-          "members": "Membri",
-          "media": "Media",
-          "files": "File",
-          "links": "Link",
-          "music": "Musica",
-          "voice": "Vocali",
-          "gifs": "GIF"
-        },
-        "noMembers": "Nessun membro trovato",
-        "noFiles": "Nessun file condiviso",
-        "notSpecified": "Non specificato",
-        "noDescriptionYet": "Nessuna descrizione ancora",
-        "actions": {
-          "settings": "Impostazioni",
-          "block": "Blocca",
-          "leave": "Abbandona"
-        },
-        "errors": {
-          "deviceError": "Non siamo riusciti a recuperare il dispositivo. Per favore riprova. <a href=\"https://www.novyse.com/help/troubleshooting/comms/devices\" target=\"_blank\">{{troubleshooting}}</a>"
         }
       }
     },
@@ -448,7 +448,8 @@
   "tabs": {
     "chatList": {
       "selected": "{{count}} selezionate",
-      "intentSharing": "Seleziona chat"
+      "intentSharing": "Seleziona chat",
+      "forwarding": "Inoltra a..."
     },
     "search": {
       "search": "Cerca",
