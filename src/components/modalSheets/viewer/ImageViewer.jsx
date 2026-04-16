@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { StyleSheet, View, Pressable, Share, Platform } from "react-native";
+import { StyleSheet, View, Pressable, Platform } from "react-native";
 import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useWindowDimensions } from "react-native";
 import {
@@ -20,9 +19,14 @@ import Animated, {
 import ModalBase from "../ModalBase";
 import { useScreen } from "@/context/ScreenContext";
 import useDownload from "@/src/hooks/file/useDownload";
+import useShare from "@/src/hooks/chat/useShare";
+import PlatformType from "@/src/utils/device/type";
+import Icon from "@/src/components/Icon";
 
 const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
   const { downloadFile } = useDownload();
+  const { shareFileOrText } = useShare();
+  const isMobile = PlatformType === "mobile";
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const { isSmallScreen } = useScreen();
 
@@ -123,12 +127,8 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
   }));
 
   const handleShare = async () => {
-    if (!uri) return;
-    try {
-      await Share.share({ url: uri, message: uri });
-    } catch (error) {
-      console.log("Error sharing", error);
-    }
+    if (!uuid && !uri) return;
+    await shareFileOrText({ uuid, uri });
   };
 
   const handleDownload = async () => {
@@ -167,18 +167,14 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
 
           {controlsVisible && (
             <SafeAreaView style={styles.header}>
-              <Pressable onPress={onClose} style={styles.iconButton}>
-                <Ionicons name="close" size={28} color="white" />
-              </Pressable>
+              <Icon name="Cancel01Icon" onPress={onClose} color="white" />
               <View style={styles.rightButtons}>
                 {uuid && (
-                  <Pressable onPress={handleDownload} style={styles.iconButton}>
-                    <Ionicons name="download-outline" size={26} color="white" />
-                  </Pressable>
+                  <Icon name="Download01Icon" onPress={handleDownload} color="white" />
                 )}
-                <Pressable onPress={handleShare} style={styles.iconButton}>
-                  <Ionicons name="share-outline" size={26} color="white" />
-                </Pressable>
+                {isMobile && (
+                  <Icon name="Share01Icon" onPress={handleShare} color="white" />
+                )}
               </View>
             </SafeAreaView>
           )}

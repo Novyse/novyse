@@ -27,6 +27,7 @@ import { getPlatform } from "@/src/utils/device/type";
 import ModalBase from "../ModalBase";
 import { useScreen } from "@/context/ScreenContext";
 import useDownload from "@/src/hooks/file/useDownload";
+import useShare from "@/src/hooks/chat/useShare";
 
 const formatTime = (seconds) => {
   if (!seconds) return "00:00";
@@ -39,6 +40,8 @@ const speeds = [0.25, 0.5, 0.75, 1, 1.5, 2];
 
 const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
   const { downloadFile } = useDownload();
+  const { shareFileOrText } = useShare();
+  const isMobile = getPlatform() === "mobile";
   const { isSmallScreen } = useScreen();
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
 
@@ -154,6 +157,11 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
     await downloadFile({ uuid });
   };
 
+  const handleShare = async () => {
+    if (!uuid && !uri) return;
+    await shareFileOrText({ uuid, uri });
+  };
+
   if (!uri) return <View style={styles.container} />;
 
   return (
@@ -199,6 +207,13 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                       <Icon
                         name="Download01Icon"
                         onPress={handleDownload}
+                        color="white"
+                      />
+                    )}
+                    {isMobile && (
+                      <Icon
+                        name="Share01Icon"
+                        onPress={handleShare}
                         color="white"
                       />
                     )}

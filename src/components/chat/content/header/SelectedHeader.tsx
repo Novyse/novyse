@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import Icon from "@/src/components/Icon";
 
 import { ThemeContext } from "@/context/ThemeContext";
+import PlatformType from "@/src/utils/device/type";
+import useShare from "@/src/hooks/chat/useShare";
 
 interface SelectedHeaderProps {
   selectedMessages: any[];
@@ -25,6 +27,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+  const { shareMessage } = useShare();
 
   const handleClose = () => {
     setSelectedMessages([]);
@@ -32,6 +35,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
 
   const selectedCount = selectedMessages.length;
   const canReply = selectedCount > 0 && selectedCount <= 3;
+  const isMobile = PlatformType === "mobile";
 
   return (
     <View style={styles.headerMainRow}>
@@ -50,6 +54,13 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
             name="ArrowMoveUpLeftIcon"
             style={[styles.iconButton]}
             onPress={onReply}
+          />
+        )}
+        {isMobile && selectedCount === 1 && (
+          <Icon
+            name="Share01Icon"
+            style={styles.iconButton}
+            onPress={() => shareMessage(selectedMessages[0])}
           />
         )}
         <Icon
