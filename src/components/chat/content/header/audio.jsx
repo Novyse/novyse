@@ -1,147 +1,201 @@
-import React, { useContext } from "react";
-import { View, StyleSheet, Pressable } from "react-native";
+import React, { useContext, useEffect } from "react";
+import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
-import { DateTime } from "luxon";
 import Icon from "@/src/components/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+  cancelAnimation,
+} from "react-native-reanimated";
 
 import { formatTime } from "@/src/utils/storage/file/utils";
-import SmoothSlider from "@/src/components/SmoothSlider";
-
 import { ThemeContext } from "@/context/ThemeContext";
 import { AudioPlayerContext } from "@/context/AudioPlayerContext";
+import useUserStore from "@/context/UserContext";
 
-const AudioHeader = ({}) => {
+const AudioHeader = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+  const getUser = useUserStore((state) => state.getUser);
 
   const {
     isPlaying,
     playbackRate,
     currentTime,
     duration,
-    didJustFinish,
     currentUri,
     audioInfo,
     handlePlayPause,
-    handleSeek,
     handleChangePlaybackRate,
     removeAudio,
   } = useContext(AudioPlayerContext);
 
+  const user = getUser(audioInfo.senderUUID);
+  const senderName = user ? user.name : "Unknown User";
+
   const isValidDuration = duration && Number.isFinite(duration) && duration > 0;
   const safeDuration = isValidDuration ? duration : 0;
 
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    if (isPlaying && safeDuration > 0) {
+      const currentPercentage = (currentTime / safeDuration) * 100;
+      progress.value = currentPercentage;
+
+      const remainingTime =
+        ((safeDuration - currentTime) * 1000) / (playbackRate || 1);
+
+      progress.value = withTiming(100, {
+        duration: Math.max(remainingTime, 0),
+        easing: Easing.linear,
+      });
+    } else {
+      cancelAnimation(progress);
+      if (safeDuration > 0) {
+        progress.value = (currentTime / safeDuration) * 100;
+      } else {
+        progress.value = 0;
+      }
+    }
+  }, [isPlaying, currentTime, safeDuration, playbackRate]);
+
+  const animatedProgressStyle = useAnimatedStyle(() => ({
+    width: `${progress.value}%`,
+  }));
+
   return (
-    // da gestire un eventuale evento per navigare allo specifico messaggio @SamueleOrazioDurante
-    <Pressable onPress={() => {}} style={styles.container}>
-      <View style={{ flexDirection: "row" }}>
+    <View style={styles.container}>
+      <View style={styles.mainContent}>
+        {/* Play/Pause Button */}
         <HoverAndPressedButton
-          style={styles.iconButton}
+          style={styles.playButton}
           activeOpacity={0.8}
           onPress={() => handlePlayPause(currentUri)}
         >
-          <Icon name={isPlaying ? "PauseIcon" : "PlayIcon"} />
+          <Icon
+            name={isPlaying ? "PauseIcon" : "PlayIcon"}
+            size={20}
+            color={theme.text}
+          />
         </HoverAndPressedButton>
-        <View style={styles.contentContainer}>
-          <View style={styles.infoRow}>
-            <AppText style={styles.titleText}>
-              <AppText
-                style={styles.subtitleText}
-                selectable={false}
-                text={`${audioInfo.senderName} | ${DateTime.fromJSDate(new Date(audioInfo.timestamp)).isValid ? DateTime.fromJSDate(new Date(audioInfo.timestamp)).toFormat("yyyy-MM-dd HH:mm") : audioInfo.timestamp}`}
-              />
+
+        {/* Info Section */}
+        <View style={styles.infoContainer}>
+          <AppText
+            style={styles.senderName}
+            numberOfLines={1}
+            text={senderName}
+          />
+          <View style={styles.statusRow}>
+            <AppText style={styles.timeText} selectable={false}>
+              {`${formatTime(currentTime)} / ${formatTime(safeDuration)}`}
             </AppText>
-            <AppText
-              style={styles.timeText}
-              selectable={false}
-              numberOfLines={1}
-              text={`${formatTime(currentTime)} / ${formatTime(safeDuration)}`}
-            />
           </View>
         </View>
+
+        {/* Right Controls */}
         <View style={styles.rightControls}>
           <HoverAndPressedButton
-            style={styles.iconButton}
-            onPress={() => {
-              handleChangePlaybackRate();
-            }}
+            style={styles.controlButton}
+            onPress={() => handleChangePlaybackRate()}
           >
-            <AppText
-              style={styles.speedText}
-              selectable={false}
-              text={`${playbackRate}x`}
-            />
+            <AppText text={`${playbackRate}x`} style={styles.rateText} />
           </HoverAndPressedButton>
+
           <HoverAndPressedButton
-            style={styles.iconButton}
+            style={styles.controlButton}
             onPress={removeAudio}
           >
-            <Icon name={"Cancel01Icon"} />
+            <Icon name="Cancel01Icon" size={20} color={theme.text} />
           </HoverAndPressedButton>
         </View>
       </View>
-      <SmoothSlider
-        currentValue={currentTime}
-        maxValue={safeDuration}
-        playbackRate={playbackRate}
-        onSeek={handleSeek}
-        reset={didJustFinish}
-        isMoving={isPlaying}
-        showThumb={false}
-      />
-    </Pressable>
+
+      {/* Modern Visual Progress Bar */}
+      <View style={styles.progressTrack}>
+        <Animated.View style={[styles.progressFill, animatedProgressStyle]} />
+      </View>
+    </View>
   );
 };
 
 function createStyle(theme) {
   return StyleSheet.create({
     container: {
-      flexDirection: "column",
-      // alignItems: "center",
-      paddingVertical: 12,
       width: "100%",
+      backgroundColor: "transparent",
+      paddingTop: 8,
+      paddingBottom: 2,
+      position: "relative",
     },
-    iconButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 24,
+    mainContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 12,
+      paddingBottom: 10,
+    },
+    playButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: theme.primary + "20",
       justifyContent: "center",
       alignItems: "center",
       marginRight: 12,
     },
-    contentContainer: {
+    infoContainer: {
       flex: 1,
       justifyContent: "center",
-      marginRight: 12,
     },
-    infoRow: {
+    senderName: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: theme.text,
+      marginBottom: 2,
+    },
+    statusRow: {
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "center",
     },
-    titleText: {
-      color: theme.text,
-      fontSize: 14,
-      marginRight: 10,
-    },
-    subtitleText: {
-      fontWeight: "400",
-      color: theme.text,
-    },
     timeText: {
-      color: theme.text,
       fontSize: 12,
+      color: theme.placeholderText || "#888",
       fontVariant: ["tabular-nums"],
+    },
+    rateText: {
+      fontSize: 12,
+      color: theme.primary,
+      fontWeight: "600",
     },
     rightControls: {
       flexDirection: "row",
       alignItems: "center",
+      gap: 4,
     },
-    speedText: {
-      color: theme.text,
-      fontWeight: "600",
-      fontSize: 14,
+    controlButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    progressTrack: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 3,
+      backgroundColor: theme.border || "rgba(255,255,255,0.1)",
+      overflow: "hidden",
+    },
+    progressFill: {
+      height: "100%",
+      backgroundColor: theme.primary || "#007AFF",
+      borderRadius: 2,
     },
   });
 }

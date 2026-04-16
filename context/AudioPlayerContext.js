@@ -4,12 +4,14 @@ import {
   useAudioPlayerStatus,
   AudioModule,
 } from "expo-audio";
+import useUserStore from "./UserContext";
 
 export const AudioPlayerContext = createContext();
 
 const speeds = [1, 1.5, 2, 0.5];
 
 export const AudioPlayerProvider = ({ children }) => {
+  const getUser = useUserStore((state) => state.getUser);
   const [currentUri, setCurrentUri] = useState(null);
 
   const [audioInfo, setAudioInfo] = useState({});
@@ -46,7 +48,6 @@ export const AudioPlayerProvider = ({ children }) => {
   const addInfo = (
     chatUUID,
     messageID,
-    senderName,
     senderUUID,
     profilePictureUri,
     timestamp,
@@ -54,7 +55,6 @@ export const AudioPlayerProvider = ({ children }) => {
     setAudioInfo({
       chatUUID,
       messageID,
-      senderName,
       senderUUID,
       profilePictureUri,
       timestamp,
@@ -78,8 +78,12 @@ export const AudioPlayerProvider = ({ children }) => {
     try {
       player.play();
       setPlaybackRate(player.playbackRate);
+
+      const user = getUser(audioInfo.senderUUID);
+      const displayName = user ? user.name : "Unknown User";
+
       player.setActiveForLockScreen(true, {
-        title: audioInfo.senderName,
+        title: displayName,
         artist: "Voice Message",
         albumTitle: "Novyse",
         artworkUrl: audioInfo.profilePictureUri,
@@ -101,21 +105,22 @@ export const AudioPlayerProvider = ({ children }) => {
 
   const handleChangePlaybackRate = (playBackRateToSet = null) => {
     // for future menu implementation (where you can choose a specific speed without cycling)
-    if (playBackRateToSet) {
+    if (typeof playBackRateToSet === "number" && Number.isFinite(playBackRateToSet)) {
       player.setPlaybackRate(playBackRateToSet);
       setPlaybackRate(player.playbackRate);
       return;
     }
 
     const cycleSpeed = () => {
-      const nextIndex =
-        (speeds.indexOf(player.playbackRate) + 1) % speeds.length;
+      const currentRate = player.playbackRate;
+      const currentIndex = speeds.indexOf(currentRate);
+      const nextIndex = (currentIndex + 1) % speeds.length;
       return speeds[nextIndex];
     };
 
     const newRate = cycleSpeed();
     player.setPlaybackRate(newRate);
-    setPlaybackRate(player.playbackRate);
+    setPlaybackRate(newRate);
   };
 
   const removeAudio = () => {

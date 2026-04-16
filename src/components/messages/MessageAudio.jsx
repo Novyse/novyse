@@ -46,7 +46,6 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
     addInfo(
       message.chatUUID,
       message.id,
-      message.sender_name,
       message.senderUUID,
       profilePictureUri,
       message.created_at,

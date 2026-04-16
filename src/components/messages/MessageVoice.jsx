@@ -47,7 +47,6 @@ const MessageVoice = ({
     addInfo(
       message.chatUUID,
       message.id,
-      message.sender_name,
       message.senderUUID,
       profilePictureUri,
       message.created_at,
