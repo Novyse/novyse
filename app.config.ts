@@ -204,6 +204,20 @@ export default {
         },
       ],
       "@livekit/react-native-expo-plugin",
+      [
+        "expo-share-intent",
+        {
+          iosActivationRules: {
+            NSExtensionActivationSupportsText: true,
+            NSExtensionActivationSupportsWebURLWithMaxCount: 1,
+            NSExtensionActivationSupportsWebPageWithMaxCount: 1,
+            NSExtensionActivationSupportsImageWithMaxCount: 5,
+            NSExtensionActivationSupportsMovieWithMaxCount: 5,
+            NSExtensionActivationSupportsFileWithMaxCount: 5,
+          },
+          androidIntentFilters: ["*/*"],
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,

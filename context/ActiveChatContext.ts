@@ -59,33 +59,36 @@ export interface ActiveChatState extends ChatUIState {
 }
 
 export const useActiveChatStore = create<ActiveChatState>((set, get) => {
-  EventEmitter.getEmitter().on("chat:new", (data) => {
-    const { chat, users } = data;
-    let handle;
-    if (chat.type === "DM") {
-      const userUUID = useUserStore.getState().localUserUUID;
-      const otherUser = chat.members?.find(
-        (member: any) =>
-          member.uuid !== userUUID && member.userUUID !== userUUID,
-      );
-      const otherDataUser = users?.find((u: any) => u.uuid !== userUUID);
-      handle =
-        otherUser?.handle ||
-        otherUser?.user?.handle ||
-        otherDataUser?.handle ||
-        chat.handle;
-    } else {
-      handle = chat.handle;
-    }
+  EventEmitter.getEmitter().on(
+    "chat:new",
+    (data: { chat: any; users: any[] }) => {
+      const { chat, users } = data;
+      let handle;
+      if (chat.type === "DM") {
+        const userUUID = useUserStore.getState().localUserUUID;
+        const otherUser = chat.members?.find(
+          (member: any) =>
+            member.uuid !== userUUID && member.userUUID !== userUUID,
+        );
+        const otherDataUser = users?.find((u: any) => u.uuid !== userUUID);
+        handle =
+          otherUser?.handle ||
+          otherUser?.user?.handle ||
+          otherDataUser?.handle ||
+          chat.handle;
+      } else {
+        handle = chat.handle;
+      }
 
-    const { selectedChatUUID, selectedHandle, setSelectedChatUUID } = get();
-    if (
-      selectedChatUUID === null &&
-      selectedHandle?.toLowerCase() === handle?.toLowerCase()
-    ) {
-      setSelectedChatUUID(chat.uuid);
-    }
-  });
+      const { selectedChatUUID, selectedHandle, setSelectedChatUUID } = get();
+      if (
+        selectedChatUUID === null &&
+        selectedHandle?.toLowerCase() === handle?.toLowerCase()
+      ) {
+        setSelectedChatUUID(chat.uuid);
+      }
+    },
+  );
 
   return {
     selectedChatUUID: null,
@@ -285,7 +288,7 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
             // This happens when you search for a handle but the chat was already in your DB
             const existingByUUID = useChatStore
               .getState()
-              .chats.find((c) => c.uuid === fetchedChat.uuid);
+              .chats.find((c) => c.uuid === fetchedChat?.uuid);
 
             if (existingByUUID) {
               const newUI = loadUIState(fetchedChat.uuid);

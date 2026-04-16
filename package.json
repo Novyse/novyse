@@ -57,6 +57,7 @@
     "expo-router": "~55.0.2",
     "expo-screen-orientation": "~55.0.8",
     "expo-secure-store": "~55.0.9",
+    "expo-share-intent": "^6.1.0",
     "expo-sharing": "^55.0.11",
     "expo-splash-screen": "~55.0.9",
     "expo-sqlite": "~55.0.10",

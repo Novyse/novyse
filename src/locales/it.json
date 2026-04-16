@@ -447,7 +447,8 @@
   },
   "tabs": {
     "chatList": {
-      "selected": "{{count}} selezionate"
+      "selected": "{{count}} selezionate",
+      "intentSharing": "Seleziona chat"
     },
     "search": {
       "search": "Cerca",

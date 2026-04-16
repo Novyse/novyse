@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Slot } from "expo-router";
+import { tabNavigator } from "@/src/utils/navigation/tabRef";
+
+import { BRANCH } from "@/app.config";
 
 import { useSQLiteContext, SQLiteProvider } from "expo-sqlite";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
 
+import { ShareIntentProvider } from "expo-share-intent";
+
 import { CommsProvider } from "@/context/CommsContext";
 import useNetworkStore from "@/context/NetworkContext";
+import { useActiveChatStore } from "@/context/ActiveChatContext";
 
 import { getPlatform } from "@/src/utils/device/type";
 
@@ -18,6 +24,9 @@ import ErrorPage from "@/src/components/pages/ErrorPage";
 function ProtectedContent() {
   const db = useSQLiteContext();
   const initNetwork = useNetworkStore((state: any) => state.init);
+  const setSelectedChatUUID = useActiveChatStore(
+    (state) => state.setSelectedChatUUID,
+  );
   SetupGlobalEventReceiver();
 
   // Init and set database instance & global event receiver
@@ -40,13 +49,22 @@ function ProtectedContent() {
   }
 
   return (
-    <AudioPlayerProvider>
-      
+    <ShareIntentProvider
+      options={{
+        debug: BRANCH === "development",
+        resetOnBackground: true,
+        onResetShareIntent: () => {
+          setSelectedChatUUID(null);
+          tabNavigator.navigate("ChatList");
+        },
+      }}
+    >
+      <AudioPlayerProvider>
         <CommsProvider>
-            <Slot />
+          <Slot />
         </CommsProvider>
-      
-    </AudioPlayerProvider>
+      </AudioPlayerProvider>
+    </ShareIntentProvider>
   );
 }
 

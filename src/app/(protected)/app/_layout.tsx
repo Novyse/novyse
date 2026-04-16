@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, useWindowDimensions, Animated } from "react-native";
+import { View, useWindowDimensions, Animated } from "react-native";
 import { Slot, usePathname } from "expo-router";
 
 import { useThemeContext } from "@/context/ThemeContext";
@@ -70,7 +70,10 @@ export default function RootLayout() {
           try {
             await auth.updateDatabase();
           } catch (updateError) {
-            console.warn("Failed to update database, continuing anyway:", updateError);
+            console.warn(
+              "Failed to update database, continuing anyway:",
+              updateError,
+            );
           }
           setHasInitialized(true);
         } else {
@@ -110,7 +113,9 @@ export default function RootLayout() {
   // For  we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {
     return (
-      <View style={{ flex: 1, backgroundColor: "transparent", overflow: "hidden" }}>
+      <View
+        style={{ flex: 1, backgroundColor: "transparent", overflow: "hidden" }}
+      >
         <TabNavigator isDetailOpen={isDetailOpen} />
         <Animated.View
           style={{
