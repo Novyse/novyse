@@ -17,6 +17,7 @@ import usePreparedMessages from "@/src/hooks/chat/usePreparedMessages.js";
 import useClipboard from "@/src/hooks/useClipboard";
 import useDownload from "@/src/hooks/file/useDownload";
 import useActivityEmitter from "@/src/hooks/chat/useActivityEmitter";
+import { useForward } from "@/src/hooks/chat/useForward";
 
 import { useActiveChatStore } from "@/context/ActiveChatContext";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -134,6 +135,12 @@ const ChatContent = () => {
     setSheetIndex,
     bottomSheetRef,
   );
+  
+  const { startForwarding } = useForward();
+
+  const handleForward = useCallback((msg) => {
+    startForwarding([msg]);
+  }, [startForwarding]);
 
   const handleAppendFilesToDraft = useCallback(
     (newFiles) => {
@@ -399,6 +406,7 @@ const ChatContent = () => {
             onCopy={handleCopy}
             onDownload={handleDownload}
             onEdit={handleEdit}
+            onForward={handleForward}
             onCancel={handleCancelJob}
             onDelete={handleDelete}
             onLoadMore={() => loadMoreMessages(selectedChatUUID)}

@@ -33,6 +33,7 @@ const MessageList = ({
   onCancel,
   onDelete,
   onReaction,
+  onForward,
   onLoadMore,
 }) => {
   const insets = useSafeAreaInsets();
@@ -91,6 +92,7 @@ const MessageList = ({
     onCancel,
     onDelete,
     onReaction,
+    onForward,
   });
 
   const [showScrollButton, setShowScrollButton] = useState(false);

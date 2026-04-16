@@ -23,6 +23,7 @@ import CommsHeader from "@/src/components/chat/content/header/CommsHeader";
 import useChatStore from "@/context/ChatContext";
 import useChatPin from "@/src/hooks/chat/useChatPin";
 import useSelection from "@/src/hooks/useSelection";
+import { useForward } from "@/src/hooks/chat/useForward";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useScreen } from "@/context/ScreenContext";
 import { useCommsContext } from "@/context/CommsContext";
@@ -44,6 +45,8 @@ const ChatList = () => {
 
   const { hasShareIntent, shareIntent, resetShareIntent } =
     useShareIntentContext();
+    
+  const { isForwarding, completeForwarding, resetForwarding } = useForward();
 
   const onChatSelectWithIntent = useCallback(
     (chatUUID: string) => {
@@ -153,6 +156,8 @@ const ChatList = () => {
   const handlePress = (chatUUID: string) => {
     if (isSelectionMode) {
       toggleSelection(chatUUID);
+    } else if (isForwarding) {
+      completeForwarding(chatUUID);
     } else {
       if (hasShareIntent) {
         onChatSelectWithIntent(chatUUID);
@@ -263,6 +268,31 @@ const ChatList = () => {
     [styles.headerTitle, resetShareIntent, commsHeaderComponent],
   );
 
+  const renderForwardingHeader = useCallback(
+    () => (
+      <BlurredHeader
+        style={{
+          paddingHorizontal: 10,
+          paddingVertical: 5,
+          backgroundColor: "#2951a9",
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+        commsHeader={commsHeaderComponent}
+      >
+        <View style={{ width: 40, alignItems: "flex-start" }}>
+          <Icon name={"Cancel01Icon"} onPress={() => resetForwarding()} />
+        </View>
+        <AppText
+          style={[styles.headerTitle, { flex: 1, textAlign: "center" }]}
+          translationKey="tabs.chatList.forwarding"
+        />
+        <View style={{ width: 40 }} />
+      </BlurredHeader>
+    ),
+    [styles.headerTitle, resetForwarding, commsHeaderComponent],
+  );
+
   const renderItem = ({ item }: { item: Chat }) => {
     const isPinned = ((pinnedChats as any[]) || []).some(
       (p) => p.chatUUID === item.uuid,
@@ -284,9 +314,11 @@ const ChatList = () => {
     <>
       {isSelectionMode
         ? renderSelectionHeader()
-        : hasShareIntent
-          ? renderIntentHeader()
-          : renderDefaultHeader()}
+        : isForwarding
+          ? renderForwardingHeader()
+          : hasShareIntent
+            ? renderIntentHeader()
+            : renderDefaultHeader()}
 
       <FlatList
         style={styles.flatList}

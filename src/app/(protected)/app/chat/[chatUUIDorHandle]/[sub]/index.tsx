@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo, useEffect } from "react";
+import React, { useState, useContext, useMemo, useEffect, useCallback } from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
 
 import { router, useLocalSearchParams } from "expo-router";
@@ -14,6 +14,7 @@ import useWindowSizeStore from "@/context/WindowSizeContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
+import { useForward } from "@/src/hooks/chat/useForward";
 
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 import JoinCreateChat from "@/src/components/chat/JoinCreateChat";
@@ -58,6 +59,14 @@ const ChatPageRoute = () => {
     setNewMessageText,
     setEditingMessage,
   );
+
+  const { startForwarding } = useForward();
+
+  const handleSelectedForward = useCallback(() => {
+    if (selectedMessages.length === 0) return;
+    startForwarding(selectedMessages);
+    setSelectedMessages([]);
+  }, [selectedMessages, startForwarding, setSelectedMessages]);
 
   const { theme } = useContext(ThemeContext);
   const { isSmallScreen } = useScreen();
@@ -266,7 +275,7 @@ const ChatPageRoute = () => {
         }}
         isSmallScreen={isSmallScreen}
         onReply={handleBulkReply}
-        onForward={() => {}}
+        onForward={handleSelectedForward}
         onDelete={() => {
           setDeleteModalVisible(true);
         }}
