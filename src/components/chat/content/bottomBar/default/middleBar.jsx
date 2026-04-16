@@ -42,14 +42,12 @@ const MiddleBar = ({
       const items = e.clipboardData?.files;
       if (!items || items.length === 0) return;
 
-      const imageFiles = Array.from(items).filter((f) =>
-        f.type.startsWith("image/"),
-      );
-      if (imageFiles.length === 0) return;
+      const files = Array.from(items);
+      if (files.length === 0) return;
 
       e.preventDefault();
 
-      const droppedFiles = imageFiles.map(toDroppedFile);
+      const droppedFiles = files.map(toDroppedFile);
       onFileAppend?.(droppedFiles);
     };
 
