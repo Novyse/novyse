@@ -224,52 +224,45 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
               ))}
             </View>
           </BlurredView>
-          {/* Reads Box */}
-          {!isPendingSend && hasRead && (
-            <View style={{ marginTop: 8 }}>
-              <BlurredView style={styles.statsContainer}>
-                <HoverAndPressedButton
-                  onPress={() => {}}
-                  style={styles.statsButton}
-                >
-                  <View style={styles.statsRow}>
-                    <Icon name="EyeIcon" size={16} color={theme.text} />
-                    <AppText
-                      style={styles.statsText}
-                      selectable={false}
-                      text={t(
-                        `chat.messageActions.reads.${readCount === 1 ? "one" : "other"}`,
-                        { count: readCount },
-                      )}
-                    />
-                  </View>
-                </HoverAndPressedButton>
-              </BlurredView>
+          {/* Stats Box (Reads & Reactions) */}
+          {(!isPendingSend && hasRead) || hasReactions ? (
+            <View style={styles.statsContainerParent}>
+              {!isPendingSend && hasRead && (
+                <BlurredView style={styles.statsContainerHalf}>
+                  <HoverAndPressedButton
+                    onPress={() => {}}
+                    style={styles.statsButtonHalf}
+                  >
+                    <View style={styles.statsRowHalf}>
+                      <Icon name="EyeIcon" size={16} color={theme.text} />
+                      <AppText
+                        style={styles.statsTextHalf}
+                        selectable={false}
+                        text={readCount.toString()}
+                      />
+                    </View>
+                  </HoverAndPressedButton>
+                </BlurredView>
+              )}
+              {hasReactions && (
+                <BlurredView style={styles.statsContainerHalf}>
+                  <HoverAndPressedButton
+                    onPress={() => {}}
+                    style={styles.statsButtonHalf}
+                  >
+                    <View style={styles.statsRowHalf}>
+                      <Icon name="SmileIcon" size={16} color={theme.text} />
+                      <AppText
+                        style={styles.statsTextHalf}
+                        selectable={false}
+                        text={totalReactions.toString()}
+                      />
+                    </View>
+                  </HoverAndPressedButton>
+                </BlurredView>
+              )}
             </View>
-          )}
-          {/* Reactions Box */}
-          {hasReactions && (
-            <View style={{ marginTop: 8 }}>
-              <BlurredView style={styles.statsContainer}>
-                <HoverAndPressedButton
-                  onPress={() => {}}
-                  style={styles.statsButton}
-                >
-                  <View style={styles.statsRow}>
-                    <Icon name="SmileIcon" size={16} color={theme.text} />
-                    <AppText
-                      style={styles.statsText}
-                      selectable={false}
-                      text={t(
-                        `chat.messageActions.reactions.${totalReactions === 1 ? "one" : "other"}`,
-                        { count: totalReactions },
-                      )}
-                    />
-                  </View>
-                </HoverAndPressedButton>
-              </BlurredView>
-            </View>
-          )}
+          ) : null}
         </View>
       </Pressable>
     </Modal>
@@ -312,26 +305,34 @@ const createStyle = (theme: any) =>
       fontSize: 14,
       color: theme.text,
     },
-    statsContainer: {
-      borderRadius: 10,
+    statsContainerParent: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 8,
+      gap: 8,
       minWidth: 120,
       maxWidth: 175,
-      zIndex: 1000,
+    },
+    statsContainerHalf: {
+      flex: 1,
+      borderRadius: 10,
       overflow: "hidden",
     },
-    statsButton: {
-      paddingVertical: 10,
-      paddingHorizontal: 15,
-      flexDirection: "column",
-      gap: 8,
-      borderRadius: 0,
-    },
-    statsRow: {
+    statsButtonHalf: {
+      paddingVertical: 5,
+      paddingHorizontal: 0,
       flexDirection: "row",
       alignItems: "center",
-      gap: 15,
+      justifyContent: "center",
+      width: "100%",
     },
-    statsText: {
+    statsRowHalf: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    },
+    statsTextHalf: {
       fontSize: 14,
       color: theme.text,
       flexShrink: 1,
