@@ -145,11 +145,15 @@ const ChatList = () => {
             ? b.messages[b.messages.length - 1]
             : null;
 
-        const timeA = lastMsgA?.created_at
-          ? new Date(lastMsgA.created_at).getTime()
+        const timeA = lastMsgA
+          ? lastMsgA.created_at
+            ? new Date(lastMsgA.created_at).getTime()
+            : Date.now()
           : 0;
-        const timeB = lastMsgB?.created_at
-          ? new Date(lastMsgB.created_at).getTime()
+        const timeB = lastMsgB
+          ? lastMsgB.created_at
+            ? new Date(lastMsgB.created_at).getTime()
+            : Date.now()
           : 0;
         return timeB - timeA;
       }
