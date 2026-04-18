@@ -38,7 +38,8 @@ export const useChatMetadata = (chatUUIDorHandle: string | undefined) => {
         profilePictureUUID: targetUser?.profilePictureUUID || null,
         type: chat.type,
         memberCount: 2,
-        onlineMembersCount: targetUser?.isOnline ? 2 : 1,
+        onlineMembersCount: targetUser?.status === "ONLINE" ? 2 : 1,
+        lastAccessAt: targetUser?.lastAccessAt || null,
         memberActivityData: otherMember?.action
           ? [
               {
@@ -58,7 +59,8 @@ export const useChatMetadata = (chatUUIDorHandle: string | undefined) => {
       type: chat.type,
       memberCount: chat.members?.length || 0,
       onlineMembersCount:
-        chat.members?.filter((m) => users[m.uuid]?.isOnline).length || 0,
+        chat.members?.filter((m) => users[m.uuid]?.status === "ONLINE")
+          .length || 0,
       memberActivityData:
         chat.members
           ?.filter((member) => member.action)

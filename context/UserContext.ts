@@ -19,7 +19,11 @@ interface UserState {
   onProfileUpdate: (data: Partial<User> & { userUUID: string }) => void;
   onNewChat: (data: { chat: any; users: User[] }) => void;
   onNewMember: (data: { chatUUID: string; user: User }) => void;
-  onPresenceUpdate: (data: { userUUID: string; isOnline: boolean }) => void;
+  onPresenceUpdate: (data: {
+    userUUID: string;
+    status: "ONLINE" | "OFFLINE";
+    lastAccessAt: Date | null;
+  }) => void;
   clear: () => void;
 }
 
@@ -34,7 +38,8 @@ const mapRawToUser = (raw: any): User => ({
   birthday: raw.birthday ?? null,
   region: raw.region ?? null,
   country: raw.country ?? null,
-  isOnline: raw.isOnline ?? false,
+  status: raw.status ?? (raw.isOnline ? "ONLINE" : "OFFLINE"),
+  lastAccessAt: raw.lastAccessAt ? new Date(raw.lastAccessAt) : null,
 });
 
 const useUserStore = create<UserState>((set, get) => ({
@@ -58,7 +63,10 @@ const useUserStore = create<UserState>((set, get) => ({
 
     // Set ONLINE status of local user
     if (localUserUUID) {
-      usersMap[localUserUUID] = { ...usersMap[localUserUUID], isOnline: true };
+      usersMap[localUserUUID] = {
+        ...usersMap[localUserUUID],
+        status: "ONLINE",
+      };
     }
 
     set({
@@ -133,12 +141,16 @@ const useUserStore = create<UserState>((set, get) => ({
   },
 
   onPresenceUpdate: (data) => {
-    const { userUUID, isOnline } = data;
+    const { userUUID, status, lastAccessAt } = data;
     set((state) => {
       const existing = state.users[userUUID];
       if (!existing) return state;
 
-      const updated = { ...existing, isOnline };
+      const updated = {
+        ...existing,
+        status: status ?? existing.status,
+        lastAccessAt: lastAccessAt ?? existing.lastAccessAt,
+      };
       return { users: { ...state.users, [userUUID]: updated } };
     });
   },

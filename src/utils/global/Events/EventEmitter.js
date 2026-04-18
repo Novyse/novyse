@@ -133,8 +133,12 @@ class GlobalEventEmitter {
       },
     },
     presence: {
-      update: async (userUUID, isOnline) => {
-        this.eventEmitter.emit("user:presence:update", { userUUID, isOnline });
+      update: async (userUUID, status, lastAccessAt = null) => {
+        this.eventEmitter.emit("user:presence:update", {
+          userUUID,
+          status,
+          lastAccessAt,
+        });
       },
     },
   };

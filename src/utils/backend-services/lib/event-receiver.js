@@ -34,7 +34,7 @@ const eventReceiver = {
     });
 
     socket.on("user:presence:offline", async (data) => {
-      await eventEmitter.user.presence.update(data.userUUID, false);
+      await eventEmitter.user.presence.update(data.userUUID, false, data.lastAccessAt);
     });
 
     socket.on("message:new", async (message) => {
