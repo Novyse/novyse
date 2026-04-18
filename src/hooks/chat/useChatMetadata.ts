@@ -2,7 +2,10 @@ import { useMemo } from "react";
 import useChatStore from "@/context/ChatContext";
 import useUserStore from "@/context/UserContext";
 
-export const useChatMetadata = (chatUUIDorHandle: string | undefined) => {
+export const useChatMetadata = (
+  chatUUIDorHandle: string | undefined,
+  sub = 0,
+) => {
   const localUserUUID = useUserStore((state) => state.localUserUUID);
   const users = useUserStore((state) => state.users);
 

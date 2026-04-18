@@ -19,6 +19,7 @@ import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import Avatar from "@/src/components/Avatar";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
+import useChatStore from "@/context/ChatContext";
 
 type GroupTab =
   | "members"
@@ -32,16 +33,18 @@ type DMTab = "media" | "files" | "links" | "music" | "voice" | "gifs";
 
 const ChatOverview = () => {
   const { theme } = useContext(ThemeContext);
-  const { chatUUIDorHandle } = useLocalSearchParams();
+  const { chatUUIDorHandle, sub } = useLocalSearchParams();
   const { t } = useTranslation();
-  const chat = useActiveChatStore((state) => state.activeChatData);
+  const chat = useChatStore((state) =>
+    state.chats.find((c) => c.uuid === chatUUIDorHandle),
+  );
   const {
     name,
     profilePictureUUID,
     type: chatType,
     memberCount,
     onlineMembersCount,
-  } = useChatMetadata(chatUUIDorHandle as string);
+  } = useChatMetadata(chatUUIDorHandle as string, parseInt(sub as string));
 
   const isDM = chat?.type === "DM";
 
@@ -147,7 +150,8 @@ const ChatOverview = () => {
     );
   };
 
-  const renderMembers = () => {
+  const renderMembers = (chat: any) => {
+    console.log(chat);
     if (!chat?.members || chat.members.length === 0) {
       return (
         <AppText
@@ -174,7 +178,7 @@ const ChatOverview = () => {
               {user.profilePictureUUID ? (
                 <Avatar
                   uuid={user.profilePictureUUID || undefined}
-                  isOnline={chatType === "DM" ? user.status === "ONLINE" : false}
+                  isOnline={user.status === "ONLINE"}
                   theme={theme}
                   style={styles.memberAvatar}
                 />
@@ -243,8 +247,8 @@ const ChatOverview = () => {
     );
   };
 
-  const renderGroupTabContent = () => {
-    if (selectedGroupTab === "members") return renderMembers();
+  const renderGroupTabContent = (chat: any) => {
+    if (selectedGroupTab === "members") return renderMembers(chat);
     return renderFiles();
   };
 
@@ -292,7 +296,7 @@ const ChatOverview = () => {
         </View>
 
         <View style={styles.mainContent}>
-          {isDM ? renderDMTabContent() : renderGroupTabContent()}
+          {isDM ? renderDMTabContent() : renderGroupTabContent(chat)}
         </View>
 
         <View style={styles.actions}>

@@ -1,4 +1,10 @@
-import React, { useState, useContext, useMemo, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useContext,
+  useMemo,
+  useEffect,
+  useCallback,
+} from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
 
 import { router, useLocalSearchParams } from "expo-router";
@@ -271,7 +277,7 @@ const ChatPageRoute = () => {
           router.push("/app");
         }}
         navToOverview={() => {
-          router.push(`/app/chat/${chatUUIDorHandle}/overview`);
+          router.push(`/app/chat/${chatUUIDorHandle}/${sub}/overview`);
         }}
         isSmallScreen={isSmallScreen}
         onReply={handleBulkReply}
