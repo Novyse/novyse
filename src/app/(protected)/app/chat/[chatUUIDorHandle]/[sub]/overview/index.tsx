@@ -271,7 +271,7 @@ const ChatOverview = () => {
               style={styles.profilePicture}
             />
             <AppText style={styles.membersLabel}>
-              {isDM ? name : t("chat.header.members", { count: membersCount })}
+              {isDM ? name : t("chat.memberCount", { count: membersCount })}
             </AppText>
           </View>
         </View>
