@@ -11,6 +11,11 @@ import useLayout from "@/src/hooks/comms/useLayout";
 import UserCard from "./UserCard";
 import CommsMenu from "./CommsMenu";
 
+const PADDING_TOP = 160;
+const PADDING_BOTTOM = 110;
+const PADDING_LEFT = 6;
+const PADDING_RIGHT = 6;
+
 const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
@@ -24,6 +29,11 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
     isSpeakingMap,
   } = useCommsContext();
 
+  const adjustedDimensions = {
+    width: Math.max(0, containerDimensions.width - PADDING_LEFT - PADDING_RIGHT),
+    height: Math.max(0, containerDimensions.height - PADDING_TOP - PADDING_BOTTOM),
+  };
+
   const {
     layoutItems,
     rectWidth,
@@ -31,7 +41,7 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
     margin,
     handlePin,
     handleFullScreen,
-  } = useLayout(room, participants, containerDimensions);
+  } = useLayout(room, participants, adjustedDimensions);
 
   // Layout Handler
   const onContainerLayout = useCallback((event) => {
@@ -205,11 +215,13 @@ const styles = StyleSheet.create({
     zIndex: 10000,
   },
   grid: {
+    paddingTop: 160,
+    paddingBottom: 110,
+    paddingHorizontal: 6,
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
     alignContent: "center",
-    padding: 0,
     rowGap: 0,
     columnGap: 0,
     overflow: "hidden",
