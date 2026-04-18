@@ -9,7 +9,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import QRCodeReader from "@/src/components/QRCodeReader";
 
-import gateway from "@/src/utils/backend-services/api-gateway";
+import auth from "@/src/utils/backend-services/auth";
 
 export default function QrscannerRoute() {
   const { t } = useTranslation();
@@ -23,7 +23,7 @@ export default function QrscannerRoute() {
     try {
       console.log("QR Code content:", content);
 
-      const success = await gateway.auth.scanQRCodeToken(content);
+      const success = await auth.qrcode.authenticate(content);
 
       if (!success) {
         Alert.alert(t("common.error"), t("settings.qrScanner.invalidCode"));

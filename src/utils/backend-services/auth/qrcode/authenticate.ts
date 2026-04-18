@@ -1,12 +1,13 @@
 import { authApi } from "../../config";
+import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
 
 /**
  * Authorizes a QR Code authentication session from a logged-in device.
  * @param token The session token from the QR code.
- * @param userJwt The current logged-in user's JWT.
  */
-export async function authenticateQRCode(token: string, userJwt: string) {
+export async function authenticateQRCode(token: string) {
   try {
+    const userJwt = await getAuthToken();
     const response = await authApi.post(
       `/signin/qrcode/authenticate/${token}`,
       {},
