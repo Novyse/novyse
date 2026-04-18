@@ -9,6 +9,7 @@ import Avatar from "@/src/components/Avatar";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
+import { DateTime } from "luxon";
 import chatUtils from "@/src/utils/chat/messageFormat";
 
 const MainHeader = ({
@@ -19,6 +20,7 @@ const MainHeader = ({
   memberCount,
   onlineMembersCount,
   memberActivityData,
+  lastAccessAt,
   contentView,
   setContentView,
   onBack = () => router.back(),
@@ -48,13 +50,36 @@ const MainHeader = ({
           isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
         />
         <View style={styles.headerCenterText}>
-          <AppText style={styles.chatTitle} numberOfLines={1} text={selectedChatName} />
+          <AppText
+            style={styles.chatTitle}
+            numberOfLines={1}
+            text={selectedChatName}
+          />
           {memberActivityData && memberActivityData.length > 0 ? (
-            <AppText style={styles.chatSubtitle} numberOfLines={1} text={chatUtils.formatActivity(memberActivityData, chatType)} />
+            <AppText
+              style={styles.chatSubtitle}
+              numberOfLines={1}
+              text={chatUtils.formatActivity(memberActivityData, chatType)}
+            />
           ) : (
-            chatType === "GROUP" && (
-              <AppText style={styles.chatSubtitle} numberOfLines={1} text={`${t("chat.header.members", { count: memberCount })}${onlineMembersCount > 0 ? `, ${t("chat.header.online", { count: onlineMembersCount })}` : ""}`} />
-            )
+            <>
+              {chatType === "DM" &&
+                onlineMembersCount === 1 &&
+                lastAccessAt && (
+                  <AppText
+                    style={styles.chatSubtitle}
+                    numberOfLines={1}
+                    text={`${t("chat.header.lastSeen")}: ${DateTime.fromISO(lastAccessAt, { zone: "utc" }).toLocal()}`}
+                  />
+                )}
+              {chatType === "GROUP" && (
+                <AppText
+                  style={styles.chatSubtitle}
+                  numberOfLines={1}
+                  text={`${t("chat.header.members", { count: memberCount })}${onlineMembersCount > 0 ? `, ${t("chat.header.online", { count: onlineMembersCount })}` : ""}`}
+                />
+              )}
+            </>
           )}
         </View>
       </Pressable>

@@ -234,6 +234,16 @@ const updateDatabase = async () => {
       }
     }
 
+    if (user?.presence) {
+      for (const [userUUID, presence] of Object.entries(user.presence)) {
+        await EventEmitter.user.presence.update(
+          userUUID,
+          presence.status,
+          presence.lastAccessAt,
+        );
+      }
+    }
+
     if (chat?.new && Array.isArray(chat.new)) {
       for (const c of chat.new) {
         await EventEmitter.chat.new(c, []);

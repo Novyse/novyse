@@ -143,6 +143,7 @@
         "confirm": "Confirm"
       },
       "online": "{{count}} online",
+      "lastSeen": "Last seen",
       "selected": "{{count}} selected"
     },
     "bottomBar": {

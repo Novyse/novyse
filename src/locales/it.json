@@ -129,6 +129,7 @@
     "header": {
       "members": "{{count}} membri",
       "online": "{{count}} online",
+      "lastSeen": "Ultimo accesso",
       "call_participants": "{{count}} in chiamata",
       "status": {
         "success": "Successo",

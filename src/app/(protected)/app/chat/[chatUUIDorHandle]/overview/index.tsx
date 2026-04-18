@@ -174,7 +174,7 @@ const ChatOverview = () => {
               {user.profilePictureUUID ? (
                 <Avatar
                   uuid={user.profilePictureUUID || undefined}
-                  isOnline={chatType === "DM" ? user.isOnline : false}
+                  isOnline={chatType === "DM" ? user.status === "ONLINE" : false}
                   theme={theme}
                   style={styles.memberAvatar}
                 />
