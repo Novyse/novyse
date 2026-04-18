@@ -178,7 +178,9 @@
           "defaultName": "Microphone {{id}}"
         }
       }
-    }
+    },
+    "memberCount_one": "{{count}} member",
+    "memberCount_other": "{{count}} members"
   },
   "settings": {
     "languageAndTime": "Language & Time",

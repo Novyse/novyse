@@ -52,7 +52,7 @@ const ChatListItemSearch = React.memo(
                 item.type === "GROUP" ||
                 item.type === "FORUM" ||
                 item.type === "CHANNEL"
-                  ? ` • ${t(`chat.memberCount.${item.memberCount === 1 ? "one" : "other"}`, { count: item.memberCount })}`
+                  ? ` • ${t("chat.memberCount", { count: item.memberCount })}`
                   : ""
               }`}
             />

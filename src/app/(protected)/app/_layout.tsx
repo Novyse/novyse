@@ -10,6 +10,8 @@ import { useScreen } from "@/context/ScreenContext";
 import useChatStore from "@/context/ChatContext";
 import useUserStore from "@/context/UserContext";
 import useWindowSizeStore from "@/context/WindowSizeContext";
+import { useActiveChatStore } from "@/context/ActiveChatContext";
+
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -36,6 +38,11 @@ export default function RootLayout() {
       duration: 300,
       useNativeDriver: true,
     }).start();
+
+    // This ensures state is reset for Android back gestures or explicit navigation back to chat list.
+    if (!isDetailOpen) {
+      useActiveChatStore.getState().clear();
+    }
   }, [isDetailOpen]);
 
   const {
