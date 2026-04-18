@@ -179,7 +179,8 @@
       }
     },
     "memberCount_one": "{{count}} membro",
-    "memberCount_other": "{{count}} membri"
+    "memberCount_other": "{{count}} membri",
+    "unreadMessages": "Messaggi non letti"
   },
   "settings": {
     "languageAndTime": "Lingua e Ora",

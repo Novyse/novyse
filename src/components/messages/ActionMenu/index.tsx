@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  View,
-  Pressable,
-  StyleSheet,
-  Dimensions,
-  Modal,
-} from "react-native";
+import { View, Pressable, StyleSheet, Dimensions, Modal } from "react-native";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 
@@ -179,7 +173,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
     onClose();
   };
 
-  const readsArray = message?.reads || [];
+  const readsArray = message?.readBy || [];
   const readCount = readsArray.length;
   const hasRead = readCount > 0;
 
@@ -230,34 +224,48 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
               ))}
             </View>
           </BlurredView>
-          {/* Read & Reactions Box */}
-          {(hasRead || hasReactions) && (
+          {/* Reads Box */}
+          {!isPendingSend && hasRead && (
             <View style={{ marginTop: 8 }}>
               <BlurredView style={styles.statsContainer}>
                 <HoverAndPressedButton
                   onPress={() => {}}
                   style={styles.statsButton}
                 >
-                  {hasRead && (
-                    <View style={styles.statsRow}>
-                      <Icon name="EyeIcon" size={16} color={theme.text} />
-                      <AppText
-                        style={styles.statsText}
-                        selectable={false}
-                        text={t(`chat.messageActions.reads.${readCount === 1 ? "one" : "other"}`, { count: readCount })}
-                      />
-                    </View>
-                  )}
-                  {hasReactions && (
-                    <View style={styles.statsRow}>
-                      <Icon name="SmileIcon" size={16} color={theme.text} />
-                      <AppText
-                        style={styles.statsText}
-                        selectable={false}
-                        text={t(`chat.messageActions.reactions.${totalReactions === 1 ? "one" : "other"}`, { count: totalReactions })}
-                      />
-                    </View>
-                  )}
+                  <View style={styles.statsRow}>
+                    <Icon name="EyeIcon" size={16} color={theme.text} />
+                    <AppText
+                      style={styles.statsText}
+                      selectable={false}
+                      text={t(
+                        `chat.messageActions.reads.${readCount === 1 ? "one" : "other"}`,
+                        { count: readCount },
+                      )}
+                    />
+                  </View>
+                </HoverAndPressedButton>
+              </BlurredView>
+            </View>
+          )}
+          {/* Reactions Box */}
+          {hasReactions && (
+            <View style={{ marginTop: 8 }}>
+              <BlurredView style={styles.statsContainer}>
+                <HoverAndPressedButton
+                  onPress={() => {}}
+                  style={styles.statsButton}
+                >
+                  <View style={styles.statsRow}>
+                    <Icon name="SmileIcon" size={16} color={theme.text} />
+                    <AppText
+                      style={styles.statsText}
+                      selectable={false}
+                      text={t(
+                        `chat.messageActions.reactions.${totalReactions === 1 ? "one" : "other"}`,
+                        { count: totalReactions },
+                      )}
+                    />
+                  </View>
                 </HoverAndPressedButton>
               </BlurredView>
             </View>

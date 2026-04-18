@@ -138,7 +138,11 @@ const ChatListItem = React.memo(
               </View>
               <View style={styles.subtitleRow}>
                 {memberActivityData && memberActivityData.length > 0 ? (
-                  <AppText style={styles.chatSubtitle} selectable={false} text={messageUtils.formatActivity(memberActivityData)} />
+                  <AppText
+                    style={styles.chatSubtitle}
+                    selectable={false}
+                    text={messageUtils.formatActivity(memberActivityData)}
+                  />
                 ) : (
                   displayMessage(
                     draftText || draftFiles?.length > 0
@@ -161,10 +165,11 @@ const ChatListItem = React.memo(
                     {!lastMessage.created_at ? (
                       <Icon name={"Clock01Icon"} size={14} />
                     ) : (
-                      <>
-                        <Icon name={"TickDouble02Icon"} size={18} />
-                        <AppText style={styles.chatDateText} selectable={false} text={parseTime(lastMessage.created_at)} />
-                      </>
+                      <AppText
+                        style={styles.chatDateText}
+                        selectable={false}
+                        text={parseTime(lastMessage.created_at)}
+                      />
                     )}
                   </>
                 )}
@@ -174,7 +179,11 @@ const ChatListItem = React.memo(
                 {isPinned && <Icon name={"PinIcon"} size={16} />}
                 {unreadCount > 0 && (
                   <View style={styles.ball}>
-                    <AppText style={styles.ballText} selectable={false} text={unreadCount} />
+                    <AppText
+                      style={styles.ballText}
+                      selectable={false}
+                      text={unreadCount}
+                    />
                   </View>
                 )}
               </View>

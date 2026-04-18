@@ -45,7 +45,7 @@ const ChatList = () => {
 
   const { hasShareIntent, shareIntent, resetShareIntent } =
     useShareIntentContext();
-    
+
   const { isForwarding, completeForwarding, resetForwarding } = useForward();
 
   const onChatSelectWithIntent = useCallback(
@@ -136,11 +136,20 @@ const ChatList = () => {
       } else if (pinB) {
         return 1;
       } else {
-        const timeA = a.lastMessage?.created_at
-          ? new Date(a.lastMessage.created_at).getTime()
+        const lastMsgA =
+          a.messages && a.messages.length > 0
+            ? a.messages[a.messages.length - 1]
+            : null;
+        const lastMsgB =
+          b.messages && b.messages.length > 0
+            ? b.messages[b.messages.length - 1]
+            : null;
+
+        const timeA = lastMsgA?.created_at
+          ? new Date(lastMsgA.created_at).getTime()
           : 0;
-        const timeB = b.lastMessage?.created_at
-          ? new Date(b.lastMessage.created_at).getTime()
+        const timeB = lastMsgB?.created_at
+          ? new Date(lastMsgB.created_at).getTime()
           : 0;
         return timeB - timeA;
       }

@@ -54,6 +54,21 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
     [chatUUID, myUUID, setNewMessageText, activeChatData],
   );
 
+  const handleReadMessage = useCallback(
+    async (messageID) => {
+      const response = await gateway.message.read(chatUUID, messageID);
+      if (response.success && response.readAt) {
+        await eventEmitter.message.read(
+          chatUUID,
+          messageID,
+          myUUID,
+          response.readAt,
+        );
+      }
+    },
+    [chatUUID],
+  );
+
   const handlePinMessage = useCallback(
     async (messageID) => {
       const response = await gateway.message.pin.add(chatUUID, messageID);
@@ -185,6 +200,7 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
 
   return {
     handleSendMessage,
+    handleReadMessage,
     handlePinMessage,
     handleUnpinMessage,
     handleDeleteMessage,

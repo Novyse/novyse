@@ -34,11 +34,24 @@ const eventReceiver = {
     });
 
     socket.on("user:presence:offline", async (data) => {
-      await eventEmitter.user.presence.update(data.userUUID, false, data.lastAccessAt);
+      await eventEmitter.user.presence.update(
+        data.userUUID,
+        false,
+        data.lastAccessAt,
+      );
     });
 
     socket.on("message:new", async (message) => {
       await eventEmitter.message.new(message);
+    });
+
+    socket.on("message:read", async (data) => {
+      await eventEmitter.message.read(
+        data.chatUUID,
+        data.messageID,
+        data.readerUUID,
+        data.readAt,
+      );
     });
 
     socket.on("message:update", async (data) => {

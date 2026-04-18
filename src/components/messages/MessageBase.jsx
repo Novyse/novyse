@@ -260,6 +260,8 @@ const MessageBase = ({
 
   const hasReactions = message.reactions && message.reactions.length > 0;
 
+  const hasBeenRead = isSender && (message.readBy?.length || 0) > 0;
+
   const sharedContent = (
     <View style={hasOnlyMedia ? styles.mediaContainer : null}>
       {replyTos && replyTos.length > 0 && (
@@ -329,6 +331,8 @@ const MessageBase = ({
             <View style={styles.timestampOverlay}>
               <MessageTimestamp
                 time={created_at}
+                sent={isSender}
+                receivedByAll={hasBeenRead}
                 isEdited={isEdited}
                 isPendingEdit={!!message.pendingEditJobId}
                 isPinned={isPinned}
@@ -342,6 +346,8 @@ const MessageBase = ({
       {!content?.trim() && !hasReactions && (
         <MessageTimestamp
           time={created_at}
+          sent={isSender}
+          receivedByAll={hasBeenRead}
           isEdited={isEdited}
           isPendingEdit={!!message.pendingEditJobId}
           isPinned={isPinned}
@@ -369,6 +375,8 @@ const MessageBase = ({
           {/* Timestamp allineato a destra accanto/sotto le reazioni */}
           <MessageTimestamp
             time={created_at}
+            sent={isSender}
+            receivedByAll={hasBeenRead}
             isEdited={isEdited}
             isPendingEdit={!!message.pendingEditJobId}
             isPinned={isPinned}

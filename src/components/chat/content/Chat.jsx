@@ -120,6 +120,7 @@ const ChatContent = () => {
 
   const {
     handleSendMessage,
+    handleReadMessage,
     handlePinMessage,
     handleUnpinMessage,
     handleEditMessage,
@@ -302,6 +303,13 @@ const ChatContent = () => {
     [handleTextChange, emitTyping],
   );
 
+  const handleRead = useCallback(
+    (messageID) => {
+      handleReadMessage(messageID);
+    },
+    [handleReadMessage],
+  );
+
   const handlePin = useCallback(
     (msg) => {
       handlePinMessage(msg.id);
@@ -399,6 +407,7 @@ const ChatContent = () => {
             setSelectedMessages={setSelectedMessages}
             myUUID={myUUID}
             theme={theme}
+            onRead={handleRead}
             onPin={handlePin}
             onUnpin={handleUnpin}
             onReply={handleReply}

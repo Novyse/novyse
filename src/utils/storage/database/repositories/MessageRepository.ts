@@ -103,8 +103,21 @@ export class MessageRepository {
     await this._addReplyTos(message);
     await this._addRepliedFroms(message);
     await this._addReactions(message);
+    await this._addReads(message);
     await this._addFiles(message);
     return message;
+  }
+
+  async _addReads(message: any): Promise<void> {
+    if (!message) return;
+    const reads: any[] = await this.db.getAllAsync(
+      `SELECT user_uuid, read_at FROM message_read WHERE chat_uuid = ? AND message_id = ?;`,
+      [message.chatUUID, message.id],
+    );
+    message.readBy = reads.map((r: any) => ({
+      userUUID: r.user_uuid,
+      readAt: r.read_at,
+    }));
   }
 
   async _addReplyTos(message: any): Promise<void> {
@@ -362,7 +375,11 @@ export class MessageRepository {
           return null;
         }
       },
-      chatUUID: async (chatUUID: any, limit = 50, offset = 0): Promise<any[]> => {
+      chatUUID: async (
+        chatUUID: any,
+        limit = 50,
+        offset = 0,
+      ): Promise<any[]> => {
         try {
           const results: any[] = await this.db.getAllAsync(
             `SELECT m.*, u.name as sender_name, u.profilePictureUUID as profile_picture_uuid FROM message m
@@ -525,6 +542,29 @@ export class MessageRepository {
         return true;
       } catch (error) {
         console.error("Error removing reaction:", error);
+        return false;
+      }
+    },
+  };
+
+  read = {
+    add: async (
+      chatUUID: any,
+      messageID: any,
+      userUUID: any,
+      readAt: any,
+    ): Promise<boolean> => {
+      try {
+        await this.db.runAsync(
+          `INSERT OR IGNORE INTO message_read (chat_uuid, message_id, user_uuid, read_at) VALUES (?, ?, ?, ?);`,
+          [chatUUID, messageID, userUUID, readAt],
+        );
+        console.log(
+          `Read tracking for message ${messageID} added successfully.`,
+        );
+        return true;
+      } catch (error) {
+        console.error("Error adding read tracking:", error);
         return false;
       }
     },

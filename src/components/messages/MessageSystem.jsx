@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 import useUserStore from "@/context/UserContext";
@@ -31,6 +31,33 @@ const MessageSystem = ({ type, data }) => {
       return renderPill(data);
     case "system":
       return renderPill(systemText);
+    case "separator-with-lines":
+      return (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginVertical: 12,
+            marginHorizontal: 15,
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              height: StyleSheet.hairlineWidth,
+              backgroundColor: theme.backgroundDateSeparator,
+            }}
+          />
+          <View style={{ marginHorizontal: 10 }}>{renderPill(data)}</View>
+          <View
+            style={{
+              flex: 1,
+              height: StyleSheet.hairlineWidth,
+              backgroundColor: theme.backgroundDateSeparator,
+            }}
+          />
+        </View>
+      );
     default:
       return null;
   }

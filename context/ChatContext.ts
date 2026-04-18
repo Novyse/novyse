@@ -377,7 +377,13 @@ const useChatStore = create<ChatState>((set, get) => ({
             }
           });
         }
-        return { ...chat, messages: [...updatedMessages, safeMessage] };
+        return {
+          ...chat,
+          messages: [...updatedMessages, safeMessage],
+          unreadCount:
+            (chat.unreadCount || 0) +
+            (!message.internal && message.type !== "system" ? 1 : 0),
+        };
       }),
     }));
   },
@@ -464,6 +470,51 @@ const useChatStore = create<ChatState>((set, get) => ({
         if (chat.uuid !== eChatUUID) return chat;
 
         switch (action) {
+          case "read": {
+            const targetMessageID = Number(messageID);
+            const updatedMessages = chat.messages.map((msg: any) => {
+              if (msg.type === "system") return msg;
+              const msgID = Number(msg.id);
+              if (isNaN(msgID) || msgID > targetMessageID) return msg;
+
+              const newReadBy = [...(msg.readBy || [])];
+              const existingIdx = newReadBy.findIndex(
+                (r: any) => String(r.userUUID) === String(data.userUUID),
+              );
+              if (existingIdx >= 0) {
+                newReadBy[existingIdx] = {
+                  ...newReadBy[existingIdx],
+                  readAt: data.readAt,
+                };
+              } else {
+                newReadBy.push({
+                  userUUID: data.userUUID,
+                  readAt: data.readAt,
+                });
+              }
+              return { ...msg, readBy: newReadBy };
+            });
+
+            let newUnreadCount = chat.unreadCount || 0;
+            const readIdx = chat.messages.findIndex(
+              (m: any) => String(m.id) === String(messageID),
+            );
+
+            if (readIdx !== -1) {
+              newUnreadCount = chat.messages
+                .slice(readIdx + 1)
+                .filter((m: any) => m.type !== "system").length;
+            } else if (newUnreadCount > 0) {
+              newUnreadCount -= 1;
+            }
+
+            return {
+              ...chat,
+              messages: updatedMessages,
+              unreadCount: newUnreadCount,
+            };
+          }
+
           case "edit":
             return {
               ...chat,

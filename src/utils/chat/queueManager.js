@@ -679,9 +679,7 @@ class QueueManager {
 
     // Revert UI changes
     if (job.type === "OUTGOING_MESSAGE") {
-      if (
-        job.params.status === "PENDING_SEND"
-      ) {
+      if (job.params.status === "PENDING_SEND") {
         await eventEmitter.getEmitter().emit("message:update", {
           chatUUID,
           messageID: jobId,

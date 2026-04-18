@@ -664,6 +664,29 @@ const gateway = {
         }
       },
     },
+    async read(chatUUID, messageID) {
+      try {
+        if (!chatUUID || !messageID) {
+          throw new Error(
+            "Missing required fields for reading message",
+            chatUUID,
+            messageID,
+          );
+        }
+        const response = await api.post("/message/read", {
+          chatUUID,
+          messageID,
+        });
+        const success = response.data.success;
+        if (success) {
+          return { success };
+        }
+        return { success };
+      } catch (error) {
+        console.error("Error in message.read:", error);
+        throw error;
+      }
+    },
   },
 
   file: {

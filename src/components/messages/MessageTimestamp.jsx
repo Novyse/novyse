@@ -97,7 +97,7 @@ const MessageTimestamp = ({
         {isPendingEdit && (
           <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
         )}
-        {sent && !isPendingEdit && (
+        {sent && !receivedByAll && !isPendingEdit && (
           <Icon name={"Tick01Icon"} size={14} color={theme.textTime} />
         )}
         {receivedByAll && !isPendingEdit && (

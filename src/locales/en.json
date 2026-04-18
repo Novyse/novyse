@@ -180,7 +180,8 @@
       }
     },
     "memberCount_one": "{{count}} member",
-    "memberCount_other": "{{count}} members"
+    "memberCount_other": "{{count}} members",
+    "unreadMessages": "Unread messages"
   },
   "settings": {
     "languageAndTime": "Language & Time",

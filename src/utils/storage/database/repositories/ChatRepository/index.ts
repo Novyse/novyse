@@ -1,5 +1,6 @@
 import { SQLiteDatabase } from "expo-sqlite";
 import { MemberRepository } from "./MemberRepository";
+import useUserStore from "@/context/UserContext";
 
 import database from "@/src/utils/storage/database";
 
@@ -86,7 +87,7 @@ export class ChatRepository {
 
   pin = {
     add: async (chatUUID: any, position: any): Promise<any> => {
-      try { 
+      try {
         if (!chatUUID) {
           console.error("Missing required fields to pin chat.");
           return false;
@@ -167,7 +168,28 @@ export class ChatRepository {
 
         for (const chat of result) {
           chat.messages = await database.message.last.get(chat.uuid);
-          chat.unreadCount = Math.floor(Math.random() * 10);
+
+          const localUserUUID = useUserStore.getState().localUserUUID;
+
+          if (localUserUUID) {
+            const row = await this.db.getFirstAsync<{ count: number }>(
+              `SELECT COUNT(*) as count 
+               FROM message 
+               WHERE chatUUID = ? 
+                 AND senderUUID != ?
+                 AND type != 'system'
+                 AND id > (
+                     SELECT COALESCE(MAX(message_id), 0) 
+                     FROM message_read 
+                     WHERE chat_uuid = ? AND user_uuid = ?
+                 )`,
+              [chat.uuid, localUserUUID, chat.uuid, localUserUUID],
+            );
+            chat.unreadCount = row?.count || 0;
+          } else {
+            chat.unreadCount = 0;
+          }
+
           chat.members = await this.member.get.by.chatUUID(chat.uuid);
           chat.handle = await database.handle.get.by.uuid("chat", chat.uuid);
 
