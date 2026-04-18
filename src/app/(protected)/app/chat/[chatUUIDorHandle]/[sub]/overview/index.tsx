@@ -56,7 +56,7 @@ const ChatOverview = () => {
     const other = chat.members.find(
       (m: any) => (m.uuid || m.userUUID) !== localUserUUID,
     );
-    const targetId = other?.uuid || other?.userUUID;
+    const targetId = other?.uuid;
     return targetId ? users[targetId] || other : null;
   }, [isDM, chat?.members, localUserUUID, users]);
 

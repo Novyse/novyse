@@ -111,12 +111,6 @@ const ChatPageRoute = () => {
   }, [contentView, setMinDetailWidth]);
 
   useEffect(() => {
-    return () => {
-      clear();
-    };
-  }, [clear]);
-
-  useEffect(() => {
     if (chatUUIDorHandle) {
       const state = useActiveChatStore.getState();
 
