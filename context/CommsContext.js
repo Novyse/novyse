@@ -506,25 +506,32 @@ export const CommsProvider = ({ children }) => {
       }
 
       // 2. Handle ScreenShareAudio volume
-      const screenPub = participant.getTrackPublication(
+      const screenAudioPub = participant.getTrackPublication(
         Track.Source.ScreenShareAudio,
       );
-      if (screenPub) {
-        const volKey = screenPub.trackSid;
+      const screenVideoPub = participant.getTrackPublication(
+        Track.Source.ScreenShare,
+      );
+
+      if (screenAudioPub) {
+        const volKey = screenVideoPub
+          ? screenVideoPub.trackSid
+          : screenAudioPub.trackSid;
+
         const db = remoteVolumes[volKey] ?? 0;
         const isMuted = localMuted[volKey] ?? false;
         const targetVolume = isMuted ? 0 : dbToLinear(db);
 
         if (
-          screenPub.track &&
-          typeof screenPub.track.setVolume === "function"
+          screenAudioPub.track &&
+          typeof screenAudioPub.track.setVolume === "function"
         ) {
-          screenPub.track.setVolume(targetVolume);
+          screenAudioPub.track.setVolume(targetVolume);
         }
 
         // Web Audio element synchronization
         if (Platform.OS === "web") {
-          const audioEl = audioElementsRef.current.get(screenPub.trackSid);
+          const audioEl = audioElementsRef.current.get(screenAudioPub.trackSid);
           if (audioEl && audioEl.volume !== targetVolume) {
             audioEl.volume = targetVolume;
           }
