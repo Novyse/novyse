@@ -358,6 +358,13 @@ const updateDatabase = async () => {
               m,
             );
           }
+        } else if (m.action === "read") {
+          await EventEmitter.message.read(
+            m.chatUUID,
+            m.id || m.messageID,
+            m.userUUID || m.readerUUID,
+            m.readAt || m.at,
+          );
         } else {
           await EventEmitter.message.update(
             m.chatUUID,

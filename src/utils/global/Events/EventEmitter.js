@@ -17,17 +17,7 @@ class GlobalEventEmitter {
 
   message = {
     new: async (message) => {
-      if (message.reactions && Array.isArray(message.reactions)) {
-        for (const reaction of message.reactions) {
-          await database.message.reaction.add(
-            message.chatUUID,
-            message.id,
-            reaction.reaction,
-            reaction.created_at,
-            reaction.userUUID,
-          );
-        }
-      }
+      await database.message.add(message);
       this.eventEmitter.emit("message:new", message);
     },
     read: async (chatUUID, messageID, userUUID, readAt) => {
@@ -158,9 +148,7 @@ class GlobalEventEmitter {
       await database.chat.add(chat);
 
       if (chat.messages && chat.messages.length > 0) {
-        for (const message of chat.messages) {
-          await database.message.add(message);
-        }
+        await database.message.addMultiple(chat.messages);
       }
 
       for (const user of users) {

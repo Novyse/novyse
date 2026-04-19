@@ -90,6 +90,40 @@ export class MessageRepository {
         }
       }
 
+      const readsToStore =
+        message.reads ||
+        message.readBy ||
+        (message.message_reads
+          ? message.message_reads.map((r: any) => ({
+              userUUID: r.user_uuid,
+              readAt: r.read_at,
+            }))
+          : []);
+
+      if (readsToStore && Array.isArray(readsToStore)) {
+        for (const read of readsToStore) {
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO message_read (chat_uuid, message_id, user_uuid, read_at) VALUES (?, ?, ?, ?);`,
+            [message.chatUUID, message.id, read.userUUID, read.readAt],
+          );
+        }
+      }
+
+      if (message.reactions && Array.isArray(message.reactions)) {
+        for (const reaction of message.reactions) {
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO reaction_message (chatUUID, messageID, userUUID, reaction, at) VALUES (?, ?, ?, ?, ?);`,
+            [
+              message.chatUUID,
+              message.id,
+              reaction.userUUID,
+              reaction.reaction,
+              reaction.created_at,
+            ],
+          );
+        }
+      }
+
       console.log("Message added or already exists.", message.id);
       return true;
     } catch (error) {
@@ -242,18 +276,12 @@ export class MessageRepository {
             );
           }
         }
-      }
-
-      for (const message of messages) {
         if (message.edited) {
           await this.db.runAsync(
             `INSERT OR IGNORE INTO edited_message (chatUUID, messageID) VALUES (?, ?);`,
             [message.chatUUID, message.id],
           );
         }
-      }
-
-      for (const message of messages) {
         if (message.reactions && Array.isArray(message.reactions)) {
           for (const reaction of message.reactions) {
             await this.db.runAsync(
@@ -267,6 +295,43 @@ export class MessageRepository {
               ],
             );
           }
+        }
+      }
+
+      const allReads: any[] = [];
+      for (const message of messages) {
+        const readsToStore =
+          message.reads ||
+          message.readBy ||
+          (message.message_reads
+            ? message.message_reads.map((r: any) => ({
+                userUUID: r.user_uuid,
+                readAt: r.read_at,
+              }))
+            : []);
+
+        if (readsToStore && Array.isArray(readsToStore)) {
+          for (const read of readsToStore) {
+            allReads.push([
+              message.chatUUID,
+              message.id,
+              read.userUUID,
+              read.readAt,
+            ]);
+          }
+        }
+      }
+
+      if (allReads.length > 0) {
+        const CHUNK_SIZE = 100;
+        for (let i = 0; i < allReads.length; i += CHUNK_SIZE) {
+          const chunk = allReads.slice(i, i + CHUNK_SIZE);
+          const rPlaceholders = chunk.map(() => "(?, ?, ?, ?)").join(", ");
+          const flatValues = chunk.flat();
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO message_read (chat_uuid, message_id, user_uuid, read_at) VALUES ${rPlaceholders};`,
+            flatValues,
+          );
         }
       }
 
@@ -313,12 +378,9 @@ export class MessageRepository {
           `INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size, waveform, duration) VALUES ${filePlaceholders};`,
           fileValues,
         );
-        console.log(`${allFiles.length} files added successfully.`);
       }
       if (allMessageFiles.length > 0) {
-        const mfPlaceholders = allMessageFiles
-          .map(() => `(?, ?, ?)`)
-          .join(", ");
+        const mfPlaceholders = allMessageFiles.map(() => `(?, ?, ?)`).join(", ");
         const mfValues: any[] = [];
         for (const mf of allMessageFiles) {
           mfValues.push(mf.chatUUID, mf.messageID, mf.fileUUID);
@@ -326,9 +388,6 @@ export class MessageRepository {
         await this.db.runAsync(
           `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES ${mfPlaceholders};`,
           mfValues,
-        );
-        console.log(
-          `${allMessageFiles.length} message-file associations added successfully.`,
         );
       }
       return true;
