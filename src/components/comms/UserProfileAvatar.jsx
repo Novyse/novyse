@@ -21,9 +21,8 @@ const UserProfileAvatar = ({
   const fallbackColors = ["#667eea", "#764ba2"];
   const [gradientColors, setGradientColors] = useState(fallbackColors);
 
-  const [isMounted, setIsMounted] = useState(true);
-
   useEffect(() => {
+    let isMounted = true;
     const getGradientColors = async () => {
       if (uri) {
         try {
@@ -52,7 +51,7 @@ const UserProfileAvatar = ({
     getGradientColors();
 
     return () => {
-      setIsMounted(false);
+      isMounted = false;
     };
   }, [uri]);
 
