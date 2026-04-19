@@ -186,8 +186,45 @@ export class ChatRepository {
               [chat.uuid, localUserUUID, chat.uuid, localUserUUID],
             );
             chat.unreadCount = row?.count || 0;
+
+            // Load oldest unread message ID if it exists
+            const oldestRow = await this.db.getFirstAsync<{ id: number }>(
+              `SELECT MIN(id) as id 
+               FROM message 
+               WHERE chatUUID = ? 
+                 AND senderUUID != ?
+                 AND type != 'system'
+                 AND id > (
+                     SELECT COALESCE(MAX(message_id), 0) 
+                     FROM message_read 
+                     WHERE chat_uuid = ? AND user_uuid = ?
+                 )`,
+              [chat.uuid, localUserUUID, chat.uuid, localUserUUID],
+            );
+
+            const initialMessages = [];
+            if (oldestRow?.id) {
+              const oldestUnread = await database.message.get.by.id(
+                chat.uuid,
+                oldestRow.id,
+              );
+              if (oldestUnread) initialMessages.push(oldestUnread);
+            }
+
+            // Load last message and append if different from oldest unread
+            const lastMessageArr = await database.message.last.get(chat.uuid);
+            const lastMessage = lastMessageArr?.[0];
+            if (
+              lastMessage &&
+              (!oldestRow?.id || lastMessage.id !== oldestRow.id)
+            ) {
+              initialMessages.push(lastMessage);
+            }
+
+            chat.messages = initialMessages;
           } else {
             chat.unreadCount = 0;
+            chat.messages = await database.message.last.get(chat.uuid);
           }
 
           chat.members = await this.member.get.by.chatUUID(chat.uuid);
