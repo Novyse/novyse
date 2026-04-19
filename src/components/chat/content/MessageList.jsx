@@ -135,7 +135,7 @@ const MessageList = ({
 
       for (const v of viewableItems) {
         const msg = v.item?.data;
-        if (!msg || v.item.type === "separator" || v.item.type === "system")
+        if (!msg || v.item.type === "separator")
           continue;
 
         if (msg.senderUUID === myUUID) continue;

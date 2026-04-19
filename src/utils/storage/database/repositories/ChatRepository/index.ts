@@ -177,7 +177,6 @@ export class ChatRepository {
                FROM message 
                WHERE chatUUID = ? 
                  AND senderUUID != ?
-                 AND type != 'system'
                  AND id > (
                      SELECT COALESCE(MAX(message_id), 0) 
                      FROM message_read 
@@ -193,7 +192,6 @@ export class ChatRepository {
                FROM message 
                WHERE chatUUID = ? 
                  AND senderUUID != ?
-                 AND type != 'system'
                  AND id > (
                      SELECT COALESCE(MAX(message_id), 0) 
                      FROM message_read 

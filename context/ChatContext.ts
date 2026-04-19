@@ -380,9 +380,7 @@ const useChatStore = create<ChatState>((set, get) => ({
         return {
           ...chat,
           messages: [...updatedMessages, safeMessage],
-          unreadCount:
-            (chat.unreadCount || 0) +
-            (!message.internal && message.type !== "system" ? 1 : 0),
+          unreadCount: (chat.unreadCount || 0) + (!message.internal ? 1 : 0),
         };
       }),
     }));
@@ -472,46 +470,66 @@ const useChatStore = create<ChatState>((set, get) => ({
         switch (action) {
           case "read": {
             const targetMessageID = Number(messageID);
-            const updatedMessages = chat.messages.map((msg: any) => {
-              if (msg.type === "system") return msg;
-              const msgID = Number(msg.id);
-              if (isNaN(msgID) || msgID > targetMessageID) return msg;
+            const messagesList = chat.messages || [];
 
-              const newReadBy = [...(msg.readBy || [])];
-              const existingIdx = newReadBy.findIndex(
-                (r: any) => String(r.userUUID) === String(data.userUUID),
-              );
-              if (existingIdx >= 0) {
-                newReadBy[existingIdx] = {
-                  ...newReadBy[existingIdx],
-                  readAt: data.readAt,
-                };
-              } else {
-                newReadBy.push({
-                  userUUID: data.userUUID,
-                  readAt: data.readAt,
-                });
-              }
-              return { ...msg, readBy: newReadBy };
+            const idsToMark = new Set<string>();
+            messagesList.forEach((m: any) => {
+              if (Number(m.id) <= targetMessageID) idsToMark.add(String(m.id));
             });
 
-            let newUnreadCount = chat.unreadCount || 0;
-            const readIdx = chat.messages.findIndex(
-              (m: any) => String(m.id) === String(messageID),
+            // check messages "above" (older) with same sender
+            const sortedAsc = [...messagesList].sort(
+              (a: any, b: any) => Number(a.id) - Number(b.id),
             );
-
-            if (readIdx !== -1) {
-              newUnreadCount = chat.messages
-                .slice(readIdx + 1)
-                .filter((m: any) => m.type !== "system").length;
-            } else if (newUnreadCount > 0) {
-              newUnreadCount -= 1;
+            const targetIdx = sortedAsc.findIndex(
+              (m: any) => Number(m.id) === targetMessageID,
+            );
+            if (targetIdx !== -1) {
+              const targetMsg = sortedAsc[targetIdx];
+              for (let i = targetIdx - 1; i >= 0; i--) {
+                if (sortedAsc[i].senderUUID === targetMsg.senderUUID) {
+                  idsToMark.add(String(sortedAsc[i].id));
+                } else {
+                  break;
+                }
+              }
             }
+
+            let reduction = 0;
+            const updatedMessages = messagesList.map((msg: any) => {
+              if (idsToMark.has(String(msg.id))) {
+                const wasAlreadyRead = (msg.readBy || []).some(
+                  (r: any) => String(r.userUUID) === String(data.userUUID),
+                );
+
+                if (!wasAlreadyRead && !msg.internal) {
+                  reduction++;
+                }
+
+                const newReadBy = [...(msg.readBy || [])];
+                const existingIdx = newReadBy.findIndex(
+                  (r: any) => String(r.userUUID) === String(data.userUUID),
+                );
+                if (existingIdx >= 0) {
+                  newReadBy[existingIdx] = {
+                    ...newReadBy[existingIdx],
+                    readAt: data.readAt,
+                  };
+                } else {
+                  newReadBy.push({
+                    userUUID: data.userUUID,
+                    readAt: data.readAt,
+                  });
+                }
+                return { ...msg, readBy: newReadBy };
+              }
+              return msg;
+            });
 
             return {
               ...chat,
               messages: updatedMessages,
-              unreadCount: newUnreadCount,
+              unreadCount: Math.max(0, (chat.unreadCount || 0) - reduction),
             };
           }
 
