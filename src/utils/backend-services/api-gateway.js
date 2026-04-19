@@ -130,6 +130,22 @@ const gateway = {
 
       return { success };
     },
+
+    /**
+     * Fetch presence information for a list of users.
+     * @param {Array<string>} userUUIDs
+     * @returns {Object} { success: boolean, data?: Array }
+     */
+    async presence(userUUIDs) {
+      if (!userUUIDs || userUUIDs.length === 0) return { success: true, data: [] };
+      const response = await api.post("/user/presence", { userUUIDs });
+      const success = response.data.success;
+      if (success) {
+        return { success, data: response.data.data };
+      }
+      return { success };
+    },
+
     /**
      * Delete user's account.
      * @returns {boolean} true if the account was successfully deleted, false otherwise

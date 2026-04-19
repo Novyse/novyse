@@ -618,6 +618,14 @@
       "active_one": "{{name}} is active...",
       "active_two": "{{name}} and {{name2}} are active...",
       "active_other": "{{name}}, {{name2}} and {{count}} others are active..."
+    },
+    "time": {
+      "justNow": "Just now",
+      "secondsAgo": "{{count}}s ago",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{count}}d ago"
     }
   },
   "modals": {

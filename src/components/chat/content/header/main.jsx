@@ -69,7 +69,7 @@ const MainHeader = ({
                   <AppText
                     style={styles.chatSubtitle}
                     numberOfLines={1}
-                    text={`${t("chat.header.lastSeen")}: ${DateTime.fromISO(lastAccessAt, { zone: "utc" }).toLocal()}`}
+                    text={`${t("chat.header.lastSeen")}: ${chatUtils.formatLastSeen(lastAccessAt)}`}
                   />
                 )}
               {chatType === "GROUP" && (
