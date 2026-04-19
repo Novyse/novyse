@@ -41,7 +41,7 @@ export default function ProfileHeader({
         // style={styles.avatar}
       />
 
-      <AppText style={styles.nameSurnameText} text={`${name} ${surname}`} />
+      <AppText style={styles.nameSurnameText} text={`${name} ${surname || ""}`} />
       <AppText style={styles.usernameText} text={`@${username}`} />
 
       <Badges userUUID={uuid} />
