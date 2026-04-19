@@ -1,4 +1,5 @@
 import React, { useState, useContext, useMemo } from "react";
+import { DateTime } from "luxon";
 import {
   View,
   Text,
@@ -202,6 +203,15 @@ const ChatOverview = () => {
                   {member.role || t("messageFormat.system.user")}
                 </AppText>
               </View>
+              {member.joinedAt && (
+                <AppText style={styles.memberJoinedAt}>
+                  {DateTime.fromISO(new Date(member.joinedAt).toISOString(), {
+                    zone: "utc",
+                  })
+                    .toLocal()
+                    .toFormat("MMMM d, yyyy")}
+                </AppText>
+              )}
             </Pressable>
           );
         })}
@@ -452,6 +462,11 @@ const createStyles = (theme: any) =>
       fontSize: 14,
       color: theme.subtitle2,
       marginTop: 2,
+    },
+    memberJoinedAt: {
+      fontSize: 12,
+      color: theme.subtitle2,
+      opacity: 0.7,
     },
     fileItem: {
       flexDirection: "row",

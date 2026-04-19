@@ -181,8 +181,20 @@ export class ChatRepository {
                      SELECT COALESCE(MAX(message_id), 0) 
                      FROM message_read 
                      WHERE chat_uuid = ? AND user_uuid = ?
+                 )
+                 AND created_at > (
+                     SELECT joined_at 
+                     FROM member 
+                     WHERE chatUUID = ? AND userUUID = ?
                  )`,
-              [chat.uuid, localUserUUID, chat.uuid, localUserUUID],
+              [
+                chat.uuid,
+                localUserUUID,
+                chat.uuid,
+                localUserUUID,
+                chat.uuid,
+                localUserUUID,
+              ],
             );
             chat.unreadCount = row?.count || 0;
 
@@ -196,8 +208,20 @@ export class ChatRepository {
                      SELECT COALESCE(MAX(message_id), 0) 
                      FROM message_read 
                      WHERE chat_uuid = ? AND user_uuid = ?
+                 )
+                 AND created_at > (
+                     SELECT joined_at 
+                     FROM member 
+                     WHERE chatUUID = ? AND userUUID = ?
                  )`,
-              [chat.uuid, localUserUUID, chat.uuid, localUserUUID],
+              [
+                chat.uuid,
+                localUserUUID,
+                chat.uuid,
+                localUserUUID,
+                chat.uuid,
+                localUserUUID,
+              ],
             );
 
             const initialMessages = [];

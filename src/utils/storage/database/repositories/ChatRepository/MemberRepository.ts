@@ -24,8 +24,8 @@ export class MemberRepository {
       }
       // Insert member into the member table
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO member (userUUID, chatUUID) VALUES (?, ?);`,
-        [user.uuid, chatUUID],
+        `INSERT OR IGNORE INTO member (userUUID, chatUUID, joined_at) VALUES (?, ?, ?);`,
+        [user.uuid, chatUUID, user.joined_at || new Date().toISOString()],
       );
       console.log(`User ${user.uuid} added to chat ${chatUUID} successfully.`);
       return true;
@@ -48,7 +48,7 @@ export class MemberRepository {
           }
 
           const members = await this.db.getAllAsync<any>(
-            `SELECT m.userUUID as uuid
+            `SELECT m.userUUID as uuid, m.joined_at as joinedAt
              FROM member m
              WHERE m.chatUUID = ?;`,
             [chatUUID],
@@ -57,7 +57,8 @@ export class MemberRepository {
           return members.map((m) => ({
             uuid: m.uuid,
             role: "member",
-            joinedAt: new Date(),
+            action: null,
+            joinedAt: new Date(m.joinedAt),
           }));
         } catch (error) {
           console.error("Error retrieving members by chat UUID:", error);

@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS chat_pin (
 CREATE TABLE IF NOT EXISTS member (
     userUUID TEXT NOT NULL,
     chatUUID TEXT NOT NULL,
+    joined_at TIMESTAMP NOT NULL,
     PRIMARY KEY (userUUID, chatUUID),
     FOREIGN KEY (userUUID) REFERENCES user(uuid),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid)
