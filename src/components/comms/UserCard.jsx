@@ -40,7 +40,16 @@ const UserCard = memo(
     facingMode,
   }) => {
     const { t } = useTranslation();
-    const { connected, checkRoomMatch, setTriggeredStream, setTriggeredPosition } = useCommsContext();
+    const {
+      connected,
+      checkRoomMatch,
+      setTriggeredStream,
+      setTriggeredPosition,
+      localMuted,
+    } = useCommsContext();
+
+    const volKey = isScreenShare ? streamUUID : deviceUUID;
+    const isLocalMuted = localMuted[volKey] ?? false;
 
     const videoRef = useRef(null);
     useEffect(() => {
@@ -112,6 +121,13 @@ const UserCard = memo(
           isFullScreen && styles.fullscreenContainer,
         ]}
       >
+        {isLocalMuted && (
+          <View style={styles.muteIndicatorContainer}>
+              <View style={styles.controlsRow}>
+                <Icon name="MicOff01Icon" size={16} color="red" />
+              </View>
+          </View>
+        )}
         {hasControls && (
           <View style={styles.controlsContainer}>
             <BlurredView style={styles.controlsBlurred}>
@@ -240,6 +256,12 @@ const styles = StyleSheet.create({
   controlsContainer: {
     position: "absolute",
     top: 0,
+    right: 0,
+    zIndex: 20,
+  },
+  muteIndicatorContainer: {
+    position: "absolute",
+    bottom: 0,
     right: 0,
     zIndex: 20,
   },
