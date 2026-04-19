@@ -359,18 +359,44 @@ const MessageBase = ({
       {hasReactions && (
         <View style={styles.reactionsRow}>
           <View style={styles.reactionsContainer}>
-            {message.reactions.map((reactionObj, index) => (
-              <Pressable
-                key={`${reactionObj.emoji}-${index}`}
-                style={styles.reactionPill}
-                onPress={() => onReaction(message, reactionObj.emoji)}
-              >
-                <AppText
-                  style={styles.reactionPillText}
-                  text={`${reactionObj.emoji} ${reactionObj.userUUIDs.length}`}
-                />
-              </Pressable>
-            ))}
+            {message.reactions.map((reactionObj, index) => {
+              const avatars = reactionObj.userUUIDs.slice(0, 2);
+              return (
+                <Pressable
+                  key={`${reactionObj.emoji}-${index}`}
+                  style={styles.reactionPill}
+                  onPress={() => onReaction(message, reactionObj.emoji)}
+                >
+                  <AppText
+                    style={styles.reactionPillText}
+                    text={reactionObj.emoji}
+                  />
+                  <View style={styles.reactionAvatars}>
+                    {avatars.map((uUUID, i) => (
+                      <View
+                        key={uUUID}
+                        style={[
+                          styles.reactionAvatarContainer,
+                          i > 0 && styles.reactionAvatarOverlap,
+                        ]}
+                      >
+                        <Avatar
+                          uuid={getUser(uUUID)?.profilePictureUUID}
+                          size={16}
+                          theme={theme}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                  {reactionObj.userUUIDs.length > 2 && (
+                    <AppText
+                      style={styles.reactionPillText}
+                      text={`+${reactionObj.userUUIDs.length - 2}`}
+                    />
+                  )}
+                </Pressable>
+              );
+            })}
           </View>
           {/* Timestamp allineato a destra accanto/sotto le reazioni */}
           <MessageTimestamp
@@ -559,17 +585,28 @@ const createStyle = (theme, chatType) =>
     reactionPill: {
       backgroundColor: theme.backgroundSecondary || "rgba(255,255,255,0.1)",
       borderRadius: 12,
-      paddingHorizontal: 5,
+      paddingHorizontal: 6,
       paddingVertical: 2,
       borderWidth: 1,
       borderColor: "rgba(255,255,255,0.1)",
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
+      gap: 4,
     },
     reactionPillText: {
       fontSize: 12,
       color: theme.text,
+    },
+    reactionAvatars: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    reactionAvatarContainer: {
+      borderRadius: 999,
+    },
+    reactionAvatarOverlap: {
+      marginLeft: -8,
     },
   });
 
