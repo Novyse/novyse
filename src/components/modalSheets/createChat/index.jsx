@@ -107,10 +107,11 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
 
       // Set new timer to check availability after typing stops
       const timer = setTimeout(async () => {
-        const { success, free } = await gateway.check.handle(value);
+        const { success, available } = await gateway.check.handle(value);
         if (success) {
-          setHandleAvailable(free);
-          if (!free) setHandleError(t("modals.create_chat.errors.handleTaken"));
+          setHandleAvailable(available);
+          if (!available)
+            setHandleError(t("modals.create_chat.errors.handleTaken"));
           else setHandleError(null);
           setIsHandleLoading(false);
         } else {

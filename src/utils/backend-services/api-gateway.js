@@ -71,7 +71,7 @@ const gateway = {
     /**
      * Check if a handle is available.
      * @param {String} handle
-     * @returns {Object} { success: boolean, free?: boolean }
+     * @returns {Object} { success: boolean, available?: boolean }
      */
     async handle(handle) {
       const response = await api.get(`/check/handle?handle=${handle}`, {
@@ -79,8 +79,8 @@ const gateway = {
       });
       const success = response.data.success;
       if (success) {
-        const free = response.data.data.free;
-        return { success, free };
+        const available = response.data.data.available;
+        return { success, available };
       }
       return { success };
     },
@@ -105,7 +105,7 @@ const gateway = {
     /**
      * Update user data since last update time.
      * @param {Timestamp} lastUpdateTime
-     * @returns {Object} { success: boolean, user?:{ uuid?: String, name?: String, surname?: String, handle?: String}, chats?: Array[{uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}], messages?: Array[@SamueleOrazioDurante da completare]}
+     * @returns {Object} { success: boolean, user?:{ uuid?: String, name?: String, surname?: String, handle?: String}, chats?: Array[{uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}], messages?: Array[]}
      */
 
     async update(lastUpdateTime) {
@@ -137,7 +137,8 @@ const gateway = {
      * @returns {Object} { success: boolean, data?: Array }
      */
     async presence(userUUIDs) {
-      if (!userUUIDs || userUUIDs.length === 0) return { success: true, data: [] };
+      if (!userUUIDs || userUUIDs.length === 0)
+        return { success: true, data: [] };
       const response = await api.post("/user/presence", { userUUIDs });
       const success = response.data.success;
       if (success) {
@@ -337,7 +338,7 @@ const gateway = {
     /**
      * Join a chat by its handle.
      * @param {String} handle
-     * @returns { Object } { success: boolean, chat?: { uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}, messages?: Array[@SamueleOrazioDurante da completare] }
+     * @returns { Object } { success: boolean, chat?: { uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}, messages?: Array[] }
      */
     async join(handle) {
       try {

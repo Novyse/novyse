@@ -137,9 +137,9 @@ export const useSignup = () => {
     handleTimer.current = setTimeout(async () => {
       try {
         const res = (await gateway.check.handle(v)) as any;
-        const free = res.free;
-        setHandleAvailable(free);
-        if (!free)
+        const available = res.available;
+        setHandleAvailable(available);
+        if (!available)
           setHandleError(i18n.t("common.auth.signupStep.alreadyInUse"));
       } catch (e) {
         setHandleError(i18n.t("common.auth.signupStep.availabilityError"));

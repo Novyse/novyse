@@ -267,7 +267,6 @@ const ChatPageRoute = () => {
         onBack={() => {
           setSelectedChatUUID(null);
           setSelectedHandle(null);
-          //@ts-ignore
           router.push("/app");
         }}
         navToOverview={() => {
