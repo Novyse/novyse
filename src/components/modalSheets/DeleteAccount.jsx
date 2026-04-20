@@ -12,7 +12,7 @@ import StatusMessage from "@/src/components/StatusMessage";
 import { ThemeContext } from "@/context/ThemeContext";
 import useUserStore from "@/context/UserContext";
 
-import gateway from "@/src/utils/backend-services/api-gateway";
+import authBackend from "@/src/utils/backend-services/auth";
 import auth from "@/src/utils/welcome/auth";
 
 const DeleteAccount = ({ visible, onClose }) => {
@@ -41,7 +41,7 @@ const DeleteAccount = ({ visible, onClose }) => {
   };
 
   const handleButtonPress = async () => {
-    const response = await gateway.user.delete();
+    const response = await authBackend.account.delete();
     if (response) {
       await auth.logout();
       router.navigate("/welcome?deleteAccount=true");

@@ -9,6 +9,7 @@ import { apikey } from "./apikey";
 import { passkey } from "./settings/passkey";
 import { opaque } from "./settings/opaque";
 import { session } from "./settings/session";
+import { deleteAccount } from "./account";
 
 export const auth = {
   signup: {
@@ -22,6 +23,9 @@ export const auth = {
   qrcode: qrcode,
   logout: logout,
   apikey: apikey,
+  account: {
+    delete: deleteAccount,
+  },
   settings: {
     passkey: passkey,
     opaque: opaque,
