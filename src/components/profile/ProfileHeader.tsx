@@ -5,7 +5,6 @@ import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 
 import Avatar from "@/src/components/Avatar";
-import Icon from "@/src/components/Icon";
 import Badges from "@/src/components/badge/Badges";
 
 interface ProfileHeaderProps {
