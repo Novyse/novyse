@@ -75,7 +75,7 @@
 
 ## About The Project
 
-Novyse is an open-source messaging application built with React Native, designed to provide a simple, intuitive, and feature-rich communication platform. It supports real-time text-based chats across various types, including direct messages (DMs), group chats, channels, and forums, while integrating advanced features like voice and video calls powered by WebRTC. The app includes user authentication, customizable themes, privacy settings, and cross-platform compatibility for iOS, Android, web, and desktop via Electron. Currently in active development, Novyse emphasizes user privacy, open-source collaboration, and a clean, responsive interface to foster seamless conversations and community interactions.
+Novyse (/noʊˈvaɪs/) is an open-source messaging application built with React Native, designed to provide a simple, intuitive, and feature-rich communication platform. It supports real-time text-based chats across various types, including direct messages (DMs), group chats, channels, and forums, while integrating advanced features like voice and video calls powered by WebRTC. The app includes user authentication, customizable themes, privacy settings, and cross-platform compatibility for iOS, Android, web, and desktop via Electron. Currently in active development, Novyse emphasizes user privacy, open-source collaboration, and a clean, responsive interface to foster seamless conversations and community interactions.
 
 ## Updates and Roadmap
 
@@ -90,7 +90,8 @@ Additionally, the website features a complete [roadmap](https://www.novyse.com/r
 
 ## Preview Version
 
-A preview version with new features that are not yet fully tested may be available at [preview.novyse.com](https://preview.novyse.com). 
+A preview version with new features that are not yet fully tested may be available at [preview.novyse.com](https://preview.novyse.com).
+
 > [!WARNING]
 > We recommend not saving important data on this version, as data may be deleted with version changes, and there could be significant bugs affecting app usage.
 
