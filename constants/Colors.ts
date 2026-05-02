@@ -32,7 +32,7 @@ export const Colors = {
     backgroundBottomsheet: "#1d72c1ff",
 
     // Vari
-    borderColor: "#000000",
+    borderColor: "rgba(255,255,255,0.05)",
     borderModal: "#000000",
     badgeColor: "#20566eff",
     shadowColor: "#000",

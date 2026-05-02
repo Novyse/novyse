@@ -1,16 +1,9 @@
 import React, { useState, useContext, useMemo } from "react";
 import { DateTime } from "luxon";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Pressable,
-} from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { View, StyleSheet, TouchableOpacity, Pressable } from "react-native";
+import { useLocalSearchParams, router } from "expo-router";
 
 import { ThemeContext } from "@/context/ThemeContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
 import useUserStore from "@/context/UserContext";
 import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
 import AppText from "@/src/components/AppText";
@@ -310,22 +303,27 @@ const ChatOverview = () => {
         </View>
 
         <View style={styles.actions}>
-          {!isDM && (
-            <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
-              <View
-                style={[
-                  styles.actionIconContainer,
-                  { backgroundColor: theme.primary + "15" },
-                ]}
-              >
-                <Icon name="Settings01Icon" color={theme.primary} />
-              </View>
-              <AppText
-                style={[styles.actionText, { color: theme.primary }]}
-                translationKey="common.settings"
-              />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() =>
+              router.push(
+                `/app/chat/${chatUUIDorHandle}/${sub}/settings` as any,
+              )
+            }
+          >
+            <View
+              style={[
+                styles.actionIconContainer,
+                { backgroundColor: theme.primary + "15" },
+              ]}
+            >
+              <Icon name="Settings01Icon" color={theme.primary} />
+            </View>
+            <AppText
+              style={[styles.actionText, { color: theme.primary }]}
+              translationKey="common.settings"
+            />
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.actionButton}

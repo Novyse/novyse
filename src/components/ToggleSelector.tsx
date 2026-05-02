@@ -4,7 +4,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   LayoutChangeEvent,
+  ScrollView,
 } from "react-native";
+import { useRef } from "react";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -36,6 +38,7 @@ function ToggleSelector<T extends string = string>({
 
   const [containerWidth, setContainerWidth] = useState(0);
   const translateX = useSharedValue(0);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const itemWidth = containerWidth / options.length;
   const activeIndex = options.findIndex((opt) => opt.value === value);
@@ -43,11 +46,18 @@ function ToggleSelector<T extends string = string>({
   useEffect(() => {
     if (containerWidth > 0) {
       translateX.value = withSpring(activeIndex * itemWidth, {
-        damping: 55,
-        stiffness: 420,
+        damping: 70,
+        stiffness: 500,
+      });
+
+      // Auto-scroll to active item
+      scrollViewRef.current?.scrollTo({
+        x: activeIndex * itemWidth - 20, // Center a bit
+        animated: true,
       });
     }
-  }, [activeIndex, itemWidth]);
+  }, [activeIndex, itemWidth, containerWidth]);
+
 
   const onLayout = (event: LayoutChangeEvent) => {
     setContainerWidth(event.nativeEvent.layout.width - 10);
@@ -59,42 +69,57 @@ function ToggleSelector<T extends string = string>({
   }));
 
   return (
-    <View style={styles.toggleContainer} onLayout={onLayout}>
-      {containerWidth > 0 && (
-        <Animated.View style={[styles.animatedBackground, animatedStyle]} />
-      )}
-      {options.map((option) => {
-        const isActive = option.value === value;
-        return (
-          <TouchableOpacity
-            key={option.value}
-            style={styles.toggleButton}
-            onPress={() => !disabled && onChange(option.value)}
-            disabled={disabled}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityState={{ selected: isActive }}
-          >
-            <AppText
-              style={[styles.toggleText, isActive && styles.toggleTextActive]}
-              text={option.label}
-            />
-          </TouchableOpacity>
-        );
-      })}
-    </View>
+    <ScrollView
+      ref={scrollViewRef}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+      style={styles.scrollView}
+    >
+      <View style={styles.toggleContainer} onLayout={onLayout}>
+        {containerWidth > 0 && (
+          <Animated.View style={[styles.animatedBackground, animatedStyle]} />
+        )}
+        {options.map((option) => {
+          const isActive = option.value === value;
+          return (
+            <TouchableOpacity
+              key={option.value}
+              style={styles.toggleButton}
+              onPress={() => !disabled && onChange(option.value)}
+              disabled={disabled}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+            >
+              <AppText
+                style={[styles.toggleText, isActive && styles.toggleTextActive]}
+                text={option.label}
+              />
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </ScrollView>
   );
 }
 
 function createStyles(theme: any) {
   return StyleSheet.create({
+    scrollView: {
+      flexGrow: 0,
+      marginBottom: 25,
+    },
+    scrollContent: {
+      flexGrow: 1,
+    },
     toggleContainer: {
       flexDirection: "row",
       backgroundColor: "rgba(0, 0, 0, 0.05)",
       borderRadius: 50,
       padding: 5,
-      marginBottom: 25,
-      width: "100%",
+      minWidth: "100%",
+      alignSelf: "flex-start",
       position: "relative",
     },
     animatedBackground: {
@@ -113,6 +138,8 @@ function createStyles(theme: any) {
     toggleButton: {
       flex: 1,
       paddingVertical: 8,
+      paddingHorizontal: 20,
+      minWidth: 80,
       alignItems: "center",
       borderRadius: 25,
       zIndex: 1,

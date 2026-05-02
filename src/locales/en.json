@@ -181,7 +181,24 @@
     },
     "memberCount_one": "{{count}} member",
     "memberCount_other": "{{count}} members",
-    "unreadMessages": "Unread messages"
+    "unreadMessages": "Unread messages",
+    "settings": {
+      "title": "Chat Settings",
+      "notifications": "Notifications",
+      "muteNotifications": "Mute Notifications",
+      "muteDuration": "Mute Duration",
+      "muteFor8h": "8 hours",
+      "chatOptions": "Chat Options",
+      "disappearingMessages": "Disappearing Messages",
+      "privacy": "Privacy",
+      "readReceipts": "Read Receipts",
+      "groupSettings": "Group Settings",
+      "directMessage": "Direct Message",
+      "addMembers": "Add Members",
+      "manageMembers": "Manage Members",
+      "inviteLink": "Invite Link",
+      "editGroupInfo": "Edit Group Info"
+    }
   },
   "settings": {
     "languageAndTime": "Language & Time",

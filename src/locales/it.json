@@ -180,7 +180,24 @@
     },
     "memberCount_one": "{{count}} membro",
     "memberCount_other": "{{count}} membri",
-    "unreadMessages": "Messaggi non letti"
+    "unreadMessages": "Messaggi non letti",
+    "settings": {
+      "title": "Impostazioni Chat",
+      "notifications": "Notifiche",
+      "muteNotifications": "Silenzia Notifiche",
+      "muteDuration": "Durata Silenzio",
+      "muteFor8h": "8 ore",
+      "chatOptions": "Opzioni Chat",
+      "disappearingMessages": "Messaggi Effimeri",
+      "privacy": "Privacy",
+      "readReceipts": "Conferme di lettura",
+      "groupSettings": "Impostazioni Gruppo",
+      "directMessage": "Messaggio Diretto",
+      "addMembers": "Aggiungi Membri",
+      "manageMembers": "Gestisci Membri",
+      "inviteLink": "Link di Invito",
+      "editGroupInfo": "Modifica Info Gruppo"
+    }
   },
   "settings": {
     "languageAndTime": "Lingua e Ora",
