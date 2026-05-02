@@ -103,7 +103,7 @@ const AudioHeader = () => {
             style={styles.controlButton}
             onPress={() => handleChangePlaybackRate()}
           >
-            <AppText text={`${playbackRate}x`} style={styles.rateText} />
+            <AppText text={`${playbackRate}x`} style={styles.rateText} selectable={false} />
           </HoverAndPressedButton>
 
           <HoverAndPressedButton
