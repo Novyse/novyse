@@ -259,9 +259,9 @@
       "birthdayFormat": "GG/MM/AAAA"
     },
     "info": {
-      "version": "VERSIONE",
-      "build": "BUILD",
-      "released": "RILASCIATO",
+      "version": "Versione",
+      "build": "Build",
+      "released": "Rilasciato",
       "connect": "Connetti",
       "viewOnGithub": "Vedi su GitHub",
       "roadmap": "Roadmap",

@@ -31,15 +31,15 @@ const Section = ({ titleKey, children, theme, style }: SectionProps) => (
 const sectionStyles = StyleSheet.create({
   container: {
     marginHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 25,
   },
   title: {
     fontSize: 12,
     fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.8,
-    marginBottom: 8,
-    marginLeft: 4,
+    marginBottom: 10,
+    marginLeft: 5,
   },
   card: {
     borderRadius: 16,

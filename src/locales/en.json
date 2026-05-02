@@ -260,9 +260,9 @@
       "birthdayFormat": "DD/MM/YYYY"
     },
     "info": {
-      "version": "VERSION",
-      "build": "BUILD",
-      "released": "RELEASED",
+      "version": "Version",
+      "build": "Build",
+      "released": "Released",
       "connect": "Connect",
       "viewOnGithub": "View on GitHub",
       "roadmap": "Roadmap",

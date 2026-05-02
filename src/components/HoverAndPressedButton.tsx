@@ -18,8 +18,8 @@ interface HoverAndPressedButtonProps {
 const HoverAndPressedButton = ({
   children,
   onPress,
-  onLongPress = () => {},
-  onContextMenu = () => {},
+  onLongPress,
+  onContextMenu,
   style = {},
   hoveredStyle = {},
   pressedStyle = {},
@@ -32,14 +32,18 @@ const HoverAndPressedButton = ({
 
   const PressableAny = Pressable as any;
 
+  const hasAction = onPress || onLongPress || onContextMenu;
+
   return (
     <PressableAny
       style={({ pressed, hovered }: any) => [
         styles.baseContainer as ViewStyle,
         style as ViewStyle,
         hovered &&
+          hasAction &&
           ({ ...styles.baseHovered, ...(hoveredStyle as object) } as any),
         pressed &&
+          hasAction &&
           ({ ...styles.basePressed, ...(pressedStyle as object) } as any),
         disabled && (styles.disabled as ViewStyle),
       ]}

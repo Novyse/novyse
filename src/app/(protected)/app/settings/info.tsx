@@ -1,20 +1,18 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, View, Linking } from "react-native";
-import AppText from "@/src/components/AppText";
+import { Linking } from "react-native";
 import { router } from "expo-router";
 
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import { APP_VERSION, BUILD_NUMBER, BUILD_DATE } from "@/app.config";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsCard from "@/src/components/settings/SettingsCard";
-import InfoVersionCard from "@/src/components/settings/info/InfoVersionCard";
-import InfoLinkItem from "@/src/components/settings/info/InfoLinkItem";
+import Section from "@/src/components/settings/Section";
+import SettingRow from "@/src/components/settings/SettingRow";
 
 export default function InfoRoute() {
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
 
   const openLink = (url: string) => {
     Linking.openURL(url);
@@ -24,66 +22,67 @@ export default function InfoRoute() {
     <>
       <HeaderWithBackArrow translationKey="settings.menu.info" onBack={onBack} />
       <SettingsPageScrollview>
-        <InfoVersionCard theme={theme} />
+        <Section theme={theme}>
+          <SettingRow
+            labelKey="settings.info.version"
+            value={APP_VERSION}
+            type="VALUE"
+            iconName="InformationCircleIcon"
+          />
+          <SettingRow
+            labelKey="settings.info.build"
+            value={String(BUILD_NUMBER)}
+            type="VALUE"
+            iconName="PackageIcon"
+          />
+          <SettingRow
+            labelKey="settings.info.released"
+            value={BUILD_DATE.split(" ")[0]}
+            type="VALUE"
+            iconName="Calendar01Icon"
+            style={{ borderBottomWidth: 0 }}
+          />
+        </Section>
 
-        <SettingsCard>
-          <AppText style={styles.sectionTitle} translationKey="settings.info.connect" />
-          <InfoLinkItem
-            translationKey="settings.info.viewOnGithub"
-            icon="GithubIcon"
-            theme={theme}
+        <Section titleKey="settings.info.connect" theme={theme}>
+          <SettingRow
+            labelKey="settings.info.viewOnGithub"
+            iconName="GithubIcon"
             onPress={() => openLink("https://github.com/Novyse/novyse")}
           />
-          <InfoLinkItem
-            translationKey="settings.info.roadmap"
-            icon="GlobalIcon"
-            theme={theme}
+          <SettingRow
+            labelKey="settings.info.roadmap"
+            iconName="GlobalIcon"
             onPress={() => openLink("https://www.novyse.com/roadmap")}
+            style={{ borderBottomWidth: 0 }}
           />
-        </SettingsCard>
+        </Section>
 
-        <SettingsCard>
-          <AppText style={styles.sectionTitle} translationKey="settings.info.legal" />
-          <InfoLinkItem
-            translationKey="settings.info.privacyPolicy"
-            icon="Shield01Icon"
-            theme={theme}
+        <Section titleKey="settings.info.legal" theme={theme}>
+          <SettingRow
+            labelKey="settings.info.privacyPolicy"
+            iconName="Shield01Icon"
             onPress={() =>
               openLink("https://www.novyse.com/legal/privacy-policy")
             }
           />
-          <InfoLinkItem
-            translationKey="settings.info.termsOfService"
-            icon="AlignBoxTopCenterIcon"
-            theme={theme}
+          <SettingRow
+            labelKey="settings.info.termsOfService"
+            iconName="AlignBoxTopCenterIcon"
             onPress={() =>
               openLink("https://www.novyse.com/legal/terms-of-service")
             }
           />
-          <InfoLinkItem
-            translationKey="settings.info.cookiePolicy"
-            icon="CookieIcon"
-            theme={theme}
+          <SettingRow
+            labelKey="settings.info.cookiePolicy"
+            iconName="CookieIcon"
             onPress={() =>
               openLink("https://www.novyse.com/legal/cookie-policy")
             }
+            style={{ borderBottomWidth: 0 }}
           />
-        </SettingsCard>
+        </Section>
       </SettingsPageScrollview>
     </>
   );
 }
-
-const createStyle = (theme: any) =>
-  StyleSheet.create({
-    sectionTitle: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "700",
-      textTransform: "uppercase",
-      letterSpacing: 1,
-      marginBottom: 12,
-      marginLeft: 4,
-      opacity: 0.6,
-    },
-  });

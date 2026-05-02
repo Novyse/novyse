@@ -1,9 +1,10 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/ThemeContext";
 import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 import Switch from "@/src/components/Switch";
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 
 export type SettingRowProps = {
   iconName: string;
@@ -39,15 +40,13 @@ const SettingRow = ({
   const textColor = danger ? "#FF4D4D" : theme.text;
 
   return (
-    <Pressable
-      style={({ pressed }) => [
+    <HoverAndPressedButton
+      style={[
         settingRowStyles.row,
         { borderBottomColor: theme.borderColor },
-        pressed && onPress ? { opacity: 0.7 } : undefined,
         style,
       ]}
       onPress={onPress}
-      disabled={!onPress}
     >
       <View
         style={[
@@ -110,7 +109,7 @@ const SettingRow = ({
               return null;
           }
         })()}
-    </Pressable>
+    </HoverAndPressedButton>
   );
 };
 
@@ -118,17 +117,18 @@ const settingRowStyles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 13,
-    paddingHorizontal: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 15,
     borderBottomWidth: 1,
+    borderRadius: 0,
   },
   iconContainer: {
-    width: 36,
-    height: 36,
+    width: 35,
+    height: 35,
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 14,
+    marginRight: 15,
   },
   labelContainer: {
     flex: 1,
