@@ -7,6 +7,7 @@ import { useThemeContext } from "@/context/ThemeContext";
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
 import Avatar from "@/src/components/Avatar";
+import AppText from "../AppText";
 
 const UserProfileAvatar = ({
   userHandle,
@@ -88,14 +89,12 @@ const UserProfileAvatar = ({
             <Avatar uuid={profilePictureUUID} size={avatarSize} theme={theme} />
           </View>
           <View style={styles.nameContainer}>
-            <Text
+            <AppText
               style={styles.userName}
               numberOfLines={1}
               ellipsizeMode="tail"
-              selectable={false}
-            >
-              {userHandle || "Unknown User"}
-            </Text>
+              text={userHandle || "Unknown User"}
+            />
           </View>
         </View>
       </LinearGradient>

@@ -42,6 +42,7 @@ const AppText = React.forwardRef<RNText, AppTextProps>(
           fontFamily ? { fontFamily } : undefined,
           style,
         ]}
+        selectable={false}
         {...rest}
       >
         {content as any}

@@ -11,12 +11,16 @@ interface WelcomeButtonTextProps {
   translationKey?: string;
 }
 
-const WelcomeButtonText = ({ type, label, translationKey }: WelcomeButtonTextProps) => {
+const WelcomeButtonText = ({
+  type,
+  label,
+  translationKey,
+}: WelcomeButtonTextProps) => {
   const loginTheme: LoginTheme = "default";
   const styles = createStyles(loginTheme, type);
 
   return (
-    <AppText style={styles.text} selectable={false} text={label} translationKey={translationKey} />
+    <AppText style={styles.text} text={label} translationKey={translationKey} />
   );
 };
 

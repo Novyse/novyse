@@ -33,19 +33,54 @@ export default function SignupTimeline({
                 style={[
                   styles.circle,
                   isCompleted
-                    ? { backgroundColor: LoginColors[loginTheme as LoginTheme].completedBackground, borderColor: LoginColors[loginTheme as LoginTheme].completedBorder }
+                    ? {
+                        backgroundColor:
+                          LoginColors[loginTheme as LoginTheme]
+                            .completedBackground,
+                        borderColor:
+                          LoginColors[loginTheme as LoginTheme].completedBorder,
+                      }
                     : isCurrent
-                      ? { backgroundColor: LoginColors[loginTheme as LoginTheme].currentBackground, borderColor: LoginColors[loginTheme as LoginTheme].currentBorder }
-                      : { backgroundColor: LoginColors[loginTheme as LoginTheme].pendingBackground, borderColor: LoginColors[loginTheme as LoginTheme].pendingBorder },
+                      ? {
+                          backgroundColor:
+                            LoginColors[loginTheme as LoginTheme]
+                              .currentBackground,
+                          borderColor:
+                            LoginColors[loginTheme as LoginTheme].currentBorder,
+                        }
+                      : {
+                          backgroundColor:
+                            LoginColors[loginTheme as LoginTheme]
+                              .pendingBackground,
+                          borderColor:
+                            LoginColors[loginTheme as LoginTheme].pendingBorder,
+                        },
                 ]}
                 onPress={isAccessible ? () => onStepPress(index) : undefined}
                 disabled={!isAccessible}
               >
-                <AppText style={[styles.number, { color: LoginColors[loginTheme as LoginTheme].timelineNumber }]} selectable={false} text={String(step.id)} />
+                <AppText
+                  style={[
+                    styles.number,
+                    {
+                      color:
+                        LoginColors[loginTheme as LoginTheme].timelineNumber,
+                    },
+                  ]}
+                  text={String(step.id)}
+                />
               </Pressable>
             </View>
             {!isLast && (
-              <View style={[styles.line, { backgroundColor: LoginColors[loginTheme as LoginTheme].backgroundTimeline }]} />
+              <View
+                style={[
+                  styles.line,
+                  {
+                    backgroundColor:
+                      LoginColors[loginTheme as LoginTheme].backgroundTimeline,
+                  },
+                ]}
+              />
             )}
           </React.Fragment>
         );

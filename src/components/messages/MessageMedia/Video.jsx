@@ -49,7 +49,7 @@ const Video = ({ fileRef, uuid, duration, isSingle }) => {
             />
           </View>
         </View>
-        <AppText style={styles.duration} selectable={false} text={formatDuration(duration)} />
+        <AppText style={styles.duration} text={formatDuration(duration)} />
       </Pressable>
       <VideoViewer
         visible={visible}

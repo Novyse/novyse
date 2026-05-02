@@ -92,7 +92,6 @@ const ChatListItem = React.memo(
           ]}
           numberOfLines={1}
           ellipsizeMode="tail"
-          selectable={false}
           text={`${sender}${content}`}
         />
       );
@@ -132,7 +131,6 @@ const ChatListItem = React.memo(
                   style={[styles.chatTitle, styles.gridText]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
-                  selectable={false}
                   text={displayName}
                 />
               </View>
@@ -140,7 +138,6 @@ const ChatListItem = React.memo(
                 {memberActivityData && memberActivityData.length > 0 ? (
                   <AppText
                     style={styles.chatSubtitle}
-                    selectable={false}
                     text={messageUtils.formatActivity(memberActivityData)}
                   />
                 ) : (
@@ -167,7 +164,6 @@ const ChatListItem = React.memo(
                     ) : (
                       <AppText
                         style={styles.chatDateText}
-                        selectable={false}
                         text={parseTime(lastMessage.created_at)}
                       />
                     )}
@@ -179,11 +175,7 @@ const ChatListItem = React.memo(
                 {isPinned && <Icon name={"PinIcon"} size={16} />}
                 {unreadCount > 0 && (
                   <View style={styles.ball}>
-                    <AppText
-                      style={styles.ballText}
-                      selectable={false}
-                      text={unreadCount}
-                    />
+                    <AppText style={styles.ballText} text={unreadCount} />
                   </View>
                 )}
               </View>

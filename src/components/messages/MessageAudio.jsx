@@ -65,7 +65,7 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
       />
 
       <View style={{ flexDirection: "column" }}>
-        <AppText style={styles.fileName} selectable={false} text={name} />
+        <AppText style={styles.fileName} text={name} />
         <View style={styles.progressContainer}>
           <SmoothSlider
             currentValue={thisCurrentTime}
@@ -78,14 +78,9 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
           <View style={styles.textContainer}>
             <AppText
               style={styles.durationText}
-              selectable={false}
               text={`${formatTime(thisCurrentTime)} / ${formatDuration(duration)}`}
             />
-            <AppText
-              style={styles.sizeText}
-              selectable={false}
-              text={formatFileSize(size)}
-            />
+            <AppText style={styles.sizeText} text={formatFileSize(size)} />
           </View>
         </View>
       </View>

@@ -22,7 +22,7 @@ const MessageSystem = ({ type, data }) => {
       colors={theme.backgroundDateSeparator}
       style={styles.container}
     >
-      <AppText style={styles.text} selectable={false} text={content} />
+      <AppText style={styles.text} text={content} />
     </BlurredView>
   );
 

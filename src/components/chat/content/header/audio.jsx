@@ -91,7 +91,7 @@ const AudioHeader = () => {
             text={senderName}
           />
           <View style={styles.statusRow}>
-            <AppText style={styles.timeText} selectable={false}>
+            <AppText style={styles.timeText}>
               {`${formatTime(currentTime)} / ${formatTime(safeDuration)}`}
             </AppText>
           </View>
@@ -103,7 +103,7 @@ const AudioHeader = () => {
             style={styles.controlButton}
             onPress={() => handleChangePlaybackRate()}
           >
-            <AppText text={`${playbackRate}x`} style={styles.rateText} selectable={false} />
+            <AppText text={`${playbackRate}x`} style={styles.rateText} />
           </HoverAndPressedButton>
 
           <HoverAndPressedButton

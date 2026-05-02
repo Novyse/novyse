@@ -41,15 +41,9 @@ const MessageReply = ({
           <AppText
             style={styles.senderName}
             numberOfLines={1}
-            selectable={false}
             text={senderName ?? "Unknown"}
           />
-          <AppText
-            style={styles.text}
-            numberOfLines={2}
-            selectable={false}
-            text={text ?? ""}
-          />
+          <AppText style={styles.text} numberOfLines={2} text={text ?? ""} />
         </View>
       </View>
     </Pressable>

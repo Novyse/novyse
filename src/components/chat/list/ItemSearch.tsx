@@ -40,14 +40,12 @@ const ChatListItemSearch = React.memo(
               style={styles.resultText}
               numberOfLines={1}
               ellipsizeMode="tail"
-              selectable={false}
               text={`${item.name}${item?.surname ? ` ${item?.surname}` : ""}`}
             />
             <AppText
               style={styles.profileHandle}
               numberOfLines={1}
               ellipsizeMode="tail"
-              selectable={false}
               text={`${item?.handle ? `@${item.handle}` : ""}${
                 item.type === "GROUP" ||
                 item.type === "FORUM" ||
@@ -63,7 +61,7 @@ const ChatListItemSearch = React.memo(
   },
 );
 
-function createStyle(theme) {
+function createStyle(theme: any) {
   return StyleSheet.create({
     chatItem: { borderRadius: 15, height: 65 },
     chatItemPressable: {

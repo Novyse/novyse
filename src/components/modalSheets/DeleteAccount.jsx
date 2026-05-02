@@ -76,18 +76,15 @@ const DeleteAccount = ({ visible, onClose }) => {
         <View style={styles.section}>
           <AppText
             style={styles.sectionLabel}
-            selectable={false}
             translationKey="modals.delete_account.confirmation_identity"
           />
           <AppText
             style={styles.inputLabel}
-            selectable={false}
             translationKey="modals.delete_account.confirm_instruction"
             translationOptions={{ username }}
           >
             <AppText
               style={styles.boldUsername}
-              selectable={true}
               text={username}
             />
           </AppText>
@@ -126,7 +123,6 @@ const DeleteAccount = ({ visible, onClose }) => {
           <HoverAndPressedButton onPress={handleClose} style={styles.cancelBtn}>
             <AppText
               style={styles.cancelBtnText}
-              selectable={false}
               translationKey="modals.delete_account.cancel"
             />
           </HoverAndPressedButton>
@@ -138,7 +134,6 @@ const DeleteAccount = ({ visible, onClose }) => {
             <Icon name="Delete02Icon" size={18} color="#FFF" />
             <AppText
               style={styles.createBtnText}
-              selectable={false}
               translationKey="modals.delete_account.delete"
             />
           </HoverAndPressedButton>

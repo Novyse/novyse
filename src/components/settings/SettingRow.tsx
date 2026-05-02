@@ -5,7 +5,6 @@ import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 import Switch from "@/src/components/Switch";
 
-
 export type SettingRowProps = {
   iconName: string;
   labelKey?: string;
@@ -64,40 +63,53 @@ const SettingRow = ({
           <AppText
             style={[settingRowStyles.label, { color: textColor }]}
             translationKey={labelKey}
-            selectable={false}
           />
         ) : (
-          <AppText style={[settingRowStyles.label, { color: textColor }]} selectable={false}>
+          <AppText style={[settingRowStyles.label, { color: textColor }]}>
             {labelText}
           </AppText>
         )}
         {value && type !== "VALUE" ? (
-          <AppText style={[settingRowStyles.value, { color: theme.subtitle2 }]} selectable={false}>
+          <AppText style={[settingRowStyles.value, { color: theme.subtitle2 }]}>
             {value}
           </AppText>
         ) : null}
       </View>
 
-      {rightElement ?? (() => {
-        switch (type) {
-          case "SWITCH":
-            return <Switch value={!!isEnabled} onValueChange={onToggle || (() => {})} />;
-          case "VALUE":
-            return value ? (
-              <AppText style={[settingRowStyles.rightValue, { color: theme.subtitle2 }]} selectable={false}>
-                {value}
-              </AppText>
-            ) : null;
-          case "NAVIGATE":
-          case "MODAL":
-            return onPress ? (
-              <Icon name="ArrowRight01Icon" color={theme.subtitle2} size={20} />
-            ) : null;
-          default:
-            return null;
-        }
-      })()}
-
+      {rightElement ??
+        (() => {
+          switch (type) {
+            case "SWITCH":
+              return (
+                <Switch
+                  value={!!isEnabled}
+                  onValueChange={onToggle || (() => {})}
+                />
+              );
+            case "VALUE":
+              return value ? (
+                <AppText
+                  style={[
+                    settingRowStyles.rightValue,
+                    { color: theme.subtitle2 },
+                  ]}
+                >
+                  {value}
+                </AppText>
+              ) : null;
+            case "NAVIGATE":
+            case "MODAL":
+              return onPress ? (
+                <Icon
+                  name="ArrowRight01Icon"
+                  color={theme.subtitle2}
+                  size={20}
+                />
+              ) : null;
+            default:
+              return null;
+          }
+        })()}
     </Pressable>
   );
 };

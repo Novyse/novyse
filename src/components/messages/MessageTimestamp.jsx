@@ -122,19 +122,11 @@ const MessageTimestamp = ({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <AppText
-              style={styles.timeText}
-              selectable={false}
-              text={parseTime(time)}
-            />
+            <AppText style={styles.timeText} text={parseTime(time)} />
           </View>
         ) : (
           <View style={styles.timeContainer}>
-            <AppText
-              style={styles.timeText}
-              selectable={false}
-              text={parseTime(time)}
-            />
+            <AppText style={styles.timeText} text={parseTime(time)} />
           </View>
         ))}
       {Platform.OS === "web" && createPortal(tooltip, document.body)}

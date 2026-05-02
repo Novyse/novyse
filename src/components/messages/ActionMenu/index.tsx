@@ -216,7 +216,6 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
                     <AppText
                       style={styles.menuText}
                       numberOfLines={1}
-                      selectable={false}
                       translationKey={item.translationKey}
                     />
                   </View>
@@ -237,7 +236,6 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
                       <Icon name="EyeIcon" size={16} color={theme.text} />
                       <AppText
                         style={styles.statsTextHalf}
-                        selectable={false}
                         text={readCount.toString()}
                       />
                     </View>
@@ -254,7 +252,6 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
                       <Icon name="SmileIcon" size={16} color={theme.text} />
                       <AppText
                         style={styles.statsTextHalf}
-                        selectable={false}
                         text={totalReactions.toString()}
                       />
                     </View>

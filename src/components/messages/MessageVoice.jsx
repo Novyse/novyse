@@ -80,7 +80,6 @@ const MessageVoice = ({
         <View style={styles.textContainer}>
           <AppText
             style={styles.durationText}
-            selectable={false}
             text={`${formatTime(thisCurrentTime)} / ${formatDuration(duration)}`}
           />
         </View>

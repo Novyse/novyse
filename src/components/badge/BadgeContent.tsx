@@ -9,7 +9,6 @@ const BadgeContent = ({ name, icon, textColor }: any) => {
     <>
       {icon && <Icon name={icon} size={12} color={defaultTextColor} />}
       <AppText
-        selectable={false}
         style={[styles.badgeText, { color: defaultTextColor }]}
         text={name}
       />

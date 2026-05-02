@@ -9,18 +9,12 @@ interface SectionProps {
   style?: any;
 }
 
-const Section = ({
-  titleKey,
-  children,
-  theme,
-  style,
-}: SectionProps) => (
+const Section = ({ titleKey, children, theme, style }: SectionProps) => (
   <View style={[sectionStyles.container, style]}>
     {titleKey && (
       <AppText
         style={[sectionStyles.title, { color: theme.subtitle2 }]}
         translationKey={titleKey}
-        selectable={false}
       />
     )}
     <View

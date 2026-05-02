@@ -60,7 +60,6 @@ const MainHeader = ({
               style={styles.chatSubtitle}
               numberOfLines={1}
               text={chatUtils.formatActivity(memberActivityData, chatType)}
-              selectable={false}
             />
           ) : (
             <>
@@ -71,7 +70,6 @@ const MainHeader = ({
                     style={styles.chatSubtitle}
                     numberOfLines={1}
                     text={`${t("chat.header.lastSeen")}: ${chatUtils.formatLastSeen(lastAccessAt)}`}
-                    selectable={false}
                   />
                 )}
               {chatType === "GROUP" && (
@@ -79,7 +77,6 @@ const MainHeader = ({
                   style={styles.chatSubtitle}
                   numberOfLines={1}
                   text={`${t("chat.header.members", { count: memberCount })}${onlineMembersCount > 0 ? `, ${t("chat.header.online", { count: onlineMembersCount })}` : ""}`}
-                  selectable={false}
                 />
               )}
             </>
