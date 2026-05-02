@@ -7,8 +7,9 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { formatDuration } from "@/src/utils/storage/file/utils";
 import FileButton from "@/src/components/messages/Button";
 import VideoViewer from "@/src/components/modalSheets/viewer/VideoViewer";
+import FileSizeProgress from "@/src/components/messages/FileSizeProgress";
 
-const Video = ({ fileRef, uuid, duration, isSingle }) => {
+const Video = ({ fileRef, uuid, size, duration, isSingle }) => {
   const { uri } = useUriResolver(fileRef);
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme, isSingle);
@@ -50,6 +51,7 @@ const Video = ({ fileRef, uuid, duration, isSingle }) => {
           </View>
         </View>
         <AppText style={styles.duration} text={formatDuration(duration)} />
+        <FileSizeProgress uuid={uuid} size={size} style={styles.fileSize} />
       </Pressable>
       <VideoViewer
         visible={visible}
@@ -93,6 +95,16 @@ const createStyle = (theme, isSingle) =>
       paddingHorizontal: 4,
       borderRadius: 5,
       fontSize: 12,
+    },
+    fileSize: {
+      position: "absolute",
+      bottom: 6,
+      left: 6,
+      color: "white",
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      paddingHorizontal: 4,
+      borderRadius: 5,
+      fontSize: 11,
     },
   });
 

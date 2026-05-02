@@ -6,12 +6,9 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
+import FileSizeProgress from "./FileSizeProgress";
 
-import {
-  formatTime,
-  formatDuration,
-  formatFileSize,
-} from "@/src/utils/storage/file/utils";
+import { formatTime, formatDuration } from "@/src/utils/storage/file/utils";
 
 import SmoothSlider from "../SmoothSlider";
 import PlayButton from "./Button";
@@ -80,7 +77,7 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
               style={styles.durationText}
               text={`${formatTime(thisCurrentTime)} / ${formatDuration(duration)}`}
             />
-            <AppText style={styles.sizeText} text={formatFileSize(size)} />
+            <FileSizeProgress uuid={uuid} size={size} style={styles.sizeText} />
           </View>
         </View>
       </View>

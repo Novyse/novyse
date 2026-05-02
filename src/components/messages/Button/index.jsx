@@ -5,6 +5,8 @@ import { ThemeContext } from "@/context/ThemeContext";
 
 import DefaultButton from "./default";
 import DownloadButton from "./DownloadButton";
+import CircularProgress from "./CircularProgress";
+import useFileProgress from "@/src/hooks/file/useFileProgress";
 
 const Button = ({
   uuid,
@@ -17,9 +19,17 @@ const Button = ({
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme, type, isAvailable);
 
+  const progress = useFileProgress(uuid);
+  const isProgressing = progress && progress.loaded < progress.total;
+
   return (
     <View disabled={!isReady} style={styles.container}>
-      {!isAvailable ? (
+      {isProgressing ? (
+        <CircularProgress
+          progress={progress.loaded / progress.total}
+          color="#fff"
+        />
+      ) : !isAvailable ? (
         <DownloadButton uuid={uuid} styles={styles} />
       ) : !isReady ? (
         <ActivityIndicator size="small" color="#fff" />

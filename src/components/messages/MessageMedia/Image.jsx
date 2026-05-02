@@ -5,8 +5,9 @@ import { ThemeContext } from "@/context/ThemeContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import FileButton from "@/src/components/messages/Button";
 import ImageViewer from "@/src/components/modalSheets/viewer/ImageViewer";
+import FileSizeProgress from "@/src/components/messages/FileSizeProgress";
 
-const Image = ({ fileRef, uuid, isSingle }) => {
+const Image = ({ fileRef, uuid, size, isSingle }) => {
   const { uri } = useUriResolver(fileRef);
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme, isSingle);
@@ -38,6 +39,7 @@ const Image = ({ fileRef, uuid, isSingle }) => {
             />
           </View>
         </View>
+        <FileSizeProgress uuid={uuid} size={size} style={styles.fileSize} />
       </Pressable>
       <ImageViewer
         visible={visible}
@@ -67,6 +69,16 @@ const createStyle = (theme, isSingle) =>
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
+    },
+    fileSize: {
+      position: "absolute",
+      bottom: 6,
+      left: 6,
+      color: "white",
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      paddingHorizontal: 4,
+      borderRadius: 5,
+      fontSize: 11,
     },
   });
 

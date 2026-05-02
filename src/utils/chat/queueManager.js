@@ -317,6 +317,9 @@ class QueueManager {
               // Download file from S3 bucket
               const bytes = await S3Uploader.download(
                 downloadedFile.downloadURL,
+                (progress) => {
+                  this.notifyProgress(fileToDownload, progress);
+                },
               );
 
               if (!bytes) {
@@ -520,7 +523,9 @@ class QueueManager {
     for (const file of files) {
       if (file.ref) {
         const uri = await storage.read(file.ref);
-        await S3Uploader.upload(file.uploadURL, uri, this.notifyProgress);
+        await S3Uploader.upload(file.uploadURL, uri, (progress) => {
+          this.notifyProgress(file.uuid, progress);
+        });
       } else {
         throw new Error("File reference missing for upload");
       }
@@ -602,7 +607,12 @@ class QueueManager {
 
     if (success && fileInfo && fileInfo.downloadURL) {
       // Download file from S3 bucket
-      const bytes = await S3Uploader.download(fileInfo.downloadURL);
+      const bytes = await S3Uploader.download(
+        fileInfo.downloadURL,
+        (progress) => {
+          this.notifyProgress(fileUUID, progress);
+        },
+      );
 
       if (!bytes) {
         throw new Error("File download failed from S3");
@@ -1071,11 +1081,12 @@ class QueueManager {
   }
 
   /**
-   * Notify upload progress
+   * Notify upload/download progress
+   * @param {String} uuid
    * @param {Object} progress { loaded, total }
    */
-  notifyProgress(progress) {
-    eventEmitter.getEmitter().emit("message:progress", progress);
+  notifyProgress(uuid, progress) {
+    eventEmitter.getEmitter().emit("message:progress", { uuid, ...progress });
   }
 
   /**

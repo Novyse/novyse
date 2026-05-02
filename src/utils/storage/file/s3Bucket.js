@@ -21,13 +21,16 @@ class S3Uploader {
           throw new Error("Could not retrieve blob for the given file URI.");
         }
 
-        // Use XMLHttpRequest for progress tracking
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", presignedUrl, true);
         xhr.setRequestHeader(
           "Content-Type",
-          blob.type || "application/octet-stream"
+          blob.type || "application/octet-stream",
         );
+
+        if (onProgress) {
+          onProgress({ loaded: 0, total: blob.size || 0 });
+        }
 
         xhr.upload.onprogress = (event) => {
           if (onProgress && event.lengthComputable) {
@@ -37,7 +40,6 @@ class S3Uploader {
 
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
-            console.log("File uploaded successfully to S3.");
             resolve(true);
           } else {
             throw new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`);

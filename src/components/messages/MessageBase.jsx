@@ -307,6 +307,7 @@ const MessageBase = ({
             key={f.uuid}
             audioRef={f.ref}
             uuid={f.uuid}
+            size={f.size}
             message={message}
             duration={f.duration}
             waveform={

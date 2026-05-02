@@ -41,15 +41,16 @@ const renderGridCell = (item, index) => (
 
 const renderMedia = (media, isSingle) => {
   const fileType = getFileType(media.mimeType);
-  const { ref, uuid, duration } = media;
+  const { ref, uuid, duration, size } = media;
 
   if (fileType === "IMAGE") {
-    return <Image fileRef={ref} uuid={uuid} isSingle={isSingle} />;
+    return <Image fileRef={ref} uuid={uuid} size={size} isSingle={isSingle} />;
   } else if (fileType === "VIDEO") {
     return (
       <Video
         fileRef={ref}
         uuid={uuid}
+        size={size}
         duration={duration}
         isSingle={isSingle}
       />

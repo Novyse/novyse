@@ -6,6 +6,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { AudioPlayerContext } from "@/context/AudioPlayerContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
+import FileSizeProgress from "./FileSizeProgress";
 
 import { formatTime, formatDuration } from "@/src/utils/storage/file/utils";
 import SmoothWaveform from "../SmoothWaveform";
@@ -14,6 +15,7 @@ import PlayButton from "./Button";
 const MessageVoice = ({
   audioRef,
   uuid,
+  size,
   message,
   duration,
   waveform = undefined,
@@ -82,6 +84,7 @@ const MessageVoice = ({
             style={styles.durationText}
             text={`${formatTime(thisCurrentTime)} / ${formatDuration(duration)}`}
           />
+          <FileSizeProgress uuid={uuid} size={size} style={styles.sizeText} />
         </View>
       </View>
     </View>
@@ -117,6 +120,12 @@ function createStyle(theme) {
       color: theme.text,
       textAlign: "left",
       fontVariant: ["tabular-nums"],
+      opacity: 0.8,
+    },
+    sizeText: {
+      fontSize: 12,
+      color: theme.text,
+      textAlign: "right",
       opacity: 0.8,
     },
   });

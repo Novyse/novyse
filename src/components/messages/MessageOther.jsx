@@ -4,7 +4,7 @@ import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/context/ThemeContext";
 
 import useUriResolver from "@/src/hooks/file/useUriResolver";
-import { formatFileSize } from "@/src/utils/storage/file/utils";
+import FileSizeProgress from "./FileSizeProgress";
 
 import FileButton from "./Button";
 
@@ -33,7 +33,7 @@ const MessageOther = ({ fileRef, uuid, mimeType, size, name }) => {
       />
       <View style={styles.detailsContainer}>
         <AppText style={styles.name} numberOfLines={1} text={name} />
-        <AppText style={styles.fileSize} text={formatFileSize(size)} />
+        <FileSizeProgress uuid={uuid} size={size} style={styles.fileSize} />
       </View>
     </Pressable>
   );
