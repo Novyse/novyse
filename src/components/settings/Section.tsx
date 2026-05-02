@@ -1,32 +1,36 @@
-import React from "react";
+import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/context/ThemeContext";
 
 interface SectionProps {
   titleKey?: string;
   children: React.ReactNode;
-  theme: any;
   style?: any;
 }
 
-const Section = ({ titleKey, children, theme, style }: SectionProps) => (
-  <View style={[sectionStyles.container, style]}>
-    {titleKey && (
-      <AppText
-        style={[sectionStyles.title, { color: theme.subtitle2 }]}
-        translationKey={titleKey}
-      />
-    )}
-    <View
-      style={[
-        sectionStyles.card,
-        { backgroundColor: theme.backgroundMainGradient?.[0] ?? theme.card },
-      ]}
-    >
-      {children}
+const Section = ({ titleKey, children, style }: SectionProps) => {
+  const { theme } = useContext(ThemeContext);
+
+  return (
+    <View style={[sectionStyles.container, style]}>
+      {titleKey && (
+        <AppText
+          style={[sectionStyles.title, { color: theme.subtitle2 }]}
+          translationKey={titleKey}
+        />
+      )}
+      <View
+        style={[
+          sectionStyles.card,
+          { backgroundColor: theme.backgroundMainGradient?.[0] },
+        ]}
+      >
+        {children}
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 const sectionStyles = StyleSheet.create({
   container: {

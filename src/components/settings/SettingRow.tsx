@@ -7,33 +7,35 @@ import Switch from "@/src/components/Switch";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 
 export type SettingRowProps = {
-  iconName: string;
+  iconName?: string;
+  leftElement?: React.ReactNode;
   labelKey?: string;
   labelText?: string;
   value?: string;
   onPress?: () => void;
   danger?: boolean;
-  rightElement?: React.ReactNode;
   style?: any;
   type?: SettingRowType;
   isEnabled?: boolean;
   onToggle?: (val: boolean) => void;
+  isSelected?: boolean;
 };
 
-export type SettingRowType = "SWITCH" | "VALUE" | "NAVIGATE" | "MODAL";
+export type SettingRowType = "SWITCH" | "VALUE" | "NAVIGATE" | "MODAL" | "SELECT_GROUP";
 
 const SettingRow = ({
   iconName,
+  leftElement,
   labelKey,
   labelText,
   value,
   onPress,
   danger = false,
-  rightElement,
   style,
   type = "NAVIGATE",
   isEnabled,
   onToggle,
+  isSelected = false,
 }: SettingRowProps) => {
   const { theme } = useContext(ThemeContext);
   const rowColor = danger ? "#FF4D4D" : theme.primary;
@@ -48,14 +50,16 @@ const SettingRow = ({
       ]}
       onPress={onPress}
     >
-      <View
-        style={[
-          settingRowStyles.iconContainer,
-          { backgroundColor: rowColor + "15" },
-        ]}
-      >
-        <Icon name={iconName} color={rowColor} size={20} />
-      </View>
+      {leftElement ? leftElement : iconName ? (
+        <View
+          style={[
+            settingRowStyles.iconContainer,
+            { backgroundColor: rowColor + "15" },
+          ]}
+        >
+          <Icon name={iconName} color={rowColor} size={20} />
+        </View>
+      ) : null}
 
       <View style={settingRowStyles.labelContainer}>
         {labelKey ? (
@@ -75,40 +79,56 @@ const SettingRow = ({
         ) : null}
       </View>
 
-      {rightElement ??
-        (() => {
-          switch (type) {
-            case "SWITCH":
-              return (
-                <Switch
-                  value={!!isEnabled}
-                  onValueChange={onToggle || (() => {})}
-                />
-              );
-            case "VALUE":
-              return value ? (
-                <AppText
-                  style={[
-                    settingRowStyles.rightValue,
-                    { color: theme.subtitle2 },
-                  ]}
-                >
-                  {value}
-                </AppText>
-              ) : null;
-            case "NAVIGATE":
-            case "MODAL":
-              return onPress ? (
-                <Icon
-                  name="ArrowRight01Icon"
-                  color={theme.subtitle2}
-                  size={20}
-                />
-              ) : null;
-            default:
-              return null;
-          }
-        })()}
+      {(() => {
+        switch (type) {
+          case "SWITCH":
+            return (
+              <Switch
+                value={!!isEnabled}
+                onValueChange={onToggle || (() => {})}
+              />
+            );
+          case "VALUE":
+            return value ? (
+              <AppText
+                style={[
+                  settingRowStyles.rightValue,
+                  { color: theme.subtitle2 },
+                ]}
+              >
+                {value}
+              </AppText>
+            ) : null;
+          case "SELECT_GROUP":
+            return (
+              <View
+                style={[
+                  settingRowStyles.radioOuter,
+                  { borderColor: isSelected ? theme.primary : theme.subtitle2 },
+                ]}
+              >
+                {isSelected && (
+                  <View
+                    style={[
+                      settingRowStyles.radioInner,
+                      { backgroundColor: theme.primary },
+                    ]}
+                  />
+                )}
+              </View>
+            );
+          case "NAVIGATE":
+          case "MODAL":
+          default:
+            return onPress ? (
+              <Icon
+                name="ArrowRight01Icon"
+                color={theme.subtitle2}
+                size={20}
+              />
+            ) : null;
+        }
+      })()}
     </HoverAndPressedButton>
   );
 };
@@ -144,6 +164,19 @@ const settingRowStyles = StyleSheet.create({
   rightValue: {
     fontSize: 15,
     fontWeight: "400",
+  },
+  radioOuter: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 });
 

@@ -201,6 +201,12 @@
   },
   "settings": {
     "languageAndTime": "Lingua e Ora",
+    "theme": "Tema Base",
+    "themeOptions": {
+      "system": "Sistema",
+      "dark": "Scuro",
+      "light": "Chiaro"
+    },
     "language": {
       "select": "Lingua dell'app",
       "english": "Inglese",

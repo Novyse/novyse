@@ -1,8 +1,7 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Linking } from "react-native";
 import { router } from "expo-router";
 
-import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import { APP_VERSION, BUILD_NUMBER, BUILD_DATE } from "@/app.config";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
@@ -12,7 +11,6 @@ import SettingRow from "@/src/components/settings/SettingRow";
 export default function InfoRoute() {
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
-  const { theme } = useContext(ThemeContext);
 
   const openLink = (url: string) => {
     Linking.openURL(url);
@@ -20,9 +18,12 @@ export default function InfoRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow translationKey="settings.menu.info" onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.menu.info"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
-        <Section theme={theme}>
+        <Section>
           <SettingRow
             labelKey="settings.info.version"
             value={APP_VERSION}
@@ -43,8 +44,7 @@ export default function InfoRoute() {
             style={{ borderBottomWidth: 0 }}
           />
         </Section>
-
-        <Section titleKey="settings.info.connect" theme={theme}>
+        <Section titleKey="settings.info.connect">
           <SettingRow
             labelKey="settings.info.viewOnGithub"
             iconName="GithubIcon"
@@ -58,7 +58,7 @@ export default function InfoRoute() {
           />
         </Section>
 
-        <Section titleKey="settings.info.legal" theme={theme}>
+        <Section titleKey="settings.info.legal">
           <SettingRow
             labelKey="settings.info.privacyPolicy"
             iconName="Shield01Icon"
