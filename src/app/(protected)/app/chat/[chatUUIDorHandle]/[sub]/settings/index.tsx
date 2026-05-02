@@ -53,10 +53,10 @@ const ChatSettings = () => {
             theme={theme}
             style={styles.profilePicture}
           />
-          <AppText style={styles.chatName}>
+          <AppText style={styles.chatName} selectable={false}>
             {name ?? (isDM ? "Chat" : "Group")}
           </AppText>
-          <AppText style={styles.chatMeta}>
+          <AppText style={styles.chatMeta} selectable={false}>
             {isDM
               ? t("chat.settings.directMessage")
               : t("chat.memberCount", { count: membersCount })}

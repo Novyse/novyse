@@ -20,6 +20,7 @@ const Section = ({
       <AppText
         style={[sectionStyles.title, { color: theme.subtitle2 }]}
         translationKey={titleKey}
+        selectable={false}
       />
     )}
     <View

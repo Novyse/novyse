@@ -64,14 +64,15 @@ const SettingRow = ({
           <AppText
             style={[settingRowStyles.label, { color: textColor }]}
             translationKey={labelKey}
+            selectable={false}
           />
         ) : (
-          <AppText style={[settingRowStyles.label, { color: textColor }]}>
+          <AppText style={[settingRowStyles.label, { color: textColor }]} selectable={false}>
             {labelText}
           </AppText>
         )}
         {value && type !== "VALUE" ? (
-          <AppText style={[settingRowStyles.value, { color: theme.subtitle2 }]}>
+          <AppText style={[settingRowStyles.value, { color: theme.subtitle2 }]} selectable={false}>
             {value}
           </AppText>
         ) : null}
@@ -83,7 +84,7 @@ const SettingRow = ({
             return <Switch value={!!isEnabled} onValueChange={onToggle || (() => {})} />;
           case "VALUE":
             return value ? (
-              <AppText style={[settingRowStyles.rightValue, { color: theme.subtitle2 }]}>
+              <AppText style={[settingRowStyles.rightValue, { color: theme.subtitle2 }]} selectable={false}>
                 {value}
               </AppText>
             ) : null;
