@@ -453,7 +453,7 @@ class QueueManager {
       }
       // Remove files ( uri, ref ) before sending
       cleanFiles = files.map((file) => {
-        const { uri, ref, duration, ...rest } = file;
+        const { uuid, uri, ref, duration, ...rest } = file;
         return rest;
       });
     }
@@ -1223,13 +1223,29 @@ class QueueManager {
       const { message } = job.params;
       message.files = message.files.filter((f) => f.uuid !== fileUUID);
 
-      // Collect the deletion promise in the job so processPendingUploadJob can await it later
-      if (!job.params.deletionPromises) job.params.deletionPromises = [];
-      job.params.deletionPromises.push(
-        gateway.file
-          .delete(fileUUID)
-          .catch((e) => console.error("Failed to delete file from server:", e)),
-      );
+      // If no files left and no content, cancel the whole job
+      if (
+        message.files.length === 0 &&
+        (!message.content || message.content.trim() === "")
+      ) {
+        await this.cancelJob(job.id, job.params.chat.uuid);
+        // Also cancel the S3 transfer for the current file before returning
+        S3Uploader.cancel(fileUUID);
+        this.notifyProgress(fileUUID, { loaded: 0, total: 0 });
+        return;
+      }
+
+      // Only delete from server if the file was already registered (not in PENDING_SEND)
+      if (job.params.status !== "PENDING_SEND") {
+        if (!job.params.deletionPromises) job.params.deletionPromises = [];
+        job.params.deletionPromises.push(
+          gateway.file
+            .delete(fileUUID)
+            .catch((e) =>
+              console.error("Failed to delete file from server:", e),
+            ),
+        );
+      }
 
       // Notify UI that a file was removed
       eventEmitter.getEmitter().emit("message:update", {

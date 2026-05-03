@@ -26,18 +26,14 @@ const Button = ({
 
   return (
     <View disabled={!isReady} style={styles.container}>
-      {isProgressing ? (
+      {isProgressing || isPending ? (
         <CircularProgress
-          progress={progress.loaded / progress.total}
+          progress={isPending ? 0 : progress.loaded / progress.total}
           color="#fff"
           onCancel={() => queueManager.cancelFileTransfer(uuid)}
         />
       ) : !isAvailable ? (
-        isPending ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <DownloadButton uuid={uuid} styles={styles} />
-        )
+        <DownloadButton uuid={uuid} styles={styles} />
       ) : !isReady ? (
         <ActivityIndicator size="small" color="#fff" />
       ) : (

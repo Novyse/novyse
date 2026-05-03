@@ -20,8 +20,10 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
       if (content.trim() === "" && files.length === 0) return;
 
       if (files.length > 0) {
+        const { v6 } = require("uuid");
         const cleanedFiles = files.map((file) => ({
           uri: file.uri,
+          uuid: file.uuid || v6(),
           name: file.name || file.fileName || "novyse_file_" + Date.now(),
           mimeType:
             file.mimeType && file.mimeType !== ""
