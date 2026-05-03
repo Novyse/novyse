@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { StyleSheet, View, Pressable } from "react-native";
+import { StyleSheet, View } from "react-native";
 import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,8 @@ import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import StatusMessage from "@/src/components/StatusMessage";
 import SecurityListCard from "@/src/components/settings/security/SecurityListCard";
+import Section from "@/src/components/settings/Section";
+import SettingRow from "@/src/components/settings/SettingRow";
 import Icon from "@/src/components/Icon";
 import auth from "@/src/utils/backend-services/auth";
 import CreateApiKeyModal from "@/src/components/settings/security/api-keys/CreateApiKeyModal";
@@ -112,11 +114,6 @@ export default function ApiKeysRoute() {
     <>
       <HeaderWithBackArrow translationKey="settings.security.apiKeys" onBack={onBack} />
       <SettingsPageScrollview>
-        <View style={styles.headerSection}>
-          <AppText style={styles.title} translationKey="settings.security.apiKeys" />
-          <AppText style={styles.subtitle} translationKey="settings.security.manageApiKeys" />
-        </View>
-
         <StatusMessage
           type="error"
           content={[error || ""]}
@@ -124,44 +121,41 @@ export default function ApiKeysRoute() {
           onClose={() => setError(null)}
         />
 
-        <View style={styles.listContainer}>
-          {apiKeys.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Icon name="Key01Icon" color="#a0a0a0" size={48} />
-              <AppText style={styles.emptyText} translationKey="settings.security.noApiKeys" />
-              <AppText style={styles.emptySubtext} translationKey="settings.security.createApiKeyPrompt" />
-            </View>
-          ) : (
-            apiKeys.map((apiKey) => (
-              <SecurityListCard
-                key={apiKey.id}
-                iconName="Key01Icon"
-                iconColor={apiKey.active ? "#6366f1" : "#a0a0a0"}
-                title={apiKey.name}
-                subtitle={`${t("settings.security.created")} ${apiKey.createdAt} · ${t("settings.security.lastUsed")} ${apiKey.lastUsed}`}
-                active={apiKey.active}
-                onToggle={(active: boolean) =>
-                  handleToggleKey(apiKey.id, active)
-                }
-                onDelete={() => handleDeleteKey(apiKey.id)}
-              />
-            ))
-          )}
-        </View>
-
-        <View style={styles.addButtonContainer}>
-          <Pressable
+        <Section titleKey="settings.security.actions" style={{ marginTop: 20 }}>
+          <SettingRow
+            iconName="PlusSignIcon"
+            labelKey="settings.security.createNewApiKey"
             onPress={() => setShowCreateModal(true)}
-            style={({ pressed, hovered }: any) => [
-              styles.addButton,
-              hovered && styles.addButtonHovered,
-              pressed && styles.addButtonPressed,
-            ]}
-          >
-            <Icon name="PlusSignCircleIcon" color="#fff" />
-            <AppText style={styles.addButtonText} translationKey="settings.security.createNewApiKey" />
-          </Pressable>
-        </View>
+            style={{ borderBottomWidth: 0 }}
+          />
+        </Section>
+
+        <Section titleKey="settings.security.manageApiKeys">
+          <View style={styles.listContainer}>
+            {apiKeys.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Icon name="Key01Icon" color="#a0a0a0" size={48} />
+                <AppText style={styles.emptyText} translationKey="settings.security.noApiKeys" />
+                <AppText style={styles.emptySubtext} translationKey="settings.security.createApiKeyPrompt" />
+              </View>
+            ) : (
+              apiKeys.map((apiKey) => (
+                <SecurityListCard
+                  key={apiKey.id}
+                  iconName="Key01Icon"
+                  iconColor={apiKey.active ? "#6366f1" : "#a0a0a0"}
+                  title={apiKey.name}
+                  subtitle={`${t("settings.security.created")} ${apiKey.createdAt} · ${t("settings.security.lastUsed")} ${apiKey.lastUsed}`}
+                  active={apiKey.active}
+                  onToggle={(active: boolean) =>
+                    handleToggleKey(apiKey.id, active)
+                  }
+                  onDelete={() => handleDeleteKey(apiKey.id)}
+                />
+              ))
+            )}
+          </View>
+        </Section>
 
         <StatusMessage
           type="success"
@@ -192,30 +186,13 @@ export default function ApiKeysRoute() {
 
 const createStyle = (theme: any) =>
   StyleSheet.create({
-    headerSection: {
-      marginBottom: 32,
-      paddingTop: 20,
-      alignItems: "center",
-    },
-    title: {
-      fontSize: 28,
-      fontWeight: "bold",
-      color: theme.text,
-      marginBottom: 8,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: "#a0a0a0",
-      lineHeight: 22,
-    },
     listContainer: {
       width: "100%",
-      maxWidth: 600,
-      alignSelf: "center",
+      padding: 16,
     },
     emptyState: {
       alignItems: "center",
-      paddingVertical: 40,
+      paddingVertical: 20,
       gap: 12,
     },
     emptyText: {
@@ -227,31 +204,5 @@ const createStyle = (theme: any) =>
       fontSize: 14,
       color: "#a0a0a0",
       textAlign: "center",
-    },
-    addButtonContainer: {
-      alignItems: "center",
-      marginTop: 8,
-    },
-    addButton: {
-      backgroundColor: "#6366f1",
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 24,
-      paddingVertical: 14,
-      borderRadius: 24,
-      gap: 10,
-    },
-    addButtonText: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    addButtonHovered: {
-      backgroundColor: "#5558e6",
-      cursor: "pointer" as any,
-    },
-    addButtonPressed: {
-      backgroundColor: "#4e51d4",
-      opacity: 0.9,
     },
   });

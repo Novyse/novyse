@@ -6,10 +6,10 @@ import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsCard from "@/src/components/settings/SettingsCard";
 import SettingsButton from "@/src/components/settings/SettingsButton";
 import StatusMessage from "@/src/components/StatusMessage";
-import Icon from "@/src/components/Icon";
+import Section from "@/src/components/settings/Section";
+import SettingRow from "@/src/components/settings/SettingRow";
 
 import auth from "@/src/utils/backend-services/auth";
 
@@ -129,243 +129,206 @@ export default function PasswordRoute() {
         onBack={onBack}
       />
       <SettingsPageScrollview>
-        <View style={styles.headerSection}>
-          <AppText
-            style={styles.title}
-            translationKey="settings.security.password"
+        <Section titleKey="settings.security.status" style={{ marginTop: 20 }}>
+          <SettingRow
+            iconName={hasPassword ? "CheckmarkCircle02Icon" : "Cancel01Icon"}
+            labelKey={hasPassword ? "settings.security.passwordActive" : "settings.security.noPasswordSet"}
+            value={hasPassword ? t("settings.security.passwordProtected") : t("settings.security.addPasswordSecurity")}
+            style={{ borderBottomWidth: 0 }}
           />
-          <AppText
-            style={styles.subtitle}
-            translationKey="settings.security.managePassword"
-          />
-        </View>
+        </Section>
 
-        {/* Status Card */}
-        <SettingsCard>
-          <View style={styles.statusRow}>
-            <View style={styles.statusInfo}>
-              <View
-                style={[
-                  styles.statusIcon,
-                  { backgroundColor: hasPassword ? "#00C851" : "#FF4757" },
-                ]}
-              >
-                <Icon
-                  name={hasPassword ? "CheckmarkCircle02Icon" : "Cancel01Icon"}
-                  color="#fff"
-                  size={20}
-                />
-              </View>
-              <View>
-                <AppText style={styles.statusTitle}>
-                  {hasPassword
-                    ? t("settings.security.passwordActive")
-                    : t("settings.security.noPasswordSet")}
-                </AppText>
-                <AppText style={styles.statusSubtitle}>
-                  {hasPassword
-                    ? t("settings.security.passwordProtected")
-                    : t("settings.security.addPasswordSecurity")}
-                </AppText>
-              </View>
-            </View>
-          </View>
-        </SettingsCard>
-
-        {/* Action Buttons */}
         {!showForm && (
-          <View style={styles.buttonGroup}>
+          <Section titleKey="settings.security.actions">
             {!hasPassword ? (
-              <SettingsButton
-                translationKey="settings.security.setPassword"
+              <SettingRow
+                iconName="PlusSignIcon"
+                labelKey="settings.security.setPassword"
                 onPress={() => setShowForm("set")}
+                style={{ borderBottomWidth: 0 }}
               />
             ) : (
               <>
-                <SettingsButton
-                  translationKey="settings.security.changePassword"
+                <SettingRow
+                  iconName="Edit02Icon"
+                  labelKey="settings.security.changePassword"
                   onPress={() => setShowForm("change")}
                 />
-                <SettingsButton
-                  translationKey="settings.security.removePassword"
+                <SettingRow
+                  iconName="Delete02Icon"
+                  labelKey="settings.security.removePassword"
                   onPress={() => setShowForm("remove")}
+                  danger={true}
+                  style={{ borderBottomWidth: 0 }}
                 />
               </>
             )}
-          </View>
+          </Section>
         )}
 
         {/* Set Password Form */}
         {showForm === "set" && (
-          <SettingsCard>
-            <AppText
-              style={styles.formTitle}
-              translationKey="settings.security.setPassword"
-            />
+          <Section titleKey="settings.security.setPassword">
+            <View style={styles.formContainer}>
+              <StatusMessage
+                type="error"
+                content={[error || ""]}
+                visible={!!error}
+                onClose={() => setError(null)}
+              />
 
-            <StatusMessage
-              type="error"
-              content={[error || ""]}
-              visible={!!error}
-              onClose={() => setError(null)}
-            />
+              <View style={styles.inputContainer}>
+                <AppText
+                  style={styles.inputLabel}
+                  translationKey="settings.security.newPassword"
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder={t("settings.security.enterNewPassword")}
+                  placeholderTextColor={theme.placeholderText}
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <AppText
+                  style={styles.inputLabel}
+                  translationKey="settings.security.confirmPassword"
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder={t("settings.security.confirmNewPasswordInput")}
+                  placeholderTextColor={theme.placeholderText}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              </View>
 
-            <View style={styles.inputContainer}>
-              <AppText
-                style={styles.inputLabel}
-                translationKey="settings.security.newPassword"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("settings.security.enterNewPassword")}
-                placeholderTextColor={theme.placeholderText}
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry
-                autoCapitalize="none"
-              />
+              <View style={styles.formButtons}>
+                <SettingsButton
+                  text={
+                    isLoading
+                      ? t("settings.security.setting")
+                      : t("settings.security.setPassword")
+                  }
+                  onPress={handleSetPassword}
+                  disabled={isLoading}
+                />
+                <SettingsButton
+                  translationKey="settings.security.cancel"
+                  onPress={resetForm}
+                />
+              </View>
             </View>
-            <View style={styles.inputContainer}>
-              <AppText
-                style={styles.inputLabel}
-                translationKey="settings.security.confirmPassword"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("settings.security.confirmNewPasswordInput")}
-                placeholderTextColor={theme.placeholderText}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-            </View>
-
-            <View style={styles.formButtons}>
-              <SettingsButton
-                text={
-                  isLoading
-                    ? t("settings.security.setting")
-                    : t("settings.security.setPassword")
-                }
-                onPress={handleSetPassword}
-                disabled={isLoading}
-              />
-              <SettingsButton
-                translationKey="settings.security.cancel"
-                onPress={resetForm}
-              />
-            </View>
-          </SettingsCard>
+          </Section>
         )}
 
         {/* Change Password Form */}
         {showForm === "change" && (
-          <SettingsCard>
-            <AppText
-              style={styles.formTitle}
-              translationKey="settings.security.changePassword"
-            />
+          <Section titleKey="settings.security.changePassword">
+            <View style={styles.formContainer}>
+              <StatusMessage
+                type="error"
+                content={[error || ""]}
+                visible={!!error}
+                onClose={() => setError(null)}
+              />
 
-            <StatusMessage
-              type="error"
-              content={[error || ""]}
-              visible={!!error}
-              onClose={() => setError(null)}
-            />
+              <View style={styles.inputContainer}>
+                <AppText
+                  style={styles.inputLabel}
+                  translationKey="settings.security.newPassword"
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder={t("settings.security.enterNewPassword")}
+                  placeholderTextColor={theme.placeholderText}
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <AppText
+                  style={styles.inputLabel}
+                  translationKey="settings.security.confirmNewPassword"
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder={t("settings.security.confirmNewPasswordInput")}
+                  placeholderTextColor={theme.placeholderText}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              </View>
 
-            <View style={styles.inputContainer}>
-              <AppText
-                style={styles.inputLabel}
-                translationKey="settings.security.newPassword"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("settings.security.enterNewPassword")}
-                placeholderTextColor={theme.placeholderText}
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-            </View>
-            <View style={styles.inputContainer}>
-              <AppText
-                style={styles.inputLabel}
-                translationKey="settings.security.confirmNewPassword"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("settings.security.confirmNewPasswordInput")}
-                placeholderTextColor={theme.placeholderText}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-            </View>
+              <View style={styles.formButtons}>
+                <SettingsButton
+                  text={
+                    isLoading
+                      ? t("settings.security.changing")
+                      : t("settings.security.changePassword")
+                  }
+                  onPress={handleChangePassword}
+                  disabled={isLoading}
+                />
+                <SettingsButton
+                  translationKey="settings.security.cancel"
+                  onPress={resetForm}
+                />
+              </View>
 
-            <View style={styles.formButtons}>
-              <SettingsButton
-                text={
-                  isLoading
-                    ? t("settings.security.changing")
-                    : t("settings.security.changePassword")
-                }
-                onPress={handleChangePassword}
-                disabled={isLoading}
-              />
-              <SettingsButton
-                translationKey="settings.security.cancel"
-                onPress={resetForm}
-              />
+              <View style={styles.securityNote}>
+                <AppText
+                  style={styles.noteText}
+                  translationKey="settings.security.passwordNote"
+                />
+              </View>
             </View>
-
-            <View style={styles.securityNote}>
-              <AppText
-                style={styles.noteText}
-                translationKey="settings.security.passwordNote"
-              />
-            </View>
-          </SettingsCard>
+          </Section>
         )}
 
         {/* Remove Password Form */}
         {showForm === "remove" && (
-          <SettingsCard>
-            <AppText
-              style={styles.formTitle}
-              translationKey="settings.security.removePassword"
-            />
-            <AppText
-              style={styles.warningText}
-              translationKey="settings.security.removePasswordWarning"
-            />
-
-            <StatusMessage
-              type="error"
-              content={[error || ""]}
-              visible={!!error}
-              onClose={() => setError(null)}
-            />
-
-            <View style={styles.formButtons}>
-              <SettingsButton
-                text={
-                  isLoading
-                    ? t("settings.security.removing")
-                    : t("settings.security.removePassword")
-                }
-                onPress={handleRemovePassword}
-                disabled={isLoading}
-                style={{ backgroundColor: "#FF4757" } as any}
+          <Section titleKey="settings.security.removePassword">
+            <View style={styles.formContainer}>
+              <AppText
+                style={styles.warningText}
+                translationKey="settings.security.removePasswordWarning"
               />
-              <SettingsButton
-                translationKey="settings.security.cancel"
-                onPress={resetForm}
+
+              <StatusMessage
+                type="error"
+                content={[error || ""]}
+                visible={!!error}
+                onClose={() => setError(null)}
               />
+
+              <View style={styles.formButtons}>
+                <SettingsButton
+                  text={
+                    isLoading
+                      ? t("settings.security.removing")
+                      : t("settings.security.removePassword")
+                  }
+                  onPress={handleRemovePassword}
+                  disabled={isLoading}
+                  style={{ backgroundColor: "#FF4757" } as any}
+                />
+                <SettingsButton
+                  translationKey="settings.security.cancel"
+                  onPress={resetForm}
+                />
+              </View>
             </View>
-          </SettingsCard>
+          </Section>
         )}
 
         <StatusMessage
@@ -382,61 +345,8 @@ export default function PasswordRoute() {
 
 const createStyle = (theme: any) =>
   StyleSheet.create({
-    headerSection: {
-      marginBottom: 32,
-      paddingTop: 20,
-      alignItems: "center",
-    },
-    title: {
-      fontSize: 28,
-      fontWeight: "bold",
-      color: theme.text,
-      marginBottom: 8,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: "#a0a0a0",
-      lineHeight: 22,
-    },
-    statusRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    statusInfo: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 16,
-      flex: 1,
-    },
-    statusIcon: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    statusTitle: {
-      fontSize: 18,
-      fontWeight: "600",
-      color: theme.text,
-      marginBottom: 4,
-    },
-    statusSubtitle: {
-      fontSize: 14,
-      color: "#a0a0a0",
-    },
-    buttonGroup: {
-      gap: 12,
-      maxWidth: 300,
-      alignSelf: "center",
-      width: "100%",
-    },
-    formTitle: {
-      fontSize: 20,
-      fontWeight: "700",
-      color: theme.text,
-      marginBottom: 16,
+    formContainer: {
+      padding: 24,
     },
     warningText: {
       fontSize: 14,

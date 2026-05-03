@@ -337,6 +337,8 @@
     },
     "security": {
       "title": "Sicurezza",
+      "status": "Stato",
+      "actions": "Azioni",
       "sessions": {
         "ip": "IP",
         "created": "Creato",
