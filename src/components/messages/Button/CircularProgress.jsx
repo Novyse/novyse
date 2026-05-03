@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
+import Icon from "@/src/components/Icon";
 import Svg, { Circle } from "react-native-svg";
 import Animated, {
   useSharedValue,
@@ -14,7 +15,7 @@ const STROKE_WIDTH = 3;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-const CircularProgress = ({ progress, color = "#fff" }) => {
+const CircularProgress = ({ progress, color = "#fff", onCancel }) => {
   const animatedProgress = useSharedValue(0);
 
   useEffect(() => {
@@ -31,7 +32,7 @@ const CircularProgress = ({ progress, color = "#fff" }) => {
   });
 
   return (
-    <View style={styles.container}>
+    <Pressable onPress={onCancel} style={styles.container}>
       <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
         {/* Background Circle */}
         <Circle
@@ -59,12 +60,22 @@ const CircularProgress = ({ progress, color = "#fff" }) => {
           rotation="-90"
         />
       </Svg>
-    </View>
+      {onCancel && (
+        <View style={styles.iconContainer}>
+          <Icon name="Cancel01Icon" size={16} color={color} />
+        </View>
+      )}
+    </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  iconContainer: {
+    position: "absolute",
     justifyContent: "center",
     alignItems: "center",
   },

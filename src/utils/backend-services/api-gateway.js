@@ -721,6 +721,24 @@ const gateway = {
         throw error;
       }
     },
+    /**
+     * Delete a file upload (cancel upload).
+     * @param {String} fileUUID
+     * @returns {Object} { success: boolean }
+     */
+    async delete(fileUUID) {
+      try {
+        if (!fileUUID) {
+          throw new Error("fileUUID is required to delete file");
+        }
+        const response = await api.delete(`/file?fileUUID=${fileUUID}`);
+        const success = response.data.success;
+        return { success };
+      } catch (error) {
+        console.error("Error in file.delete:", error);
+        throw error;
+      }
+    },
   },
 
   comms: {

@@ -7,6 +7,7 @@ import DefaultButton from "./default";
 import DownloadButton from "./DownloadButton";
 import CircularProgress from "./CircularProgress";
 import useFileProgress from "@/src/hooks/file/useFileProgress";
+import queueManager from "@/src/utils/chat/queueManager";
 
 const Button = ({
   uuid,
@@ -28,6 +29,7 @@ const Button = ({
         <CircularProgress
           progress={progress.loaded / progress.total}
           color="#fff"
+          onCancel={() => queueManager.cancelFileTransfer(uuid)}
         />
       ) : !isAvailable ? (
         <DownloadButton uuid={uuid} styles={styles} />

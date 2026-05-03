@@ -2,14 +2,17 @@ import storage from "./index";
 import { getPlatform } from "../../device/type";
 
 class S3Uploader {
+  static activeTransfers = new Map();
+
   /**
    * Uploads a file to S3 using a presigned URL with progress tracking.
    * @param {string} presignedUrl - The presigned S3 URL for upload.
    * @param {string} fileUri - The URI of the file to upload (e.g., blob URL).
+   * @param {string} fileUUID - The UUID of the file.
    * @param {function} onProgress - Callback function called with { loaded: number, total: number }.
    * @returns {Promise<boolean>} - True if upload successful, false otherwise.
    */
-  static async upload(presignedUrl, fileUri, onProgress = null) {
+  static async upload(presignedUrl, fileUri, fileUUID, onProgress = null) {
     return new Promise(async (resolve) => {
       try {
         if (!presignedUrl || !fileUri) {
@@ -28,6 +31,8 @@ class S3Uploader {
           blob.type || "application/octet-stream",
         );
 
+        S3Uploader.activeTransfers.set(fileUUID, xhr);
+
         if (onProgress) {
           onProgress({ loaded: 0, total: blob.size || 0 });
         }
@@ -39,21 +44,30 @@ class S3Uploader {
         };
 
         xhr.onload = () => {
+          S3Uploader.activeTransfers.delete(fileUUID);
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve(true);
           } else {
-            throw new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`);
+            console.error(`Upload failed: ${xhr.status} ${xhr.statusText}`);
+            resolve(false);
           }
         };
 
         xhr.onerror = () => {
+          S3Uploader.activeTransfers.delete(fileUUID);
           console.error("Error uploading file to S3:", xhr.statusText);
           resolve(false);
+        };
+
+        xhr.onabort = () => {
+          S3Uploader.activeTransfers.delete(fileUUID);
+          resolve("CANCELLED");
         };
 
         xhr.send(blob);
       } catch (error) {
         console.error("Error uploading file to S3:", error);
+        S3Uploader.activeTransfers.delete(fileUUID);
         resolve(false);
       }
     });
@@ -62,10 +76,11 @@ class S3Uploader {
   /**
    * Downloads a file from S3 using a presigned URL with progress tracking.
    * @param {String} presignedUrl
+   * @param {String} fileUUID
    * @param {Function} onProgress
    * @returns {Promise<Blob|null>} - The downloaded file as a Blob, or null on failure.
    */
-  static async download(presignedUrl, onProgress = null) {
+  static async download(presignedUrl, fileUUID, onProgress = null) {
     return new Promise(async (resolve) => {
       try {
         if (!presignedUrl) {
@@ -74,6 +89,8 @@ class S3Uploader {
         const xhr = new XMLHttpRequest();
         xhr.open("GET", presignedUrl, true);
 
+        S3Uploader.activeTransfers.set(fileUUID, xhr);
+
         xhr.responseType = S3Uploader.getResponseType();
         xhr.onprogress = (event) => {
           if (onProgress && event.lengthComputable) {
@@ -81,23 +98,37 @@ class S3Uploader {
           }
         };
         xhr.onload = () => {
+          S3Uploader.activeTransfers.delete(fileUUID);
           if (xhr.status >= 200 && xhr.status < 300) {
             console.log("File downloaded successfully from S3.");
             resolve(xhr.response);
           } else {
-            throw new Error(`Download failed: ${xhr.status} ${xhr.statusText}`);
+            console.error(`Download failed: ${xhr.status} ${xhr.statusText}`);
+            resolve(null);
           }
         };
         xhr.onerror = () => {
+          S3Uploader.activeTransfers.delete(fileUUID);
           console.error("Error downloading file from S3:", xhr.statusText);
           resolve(null);
+        };
+        xhr.onabort = () => {
+          S3Uploader.activeTransfers.delete(fileUUID);
+          resolve("CANCELLED");
         };
         xhr.send();
       } catch (error) {
         console.error("Error downloading file from S3:", error);
+        S3Uploader.activeTransfers.delete(fileUUID);
         resolve(null);
       }
     });
+  }
+
+  static cancel(fileUUID) {
+    if (S3Uploader.activeTransfers.has(fileUUID)) {
+      S3Uploader.activeTransfers.get(fileUUID).abort();
+    }
   }
 
   static getResponseType() {
