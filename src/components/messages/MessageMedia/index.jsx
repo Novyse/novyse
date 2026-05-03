@@ -4,27 +4,29 @@ import Image from "./Image";
 import Video from "./Video";
 import { getFileType } from "@/src/utils/storage/file/type";
 
-const MessageMedia = ({ medias }) => {
+const MessageMedia = ({ medias, isPending }) => {
   if (!medias || medias.length === 0) return null;
 
   return (
     <View style={styles.container}>
       {medias.length === 1 ? (
-        renderMedia(medias[0], true)
+        renderMedia(medias[0], true, isPending)
       ) : (
         <View style={styles.grid}>
           <View style={styles.row}>
             {medias
               .slice(0, 2)
-              .map((item, index) => renderGridCell(item, index))}
+              .map((item, index) => renderGridCell(item, index, isPending))}
           </View>
           {medias.length > 2 && (
             <View style={styles.row}>
               {medias.length === 3
-                ? renderGridCell(medias[2], 2)
+                ? renderGridCell(medias[2], 2, isPending)
                 : medias
                     .slice(2, 4)
-                    .map((item, index) => renderGridCell(item, index + 2))}
+                    .map((item, index) =>
+                      renderGridCell(item, index + 2, isPending),
+                    )}
             </View>
           )}
         </View>
@@ -33,18 +35,26 @@ const MessageMedia = ({ medias }) => {
   );
 };
 
-const renderGridCell = (item, index) => (
+const renderGridCell = (item, index, isPending) => (
   <View key={index} style={styles.cell}>
-    {renderMedia(item, false)}
+    {renderMedia(item, false, isPending)}
   </View>
 );
 
-const renderMedia = (media, isSingle) => {
+const renderMedia = (media, isSingle, isPending) => {
   const fileType = getFileType(media.mimeType);
   const { ref, uuid, duration, size } = media;
 
   if (fileType === "IMAGE") {
-    return <Image fileRef={ref} uuid={uuid} size={size} isSingle={isSingle} />;
+    return (
+      <Image
+        fileRef={ref}
+        uuid={uuid}
+        size={size}
+        isSingle={isSingle}
+        isPending={isPending}
+      />
+    );
   } else if (fileType === "VIDEO") {
     return (
       <Video
@@ -53,6 +63,7 @@ const renderMedia = (media, isSingle) => {
         size={size}
         duration={duration}
         isSingle={isSingle}
+        isPending={isPending}
       />
     );
   }

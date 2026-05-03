@@ -18,6 +18,7 @@ const MessageVoice = ({
   size,
   message,
   duration,
+  isPending,
   waveform = undefined,
 }) => {
   const {
@@ -60,6 +61,7 @@ const MessageVoice = ({
     <View style={styles.container}>
       <PlayButton
         uuid={uuid}
+        isPending={isPending}
         isAvailable={!!audioRef}
         isReady={isReady}
         isPlaying={isThisPlaying}

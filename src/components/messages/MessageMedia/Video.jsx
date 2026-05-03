@@ -9,7 +9,7 @@ import FileButton from "@/src/components/messages/Button";
 import VideoViewer from "@/src/components/modalSheets/viewer/VideoViewer";
 import FileSizeProgress from "@/src/components/messages/FileSizeProgress";
 
-const Video = ({ fileRef, uuid, size, duration, isSingle }) => {
+const Video = ({ fileRef, uuid, size, duration, isPending, isSingle }) => {
   const { uri } = useUriResolver(fileRef);
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme, isSingle);
@@ -43,6 +43,7 @@ const Video = ({ fileRef, uuid, size, duration, isSingle }) => {
           <View style={styles.overlay}>
             <FileButton
               uuid={uuid}
+              isPending={isPending}
               isAvailable={!!fileRef}
               isReady={!!uri}
               type={"VIDEO"}

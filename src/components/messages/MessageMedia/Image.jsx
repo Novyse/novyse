@@ -7,7 +7,7 @@ import FileButton from "@/src/components/messages/Button";
 import ImageViewer from "@/src/components/modalSheets/viewer/ImageViewer";
 import FileSizeProgress from "@/src/components/messages/FileSizeProgress";
 
-const Image = ({ fileRef, uuid, size, isSingle }) => {
+const Image = ({ fileRef, uuid, size, isSingle, isPending }) => {
   const { uri } = useUriResolver(fileRef);
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme, isSingle);
@@ -32,6 +32,7 @@ const Image = ({ fileRef, uuid, size, isSingle }) => {
           <View style={styles.overlay}>
             <FileButton
               uuid={uuid}
+              isPending={isPending}
               isAvailable={!!fileRef}
               isReady={!!uri}
               type={"IMAGE"}

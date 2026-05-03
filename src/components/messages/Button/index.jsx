@@ -12,6 +12,7 @@ import queueManager from "@/src/utils/chat/queueManager";
 const Button = ({
   uuid,
   isAvailable,
+  isPending,
   isReady,
   isPlaying,
   type,
@@ -32,7 +33,11 @@ const Button = ({
           onCancel={() => queueManager.cancelFileTransfer(uuid)}
         />
       ) : !isAvailable ? (
-        <DownloadButton uuid={uuid} styles={styles} />
+        isPending ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <DownloadButton uuid={uuid} styles={styles} />
+        )
       ) : !isReady ? (
         <ActivityIndicator size="small" color="#fff" />
       ) : (

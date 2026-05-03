@@ -13,7 +13,15 @@ import { formatTime, formatDuration } from "@/src/utils/storage/file/utils";
 import SmoothSlider from "../SmoothSlider";
 import PlayButton from "./Button";
 
-const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
+const MessageAudio = ({
+  audioRef,
+  uuid,
+  size,
+  name,
+  message,
+  duration,
+  isPending,
+}) => {
   const {
     isPlaying,
     playBackRate,
@@ -54,6 +62,7 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
     <View style={styles.container}>
       <PlayButton
         uuid={uuid}
+        isPending={isPending}
         isAvailable={!!audioRef}
         isReady={isReady}
         isPlaying={isThisPlaying}

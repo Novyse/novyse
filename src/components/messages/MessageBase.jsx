@@ -262,6 +262,8 @@ const MessageBase = ({
 
   const hasBeenRead = isSender && (message.readBy?.length || 0) > 0;
 
+  console.log;
+
   const sharedContent = (
     <View style={hasOnlyMedia ? styles.mediaContainer : null}>
       {replyTos && replyTos.length > 0 && (
@@ -277,7 +279,12 @@ const MessageBase = ({
           ))}
         </View>
       )}
-      {fileGroups.media.true && <MessageMedia medias={fileGroups.media.true} />}
+      {fileGroups.media.true && (
+        <MessageMedia
+          medias={fileGroups.media.true}
+          isPending={message.internal}
+        />
+      )}
       {(fileGroups.other.true || []).map((f) => (
         <MessageOther
           key={f.uuid}
@@ -286,6 +293,7 @@ const MessageBase = ({
           mimeType={f.mimeType}
           size={f.size}
           name={f.name}
+          isPending={message.internal}
         />
       ))}
       <View style={{ width: "100%" }}>
@@ -298,6 +306,7 @@ const MessageBase = ({
             name={f.name}
             message={message}
             duration={f.duration}
+            isPending={message.internal}
           />
         ))}
       </View>
@@ -310,6 +319,7 @@ const MessageBase = ({
             size={f.size}
             message={message}
             duration={f.duration}
+            isPending={message.internal}
             waveform={
               Array.isArray(f.waveform)
                 ? f.waveform

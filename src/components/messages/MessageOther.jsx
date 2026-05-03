@@ -8,7 +8,7 @@ import FileSizeProgress from "./FileSizeProgress";
 
 import FileButton from "./Button";
 
-const MessageOther = ({ fileRef, uuid, mimeType, size, name }) => {
+const MessageOther = ({ fileRef, uuid, mimeType, size, name, isPending }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -26,6 +26,7 @@ const MessageOther = ({ fileRef, uuid, mimeType, size, name }) => {
     <Pressable style={styles.container} onPress={handlePress}>
       <FileButton
         uuid={uuid}
+        isPending={isPending}
         isAvailable={!!fileRef}
         isReady={!!fileUri}
         type={"OTHER"}
