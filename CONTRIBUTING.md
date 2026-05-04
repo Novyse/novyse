@@ -1,18 +1,23 @@
 # Contributing to Novyse
 
-First off, thank you for considering contributing to Novyse! It's people like you that make Novyse such a great tool for everyone.
+First off, thank you for considering contributing to Novyse! It's people like you that make Novyse such a great tool for everyone. By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
 
-By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
+---
 
 ## Table of Contents
 
-- [How Can I Contribute?](#how-can-i-contribute)
-  - [Reporting Bugs](#reporting-bugs)
-  - [Suggesting Enhancements](#suggesting-enhancements)
-  - [Pull Requests](#pull-requests)
-- [Developer Setup](#developer-setup)
-- [Build Instructions](#build-instructions)
-- [Security Policy](#security-policy)
+1. [How Can I Contribute?](#how-can-i-contribute)
+   - [Reporting Bugs](#reporting-bugs)
+   - [Suggesting Enhancements](#suggesting-enhancements)
+   - [Pull Requests](#pull-requests)
+2. [Development Guide](#development-guide)
+   - [Environment Setup](#environment-setup)
+   - [Build Instructions](#build-instructions)
+     - [Intro & Config](#intro--config)
+     - [Web Build](#web-build)
+     - [Android Build](#android-build)
+     - [Other Platforms](#other-platforms)
+3. [Security & Legal](#security--legal)
 
 ---
 
@@ -35,12 +40,15 @@ Before creating enhancement suggestions, please check the [existing issues](http
 The process which describes how to contribute to the repository:
 
 1. Fork the repository and create your branch from `development`.
-2. Make sure your code lints.
-3. Issue that pull request!
+2. Make sure your code lints using `npm run lint`.
+3. Ensure your code follows the existing style and architecture.
+4. Issue that pull request!
 
 ---
 
-## Developer Setup
+## Development Guide
+
+### Environment Setup
 
 To start the local development environment, ensure you have the necessary dependencies installed (Node.js, Expo CLI).
 
@@ -53,67 +61,152 @@ For more detailed information on React Native development with Expo, refer to th
 
 ---
 
-## Build Instructions
+### Build Instructions
 
 > [!NOTE]  
-> The build process described here is likely to be automated in the future. This documentation ensures transparency for developers to understand and verify the steps.
+> The build process described in this documentation is likely to be automated in the future to streamline development and deployment. This document will remain available to ensure transparency, allowing developers to understand the underlying steps and verify the automation's correctness.
 
-### Environment Configuration
+#### Intro & Config
 
 > [!IMPORTANT]  
-> Before building, update the `app.config.ts` file to switch the environment from `development` to `preview` or `production`.
+> Before building the application, ensure you update the `app.config.ts` file to switch the environment from `development` to `preview` or `production`, depending on your target build. This configuration affects various aspects of the app, such as API endpoints, logging levels, and feature toggles.
 
-Ensure you also update:
+Additionally, update related values in the config file accordingly, including:
 
-- Version numbers (e.g., 1.0.0)
-- Build number (incremental integer)
-- Build date
+- **Version numbers**: (e.g., semantic versioning like 1.0.0)
+- **Build number**: (incremental integer for tracking builds)
+- **Build date**: (current timestamp or date string)
 
-### Web Build
+These changes ensure the build reflects the correct environment and metadata.
 
-Run the following command to export the web build:
+#### Web Build
+
+Building for production on the web is straightforward. Run the following command to export the web build:
 
 ```bash
 npx expo export -p web
 ```
 
-This generates a `/dist` directory containing production-ready assets.
+This command generates a `/dist` directory containing the production-ready web assets. You can serve these files using a web server like Nginx, Apache, or any static file host.
 
-### Android Build
+#### Android Build
 
-#### Development Build
+##### Development Build
 
-1. Clean and prepare: `npx expo prebuild --clean`
-2. Create `android/local.properties` with your SDK path:
-   ```properties
-   sdk.dir=/path/to/your/android/sdk
+For a development build on Android, follow these steps:
+
+1. Clean and prepare the native project:
+   ```bash
+   npx expo prebuild --clean
    ```
-3. Run: `npx expo run:android --no-build-cache`
+2. Create a `local.properties` file inside the `android/` folder with the following content (adjust the SDK path based on your system):
+   ```properties
+   # example
+   ## Windows
+   sdk.dir=C:\\Users\\ISRaiken\\AppData\\Local\\Android\\Sdk
+   ## Linux
+   sdk.dir=/home/israiken/Android/Sdk
+   ```
+3. Run the Android build:
+   ```bash
+   npx expo run:android --no-build-cache
+   ```
+   Alternatively, you can use:
+   ```bash
+   npx expo run:android
+   ```
 
-#### Preview Build
+> [!WARNING]  
+> **Windows Long Path Error**: If you encounter a "path too long 260 char" error on Windows, enable long paths support using PowerShell (Admin):
+>
+> ```powershell
+> New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+> ```
+>
+> **Ninja Build Tools**: Download the latest Ninja .exe from the [Ninja repository releases](https://github.com/ninja-build/ninja/releases). Replace the existing `ninja.exe` in:  
+> `C:\Users\{LOCAL_USER}\AppData\Local\Android\Sdk\cmake\{VERSION}\bin`
 
-1. Clean and prepare: `npx expo prebuild --clean`
-2. Build local APK:
+> [!WARNING]  
+> **Audio API Error**: If you encounter a "react-native-audio-api: Restored missing prebuilt binaries" error on Windows:
+>
+> ```text
+> react-native-audio-api: Restored missing prebuilt binaries (libopusfile.a, jniLibs, etc.) by executing the package's internal download script. This resolves the ninja: error.
+> ```
+
+##### Preview Build
+
+For a preview build on Android, follow these steps:
+
+1. Clean and prepare the native project:
+   ```bash
+   npx expo prebuild --clean
+   ```
+2. Build the app (local is advised):
    ```bash
    cd android
    ./gradlew assembleRelease
    ```
 
-#### Production Build
+> [!TIP]
+> **APK Splitting**: By default a single fat APK will be built. To build separately for various platforms, insert this script inside `android/app/build.gradle` inside the `android` object:
+
+```gradle
+    // APK splitting
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+            universalApk false
+        }
+    }
+
+    project.ext.versionCodes = ['x86': 0, 'x86_64': 1, 'armeabi-v7a': 2, 'arm64-v8a': 3]
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            output.versionCodeOverride = project.ext.versionCodes.get(output.getFilter(com.android.build.OutputFile.ABI), 0) * 1 + android.defaultConfig.versionCode
+        }
+    }
+```
+
+##### Production Build
+
+You can choose one of the following methods:
+
+**Option 1: EAS Build**
 
 1. Clean and prepare: `npx expo prebuild --clean`
-2. Build via EAS:
+2. Build: `npx eas build --platform android --profile=production`
+
+**Option 2: Local Build (Manual Gradle)**
+
+1. Clean and prepare: `npx expo prebuild --clean`
+2. Build locally:
    ```bash
-   npx eas build --platform android --profile=production
+   cd android
+   # For APK
+   ./gradlew assembleRelease
+   # For AAB (Google Play Store)
+   ./gradlew bundleRelease
    ```
 
-### iOS / Windows / macOS / Linux
+#### Other Platforms
+
+##### iOS
 
 > [!WARNING]  
-> Building for these platforms is currently not fully supported or documented. We are working on expanding compatibility.
+> Building for iOS is not possible as of now. First test done, not working :(
+
+##### Windows / macOS / Linux
+
+> [!WARNING]  
+> Building for these platforms is not possible as of now, so there is no documentation available. (Waiting for 1.1)
 
 ---
 
-## Security Policy
+## Security & Legal
 
-Please refer to our [SECURITY.md](SECURITY.md) for instructions on how to report vulnerabilities.
+- **Security Policy**: Please refer to our [SECURITY.md](SECURITY.md) for instructions on how to report vulnerabilities.
+- **Code of Conduct**: All contributors are expected to follow our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+- **License**: This project is licensed under the GPL-3.0 License. See [LICENSE](LICENSE) for details.
