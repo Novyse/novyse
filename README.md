@@ -22,7 +22,7 @@
 
 <!-- TECH STACK RELATED -->
 
-<img alt='Node.js' src='https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white'/>
+<img alt='Bun' src='https://img.shields.io/badge/Bun-000000?style=for-the-badge&logo=bun&logoColor=white'/>
 <img alt='React Native' src='https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB'/>
 <img alt='Electron' src='https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=electron&logoColor=%2347848F&color=%231b1c26'/>
 

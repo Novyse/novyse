@@ -40,7 +40,7 @@ Before creating enhancement suggestions, please check the [existing issues](http
 The process which describes how to contribute to the repository:
 
 1. Fork the repository and create your branch from `development`.
-2. Make sure your code lints using `npm run lint`.
+2. Make sure your code lints using `bun lint`.
 3. Ensure your code follows the existing style and architecture.
 4. Issue that pull request!
 
@@ -50,23 +50,23 @@ The process which describes how to contribute to the repository:
 
 ### Environment Setup
 
-To start the local development environment, ensure you have the necessary dependencies installed (Node.js, Expo CLI).
+To start the local development environment, ensure you have [Bun](https://bun.sh/) installed.
 
 Run one of the following commands to start the development server:
 
-- `npx expo start -c` (clears the cache before starting)
-- `npx expo start` (starts the server normally)
+- `bunx expo start -c` (clears the cache before starting)
+- `bunx expo start` (starts the server normally)
 
 For more detailed information on React Native development with Expo, refer to the [official Expo documentation](https://docs.expo.dev/).
 
 ---
 
-### Build Instructions
+## Build Instructions
 
 > [!NOTE]  
 > The build process described in this documentation is likely to be automated in the future to streamline development and deployment. This document will remain available to ensure transparency, allowing developers to understand the underlying steps and verify the automation's correctness.
 
-#### Intro & Config
+### Intro & Config
 
 > [!IMPORTANT]  
 > Before building the application, ensure you update the `app.config.ts` file to switch the environment from `development` to `preview` or `production`, depending on your target build. This configuration affects various aspects of the app, such as API endpoints, logging levels, and feature toggles.
@@ -79,25 +79,25 @@ Additionally, update related values in the config file accordingly, including:
 
 These changes ensure the build reflects the correct environment and metadata.
 
-#### Web Build
+### Web Build
 
 Building for production on the web is straightforward. Run the following command to export the web build:
 
 ```bash
-npx expo export -p web
+bunx expo export -p web
 ```
 
 This command generates a `/dist` directory containing the production-ready web assets. You can serve these files using a web server like Nginx, Apache, or any static file host.
 
-#### Android Build
+### Android Build
 
-##### Development Build
+#### Development Build
 
 For a development build on Android, follow these steps:
 
 1. Clean and prepare the native project:
    ```bash
-   npx expo prebuild --clean
+   bunx expo prebuild --clean
    ```
 2. Create a `local.properties` file inside the `android/` folder with the following content (adjust the SDK path based on your system):
    ```properties
@@ -109,12 +109,9 @@ For a development build on Android, follow these steps:
    ```
 3. Run the Android build:
    ```bash
-   npx expo run:android --no-build-cache
+   bunx expo run:android --no-build-cache
    ```
-   Alternatively, you can use:
-   ```bash
-   npx expo run:android
-   ```
+   Alternatively, you can use `bunx expo run:android`.
 
 > [!WARNING]  
 > **Windows Long Path Error**: If you encounter a "path too long 260 char" error on Windows, enable long paths support using PowerShell (Admin):
@@ -133,13 +130,13 @@ For a development build on Android, follow these steps:
 > react-native-audio-api: Restored missing prebuilt binaries (libopusfile.a, jniLibs, etc.) by executing the package's internal download script. This resolves the ninja: error.
 > ```
 
-##### Preview Build
+#### Preview Build
 
 For a preview build on Android, follow these steps:
 
 1. Clean and prepare the native project:
    ```bash
-   npx expo prebuild --clean
+   bunx expo prebuild --clean
    ```
 2. Build the app (local is advised):
    ```bash
@@ -170,18 +167,18 @@ For a preview build on Android, follow these steps:
     }
 ```
 
-##### Production Build
+#### Production Build
 
 You can choose one of the following methods:
 
 **Option 1: EAS Build**
 
-1. Clean and prepare: `npx expo prebuild --clean`
-2. Build: `npx eas build --platform android --profile=production`
+1. Clean and prepare: `bunx expo prebuild --clean`
+2. Build: `bunx eas build --platform android --profile=production`
 
 **Option 2: Local Build (Manual Gradle)**
 
-1. Clean and prepare: `npx expo prebuild --clean`
+1. Clean and prepare: `bunx expo prebuild --clean`
 2. Build locally:
    ```bash
    cd android
@@ -191,14 +188,14 @@ You can choose one of the following methods:
    ./gradlew bundleRelease
    ```
 
-#### Other Platforms
+### Other Platforms
 
-##### iOS
+#### iOS
 
 > [!WARNING]  
 > Building for iOS is not possible as of now. First test done, not working :(
 
-##### Windows / macOS / Linux
+#### Windows / macOS / Linux
 
 > [!WARNING]  
 > Building for these platforms is not possible as of now, so there is no documentation available. (Waiting for 1.1)
