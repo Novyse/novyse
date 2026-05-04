@@ -99,10 +99,7 @@ A preview version with new features that are not yet fully tested may be availab
 
 We welcome contributions from the community! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
 
-For developers interested in contributing or building the application, refer to the documentation in the `docs/` folder:
-
-- [Build Documentation](docs/build.md): Instructions on how to build the app for different platforms.
-- [Developer Setup](docs/dev.md): Guide to set up the local development environment.
+Please read our [Contributing Guidelines](CONTRIBUTING.md) to get started. You can also find our [Code of Conduct](CODE_OF_CONDUCT.md) and [Security Policy](SECURITY.md) for more information.
 
 ### Contact
 
