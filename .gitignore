@@ -45,13 +45,10 @@ app-example
 pnpm-lock.yaml
 .gitignore
 
-# electron
-electron/webapp
-electron/assets
-
 dist.zip
 
 .vscode/launch.json
+.vscode/settings.json
 
 # android
 .kotlin
