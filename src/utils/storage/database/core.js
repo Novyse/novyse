@@ -13,8 +13,8 @@ class Database {
     this.db = db;
     this.user = new UserRepository(db);
     this.handle = new HandleRepository(db);
-    this.chat = new ChatRepository(db);
     this.message = new MessageRepository(db);
+    this.chat = new ChatRepository(db, this.message, this.handle);
     this.file = new FileRepository(db);
   }
 
@@ -22,8 +22,9 @@ class Database {
     this.db = db;
     this.user.setDb(db);
     this.handle.setDb(db);
-    this.chat.setDb(db);
     this.message.setDb(db);
+    this.chat.setDb(db);
+    this.chat.setRepositories(this.message, this.handle);
     this.file.setDb(db);
   }
 

@@ -35,6 +35,42 @@ export class MemberRepository {
     }
   }
 
+  /**
+   * Adds multiple members to the database.
+   * @param {Array} members - Array of { chatUUID, user } objects
+   * @returns {boolean} true if members added successfully, false otherwise
+   */
+  async addMultiple(members: any[]): Promise<boolean> {
+    try {
+      if (!members || !Array.isArray(members) || members.length === 0) {
+        console.error("No members to add.");
+        return false;
+      }
+
+      const placeholders = members.map(() => `(?, ?, ?)`).join(", ");
+      const values: any[] = [];
+
+      for (const m of members) {
+        values.push(
+          m.user.uuid,
+          m.chatUUID,
+          m.user.joined_at || new Date().toISOString(),
+        );
+      }
+
+      await this.db.runAsync(
+        `INSERT OR IGNORE INTO member (userUUID, chatUUID, joined_at) VALUES ${placeholders};`,
+        values,
+      );
+
+      console.log(`${members.length} members added successfully.`);
+      return true;
+    } catch (error) {
+      console.error("Error adding multiple members:", error);
+      return false;
+    }
+  }
+
   get = {
     by: {
       chatUUID: async (chatUUID: string): Promise<Member[]> => {

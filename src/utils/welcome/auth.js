@@ -88,11 +88,7 @@ const initializeDatabase = async () => {
     }
 
     await database.user.addMultiple(users);
-
-    // Store chats and messages in database
-    for (const chat of chats) {
-      await database.chat.add(chat);
-    }
+    await database.chat.addMultiple(chats);
 
     await messageUtils.addMultiple(messages);
 
@@ -149,18 +145,14 @@ const updateDatabase = async () => {
   if (success) {
     // 1. New Chats
     if (chats?.new && Array.isArray(chats.new)) {
-      for (const chat of chats.new) {
-        console.log("Sync: Adding new chat", chat.uuid);
-        await database.chat.add(chat);
-      }
+      console.log("Sync: Adding", chats.new.length, "new chats");
+      await database.chat.addMultiple(chats.new);
     }
 
     // 2. New Users
     if (users?.new && Array.isArray(users.new)) {
-      for (const user of users.new) {
-        console.log("Sync: Adding new user", user.uuid);
-        await database.user.add(user);
-      }
+      console.log("Sync: Adding", users.new.length, "new users");
+      await database.user.addMultiple(users.new);
     }
 
     // 3. Messages
