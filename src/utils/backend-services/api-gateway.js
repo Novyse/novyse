@@ -95,37 +95,26 @@ const gateway = {
       const response = await api.get("/user/initialize");
       const success = response.data.success;
       if (success) {
-        const { local, devices, chats, users, messages, at } =
-          response.data.data;
-        return { success, local, devices, chats, users, messages, at };
+        const { local, users, chats, messages } = response.data.data;
+        return { success, local, users, chats, messages };
       }
       return { success };
     },
 
     /**
-     * Update user data since last update time.
-     * @param {Timestamp} lastUpdateTime
-     * @returns {Object} { success: boolean, user?:{ uuid?: String, name?: String, surname?: String, handle?: String}, chats?: Array[{uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}], messages?: Array[]}
+     * Update user data using sync identifiers.
+     * @param {Object} local { eventID }
+     * @param {Array} chats [{ chatUUID, messageID, eventID }]
+     * @param {Array} users [{ userUUID, profileEventID }]
+     * @returns {Object} { success: boolean, ... }
      */
+    async update(local, chats, users) {
+      const response = await api.post("/user/update", { local, chats, users });
 
-    async update(lastUpdateTime) {
-      // lastUpdateTime is a timestamp with ISO 8601 format
-      if (!lastUpdateTime) {
-        console.error("lastUpdateTime is required for user.update");
-        return { success: false };
-      }
-      if (isNaN(Date.parse(lastUpdateTime))) {
-        console.error("lastUpdateTime is not a valid ISO 8601 timestamp");
-        return { success: false };
-      }
-      const response = await api.get(
-        `/user/update?at=${encodeURIComponent(lastUpdateTime)}`,
-      );
-      console.log(response);
       const success = response.data.success;
       if (success) {
-        const { local, user, chat, message, at } = response.data.data;
-        return { success, local, user, chat, message, at };
+        const { local, users, chats, messages } = response.data.data;
+        return { success, local, users, chats, messages };
       }
 
       return { success };

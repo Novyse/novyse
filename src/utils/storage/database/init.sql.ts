@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS user (
     description TEXT,
     birthday DATE,
     region TEXT,
-    country TEXT
+    country TEXT,
+    profileEventID INTEGER DEFAULT 0
 );
 
 
@@ -53,6 +54,7 @@ CREATE TABLE IF NOT EXISTS chat (
     name TEXT,
     description TEXT,
     profilePictureUUID TEXT,
+    eventID INTEGER DEFAULT 0,
     FOREIGN KEY (type) REFERENCES chat_type(value)
 );
 

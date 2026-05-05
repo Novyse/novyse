@@ -44,26 +44,6 @@ const getUserUUID = async () => {
 };
 
 /**
- * Store the last update timestamp in AsyncStorage.
- * @param {Timestamp} timestamp
- * @returns {void}
- */
-
-const setLastUpdateTimestamp = async (timestamp) => {
-  await AsyncStorage.setItem("lastUpdateTimestamp", String(timestamp));
-};
-
-/**
- * Get the last update timestamp from AsyncStorage.
- * @returns {string|null} The last update timestamp or null if not set.
- */
-
-const getLastUpdateTimestamp = async () => {
-  const timestamp = await AsyncStorage.getItem("lastUpdateTimestamp");
-  return timestamp;
-};
-
-/**
  * Store the login state in AsyncStorage.
  * @param {Object}  router - The router object for navigation.
  * @param {boolean} shouldBeLoggedIn
@@ -88,30 +68,15 @@ const checkShouldBeHere = async (router, shouldBeLoggedIn = true) => {
 
 const initializeApp = async () => {
   console.log("Initializing app...");
-  const { success, local, sessions, chats, users, messages, at } =
-    await gateway.user.initialize();
+  const { success, local } = await gateway.user.initialize();
 
   if (success) {
-    console.info("Initialization successful:", {
-      local,
-      sessions,
-      chats,
-      users,
-      messages: messages.length,
-    });
-
-    // Set last update timestamp
-    if (at) {
-      await setLastUpdateTimestamp(at);
-      console.log("Last update timestamp set to:", at);
-    }
-
     // Add expo push token if mobile
     await notificationManager.updatePushToken();
 
     // Set local user uuid in async storage
     await AsyncStorage.setItem("userUUID", String(local.user.uuid));
-    await AsyncStorage.setItem("sessionID", String(local.session.id));
+    await AsyncStorage.setItem("sessionID", String(local.sessions[0].id));
     await AsyncStorage.setItem("init", "false");
 
     return true;
@@ -122,7 +87,7 @@ const initializeApp = async () => {
 };
 
 const initializeDatabase = async () => {
-  const { success, local, sessions, chats, users, messages, at } =
+  const { success, local, chats, users, messages } =
     await gateway.user.initialize();
 
   if (success) {
@@ -132,6 +97,7 @@ const initializeDatabase = async () => {
 
     // Store user
     await database.user.add(local.user);
+    await AsyncStorage.setItem("localUserEventID", String(local.user.eventID));
 
     // Store pinned chat
     for (const pinnedChat of local.pinnedChats) {
@@ -187,197 +153,73 @@ const logout = async () => {
 };
 
 const updateDatabase = async () => {
-  const lastUpdateTimestamp = await getLastUpdateTimestamp();
+  const gatewayLocal = {
+    eventID: (await AsyncStorage.getItem("localUserEventID")) || 0,
+  };
+  const { chats: gatewayChats, users: gatewayUsers } =
+    await database.user.update.getAllEventsIDs();
 
-  // Il timestamp da getLastUpdateTimestamp è già una stringa ISO "2026-03-15T17:46:04.013057+00:00"
-  // Quindi lo passiamo direttamente, o calcoliamo la data solo in caso sia un numero (in secondi come in precedenza)
-  let atTime = lastUpdateTimestamp;
-  if (
-    lastUpdateTimestamp &&
-    !isNaN(lastUpdateTimestamp) &&
-    !lastUpdateTimestamp.includes("T")
-  ) {
-    atTime = new Date(Number(lastUpdateTimestamp) * 1000).toISOString();
-  }
-
-  const { success, local, user, chat, message, at } =
-    await gateway.user.update(atTime);
+  const { success, local, users, chats, messages } = await gateway.user.update(
+    gatewayLocal,
+    gatewayChats,
+    gatewayUsers,
+  );
 
   if (success) {
-    if (local) {
-      if (local.user) {
-        await EventEmitter.user.profile.update(local.user);
-      }
-      if (local.pinnedChats && Array.isArray(local.pinnedChats)) {
-        const existingPins = await database.chat.pin.get();
-        const newPinnedUUIDs = local.pinnedChats.map((p) => p.chatUUID);
-
-        if (existingPins && Array.isArray(existingPins)) {
-          for (const existingPin of existingPins) {
-            if (!newPinnedUUIDs.includes(existingPin.chatUUID)) {
-              await database.chat.pin.remove(existingPin.chatUUID);
-            }
-          }
-        }
-
-        for (const pin of local.pinnedChats) {
-          if (pin.chatUUID && typeof pin.position === "number") {
-            await database.chat.pin.add(pin.chatUUID, pin.position);
-          }
-        }
+    // 1. New Chats
+    if (chats?.new && Array.isArray(chats.new)) {
+      for (const chat of chats.new) {
+        console.log("Sync: Adding new chat", chat.uuid);
+        await database.chat.add(chat);
       }
     }
 
-    if (user?.profile?.update && Array.isArray(user.profile.update)) {
-      for (const u of user.profile.update) {
-        await EventEmitter.user.profile.update(u);
+    // 2. New Users
+    if (users?.new && Array.isArray(users.new)) {
+      for (const user of users.new) {
+        console.log("Sync: Adding new user", user.uuid);
+        await database.user.add(user);
       }
     }
 
-    if (user?.presence) {
-      for (const [userUUID, presence] of Object.entries(user.presence)) {
-        await EventEmitter.user.presence.update(
-          userUUID,
-          presence.status,
-          presence.lastAccessAt,
+    // 3. Messages
+    if (messages && Array.isArray(messages) && messages.length > 0) {
+      console.log("Sync: Adding", messages.length, "new messages");
+      await database.message.addMultiple(messages);
+    }
+
+    // 4. Chat Events
+    if (chats?.events && Array.isArray(chats.events)) {
+      for (const event of chats.events) {
+        console.log(
+          "Sync: Chat Event received",
+          event.type,
+          "for chat",
+          event.chat_uuid,
         );
+        // TODO: Handle specific chat events (name change, new member, etc.)
       }
     }
 
-    if (chat?.new && Array.isArray(chat.new)) {
-      for (const c of chat.new) {
-        await EventEmitter.chat.new(c, []);
+    // 5. User Profile Events
+    if (users?.events && Array.isArray(users.events)) {
+      for (const event of users.events) {
+        console.log(
+          "Sync: User Profile Event received",
+          event.type,
+          "for user",
+          event.user_uuid,
+        );
+        // TODO: Handle specific profile events (name, surname, etc.)
       }
     }
 
-    if (chat?.update) {
-      const updates = Array.isArray(chat.update)
-        ? chat.update
-        : Object.values(chat.update);
-      for (const c of updates) {
-        if (c.chatUUID) {
-          await EventEmitter.chat.update(c.chatUUID, c.action, c);
-        }
+    // 6. Local User Events
+    if (local && Array.isArray(local)) {
+      for (const event of local) {
+        console.log("Sync: Local Event received", event.type, event.id);
+        // TODO: Handle specific local events (pinned chats, settings, etc.)
       }
-    }
-
-    if (message?.new && Array.isArray(message.new)) {
-      for (const m of message.new) {
-        await EventEmitter.message.new(m);
-      }
-    }
-
-    if (message?.update && Array.isArray(message.update)) {
-      for (const m of message.update) {
-        if (m.action === "update" || m.action === "edit") {
-          const chatUUID = m.chatUUID;
-          const messageID = m.id || m.messageID;
-
-          const oldMessage = await database.message.get.by.id(
-            chatUUID,
-            messageID,
-          );
-
-          if (oldMessage && m.content && oldMessage.content !== m.content) {
-            await EventEmitter.message.update(chatUUID, messageID, "edit", {
-              content: m.content,
-            });
-          }
-
-          if (m.reactions && Array.isArray(m.reactions)) {
-            const oldReactionsRaw = await database.db.getAllAsync(
-              "SELECT reaction, userUUID FROM reaction_message WHERE chatUUID = ? AND messageID = ?",
-              [chatUUID, messageID],
-            );
-
-            for (const newR of m.reactions) {
-              const exists = oldReactionsRaw.some(
-                (oldR) =>
-                  oldR.reaction === newR.reaction &&
-                  oldR.userUUID === newR.userUUID,
-              );
-              if (!exists) {
-                await EventEmitter.message.update(
-                  chatUUID,
-                  messageID,
-                  "reaction_add",
-                  {
-                    reaction: newR.reaction,
-                    at: newR.created_at,
-                    userUUID: newR.userUUID,
-                  },
-                );
-              }
-            }
-
-            for (const oldR of oldReactionsRaw) {
-              const stillExists = m.reactions.some(
-                (newR) =>
-                  newR.reaction === oldR.reaction &&
-                  newR.userUUID === oldR.userUUID,
-              );
-              if (!stillExists) {
-                await EventEmitter.message.update(
-                  chatUUID,
-                  messageID,
-                  "reaction_remove",
-                  {
-                    reaction: oldR.reaction,
-                    userUUID: oldR.userUUID,
-                  },
-                );
-              }
-            }
-          }
-
-          const isPinnedInNew = !!m.pinned_at;
-          const pinnedIds = (await database.message.pin.get(chatUUID)) || [];
-          const isPinnedInDb = pinnedIds
-            .map(String)
-            .includes(String(messageID));
-
-          if (isPinnedInNew && !isPinnedInDb) {
-            await EventEmitter.message.update(chatUUID, messageID, "pin_add", {
-              pinned_at: m.pinned_at,
-              userUUID: m.pinned_by || m.userUUID,
-            });
-          } else if (!isPinnedInNew && isPinnedInDb) {
-            await EventEmitter.message.update(
-              chatUUID,
-              messageID,
-              "pin_remove",
-              {},
-            );
-          }
-
-          if (m.action === "edit") {
-            await EventEmitter.message.update(
-              m.chatUUID,
-              m.id || m.messageID,
-              m.action,
-              m,
-            );
-          }
-        } else if (m.action === "read") {
-          await EventEmitter.message.read(
-            m.chatUUID,
-            m.id || m.messageID,
-            m.userUUID || m.readerUUID,
-            m.readAt || m.at,
-          );
-        } else {
-          await EventEmitter.message.update(
-            m.chatUUID,
-            m.id || m.messageID,
-            m.action,
-            m,
-          );
-        }
-      }
-    }
-
-    if (at) {
-      await setLastUpdateTimestamp(at);
     }
   }
 };
@@ -399,8 +241,6 @@ const setLogin = async ({ userUUID, accessToken, sessionId }) => {
 
 export default {
   isLoggedIn,
-  getLastUpdateTimestamp,
-  setLastUpdateTimestamp,
   getUserUUID,
   checkShouldBeHere,
   setLogin,

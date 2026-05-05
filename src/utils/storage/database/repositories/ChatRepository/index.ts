@@ -47,13 +47,14 @@ export class ChatRepository {
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO chat (uuid, type, name, description, profilePictureUUID) VALUES (?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO chat (uuid, type, name, description, profilePictureUUID, eventID) VALUES (?, ?, ?, ?, ?, ?);`,
         [
           chat.uuid,
           chat.type,
           chat.name || null,
           chat.description || null,
           chat.profilePictureUUID || null,
+          chat.eventID || 0,
         ],
       );
 
