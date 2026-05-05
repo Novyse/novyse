@@ -66,27 +66,10 @@ const checkShouldBeHere = async (router, shouldBeLoggedIn = true) => {
   return true;
 };
 
-const initializeApp = async () => {
-  console.log("Initializing app...");
-  const { success, local } = await gateway.user.initialize();
-
-  if (success) {
-    // Add expo push token if mobile
-    await notificationManager.updatePushToken();
-
-    // Set local user uuid in async storage
-    await AsyncStorage.setItem("userUUID", String(local.user.uuid));
-    await AsyncStorage.setItem("sessionID", String(local.sessions[0].id));
-    await AsyncStorage.setItem("init", "false");
-
-    return true;
-  }
-
-  console.error("Initialization failed.");
-  return false;
-};
-
 const initializeDatabase = async () => {
+  // Add expo push token if mobile
+  await notificationManager.updatePushToken();
+
   const { success, local, chats, users, messages } =
     await gateway.user.initialize();
 
@@ -224,13 +207,19 @@ const updateDatabase = async () => {
   }
 };
 
-const setLogin = async ({ userUUID, accessToken, sessionId }) => {
+const setLogin = async (userUUID, sessionID, session_id) => {
   try {
+    await AsyncStorage.setItem("init", "false");
+
     if (userUUID) {
       await AsyncStorage.setItem("userUUID", String(userUUID));
     }
-    if (Platform.OS !== "web" && sessionId) {
-      await SecureStore.setItemAsync("sessionId", String(sessionId));
+    if (sessionID) {
+      await AsyncStorage.setItem("sessionID", String(sessionID));
+    }
+
+    if (Platform.OS !== "web" && session_id) {
+      await SecureStore.setItemAsync("sessionId", String(session_id));
     }
 
     EventEmitter.getEmitter().emit("auth:changed");
@@ -244,7 +233,6 @@ export default {
   getUserUUID,
   checkShouldBeHere,
   setLogin,
-  initializeApp,
   initializeDatabase,
   updateDatabase,
   logout,

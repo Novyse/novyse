@@ -78,11 +78,9 @@ const Verify: React.FC = () => {
 
       if (otpVerificationSuccess) {
         console.log("OTP verificato con successo!");
-        const success = await auth.initializeApp();
-        if (success) {
-          await refreshLoginStatus();
-          router.replace("/app");
-        }
+
+        await refreshLoginStatus();
+        router.replace("/app");
       } else {
         console.log("Errore nella verifica OTP");
         setError("Codice OTP non valido. Riprova.");
@@ -110,8 +108,14 @@ const Verify: React.FC = () => {
         <View style={styles.cardContent}>
           {/* <Image style={styles.logo} source={logoNovyse} /> */}
 
-          <AppText style={styles.title} translationKey={getFormattedVerificationType()} />
-          <AppText style={styles.subtitle} translationKey="auth.verify.subtitle" />
+          <AppText
+            style={styles.title}
+            translationKey={getFormattedVerificationType()}
+          />
+          <AppText
+            style={styles.subtitle}
+            translationKey="auth.verify.subtitle"
+          />
 
           <View style={styles.inputWrapper}>
             <OtpDigitsInput
@@ -124,7 +128,10 @@ const Verify: React.FC = () => {
             <View style={styles.buttonsContainer}>
               <View style={styles.buttonWrapper}>
                 <WelcomeButton onPress={handleBack} type="back">
-                  <WelcomeButtonText type="back" translationKey="auth.signup.back" />
+                  <WelcomeButtonText
+                    type="back"
+                    translationKey="auth.signup.back"
+                  />
                 </WelcomeButton>
               </View>
               <View style={styles.buttonWrapper}>
@@ -139,7 +146,10 @@ const Verify: React.FC = () => {
                       color={LoginColors[loginTheme].iconLoading}
                     />
                   ) : (
-                    <WelcomeButtonText type="submit" translationKey="auth.verify.verifyBtn" />
+                    <WelcomeButtonText
+                      type="submit"
+                      translationKey="auth.verify.verifyBtn"
+                    />
                   )}
                 </WelcomeButton>
               </View>

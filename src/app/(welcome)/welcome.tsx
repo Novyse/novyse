@@ -17,7 +17,6 @@ import auth from "@/src/utils/welcome/auth";
 import useQRCode from "@/src/hooks/auth/useQRCode";
 import { LoginTheme } from "@/constants/LoginColors";
 
-
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
 const Welcome = () => {
@@ -27,16 +26,15 @@ const Welcome = () => {
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const router = useRouter();
-  const handleAuthorized = useCallback(async () => {
-    if (await auth.initializeApp()) {
+  const handleAuthorized = useCallback(
+    async (data: any) => {
+      await auth.setLogin(data.userUUID, data.sessionID, data.session_id);
       router.replace("/app");
-    }
-  }, [router]);
-
-  const { qrToken, remainingTime } = useQRCode(
-    isSmallScreen,
-    handleAuthorized,
+    },
+    [router],
   );
+
+  const { qrToken, remainingTime } = useQRCode(isSmallScreen, handleAuthorized);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -74,12 +72,18 @@ const Welcome = () => {
           <View style={styles.buttonRow}>
             <View style={styles.buttonWrapper}>
               <WelcomeButton type={"back"} onPress={handleSignup}>
-                <WelcomeButtonText type={"back"} translationKey="auth.welcome.signup" />
+                <WelcomeButtonText
+                  type={"back"}
+                  translationKey="auth.welcome.signup"
+                />
               </WelcomeButton>
             </View>
             <View style={styles.buttonWrapper}>
               <WelcomeButton type={"submit"} onPress={handleLogin}>
-                <WelcomeButtonText type={"submit"} translationKey="auth.welcome.login" />
+                <WelcomeButtonText
+                  type={"submit"}
+                  translationKey="auth.welcome.login"
+                />
               </WelcomeButton>
             </View>
           </View>
@@ -90,7 +94,10 @@ const Welcome = () => {
           <>
             <View style={styles.divider}>
               <View style={styles.lineDivider} />
-              <AppText style={styles.textDivider} translationKey="auth.welcome.or" />
+              <AppText
+                style={styles.textDivider}
+                translationKey="auth.welcome.or"
+              />
               <View style={styles.lineDivider} />
             </View>
 
@@ -118,12 +125,15 @@ const Welcome = () => {
                   />
                 )}
               </View>
-              <AppText style={styles.qrcodeSubtitle} translationKey="auth.welcome.scanQr" />
+              <AppText
+                style={styles.qrcodeSubtitle}
+                translationKey="auth.welcome.scanQr"
+              />
               {qrToken ? (
-                <AppText 
-                   style={styles.qrcodeSmallSubtitle} 
-                   translationKey="auth.welcome.expiresIn" 
-                   translationOptions={{ time: formatTime(remainingTime) }} 
+                <AppText
+                  style={styles.qrcodeSmallSubtitle}
+                  translationKey="auth.welcome.expiresIn"
+                  translationOptions={{ time: formatTime(remainingTime) }}
                 />
               ) : null}
             </View>
