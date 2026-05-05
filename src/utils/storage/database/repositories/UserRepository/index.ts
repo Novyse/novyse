@@ -67,6 +67,62 @@ export class UserRepository {
     }
   }
 
+  /**
+   * Adds multiple users to the database.
+   * @param {Array} users - Array of user objects
+   * @returns {boolean} true if users added successfully, false otherwise
+   */
+  async addMultiple(users: any[]): Promise<boolean> {
+    try {
+      if (!users || !Array.isArray(users) || users.length === 0) {
+        console.error("No users to add.");
+        return false;
+      }
+
+      const userPlaceholders = users
+        .map(() => `(?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .join(", ");
+
+      const userValues: any[] = [];
+      for (const user of users) {
+        userValues.push(
+          user.uuid,
+          user.name,
+          user.surname || null,
+          user.profilePictureUUID || null,
+          user.description || null,
+          user.birthday || null,
+          user.region || null,
+          user.country || null,
+          user.profileEventID || 0,
+        );
+      }
+
+      await this.db.runAsync(
+        `INSERT OR IGNORE INTO user (uuid, name, surname, profilePictureUUID, description, birthday, region, country, profileEventID) VALUES ${userPlaceholders};`,
+        userValues,
+      );
+
+      const handlePlaceholders = users.map(() => `(?, 'USER', ?)`).join(", ");
+
+      const handleValues: any[] = [];
+      for (const user of users) {
+        handleValues.push(user.uuid, user.handle);
+      }
+
+      await this.db.runAsync(
+        `INSERT OR IGNORE INTO handle (userUUID, type, handle) VALUES ${handlePlaceholders};`,
+        handleValues,
+      );
+
+      console.log(`${users.length} users added successfully.`);
+      return true;
+    } catch (error) {
+      console.error("Error adding multiple users:", error);
+      return false;
+    }
+  }
+
   get = {
     /**
      * Get user info by UUID.

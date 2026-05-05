@@ -87,9 +87,7 @@ const initializeDatabase = async () => {
       await database.chat.pin.add(pinnedChat.chatUUID, pinnedChat.position);
     }
 
-    for (const user of users) {
-      await database.user.add(user);
-    }
+    await database.user.addMultiple(users);
 
     // Store chats and messages in database
     for (const chat of chats) {
