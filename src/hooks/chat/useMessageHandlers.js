@@ -99,6 +99,7 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
           messageID,
           "pin_remove",
           response.chatEventID,
+          {},
         );
       }
     },
@@ -115,6 +116,7 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
           messageID,
           "delete",
           response.chatEventID,
+          {},
         );
       }
     },

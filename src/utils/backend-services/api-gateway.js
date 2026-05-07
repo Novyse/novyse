@@ -627,6 +627,7 @@ const gateway = {
             messageID,
             reaction,
           });
+          const success = response.data.success;
           if (success) {
             const { reactedAt, chatEventID } = response.data.data;
             return { success, reactedAt, chatEventID };

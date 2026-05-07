@@ -517,10 +517,16 @@ class QueueManager {
     const response = await gateway.message.edit(chatUUID, messageID, content);
 
     if (response.success) {
-      await eventEmitter.message.update(chatUUID, messageID, "edit", {
-        content,
-        pendingEditJobId: null,
-      });
+      await eventEmitter.message.update(
+        chatUUID,
+        messageID,
+        "edit",
+        response.chatEventID,
+        {
+          content,
+          pendingEditJobId: null,
+        },
+      );
     } else {
       throw new Error("Message modify failed");
     }
