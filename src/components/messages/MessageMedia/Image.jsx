@@ -97,6 +97,7 @@ const createStyle = (theme, isSingle, aspectRatio) =>
   StyleSheet.create({
     container: {
       width: "100%",
+      minHeight: 75,
       backgroundColor: theme.backgroundColor,
       aspectRatio: isSingle ? aspectRatio || undefined : undefined,
       height: isSingle ? undefined : "100%",
