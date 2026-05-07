@@ -35,7 +35,7 @@ interface ChatState {
     data: any;
   }) => void;
   onFileDownloaded: (payload: { file: any }) => void;
-  onChatUpdate: (payload: {
+  onUserChatSettingUpdate: (payload: {
     chatUUID: string;
     action: string;
     data: any;
@@ -308,7 +308,9 @@ const useChatStore = create<ChatState>((set, get) => ({
     eventEmitter.getEmitter().on("message:sent", get().onMessageSent);
     eventEmitter.getEmitter().on("message:update", get().onMessageUpdate);
     eventEmitter.getEmitter().on("file:downloaded", get().onFileDownloaded);
-    eventEmitter.getEmitter().on("chat:update", get().onChatUpdate);
+    eventEmitter
+      .getEmitter()
+      .on("user:setting:chat:update", get().onUserChatSettingUpdate);
 
     set({ _eventsSetup: true });
   },
@@ -657,7 +659,7 @@ const useChatStore = create<ChatState>((set, get) => ({
     }));
   },
 
-  onChatUpdate: ({
+  onUserChatSettingUpdate: ({
     chatUUID,
     action,
     data,
