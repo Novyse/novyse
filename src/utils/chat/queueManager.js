@@ -719,7 +719,12 @@ class QueueManager {
         throw new Error("File download failed from S3");
       }
       // Save file to storage
-      const { ref, size } = await storage.save.byBytes(bytes, fileUUID);
+      const finalBytes =
+        bytes instanceof Blob
+          ? new Blob([bytes], { type: bytes.type || fileInfo.mimeType })
+          : bytes;
+
+      const { ref, size } = await storage.save.byBytes(finalBytes, fileUUID);
 
       if (!ref || !size || size <= 0) {
         const errorMsg = `File save to storage failed for file ${fileUUID}: ref=${ref}, size=${size}`;
