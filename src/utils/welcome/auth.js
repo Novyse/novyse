@@ -173,7 +173,7 @@ const updateDatabase = async () => {
           "Sync: Chat Event received",
           event.type,
           "for chat",
-          event.chat_uuid,
+          event.chatUUID,
         );
         const chatUUID = event.chatUUID;
         const { messageID } = event.payload;
