@@ -474,32 +474,9 @@ const useChatStore = create<ChatState>((set, get) => ({
             const targetMessageID = Number(messageID);
             const messagesList = chat.messages || [];
 
-            const idsToMark = new Set<string>();
-            messagesList.forEach((m: any) => {
-              if (Number(m.id) <= targetMessageID) idsToMark.add(String(m.id));
-            });
-
-            // check messages "above" (older) with same sender
-            const sortedAsc = [...messagesList].sort(
-              (a: any, b: any) => Number(a.id) - Number(b.id),
-            );
-            const targetIdx = sortedAsc.findIndex(
-              (m: any) => Number(m.id) === targetMessageID,
-            );
-            if (targetIdx !== -1) {
-              const targetMsg = sortedAsc[targetIdx];
-              for (let i = targetIdx - 1; i >= 0; i--) {
-                if (sortedAsc[i].senderUUID === targetMsg.senderUUID) {
-                  idsToMark.add(String(sortedAsc[i].id));
-                } else {
-                  break;
-                }
-              }
-            }
-
             let reduction = 0;
             const updatedMessages = messagesList.map((msg: any) => {
-              if (idsToMark.has(String(msg.id))) {
+              if (Number(msg.id) <= targetMessageID) {
                 const wasAlreadyRead = (msg.readBy || []).some(
                   (r: any) => String(r.userUUID) === String(data.userUUID),
                 );

@@ -60,15 +60,19 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
     async (messageID) => {
       const response = await gateway.message.read(chatUUID, messageID);
       if (response.success && response.readAt) {
-        await eventEmitter.message.read(
+        await eventEmitter.message.update(
           chatUUID,
           messageID,
-          myUUID,
-          response.readAt,
+          "read",
+          response.chatEventID,
+          {
+            readAt: response.readAt,
+            userUUID: myUUID,
+          },
         );
       }
     },
-    [chatUUID],
+    [chatUUID, myUUID],
   );
 
   const handlePinMessage = useCallback(

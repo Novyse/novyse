@@ -42,11 +42,13 @@ const eventReceiver = {
     });
 
     socket.on("message:read", async (data) => {
-      await eventEmitter.message.read(
-        data.chatUUID,
-        data.messageID,
-        data.readerUUID,
-        data.readAt,
+      const { chatUUID, messageID, userUUID, readAt, chatEventID } = data;
+      await eventEmitter.message.update(
+        chatUUID,
+        messageID,
+        "read",
+        chatEventID,
+        { userUUID, readAt },
       );
     });
 

@@ -253,6 +253,18 @@ const updateDatabase = async () => {
               uuid: event.userUUID,
             });
             break;
+          case ChatEventType.MESSAGE_READ:
+            await EventEmitter.message.update(
+              chatUUID,
+              event.payload.messageID,
+              "read",
+              event.id,
+              {
+                userUUID: event.userUUID,
+                readAt: event.createdAt,
+              },
+            );
+            break;
           default:
             console.warn("Sync: Unhandled chat event type", event.type);
             break;
