@@ -117,7 +117,7 @@ const SecurityListCard = ({
 const createStyle = (theme: any) =>
   StyleSheet.create({
     card: {
-      backgroundColor: theme.backgroundSettingsCards,
+      backgroundColor: theme.backgroundMain,
       borderRadius: 16,
       marginBottom: 16,
       padding: 20,

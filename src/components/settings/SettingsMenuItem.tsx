@@ -65,7 +65,7 @@ const createStyle = (theme: any, nameColor?: string) =>
       alignItems: "center",
       paddingVertical: 15,
       borderBottomWidth: 1,
-      borderBottomColor: theme.backgroundSettingsDivider,
+      borderBottomColor: theme.borderColor,
       borderRadius: 0,
       height: 60,
     },

@@ -162,7 +162,7 @@ const createStyles = (theme: any) =>
       flex: 1,
     },
     disabledText: {
-      color: theme.textTime,
+      color: theme.subtitle,
     },
     arrow: {
       color: theme.text,
@@ -206,7 +206,7 @@ const createStyles = (theme: any) =>
       padding: 15,
     },
     selectedOption: {
-      backgroundColor: theme.backgroundDeviceDropdown,
+      backgroundColor: theme.backgroundMainGradient[0],
     },
     optionText: {
       color: theme.text,

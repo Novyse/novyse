@@ -115,7 +115,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
             <Icon
               name={"Call02Icon"}
               color="red"
-              hoverColor={theme.iconCommsOutHover}
+              hoverColor={theme.iconDanger}
               onPress={leave}
             />
           </>
@@ -123,7 +123,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
           <Icon
             name="Call02Icon"
             color={"#2ECC71"}
-            hoverColor={theme.iconCommsInHover}
+            hoverColor={theme.iconSuccess}
             onPress={() => join()}
           />
         )}

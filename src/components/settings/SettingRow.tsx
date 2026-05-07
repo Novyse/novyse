@@ -38,8 +38,8 @@ const SettingRow = ({
   isSelected = false,
 }: SettingRowProps) => {
   const { theme } = useContext(ThemeContext);
-  const rowColor = danger ? "#FF4D4D" : theme.primary;
-  const textColor = danger ? "#FF4D4D" : theme.text;
+  const rowColor = danger ? theme.errorText : theme.primary;
+  const textColor = danger ? theme.errorText : theme.text;
 
   return (
     <HoverAndPressedButton
@@ -73,7 +73,7 @@ const SettingRow = ({
           </AppText>
         )}
         {value && type !== "VALUE" ? (
-          <AppText style={[settingRowStyles.value, { color: theme.subtitle2 }]}>
+          <AppText style={[settingRowStyles.value, { color: theme.subtitle }]}>
             {value}
           </AppText>
         ) : null}
@@ -93,7 +93,7 @@ const SettingRow = ({
               <AppText
                 style={[
                   settingRowStyles.rightValue,
-                  { color: theme.subtitle2 },
+                  { color: theme.subtitle },
                 ]}
               >
                 {value}
@@ -104,7 +104,7 @@ const SettingRow = ({
               <View
                 style={[
                   settingRowStyles.radioOuter,
-                  { borderColor: isSelected ? theme.primary : theme.subtitle2 },
+                  { borderColor: isSelected ? theme.primary : theme.subtitle },
                 ]}
               >
                 {isSelected && (
@@ -123,7 +123,7 @@ const SettingRow = ({
             return onPress ? (
               <Icon
                 name="ArrowRight01Icon"
-                color={theme.subtitle2}
+                color={theme.subtitle}
                 size={20}
               />
             ) : null;

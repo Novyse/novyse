@@ -76,7 +76,7 @@ function createStyle(theme, isSmallScreen, shouldUseFullscreen) {
       alignItems: "center",
     },
     container: {
-      backgroundColor: isSmallScreen ? theme.backgroundModal : undefined,
+      backgroundColor: isSmallScreen ? theme.backgroundMain : undefined,
       borderRadius: shouldUseFullscreen ? 0 : 15,
       shadowColor: theme.shadowColor,
       shadowOffset: {

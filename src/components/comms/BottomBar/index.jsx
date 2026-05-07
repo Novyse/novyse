@@ -90,7 +90,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
               onPress={join}
               iconName={"Call02Icon"}
               iconColor="green"
-              hoverColor={theme.iconCommsInHover}
+              hoverColor={theme.iconSuccess}
             />
           </BlurredView>
         )
@@ -135,7 +135,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
             onPress={leave}
             iconName={"Call02Icon"}
             iconColor="red"
-            hoverColor={theme.iconCommsOutHover}
+            hoverColor={theme.iconDanger}
           />
         </BlurredView>
       )}

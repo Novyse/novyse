@@ -115,7 +115,7 @@ const createStyle = (theme: any) =>
     container: {
       position: "absolute",
       right: 10,
-      backgroundColor: theme.backgroundModal,
+      backgroundColor: theme.backgroundMain,
       borderRadius: 8,
       shadowColor: "#000",
       shadowOffset: {

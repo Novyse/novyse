@@ -55,7 +55,7 @@ const createStyle = (theme: Theme) =>
       paddingHorizontal: 16,
       borderRadius: 8,
       justifyContent: "center",
-      backgroundColor: theme.backgroundSettingsButton,
+      backgroundColor: theme.primary,
     },
     buttonHovered: {
       backgroundColor: theme.settingsHoveredButton,

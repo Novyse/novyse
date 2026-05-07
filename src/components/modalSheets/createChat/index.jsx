@@ -500,8 +500,6 @@ function createStyle(theme, isNarrow = false) {
       backgroundColor: theme.backgroundCard,
       borderRadius: 12,
       padding: 4,
-      borderWidth: 1,
-      borderColor: theme.borderModal,
     },
     toggleBtn: {
       flex: 1,
@@ -608,7 +606,7 @@ function createStyle(theme, isNarrow = false) {
       textAlign: "center",
     },
     bottomSheetBackground: {
-      backgroundColor: theme.backgroundModal,
+      backgroundColor: theme.backgroundMain,
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
     },

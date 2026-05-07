@@ -16,7 +16,7 @@ const Section = ({ titleKey, children, style }: SectionProps) => {
     <View style={[sectionStyles.container, style]}>
       {titleKey && (
         <AppText
-          style={[sectionStyles.title, { color: theme.subtitle2 }]}
+          style={[sectionStyles.title, { color: theme.subtitle }]}
           translationKey={titleKey}
         />
       )}

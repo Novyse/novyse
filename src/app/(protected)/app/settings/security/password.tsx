@@ -378,7 +378,7 @@ const createStyle = (theme: any) =>
       marginTop: 8,
     },
     securityNote: {
-      backgroundColor: theme.backgroundSettingsCards,
+      backgroundColor: theme.backgroundMain,
       borderRadius: 12,
       padding: 16,
       borderLeftWidth: 4,

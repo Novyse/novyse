@@ -112,7 +112,7 @@ const createStyles = (theme: any) =>
     },
     avatarBorder: {
       borderWidth: 4,
-      borderColor: theme.backgroundModal || theme.background || "#000000",
+      borderColor: theme.backgroundMain || theme.background || "#000000",
     },
     usernameText: {
       fontSize: 30,

@@ -171,7 +171,7 @@ const createStyles = (theme: any) =>
     },
     chatMeta: {
       fontSize: 14,
-      color: theme.subtitle2,
+      color: theme.subtitle,
       fontWeight: "500",
     },
   });
