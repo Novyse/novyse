@@ -6,10 +6,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "@/context/ThemeContext";
 
 interface AboutMeProps {
-  description?: string;
+  biography?: string;
 }
 
-export default function AboutMe({ description }: AboutMeProps) {
+export default function AboutMe({ biography }: AboutMeProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
@@ -26,7 +26,7 @@ export default function AboutMe({ description }: AboutMeProps) {
           />
           <AppText
             style={styles.description}
-            text={description}
+            text={biography}
             translationKey={"profile.aboutMe.noDescription"}
           />
         </View>

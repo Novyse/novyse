@@ -17,7 +17,7 @@ interface PersonalInfoProps {
     name: string;
     surname: string;
     username: string;
-    description: string;
+    biography: string;
     birthday: string;
     country: string;
     region: string;
@@ -38,9 +38,7 @@ export default function PersonalInfo({
   const [nameVal, setNameVal] = useState(initialValues.name);
   const [surnameVal, setSurnameVal] = useState(initialValues.surname);
   const [usernameVal, setUsernameVal] = useState(initialValues.username);
-  const [descriptionVal, setDescriptionVal] = useState(
-    initialValues.description,
-  );
+  const [descriptionVal, setDescriptionVal] = useState(initialValues.biography);
   const [birthdayVal, setBirthdayVal] = useState(initialValues.birthday);
   const [countryVal, setCountryVal] = useState(initialValues.country);
   const [regionVal, setRegionVal] = useState(initialValues.region);
@@ -50,7 +48,7 @@ export default function PersonalInfo({
     setNameVal(initialValues.name);
     setSurnameVal(initialValues.surname);
     setUsernameVal(initialValues.username);
-    setDescriptionVal(initialValues.description);
+    setDescriptionVal(initialValues.biography);
     setBirthdayVal(initialValues.birthday);
     setCountryVal(initialValues.country);
     setRegionVal(initialValues.region);
@@ -94,18 +92,18 @@ export default function PersonalInfo({
 
       <View style={styles.fullInput}>
         <View style={styles.labelRow}>
-          <Label translationKey="settings.modifyProfile.description" />
+          <Label translationKey="settings.modifyProfile.biography" />
           <AppText style={styles.charCount}>
             {descriptionLength}/{MAX_CHAR_COUNT}
           </AppText>
         </View>
         <TextInput
-          placeholder={t("settings.modifyProfile.descriptionPlaceholder")}
+          placeholder={t("settings.modifyProfile.biographyPlaceholder")}
           value={descriptionVal}
           maxLenght={MAX_CHAR_COUNT}
           numberOfLines={4}
           onChange={(val) =>
-            handleFieldChange("description", val, setDescriptionVal)
+            handleFieldChange("biography", val, setDescriptionVal)
           }
         />
       </View>

@@ -57,24 +57,24 @@ export class ProfileRepository {
     },
   };
 
-  description = {
-    update: async (userUUID: any, description: any): Promise<boolean> => {
+  biography = {
+    update: async (userUUID: any, biography: any): Promise<boolean> => {
       try {
-        if (!userUUID || !description) {
-          console.error("Missing required fields to update user description.");
+        if (!userUUID || !biography) {
+          console.error("Missing required fields to update user biography.");
           return false;
         }
         const result: any = await this.db.runAsync(
-          `UPDATE user SET description = ? WHERE uuid = ?;`,
-          [description, userUUID],
+          `UPDATE user SET biography = ? WHERE uuid = ?;`,
+          [biography, userUUID],
         );
         if (result.changes > 0) {
-          console.log("User description updated successfully:", userUUID);
+          console.log("User biography updated successfully:", userUUID);
           return true;
         }
         return false;
       } catch (error) {
-        console.error("Error updating user description:", error);
+        console.error("Error updating user biography:", error);
         return false;
       }
     },
@@ -206,6 +206,54 @@ export class ProfileRepository {
         return false;
       } catch (error) {
         console.error("Error updating user country:", error);
+        return false;
+      }
+    },
+  };
+
+  banner = {
+    update: async (userUUID: any, bannerPictureUUID: any): Promise<boolean> => {
+      try {
+        if (!userUUID || !bannerPictureUUID) {
+          console.error(
+            "Missing required fields to update user banner picture.",
+          );
+          return false;
+        }
+        const result: any = await this.db.runAsync(
+          `UPDATE user SET bannerPictureUUID = ? WHERE uuid = ?;`,
+          [bannerPictureUUID, userUUID],
+        );
+        if (result.changes > 0) {
+          console.log("User banner picture updated successfully:", userUUID);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Error updating user banner picture:", error);
+        return false;
+      }
+    },
+  };
+
+  color = {
+    update: async (userUUID: any, color: any): Promise<boolean> => {
+      try {
+        if (!userUUID || !color) {
+          console.error("Missing required fields to update user color.");
+          return false;
+        }
+        const result: any = await this.db.runAsync(
+          `UPDATE user SET color = ? WHERE uuid = ?;`,
+          [color, userUUID],
+        );
+        if (result.changes > 0) {
+          console.log("User color updated successfully:", userUUID);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Error updating user color:", error);
         return false;
       }
     },

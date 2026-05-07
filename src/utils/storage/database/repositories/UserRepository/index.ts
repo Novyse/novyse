@@ -17,7 +17,7 @@ export class UserRepository {
 
   /**
    * Adds a user to the database.
-   * @param {Object} user - User object containing uuid, name, surname, profilePictureUuid, handle, description, birthday, region, country
+   * @param {Object} user - User object containing uuid, name, surname, profilePictureUuid, handle, biography, birthday, region, country
    * @returns {boolean} true if user added successfully, false otherwise
    */
   async add(user: any): Promise<boolean> {
@@ -38,17 +38,19 @@ export class UserRepository {
       // Insert user into the user table
       await this.db.runAsync(
         `
-        INSERT OR IGNORE INTO user (uuid, name, surname, profilePictureUUID, description, birthday, region, country, profileEventID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        INSERT OR IGNORE INTO user (uuid, name, surname, profilePictureUUID, bannerPictureUUID, biography, birthday, region, country, color, profileEventID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
         [
           user.uuid,
           user.name,
           user.surname || null,
           user.profilePictureUUID || null,
-          user.description || null,
+          user.bannerPictureUUID || null,
+          user.biography || null,
           user.birthday || null,
           user.region || null,
           user.country || null,
+          user.color || null,
           user.profileEventID || 0,
         ],
       );
@@ -80,7 +82,7 @@ export class UserRepository {
       }
 
       const userPlaceholders = users
-        .map(() => `(?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .map(() => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .join(", ");
 
       const userValues: any[] = [];
@@ -90,16 +92,18 @@ export class UserRepository {
           user.name,
           user.surname || null,
           user.profilePictureUUID || null,
-          user.description || null,
+          user.bannerPictureUUID || null,
+          user.biography || null,
           user.birthday || null,
           user.region || null,
           user.country || null,
+          user.color || null,
           user.profileEventID || 0,
         );
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO user (uuid, name, surname, profilePictureUUID, description, birthday, region, country, profileEventID) VALUES ${userPlaceholders};`,
+        `INSERT OR IGNORE INTO user (uuid, name, surname, profilePictureUUID, bannerPictureUUID, biography, birthday, region, country, color, profileEventID) VALUES ${userPlaceholders};`,
         userValues,
       );
 

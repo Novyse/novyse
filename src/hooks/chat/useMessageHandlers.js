@@ -75,10 +75,16 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
     async (messageID) => {
       const response = await gateway.message.pin.add(chatUUID, messageID);
       if (response.success) {
-        await eventEmitter.message.update(chatUUID, messageID, "pin_add", {
-          pinned_at: response.pinned_at,
-          userUUID: myUUID,
-        });
+        await eventEmitter.message.update(
+          chatUUID,
+          messageID,
+          "pin_add",
+          response.chatEventID,
+          {
+            pinnedAt: response.pinnedAt,
+            userUUID: myUUID,
+          },
+        );
       }
     },
     [chatUUID, myUUID],
@@ -88,7 +94,12 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
     async (messageID) => {
       const response = await gateway.message.pin.remove(chatUUID, messageID);
       if (response.success) {
-        await eventEmitter.message.update(chatUUID, messageID, "pin_remove");
+        await eventEmitter.message.update(
+          chatUUID,
+          messageID,
+          "pin_remove",
+          response.chatEventID,
+        );
       }
     },
     [chatUUID],
@@ -99,7 +110,12 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
       console.log(messageID, chatUUID);
       const response = await gateway.message.delete(chatUUID, messageID);
       if (response.success) {
-        await eventEmitter.message.update(chatUUID, messageID, "delete");
+        await eventEmitter.message.update(
+          chatUUID,
+          messageID,
+          "delete",
+          response.chatEventID,
+        );
       }
     },
     [chatUUID],
@@ -113,7 +129,7 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
     async (messageID, content) => {
       const success = queueManager.resumeAndModifyJob(messageID, content);
       if (success) {
-        await eventEmitter.message.update(chatUUID, messageID, "edit", {
+        await eventEmitter.message.update(chatUUID, messageID, "edit", null, {
           content,
           pendingEditJobId: null,
         });
@@ -139,7 +155,7 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
         "PENDING_MODIFY",
       );
 
-      await eventEmitter.message.update(chatUUID, messageID, "edit", {
+      await eventEmitter.message.update(chatUUID, messageID, "edit", null, {
         content,
         pendingEditJobId: jobId,
       });
@@ -168,16 +184,17 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
       const hasReacted = existingReaction?.userUUIDs?.includes(myUUID);
 
       if (hasReacted) {
-        const success = await gateway.message.reaction.remove(
+        const response = await gateway.message.reaction.remove(
           chatUUID,
           message.id,
           emoji,
         );
-        if (success) {
+        if (response.success) {
           await eventEmitter.message.update(
             chatUUID,
             message.id,
             "reaction_remove",
+            response.chatEventID,
             { userUUID: myUUID, reaction: emoji },
           );
         }
@@ -192,7 +209,12 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
             chatUUID,
             message.id,
             "reaction_add",
-            { userUUID: myUUID, reaction: emoji, at: response.at },
+            response.chatEventID,
+            {
+              userUUID: myUUID,
+              reaction: emoji,
+              reactedAt: response.reactedAt,
+            },
           );
         }
       }

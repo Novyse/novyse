@@ -13,7 +13,16 @@ const eventReceiver = {
     initialized = true;
 
     socket.on("user:profile:update", async (data) => {
-      await eventEmitter.user.profile.update(data);
+      await eventEmitter.user.profile.update(data, data.profileEventID);
+    });
+
+    socket.on("user:setting:chat:update", async (data) => {
+      await eventEmitter.user.setting.chat.update(
+        data.chatUUID,
+        data.action,
+        data.userEventID,
+        data,
+      );
     });
 
     socket.on("user:presence:online", async (data) => {
@@ -46,6 +55,7 @@ const eventReceiver = {
         data.chatUUID,
         data.messageID,
         data.action,
+        data.chatEventID,
         data,
       );
     });
@@ -55,12 +65,21 @@ const eventReceiver = {
     });
 
     socket.on("chat:update", async (data) => {
-      await eventEmitter.chat.update(data.chatUUID, data.action, data);
+      await eventEmitter.chat.update(
+        data.chatUUID,
+        data.action,
+        data.chatEventID,
+        data,
+      );
     });
 
     socket.on("chat:member:joined", async (data) => {
       const chatUUID = data.chat.uuid;
-      await eventEmitter.chat.member.join(chatUUID, data.user);
+      await eventEmitter.chat.member.join(
+        chatUUID,
+        data.user,
+        data.chatEventID,
+      );
     });
 
     socket.on("chat:member:activity", async (data) => {

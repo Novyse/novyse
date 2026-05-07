@@ -7,6 +7,7 @@ import { HandleRepository } from "./repositories/HandleRepository";
 import { ChatRepository } from "./repositories/ChatRepository";
 import { MessageRepository } from "./repositories/MessageRepository";
 import { FileRepository } from "./repositories/FileRepository";
+import { EventRepository } from "./repositories/EventRepository";
 
 class Database {
   constructor(db) {
@@ -16,6 +17,7 @@ class Database {
     this.message = new MessageRepository(db);
     this.chat = new ChatRepository(db, this.message, this.handle);
     this.file = new FileRepository(db);
+    this.event = new EventRepository(db);
   }
 
   setDb(db) {
@@ -26,6 +28,7 @@ class Database {
     this.chat.setDb(db);
     this.chat.setRepositories(this.message, this.handle);
     this.file.setDb(db);
+    this.event.setDb(db);
   }
 
   async initialize() {

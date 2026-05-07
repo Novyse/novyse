@@ -16,16 +16,18 @@ CREATE TABLE IF NOT EXISTS user (
     name TEXT NOT NULL,
     surname TEXT,
     profilePictureUUID TEXT,
-    description TEXT,
+    bannerPictureUUID TEXT,
+    biography TEXT,
     birthday DATE,
     region TEXT,
     country TEXT,
+    color TEXT,
     profileEventID INTEGER DEFAULT 0
 );
 
 
 -- Insert system user for system messages
-INSERT OR IGNORE INTO user (uuid, name, surname, description)
+INSERT OR IGNORE INTO user (uuid, name, surname, biography)
 VALUES ('00000000-0000-0000-0000-000000000000', 'System', '', 'System user');
 
 CREATE TABLE IF NOT EXISTS handle_type (
@@ -205,7 +207,7 @@ CREATE TABLE IF NOT EXISTS pending_file (
 CREATE TABLE IF NOT EXISTS bot (
     uuid TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    description TEXT,
+    biography TEXT,
     profilePictureUUID TEXT,
     FOREIGN KEY (profilePictureUUID) REFERENCES file(uuid)
 );

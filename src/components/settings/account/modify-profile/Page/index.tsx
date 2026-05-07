@@ -27,7 +27,7 @@ interface ModifyProfileProps {
   surname: string;
   username: string;
   email?: string;
-  description?: string;
+  biography?: string;
   birthday: string;
   country: string;
   region?: string;
@@ -39,8 +39,7 @@ export default function ModifyProfile({
   name,
   surname,
   username,
-  email = "",
-  description = "",
+  biography = "",
   birthday,
   country,
   region = "",
@@ -59,7 +58,7 @@ export default function ModifyProfile({
     name,
     surname,
     username,
-    description: description ?? "",
+    biography: biography ?? "",
     birthday: birthday ?? "",
     country: country ?? "",
     region: region ?? "",
@@ -89,14 +88,14 @@ export default function ModifyProfile({
       name,
       surname,
       username,
-      description: description ?? "",
+      biography: biography ?? "",
       birthday: birthday ?? "",
       country: country ?? "",
       region: region ?? "",
     };
     setBaseValues(original);
     setFormValues(original);
-  }, [name, surname, username, description, birthday, country, region]);
+  }, [name, surname, username, biography, birthday, country, region]);
 
   const hasChanges = Object.keys(baseValues).some(
     (key) =>
@@ -121,7 +120,7 @@ export default function ModifyProfile({
         name,
         surname,
         username,
-        description,
+        biography,
         birthday,
         country,
         region,
@@ -130,7 +129,7 @@ export default function ModifyProfile({
       const response = await gateway.user.profile.update.all(
         name,
         surname,
-        description,
+        biography,
       );
 
       if ((response as any).success) {

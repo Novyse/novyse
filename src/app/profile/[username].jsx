@@ -21,7 +21,7 @@ const ProfilePage = () => {
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [profilePictureUUID, setProfilePictureUUID] = useState("");
-  const [description, setDescription] = useState("");
+  const [biography, setBiography] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -48,7 +48,7 @@ const ProfilePage = () => {
     setName(userData.name);
     setSurname(userData.surname);
     setProfilePictureUUID(userData.profilePictureUUID);
-    setDescription(userData.description);
+    setBiography(userData.biography);
   };
 
   useEffect(() => {
@@ -105,7 +105,7 @@ const ProfilePage = () => {
           surname={surname}
           username={username}
           profilePictureUUID={profilePictureUUID}
-          description={description}
+          biography={biography}
           isOnline={true}
         />
       </View>

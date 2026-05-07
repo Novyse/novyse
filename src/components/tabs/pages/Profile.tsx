@@ -12,9 +12,7 @@ const ProfilePage = () => {
   const profilePictureUUID = useUserStore(
     (state) => state.users[userUUID]?.profilePictureUUID,
   );
-  const description = useUserStore(
-    (state) => state.users[userUUID]?.description,
-  );
+  const biography = useUserStore((state) => state.users[userUUID]?.biography);
   const birthday = useUserStore((state) => state.users[userUUID]?.birthday);
   const country = useUserStore((state) => state.users[userUUID]?.country);
 
@@ -25,7 +23,7 @@ const ProfilePage = () => {
       surname={surname}
       username={username}
       profilePictureUUID={profilePictureUUID}
-      description={description}
+      biography={biography}
       birthday={birthday}
       country={country}
       isOnline={true}

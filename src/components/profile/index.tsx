@@ -35,7 +35,7 @@ interface ProfileProps {
   profilePictureUUID?: string;
   bannerUUID?: string;
   isOnline?: boolean;
-  description?: string;
+  biography?: string;
   connections?: Connection[];
   onConnectionPress?: (connection: Connection) => void;
   onEditAvatar?: () => void;
@@ -51,7 +51,7 @@ export default function Profile({
   profilePictureUUID,
   bannerUUID,
   isOnline,
-  description,
+  biography,
   connections,
   onConnectionPress,
   onEditAvatar,
@@ -100,7 +100,7 @@ export default function Profile({
           />
 
           {/* About Me Section */}
-          <AboutMe description={description} />
+          <AboutMe biography={biography} />
 
           {/* Birthday and Location Section */}
           {birthday ||

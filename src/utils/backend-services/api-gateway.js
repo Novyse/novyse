@@ -169,8 +169,8 @@ const gateway = {
           });
           const success = response.data.success;
           if (success) {
-            const { profilePictureUUID } = response.data.data;
-            return { success, profilePictureUUID };
+            const { profilePictureUUID, profileEventID } = response.data.data;
+            return { success, profilePictureUUID, profileEventID };
           }
           return { success };
         },
@@ -180,18 +180,19 @@ const gateway = {
          * Update user's profile information.
          * @param {String} name
          * @param {String} surname
-         * @param {String} description
+         * @param {String} biography
          * @returns {Object} { success: boolean }
          */
-        async all(name = "", surname = "", description = "") {
+        async all(name = "", surname = "", biography = "") {
           const response = await api.patch("/user/profile", {
             name,
             surname,
-            description,
+            biography,
           });
           const success = response.data.success;
           if (success) {
-            return { success };
+            const { profileEventID } = response.data.data;
+            return { success, profileEventID };
           }
           return { success };
         },
@@ -351,8 +352,8 @@ const gateway = {
           }
           const response = await api.put(`/chat/pin`, { chatUUID, position });
           const success = response.data.success;
-          const realPosition = response.data.data.position;
-          return { success, position: realPosition };
+          const { position: realPosition, userEventID } = response.data.data;
+          return { success, position: realPosition, userEventID };
         } catch (error) {
           console.error("Error pinning chat:", error);
           throw error;
@@ -372,6 +373,10 @@ const gateway = {
             data: { chatUUID },
           });
           const success = response.data.success;
+          if (success) {
+            const { userEventID } = response.data.data;
+            return { success, userEventID };
+          }
           return { success };
         } catch (error) {
           console.error("Error unpinning chat:", error);
@@ -492,6 +497,10 @@ const gateway = {
           },
         });
         const success = response.data.success;
+        if (success) {
+          const { chatEventID } = response.data.data;
+          return { success, chatEventID };
+        }
         return { success };
       } catch (error) {
         console.error("Error in message.delete:", error);
@@ -522,7 +531,8 @@ const gateway = {
         });
         const success = response.data.success;
         if (success) {
-          return { success };
+          const { chatEventID } = response.data.data;
+          return { success, chatEventID };
         }
         return { success };
       } catch (error) {
@@ -552,7 +562,8 @@ const gateway = {
           });
           const success = response.data.success;
           if (success) {
-            return { success };
+            const { pinnedAt, chatEventID } = response.data.data;
+            return { success, pinnedAt, chatEventID };
           }
           return { success };
         } catch (error) {
@@ -583,7 +594,8 @@ const gateway = {
           });
           const success = response.data.success;
           if (success) {
-            return { success };
+            const { chatEventID } = response.data.data;
+            return { success, chatEventID };
           }
           return { success };
         } catch (error) {
@@ -615,10 +627,9 @@ const gateway = {
             messageID,
             reaction,
           });
-          const success = response.data.success;
-          const at = response.data.data.at;
           if (success) {
-            return { success, at };
+            const { reactedAt, chatEventID } = response.data.data;
+            return { success, reactedAt, chatEventID };
           }
           return { success };
         } catch (error) {
@@ -652,7 +663,8 @@ const gateway = {
           });
           const success = response.data.success;
           if (success) {
-            return { success };
+            const { chatEventID } = response.data.data;
+            return { success, chatEventID };
           }
           return { success };
         } catch (error) {
@@ -676,7 +688,8 @@ const gateway = {
         });
         const success = response.data.success;
         if (success) {
-          return { success };
+          const { readAt } = response.data.data;
+          return { success, readAt };
         }
         return { success };
       } catch (error) {

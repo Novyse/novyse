@@ -14,6 +14,11 @@ import useChatStore from "@/context/ChatContext";
 
 import { useActiveChatStore } from "@/context/ActiveChatContext";
 import { resetGlobalNavState } from "@/src/components/tabs/TabNavigator";
+import {
+  ChatEventType,
+  UserProfileEventType,
+  UserEventType,
+} from "@/src/types/event";
 
 /**
  * Check if the user is logged in by verifying local session markers.
@@ -131,7 +136,7 @@ const logout = async () => {
 
 const updateDatabase = async () => {
   const gatewayLocal = {
-    eventID: (await AsyncStorage.getItem("localUserEventID")) || 0,
+    eventID: (await AsyncStorage.getItem("userEventID")) || 0,
   };
   const { chats: gatewayChats, users: gatewayUsers } =
     await database.user.update.getAllEventsIDs();
@@ -170,7 +175,88 @@ const updateDatabase = async () => {
           "for chat",
           event.chat_uuid,
         );
-        // TODO: Handle specific chat events (name change, new member, etc.)
+        const chatUUID = event.chatUUID;
+        const { messageID } = event.payload;
+
+        switch (event.type) {
+          case ChatEventType.MESSAGE_EDITED:
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "edit",
+              event.id,
+              event.payload,
+            );
+            break;
+          case ChatEventType.REACTION_ADDED:
+            const reactionAddedPayload = event.payload;
+            reactionAddedPayload.reactedAt = event.createdAt;
+            reactionAddedPayload.userUUID = event.userUUID;
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "reaction_add",
+              event.id,
+              reactionAddedPayload,
+            );
+            break;
+          case ChatEventType.REACTION_REMOVED:
+            const reactionRemovedPayload = event.payload;
+            reactionRemovedPayload.userUUID = event.userUUID;
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "reaction_remove",
+              event.id,
+              reactionRemovedPayload,
+            );
+            break;
+          case ChatEventType.MESSAGE_DELETED:
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "delete",
+              event.id,
+              event.payload,
+            );
+            break;
+          case ChatEventType.MESSAGE_PINNED:
+            const messagePinnedPayload = event.payload;
+            messagePinnedPayload.pinnedAt = event.createdAt;
+            messagePinnedPayload.userUUID = event.userUUID;
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "pin_add",
+              event.id,
+              event.payload,
+            );
+            break;
+          case ChatEventType.MESSAGE_UNPINNED:
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "pin_remove",
+              event.id,
+              event.payload,
+            );
+            break;
+          case ChatEventType.MEMBER_JOINED:
+            await EventEmitter.chat.member.join(
+              chatUUID,
+              { uuid: event.userUUID },
+              event.id,
+            );
+            break;
+          case ChatEventType.MEMBER_LEFT:
+            await EventEmitter.chat.member.leave(chatUUID, {
+              uuid: event.userUUID,
+            });
+            break;
+          default:
+            console.warn("Sync: Unhandled chat event type", event.type);
+            break;
+        }
       }
     }
 
@@ -181,9 +267,28 @@ const updateDatabase = async () => {
           "Sync: User Profile Event received",
           event.type,
           "for user",
-          event.user_uuid,
+          event.userUUID,
         );
-        // TODO: Handle specific profile events (name, surname, etc.)
+        const userUUID = event.userUUID;
+
+        switch (event.type) {
+          case UserProfileEventType.BIO_CHANGED:
+          case UserProfileEventType.PICTURE_CHANGED:
+          case UserProfileEventType.BANNER_CHANGED:
+          case UserProfileEventType.NAME_CHANGED:
+          case UserProfileEventType.SURNAME_CHANGED:
+          case UserProfileEventType.BIRTHDAY_CHANGED:
+          case UserProfileEventType.COLOR_CHANGED:
+          case UserProfileEventType.HANDLE_CHANGED:
+            await EventEmitter.user.profile.update(
+              { ...event.payload, userUUID },
+              event.id,
+            );
+            break;
+          default:
+            console.warn("Sync: Unhandled profile event type", event.type);
+            break;
+        }
       }
     }
 
@@ -191,7 +296,29 @@ const updateDatabase = async () => {
     if (local && Array.isArray(local)) {
       for (const event of local) {
         console.log("Sync: Local Event received", event.type, event.id);
-        // TODO: Handle specific local events (pinned chats, settings, etc.)
+        const chatUUID = event.chatUUID;
+
+        switch (event.type) {
+          case UserEventType.CHAT_PINNED:
+            await EventEmitter.user.setting.chat.update(
+              chatUUID,
+              "pin_add",
+              event.id,
+              event.payload,
+            );
+            break;
+          case UserEventType.CHAT_UNPINNED:
+            await EventEmitter.user.setting.chat.update(
+              chatUUID,
+              "pin_remove",
+              event.id,
+              event.payload,
+            );
+            break;
+          default:
+            console.warn("Sync: Unhandled local event type", event.type);
+            break;
+        }
       }
     }
   }

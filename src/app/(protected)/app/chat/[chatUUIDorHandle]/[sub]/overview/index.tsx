@@ -132,11 +132,11 @@ const ChatOverview = () => {
           <View style={styles.dmInfoContent}>
             <AppText
               style={styles.dmInfoLabel}
-              translationKey="settings.modifyProfile.description"
+              translationKey="settings.modifyProfile.biography"
             />
             <AppText
               style={styles.dmInfoValue}
-              text={dmUser.description || t("chat.overview.noDescriptionYet")}
+              text={dmUser.biography || t("chat.overview.noDescriptionYet")}
             />
           </View>
         </View>

@@ -40,7 +40,7 @@ export default function AccountModifyRoute() {
         username={user.handle}
         email={user.email ?? ""}
         profilePictureUUID={user.profilePictureUUID ?? ""}
-        description={user.description ?? ""}
+        biography={user.biography ?? ""}
         birthday={user.birthday ?? ""}
         region={user.region ?? ""}
         country={user.country ?? ""}

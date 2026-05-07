@@ -237,8 +237,8 @@
       "personalInfo": "Informazioni Personali",
       "name": "Nome",
       "surname": "Cognome",
-      "description": "Descrizione",
-      "descriptionPlaceholder": "Raccontaci di te...",
+      "biography": "Biografia",
+      "biographyPlaceholder": "Raccontaci di te...",
       "username": "Nome utente",
       "birthday": "Compleanno",
       "region": "Regione",
@@ -488,7 +488,7 @@
   "profile": {
     "aboutMe": {
       "title": "SU DI ME",
-      "noDescription": "Non sappiamo nulla di lui :("
+      "noBiography": "Non sappiamo nulla di lui :("
     },
     "birthdayLocation": {
       "born": "NATO IL",

@@ -36,7 +36,7 @@ const mapRawToUser = (raw: any): User => ({
   surname: raw.surname,
   handle: raw.handle ?? "",
   profilePictureUUID: raw.profilePictureUUID ?? null,
-  description: raw.description ?? null,
+  biography: raw.biography ?? null,
   birthday: raw.birthday ?? null,
   region: raw.region ?? null,
   country: raw.country ?? null,
