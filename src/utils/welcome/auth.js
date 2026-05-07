@@ -149,13 +149,13 @@ const updateDatabase = async () => {
 
   if (success) {
     // 1. New Chats
-    if (chats?.new && Array.isArray(chats.new)) {
+    if (chats?.new && Array.isArray(chats.new) && chats.new.length > 0) {
       console.log("Sync: Adding", chats.new.length, "new chats");
       await database.chat.addMultiple(chats.new);
     }
 
     // 2. New Users
-    if (users?.new && Array.isArray(users.new)) {
+    if (users?.new && Array.isArray(users.new) && users.new.length > 0) {
       console.log("Sync: Adding", users.new.length, "new users");
       await database.user.addMultiple(users.new);
     }
