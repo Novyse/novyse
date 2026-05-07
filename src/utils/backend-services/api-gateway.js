@@ -689,8 +689,8 @@ const gateway = {
         });
         const success = response.data.success;
         if (success) {
-          const { readAt } = response.data.data;
-          return { success, readAt };
+          const { chatEventID, userUUID, readAt } = response.data.data;
+          return { success, chatEventID, userUUID, readAt };
         }
         return { success };
       } catch (error) {

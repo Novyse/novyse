@@ -21,15 +21,6 @@ class GlobalEventEmitter {
       await database.message.add(message);
       this.eventEmitter.emit("message:new", message);
     },
-    read: async (chatUUID, messageID, userUUID, readAt) => {
-      await database.message.read.add(chatUUID, messageID, userUUID, readAt);
-      this.eventEmitter.emit("message:update", {
-        chatUUID,
-        messageID,
-        action: "read",
-        data: { userUUID, readAt },
-      });
-    },
     update: async (chatUUID, messageID, action, eventID, data) => {
       switch (action) {
         case "edit":
@@ -64,6 +55,14 @@ class GlobalEventEmitter {
             messageID,
             data.reaction,
             data.userUUID,
+          );
+          break;
+        case "read":
+          await database.message.read.add(
+            chatUUID,
+            messageID,
+            data.userUUID,
+            data.readAt,
           );
           break;
         default:

@@ -131,12 +131,12 @@ const MessageList = ({
     ({ viewableItems }) => {
       if (!viewableItems || viewableItems.length === 0) return;
 
-      const latestUnreadBySender = {};
+      let maxUnreadID = 0;
+      const unreadIDsInView = [];
 
       for (const v of viewableItems) {
         const msg = v.item?.data;
-        if (!msg || v.item.type === "separator")
-          continue;
+        if (!msg || v.item.type === "separator") continue;
 
         if (msg.senderUUID === myUUID) continue;
 
@@ -144,18 +144,19 @@ const MessageList = ({
           msg.readBy && msg.readBy.some((r) => r.userUUID === myUUID);
 
         if (!isReadByMe && !pendingReadsRef.current.has(msg.id)) {
-          // viewableItems represents top-to-bottom on screen (oldest to newest locally in array index mapping usually).
-          // Continuously updating groups it so the very last visible per-sender is processed.
-          latestUnreadBySender[msg.senderUUID] = msg.id;
+          const numericID = Number(msg.id);
+          if (numericID > maxUnreadID) {
+            maxUnreadID = numericID;
+          }
+          unreadIDsInView.push(msg.id);
         }
       }
 
-      Object.values(latestUnreadBySender).forEach((messageID) => {
-        if (messageID) {
-          pendingReadsRef.current.add(messageID);
-          onRead(messageID);
-        }
-      });
+      if (maxUnreadID > 0) {
+        // Mark all these as pending immediately to avoid duplicate triggers
+        unreadIDsInView.forEach((id) => pendingReadsRef.current.add(id));
+        onRead(maxUnreadID);
+      }
     },
     [myUUID, onRead],
   );
