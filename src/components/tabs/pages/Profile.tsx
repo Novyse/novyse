@@ -4,17 +4,21 @@ import useUserStore from "@/context/UserContext";
 
 import Profile from "@/src/components/profile";
 
+const defaultProfilePictureUUID = "00000000-0000-0000-0000-000000000000";
+
 const ProfilePage = () => {
   const userUUID = useUserStore((state) => state.localUserUUID);
   const name = useUserStore((state) => state.users[userUUID]?.name);
   const surname = useUserStore((state) => state.users[userUUID]?.surname);
   const username = useUserStore((state) => state.users[userUUID]?.handle);
-  const profilePictureUUID = useUserStore(
-    (state) => state.users[userUUID]?.profilePictureUUID,
-  );
-  const biography = useUserStore((state) => state.users[userUUID]?.biography);
-  const birthday = useUserStore((state) => state.users[userUUID]?.birthday);
-  const country = useUserStore((state) => state.users[userUUID]?.country);
+  const profilePictureUUID =
+    useUserStore((state) => state.users[userUUID]?.profilePictureUUID) ||
+    defaultProfilePictureUUID;
+  const biography =
+    useUserStore((state) => state.users[userUUID]?.biography) || "";
+  const birthday =
+    useUserStore((state) => state.users[userUUID]?.birthday) || "";
+  const country = useUserStore((state) => state.users[userUUID]?.country) || "";
 
   return (
     <Profile
