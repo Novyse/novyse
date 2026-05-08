@@ -250,7 +250,7 @@ function createStyle(theme) {
       top: 5,
       left: 5,
       zIndex: 1,
-      backgroundColor: "#25b34bff",
+      backgroundColor: theme.backgroundSuccess,
       borderRadius: 999,
     },
     leftContainer: {

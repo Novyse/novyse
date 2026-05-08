@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
@@ -6,6 +6,7 @@ import Animated, {
   withSpring,
   interpolate,
 } from "react-native-reanimated";
+import { ThemeContext } from "@/context/ThemeContext";
 
 interface Bar {
   id: number;
@@ -23,6 +24,8 @@ const BARS: Bar[] = [
 const MIN_DB = -60;
 const MAX_DB = 0;
 
+const theme = useContext(ThemeContext);
+
 interface SimpleWaveformProps {
   audioLevel: number;
   color?: string;
@@ -32,7 +35,7 @@ interface SimpleWaveformProps {
 
 const SimpleWaveform = ({
   audioLevel,
-  color = "#ffffff",
+  color = theme.text,
   barWidth = 3,
   maxHeight = 40,
 }: SimpleWaveformProps) => {

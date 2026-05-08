@@ -14,7 +14,6 @@ export default function LocalStorageRoute() {
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
 
   const { usedStorage } = useStorage();
 
@@ -28,7 +27,7 @@ export default function LocalStorageRoute() {
       {
         name: t("settings.storage.file"),
         size: (usedStorage / (1024 * 1024 * 1024)).toFixed(2),
-        color: "#0EA5E9",
+        color: theme.primary,
       },
     ],
   };
@@ -47,8 +46,3 @@ export default function LocalStorageRoute() {
     </>
   );
 }
-
-const createStyle = (theme: any) =>
-  StyleSheet.create({
-    // Styles if needed
-  });

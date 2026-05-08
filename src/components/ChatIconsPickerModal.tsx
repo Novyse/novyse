@@ -117,7 +117,7 @@ const createStyle = (theme: any) =>
       right: 10,
       backgroundColor: theme.backgroundMain,
       borderRadius: 8,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: {
         width: 0,
         height: 2,

@@ -75,7 +75,7 @@ const createStyle = (theme: any) =>
       minWidth: 32,
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.2,
       shadowRadius: 1,

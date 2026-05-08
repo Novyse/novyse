@@ -133,7 +133,7 @@ function createStyle(theme) {
       paddingVertical: 4,
       paddingHorizontal: 8,
       borderRadius: 12,
-      backgroundColor: "#0088cc",
+      backgroundColor: theme.primary,
     },
     playbackRateText: {
       fontSize: 12,

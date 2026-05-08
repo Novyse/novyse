@@ -29,7 +29,7 @@ const FloatingButton: React.FC<FloatingButtonProps> = ({
       onPress={onPress}
     >
       <BlurredView intensity={50} tint="dark" style={styles.blurView}>
-        <Icon name={iconName} size={size} color="#ffffff" />
+        <Icon name={iconName} size={size} />
       </BlurredView>
     </HoverAndPressedButton>
   );

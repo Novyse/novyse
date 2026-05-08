@@ -192,7 +192,7 @@ function createStyle(theme) {
       height: 32,
       borderRadius: 16,
       marginRight: 8,
-      backgroundColor: theme.placeholder || "#ccc",
+      backgroundColor: theme.placeholderText,
     },
     chatTitle: {
       fontSize: 15,

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useContext } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import Icon from "@/src/components/Icon";
 import Svg, { Circle } from "react-native-svg";
@@ -7,6 +7,7 @@ import Animated, {
   useAnimatedProps,
   withTiming,
 } from "react-native-reanimated";
+import { ThemeContext } from "@/context/ThemeContext";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -14,8 +15,10 @@ const CIRCLE_SIZE = 34;
 const STROKE_WIDTH = 3;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+const { theme } = useContext(ThemeContext);
 
-const CircularProgress = ({ progress, color = "#fff", onCancel }) => {
+const CircularProgress = ({ progress, color = theme.text, onCancel }) => {
+  
   const animatedProgress = useSharedValue(0);
 
   useEffect(() => {

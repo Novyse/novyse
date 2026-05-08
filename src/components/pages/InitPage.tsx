@@ -17,7 +17,7 @@ const InitPage = () => {
       <View style={styles.content}>
         <ActivityIndicator
           size="large"
-          color={"#ffffff"}
+          color={theme.text}
           style={styles.loader}
         />
         <StatusMessage type="info" content={[t("layout.loadingData")]} />

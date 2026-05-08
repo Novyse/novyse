@@ -56,7 +56,6 @@ const createStyles = (theme: any, height: number) =>
       width: "100%",
       height: height,
       resizeMode: "cover",
-      backgroundColor: "#00000000",
     },
     hoverButtonContainer: { padding: 0, borderRadius: 0 },
 

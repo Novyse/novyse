@@ -82,8 +82,6 @@ export default function Profile({
 
             <Icon
               name="QrCodeIcon"
-              
-              color={"#FFFFFF"}
               onPress={() => setIsQrModalVisible(true)}
               style={styles.qrIconContainer}
             />
