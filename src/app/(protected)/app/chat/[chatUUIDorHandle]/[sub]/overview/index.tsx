@@ -333,16 +333,16 @@ const ChatOverview = () => {
             <View
               style={[
                 styles.actionIconContainer,
-                { backgroundColor: "#FF4D4D15" },
+                { backgroundColor: theme.backgroundDanger + "15" },
               ]}
             >
               <Icon
                 name={isDM ? "UnavailableIcon" : "Logout01Icon"}
-                color="#FF4D4D"
+                color={theme.iconDanger}
               />
             </View>
             <AppText
-              style={[styles.actionText, { color: "#FF4D4D" }]}
+              style={[styles.actionText, { color: theme.iconDanger }]}
               translationKey={isDM ? "common.block" : "common.leave"}
             />
           </TouchableOpacity>

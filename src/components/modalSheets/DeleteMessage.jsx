@@ -71,13 +71,13 @@ function createStyles(theme) {
       fontSize: 20,
       fontWeight: "bold",
       marginBottom: 10,
-      color: theme?.text || "#000",
+      color: theme.text,
     },
     subtitle: {
       fontSize: 16,
       textAlign: "center",
       marginBottom: 20,
-      color: theme?.text || "#333",
+      color: theme.subtitle,
     },
     buttonRow: {
       flexDirection: "row",
@@ -93,20 +93,20 @@ function createStyles(theme) {
       alignItems: "center",
     },
     cancelButton: {
-      backgroundColor: theme?.primary || "#eee",
+      backgroundColor: theme.primary,
     },
     deleteButton: {
-      backgroundColor: theme?.errorText || "red",
+      backgroundColor: theme.backgroundDanger,
     },
     buttonText: {
       fontSize: 16,
       fontWeight: "600",
     },
     cancelButtonText: {
-      color: theme?.text || "#000",
+      color: theme.text,
     },
     deleteButtonText: {
-      color: "#fff",
+      color: theme.text,
     },
   });
 }

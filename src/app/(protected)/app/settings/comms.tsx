@@ -172,7 +172,7 @@ export default function CommsRoute() {
         />
         <View style={styles.container}>
           <AppText
-            style={styles.errorText}
+            style={styles.dangerText}
             translationKey="settings.comms.errorLoadingSettings"
           />
           <TouchableOpacity style={styles.retryButton} onPress={loadSettings}>
@@ -429,7 +429,7 @@ const createStyle = (theme: any) =>
       textAlign: "center",
       marginTop: 50,
     },
-    errorText: {
+    dangerText: {
       color: theme.danger,
       fontSize: 16,
       textAlign: "center",
@@ -488,27 +488,25 @@ const createStyle = (theme: any) =>
       fontFamily: "monospace",
     },
     warningContainer: {
-      backgroundColor: "rgba(255, 193, 7, 0.1)",
+      backgroundColor: theme.backgroundWarning,
       borderRadius: 8,
       padding: 12,
       marginBottom: 15,
       borderLeftWidth: 4,
-      borderLeftColor: "#ffc107",
     },
     warningText: {
       fontSize: 14,
       lineHeight: 20,
     },
     bannerContainer: {
-      backgroundColor: "#d32f2f",
+      backgroundColor: theme.backgroundDanger,
       borderRadius: 16,
       padding: 16,
       marginBottom: 20,
       borderWidth: 1,
-      borderColor: "#b71c1c",
     },
     bannerText: {
-      color: "#ffffff",
+      color: theme.text,
       fontSize: 14,
       fontWeight: "bold",
       textAlign: "center",

@@ -21,7 +21,12 @@ export type SettingRowProps = {
   isSelected?: boolean;
 };
 
-export type SettingRowType = "SWITCH" | "VALUE" | "NAVIGATE" | "MODAL" | "SELECT_GROUP";
+export type SettingRowType =
+  | "SWITCH"
+  | "VALUE"
+  | "NAVIGATE"
+  | "MODAL"
+  | "SELECT_GROUP";
 
 const SettingRow = ({
   iconName,
@@ -38,8 +43,8 @@ const SettingRow = ({
   isSelected = false,
 }: SettingRowProps) => {
   const { theme } = useContext(ThemeContext);
-  const rowColor = danger ? theme.errorText : theme.primary;
-  const textColor = danger ? theme.errorText : theme.text;
+  const rowColor = danger ? theme.dangerText : theme.primary;
+  const textColor = danger ? theme.dangerText : theme.text;
 
   return (
     <HoverAndPressedButton
@@ -50,7 +55,9 @@ const SettingRow = ({
       ]}
       onPress={onPress}
     >
-      {leftElement ? leftElement : iconName ? (
+      {leftElement ? (
+        leftElement
+      ) : iconName ? (
         <View
           style={[
             settingRowStyles.iconContainer,
@@ -91,10 +98,7 @@ const SettingRow = ({
           case "VALUE":
             return value ? (
               <AppText
-                style={[
-                  settingRowStyles.rightValue,
-                  { color: theme.subtitle },
-                ]}
+                style={[settingRowStyles.rightValue, { color: theme.subtitle }]}
               >
                 {value}
               </AppText>
@@ -121,11 +125,7 @@ const SettingRow = ({
           case "MODAL":
           default:
             return onPress ? (
-              <Icon
-                name="ArrowRight01Icon"
-                color={theme.subtitle}
-                size={20}
-              />
+              <Icon name="ArrowRight01Icon" color={theme.subtitle} size={20} />
             ) : null;
         }
       })()}

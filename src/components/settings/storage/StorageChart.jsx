@@ -65,7 +65,7 @@ const StorageBreakdownChart = () => {
           <View style={styles.storageLabelRow}>
             <View style={styles.storageLabelLeft}>
               <View style={styles.iconContainer}>
-                <Icon name={storage.iconName} size={18} color="#FFFFFF" />
+                <Icon name={storage.iconName} size={18} />
               </View>
               <AppText
                 style={styles.storageTitle}
@@ -80,7 +80,7 @@ const StorageBreakdownChart = () => {
               <Icon
                 name={isExpanded ? "ArrowUp01Icon" : "ArrowDown01Icon"}
                 size={20}
-                color={theme?.textSecondary || theme?.text}
+                color={theme.textSecondary || theme.text}
                 style={styles.chevronIcon}
               />
             </View>
@@ -177,14 +177,14 @@ const createStyle = (theme = {}) => {
       width: 32,
       height: 32,
       borderRadius: 8,
-      backgroundColor: theme?.primary || "#007AFF",
+      backgroundColor: theme.primary,
       alignItems: "center",
       justifyContent: "center",
     },
     storageTitle: {
       fontSize: 16,
       fontWeight: "600",
-      color: theme?.text,
+      color: theme.text,
       letterSpacing: -0.2,
     },
     storageRight: {
@@ -195,7 +195,7 @@ const createStyle = (theme = {}) => {
     storageStat: {
       fontSize: 14,
       fontWeight: "600",
-      color: theme?.textSecondary || theme?.text,
+      color: theme.textSecondary || theme.text,
     },
     chevronIcon: {
       marginLeft: 4,
@@ -204,7 +204,7 @@ const createStyle = (theme = {}) => {
       height: 16,
       borderRadius: 10,
       overflow: "hidden",
-      backgroundColor: theme?.surfaceSecondary || "#F3F4F6",
+      backgroundColor: theme.primary,
     },
     progressBarInner: {
       height: "100%",
@@ -247,19 +247,19 @@ const createStyle = (theme = {}) => {
     categoryName: {
       fontSize: 15,
       fontWeight: "500",
-      color: theme?.text,
+      color: theme.text,
     },
     categorySize: {
       fontSize: 15,
       fontWeight: "600",
-      color: theme?.text,
+      color: theme.text,
     },
     categoryPercentage: {
       fontSize: 13,
       fontWeight: "500",
       minWidth: 45,
       textAlign: "right",
-      color: theme?.textSecondary || theme?.text,
+      color: theme.textSecondary || theme.text,
       opacity: 0.7,
     },
   });

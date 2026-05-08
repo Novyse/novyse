@@ -37,15 +37,14 @@ export default function ShortcutsRoute() {
 const createStyle = (theme: any) =>
   StyleSheet.create({
     bannerContainer: {
-      backgroundColor: "#d32f2f",
+      backgroundColor: theme.backgroundDanger,
       borderRadius: 16,
       padding: 16,
       marginBottom: 20,
       borderWidth: 1,
-      borderColor: "#b71c1c",
     },
     bannerText: {
-      color: "#ffffff",
+      color: theme.text,
       fontSize: 14,
       fontWeight: "bold",
       textAlign: "center",

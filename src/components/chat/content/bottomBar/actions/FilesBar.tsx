@@ -135,7 +135,7 @@ const FilesBar = () => {
                 <Icon
                   name="FileIcon"
                   size={18}
-                  color={isInvalid ? theme.errorText : theme.icon}
+                  color={isInvalid ? theme.dangerText : theme.icon}
                 />
                 <View style={styles.chipText}>
                   <AppText
@@ -164,7 +164,7 @@ const FilesBar = () => {
               </View>
               {isInvalid && (
                 <AppText
-                  style={styles.errorText}
+                  style={styles.dangerText}
                   numberOfLines={1}
                   text={invalidInfo.errors[0]}
                 />
@@ -209,7 +209,7 @@ const createStyle = (theme: any) =>
       color: theme.placeholderText,
     },
     headerSubDanger: {
-      color: theme.danger || "#FF4D4D",
+      color: theme.dangerText,
     },
     divider: {
       height: StyleSheet.hairlineWidth,
@@ -234,7 +234,7 @@ const createStyle = (theme: any) =>
       overflow: "hidden",
     },
     chipInvalid: {
-      borderColor: theme.danger || "#FF4D4D",
+      borderColor: theme.dangerText,
     },
     chipText: {
       flex: 1,
@@ -246,15 +246,15 @@ const createStyle = (theme: any) =>
       color: theme.text,
     },
     chipNameInvalid: {
-      color: theme.danger || "#FF4D4D",
+      color: theme.dangerText,
     },
     chipSize: {
       fontSize: 11,
       color: theme.placeholderText,
     },
-    errorText: {
+    dangerText: {
       fontSize: 11,
-      color: theme.danger || "#FF4D4D",
+      color: theme.dangerText,
       paddingHorizontal: 4,
     },
   });

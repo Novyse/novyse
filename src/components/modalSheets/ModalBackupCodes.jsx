@@ -115,8 +115,8 @@ function createStyles(theme) {
     error: {
       fontSize: 16,
       fontWeight: "bold",
-      color: theme.errorText,
-      backgroundColor: theme.backgroundError,
+      color: theme.dangerText,
+      backgroundColor: theme.backgroundDanger,
       padding: 5,
       borderRadius: 8,
       marginBottom: 40,

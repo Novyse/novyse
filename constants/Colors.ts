@@ -12,6 +12,7 @@ export const Colors = {
     icon: "#ffffff",
     iconSuccess: "#44b244",                                                       //* 2
     iconDanger: "#eb4444",                                                        //* 2
+    iconWarning: "#e49f0c",
     iconHover: "#c9c9c9",                                                         //* 3
     iconPressed: "rgba(0, 0, 0, 0.3)",                                            //* 1
     
@@ -33,7 +34,7 @@ export const Colors = {
     // Gradients
     backgroundMain: "#013480",
     backgroundMainGradient: ["#013480", "#177FC0"],
-    backgroundChatContentGradient: ["transparent"],                                 //* 1
+    backgroundChatContent: "transparent",                                         //* 1
     backgroundChatListItemSelectedGradient: ["#2899cf", "#4fb3e1"],             //* 1
 
     // More
@@ -47,9 +48,12 @@ export const Colors = {
 
     // ?USER CAN'T CHANGE
 
-    // Text
-    errorText: "#972323",
-    backgroundError: "#ffc7c7a7",
+    dangerText: "#972323",
+    warningText: "#c28707",
+    successText: "#198f19",
+    backgroundDanger: "#ffc7c7a7",
+    backgroundWarning: "#ffedb4a1",
+    backgroundSuccess: "#d7f8d7a7",
     backgroundScrollbar: "transparent",             // TODO: usato in troppi punti, da unificare
   },
   light: {

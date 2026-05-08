@@ -163,7 +163,7 @@ const ChatPageRoute = () => {
         style={[
           styles.container,
           {
-            backgroundColor: theme.backgroundChatContentGradient?.[0] || "#000",
+            backgroundColor: theme.backgroundChatContent,
             justifyContent: "center",
             alignItems: "center",
           },
