@@ -211,7 +211,7 @@ export default function CommsRoute() {
             />
           </View>
 
-          {devicesLoading ? (
+          {!devicesLoading ? (
             <View style={styles.disabledField}>
               <AppText
                 style={styles.label}
@@ -473,9 +473,8 @@ const createStyle = (theme: any) =>
       paddingVertical: 15,
       paddingHorizontal: 15,
       marginVertical: 5,
-      backgroundColor: theme.backgroundCard,
+      backgroundColor: theme.primary,
       borderRadius: 10,
-      opacity: 0.6,
     },
     debugTitle: {
       color: theme.text,

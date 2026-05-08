@@ -20,7 +20,7 @@ interface SecurityListCardProps {
 
 const SecurityListCard = ({
   iconName,
-  iconColor = "#6366f1",
+  iconColor = theme.primary,
   title,
   subtitle,
   badge,

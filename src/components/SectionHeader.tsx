@@ -21,7 +21,6 @@ export default function SectionHeader({ title, translationKey, icon }: SectionHe
       <Icon
         name={icon}
         size={20}
-        color={theme.icon}
         style={{ marginRight: 8 }}
       />
       {translationKey ? (

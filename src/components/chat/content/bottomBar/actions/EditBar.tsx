@@ -23,7 +23,7 @@ const EditBar: React.FC<EditBarProps> = ({ editingMessage, onCancelEdit }) => {
 
   return (
     <BlurredView style={styles.actionContainer}>
-      <Icon name="PencilEdit02Icon" size={18} color={theme.icon} />
+      <Icon name="PencilEdit02Icon" size={18} />
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
         <AppText

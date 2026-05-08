@@ -150,7 +150,7 @@ const createStyle = (theme) =>
       }),
     },
     link: {
-      color: theme.messagesLink,
+      color: theme.textLink,
       fontSize: 15,
       textDecorationLine: "underline",
     },

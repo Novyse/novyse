@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import {
   Animated,
   GestureResponderEvent,
@@ -9,6 +9,7 @@ import {
   Pressable,
 } from "react-native";
 import AppText from "./AppText";
+import { ThemeContext } from "@/context/ThemeContext";
 
 const AnimatedAppText = Animated.createAnimatedComponent(AppText);
 
@@ -29,6 +30,7 @@ export default function TextLink({
 }: TextLinkProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
+  const { theme } = useContext(ThemeContext);
   const opacity = useState(new Animated.Value(1))[0];
 
   const handlePressIn = () => {
@@ -71,6 +73,7 @@ export default function TextLink({
           showUnderline && styles.underline,
           { opacity },
           style,
+          {color: theme.textLink}
         ]}
         // @ts-ignore - onMouseEnter/onMouseLeave are web-only props
         onMouseEnter={() => setIsHovered(true)}

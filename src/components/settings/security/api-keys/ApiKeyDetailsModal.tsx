@@ -74,7 +74,7 @@ const createStyles = (theme: any) =>
       lineHeight: 20,
     },
     button: {
-      backgroundColor: "#6366f1",
+      backgroundColor: theme.primary,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",

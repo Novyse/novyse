@@ -101,9 +101,8 @@ const ChatListItem = React.memo(
       <View style={styles.chatItem}>
         <SmartBackground
           colors={
-            isSelected || isActive
-              ? theme?.backgroundChatListItemSelectedGradient
-              : "transparent"
+            isSelected ||
+            (isActive && theme.backgroundChatListItemSelectedGradient)
           }
           style={[StyleSheet.absoluteFill, { borderRadius: 100 }]}
         />

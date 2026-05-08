@@ -52,7 +52,7 @@ const BottomSheetBase = forwardRef(
           borderTopRightRadius: 24,
         }}
         handleIndicatorStyle={{
-          backgroundColor: theme.iconSecondary,
+          backgroundColor: theme.icon,
           width: 40,
         }}
         onDismiss={onClose}

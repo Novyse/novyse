@@ -143,7 +143,7 @@ export default function SessionsRoute() {
                   ? "SmartPhone01Icon"
                   : "ComputerIcon"
               }
-              iconColor={session.isCurrent ? "#00C851" : "#6366f1"}
+              iconColor={session.isCurrent ? "#00C851" : theme.primary}
               title={session.device}
               subtitle={
                 <SessionInfo

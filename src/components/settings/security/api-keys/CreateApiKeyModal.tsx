@@ -83,7 +83,7 @@ const createStyles = (theme: any) =>
       lineHeight: 20,
     },
     button: {
-      backgroundColor: "#6366f1",
+      backgroundColor: theme.secondary,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -97,7 +97,6 @@ const createStyles = (theme: any) =>
     },
     buttonPressed: {
       backgroundColor: "#4e51d4",
-      opacity: 0.9,
     },
     buttonText: {
       color: "#fff",

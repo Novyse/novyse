@@ -241,7 +241,7 @@ const createStyle = (theme: any) =>
       width: 48,
       height: 48,
       borderRadius: 24,
-      backgroundColor: "#6366f1",
+      backgroundColor: theme.primary,
       justifyContent: "center",
       alignItems: "center",
       marginRight: 16,
@@ -295,7 +295,7 @@ const createStyle = (theme: any) =>
       opacity: 0.9,
     },
     addButton: {
-      backgroundColor: "#6366f1",
+      backgroundColor: theme.primary,
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 16,

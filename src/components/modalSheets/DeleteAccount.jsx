@@ -83,10 +83,7 @@ const DeleteAccount = ({ visible, onClose }) => {
             translationKey="modals.delete_account.confirm_instruction"
             translationOptions={{ username }}
           >
-            <AppText
-              style={styles.boldUsername}
-              text={username}
-            />
+            <AppText style={styles.boldUsername} text={username} />
           </AppText>
           <TextInput
             style={styles.input}
@@ -171,7 +168,7 @@ const createStyles = (theme) => {
     sectionLabel: {
       fontSize: 11,
       fontWeight: "700",
-      color: theme.iconSecondary,
+      color: theme.icon,
       letterSpacing: 1,
       marginBottom: 12,
       textTransform: "uppercase",
@@ -221,7 +218,7 @@ const createStyles = (theme) => {
       borderRadius: 8,
     },
     cancelBtnText: {
-      color: theme.iconSecondary,
+      color: theme.icon,
       fontSize: 15,
       fontWeight: "500",
     },

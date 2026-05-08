@@ -156,7 +156,7 @@ const createStyle = (theme: any) =>
     },
     subtitle: {
       fontSize: 15,
-      color: theme.iconSecondary ?? "#c9d1d9",
+      color: theme.icon ?? "#c9d1d9",
       textAlign: "center",
       marginBottom: 20,
       lineHeight: 22,
@@ -211,7 +211,7 @@ const createStyle = (theme: any) =>
       paddingHorizontal: 20,
     },
     secondaryButtonText: {
-      color: theme.iconSecondary ?? "#c9d1d9",
+      color: theme.icon ?? "#c9d1d9",
       fontWeight: "600",
       fontSize: 14,
       textDecorationLine: "underline",

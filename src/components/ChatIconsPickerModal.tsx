@@ -134,7 +134,7 @@ const createStyle = (theme: any) =>
     tabsContainer: {
       flexDirection: "row",
       borderBottomWidth: 1,
-      borderBottomColor: theme.ChatIconsPickerModalBorderColor,
+      borderBottomColor: theme.borderColor,
     },
     tab: {
       flex: 1,

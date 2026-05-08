@@ -1,60 +1,56 @@
 export const Colors = {
   default: {
-    // USER CAN CHANGE
+    // ?USER CAN CHANGE
 
-    // Colori primari e di base
-    icon: "#ffffff",
-    iconSuccess: "#44b244",
-    iconDanger: "#eb4444",
-    iconHover: "#c9c9c9",
-    iconPressed: "rgba(0, 0, 0, 0.3)",
-    iconSecondary: "#c9d1d9",
-    messagesLink: "#ffffff",
-    placeholderText: "#c9c9c9",
-    primary: "#4f8cff",
+    // Text
     text: "#ffffff",
+    textLink: "#55a8e1",                                                          //* 1
     subtitle: "#bababa",
-    
-    // Background principali
-    backgroundCard: "#416a90",
-    backgroundDateSeparator: "#17212b",
-    backgroundSearchResultItem: "#2b3e51",
-    backgroundTextField: "#374e68",
-    backgroundModalOverlay: "#00000080",
-    backgroundBackupCode: "#f0f0f0",
+    placeholderText: "#c9c9c9",
 
-    // Vari
+    // Icons
+    icon: "#ffffff",
+    iconSuccess: "#44b244",                                                       //* 2
+    iconDanger: "#eb4444",                                                        //* 2
+    iconHover: "#c9c9c9",                                                         //* 3
+    iconPressed: "rgba(0, 0, 0, 0.3)",                                            //* 1
+    
+    // Background
+    backgroundCard: "#416a90",
+    backgroundDateSeparator: "#17212b",                                           //* 3
+    backgroundSearchResultItem: "#2b3e51",                                        //* 1
+    backgroundTextField: "#374e68",                                               //* 2
+    backgroundModalOverlay: "#00000080",                                          //* 1
+    backgroundBackupCode: "#f0f0f0",                                              //* 1
+    
+    // Various
+    primary: "#55a8e1",
+    secondary: "#0f90e6",
     borderColor: "rgba(255,255,255,0.05)",
-    badgeColor: "#20566e",
+    badgeColor: "#20566e",                            // TODO: strano utilizzo, sistemarlo
     shadowColor: "#000",
-    blurredViewBorder: "#ffffff1e",
 
     // Gradients
     backgroundMain: "#013480",
     backgroundMainGradient: ["#013480", "#177FC0"],
-    backgroundChatContentGradient: ["transparent"],
-    backgroundChatListItemGradient: ["#0478bc", "#4b96c1"],
-    backgroundChatListGradient: ["transparent"],
-    backgroundChatListItemSelectedGradient: ["#2899cf", "#4fb3e1"],
-    backgroundChatTextInputGradient: ["#16638e", "#2899cf"],
-    backgroundCommsFloatingBarGradient: ["#165376", "#2899cf", "#4fb3e1"],
-    backgroundMessageBaseGradient: "#0b273c",
-    backgroundSearchGradient: ["transparent"], // Consiglio di lasciarlo trasparente, lo includo qui ma da mentenere trasparente
+    backgroundChatContentGradient: ["transparent"],                                 //* 1
+    backgroundChatListItemSelectedGradient: ["#2899cf", "#4fb3e1"],             //* 1
 
-    // Settings aggiuntivi
-    ChatIconsPickerModalBorderColor: "#ffffff",
-    ChatIconsPickerModalTabInactiveText: "#b1b1b1",
-    settingsHoveredButton: "#4f8dffb9",
-    settingsPressedButton: "#2a68dc",
+    // More
+    ChatIconsPickerModalTabInactiveText: "#b1b1b1",                               //* 1
+    settingsHoveredButton: "#4f8dffb9",                                           //* 1
+    settingsPressedButton: "#2a68dc",                                             //* 1
 
     // Scrollbar
-    scrollbar: "#d6d6d6",
-    scrollbarHover: "#c7c7c7",
+    scrollbar: "#d6d6d6",                         // TODO: usato in troppi punti, da unificare
+    scrollbarHover: "#c7c7c7",                    // TODO: usato in troppi punti, da unificare
 
-    // USER CAN'T CHANGE
+    // ?USER CAN'T CHANGE
+
+    // Text
     errorText: "#972323",
     backgroundError: "#ffc7c7a7",
-    backgroundScrollbar: "transparent",
+    backgroundScrollbar: "transparent",             // TODO: usato in troppi punti, da unificare
   },
   light: {
     primary: "#f5f5f5",

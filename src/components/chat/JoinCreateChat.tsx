@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import AppText from "@/src/components/AppText";
-import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 
@@ -72,35 +71,31 @@ const JoinCreateChat = ({
           <AppText style={styles.handle} text={`@${chat?.handle}`} />
 
           <View style={styles.infoBox}>
-            <Icon
-              name="InformationCircleIcon"
-              
-              color={"white"}
-            />
+            <Icon name="InformationCircleIcon" color={"white"} />
             <AppText
               style={styles.infoText}
-              translationKey={isUser ? "chat.joinCreate.joinUserDesc" : "chat.joinCreate.joinChatDesc"}
+              translationKey={
+                isUser
+                  ? "chat.joinCreate.joinUserDesc"
+                  : "chat.joinCreate.joinChatDesc"
+              }
             />
           </View>
 
           <View style={styles.extraInfoContainer}>
             <View style={styles.extraInfoItem}>
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={20}
-                color={theme.iconSecondary}
-              />
+              <Icon name="ShieldTickIcon" size={20} />
               <AppText
                 style={styles.extraInfoText}
-                translationKey={isUser ? "chat.joinCreate.securityWip" : "chat.joinCreate.publicChannelDesc"}
+                translationKey={
+                  isUser
+                    ? "chat.joinCreate.securityWip"
+                    : "chat.joinCreate.publicChannelDesc"
+                }
               />
             </View>
             <View style={styles.extraInfoItem}>
-              <Ionicons
-                name="notifications-off-outline"
-                size={20}
-                color={theme.iconSecondary}
-              />
+              <Icon name="NotificationOff02Icon" size={20} />
               <AppText
                 style={styles.extraInfoText}
                 translationKey="chat.joinCreate.notificationMuteDesc"
@@ -156,7 +151,7 @@ const createStyles = (theme: any) =>
     },
     handle: {
       fontSize: 18,
-      color: theme.iconSecondary,
+      color: theme.icon,
       marginBottom: 32,
     },
     infoBox: {
@@ -188,7 +183,7 @@ const createStyles = (theme: any) =>
     },
     extraInfoText: {
       flex: 1,
-      color: theme.iconSecondary,
+      color: theme.icon,
       fontSize: 13,
       lineHeight: 18,
     },

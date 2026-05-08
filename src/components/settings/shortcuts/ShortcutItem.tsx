@@ -66,8 +66,8 @@ const createStyle = (theme: any) =>
       alignItems: "center",
     },
     keyBox: {
-      backgroundColor: theme.backgroundCard || "#1a1a1a",
-      borderColor: theme.border || "#333",
+      backgroundColor: theme.backgroundCard,
+      borderColor: theme.border,
       borderWidth: 1,
       borderRadius: 6,
       paddingHorizontal: 8,

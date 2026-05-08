@@ -32,10 +32,14 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ message, onCancel }) => {
 
   return (
     <View style={styles.actionContainer}>
-      <Icon name="ArrowMoveUpLeftIcon" size={18} color={theme.icon} />
+      <Icon name="ArrowMoveUpLeftIcon" size={18} />
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
-        <AppText style={styles.actionName} numberOfLines={1} text={message.sender_name ?? message.senderUUID} />
+        <AppText
+          style={styles.actionName}
+          numberOfLines={1}
+          text={message.sender_name ?? message.senderUUID}
+        />
         <AppText style={styles.actionText} numberOfLines={1} text={content} />
       </View>
       <Icon

@@ -77,13 +77,13 @@ export default function NotificationsRoute() {
             <SecurityListCard
               key={method.id}
               iconName="Notification03Icon"
-              iconColor={method.isDefault ? "#00C851" : "#6366f1"}
+              iconColor={method.isDefault ? "#00C851" : theme.primary}
               title={method.name}
               subtitle={method.type}
               badge={
                 method.isDefault ? t("settings.security.default") : undefined
               }
-              badgeColor="#6366f1"
+              badgeColor={theme.primary}
               isHighlighted={method.isDefault}
               onDelete={
                 !method.isDefault
@@ -151,7 +151,7 @@ const createStyle = (theme: any) =>
       marginTop: 8,
     },
     addButton: {
-      backgroundColor: "#6366f1",
+      backgroundColor: theme.primary,
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 24,

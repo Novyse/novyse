@@ -92,11 +92,15 @@ export default function ApiKeysRoute() {
     const response = await auth.apikey.toggleActive(parseInt(id), active);
     if (response.success) {
       setSuccess(
-        active ? t("settings.security.apiKeyActivatedSuccess") : t("settings.security.apiKeyDeactivatedSuccess"),
+        active
+          ? t("settings.security.apiKeyActivatedSuccess")
+          : t("settings.security.apiKeyDeactivatedSuccess"),
       );
       fetchApiKeys();
     } else {
-      setError(response.error || t("settings.security.apiKeyStatusUpdateFailed"));
+      setError(
+        response.error || t("settings.security.apiKeyStatusUpdateFailed"),
+      );
     }
   };
 
@@ -112,7 +116,10 @@ export default function ApiKeysRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow translationKey="settings.security.apiKeys" onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.security.apiKeys"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
         <StatusMessage
           type="error"
@@ -134,16 +141,22 @@ export default function ApiKeysRoute() {
           <View style={styles.listContainer}>
             {apiKeys.length === 0 ? (
               <View style={styles.emptyState}>
-                <Icon name="Key01Icon" color="#a0a0a0" size={48} />
-                <AppText style={styles.emptyText} translationKey="settings.security.noApiKeys" />
-                <AppText style={styles.emptySubtext} translationKey="settings.security.createApiKeyPrompt" />
+                <Icon name="Key01Icon" size={48} />
+                <AppText
+                  style={styles.emptyText}
+                  translationKey="settings.security.noApiKeys"
+                />
+                <AppText
+                  style={styles.emptySubtext}
+                  translationKey="settings.security.createApiKeyPrompt"
+                />
               </View>
             ) : (
               apiKeys.map((apiKey) => (
                 <SecurityListCard
                   key={apiKey.id}
                   iconName="Key01Icon"
-                  iconColor={apiKey.active ? "#6366f1" : "#a0a0a0"}
+                  iconColor={apiKey.active ? theme.primary : theme.subtitle}
                   title={apiKey.name}
                   subtitle={`${t("settings.security.created")} ${apiKey.createdAt} · ${t("settings.security.lastUsed")} ${apiKey.lastUsed}`}
                   active={apiKey.active}
@@ -202,7 +215,7 @@ const createStyle = (theme: any) =>
     },
     emptySubtext: {
       fontSize: 14,
-      color: "#a0a0a0",
+      color: theme.subtitle,
       textAlign: "center",
     },
   });

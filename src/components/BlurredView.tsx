@@ -8,7 +8,12 @@ interface BlurredViewProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const BlurredView = ({ children, style, isBorderActive = true, ...rest }: BlurredViewProps & any) => {
+const BlurredView = ({
+  children,
+  style,
+  isBorderActive = true,
+  ...rest
+}: BlurredViewProps & any) => {
   const { theme } = useContext(ThemeContext) as any;
 
   return (
@@ -21,7 +26,7 @@ const BlurredView = ({ children, style, isBorderActive = true, ...rest }: Blurre
 const styles = (theme: Theme, isBorderActive: boolean) =>
   StyleSheet.create({
     container: {
-      borderColor: isBorderActive ? theme.blurredViewBorder : "transparent",
+      borderColor: isBorderActive ? theme.borderColor : "transparent",
       borderWidth: isBorderActive ? 1 : 0,
       borderRadius: 1000,
       overflow: "hidden",

@@ -46,7 +46,6 @@ export default function CopyLabel({
         >
           <Icon
             name={copied ? "Tick01Icon" : "Copy01Icon"}
-            color={copied ? "#10b981" : theme.text}
             size={20}
           />
         </Pressable>
@@ -62,17 +61,15 @@ const createStyles = (theme: any) =>
     },
     label: {
       fontSize: 14,
-      color: "#a0a0a0",
+      color: theme.text,
       marginBottom: 8,
       fontWeight: "500",
     },
     contentContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: theme.divider,
+      backgroundColor: theme.primary,
+      borderRadius: 50,
       overflow: "hidden",
     },
     textContainer: {
@@ -87,11 +84,9 @@ const createStyles = (theme: any) =>
     },
     copyButton: {
       padding: 12,
-      borderLeftWidth: 1,
-      borderLeftColor: theme.divider,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: theme.backgroundCard,
+      backgroundColor: theme.primary,
     },
     copyButtonHovered: {
       backgroundColor: theme.backgroundHover,

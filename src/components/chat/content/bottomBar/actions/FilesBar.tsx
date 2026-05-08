@@ -1,10 +1,5 @@
 import React, { useContext } from "react";
-import {
-  View,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
+import { View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -56,15 +51,24 @@ const FilesBar = () => {
       const invalidData: any[] = [];
       let globalError: string | null = null;
 
-      if (updated.length > maxFiles) globalError = t("chat.bottomBar.files.errors.maxFiles", { count: maxFiles });
+      if (updated.length > maxFiles)
+        globalError = t("chat.bottomBar.files.errors.maxFiles", {
+          count: maxFiles,
+        });
       if (calculateTotalSize(updated) > maxTotal)
-        globalError = t("chat.bottomBar.files.errors.totalSize", { size: formatFileSize(maxTotal) });
+        globalError = t("chat.bottomBar.files.errors.totalSize", {
+          size: formatFileSize(maxTotal),
+        });
 
       updated.forEach((file, idx) => {
         const errors: string[] = [];
         const fileSize = file.size || file.fileSize || 0;
         if (fileSize > maxSingleSize)
-          errors.push(t("chat.bottomBar.files.errors.fileSize", { size: formatFileSize(maxSingleSize) }));
+          errors.push(
+            t("chat.bottomBar.files.errors.fileSize", {
+              size: formatFileSize(maxSingleSize),
+            }),
+          );
         if (fileSize === 0) errors.push(t("chat.bottomBar.files.errors.empty"));
         if (errors.length > 0) invalidData.push({ index: idx, errors });
       });
@@ -83,13 +87,16 @@ const FilesBar = () => {
   return (
     <BlurredView style={styles.container}>
       <View style={styles.header}>
-        <Icon name="FileAttachmentIcon" size={18} color={theme.icon} />
+        <Icon name="FileAttachmentIcon" size={18} />
         <View style={styles.accent} />
         <View style={styles.headerMeta}>
           <AppText
             style={[styles.headerTitle, { color: theme.icon }]}
             numberOfLines={1}
-            text={t(`chat.bottomBar.files.${files.length === 1 ? "one" : "other"}`, { count: files.length })}
+            text={t(
+              `chat.bottomBar.files.${files.length === 1 ? "one" : "other"}`,
+              { count: files.length },
+            )}
           />
           <AppText
             style={[styles.headerSub, isNearLimit && styles.headerSubDanger]}
@@ -128,7 +135,7 @@ const FilesBar = () => {
                 <Icon
                   name="FileIcon"
                   size={18}
-                  color={isInvalid ? theme.errorText || "#FF4D4D" : theme.icon}
+                  color={isInvalid ? theme.errorText : theme.icon}
                 />
                 <View style={styles.chipText}>
                   <AppText
@@ -139,7 +146,10 @@ const FilesBar = () => {
                     numberOfLines={1}
                     text={name || t("chat.bottomBar.files.file")}
                   />
-                  <AppText style={styles.chipSize} text={formatFileSize(fileSize)} />
+                  <AppText
+                    style={styles.chipSize}
+                    text={formatFileSize(fileSize)}
+                  />
                 </View>
                 <TouchableOpacity
                   onPress={() => handleRemoveFile(index)}
@@ -153,7 +163,11 @@ const FilesBar = () => {
                 </TouchableOpacity>
               </View>
               {isInvalid && (
-                <AppText style={styles.errorText} numberOfLines={1} text={invalidInfo.errors[0]} />
+                <AppText
+                  style={styles.errorText}
+                  numberOfLines={1}
+                  text={invalidInfo.errors[0]}
+                />
               )}
             </View>
           );

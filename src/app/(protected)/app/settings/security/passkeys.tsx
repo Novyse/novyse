@@ -100,7 +100,7 @@ export default function PasskeysRoute() {
           <View style={styles.listContainer}>
             {passkeys.length === 0 ? (
               <View style={styles.emptyState}>
-                <Icon name="FingerPrintIcon" color="#a0a0a0" size={48} />
+                <Icon name="FingerPrintIcon" size={48} />
                 <AppText style={styles.emptyText} translationKey="settings.security.noPasskeys" />
                 <AppText style={styles.emptySubtext} translationKey="settings.security.addPasskeyPrompt" />
               </View>
@@ -109,7 +109,7 @@ export default function PasskeysRoute() {
                 <SecurityListCard
                   key={passkey.id}
                   iconName="FingerPrintIcon"
-                  iconColor="#6366f1"
+                  iconColor={theme.primary}
                   title={passkey.name}
                   subtitle={`${t("settings.security.added")} ${passkey.createdAt}`}
                   onDelete={() => handleDeletePasskey(passkey.id)}
@@ -149,7 +149,7 @@ const createStyle = (theme: any) =>
     },
     emptySubtext: {
       fontSize: 14,
-      color: "#a0a0a0",
+      color: theme.subtitle,
       textAlign: "center",
     },
   });

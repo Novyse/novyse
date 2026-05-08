@@ -132,8 +132,16 @@ export default function PasswordRoute() {
         <Section titleKey="settings.security.status" style={{ marginTop: 20 }}>
           <SettingRow
             iconName={hasPassword ? "CheckmarkCircle02Icon" : "Cancel01Icon"}
-            labelKey={hasPassword ? "settings.security.passwordActive" : "settings.security.noPasswordSet"}
-            value={hasPassword ? t("settings.security.passwordProtected") : t("settings.security.addPasswordSecurity")}
+            labelKey={
+              hasPassword
+                ? "settings.security.passwordActive"
+                : "settings.security.noPasswordSet"
+            }
+            value={
+              hasPassword
+                ? t("settings.security.passwordProtected")
+                : t("settings.security.addPasswordSecurity")
+            }
             style={{ borderBottomWidth: 0 }}
           />
         </Section>
@@ -382,7 +390,7 @@ const createStyle = (theme: any) =>
       borderRadius: 12,
       padding: 16,
       borderLeftWidth: 4,
-      borderLeftColor: "#6366f1",
+      borderLeftColor: theme.primary,
       marginTop: 24,
     },
     noteText: {
