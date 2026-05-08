@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { Chat, User, Member } from "@/src/types";
 
 import database from "@/src/utils/storage/database";
+import useUserStore from "@/context/UserContext";
 
 interface ChatState {
   chats: Chat[];
@@ -66,7 +67,7 @@ const useChatStore = create<ChatState>((set, get) => ({
   },
 
   loadChats: async () => {
-    const fetchedChats = await database.chat.get.all();
+    const fetchedChats = await database.chat.get.all(useUserStore.getState().localUserUUID);
 
     set((state) => {
       const mergedChats = fetchedChats.map((fetchedChat: any) => {

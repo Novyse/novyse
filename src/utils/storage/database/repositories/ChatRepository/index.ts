@@ -1,6 +1,5 @@
 import { SQLiteDatabase } from "expo-sqlite";
 import { MemberRepository } from "./MemberRepository";
-import useUserStore from "@/context/UserContext";
 
 export class ChatRepository {
   db: SQLiteDatabase;
@@ -258,12 +257,11 @@ export class ChatRepository {
   };
 
   get = {
-    all: async (): Promise<any[]> => {
+    all: async (localUserUUID?: string): Promise<any[]> => {
       try {
         const result: any[] = await this.db.getAllAsync(`SELECT * FROM chat`);
 
         for (const chat of result) {
-          const localUserUUID = useUserStore.getState().localUserUUID;
 
           if (localUserUUID) {
             const row = await this.db.getFirstAsync<{ count: number }>(
