@@ -65,12 +65,12 @@ const MessageTimestamp = ({
     return (
       <View style={styles.alignContainer}>
         {(isEdited || isPendingEdit) && (
-          <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
+          <Icon name={"PencilEdit02Icon"} size={14} color={theme.subtitle} />
         )}
         {replyCount > 0 && (
-          <Icon name={"ArrowMoveUpLeftIcon"} size={14} color={theme.textTime} />
+          <Icon name={"ArrowMoveUpLeftIcon"} size={14} color={theme.subtitle} />
         )}
-        <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
+        <Icon name={"Clock01Icon"} size={14} color={theme.subtitle} />
       </View>
     );
   }
@@ -90,25 +90,25 @@ const MessageTimestamp = ({
   return (
     <View style={styles.alignContainer}>
       <View style={styles.iconContainer}>
-        {isPinned && <Icon name={"PinIcon"} size={14} color={theme.textTime} />}
+        {isPinned && <Icon name={"PinIcon"} size={14} color={theme.subtitle} />}
         {(isEdited || isPendingEdit) && (
-          <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
+          <Icon name={"PencilEdit02Icon"} size={14} color={theme.subtitle} />
         )}
         {isPendingEdit && (
-          <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
+          <Icon name={"Clock01Icon"} size={14} color={theme.subtitle} />
         )}
         {sent && !receivedByAll && !isPendingEdit && (
-          <Icon name={"Tick01Icon"} size={14} color={theme.textTime} />
+          <Icon name={"Tick01Icon"} size={14} color={theme.subtitle} />
         )}
         {receivedByAll && !isPendingEdit && (
-          <Icon name={"TickDouble01Icon"} size={14} color={theme.textTime} />
+          <Icon name={"TickDouble01Icon"} size={14} color={theme.subtitle} />
         )}
         {replyCount > 0 && !isPendingEdit && (
           <>
             <Icon
               name={"ArrowMoveUpLeftIcon"}
               size={14}
-              color={theme.textTime}
+              color={theme.subtitle}
             />
             <AppText style={styles.replyCountText} text={String(replyCount)} />
           </>
@@ -137,13 +137,13 @@ const MessageTimestamp = ({
 const createStyle = (theme) =>
   StyleSheet.create({
     timeText: {
-      color: theme.textTime,
+      color: theme.subtitle,
       textAlign: "right",
       fontSize: 12,
       minWidth: 35,
     },
     replyCountText: {
-      color: theme.textTime,
+      color: theme.subtitle,
       textAlign: "right",
       fontSize: 12,
       paddingLeft: 2,

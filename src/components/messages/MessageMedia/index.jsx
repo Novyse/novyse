@@ -46,6 +46,7 @@ const MessageMedia = ({ medias, isPending }) => {
           // Otherwise, let the child component define the height
           aspectRatio: finalMediaRatio || undefined,
           maxWidth: "100%",
+          minHeight: 75,
         },
       ]}
     >

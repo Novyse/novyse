@@ -51,7 +51,7 @@ const createStyle = (theme: any) =>
       paddingVertical: 12,
       paddingHorizontal: 16,
       backgroundColor:
-        theme.backgroundSettingsCardsSecondary || "rgba(255, 255, 255, 0.05)",
+        theme.backgroundMainSecondary || "rgba(255, 255, 255, 0.05)",
       borderRadius: 12,
       marginVertical: 4,
     },

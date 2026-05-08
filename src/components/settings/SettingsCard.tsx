@@ -26,7 +26,7 @@ function createStyle(theme) {
       overflow: "hidden",
       shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 2 },
-      backgroundColor: theme.backgroundSettingsCards,
+      backgroundColor: theme.backgroundMain,
     },
   });
 }

@@ -212,7 +212,7 @@ const createStyle = (theme) =>
       zIndex: 1000,
     },
     floatingMenu: {
-      backgroundColor: theme.backgroundBottomsheet || "#F0F0F0",
+      backgroundColor: theme.backgroundMain || "#F0F0F0",
       borderRadius: 15,
       padding: 10,
       alignSelf: "flex-start",

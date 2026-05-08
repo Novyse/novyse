@@ -147,7 +147,7 @@ function createStyles(theme: any) {
     toggleText: {
       fontSize: 14,
       fontWeight: "600",
-      color: theme.subtitle2,
+      color: theme.subtitle,
     },
     toggleTextActive: {
       color: "#fff",

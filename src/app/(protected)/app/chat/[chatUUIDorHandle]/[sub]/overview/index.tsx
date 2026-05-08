@@ -216,7 +216,7 @@ const ChatOverview = () => {
     if (files.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Icon name="Folder01Icon" size={48} color={theme.subtitle2} />
+          <Icon name="Folder01Icon" size={48} color={theme.subtitle} />
           <AppText
             style={styles.emptyText}
             translationKey="chat.overview.noFiles"
@@ -241,7 +241,7 @@ const ChatOverview = () => {
             </View>
             <Icon
               name="Download01Icon"
-              color={theme.subtitle2}
+              color={theme.subtitle}
               onPress={() => {}}
             />
           </View>
@@ -383,7 +383,7 @@ const createStyles = (theme: any) =>
     },
     membersLabel: {
       fontSize: 16,
-      color: theme.subtitle2,
+      color: theme.subtitle,
       fontWeight: "500",
     },
     dmInfoContainer: {
@@ -414,7 +414,7 @@ const createStyles = (theme: any) =>
     },
     dmInfoLabel: {
       fontSize: 12,
-      color: theme.subtitle2,
+      color: theme.subtitle,
       marginBottom: 2,
     },
     dmInfoValue: {
@@ -458,12 +458,12 @@ const createStyles = (theme: any) =>
     },
     memberRole: {
       fontSize: 14,
-      color: theme.subtitle2,
+      color: theme.subtitle,
       marginTop: 2,
     },
     memberJoinedAt: {
       fontSize: 12,
-      color: theme.subtitle2,
+      color: theme.subtitle,
       opacity: 0.7,
     },
     fileItem: {
@@ -486,7 +486,7 @@ const createStyles = (theme: any) =>
     },
     fileSize: {
       fontSize: 13,
-      color: theme.subtitle2,
+      color: theme.subtitle,
       marginTop: 2,
     },
     emptyContainer: {
@@ -497,7 +497,7 @@ const createStyles = (theme: any) =>
     emptyText: {
       marginTop: 15,
       fontSize: 15,
-      color: theme.subtitle2,
+      color: theme.subtitle,
       textAlign: "center",
     },
     actions: {

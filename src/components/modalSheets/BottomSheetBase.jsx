@@ -47,7 +47,7 @@ const BottomSheetBase = forwardRef(
         enableDynamicSizing={enableDynamicSizing}
         backdropComponent={renderBackdrop}
         backgroundStyle={{
-          backgroundColor: theme.backgroundModal,
+          backgroundColor: theme.backgroundMain,
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
         }}
