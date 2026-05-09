@@ -40,12 +40,12 @@ function ConnectionCard({
             styles.iconBox,
             {
               backgroundColor: connected
-                ? "rgba(29, 161, 242, 0.2)"
-                : "rgba(255,255,255,0.1)",
+                ? theme.backgroundMain
+                : theme.backgroundCard,
             },
           ]}
         >
-          <Icon name={icon} size={20} color={connected ? "#1DA1F2" : "#888"} />
+          <Icon name={icon} size={20} color={connected ? theme.primary : theme.icon} />
         </View>
         <View>
           <AppText
@@ -126,7 +126,7 @@ const createStyles = (theme: any) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      backgroundColor: theme.backgroundModalOverlay,
       alignItems: "center",
       justifyContent: "center",
       pointerEvents: "none",
@@ -142,9 +142,7 @@ const createStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor: "rgba(255,255,255,0.03)",
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.05)",
+      backgroundColor: theme.backgroundCard,
       padding: 16,
       borderRadius: 20,
       marginBottom: 12,
@@ -168,19 +166,17 @@ const createStyles = (theme: any) =>
       fontWeight: "600",
     },
     connSub: {
-      color: "#888",
+      color: theme.subtitle,
       fontSize: 12,
     },
     disconnectBtn: {
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 20,
-      borderWidth: 1,
-      borderColor: "rgba(248, 113, 113, 0.2)",
-      backgroundColor: "rgba(248, 113, 113, 0.1)",
+      backgroundColor: theme.backgroundDanger,
     },
     disconnectText: {
-      color: "#f87171",
+      color: theme.dangerText,
       fontSize: 12,
       fontWeight: "600",
     },
