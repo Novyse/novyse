@@ -70,7 +70,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
         />
         <Icon
           name="Delete02Icon"
-          color={"red"}
+          color={theme.iconDanger}
           style={styles.iconButton}
           onPress={onDelete}
         />

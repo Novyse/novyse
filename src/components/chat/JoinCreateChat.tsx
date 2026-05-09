@@ -71,7 +71,7 @@ const JoinCreateChat = ({
           <AppText style={styles.handle} text={`@${chat?.handle}`} />
 
           <View style={styles.infoBox}>
-            <Icon name="InformationCircleIcon" color={"white"} />
+            <Icon name="InformationCircleIcon"/>
             <AppText
               style={styles.infoText}
               translationKey={
@@ -157,7 +157,7 @@ const createStyles = (theme: any) =>
     infoBox: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: theme.backgroundMainGradient[0],
+      backgroundColor: theme.backgroundMain,
       padding: 16,
       borderRadius: 12,
       marginBottom: 20,
@@ -165,7 +165,7 @@ const createStyles = (theme: any) =>
     },
     infoText: {
       flex: 1,
-      color: "white",
+      color: theme.text,
       fontSize: 14,
       lineHeight: 20,
       marginLeft: 12,

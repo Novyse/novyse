@@ -171,11 +171,11 @@ const createStyle = (theme) =>
       flex: 1,
     },
     invalidFileName: {
-      color: "red",
+      color: theme.dangerText,
       textDecorationLine: "line-through",
     },
     fileError: {
-      color: "red",
+      color: theme.dangerText,
       fontSize: 10,
       marginLeft: 4,
       marginBottom: 8,

@@ -128,7 +128,7 @@ const UserCard = memo(
         {isLocalMuted && (
           <View style={styles.muteIndicatorContainer}>
               <View style={styles.controlsRow}>
-                <Icon name="MicOff01Icon" size={16} color="red" />
+                <Icon name="MicOff01Icon" size={16} color={theme.iconDanger} />
               </View>
           </View>
         )}
@@ -140,7 +140,6 @@ const UserCard = memo(
                   <Icon
                     name={!isPinned ? "PinIcon" : "PinOffIcon"}
                     size={20}
-                    color="white"
                     onPress={() => onPin(streamUUID)}
                   />
                 )}
@@ -150,7 +149,6 @@ const UserCard = memo(
                       !isFullScreen ? "ArrowExpand01Icon" : "ArrowShrink01Icon"
                     }
                     size={20}
-                    color="white"
                     onPress={() => onFullScreen(streamUUID)}
                   />
                 )}
@@ -158,7 +156,6 @@ const UserCard = memo(
                   <Icon
                     name="ComputerRemoveIcon"
                     size={20}
-                    color="white"
                     onPress={() => stopScreenShare(streamUUID)}
                   />
                 )}
@@ -294,7 +291,7 @@ const createStyles = (theme) => StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "black",
+    backgroundColor: theme.shadowColor,
     zIndex: 1,
   },
   speakingOverlayContainer: {

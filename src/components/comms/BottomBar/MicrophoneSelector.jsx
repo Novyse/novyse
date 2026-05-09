@@ -117,7 +117,7 @@ function createStyle(theme) {
     title: {
       fontSize: 18,
       fontWeight: "600",
-      color: "white",
+      color: theme.text,
     },
     closeButton: {
       padding: 4,
@@ -128,7 +128,7 @@ function createStyle(theme) {
     },
     loadingText: {
       fontSize: 16,
-      color: "white",
+      color: theme.text,
     },
     microphoneList: {
       maxHeight: 300,

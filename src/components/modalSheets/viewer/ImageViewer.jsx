@@ -167,14 +167,12 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
 
           {controlsVisible && (
             <SafeAreaView style={styles.header}>
-              <Icon name="Cancel01Icon" onPress={onClose} color="white" />
+              <Icon name="Cancel01Icon" onPress={onClose} />
               <View style={styles.rightButtons}>
                 {uuid && (
-                  <Icon name="Download01Icon" onPress={handleDownload} color="white" />
+                  <Icon name="Download01Icon" onPress={handleDownload} />
                 )}
-                {isMobile && (
-                  <Icon name="Share01Icon" onPress={handleShare} color="white" />
-                )}
+                {isMobile && <Icon name="Share01Icon" onPress={handleShare} />}
               </View>
             </SafeAreaView>
           )}
@@ -232,7 +230,6 @@ const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) =>
       width: 44,
       height: 44,
       borderRadius: 22,
-      backgroundColor: "rgba(0,0,0,0.5)",
       justifyContent: "center",
       alignItems: "center",
     },

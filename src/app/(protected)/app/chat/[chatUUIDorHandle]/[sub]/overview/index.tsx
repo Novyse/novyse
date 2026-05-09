@@ -399,7 +399,7 @@ const createStyles = (theme: any) =>
       paddingVertical: 14,
       paddingHorizontal: 16,
       borderBottomWidth: 1,
-      borderBottomColor: theme.border || "rgba(255,255,255,0.05)",
+      borderBottomColor: theme.border,
     },
     dmInfoIconContainer: {
       width: 36,
@@ -438,7 +438,7 @@ const createStyles = (theme: any) =>
       alignItems: "center",
       paddingVertical: 12,
       borderBottomWidth: 1,
-      borderBottomColor: theme.border || "rgba(255,255,255,0.05)",
+      borderBottomColor: theme.border,
     },
     memberAvatar: {
       width: 45,
@@ -470,7 +470,7 @@ const createStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: 15,
-      backgroundColor: "rgba(0,0,0,0.02)",
+      backgroundColor: theme.backgroundCard,
       borderRadius: 12,
       paddingHorizontal: 15,
       marginBottom: 10,

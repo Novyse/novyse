@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
+import { ThemeContext } from "@/context/ThemeContext";
 
 import BlurredView from "./BlurredView";
 import HoverAndPressedButton from "./HoverAndPressedButton";
@@ -22,7 +23,8 @@ const FloatingButton: React.FC<FloatingButtonProps> = ({
   height = 60,
   position = { bottom: 25, right: 20 },
 }) => {
-  const styles = createStyle(width, height);
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyle(width, height, theme);
   return (
     <HoverAndPressedButton
       style={[styles.container, position]}
@@ -35,14 +37,14 @@ const FloatingButton: React.FC<FloatingButtonProps> = ({
   );
 };
 
-const createStyle = (width: number, height: number) =>
+const createStyle = (width: number, height: number, theme: any) =>
   StyleSheet.create({
     container: {
       position: "absolute",
       width: width,
       height: height,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.1)",
+      borderColor: theme.borderColor,
       justifyContent: "center",
       alignItems: "center",
     },

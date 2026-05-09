@@ -53,7 +53,7 @@ const createStyles = (theme, type, isAvailable) => ({
     height: 45,
     borderRadius: 100,
     backgroundColor:
-      type === "IMAGE" && isAvailable ? theme.shadowColor : theme.primary,
+      type === "IMAGE" && isAvailable ? null : theme.primary,
     marginRight: 12,
     justifyContent: "center",
     alignItems: "center",

@@ -26,7 +26,7 @@ export default function BirthdayLocation({
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.01)"]}
+        colors={theme.backgroundMainGradient}
         style={styles.glassCard}
       >
         <View style={styles.content}>
@@ -35,7 +35,7 @@ export default function BirthdayLocation({
               <View
                 style={[
                   styles.iconContainer,
-                  { backgroundColor: "rgba(168, 100, 255, 0.2)" },
+                  { backgroundColor: theme.primary },
                 ]}
               >
                 <Icon name="BirthdayIcon" size={16} />
@@ -57,7 +57,7 @@ export default function BirthdayLocation({
                 birthday && {
                   marginTop: 16,
                   borderTopWidth: 1,
-                  borderTopColor: "rgba(255, 255, 255, 0.1)",
+                  borderTopColor: theme.borderColor,
                   paddingTop: 16,
                 },
               ]}
@@ -65,7 +65,7 @@ export default function BirthdayLocation({
               <View
                 style={[
                   styles.iconContainer,
-                  { backgroundColor: "rgba(16, 185, 129, 0.2)" },
+                  { backgroundColor: theme.primary },
                 ]}
               >
                 <Icon name="LocationIcon" size={16} />
@@ -94,8 +94,8 @@ const createStyles = (theme: any) =>
     glassCard: {
       borderRadius: 16,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.1)",
-      backgroundColor: "rgba(30, 41, 59, 0.4)",
+      borderColor: theme.borderColor,
+      backgroundColor: theme.backgroundMain,
       overflow: "hidden",
     },
     content: {
@@ -128,7 +128,7 @@ const createStyles = (theme: any) =>
     },
     value: {
       fontSize: 14,
-      color: "rgba(255, 255, 255, 0.9)",
+      color: theme.text,
       fontWeight: "500",
     },
   });

@@ -1,5 +1,11 @@
-import React, { useRef, useEffect } from 'react';
-import { StyleSheet, Animated, PanResponder, PanResponderGestureState } from 'react-native';
+import React, { useRef, useEffect, useContext } from "react";
+import { ThemeContext } from "@/context/ThemeContext";
+import {
+  StyleSheet,
+  Animated,
+  PanResponder,
+  PanResponderGestureState,
+} from "react-native";
 
 interface SwitchProps {
   value: boolean;
@@ -7,6 +13,8 @@ interface SwitchProps {
 }
 
 const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyles(theme);
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
   const isEnabledRef = useRef<boolean>(value);
 
@@ -23,9 +31,11 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState: PanResponderGestureState) => 
-        Math.abs(gestureState.dx) > 2,
-      
+      onMoveShouldSetPanResponder: (
+        _,
+        gestureState: PanResponderGestureState,
+      ) => Math.abs(gestureState.dx) > 2,
+
       onPanResponderMove: (_, gestureState: PanResponderGestureState) => {
         const startPos = isEnabledRef.current ? 20 : 0;
         const moved = startPos + gestureState.dx;
@@ -43,7 +53,7 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
           onValueChange(finalPos > 10);
         }
       },
-    })
+    }),
   ).current;
 
   const translateX = animatedValue.interpolate({
@@ -53,37 +63,32 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
 
   const backgroundColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#4c85ceff', '#30ae5eff'],
+    outputRange: ["#4c85ceff", "#30ae5eff"],
   });
 
   return (
-    <Animated.View 
+    <Animated.View
       {...panResponder.panHandlers}
       style={[styles.track, { backgroundColor }]}
     >
-      <Animated.View 
-        style={[
-          styles.thumb, 
-          { transform: [{ translateX }] }
-        ]} 
-      />
+      <Animated.View style={[styles.thumb, { transform: [{ translateX }] }]} />
     </Animated.View>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   track: {
     width: 44,
     height: 24,
     borderRadius: 12,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   thumb: {
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: 'white',
-    shadowColor: '#000',
+    backgroundColor: theme.text,
+    shadowColor: theme.shadowColor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 3,

@@ -35,6 +35,6 @@ const createStyles = (theme: any) =>
     },
     colorDotSelected: {
       borderWidth: 2,
-      borderColor: "white",
+      borderColor: theme.borderColor,
     },
   });

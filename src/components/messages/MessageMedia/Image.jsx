@@ -98,7 +98,6 @@ const createStyle = (theme, isSingle, aspectRatio) =>
     container: {
       width: "100%",
       minHeight: 75,
-      backgroundColor: theme.backgroundColor,
       aspectRatio: isSingle ? aspectRatio || undefined : undefined,
       height: isSingle ? undefined : "100%",
       overflow: "hidden",
@@ -116,8 +115,7 @@ const createStyle = (theme, isSingle, aspectRatio) =>
       position: "absolute",
       bottom: 6,
       left: 6,
-      color: "white",
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      color: theme.text,
       paddingHorizontal: 4,
       borderRadius: 5,
       fontSize: 11,

@@ -58,7 +58,6 @@ const createStyle = (theme) =>
     },
     innerContainer: {
       flexDirection: "row",
-      backgroundColor: "rgba(0,0,0,0.08)",
       borderRadius: 10,
       overflow: "hidden",
       minHeight: 45,

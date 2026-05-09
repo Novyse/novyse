@@ -14,6 +14,7 @@ export const Colors = {
     iconDanger: "#eb4444",                                                        //* 2
     iconWarning: "#e49f0c",
     iconHover: "#c9c9c9",                                                         //* 3
+    iconHovered: "rgba(0, 0, 0, 0.1)",
     iconPressed: "rgba(0, 0, 0, 0.3)",                                            //* 1
     
     // Background
@@ -57,6 +58,8 @@ export const Colors = {
     backgroundSuccess: "#d7f8d7a7",
     backgroundInfo: "#27bef95b",
     backgroundScrollbar: "transparent",             // TODO: usato in troppi punti, da unificare
+    badgeGlareFirstLast: "rgba(255,255,255,0)",
+    badgeGlareMiddle: "rgba(255,255,255,0.7)"
   },
   light: {
     primary: "#f5f5f5",

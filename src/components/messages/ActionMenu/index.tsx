@@ -76,7 +76,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
         action: "Cancel",
         translationKey: "chat.messageActions.cancel",
         iconName: "Cancel01Icon",
-        color: "red",
+        color: theme.dangerText,
       },
       isEditedAllowed
         ? {
@@ -128,7 +128,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
               action: "Cancel Edit",
               translationKey: "chat.messageActions.cancelEdit",
               iconName: "Cancel01Icon",
-              color: "red",
+              color: theme.dangerText,
             }
           : isEditedAllowed
             ? {
@@ -155,7 +155,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
               action: "Delete",
               translationKey: "chat.messageActions.delete",
               iconName: "Delete02Icon",
-              color: "red",
+              color: theme.dangerText,
             }
           : undefined,
       ] as (ActionMenuItem | undefined)[]
@@ -337,7 +337,7 @@ const createStyle = (theme: any) =>
     modalOverlay: {
       flex: 1,
       justifyContent: "flex-end",
-      backgroundColor: "rgba(0, 0, 0, 0.4)",
+      backgroundColor: theme.backgroundModalOverlay,
     },
     detailsModalContent: {
       backgroundColor: theme.background,
@@ -386,7 +386,7 @@ const createStyle = (theme: any) =>
     },
     detailsDivider: {
       height: 1,
-      backgroundColor: theme.border || "rgba(255,255,255,0.1)",
+      backgroundColor: theme.border,
       marginVertical: 16,
     },
     reactionGroup: {

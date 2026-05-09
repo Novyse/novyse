@@ -89,8 +89,8 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
             <CommsBottomBarButton
               onPress={join}
               iconName={"Call02Icon"}
-              iconColor="green"
-              hoverColor={theme.iconSuccess}
+              iconColor={theme.iconSuccess}
+              hoverColor={theme.successText}
             />
           </BlurredView>
         )
@@ -134,8 +134,8 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
           <CommsBottomBarButton
             onPress={leave}
             iconName={"Call02Icon"}
-            iconColor="red"
-            hoverColor={theme.iconDanger}
+            iconColor={theme.iconDanger}
+            hoverColor={theme.dangerText}
           />
         </BlurredView>
       )}
@@ -186,17 +186,6 @@ const createStyle = (theme) =>
       alignItems: "center",
       alignSelf: "center",
       padding: 5,
-    },
-    tabButton: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    activeTab: {
-      backgroundColor: "rgba(255, 255, 255, 0.2)",
-      borderRadius: 30,
-      width: "50%",
-      height: "100%",
     },
     microphoneButtonContainer: {
       position: "relative",

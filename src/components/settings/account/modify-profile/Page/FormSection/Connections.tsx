@@ -161,7 +161,7 @@ const createStyles = (theme: any) =>
       alignItems: "center",
     },
     connTitle: {
-      color: "white",
+      color: theme.text,
       fontSize: 14,
       fontWeight: "600",
     },

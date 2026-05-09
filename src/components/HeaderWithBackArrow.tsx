@@ -43,7 +43,7 @@ const HeaderWithBackArrow = ({ title, translationKey, onBack }: HeaderWithBackAr
   );
 };
 
-const createStyle = (theme: unknown) =>
+const createStyle = (theme: any) =>
   StyleSheet.create({
     icon: {
       width: 45,
@@ -58,7 +58,7 @@ const createStyle = (theme: unknown) =>
     titleText: {
       fontSize: 18,
       fontWeight: "600",
-      color: "white",
+      color: theme.text,
       textAlign: "center",
     },
   });

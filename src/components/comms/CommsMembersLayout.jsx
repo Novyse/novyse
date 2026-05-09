@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useContext } from "react";
 import { View, StyleSheet, Platform } from "react-native";
 import AppText from "@/src/components/AppText";
 import { createPortal } from "react-dom";
 
 import { useCommsContext } from "@/context/CommsContext";
+import { ThemeContext } from "@/context/ThemeContext";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import useLayout from "@/src/hooks/comms/useLayout";
@@ -28,6 +29,9 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
     triggeredPosition,
     isSpeakingMap,
   } = useCommsContext();
+
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyles(theme);
 
   const adjustedDimensions = {
     width: Math.max(0, containerDimensions.width - PADDING_LEFT - PADDING_RIGHT),
@@ -199,7 +203,7 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
@@ -211,7 +215,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "black",
+    backgroundColor: theme.shadowColor,
     zIndex: 10000,
   },
   grid: {
@@ -231,9 +235,8 @@ const styles = StyleSheet.create({
     }),
   },
   emptyChatText: {
-    color: "white",
+    color: theme.text,
     fontSize: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.25)",
     padding: 8,
     margin: 0,
     borderRadius: 8,

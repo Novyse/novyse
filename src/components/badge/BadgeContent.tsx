@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
+import { ThemeContext } from "@/context/ThemeContext";
 import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 
 const BadgeContent = ({ name, icon, textColor }: any) => {
-  const defaultTextColor = textColor || "white";
+  const { theme } = useContext(ThemeContext);
+  const defaultTextColor = textColor || theme.text;
   return (
     <>
       {icon && <Icon name={icon} size={12} color={defaultTextColor} />}

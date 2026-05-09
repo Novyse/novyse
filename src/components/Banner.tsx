@@ -61,7 +61,7 @@ const createStyles = (theme: any, height: number) =>
 
     editIconContainer: {
       position: "absolute",
-      backgroundColor: "rgba(0, 0, 0, 0.1)",
+      backgroundColor: theme.backgroundCard,
       justifyContent: "center",
       alignItems: "center",
       width: "100%",

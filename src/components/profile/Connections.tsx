@@ -44,7 +44,7 @@ export default function Connections({
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.01)"]}
+        colors={theme.backgroundMainGradient}
         style={styles.glassCard}
       >
         <View style={styles.content}>
@@ -59,7 +59,7 @@ export default function Connections({
               >
                 <View style={styles.connectionContent}>
                   <View style={styles.iconCircle}>
-                    <Icon name={connection.icon} size={18} color="white" />
+                    <Icon name={connection.icon} size={18}/>
                   </View>
                   <AppText style={styles.connectionName} text={connection.name} />
                 </View>
@@ -82,8 +82,8 @@ const createStyles = (theme: any) =>
     glassCard: {
       borderRadius: 16,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.1)",
-      backgroundColor: "rgba(30, 41, 59, 0.4)",
+      borderColor: theme.borderColor,
+      backgroundColor: theme.backgroundMain,
       overflow: "hidden",
     },
     content: {
@@ -108,9 +108,9 @@ const createStyles = (theme: any) =>
       paddingHorizontal: 12,
       paddingVertical: 12,
       borderRadius: 10,
-      backgroundColor: "rgba(255, 255, 255, 0.02)",
+      backgroundColor: theme.backgroundMain,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.08)",
+      borderColor: theme.borderColor,
     },
     connectionContent: {
       flexDirection: "row",
@@ -122,13 +122,13 @@ const createStyles = (theme: any) =>
       width: 36,
       height: 36,
       borderRadius: 8,
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      backgroundColor: theme.backgroundMain,
       justifyContent: "center",
       alignItems: "center",
     },
     connectionName: {
       fontSize: 14,
-      color: "rgba(255, 255, 255, 0.9)",
+      color: theme.text,
       fontWeight: "500",
     },
   });

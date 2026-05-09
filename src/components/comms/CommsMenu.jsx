@@ -138,10 +138,10 @@ const CommsMenu = ({
                     <Icon
                       name={isMuted ? "MicOff01Icon" : "Mic01Icon"}
                       size={20}
-                      color={isMuted ? "red" : theme.text}
+                      color={isMuted ? theme.iconDanger : theme.text}
                     />
                     <AppText
-                      style={[styles.menuText, isMuted && { color: "red" }]}
+                      style={[styles.menuText, isMuted && { color: theme.iconDanger }]}
                       text={isMuted ? "Unmute" : "Mute"}
                     />
                   </View>
@@ -200,7 +200,7 @@ const createStyles = (theme) => StyleSheet.create({
     header: {
       paddingBottom: 10,
       borderBottomWidth: 1,
-      borderBottomColor: "rgba(255,255,255,0.1)",
+      borderBottomColor: theme.borderColor,
       marginBottom: 5,
     },
     title: {

@@ -201,21 +201,13 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                 ]}
               >
                 <View style={styles.header}>
-                  <Icon name="Cancel01Icon" onPress={onClose} color="white" />
+                  <Icon name="Cancel01Icon" onPress={onClose} />
                   <View style={styles.rightButtons}>
                     {uuid && (
-                      <Icon
-                        name="Download01Icon"
-                        onPress={handleDownload}
-                        color="white"
-                      />
+                      <Icon name="Download01Icon" onPress={handleDownload} />
                     )}
                     {isMobile && (
-                      <Icon
-                        name="Share01Icon"
-                        onPress={handleShare}
-                        color="white"
-                      />
+                      <Icon name="Share01Icon" onPress={handleShare} />
                     )}
                   </View>
                 </View>
@@ -224,7 +216,6 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                   <Icon
                     name="GoBackward10SecIcon"
                     size={32}
-                    color="white"
                     onPress={() => (player.currentTime -= 10)}
                   />
                   <Pressable
@@ -234,13 +225,11 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                     <Icon
                       name={isPlaying ? "PauseIcon" : "PlayIcon"}
                       size={40}
-                      color="white"
                     />
                   </Pressable>
                   <Icon
                     name="GoForward10SecIcon"
                     size={32}
-                    color="white"
                     onPress={() => (player.currentTime += 10)}
                   />
                 </View>
@@ -284,7 +273,6 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                           volume === 0 ? "VolumeMute02Icon" : "VolumeHighIcon"
                         }
                         size={22}
-                        color="white"
                         onPress={() => (player.volume = volume > 0 ? 0 : 1)}
                       />
                       <Slider
@@ -314,7 +302,6 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                               ? "ArrowShrink02Icon"
                               : "ArrowExpand01Icon"
                           }
-                          color="white"
                           onPress={toggleFullscreen}
                         />
                       )}

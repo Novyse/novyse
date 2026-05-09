@@ -74,7 +74,7 @@ const createStyles = (theme: any) =>
     nameSurnameText: {
       fontSize: 24,
       fontWeight: "bold",
-      color: "white",
+      color: theme.text,
       marginBottom: 4,
     },
     usernameText: {
@@ -96,7 +96,7 @@ const createStyles = (theme: any) =>
       alignItems: "center",
     },
     badgeText: {
-      color: "white",
+      color: theme.text,
       fontSize: 12,
       fontWeight: "600",
       marginLeft: 6,

@@ -83,7 +83,7 @@ function createStyle(isSmallScreen: boolean) {
       width: 80,
       height: 80,
       borderRadius: 40,
-      backgroundColor: "rgba(1, 52, 128, 0.1)",
+      backgroundColor: LoginColors[LOGIN_THEME].subtitle,
       justifyContent: "center",
       alignItems: "center",
       marginBottom: 24,

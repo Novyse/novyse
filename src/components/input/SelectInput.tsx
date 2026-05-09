@@ -162,7 +162,6 @@ const createStyles = (theme: any) =>
     modalOverlay: {
       flex: 1,
       justifyContent: "flex-end",
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
     },
     modalContent: {
       backgroundColor: theme.backgroundCard,

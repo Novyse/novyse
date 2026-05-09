@@ -71,12 +71,7 @@ export default function Profile({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Glass Card Container */}
-        <SmartBackground
-          // colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.15)"]}
-
-          style={styles.glassPanel}
-        >
+        <SmartBackground style={styles.glassPanel}>
           <View style={{ position: "relative" }}>
             <Banner theme={theme} />
 
@@ -86,7 +81,6 @@ export default function Profile({
               style={styles.qrIconContainer}
             />
           </View>
-
           <ProfileHeader
             uuid={uuid}
             name={name}
@@ -101,13 +95,12 @@ export default function Profile({
           <AboutMe biography={biography} />
 
           {/* Birthday and Location Section */}
-          {birthday ||
-            (country && (
-              <BirthdayLocation birthday={birthday} country={country} />
-            ))}
+          {(!!birthday || !!country) && (
+            <BirthdayLocation birthday={birthday} country={country} />
+          )}
 
           {/* Connections Section */}
-          {connections && (
+          {connections && connections.length > 0 && (
             <Connections
               connections={connections}
               onConnectionPress={onConnectionPress}

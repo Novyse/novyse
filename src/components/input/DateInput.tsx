@@ -128,7 +128,6 @@ const createStyles = (theme: any, disabled: boolean) =>
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
     },
     modalContent: {
       backgroundColor: theme.backgroundCard,

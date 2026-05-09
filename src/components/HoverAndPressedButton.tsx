@@ -67,11 +67,11 @@ const createStyle = (theme: Theme) =>
       transition: "background-color 0.2s ease",
     } as any,
     baseHovered: {
-      backgroundColor: "rgba(0, 0, 0, 0.1)",
+      backgroundColor: theme.iconHovered,
       cursor: "pointer",
     } as any,
     basePressed: {
-      backgroundColor: "rgba(0, 0, 0, 0.3)",
+      backgroundColor: theme.iconPressed,
       opacity: 0.9,
     },
     disabled: {

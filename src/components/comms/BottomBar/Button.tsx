@@ -1,7 +1,4 @@
-import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
-
-import { ThemeContext } from "@/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
 interface CommsBottomBarButtonProps {
@@ -17,8 +14,7 @@ const CommsBottomBarButton = ({
   iconColor,
   hoverColor,
 }: CommsBottomBarButtonProps) => {
-  const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
+  const styles = createStyle();
 
   return (
     <Icon
@@ -31,10 +27,9 @@ const CommsBottomBarButton = ({
   );
 };
 
-const createStyle = (theme: any) =>
+const createStyle = () =>
   StyleSheet.create({
     iconButton: {
-      backgroundColor: "rgba(0, 0, 0, 0.1)",
       borderRadius: 100,
       height: 45,
       width: 45,

@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+
+import { ThemeContext } from "@/context/ThemeContext";
 
 import SettingsMenuItem from "@/src/components/settings/SettingsMenuItem";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
@@ -10,6 +12,8 @@ import DeleteAccount from "@/src/components/modalSheets/DeleteAccount";
 import auth from "@/src/utils/welcome/auth";
 
 export default function AccountRoute() {
+  const { theme } = useContext(ThemeContext);
+
   const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const router = useRouter();
 
@@ -36,8 +40,8 @@ export default function AccountRoute() {
         <SettingsMenuItem
           translationKey="settings.account.deleteAccount"
           iconName={"Delete02Icon"}
-          nameColor={"red"}
-          iconColor={"red"}
+          nameColor={theme.dangerText}
+          iconColor={theme.iconDanger}
           onPress={async () => {
             setIsDeleteAccountModalVisible(true);
           }}

@@ -23,7 +23,6 @@ import useUserStore from "@/context/UserContext";
 import Icon from "../Icon";
 
 import useMessageGestures from "@/src/hooks/chat/useMessageGestures";
-import { getPlatform } from "@/src/utils/device/type";
 
 import BlurredView from "../BlurredView";
 import { getFileType } from "@/src/utils/storage/file/type";
@@ -514,8 +513,14 @@ const MessageBase = ({
 
 const createStyle = (theme, chatType) =>
   StyleSheet.create({
-    container: { width: "100%", position: "relative" },
-    pressable: { width: "100%", paddingHorizontal: 10 },
+    container: {
+      width: "100%",
+      position: "relative",
+    },
+    pressable: {
+      width: "100%",
+      paddingHorizontal: 10,
+    },
     pressableReceiver: {
       width: "100%",
       flexDirection: "row",
@@ -528,7 +533,9 @@ const createStyle = (theme, chatType) =>
       alignSelf: "flex-end",
       overflow: "hidden",
     },
-    senderBubbleChained: { borderBottomRightRadius: 4 },
+    senderBubbleChained: {
+      borderBottomRightRadius: 4,
+    },
     receiverBubble: {
       marginVertical: 5,
       marginLeft: chatType === "DM" ? 10 : 65,
@@ -537,7 +544,10 @@ const createStyle = (theme, chatType) =>
       alignSelf: "flex-start",
       overflow: "hidden",
     },
-    receiverBubbleWithAvatar: { marginLeft: 5, borderBottomLeftRadius: 5 },
+    receiverBubbleWithAvatar: {
+      marginLeft: 5,
+      borderBottomLeftRadius: 5,
+    },
     textContainer: {
       position: "relative",
       paddingHorizontal: 10,
@@ -548,7 +558,10 @@ const createStyle = (theme, chatType) =>
       bottom: 0,
       right: 0,
     },
-    mediaContainer: { flexDirection: "column", width: "100%" },
+    mediaContainer: {
+      flexDirection: "column",
+      width: "100%",
+    },
     replyTosContainer: {
       marginBottom: 0,
     },
@@ -571,11 +584,18 @@ const createStyle = (theme, chatType) =>
       flexDirection: "row",
       justifyContent: "space-between",
     },
-    senderName: { fontWeight: "600", color: theme.text, flexShrink: 1 },
-    replyText: { color: theme.subtitle, marginLeft: "auto" },
+    senderName: {
+      fontWeight: "600",
+      color: theme.text,
+      flexShrink: 1,
+    },
+    replyText: {
+      color: theme.subtitle,
+      marginLeft: "auto",
+    },
     selectedOverlay: {
       ...StyleSheet.absoluteFill,
-      backgroundColor: "rgba(174, 213, 255, 0.5)",
+      backgroundColor: theme.backgroundInfo,
       zIndex: 1,
       pointerEvents: "none",
     },
@@ -594,12 +614,12 @@ const createStyle = (theme, chatType) =>
       paddingBottom: 10,
     },
     reactionPill: {
-      backgroundColor: theme.backgroundSecondary || "rgba(255,255,255,0.1)",
+      backgroundColor: theme.backgroundSecondary,
       borderRadius: 12,
       paddingHorizontal: 6,
       paddingVertical: 2,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.1)",
+      borderColor: theme.borderColor,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
