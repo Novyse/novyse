@@ -159,9 +159,9 @@ const useCommsAction = (chatUUID, sub) => {
       }, 1000);
     } catch (error) {
       if (error.response && error.response.status === 409) {
-        setError("This chat is full");
+        setError(t("chat.comms.error.chatFull"));
       } else {
-        setError("Please try again later.");
+        setError(t("chat.comms.error.generic"));
       }
     } finally {
       setConnecting(false);

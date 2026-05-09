@@ -11,6 +11,7 @@ import useChatStore from "@/context/ChatContext";
 import useUserStore from "@/context/UserContext";
 import useWindowSizeStore from "@/context/WindowSizeContext";
 import { useActiveChatStore } from "@/context/ActiveChatContext";
+import useNetworkStore from "@/context/NetworkContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 
@@ -70,17 +71,44 @@ export default function RootLayout() {
   const [hasInitialized, setHasInitialized] = useState<boolean | null>(null);
 
   useEffect(() => {
+    let retryInterval: any = null;
+
     const checkInit = async () => {
       try {
         const initValue = await AsyncStorage.getItem("init");
         if (initValue === "true") {
           try {
             await auth.updateDatabase();
+            useNetworkStore.getState().setSynced(true);
           } catch (updateError) {
             console.warn(
-              "Failed to update database, continuing anyway:",
+              "Failed to update database, starting retry loop:",
               updateError,
             );
+            useNetworkStore.getState().setSynced(false);
+
+            let countdown = 5;
+            useNetworkStore.getState().setSyncRetryCountdown(countdown);
+
+            retryInterval = setInterval(async () => {
+              countdown--;
+              useNetworkStore.getState().setSyncRetryCountdown(countdown);
+
+              if (countdown === 0) {
+                try {
+                  console.log("Retrying database update...");
+                  await auth.updateDatabase();
+                  useNetworkStore.getState().setSynced(true);
+                  useNetworkStore.getState().setSyncRetryCountdown(0);
+                  if (retryInterval) clearInterval(retryInterval);
+                  console.log("Database update successful after retry!");
+                } catch (error) {
+                  console.warn("Retry failed, will try again in 5s");
+                  countdown = 5; // Reset countdown
+                  useNetworkStore.getState().setSyncRetryCountdown(countdown);
+                }
+              }
+            }, 1000);
           }
           setHasInitialized(true);
         } else {
@@ -89,6 +117,7 @@ export default function RootLayout() {
           if (success) {
             await AsyncStorage.setItem("init", "true");
             setHasInitialized(true);
+            useNetworkStore.getState().setSynced(true);
           }
         }
       } catch (error) {
@@ -97,6 +126,10 @@ export default function RootLayout() {
     };
 
     checkInit();
+
+    return () => {
+      if (retryInterval) clearInterval(retryInterval);
+    };
   }, []);
 
   // Load chats & user data in zustand

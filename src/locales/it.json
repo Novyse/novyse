@@ -163,6 +163,10 @@
     "comms": {
       "participantsInCall": "{{count}} partecipanti alla chiamata",
       "noParticipants": "Non c'è nessuno qui.",
+      "error": {
+        "chatFull": "Questa chat è piena",
+        "generic": "Per favore riprova più tardi."
+      },
       "selectors": {
         "camera": {
           "title": "Seleziona Fotocamera",
@@ -197,6 +201,12 @@
       "manageMembers": "Gestisci Membri",
       "inviteLink": "Link di Invito",
       "editGroupInfo": "Modifica Info Gruppo"
+    },
+    "statusBanner": {
+      "offline": "Sei offline. Controlla la tua connessione.",
+      "syncFailed": "Sincronizzazione fallita. Riprovo in {{count}}s...",
+      "socketDisconnected": "Connessione in tempo reale assente. Riconnessione...",
+      "apiError": "Errore del server (500)"
     }
   },
   "settings": {
