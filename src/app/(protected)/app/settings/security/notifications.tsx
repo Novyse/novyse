@@ -77,13 +77,11 @@ export default function NotificationsRoute() {
             <SecurityListCard
               key={method.id}
               iconName="Notification03Icon"
-              iconColor={method.isDefault ? "#00C851" : theme.primary}
               title={method.name}
               subtitle={method.type}
               badge={
                 method.isDefault ? t("settings.security.default") : undefined
               }
-              badgeColor={theme.primary}
               isHighlighted={method.isDefault}
               onDelete={
                 !method.isDefault
@@ -103,7 +101,7 @@ export default function NotificationsRoute() {
               pressed && styles.addButtonPressed,
             ]}
           >
-            <Icon name="PlusSignCircleIcon" color="#fff" />
+            <Icon name="PlusSignCircleIcon" />
             <AppText
               style={styles.addButtonText}
               translationKey="settings.security.addNotificationMethod"
@@ -138,7 +136,7 @@ const createStyle = (theme: any) =>
     },
     subtitle: {
       fontSize: 16,
-      color: "#a0a0a0",
+      color: theme.subtitle,
       lineHeight: 22,
     },
     listContainer: {
@@ -160,16 +158,16 @@ const createStyle = (theme: any) =>
       gap: 10,
     },
     addButtonText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },
     addButtonHovered: {
-      backgroundColor: "#5558e6",
+      backgroundColor: theme.settingsHoveredButton,
       cursor: "pointer" as any,
     },
     addButtonPressed: {
-      backgroundColor: "#4e51d4",
+      backgroundColor: theme.settingsPressedButton,
       opacity: 0.9,
     },
   });

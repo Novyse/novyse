@@ -167,10 +167,10 @@ const createStyle = (theme) =>
     },
     tooltip: {
       position: "fixed",
-      backgroundColor: theme.background || "#333",
+      backgroundColor: theme.backgroundModalOverlay,
       padding: 10,
       borderRadius: 5,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.8,
       shadowRadius: 5,
@@ -179,7 +179,7 @@ const createStyle = (theme) =>
       minWidth: 150,
     },
     tooltipText: {
-      color: theme.text || "#fff",
+      color: theme.text,
       fontSize: 12,
       textAlign: "center",
     },

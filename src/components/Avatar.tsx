@@ -6,7 +6,7 @@ import Icon from "@/src/components/Icon";
 
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
-const INDICATOR_RATIO = 0.25;
+const INDICATOR_RATIO = 0.2;
 
 interface AvatarProps {
   uuid?: string;
@@ -35,55 +35,52 @@ const Avatar = ({
   const offset = Math.round(indicatorSize * 0);
 
   const avatarImageContent = (
-  <View
-    style={[
-      {
-        width: size,
-        height: size,
-        borderRadius: 999,
-      },
-      style, // border va qui, sul wrapper esterno
-    ]}
-  >
-    {/* View interna solo per clippare l'immagine */}
     <View
-      style={{
-        width: "100%",
-        height: "100%",
-        borderRadius: 999,
-        overflow: "hidden",
-      }}
+      style={[
+        {
+          width: size,
+          height: size,
+          borderRadius: 999,
+        },
+        style, // border va qui, sul wrapper esterno
+      ]}
     >
-      <Image
-        key={uuid || uri}
-        source={{ uri: resolvedUri }}
+      {/* View interna solo per clippare l'immagine */}
+      <View
         style={{
           width: "100%",
           height: "100%",
-          backgroundColor: "#00000000",
+          borderRadius: 999,
+          overflow: "hidden",
         }}
-      />
-    </View>
+      >
+        <Image
+          key={uuid || uri}
+          source={{ uri: resolvedUri }}
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+        />
+      </View>
 
-    {/* Pallino fuori dal clip, ma dentro il wrapper per il posizionamento */}
-    {isOnline && (
-      <View
-        style={[
-          styles.indicator,
-          {
-            width: indicatorSize,
-            height: indicatorSize,
-            borderRadius: indicatorSize / 2,
-            bottom: -offset,
-            right: -offset,
-            borderWidth: style?.borderWidth || 0,
-            borderColor: style?.borderColor || "#00000000",
-          },
-        ]}
-      />
-    )}
-  </View>
-);
+      {/* Pallino fuori dal clip, ma dentro il wrapper per il posizionamento */}
+      {isOnline && (
+        <View
+          style={[
+            styles.indicator,
+            {
+              width: indicatorSize,
+              height: indicatorSize,
+              borderRadius: indicatorSize / 2,
+              bottom: -offset,
+              right: -offset,
+            },
+          ]}
+        />
+      )}
+    </View>
+  );
 
   return onEdit ? (
     <HoverAndPressedButton
@@ -94,7 +91,7 @@ const Avatar = ({
       {avatarImageContent}
       {isHovered && (
         <View style={styles.editIconContainer}>
-          <Icon name="PencilEdit02Icon"  color={theme.text} />
+          <Icon name="PencilEdit02Icon" color={theme.text} />
         </View>
       )}
     </HoverAndPressedButton>
@@ -113,12 +110,11 @@ const createStyles = (size: number, theme: any) =>
       bottom: 0,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.2)",
       borderRadius: 999,
     },
     indicator: {
       position: "absolute",
-      backgroundColor: "#3DBA6F",
+      backgroundColor: theme.successText,
     },
   });
 

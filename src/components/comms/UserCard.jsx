@@ -1,9 +1,10 @@
-import React, { memo, useMemo, useEffect, useRef } from "react";
+import React, { memo, useMemo, useEffect, useRef, useContext } from "react";
 import { View, StyleSheet, Platform, Pressable } from "react-native";
 
 import { getPlatform } from "@/src/utils/device/type";
 import { useCommsContext } from "@/context/CommsContext";
 import { useTranslation } from "react-i18next";
+import { ThemeContext } from "@/context/ThemeContext";
 
 import UserProfileAvatar from "./UserProfileAvatar";
 import BlurredView from "../BlurredView";
@@ -47,6 +48,9 @@ const UserCard = memo(
       setTriggeredPosition,
       localMuted,
     } = useCommsContext();
+
+    const { theme } = useContext(ThemeContext);
+    const styles = createStyles(theme); 
 
     const volKey = isScreenShare ? streamUUID : deviceUUID;
     const isLocalMuted = localMuted[volKey] ?? false;
@@ -246,7 +250,7 @@ const VideoContent = memo(
   },
 );
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   profile: {
     backgroundColor: "transparent",
     borderRadius: 10,
@@ -279,7 +283,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     padding: 5,
     borderRadius: 5,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: theme.backgroundModalOverlay,
   },
   fullscreenContainer: {
     position: "absolute",
@@ -305,23 +309,18 @@ const styles = StyleSheet.create({
   },
   speakingOverlay: {
     borderWidth: 2,
-    borderColor: "#00FF00",
+    borderColor: theme.successText,
     opacity: 1,
     ...(Platform.OS === "web" && {
       boxShadow:
-        "inset 0 0 15px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.6)",
+        `inset 0 0 15px ${theme.successText}, 0 0 20px ${theme.successText}`,
     }),
     ...(Platform.OS === "ios" && {
-      shadowColor: "#00FF00",
+      shadowColor: theme.successText,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.8,
       shadowRadius: 8,
     }),
-    // Android: solo bordo semplice, nessun effetto shadow/elevation
-    ...(Platform.OS === "android" &&
-      {
-        // Nessun effetto aggiuntivo per Android
-      }),
   },
   videoContainer: {
     width: "100%",
@@ -329,7 +328,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderRadius: 8,
     position: "relative",
-    backgroundColor: "#000",
+    backgroundColor: theme.shadowColor,
   },
   videoStream: {
     width: "100%",

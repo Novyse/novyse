@@ -156,7 +156,6 @@ export default function ApiKeysRoute() {
                 <SecurityListCard
                   key={apiKey.id}
                   iconName="Key01Icon"
-                  iconColor={apiKey.active ? theme.primary : theme.subtitle}
                   title={apiKey.name}
                   subtitle={`${t("settings.security.created")} ${apiKey.createdAt} · ${t("settings.security.lastUsed")} ${apiKey.lastUsed}`}
                   active={apiKey.active}

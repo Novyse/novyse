@@ -217,7 +217,7 @@ const createStyle = (theme: any) =>
       marginBottom: 16,
       padding: 20,
       elevation: 2,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 8,

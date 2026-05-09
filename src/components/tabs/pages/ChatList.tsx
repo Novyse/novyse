@@ -234,7 +234,7 @@ const ChatList = () => {
         style={{
           paddingHorizontal: 10,
           paddingVertical: 5,
-          backgroundColor: "#2951a9",
+          backgroundColor: theme.backgroundMain,
         }}
         commsHeader={commsHeaderComponent}
       >
@@ -262,7 +262,7 @@ const ChatList = () => {
         style={{
           paddingHorizontal: 10,
           paddingVertical: 5,
-          backgroundColor: "#2951a9",
+          backgroundColor: theme.backgroundMain,
           flexDirection: "row",
           alignItems: "center",
         }}
@@ -287,7 +287,7 @@ const ChatList = () => {
         style={{
           paddingHorizontal: 10,
           paddingVertical: 5,
-          backgroundColor: "#2951a9",
+          backgroundColor: theme.backgroundMain,
           flexDirection: "row",
           alignItems: "center",
         }}

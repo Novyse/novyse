@@ -101,7 +101,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
               />
               <Animated.View
                 style={[
-                  StyleSheet.absoluteFillObject,
+                  StyleSheet.absoluteFill,
                   animatedMicStyle,
                   { pointerEvents: "none" },
                 ]}

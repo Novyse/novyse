@@ -21,7 +21,7 @@ const StaticGradientBadge = ({ badge }: any) => {
         colors={bgColors as [string, string, ...string[]]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
       <View style={styles.badgeInner}>
         <BadgeContent name={name} icon={icon} textColor={textColor} />

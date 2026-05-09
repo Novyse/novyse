@@ -116,15 +116,8 @@ export default function ModifyProfile({
     setMessage("");
     setError("");
     try {
-      const {
-        name,
-        surname,
-        username,
-        biography,
-        birthday,
-        country,
-        region,
-      } = formValues;
+      const { name, surname, username, biography, birthday, country, region } =
+        formValues;
 
       const response = await gateway.user.profile.update.all(
         name,
@@ -159,10 +152,7 @@ export default function ModifyProfile({
           showsVerticalScrollIndicator={false}
         >
           {/* Glass Card Container */}
-          <LinearGradient
-            colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.01)"]}
-            style={styles.glassPanel}
-          >
+          <LinearGradient colors={[theme.backgroundMain]} style={styles.glassPanel}>
             <Banner
               theme={theme}
               height={isSmallScreen ? 120 : 180}
@@ -255,9 +245,6 @@ const createStyles = (
     },
     glassPanel: {
       borderRadius: 24,
-      borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.1)",
-      backgroundColor: "rgba(30, 41, 59, 0.4)",
       overflow: "hidden",
       width: isSmallScreen ? "100%" : "90%",
       maxWidth: 600,
@@ -267,7 +254,7 @@ const createStyles = (
       position: "absolute",
       bottom: isSmallScreen ? 20 : 40,
       alignSelf: "center",
-      backgroundColor: "rgba(30, 41, 59, 0.6)",
+      backgroundColor: theme.backgroundModalOverlay,
       borderRadius: 24,
       paddingVertical: 12,
       paddingHorizontal: 20,
@@ -276,12 +263,7 @@ const createStyles = (
       alignItems: "center",
       width: isSmallScreen ? "90%" : 500,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.1)",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 6,
+      borderColor: theme.borderColor,
     },
     floatingText: {
       color: theme.text,
@@ -297,7 +279,7 @@ const createStyles = (
       paddingVertical: 8,
       paddingHorizontal: 16,
       borderRadius: 8,
-      backgroundColor: "rgba(255, 255, 255, 0.05)",
+      backgroundColor: theme.backgroundTextField,
     },
     restoreText: {
       color: theme.text,
@@ -308,10 +290,10 @@ const createStyles = (
       paddingVertical: 8,
       paddingHorizontal: 16,
       borderRadius: 8,
-      backgroundColor: "#2563eb",
+      backgroundColor: theme.primary,
     },
     saveText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 14,
       fontWeight: "600",
     },

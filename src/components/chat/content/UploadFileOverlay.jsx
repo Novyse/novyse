@@ -178,10 +178,10 @@ const createStyle = (theme) =>
     sheetBackground: {
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
-      backgroundColor: theme.backgroundSecondary || "#00b7ff",
+      backgroundColor: theme.backgroundMain,
     },
     handleIndicator: {
-      backgroundColor: theme.divider || "#ccc",
+      backgroundColor: theme.subtitle,
     },
     sheetContent: {
       flex: 1,
@@ -212,12 +212,12 @@ const createStyle = (theme) =>
       zIndex: 1000,
     },
     floatingMenu: {
-      backgroundColor: theme.backgroundMain || "#F0F0F0",
+      backgroundColor: theme.backgroundMain,
       borderRadius: 15,
       padding: 10,
       alignSelf: "flex-start",
       marginLeft: 10,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: {
         width: 0,
         height: 2,

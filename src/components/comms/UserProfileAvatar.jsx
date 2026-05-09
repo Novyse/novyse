@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import React, { useEffect, useState, useContext } from "react";
+import { View, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { getColors } from "react-native-image-colors";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/context/ThemeContext";
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
 import Avatar from "@/src/components/Avatar";
@@ -16,10 +16,11 @@ const UserProfileAvatar = ({
   containerWidth,
   containerHeight,
 }) => {
-  const { theme } = useThemeContext();
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyles(theme);
   const { uri } = useProfilePicture(profilePictureUUID);
 
-  const fallbackColors = ["#667eea", "#764ba2"];
+  const fallbackColors = [theme.primary, theme.secondary];
   const [gradientColors, setGradientColors] = useState(fallbackColors);
 
   useEffect(() => {
@@ -102,7 +103,7 @@ const UserProfileAvatar = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
     overflow: "hidden",
     borderRadius: 10,
@@ -126,14 +127,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 10,
     left: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    backgroundColor: theme.backgroundModalOverlay,
     borderRadius: 14,
     paddingHorizontal: 8,
     paddingVertical: 4,
     maxWidth: "70%",
   },
   userName: {
-    color: "#FFFFFF",
+    color: theme.text,
     fontSize: 14,
     fontWeight: "600",
     textAlign: "left",

@@ -109,7 +109,6 @@ export default function PasskeysRoute() {
                 <SecurityListCard
                   key={passkey.id}
                   iconName="FingerPrintIcon"
-                  iconColor={theme.primary}
                   title={passkey.name}
                   subtitle={`${t("settings.security.added")} ${passkey.createdAt}`}
                   onDelete={() => handleDeletePasskey(passkey.id)}

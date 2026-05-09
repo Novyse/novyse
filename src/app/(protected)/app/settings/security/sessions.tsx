@@ -143,7 +143,6 @@ export default function SessionsRoute() {
                   ? "SmartPhone01Icon"
                   : "ComputerIcon"
               }
-              iconColor={session.isCurrent ? "#00C851" : theme.primary}
               title={session.device}
               subtitle={
                 <SessionInfo
@@ -155,7 +154,6 @@ export default function SessionsRoute() {
               badge={
                 session.isCurrent ? t("settings.security.current") : undefined
               }
-              badgeColor="#00C851"
               isHighlighted={session.isCurrent}
               onDelete={
                 !session.isCurrent
@@ -211,7 +209,7 @@ const createStyle = (theme: any) =>
     },
     subtitle: {
       fontSize: 16,
-      color: "#a0a0a0",
+      color: theme.subtitle,
       lineHeight: 22,
     },
     listContainer: {
@@ -224,21 +222,21 @@ const createStyle = (theme: any) =>
       marginTop: 8,
     },
     disconnectAllButton: {
-      backgroundColor: "#FF4757",
+      backgroundColor: theme.iconDanger,
       paddingHorizontal: 24,
       paddingVertical: 14,
       borderRadius: 24,
     },
     disconnectAllButtonHovered: {
-      backgroundColor: "#e8414f",
+      backgroundColor: theme.settingsHoveredButton,
       cursor: "pointer" as any,
     },
     disconnectAllButtonPressed: {
-      backgroundColor: "#d13a47",
+      backgroundColor: theme.settingsPressedButton,
       opacity: 0.9,
     },
     disconnectAllText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },

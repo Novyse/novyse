@@ -29,7 +29,7 @@ export const Colors = {
     secondary: "#0f90e6",
     borderColor: "rgba(255,255,255,0.05)",
     badgeColor: "#20566e",                            // TODO: strano utilizzo, sistemarlo
-    shadowColor: "#000",
+    shadowColor: "#000000",
 
     // Gradients
     backgroundMain: "#013480",
@@ -50,7 +50,7 @@ export const Colors = {
 
     dangerText: "#9b2d2d",
     warningText: "#c28707",
-    successText: "#198f19",
+    successText: "#2da32dff",
     infoText: "#0c5f97",
     backgroundDanger: "#ffc7c7a7",
     backgroundWarning: "#ffe89db7",
