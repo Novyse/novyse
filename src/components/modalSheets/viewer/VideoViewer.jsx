@@ -268,8 +268,8 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                         setIsSeeking(false);
                         player.play();
                       }}
-                      minimumTrackTintColor="#3b82f6"
-                      thumbTintColor="#ffffff"
+                      minimumTrackTintColor={theme.primary}
+                      thumbTintColor={theme.primary}
                     />
                     <AppText
                       style={styles.timeText}
@@ -293,8 +293,8 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                         maximumValue={1}
                         value={volume}
                         onValueChange={(v) => (player.volume = v)}
-                        minimumTrackTintColor="#3b82f6"
-                        thumbTintColor="#ffffff"
+                        minimumTrackTintColor={theme.primary}
+                        thumbTintColor={theme.primary}
                       />
                     </View>
                     <View style={styles.rightActions}>
@@ -353,7 +353,7 @@ const createStyle = (
     return StyleSheet.create({
       container: {
         flex: 1,
-        backgroundColor: "#000",
+        backgroundColor: theme.shadowColor,
         overflow: "hidden",
         alignItems: "center",
         justifyContent: "center",
@@ -370,7 +370,7 @@ const createStyle = (
       },
       overlay: {
         flex: 1,
-        backgroundColor: "rgba(0,0,0,0.4)",
+        backgroundColor: theme.backgroundModalOverlay,
         justifyContent: "space-between",
       },
       overlayLandscape: { paddingHorizontal: 40 },
@@ -394,17 +394,17 @@ const createStyle = (
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: "rgba(0,0,0,0.7)",
+        backgroundColor: theme.backgroundModalOverlay,
         justifyContent: "center",
         alignItems: "center",
         borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.2)",
+        borderColor: theme.borderColor,
       },
       footerContainer: { paddingBottom: 20, paddingHorizontal: 20 },
       sliderRow: { flexDirection: "row", alignItems: "center" },
       slider: { flex: 1, marginHorizontal: 10, height: 40 },
       timeText: {
-        color: "#fff",
+        color: theme.text,
         fontSize: 12,
         fontWeight: "600",
         minWidth: 40,
@@ -422,12 +422,12 @@ const createStyle = (
       volumeSlider: { flex: 1, marginLeft: 10, height: 30 },
       rightActions: { flexDirection: "row", alignItems: "center", gap: 20 },
       speedButton: {
-        backgroundColor: "rgba(255,255,255,0.2)",
+        backgroundColor: theme.backgroundCard,
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 5,
       },
-      speedText: { color: "white", fontSize: 12, fontWeight: "bold" },
+      speedText: { color: theme.text, fontSize: 12, fontWeight: "bold" },
     });
   })();
 

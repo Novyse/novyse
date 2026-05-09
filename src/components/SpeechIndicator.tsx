@@ -24,21 +24,19 @@ const BARS: Bar[] = [
 const MIN_DB = -60;
 const MAX_DB = 0;
 
-const theme = useContext(ThemeContext);
-
-interface SimpleWaveformProps {
+interface SpeechIndicatorProps {
   audioLevel: number;
-  color?: string;
   barWidth?: number;
   maxHeight?: number;
 }
 
-const SimpleWaveform = ({
+const SpeechIndicator = ({
   audioLevel,
-  color = theme.text,
   barWidth = 3,
   maxHeight = 40,
-}: SimpleWaveformProps) => {
+}: SpeechIndicatorProps) => {
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyles(theme);
   const intensity = useSharedValue<number>(0);
 
   useEffect(() => {
@@ -68,7 +66,6 @@ const SimpleWaveform = ({
 
           return {
             height,
-            backgroundColor: color,
           };
         });
 
@@ -80,7 +77,6 @@ const SimpleWaveform = ({
               {
                 width: barWidth,
                 borderRadius: barWidth / 2,
-                backgroundColor: color,
               },
               animatedStyle,
             ]}
@@ -91,14 +87,17 @@ const SimpleWaveform = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-  },
-  bar: {},
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+    },
+    bar: {
+      backgroundColor: theme.text,
+    },
+  });
 
-export default SimpleWaveform;
+export default SpeechIndicator;

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { View, Image, StyleSheet, ImageStyle, StyleProp } from "react-native";
 
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
+import { ThemeContext } from "@/context/ThemeContext";
 
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
@@ -13,7 +14,6 @@ interface AvatarProps {
   uri?: string;
   size?: number;
   isOnline?: boolean;
-  theme: any;
   onEdit?: () => void;
   style?: StyleProp<ImageStyle>;
 }
@@ -23,10 +23,10 @@ const Avatar = ({
   uri,
   size = 32,
   isOnline = false,
-  theme,
   onEdit,
   style,
 }: AvatarProps) => {
+  const { theme } = useContext(ThemeContext);
   const styles = createStyles(size, theme);
   const { uri: resolvedUri } = useProfilePicture(uuid, uri);
   const [isHovered, setIsHovered] = useState<boolean>(false);

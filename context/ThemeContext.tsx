@@ -7,7 +7,6 @@ export type Theme = typeof Colors.default;
 
 // Define the shape of the context value
 interface ThemeContextType {
-  text: string | undefined;
   colorScheme: string;
   setColorScheme: (scheme: string) => void;
   theme: Theme;

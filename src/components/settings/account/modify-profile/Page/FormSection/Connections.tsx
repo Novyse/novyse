@@ -108,7 +108,7 @@ export default function Connections() {
           />
         </View>
         <View style={styles.infoContainer}>
-          <Icon name="UnavailableIcon" color="white" />
+          <Icon name="UnavailableIcon"/>
         </View>
       </View>
     </>

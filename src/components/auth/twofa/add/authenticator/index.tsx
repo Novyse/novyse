@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-
-import { useThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/context/ThemeContext";
 
 import useClipboard from "@/src/hooks/useClipboard";
 
@@ -13,7 +12,6 @@ interface AddAuthenticatorProps {
   otpauth: string;
   QRSize: number;
   QRLogo: any;
-  theme: ReturnType<typeof useThemeContext>;
 }
 
 const AddAuthenticator = ({
@@ -21,8 +19,8 @@ const AddAuthenticator = ({
   otpauth,
   QRSize = 180,
   QRLogo,
-  theme,
 }: AddAuthenticatorProps) => {
+  const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   const { copied, copyToClipboard } = useClipboard();
@@ -35,10 +33,10 @@ const AddAuthenticator = ({
           logo={QRLogo}
           size={QRSize}
           enableLinearGradient={true}
-          linearGradient={["#013480", "#177FC0"]}
+          linearGradient={theme.backgroundMainGradient}
           logoBorderRadius={100}
           logoMargin={5}
-          logoBackgroundColor={"#fff"}
+          logoBackgroundColor={theme.text}
         />
       </View>
       <View style={styles.secretKeyContainer}>
@@ -59,7 +57,7 @@ const AddAuthenticator = ({
   );
 };
 
-function createStyle(theme) {
+function createStyle(theme: any) {
   return StyleSheet.create({
     authenticatorInfoContainer: {
       width: "100%",
@@ -100,8 +98,6 @@ function createStyle(theme) {
       paddingHorizontal: 16,
       justifyContent: "center",
       alignItems: "center",
-      borderLeftWidth: 1,
-      borderLeftColor: "#ffffff",
     },
     copyButtonText: {
       fontSize: 18,

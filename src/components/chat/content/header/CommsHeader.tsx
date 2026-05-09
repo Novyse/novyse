@@ -74,7 +74,6 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
       <View style={styles.headerLeft}>
         <Icon
           name="UserMultipleIcon"
-          color={connected ? "#fff" : theme.text}
           style={styles.iconButtonSmall}
         />
         <AppText
@@ -90,14 +89,12 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
           <>
             <Icon
               name={isVideoEnabled ? "Video02Icon" : "VideoOffIcon"}
-              color={"#fff"}
               style={styles.iconButton}
               onPress={toggleVideo}
             />
             <Pressable style={styles.iconButton} onPress={toggleAudio}>
               <Icon
                 name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
-                color={"#fff"}
               />
               <Animated.View
                 style={[
@@ -108,13 +105,13 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
               >
                 <Icon
                   name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
-                  color={"#2ECC71"}
+                  color={theme.iconSuccess}
                 />
               </Animated.View>
             </Pressable>
             <Icon
               name={"Call02Icon"}
-              color="red"
+              color={theme.iconDanger}
               hoverColor={theme.iconDanger}
               onPress={leave}
             />
@@ -122,7 +119,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
         ) : (
           <Icon
             name="Call02Icon"
-            color={"#2ECC71"}
+            color={theme.iconSuccess}
             hoverColor={theme.iconSuccess}
             onPress={() => join()}
           />
@@ -181,7 +178,7 @@ function createStyle(theme: any, connected: boolean) {
     },
     participantsText: {
       fontSize: 16,
-      color: connected ? "#fff" : theme.text,
+      color: theme.text,
       fontWeight: "600",
     },
   });

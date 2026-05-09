@@ -57,7 +57,7 @@ const CameraSelector = ({
       >
         <Icon
           name={"Camera01Icon"}
-          color={isSelected ? "#4CAF50" : theme.text}
+          color={isSelected ? theme.iconSuccess : theme.text}
         />
         <View style={styles.cameraInfo}>
           <AppText
@@ -75,7 +75,7 @@ const CameraSelector = ({
             />
           )}
         </View>
-        {isSelected && <Icon name={"Tick02Icon"} color="#4CAF50" />}
+        {isSelected && <Icon name={"Tick02Icon"} color={theme.iconSuccess} />}
       </Pressable>
     );
   };
@@ -169,7 +169,7 @@ function createStyle(theme) {
     selectedCamera: {
       backgroundColor: theme.backgroundMainGradient[1],
       borderWidth: 1,
-      borderColor: "#4CAF50",
+      borderColor: theme.successText,
     },
     cameraInfo: {
       flex: 1,
@@ -181,11 +181,11 @@ function createStyle(theme) {
       fontWeight: "500",
     },
     selectedText: {
-      color: "#4CAF50",
+      color: theme.successText,
     },
     currentLabel: {
       fontSize: 12,
-      color: "#4CAF50",
+      color: theme.successText,
       marginTop: 2,
     },
   });

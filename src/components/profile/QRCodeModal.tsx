@@ -47,9 +47,7 @@ const QRCodeModal = ({
           <View style={styles.avatarPosition}>
             <Avatar
               uuid={profilePictureUUID}
-              theme={theme}
               size={80}
-              style={styles.avatarBorder}
             />
           </View>
           <View style={{ height: 15 }} />
@@ -58,10 +56,10 @@ const QRCodeModal = ({
             logo={logoForQR}
             size={200}
             enableLinearGradient={true}
-            linearGradient={["#013480", "#177FC0"]}
+            linearGradient={theme.backgroundMainGradient}
             logoBorderRadius={100}
             logoMargin={5}
-            logoBackgroundColor={"#fff"}
+            logoBackgroundColor={theme.icon}
           />
           <AppText
             style={styles.usernameText}
@@ -110,10 +108,6 @@ const createStyles = (theme: any) =>
       zIndex: 10,
       elevation: 10,
     },
-    avatarBorder: {
-      borderWidth: 4,
-      borderColor: theme.backgroundMain || theme.background || "#000000",
-    },
     usernameText: {
       fontSize: 30,
       fontWeight: "900",
@@ -127,7 +121,7 @@ const createStyles = (theme: any) =>
       padding: 10,
       marginBottom: 10,
       paddingHorizontal: 30,
-      backgroundColor: "#ffffff",
+      backgroundColor: theme.icon,
       borderRadius: 12,
       borderWidth: 1.5,
       borderColor: theme.primary,
@@ -142,7 +136,7 @@ const createStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "space-between",
       padding: 12,
-      backgroundColor: "rgba(128, 128, 128, 0.1)",
+      backgroundColor: theme.secondary,
       borderRadius: 10,
       width: "100%",
     },
@@ -163,7 +157,7 @@ const createStyles = (theme: any) =>
       gap: 10,
     },
     shareText: {
-      color: "#FFFFFF",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },

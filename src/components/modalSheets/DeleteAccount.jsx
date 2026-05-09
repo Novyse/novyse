@@ -128,7 +128,7 @@ const DeleteAccount = ({ visible, onClose }) => {
             disabled={!isMatch}
             onPress={onConfirm}
           >
-            <Icon name="Delete02Icon" size={18} color="#FFF" />
+            <Icon name="Delete02Icon" size={18} />
             <AppText
               style={styles.createBtnText}
               translationKey="modals.delete_account.delete"
@@ -153,7 +153,7 @@ const createStyles = (theme) => {
     modalTitle: {
       fontSize: 22,
       fontWeight: "700",
-      color: "#FF3B30",
+      color: theme.dangerText,
       marginBottom: 6,
     },
     modalSubtitle: {
@@ -198,7 +198,7 @@ const createStyles = (theme) => {
       marginTop: 6,
     },
     linkText: {
-      color: "#1867FF",
+      color: theme.messageLink,
       textDecorationLine: "underline",
     },
     // Footer
@@ -223,7 +223,7 @@ const createStyles = (theme) => {
       fontWeight: "500",
     },
     createBtn: {
-      backgroundColor: "#FF3B30",
+      backgroundColor: theme.dangerText,
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: 10,
@@ -231,10 +231,10 @@ const createStyles = (theme) => {
       borderRadius: 8,
     },
     createBtnDisabled: {
-      backgroundColor: "rgba(255, 59, 48, 0.4)",
+      backgroundColor: theme.backgroundDanger,
     },
     createBtnText: {
-      color: "#FFF",
+      color: theme.text,
       fontSize: 15,
       fontWeight: "600",
       marginLeft: 4,

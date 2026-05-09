@@ -100,7 +100,6 @@ const ModalVerifyMethod = ({
             otpauth={otpauth}
             QRSize={180}
             QRLogo={logoForQR}
-            theme={theme}
           />
         )}
 

@@ -55,7 +55,7 @@ const MicrophoneSelector = ({
         style={[styles.microphoneItem, isSelected && styles.selectedMicrophone]}
         onPress={() => handleMicrophoneSelect(item)}
       >
-        <Icon name={"Mic02Icon"} color={isSelected ? "#4CAF50" : theme.text} />
+        <Icon name={"Mic02Icon"} color={isSelected ? theme.iconSuccess : theme.text} />
         <View style={styles.microphoneInfo}>
           <AppText
             style={[styles.microphoneName, isSelected && styles.selectedText]}
@@ -72,7 +72,7 @@ const MicrophoneSelector = ({
             />
           )}
         </View>
-        {isSelected && <Icon name={"Tick02Icon"} color="#4CAF50" />}
+        {isSelected && <Icon name={"Tick02Icon"} color={theme.iconSuccess} />}
       </Pressable>
     );
   };
@@ -166,7 +166,7 @@ function createStyle(theme) {
     selectedMicrophone: {
       backgroundColor: theme.backgroundMainGradient[1],
       borderWidth: 1,
-      borderColor: "#4CAF50",
+      borderColor: theme.successText,
     },
     microphoneInfo: {
       flex: 1,
@@ -178,11 +178,11 @@ function createStyle(theme) {
       fontWeight: "500",
     },
     selectedText: {
-      color: "#4CAF50",
+      color: theme.successText,
     },
     currentLabel: {
       fontSize: 12,
-      color: "#4CAF50",
+      color: theme.successText,
       marginTop: 2,
     },
   });
