@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/context/ThemeContext";
 
 interface SessionInfoProps {
   ip: string;
@@ -9,6 +10,9 @@ interface SessionInfoProps {
 }
 
 const SessionInfo = ({ ip, createdAt, lastActive }: SessionInfoProps) => {
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyles(theme);
+  
   return (
     <View style={styles.container}>
       <AppText style={styles.row}>
@@ -36,18 +40,18 @@ const SessionInfo = ({ ip, createdAt, lastActive }: SessionInfoProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     marginTop: 4,
     gap: 2,
   },
   row: {
     fontSize: 13,
-    color: "#a0a0a0",
+    color: theme.subtitle,
   },
   label: {
     fontWeight: "600",
-    color: "#c0c0c0",
+    color: theme.text,
   },
 });
 

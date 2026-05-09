@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useContext, useRef } from "react";
 import {
   View,
   TextInput,
@@ -8,6 +8,7 @@ import {
   ViewStyle,
   TextStyle,
 } from "react-native";
+import { ThemeContext } from "@/context/ThemeContext";
 
 interface OtpDigitsInputProps {
   value?: string[];
@@ -33,6 +34,8 @@ const OtpDigitsInput = ({
   allowLetters = false,
 }: OtpDigitsInputProps) => {
   const refs = useRef<(TextInput | null)[]>([]);
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyle(theme);
 
   const isValidChar = (text: string): boolean => {
     if (allowLetters) {
@@ -117,7 +120,7 @@ const OtpDigitsInput = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyle = (theme: any) => StyleSheet.create({
   otpContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -129,18 +132,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 50,
     borderWidth: 1.5,
-    borderColor: "#ccc",
     borderRadius: 6,
     textAlign: "center",
     fontSize: 24,
     fontWeight: "bold",
-    color: "#222",
-    backgroundColor: "white",
+    color: theme.text,
+    backgroundColor: theme.backgroundInput,
     outlineStyle: "none",
   } as any,
   inputError: {
-    borderColor: "rgba(255, 99, 99, 0.8)",
-    backgroundColor: "rgba(255, 99, 99, 0.1)",
+    borderColor: theme.dangerText,
+    backgroundColor: theme.backgroundDanger,
   },
 });
 

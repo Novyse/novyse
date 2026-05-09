@@ -115,7 +115,7 @@ function createStyles(theme: any) {
     },
     toggleContainer: {
       flexDirection: "row",
-      backgroundColor: "rgba(0, 0, 0, 0.05)",
+      backgroundColor: theme.iconPressed,
       borderRadius: 50,
       padding: 5,
       minWidth: "100%",
@@ -129,7 +129,7 @@ function createStyles(theme: any) {
       bottom: 5,
       backgroundColor: theme.primary,
       borderRadius: 25,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -150,7 +150,7 @@ function createStyles(theme: any) {
       color: theme.subtitle,
     },
     toggleTextActive: {
-      color: "#fff",
+      color: theme.text,
     },
   });
 }

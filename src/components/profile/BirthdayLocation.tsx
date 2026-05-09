@@ -38,7 +38,7 @@ export default function BirthdayLocation({
                   { backgroundColor: "rgba(168, 100, 255, 0.2)" },
                 ]}
               >
-                <Icon name="BirthdayIcon" size={16} color="#A864FF" />
+                <Icon name="BirthdayIcon" size={16} />
               </View>
               <View style={styles.textContainer}>
                 <AppText
@@ -68,7 +68,7 @@ export default function BirthdayLocation({
                   { backgroundColor: "rgba(16, 185, 129, 0.2)" },
                 ]}
               >
-                <Icon name="LocationIcon" size={16} color="#10B981" />
+                <Icon name="LocationIcon" size={16} />
               </View>
               <View style={styles.textContainer}>
                 <AppText

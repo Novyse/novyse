@@ -328,7 +328,7 @@ export default function PasswordRoute() {
                   }
                   onPress={handleRemovePassword}
                   disabled={isLoading}
-                  style={{ backgroundColor: "#FF4757" } as any}
+                  style={{ backgroundColor: theme.backgroundDanger }}
                 />
                 <SettingsButton
                   translationKey="settings.security.cancel"
@@ -358,7 +358,7 @@ const createStyle = (theme: any) =>
     },
     warningText: {
       fontSize: 14,
-      color: "#FF4757",
+      color: theme.dangerText,
       marginBottom: 16,
       lineHeight: 20,
     },

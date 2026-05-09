@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Linking } from "react-native";
+import React, { useEffect, useState, useContext } from "react";
+import { View, StyleSheet, Linking } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,6 +10,7 @@ import Animated, {
 import HoverAndPressedButton from "./HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import AppText from "./AppText";
+import { ThemeContext } from "@/context/ThemeContext";
 
 type StatusMessageType = "success" | "error" | "warning" | "info";
 
@@ -20,6 +21,7 @@ interface StatusMessageProps {
   translationKey?: string;
   timeout?: number | null;
   onClose?: () => void;
+  closable?: boolean;
 }
 
 interface ThemeColors {
@@ -40,12 +42,14 @@ const StatusMessage = ({
   translationKey,
   timeout = null,
   onClose,
+  closable = true,
 }: StatusMessageProps) => {
   const [isVisible, setIsVisible] = useState<boolean>(visible);
   const fade = useSharedValue(0);
   const slide = useSharedValue(10);
   const progress = useSharedValue(1);
   const trackWidth = useSharedValue(0);
+  const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
     setIsVisible(visible);
@@ -97,27 +101,27 @@ const StatusMessage = ({
       case "success":
         return {
           title: "Success",
-          icon: { name: "CheckmarkCircle02Icon", color: "#FFFFFF" },
-          theme: { bg: "#48cd79ab", text: "#FFFFFF" },
+          icon: { name: "CheckmarkCircle02Icon", color: theme.successText },
+          theme: { bg: theme.backgroundSuccess, text: theme.successText },
         };
       case "error":
         return {
           title: "Error",
-          icon: { name: "AlertCircleIcon", color: "#FFFFFF" },
-          theme: { bg: "#9c4238ab", text: "#FFFFFF" },
+          icon: { name: "AlertCircleIcon", color: theme.dangerText },
+          theme: { bg: theme.backgroundDanger, text: theme.dangerText },
         };
       case "warning":
         return {
           title: "Warning",
-          icon: { name: "Alert02Icon", color: "#000000" },
-          theme: { bg: "#f0ce46c1", text: "#000000" },
+          icon: { name: "Alert02Icon", color: theme.warningText },
+          theme: { bg: theme.backgroundWarning, text: theme.warningText },
         };
       case "info":
       default:
         return {
           title: "Info",
-          icon: { name: "InformationCircleIcon", color: "#FFFFFF" },
-          theme: { bg: "#297fb9d2", text: "#FFFFFF" },
+          icon: { name: "InformationCircleIcon", color: theme.infoText },
+          theme: { bg: theme.backgroundInfo, text: theme.infoText },
         };
     }
   };
@@ -188,9 +192,11 @@ const StatusMessage = ({
           )}
         </View>
 
-        <HoverAndPressedButton onPress={handleClose} style={styles.closeButton}>
-          <Icon name="Cancel01Icon" size={18} color={icon.color} />
-        </HoverAndPressedButton>
+        {closable && (
+          <HoverAndPressedButton onPress={handleClose} style={styles.closeButton}>
+            <Icon name="Cancel01Icon" size={18} color={icon.color} />
+          </HoverAndPressedButton>
+        )}
       </View>
 
       {timeout != null && timeout > 0 && (

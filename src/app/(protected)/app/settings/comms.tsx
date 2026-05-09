@@ -13,6 +13,7 @@ import settingsManager from "@/src/utils/global/SettingsManager";
 
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/settings/SettingsCard";
+import StatusMessage from "@/src/components/StatusMessage";
 
 export default function CommsRoute() {
   const { t } = useTranslation();
@@ -193,25 +194,15 @@ export default function CommsRoute() {
         onBack={onBack}
       />
       <SettingsPageScrollview>
-        <View style={styles.bannerContainer}>
-          <AppText
-            style={styles.bannerText}
-            translationKey="common.developerNote"
-          />
-        </View>
+        <StatusMessage type="warning" translationKey="common.developerNote" closable={false}/>
         <SettingsCard>
           <AppText
             style={styles.sectionTitle}
             translationKey="settings.comms.inputDevices"
           />
-          <View style={styles.warningContainer}>
-            <AppText
-              style={[styles.warningText, { color: "yellow" }]}
-              translationKey="settings.comms.inputDevicesWarning"
-            />
-          </View>
+          <StatusMessage type="warning" translationKey="settings.comms.inputDevicesWarning" closable={false}/>
 
-          {!devicesLoading ? (
+          {devicesLoading ? (
             <View style={styles.disabledField}>
               <AppText
                 style={styles.label}
@@ -486,30 +477,5 @@ const createStyle = (theme: any) =>
       color: theme.textSecondary,
       fontSize: 12,
       fontFamily: "monospace",
-    },
-    warningContainer: {
-      backgroundColor: theme.backgroundWarning,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 15,
-      borderLeftWidth: 4,
-    },
-    warningText: {
-      fontSize: 14,
-      lineHeight: 20,
-    },
-    bannerContainer: {
-      backgroundColor: theme.backgroundDanger,
-      borderRadius: 16,
-      padding: 16,
-      marginBottom: 20,
-      borderWidth: 1,
-    },
-    bannerText: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "bold",
-      textAlign: "center",
-      lineHeight: 20,
-    },
+    }
   });

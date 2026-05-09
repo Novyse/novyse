@@ -163,7 +163,7 @@ function createStyle(theme) {
     },
     timeText: {
       fontSize: 12,
-      color: theme.placeholderText || "#888",
+      color: theme.placeholderText,
       fontVariant: ["tabular-nums"],
     },
     rateText: {
@@ -189,12 +189,12 @@ function createStyle(theme) {
       left: 0,
       right: 0,
       height: 3,
-      backgroundColor: theme.border || "rgba(255,255,255,0.1)",
+      backgroundColor: theme.border,
       overflow: "hidden",
     },
     progressFill: {
       height: "100%",
-      backgroundColor: theme.primary || "#007AFF",
+      backgroundColor: theme.primary,
       borderRadius: 2,
     },
   });

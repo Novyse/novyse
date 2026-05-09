@@ -145,7 +145,7 @@ const createStyles = (theme: any) =>
     title: {
       fontSize: 26,
       fontWeight: "bold",
-      color: "#fff",
+      color: theme.text,
       marginBottom: 8,
       textAlign: "center",
     },
@@ -205,7 +205,7 @@ const createStyles = (theme: any) =>
       backgroundColor: theme.primary,
     },
     primaryButtonText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },

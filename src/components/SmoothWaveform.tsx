@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import { Animated, Easing, View, Pressable, ScrollView } from "react-native";
 import { defaultWaveform } from "@/src/utils/storage/file/media";
+import { ThemeContext } from "@/context/ThemeContext";
 
 interface SmoothWaveformProps {
   waveformData?: number[];
@@ -21,9 +22,12 @@ export default function SmoothWaveform({
   reset,
   isMoving,
 }: SmoothWaveformProps) {
+
   const progressAnim = useRef(new Animated.Value(0)).current;
   const [progress, setProgress] = useState<number>(0);
   const waveformRef = useRef<View>(null);
+
+  const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
     const listener = progressAnim.addListener(({ value }) => {
@@ -108,7 +112,7 @@ export default function SmoothWaveform({
                     width: 3,
                     height: value * 20,
                     minHeight: 3,
-                    backgroundColor: isPlayed ? "#0088cc" : "#d3d3d3",
+                    backgroundColor: isPlayed ? theme.primary : theme.subtitle,
                     marginHorizontal: 0.5,
                     borderRadius: 10,
                   }}

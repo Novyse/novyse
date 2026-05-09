@@ -67,9 +67,9 @@ const createStyles = (theme: any) =>
       padding: 6,
     },
     avatar: {
-      borderColor: "#123367",
+      borderColor: theme.backgroundMain,
       borderWidth: 5,
-      backgroundColor: "#123367",
+      backgroundColor: theme.backgroundMain,
     },
     nameSurnameText: {
       fontSize: 24,

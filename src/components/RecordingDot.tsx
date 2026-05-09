@@ -40,10 +40,10 @@ const RecordingDot = ({ isRecording = false }: RecordingDotProps) => {
   return <Animated.View style={[styles(opacityAnim).dot]} />;
 };
 
-const styles = (opacityAnim: Animated.Value) =>
+const styles = (opacityAnim: Animated.Value, theme: any) =>
   StyleSheet.create({
     dot: {
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: {
         width: 0,
         height: 1,
@@ -54,7 +54,7 @@ const styles = (opacityAnim: Animated.Value) =>
       width: 10,
       height: 10,
       borderRadius: 100,
-      backgroundColor: "#FF3B30",
+      backgroundColor: theme.dangerText,
       opacity: opacityAnim,
     },
   });

@@ -227,7 +227,7 @@ const MessageBase = ({
   }, [isHighlighted]);
 
   const animatedHighlightStyle = useAnimatedStyle(() => ({
-    backgroundColor: theme.primary || "#007AFF",
+    backgroundColor: theme.primary,
     opacity: highlightOpacity.value * 0.4,
     ...StyleSheet.absoluteFill,
   }));
@@ -572,9 +572,9 @@ const createStyle = (theme, chatType) =>
       justifyContent: "space-between",
     },
     senderName: { fontWeight: "600", color: theme.text, flexShrink: 1 },
-    replyText: { color: "#c5d1dddb", marginLeft: "auto" },
+    replyText: { color: theme.subtitle, marginLeft: "auto" },
     selectedOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: "rgba(174, 213, 255, 0.5)",
       zIndex: 1,
       pointerEvents: "none",

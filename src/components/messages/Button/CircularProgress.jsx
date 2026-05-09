@@ -15,9 +15,9 @@ const CIRCLE_SIZE = 34;
 const STROKE_WIDTH = 3;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-const { theme } = useContext(ThemeContext);
-
-const CircularProgress = ({ progress, color = theme.text, onCancel }) => {
+const CircularProgress = ({ progress, color, onCancel }) => {
+  const { theme } = useContext(ThemeContext);
+  const finalColor = color || theme.text;
   
   const animatedProgress = useSharedValue(0);
 
@@ -42,7 +42,7 @@ const CircularProgress = ({ progress, color = theme.text, onCancel }) => {
           cx={CIRCLE_SIZE / 2}
           cy={CIRCLE_SIZE / 2}
           r={RADIUS}
-          stroke={color}
+          stroke={finalColor}
           strokeWidth={STROKE_WIDTH}
           strokeOpacity={0.2}
           fill="transparent"
@@ -52,7 +52,7 @@ const CircularProgress = ({ progress, color = theme.text, onCancel }) => {
           cx={CIRCLE_SIZE / 2}
           cy={CIRCLE_SIZE / 2}
           r={RADIUS}
-          stroke={color}
+          stroke={finalColor}
           strokeWidth={STROKE_WIDTH}
           fill="transparent"
           strokeDasharray={CIRCUMFERENCE}
@@ -65,7 +65,7 @@ const CircularProgress = ({ progress, color = theme.text, onCancel }) => {
       </Svg>
       {onCancel && (
         <View style={styles.iconContainer}>
-          <Icon name="Cancel01Icon" size={16} color={color} />
+          <Icon name="Cancel01Icon" size={16} color={finalColor} />
         </View>
       )}
     </Pressable>

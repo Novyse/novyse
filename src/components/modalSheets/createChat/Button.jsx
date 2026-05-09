@@ -24,7 +24,7 @@ const Button = ({
       disabled={disabled}
     >
       <View style={styles.cardIconContainer}>
-        <Icon name={icon} color={selected === id ? "#FFFFFF" : "#8F90A6"} />
+        <Icon name={icon} />
       </View>
       <AppText
         style={[styles.cardTitle, selected === id && styles.textSelected]}

@@ -20,7 +20,7 @@ export const Colors = {
     backgroundCard: "#416a90",
     backgroundDateSeparator: "#17212b",                                           //* 3
     backgroundSearchResultItem: "#2b3e51",                                        //* 1
-    backgroundTextField: "#374e68",                                               //* 2
+    backgroundTextField: "#415f81ff",                                               //* 2
     backgroundModalOverlay: "#00000080",                                          //* 1
     backgroundBackupCode: "#f0f0f0",                                              //* 1
     
@@ -34,7 +34,7 @@ export const Colors = {
     // Gradients
     backgroundMain: "#013480",
     backgroundMainGradient: ["#013480", "#177FC0"],
-    backgroundChatContent: "transparent",                                         //* 1
+    backgroundChatContent: "transparent",                                           //* 1
     backgroundChatListItemSelectedGradient: ["#2899cf", "#4fb3e1"],             //* 1
 
     // More
@@ -48,12 +48,14 @@ export const Colors = {
 
     // ?USER CAN'T CHANGE
 
-    dangerText: "#972323",
+    dangerText: "#9b2d2d",
     warningText: "#c28707",
     successText: "#198f19",
+    infoText: "#0c5f97",
     backgroundDanger: "#ffc7c7a7",
-    backgroundWarning: "#ffedb4a1",
+    backgroundWarning: "#ffe89db7",
     backgroundSuccess: "#d7f8d7a7",
+    backgroundInfo: "#27bef95b",
     backgroundScrollbar: "transparent",             // TODO: usato in troppi punti, da unificare
   },
   light: {
