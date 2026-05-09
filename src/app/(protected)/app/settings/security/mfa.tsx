@@ -112,7 +112,7 @@ export default function MfaRoute() {
               <View style={styles.methodHeader}>
                 <View style={styles.methodInfo}>
                   <View style={styles.iconContainer}>
-                    <Icon name={method.iconName} color="#fff" />
+                    <Icon name={method.iconName}/>
                   </View>
                   <View style={styles.methodDetails}>
                     <AppText style={styles.methodName} text={method.name} />
@@ -140,7 +140,7 @@ export default function MfaRoute() {
                           pressed && styles.deleteButtonPressed,
                         ]}
                       >
-                        <Icon name="Delete02Icon" color="#fff" />
+                        <Icon name="Delete02Icon"/>
                       </Pressable>
                     </View>
                   ) : (
@@ -152,7 +152,7 @@ export default function MfaRoute() {
                         pressed && styles.addButtonPressed,
                       ]}
                     >
-                      <Icon name="PlusSignCircleIcon" color="#fff" />
+                      <Icon name="PlusSignCircleIcon"/>
                       <AppText
                         style={styles.addButtonText}
                         translationKey="settings.security.add"
@@ -203,7 +203,7 @@ const createStyle = (theme: any) =>
     },
     subtitle: {
       fontSize: 16,
-      color: "#a0a0a0",
+      color: theme.subtitle,
       lineHeight: 22,
     },
     methodsContainer: {
@@ -225,7 +225,7 @@ const createStyle = (theme: any) =>
       borderColor: "transparent",
     },
     methodCardActive: {
-      borderColor: "#00C851",
+      borderColor: theme.backgroundSuccess,
     },
     methodHeader: {
       flexDirection: "row",
@@ -257,7 +257,7 @@ const createStyle = (theme: any) =>
     },
     methodDescription: {
       fontSize: 14,
-      color: "#a0a0a0",
+      color: theme.subtitle,
     },
     actionContainer: {
       alignItems: "center",
@@ -268,18 +268,18 @@ const createStyle = (theme: any) =>
       gap: 12,
     },
     statusBadge: {
-      backgroundColor: "#00C851",
+      backgroundColor: theme.backgroundSuccess,
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 16,
     },
     statusText: {
-      color: "#fff",
+      color: theme.successText,
       fontSize: 12,
       fontWeight: "600",
     },
     deleteButton: {
-      backgroundColor: "#FF4757",
+      backgroundColor: theme.backgroundError,
       width: 36,
       height: 36,
       borderRadius: 18,
@@ -287,11 +287,11 @@ const createStyle = (theme: any) =>
       alignItems: "center",
     },
     deleteButtonHovered: {
-      backgroundColor: "#e8414f",
+      backgroundColor: theme.backgroundDanger,
       cursor: "pointer" as any,
     },
     deleteButtonPressed: {
-      backgroundColor: "#d13a47",
+      backgroundColor: theme.backgroundDanger,
       opacity: 0.9,
     },
     addButton: {
@@ -304,16 +304,16 @@ const createStyle = (theme: any) =>
       gap: 8,
     },
     addButtonText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 14,
       fontWeight: "600",
     },
     addButtonHovered: {
-      backgroundColor: "#5558e6",
+      backgroundColor: theme.settingsHoveredButton,
       cursor: "pointer" as any,
     },
     addButtonPressed: {
-      backgroundColor: "#4e51d4",
+      backgroundColor: theme.settingsPressedButton,
       opacity: 0.9,
     },
     buttonContainer: {

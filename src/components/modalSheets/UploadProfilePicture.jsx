@@ -220,13 +220,13 @@ const createStyles = (theme) => {
     title: {
       fontSize: 22,
       fontWeight: "bold",
-      color: "#FFFFFF",
+      color: theme.text,
       marginBottom: 8,
       fontFamily: "serif", // Per richiamare lo stile del font nell'immagine
     },
     subtitle: {
       fontSize: 14,
-      color: "#8E8E93",
+      color: theme.subtitle,
       marginBottom: 24,
     },
     avatarContainer: {
@@ -246,33 +246,33 @@ const createStyles = (theme) => {
     dropzone: {
       width: "100%",
       borderWidth: 1,
-      borderColor: "#1A3A5F",
+      borderColor: theme.borderColor,
       borderStyle: "dashed", // Nota: React Native supporta dashed solo su iOS o con workaround
       borderRadius: 20,
       padding: 30,
       alignItems: "center",
-      backgroundColor: "rgba(0, 102, 255, 0.02)",
+      backgroundColor: theme.backgroundModalOverlay,
       marginBottom: 24,
     },
     dropzoneTitle: {
-      color: "#FFFFFF",
+      color: theme.text,
       fontWeight: "600",
       marginTop: 12,
     },
     dropzoneNote: {
-      color: "#4E5D78",
+      color: theme.subtitle,
       fontSize: 12,
       marginTop: 4,
       marginBottom: 15,
     },
     chooseFileBtn: {
-      backgroundColor: "#1A1D23",
+      backgroundColor: theme.primary,
       paddingVertical: 8,
       paddingHorizontal: 16,
       borderRadius: 12,
     },
     chooseFileText: {
-      color: "#FFFFFF",
+      color: theme.text,
       fontSize: 13,
     },
     footer: {
@@ -287,28 +287,27 @@ const createStyles = (theme) => {
       alignItems: "center",
       borderRadius: 25,
       borderWidth: 1,
-      borderColor: "#1A1D23",
+      borderColor: theme.borderColor,
     },
     cancelText: {
-      color: "#FFFFFF",
+      color: theme.text,
       fontWeight: "600",
     },
     saveBtn: {
       flex: 1,
       height: 50,
-      backgroundColor: "#1867FF",
+      backgroundColor: theme.backgroundMain,
       justifyContent: "center",
       alignItems: "center",
       borderRadius: 25,
-      // Ombra blu per l'effetto glow
-      shadowColor: "#1867FF",
+      shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,
       shadowRadius: 8,
       elevation: 5,
     },
     saveText: {
-      color: "#FFFFFF",
+      color: theme.text,
       fontWeight: "600",
     },
   });

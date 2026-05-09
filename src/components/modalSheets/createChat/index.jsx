@@ -238,7 +238,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
         <TextInput
           style={styles.input}
           placeholder={t("modals.create_chat.fields.namePlaceholder")}
-          placeholderTextColor="#8F90A6"
+          placeholderTextColor={theme.placeholderText}
           value={name}
           onChangeText={handleNameChange}
         />
@@ -304,7 +304,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
             <Icon
               name="SquareLock02Icon"
               size={16}
-              color={privacy === "PRIVATE" ? "#FFF" : "#8F90A6"}
+              color={privacy === "PRIVATE" ? theme.text : theme.subtitle}
             />
             <AppText
               style={[
@@ -325,7 +325,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
             <Icon
               name="Globe02Icon"
               size={16}
-              color={privacy === "PUBLIC" ? "#FFF" : "#8F90A6"}
+              color={privacy === "PUBLIC" ? theme.text : theme.subtitle}
             />
             <AppText
               style={[
@@ -350,7 +350,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
             <TextInput
               style={styles.inputWithPrefix}
               placeholder={t("modals.create_chat.fields.handlePlaceholder")}
-              placeholderTextColor="#8F90A6"
+              placeholderTextColor={theme.placeholderText}
               value={handle}
               onChangeText={handleHandleChange}
               autoCapitalize="none"
@@ -362,9 +362,13 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
                 style={styles.loader}
               />
             ) : handleAvailability === true ? (
-              <Icon name="Tick02Icon" size={20} color="#27AE60" />
+              <Icon name="Tick02Icon" size={20} color={theme.successText} />
             ) : handleAvailability === false ? (
-              <Icon name="MultiplicationSignIcon" size={20} color="#E74C3C" />
+              <Icon
+                name="MultiplicationSignIcon"
+                size={20}
+                color={theme.dangerText}
+              />
             ) : null}
           </View>
           <AppText
@@ -407,7 +411,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
           style={[styles.createBtn, isNarrow && styles.createBtnNarrow]}
           onPress={handleCreateChat}
         >
-          <Icon name="PlusSignIcon" size={18} color="#FFF" />
+          <Icon name="PlusSignIcon" size={18} color={theme.text} />
           <AppText
             style={styles.createBtnText}
             translationKey="modals.create_chat.actions.create"

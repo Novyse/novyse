@@ -150,12 +150,12 @@ function createStyle(theme) {
     title: {
       fontSize: 28,
       fontWeight: "700",
-      color: "#ffffff",
+      color: theme.text,
       textAlign: "center",
     },
     subtitle: {
       fontSize: 15,
-      color: "#ffffff",
+      color: theme.subtitle,
       textAlign: "center",
       lineHeight: 22,
       paddingHorizontal: 8,
@@ -175,10 +175,10 @@ function createStyle(theme) {
       alignItems: "center",
       justifyContent: "center",
       padding: 10,
-      backgroundColor: "#ffffff",
+      backgroundColor: theme.text,
       borderRadius: 12,
       borderWidth: 1.5,
-      borderColor: "#ffffff",
+      borderColor: theme.borderColor,
     },
     qrcode: {
       size: 180,
@@ -197,7 +197,7 @@ function createStyle(theme) {
     secretText: {
       flex: 1,
       fontSize: 16,
-      color: "#ffffff",
+      color: theme.text,
       fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
       marginRight: 8,
     },
@@ -207,12 +207,12 @@ function createStyle(theme) {
       justifyContent: "center",
       alignItems: "center",
       borderLeftWidth: 1,
-      borderLeftColor: "#ffffff",
+      borderLeftColor: theme.borderColor,
     },
     copyButtonText: {
       fontSize: 18,
       fontWeight: "bold",
-      color: "#ffffff",
+      color: theme.text,
     },
     submitButton: {
       backgroundColor: theme.primary,
@@ -226,7 +226,7 @@ function createStyle(theme) {
       opacity: 0.5,
     },
     submitButtonText: {
-      color: "#ffffff",
+      color: theme.text,
       fontWeight: "600",
       fontSize: 16,
     },
