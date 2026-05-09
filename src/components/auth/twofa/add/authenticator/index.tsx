@@ -99,11 +99,6 @@ function createStyle(theme: any) {
       justifyContent: "center",
       alignItems: "center",
     },
-    copyButtonText: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: theme.subtitle,
-    },
   });
 }
 

@@ -361,24 +361,6 @@ const createStyles = (colors: any) => {
       width: "100%",
       maxWidth: 300,
     },
-    reqItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 4,
-    },
-    reqIcon: {
-      fontSize: 12,
-      fontWeight: "bold",
-    },
-    reqGreen: {
-      color: "#22c55e",
-    },
-    reqRed: {
-      color: "#ef4444",
-    },
-    reqText: {
-      fontSize: 12,
-    },
     opaqueLink: {
       marginBottom: 20,
       marginTop: 5,
@@ -391,21 +373,6 @@ const createStyles = (colors: any) => {
       color: colors.title,
       fontWeight: "600",
       fontSize: 11,
-    },
-    passkeyContent: {
-      width: "100%",
-      maxWidth: 300,
-      alignItems: "center",
-      paddingVertical: 16,
-      gap: 12,
-    },
-    passkeyIcon: { marginBottom: 4, opacity: 0.6 },
-    passkeyTitle: { fontSize: 18, fontWeight: "600", textAlign: "center" },
-    passkeyDescription: {
-      fontSize: 14,
-      textAlign: "center",
-      lineHeight: 20,
-      paddingHorizontal: 8,
     },
   });
 };

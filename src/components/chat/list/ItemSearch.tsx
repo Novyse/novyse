@@ -72,12 +72,6 @@ function createStyle(theme: any) {
       flex: 1,
       borderRadius: 150,
     },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 10,
-    },
     resultText: {
       fontSize: 16,
       fontWeight: "bold",

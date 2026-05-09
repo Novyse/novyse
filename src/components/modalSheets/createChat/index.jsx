@@ -609,18 +609,6 @@ function createStyle(theme, isNarrow = false) {
       marginLeft: 4,
       textAlign: "center",
     },
-    bottomSheetBackground: {
-      backgroundColor: theme.backgroundMain,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-    },
-    handleIndicator: {
-      backgroundColor: theme.icon,
-      width: 40,
-    },
-    bottomSheetView: {
-      flex: 1,
-    },
   });
 }
 

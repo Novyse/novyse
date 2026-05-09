@@ -111,10 +111,6 @@ const Header = ({
 };
 function createStyle() {
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      overflow: "hidden",
-    },
     headerBase: {
       overflow: "hidden",
     },

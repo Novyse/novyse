@@ -145,22 +145,6 @@ const createStyles = (theme: any) =>
       marginRight: 10,
       fontSize: 14,
     },
-    shareButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: theme.primary,
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 20,
-      width: "100%",
-      gap: 10,
-    },
-    shareText: {
-      color: theme.text,
-      fontSize: 16,
-      fontWeight: "600",
-    },
   });
 
 export default QRCodeModal;

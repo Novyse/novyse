@@ -372,7 +372,7 @@ const createStyle = (theme: any) =>
       marginBottom: 8,
     },
     input: {
-      backgroundColor: theme.inputBackgroun,
+      backgroundColor: theme.backgroundTextField,
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 14,

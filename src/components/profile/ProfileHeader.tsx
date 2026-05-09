@@ -55,17 +55,6 @@ const createStyles = (theme: any) =>
       marginTop: -60,
       paddingHorizontal: 20,
     },
-    avatarContainer: {
-      position: "relative",
-    },
-    editAvatarBtn: {
-      position: "absolute",
-      top: 0,
-      right: 0,
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 999,
-      padding: 6,
-    },
     avatar: {
       borderColor: theme.backgroundMain,
       borderWidth: 5,
@@ -81,24 +70,5 @@ const createStyles = (theme: any) =>
       fontSize: 14,
       color: theme.text,
       marginBottom: 16,
-    },
-    badgesRow: {
-      flexDirection: "row",
-      gap: 10,
-      marginBottom: 30,
-    },
-    badge: {
-      paddingHorizontal: 12,
-      paddingVertical: 4,
-      borderRadius: 12,
-      borderWidth: 1,
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    badgeText: {
-      color: theme.text,
-      fontSize: 12,
-      fontWeight: "600",
-      marginLeft: 6,
     },
   });

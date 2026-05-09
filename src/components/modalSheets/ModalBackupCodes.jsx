@@ -121,11 +121,6 @@ function createStyles(theme) {
       borderRadius: 8,
       marginBottom: 40,
     },
-    loading: {
-      fontSize: 16,
-      color: theme.text,
-      marginBottom: 20,
-    },
     iconButton: {
       padding: 10,
       borderRadius: 8,

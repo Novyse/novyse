@@ -421,7 +421,7 @@ const createStyle = (theme: any) =>
       marginTop: 50,
     },
     dangerText: {
-      color: theme.danger,
+      color: theme.dangerText,
       fontSize: 16,
       textAlign: "center",
       marginTop: 50,
@@ -474,7 +474,7 @@ const createStyle = (theme: any) =>
       marginBottom: 5,
     },
     debugText: {
-      color: theme.textSecondary,
+      color: theme.subtitle,
       fontSize: 12,
       fontFamily: "monospace",
     }

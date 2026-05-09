@@ -170,12 +170,6 @@ function createStyle(theme: any, connected: boolean) {
       justifyContent: "center",
       alignItems: "center",
     },
-    iconButtonAction: {
-      width: 36,
-      height: 36,
-      justifyContent: "center",
-      alignItems: "center",
-    },
     participantsText: {
       fontSize: 16,
       color: theme.text,

@@ -226,13 +226,6 @@ const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) =>
       flexDirection: "row",
       gap: 10,
     },
-    iconButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      justifyContent: "center",
-      alignItems: "center",
-    },
   });
 
 export default ImageViewer;

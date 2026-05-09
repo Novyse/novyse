@@ -128,10 +128,4 @@ const createStyles = (theme: any) =>
       fontSize: 18,
       marginTop: 10,
     },
-    scanAgainButton: {
-      position: "absolute",
-      bottom: 50,
-      left: "50%",
-      transform: [{ translateX: -100 }],
-    },
   });

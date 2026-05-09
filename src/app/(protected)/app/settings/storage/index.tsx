@@ -1,5 +1,4 @@
 import React, { useContext } from "react";
-import { StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
@@ -16,7 +15,6 @@ export default function StorageRoute() {
   const { t } = useTranslation();
   const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
 
   const handlePress = (navToPage: string) => {
     router.push(`/app/${navToPage}` as any);
@@ -71,7 +69,4 @@ export default function StorageRoute() {
   );
 }
 
-const createStyle = (theme: any) =>
-  StyleSheet.create({
-    // Keep styles clean as most are now handled by standard components
-  });
+

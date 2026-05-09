@@ -64,10 +64,7 @@ const createStyle = (theme: Theme) =>
     buttonPressed: {
       backgroundColor: theme.settingsPressedButton,
     },
-    buttonDisabled: {
-      backgroundColor: (theme as any).disabledBackground,
-      opacity: 0.5,
-    },
+
     buttonText: {
       color: theme.text,
       fontSize: 16,

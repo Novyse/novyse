@@ -91,10 +91,6 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
 
 function createStyle(theme) {
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      overflow: "hidden",
-    },
     headerSecondaryRow: {
       width: "100%",
       paddingBottom: 8,

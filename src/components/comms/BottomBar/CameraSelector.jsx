@@ -122,9 +122,6 @@ function createStyle(theme) {
       fontWeight: "600",
       color: theme.text,
     },
-    closeButton: {
-      padding: 4,
-    },
     loadingContainer: {
       padding: 40,
       alignItems: "center",

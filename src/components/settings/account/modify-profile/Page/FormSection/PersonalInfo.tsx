@@ -187,11 +187,4 @@ const createStyles = (theme: any, isSmallScreen: boolean) =>
       fontSize: 11,
       color: theme.text,
     },
-    inputIconWrapper: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 99,
-      paddingHorizontal: 12,
-    },
   });

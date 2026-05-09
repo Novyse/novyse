@@ -565,12 +565,6 @@ const createStyle = (theme, chatType) =>
     replyTosContainer: {
       marginBottom: 0,
     },
-    textRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "baseline",
-      flexWrap: "wrap",
-    },
     avatarWrapper: {
       marginLeft: 10,
       marginRight: 5,
@@ -588,10 +582,6 @@ const createStyle = (theme, chatType) =>
       fontWeight: "600",
       color: theme.text,
       flexShrink: 1,
-    },
-    replyText: {
-      color: theme.subtitle,
-      marginLeft: "auto",
     },
     selectedOverlay: {
       ...StyleSheet.absoluteFill,

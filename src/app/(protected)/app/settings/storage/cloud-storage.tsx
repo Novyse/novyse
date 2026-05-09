@@ -1,5 +1,4 @@
 import React, { useContext } from "react";
-import { StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/context/ThemeContext";
@@ -13,7 +12,6 @@ export default function CloudStorageRoute() {
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
 
   const cloudData = {
     type: "cloud",
@@ -44,7 +42,4 @@ export default function CloudStorageRoute() {
   );
 }
 
-const createStyle = (theme: any) =>
-  StyleSheet.create({
-    // Styles if needed
-  });
+

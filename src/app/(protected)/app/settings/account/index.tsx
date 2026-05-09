@@ -13,6 +13,7 @@ import auth from "@/src/utils/welcome/auth";
 
 export default function AccountRoute() {
   const { theme } = useContext(ThemeContext);
+  const styles = createStyle(theme);
 
   const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
   const router = useRouter();
@@ -55,8 +56,9 @@ export default function AccountRoute() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+const createStyle = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+  });

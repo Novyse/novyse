@@ -212,23 +212,6 @@ const createStyles = (theme) => {
       padding: 20,
       maxWidth: "100%",
     },
-    closeButton: {
-      position: "absolute",
-      right: 20,
-      top: 20,
-    },
-    title: {
-      fontSize: 22,
-      fontWeight: "bold",
-      color: theme.text,
-      marginBottom: 8,
-      fontFamily: "serif", // Per richiamare lo stile del font nell'immagine
-    },
-    subtitle: {
-      fontSize: 14,
-      color: theme.subtitle,
-      marginBottom: 24,
-    },
     avatarContainer: {
       width: 120,
       height: 120,
@@ -238,77 +221,6 @@ const createStyles = (theme) => {
       borderWidth: 2,
       borderColor: theme.primary,
       alignSelf: "center",
-    },
-    avatar: {
-      width: "100%",
-      height: "100%",
-    },
-    dropzone: {
-      width: "100%",
-      borderWidth: 1,
-      borderColor: theme.borderColor,
-      borderStyle: "dashed", // Nota: React Native supporta dashed solo su iOS o con workaround
-      borderRadius: 20,
-      padding: 30,
-      alignItems: "center",
-      backgroundColor: theme.backgroundModalOverlay,
-      marginBottom: 24,
-    },
-    dropzoneTitle: {
-      color: theme.text,
-      fontWeight: "600",
-      marginTop: 12,
-    },
-    dropzoneNote: {
-      color: theme.subtitle,
-      fontSize: 12,
-      marginTop: 4,
-      marginBottom: 15,
-    },
-    chooseFileBtn: {
-      backgroundColor: theme.primary,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      borderRadius: 12,
-    },
-    chooseFileText: {
-      color: theme.text,
-      fontSize: 13,
-    },
-    footer: {
-      flexDirection: "row",
-      width: "100%",
-      gap: 12,
-    },
-    cancelBtn: {
-      flex: 1,
-      height: 50,
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 25,
-      borderWidth: 1,
-      borderColor: theme.borderColor,
-    },
-    cancelText: {
-      color: theme.text,
-      fontWeight: "600",
-    },
-    saveBtn: {
-      flex: 1,
-      height: 50,
-      backgroundColor: theme.backgroundMain,
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 25,
-      shadowColor: theme.shadowColor,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 5,
-    },
-    saveText: {
-      color: theme.text,
-      fontWeight: "600",
     },
   });
 };

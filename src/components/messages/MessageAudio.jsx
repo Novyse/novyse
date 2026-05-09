@@ -81,12 +81,11 @@ const MessageAudio = ({
             reset={!isThisLoaded || didJustFinish}
             isMoving={isThisPlaying}
           />
-          <View style={styles.textContainer}>
+          <View>
             <AppText
-              style={styles.durationText}
               text={`${formatTime(thisCurrentTime)} / ${formatDuration(duration)}`}
             />
-            <FileSizeProgress uuid={uuid} size={size} style={styles.sizeText} />
+            <FileSizeProgress uuid={uuid} size={size} />
           </View>
         </View>
       </View>
@@ -106,39 +105,6 @@ function createStyle(theme) {
       flex: 1,
       flexDirection: "column",
       justifyContent: "center",
-    },
-    slider: {
-      flex: 1,
-      height: 30,
-    },
-    textContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginTop: 4,
-    },
-    durationText: {
-      fontSize: 12,
-      marginRight: 12,
-      color: theme.text,
-      textAlign: "left",
-      fontVariant: ["tabular-nums"],
-    },
-    sizeText: {
-      fontSize: 12,
-      color: theme.text,
-      textAlign: "left",
-    },
-    playbackRateButton: {
-      paddingVertical: 4,
-      paddingHorizontal: 8,
-      borderRadius: 12,
-      backgroundColor: theme.primary,
-    },
-    playbackRateText: {
-      fontSize: 12,
-      color: theme.text,
-      fontWeight: "bold",
     },
     fileName: {
       color: theme.text,
