@@ -164,6 +164,10 @@
     "comms": {
       "participantsInCall": "{{count}} participants in call",
       "noParticipants": "There is no one here.",
+      "error": {
+        "chatFull": "This chat is full",
+        "generic": "Please try again later."
+      },
       "selectors": {
         "camera": {
           "title": "Select Camera",
@@ -198,6 +202,12 @@
       "manageMembers": "Manage Members",
       "inviteLink": "Invite Link",
       "editGroupInfo": "Edit Group Info"
+    },
+    "statusBanner": {
+      "offline": "You are offline. Check your connection.",
+      "syncFailed": "Sync failed. Retrying in {{count}}s...",
+      "socketDisconnected": "Real-time connection lost. Reconnecting...",
+      "apiError": "Server error (500)"
     }
   },
   "settings": {

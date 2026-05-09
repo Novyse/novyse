@@ -1,10 +1,13 @@
 import axios from "axios";
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
+
+import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
+import useNetworkStore from "@/context/NetworkContext";
+
 import { getOs, getPlatform } from "@/src/utils/device/type";
 
 import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
-import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -23,6 +26,20 @@ const api = axios.create({
  */
 
 api.interceptors.request.use(async (request) => {
+  const { isSynced, isConnected } = useNetworkStore.getState();
+
+  const isSyncOrAuthRequest =
+    request.url === "/user/update" || request.url === "/user/initialize";
+
+  if (!isSyncOrAuthRequest) {
+    if (!isConnected) {
+      throw new Error("Network offline");
+    }
+    if (!isSynced) {
+      throw new Error("App not synced yet");
+    }
+  }
+
   if (request.skipAuth) {
     return request;
   }
@@ -49,22 +66,33 @@ api.interceptors.request.use((request) => {
   return request;
 });
 
-api.interceptors.response.use(async (response) => {
-  if (Platform.OS !== "web") {
-    const newSessionId = response.headers["x-set-session-id"];
-    if (newSessionId) {
-      await SecureStore.setItemAsync("sessionId", String(newSessionId));
-    }
-  }
+api.interceptors.response.use(
+  async (response) => {
+    // Clear API error on success
+    useNetworkStore.getState().setApiError(null);
 
-  if (BRANCH !== "production") {
-    console.log(
-      `Response: ${response.config.method.toUpperCase()} ${response.config.url}`,
-      response.data || {},
-    );
-  }
-  return response;
-});
+    if (Platform.OS !== "web") {
+      const newSessionId = response.headers["x-set-session-id"];
+      if (newSessionId) {
+        await SecureStore.setItemAsync("sessionId", String(newSessionId));
+      }
+    }
+
+    if (BRANCH !== "production") {
+      console.log(
+        `Response: ${response.config.method.toUpperCase()} ${response.config.url}`,
+        response.data || {},
+      );
+    }
+    return response;
+  },
+  async (error) => {
+    if (error.response && error.response.status === 500) {
+      useNetworkStore.getState().setApiError("Errore del server (500)");
+    }
+    return Promise.reject(error);
+  },
+);
 
 const gateway = {
   check: {

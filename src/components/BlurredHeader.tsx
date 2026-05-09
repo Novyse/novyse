@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 
 import HeaderBase from "./HeaderBase";
 import BlurredView from "./BlurredView";
+import StatusHeader from "./chat/list/header/StatusHeader";
 
 interface BlurredHeaderProps {
   children: React.ReactNode;
@@ -30,6 +31,7 @@ const BlurredHeader = ({
         {children}
       </BlurredView>
       {commsHeader && <View style={{ width: "100%" }}>{commsHeader}</View>}
+      <StatusHeader />
     </HeaderBase>
   );
 };

@@ -1,15 +1,16 @@
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
 import { getAuthToken } from "./auth/token-manager";
 
 import eventEmitter from "../global/Events/EventEmitter.js";
 import eventReceiver from "./lib/event-receiver.js";
 import eventSender from "./lib/event-sender.js";
+import useNetworkStore from "@/context/NetworkContext";
 
 import { SOCKET_BASE_URL } from "../../../app.config";
 import { Platform } from "react-native";
 
-let socket = null;
+let socket: Socket | null = null;
 let isConnecting = false;
 
 let transportsMethods = ["polling"];
@@ -25,6 +26,12 @@ const SocketIO = {
 
   open: async () => {
     try {
+      const { isSynced, isConnected } = useNetworkStore.getState();
+      if (!isConnected || !isSynced) {
+        console.warn("Cannot open socket: Network offline or not synced");
+        return;
+      }
+
       if (isConnecting || SocketIO.isOpen()) {
         console.warn(
           "Socket.IO connection already in progress or already connected",
@@ -49,20 +56,13 @@ const SocketIO = {
       socket.on("connect", async () => {
         console.info("Socket.IO connection opened!");
         isConnecting = false;
+        useNetworkStore.getState().setSocketConnected(true);
         await eventReceiver.initialize(socket);
         await eventSender.initialize(socket);
       });
 
       socket.on("connect_error", async (error) => {
         console.error("Socket.IO connect_error:", error);
-        if (error && error.message) {
-          console.error("Connect error message:", error.message);
-          isConnecting = false;
-        }
-        if (error && error.data) {
-          console.error("Connect error data:", error.data);
-          isConnecting = false;
-        }
         // Handle authentication errors specifically
         if (
           error.message.includes("Authentication error") ||
@@ -101,14 +101,12 @@ const SocketIO = {
 
       socket.on("disconnect", (reason) => {
         isConnecting = false;
+        useNetworkStore.getState().setSocketConnected(false);
         console.info("Closed Socket.IO connection", { reason });
       });
     } catch (error) {
       console.error("Socket.IO initialization error:", error);
       isConnecting = false;
-      if (error && error.stack) {
-        console.error("Stack trace:", error.stack);
-      }
     }
   },
 
@@ -123,6 +121,13 @@ const SocketIO = {
   getSocket: () => {
     return socket;
   },
+  close: () => {
+    if (socket) {
+      console.log("Closing Socket.IO connection due to state change");
+      socket.disconnect();
+      socket = null;
+    }
+  },
 };
 
 // Reconnect socket on app foreground
@@ -133,6 +138,25 @@ eventEmitter.getEmitter().on("socketReconnect", async () => {
     socket.disconnect(); // Disconnect first to avoid conflicts
   }
   await SocketIO.open();
+});
+
+// Subscribe to network store to auto connect/disconnect
+useNetworkStore.subscribe((state) => {
+  if (state.isConnected && state.isSynced) {
+    if (!socket || !socket.connected) {
+      console.log(
+        "Network state changed to online and synced. Opening socket...",
+      );
+      SocketIO.open();
+    }
+  } else {
+    if (socket) {
+      console.log(
+        "Network state changed to offline or unsynced. Closing socket...",
+      );
+      SocketIO.close();
+    }
+  }
 });
 
 export default SocketIO;

@@ -7,6 +7,8 @@ interface PanelResizerProps {
   minWidth?: number;
   maxWidthPadding?: number;
   reverse?: boolean;
+  /** If provided, clamp max width to containerWidth - maxWidthPadding instead of windowWidth - maxWidthPadding */
+  containerWidth?: number;
 }
 
 export const usePanelResizer = ({
@@ -15,6 +17,7 @@ export const usePanelResizer = ({
   minWidth = 350,
   maxWidthPadding = 350,
   reverse = true,
+  containerWidth,
 }: PanelResizerProps) => {
   const { width: windowWidth } = useWindowDimensions();
   const widthRef = useRef(currentWidth);
@@ -22,6 +25,8 @@ export const usePanelResizer = ({
 
   // Keep ref in sync for closure safety in PanResponder
   widthRef.current = currentWidth;
+
+  const effectiveMaxWidth = containerWidth ?? windowWidth;
 
   const panResponder = useMemo(
     () =>
@@ -37,14 +42,14 @@ export const usePanelResizer = ({
           const newWidth = Math.max(
             minWidth,
             Math.min(
-              windowWidth - maxWidthPadding,
+              effectiveMaxWidth - maxWidthPadding,
               startWidthRef.current + delta,
             ),
           );
           setWidth(newWidth);
         },
       }),
-    [windowWidth, minWidth, maxWidthPadding, reverse, setWidth],
+    [effectiveMaxWidth, minWidth, maxWidthPadding, reverse, setWidth],
   );
 
   return panResponder.panHandlers;

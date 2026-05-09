@@ -80,7 +80,6 @@ const Header = ({
             setContentView={setContentView}
             onBack={onBack}
             navToOverview={navToOverview}
-            isSmallScreen={isSmallScreen}
           />
         )}
         {selectedMessages && selectedMessages.length > 0 && (
