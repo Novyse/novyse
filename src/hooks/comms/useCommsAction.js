@@ -143,8 +143,6 @@ const useCommsAction = (chatUUID, sub) => {
 
       SoundPlayer.getInstance().playSound("comms.join");
 
-      setConnecting(false);
-
       setTimeout(async () => {
         if (roomInstance.localParticipant) {
           try {
@@ -160,8 +158,13 @@ const useCommsAction = (chatUUID, sub) => {
         }
       }, 1000);
     } catch (error) {
-      setError("Please try again later.");
-      return;
+      if (error.response && error.response.status === 409) {
+        setError("This chat is full");
+      } else {
+        setError("Please try again later.");
+      }
+    } finally {
+      setConnecting(false);
     }
   };
 

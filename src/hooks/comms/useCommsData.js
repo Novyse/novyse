@@ -18,13 +18,14 @@ const useCommsData = (chatUUID, sub) => {
         setRoom(contextRoom);
         setParticipants(contextParticipants);
       } else {
-        const { success, room: fetchedRoom } = await gateway.comms.room.get(
-          chatUUID,
-          sub,
-        );
+        const {
+          success,
+          room: fetchedRoom,
+          participants: fetchedParticipants,
+        } = await gateway.comms.room.get(chatUUID, sub);
         if (success) {
           setRoom(fetchedRoom);
-          setParticipants(fetchedRoom.remoteParticipants || []);
+          setParticipants(fetchedParticipants);
         }
       }
     };

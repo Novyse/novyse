@@ -781,19 +781,14 @@ const gateway = {
           );
           const success = response.data.success;
           if (success) {
-            console.log("comms room response data:", response.data);
-            const roomInfo = response.data.data.roomInfo;
-            const remoteParticipants = response.data.data.participants;
-            const room = {
-              roomInfo,
-              remoteParticipants,
-            };
-            return { success, room };
+            const room = response.data.data.room;
+            const participants = response.data.data.participants;
+            return { success, room, participants };
           }
           return { success };
         } catch (error) {
           if (error.response && error.response.status === 404) {
-            return { success: true, room: [] };
+            return { success: true, room: [], participants: [] };
           }
           console.error("Error in comms.room.get:", error);
           throw error;
