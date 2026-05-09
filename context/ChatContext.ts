@@ -46,6 +46,15 @@ interface ChatState {
     userUUID: string;
     action: Member["action"];
   }) => void;
+  commsCache: Record<
+    string,
+    Record<number, { room: any; participants: any[] }>
+  >;
+  setCommsCache: (
+    chatUUID: string,
+    sub: number,
+    data: { room: any; participants: any[] },
+  ) => void;
   clear: () => void;
 }
 
@@ -58,6 +67,7 @@ const useChatStore = create<ChatState>((set, get) => ({
   loadingMessages: {},
   hasMore: {},
   historyLoaded: {},
+  commsCache: {},
 
   init: async () => {
     set({ loading: true });
@@ -67,7 +77,9 @@ const useChatStore = create<ChatState>((set, get) => ({
   },
 
   loadChats: async () => {
-    const fetchedChats = await database.chat.get.all(useUserStore.getState().localUserUUID);
+    const fetchedChats = await database.chat.get.all(
+      useUserStore.getState().localUserUUID,
+    );
 
     set((state) => {
       const mergedChats = fetchedChats.map((fetchedChat: any) => {
@@ -290,6 +302,18 @@ const useChatStore = create<ChatState>((set, get) => ({
     //   }));
     // }
     // return databaseMessage || null;
+  },
+
+  setCommsCache: (chatUUID, sub, data) => {
+    set((state) => ({
+      commsCache: {
+        ...state.commsCache,
+        [chatUUID]: {
+          ...(state.commsCache[chatUUID] || {}),
+          [sub]: data,
+        },
+      },
+    }));
   },
 
   _eventsSetup: false,
