@@ -5,11 +5,18 @@ export const ScreenContext = createContext();
 
 export const ScreenProvider = ({ children }) => {
   const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const [isMediumScreen, setIsMediumScreen] = useState(false);
   const { height, width } = useWindowDimensions();
+
+  const MOBILE_BREAKPOINT = 768;
+  const TABLET_BREAKPOINT = 1024;
 
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsSmallScreen(width < 768);
+      setIsSmallScreen(width < MOBILE_BREAKPOINT);
+      setIsMediumScreen(
+        width >= MOBILE_BREAKPOINT && width < TABLET_BREAKPOINT,
+      );
     };
 
     checkScreenSize();
@@ -17,6 +24,7 @@ export const ScreenProvider = ({ children }) => {
 
   const value = {
     isSmallScreen,
+    isMediumScreen,
   };
 
   return (

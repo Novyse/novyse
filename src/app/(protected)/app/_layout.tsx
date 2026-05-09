@@ -54,18 +54,28 @@ export default function RootLayout() {
     isStorageReady,
   } = useWindowSizeStore();
 
+  const MIN_CHAT_LIST_WIDTH = 280;
+
   const resizerHandlers = usePanelResizer({
     currentWidth: detailWidth,
     setWidth: setDetailWidth,
     minWidth: minDetailWidth,
-    maxWidthPadding: 350,
+    maxWidthPadding: MIN_CHAT_LIST_WIDTH + 20,
   });
+  const prevWidthRef = useRef(width);
 
   useEffect(() => {
-    if (detailWidth < minDetailWidth) {
-      setDetailWidth(Math.min(width, minDetailWidth));
-    }
-  }, [minDetailWidth, detailWidth, width, setDetailWidth]);
+    const delta = width - prevWidthRef.current;
+    prevWidthRef.current = width;
+    setDetailWidth((prev) => {
+      const maxDetail = width - MIN_CHAT_LIST_WIDTH - 20;
+      let newWidth = prev;
+      if (delta > 0) {
+        newWidth = prev + delta;
+      }
+      return Math.max(minDetailWidth, Math.min(maxDetail, newWidth));
+    });
+  }, [width, minDetailWidth, setDetailWidth]);
 
   // Initialize database if needed
   const [hasInitialized, setHasInitialized] = useState<boolean | null>(null);

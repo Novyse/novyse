@@ -57,7 +57,6 @@ const ChatPageRoute = () => {
   const setEditingMessage = useActiveChatStore(
     (state) => state.setEditingMessage,
   );
-  const clear = useActiveChatStore((state) => state.clear);
 
   const chat = useActiveChatStore((state) => state.activeChatData);
 
@@ -75,7 +74,7 @@ const ChatPageRoute = () => {
   }, [selectedMessages, startForwarding, setSelectedMessages]);
 
   const { theme } = useContext(ThemeContext);
-  const { isSmallScreen } = useScreen();
+  const { isSmallScreen, isMediumScreen } = useScreen();
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
@@ -90,12 +89,14 @@ const ChatPageRoute = () => {
     setWidth: setVocalWidth,
     minWidth: 350,
     maxWidthPadding: 350,
+    containerWidth: containerWidth || undefined,
   });
 
   useEffect(() => {
     // Determine effective container width for math, but handle zero-width initialization gracefully
     const cw = containerWidth || width;
-    setVocalWidth((prev) => Math.max(350, Math.min(cw - 350, prev)));
+    const maxVocal = cw - 350;
+    setVocalWidth((prev) => Math.max(350, Math.min(maxVocal, prev)));
   }, [containerWidth, width, contentView, setVocalWidth]);
 
   useEffect(() => {
@@ -109,6 +110,13 @@ const ChatPageRoute = () => {
       setMinDetailWidth(400);
     };
   }, [contentView, setMinDetailWidth]);
+
+  // Auto-collapse split view when window is too narrow
+  useEffect(() => {
+    if (contentView === "both" && (isSmallScreen || isMediumScreen)) {
+      setContentView("chat");
+    }
+  }, [isSmallScreen, isMediumScreen, contentView, setContentView]);
 
   useEffect(() => {
     if (chatUUIDorHandle) {

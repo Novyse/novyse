@@ -3,13 +3,13 @@ import { View, StyleSheet, Pressable } from "react-native";
 import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { useScreen } from "@/context/ScreenContext";
 
 import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
 
 import { ThemeContext } from "@/context/ThemeContext";
 
-import { DateTime } from "luxon";
 import chatUtils from "@/src/utils/chat/messageFormat";
 
 const MainHeader = ({
@@ -25,10 +25,10 @@ const MainHeader = ({
   setContentView,
   onBack = () => router.back(),
   navToOverview,
-  isSmallScreen,
 }) => {
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
+  const { isSmallScreen, isMediumScreen } = useScreen();
   const styles = createStyle(theme);
 
   return (
@@ -99,7 +99,7 @@ const MainHeader = ({
             onPress={() => setContentView("vocal")}
           />
         )}
-        {!isSmallScreen && contentView !== "both" && (
+        {!isSmallScreen && !isMediumScreen && contentView !== "both" && (
           <Icon
             name="BorderVerticalIcon"
             style={styles.iconButton}
