@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import { Animated, Easing } from "react-native";
 import Slider from "@react-native-community/slider";
+import { ThemeContext } from "@/context/ThemeContext"; 
 
 const AnimatedSlider = Animated.createAnimatedComponent(Slider);
 
@@ -11,7 +12,6 @@ interface SmoothSliderProps {
   onSeek: (value: number) => void;
   reset: boolean;
   isMoving: boolean;
-  showThumb?: boolean;
 }
 
 export default function SmoothSlider({
@@ -21,10 +21,8 @@ export default function SmoothSlider({
   onSeek,
   reset,
   isMoving,
-  showThumb = true,
 }: SmoothSliderProps) {
-
-  const thumbColor = showThumb ? "#307ecc" : "#307ecc";
+  const { theme } = useContext(ThemeContext);
 
   const sliderAnim = useRef(new Animated.Value(0)).current;
   const isSeeking = useRef<boolean>(false);
@@ -85,9 +83,9 @@ export default function SmoothSlider({
       minimumValue={0}
       maximumValue={maxValue | 1}
       value={isSeeking.current ? undefined : sliderAnim}
-      minimumTrackTintColor="#307ecc"
-      maximumTrackTintColor="#ffffffff"
-      thumbTintColor={thumbColor}
+      minimumTrackTintColor={theme.primary}
+      maximumTrackTintColor={theme.secondary}
+      thumbTintColor={theme.primary}
       onSlidingStart={onSlidingStart}
       onValueChange={onValueChange}
       onSlidingComplete={onSlidingComplete}

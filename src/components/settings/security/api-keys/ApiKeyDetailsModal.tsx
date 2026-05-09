@@ -26,7 +26,7 @@ export default function ApiKeyDetailsModal({
     <ModalBase visible={visible} onClose={onClose} theme={theme}>
       <View style={styles.container}>
         <View style={styles.successIconContainer}>
-          <Icon name="CheckmarkCircle02Icon" color="#10b981" size={48} />
+          <Icon name="CheckmarkCircle02Icon" color={theme.iconSuccess} size={48} />
         </View>
         <AppText style={styles.title} translationKey="settings.security.apiKeys.detailsModal.title" />
         <AppText style={styles.subtitle} translationKey="settings.security.apiKeys.detailsModal.subtitle" />
@@ -68,7 +68,7 @@ const createStyles = (theme: any) =>
     },
     subtitle: {
       fontSize: 14,
-      color: "#a0a0a0",
+      color: theme.subtitle,
       marginBottom: 24,
       textAlign: "center",
       lineHeight: 20,
@@ -83,15 +83,15 @@ const createStyles = (theme: any) =>
       marginTop: 24,
     },
     buttonHovered: {
-      backgroundColor: "#5558e6",
+      backgroundColor: theme.settingsHoveredButton,
       cursor: "pointer" as any,
     },
     buttonPressed: {
-      backgroundColor: "#4e51d4",
+      backgroundColor: theme.settingsPressedButton,
       opacity: 0.9,
     },
     buttonText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },

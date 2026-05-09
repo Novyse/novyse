@@ -188,10 +188,10 @@ const createStyles = (theme: any) =>
       paddingHorizontal: 16,
       paddingVertical: 6,
       borderRadius: 20,
-      backgroundColor: "#334155",
+      backgroundColor: theme.primary,
     },
     connectText: {
-      color: "white",
+      color: theme.text,
       fontSize: 12,
       fontWeight: "600",
     },

@@ -77,7 +77,7 @@ const createStyles = (theme: any) =>
     },
     subtitle: {
       fontSize: 14,
-      color: "#a0a0a0",
+      color: theme.subtitle,
       marginBottom: 24,
       textAlign: "center",
       lineHeight: 20,
@@ -92,14 +92,14 @@ const createStyles = (theme: any) =>
       marginTop: 24,
     },
     buttonHovered: {
-      backgroundColor: "#5558e6",
+      backgroundColor: theme.settingsHoveredButton,
       cursor: "pointer" as any,
     },
     buttonPressed: {
-      backgroundColor: "#4e51d4",
+      backgroundColor: theme.settingsPressedButton,
     },
     buttonText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },

@@ -29,13 +29,13 @@ const Button = ({
       {isProgressing || isPending ? (
         <CircularProgress
           progress={isPending ? 0 : progress.loaded / progress.total}
-          color="#fff"
+          color={theme.text}
           onCancel={() => queueManager.cancelFileTransfer(uuid)}
         />
       ) : !isAvailable ? (
         <DownloadButton uuid={uuid} styles={styles} />
       ) : !isReady ? (
-        <ActivityIndicator size="small" color="#fff" />
+        <ActivityIndicator size="small" color={theme.text} />
       ) : (
         <DefaultButton
           type={type}
@@ -53,7 +53,7 @@ const createStyles = (theme, type, isAvailable) => ({
     height: 45,
     borderRadius: 100,
     backgroundColor:
-      type === "IMAGE" && isAvailable ? "#00000000" : theme.primary,
+      type === "IMAGE" && isAvailable ? theme.shadowColor : theme.primary,
     marginRight: 12,
     justifyContent: "center",
     alignItems: "center",

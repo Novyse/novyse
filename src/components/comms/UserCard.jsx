@@ -87,7 +87,7 @@ const UserCard = memo(
       }
 
       return baseStyle;
-    }, [isScreenShare, isSpeaking]);
+    }, [isScreenShare, isSpeaking, styles]);
 
     const hasControls =
       (stream && stream.active && !isLocal) || (isScreenShare && isLocal);
@@ -205,6 +205,9 @@ const VideoContent = memo(
     height,
     facingMode,
   }) => {
+    const { theme } = useContext(ThemeContext);
+    const styles = createStyles(theme);
+
     const streamActive =
       stream && stream.getVideoTracks().some((track) => track.enabled);
 

@@ -1,12 +1,15 @@
-import React from "react";
+import React, {useContext} from "react";
 import { View, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
 import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 import { useCommsContext } from "@/context/CommsContext";
+import { ThemeContext } from "@/context/ThemeContext";
 
-const VolumeControl = ({ volKey, isScreenShare, theme }) => {
+const VolumeControl = ({ volKey, isScreenShare }) => {
   const { remoteVolumes, setRemoteVolume } = useCommsContext();
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyles(theme);
 
   const initialDb = Number(remoteVolumes[volKey] ?? 0);
   const [localDb, setLocalDb] = React.useState(initialDb);
@@ -46,16 +49,16 @@ const VolumeControl = ({ volKey, isScreenShare, theme }) => {
         value={localDb + 30}
         onValueChange={handleValueChange}
         onSlidingComplete={handleSlidingComplete}
-        minimumTrackTintColor={theme.primary || "#307ecc"}
-        maximumTrackTintColor="rgba(150, 150, 150, 0.3)"
-        thumbTintColor={theme.primary || "#307ecc"}
+        minimumTrackTintColor={theme.primary}
+        maximumTrackTintColor={theme.secondary}
+        thumbTintColor={theme.primary}
         tapToSeek
       />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   sliderContainer: {
     padding: 12,
     marginTop: 4,
@@ -74,13 +77,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginLeft: 6,
     opacity: 0.8,
-    color: "#fff", // Fallback color, will be overridden by theme if needed
+    color: theme.text, // Fallback color, will be overridden by theme if needed
   },
   dbText: {
     fontSize: 12,
     fontWeight: "600",
     opacity: 0.6,
-    color: "#fff",
+    color: theme.text,
   },
   slider: {
     width: "100%",

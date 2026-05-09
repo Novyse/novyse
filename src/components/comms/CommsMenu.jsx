@@ -21,7 +21,7 @@ const CommsMenu = ({
 }) => {
   const { theme } = useThemeContext();
   const { localMuted, toggleLocalMute } = useCommsContext();
-  const styles = createStyle(theme);
+  const styles = createStyles(theme);
   const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
   const [activeStream, setActiveStream] = React.useState(null);
@@ -153,7 +153,6 @@ const CommsMenu = ({
                 <VolumeControl
                   volKey={volKey}
                   isScreenShare={isScreenShare}
-                  theme={theme}
                 />
               )}
 
@@ -183,8 +182,7 @@ const CommsMenu = ({
   );
 };
 
-const createStyle = (theme) =>
-  StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
     overlay: {
       flex: 1,
     },
