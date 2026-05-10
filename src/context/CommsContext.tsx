@@ -1,4 +1,5 @@
 import * as React from "react";
+import "@/src/utils/polyfills";
 import { Track, Room, Participant, TrackPublication } from "livekit-client";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -624,7 +625,7 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
         }
         // Web Audio element synchronization
 
-        if (Platform.OS === "web" && screenAudioPub.trackSid) {
+        if (Platform.OS === "web") {
           const audioEl = audioElementsRef.current.get(screenAudioPub.trackSid);
           if (audioEl && audioEl.volume !== targetVolume) {
             audioEl.volume = targetVolume;
