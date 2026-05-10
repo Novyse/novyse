@@ -380,7 +380,7 @@
       "changing": "Modifica...",
       "removing": "Rimozione...",
       "cancel": "Annulla",
-      "passwordNote": "• La password deve essere lunga tra 16 e 256 caratteri •",
+      "passwordNote": "La password deve contenere almeno 8 caratteri",
       "removePasswordWarning": "Inserisci la tua password attuale per confermare la rimozione. Assicurati di avere un altro metodo di accesso (es. Passkey) attivo.",
       "confirmNewPassword": "Conferma Nuova Password",
       "passkeys": "Passkey",

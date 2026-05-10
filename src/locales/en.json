@@ -381,7 +381,7 @@
       "changing": "Changing...",
       "removing": "Removing...",
       "cancel": "Cancel",
-      "passwordNote": "• Password must be 16-256 characters long •",
+      "passwordNote": "Password must be at least 8 characters long",
       "removePasswordWarning": "Enter your current password to confirm removal. Make sure you have another login method (e.g. Passkey) active.",
       "confirmNewPassword": "Confirm New Password",
       "passkeys": "Passkeys",
