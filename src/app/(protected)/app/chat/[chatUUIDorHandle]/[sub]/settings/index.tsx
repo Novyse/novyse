@@ -5,6 +5,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
+import StatusMessage from "@/src/components/StatusMessage";
 import Avatar from "@/src/components/Avatar";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
@@ -46,6 +47,11 @@ const ChatSettings = () => {
       <HeaderWithBackArrow title={t("chat.settings.title")} onBack={onBack} />
 
       <SettingsPageScrollview>
+        <StatusMessage
+          type="warning"
+          translationKey="common.developerNote"
+          closable={false}
+        />
         {/* ── Profile header ── */}
         <View style={styles.header}>
           <Avatar
