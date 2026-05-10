@@ -25,11 +25,9 @@ export default function QrscannerRoute() {
 
   const handleCodeScanned = async (content: string) => {
     try {
-      console.log("QR Code content:", content);
+      const response = await auth.qrcode.authenticate(content);
 
-      const successRes = await auth.qrcode.authenticate(content);
-
-      if (!successRes) {
+      if (!response.success) {
         setError(t("settings.qrScanner.invalidCode"));
         return;
       }
@@ -48,23 +46,25 @@ export default function QrscannerRoute() {
           onBack={onBack}
         />
       </View>
-      
+
+      <View style={[styles.statusMessageContainer, { top: insets.top + 80 }]}>
+        <StatusMessage
+          type="error"
+          content={[error || ""]}
+          visible={!!error}
+          onClose={() => setError(null)}
+        />
+
+        <StatusMessage
+          type="success"
+          content={[success || ""]}
+          visible={!!success}
+          timeout={3000}
+          onClose={() => setSuccess(null)}
+        />
+      </View>
+
       <QRCodeReader onCodeScanned={handleCodeScanned} />
-
-      <StatusMessage
-        type="error"
-        content={[error || ""]}
-        visible={!!error}
-        onClose={() => setError(null)}
-      />
-
-      <StatusMessage
-        type="success"
-        content={[success || ""]}
-        visible={!!success}
-        timeout={3000}
-        onClose={() => setSuccess(null)}
-      />
     </View>
   );
 }
@@ -80,5 +80,11 @@ const createStyle = (theme: any) =>
       left: 10,
       right: 0,
       zIndex: 1,
+    },
+    statusMessageContainer: {
+      position: "absolute",
+      left: 10,
+      right: 10,
+      zIndex: 10,
     },
   });
