@@ -5,6 +5,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
+import StatusMessage from "@/src/components/StatusMessage";
 import Avatar from "@/src/components/Avatar";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
@@ -46,6 +47,11 @@ const ChatSettings = () => {
       <HeaderWithBackArrow title={t("chat.settings.title")} onBack={onBack} />
 
       <SettingsPageScrollview>
+        <StatusMessage
+          type="warning"
+          translationKey="common.developerNote"
+          closable={false}
+        />
         {/* ── Profile header ── */}
         <View style={styles.header}>
           <Avatar
@@ -64,7 +70,7 @@ const ChatSettings = () => {
         </View>
 
         {/* ── Notifications ── */}
-        <Section titleKey="chat.settings.notifications" theme={theme}>
+        <Section titleKey="chat.settings.notifications">
           <SettingRow
             iconName="Notification01Icon"
             labelText={t("chat.settings.muteNotifications")}
@@ -82,7 +88,7 @@ const ChatSettings = () => {
         </Section>
 
         {/* ── Appearance & behaviour ── */}
-        <Section titleKey="chat.settings.chatOptions" theme={theme}>
+        <Section titleKey="chat.settings.chatOptions">
           <SettingRow
             iconName="Timer02Icon"
             labelText={t("chat.settings.disappearingMessages")}
@@ -94,7 +100,7 @@ const ChatSettings = () => {
 
         {/* ── Privacy ── */}
         {isDM && (
-          <Section titleKey="chat.settings.privacy" theme={theme}>
+          <Section titleKey="chat.settings.privacy">
             <SettingRow
               iconName="Tick02Icon"
               labelText={t("chat.settings.readReceipts")}
@@ -108,7 +114,7 @@ const ChatSettings = () => {
 
         {/* ── Group-only settings ── */}
         {!isDM && (
-          <Section titleKey="chat.settings.groupSettings" theme={theme}>
+          <Section titleKey="chat.settings.groupSettings">
             <SettingRow
               iconName="UserAdd01Icon"
               labelText={t("chat.settings.addMembers")}
