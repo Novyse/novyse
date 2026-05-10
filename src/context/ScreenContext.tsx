@@ -12,9 +12,10 @@ interface ScreenContextType {
   isMediumScreen: boolean;
 }
 
-export const ScreenContext = createContext<ScreenContextType | undefined>(
-  undefined,
-);
+export const ScreenContext = createContext<ScreenContextType>({
+  isSmallScreen: false,
+  isMediumScreen: false,
+});
 
 interface ScreenProviderProps {
   children: ReactNode;
@@ -49,10 +50,4 @@ export const ScreenProvider = ({ children }: ScreenProviderProps) => {
   );
 };
 
-export const useScreen = () => {
-  const context = useContext(ScreenContext);
-  if (!context) {
-    throw new Error("useScreen must be used within a ScreenProvider");
-  }
-  return context;
-};
+export const useScreen = () => useContext(ScreenContext);
