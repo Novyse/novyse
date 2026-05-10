@@ -70,7 +70,7 @@ const ChatSettings = () => {
         </View>
 
         {/* ── Notifications ── */}
-        <Section titleKey="chat.settings.notifications" theme={theme}>
+        <Section titleKey="chat.settings.notifications">
           <SettingRow
             iconName="Notification01Icon"
             labelText={t("chat.settings.muteNotifications")}
@@ -88,7 +88,7 @@ const ChatSettings = () => {
         </Section>
 
         {/* ── Appearance & behaviour ── */}
-        <Section titleKey="chat.settings.chatOptions" theme={theme}>
+        <Section titleKey="chat.settings.chatOptions">
           <SettingRow
             iconName="Timer02Icon"
             labelText={t("chat.settings.disappearingMessages")}
@@ -100,7 +100,7 @@ const ChatSettings = () => {
 
         {/* ── Privacy ── */}
         {isDM && (
-          <Section titleKey="chat.settings.privacy" theme={theme}>
+          <Section titleKey="chat.settings.privacy">
             <SettingRow
               iconName="Tick02Icon"
               labelText={t("chat.settings.readReceipts")}
@@ -114,7 +114,7 @@ const ChatSettings = () => {
 
         {/* ── Group-only settings ── */}
         {!isDM && (
-          <Section titleKey="chat.settings.groupSettings" theme={theme}>
+          <Section titleKey="chat.settings.groupSettings">
             <SettingRow
               iconName="UserAdd01Icon"
               labelText={t("chat.settings.addMembers")}
