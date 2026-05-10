@@ -21,7 +21,7 @@ export const Colors = {
     backgroundCard: "#416a90",
     backgroundDateSeparator: "#17212b",                                           //* 3
     backgroundSearchResultItem: "#2b3e51",                                        //* 1
-    backgroundTextField: "#415f81ff",                                               //* 2
+    backgroundTextField: "#415f81ff",                                             //* 2
     backgroundModalOverlay: "#00000080",                                          //* 1
     backgroundBackupCode: "#f0f0f0",                                              //* 1
     
@@ -49,13 +49,13 @@ export const Colors = {
 
     // ?USER CAN'T CHANGE
 
-    dangerText: "#9b2d2d",
-    warningText: "#c28707",
-    successText: "#2da32dff",
-    infoText: "#0c5f97",
+    dangerText: "#eb4444",            // uguale a iconDanger
+    warningText: "#e49f0c",           // uguale a iconWarning        
+    successText: "#44b244",           // uguale a iconSuccess
+    infoText: "#0c5f97",              // non c'è iconInfo (wtf perchè)
     backgroundDanger: "#ffc7c7a7",
-    backgroundWarning: "#ffe89db7",
-    backgroundSuccess: "#d7f8d7a7",
+    backgroundWarning: "#eef370c1",
+    backgroundSuccess: "#90e190c2",
     backgroundInfo: "#27bef95b",
     backgroundScrollbar: "transparent",             // TODO: usato in troppi punti, da unificare
     badgeGlareFirstLast: "rgba(255,255,255,0)",

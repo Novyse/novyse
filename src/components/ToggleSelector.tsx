@@ -95,6 +95,7 @@ function ToggleSelector<T extends string = string>({
               <AppText
                 style={[styles.toggleText, isActive && styles.toggleTextActive]}
                 text={option.label}
+                numberOfLines={1}
               />
             </TouchableOpacity>
           );
@@ -109,9 +110,11 @@ function createStyles(theme: any) {
     scrollView: {
       flexGrow: 0,
       marginBottom: 25,
+      borderRadius: 50,
     },
     scrollContent: {
       flexGrow: 1,
+      borderRadius: 50,
     },
     toggleContainer: {
       flexDirection: "row",
@@ -138,9 +141,10 @@ function createStyles(theme: any) {
     toggleButton: {
       flex: 1,
       paddingVertical: 8,
-      paddingHorizontal: 20,
-      minWidth: 80,
+      paddingHorizontal: 12,
+      minWidth: 110,
       alignItems: "center",
+      justifyContent: "center",
       borderRadius: 25,
       zIndex: 1,
     },
@@ -148,6 +152,7 @@ function createStyles(theme: any) {
       fontSize: 14,
       fontWeight: "600",
       color: theme.subtitle,
+      textAlign: "center",
     },
     toggleTextActive: {
       color: theme.text,
