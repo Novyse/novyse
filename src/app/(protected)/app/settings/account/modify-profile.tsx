@@ -12,7 +12,8 @@ import UploadProfilePicture from "@/src/components/modalSheets/UploadProfilePict
 import Page from "@/src/components/settings/account/modify-profile/Page";
 
 export default function AccountModifyRoute() {
-  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
+  const onBack = () =>
+    router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -25,15 +26,24 @@ export default function AccountModifyRoute() {
   if (loading || !user) {
     return (
       <View style={styles.container}>
-        <HeaderWithBackArrow translationKey="settings.account.title" onBack={() => onBack()} />
-        <AppText style={styles.loadingText} translationKey="common.loadingProfile" />
+        <HeaderWithBackArrow
+          translationKey="settings.account.title"
+          onBack={() => onBack()}
+        />
+        <AppText
+          style={styles.loadingText}
+          translationKey="common.loadingProfile"
+        />
       </View>
     );
   }
 
   return (
     <>
-      <HeaderWithBackArrow translationKey="settings.account.title" onBack={() => onBack()} />
+      <HeaderWithBackArrow
+        translationKey="settings.account.title"
+        onBack={() => onBack()}
+      />
       <Page
         name={user.name}
         surname={user.surname}
