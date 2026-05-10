@@ -1,13 +1,14 @@
 import React from "react";
 import { View, Pressable, StyleSheet, Dimensions, Modal } from "react-native";
 import AppText from "@/src/components/AppText";
-import { useTranslation } from "react-i18next";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
-import HoverAndPressedButton from "../../HoverAndPressedButton";
+import useUserStore from "@/src/context/UserContext";
+
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
-import BlurredView from "../../BlurredView";
-import ReactionMenu from "./ReactionsMenu";
+import BlurredView from "@/src/components/BlurredView";
+import ReactionMenu from "@/src/components/messages/ActionMenu/ReactionsMenu";
 
 interface ActionMenuItem {
   action: string;
@@ -43,10 +44,12 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   isPendingSend,
   pendingEditJobId,
 }) => {
-  const { t } = useTranslation();
   const { theme } = useThemeContext();
   const styles = createStyle(theme);
   const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+
+  const localUserUUID = useUserStore((state) => state.localUserUUID);
+  const isMine = message?.senderUUID === localUserUUID;
 
   const menuWidth = 200;
   const menuHeight = 350;
@@ -224,7 +227,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
             </View>
           </BlurredView>
           {/* Stats Box (Reads & Reactions) */}
-          {(!isPendingSend && hasRead) || hasReactions ? (
+          {isMine && ((!isPendingSend && hasRead) || hasReactions) ? (
             <View style={styles.statsContainerParent}>
               {!isPendingSend && hasRead && (
                 <BlurredView style={styles.statsContainerHalf}>
