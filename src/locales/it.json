@@ -507,9 +507,6 @@
     "connections": {
       "title": "CONNESSIONI"
     },
-    "qrModal": {
-      "copied": "Copiato"
-    },
     "loading": "Caricamento profilo...",
     "error": "Errore nel caricamento del profilo: {{error}}",
     "notFound": "Utente non trovato."

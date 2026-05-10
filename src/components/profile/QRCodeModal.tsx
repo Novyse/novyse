@@ -45,10 +45,7 @@ const QRCodeModal = ({
       <View style={styles.container}>
         <View style={styles.qrcodeContainer}>
           <View style={styles.avatarPosition}>
-            <Avatar
-              uuid={profilePictureUUID}
-              size={80}
-            />
+            <Avatar uuid={profilePictureUUID} size={80} />
           </View>
           <View style={{ height: 15 }} />
           <QRCode
@@ -77,7 +74,7 @@ const QRCodeModal = ({
               style={[styles.linkText, { color: theme.text }]}
               numberOfLines={1}
               ellipsizeMode="middle"
-              text={copied ? t("profile.qrModal.copied") : profileLink}
+              text={profileLink}
             />
             <Icon
               name={copied ? "Tick01Icon" : "Copy01Icon"}

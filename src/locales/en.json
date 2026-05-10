@@ -508,9 +508,6 @@
     "connections": {
       "title": "CONNECTIONS"
     },
-    "qrModal": {
-      "copied": "Copied"
-    },
     "loading": "Loading profile...",
     "error": "Error loading profile: {{error}}",
     "notFound": "User not found."
