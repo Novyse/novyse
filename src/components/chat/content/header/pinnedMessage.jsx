@@ -2,8 +2,8 @@ import React, { useContext, useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import useChatStore from "@/context/ChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useChatStore from "@/src/context/ChatContext";
 
 import Icon from "@/src/components/Icon";
 

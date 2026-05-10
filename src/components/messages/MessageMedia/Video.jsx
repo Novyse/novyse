@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
 import { StyleSheet, Pressable, View } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import FileButton from "@/src/components/messages/Button";
 import VideoViewer from "@/src/components/modalSheets/viewer/VideoViewer";

@@ -10,9 +10,9 @@ import AudioHeader from "./audio";
 import PinnedMessageHeader from "./pinnedMessage";
 import CommsHeader from "./CommsHeader";
 
-import { AudioPlayerContext } from "@/context/AudioPlayerContext";
-import useChatStore from "@/context/ChatContext";
-import { useCommsContext } from "@/context/CommsContext";
+import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
+import useChatStore from "@/src/context/ChatContext";
+import { useCommsContext } from "@/src/context/CommsContext";
 
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 

@@ -7,7 +7,7 @@ import SmartBackground from "@/src/components/SmartBackground";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Avatar from "@/src/components/Avatar";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface ChatListItemSearchProps {
   item: {

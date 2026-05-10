@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef } from "react";
 import { Animated, Easing } from "react-native";
 import Slider from "@react-native-community/slider";
-import { ThemeContext } from "@/context/ThemeContext"; 
+import { ThemeContext } from "@/src/context/ThemeContext"; 
 
 const AnimatedSlider = Animated.createAnimatedComponent(Slider);
 

@@ -4,7 +4,7 @@ import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 
 import ToggleSelector from "@/src/components/ToggleSelector";

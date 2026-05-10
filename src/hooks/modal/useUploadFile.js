@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { validateFiles } from "@/src/utils/storage/file/validators.js";
+import { validateFiles } from "@/src/utils/storage/file/validators";
 
 const useUploadFile = (
   fileType = "All",

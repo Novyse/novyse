@@ -18,8 +18,8 @@ import { useTranslation } from "react-i18next";
 
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import ModalBase from "../ModalBase";
 import BottomSheetBase from "../BottomSheetBase";

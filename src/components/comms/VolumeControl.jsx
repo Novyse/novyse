@@ -3,8 +3,8 @@ import { View, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
 import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
-import { useCommsContext } from "@/context/CommsContext";
-import { ThemeContext } from "@/context/ThemeContext";
+import { useCommsContext } from "@/src/context/CommsContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 const VolumeControl = ({ volKey, isScreenShare }) => {
   const { remoteVolumes, setRemoteVolume } = useCommsContext();

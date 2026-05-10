@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import gateway from "@/src/utils/backend-services/api-gateway";
-import eventEmitter from "../../utils/global/Events/EventEmitter.js";
-import useChatStore from "@/context/ChatContext";
+import eventEmitter from "../../utils/global/Events/EventEmitter";
+import useChatStore from "@/src/context/ChatContext";
 
 const useChatPin = () => {
   const pinnedChats = useChatStore((state) => state.pinnedChats);

@@ -14,11 +14,11 @@
     "expo-env.d.ts",
     "app/index.jsx",
     "src/types/**/*.d.ts",
-    "context/ThemeContext.tsx",
+    "src/context/ThemeContext.tsx",
     "app/_app.js",
     "app/components/Icon.jsx",
     "src/utils/global/Events/EventEmitter.js",
-    "context/AuthContext.js",
+    "src/context/AuthContext.js",
     "src/components/Divider.tsxsx"
   ]
 }

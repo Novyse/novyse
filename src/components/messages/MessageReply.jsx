@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import AppText from "@/src/components/AppText";
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
 

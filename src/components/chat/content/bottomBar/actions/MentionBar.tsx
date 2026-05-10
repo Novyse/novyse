@@ -8,7 +8,7 @@ import {
   TextStyle,
 } from "react-native";
 import AppText from "@/src/components/AppText";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
 import Avatar from "@/src/components/Avatar";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import Icon from "@/src/components/Icon";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import PlatformType from "@/src/utils/device/type";
 import useShare from "@/src/hooks/chat/useShare";
 

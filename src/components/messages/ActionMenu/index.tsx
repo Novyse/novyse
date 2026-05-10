@@ -3,7 +3,7 @@ import { View, Pressable, StyleSheet, Dimensions, Modal } from "react-native";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import BlurredView from "../../BlurredView";

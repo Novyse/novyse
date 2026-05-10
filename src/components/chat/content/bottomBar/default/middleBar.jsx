@@ -4,7 +4,7 @@ import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 import { Duration } from "luxon";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
 import RecordingDot from "@/src/components/RecordingDot";

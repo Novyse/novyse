@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
 import EmojiPicker from "./EmojiPicker";
 

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useContext } from "react";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import {
   StyleSheet,
   Animated,

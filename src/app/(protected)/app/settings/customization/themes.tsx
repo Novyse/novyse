@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import { Colors } from "@/constants/Colors";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";

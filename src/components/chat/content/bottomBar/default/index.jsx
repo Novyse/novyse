@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { View } from "react-native";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import useVoiceRecord from "@/src/hooks/chat/useVoiceRecord";
 

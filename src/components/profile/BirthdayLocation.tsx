@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 import { LinearGradient } from "expo-linear-gradient";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
 interface BirthdayLocationProps {

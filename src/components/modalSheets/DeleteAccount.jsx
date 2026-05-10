@@ -9,8 +9,8 @@ import Icon from "@/src/components/Icon";
 import ModalBase from "@/src/components/modalSheets/ModalBase";
 import StatusMessage from "@/src/components/StatusMessage";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import useUserStore from "@/context/UserContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
 
 import authBackend from "@/src/utils/backend-services/auth";
 import auth from "@/src/utils/welcome/auth";

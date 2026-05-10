@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import Profile from "@/src/components/profile";
 import AppText from "@/src/components/AppText";

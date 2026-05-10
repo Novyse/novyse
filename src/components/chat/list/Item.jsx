@@ -9,10 +9,10 @@ import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
 
-import useUserStore from "@/context/UserContext";
+import useUserStore from "@/src/context/UserContext";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
-import { ThemeContext } from "@/context/ThemeContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
 

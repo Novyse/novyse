@@ -1,14 +1,14 @@
 import React, { useState, useContext, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import Avatar from "@/src/components/Avatar";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import useChatStore from "@/context/ChatContext";
+import useChatStore from "@/src/context/ChatContext";
 import SettingRow from "@/src/components/settings/SettingRow";
 import Section from "@/src/components/settings/Section";
 

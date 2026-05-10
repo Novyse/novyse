@@ -155,8 +155,8 @@ class MobileNotificationManager {
       }
 
       // --- 2.7 Resolve context data (Store + DB Fallback) ---
-      const useChatStore = (await import("@/context/ChatContext")).default;
-      const useUserStore = (await import("@/context/UserContext")).default;
+      const useChatStore = (await import("@/src/context/ChatContext")).default;
+      const useUserStore = (await import("@/src/context/UserContext")).default;
       const database = (await import("../../storage/database")).default;
 
       // 3.1 Resolve Chat

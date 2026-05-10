@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { getColors } from "react-native-image-colors";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
 import Avatar from "@/src/components/Avatar";

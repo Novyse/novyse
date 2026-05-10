@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, Pressable, Linking } from "react-native";
 import AppText from "@/src/components/AppText";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import FileSizeProgress from "./FileSizeProgress";

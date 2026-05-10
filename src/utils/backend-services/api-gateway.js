@@ -3,7 +3,7 @@ import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
 import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
-import useNetworkStore from "@/context/NetworkContext";
+import useNetworkStore from "@/src/context/NetworkContext";
 
 import { getOs, getPlatform } from "@/src/utils/device/type";
 

@@ -15,7 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import BlurredView from "../BlurredView";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 const TabBar: React.FC<BottomTabBarProps> = ({
   state,

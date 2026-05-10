@@ -15,9 +15,9 @@ import FormSection from "@/src/components/settings/account/modify-profile/Page/F
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import StatusMessage from "@/src/components/StatusMessage";
 
-import { useThemeContext } from "@/context/ThemeContext";
-import { useScreen } from "@/context/ScreenContext";
-import useUserStore from "@/context/UserContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import useUserStore from "@/src/context/UserContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";

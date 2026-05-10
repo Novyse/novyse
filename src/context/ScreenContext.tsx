@@ -1,12 +1,29 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  ReactNode,
+} from "react";
 import { useWindowDimensions } from "react-native";
 
-export const ScreenContext = createContext();
+interface ScreenContextType {
+  isSmallScreen: boolean;
+  isMediumScreen: boolean;
+}
 
-export const ScreenProvider = ({ children }) => {
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const [isMediumScreen, setIsMediumScreen] = useState(false);
-  const { height, width } = useWindowDimensions();
+export const ScreenContext = createContext<ScreenContextType | undefined>(
+  undefined,
+);
+
+interface ScreenProviderProps {
+  children: ReactNode;
+}
+
+export const ScreenProvider = ({ children }: ScreenProviderProps) => {
+  const [isSmallScreen, setIsSmallScreen] = useState<boolean>(false);
+  const [isMediumScreen, setIsMediumScreen] = useState<boolean>(false);
+  const { width } = useWindowDimensions();
 
   const MOBILE_BREAKPOINT = 768;
   const TABLET_BREAKPOINT = 1024;

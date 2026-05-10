@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
 import { Animated, Easing, View, Pressable, ScrollView } from "react-native";
 import { defaultWaveform } from "@/src/utils/storage/file/media";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface SmoothWaveformProps {
   waveformData?: number[];

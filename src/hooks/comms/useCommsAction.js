@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useCommsContext } from "@/context/CommsContext";
+import { useCommsContext } from "@/src/context/CommsContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { connectToLiveKit } from "@/src/utils/comms/livekit";
 import { Room } from "livekit-client";

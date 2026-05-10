@@ -3,7 +3,7 @@ import { View, Image, StyleSheet, ImageStyle, StyleProp } from "react-native";
 
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 

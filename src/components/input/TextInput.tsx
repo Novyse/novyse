@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { View, TextInput as RNTextInput, StyleSheet } from "react-native";
 import AppText from "../AppText";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface TextInputProps {
   value?: string;

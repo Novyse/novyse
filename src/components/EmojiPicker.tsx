@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, Platform, View } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import EmojiSelector from "react-native-emoji-selector";
 import BlurredView from "@/src/components/BlurredView";
 

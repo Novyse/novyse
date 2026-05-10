@@ -3,7 +3,7 @@ import { View, StyleSheet, Image, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 
 import { LoginColors } from "@/constants/LoginColors";
 

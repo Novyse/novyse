@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { View, ActivityIndicator } from "react-native";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import DefaultButton from "./default";
 import DownloadButton from "./DownloadButton";

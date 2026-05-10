@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useContext } from "react";
 import { Animated, StyleSheet } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface RecordingDotProps {
   isRecording?: boolean;
@@ -60,6 +60,5 @@ const styles = (opacityAnim: Animated.Value, theme: any) =>
       opacity: opacityAnim as any,
     },
   });
-
 
 export default RecordingDot;

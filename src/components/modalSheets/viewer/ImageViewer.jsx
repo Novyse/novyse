@@ -17,7 +17,7 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import ModalBase from "../ModalBase";
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 import useDownload from "@/src/hooks/file/useDownload";
 import useShare from "@/src/hooks/chat/useShare";
 import PlatformType from "@/src/utils/device/type";

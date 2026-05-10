@@ -3,8 +3,8 @@ import { View, StyleSheet, Platform } from "react-native";
 import AppText from "@/src/components/AppText";
 import { createPortal } from "react-dom";
 
-import { useCommsContext } from "@/context/CommsContext";
-import { ThemeContext } from "@/context/ThemeContext";
+import { useCommsContext } from "@/src/context/CommsContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import useLayout from "@/src/hooks/comms/useLayout";

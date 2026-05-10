@@ -11,8 +11,8 @@ import { useTranslation } from "react-i18next";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useThemeContext } from "@/context/ThemeContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import Icon from "@/src/components/Icon";

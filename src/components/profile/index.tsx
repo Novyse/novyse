@@ -14,8 +14,8 @@ import Connections from "./Connections";
 import BirthdayLocation from "./BirthdayLocation";
 import QRCodeModal from "./QRCodeModal";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import { useScreen } from "@/context/ScreenContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { useScreen } from "@/src/context/ScreenContext";
 import SmartBackground from "../SmartBackground";
 import Icon from "@/src/components/Icon";
 

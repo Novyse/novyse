@@ -1,13 +1,13 @@
 import { useCallback, useContext } from "react";
 
-import { useActiveChatStore } from "@/context/ActiveChatContext";
-import useUserStore from "@/context/UserContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useUserStore from "@/src/context/UserContext";
 
-import queueManager from "@/src/utils/chat/queueManager.js";
+import queueManager from "@/src/utils/chat/queueManager";
 import gateway from "@/src/utils/backend-services/api-gateway";
-import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
+import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 
-import { defaultMimeType } from "@/src/utils/storage/file/type.js";
+import { defaultMimeType } from "@/src/utils/storage/file/type";
 
 const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
   const chatUUID = useActiveChatStore((state) => state.selectedChatUUID);

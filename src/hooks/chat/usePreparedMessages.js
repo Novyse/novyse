@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef } from "react";
 import { DateTime } from "luxon";
-import useUserStore from "@/context/UserContext";
+import useUserStore from "@/src/context/UserContext";
 import { useTranslation } from "react-i18next";
 
 const usePreparedMessages = (messages, chatType) => {

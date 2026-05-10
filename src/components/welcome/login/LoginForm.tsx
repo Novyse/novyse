@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
 import AppText from "@/src/components/AppText";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 import Icon from "@/src/components/Icon";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";

@@ -9,7 +9,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { useThemeContext } from "../../context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 
 import AppText from "@/src/components/AppText";
 

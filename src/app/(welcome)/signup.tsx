@@ -10,7 +10,7 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { LinearGradient } from "expo-linear-gradient";
 import AppText from "@/src/components/AppText";
 
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 import { LoginColors } from "@/constants/LoginColors";
 import { useSignup } from "@/src/hooks/welcome/useSignup";
 

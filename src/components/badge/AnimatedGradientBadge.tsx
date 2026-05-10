@@ -10,7 +10,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import BadgeContent from "./BadgeContent";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 const AnimatedGradientBadge = ({ badge }: any) => {
   const { name, icon, color } = badge;

@@ -5,13 +5,13 @@ import { tabNavigator } from "@/src/utils/navigation/tabRef";
 import { BRANCH } from "@/app.config";
 
 import { useSQLiteContext, SQLiteProvider } from "expo-sqlite";
-import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
+import { AudioPlayerProvider } from "@/src/context/AudioPlayerContext";
 
 import { ShareIntentProvider } from "expo-share-intent";
 
-import { CommsProvider } from "@/context/CommsContext";
-import useNetworkStore from "@/context/NetworkContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { CommsProvider } from "@/src/context/CommsContext";
+import useNetworkStore from "@/src/context/NetworkContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import { getPlatform } from "@/src/utils/device/type";
 

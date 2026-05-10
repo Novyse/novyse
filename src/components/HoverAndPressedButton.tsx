@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { Pressable, StyleSheet, ViewStyle } from "react-native";
-import { Theme, ThemeContext } from "@/context/ThemeContext";
+import { Theme, ThemeContext } from "@/src/context/ThemeContext";
 
 interface HoverAndPressedButtonProps {
   children: React.ReactNode;

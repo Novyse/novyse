@@ -9,10 +9,10 @@ import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 
 import messageUtils from "@/src/utils/chat/message";
 import notificationManager from "@/src/utils/notifications/manager";
-import useUserStore from "@/context/UserContext";
-import useChatStore from "@/context/ChatContext";
+import useUserStore from "@/src/context/UserContext";
+import useChatStore from "@/src/context/ChatContext";
 
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import { resetGlobalNavState } from "@/src/components/tabs/TabNavigator";
 import {
   ChatEventType,

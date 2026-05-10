@@ -1,8 +1,8 @@
 import { useCallback } from "react";
-import { useForwardStore } from "@/context/ForwardContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
-import useUserStore from "@/context/UserContext";
-import queueManager from "@/src/utils/chat/queueManager.js";
+import { useForwardStore } from "@/src/context/ForwardContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useUserStore from "@/src/context/UserContext";
+import queueManager from "@/src/utils/chat/queueManager";
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 import useDownload from "@/src/hooks/file/useDownload";
 

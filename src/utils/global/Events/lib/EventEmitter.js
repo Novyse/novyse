@@ -1,4 +1,3 @@
-// EventEmitter.js
 class EventEmitter {
   constructor() {
     this.listeners = {};
@@ -22,7 +21,7 @@ class EventEmitter {
     if (this.listeners[event]) {
       // Filter out the listener to be removed
       this.listeners[event] = this.listeners[event].filter(
-        (l) => l !== listener
+        (l) => l !== listener,
       );
 
       // If no listeners remain, delete the event key

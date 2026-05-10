@@ -3,7 +3,7 @@ import { Modal, StyleSheet, Pressable, ScrollView, View } from "react-native";
 import Icon from "../Icon";
 import BlurredView from "../BlurredView";
 
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 
 const ModalBase = ({
   visible,

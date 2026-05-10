@@ -3,7 +3,7 @@ import { StyleSheet, Platform } from "react-native";
 import AppText from "@/src/components/AppText";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 const URL_REGEX =
   /(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])(\S*)/g;

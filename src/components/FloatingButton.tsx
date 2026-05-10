@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import BlurredView from "./BlurredView";
 import HoverAndPressedButton from "./HoverAndPressedButton";

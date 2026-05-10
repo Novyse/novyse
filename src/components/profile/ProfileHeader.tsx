@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import Avatar from "@/src/components/Avatar";
 import Badges from "@/src/components/badge/Badges";

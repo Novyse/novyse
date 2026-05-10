@@ -9,7 +9,7 @@ import Avatar from "@/src/components/Avatar";
 import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
 interface JoinCreateChatProps {

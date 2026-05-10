@@ -7,9 +7,9 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
-import { ScreenProvider } from "@/context/ScreenContext";
-import { ThemeProvider, useThemeContext } from "@/context/ThemeContext";
-import { LanguageProvider } from "@/context/LanguageContext";
+import { ScreenProvider } from "@/src/context/ScreenContext";
+import { ThemeProvider, useThemeContext } from "@/src/context/ThemeContext";
+import { LanguageProvider } from "@/src/context/LanguageContext";
 import SplashScreen from "@/src/components/SplashScreen";
 import useAuthSession from "@/src/hooks/auth/useAuthSession";
 import notificationManager from "@/src/utils/notifications/manager";

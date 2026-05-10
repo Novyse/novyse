@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import CommsMembersLayout from "@/src/components/comms/CommsMembersLayout";
 import CommsBottomBar from "@/src/components/comms/BottomBar";

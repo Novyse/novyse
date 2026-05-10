@@ -2,10 +2,10 @@ import { io, Socket } from "socket.io-client";
 
 import { getAuthToken } from "./auth/token-manager";
 
-import eventEmitter from "../global/Events/EventEmitter.js";
-import eventReceiver from "./lib/event-receiver.js";
-import eventSender from "./lib/event-sender.js";
-import useNetworkStore from "@/context/NetworkContext";
+import eventEmitter from "../global/Events/EventEmitter";
+import eventReceiver from "./lib/event-receiver";
+import eventSender from "./lib/event-sender";
+import useNetworkStore from "@/src/context/NetworkContext";
 
 import { SOCKET_BASE_URL } from "../../../app.config";
 import { Platform } from "react-native";

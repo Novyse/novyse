@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 export default function Divider() {
   const { theme } = useContext(ThemeContext);

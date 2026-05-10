@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import DatePicker from "react-native-date-picker";
 import { DateTime } from "luxon";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface DateInputProps {
   value?: string;

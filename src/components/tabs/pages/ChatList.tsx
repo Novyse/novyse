@@ -20,14 +20,14 @@ import FloatingButton from "@/src/components/FloatingButton";
 import CreateChatModal from "@/src/components/modalSheets/createChat";
 import CommsHeader from "@/src/components/chat/content/header/CommsHeader";
 
-import useChatStore from "@/context/ChatContext";
+import useChatStore from "@/src/context/ChatContext";
 import useChatPin from "@/src/hooks/chat/useChatPin";
 import useSelection from "@/src/hooks/useSelection";
 import { useForward } from "@/src/hooks/chat/useForward";
-import { ThemeContext } from "@/context/ThemeContext";
-import { useScreen } from "@/context/ScreenContext";
-import { useCommsContext } from "@/context/CommsContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import { useCommsContext } from "@/src/context/CommsContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 

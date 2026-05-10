@@ -2,16 +2,16 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, useWindowDimensions, Animated } from "react-native";
 import { Slot, usePathname } from "expo-router";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 
 import TabNavigator from "@/src/components/tabs/TabNavigator";
 
-import { useScreen } from "@/context/ScreenContext";
-import useChatStore from "@/context/ChatContext";
-import useUserStore from "@/context/UserContext";
-import useWindowSizeStore from "@/context/WindowSizeContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
-import useNetworkStore from "@/context/NetworkContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import useChatStore from "@/src/context/ChatContext";
+import useUserStore from "@/src/context/UserContext";
+import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useNetworkStore from "@/src/context/NetworkContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 

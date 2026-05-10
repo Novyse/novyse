@@ -16,10 +16,10 @@ import Svg, { Circle } from "react-native-svg";
 import { scheduleOnRN } from "react-native-worklets";
 import * as Haptics from "expo-haptics";
 
-import { useThemeContext } from "@/context/ThemeContext";
-import { useScreen } from "@/context/ScreenContext";
-import useChatStore from "@/context/ChatContext";
-import useUserStore from "@/context/UserContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import useChatStore from "@/src/context/ChatContext";
+import useUserStore from "@/src/context/UserContext";
 import Icon from "../Icon";
 
 import useMessageGestures from "@/src/hooks/chat/useMessageGestures";

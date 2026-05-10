@@ -11,18 +11,18 @@ import AppText from "@/src/components/AppText";
 import { KeyboardStickyView } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers.js";
-import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers.js";
-import usePreparedMessages from "@/src/hooks/chat/usePreparedMessages.js";
+import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
+import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers";
+import usePreparedMessages from "@/src/hooks/chat/usePreparedMessages";
 import useClipboard from "@/src/hooks/useClipboard";
 import useDownload from "@/src/hooks/file/useDownload";
 import useActivityEmitter from "@/src/hooks/chat/useActivityEmitter";
 import { useForward } from "@/src/hooks/chat/useForward";
 
-import { useActiveChatStore } from "@/context/ActiveChatContext";
-import { ThemeContext } from "@/context/ThemeContext";
-import useUserStore from "@/context/UserContext";
-import useChatStore from "@/context/ChatContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
+import useChatStore from "@/src/context/ChatContext";
 
 import BottomBar from "@/src/components/chat/content/bottomBar";
 import MessageList from "@/src/components/chat/content/MessageList";
@@ -31,7 +31,7 @@ import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 import WebDropZone from "@/src/components/input/WebDropZone";
 
-import { validateFiles } from "@/src/utils/storage/file/validators.js";
+import { validateFiles } from "@/src/utils/storage/file/validators";
 
 const ChatContent = () => {
   const { theme } = useContext(ThemeContext);

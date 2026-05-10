@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, ViewStyle, TextStyle } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";

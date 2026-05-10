@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import AppText from "@/src/components/AppText";
-import { ThemeContext } from "@/context/ThemeContext";
-import useUserStore from "@/context/UserContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
 import BlurredView from "../BlurredView";
 
 import messageUtils from "@/src/utils/chat/messageFormat";

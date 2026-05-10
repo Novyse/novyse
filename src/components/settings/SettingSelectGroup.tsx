@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import SettingRow from "@/src/components/settings/SettingRow";
 import Icon from "@/src/components/Icon";
 

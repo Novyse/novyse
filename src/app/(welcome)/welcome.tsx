@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { View, StyleSheet, Image, ActivityIndicator } from "react-native";
 import AppText from "@/src/components/AppText";
 
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 
 import QRCode from "react-native-qrcode-svg";
 import { LinearGradient } from "expo-linear-gradient";

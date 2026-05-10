@@ -8,13 +8,13 @@ import Footer from "@/src/components/modalSheets/uploadFile/Footer";
 import StatusMessage from "@/src/components/StatusMessage";
 import WebDropZone from "@/src/components/input/WebDropZone";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import useUserStore from "@/context/UserContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
 
-import useUploadFile from "@/src/hooks/modal/useUploadFile.js";
-import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers.js";
+import useUploadFile from "@/src/hooks/modal/useUploadFile";
+import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers";
 
-import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
+import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import S3Uploader from "@/src/utils/storage/file/s3Bucket";
 import storage from "@/src/utils/storage/file";

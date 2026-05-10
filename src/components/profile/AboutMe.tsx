@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 import { LinearGradient } from "expo-linear-gradient";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface AboutMeProps {
   biography?: string;
@@ -16,7 +16,7 @@ export default function AboutMe({ biography }: AboutMeProps) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={theme.backgroundMainGradient}
+        colors={theme.backgroundMainGradient as [string, string]}
         style={styles.glassCard}
       >
         <View style={styles.content}>

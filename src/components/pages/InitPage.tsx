@@ -1,7 +1,7 @@
 import React from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 import StatusMessage from "@/src/components/StatusMessage";
 import { useTranslation } from "react-i18next";
 

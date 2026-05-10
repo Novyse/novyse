@@ -3,12 +3,12 @@ import { View, StyleSheet, Pressable } from "react-native";
 import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 
 import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import chatUtils from "@/src/utils/chat/messageFormat";
 

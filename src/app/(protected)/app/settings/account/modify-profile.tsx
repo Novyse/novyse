@@ -3,8 +3,8 @@ import { StyleSheet, View } from "react-native";
 import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import useUserStore from "@/context/UserContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
 
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import UploadProfilePicture from "@/src/components/modalSheets/UploadProfilePicture";

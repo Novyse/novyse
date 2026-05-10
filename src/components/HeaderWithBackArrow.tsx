@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import AppText from "@/src/components/AppText";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import Icon from "./Icon";
 import BlurredHeader from "./BlurredHeader";

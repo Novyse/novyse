@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import AppText from "@/src/components/AppText";
 
 import { countryList, regionList } from "@/constants/Location";

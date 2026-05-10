@@ -2,7 +2,7 @@ import { Platform, AppState } from "react-native";
 import mobile from "./lib/mobile";
 import web from "./lib/web";
 import firebase from "./lib/firebase";
-import { useActiveChatStore } from "../../../context/ActiveChatContext";
+import { useActiveChatStore } from "../../context/ActiveChatContext";
 
 class NotificationManager {
   constructor() {

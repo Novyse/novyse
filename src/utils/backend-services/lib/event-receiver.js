@@ -1,4 +1,4 @@
-import eventEmitter from "../../global/Events/EventEmitter.js";
+import eventEmitter from "../../global/Events/EventEmitter";
 
 let socket = null;
 let initialized = false;

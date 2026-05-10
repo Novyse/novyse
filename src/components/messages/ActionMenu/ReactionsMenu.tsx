@@ -3,7 +3,7 @@ import { StyleSheet, ScrollView, Platform } from "react-native";
 import AppText from "@/src/components/AppText";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 import BlurredView from "../../BlurredView";
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 
 interface ReactionMenuProps {
   onReaction: (emoji: string) => void;

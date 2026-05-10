@@ -1,5 +1,5 @@
 import React from "react";
-import useNetworkStore from "@/context/NetworkContext";
+import useNetworkStore from "@/src/context/NetworkContext";
 import StatusMessage from "@/src/components/StatusMessage";
 import { useTranslation } from "react-i18next";
 

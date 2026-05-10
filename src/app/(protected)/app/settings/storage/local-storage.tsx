@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/settings/SettingsCard";

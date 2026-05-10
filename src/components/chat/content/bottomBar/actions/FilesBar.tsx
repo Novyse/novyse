@@ -2,10 +2,10 @@ import React, { useContext } from "react";
 import { View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import {
   formatFileSize,
   calculateTotalSize,

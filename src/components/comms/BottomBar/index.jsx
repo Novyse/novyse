@@ -3,7 +3,7 @@ import { View, StyleSheet, ActivityIndicator } from "react-native";
 
 import { router } from "expo-router";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import CommsBottomBarButton from "@/src/components/comms/BottomBar/Button";
 import MicrophoneSelector from "@/src/components/comms/BottomBar/MicrophoneSelector";

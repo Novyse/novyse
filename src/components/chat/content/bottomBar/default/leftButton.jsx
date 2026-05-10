@@ -3,7 +3,7 @@ import { StyleSheet, Animated, Pressable } from "react-native";
 
 import BlurredView from "@/src/components/BlurredView";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
 const LeftButton = ({

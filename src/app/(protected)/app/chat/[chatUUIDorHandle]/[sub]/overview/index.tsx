@@ -3,8 +3,8 @@ import { DateTime } from "luxon";
 import { View, StyleSheet, TouchableOpacity, Pressable } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import useUserStore from "@/context/UserContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
 import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
@@ -13,7 +13,7 @@ import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import Avatar from "@/src/components/Avatar";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import useChatStore from "@/context/ChatContext";
+import useChatStore from "@/src/context/ChatContext";
 
 type GroupTab =
   | "members"
@@ -173,7 +173,6 @@ const ChatOverview = () => {
                 <Avatar
                   uuid={user.profilePictureUUID || undefined}
                   isOnline={user.status === "ONLINE"}
-                  theme={theme}
                   style={styles.memberAvatar}
                 />
               ) : (
@@ -270,7 +269,6 @@ const ChatOverview = () => {
           <View style={styles.profileSection}>
             <Avatar
               uuid={profilePictureUUID || undefined}
-              theme={theme}
               style={styles.profilePicture}
             />
             <AppText style={styles.membersLabel}>

@@ -5,7 +5,7 @@ import {
   ViewStyle,
   TextStyle,
 } from "react-native";
-import { Theme, ThemeContext } from "@/context/ThemeContext";
+import { Theme, ThemeContext } from "@/src/context/ThemeContext";
 import HoverAndPressedButton from "../HoverAndPressedButton";
 import AppText from "@/src/components/AppText";
 

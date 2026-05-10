@@ -9,7 +9,7 @@ import {
 import AppText from "../AppText";
 import { useTranslation } from "react-i18next";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface SelectInputProps {
   options: string[];

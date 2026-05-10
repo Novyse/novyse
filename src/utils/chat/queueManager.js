@@ -1,15 +1,15 @@
 import { v6 } from "uuid";
 
-import useNetworkStore from "@/context/NetworkContext";
+import useNetworkStore from "@/src/context/NetworkContext";
 
-import gateway from "@/src/utils/backend-services/api-gateway.js";
+import gateway from "@/src/utils/backend-services/api-gateway";
 import database from "@/src/utils/storage/database";
-import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
-import S3Uploader from "@/src/utils/storage/file/s3Bucket.js";
+import eventEmitter from "@/src/utils/global/Events/EventEmitter";
+import S3Uploader from "@/src/utils/storage/file/s3Bucket";
 import storage from "@/src/utils/storage/file";
 
-import { getFileType } from "@/src/utils/storage/file/type.js";
-import { getDuration, getWaveform } from "@/src/utils/storage/file/media.js";
+import { getFileType } from "@/src/utils/storage/file/type";
+import { getDuration, getWaveform } from "@/src/utils/storage/file/media";
 
 class QueueManager {
   constructor() {

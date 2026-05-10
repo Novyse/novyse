@@ -12,9 +12,9 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { formatTime } from "@/src/utils/storage/file/utils";
-import { ThemeContext } from "@/context/ThemeContext";
-import { AudioPlayerContext } from "@/context/AudioPlayerContext";
-import useUserStore from "@/context/UserContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
+import useUserStore from "@/src/context/UserContext";
 
 const AudioHeader = () => {
   const { theme } = useContext(ThemeContext);

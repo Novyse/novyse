@@ -9,9 +9,9 @@ import Animated, {
 
 import Icon from "@/src/components/Icon";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import { useCommsContext } from "@/context/CommsContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { useCommsContext } from "@/src/context/CommsContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 

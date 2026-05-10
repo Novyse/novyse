@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, ScrollView, Platform } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface SettingsPageScrollviewProps {

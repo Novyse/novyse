@@ -1,9 +1,9 @@
 import React, { useContext, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
-import { AudioPlayerContext } from "@/context/AudioPlayerContext";
+import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 import FileSizeProgress from "./FileSizeProgress";

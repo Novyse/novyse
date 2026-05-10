@@ -7,7 +7,7 @@ import Animated, {
   useAnimatedProps,
   withTiming,
 } from "react-native-reanimated";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 

@@ -1,44 +1,114 @@
-import { createContext, useState, useEffect, useContext, useRef } from "react";
-import { Track } from "livekit-client";
+import * as React from "react";
+import { Track, Room, Participant, TrackPublication } from "livekit-client";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
 
-export const CommsContext = createContext();
+interface CommsContextType {
+  room: Room | null;
+  setRoom: React.Dispatch<React.SetStateAction<Room | null>>;
+  connected: boolean;
+  checkRoomMatch: (chatUUID: string, sub: string | number) => boolean;
+  pinnedStreamUUID: string | null;
+  setPinnedStreamUUID: React.Dispatch<React.SetStateAction<string | null>>;
+  fullscreenStreamUUID: string | null;
+  setFullScreenStreamUUID: React.Dispatch<React.SetStateAction<string | null>>;
+  activeScreenShares: Record<string, any>;
+  setActiveScreenShares: React.Dispatch<
+    React.SetStateAction<Record<string, any>>
+  >;
+  facingMode: string;
+  setFacingMode: React.Dispatch<React.SetStateAction<string>>;
+  isAudioEnabled: boolean;
+  setIsAudioEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  isVideoEnabled: boolean;
+  setIsVideoEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  participants: Participant[];
+  setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;
+  isSpeakingMap: Map<string, boolean>;
+  streams: Record<string, MediaStream>;
+  setStreams: React.Dispatch<React.SetStateAction<Record<string, MediaStream>>>;
+  mutedStreams: Record<string, MediaStream>;
+  setMutedStreams: React.Dispatch<
+    React.SetStateAction<Record<string, MediaStream>>
+  >;
+  remoteVolumes: Record<string, number>;
+  setRemoteVolume: (
+    id: string,
+    dbValue: number,
+    shouldPersist?: boolean,
+  ) => Promise<void>;
+  localMuted: Record<string, boolean>;
+  toggleLocalMute: (id: string) => void;
+  triggeredStream: any;
+  setTriggeredStream: React.Dispatch<React.SetStateAction<any>>;
+  triggeredPosition: { x: number; y: number };
+  setTriggeredPosition: React.Dispatch<
+    React.SetStateAction<{ x: number; y: number }>
+  >;
+  reset: () => void;
+  error: string | null;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
+}
+
+export const CommsContext = React.createContext<CommsContextType | undefined>(
+  undefined,
+);
 
 const VOLUMES_MAX_SAVED = 2000;
 const VOLUMES_STORAGE_KEY = "novyse_comms_remote_volumes";
 
-export const CommsProvider = ({ children }) => {
-  const [connected, setConnected] = useState(false);
+interface CommsProviderProps {
+  children: React.ReactNode;
+}
 
-  const [room, setRoom] = useState(null);
-  const [participants, setParticipants] = useState([]);
+export const CommsProvider = ({ children }: CommsProviderProps) => {
+  const [connected, setConnected] = React.useState<boolean>(false);
 
-  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+  const [room, setRoom] = React.useState<Room | null>(null);
+  const [participants, setParticipants] = React.useState<Participant[]>([]);
 
-  const [isSpeakingMap, setIsSpeakingMap] = useState(new Map());
-  const audioElementsRef = useRef(new Map());
-  const [streams, setStreams] = useState({});
-  const [mutedStreams, setMutedStreams] = useState({});
+  const [isAudioEnabled, setIsAudioEnabled] = React.useState<boolean>(false);
+  const [isVideoEnabled, setIsVideoEnabled] = React.useState<boolean>(false);
 
-  const [pinnedStreamUUID, setPinnedStreamUUID] = useState(null);
-  const [fullscreenStreamUUID, setFullScreenStreamUUID] = useState(null);
-  const [activeScreenShares, setActiveScreenShares] = useState({});
+  const [isSpeakingMap, setIsSpeakingMap] = React.useState<
+    Map<string, boolean>
+  >(new Map());
+  const audioElementsRef = React.useRef<Map<string, any>>(new Map());
+  const [streams, setStreams] = React.useState<Record<string, MediaStream>>({});
+  const [mutedStreams, setMutedStreams] = React.useState<
+    Record<string, MediaStream>
+  >({});
 
-  const [triggeredStream, setTriggeredStream] = useState(null);
-  const [triggeredPosition, setTriggeredPosition] = useState({ x: 0, y: 0 });
+  const [pinnedStreamUUID, setPinnedStreamUUID] = React.useState<string | null>(
+    null,
+  );
+  const [fullscreenStreamUUID, setFullScreenStreamUUID] = React.useState<
+    string | null
+  >(null);
+  const [activeScreenShares, setActiveScreenShares] = React.useState<
+    Record<string, any>
+  >({});
 
-  const [remoteVolumes, setRemoteVolumes] = useState({});
-  const [localMuted, setLocalMuted] = useState({});
+  const [triggeredStream, setTriggeredStream] = React.useState<any>(null);
+  const [triggeredPosition, setTriggeredPosition] = React.useState<{
+    x: number;
+    y: number;
+  }>({ x: 0, y: 0 });
 
-  const [facingMode, setFacingMode] = useState("environment");
+  const [remoteVolumes, setRemoteVolumes] = React.useState<
+    Record<string, number>
+  >({});
+  const [localMuted, setLocalMuted] = React.useState<Record<string, boolean>>(
+    {},
+  );
 
-  const [error, setError] = useState(null);
+  const [facingMode, setFacingMode] = React.useState<string>("environment");
 
-  useEffect(() => {
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
     const loadVolumes = async () => {
       try {
         const saved = await AsyncStorage.getItem(VOLUMES_STORAGE_KEY);
@@ -53,11 +123,11 @@ export const CommsProvider = ({ children }) => {
     loadVolumes();
   }, [connected]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setConnected(!!room);
   }, [room]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!room) {
       setParticipants([]);
       return;
@@ -70,10 +140,10 @@ export const CommsProvider = ({ children }) => {
   }, [room]);
 
   // Room join/leave events
-  useEffect(() => {
+  React.useEffect(() => {
     if (!room) return;
 
-    const handleParticipantConnected = (participant) => {
+    const handleParticipantConnected = (participant: Participant) => {
       setParticipants((prev) => {
         // Avoid duplicates
         if (prev.find((p) => p.identity === participant.identity)) {
@@ -81,15 +151,18 @@ export const CommsProvider = ({ children }) => {
         }
         return [...prev, participant];
       });
-      SoundPlayer.getInstance().playSound("comms.join");
+      (SoundPlayer.getInstance() as any)?.playSound("comms.join");
     };
 
-    const handleParticipantDisconnected = (participant) => {
+    const handleParticipantDisconnected = (participant: Participant) => {
       setParticipants((prev) => prev.filter((p) => p !== participant));
-      SoundPlayer.getInstance().playSound("comms.leave");
+      (SoundPlayer.getInstance() as any)?.playSound("comms.leave");
     };
 
-    const handleParticipantMetadataChanged = (metadata, participant) => {
+    const handleParticipantMetadataChanged = (
+      metadata: string | undefined,
+      participant: Participant,
+    ) => {
       setParticipants((prev) =>
         prev.map((p) =>
           p.identity === participant.identity ? participant : p,
@@ -97,7 +170,10 @@ export const CommsProvider = ({ children }) => {
       );
     };
 
-    const handleParticipantNameChanged = (name, participant) => {
+    const handleParticipantNameChanged = (
+      name: string | undefined,
+      participant: Participant,
+    ) => {
       setParticipants((prev) =>
         prev.map((p) =>
           p.identity === participant.identity ? participant : p,
@@ -119,10 +195,13 @@ export const CommsProvider = ({ children }) => {
   }, [room, setParticipants]);
 
   // Room track events
-  useEffect(() => {
+  React.useEffect(() => {
     if (!room) return;
 
-    const handleTrackMuted = (publication, participant) => {
+    const handleTrackMuted = (
+      publication: TrackPublication,
+      participant: Participant,
+    ) => {
       if (publication.source === Track.Source.Camera) {
         setStreams((prev) => {
           const { [participant.identity]: stream, ...rest } = prev;
@@ -144,26 +223,35 @@ export const CommsProvider = ({ children }) => {
       }
     };
 
-    const handleTrackUnmuted = (publication, participant) => {
+    const handleTrackUnmuted = (
+      publication: TrackPublication,
+      participant: Participant,
+    ) => {
       if (publication.source === Track.Source.Camera) {
         setMutedStreams((prev) => {
           const { [participant.identity]: _, ...rest } = prev;
-          setStreams((prevStreams) => ({
-            ...prevStreams,
-            [participant.identity]: new MediaStream([
-              publication.track.mediaStreamTrack,
-            ]),
-          }));
+          if (publication.track) {
+            setStreams((prevStreams) => ({
+              ...prevStreams,
+              [participant.identity]: new MediaStream([
+                publication.track!.mediaStreamTrack,
+              ]),
+            }));
+          }
           return rest;
         });
       }
     };
 
-    const handleTrackSubscribed = (track, publication, participant) => {
+    const handleTrackSubscribed = (
+      track: Track,
+      publication: TrackPublication,
+      participant: Participant,
+    ) => {
       if (track.kind === "audio") {
         if (Platform.OS === "web") {
           const audioEl = document.createElement("audio");
-          audioEl.srcObject = track.mediaStream;
+          audioEl.srcObject = (track as any).mediaStream;
           audioEl.autoplay = true;
           audioEl.volume = 1;
           document.body.appendChild(audioEl);
@@ -178,19 +266,21 @@ export const CommsProvider = ({ children }) => {
         track.kind === "video" &&
         publication.source === Track.Source.Camera
       ) {
-        const videoStream = new MediaStream([track.mediaStreamTrack]);
+        const videoStream = new MediaStream([(track as any).mediaStreamTrack]);
         setStreams((prev) => ({
           ...prev,
           [participant.identity]: videoStream,
         }));
       } else if (publication.source === Track.Source.ScreenShare) {
-        const screenStream = new MediaStream([track.mediaStreamTrack]);
+        const screenStream = new MediaStream([(track as any).mediaStreamTrack]);
         setStreams((prev) => ({
           ...prev,
           [publication.trackSid]: screenStream,
         }));
         // play a sound when anyone starts screen share
-        SoundPlayer.getInstance().playSound("comms.screen_share.start");
+        (SoundPlayer.getInstance() as any)?.playSound(
+          "comms.screen_share.start",
+        );
       }
 
       // Add mute listeners
@@ -200,7 +290,11 @@ export const CommsProvider = ({ children }) => {
       );
     };
 
-    const handleTrackUnsubscribed = (track, publication, participant) => {
+    const handleTrackUnsubscribed = (
+      track: Track,
+      publication: TrackPublication,
+      participant: Participant,
+    ) => {
       if (track.kind === "audio") {
         if (Platform.OS === "web") {
           const audioEl = audioElementsRef.current.get(publication.trackSid);
@@ -229,7 +323,9 @@ export const CommsProvider = ({ children }) => {
           return rest;
         });
         // play sound when screen share stops
-        SoundPlayer.getInstance().playSound("comms.screen_share.stop");
+        (SoundPlayer.getInstance() as any)?.playSound(
+          "comms.screen_share.stop",
+        );
       }
       // Reset pin or fullscreen if the track is removed
       if (publication.source === Track.Source.Camera) {
@@ -249,10 +345,13 @@ export const CommsProvider = ({ children }) => {
       }
     };
 
-    const handleLocalTrackPublished = (publication, participant) => {
+    const handleLocalTrackPublished = (
+      publication: TrackPublication,
+      participant: Participant,
+    ) => {
       if (publication.source === Track.Source.Camera && publication.track) {
         const videoStream = new MediaStream([
-          publication.track.mediaStreamTrack,
+          (publication.track as any).mediaStreamTrack,
         ]);
         setStreams((prev) => ({
           ...prev,
@@ -263,14 +362,16 @@ export const CommsProvider = ({ children }) => {
         publication.track
       ) {
         const screenStream = new MediaStream([
-          publication.track.mediaStreamTrack,
+          (publication.track as any).mediaStreamTrack,
         ]);
         setStreams((prev) => ({
           ...prev,
           [publication.trackSid]: screenStream,
         }));
         // local user started screen share
-        SoundPlayer.getInstance().playSound("comms.screen_share.start");
+        (SoundPlayer.getInstance() as any)?.playSound(
+          "comms.screen_share.start",
+        );
       }
       // Add mute listeners
       publication.on("muted", () => handleTrackMuted(publication, participant));
@@ -279,7 +380,10 @@ export const CommsProvider = ({ children }) => {
       );
     };
 
-    const handleLocalTrackUnpublished = (publication, participant) => {
+    const handleLocalTrackUnpublished = (
+      publication: TrackPublication,
+      participant: Participant,
+    ) => {
       if (publication.source === Track.Source.Camera) {
         setStreams((prev) => {
           const { [participant.identity]: _, ...rest } = prev;
@@ -295,7 +399,9 @@ export const CommsProvider = ({ children }) => {
           return rest;
         });
         // local user stopped screen share
-        SoundPlayer.getInstance().playSound("comms.screen_share.stop");
+        (SoundPlayer.getInstance() as any)?.playSound(
+          "comms.screen_share.stop",
+        );
       }
     };
 
@@ -310,7 +416,7 @@ export const CommsProvider = ({ children }) => {
         if (publication.track) {
           if (publication.kind === "video") {
             const stream = new MediaStream([
-              publication.track.mediaStreamTrack,
+              (publication.track as any).mediaStreamTrack,
             ]);
             const key =
               publication.source === Track.Source.Camera
@@ -361,15 +467,15 @@ export const CommsProvider = ({ children }) => {
   ]);
 
   // Participant events
-  useEffect(() => {
+  React.useEffect(() => {
     if (!participants || !Array.isArray(participants)) return;
 
-    const listeners = new Map();
+    const listeners = new Map<string, (speaking: boolean) => void>();
 
     participants.forEach((participant) => {
       if (typeof participant.on !== "function") return;
 
-      const handleSpeakingChanged = (speaking) => {
+      const handleSpeakingChanged = (speaking: boolean) => {
         setIsSpeakingMap((prev) =>
           new Map(prev).set(participant.identity, speaking),
         );
@@ -396,9 +502,9 @@ export const CommsProvider = ({ children }) => {
     };
   }, [participants]);
 
-  const checkRoomMatch = (chatUUID, sub) => {
+  const checkRoomMatch = (chatUUID: string, sub: string | number) => {
     if (!room) return false;
-    const currentRoomName = room.roomInfo.name;
+    const currentRoomName = (room as any).roomInfo?.name;
     return `${chatUUID}_${sub}` === currentRoomName;
   };
 
@@ -420,13 +526,11 @@ export const CommsProvider = ({ children }) => {
     setError(null);
   };
 
-  /**
-   * Sets the local volume for a specific stream/participant in dB.
-   * @param {string} id - The streamUUID or deviceUUID.
-   * @param {number} dbValue - Volume level in dB (e.g. -30 to 30).
-   * @param {boolean} shouldPersist - Whether to save to local storage.
-   */
-  const setRemoteVolume = async (id, dbValue, shouldPersist = true) => {
+  const setRemoteVolume = async (
+    id: string,
+    dbValue: number,
+    shouldPersist = true,
+  ) => {
     setRemoteVolumes((prev) => {
       let updated = {
         ...prev,
@@ -448,11 +552,7 @@ export const CommsProvider = ({ children }) => {
     });
   };
 
-  /**
-   * Toggles local mute for a specific stream/participant.
-   * @param {string} id - The participant identity or trackSid of screenshare.
-   */
-  const toggleLocalMute = (id) => {
+  const toggleLocalMute = (id: string) => {
     setLocalMuted((prev) => {
       const newState = !prev[id];
       return {
@@ -462,22 +562,13 @@ export const CommsProvider = ({ children }) => {
     });
   };
 
-  /**
-   * Utility to convert dB to linear gain (0.0 to 1.0).
-   * Note: Web-standard formula. 1.0 is the baseline (0dB).
-   */
-  const dbToLinear = (db) => {
+  const dbToLinear = (db: number) => {
     if (db <= -30) return 0;
-    // Standard formula: 10^(dB/20)
-    // 0dB = 1.0, -20dB = 0.1, -30dB = 0.03
     const linear = Math.pow(10, db / 20);
     return Math.min(1.0, linear);
   };
 
-  /**
-   * Effect to apply remote volumes whenever they change using native LiveKit track.setVolume()
-   */
-  useEffect(() => {
+  React.useEffect(() => {
     if (!room) {
       return;
     }
@@ -492,8 +583,11 @@ export const CommsProvider = ({ children }) => {
         const targetVolume = isMuted ? 0 : dbToLinear(db);
 
         // Native LiveKit volume control
-        if (micPub.track && typeof micPub.track.setVolume === "function") {
-          micPub.track.setVolume(targetVolume);
+        if (
+          micPub.track &&
+          typeof (micPub.track as any).setVolume === "function"
+        ) {
+          (micPub.track as any).setVolume(targetVolume);
         }
 
         // Web Audio element synchronization
@@ -524,13 +618,13 @@ export const CommsProvider = ({ children }) => {
 
         if (
           screenAudioPub.track &&
-          typeof screenAudioPub.track.setVolume === "function"
+          typeof (screenAudioPub.track as any).setVolume === "function"
         ) {
-          screenAudioPub.track.setVolume(targetVolume);
+          (screenAudioPub.track as any).setVolume(targetVolume);
         }
-
         // Web Audio element synchronization
-        if (Platform.OS === "web") {
+
+        if (Platform.OS === "web" && screenAudioPub.trackSid) {
           const audioEl = audioElementsRef.current.get(screenAudioPub.trackSid);
           if (audioEl && audioEl.volume !== targetVolume) {
             audioEl.volume = targetVolume;
@@ -540,7 +634,7 @@ export const CommsProvider = ({ children }) => {
     });
   }, [remoteVolumes, localMuted, room]);
 
-  const value = {
+  const value: CommsContextType = {
     room,
     setRoom,
     connected,
@@ -583,7 +677,7 @@ export const CommsProvider = ({ children }) => {
 };
 
 export const useCommsContext = () => {
-  const context = useContext(CommsContext);
+  const context = React.useContext(CommsContext);
   if (!context) {
     throw new Error("useCommsContext must be used within a CommsProvider");
   }

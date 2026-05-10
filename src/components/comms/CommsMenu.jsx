@@ -2,8 +2,8 @@ import React from "react";
 import { View, Pressable, StyleSheet, Dimensions, Modal } from "react-native";
 import AppText from "@/src/components/AppText";
 
-import { useThemeContext } from "@/context/ThemeContext";
-import { useCommsContext } from "@/context/CommsContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
+import { useCommsContext } from "@/src/context/CommsContext";
 import HoverAndPressedButton from "../HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import BlurredView from "../BlurredView";

@@ -4,7 +4,7 @@ import { Platform } from "react-native";
 
 import { Room } from "livekit-client";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 
 import ModalBase from "../../modalSheets/ModalBase";
 import Icon from "@/src/components/Icon";

@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import AppText from "@/src/components/AppText";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";

@@ -10,7 +10,7 @@ import Animated, {
 import HoverAndPressedButton from "./HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import AppText from "./AppText";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 type StatusMessageType = "success" | "error" | "warning" | "info";
 

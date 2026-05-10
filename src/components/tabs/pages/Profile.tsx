@@ -1,6 +1,6 @@
 import React from "react";
 
-import useUserStore from "@/context/UserContext";
+import useUserStore from "@/src/context/UserContext";
 
 import Profile from "@/src/components/profile";
 

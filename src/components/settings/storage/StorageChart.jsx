@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Animated } from "react-native";
 import AppText from "@/src/components/AppText";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "../../Icon";
 
 const StorageBreakdownChart = () => {

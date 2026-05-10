@@ -4,7 +4,7 @@ import AppText from "@/src/components/AppText";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
 interface Connection {

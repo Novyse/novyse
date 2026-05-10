@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import SettingsMenuItem from "@/src/components/settings/SettingsMenuItem";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";

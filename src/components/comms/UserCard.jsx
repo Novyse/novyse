@@ -2,9 +2,9 @@ import React, { memo, useMemo, useEffect, useRef, useContext } from "react";
 import { View, StyleSheet, Platform, Pressable } from "react-native";
 
 import { getPlatform } from "@/src/utils/device/type";
-import { useCommsContext } from "@/context/CommsContext";
+import { useCommsContext } from "@/src/context/CommsContext";
 import { useTranslation } from "react-i18next";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import UserProfileAvatar from "./UserProfileAvatar";
 import BlurredView from "../BlurredView";

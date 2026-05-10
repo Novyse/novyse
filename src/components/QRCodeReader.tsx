@@ -9,7 +9,7 @@ import {
 
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface QRCodeReaderProps {
   onCodeScanned: (data: string) => void;

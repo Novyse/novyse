@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from "react";
 import { StatusBar } from "react-native";
 
-import { useScreen } from "@/context/ScreenContext";
-import { useCommsContext } from "@/context/CommsContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import { useCommsContext } from "@/src/context/CommsContext";
 
 import { Track } from "livekit-client";
 import Platform from "@/src/utils/device/type";

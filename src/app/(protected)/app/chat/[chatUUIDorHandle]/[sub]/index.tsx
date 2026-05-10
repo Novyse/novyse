@@ -13,10 +13,10 @@ import ChatContent from "@/src/components/chat/content/Chat";
 import Header from "@/src/components/chat/content/header";
 import VocalContent from "@/src/components/comms/container";
 
-import { useScreen } from "@/context/ScreenContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
-import { ThemeContext } from "@/context/ThemeContext";
-import useWindowSizeStore from "@/context/WindowSizeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useWindowSizeStore from "@/src/context/WindowSizeContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";

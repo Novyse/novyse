@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import AppText from "./AppText";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "./Icon";
 import useClipboard from "@/src/hooks/useClipboard";
 

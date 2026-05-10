@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useCommsContext } from "@/context/CommsContext";
+import { useCommsContext } from "@/src/context/CommsContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
-import useChatStore from "@/context/ChatContext";
+import useChatStore from "@/src/context/ChatContext";
 
 const useCommsData = (chatUUID, sub) => {
   const {

@@ -1,6 +1,6 @@
 import React, { useContext, ReactNode } from "react";
 import { StyleSheet, ViewStyle, StyleProp, View } from "react-native";
-import { ThemeContext, Theme } from "@/context/ThemeContext";
+import { ThemeContext, Theme } from "@/src/context/ThemeContext";
 
 interface BlurredViewProps {
   children: ReactNode;

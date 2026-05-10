@@ -9,7 +9,7 @@ import {
   Pressable,
 } from "react-native";
 import AppText from "./AppText";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 const AnimatedAppText = Animated.createAnimatedComponent(AppText);
 

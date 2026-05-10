@@ -25,7 +25,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { getPlatform } from "@/src/utils/device/type";
 import ModalBase from "../ModalBase";
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 import useDownload from "@/src/hooks/file/useDownload";
 import useShare from "@/src/hooks/chat/useShare";
 

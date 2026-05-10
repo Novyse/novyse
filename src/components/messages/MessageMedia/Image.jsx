@@ -1,7 +1,7 @@
 import React, { useContext, useState, useCallback, useEffect } from "react";
 import { StyleSheet, Pressable, View } from "react-native";
 import { Image as ExpoImage } from "expo-image";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import FileButton from "@/src/components/messages/Button";
 import ImageViewer from "@/src/components/modalSheets/viewer/ImageViewer";

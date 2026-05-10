@@ -6,7 +6,7 @@ import Animated, {
   withSpring,
   interpolate,
 } from "react-native-reanimated";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface Bar {
   id: number;

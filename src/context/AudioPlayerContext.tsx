@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from "react";
+import * as React from "react";
 import {
   useAudioPlayer as useAudioPlayerExpo,
   useAudioPlayerStatus,
@@ -6,21 +6,56 @@ import {
 } from "expo-audio";
 import useUserStore from "./UserContext";
 
-export const AudioPlayerContext = createContext();
+interface AudioInfo {
+  chatUUID?: string;
+  messageID?: string;
+  senderUUID?: string;
+  profilePictureUri?: string;
+  timestamp?: string | number;
+}
+
+interface AudioPlayerContextType {
+  isPlaying: boolean;
+  playbackRate: number;
+  currentTime: number;
+  duration: number;
+  didJustFinish: boolean;
+  currentUri: string | null;
+  audioInfo: AudioInfo;
+  addInfo: (
+    chatUUID: string,
+    messageID: string,
+    senderUUID: string,
+    profilePictureUri: string,
+    timestamp: string | number,
+  ) => void;
+  handlePlayPause: (uri?: string | null) => void;
+  handleSeek: (value: number) => void;
+  handleChangePlaybackRate: (playBackRateToSet?: number | null) => void;
+  removeAudio: () => void;
+}
+
+export const AudioPlayerContext = React.createContext<
+  AudioPlayerContextType | undefined
+>(undefined);
 
 const speeds = [1, 1.5, 2, 0.5];
 
-export const AudioPlayerProvider = ({ children }) => {
-  const getUser = useUserStore((state) => state.getUser);
-  const [currentUri, setCurrentUri] = useState(null);
+interface AudioPlayerProviderProps {
+  children: React.ReactNode;
+}
 
-  const [audioInfo, setAudioInfo] = useState({});
-  const [playbackRate, setPlaybackRate] = useState(1);
+export const AudioPlayerProvider = ({ children }: AudioPlayerProviderProps) => {
+  const getUser = useUserStore((state) => state.getUser);
+  const [currentUri, setCurrentUri] = React.useState<string | null>(null);
+
+  const [audioInfo, setAudioInfo] = React.useState<AudioInfo>({});
+  const [playbackRate, setPlaybackRate] = React.useState<number>(1);
 
   const player = useAudioPlayerExpo(null);
   const status = useAudioPlayerStatus(player);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const configureAudioSession = async () => {
       try {
         await AudioModule.setAudioModeAsync({
@@ -29,16 +64,16 @@ export const AudioPlayerProvider = ({ children }) => {
           interruptionModeIOS: "doNotMix",
           interruptionModeAndroid: "doNotMix",
           shouldDuckAndroid: true,
-        });
+        } as any);
       } catch (error) {
         console.error("Error in audio sessionconfiguration:", error);
       }
     };
 
     configureAudioSession();
-  });
+  }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (status.didJustFinish) {
       player.setActiveForLockScreen(false);
       setCurrentUri(null);
@@ -46,11 +81,11 @@ export const AudioPlayerProvider = ({ children }) => {
   }, [status.didJustFinish]);
 
   const addInfo = (
-    chatUUID,
-    messageID,
-    senderUUID,
-    profilePictureUri,
-    timestamp,
+    chatUUID: string,
+    messageID: string,
+    senderUUID: string,
+    profilePictureUri: string,
+    timestamp: string | number,
   ) => {
     setAudioInfo({
       chatUUID,
@@ -61,7 +96,7 @@ export const AudioPlayerProvider = ({ children }) => {
     });
   };
 
-  const handlePlayPause = (uri = null) => {
+  const handlePlayPause = (uri: string | null = null) => {
     if (player.playing && currentUri === uri) {
       handlePause();
     } else {
@@ -69,7 +104,7 @@ export const AudioPlayerProvider = ({ children }) => {
     }
   };
 
-  const handlePlay = (uri) => {
+  const handlePlay = (uri: string | null) => {
     if (!uri) return;
     if (currentUri !== uri) {
       setCurrentUri(uri);
@@ -79,7 +114,7 @@ export const AudioPlayerProvider = ({ children }) => {
       player.play();
       setPlaybackRate(player.playbackRate);
 
-      const user = getUser(audioInfo.senderUUID);
+      const user = getUser(audioInfo.senderUUID || "");
       const displayName = user ? user.name : "Unknown User";
 
       player.setActiveForLockScreen(true, {
@@ -97,15 +132,19 @@ export const AudioPlayerProvider = ({ children }) => {
     player.pause();
   };
 
-  const handleSeek = (value) => {
+  const handleSeek = (value: number) => {
     if (status.duration > 0) {
       player.seekTo(value);
     }
   };
-
-  const handleChangePlaybackRate = (playBackRateToSet = null) => {
-    // for future menu implementation (where you can choose a specific speed without cycling)
-    if (typeof playBackRateToSet === "number" && Number.isFinite(playBackRateToSet)) {
+  // for future menu implementation (where you can choose a specific speed without cycling)
+  const handleChangePlaybackRate = (
+    playBackRateToSet: number | null = null,
+  ) => {
+    if (
+      typeof playBackRateToSet === "number" &&
+      Number.isFinite(playBackRateToSet)
+    ) {
       player.setPlaybackRate(playBackRateToSet);
       setPlaybackRate(player.playbackRate);
       return;
@@ -129,7 +168,7 @@ export const AudioPlayerProvider = ({ children }) => {
     setCurrentUri(null);
   };
 
-  const value = {
+  const value: AudioPlayerContextType = {
     isPlaying: player.playing,
     playbackRate,
     currentTime: status.currentTime,
@@ -149,4 +188,14 @@ export const AudioPlayerProvider = ({ children }) => {
       {children}
     </AudioPlayerContext.Provider>
   );
+};
+
+export const useAudioPlayer = () => {
+  const context = React.useContext(AudioPlayerContext);
+  if (!context) {
+    throw new Error(
+      "useAudioPlayer must be used within an AudioPlayerProvider",
+    );
+  }
+  return context;
 };
