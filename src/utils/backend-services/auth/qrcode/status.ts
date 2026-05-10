@@ -12,6 +12,7 @@ export async function getQRCodeStatus(token: string) {
       headers: {
         "x-platform": InternalPlatform,
       },
+      withCredentials: true,
     });
 
     return { success: true, data: response.data };
