@@ -288,7 +288,8 @@
     },
     "qrScanner": {
       "invalidCode": "QR Code non valido o già scansionato.",
-      "loginSuccess": "L'accesso verrà eseguito a breve, attendi qualche istante..."
+      "loginSuccess": "L'accesso verrà eseguito a breve, attendi qualche istante...",
+      "scanError": "Impossibile gestire la scansione del codice QR."
     },
     "shortcuts": {
       "muteUnmute": "Silenzia / Non silenziare"

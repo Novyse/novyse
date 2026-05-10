@@ -8,15 +8,12 @@ import { useScreen } from "@/src/context/ScreenContext";
 import Icon from "@/src/components/Icon";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
-import MyStatusBar from "@/src/components/MyStatusBar";
 import StatusMessage from "@/src/components/StatusMessage";
 import { router } from "expo-router";
 
-import logoNovyse from "@/assets/images/logo-novyse.png";
 import TextLink from "../../TextLink";
 import TurnstileCaptcha from "../../auth/TurnstileCaptcha";
 import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
-import { validate } from "@/src/utils/welcome/validator";
 
 interface LoginFormProps {
   onLogin: (username: string, password: string, captchaToken: string) => void;
@@ -75,7 +72,6 @@ const LoginForm = ({
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <MyStatusBar />
 
       <View style={styles.card}>
         <View style={styles.cardContent}>

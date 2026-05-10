@@ -9,7 +9,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 
-import MyStatusBar from "@/src/components/MyStatusBar";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 
@@ -57,7 +56,6 @@ const Welcome = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <MyStatusBar />
 
       {/* Glass Card */}
       <View style={styles.card}>

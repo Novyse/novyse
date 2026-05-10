@@ -289,7 +289,8 @@
     },
     "qrScanner": {
       "invalidCode": "Invalid QR Code or already scanned.",
-      "loginSuccess": "Login will be completed shortly, please wait..."
+      "loginSuccess": "Login will be completed shortly, please wait...",
+      "scanError": "Unable to handle QR code scan."
     },
     "shortcuts": {
       "muteUnmute": "Mute / Unmute"
