@@ -380,7 +380,9 @@ export class MessageRepository {
         );
       }
       if (allMessageFiles.length > 0) {
-        const mfPlaceholders = allMessageFiles.map(() => `(?, ?, ?)`).join(", ");
+        const mfPlaceholders = allMessageFiles
+          .map(() => `(?, ?, ?)`)
+          .join(", ");
         const mfValues: any[] = [];
         for (const mf of allMessageFiles) {
           mfValues.push(mf.chatUUID, mf.messageID, mf.fileUUID);
@@ -410,24 +412,7 @@ export class MessageRepository {
           if (!message) {
             return null;
           }
-          const replyTosRaw: any[] = await this.db.getAllAsync(
-            `SELECT * FROM message_reply WHERE chatUUID = ? AND messageID = ?;`,
-            [chatUUID, message.id],
-          );
-          message.replyTos = replyTosRaw.map((r: any) => ({
-            chatUUID: r.replyTo_chatUUID,
-            messageID: r.replyTo_messageID,
-            rangeStart: r.replyTo_rangeStart,
-            rangeEnd: r.replyTo_rangeEnd,
-          }));
-
-          const files: any[] = await this.db.getAllAsync(
-            `SELECT f.* FROM file f
-         JOIN message_files mf ON f.uuid = mf.fileUUID
-         WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
-            [chatUUID, message.id],
-          );
-          message.files = files;
+          await this._addInfos(message);
           return message || null;
         } catch (error) {
           console.error("Error retrieving message:", error);
