@@ -15,8 +15,6 @@ interface ThemeContextType {
   setColorTheme: (theme: string) => void;
   theme: Theme;
   resolvedMode: "light" | "dark";
-  // Deprecated: for backward compatibility
-  colorScheme: string;
   setColorScheme: (scheme: string) => void;
 }
 
@@ -28,7 +26,6 @@ export const ThemeContext = createContext<ThemeContextType>({
   setColorTheme: () => {},
   theme: Colors.default,
   resolvedMode: "dark",
-  colorScheme: "default",
   setColorScheme: () => {},
 });
 
@@ -67,10 +64,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     AsyncStorage.setItem("colorTheme", colorTheme);
   }, [appearanceMode, colorTheme]);
 
-  // Logica di risoluzione del tema
-  // Per ora manteniamo la logica semplice: se il tema è 'default', 'light' o 'dark', 
-  // seguiamo la modalità. Se è uno specifico (es. amoled), forziamo il dark.
-  
+  // Logica di risoluzione del tema  
   const getResolvedMode = (): "light" | "dark" => {
     const themeConfig = ThemeRegistry[colorTheme];
     
@@ -103,8 +97,6 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
         setColorTheme,
         theme,
         resolvedMode,
-        // Backward compatibility
-        colorScheme: colorTheme,
         setColorScheme: setColorTheme,
       }}
     >

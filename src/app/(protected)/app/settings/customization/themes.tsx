@@ -35,9 +35,9 @@ export default function ThemesRoute() {
           <Section titleKey="settings.modifyProfile.appearance">
             <SettingSelectGroup
               options={[
-                { value: "system", labelKey: "settings.themeOptions.system", iconName: "settings" },
-                { value: "light", labelKey: "settings.themeOptions.light", iconName: "sunny" },
-                { value: "dark", labelKey: "settings.themeOptions.dark", iconName: "moon" },
+                { value: "system", labelKey: "settings.themeOptions.system", iconName: "Settings01Icon" },
+                { value: "light", labelKey: "settings.themeOptions.light", iconName: "Sun03Icon" },
+                { value: "dark", labelKey: "settings.themeOptions.dark", iconName: "Moon02Icon" },
               ]}
               value={appearanceMode}
               onChange={setAppearanceMode}
