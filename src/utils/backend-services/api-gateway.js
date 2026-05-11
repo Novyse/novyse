@@ -29,7 +29,9 @@ api.interceptors.request.use(async (request) => {
   const { isSynced, isConnected } = useNetworkStore.getState();
 
   const isSyncOrAuthRequest =
-    request.url === "/user/update" || request.url === "/user/initialize";
+    request.url === "/user/update" ||
+    request.url === "/user/initialize" ||
+    request.skipAuth;
 
   if (!isSyncOrAuthRequest) {
     if (!isConnected) {
