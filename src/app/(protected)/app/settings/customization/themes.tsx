@@ -3,30 +3,48 @@ import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import { Colors } from "@/constants/Colors";
+import { Colors, ThemeRegistry } from "@/constants/Colors";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import Section from "@/src/components/settings/Section";
 import SettingSelectGroup from "@/src/components/settings/SettingSelectGroup";
 
 export default function ThemesRoute() {
   const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
-  const { setColorScheme, theme, colorScheme } = useContext(ThemeContext);
+  const { setColorTheme, theme, colorTheme, appearanceMode, setAppearanceMode } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  // Ottieni la lista dei temi disponibili
-  const availableThemes = Object.keys(Colors);
+  // Ottieni la configurazione del tema attuale
+  const themeConfig = ThemeRegistry[colorTheme];
+  const supportsMultipleModes = themeConfig ? themeConfig.modes.length > 1 : true;
+
+  // Ottieni la lista dei temi disponibili dal Registry
+  const availableThemes = Object.keys(ThemeRegistry);
 
   // Se nessun tema è selezionato, seleziona "default"
   useEffect(() => {
-    if (!colorScheme || !availableThemes.includes(colorScheme)) {
-      setColorScheme("default");
+    if (!colorTheme || !ThemeRegistry[colorTheme]) {
+      setColorTheme("default");
     }
-  }, [colorScheme, setColorScheme]);
+  }, [colorTheme, setColorTheme]);
 
   return (
     <>
       <HeaderWithBackArrow translationKey="settings.customization.themes" onBack={onBack} />
       <SettingsPageScrollview>
+        {supportsMultipleModes && (
+          <Section titleKey="settings.modifyProfile.appearance">
+            <SettingSelectGroup
+              options={[
+                { value: "system", labelKey: "settings.themeOptions.system", iconName: "settings" },
+                { value: "light", labelKey: "settings.themeOptions.light", iconName: "sunny" },
+                { value: "dark", labelKey: "settings.themeOptions.dark", iconName: "moon" },
+              ]}
+              value={appearanceMode}
+              onChange={setAppearanceMode}
+            />
+          </Section>
+        )}
+
         <Section titleKey="settings.customization.themesSubtitle">
           <SettingSelectGroup
             options={availableThemes.map((themeName) => ({
@@ -38,15 +56,19 @@ export default function ThemesRoute() {
                     style={[
                       styles.themePreview,
                       {
-                        backgroundColor: (Colors as any)[themeName]?.primary,
+                        backgroundColor: (Colors as any)[
+                          ThemeRegistry[themeName]?.colors.light ||
+                            ThemeRegistry[themeName]?.colors.dark ||
+                            "default"
+                        ]?.primary,
                       },
                     ]}
                   />
                 </View>
               ),
             }))}
-            value={colorScheme}
-            onChange={setColorScheme}
+            value={colorTheme}
+            onChange={setColorTheme}
           />
         </Section>
       </SettingsPageScrollview>

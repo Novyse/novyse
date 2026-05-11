@@ -248,3 +248,37 @@ export const Colors = {
     settingsPressedButton: "#2a68dc",
   },
 };
+
+export const ThemeRegistry: Record<
+  string,
+  { modes: ("light" | "dark")[]; colors: { light?: string; dark?: string } }
+> = {
+  classic: {
+    modes: ["light", "dark"],
+    colors: { light: "light", dark: "dark" },
+  },
+  default: {
+    modes: ["dark"],
+    colors: { dark: "default" },
+  },
+  light: {
+    modes: ["light"],
+    colors: { light: "light" },
+  },
+  dark: {
+    modes: ["dark"],
+    colors: { dark: "dark" },
+  },
+  amoled: {
+    modes: ["dark"],
+    colors: { dark: "amoled" },
+  },
+  "Amoled Extreme": {
+    modes: ["dark"],
+    colors: { dark: "Amoled Extreme" },
+  },
+  unifi: {
+    modes: ["dark"],
+    colors: { dark: "unifi" },
+  },
+};

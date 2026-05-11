@@ -1,68 +1,111 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Colors } from "@/constants/Colors";
+import { Colors, ThemeRegistry } from "@/constants/Colors";
 
 // Define the shape of a single theme
 export type Theme = typeof Colors.default;
 
+export type AppearanceMode = "light" | "dark" | "system";
+
 // Define the shape of the context value
 interface ThemeContextType {
+  appearanceMode: AppearanceMode;
+  setAppearanceMode: (mode: AppearanceMode) => void;
+  colorTheme: string;
+  setColorTheme: (theme: string) => void;
+  theme: Theme;
+  resolvedMode: "light" | "dark";
+  // Deprecated: for backward compatibility
   colorScheme: string;
   setColorScheme: (scheme: string) => void;
-  theme: Theme;
 }
 
 // Initial default value for the context
 export const ThemeContext = createContext<ThemeContextType>({
+  appearanceMode: "system",
+  setAppearanceMode: () => {},
+  colorTheme: "default",
+  setColorTheme: () => {},
+  theme: Colors.default,
+  resolvedMode: "dark",
   colorScheme: "default",
   setColorScheme: () => {},
-  theme: Colors.default,
 });
 
 interface ThemeProviderProps {
   children: ReactNode;
 }
 
-export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  const [colorScheme, setColorScheme] = useState<string>("default");
+import { useColorScheme } from "react-native";
 
-  // Carica il tema salvato all'avvio
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
+  const systemColorScheme = useColorScheme();
+  const [appearanceMode, setAppearanceMode] = useState<AppearanceMode>("system");
+  const [colorTheme, setColorTheme] = useState<string>("default");
+
+  // Carica le preferenze all'avvio
   useEffect(() => {
-    const loadTheme = async () => {
+    const loadSettings = async () => {
       try {
-        const savedTheme = await AsyncStorage.getItem("userTheme");
-        if (savedTheme) {
-          setColorScheme(savedTheme);
-        }
+        const [savedAppearance, savedTheme] = await Promise.all([
+          AsyncStorage.getItem("appearanceMode"),
+          AsyncStorage.getItem("colorTheme"),
+        ]);
+        
+        if (savedAppearance) setAppearanceMode(savedAppearance as AppearanceMode);
+        if (savedTheme) setColorTheme(savedTheme);
       } catch (error) {
         console.error("Errore nel caricamento del tema:", error);
       }
     };
-    loadTheme();
+    loadSettings();
   }, []);
 
-  // Salva il tema ogni volta che cambia
+  // Salva le preferenze quando cambiano
   useEffect(() => {
-    const saveTheme = async () => {
-      try {
-        await AsyncStorage.setItem("userTheme", colorScheme);
-      } catch (error) {
-        console.error("Errore nel salvataggio del tema:", error);
-      }
-    };
-    saveTheme();
-  }, [colorScheme]);
+    AsyncStorage.setItem("appearanceMode", appearanceMode);
+    AsyncStorage.setItem("colorTheme", colorTheme);
+  }, [appearanceMode, colorTheme]);
 
-  // Usa il colorScheme come chiave per accedere al tema corrispondente
-  // @ts-ignore - colorScheme is a string, but Colors has specific keys
-  const theme = Colors[colorScheme] || Colors.default;
+  // Logica di risoluzione del tema
+  // Per ora manteniamo la logica semplice: se il tema è 'default', 'light' o 'dark', 
+  // seguiamo la modalità. Se è uno specifico (es. amoled), forziamo il dark.
+  
+  const getResolvedMode = (): "light" | "dark" => {
+    const themeConfig = ThemeRegistry[colorTheme];
+    
+    // Se il tema supporta solo una modalità, usiamo quella
+    if (themeConfig && themeConfig.modes.length === 1) {
+      return themeConfig.modes[0];
+    }
+    
+    // Se il tema supporta entrambe o non è definito, seguiamo la preferenza
+    if (appearanceMode === "system") {
+      return systemColorScheme || "dark";
+    }
+    return appearanceMode;
+  };
+
+  const resolvedMode = getResolvedMode();
+  
+  // Mapping dei colori in base al tema e alla modalità risolta
+  const themeKey = ThemeRegistry[colorTheme]?.colors[resolvedMode] || colorTheme;
+  
+  // @ts-ignore
+  const theme = Colors[themeKey] || Colors.default;
 
   return (
     <ThemeContext.Provider
       value={{
-        colorScheme,
-        setColorScheme,
+        appearanceMode,
+        setAppearanceMode,
+        colorTheme,
+        setColorTheme,
         theme,
+        resolvedMode,
+        // Backward compatibility
+        colorScheme: colorTheme,
+        setColorScheme: setColorTheme,
       }}
     >
       {children}
