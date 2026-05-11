@@ -1,10 +1,10 @@
 import { useMemo } from "react";
-import useChatStore from "@/context/ChatContext";
-import useUserStore from "@/context/UserContext";
-import { Chat } from "@/src/types";
+import useChatStore from "@/src/context/ChatContext";
+import useUserStore from "@/src/context/UserContext";
 
 export const useChatMetadata = (
-  chatUUIDorHandle: string | Chat | undefined,
+  chatUUIDorHandle: string | undefined,
+  sub = 0,
 ) => {
   const localUserUUID = useUserStore((state) => state.localUserUUID);
   const users = useUserStore((state) => state.users);
@@ -29,19 +29,50 @@ export const useChatMetadata = (
         return {
           name: "Saved Messages",
           profilePictureUUID: targetUser?.profilePictureUUID || null,
+          type: chat.type,
+          memberCount: 1,
+          onlineMembersCount: 1,
+          memberActivityData: [],
         };
       }
 
       return {
         name: targetUser?.name || "User",
         profilePictureUUID: targetUser?.profilePictureUUID || null,
-      };  
+        type: chat.type,
+        memberCount: 2,
+        onlineMembersCount: targetUser?.status === "ONLINE" ? 2 : 1,
+        lastAccessAt: targetUser?.lastAccessAt || null,
+        memberActivityData: otherMember?.action
+          ? [
+              {
+                action: otherMember.action,
+                userUUID: targetUUID,
+              },
+            ]
+          : [],
+      };
     }
 
     // Default for Groups/Channels
+
     return {
       name: chat.name || "Group",
       profilePictureUUID: chat.profilePictureUUID || null,
+      type: chat.type,
+      memberCount: chat.members?.length || 0,
+      onlineMembersCount:
+        chat.members?.filter((m) => users[m.uuid]?.status === "ONLINE")
+          .length || 0,
+      memberActivityData:
+        chat.members
+          ?.filter((member) => member.action)
+          .map((member) => {
+            return {
+              action: member.action,
+              userUUID: member.uuid,
+            };
+          }) || [],
     };
   }, [chat, localUserUUID, users]);
 };

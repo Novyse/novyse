@@ -1,17 +1,18 @@
 import React, { useState, useContext, useEffect } from "react";
 import {
-  Text,
   StyleSheet,
   TextInput,
   ActivityIndicator,
   FlatList,
   Platform,
 } from "react-native";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useThemeContext } from "@/context/ThemeContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import Icon from "@/src/components/Icon";
@@ -24,13 +25,17 @@ interface SearchResult {
   handle: string;
   name: string;
   surname?: string;
-  type?: string;
+  type: "USER" | "GROUP" | "FORUM" | "CHANNEL";
+  profilePictureUUID?: string;
   memberCount?: number;
 }
 
 const Search = () => {
+  const { t } = useTranslation();
   const { theme } = useThemeContext();
-  const setSelectedHandle = useActiveChatStore((state) => state.setSelectedHandle);
+  const setSelectedHandle = useActiveChatStore(
+    (state) => state.setSelectedHandle,
+  );
   const intets = useSafeAreaInsets();
   const styles = createStyle(theme, intets);
 
@@ -78,11 +83,13 @@ const Search = () => {
         const { success, data } = result;
         if (!success) throw new Error("Search API call failed");
 
-        const { users = [], chats = [], bots = [] } = data;
+        const { users = [], chats = []} = data;
         const searched_list: SearchResult[] = [
-          ...users.map((user: any) => ({ ...user, type: "USER" })),
-          ...chats.map((chat: any) => ({ ...chat })),
-          ...bots.map((bot: any) => ({ ...bot, type: "BOT" })),
+          ...users.map((user: any) => ({ ...user, type: "USER" as const })),
+          ...chats.map((chat: any) => ({
+            ...chat,
+            type: (chat.type || "GROUP") as "GROUP" | "FORUM" | "CHANNEL",
+          })),
         ];
 
         setResponseArray(searched_list || []);
@@ -121,7 +128,7 @@ const Search = () => {
           style={styles.searchIcon}
         />
         <TextInput
-          placeholder="Search"
+          placeholder={t("tabs.search.search")}
           placeholderTextColor={theme.placeholderText}
           style={styles.searchBar}
           value={searchText}
@@ -160,7 +167,10 @@ const Search = () => {
         />
       )}
       {isSearching && !isLoading && responseArray.length === 0 && (
-        <Text style={styles.noResults}>No results found</Text>
+        <AppText
+          style={styles.noResults}
+          translationKey="tabs.search.noResults"
+        />
       )}
     </>
   );
@@ -170,19 +180,6 @@ export default Search;
 
 const createStyle = (theme: any, insets: any) => {
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: 10,
-    },
-    searchContainer: {
-      paddingHorizontal: 20,
-      paddingVertical: 14,
-      flexDirection: "row",
-      borderRadius: 99,
-      alignItems: "center",
-      backgroundColor: theme.backgroundCard,
-      marginTop: 10,
-    },
     searchIcon: {
       marginRight: 10,
     },
@@ -203,10 +200,8 @@ const createStyle = (theme: any, insets: any) => {
       paddingTop: 75 + insets.top,
       flex: 1,
       ...(Platform.OS === "web" && {
-        // Standard for Firefox (fixed, no active/drag change)
         scrollbarWidth: "thin",
         scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
         "::WebkitScrollbar": {
           width: 6,
           backgroundColor: theme.backgroundScrollbar,
@@ -224,40 +219,16 @@ const createStyle = (theme: any, insets: any) => {
         },
       }),
     },
-    resultItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: 15,
-      backgroundColor: theme.backgroundSearchResultItem,
-      borderRadius: 13,
-      marginBottom: 10,
-    },
-    resultText: {
-      fontSize: 16,
-      color: theme.text,
-      fontWeight: "500",
-    },
-    avatar: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      marginRight: 15,
-    },
     noResults: {
       marginTop: 20,
       textAlign: "center",
       color: theme.text,
       fontSize: 16,
     },
-    textContainer: {
-      flexDirection: "column",
-      flex: 1,
+    flatListContent: {
+      padding: 10,
+      gap: 10,
+      paddingBottom: 10 + insets.bottom,
     },
-    profileHandle: {
-      color: theme.placeholderText,
-      fontSize: 14,
-      marginTop: 2,
-    },
-    flatListContent: { padding: 10, gap: 10 },
   });
 };

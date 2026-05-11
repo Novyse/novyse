@@ -8,23 +8,25 @@ import React, {
 } from "react";
 import {
   View,
-  Text,
   TextInput,
   StyleSheet,
   ActivityIndicator,
   useWindowDimensions,
   Platform,
 } from "react-native";
+import { useTranslation } from "react-i18next";
+
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import ModalBase from "../ModalBase";
 import BottomSheetBase from "../BottomSheetBase";
 import SelectButton from "./Button";
 import StatusMessage from "../../StatusMessage";
 import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/AppText";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
@@ -32,7 +34,10 @@ import { validate } from "@/src/utils/welcome/validator";
 
 const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
   const { theme } = useContext(ThemeContext);
-  const setSelectedChatUUID = useActiveChatStore((state) => state.setSelectedChatUUID);
+  const { t } = useTranslation();
+  const setSelectedChatUUID = useActiveChatStore(
+    (state) => state.setSelectedChatUUID,
+  );
   const { width } = useWindowDimensions();
   const isNarrow = width <= 360;
   const isMobile = Platform.OS !== "web";
@@ -102,15 +107,16 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
 
       // Set new timer to check availability after typing stops
       const timer = setTimeout(async () => {
-        const { success, free } = await gateway.check.handle(value);
+        const { success, available } = await gateway.check.handle(value);
         if (success) {
-          setHandleAvailable(free);
-          if (!free) setHandleError("Handle already in use");
+          setHandleAvailable(available);
+          if (!available)
+            setHandleError(t("modals.create_chat.errors.handleTaken"));
           else setHandleError(null);
           setIsHandleLoading(false);
         } else {
           setHandleAvailable(false);
-          setHandleError("Error checking handle availability");
+          setHandleError(t("modals.create_chat.errors.handleError"));
           setIsHandleLoading(false);
         }
       }, 1000);
@@ -124,7 +130,9 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
       if (handleTimer) clearTimeout(handleTimer);
       if (value.length > 0) {
         setHandleError(
-          validate.requirements.handle + " (Required for public chats)",
+          validate.requirements.handle +
+            " " +
+            t("modals.create_chat.fields.publicRequired"),
         );
       }
     }
@@ -147,7 +155,9 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
     ) {
       setNameError(validate.chat.requirements.name);
       setHandleError(
-        validate.requirements.handle + " (Required for public chats)",
+        validate.requirements.handle +
+          " " +
+          t("modals.create_chat.fields.publicRequired"),
       );
       return;
     }
@@ -158,7 +168,9 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
     }
     if (privacy === "PUBLIC" && !validate.handle(handle)) {
       setHandleError(
-        validate.requirements.handle + " (Required for public chats)",
+        validate.requirements.handle +
+          " " +
+          t("modals.create_chat.fields.publicRequired"),
       );
       return;
     }
@@ -167,7 +179,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
       privacy === "PUBLIC" &&
       (handleAvailability === false || handleAvailability === undefined)
     ) {
-      setHandleError("Handle already in use");
+      setHandleError(t("modals.create_chat.errors.handleTaken"));
       return;
     }
 
@@ -202,38 +214,52 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.modalTitle}>Create New Chat</Text>
-          <Text style={styles.modalSubtitle}>
-            Configure your new chat space settings below.
-          </Text>
+          <AppText
+            style={styles.modalTitle}
+            translationKey="modals.create_chat.title"
+          />
+          <AppText
+            style={styles.modalSubtitle}
+            translationKey="modals.create_chat.subtitle"
+          />
         </View>
       </View>
 
       {/* Chat Identity */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>CHAT IDENTITY</Text>
-        <Text style={styles.inputLabel}>Chat Name</Text>
+        <AppText
+          style={styles.sectionLabel}
+          translationKey="modals.create_chat.sections.identity"
+        />
+        <AppText
+          style={styles.inputLabel}
+          translationKey="modals.create_chat.fields.name"
+        />
         <TextInput
           style={styles.input}
-          placeholder="e.g., Novyse News"
-          placeholderTextColor="#8F90A6"
+          placeholder={t("modals.create_chat.fields.namePlaceholder")}
+          placeholderTextColor={theme.placeholderText}
           value={name}
           onChangeText={handleNameChange}
         />
-        <Text style={styles.helperText}>
-          This is the name that will be visible to your members.
-        </Text>
+        <AppText
+          style={styles.helperText}
+          translationKey="modals.create_chat.fields.nameHelper"
+        />
       </View>
 
       {/* Communication Style */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>COMMUNICATION STYLE</Text>
+        <AppText
+          style={styles.sectionLabel}
+          translationKey="modals.create_chat.sections.commsStyle"
+        />
         <View style={styles.cardsRow}>
           <SelectButton
             id="GROUP"
             icon="UserGroupIcon"
-            title="Group"
-            subtitle="Best for small teams & friends."
+            titleKey="modals.create_chat.types.group"
+            subtitleKey="modals.create_chat.types.groupDesc"
             selected={type}
             onSelect={setType}
             theme={theme}
@@ -241,8 +267,8 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
           <SelectButton
             id="CHANNEL"
             icon="Megaphone03Icon"
-            title="Channel"
-            subtitle="Broadcast to unlimited audiences."
+            titleKey="modals.create_chat.types.channel"
+            subtitleKey="modals.create_chat.types.channelDesc"
             selected={type}
             onSelect={setType}
             theme={theme}
@@ -251,8 +277,8 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
           <SelectButton
             id="FORUM"
             icon="Comment01Icon"
-            title="Forum"
-            subtitle="Organized discussions by topic."
+            titleKey="modals.create_chat.types.forum"
+            subtitleKey="modals.create_chat.types.forumDesc"
             selected={type}
             onSelect={setType}
             theme={theme}
@@ -263,7 +289,10 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
 
       {/* Privacy Settings */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>PRIVACY SETTINGS</Text>
+        <AppText
+          style={styles.sectionLabel}
+          translationKey="modals.create_chat.sections.privacy"
+        />
         <View style={styles.toggleContainer}>
           <HoverAndPressedButton
             style={[
@@ -275,16 +304,15 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
             <Icon
               name="SquareLock02Icon"
               size={16}
-              color={privacy === "PRIVATE" ? "#FFF" : "#8F90A6"}
+              color={privacy === "PRIVATE" ? theme.text : theme.subtitle}
             />
-            <Text
+            <AppText
               style={[
                 styles.toggleText,
                 privacy === "PRIVATE" && styles.textWhite,
               ]}
-            >
-              Private
-            </Text>
+              translationKey="modals.create_chat.privacy.private"
+            />
           </HoverAndPressedButton>
 
           <HoverAndPressedButton
@@ -297,16 +325,15 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
             <Icon
               name="Globe02Icon"
               size={16}
-              color={privacy === "PUBLIC" ? "#FFF" : "#8F90A6"}
+              color={privacy === "PUBLIC" ? theme.text : theme.subtitle}
             />
-            <Text
+            <AppText
               style={[
                 styles.toggleText,
                 privacy === "PUBLIC" && styles.textWhite,
               ]}
-            >
-              Public
-            </Text>
+              translationKey="modals.create_chat.privacy.public"
+            />
           </HoverAndPressedButton>
         </View>
       </View>
@@ -314,13 +341,16 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
       {/* Chat Handle */}
       {privacy === "PUBLIC" && (
         <View style={styles.section}>
-          <Text style={styles.inputLabel}>Chat Handle</Text>
+          <AppText
+            style={styles.inputLabel}
+            translationKey="modals.create_chat.fields.handle"
+          />
           <View style={styles.inputWrapper}>
-            <Text style={styles.prefix}>@</Text>
+            <AppText style={styles.prefix} text="@" />
             <TextInput
               style={styles.inputWithPrefix}
-              placeholder="your-handle"
-              placeholderTextColor="#8F90A6"
+              placeholder={t("modals.create_chat.fields.handlePlaceholder")}
+              placeholderTextColor={theme.placeholderText}
               value={handle}
               onChangeText={handleHandleChange}
               autoCapitalize="none"
@@ -332,14 +362,19 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
                 style={styles.loader}
               />
             ) : handleAvailability === true ? (
-              <Icon name="Tick02Icon" size={20} color="#27AE60" />
+              <Icon name="Tick02Icon" size={20} color={theme.successText} />
             ) : handleAvailability === false ? (
-              <Icon name="MultiplicationSignIcon" size={20} color="#E74C3C" />
+              <Icon
+                name="MultiplicationSignIcon"
+                size={20}
+                color={theme.dangerText}
+              />
             ) : null}
           </View>
-          <Text style={styles.helperText}>
-            People can find your chat using this handle.
-          </Text>
+          <AppText
+            style={styles.helperText}
+            translationKey="modals.create_chat.fields.handleHelper"
+          />
         </View>
       )}
 
@@ -367,14 +402,20 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
           }}
           style={[styles.cancelBtn, isNarrow && styles.cancelBtnNarrow]}
         >
-          <Text style={styles.cancelBtnText}>Cancel</Text>
+          <AppText
+            style={styles.cancelBtnText}
+            translationKey="modals.create_chat.actions.cancel"
+          />
         </HoverAndPressedButton>
         <HoverAndPressedButton
           style={[styles.createBtn, isNarrow && styles.createBtnNarrow]}
           onPress={handleCreateChat}
         >
-          <Icon name="PlusSignIcon" size={18} color="#FFF" />
-          <Text style={styles.createBtnText}>Create Chat</Text>
+          <Icon name="PlusSignIcon" size={18} color={theme.text} />
+          <AppText
+            style={styles.createBtnText}
+            translationKey="modals.create_chat.actions.create"
+          />
         </HoverAndPressedButton>
       </View>
     </View>
@@ -433,7 +474,7 @@ function createStyle(theme, isNarrow = false) {
     sectionLabel: {
       fontSize: 11,
       fontWeight: "700",
-      color: theme.iconSecondary,
+      color: theme.icon,
       letterSpacing: 1,
       marginBottom: 12,
       textTransform: "uppercase",
@@ -463,8 +504,6 @@ function createStyle(theme, isNarrow = false) {
       backgroundColor: theme.backgroundCard,
       borderRadius: 12,
       padding: 4,
-      borderWidth: 1,
-      borderColor: theme.borderModal,
     },
     toggleBtn: {
       flex: 1,
@@ -544,7 +583,7 @@ function createStyle(theme, isNarrow = false) {
       paddingHorizontal: 12,
     },
     cancelBtnText: {
-      color: theme.iconSecondary,
+      color: theme.icon,
       fontSize: 15,
       fontWeight: "500",
       textAlign: isNarrow ? "center" : "left",
@@ -569,18 +608,6 @@ function createStyle(theme, isNarrow = false) {
       fontWeight: "600",
       marginLeft: 4,
       textAlign: "center",
-    },
-    bottomSheetBackground: {
-      backgroundColor: theme.backgroundModal,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-    },
-    handleIndicator: {
-      backgroundColor: theme.iconSecondary,
-      width: 40,
-    },
-    bottomSheetView: {
-      flex: 1,
     },
   });
 }

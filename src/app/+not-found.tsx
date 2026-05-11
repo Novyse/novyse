@@ -1,11 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, StyleSheet, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+
+import { useScreen } from "@/src/context/ScreenContext";
+
 import { LoginColors } from "@/constants/LoginColors";
+
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
-import { useScreen } from "@/context/ScreenContext";
+import AppText from "@/src/components/AppText";
+
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
 const LOGIN_THEME = "default";
@@ -25,14 +30,18 @@ export default function NotFoundPage() {
       <View style={styles.card}>
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
-          <Text style={styles.title}>404</Text>
-          <Text style={styles.subtitle}>Oops! Page Not Found</Text>
-          <Text style={styles.message}>
-            The page you're looking for doesn't exist or has been moved.
-          </Text>
+          <AppText style={styles.title} translationKey="layout.notFound.title" />
+          <AppText
+            style={styles.subtitle}
+            translationKey="layout.notFound.subtitle"
+          />
+          <AppText
+            style={styles.message}
+            translationKey="layout.notFound.message"
+          />
           <View style={styles.buttonWrapper}>
             <WelcomeButton onPress={() => router.replace("/")} type="submit">
-              <WelcomeButtonText type="submit" label="Go Home" />
+              <WelcomeButtonText type="submit" translationKey="layout.notFound.goHome" />
             </WelcomeButton>
           </View>
         </View>

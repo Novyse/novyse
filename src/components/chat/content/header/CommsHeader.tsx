@@ -1,17 +1,17 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Text, Pressable } from "react-native";
-import { router } from "expo-router";
+import { View, StyleSheet, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
+
 import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
 
-
 import Icon from "@/src/components/Icon";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import { useCommsContext } from "@/context/CommsContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { useCommsContext } from "@/src/context/CommsContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 
@@ -28,8 +28,12 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const { room, isSpeakingMap } = useCommsContext();
-  const selectedChatUUID = useActiveChatStore((state) => state.selectedChatUUID);
-  const setSelectedChatUUID = useActiveChatStore((state) => state.setSelectedChatUUID);
+  const selectedChatUUID = useActiveChatStore(
+    (state) => state.selectedChatUUID,
+  );
+  const setSelectedChatUUID = useActiveChatStore(
+    (state) => state.setSelectedChatUUID,
+  );
   const setContentView = useActiveChatStore((state) => state.setContentView);
   const styles = createStyle(theme, connected);
 
@@ -41,8 +45,6 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
       opacity: withTiming(isSpeaking ? 1 : 0, { duration: 150 }),
     };
   });
-
-
 
   if (!connected && !roomName) {
     return null;
@@ -72,12 +74,14 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
       <View style={styles.headerLeft}>
         <Icon
           name="UserMultipleIcon"
-          color={connected ? "#fff" : theme.text}
           style={styles.iconButtonSmall}
         />
-        <Text style={styles.participantsText} numberOfLines={1}>
-          {participantsCount} in call
-        </Text>
+        <AppText
+          style={styles.participantsText}
+          numberOfLines={1}
+          translationKey="chat.comms.participantsInCall"
+          translationOptions={{ count: participantsCount }}
+        />
       </View>
 
       <View style={styles.headerRight}>
@@ -85,41 +89,38 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
           <>
             <Icon
               name={isVideoEnabled ? "Video02Icon" : "VideoOffIcon"}
-              color={"#fff"}
               style={styles.iconButton}
               onPress={toggleVideo}
             />
-            <View style={styles.iconButton}>
+            <Pressable style={styles.iconButton} onPress={toggleAudio}>
               <Icon
                 name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
-                color={"#fff"}
-                onPress={toggleAudio}
               />
               <Animated.View
                 style={[
-                  StyleSheet.absoluteFillObject,
+                  StyleSheet.absoluteFill,
                   animatedMicStyle,
                   { pointerEvents: "none" },
                 ]}
               >
                 <Icon
                   name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
-                  color={"#2ECC71"}
+                  color={theme.iconSuccess}
                 />
               </Animated.View>
-            </View>
+            </Pressable>
             <Icon
               name={"Call02Icon"}
-              color="red"
-              hoverColor={theme.iconCommsOutHover}
+              color={theme.iconDanger}
+              hoverColor={theme.iconDanger}
               onPress={leave}
             />
           </>
         ) : (
           <Icon
             name="Call02Icon"
-            color={"#2ECC71"}
-            hoverColor={theme.iconCommsInHover}
+            color={theme.iconSuccess}
+            hoverColor={theme.iconSuccess}
             onPress={() => join()}
           />
         )}
@@ -169,18 +170,11 @@ function createStyle(theme: any, connected: boolean) {
       justifyContent: "center",
       alignItems: "center",
     },
-    iconButtonAction: {
-      width: 36,
-      height: 36,
-      justifyContent: "center",
-      alignItems: "center",
-    },
     participantsText: {
       fontSize: 16,
-      color: connected ? "#fff" : theme.text,
+      color: theme.text,
       fontWeight: "600",
     },
-
   });
 }
 

@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, useWindowDimensions, Animated } from "react-native";
+import { View, useWindowDimensions, Animated } from "react-native";
 import { Slot, usePathname } from "expo-router";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 
 import TabNavigator from "@/src/components/tabs/TabNavigator";
 
-import { useScreen } from "@/context/ScreenContext";
-import useChatStore from "@/context/ChatContext";
-import useUserStore from "@/context/UserContext";
-import useWindowSizeStore from "@/context/WindowSizeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import useChatStore from "@/src/context/ChatContext";
+import useUserStore from "@/src/context/UserContext";
+import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useNetworkStore from "@/src/context/NetworkContext";
+
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -36,6 +39,11 @@ export default function RootLayout() {
       duration: 300,
       useNativeDriver: true,
     }).start();
+
+    // This ensures state is reset for Android back gestures or explicit navigation back to chat list.
+    if (!isDetailOpen) {
+      useActiveChatStore.getState().clear();
+    }
   }, [isDetailOpen]);
 
   const {
@@ -46,31 +54,71 @@ export default function RootLayout() {
     isStorageReady,
   } = useWindowSizeStore();
 
+  const MIN_CHAT_LIST_WIDTH = 280;
+
   const resizerHandlers = usePanelResizer({
     currentWidth: detailWidth,
     setWidth: setDetailWidth,
     minWidth: minDetailWidth,
-    maxWidthPadding: 350,
+    maxWidthPadding: MIN_CHAT_LIST_WIDTH + 20,
   });
+  const prevWidthRef = useRef(width);
 
   useEffect(() => {
-    if (detailWidth < minDetailWidth) {
-      setDetailWidth(Math.min(width, minDetailWidth));
-    }
-  }, [minDetailWidth, detailWidth, width, setDetailWidth]);
+    const delta = width - prevWidthRef.current;
+    prevWidthRef.current = width;
+    setDetailWidth((prev) => {
+      const maxDetail = width - MIN_CHAT_LIST_WIDTH - 20;
+      let newWidth = prev;
+      if (delta > 0) {
+        newWidth = prev + delta;
+      }
+      return Math.max(minDetailWidth, Math.min(maxDetail, newWidth));
+    });
+  }, [width, minDetailWidth, setDetailWidth]);
 
   // Initialize database if needed
   const [hasInitialized, setHasInitialized] = useState<boolean | null>(null);
 
   useEffect(() => {
+    let retryInterval: any = null;
+
     const checkInit = async () => {
       try {
         const initValue = await AsyncStorage.getItem("init");
         if (initValue === "true") {
           try {
             await auth.updateDatabase();
+            useNetworkStore.getState().setSynced(true);
           } catch (updateError) {
-            console.warn("Failed to update database, continuing anyway:", updateError);
+            console.warn(
+              "Failed to update database, starting retry loop:",
+              updateError,
+            );
+            useNetworkStore.getState().setSynced(false);
+
+            let countdown = 5;
+            useNetworkStore.getState().setSyncRetryCountdown(countdown);
+
+            retryInterval = setInterval(async () => {
+              countdown--;
+              useNetworkStore.getState().setSyncRetryCountdown(countdown);
+
+              if (countdown === 0) {
+                try {
+                  console.log("Retrying database update...");
+                  await auth.updateDatabase();
+                  useNetworkStore.getState().setSynced(true);
+                  useNetworkStore.getState().setSyncRetryCountdown(0);
+                  if (retryInterval) clearInterval(retryInterval);
+                  console.log("Database update successful after retry!");
+                } catch (error) {
+                  console.warn("Retry failed, will try again in 5s");
+                  countdown = 5; // Reset countdown
+                  useNetworkStore.getState().setSyncRetryCountdown(countdown);
+                }
+              }
+            }, 1000);
           }
           setHasInitialized(true);
         } else {
@@ -79,6 +127,7 @@ export default function RootLayout() {
           if (success) {
             await AsyncStorage.setItem("init", "true");
             setHasInitialized(true);
+            useNetworkStore.getState().setSynced(true);
           }
         }
       } catch (error) {
@@ -87,6 +136,10 @@ export default function RootLayout() {
     };
 
     checkInit();
+
+    return () => {
+      if (retryInterval) clearInterval(retryInterval);
+    };
   }, []);
 
   // Load chats & user data in zustand
@@ -110,7 +163,9 @@ export default function RootLayout() {
   // For  we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {
     return (
-      <View style={{ flex: 1, backgroundColor: "transparent", overflow: "hidden" }}>
+      <View
+        style={{ flex: 1, backgroundColor: "transparent", overflow: "hidden" }}
+      >
         <TabNavigator isDetailOpen={isDetailOpen} />
         <Animated.View
           style={{

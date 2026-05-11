@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { Animated } from "react-native";
 import { useRouter } from "expo-router";
 import { validate } from "@/src/utils/welcome/validator";
+import i18n from "@/src/i18n";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import auth from "@/src/utils/backend-services/auth";
 
@@ -78,17 +79,17 @@ export const useSignup = () => {
 
   const validateStep = useCallback(
     (step: number) => {
-      if (step === 0) return validate.user.name(form.name);
+      if (step === 0) return validate.user.name(form.name).success;
       if (step === 1)
         return (
           !!form.handle.trim() &&
-          validate.handle(form.handle) &&
+          validate.handle(form.handle).success &&
           handleAvailable === true &&
           !handleError
         );
       if (step === 2)
         return (
-          validate.user.password(form.password) &&
+          validate.user.password(form.password).success &&
           form.password === form.confirmPassword
         );
       return false;
@@ -105,7 +106,12 @@ export const useSignup = () => {
     !!captchaToken &&
     !isLoading;
 
-  const isPasskeyValid = validateStep(0) && validateStep(1) && privacyAccepted && ageConfirmed && !!captchaToken;
+  const isPasskeyValid =
+    validateStep(0) &&
+    validateStep(1) &&
+    privacyAccepted &&
+    ageConfirmed &&
+    !!captchaToken;
 
   const handleChange = (field: string, value: string) => {
     const v = field === "handle" ? value.toLowerCase() : value;
@@ -121,8 +127,9 @@ export const useSignup = () => {
       setIsLoading(false);
       return;
     }
-    if (!validate.handle(v)) {
-      setHandleError("Invalid format. Use a-z, 0-9, and single '_'.");
+    const validation = validate.handle(v);
+    if (!validation.success) {
+      setHandleError(validation.error!);
       setIsLoading(false);
       return;
     }
@@ -130,11 +137,12 @@ export const useSignup = () => {
     handleTimer.current = setTimeout(async () => {
       try {
         const res = (await gateway.check.handle(v)) as any;
-        const free = res.free;
-        setHandleAvailable(free);
-        if (!free) setHandleError("This handle is already in use.");
+        const available = res.available;
+        setHandleAvailable(available);
+        if (!available)
+          setHandleError(i18n.t("common.auth.signupStep.alreadyInUse"));
       } catch (e) {
-        setHandleError("Error checking handle availability.");
+        setHandleError(i18n.t("common.auth.signupStep.availabilityError"));
       } finally {
         setIsLoading(false);
       }
@@ -146,13 +154,21 @@ export const useSignup = () => {
     setIsLoading(true);
     try {
       const { password, name, handle } = form;
-        const ok = await auth.signup.opaque(handle, password, name, {
+      const ok = await auth.signup.opaque(
+        handle,
+        password,
+        name,
+        {
           privacy: privacyAccepted,
           tos: privacyAccepted,
           isOver16: ageConfirmed,
-        }, captchaToken!);
+        },
+        captchaToken!,
+      );
       if (ok.success) {
-        router.navigate(`/(welcome)/login?signedup=true&username=${handle}&type=opaque`);
+        router.navigate(
+          `/(welcome)/login?signedup=true&username=${handle}&type=opaque`,
+        );
       } else {
         setError(ok.error || "Signup failed. Please try again.");
       }
@@ -168,9 +184,20 @@ export const useSignup = () => {
     setIsLoading(true);
     try {
       const { name, handle } = form;
-      const ok = await auth.signup.passkey(handle, name, captchaToken!);
+      const ok = await auth.signup.passkey(
+        handle,
+        name,
+        {
+          privacy: privacyAccepted,
+          tos: privacyAccepted,
+          isOver16: ageConfirmed,
+        },
+        captchaToken!,
+      );
       if (ok?.success) {
-        router.navigate(`/(welcome)/login?signedup=true&username=${handle}&type=passkey`);
+        router.navigate(
+          `/(welcome)/login?signedup=true&username=${handle}&type=passkey`,
+        );
       } else {
         setError(ok?.error || "Passkey signup failed.");
       }

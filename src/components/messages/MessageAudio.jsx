@@ -1,28 +1,27 @@
 import React, { useContext, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
-import Icon from "../Icon";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
-import { AudioPlayerContext } from "@/context/AudioPlayerContext";
+import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
+import FileSizeProgress from "./FileSizeProgress";
 
-import {
-  formatTime,
-  formatDuration,
-  formatFileSize,
-} from "@/src/utils/storage/file/utils";
+import { formatTime, formatDuration } from "@/src/utils/storage/file/utils";
 
 import SmoothSlider from "../SmoothSlider";
 import PlayButton from "./Button";
 
-const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
+const MessageAudio = ({
+  audioRef,
+  uuid,
+  size,
+  name,
+  message,
+  duration,
+  isPending,
+}) => {
   const {
     isPlaying,
     playBackRate,
@@ -52,7 +51,6 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
     addInfo(
       message.chatUUID,
       message.id,
-      message.sender_name,
       message.senderUUID,
       profilePictureUri,
       message.created_at,
@@ -64,6 +62,7 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
     <View style={styles.container}>
       <PlayButton
         uuid={uuid}
+        isPending={isPending}
         isAvailable={!!audioRef}
         isReady={isReady}
         isPlaying={isThisPlaying}
@@ -72,9 +71,7 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
       />
 
       <View style={{ flexDirection: "column" }}>
-        <Text style={styles.fileName} selectable={false}>
-          {name}
-        </Text>
+        <AppText style={styles.fileName} text={name} />
         <View style={styles.progressContainer}>
           <SmoothSlider
             currentValue={thisCurrentTime}
@@ -84,13 +81,11 @@ const MessageAudio = ({ audioRef, uuid, size, name, message, duration }) => {
             reset={!isThisLoaded || didJustFinish}
             isMoving={isThisPlaying}
           />
-          <View style={styles.textContainer}>
-            <Text style={styles.durationText} selectable={false}>
-              {formatTime(thisCurrentTime)} / {formatDuration(duration)}
-            </Text>
-            <Text style={styles.sizeText} selectable={false}>
-              {formatFileSize(size)}
-            </Text>
+          <View>
+            <AppText
+              text={`${formatTime(thisCurrentTime)} / ${formatDuration(duration)}`}
+            />
+            <FileSizeProgress uuid={uuid} size={size} />
           </View>
         </View>
       </View>
@@ -110,39 +105,6 @@ function createStyle(theme) {
       flex: 1,
       flexDirection: "column",
       justifyContent: "center",
-    },
-    slider: {
-      flex: 1,
-      height: 30,
-    },
-    textContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginTop: 4,
-    },
-    durationText: {
-      fontSize: 12,
-      marginRight: 12,
-      color: theme.text,
-      textAlign: "left",
-      fontVariant: ["tabular-nums"],
-    },
-    sizeText: {
-      fontSize: 12,
-      color: theme.text,
-      textAlign: "left",
-    },
-    playbackRateButton: {
-      paddingVertical: 4,
-      paddingHorizontal: 8,
-      borderRadius: 12,
-      backgroundColor: "#0088cc",
-    },
-    playbackRateText: {
-      fontSize: 12,
-      color: theme.text,
-      fontWeight: "bold",
     },
     fileName: {
       color: theme.text,

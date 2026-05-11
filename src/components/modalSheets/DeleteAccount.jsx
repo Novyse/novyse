@@ -1,5 +1,6 @@
 import React, { useContext, useState } from "react";
-import { View, Text, StyleSheet, TextInput, Linking } from "react-native";
+import { View, StyleSheet, TextInput, Linking } from "react-native";
+import AppText from "@/src/components/AppText";
 
 import { useRouter } from "expo-router";
 
@@ -8,10 +9,10 @@ import Icon from "@/src/components/Icon";
 import ModalBase from "@/src/components/modalSheets/ModalBase";
 import StatusMessage from "@/src/components/StatusMessage";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import useUserStore from "@/context/UserContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
 
-import gateway from "@/src/utils/backend-services/api-gateway";
+import authBackend from "@/src/utils/backend-services/auth";
 import auth from "@/src/utils/welcome/auth";
 
 const DeleteAccount = ({ visible, onClose }) => {
@@ -40,7 +41,7 @@ const DeleteAccount = ({ visible, onClose }) => {
   };
 
   const handleButtonPress = async () => {
-    const response = await gateway.user.delete();
+    const response = await authBackend.account.delete();
     if (response) {
       await auth.logout();
       router.navigate("/welcome?deleteAccount=true");
@@ -60,26 +61,30 @@ const DeleteAccount = ({ visible, onClose }) => {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.modalTitle}>Delete Account</Text>
-            <Text style={styles.modalSubtitle}>
-              Warning: All your user data will be permanently deleted. This
-              action cannot be reversed.
-            </Text>
+            <AppText
+              style={styles.modalTitle}
+              translationKey="modals.delete_account.title"
+            />
+            <AppText
+              style={styles.modalSubtitle}
+              translationKey="modals.delete_account.warning"
+            />
           </View>
         </View>
 
         {/* Confirmation Identity */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel} selectable={false}>
-            CONFIRMATION IDENTITY
-          </Text>
-          <Text style={styles.inputLabel} selectable={false}>
-            Please type{" "}
-            <Text style={styles.boldUsername} selectable={true}>
-              {username}
-            </Text>{" "}
-            to confirm.
-          </Text>
+          <AppText
+            style={styles.sectionLabel}
+            translationKey="modals.delete_account.confirmation_identity"
+          />
+          <AppText
+            style={styles.inputLabel}
+            translationKey="modals.delete_account.confirm_instruction"
+            translationOptions={{ username }}
+          >
+            <AppText style={styles.boldUsername} text={username} />
+          </AppText>
           <TextInput
             style={styles.input}
             value={inputUsername}
@@ -89,20 +94,18 @@ const DeleteAccount = ({ visible, onClose }) => {
             autoCapitalize="none"
             autoCorrect={false}
           />
-          <Text style={styles.helperText}>
-            You will be logged out and your data will instantly be queued for
-            deletion.{" "}
-            <Text
+          <AppText style={styles.helperText}>
+            <AppText translationKey="modals.delete_account.helper_text" />{" "}
+            <AppText
               style={styles.linkText}
               onPress={() =>
                 Linking.openURL(
                   "https://www.novyse.com/help/guides/account/delete",
                 )
               }
-            >
-              Learn more
-            </Text>
-          </Text>
+              translationKey="modals.delete_account.learn_more"
+            />
+          </AppText>
         </View>
 
         <StatusMessage
@@ -115,19 +118,21 @@ const DeleteAccount = ({ visible, onClose }) => {
         {/* Footer */}
         <View style={styles.footer}>
           <HoverAndPressedButton onPress={handleClose} style={styles.cancelBtn}>
-            <Text style={styles.cancelBtnText} selectable={false}>
-              Cancel
-            </Text>
+            <AppText
+              style={styles.cancelBtnText}
+              translationKey="modals.delete_account.cancel"
+            />
           </HoverAndPressedButton>
           <HoverAndPressedButton
             style={[styles.createBtn, !isMatch && styles.createBtnDisabled]}
             disabled={!isMatch}
             onPress={onConfirm}
           >
-            <Icon name="Delete02Icon" size={18} color="#FFF" />
-            <Text style={styles.createBtnText} selectable={false}>
-              Delete
-            </Text>
+            <Icon name="Delete02Icon" size={18} />
+            <AppText
+              style={styles.createBtnText}
+              translationKey="modals.delete_account.delete"
+            />
           </HoverAndPressedButton>
         </View>
       </View>
@@ -148,7 +153,7 @@ const createStyles = (theme) => {
     modalTitle: {
       fontSize: 22,
       fontWeight: "700",
-      color: "#FF3B30",
+      color: theme.dangerText,
       marginBottom: 6,
     },
     modalSubtitle: {
@@ -163,7 +168,7 @@ const createStyles = (theme) => {
     sectionLabel: {
       fontSize: 11,
       fontWeight: "700",
-      color: theme.iconSecondary,
+      color: theme.icon,
       letterSpacing: 1,
       marginBottom: 12,
       textTransform: "uppercase",
@@ -193,7 +198,7 @@ const createStyles = (theme) => {
       marginTop: 6,
     },
     linkText: {
-      color: "#1867FF",
+      color: theme.messageLink,
       textDecorationLine: "underline",
     },
     // Footer
@@ -213,12 +218,12 @@ const createStyles = (theme) => {
       borderRadius: 8,
     },
     cancelBtnText: {
-      color: theme.iconSecondary,
+      color: theme.icon,
       fontSize: 15,
       fontWeight: "500",
     },
     createBtn: {
-      backgroundColor: "#FF3B30",
+      backgroundColor: theme.dangerText,
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: 10,
@@ -226,10 +231,10 @@ const createStyles = (theme) => {
       borderRadius: 8,
     },
     createBtnDisabled: {
-      backgroundColor: "rgba(255, 59, 48, 0.4)",
+      backgroundColor: theme.backgroundDanger,
     },
     createBtnText: {
-      color: "#FFF",
+      color: theme.text,
       fontSize: 15,
       fontWeight: "600",
       marginLeft: 4,

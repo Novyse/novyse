@@ -5,6 +5,7 @@ import {
   BottomSheetBackdrop,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BottomSheetBase = forwardRef(
   (
@@ -34,6 +35,8 @@ const BottomSheetBase = forwardRef(
 
     const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
 
+    const insets = useSafeAreaInsets();
+
     return (
       <BottomSheetModal
         ref={ref}
@@ -44,18 +47,20 @@ const BottomSheetBase = forwardRef(
         enableDynamicSizing={enableDynamicSizing}
         backdropComponent={renderBackdrop}
         backgroundStyle={{
-          backgroundColor: theme.backgroundModal,
+          backgroundColor: theme.backgroundMain,
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
         }}
         handleIndicatorStyle={{
-          backgroundColor: theme.iconSecondary,
+          backgroundColor: theme.icon,
           width: 40,
         }}
         onDismiss={onClose}
         {...props}
       >
-        <Container style={{ flex: 1 }}>{children}</Container>
+        <Container style={{ flex: 1, paddingBottom: insets.bottom }}>
+          {children}
+        </Container>
       </BottomSheetModal>
     );
   },

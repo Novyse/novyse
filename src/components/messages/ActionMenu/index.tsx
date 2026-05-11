@@ -1,21 +1,18 @@
 import React from "react";
-import {
-  View,
-  Pressable,
-  Text,
-  StyleSheet,
-  Dimensions,
-  Modal,
-} from "react-native";
+import { View, Pressable, StyleSheet, Dimensions, Modal } from "react-native";
+import AppText from "@/src/components/AppText";
 
-import { useThemeContext } from "@/context/ThemeContext";
-import HoverAndPressedButton from "../../HoverAndPressedButton";
+import { useThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
+
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
-import BlurredView from "../../BlurredView";
-import ReactionMenu from "./ReactionsMenu";
+import BlurredView from "@/src/components/BlurredView";
+import ReactionMenu from "@/src/components/messages/ActionMenu/ReactionsMenu";
 
 interface ActionMenuItem {
   action: string;
+  translationKey: string;
   iconName: string;
   color: string;
 }
@@ -51,6 +48,9 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   const styles = createStyle(theme);
   const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
+  const localUserUUID = useUserStore((state) => state.localUserUUID);
+  const isMine = message?.senderUUID === localUserUUID;
+
   const menuWidth = 200;
   const menuHeight = 350;
 
@@ -75,43 +75,91 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
 
   if (isPendingSend) {
     items = [
-      { action: "Cancel", iconName: "Cancel01Icon", color: "red" },
+      {
+        action: "Cancel",
+        translationKey: "chat.messageActions.cancel",
+        iconName: "Cancel01Icon",
+        color: theme.dangerText,
+      },
       isEditedAllowed
-        ? { action: "Edit", iconName: "PencilEdit02Icon", color: theme.text }
+        ? {
+            action: "Edit",
+            translationKey: "chat.messageActions.edit",
+            iconName: "PencilEdit02Icon",
+            color: theme.text,
+          }
         : undefined,
     ].filter((item): item is ActionMenuItem => item !== undefined);
   } else {
     items = (
       [
-        { action: "Reply", iconName: "ArrowMoveUpLeftIcon", color: theme.text },
+        {
+          action: "Reply",
+          translationKey: "chat.messageActions.reply",
+          iconName: "ArrowMoveUpLeftIcon",
+          color: theme.text,
+        },
         !isPinned
-          ? { action: "Pin", iconName: "PinIcon", color: theme.text }
-          : { action: "Unpin", iconName: "PinOffIcon", color: theme.text },
-        { action: "Copy", iconName: "Copy02Icon", color: theme.text },
+          ? {
+              action: "Pin",
+              translationKey: "chat.messageActions.pin",
+              iconName: "PinIcon",
+              color: theme.text,
+            }
+          : {
+              action: "Unpin",
+              translationKey: "chat.messageActions.unpin",
+              iconName: "PinOffIcon",
+              color: theme.text,
+            },
+        {
+          action: "Copy",
+          translationKey: "chat.messageActions.copy",
+          iconName: "Copy02Icon",
+          color: theme.text,
+        },
         isDownloadAllowed
           ? {
               action: "Download",
+              translationKey: "chat.messageActions.download",
               iconName: "Download01Icon",
               color: theme.text,
             }
           : undefined,
         pendingEditJobId
-          ? { action: "Cancel Edit", iconName: "Cancel01Icon", color: "red" }
+          ? {
+              action: "Cancel Edit",
+              translationKey: "chat.messageActions.cancelEdit",
+              iconName: "Cancel01Icon",
+              color: theme.dangerText,
+            }
           : isEditedAllowed
             ? {
                 action: "Edit",
+                translationKey: "chat.messageActions.edit",
                 iconName: "PencilEdit02Icon",
                 color: theme.text,
               }
             : undefined,
-        { action: "Forward", iconName: "LinkForwardIcon", color: theme.text },
+        {
+          action: "Forward",
+          translationKey: "chat.messageActions.forward",
+          iconName: "LinkForwardIcon",
+          color: theme.text,
+        },
         {
           action: "Select",
+          translationKey: "chat.messageActions.select",
           iconName: "CheckmarkCircle02Icon",
           color: theme.text,
         },
         isDeletedAllowed
-          ? { action: "Delete", iconName: "Delete02Icon", color: "red" }
+          ? {
+              action: "Delete",
+              translationKey: "chat.messageActions.delete",
+              iconName: "Delete02Icon",
+              color: theme.dangerText,
+            }
           : undefined,
       ] as (ActionMenuItem | undefined)[]
     ).filter((item): item is ActionMenuItem => item !== undefined);
@@ -128,7 +176,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
     onClose();
   };
 
-  const readsArray = message?.reads || [];
+  const readsArray = message?.readBy || [];
   const readCount = readsArray.length;
   const hasRead = readCount > 0;
 
@@ -148,6 +196,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
     >
       <Pressable
         onPress={onClose}
+        // @ts-ignore
         onContextMenu={(e) => {
           e.preventDefault();
           onClose();
@@ -167,48 +216,53 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
                 >
                   <View style={styles.menuItemContent}>
                     <Icon name={item.iconName} size={20} color={item.color} />
-                    <Text
+                    <AppText
                       style={styles.menuText}
                       numberOfLines={1}
-                      selectable={false}
-                    >
-                      {item.action}
-                    </Text>
+                      translationKey={item.translationKey}
+                    />
                   </View>
                 </HoverAndPressedButton>
               ))}
             </View>
           </BlurredView>
-          {/* Read & Reactions Box */}
-          {hasRead ||
-            (hasReactions && (
-              <View style={{ marginTop: 8 }}>
-                <BlurredView style={styles.statsContainer}>
+          {/* Stats Box (Reads & Reactions) */}
+          {isMine && ((!isPendingSend && hasRead) || hasReactions) ? (
+            <View style={styles.statsContainerParent}>
+              {!isPendingSend && hasRead && (
+                <BlurredView style={styles.statsContainerHalf}>
                   <HoverAndPressedButton
                     onPress={() => {}}
-                    style={styles.statsButton}
+                    style={styles.statsButtonHalf}
                   >
-                    {hasRead && (
-                      <View style={styles.statsRow}>
-                        <Icon name="EyeIcon" size={16} color={theme.text} />
-                        <Text
-                          style={styles.statsText}
-                          selectable={false}
-                        >{`${readCount} Reads.`}</Text>
-                      </View>
-                    )}
-                    {hasReactions && (
-                      <View style={styles.statsRow}>
-                        <Icon name="SmileIcon" size={16} color={theme.text} />
-                        <Text style={styles.statsText} selectable={false}>
-                          {`${totalReactions} Reactions.`}
-                        </Text>
-                      </View>
-                    )}
+                    <View style={styles.statsRowHalf}>
+                      <Icon name="EyeIcon" size={16} color={theme.text} />
+                      <AppText
+                        style={styles.statsTextHalf}
+                        text={readCount.toString()}
+                      />
+                    </View>
                   </HoverAndPressedButton>
                 </BlurredView>
-              </View>
-            ))}
+              )}
+              {hasReactions && (
+                <BlurredView style={styles.statsContainerHalf}>
+                  <HoverAndPressedButton
+                    onPress={() => {}}
+                    style={styles.statsButtonHalf}
+                  >
+                    <View style={styles.statsRowHalf}>
+                      <Icon name="SmileIcon" size={16} color={theme.text} />
+                      <AppText
+                        style={styles.statsTextHalf}
+                        text={totalReactions.toString()}
+                      />
+                    </View>
+                  </HoverAndPressedButton>
+                </BlurredView>
+              )}
+            </View>
+          ) : null}
         </View>
       </Pressable>
     </Modal>
@@ -251,90 +305,36 @@ const createStyle = (theme: any) =>
       fontSize: 14,
       color: theme.text,
     },
-    statsContainer: {
-      borderRadius: 10,
+    statsContainerParent: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 8,
+      gap: 8,
       minWidth: 120,
       maxWidth: 175,
-      zIndex: 1000,
+    },
+    statsContainerHalf: {
+      flex: 1,
+      borderRadius: 10,
       overflow: "hidden",
     },
-    statsButton: {
-      paddingVertical: 10,
-      paddingHorizontal: 15,
-      flexDirection: "column",
-      gap: 8,
-      borderRadius: 0,
-    },
-    statsRow: {
+    statsButtonHalf: {
+      paddingVertical: 5,
+      paddingHorizontal: 0,
       flexDirection: "row",
       alignItems: "center",
-      gap: 15,
+      justifyContent: "center",
+      width: "100%",
     },
-    statsText: {
+    statsRowHalf: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    },
+    statsTextHalf: {
       fontSize: 14,
       color: theme.text,
       flexShrink: 1,
-    },
-    modalOverlay: {
-      flex: 1,
-      justifyContent: "flex-end",
-      backgroundColor: "rgba(0, 0, 0, 0.4)",
-    },
-    detailsModalContent: {
-      backgroundColor: theme.background,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-      maxHeight: "80%",
-    },
-    detailsModalHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 16,
-    },
-    detailsModalTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: theme.text,
-    },
-    detailsScrollView: {
-      flexGrow: 1,
-    },
-    detailsSectionTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: theme.text,
-      marginBottom: 8,
-    },
-    detailsRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      paddingVertical: 6,
-      paddingHorizontal: 4,
-    },
-    detailsText: {
-      fontSize: 14,
-      color: theme.text,
-    },
-    detailsEmptyText: {
-      fontSize: 14,
-      color: theme.text,
-      fontStyle: "italic",
-      opacity: 0.7,
-      marginBottom: 8,
-    },
-    detailsDivider: {
-      height: 1,
-      backgroundColor: theme.border || "rgba(255,255,255,0.1)",
-      marginVertical: 16,
-    },
-    reactionGroup: {
-      marginBottom: 12,
-    },
-    reactionGroupTitle: {
-      fontSize: 18,
-      marginBottom: 4,
     },
   });

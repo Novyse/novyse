@@ -90,6 +90,40 @@ export class MessageRepository {
         }
       }
 
+      const readsToStore =
+        message.reads ||
+        message.readBy ||
+        (message.message_reads
+          ? message.message_reads.map((r: any) => ({
+              userUUID: r.user_uuid,
+              readAt: r.read_at,
+            }))
+          : []);
+
+      if (readsToStore && Array.isArray(readsToStore)) {
+        for (const read of readsToStore) {
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO message_read (chat_uuid, message_id, user_uuid, read_at) VALUES (?, ?, ?, ?);`,
+            [message.chatUUID, message.id, read.userUUID, read.readAt],
+          );
+        }
+      }
+
+      if (message.reactions && Array.isArray(message.reactions)) {
+        for (const reaction of message.reactions) {
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO reaction_message (chatUUID, messageID, userUUID, reaction, at) VALUES (?, ?, ?, ?, ?);`,
+            [
+              message.chatUUID,
+              message.id,
+              reaction.userUUID,
+              reaction.reaction,
+              reaction.created_at,
+            ],
+          );
+        }
+      }
+
       console.log("Message added or already exists.", message.id);
       return true;
     } catch (error) {
@@ -103,8 +137,21 @@ export class MessageRepository {
     await this._addReplyTos(message);
     await this._addRepliedFroms(message);
     await this._addReactions(message);
+    await this._addReads(message);
     await this._addFiles(message);
     return message;
+  }
+
+  async _addReads(message: any): Promise<void> {
+    if (!message) return;
+    const reads: any[] = await this.db.getAllAsync(
+      `SELECT user_uuid, read_at FROM message_read WHERE chat_uuid = ? AND message_id = ?;`,
+      [message.chatUUID, message.id],
+    );
+    message.readBy = reads.map((r: any) => ({
+      userUUID: r.user_uuid,
+      readAt: r.read_at,
+    }));
   }
 
   async _addReplyTos(message: any): Promise<void> {
@@ -229,18 +276,12 @@ export class MessageRepository {
             );
           }
         }
-      }
-
-      for (const message of messages) {
         if (message.edited) {
           await this.db.runAsync(
             `INSERT OR IGNORE INTO edited_message (chatUUID, messageID) VALUES (?, ?);`,
             [message.chatUUID, message.id],
           );
         }
-      }
-
-      for (const message of messages) {
         if (message.reactions && Array.isArray(message.reactions)) {
           for (const reaction of message.reactions) {
             await this.db.runAsync(
@@ -254,6 +295,43 @@ export class MessageRepository {
               ],
             );
           }
+        }
+      }
+
+      const allReads: any[] = [];
+      for (const message of messages) {
+        const readsToStore =
+          message.reads ||
+          message.readBy ||
+          (message.message_reads
+            ? message.message_reads.map((r: any) => ({
+                userUUID: r.user_uuid,
+                readAt: r.read_at,
+              }))
+            : []);
+
+        if (readsToStore && Array.isArray(readsToStore)) {
+          for (const read of readsToStore) {
+            allReads.push([
+              message.chatUUID,
+              message.id,
+              read.userUUID,
+              read.readAt,
+            ]);
+          }
+        }
+      }
+
+      if (allReads.length > 0) {
+        const CHUNK_SIZE = 100;
+        for (let i = 0; i < allReads.length; i += CHUNK_SIZE) {
+          const chunk = allReads.slice(i, i + CHUNK_SIZE);
+          const rPlaceholders = chunk.map(() => "(?, ?, ?, ?)").join(", ");
+          const flatValues = chunk.flat();
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO message_read (chat_uuid, message_id, user_uuid, read_at) VALUES ${rPlaceholders};`,
+            flatValues,
+          );
         }
       }
 
@@ -300,7 +378,6 @@ export class MessageRepository {
           `INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size, waveform, duration) VALUES ${filePlaceholders};`,
           fileValues,
         );
-        console.log(`${allFiles.length} files added successfully.`);
       }
       if (allMessageFiles.length > 0) {
         const mfPlaceholders = allMessageFiles
@@ -313,9 +390,6 @@ export class MessageRepository {
         await this.db.runAsync(
           `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES ${mfPlaceholders};`,
           mfValues,
-        );
-        console.log(
-          `${allMessageFiles.length} message-file associations added successfully.`,
         );
       }
       return true;
@@ -338,31 +412,18 @@ export class MessageRepository {
           if (!message) {
             return null;
           }
-          const replyTosRaw: any[] = await this.db.getAllAsync(
-            `SELECT * FROM message_reply WHERE chatUUID = ? AND messageID = ?;`,
-            [chatUUID, message.id],
-          );
-          message.replyTos = replyTosRaw.map((r: any) => ({
-            chatUUID: r.replyTo_chatUUID,
-            messageID: r.replyTo_messageID,
-            rangeStart: r.replyTo_rangeStart,
-            rangeEnd: r.replyTo_rangeEnd,
-          }));
-
-          const files: any[] = await this.db.getAllAsync(
-            `SELECT f.* FROM file f
-         JOIN message_files mf ON f.uuid = mf.fileUUID
-         WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
-            [chatUUID, message.id],
-          );
-          message.files = files;
+          await this._addInfos(message);
           return message || null;
         } catch (error) {
           console.error("Error retrieving message:", error);
           return null;
         }
       },
-      chatUUID: async (chatUUID: any, limit = 50, offset = 0): Promise<any[]> => {
+      chatUUID: async (
+        chatUUID: any,
+        limit = 50,
+        offset = 0,
+      ): Promise<any[]> => {
         try {
           const results: any[] = await this.db.getAllAsync(
             `SELECT m.*, u.name as sender_name, u.profilePictureUUID as profile_picture_uuid FROM message m
@@ -525,6 +586,29 @@ export class MessageRepository {
         return true;
       } catch (error) {
         console.error("Error removing reaction:", error);
+        return false;
+      }
+    },
+  };
+
+  read = {
+    add: async (
+      chatUUID: any,
+      messageID: any,
+      userUUID: any,
+      readAt: any,
+    ): Promise<boolean> => {
+      try {
+        await this.db.runAsync(
+          `INSERT OR IGNORE INTO message_read (chat_uuid, message_id, user_uuid, read_at) VALUES (?, ?, ?, ?);`,
+          [chatUUID, messageID, userUUID, readAt],
+        );
+        console.log(
+          `Read tracking for message ${messageID} added successfully.`,
+        );
+        return true;
+      } catch (error) {
+        console.error("Error adding read tracking:", error);
         return false;
       }
     },

@@ -1,5 +1,11 @@
-import React, { useState, useContext, useMemo, useEffect } from "react";
-import { View, StyleSheet, Text, useWindowDimensions } from "react-native";
+import React, {
+  useState,
+  useContext,
+  useMemo,
+  useEffect,
+  useCallback,
+} from "react";
+import { View, StyleSheet, useWindowDimensions } from "react-native";
 
 import { router, useLocalSearchParams } from "expo-router";
 
@@ -7,15 +13,18 @@ import ChatContent from "@/src/components/chat/content/Chat";
 import Header from "@/src/components/chat/content/header";
 import VocalContent from "@/src/components/comms/container";
 
-import { useScreen } from "@/context/ScreenContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
-import { ThemeContext } from "@/context/ThemeContext";
-import useWindowSizeStore from "@/context/WindowSizeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useWindowSizeStore from "@/src/context/WindowSizeContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
+import { useForward } from "@/src/hooks/chat/useForward";
+
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 import JoinCreateChat from "@/src/components/chat/JoinCreateChat";
+import AppText from "@/src/components/AppText";
 
 const ChatPageRoute = () => {
   const params = useLocalSearchParams();
@@ -56,8 +65,16 @@ const ChatPageRoute = () => {
     setEditingMessage,
   );
 
+  const { startForwarding } = useForward();
+
+  const handleSelectedForward = useCallback(() => {
+    if (selectedMessages.length === 0) return;
+    startForwarding(selectedMessages);
+    setSelectedMessages([]);
+  }, [selectedMessages, startForwarding, setSelectedMessages]);
+
   const { theme } = useContext(ThemeContext);
-  const { isSmallScreen } = useScreen();
+  const { isSmallScreen, isMediumScreen } = useScreen();
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
@@ -72,12 +89,14 @@ const ChatPageRoute = () => {
     setWidth: setVocalWidth,
     minWidth: 350,
     maxWidthPadding: 350,
+    containerWidth: containerWidth || undefined,
   });
 
   useEffect(() => {
     // Determine effective container width for math, but handle zero-width initialization gracefully
     const cw = containerWidth || width;
-    setVocalWidth((prev) => Math.max(350, Math.min(cw - 350, prev)));
+    const maxVocal = cw - 350;
+    setVocalWidth((prev) => Math.max(350, Math.min(maxVocal, prev)));
   }, [containerWidth, width, contentView, setVocalWidth]);
 
   useEffect(() => {
@@ -91,6 +110,13 @@ const ChatPageRoute = () => {
       setMinDetailWidth(400);
     };
   }, [contentView, setMinDetailWidth]);
+
+  // Auto-collapse split view when window is too narrow
+  useEffect(() => {
+    if (contentView === "both" && (isSmallScreen || isMediumScreen)) {
+      setContentView("chat");
+    }
+  }, [isSmallScreen, isMediumScreen, contentView, setContentView]);
 
   useEffect(() => {
     if (chatUUIDorHandle) {
@@ -145,15 +171,16 @@ const ChatPageRoute = () => {
         style={[
           styles.container,
           {
-            backgroundColor: theme.backgroundChatContentGradient?.[0] || "#000",
+            backgroundColor: theme.backgroundChatContent,
             justifyContent: "center",
             alignItems: "center",
           },
         ]}
       >
-        <Text style={{ color: "white", fontSize: 18 }}>
-          Fetching chat data...
-        </Text>
+        <AppText
+          style={{ color: theme.text, fontSize: 18 }}
+          translationKey="chat.loading"
+        />
       </View>
     );
   }
@@ -248,13 +275,14 @@ const ChatPageRoute = () => {
         onBack={() => {
           setSelectedChatUUID(null);
           setSelectedHandle(null);
-          //@ts-ignore
           router.push("/app");
         }}
-        navToOverview={() => {router.push(`/app/chat/${chatUUIDorHandle}/overview`)}}
+        navToOverview={() => {
+          router.push(`/app/chat/${chatUUIDorHandle}/${sub}/overview`);
+        }}
         isSmallScreen={isSmallScreen}
         onReply={handleBulkReply}
-        onForward={() => {}}
+        onForward={handleSelectedForward}
         onDelete={() => {
           setDeleteModalVisible(true);
         }}
@@ -291,7 +319,7 @@ function createStyle(theme: any) {
     splitPanel: { flex: 1, height: "100%" },
     splitSeparator: {
       width: 1,
-      backgroundColor: "rgba(255,255,255,0.1)",
+      backgroundColor: theme.backgroundDateSeparator,
       height: "100%",
     },
   });

@@ -1,6 +1,7 @@
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
 import * as Linking from "expo-linking";
-import { LoginColors } from "@/constants/LoginColors";
+import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 import { PRIVACY_POLICY_URL, TOS_URL } from "@/app.config";
 import TextLink from "@/src/components/TextLink";
 
@@ -20,7 +21,8 @@ export default function SignupCheckboxes({
   onToggleAge,
   loginTheme = "default",
 }: Props) {
-  const colors = LoginColors[loginTheme];
+  const colors = LoginColors[loginTheme as LoginTheme];
+  const styles = createStyles(colors);
 
   const openUrl = (url: string) => {
     if (Platform.OS === "web") window.open(url, "_blank");
@@ -45,7 +47,10 @@ export default function SignupCheckboxes({
       ]}
     >
       {checked && (
-        <Text style={[styles.tick, { color: colors.checkboxTick }]}>✓</Text>
+        <AppText
+          style={[styles.tick, { color: colors.checkboxTick }]}
+          text="✓"
+        />
       )}
     </Pressable>
   );
@@ -54,45 +59,49 @@ export default function SignupCheckboxes({
     <View style={styles.container}>
       <View style={styles.row}>
         <Checkbox checked={privacyAccepted} onPress={onTogglePrivacyTos} />
-        <Text style={styles.text}>
-          I accept{" "}
-          <TextLink
+        <AppText style={styles.text}>
+          <AppText translationKey="auth.signupStep.iAccept" />{" "}
+          <AppText
+            translationKey="auth.signupStep.privacyPolicy"
+            style={{ color: colors.link }}
             onPress={() => openUrl(PRIVACY_POLICY_URL)}
-            style={{ color: colors.link, fontSize: 14 }}
-          >
-            privacy policy
-          </TextLink>{" "}
-          and{" "}
-          <TextLink
+          />{" "}
+          <AppText translationKey="auth.signupStep.and" />{" "}
+          <AppText
+            translationKey="auth.signupStep.termsOfService"
+            style={{ color: colors.link }}
             onPress={() => openUrl(TOS_URL)}
-            style={{ color: colors.link, fontSize: 14 }}
-          >
-            terms of service
-          </TextLink>
-        </Text>
+          />
+        </AppText>
       </View>
 
       <View style={[styles.row, { marginTop: 10 }]}>
         <Checkbox checked={ageConfirmed} onPress={onToggleAge} />
-        <Text style={styles.text}>I am 16 or older.</Text>
+        <AppText style={styles.text} translationKey="auth.signupStep.iAm16" />
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { marginBottom: 16, maxWidth: 300 },
-  row: { flexDirection: "row", alignItems: "flex-start" },
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    borderWidth: 2,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
-    marginTop: 1,
-  },
-  tick: { fontWeight: "bold", fontSize: 12 },
-  text: { fontSize: 14, lineHeight: 20, flex: 1 },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      marginBottom: 16,
+      maxWidth: 300,
+      width: "100%",
+      alignSelf: "center",
+    },
+    row: { flexDirection: "row", alignItems: "flex-start", width: "100%" },
+    checkbox: {
+      width: 18,
+      height: 18,
+      borderRadius: 4,
+      borderWidth: 2,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 8,
+      marginTop: 1,
+    },
+    tick: { fontWeight: "bold", fontSize: 12 },
+    text: { fontSize: 14, lineHeight: 20, flex: 1, color: colors.subtitle },
+  });

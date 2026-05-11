@@ -1,5 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 import QRCode from "react-native-qrcode-svg";
 
 import useClipboard from "@/src/hooks/useClipboard";
@@ -27,6 +29,7 @@ const QRCodeModal = ({
   profilePictureUUID,
   theme,
 }: QRCodeModalProps) => {
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   const { copyToClipboard, copied } = useClipboard();
@@ -42,12 +45,7 @@ const QRCodeModal = ({
       <View style={styles.container}>
         <View style={styles.qrcodeContainer}>
           <View style={styles.avatarPosition}>
-            <Avatar
-              uuid={profilePictureUUID}
-              theme={theme}
-              size={80}
-              style={styles.avatarBorder}
-            />
+            <Avatar uuid={profilePictureUUID} size={80} />
           </View>
           <View style={{ height: 15 }} />
           <QRCode
@@ -55,14 +53,15 @@ const QRCodeModal = ({
             logo={logoForQR}
             size={200}
             enableLinearGradient={true}
-            linearGradient={["#013480", "#177FC0"]}
+            linearGradient={theme.backgroundMainGradient}
             logoBorderRadius={100}
             logoMargin={5}
-            logoBackgroundColor={"#fff"}
+            logoBackgroundColor={theme.icon}
           />
-          <Text style={styles.usernameText}>
-            @{username ? username.toLocaleUpperCase() : ""}
-          </Text>
+          <AppText
+            style={styles.usernameText}
+            text={`@${username ? username.toLocaleUpperCase() : ""}`}
+          />
         </View>
 
         <View style={styles.linkContainer}>
@@ -71,13 +70,12 @@ const QRCodeModal = ({
             style={styles.copyBox}
             disabled={copied}
           >
-            <Text
+            <AppText
               style={[styles.linkText, { color: theme.text }]}
               numberOfLines={1}
               ellipsizeMode="middle"
-            >
-              {profileLink}
-            </Text>
+              text={profileLink}
+            />
             <Icon
               name={copied ? "Tick01Icon" : "Copy01Icon"}
               size={20}
@@ -107,10 +105,6 @@ const createStyles = (theme: any) =>
       zIndex: 10,
       elevation: 10,
     },
-    avatarBorder: {
-      borderWidth: 4,
-      borderColor: theme.backgroundModal || theme.background || "#000000",
-    },
     usernameText: {
       fontSize: 30,
       fontWeight: "900",
@@ -124,7 +118,7 @@ const createStyles = (theme: any) =>
       padding: 10,
       marginBottom: 10,
       paddingHorizontal: 30,
-      backgroundColor: "#ffffff",
+      backgroundColor: theme.icon,
       borderRadius: 12,
       borderWidth: 1.5,
       borderColor: theme.primary,
@@ -139,7 +133,7 @@ const createStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "space-between",
       padding: 12,
-      backgroundColor: "rgba(128, 128, 128, 0.1)",
+      backgroundColor: theme.secondary,
       borderRadius: 10,
       width: "100%",
     },
@@ -147,22 +141,6 @@ const createStyles = (theme: any) =>
       flex: 1,
       marginRight: 10,
       fontSize: 14,
-    },
-    shareButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: theme.primary,
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 20,
-      width: "100%",
-      gap: 10,
-    },
-    shareText: {
-      color: "#FFFFFF",
-      fontSize: 16,
-      fontWeight: "600",
     },
   });
 

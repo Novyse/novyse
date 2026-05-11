@@ -1,14 +1,14 @@
 import React, { useContext } from "react";
-import { Text, StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform } from "react-native";
+import AppText from "@/src/components/AppText";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 const URL_REGEX =
   /(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])(\S*)/g;
 const MENTION_REGEX = /@(\w+)/g;
-
-
+const EMAIL_REGEX = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
 
 const MessageText = ({ text, timestampWidth = 80 }) => {
   const { theme } = useContext(ThemeContext);
@@ -20,10 +20,11 @@ const MessageText = ({ text, timestampWidth = 80 }) => {
   const normalized = text.trimStart();
 
   const spacer = (
-    <Text key="spacer" style={{ opacity: 0, fontSize: 12 }}>
-      {"  "}
-      {"\u00A0".repeat(Math.ceil(timestampWidth / 4))}
-    </Text>
+    <AppText
+      key="spacer"
+      style={{ opacity: 0, fontSize: 12 }}
+      text={`  ${"\u00A0".repeat(Math.ceil(timestampWidth / 4))}`}
+    />
   );
 
   const segments = parseSegments(normalized);
@@ -31,7 +32,7 @@ const MessageText = ({ text, timestampWidth = 80 }) => {
   const parts = segments.map(({ type, value, url, username }, i) => {
     if (type === "url") {
       return (
-        <Text
+        <AppText
           key={i}
           style={styles.link}
           onPress={() =>
@@ -39,34 +40,38 @@ const MessageText = ({ text, timestampWidth = 80 }) => {
               ? window.open(url, "_blank")
               : Linking.openURL(url)
           }
-        >
-          {value}
-        </Text>
+          text={value}
+        />
       );
     }
     if (type === "mention") {
       return (
-        <Text
+        <AppText
           key={i}
           style={styles.link}
           onPress={() => router.push(`/profile/${username.toLowerCase()}`)}
-        >
-          {value}
-        </Text>
+          text={value}
+        />
       );
     }
-    return (
-      <Text key={i} style={styles.text}>
-        {value}
-      </Text>
-    );
+    if (type === "email") {
+      return (
+        <AppText
+          key={i}
+          style={styles.link}
+          onPress={() => Linking.openURL(`mailto:${value}`)}
+          text={value}
+        />
+      );
+    }
+    return <AppText key={i} style={styles.text} text={value} />;
   });
 
   return (
-    <Text style={styles.text}>
+    <AppText style={styles.text}>
       {parts}
       {spacer}
-    </Text>
+    </AppText>
   );
 };
 
@@ -93,12 +98,23 @@ function parseSegments(text) {
       raw: m[0],
     });
 
+  EMAIL_REGEX.lastIndex = 0;
+  while ((m = EMAIL_REGEX.exec(text)) !== null)
+    matches.push({
+      type: "email",
+      index: m.index,
+      length: m[0].length,
+      raw: m[0],
+    });
+
   matches.sort((a, b) => a.index - b.index);
 
   const segments = [];
   let cursor = 0;
 
   for (const { type, index, length, raw } of matches) {
+    if (index < cursor) continue; // Skip overlapping matches
+
     if (index > cursor)
       segments.push({ type: "plain", value: text.slice(cursor, index) });
 
@@ -108,8 +124,10 @@ function parseSegments(text) {
         value: raw,
         url: raw.startsWith("http") ? raw : `https://${raw}`,
       });
-    } else {
+    } else if (type === "mention") {
       segments.push({ type: "mention", value: raw, username: raw.slice(1) });
+    } else {
+      segments.push({ type: "email", value: raw });
     }
     cursor = index + length;
   }
@@ -122,7 +140,6 @@ function parseSegments(text) {
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    
     text: {
       color: theme.text,
       fontSize: 15,
@@ -133,7 +150,7 @@ const createStyle = (theme) =>
       }),
     },
     link: {
-      color: theme.messagesLink,
+      color: theme.textLink,
       fontSize: 15,
       textDecorationLine: "underline",
     },

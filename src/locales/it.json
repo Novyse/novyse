@@ -1,0 +1,718 @@
+{
+  "common": {
+    "hello": "Ciao!",
+    "settings": "Impostazioni",
+    "loadingProfile": "Caricamento profilo...",
+    "error": "Errore",
+    "success": "Successo",
+    "status": {
+      "error": "Errore",
+      "warning": "Attenzione",
+      "success": "Successo"
+    },
+    "developerNote": "Nota per lo sviluppatore: questa pagina è attualmente solo un'anteprima dell'interfaccia utente. Tutte le funzionalità funzionali sono in fase di sviluppo e saranno incluse nella versione 1.2.",
+    "errorPage": {
+      "title": "Restrizione di Sistema",
+      "message": "Questa app può essere aperta solo in una finestra del browser alla volta. Chiudi tutte le altre istanze dell'app e riprova.",
+      "messageSecondary": "Inoltre, questa app non è utilizzabile in modalità in incognito a causa di requisiti di sicurezza.",
+      "messageTertiary": "Se pensi che si tratti di un errore, prova a ricaricare la pagina o a riavviare l'applicazione."
+    },
+    "qrReader": {
+      "requestingPermissions": "Richiesta permessi...",
+      "needPermissions": "Abbiamo bisogno del permesso per accedere alla fotocamera per scansionare i codici QR.",
+      "grantPermission": "Concedi Permesso",
+      "instruction": "Inquadra un codice QR",
+      "scanAgain": "Tocca per scansionare di nuovo"
+    },
+    "videoViewer": {
+      "speed": "Velocità di riproduzione",
+      "saved": "L'ho salvata"
+    },
+    "unnamedFile": "File senza nome",
+    "block": "Blocca",
+    "leave": "Abbandona",
+    "troubleshooting": "Risoluzione dei problemi",
+    "validation": {
+      "invalidEmail": "Email non valida",
+      "passwordTooShort": "La password deve contenere almeno 8 caratteri",
+      "required": "Campo obbligatorio",
+      "invalidName": "Il nome può contenere solo lettere e spazi",
+      "handleTooShort": "L'handle deve contenere almeno 3 caratteri",
+      "handleTooLong": "L'handle non può superare i 15 caratteri",
+      "invalidHandle": "L'handle può contenere solo lettere minuscole, numeri e trattini bassi, e deve iniziare e finire con una lettera o un numero",
+      "handleConsecutiveUnderscores": "Non sono ammessi trattini bassi consecutivi",
+      "invalidInput": "Input non valido"
+    }
+  },
+  "chat": {
+    "typeMessage": "Scrivi un messaggio...",
+    "send": "Invia",
+    "unknownUser": "Sconosciuto",
+    "messageActions": {
+      "reply": "Rispondi",
+      "pin": "Fissa",
+      "unpin": "Rimuovi",
+      "copy": "Copia",
+      "download": "Scarica",
+      "cancelEdit": "Annulla Modifica",
+      "edit": "Modifica",
+      "forward": "Inoltra",
+      "select": "Seleziona",
+      "delete": "Elimina",
+      "cancel": "Annulla",
+      "reads": {
+        "one": "{{count}} Lettura",
+        "other": "{{count}} Letture"
+      },
+      "reactions": {
+        "one": "{{count}} Reazione",
+        "other": "{{count}} Reazioni"
+      }
+    },
+    "uploadOverlay": {
+      "media": "Media",
+      "camera": "Fotocamera",
+      "file": "File",
+      "location": "Posizione",
+      "todo": "Lista",
+      "poll": "Sondaggio"
+    },
+    "uploadFile": {
+      "chooseFile": "Scegli File",
+      "removeAll": "Rimuovi tutti i file"
+    },
+    "iconsPicker": {
+      "emoji": "Emoji",
+      "sticker": "Sticker",
+      "gif": "GIF"
+    },
+    "overview": {
+      "tabs": {
+        "members": "Membri",
+        "media": "Media",
+        "files": "File",
+        "links": "Link",
+        "music": "Musica",
+        "voice": "Vocali",
+        "gifs": "GIF"
+      },
+      "noMembers": "Nessun membro trovato",
+      "noFiles": "Nessun file condiviso",
+      "notSpecified": "Non specificato",
+      "noDescriptionYet": "Nessuna descrizione ancora",
+      "actions": {
+        "settings": "Impostazioni",
+        "block": "Blocca",
+        "leave": "Abbandona"
+      },
+      "errors": {
+        "deviceError": "Non siamo riusciti a recuperare il dispositivo. Per favore riprova. <a href=\"https://www.novyse.com/help/troubleshooting/comms/devices\" target=\"_blank\">{{troubleshooting}}</a>"
+      }
+    },
+    "loading": "Caricamento...",
+    "listItem": {
+      "draft": "Bozza",
+      "you": "Tu",
+      "unknown": "Sconosciuto"
+    },
+    "joinCreate": {
+      "startDm": "Inizia DM",
+      "join": "Entra",
+      "joinChat": "Entra nella Chat",
+      "joinUserDesc": "Crea una nuova conversazione di messaggistica diretta con questo utente.",
+      "joinChatDesc": "Questa è una chat pubblica. Entra per vedere i messaggi e partecipare.",
+      "securityWip": "(WIP) Conversazione crittografata end-to-end. I tuoi dati rimangono al sicuro.",
+      "publicChannelDesc": "I messaggi nei canali pubblici sono visibili a tutti i membri.",
+      "notificationMuteDesc": "Puoi sempre silenziare le notifiche o lasciare la chat in seguito.",
+      "processing": "Elaborazione..."
+    },
+    "header": {
+      "members": "{{count}} membri",
+      "online": "{{count}} online",
+      "lastSeen": "Ultimo accesso",
+      "call_participants": "{{count}} in chiamata",
+      "status": {
+        "success": "Successo",
+        "error": "Errore",
+        "warning": "Attenzione",
+        "info": "Info"
+      },
+      "inputs": {
+        "select_placeholder": "Seleziona un'opzione",
+        "no_options": "Nessuna opzione",
+        "select_date": "Seleziona data",
+        "confirm": "Conferma"
+      },
+      "selected": "{{count}} selezionati"
+    },
+    "bottomBar": {
+      "editing": "Modifica",
+      "placeholder": "Messaggio",
+      "files": {
+        "one": "{{count}} file",
+        "other": "{{count}} file",
+        "file": "File",
+        "errors": {
+          "maxFiles": "Massimo {{count}} file",
+          "totalSize": "Il totale supera {{size}}",
+          "fileSize": "Supera {{size}}",
+          "empty": "File vuoto"
+        }
+      }
+    },
+    "comms": {
+      "participantsInCall": "{{count}} partecipanti alla chiamata",
+      "noParticipants": "Non c'è nessuno qui.",
+      "error": {
+        "chatFull": "Questa chat è piena",
+        "generic": "Per favore riprova più tardi."
+      },
+      "selectors": {
+        "camera": {
+          "title": "Seleziona Fotocamera",
+          "loading": "Caricamento fotocamere...",
+          "currentlySelected": "Attualmente Selezionata",
+          "defaultName": "Fotocamera {{id}}"
+        },
+        "microphone": {
+          "title": "Seleziona Microfono",
+          "loading": "Caricamento microfoni...",
+          "currentlySelected": "Attualmente Selezionato",
+          "defaultName": "Microfono {{id}}"
+        }
+      }
+    },
+    "memberCount_one": "{{count}} membro",
+    "memberCount_other": "{{count}} membri",
+    "unreadMessages": "Messaggi non letti",
+    "settings": {
+      "title": "Impostazioni Chat",
+      "notifications": "Notifiche",
+      "muteNotifications": "Silenzia Notifiche",
+      "muteDuration": "Durata Silenzio",
+      "muteFor8h": "8 ore",
+      "chatOptions": "Opzioni Chat",
+      "disappearingMessages": "Messaggi Effimeri",
+      "privacy": "Privacy",
+      "readReceipts": "Conferme di lettura",
+      "groupSettings": "Impostazioni Gruppo",
+      "directMessage": "Messaggio Diretto",
+      "addMembers": "Aggiungi Membri",
+      "manageMembers": "Gestisci Membri",
+      "inviteLink": "Link di Invito",
+      "editGroupInfo": "Modifica Info Gruppo"
+    },
+    "statusBanner": {
+      "offline": "Sei offline. Controlla la tua connessione.",
+      "syncFailed": "Sincronizzazione fallita. Riprovo in {{count}}s...",
+      "socketDisconnected": "Connessione in tempo reale assente. Riconnessione...",
+      "apiError": "Errore del server (500)"
+    }
+  },
+  "settings": {
+    "languageAndTime": "Lingua e Ora",
+    "theme": "Tema Base",
+    "themeOptions": {
+      "system": "Sistema",
+      "dark": "Scuro",
+      "light": "Chiaro"
+    },
+    "language": {
+      "select": "Lingua dell'app",
+      "english": "Inglese",
+      "italian": "Italiano"
+    },
+    "menu": {
+      "account": "Account",
+      "customization": "Personalizzazione",
+      "storage": "Archiviazione",
+      "security": "Sicurezza",
+      "comms": "Comunicazioni",
+      "qrScanner": "Scanner QR",
+      "shortcuts": "Scorciatoie",
+      "info": "Info"
+    },
+    "account": {
+      "title": "Account",
+      "modifyProfile": "Modifica Profilo",
+      "logout": "Esci",
+      "deleteAccount": "Elimina Account"
+    },
+    "customization": {
+      "title": "Personalizzazione",
+      "themes": "Temi",
+      "themesSubtitle": "Scegli il tuo schema colori preferito"
+    },
+    "modifyProfile": {
+      "personalInfo": "Informazioni Personali",
+      "name": "Nome",
+      "surname": "Cognome",
+      "biography": "Biografia",
+      "biographyPlaceholder": "Raccontaci di te...",
+      "username": "Nome utente",
+      "birthday": "Compleanno",
+      "region": "Regione",
+      "selectRegion": "Seleziona la tua regione",
+      "selectCountryFirst": "Seleziona prima una nazione",
+      "country": "Nazione",
+      "selectCountry": "Seleziona la tua nazione",
+      "appearance": "Aspetto",
+      "profileColor": "Colore profilo",
+      "backgroundColor": "Colore sfondo",
+      "connections": "Connessioni",
+      "link": "Collega",
+      "unlink": "Scollega",
+      "twitter": "Twitter",
+      "github": "GitHub",
+      "shareRepo": "Condividi repo",
+      "unsavedChanges": "Attenzione - hai modifiche non salvate!",
+      "restore": "Ripristina",
+      "save": "Salva",
+      "saving": "Salvataggio...",
+      "success": "Profilo aggiornato con successo",
+      "error": "Errore durante l'aggiornamento del profilo",
+      "saveError": "Errore durante il salvataggio del profilo",
+      "birthdayFormat": "GG/MM/AAAA"
+    },
+    "info": {
+      "version": "Versione",
+      "build": "Build",
+      "released": "Rilasciato",
+      "connect": "Connetti",
+      "viewOnGithub": "Vedi su GitHub",
+      "roadmap": "Roadmap",
+      "legal": "Legale",
+      "privacyPolicy": "Informativa sulla Privacy",
+      "termsOfService": "Termini di Servizio",
+      "cookiePolicy": "Informativa sui Cookie"
+    },
+    "qrScanner": {
+      "invalidCode": "QR Code non valido o già scansionato.",
+      "loginSuccess": "L'accesso verrà eseguito a breve, attendi qualche istante...",
+      "scanError": "Impossibile gestire la scansione del codice QR."
+    },
+    "shortcuts": {
+      "muteUnmute": "Silenzia / Non silenziare"
+    },
+    "comms": {
+      "title": "Comunicazioni",
+      "loadingSettings": "Caricamento impostazioni...",
+      "errorLoadingSettings": "Errore nel caricamento delle impostazioni",
+      "retry": "Riprova",
+      "inputDevices": "Dispositivi di Input",
+      "inputDevicesWarning": "⚠️ Attenzione: Le modifiche ai dispositivi di input non influenzeranno attualmente le funzionalità della chat.",
+      "loadingDevices": "Caricamento dispositivi...",
+      "microphone": "Microfono",
+      "noMicrophonesFound": "Nessun microfono trovato",
+      "webcam": "Webcam",
+      "noCamerasFound": "Nessuna fotocamera trovata",
+      "entryMode": "Modalità di Ingresso",
+      "videoSettings": "Impostazioni Video",
+      "webcamQuality": "Qualità Webcam",
+      "webcamFPS": "FPS Webcam",
+      "screenShareSettings": "Impostazioni Condivisione Schermo",
+      "screenShareQuality": "Qualità Condivisione Schermo",
+      "screenShareFPS": "FPS Condivisione Schermo",
+      "screenShareAudio": "Audio Condivisione Schermo",
+      "audioProcessing": "Elaborazione Audio",
+      "noiseSuppression": "Soppressione Rumore",
+      "expander": "Espansore",
+      "noiseGate": "Gate del Rumore",
+      "noiseGateThreshold": "Soglia del Gate del Rumore",
+      "typingAttenuation": "Attenuazione Digitazione",
+      "currentSettings": "Impostazioni Attuali:",
+      "on": "ON",
+      "off": "OFF",
+      "audioOnly": "Solo Audio",
+      "videoOnly": "Solo Video",
+      "both": "Entrambi",
+      "low": "Basso",
+      "medium": "Medio",
+      "high": "Alto",
+      "adaptive": "Adattivo",
+      "hybrid": "Ibrido",
+      "manual": "Manuale"
+    },
+    "storage": {
+      "localStorage": "Archiviazione Locale",
+      "gbUsed": "GB usati",
+      "cloudStorageComingSoon": "Archiviazione Cloud (In Arrivo)",
+      "resetDatabase": "Ripristina Database",
+      "resetDatabaseSubtitle": " (Questo pulirà completamente il database locale e richiederà al server tutti i tuoi dati)",
+      "cloudStorage": "Archiviazione Cloud",
+      "file": "File",
+      "videos": "Video",
+      "images": "Immagini",
+      "documents": "Documenti",
+      "others": "Altro"
+    },
+    "security": {
+      "title": "Sicurezza",
+      "status": "Stato",
+      "actions": "Azioni",
+      "sessions": {
+        "ip": "IP",
+        "created": "Creato",
+        "lastActivity": "Ultima attività"
+      },
+      "password": "Password",
+      "managePassword": "Gestisci la password del tuo account",
+      "passwordActive": "Password Attiva",
+      "noPasswordSet": "Nessuna Password Impostata",
+      "passwordProtected": "Il tuo account è protetto da una password",
+      "addPasswordSecurity": "Aggiungi una password per maggiore sicurezza",
+      "setPassword": "Imposta Password",
+      "changePassword": "Cambia Password",
+      "removePassword": "Rimuovi Password",
+      "fillAllFields": "Per favore compila tutti i campi",
+      "passwordsDontMatch": "Le password non coincidono",
+      "newPasswordsDontMatch": "Le nuove password non coincidono",
+      "setPasswordSuccess": "Password impostata con successo",
+      "setPasswordFailed": "Impossibile impostare la password",
+      "changePasswordSuccess": "Password cambiata con successo",
+      "changePasswordFailed": "Impossibile cambiare la password",
+      "deactivatePasswordSuccess": "Password disattivata con successo",
+      "deactivatePasswordFailed": "Impossibile disattivare la password",
+      "newPassword": "Nuova Password",
+      "enterNewPassword": "Inserisci nuova password",
+      "confirmPassword": "Conferma Password",
+      "confirmNewPasswordInput": "Conferma nuova password",
+      "setting": "Impostazione...",
+      "changing": "Modifica...",
+      "removing": "Rimozione...",
+      "cancel": "Annulla",
+      "passwordNote": "La password deve contenere almeno 8 caratteri",
+      "removePasswordWarning": "Inserisci la tua password attuale per confermare la rimozione. Assicurati di avere un altro metodo di accesso (es. Passkey) attivo.",
+      "confirmNewPassword": "Conferma Nuova Password",
+      "passkeys": "Passkey",
+      "mfa": "MFA (WIP)",
+      "sessionsLabel": "Sessioni",
+      "sessionsTitle": "Sessioni",
+      "apiKeys": "Chiavi API",
+      "notifications": "Notifiche (WIP)",
+      "authenticator": "Autenticatore",
+      "authAppDesc": "App di Autenticazione",
+      "email": "Email",
+      "emailCodeDesc": "Codice via Email",
+      "mfaMethodAdded": "Metodo MFA aggiunto con successo",
+      "mfaMethodRemoved": "Metodo MFA rimosso con successo",
+      "backupCodesResetSuccess": "I codici di backup sono stati reimpostati con successo",
+      "mfaTitle": "Autenticazione a Due Fattori",
+      "manageAuthMethods": "Gestisci i tuoi metodi di autenticazione",
+      "active": "Attivo",
+      "add": "Aggiungi",
+      "showBackupCodes": "Mostra Codici di Backup",
+      "resetBackupCodes": "Reimposta Codici di Backup",
+      "manageApiKeys": "Gestisci le tue chiavi API attive",
+      "failedToLoadApiKeys": "Impossibile caricare le chiavi API",
+      "noApiKeys": "Nessuna chiave API",
+      "createApiKeyPrompt": "Crea una chiave API per accedere all'API Novyse",
+      "apiKeyCreatedSuccess": "Chiave API creata con successo",
+      "apiKeyCreatedFailed": "Impossibile creare la chiave API",
+      "apiKeyActivatedSuccess": "Chiave API attivata con successo",
+      "apiKeyDeactivatedSuccess": "Chiave API disattivata con successo",
+      "apiKeyStatusUpdateFailed": "Impossibile aggiornare lo stato della chiave API",
+      "apiKeyRevokedSuccess": "Chiave API revocata con successo",
+      "apiKeyRevokeFailed": "Impossibile revocare la chiave API",
+      "createNewApiKey": "Crea Nuova Chiave API",
+      "createModal": {
+        "title": "Crea Nuova Chiave API",
+        "subtitle": "Dai alla tua chiave API un nome descrittivo per identificarla in seguito.",
+        "placeholder": "es. Server di Produzione",
+        "creating": "Creazione...",
+        "create": "Crea Chiave API"
+      },
+      "detailsModal": {
+        "title": "Chiave API Creata",
+        "subtitle": "Per favore copia la tua chiave API ora. Per ragioni di sicurezza, non potrai più vederla.",
+        "label": "La tua Chiave API",
+        "saved": "L'ho salvata"
+      },
+      "created": "Creata",
+      "lastUsed": "Ultimo utilizzo",
+      "unknown": "Sconosciuto",
+      "never": "Mai",
+      "managePasskeys": "Gestisci le tue passkey registrate per l'accesso senza password",
+      "unnamedPasskey": "Passkey Senza Nome",
+      "failedToLoadPasskeys": "Impossibile caricare le passkey",
+      "passkeyAddedSuccess": "Passkey aggiunta con successo",
+      "passkeyAddedFailed": "Impossibile aggiungere la passkey",
+      "passkeyRemovedSuccess": "Passkey rimossa con successo",
+      "passkeyRemovedFailed": "Impossibile rimuovere la passkey",
+      "noPasskeys": "Nessuna passkey registrata",
+      "addPasskeyPrompt": "Aggiungi una passkey per un accesso più rapido e sicuro",
+      "added": "Aggiunta",
+      "addPasskey": "Aggiungi Passkey",
+      "activeSessions": "Sessioni Attive",
+      "manageSessions": "Gestisci le sessioni attive sui dispositivi",
+      "unknownDevice": "Dispositivo Sconosciuto",
+      "failedToLoadSessions": "Impossibile caricare le sessioni",
+      "justNow": "Proprio ora",
+      "mAgo": "m fa",
+      "hAgo": "h fa",
+      "yesterday": "Ieri",
+      "sessionDisconnected": "Sessione disconnessa",
+      "sessionDisconnectFailed": "Impossibile disconnettere la sessione",
+      "allOtherSessionsDisconnected": "Tutte le altre sessioni disconnesse",
+      "allOtherSessionsDisconnectFailed": "Impossibile disconnettere le altre sessioni",
+      "current": "Attuale",
+      "disconnectAllOtherSessions": "Disconnetti Tutte Le Altre Sessioni",
+      "notificationMethods": "Metodi di Notifica",
+      "manageNotifications": "Gestisci come ricevere le notifiche di sicurezza",
+      "inAppNotifications": "Notifiche in-app",
+      "notificationMethodRemoved": "Metodo di notifica rimosso",
+      "default": "Predefinito",
+      "addNotificationMethod": "Aggiungi Metodo di Notifica"
+    }
+  },
+  "layout": {
+    "loadingData": "Caricamento dei tuoi dati...",
+    "nothingSelected": "Nessun elemento selezionato.",
+    "notFound": {
+      "title": "404",
+      "subtitle": "Oops! Pagina non trovata",
+      "message": "La pagina che stai cercando non esiste o è stata spostata.",
+      "goHome": "Torna alla Home"
+    },
+    "updateRequired": {
+      "title": "Aggiornamento Richiesto",
+      "subtitle": "È disponibile una nuova versione di Novyse, necessaria per continuare.\n\nAggiorna per accedere alle ultime funzionalità e miglioramenti di sicurezza.",
+      "currentVersion": "Corrente: {{version}}",
+      "requiredVersion": "Richiesta: {{version}}",
+      "downloadLatestVersion": "Scarica l'ultima versione",
+      "warning": "Nota: se continui senza aggiornare, le funzionalità online non saranno disponibili.",
+      "goBack": "Torna a Novyse",
+      "helperText": "Visita {link} per ottenere l'aggiornamento per il tuo dispositivo."
+    }
+  },
+  "tabs": {
+    "chatList": {
+      "selected": "{{count}} selezionate",
+      "intentSharing": "Seleziona chat",
+      "forwarding": "Inoltra a..."
+    },
+    "search": {
+      "search": "Cerca",
+      "noResults": "Nessun risultato trovato"
+    }
+  },
+  "profile": {
+    "aboutMe": {
+      "title": "SU DI ME",
+      "noBiography": "Non sappiamo nulla di lui :("
+    },
+    "birthdayLocation": {
+      "born": "NATO IL",
+      "location": "LUOGO"
+    },
+    "connections": {
+      "title": "CONNESSIONI"
+    },
+    "loading": "Caricamento profilo...",
+    "error": "Errore nel caricamento del profilo: {{error}}",
+    "notFound": "Utente non trovato."
+  },
+  "auth": {
+    "welcome": {
+      "title": "Benvenuto",
+      "or": "OPPURE",
+      "scanQr": "Scansiona il QR per accedere",
+      "expiresIn": "Scade tra {{time}}",
+      "signup": "Registrati",
+      "login": "Accedi"
+    },
+    "passkey": {
+      "notSupported": "Metodi non supportati"
+    },
+    "login": {
+      "title": "Accedi",
+      "subtitle": "Inserisci le tue credenziali per accedere",
+      "securedBy": "Protetto da ",
+      "passkeyDesc": "Accedi rapidamente in modo sicuro usando la biometria o le credenziali del dispositivo.",
+      "loginWithPasskey": "Accedi con Passkey",
+      "dontHaveAccount": "Non hai un account? ",
+      "back": "Indietro"
+    },
+    "signup": {
+      "title": "Registrati",
+      "back": "Indietro",
+      "signupBtn": "Registrati"
+    },
+    "signupStep": {
+      "displayName": "Nome",
+      "displayNamePlaceholder": "Inserisci il tuo nome",
+      "nameLettersOnly": "Nome: solo lettere e spazi",
+      "username": "Username",
+      "usernamePlaceholder": "Username",
+      "checking": "Verifica in corso...",
+      "available": "Disponibile",
+      "alreadyInUse": "Già in uso",
+      "password": "Password",
+      "passwordMin16": "Password (min 16)",
+      "confirmPassword": "Conferma Password",
+      "confirmPasswordPlaceholder": "Conferma Password",
+      "passwordsMismatch": "Le password non coincidono",
+      "onlyLettersNumbers": "Solo lettere, numeri o trattini bassi",
+      "noConsecutiveUnderscores": "Nessun trattino basso consecutivo",
+      "iAccept": "Accetto ",
+      "privacyPolicy": "l'informativa sulla privacy",
+      "and": " e ",
+      "termsOfService": "i termini di servizio",
+      "iAm16": "Ho almeno 16 anni.",
+      "invalidHandle": "Handle non valido. Segui i requisiti indicati.",
+      "signupSuccessPasskey": "Registrazione completata! Accedi usando la tua passkey.",
+      "signupSuccessPassword": "Registrazione completata! Accedi usando le tue credenziali."
+    },
+    "chooseVerify": {
+      "title": "Scegli Metodo di Verifica",
+      "subtitle": "Seleziona come desideri ricevere il tuo codice di verifica.",
+      "email": "Email",
+      "sms": "SMS",
+      "authenticator": "App Authenticator",
+      "authAppDesc": "App di Autenticazione",
+      "back": "Indietro",
+      "verify": "Verifica"
+    },
+    "verify": {
+      "titleEmailOtp": "Email OTP",
+      "titleVerifyEmail": "Verifica Email",
+      "titleAuthenticatorApp": "App Authenticator",
+      "titleVerifyCode": "Verifica Codice",
+      "subtitle": "Inserisci il codice ricevuto per email.",
+      "subtitleAuthApp": "Scansiona il codice QR o inserisci manualmente il codice nella tua app di autenticazione, quindi inserisci il codice generato.",
+      "subtitleDefault": "Inserisci il codice di verifica.",
+      "verifyBtn": "Verifica",
+      "verifyCode": "Verifica Codice"
+    },
+    "verifyBackup": {
+      "title": "Codice Backup",
+      "subtitle": "Inserisci uno dei tuoi codici di backup da 8 caratteri per accedere al tuo account."
+    }
+  },
+  "messageFormat": {
+    "fileType": {
+      "image": {
+        "singular": "Immagine",
+        "plural": "Immagini"
+      },
+      "video": {
+        "singular": "Video",
+        "plural": "Video"
+      },
+      "audio": {
+        "singular": "Audio",
+        "plural": "Audio"
+      },
+      "voice": {
+        "singular": "Messaggio Vocale",
+        "plural": "Messaggi Vocali"
+      },
+      "document": {
+        "singular": "Documento",
+        "plural": "Documenti"
+      },
+      "code": {
+        "singular": "File di Codice",
+        "plural": "File di Codice"
+      },
+      "archive": {
+        "singular": "Archivio",
+        "plural": "Archivi"
+      },
+      "default": {
+        "singular": "File",
+        "plural": "File"
+      }
+    },
+    "media": "Media",
+    "files": "File",
+    "system": {
+      "chatCreated": "Chat creata",
+      "userJoined": "{{name}} si è unito alla chat",
+      "userLeft": "{{name}} ha lasciato la chat",
+      "systemMessage": "Messaggio di sistema",
+      "you": "Tu",
+      "user": "Utente"
+    },
+    "activity": {
+      "typing_one": "{{name}} sta scrivendo...",
+      "typing_two": "{{name}} e {{name2}} stanno scrivendo...",
+      "typing_other": "{{name}}, {{name2}} e altri {{count}} stanno scrivendo...",
+      "recording_voice_one": "{{name}} sta registrando un messaggio vocale...",
+      "recording_voice_two": "{{name}} e {{name2}} stanno registrando un messaggio vocale...",
+      "recording_voice_other": "{{name}}, {{name2}} e altri {{count}} stanno registrando un messaggio vocale...",
+      "recording_video_one": "{{name}} sta registrando un video...",
+      "recording_video_two": "{{name}} e {{name2}} stanno registrando un video...",
+      "recording_video_other": "{{name}}, {{name2}} e altri {{count}} stanno registrando un video...",
+      "uploading_file_one": "{{name}} sta caricando...",
+      "uploading_file_two": "{{name}} e {{name2}} stanno caricando...",
+      "uploading_file_other": "{{name}}, {{name2}} e altri {{count}} stanno caricando...",
+      "active_one": "{{name}} è attivo...",
+      "active_two": "{{name}} e {{name2}} sono attivi...",
+      "active_other": "{{name}}, {{name2}} e altri {{count}} sono attivi..."
+    },
+    "time": {
+      "justNow": "Adesso",
+      "secondsAgo": "{{count}}s fa",
+      "minutesAgo": "{{count}}m fa",
+      "hoursAgo": "{{count}}h fa",
+      "yesterday": "Ieri",
+      "daysAgo": "{{count}}g fa"
+    }
+  },
+  "modals": {
+    "delete_account": {
+      "title": "Elimina Account",
+      "warning": "Questa azione non può essere annullata. Tutti i tuoi dati verranno eliminati permanentemente.",
+      "confirmation_identity": "Conferma Identità",
+      "confirm_instruction": "Inserisci il tuo nome utente {{username}} per confermare.",
+      "helper_text": "Questa è un'azione permanente.",
+      "learn_more": "Scopri di più",
+      "cancel": "Annulla",
+      "delete": "Elimina"
+    },
+    "backup_codes": {
+      "title": "Codici di Backup",
+      "subtitle": "Usa questi codici per accedere al tuo account se perdi l'accesso al tuo metodo di autenticazione secondario.",
+      "error": "Caricamento codici di backup fallito"
+    },
+    "create_chat": {
+      "title": "Crea Nuova Chat",
+      "subtitle": "Configura le impostazioni della tua nuova chat qui sotto.",
+      "sections": {
+        "identity": "IDENTITÀ CHAT",
+        "commsStyle": "STILE DI COMUNICAZIONE",
+        "privacy": "IMPOSTAZIONI PRIVACY"
+      },
+      "fields": {
+        "name": "Nome Chat",
+        "namePlaceholder": "es., Novyse News",
+        "nameHelper": "Questo è il nome che sarà visibile ai membri.",
+        "handle": "Handle Chat",
+        "handlePlaceholder": "il-tuo-handle",
+        "handleHelper": "Le persone possono trovare la tua chat usando questo handle.",
+        "publicRequired": "(Richiesto per chat pubbliche)"
+      },
+      "types": {
+        "group": "Gruppo",
+        "groupDesc": "Ideale per piccoli team e amici.",
+        "channel": "Canale",
+        "channelDesc": "Trasmetti a un pubblico illimitato.",
+        "forum": "Forum",
+        "forumDesc": "Discussioni organizzate per argomento."
+      },
+      "privacy": {
+        "private": "Privata",
+        "public": "Pubblica"
+      },
+      "actions": {
+        "cancel": "Annulla",
+        "create": "Crea Chat"
+      },
+      "errors": {
+        "handleTaken": "Handle già in uso",
+        "handleError": "Errore nel controllo disponibilità handle"
+      }
+    }
+  }
+}

@@ -1,9 +1,13 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { DateTime } from "luxon";
-import useUserStore from "@/context/UserContext";
+import useUserStore from "@/src/context/UserContext";
+import { useTranslation } from "react-i18next";
 
 const usePreparedMessages = (messages, chatType) => {
+  const { t } = useTranslation();
   const userUUID = useUserStore((state) => state.localUserUUID);
+  const initializedUnreadRef = useRef(false);
+  const oldestUnreadIdRef = useRef(null);
 
   const prepareMessages = useCallback(
     (msgs = []) => {
@@ -11,7 +15,9 @@ const usePreparedMessages = (messages, chatType) => {
 
       // We treat messages without a created_at (pending ones) as being created "now" for sorting purposes
       const getSortTime = (msg) =>
-        msg.created_at ? new Date(msg.created_at).getTime() : Date.now();
+        msg.created_at
+          ? DateTime.fromISO(msg.created_at, { zone: "utc" }).toMillis()
+          : Date.now();
 
       const sortedAsc = [...msgs].sort(
         (a, b) => getSortTime(a) - getSortTime(b),
@@ -33,8 +39,9 @@ const usePreparedMessages = (messages, chatType) => {
 
         const sender = msg.sender_name;
         const senderUUID = msg.senderUUID;
-        const msgTime = msg.created_at ? new Date(msg.created_at) : new Date();
-        const dateTime = DateTime.fromJSDate(msgTime);
+        const dateTime = msg.created_at
+          ? DateTime.fromISO(msg.created_at, { zone: "utc" }).toLocal()
+          : DateTime.now();
         const dateOfGroup = dateTime.isValid
           ? dateTime.toFormat("yyyy-MM-dd")
           : null;
@@ -45,10 +52,11 @@ const usePreparedMessages = (messages, chatType) => {
           !isBreaking(sortedAsc[i]) &&
           sortedAsc[i].sender_name === sender &&
           (() => {
-            const t = sortedAsc[i].created_at
-              ? new Date(sortedAsc[i].created_at)
-              : new Date();
-            const dt = DateTime.fromJSDate(t);
+            const dt = sortedAsc[i].created_at
+              ? DateTime.fromISO(sortedAsc[i].created_at, {
+                  zone: "utc",
+                }).toLocal()
+              : DateTime.now();
             return dt.isValid ? dt.toFormat("yyyy-MM-dd") : null;
           })() === dateOfGroup
         ) {
@@ -74,17 +82,63 @@ const usePreparedMessages = (messages, chatType) => {
         (a, b) => getSortTime(b) - getSortTime(a),
       );
 
+      // Pre-evaluate the absolute oldest unread payload mapping locally 
+      // without overloading the buffer iterations.
+      if (!initializedUnreadRef.current && sortedDesc.length > 0) {
+        let tempTracker = {};
+        for (const msg of sortedDesc) {
+          if (msg.readBy && msg.readBy.length > 0) {
+            msg.readBy.forEach((read) => {
+              if (!tempTracker[read.userUUID]) {
+                tempTracker[read.userUUID] = read.readAt;
+              }
+            });
+          }
+          let tempPropagated = [...(msg.readBy || [])];
+          Object.keys(tempTracker).forEach((uuid) => {
+            if (!tempPropagated.find((r) => r.userUUID === uuid)) {
+              tempPropagated.push({ userUUID: uuid, readAt: tempTracker[uuid] });
+            }
+          });
+
+          const isReadByMe = tempPropagated.some((r) => r.userUUID === userUUID);
+          if (!isReadByMe && msg.senderUUID !== userUUID && !msg.internal) {
+            oldestUnreadIdRef.current = msg.id;
+          }
+        }
+        initializedUnreadRef.current = true;
+      }
+
       const prepared = [];
       let currentDate = null;
       let displayDate = null;
       let buffer = [];
+      let userReadsTracker = {};
 
       for (const msg of sortedDesc) {
+        // Propagate reads to older messages
+        if (msg.readBy && msg.readBy.length > 0) {
+          msg.readBy.forEach((read) => {
+            if (!userReadsTracker[read.userUUID]) {
+              userReadsTracker[read.userUUID] = read.readAt;
+            }
+          });
+        }
+
+        let propagatedReadBy = [...(msg.readBy || [])];
+        Object.keys(userReadsTracker).forEach((uuid) => {
+          if (!propagatedReadBy.find((r) => r.userUUID === uuid)) {
+            propagatedReadBy.push({
+              userUUID: uuid,
+              readAt: userReadsTracker[uuid],
+            });
+          }
+        });
+        msg.readBy = propagatedReadBy;
         // For pending messages, use current date
-        const timestamp = msg.created_at
-          ? new Date(msg.created_at)
-          : new Date();
-        const dateTime = DateTime.fromJSDate(timestamp);
+        const dateTime = msg.created_at
+          ? DateTime.fromISO(msg.created_at, { zone: "utc" }).toLocal()
+          : DateTime.now();
         const msgDate = dateTime.isValid
           ? dateTime.toFormat("yyyy-MM-dd")
           : null;
@@ -114,11 +168,20 @@ const usePreparedMessages = (messages, chatType) => {
             type: "text",
             data: {
               ...msg,
+              readBy: propagatedReadBy,
               showSenderName: showSenderNameIds.has(msg.id),
               showAvatar: showAvatarIds.has(msg.id),
             },
             uniqueKey: msg.id,
           });
+
+          if (oldestUnreadIdRef.current === msg.id) {
+            buffer.push({
+              type: "separator-with-lines",
+              data: t("chat.unreadMessages"),
+              uniqueKey: "unread-separator",
+            });
+          }
         }
       }
 

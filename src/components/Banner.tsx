@@ -38,7 +38,7 @@ const Banner = React.memo(
         {renderBannerImage()}
         {isHovered && (
           <View style={styles.editIconContainer}>
-            <Icon name="UnavailableIcon"  color={theme.text} />
+            <Icon name="UnavailableIcon" color={theme.text} />
           </View>
         )}
       </HoverAndPressedButton>
@@ -56,13 +56,11 @@ const createStyles = (theme: any, height: number) =>
       width: "100%",
       height: height,
       resizeMode: "cover",
-      backgroundColor: "#00000000",
     },
     hoverButtonContainer: { padding: 0, borderRadius: 0 },
 
     editIconContainer: {
       position: "absolute",
-      backgroundColor: "rgba(0, 0, 0, 0.1)",
       justifyContent: "center",
       alignItems: "center",
       width: "100%",

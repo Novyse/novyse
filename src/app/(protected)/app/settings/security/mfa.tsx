@@ -1,7 +1,9 @@
 import React, { useContext, useState } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
-import { ThemeContext } from "@/context/ThemeContext";
+import { useTranslation } from "react-i18next";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsButton from "@/src/components/settings/SettingsButton";
@@ -17,6 +19,7 @@ interface MfaMethod {
 }
 
 export default function MfaRoute() {
+  const { t } = useTranslation();
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
@@ -26,15 +29,15 @@ export default function MfaRoute() {
   const [methods, setMethods] = useState<MfaMethod[]>([
     {
       id: "authenticator",
-      name: "Authenticator",
-      description: "Authentication App",
+      name: t("settings.security.authenticator"),
+      description: t("settings.security.authAppDesc"),
       iconName: "SecurityIcon",
       isActive: true,
     },
     {
       id: "email",
-      name: "Email",
-      description: "Code via Email",
+      name: t("settings.security.email"),
+      description: t("settings.security.emailCodeDesc"),
       iconName: "Mail01Icon",
       isActive: false,
     },
@@ -47,18 +50,18 @@ export default function MfaRoute() {
     // TODO: API call to add method
     console.log("Add MFA method", methodId);
     setMethods((prev) =>
-      prev.map((m) => (m.id === methodId ? { ...m, isActive: true } : m))
+      prev.map((m) => (m.id === methodId ? { ...m, isActive: true } : m)),
     );
-    setSuccess("MFA method added successfully");
+    setSuccess(t("settings.security.mfaMethodAdded"));
   };
 
   const handleRemoveMethod = (methodId: string) => {
     // TODO: API call to remove method
     console.log("Remove MFA method", methodId);
     setMethods((prev) =>
-      prev.map((m) => (m.id === methodId ? { ...m, isActive: false } : m))
+      prev.map((m) => (m.id === methodId ? { ...m, isActive: false } : m)),
     );
-    setSuccess("MFA method removed successfully");
+    setSuccess(t("settings.security.mfaMethodRemoved"));
   };
 
   const handleShowBackupCodes = () => {
@@ -69,18 +72,25 @@ export default function MfaRoute() {
   const handleResetBackupCodes = () => {
     // TODO: API call
     console.log("Reset backup codes");
-    setSuccess("Backup codes have been reset successfully");
+    setSuccess(t("settings.security.backupCodesResetSuccess"));
   };
 
   return (
     <>
-      <HeaderWithBackArrow title="MFA" onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.security.mfa"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Multi-Factor Authentication</Text>
-          <Text style={styles.subtitle}>
-            Manage your authentication methods
-          </Text>
+          <AppText
+            style={styles.title}
+            translationKey="settings.security.mfaTitle"
+          />
+          <AppText
+            style={styles.subtitle}
+            translationKey="settings.security.manageAuthMethods"
+          />
         </View>
 
         <StatusMessage
@@ -102,13 +112,14 @@ export default function MfaRoute() {
               <View style={styles.methodHeader}>
                 <View style={styles.methodInfo}>
                   <View style={styles.iconContainer}>
-                    <Icon name={method.iconName} color="#fff" />
+                    <Icon name={method.iconName}/>
                   </View>
                   <View style={styles.methodDetails}>
-                    <Text style={styles.methodName}>{method.name}</Text>
-                    <Text style={styles.methodDescription}>
-                      {method.description}
-                    </Text>
+                    <AppText style={styles.methodName} text={method.name} />
+                    <AppText
+                      style={styles.methodDescription}
+                      text={method.description}
+                    />
                   </View>
                 </View>
 
@@ -116,7 +127,10 @@ export default function MfaRoute() {
                   {method.isActive ? (
                     <View style={styles.activeSection}>
                       <View style={styles.statusBadge}>
-                        <Text style={styles.statusText}>Active</Text>
+                        <AppText
+                          style={styles.statusText}
+                          translationKey="settings.security.active"
+                        />
                       </View>
                       <Pressable
                         onPress={() => handleRemoveMethod(method.id)}
@@ -126,7 +140,7 @@ export default function MfaRoute() {
                           pressed && styles.deleteButtonPressed,
                         ]}
                       >
-                        <Icon name="Delete02Icon" color="#fff" />
+                        <Icon name="Delete02Icon"/>
                       </Pressable>
                     </View>
                   ) : (
@@ -138,8 +152,11 @@ export default function MfaRoute() {
                         pressed && styles.addButtonPressed,
                       ]}
                     >
-                      <Icon name="PlusSignCircleIcon" color="#fff" />
-                      <Text style={styles.addButtonText}>Add</Text>
+                      <Icon name="PlusSignCircleIcon"/>
+                      <AppText
+                        style={styles.addButtonText}
+                        translationKey="settings.security.add"
+                      />
                     </Pressable>
                   )}
                 </View>
@@ -150,11 +167,11 @@ export default function MfaRoute() {
 
         <View style={styles.buttonContainer}>
           <SettingsButton
-            text="Show Backup Codes"
+            translationKey="settings.security.showBackupCodes"
             onPress={handleShowBackupCodes}
           />
           <SettingsButton
-            text="Reset Backup Codes"
+            translationKey="settings.security.resetBackupCodes"
             onPress={handleResetBackupCodes}
           />
         </View>
@@ -186,7 +203,7 @@ const createStyle = (theme: any) =>
     },
     subtitle: {
       fontSize: 16,
-      color: "#a0a0a0",
+      color: theme.subtitle,
       lineHeight: 22,
     },
     methodsContainer: {
@@ -195,12 +212,12 @@ const createStyle = (theme: any) =>
       alignSelf: "center",
     },
     methodCard: {
-      backgroundColor: theme.backgroundSettingsCards,
+      backgroundColor: theme.backgroundMain,
       borderRadius: 16,
       marginBottom: 16,
       padding: 20,
       elevation: 2,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 8,
@@ -208,7 +225,7 @@ const createStyle = (theme: any) =>
       borderColor: "transparent",
     },
     methodCardActive: {
-      borderColor: "#00C851",
+      borderColor: theme.backgroundSuccess,
     },
     methodHeader: {
       flexDirection: "row",
@@ -224,7 +241,7 @@ const createStyle = (theme: any) =>
       width: 48,
       height: 48,
       borderRadius: 24,
-      backgroundColor: "#6366f1",
+      backgroundColor: theme.primary,
       justifyContent: "center",
       alignItems: "center",
       marginRight: 16,
@@ -240,7 +257,7 @@ const createStyle = (theme: any) =>
     },
     methodDescription: {
       fontSize: 14,
-      color: "#a0a0a0",
+      color: theme.subtitle,
     },
     actionContainer: {
       alignItems: "center",
@@ -251,18 +268,18 @@ const createStyle = (theme: any) =>
       gap: 12,
     },
     statusBadge: {
-      backgroundColor: "#00C851",
+      backgroundColor: theme.backgroundSuccess,
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 16,
     },
     statusText: {
-      color: "#fff",
+      color: theme.successText,
       fontSize: 12,
       fontWeight: "600",
     },
     deleteButton: {
-      backgroundColor: "#FF4757",
+      backgroundColor: theme.backgroundError,
       width: 36,
       height: 36,
       borderRadius: 18,
@@ -270,15 +287,15 @@ const createStyle = (theme: any) =>
       alignItems: "center",
     },
     deleteButtonHovered: {
-      backgroundColor: "#e8414f",
+      backgroundColor: theme.backgroundDanger,
       cursor: "pointer" as any,
     },
     deleteButtonPressed: {
-      backgroundColor: "#d13a47",
+      backgroundColor: theme.backgroundDanger,
       opacity: 0.9,
     },
     addButton: {
-      backgroundColor: "#6366f1",
+      backgroundColor: theme.primary,
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 16,
@@ -287,16 +304,16 @@ const createStyle = (theme: any) =>
       gap: 8,
     },
     addButtonText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 14,
       fontWeight: "600",
     },
     addButtonHovered: {
-      backgroundColor: "#5558e6",
+      backgroundColor: theme.settingsHoveredButton,
       cursor: "pointer" as any,
     },
     addButtonPressed: {
-      backgroundColor: "#4e51d4",
+      backgroundColor: theme.settingsPressedButton,
       opacity: 0.9,
     },
     buttonContainer: {

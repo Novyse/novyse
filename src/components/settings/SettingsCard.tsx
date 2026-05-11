@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, View, ViewStyle, StyleProp } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface SettingsCardProps {
   children: React.ReactNode;
@@ -26,7 +26,7 @@ function createStyle(theme) {
       overflow: "hidden",
       shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 2 },
-      backgroundColor: theme.backgroundSettingsCards,
+      backgroundColor: theme.backgroundMain,
     },
   });
 }

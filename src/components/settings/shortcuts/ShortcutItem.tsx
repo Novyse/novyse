@@ -1,15 +1,18 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { StyleSheet, View, TouchableOpacity } from "react-native";
+import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface ShortcutItemProps {
-  label: string;
+  label?: string;
+  translationKey?: string;
   keys: string[];
   onPress?: () => void;
 }
 
 const ShortcutItem = ({
   label,
+  translationKey,
   keys,
   onPress = () => {},
 }: ShortcutItemProps) => {
@@ -18,14 +21,20 @@ const ShortcutItem = ({
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Text style={styles.label}>{label}</Text>
+      {translationKey ? (
+        <AppText style={styles.label} translationKey={translationKey} />
+      ) : (
+        <AppText style={styles.label} text={label} />
+      )}
       <View style={styles.keysContainer}>
         {keys.map((key, index) => (
           <React.Fragment key={index}>
             <View style={styles.keyBox}>
-              <Text style={styles.keyText}>{key.toUpperCase()}</Text>
+              <AppText style={styles.keyText} text={key.toUpperCase()} />
             </View>
-            {index < keys.length - 1 && <Text style={styles.plus}>+</Text>}
+            {index < keys.length - 1 && (
+              <AppText style={styles.plus} text="+" />
+            )}
           </React.Fragment>
         ))}
       </View>
@@ -42,7 +51,7 @@ const createStyle = (theme: any) =>
       paddingVertical: 12,
       paddingHorizontal: 16,
       backgroundColor:
-        theme.backgroundSettingsCardsSecondary || "rgba(255, 255, 255, 0.05)",
+        theme.backgroundMainSecondary,
       borderRadius: 12,
       marginVertical: 4,
     },
@@ -57,8 +66,8 @@ const createStyle = (theme: any) =>
       alignItems: "center",
     },
     keyBox: {
-      backgroundColor: theme.backgroundCard || "#1a1a1a",
-      borderColor: theme.border || "#333",
+      backgroundColor: theme.backgroundCard,
+      borderColor: theme.border,
       borderWidth: 1,
       borderRadius: 6,
       paddingHorizontal: 8,
@@ -66,7 +75,7 @@ const createStyle = (theme: any) =>
       minWidth: 32,
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.2,
       shadowRadius: 1,

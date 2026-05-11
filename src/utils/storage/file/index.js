@@ -55,7 +55,7 @@ const storage = {
 
       switch (platform) {
         case "web": {
-          const result = await web.save.byBlob(bytes);
+          const result = await web.save.byBlob(bytes, key);
           ref = result.ref;
           size = result.size;
           break;

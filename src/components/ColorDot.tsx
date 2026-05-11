@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import HoverAndPressedButton from "./HoverAndPressedButton";
 
@@ -35,6 +35,6 @@ const createStyles = (theme: any) =>
     },
     colorDotSelected: {
       borderWidth: 2,
-      borderColor: "white",
+      borderColor: theme.borderColor,
     },
   });

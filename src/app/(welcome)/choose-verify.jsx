@@ -1,23 +1,19 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  useWindowDimensions,
-  ActivityIndicator,
-} from "react-native";
+import { View, StyleSheet, Image, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 
 import { LoginColors } from "@/constants/LoginColors";
+
 import gateway from "@/src/utils/backend-services/api-gateway";
+
 import StatusMessage from "@/src/components/StatusMessage";
-import auth from "@/src/utils/welcome/auth";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
+import AppText from "@/src/components/AppText";
+
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
 const ChooseVerify = () => {
@@ -26,7 +22,6 @@ const ChooseVerify = () => {
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [error, setError] = useState("");
   const loginTheme = "default";
-  const { width } = useWindowDimensions();
 
   const { isSmallScreen } = useScreen();
 
@@ -40,7 +35,7 @@ const ChooseVerify = () => {
     if (!email || !token || !verificationTypeList) {
       router.navigate("welcome");
     }
-  },[(email, token, verificationTypeList)]);
+  }, [(email, token, verificationTypeList)]);
 
   const handleChooseMethod = (method) => {
     setSelectedMethod(method);
@@ -82,10 +77,14 @@ const ChooseVerify = () => {
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
 
-          <Text style={styles.title}>Choose Verification Method</Text>
-          <Text style={styles.subtitle}>
-            Please select how you'd like to receive your verification code.
-          </Text>
+          <AppText
+            style={styles.title}
+            translationKey="auth.chooseVerify.title"
+          />
+          <AppText
+            style={styles.subtitle}
+            translationKey="auth.chooseVerify.subtitle"
+          />
 
           <View style={styles.optionsContainer}>
             {methods.map((method) => (
@@ -97,7 +96,7 @@ const ChooseVerify = () => {
                 ]}
                 onPress={() => handleChooseMethod(method)}
               >
-                <Text
+                <AppText
                   style={[
                     styles.optionButtonText,
                     selectedMethod === method &&
@@ -107,7 +106,7 @@ const ChooseVerify = () => {
                   {method === "email" && "Email"}
                   {method === "sms" && "SMS"}
                   {method === "authenticator" && "Authenticator App"}
-                </Text>
+                </AppText>
               </TouchableOpacity>
             ))}
           </View>

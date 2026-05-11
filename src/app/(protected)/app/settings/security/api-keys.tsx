@@ -1,11 +1,15 @@
 import React, { useContext, useState } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
-import { ThemeContext } from "@/context/ThemeContext";
+import { useTranslation } from "react-i18next";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import StatusMessage from "@/src/components/StatusMessage";
 import SecurityListCard from "@/src/components/settings/security/SecurityListCard";
+import Section from "@/src/components/settings/Section";
+import SettingRow from "@/src/components/settings/SettingRow";
 import Icon from "@/src/components/Icon";
 import auth from "@/src/utils/backend-services/auth";
 import CreateApiKeyModal from "@/src/components/settings/security/api-keys/CreateApiKeyModal";
@@ -20,6 +24,7 @@ interface ApiKey {
 }
 
 export default function ApiKeysRoute() {
+  const { t } = useTranslation();
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
@@ -48,15 +53,15 @@ export default function ApiKeysRoute() {
         name: k.name,
         createdAt: k.created_at
           ? new Date(k.created_at).toLocaleDateString()
-          : "Unknown",
+          : t("settings.security.unknown"),
         lastUsed: k.last_used_at
           ? new Date(k.last_used_at).toLocaleDateString()
-          : "Never",
+          : t("settings.security.never"),
         active: k.active ?? true,
       }));
       setApiKeys(mapped);
     } else {
-      setError(response.error || "Failed to load API keys");
+      setError(response.error || t("settings.security.failedToLoadApiKeys"));
     }
     setIsLoading(false);
   };
@@ -69,7 +74,7 @@ export default function ApiKeysRoute() {
     setIsLoading(true);
     const response = await auth.apikey.create(name);
     if (response.success) {
-      setSuccess("API key created successfully");
+      setSuccess(t("settings.security.apiKeyCreatedSuccess"));
       setShowCreateModal(false);
       fetchApiKeys();
 
@@ -78,7 +83,7 @@ export default function ApiKeysRoute() {
         setShowDetailsModal(true);
       }
     } else {
-      setError(response.error || "Failed to create API key");
+      setError(response.error || t("settings.security.apiKeyCreatedFailed"));
     }
     setIsLoading(false);
   };
@@ -87,33 +92,35 @@ export default function ApiKeysRoute() {
     const response = await auth.apikey.toggleActive(parseInt(id), active);
     if (response.success) {
       setSuccess(
-        `API key ${active ? "activated" : "deactivated"} successfully`,
+        active
+          ? t("settings.security.apiKeyActivatedSuccess")
+          : t("settings.security.apiKeyDeactivatedSuccess"),
       );
       fetchApiKeys();
     } else {
-      setError(response.error || "Failed to update API key status");
+      setError(
+        response.error || t("settings.security.apiKeyStatusUpdateFailed"),
+      );
     }
   };
 
   const handleDeleteKey = async (id: string) => {
     const response = await auth.apikey.revoke(parseInt(id));
     if (response.success) {
-      setSuccess("API key revoked successfully");
+      setSuccess(t("settings.security.apiKeyRevokedSuccess"));
       fetchApiKeys();
     } else {
-      setError(response.error || "Failed to revoke API key");
+      setError(response.error || t("settings.security.apiKeyRevokeFailed"));
     }
   };
 
   return (
     <>
-      <HeaderWithBackArrow title="API Keys" onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.security.apiKeys"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
-        <View style={styles.headerSection}>
-          <Text style={styles.title}>API Keys</Text>
-          <Text style={styles.subtitle}>Manage your active API keys</Text>
-        </View>
-
         <StatusMessage
           type="error"
           content={[error || ""]}
@@ -121,46 +128,46 @@ export default function ApiKeysRoute() {
           onClose={() => setError(null)}
         />
 
-        <View style={styles.listContainer}>
-          {apiKeys.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Icon name="Key01Icon" color="#a0a0a0" size={48} />
-              <Text style={styles.emptyText}>No API keys</Text>
-              <Text style={styles.emptySubtext}>
-                Create an API key to access the Novyse API
-              </Text>
-            </View>
-          ) : (
-            apiKeys.map((apiKey) => (
-              <SecurityListCard
-                key={apiKey.id}
-                iconName="Key01Icon"
-                iconColor={apiKey.active ? "#6366f1" : "#a0a0a0"}
-                title={apiKey.name}
-                subtitle={`Created ${apiKey.createdAt} · Last used ${apiKey.lastUsed}`}
-                active={apiKey.active}
-                onToggle={(active: boolean) =>
-                  handleToggleKey(apiKey.id, active)
-                }
-                onDelete={() => handleDeleteKey(apiKey.id)}
-              />
-            ))
-          )}
-        </View>
-
-        <View style={styles.addButtonContainer}>
-          <Pressable
+        <Section titleKey="settings.security.actions" style={{ marginTop: 20 }}>
+          <SettingRow
+            iconName="PlusSignIcon"
+            labelKey="settings.security.createNewApiKey"
             onPress={() => setShowCreateModal(true)}
-            style={({ pressed, hovered }: any) => [
-              styles.addButton,
-              hovered && styles.addButtonHovered,
-              pressed && styles.addButtonPressed,
-            ]}
-          >
-            <Icon name="PlusSignCircleIcon" color="#fff" />
-            <Text style={styles.addButtonText}>Create New API Key</Text>
-          </Pressable>
-        </View>
+            style={{ borderBottomWidth: 0 }}
+          />
+        </Section>
+
+        <Section titleKey="settings.security.manageApiKeys">
+          <View style={styles.listContainer}>
+            {apiKeys.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Icon name="Key01Icon" size={48} />
+                <AppText
+                  style={styles.emptyText}
+                  translationKey="settings.security.noApiKeys"
+                />
+                <AppText
+                  style={styles.emptySubtext}
+                  translationKey="settings.security.createApiKeyPrompt"
+                />
+              </View>
+            ) : (
+              apiKeys.map((apiKey) => (
+                <SecurityListCard
+                  key={apiKey.id}
+                  iconName="Key01Icon"
+                  title={apiKey.name}
+                  subtitle={`${t("settings.security.created")} ${apiKey.createdAt} · ${t("settings.security.lastUsed")} ${apiKey.lastUsed}`}
+                  active={apiKey.active}
+                  onToggle={(active: boolean) =>
+                    handleToggleKey(apiKey.id, active)
+                  }
+                  onDelete={() => handleDeleteKey(apiKey.id)}
+                />
+              ))
+            )}
+          </View>
+        </Section>
 
         <StatusMessage
           type="success"
@@ -191,30 +198,13 @@ export default function ApiKeysRoute() {
 
 const createStyle = (theme: any) =>
   StyleSheet.create({
-    headerSection: {
-      marginBottom: 32,
-      paddingTop: 20,
-      alignItems: "center",
-    },
-    title: {
-      fontSize: 28,
-      fontWeight: "bold",
-      color: theme.text,
-      marginBottom: 8,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: "#a0a0a0",
-      lineHeight: 22,
-    },
     listContainer: {
       width: "100%",
-      maxWidth: 600,
-      alignSelf: "center",
+      padding: 16,
     },
     emptyState: {
       alignItems: "center",
-      paddingVertical: 40,
+      paddingVertical: 20,
       gap: 12,
     },
     emptyText: {
@@ -224,33 +214,7 @@ const createStyle = (theme: any) =>
     },
     emptySubtext: {
       fontSize: 14,
-      color: "#a0a0a0",
+      color: theme.subtitle,
       textAlign: "center",
-    },
-    addButtonContainer: {
-      alignItems: "center",
-      marginTop: 8,
-    },
-    addButton: {
-      backgroundColor: "#6366f1",
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 24,
-      paddingVertical: 14,
-      borderRadius: 24,
-      gap: 10,
-    },
-    addButtonText: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    addButtonHovered: {
-      backgroundColor: "#5558e6",
-      cursor: "pointer" as any,
-    },
-    addButtonPressed: {
-      backgroundColor: "#4e51d4",
-      opacity: 0.9,
     },
   });

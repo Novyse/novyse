@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import ModalBase from "./ModalBase";
+import AppText from "../AppText";
 
 const DeleteMessage = ({
   visible,
@@ -18,30 +19,41 @@ const DeleteMessage = ({
   };
 
   return (
-    <ModalBase visible={visible} onClose={onClose} theme={theme} fullscreen={fullscreen}>
+    <ModalBase
+      visible={visible}
+      onClose={onClose}
+      theme={theme}
+      fullscreen={fullscreen}
+    >
       <View style={styles.contentContainer}>
-        <Text style={styles.title}>Delete Messages</Text>
-        <Text style={styles.subtitle}>
-          Are you sure you want to delete {messageCount} message
-          {messageCount > 1 ? "s" : ""}? This will delete for everyone.
-        </Text>
+        <AppText
+          style={styles.title}
+          translationKey="modals.delete_message.title"
+        />
+        <AppText
+          style={styles.subtitle}
+          translationKey="modals.delete_message.subtitle"
+          translationOptions={{ count: messageCount }}
+        />
 
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.button, styles.cancelButton]}
             onPress={onClose}
           >
-            <Text style={[styles.buttonText, styles.cancelButtonText]}>
-              Cancel
-            </Text>
+            <AppText
+              style={[styles.buttonText, styles.cancelButtonText]}
+              translationKey="modals.delete_message.cancel"
+            />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.deleteButton]}
             onPress={onDeletePress}
           >
-            <Text style={[styles.buttonText, styles.deleteButtonText]}>
-              Delete
-            </Text>
+            <AppText
+              style={[styles.buttonText, styles.deleteButtonText]}
+              translationKey="modals.delete_message.delete"
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -59,13 +71,13 @@ function createStyles(theme) {
       fontSize: 20,
       fontWeight: "bold",
       marginBottom: 10,
-      color: theme?.text || "#000",
+      color: theme.text,
     },
     subtitle: {
       fontSize: 16,
       textAlign: "center",
       marginBottom: 20,
-      color: theme?.text || "#333",
+      color: theme.subtitle,
     },
     buttonRow: {
       flexDirection: "row",
@@ -81,20 +93,20 @@ function createStyles(theme) {
       alignItems: "center",
     },
     cancelButton: {
-      backgroundColor: theme?.primary || "#eee",
+      backgroundColor: theme.primary,
     },
     deleteButton: {
-      backgroundColor: theme?.errorText || "red",
+      backgroundColor: theme.backgroundDanger,
     },
     buttonText: {
       fontSize: 16,
       fontWeight: "600",
     },
     cancelButtonText: {
-      color: theme?.text || "#000",
+      color: theme.text,
     },
     deleteButtonText: {
-      color: "#fff",
+      color: theme.text,
     },
   });
 }

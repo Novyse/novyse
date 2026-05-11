@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Pressable, StyleSheet, FlatList } from "react-native";
+import { View, Pressable, StyleSheet, FlatList } from "react-native";
 import { Platform } from "react-native";
 
 import { Room } from "livekit-client";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 
 import ModalBase from "../../modalSheets/ModalBase";
 import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/AppText";
 
 const MicrophoneSelector = ({
   visible,
@@ -54,18 +55,24 @@ const MicrophoneSelector = ({
         style={[styles.microphoneItem, isSelected && styles.selectedMicrophone]}
         onPress={() => handleMicrophoneSelect(item)}
       >
-        <Icon name={"Mic02Icon"} color={isSelected ? "#4CAF50" : theme.text} />
+        <Icon name={"Mic02Icon"} color={isSelected ? theme.iconSuccess : theme.text} />
         <View style={styles.microphoneInfo}>
-          <Text
+          <AppText
             style={[styles.microphoneName, isSelected && styles.selectedText]}
           >
-            {item.label || `Microphone ${item.deviceId}`}
-          </Text>
+            {item.label ||
+              t("chat.comms.selectors.microphone.defaultName", {
+                id: item.deviceId,
+              })}
+          </AppText>
           {isSelected && (
-            <Text style={styles.currentLabel}>Currently Selected</Text>
+            <AppText
+              style={styles.currentLabel}
+              translationKey="chat.comms.selectors.microphone.currentlySelected"
+            />
           )}
         </View>
-        {isSelected && <Icon name={"Tick02Icon"} color="#4CAF50" />}
+        {isSelected && <Icon name={"Tick02Icon"} color={theme.iconSuccess} />}
       </Pressable>
     );
   };
@@ -73,12 +80,18 @@ const MicrophoneSelector = ({
   return (
     <ModalBase visible={visible} onClose={onClose} theme={theme}>
       <View style={styles.header}>
-        <Text style={styles.title}>Select Microphone</Text>
+        <AppText
+          style={styles.title}
+          translationKey="chat.comms.selectors.microphone.title"
+        />
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading microphones...</Text>
+          <AppText
+            style={styles.loadingText}
+            translationKey="chat.comms.selectors.microphone.loading"
+          />
         </View>
       ) : (
         <FlatList
@@ -104,7 +117,7 @@ function createStyle(theme) {
     title: {
       fontSize: 18,
       fontWeight: "600",
-      color: "white",
+      color: theme.text,
     },
     closeButton: {
       padding: 4,
@@ -115,7 +128,7 @@ function createStyle(theme) {
     },
     loadingText: {
       fontSize: 16,
-      color: "white",
+      color: theme.text,
     },
     microphoneList: {
       maxHeight: 300,
@@ -153,7 +166,7 @@ function createStyle(theme) {
     selectedMicrophone: {
       backgroundColor: theme.backgroundMainGradient[1],
       borderWidth: 1,
-      borderColor: "#4CAF50",
+      borderColor: theme.successText,
     },
     microphoneInfo: {
       flex: 1,
@@ -165,11 +178,11 @@ function createStyle(theme) {
       fontWeight: "500",
     },
     selectedText: {
-      color: "#4CAF50",
+      color: theme.successText,
     },
     currentLabel: {
       fontSize: 12,
-      color: "#4CAF50",
+      color: theme.successText,
       marginTop: 2,
     },
   });

@@ -1,73 +1,69 @@
 export const Colors = {
   default: {
-    // Colori primari e di base
-    icon: "white",
-    iconCommsInHover: "#44b244ff",
-    iconCommsOutHover: "#eb4444ff",
-    iconHover: "#c9c9c9ff",
-    iconPressed: "rgba(0, 0, 0, 0.3)",
-    iconSecondary: "#c9d1d9",
-    messagesLink: "#ffffffff",
-    placeholderText: "#c9c9c9ff",
-    primary: "#4f8cff",
-    text: "white",
-    subtitle2: "#bababa",
-    textTime: "#c9d1d9",
-    errorText: "#972323ff",
+    // ?USER CAN CHANGE
 
-    // Background principali
+    // Text
+    text: "#ffffff",
+    textLink: "#55a8e1",                                                          //* 1
+    subtitle: "#bababa",
+    placeholderText: "#c9c9c9",
+
+    // Icons
+    icon: "#ffffff",
+    iconSuccess: "#44b244",                                                       //* 2
+    iconDanger: "#eb4444",                                                        //* 2
+    iconWarning: "#e49f0c",
+    iconHover: "#c9c9c9",                                                         //* 3
+    iconHovered: "rgba(0, 0, 0, 0.1)",
+    iconPressed: "rgba(0, 0, 0, 0.3)",                                            //* 1
+    
+    // Background
     backgroundCard: "#416a90",
-    backgroundDateSeparator: "#17212b",
-    backgroundDeviceDropdown: "#2b5278",
-    backgroundJoinChatButton: "#1b2734",
-    backgroundModal: "#18426a",
-    backgroundSearchResultItem: "#2b3e51",
-    backgroundSettingsButton: "#4f8cff",
-    backgroundSettingsCards: "rgba(0, 45, 108, 1)",
-    backgroundSettingsDivider: "rgba(255, 255, 255, 0.1)",
-    backgroundTextField: "#374e68",
-    backgroundModalOverlay: "rgba(0, 0, 0, 0.5)",
-    backgroundError: "#ffc7c7a7",
-    backgroundBackupCode: "#f0f0f0",
-    backgroundBottomsheet: "#1d72c1ff",
-
-    // Vari
-    borderColor: "#000000",
-    borderModal: "#000000",
-    badgeColor: "#20566eff",
-    shadowColor: "#000",
-    blurredViewTint: "dark",
-    blurredViewBorder: "#ffffff1e",
-    statusBarTextColor: "light",
+    backgroundDateSeparator: "#17212b",                                           //* 3
+    backgroundSearchResultItem: "#2b3e51",                                        //* 1
+    backgroundTextField: "#415f81ff",                                             //* 2
+    backgroundModalOverlay: "#00000080",                                          //* 1
+    backgroundBackupCode: "#f0f0f0",                                              //* 1
+    
+    // Various
+    primary: "#55a8e1",
+    secondary: "#0f90e6",
+    borderColor: "rgba(255,255,255,0.05)",
+    badgeColor: "#20566e",                            // TODO: strano utilizzo, sistemarlo
+    shadowColor: "#000000",
 
     // Gradients
+    backgroundMain: "#013480",
     backgroundMainGradient: ["#013480", "#177FC0"],
-    backgroundChatContentGradient: ["transparent"],
-    backgroundChatListItemGradient: ["#0478bcff", "#4b96c1ff"],
-    backgroundChatListGradient: ["transparent"],
-    backgroundChatListItemSelectedGradient: ["#2899cf", "#4fb3e1"],
-    backgroundChatTextInputGradient: ["#16638e", "#2899cf"],
-    backgroundCommsFloatingBarGradient: ["#165376", "#2899cf", "#4fb3e1"],
-    backgroundMessageBaseGradient: "#0b273cff",
-    backgroundSearchGradient: ["transparent"], //? Consiglio di lasciarlo trasparente, lo includo qui ma da mentenere trasparente
-    backgroundSideBarGradient: ["#395e80ff", "#4a7fa0ff"],
+    backgroundChatContent: "transparent",                                           //* 1
+    backgroundChatListItemSelectedGradient: ["#2899cf", "#4fb3e1"],             //* 1
 
-    // Settings aggiuntivi
-    ChatIconsPickerModalBorderColor: "#ffffffff",
-    ChatIconsPickerModalTabInactiveText: "#b1b1b1ff",
-    settingsHoveredButton: "#4f8dffb9",
-    settingsPressedButton: "#2a68dcff",
+    // More
+    ChatIconsPickerModalTabInactiveText: "#b1b1b1",                               //* 1
+    settingsHoveredButton: "#4f8dffb9",                                           //* 1
+    settingsPressedButton: "#2a68dc",                                             //* 1
 
     // Scrollbar
-    scrollbar: "#d6d6d6ff",
-    backgroundScrollbar: "transparent",
-    scrollbarHover: "#c7c7c7ff",
-  },
+    scrollbar: "#d6d6d6",                         // TODO: usato in troppi punti, da unificare
+    scrollbarHover: "#c7c7c7",                    // TODO: usato in troppi punti, da unificare
 
+    // ?USER CAN'T CHANGE
+
+    dangerText: "#eb4444",            // uguale a iconDanger
+    warningText: "#e49f0c",           // uguale a iconWarning        
+    successText: "#44b244",           // uguale a iconSuccess
+    infoText: "#0c5f97",              // non c'è iconInfo (wtf perchè)
+    backgroundDanger: "#ffc7c7a7",
+    backgroundWarning: "#eef370c1",
+    backgroundSuccess: "#90e190c2",
+    backgroundInfo: "#27bef95b",
+    backgroundScrollbar: "transparent",             // TODO: usato in troppi punti, da unificare
+    badgeGlareFirstLast: "rgba(255,255,255,0)",
+    badgeGlareMiddle: "rgba(255,255,255,0.7)"
+  },
   light: {
     primary: "#f5f5f5",
     text: "black",
-    textTime: "#666666",
     backgroundClassic: "white",
     backgroundChatList: "#f5f5f5",
     backgroundChat: "#ffffff",
@@ -76,20 +72,13 @@ export const Colors = {
     backgroundTextField: "#ffffff",
     backgroundChatListCheckNetwork: "#e0e0e0",
     buttonBackground: "#f0f0f0",
-    backgroundDeviceDropdown: "#d4edda",
     icon: "black",
-    sideBarBackground: "#f8f9fa",
-    backgroundModal: "#ffffff",
     messagesLink: "#2399C3",
-    blurredViewTint: "light",
     // Colori aggiuntivi per componenti
-    borderModal: "#cccccc",
     placeholderText: "#999999",
     backgroundDateSeparator: "#e9ecef",
-    backgroundJoinChatButton: "#f8f9fa",
     shadowColor: "#000000",
     borderColor: "#cccccc",
-    backgroundSettingsDivider: "rgba(0, 0, 0, 0.1)",
     floatingBarButtonBackground: "rgba(0, 0, 0, 0.1)",
     backgroundStatusBar: "#ffffff", // StatusBar chiara per Light Mode
     backgroundCard: "#ffffff",
@@ -102,7 +91,6 @@ export const Colors = {
     backgroundChatListItemSelectedGradient: ["#d4edda", "#c3e6cb"],
     backgroundHeaderGradient: ["#f8f9fa", "#e9ecef"],
     backgroundChatTextInputGradient: ["#ffffff", "#f8f9fa"],
-    backgroundSideBarGradient: ["#f8f9fa", "#e9ecef", "#dee2e6"],
     backgroundMessageBaseGradient: ["#ffffff", "#f8f9fa"],
     backgroundSearchGradient: ["#e9ecef", "#dee2e6"],
     settingPagesGradient: ["#ffffff", "#f8f9fa", "#e9ecef"],
@@ -111,7 +99,6 @@ export const Colors = {
   dark: {
     primary: "#2d2d2d",
     text: "white",
-    textTime: "#b0b0b0",
     backgroundClassic: "#121212",
     backgroundChatList: "#1e1e1e",
     backgroundChat: "#121212",
@@ -120,20 +107,13 @@ export const Colors = {
     backgroundTextField: "#2d2d2d",
     backgroundChatListCheckNetwork: "#252525",
     buttonBackground: "#1e1e1e",
-    backgroundDeviceDropdown: "#404040",
     icon: "white",
-    sideBarBackground: "#1e1e1e",
-    backgroundModal: "#2d2d2d",
     messagesLink: "#bb86fc",
-    blurredViewTint: "dark",
     // Colori aggiuntivi per componenti
-    borderModal: "#555555",
     placeholderText: "#999999",
     backgroundDateSeparator: "#252525",
-    backgroundJoinChatButton: "#1e1e1e",
     shadowColor: "#000000",
     borderColor: "#555555",
-    backgroundSettingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.15)",
     backgroundStatusBar: "#121212", // StatusBar scura per Dark Mode
     backgroundCard: "#2d2d2d",
@@ -146,7 +126,6 @@ export const Colors = {
     backgroundChatListItemSelectedGradient: ["#404040", "#525252"],
     backgroundHeaderGradient: ["#121212", "#1e1e1e"],
     backgroundChatTextInputGradient: ["#1e1e1e", "#2d2d2d"],
-    backgroundSideBarGradient: ["#1e1e1e", "#2d2d2d", "#404040"],
     backgroundMessageBaseGradient: ["#0a0a0a", "#1e1e1e"],
     backgroundSearchGradient: ["#2d2d2d", "#404040"],
     settingPagesGradient: ["#121212", "#1e1e1e", "#2d2d2d"],
@@ -155,7 +134,6 @@ export const Colors = {
   amoled: {
     primary: "#0d0d0d",
     text: "white",
-    textTime: "#b0b0b0",
     backgroundClassic: "#000000",
     backgroundChatList: "#000000",
     backgroundChat: "#000000",
@@ -164,20 +142,13 @@ export const Colors = {
     backgroundTextField: "#0d0d0d",
     backgroundChatListCheckNetwork: "#050505",
     buttonBackground: "#000000",
-    backgroundDeviceDropdown: "#1a1a1a",
     icon: "white",
-    sideBarBackground: "#000000",
-    backgroundModal: "#0d0d0d",
     messagesLink: "#00ff88",
-    blurredViewTint: "dark",
     // Colori aggiuntivi per componenti
-    borderModal: "#333333",
     placeholderText: "#666666",
     backgroundDateSeparator: "#000000",
-    backgroundJoinChatButton: "#000000",
     shadowColor: "#000000",
     borderColor: "#333333",
-    backgroundSettingsDivider: "rgba(255, 255, 255, 0.1)",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.1)",
     backgroundStatusBar: "#000000", // StatusBar completamente nera per AMOLED
     backgroundCard: "#0d0d0d",
@@ -190,7 +161,6 @@ export const Colors = {
     backgroundChatListItemSelectedGradient: ["#0d0d0d", "#1a1a1a"],
     backgroundHeaderGradient: ["#000000", "#000000"],
     backgroundChatTextInputGradient: ["#000000", "#0d0d0d"],
-    backgroundSideBarGradient: ["#000000", "#0d0d0d", "#1a1a1a"],
     backgroundMessageBaseGradient: ["#000000", "#222222"],
     backgroundSearchGradient: ["#000000", "#0d0d0d"],
     settingPagesGradient: ["#000000", "#000000", "#0d0d0d"],
@@ -199,7 +169,6 @@ export const Colors = {
   "Amoled Extreme": {
     primary: "#000000",
     text: "white",
-    textTime: "#888888",
     backgroundClassic: "#000000",
     backgroundChatList: "#000000",
     backgroundChat: "#000000",
@@ -208,20 +177,13 @@ export const Colors = {
     backgroundTextField: "#000000",
     backgroundChatListCheckNetwork: "#000000",
     buttonBackground: "#000000",
-    backgroundDeviceDropdown: "#0a0a0a",
     icon: "white",
-    sideBarBackground: "#000000",
-    backgroundModal: "#000000",
     messagesLink: "#00ff88",
-    blurredViewTint: "dark",
     // Colori aggiuntivi per componenti
-    borderModal: "#222222",
     placeholderText: "#555555",
     backgroundDateSeparator: "#000000",
-    backgroundJoinChatButton: "#000000",
     shadowColor: "#000000",
     borderColor: "#222222",
-    backgroundSettingsDivider: "rgba(255, 255, 255, 0.05)",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.05)",
     backgroundStatusBar: "#000000",
     backgroundCard: "#000000",
@@ -234,7 +196,6 @@ export const Colors = {
     backgroundChatListItemSelectedGradient: ["#000000", "#0a0a0a"],
     backgroundHeaderGradient: ["#000000", "#000000"],
     backgroundChatTextInputGradient: ["#000000", "#000000"],
-    backgroundSideBarGradient: ["#000000", "#000000", "#0a0a0a"],
     backgroundMessageBaseGradient: ["#000000", "#000000"],
     backgroundSearchGradient: ["#000000", "#000000"],
     settingPagesGradient: ["#000000", "#000000", "#000000"],
@@ -247,32 +208,24 @@ export const Colors = {
   unifi: {
     // 🎨 Colori primari e di base
     icon: "white",
-    iconCommsInHover: "#44b244ff",
-    iconCommsOutHover: "#eb4444ff",
-    iconHover: "#d4d4d4ff",
-    iconPressed: "rgba(0, 0, 0, 0.3)",
+    iconSuccess: "#44b244",
+    iconDanger: "#eb4444",
+    iconHover: "#d4d4d4",
+    iconPressed: "#0000004d",
     iconSecondary: "#c9d1d9",
     messagesLink: "#61abe6",
     placeholderText: "#bfbfbf",
     primary: "#4fb3e1",
     text: "white",
-    textTime: "#c9d1d9",
 
     // 🖼️ Background principali
     backgroundCard: "#416a90",
     backgroundDateSeparator: "#17212b",
-    backgroundDeviceDropdown: "#2b5278",
-    backgroundJoinChatButton: "#1b2734",
-    backgroundModal: "#416a90",
-    backgroundSearchResultItem: "#376797ff",
-    backgroundSettingsButton: "#4f8cff",
-    backgroundSettingsCards: "#00000045",
-    backgroundSettingsDivider: "rgba(255, 255, 255, 0.1)",
+    backgroundSearchResultItem: "#376797",
     backgroundTextField: "#374e68",
 
     // 🧩 Vari
-    borderColor: "#272727ff",
-    borderModal: "#272727ff",
+    borderColor: "#272727",
     badgeColor: "#16638e",
 
     // 🌈 Gradients
@@ -287,13 +240,11 @@ export const Colors = {
     backgroundMessageBaseGradient: ["#0e283a", "#2b5278"],
     backgroundSearchGradient: ["transparent", "transparent"],
     settingPagesGradient: ["#0e283a", "#16638e"],
-    backgroundSideBarGradient: ["#2b5278", "#405770", "#53709a"],
-    blurredViewTint: "dark",
 
     // ⚙️ Settings aggiuntivi
-    ChatIconsPickerModalBorderColor: "#ffffffff",
-    ChatIconsPickerModalTabInactiveText: "#b1b1b1ff",
+    ChatIconsPickerModalBorderColor: "#ffffff",
+    ChatIconsPickerModalTabInactiveText: "#b1b1b1",
     settingsHoveredButton: "#4f8dffb9",
-    settingsPressedButton: "#2a68dcff",
+    settingsPressedButton: "#2a68dc",
   },
 };

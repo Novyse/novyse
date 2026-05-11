@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import ModalBase from "../../../modalSheets/ModalBase";
 import TextInput from "../../../input/TextInput";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 
 interface CreateApiKeyModalProps {
   visible: boolean;
@@ -19,6 +21,7 @@ export default function CreateApiKeyModal({
   theme,
 }: CreateApiKeyModalProps) {
   const [name, setName] = useState("");
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   const handleConfirm = () => {
@@ -31,12 +34,10 @@ export default function CreateApiKeyModal({
   return (
     <ModalBase visible={visible} onClose={onClose} theme={theme}>
       <View style={styles.container}>
-        <Text style={styles.title}>Create New API Key</Text>
-        <Text style={styles.subtitle}>
-          Give your API key a descriptive name to identify it later.
-        </Text>
+        <AppText style={styles.title} translationKey="settings.security.apiKeys.createModal.title" />
+        <AppText style={styles.subtitle} translationKey="settings.security.apiKeys.createModal.subtitle" />
         <TextInput
-          placeholder="e.g. Production Server"
+          placeholder={t("settings.security.apiKeys.createModal.placeholder")}
           value={name}
           onChange={setName}
         />
@@ -50,9 +51,10 @@ export default function CreateApiKeyModal({
           ]}
           disabled={!name.trim() || isLoading}
         >
-          <Text style={styles.buttonText}>
-            {isLoading ? "Creating..." : "Create API Key"}
-          </Text>
+          <AppText 
+            style={styles.buttonText}
+            translationKey={isLoading ? "settings.security.apiKeys.createModal.creating" : "settings.security.apiKeys.createModal.create"}
+          />
         </Pressable>
       </View>
     </ModalBase>
@@ -75,13 +77,13 @@ const createStyles = (theme: any) =>
     },
     subtitle: {
       fontSize: 14,
-      color: "#a0a0a0",
+      color: theme.subtitle,
       marginBottom: 24,
       textAlign: "center",
       lineHeight: 20,
     },
     button: {
-      backgroundColor: "#6366f1",
+      backgroundColor: theme.secondary,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -90,15 +92,14 @@ const createStyles = (theme: any) =>
       marginTop: 24,
     },
     buttonHovered: {
-      backgroundColor: "#5558e6",
+      backgroundColor: theme.settingsHoveredButton,
       cursor: "pointer" as any,
     },
     buttonPressed: {
-      backgroundColor: "#4e51d4",
-      opacity: 0.9,
+      backgroundColor: theme.settingsPressedButton,
     },
     buttonText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },

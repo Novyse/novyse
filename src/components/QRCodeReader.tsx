@@ -1,12 +1,24 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, Button } from "react-native";
-import { CameraView, CameraType, useCameraPermissions, BarcodeScanningResult } from "expo-camera";
+import React, { useState, useEffect, useContext } from "react";
+import { StyleSheet, View, Button } from "react-native";
+import {
+  CameraView,
+  CameraType,
+  useCameraPermissions,
+  BarcodeScanningResult,
+} from "expo-camera";
+
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface QRCodeReaderProps {
   onCodeScanned: (data: string) => void;
 }
 
 export default function QRCodeReader({ onCodeScanned }: QRCodeReaderProps) {
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyles(theme);
+  const { t } = useTranslation();
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState<boolean>(false);
@@ -24,7 +36,7 @@ export default function QRCodeReader({ onCodeScanned }: QRCodeReaderProps) {
   if (!permission) {
     return (
       <View style={styles.container}>
-        <Text>Richiesta permessi...</Text>
+        <AppText translationKey="common.qrReader.requestingPermissions" />
       </View>
     );
   }
@@ -32,11 +44,14 @@ export default function QRCodeReader({ onCodeScanned }: QRCodeReaderProps) {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Text style={{ textAlign: "center" }}>
-          Abbiamo bisogno del permesso per accedere alla fotocamera per
-          scansionare i codici QR.
-        </Text>
-        <Button onPress={requestPermission} title="Concedi Permesso" />
+        <AppText
+          style={{ textAlign: "center" }}
+          translationKey="common.qrReader.needPermissions"
+        />
+        <Button
+          onPress={requestPermission}
+          title={t("common.qrReader.grantPermission")}
+        />
       </View>
     );
   }
@@ -55,12 +70,15 @@ export default function QRCodeReader({ onCodeScanned }: QRCodeReaderProps) {
         {!scanned && (
           <View style={styles.overlay}>
             <View style={styles.qrFrame} />
-            <Text style={styles.instructionText}>Inquadra un codice QR</Text>
+            <AppText
+              style={styles.instructionText}
+              translationKey="common.qrReader.instruction"
+            />
           </View>
         )}
         {scanned && (
           <Button
-            title="Tocca per scansionare di nuovo"
+            title={t("common.qrReader.scanAgain")}
             onPress={() => setScanned(false)}
           />
         )}
@@ -69,50 +87,45 @@ export default function QRCodeReader({ onCodeScanned }: QRCodeReaderProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#000",
-  },
-  camera: {
-    flex: 1,
-    width: "100%",
-    justifyContent: "flex-end",
-    height: "100%",
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    backgroundColor: "transparent",
-    marginBottom: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.4)",
-  },
-  qrFrame: {
-    width: 250,
-    height: 250,
-    borderColor: "#FFF",
-    borderWidth: 3,
-    borderRadius: 10,
-    backgroundColor: "transparent",
-    marginBottom: 20,
-  },
-  instructionText: {
-    color: "#fff",
-    fontSize: 18,
-    marginTop: 10,
-  },
-  scanAgainButton: {
-    position: "absolute",
-    bottom: 50,
-    left: "50%",
-    transform: [{ translateX: -100 }],
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.shadowColor,
+    },
+    camera: {
+      flex: 1,
+      width: "100%",
+      justifyContent: "flex-end",
+      height: "100%",
+    },
+    buttonContainer: {
+      flexDirection: "row",
+      backgroundColor: "transparent",
+      marginBottom: 20,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    overlay: {
+      ...StyleSheet.absoluteFill,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.backgroundModalOverlay,
+    },
+    qrFrame: {
+      width: 250,
+      height: 250,
+      borderColor: theme.text,
+      borderWidth: 3,
+      borderRadius: 10,
+      backgroundColor: "transparent",
+      marginBottom: 20,
+    },
+    instructionText: {
+      color: theme.text,
+      fontSize: 18,
+      marginTop: 10,
+    },
+  });

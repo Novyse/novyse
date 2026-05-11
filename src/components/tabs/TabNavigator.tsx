@@ -7,8 +7,8 @@ import {
 } from "@react-navigation/native";
 
 import { tabNavigationRef } from "@/src/utils/navigation/tabRef";
-import { useThemeContext, Theme } from "@/context/ThemeContext";
-import { useScreen } from "@/context/ScreenContext";
+import { useThemeContext, Theme } from "@/src/context/ThemeContext";
+import { useScreen } from "@/src/context/ScreenContext";
 
 import TabBar from "@/src/components/tabs/TabBar";
 import Icon from "@/src/components/Icon";

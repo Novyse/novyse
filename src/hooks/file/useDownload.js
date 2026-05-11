@@ -143,7 +143,7 @@ const useDownload = () => {
     [resolveFileRefAndUri, triggerDownload],
   );
 
-  return { downloadFile };
+  return { downloadFile, resolveFileRefAndUri };
 };
 
 export default useDownload;

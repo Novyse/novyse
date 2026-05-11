@@ -22,6 +22,7 @@ const BottomBar = ({
   onCancelEdit,
   mentionMembers,
   onSelectMention,
+  onRecordingActivityChange,
 }) => {
 
   const insets = useSafeAreaInsets();
@@ -51,6 +52,7 @@ const BottomBar = ({
         onCancelEdit={onCancelEdit}
         mentionMembers={mentionMembers}
         onSelectMention={onSelectMention}
+        onRecordingActivityChange={onRecordingActivityChange}
       />
     </View>
   );

@@ -11,7 +11,7 @@ interface FormSectionProps {
     name: string;
     surname: string;
     username: string;
-    description: string;
+    biography: string;
     birthday: string;
     country: string;
     region: string;

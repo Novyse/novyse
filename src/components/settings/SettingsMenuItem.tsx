@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
@@ -10,7 +11,8 @@ import { router } from "expo-router";
 
 interface SettingsMenuItemProps {
   navToPage?: string;
-  pageName: string;
+  pageName?: string;
+  translationKey?: string;
   iconName: string;
   nameColor?: string;
   iconColor?: string;
@@ -21,6 +23,7 @@ interface SettingsMenuItemProps {
 const SettingsMenuItem = ({
   navToPage,
   pageName,
+  translationKey,
   iconName,
   nameColor,
   iconColor,
@@ -46,7 +49,11 @@ const SettingsMenuItem = ({
       <View style={styles.menuItemIcon}>
         <Icon name={iconName} color={iconColor || theme.text} />
       </View>
-      <Text style={styles.menuItemText}>{pageName}</Text>
+      {translationKey ? (
+        <AppText style={styles.menuItemText} translationKey={translationKey} />
+      ) : (
+        <AppText style={styles.menuItemText} text={pageName} />
+      )}
     </HoverAndPressedButton>
   );
 };
@@ -58,7 +65,7 @@ const createStyle = (theme: any, nameColor?: string) =>
       alignItems: "center",
       paddingVertical: 15,
       borderBottomWidth: 1,
-      borderBottomColor: theme.backgroundSettingsDivider,
+      borderBottomColor: theme.borderColor,
       borderRadius: 0,
       height: 60,
     },

@@ -15,40 +15,45 @@ const DB = {
     /**
      * Save a file by its URI.
      * @param {string} uri - The URI of the file to save.
+     * @param {string} key - Optional key for the file.
      * @returns {Promise<{ref: string, size: number}>} The file reference and size
      */
-    byUri: async (uri) => {
+    byUri: async (uri, key = null) => {
       if (!uri) {
         throw new Error("URI is required to save a file.");
       }
       try {
         const response = await fetch(uri);
         const blob = await response.blob();
-        const size = blob.size;
-
-        const key = uri.split("/").pop();
-
-        await blobStore.setItem(key, {
-          key,
-          blob,
-        });
-        return { ref: key, size };
+        return await DB.save.byBlob(blob, key || uri.split("/").pop());
       } catch (err) {
-        console.error("Could not save file", err);
+        console.error("Could not save file from URI", err);
         throw err;
       }
     },
     /**
      * Save a file by its Blob.
      * @param {Blob} blob
+     * @param {string} key - Optional key for the file.
      * @returns {Promise<{ref: string, size: number}>} The file reference and size
      */
-    byBlob: async (blob) => {
+    byBlob: async (blob, key = null) => {
       if (!blob) {
         throw new Error("Blob is required to save a file.");
       }
-      const uri = await DB.getUri(blob);
-      return await DB.save.byUri(uri);
+      try {
+        const size = blob.size;
+        const finalKey = key || Date.now().toString();
+
+        await blobStore.setItem(finalKey, {
+          key: finalKey,
+          blob,
+        });
+        return { ref: finalKey, size };
+      } catch (err) {
+        console.error("Could not save blob", err);
+        throw err;
+      }
     },
   },
 
@@ -113,7 +118,7 @@ const DB = {
       const response = await fetch(uri);
       if (!response.ok) {
         throw new Error(
-          `Failed to fetch file from URI: ${response.statusText}`
+          `Failed to fetch file from URI: ${response.statusText}`,
         );
       }
       const blob = await response.blob();
@@ -136,7 +141,7 @@ const DB = {
       const response = await fetch(uri);
       if (!response.ok) {
         throw new Error(
-          `Failed to fetch file from URI: ${response.statusText}`
+          `Failed to fetch file from URI: ${response.statusText}`,
         );
       }
       const arrayBuffer = await response.arrayBuffer();

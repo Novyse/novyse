@@ -5,8 +5,10 @@ export interface User {
   surname: string;
   handle: string;
   profilePictureUUID: string | null;
-  description: string | null;
+  biography: string | null;
   birthday: string | null;
   region: string | null;
   country: string | null;
+  status: "ONLINE" | "OFFLINE";
+  lastAccessAt: Date | null;
 }

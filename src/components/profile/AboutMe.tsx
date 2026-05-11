@@ -1,29 +1,34 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { LinearGradient } from "expo-linear-gradient";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface AboutMeProps {
-  description?: string;
+  biography?: string;
 }
 
-export default function AboutMe({ description }: AboutMeProps) {
+export default function AboutMe({ biography }: AboutMeProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
-
-  // Se description non è presente, mostra il messaggio di default
-  const displayText = description || "We don't know anything about him :(";
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.01)"]}
+        colors={theme.backgroundMainGradient as [string, string]}
         style={styles.glassCard}
       >
         <View style={styles.content}>
-          <Text style={styles.title}>ABOUT ME</Text>
-          <Text style={styles.description}>{displayText}</Text>
+          <AppText
+            style={styles.title}
+            translationKey="profile.aboutMe.title"
+          />
+          <AppText
+            style={styles.description}
+            text={biography}
+            translationKey={"profile.aboutMe.noDescription"}
+          />
         </View>
       </LinearGradient>
     </View>
@@ -39,8 +44,8 @@ const createStyles = (theme: any) =>
     glassCard: {
       borderRadius: 16,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.1)",
-      backgroundColor: "rgba(30, 41, 59, 0.4)",
+      borderColor: theme.borderColor,
+      backgroundColor: theme.backgroundMain,
       overflow: "hidden",
     },
     content: {
@@ -57,7 +62,7 @@ const createStyles = (theme: any) =>
     },
     description: {
       fontSize: 14,
-      color: "rgba(255, 255, 255, 0.8)",
+      color: theme.subtitle,
       lineHeight: 20,
     },
   });

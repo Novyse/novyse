@@ -1,9 +1,13 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 
 import Icon from "@/src/components/Icon";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import PlatformType from "@/src/utils/device/type";
+import useShare from "@/src/hooks/chat/useShare";
 
 interface SelectedHeaderProps {
   selectedMessages: any[];
@@ -20,8 +24,10 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
   onDelete,
   onReply,
 }) => {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+  const { shareMessage } = useShare();
 
   const handleClose = () => {
     setSelectedMessages([]);
@@ -29,6 +35,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
 
   const selectedCount = selectedMessages.length;
   const canReply = selectedCount > 0 && selectedCount <= 3;
+  const isMobile = PlatformType === "mobile";
 
   return (
     <View style={styles.headerMainRow}>
@@ -38,9 +45,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
           onPress={handleClose}
           style={styles.iconButton}
         />
-        <Text style={styles.chatTitle} numberOfLines={1}>
-          {selectedCount} selected
-        </Text>
+        <AppText style={styles.chatTitle} numberOfLines={1} text={t("chat.header.selected", { count: selectedCount })} />
       </View>
 
       <View style={styles.headerRight}>
@@ -51,6 +56,13 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
             onPress={onReply}
           />
         )}
+        {isMobile && selectedCount === 1 && (
+          <Icon
+            name="Share01Icon"
+            style={styles.iconButton}
+            onPress={() => shareMessage(selectedMessages[0])}
+          />
+        )}
         <Icon
           name="LinkForwardIcon"
           style={styles.iconButton}
@@ -58,7 +70,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
         />
         <Icon
           name="Delete02Icon"
-          color={"red"}
+          color={theme.iconDanger}
           style={styles.iconButton}
           onPress={onDelete}
         />

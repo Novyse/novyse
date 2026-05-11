@@ -1,13 +1,14 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet, Pressable, Linking } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { View, StyleSheet, Pressable, Linking } from "react-native";
+import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import useUriResolver from "@/src/hooks/file/useUriResolver";
-import { formatFileSize } from "@/src/utils/storage/file/utils";
+import FileSizeProgress from "./FileSizeProgress";
 
 import FileButton from "./Button";
 
-const MessageOther = ({ fileRef, uuid, mimeType, size, name }) => {
+const MessageOther = ({ fileRef, uuid, mimeType, size, name, isPending }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -25,16 +26,15 @@ const MessageOther = ({ fileRef, uuid, mimeType, size, name }) => {
     <Pressable style={styles.container} onPress={handlePress}>
       <FileButton
         uuid={uuid}
+        isPending={isPending}
         isAvailable={!!fileRef}
         isReady={!!fileUri}
         type={"OTHER"}
         handleDefaultPress={handlePress}
       />
       <View style={styles.detailsContainer}>
-        <Text style={styles.name} numberOfLines={1}>
-          {name}
-        </Text>
-        <Text style={styles.fileSize}>{formatFileSize(size)}</Text>
+        <AppText style={styles.name} numberOfLines={1} text={name} />
+        <FileSizeProgress uuid={uuid} size={size} style={styles.fileSize} />
       </View>
     </Pressable>
   );

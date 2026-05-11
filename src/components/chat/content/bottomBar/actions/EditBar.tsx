@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { View, StyleSheet, ViewStyle, TextStyle } from "react-native";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
 
@@ -22,15 +23,19 @@ const EditBar: React.FC<EditBarProps> = ({ editingMessage, onCancelEdit }) => {
 
   return (
     <BlurredView style={styles.actionContainer}>
-      <Icon name="PencilEdit02Icon" size={18} color={theme.icon} />
+      <Icon name="PencilEdit02Icon" size={18} />
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
-        <Text style={[styles.actionName, { color: theme.icon }]} numberOfLines={1}>
-          Editing
-        </Text>
-        <Text style={styles.actionText} numberOfLines={1}>
-          {editingMessage.content ?? ""}
-        </Text>
+        <AppText
+          style={[styles.actionName, { color: theme.icon }]}
+          numberOfLines={1}
+          translationKey="chat.bottomBar.editing"
+        />
+        <AppText
+          style={styles.actionText}
+          numberOfLines={1}
+          text={editingMessage.content ?? ""}
+        />
       </View>
       <Icon
         name="Cancel01Icon"

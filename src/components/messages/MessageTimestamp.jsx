@@ -1,7 +1,8 @@
 import React, { useContext, useState, useRef } from "react";
-import { Text, StyleSheet, View, Platform } from "react-native";
+import { StyleSheet, View, Platform } from "react-native";
+import AppText from "@/src/components/AppText";
 import { createPortal } from "react-dom";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "../Icon";
 import { DateTime } from "luxon";
 
@@ -24,13 +25,13 @@ const MessageTimestamp = ({
 
   const parseTime = (dateTime) => {
     if (!dateTime) return "";
-    const dt = DateTime.fromJSDate(new Date(dateTime));
+    const dt = DateTime.fromISO(dateTime, { zone: "utc" }).toLocal();
     return dt.isValid ? dt.toFormat("HH:mm") : "";
   };
 
   const parseFullTime = (dateTime) => {
     if (!dateTime) return "";
-    const dt = DateTime.fromJSDate(new Date(dateTime));
+    const dt = DateTime.fromISO(dateTime, { zone: "utc" }).toLocal();
     return dt.isValid ? dt.toFormat("EEEE dd MMMM HH:mm:ss") : "";
   };
 
@@ -64,12 +65,12 @@ const MessageTimestamp = ({
     return (
       <View style={styles.alignContainer}>
         {(isEdited || isPendingEdit) && (
-          <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
+          <Icon name={"PencilEdit02Icon"} size={14} color={theme.subtitle} />
         )}
         {replyCount > 0 && (
-          <Icon name={"ArrowMoveUpLeftIcon"} size={14} color={theme.textTime} />
+          <Icon name={"ArrowMoveUpLeftIcon"} size={14} color={theme.subtitle} />
         )}
-        <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
+        <Icon name={"Clock01Icon"} size={14} color={theme.subtitle} />
       </View>
     );
   }
@@ -82,34 +83,34 @@ const MessageTimestamp = ({
           { top: tooltipPosition.top, left: tooltipPosition.left },
         ]}
       >
-        <Text style={styles.tooltipText}>{parseFullTime(time)}</Text>
+        <AppText style={styles.tooltipText} text={parseFullTime(time)} />
       </View>
     ) : null;
 
   return (
     <View style={styles.alignContainer}>
       <View style={styles.iconContainer}>
-        {isPinned && <Icon name={"PinIcon"} size={14} color={theme.textTime} />}
+        {isPinned && <Icon name={"PinIcon"} size={14} color={theme.subtitle} />}
         {(isEdited || isPendingEdit) && (
-          <Icon name={"PencilEdit02Icon"} size={14} color={theme.textTime} />
+          <Icon name={"PencilEdit02Icon"} size={14} color={theme.subtitle} />
         )}
         {isPendingEdit && (
-          <Icon name={"Clock01Icon"} size={14} color={theme.textTime} />
+          <Icon name={"Clock01Icon"} size={14} color={theme.subtitle} />
         )}
-        {sent && !isPendingEdit && (
-          <Icon name={"Tick01Icon"} size={14} color={theme.textTime} />
+        {sent && !receivedByAll && !isPendingEdit && (
+          <Icon name={"Tick01Icon"} size={14} color={theme.subtitle} />
         )}
         {receivedByAll && !isPendingEdit && (
-          <Icon name={"TickDouble01Icon"} size={14} color={theme.textTime} />
+          <Icon name={"TickDouble01Icon"} size={14} color={theme.subtitle} />
         )}
         {replyCount > 0 && !isPendingEdit && (
           <>
             <Icon
               name={"ArrowMoveUpLeftIcon"}
               size={14}
-              color={theme.textTime}
+              color={theme.subtitle}
             />
-            <Text style={styles.replyCountText}>{replyCount}</Text>
+            <AppText style={styles.replyCountText} text={String(replyCount)} />
           </>
         )}
       </View>
@@ -121,15 +122,11 @@ const MessageTimestamp = ({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <Text style={styles.timeText} selectable={false}>
-              {parseTime(time)}
-            </Text>
+            <AppText style={styles.timeText} text={parseTime(time)} />
           </View>
         ) : (
           <View style={styles.timeContainer}>
-            <Text style={styles.timeText} selectable={false}>
-              {parseTime(time)}
-            </Text>
+            <AppText style={styles.timeText} text={parseTime(time)} />
           </View>
         ))}
       {Platform.OS === "web" && createPortal(tooltip, document.body)}
@@ -140,16 +137,16 @@ const MessageTimestamp = ({
 const createStyle = (theme) =>
   StyleSheet.create({
     timeText: {
-      color: theme.textTime,
+      color: theme.subtitle,
       textAlign: "right",
       fontSize: 12,
       minWidth: 35,
     },
     replyCountText: {
-      color: theme.textTime,
+      color: theme.subtitle,
       textAlign: "right",
       fontSize: 12,
-      paddingLeft: 2
+      paddingLeft: 2,
     },
     alignContainer: {
       alignSelf: "flex-end",
@@ -170,10 +167,10 @@ const createStyle = (theme) =>
     },
     tooltip: {
       position: "fixed",
-      backgroundColor: theme.background || "#333",
+      backgroundColor: theme.backgroundModalOverlay,
       padding: 10,
       borderRadius: 5,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.8,
       shadowRadius: 5,
@@ -182,7 +179,7 @@ const createStyle = (theme) =>
       minWidth: 150,
     },
     tooltipText: {
-      color: theme.text || "#fff",
+      color: theme.text,
       fontSize: 12,
       textAlign: "center",
     },

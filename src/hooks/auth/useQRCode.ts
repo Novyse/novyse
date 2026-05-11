@@ -6,7 +6,10 @@ import auth from "@/src/utils/backend-services/auth";
  * @param isSmallScreen Whether the current device is a small screen (skips QR logic).
  * @param onAuthorized Callback triggered when the QR code is authorized.
  */
-export const useQRCode = (isSmallScreen: boolean, onAuthorized: (data: any) => void) => {
+export const useQRCode = (
+  isSmallScreen: boolean,
+  onAuthorized: (data: any) => void,
+) => {
   const [qrToken, setQrToken] = useState<string>("");
   const [remainingTime, setRemainingTime] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -17,14 +20,14 @@ export const useQRCode = (isSmallScreen: boolean, onAuthorized: (data: any) => v
 
   const fetchQrToken = useCallback(async () => {
     if (isSmallScreen) return;
-    
+
     setIsLoading(true);
     setError(null);
     try {
       const res = await auth.qrcode.new();
       if (res.success) {
         setQrToken(res.data.token);
-        
+
         // Calculate remaining time in seconds based on expiresAt timestamp
         const now = Date.now();
         const expiresAt = res.data.expiresAt;
@@ -49,11 +52,12 @@ export const useQRCode = (isSmallScreen: boolean, onAuthorized: (data: any) => v
       try {
         const res = await auth.qrcode.status(qrToken);
         if (res.success && res.data.status === "AUTHORIZED") {
-          if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+          if (pollingIntervalRef.current)
+            clearInterval(pollingIntervalRef.current);
           onAuthorized(res.data);
         } else if (!res.success) {
-            // If status check fails (e.g. token invalid/deleted), refresh
-            fetchQrToken();
+          // If status check fails (e.g. token invalid/deleted), refresh
+          fetchQrToken();
         }
       } catch (err) {
         console.error("Polling check failed:", err);
@@ -91,7 +95,7 @@ export const useQRCode = (isSmallScreen: boolean, onAuthorized: (data: any) => v
     remainingTime,
     isLoading,
     error,
-    refresh: fetchQrToken
+    refresh: fetchQrToken,
   };
 };
 

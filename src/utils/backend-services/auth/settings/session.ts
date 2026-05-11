@@ -1,7 +1,7 @@
 import { authApi } from "../../config";
 import { getAuthToken } from "../token-manager";
 
-const API_PATH = "/auth/session";
+const API_PATH = "/session";
 
 export const session = {
   /**

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Alert } from "react-native";
 
-import { getPlatform } from "@/src/utils/device/type.js";
+import { getPlatform } from "@/src/utils/device/type";
 
-import { openNativeFileMenu } from "@/src/utils/storage/file/handler.js";
+import { openNativeFileMenu } from "@/src/utils/storage/file/handler";
 
 const useAttachHandlers = (
   setIsAttachMenuOpen,

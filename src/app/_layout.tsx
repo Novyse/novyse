@@ -1,4 +1,5 @@
 import "react-native-get-random-values";
+import "@/src/i18n";
 import React, { useEffect } from "react";
 import { Stack } from "expo-router";
 
@@ -6,15 +7,15 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
-import { ScreenProvider } from "@/context/ScreenContext";
-import { ThemeProvider, useThemeContext } from "@/context/ThemeContext";
-import { LanguageProvider } from "@/context/LanguageContext";
+import { ScreenProvider } from "@/src/context/ScreenContext";
+import { ThemeProvider, useThemeContext } from "@/src/context/ThemeContext";
+import { LanguageProvider } from "@/src/context/LanguageContext";
 import SplashScreen from "@/src/components/SplashScreen";
 import useAuthSession from "@/src/hooks/auth/useAuthSession";
-import notificationManager from "@/src/utils/notifications/NotificationManager";
+import notificationManager from "@/src/utils/notifications/manager";
 
 function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {
-  const { theme } = useThemeContext()
+  const { theme } = useThemeContext();
 
   return (
     <Stack
@@ -25,12 +26,12 @@ function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {
         },
       }}
     >
-      {isLoggedIn && (
+      <Stack.Protected guard={isLoggedIn === true}>
         <Stack.Screen name="(protected)" options={{ headerShown: false }} />
-      )}
-      {!isLoggedIn && (
+      </Stack.Protected>
+      <Stack.Protected guard={isLoggedIn === false}>
         <Stack.Screen name="(welcome)" options={{ headerShown: false }} />
-      )}
+      </Stack.Protected>
       <Stack.Screen name="profile" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" options={{ headerShown: false }} />
     </Stack>

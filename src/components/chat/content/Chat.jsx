@@ -5,22 +5,24 @@ import React, {
   useRef,
   useCallback,
 } from "react";
-import { Platform, View, Text, StyleSheet } from "react-native";
+import { Platform, View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 
 import { KeyboardStickyView } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers.js";
-import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers.js";
-import usePreparedMessages from "@/src/hooks/chat/usePreparedMessages.js";
+import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
+import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers";
+import usePreparedMessages from "@/src/hooks/chat/usePreparedMessages";
 import useClipboard from "@/src/hooks/useClipboard";
 import useDownload from "@/src/hooks/file/useDownload";
-import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
+import useActivityEmitter from "@/src/hooks/chat/useActivityEmitter";
+import { useForward } from "@/src/hooks/chat/useForward";
 
-import { useActiveChatStore } from "@/context/ActiveChatContext";
-import { ThemeContext } from "@/context/ThemeContext";
-import useUserStore from "@/context/UserContext";
-import useChatStore from "@/context/ChatContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
+import useChatStore from "@/src/context/ChatContext";
 
 import BottomBar from "@/src/components/chat/content/bottomBar";
 import MessageList from "@/src/components/chat/content/MessageList";
@@ -29,7 +31,7 @@ import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 import WebDropZone from "@/src/components/input/WebDropZone";
 
-import { validateFiles } from "@/src/utils/storage/file/validators.js";
+import { validateFiles } from "@/src/utils/storage/file/validators";
 
 const ChatContent = () => {
   const { theme } = useContext(ThemeContext);
@@ -82,6 +84,9 @@ const ChatContent = () => {
     }
   }, [selectedChatUUID, selectChat]);
 
+  const { emitTyping, stopTyping, emitRecording } =
+    useActivityEmitter(selectedChatUUID);
+
   const chat = useActiveChatStore((state) => state.activeChatData);
 
   const messages = chat?.messages;
@@ -115,6 +120,7 @@ const ChatContent = () => {
 
   const {
     handleSendMessage,
+    handleReadMessage,
     handlePinMessage,
     handleUnpinMessage,
     handleEditMessage,
@@ -130,6 +136,12 @@ const ChatContent = () => {
     setSheetIndex,
     bottomSheetRef,
   );
+  
+  const { startForwarding } = useForward();
+
+  const handleForward = useCallback((msg) => {
+    startForwarding([msg]);
+  }, [startForwarding]);
 
   const handleAppendFilesToDraft = useCallback(
     (newFiles) => {
@@ -199,18 +211,17 @@ const ChatContent = () => {
 
   const handleReply = useCallback(
     (msg) => {
-      if (replyingTo.length >= 3) {
-        setReplyingTo((prev) => [...prev.slice(1), msg]);
-        return;
-      }
       setReplyingTo((prev) => {
         if (prev.find((r) => r.id === msg.id)) return prev;
+        if (prev.length >= 3) {
+          return [...prev.slice(1), msg];
+        }
         return [...prev, msg];
       });
-      if (editingMessage) setNewMessageText("");
+      setNewMessageText("");
       setEditingMessage(null); // clear edit when replying
     },
-    [replyingTo],
+    [setReplyingTo, setNewMessageText, setEditingMessage],
   );
 
   const handleEdit = useCallback(
@@ -282,6 +293,23 @@ const ChatContent = () => {
     [members, myUUID],
   );
 
+  const handleTextChangeWithActivity = useCallback(
+    (text) => {
+      handleTextChange(text);
+      if (text.length > 0) {
+        emitTyping();
+      }
+    },
+    [handleTextChange, emitTyping],
+  );
+
+  const handleRead = useCallback(
+    (messageID) => {
+      handleReadMessage(messageID);
+    },
+    [handleReadMessage],
+  );
+
   const handlePin = useCallback(
     (msg) => {
       handlePinMessage(msg.id);
@@ -331,10 +359,14 @@ const ChatContent = () => {
           messageID: msg.id,
         }));
         setReplyingTo([]);
+
         setFiles([]);
         setInvalidFiles([]);
         handleSendMessage(type, realContent, allFiles, replyTos);
       }
+
+      // Stop any current activity on send
+      stopTyping();
     },
     [
       editingMessage,
@@ -346,6 +378,7 @@ const ChatContent = () => {
       handleUpdatePendingMessage,
       setFiles,
       setInvalidFiles,
+      stopTyping,
     ],
   );
 
@@ -374,6 +407,7 @@ const ChatContent = () => {
             setSelectedMessages={setSelectedMessages}
             myUUID={myUUID}
             theme={theme}
+            onRead={handleRead}
             onPin={handlePin}
             onUnpin={handleUnpin}
             onReply={handleReply}
@@ -381,6 +415,7 @@ const ChatContent = () => {
             onCopy={handleCopy}
             onDownload={handleDownload}
             onEdit={handleEdit}
+            onForward={handleForward}
             onCancel={handleCancelJob}
             onDelete={handleDelete}
             onLoadMore={() => loadMoreMessages(selectedChatUUID)}
@@ -400,7 +435,7 @@ const ChatContent = () => {
             newMessageText={newMessageText}
             files={files}
             textInputRef={textInputRef}
-            onTextChange={handleTextChange}
+            onTextChange={handleTextChangeWithActivity}
             onSendMessage={handleSendOrEdit}
             onFileAppend={handleAppendFilesToDraft}
             isAttachMenuOpen={isAttachMenuOpen}
@@ -414,6 +449,7 @@ const ChatContent = () => {
             onCancelEdit={handleCancelEdit}
             mentionMembers={mentionMembers}
             onSelectMention={onSelectMention}
+            onRecordingActivityChange={emitRecording}
           />
         </KeyboardStickyView>
 
@@ -442,7 +478,10 @@ const ChatContent = () => {
           onEmojiSelected={handleEmojiSelected}
         >
           <View style={styles.emojiPickerContainer}>
-            <Text style={styles.placeholderText}>Emoji Picker Content</Text>
+            <AppText
+              style={styles.placeholderText}
+              text="Emoji Picker Content"
+            />
           </View>
         </ChatIconsPickerModal>
       </GestureHandlerRootView>

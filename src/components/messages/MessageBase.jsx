@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Pressable, StyleSheet, Text } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import Reanimated, {
   useSharedValue,
@@ -15,14 +16,13 @@ import Svg, { Circle } from "react-native-svg";
 import { scheduleOnRN } from "react-native-worklets";
 import * as Haptics from "expo-haptics";
 
-import { useThemeContext } from "@/context/ThemeContext";
-import { useScreen } from "@/context/ScreenContext";
-import useChatStore from "@/context/ChatContext";
-import useUserStore from "@/context/UserContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import useChatStore from "@/src/context/ChatContext";
+import useUserStore from "@/src/context/UserContext";
 import Icon from "../Icon";
 
 import useMessageGestures from "@/src/hooks/chat/useMessageGestures";
-import { getPlatform } from "@/src/utils/device/type";
 
 import BlurredView from "../BlurredView";
 import { getFileType } from "@/src/utils/storage/file/type";
@@ -226,7 +226,7 @@ const MessageBase = ({
   }, [isHighlighted]);
 
   const animatedHighlightStyle = useAnimatedStyle(() => ({
-    backgroundColor: theme.primary || "#007AFF",
+    backgroundColor: theme.primary,
     opacity: highlightOpacity.value * 0.4,
     ...StyleSheet.absoluteFill,
   }));
@@ -259,6 +259,10 @@ const MessageBase = ({
 
   const hasReactions = message.reactions && message.reactions.length > 0;
 
+  const hasBeenRead = isSender && (message.readBy?.length || 0) > 0;
+
+  console.log;
+
   const sharedContent = (
     <View style={hasOnlyMedia ? styles.mediaContainer : null}>
       {replyTos && replyTos.length > 0 && (
@@ -274,7 +278,12 @@ const MessageBase = ({
           ))}
         </View>
       )}
-      {fileGroups.media.true && <MessageMedia medias={fileGroups.media.true} />}
+      {fileGroups.media.true && (
+        <MessageMedia
+          medias={fileGroups.media.true}
+          isPending={message.internal}
+        />
+      )}
       {(fileGroups.other.true || []).map((f) => (
         <MessageOther
           key={f.uuid}
@@ -283,6 +292,7 @@ const MessageBase = ({
           mimeType={f.mimeType}
           size={f.size}
           name={f.name}
+          isPending={message.internal}
         />
       ))}
       <View style={{ width: "100%" }}>
@@ -295,6 +305,7 @@ const MessageBase = ({
             name={f.name}
             message={message}
             duration={f.duration}
+            isPending={message.internal}
           />
         ))}
       </View>
@@ -304,8 +315,10 @@ const MessageBase = ({
             key={f.uuid}
             audioRef={f.ref}
             uuid={f.uuid}
+            size={f.size}
             message={message}
             duration={f.duration}
+            isPending={message.internal}
             waveform={
               Array.isArray(f.waveform)
                 ? f.waveform
@@ -328,6 +341,8 @@ const MessageBase = ({
             <View style={styles.timestampOverlay}>
               <MessageTimestamp
                 time={created_at}
+                sent={isSender}
+                receivedByAll={hasBeenRead}
                 isEdited={isEdited}
                 isPendingEdit={!!message.pendingEditJobId}
                 isPinned={isPinned}
@@ -341,6 +356,8 @@ const MessageBase = ({
       {!content?.trim() && !hasReactions && (
         <MessageTimestamp
           time={created_at}
+          sent={isSender}
+          receivedByAll={hasBeenRead}
           isEdited={isEdited}
           isPendingEdit={!!message.pendingEditJobId}
           isPinned={isPinned}
@@ -352,21 +369,50 @@ const MessageBase = ({
       {hasReactions && (
         <View style={styles.reactionsRow}>
           <View style={styles.reactionsContainer}>
-            {message.reactions.map((reactionObj, index) => (
-              <Pressable
-                key={`${reactionObj.emoji}-${index}`}
-                style={styles.reactionPill}
-                onPress={() => onReaction(message, reactionObj.emoji)}
-              >
-                <Text style={styles.reactionPillText}>
-                  {reactionObj.emoji} {reactionObj.userUUIDs.length}
-                </Text>
-              </Pressable>
-            ))}
+            {message.reactions.map((reactionObj, index) => {
+              const avatars = reactionObj.userUUIDs.slice(0, 2);
+              return (
+                <Pressable
+                  key={`${reactionObj.emoji}-${index}`}
+                  style={styles.reactionPill}
+                  onPress={() => onReaction(message, reactionObj.emoji)}
+                >
+                  <AppText
+                    style={styles.reactionPillText}
+                    text={reactionObj.emoji}
+                  />
+                  <View style={styles.reactionAvatars}>
+                    {avatars.map((uUUID, i) => (
+                      <View
+                        key={uUUID}
+                        style={[
+                          styles.reactionAvatarContainer,
+                          i > 0 && styles.reactionAvatarOverlap,
+                        ]}
+                      >
+                        <Avatar
+                          uuid={getUser(uUUID)?.profilePictureUUID}
+                          size={16}
+                          theme={theme}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                  {reactionObj.userUUIDs.length > 2 && (
+                    <AppText
+                      style={styles.reactionPillText}
+                      text={`+${reactionObj.userUUIDs.length - 2}`}
+                    />
+                  )}
+                </Pressable>
+              );
+            })}
           </View>
           {/* Timestamp allineato a destra accanto/sotto le reazioni */}
           <MessageTimestamp
             time={created_at}
+            sent={isSender}
+            receivedByAll={hasBeenRead}
             isEdited={isEdited}
             isPendingEdit={!!message.pendingEditJobId}
             isPinned={isPinned}
@@ -400,6 +446,7 @@ const MessageBase = ({
           <Avatar
             size={45}
             uuid={getUser(message.senderUUID)?.profilePictureUUID}
+            theme={theme}
           />
         </View>
       )}
@@ -407,9 +454,12 @@ const MessageBase = ({
         {!isSender && (
           <View style={styles.senderNameWrapper}>
             {showSenderName && (
-              <Text style={styles.senderName} numberOfLines={1}>
-                {getUser(message.senderUUID)?.name || "Unknown User"}
-              </Text>
+              <AppText
+                style={styles.senderName}
+                numberOfLines={1}
+                text={getUser(message.senderUUID)?.name}
+                translationKey="chat.unknownUser"
+              />
             )}
           </View>
         )}
@@ -463,8 +513,14 @@ const MessageBase = ({
 
 const createStyle = (theme, chatType) =>
   StyleSheet.create({
-    container: { width: "100%", position: "relative" },
-    pressable: { width: "100%", paddingHorizontal: 10 },
+    container: {
+      width: "100%",
+      position: "relative",
+    },
+    pressable: {
+      width: "100%",
+      paddingHorizontal: 10,
+    },
     pressableReceiver: {
       width: "100%",
       flexDirection: "row",
@@ -477,16 +533,21 @@ const createStyle = (theme, chatType) =>
       alignSelf: "flex-end",
       overflow: "hidden",
     },
-    senderBubbleChained: { borderBottomRightRadius: 4 },
+    senderBubbleChained: {
+      borderBottomRightRadius: 4,
+    },
     receiverBubble: {
       marginVertical: 5,
-      marginLeft: chatType === "DM" ? 10: 65,
+      marginLeft: chatType === "DM" ? 10 : 65,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-start",
       overflow: "hidden",
     },
-    receiverBubbleWithAvatar: { marginLeft: 5, borderBottomLeftRadius: 5 },
+    receiverBubbleWithAvatar: {
+      marginLeft: 5,
+      borderBottomLeftRadius: 5,
+    },
     textContainer: {
       position: "relative",
       paddingHorizontal: 10,
@@ -497,15 +558,12 @@ const createStyle = (theme, chatType) =>
       bottom: 0,
       right: 0,
     },
-    mediaContainer: { flexDirection: "column", width: "100%" },
+    mediaContainer: {
+      flexDirection: "column",
+      width: "100%",
+    },
     replyTosContainer: {
       marginBottom: 0,
-    },
-    textRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "baseline",
-      flexWrap: "wrap",
     },
     avatarWrapper: {
       marginLeft: 10,
@@ -520,11 +578,14 @@ const createStyle = (theme, chatType) =>
       flexDirection: "row",
       justifyContent: "space-between",
     },
-    senderName: { fontWeight: "600", color: theme.text, flexShrink: 1 },
-    replyText: { color: "#c5d1dddb", marginLeft: "auto" },
+    senderName: {
+      fontWeight: "600",
+      color: theme.text,
+      flexShrink: 1,
+    },
     selectedOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: "rgba(174, 213, 255, 0.5)",
+      ...StyleSheet.absoluteFill,
+      backgroundColor: theme.backgroundInfo,
       zIndex: 1,
       pointerEvents: "none",
     },
@@ -543,19 +604,30 @@ const createStyle = (theme, chatType) =>
       paddingBottom: 10,
     },
     reactionPill: {
-      backgroundColor: theme.backgroundSecondary || "rgba(255,255,255,0.1)",
+      backgroundColor: theme.backgroundSecondary,
       borderRadius: 12,
-      paddingHorizontal: 5,
+      paddingHorizontal: 6,
       paddingVertical: 2,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.1)",
+      borderColor: theme.borderColor,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
+      gap: 4,
     },
     reactionPillText: {
       fontSize: 12,
       color: theme.text,
+    },
+    reactionAvatars: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    reactionAvatarContainer: {
+      borderRadius: 999,
+    },
+    reactionAvatarOverlap: {
+      marginLeft: -8,
     },
   });
 
@@ -569,5 +641,7 @@ export default React.memo(
     prev.isHighlighted === next.isHighlighted &&
     prev.repliedCount === next.repliedCount &&
     prev.isPinned === next.isPinned &&
-    prev.isEdited === next.isEdited,
+    prev.isEdited === next.isEdited &&
+    prev.onReply === next.onReply &&
+    prev.onReaction === next.onReaction,
 );

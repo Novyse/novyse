@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import authUtils from "@/src/utils/welcome/auth";
+import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 
 /**
  * Custom hook to track authentication session status.
@@ -27,6 +28,16 @@ export const useAuthSession = () => {
 
   useEffect(() => {
     checkSession();
+
+    const handleAuthChange = () => {
+      checkSession();
+    };
+
+    EventEmitter.getEmitter().on("auth:changed", handleAuthChange);
+
+    return () => {
+      EventEmitter.getEmitter().off("auth:changed", handleAuthChange);
+    };
   }, [checkSession]);
 
   return { 

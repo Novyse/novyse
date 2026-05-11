@@ -3,7 +3,7 @@ import { View, StyleSheet, ActivityIndicator } from "react-native";
 
 import { router } from "expo-router";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import CommsBottomBarButton from "@/src/components/comms/BottomBar/Button";
 import MicrophoneSelector from "@/src/components/comms/BottomBar/MicrophoneSelector";
@@ -89,8 +89,8 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
             <CommsBottomBarButton
               onPress={join}
               iconName={"Call02Icon"}
-              iconColor="green"
-              hoverColor={theme.iconCommsInHover}
+              iconColor={theme.iconSuccess}
+              hoverColor={theme.successText}
             />
           </BlurredView>
         )
@@ -134,8 +134,8 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
           <CommsBottomBarButton
             onPress={leave}
             iconName={"Call02Icon"}
-            iconColor="red"
-            hoverColor={theme.iconCommsOutHover}
+            iconColor={theme.iconDanger}
+            hoverColor={theme.dangerText}
           />
         </BlurredView>
       )}
@@ -182,29 +182,16 @@ const createStyle = (theme) =>
       width: "100%",
       height: "100%",
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent: "space-evenly",
       alignItems: "center",
       alignSelf: "center",
       padding: 5,
     },
-    tabButton: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    activeTab: {
-      backgroundColor: "rgba(255, 255, 255, 0.2)",
-      borderRadius: 30,
-      width: "50%",
-      height: "100%",
-    },
     microphoneButtonContainer: {
       position: "relative",
-      flex: 1,
     },
     cameraButtonContainer: {
       position: "relative",
-      flex: 1,
     },
     iconButton: {
       position: "absolute",

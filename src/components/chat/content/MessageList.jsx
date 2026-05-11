@@ -1,15 +1,15 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { StyleSheet, Platform, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardChatScrollView } from "react-native-keyboard-controller";
 
+import useMessageActions from "@/src/hooks/chat/useMessageActions";
+
 import MessageBase from "@/src/components/messages/MessageBase";
 import MessageSystem from "@/src/components/messages/MessageSystem";
-
 import ActionMenu from "@/src/components/messages/ActionMenu";
 import Icon from "@/src/components/Icon";
-import useMessageActions from "@/src/hooks/chat/useMessageActions";
 
 const RenderScrollComponent = React.forwardRef((props, ref) => (
   <KeyboardChatScrollView {...props} ref={ref} />
@@ -24,6 +24,7 @@ const MessageList = ({
   setSelectedMessages,
   myUUID,
   theme,
+  onRead,
   onPin,
   onUnpin,
   onReply,
@@ -33,6 +34,7 @@ const MessageList = ({
   onCancel,
   onDelete,
   onReaction,
+  onForward,
   onLoadMore,
 }) => {
   const insets = useSafeAreaInsets();
@@ -40,6 +42,19 @@ const MessageList = ({
 
   const [highlightedID, setHighlightedID] = useState(null);
   const [historyStack, setHistoryStack] = useState([]);
+  const initialScrollIndexRef = useRef(null);
+
+  if (
+    initialScrollIndexRef.current === null &&
+    preparedMessages &&
+    preparedMessages.length > 0
+  ) {
+    const unreadIdx = preparedMessages.findIndex(
+      (m) => m.uniqueKey === "unread-separator",
+    );
+    initialScrollIndexRef.current =
+      unreadIdx !== -1 ? Math.max(0, unreadIdx - 2) : undefined;
+  }
 
   const navigateToMessageWithHistory = useCallback(
     (chatUUID, messageID, oldChatUUID, oldMessageID) => {
@@ -54,7 +69,7 @@ const MessageList = ({
         if (oldMessageID) {
           setHistoryStack((prev) => [...prev, oldMessageID]);
         }
-        
+
         setHighlightedID(messageID);
         flatListRef.current?.scrollToIndex({
           index,
@@ -66,7 +81,7 @@ const MessageList = ({
         setTimeout(() => setHighlightedID(null), 2000);
       }
     },
-    [preparedMessages, flatListRef]
+    [preparedMessages, flatListRef],
   );
 
   const {
@@ -91,6 +106,7 @@ const MessageList = ({
     onCancel,
     onDelete,
     onReaction,
+    onForward,
   });
 
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -102,17 +118,55 @@ const MessageList = ({
     const distanceToBottom =
       contentSize.height - layoutMeasurement.height - contentOffset.y;
     setShowScrollButton(distanceToBottom > 200); // Only show when scrolling up significantly
-    
-    // Se l'utente scrolla manualmente fino in fondo spezziamo la history 
+
+    // Se l'utente scrolla manualmente fino in fondo spezziamo la history
     if (distanceToBottom < 20) {
       setHistoryStack([]);
     }
   }, []);
 
+  const pendingReadsRef = React.useRef(new Set());
+
+  const handleViewableItemsChanged = useCallback(
+    ({ viewableItems }) => {
+      if (!viewableItems || viewableItems.length === 0) return;
+
+      let maxUnreadID = 0;
+      const unreadIDsInView = [];
+
+      for (const v of viewableItems) {
+        const msg = v.item?.data;
+        if (!msg || v.item.type === "separator") continue;
+
+        if (msg.senderUUID === myUUID) continue;
+
+        const isReadByMe =
+          msg.readBy && msg.readBy.some((r) => r.userUUID === myUUID);
+
+        if (!isReadByMe && !pendingReadsRef.current.has(msg.id)) {
+          const numericID = Number(msg.id);
+          if (numericID > maxUnreadID) {
+            maxUnreadID = numericID;
+          }
+          unreadIDsInView.push(msg.id);
+        }
+      }
+
+      if (maxUnreadID > 0) {
+        // Mark all these as pending immediately to avoid duplicate triggers
+        unreadIDsInView.forEach((id) => pendingReadsRef.current.add(id));
+        onRead(maxUnreadID);
+      }
+    },
+    [myUUID, onRead],
+  );
+
   const renderMessageItem = useCallback(
     ({ item }) => {
       if (item.type === "separator") {
         return <MessageSystem type={"date"} data={item.data} />;
+      } else if (item.type === "separator-with-lines") {
+        return <MessageSystem type={"separator-with-lines"} data={item.data} />;
       } else if (item.type === "system") {
         return <MessageSystem type={"system"} data={item.data} />;
       } else {
@@ -161,7 +215,9 @@ const MessageList = ({
     if (historyStack.length > 0) {
       const lastHistoryId = historyStack[historyStack.length - 1];
       const index = preparedMessages.findIndex(
-        (m) => m.type !== "separator" && String(m.data?.id) === String(lastHistoryId)
+        (m) =>
+          m.type !== "separator" &&
+          String(m.data?.id) === String(lastHistoryId),
       );
 
       if (index !== -1) {
@@ -173,7 +229,7 @@ const MessageList = ({
         setHighlightedID(lastHistoryId);
         setTimeout(() => setHighlightedID(null), 2000);
       }
-      
+
       setHistoryStack((prev) => prev.slice(0, -1));
     } else {
       // Default scroll to bottom
@@ -186,6 +242,11 @@ const MessageList = ({
       <FlashList
         ref={flatListRef}
         data={preparedMessages}
+        initialScrollIndex={
+          initialScrollIndexRef.current !== null
+            ? initialScrollIndexRef.current
+            : undefined
+        }
         keyExtractor={(item) => item.uniqueKey}
         renderItem={renderMessageItem}
         renderScrollComponent={RenderScrollComponent}
@@ -195,7 +256,7 @@ const MessageList = ({
         scrollIndicatorInsets={{ right: 1 }}
         maintainVisibleContentPosition={{
           autoscrollToBottomThreshold: 0.1,
-          startRenderingFromBottom: true,
+          startRenderingFromBottom: initialScrollIndexRef.current === undefined,
           animateAutoScrollToBottom: true,
         }}
         onScroll={handleScroll}
@@ -203,6 +264,8 @@ const MessageList = ({
         onStartReached={onLoadMore}
         onStartReachedThreshold={0.5}
         estimatedItemSize={100}
+        viewabilityConfig={{ itemVisiblePercentThreshold: 70 }}
+        onViewableItemsChanged={handleViewableItemsChanged}
       />
       {showScrollButton && (
         <View style={styles.scrollButtonContainer}>

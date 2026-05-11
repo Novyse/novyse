@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   ActivityIndicator,
   Pressable,
@@ -40,28 +39,28 @@ const ModalVerifyMethod = ({
     }
   }, [otp]);
 
-  const getFormattedVerificationType = () => {
+  const getFormattedVerificationTypeKey = () => {
     switch (verificationType) {
       case "email":
-        return "Email OTP";
+        return "auth.verify.titleEmailOtp";
       case "email_verification":
-        return "Email Verification";
+        return "auth.verify.titleVerifyEmail";
       case "authenticator":
-        return "Authenticator App";
+        return "auth.verify.titleAuthenticatorApp";
       default:
-        return "Verify Code";
+        return "auth.verify.verifyCode";
     }
   };
 
-  const getSubtitleText = () => {
+  const getSubtitleTextKey = () => {
     switch (verificationType) {
       case "email":
       case "email_verification":
-        return "Enter the code you received in your email.";
+        return "auth.verify.subtitle";
       case "authenticator":
-        return "Scan the QR code or manually enter the code in your authenticator app, then enter the generated code.";
+        return "auth.verify.subtitleAuthApp";
       default:
-        return "Enter the verification code.";
+        return "auth.verify.subtitleDefault";
     }
   };
 
@@ -86,8 +85,14 @@ const ModalVerifyMethod = ({
       hideCloseX={false}
     >
       <View style={styles.cardContent}>
-        <Text style={styles.title}>{getFormattedVerificationType()}</Text>
-        <Text style={styles.subtitle}>{getSubtitleText()}</Text>
+        <AppText
+          style={styles.title}
+          translationKey={getFormattedVerificationTypeKey()}
+        />
+        <AppText
+          style={styles.subtitle}
+          translationKey={getSubtitleTextKey()}
+        />
 
         {verificationType === "authenticator" && secret && otpauth && (
           <AddAuthenticator
@@ -95,7 +100,6 @@ const ModalVerifyMethod = ({
             otpauth={otpauth}
             QRSize={180}
             QRLogo={logoForQR}
-            theme={theme}
           />
         )}
 
@@ -117,7 +121,10 @@ const ModalVerifyMethod = ({
             {isLoading ? (
               <ActivityIndicator size="small" color={theme.textInverted} />
             ) : (
-              <Text style={styles.submitButtonText}>Verify code</Text>
+              <AppText
+                style={styles.submitButtonText}
+                translationKey="auth.verify.verifyBtn"
+              />
             )}
           </Pressable>
         </View>
@@ -143,12 +150,12 @@ function createStyle(theme) {
     title: {
       fontSize: 28,
       fontWeight: "700",
-      color: "#ffffff",
+      color: theme.text,
       textAlign: "center",
     },
     subtitle: {
       fontSize: 15,
-      color: "#ffffff",
+      color: theme.subtitle,
       textAlign: "center",
       lineHeight: 22,
       paddingHorizontal: 8,
@@ -157,55 +164,6 @@ function createStyle(theme) {
       width: "100%",
       alignItems: "center",
       gap: 24,
-    },
-    authenticatorInfoContainer: {
-      width: "100%",
-      alignItems: "center",
-      gap: 16,
-      marginBottom: 16,
-    },
-    qrcodeContainer: {
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 10,
-      backgroundColor: "#ffffff",
-      borderRadius: 12,
-      borderWidth: 1.5,
-      borderColor: "#ffffff",
-    },
-    qrcode: {
-      size: 180,
-    },
-    secretKeyContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      width: "100%",
-      backgroundColor: theme.background,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: theme.border,
-      paddingLeft: 16,
-    },
-    secretText: {
-      flex: 1,
-      fontSize: 16,
-      color: "#ffffff",
-      fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-      marginRight: 8,
-    },
-    copyButton: {
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      justifyContent: "center",
-      alignItems: "center",
-      borderLeftWidth: 1,
-      borderLeftColor: "#ffffff",
-    },
-    copyButtonText: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: "#ffffff",
     },
     submitButton: {
       backgroundColor: theme.primary,
@@ -219,7 +177,7 @@ function createStyle(theme) {
       opacity: 0.5,
     },
     submitButtonText: {
-      color: "#ffffff",
+      color: theme.text,
       fontWeight: "600",
       fontSize: 16,
     },

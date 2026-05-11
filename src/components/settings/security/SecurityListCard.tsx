@@ -1,15 +1,14 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { StyleSheet, View, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
 interface SecurityListCardProps {
   iconName: string;
-  iconColor?: string;
   title: string;
-  subtitle?: string;
+  subtitle?: string | React.ReactNode;
   badge?: string;
-  badgeColor?: string;
   isHighlighted?: boolean;
   active?: boolean;
   onToggle?: (active: boolean) => void;
@@ -19,45 +18,57 @@ interface SecurityListCardProps {
 
 const SecurityListCard = ({
   iconName,
-  iconColor = "#6366f1",
   title,
   subtitle,
   badge,
-  badgeColor = "#00C851",
   isHighlighted = false,
   active = true,
   onToggle,
   onDelete,
   children,
 }: SecurityListCardProps) => {
-
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
+  const iconBgColor = active
+    ? isHighlighted
+      ? theme.iconSuccess
+      : theme.primary
+    : theme.subtitle;
+
+  const badgeBgColor = active ? theme.iconSuccess : theme.subtitle;
+
   return (
-    <View style={[
-      styles.card, 
-      isHighlighted && { borderColor: badgeColor },
-      !active && { opacity: 0.6 }
-    ]}>
+    <View
+      style={[
+        styles.card,
+        isHighlighted && { borderColor: theme.iconSuccess },
+        !active && { opacity: 0.6 },
+      ]}
+    >
       <View style={styles.row}>
         <View style={styles.info}>
-          <View style={[
-            styles.iconContainer, 
-            { backgroundColor: active ? iconColor : "#a0a0a0" }
-          ]}>
-            <Icon name={iconName} color="#fff" />
+          <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
+            <Icon name={iconName} />
           </View>
           <View style={styles.details}>
-            <Text style={[styles.title, !active && { color: "#a0a0a0" }]}>{title}</Text>
-            {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+            <AppText
+              style={[styles.title, !active && { color: theme.subtitle }]}
+              text={title}
+            />
+            {subtitle &&
+              (typeof subtitle === "string" ? (
+                <AppText style={styles.subtitle} text={subtitle} />
+              ) : (
+                subtitle
+              ))}
           </View>
         </View>
 
         <View style={styles.actions}>
           {badge && (
-            <View style={[styles.badge, { backgroundColor: active ? badgeColor : "#a0a0a0" }]}>
-              <Text style={styles.badgeText}>{badge}</Text>
+            <View style={[styles.badge, { backgroundColor: badgeBgColor }]}>
+              <AppText style={styles.badgeText} text={badge} />
             </View>
           )}
           {onToggle && (
@@ -67,12 +78,11 @@ const SecurityListCard = ({
                 styles.toggleButton,
                 hovered && styles.toggleButtonHovered,
                 pressed && styles.toggleButtonPressed,
-                !active && { backgroundColor: "#00C851" } // Green to re-enable
+                !active && { backgroundColor: theme.iconSuccess },
               ]}
             >
-              <Icon 
-                name={active ? "ViewOffIcon" : "ViewIcon"} 
-                color="#fff" 
+              <Icon
+                name={active ? "ViewOffIcon" : "ViewIcon"}
                 size={20}
               />
             </Pressable>
@@ -86,7 +96,7 @@ const SecurityListCard = ({
                 pressed && styles.deleteButtonPressed,
               ]}
             >
-              <Icon name="Delete02Icon" color="#fff" />
+              <Icon name="Delete02Icon"/>
             </Pressable>
           )}
         </View>
@@ -100,12 +110,12 @@ const SecurityListCard = ({
 const createStyle = (theme: any) =>
   StyleSheet.create({
     card: {
-      backgroundColor: theme.backgroundSettingsCards,
+      backgroundColor: theme.backgroundMain,
       borderRadius: 16,
       marginBottom: 16,
       padding: 20,
       elevation: 2,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 8,
@@ -141,7 +151,7 @@ const createStyle = (theme: any) =>
     },
     subtitle: {
       fontSize: 14,
-      color: "#a0a0a0",
+      color: theme.subtitle,
     },
     actions: {
       flexDirection: "row",
@@ -154,12 +164,12 @@ const createStyle = (theme: any) =>
       borderRadius: 16,
     },
     badgeText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 12,
       fontWeight: "600",
     },
     deleteButton: {
-      backgroundColor: "#FF4757",
+      backgroundColor: theme.iconDanger,
       width: 36,
       height: 36,
       borderRadius: 18,
@@ -167,15 +177,16 @@ const createStyle = (theme: any) =>
       alignItems: "center",
     },
     deleteButtonHovered: {
-      backgroundColor: "#e8414f",
+      backgroundColor: theme.iconDanger,
+      opacity: 0.8,
       cursor: "pointer" as any,
     },
     deleteButtonPressed: {
-      backgroundColor: "#d13a47",
-      opacity: 0.9,
+      backgroundColor: theme.iconDanger,
+      opacity: 0.6,
     },
     toggleButton: {
-      backgroundColor: "#a0a0a0",
+      backgroundColor: theme.subtitle,
       width: 36,
       height: 36,
       borderRadius: 18,
@@ -183,15 +194,15 @@ const createStyle = (theme: any) =>
       alignItems: "center",
     },
     toggleButtonHovered: {
-      backgroundColor: "#909090",
+      backgroundColor: theme.subtitle,
+      opacity: 0.8,
       cursor: "pointer" as any,
     },
     toggleButtonPressed: {
-      backgroundColor: "#808080",
-      opacity: 0.9,
+      backgroundColor: theme.subtitle,
+      opacity: 0.6,
     },
     childrenContainer: {
-
       marginTop: 16,
     },
   });

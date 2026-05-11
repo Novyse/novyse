@@ -1,46 +1,13 @@
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import AppText from "@/src/components/AppText";
 import { LoginColors } from "@/constants/LoginColors";
 import { validate } from "@/src/utils/welcome/validator";
 import Icon from "@/src/components/Icon";
 import TextLink from "@/src/components/TextLink";
 import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
-
-const PASSWORD_REQUIREMENTS = [
-  { label: "At least 8 characters", check: (p: string) => p.length >= 8 },
-  { label: "One uppercase letter", check: (p: string) => /[A-Z]/.test(p) },
-  { label: "One lowercase letter", check: (p: string) => /[a-z]/.test(p) },
-  { label: "One number", check: (p: string) => /[0-9]/.test(p) },
-  {
-    label: "One special character (@$!%*?&)",
-    check: (p: string) => /[@$!%*?&]/.test(p),
-  },
-  {
-    label: "Only allowed characters",
-    check: (p: string) => /^[a-zA-Z0-9@$!%*?&]+$/.test(p),
-  },
-];
-
-const HANDLE_REQUIREMENTS = [
-  {
-    label: "Starts with a letter or number",
-    check: (h: string) => /^[a-z0-9]/.test(h),
-  },
-  {
-    label: "Ends with a letter or number",
-    check: (h: string) => /[a-z0-9]$/.test(h),
-  },
-  {
-    label: "Only letters, numbers, and underscores",
-    check: (h: string) => /^[a-z0-9_]+$/.test(h),
-  },
-  { label: "No consecutive underscores", check: (h: string) => !/__/.test(h) },
-];
+import StatusMessage from "@/src/components/StatusMessage";
 
 const SIGNUP_MODE_OPTIONS: ToggleOption<"password" | "passkey">[] = [
   { value: "password", label: "Password" },
@@ -83,47 +50,38 @@ export default function SignupStepField({
   onToggleConfirmPassword,
   loginTheme = "default",
 }: Props) {
+  const { t } = useTranslation();
   const colors = (LoginColors as any)[loginTheme];
   const styles = createStyles(colors);
 
-  const RequirementRow = ({ label, met }: { label: string; met: boolean }) => (
-    <View style={styles.reqItem}>
-      <Text
-        style={[styles.reqIcon, met ? styles.reqGreen : styles.reqRed]}
-        selectable={false}
-      >
-        {met ? (
-          <Icon name="Tick01Icon" color={colors.signupReqGreen} size={16} />
-        ) : (
-          <Icon name="Cancel01Icon" color={colors.signupReqRed} size={16} />
-        )}
-      </Text>
-      <Text style={[styles.reqText, { color: colors.subtitle }]}>{label}</Text>
-    </View>
-  );
-
-  const inputBorder = (valid: boolean | null, value: string) => {
+  const inputBorder = (
+    valid: { success: boolean; error?: string } | null,
+    value: string,
+  ) => {
     if (!value) return {};
-    return valid
+    return valid?.success
       ? {
           borderColor: colors.successBorder,
           backgroundColor: colors.successBackground,
         }
-      : {
-          borderColor: colors.errorBorder,
-          backgroundColor: colors.errorBackground,
-        };
+      : valid?.success === false
+        ? {
+            borderColor: colors.errorBorder,
+            backgroundColor: colors.errorBackground,
+          }
+        : {};
   };
 
   if (currentStep === 0) {
     const field = "name";
-    const isValid = validate.user.name(form[field as keyof typeof form]);
+    const validation = validate.user.name(form[field as keyof typeof form]);
     return (
       <View style={styles.group}>
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.subtitle }]}>
-            Display Name
-          </Text>
+          <AppText
+            style={[styles.label, { color: colors.subtitle }]}
+            translationKey="auth.signupStep.displayName"
+          />
           <View
             style={[
               styles.inputContainer,
@@ -131,37 +89,38 @@ export default function SignupStepField({
                 borderColor: colors.borderTextInput,
                 backgroundColor: colors.backgroundTextInput,
               },
-              inputBorder(isValid, form[field as keyof typeof form]),
+              inputBorder(validation, form[field as keyof typeof form]),
             ]}
           >
             <TextInput
               style={[styles.textInput, { color: colors.text }]}
               value={form[field as keyof typeof form]}
-              placeholder="Display Name"
+              placeholder={t("auth.signupStep.displayNamePlaceholder")}
               placeholderTextColor={colors.placeholderTextInput}
               onChangeText={(v) => onChangeField(field, v)}
               autoCapitalize="sentences"
             />
           </View>
-        </View>
-        <View style={styles.requirements}>
-          <RequirementRow
-            label="Name: only letters and spaces"
-            met={validate.user.name(form.name)}
-          />
+          {!validation.success && form.name && (
+            <StatusMessage
+              type="error"
+              content={[validation.error]}
+              visible={true}
+            />
+          )}
         </View>
       </View>
     );
   }
 
   if (currentStep === 1) {
-    const showAvailability = form.handle.trim() && validate.handle(form.handle);
     return (
       <View style={styles.group}>
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.subtitle }]}>
-            Username
-          </Text>
+          <AppText
+            style={[styles.label, { color: colors.subtitle }]}
+            translationKey="auth.signupStep.username"
+          />
           <View
             style={[
               styles.inputContainer,
@@ -185,67 +144,46 @@ export default function SignupStepField({
             <TextInput
               style={[styles.textInput, { color: colors.text }]}
               value={form.handle}
-              placeholder="Username"
+              placeholder={t("auth.signupStep.usernamePlaceholder")}
               placeholderTextColor={colors.placeholderTextInput}
-              onChangeText={(v) => onChangeField("handle", v)}
+              onChangeText={(v) => onChangeField("handle", v.toLowerCase())}
               autoCapitalize="none"
             />
-            {isLoading && (
+            {isLoading ? (
               <ActivityIndicator
                 size="small"
                 color={colors.iconLoading}
                 style={{ marginRight: 10 }}
               />
-            )}
+            ) : handleAvailable === true && !handleError ? (
+              <Icon
+                name="Tick01Icon"
+                color={colors.signupReqGreen}
+                size={18}
+                style={{ marginRight: 10 }}
+              />
+            ) : handleAvailable === false && !handleError ? (
+              <Icon
+                name="Cancel01Icon"
+                color={colors.signupReqRed}
+                size={18}
+                style={{ marginRight: 10 }}
+              />
+            ) : null}
           </View>
           <View style={styles.requirements}>
-            {HANDLE_REQUIREMENTS.map((r) => (
-              <RequirementRow
-                key={r.label}
-                label={r.label}
-                met={r.check(form.handle)}
+            {handleError && form.handle && (
+              <StatusMessage type="error" content={[handleError]} />
+            )}
+            {handleAvailable === true && !handleError && form.handle && (
+              <AppText
+                style={{
+                  color: colors.signupReqGreen,
+                  fontSize: 13,
+                  marginTop: 4,
+                }}
+                translationKey="common.auth.signupStep.available"
               />
-            ))}
-            {!!showAvailability && (
-              <View style={styles.reqItem}>
-                <Text
-                  style={[
-                    styles.reqIcon,
-                    isLoading
-                      ? { color: colors.signupReqGray }
-                      : handleAvailable
-                        ? styles.reqGreen
-                        : styles.reqRed,
-                  ]}
-                >
-                  {isLoading ? (
-                    <Icon
-                      name="MoreHorizontalIcon"
-                      color={colors.signupReqGray}
-                      size={16}
-                    />
-                  ) : handleAvailable ? (
-                    <Icon
-                      name="Tick01Icon"
-                      color={colors.signupReqGreen}
-                      size={16}
-                    />
-                  ) : (
-                    <Icon
-                      name="Cancel01Icon"
-                      color={colors.signupReqRed}
-                      size={16}
-                    />
-                  )}
-                </Text>
-                <Text style={[styles.reqText, { color: colors.subtitle }]}>
-                  {isLoading
-                    ? "Checking..."
-                    : handleAvailable
-                      ? "Available"
-                      : "Already in use"}
-                </Text>
-              </View>
             )}
           </View>
         </View>
@@ -254,11 +192,19 @@ export default function SignupStepField({
   }
 
   if (currentStep === 2) {
-    const valid = validate.user.password(form.password);
     const passwordsMatch =
       form.confirmPassword.length > 0 && form.password === form.confirmPassword;
     const confirmMismatch =
       form.confirmPassword.length > 0 && form.password !== form.confirmPassword;
+
+    const passwordErrors = [];
+    const passwordValidation = validate.user.password(form.password);
+    if (!passwordValidation.success && form.password) {
+      passwordErrors.push(passwordValidation.error);
+    }
+    if (confirmMismatch) {
+      passwordErrors.push(t("common.auth.signupStep.passwordsMismatch"));
+    }
 
     return (
       <View style={styles.group}>
@@ -273,9 +219,10 @@ export default function SignupStepField({
         {signupMode === "password" && (
           <>
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.subtitle }]}>
-                Password
-              </Text>
+              <AppText
+                style={[styles.label, { color: colors.subtitle }]}
+                translationKey="auth.signupStep.password"
+              />
               <View
                 style={[
                   styles.inputContainer,
@@ -283,13 +230,16 @@ export default function SignupStepField({
                     borderColor: colors.borderTextInput,
                     backgroundColor: colors.backgroundTextInput,
                   },
-                  inputBorder(valid, form.password),
+                  inputBorder(
+                    validate.user.password(form.password),
+                    form.password,
+                  ),
                 ]}
               >
                 <TextInput
                   style={[styles.textInput, { color: colors.text }]}
                   value={form.password}
-                  placeholder="Password"
+                  placeholder={t("auth.signupStep.password")}
                   placeholderTextColor={colors.placeholderTextInput}
                   secureTextEntry={showPassword}
                   onChangeText={(v) => onChangeField("password", v)}
@@ -303,10 +253,12 @@ export default function SignupStepField({
                 />
               </View>
             </View>
+
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.subtitle }]}>
-                Confirm Password
-              </Text>
+              <AppText
+                style={[styles.label, { color: colors.subtitle }]}
+                translationKey="auth.signupStep.confirmPassword"
+              />
               <View
                 style={[
                   styles.inputContainer,
@@ -315,7 +267,11 @@ export default function SignupStepField({
                     backgroundColor: colors.backgroundTextInput,
                   },
                   inputBorder(
-                    passwordsMatch ? true : confirmMismatch ? false : null,
+                    passwordsMatch
+                      ? { success: true }
+                      : confirmMismatch
+                        ? { success: false }
+                        : null,
                     form.confirmPassword,
                   ),
                 ]}
@@ -323,7 +279,7 @@ export default function SignupStepField({
                 <TextInput
                   style={[styles.textInput, { color: colors.text }]}
                   value={form.confirmPassword}
-                  placeholder="Confirm Password"
+                  placeholder={t("auth.signupStep.confirmPasswordPlaceholder")}
                   placeholderTextColor={colors.placeholderTextInput}
                   secureTextEntry={showConfirmPassword}
                   onChangeText={(v) => onChangeField("confirmPassword", v)}
@@ -336,27 +292,26 @@ export default function SignupStepField({
                   onPress={onToggleConfirmPassword}
                 />
               </View>
-              <View style={styles.opaqueLink}>
-                <Text style={styles.opaqueLinkText}>Secured by </Text>
-                <TextLink
-                  style={styles.opaqueLinkTextBold}
-                  href="https://opaque-auth.com/"
-                >
-                  OPAQUE
-                </TextLink>
-              </View>
             </View>
 
-            {/* <View style={styles.requirements}>
-          {PASSWORD_REQUIREMENTS.map((r) => (
-            <RequirementRow
-              key={r.label}
-              label={r.label}
-              met={r.check(form.password)}
-            />
-          ))}
-          <RequirementRow label="Passwords match" met={passwordsMatch} />
-          </View> */}
+            {passwordErrors.length > 0 && (
+              <View style={{ width: "100%", maxWidth: 300, marginBottom: 16, marginTop: -8 }}>
+                <StatusMessage type="error" content={passwordErrors} />
+              </View>
+            )}
+
+            <View style={styles.opaqueLink}>
+              <AppText
+                style={styles.opaqueLinkText}
+                translationKey="auth.login.securedBy"
+              />
+              <TextLink
+                style={styles.opaqueLinkTextBold}
+                href="https://opaque-auth.com/"
+              >
+                OPAQUE
+              </TextLink>
+            </View>
           </>
         )}
       </View>
@@ -406,24 +361,6 @@ const createStyles = (colors: any) => {
       width: "100%",
       maxWidth: 300,
     },
-    reqItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 4,
-    },
-    reqIcon: {
-      fontSize: 12,
-      fontWeight: "bold",
-    },
-    reqGreen: {
-      color: "#22c55e",
-    },
-    reqRed: {
-      color: "#ef4444",
-    },
-    reqText: {
-      fontSize: 12,
-    },
     opaqueLink: {
       marginBottom: 20,
       marginTop: 5,
@@ -436,21 +373,6 @@ const createStyles = (colors: any) => {
       color: colors.title,
       fontWeight: "600",
       fontSize: 11,
-    },
-    passkeyContent: {
-      width: "100%",
-      maxWidth: 300,
-      alignItems: "center",
-      paddingVertical: 16,
-      gap: 12,
-    },
-    passkeyIcon: { marginBottom: 4, opacity: 0.6 },
-    passkeyTitle: { fontSize: 18, fontWeight: "600", textAlign: "center" },
-    passkeyDescription: {
-      fontSize: 14,
-      textAlign: "center",
-      lineHeight: 20,
-      paddingHorizontal: 8,
     },
   });
 };

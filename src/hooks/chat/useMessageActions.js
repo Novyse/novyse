@@ -12,6 +12,7 @@ const useMessageActions = ({
   onCancel,
   onDelete,
   onReaction,
+  onForward,
 }) => {
   const [triggeredMessage, setTriggeredMessage] = useState(null);
   const [triggeredMessagePosition, setTriggeredMessagePosition] = useState({
@@ -51,7 +52,7 @@ const useMessageActions = ({
           onReply?.(currentMsg);
           break;
         case "Forward":
-          console.log("Forwarding message:", currentMsg);
+          onForward?.(currentMsg);
           break;
         case "Copy":
           onCopy?.(currentMsg);
@@ -90,6 +91,7 @@ const useMessageActions = ({
       onCancel,
       onDelete,
       onReaction,
+      onForward,
     ],
   );
 

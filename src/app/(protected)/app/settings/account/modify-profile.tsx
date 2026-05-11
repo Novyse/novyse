@@ -1,9 +1,10 @@
 import React, { useContext, useState } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import useUserStore from "@/context/UserContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
 
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import UploadProfilePicture from "@/src/components/modalSheets/UploadProfilePicture";
@@ -11,7 +12,8 @@ import UploadProfilePicture from "@/src/components/modalSheets/UploadProfilePict
 import Page from "@/src/components/settings/account/modify-profile/Page";
 
 export default function AccountModifyRoute() {
-  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
+  const onBack = () =>
+    router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -24,22 +26,31 @@ export default function AccountModifyRoute() {
   if (loading || !user) {
     return (
       <View style={styles.container}>
-        <HeaderWithBackArrow title={"Account"} onBack={() => onBack()} />
-        <Text style={styles.loadingText}>Loading profile...</Text>
+        <HeaderWithBackArrow
+          translationKey="settings.account.title"
+          onBack={() => onBack()}
+        />
+        <AppText
+          style={styles.loadingText}
+          translationKey="common.loadingProfile"
+        />
       </View>
     );
   }
 
   return (
     <>
-      <HeaderWithBackArrow title={"Account"} onBack={() => onBack()} />
+      <HeaderWithBackArrow
+        translationKey="settings.account.title"
+        onBack={() => onBack()}
+      />
       <Page
         name={user.name}
         surname={user.surname}
         username={user.handle}
         email={user.email ?? ""}
         profilePictureUUID={user.profilePictureUUID ?? ""}
-        description={user.description ?? ""}
+        biography={user.biography ?? ""}
         birthday={user.birthday ?? ""}
         region={user.region ?? ""}
         country={user.country ?? ""}

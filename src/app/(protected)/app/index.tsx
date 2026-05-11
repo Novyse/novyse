@@ -1,7 +1,10 @@
-import React from "react";
-import { View, Text } from "react-native";
+import React, {useContext} from "react";
+import { View } from "react-native";
+import AppText from "@/src/components/AppText";
+import {ThemeContext} from "@/src/context/ThemeContext";
 
 export default function RootLayout() {
+  const { theme } = useContext(ThemeContext);
   return (
     <View
       style={{
@@ -11,7 +14,10 @@ export default function RootLayout() {
         backgroundColor: "transparent",
       }}
     >
-      <Text style={{ fontSize: 18, color: "white" }}>Nothing selected.</Text>
+      <AppText
+        style={{ fontSize: 18, color: theme.text }}
+        translationKey="layout.nothingSelected"
+      />
     </View>
   );
 }

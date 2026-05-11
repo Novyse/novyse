@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
 import EmojiPicker from "./EmojiPicker";
+
+import AppText from "@/src/components/AppText";
 
 const TABS = {
   EMOJI: "emoji",
@@ -16,7 +18,7 @@ const TABS = {
   GIF: "gif",
 } as const;
 
-type TabValue = typeof TABS[keyof typeof TABS];
+type TabValue = (typeof TABS)[keyof typeof TABS];
 
 interface Anchor {
   height?: number;
@@ -46,9 +48,9 @@ const ChatIconsPickerModal = ({
           <EmojiPicker onEmojiSelected={onEmojiSelected} onClose={() => {}} />
         );
       case TABS.STICKER:
-        return <Text style={styles.contentText}>2</Text>;
+        return <AppText style={styles.contentText} text="2" />;
       case TABS.GIF:
-        return <Text style={styles.contentText}>3</Text>;
+        return <AppText style={styles.contentText} text="3" />;
       default:
         return null;
     }
@@ -70,40 +72,37 @@ const ChatIconsPickerModal = ({
           style={[styles.tab, activeTab === TABS.EMOJI && styles.activeTab]}
           onPress={() => setActiveTab(TABS.EMOJI)}
         >
-          <Text
+          <AppText
             style={[
               styles.tabText,
               activeTab === TABS.EMOJI && styles.activeTabText,
             ]}
-          >
-            Emoji
-          </Text>
+            translationKey="chat.iconsPicker.emoji"
+          />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === TABS.STICKER && styles.activeTab]}
           onPress={() => setActiveTab(TABS.STICKER)}
         >
-          <Text
+          <AppText
             style={[
               styles.tabText,
               activeTab === TABS.STICKER && styles.activeTabText,
             ]}
-          >
-            Sticker
-          </Text>
+            translationKey="chat.iconsPicker.sticker"
+          />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === TABS.GIF && styles.activeTab]}
           onPress={() => setActiveTab(TABS.GIF)}
         >
-          <Text
+          <AppText
             style={[
               styles.tabText,
               activeTab === TABS.GIF && styles.activeTabText,
             ]}
-          >
-            GIF
-          </Text>
+            translationKey="chat.iconsPicker.gif"
+          />
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.contentContainer}>{renderContent()}</ScrollView>
@@ -116,9 +115,9 @@ const createStyle = (theme: any) =>
     container: {
       position: "absolute",
       right: 10,
-      backgroundColor: (theme).backgroundModal,
+      backgroundColor: theme.backgroundMain,
       borderRadius: 8,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: {
         width: 0,
         height: 2,
@@ -135,7 +134,7 @@ const createStyle = (theme: any) =>
     tabsContainer: {
       flexDirection: "row",
       borderBottomWidth: 1,
-      borderBottomColor: (theme).ChatIconsPickerModalBorderColor,
+      borderBottomColor: theme.borderColor,
     },
     tab: {
       flex: 1,
@@ -144,21 +143,21 @@ const createStyle = (theme: any) =>
     },
     activeTab: {
       borderBottomWidth: 2,
-      borderBottomColor: (theme).primary,
+      borderBottomColor: theme.primary,
     },
     tabText: {
-      color: (theme).ChatIconsPickerModalTabInactiveText,
+      color: theme.ChatIconsPickerModalTabInactiveText,
       fontSize: 14,
       fontWeight: "500",
     },
     activeTabText: {
-      color: (theme).text,
+      color: theme.text,
     },
     contentContainer: {
       height: 450,
     },
     contentText: {
-      color: (theme).text,
+      color: theme.text,
       fontSize: 24,
     },
   });

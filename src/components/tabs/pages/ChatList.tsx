@@ -5,16 +5,13 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Image,
-  Platform,
-} from "react-native";
+import { StyleSheet, FlatList, Image, Platform, View } from "react-native";
+import AppText from "@/src/components/AppText";
+import { useShareIntentContext } from "expo-share-intent";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { Chat } from "@/src/types/chat";
 
 import Icon from "@/src/components/Icon";
 import BlurredHeader from "@/src/components/BlurredHeader";
@@ -23,13 +20,14 @@ import FloatingButton from "@/src/components/FloatingButton";
 import CreateChatModal from "@/src/components/modalSheets/createChat";
 import CommsHeader from "@/src/components/chat/content/header/CommsHeader";
 
-import useChatStore from "@/context/ChatContext";
+import useChatStore from "@/src/context/ChatContext";
 import useChatPin from "@/src/hooks/chat/useChatPin";
 import useSelection from "@/src/hooks/useSelection";
-import { ThemeContext } from "@/context/ThemeContext";
-import { useScreen } from "@/context/ScreenContext";
-import { useCommsContext } from "@/context/CommsContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { useForward } from "@/src/hooks/chat/useForward";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import { useCommsContext } from "@/src/context/CommsContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 
@@ -44,6 +42,53 @@ const ChatList = () => {
   const onChatSelect = (chatUUIDorHandle: String) => {
     setSelectedChatUUID(chatUUIDorHandle as string);
   };
+
+  const { hasShareIntent, shareIntent, resetShareIntent } =
+    useShareIntentContext();
+
+  const { isForwarding, completeForwarding, resetForwarding } = useForward();
+
+  const onChatSelectWithIntent = useCallback(
+    (chatUUID: string) => {
+      if (hasShareIntent) {
+        const { chatUIStates } = useActiveChatStore.getState();
+
+        const updateData: any = {};
+        if (shareIntent.text) {
+          updateData.newMessageText = shareIntent.text;
+        } else if (shareIntent.files && shareIntent.files.length > 0) {
+          updateData.files = shareIntent.files.map((file) => ({
+            uri: file.path,
+            name: file.fileName || "file",
+            type: file.mimeType || "*/*",
+            size: file.size || 0,
+          }));
+        }
+
+        useActiveChatStore.setState({
+          chatUIStates: {
+            ...chatUIStates,
+            [chatUUID]: {
+              ...(chatUIStates[chatUUID] || {
+                contentView: "chat",
+                newMessageText: "",
+                files: [],
+                invalidFiles: [],
+                editingMessage: null,
+                selectedMessages: [],
+                replyingTo: [],
+              }),
+              ...updateData,
+            },
+          },
+        });
+
+        // resetShareIntent();
+      }
+      onChatSelect(chatUUID);
+    },
+    [hasShareIntent, shareIntent, resetShareIntent, onChatSelect],
+  );
 
   const chats = useChatStore((state) => state.chats);
   const { pinnedChats, pinChats, unpinChats } = useChatPin();
@@ -91,11 +136,24 @@ const ChatList = () => {
       } else if (pinB) {
         return 1;
       } else {
-        const timeA = a.lastMessage?.created_at
-          ? new Date(a.lastMessage.created_at).getTime()
+        const lastMsgA =
+          a.messages && a.messages.length > 0
+            ? a.messages[a.messages.length - 1]
+            : null;
+        const lastMsgB =
+          b.messages && b.messages.length > 0
+            ? b.messages[b.messages.length - 1]
+            : null;
+
+        const timeA = lastMsgA
+          ? lastMsgA.created_at
+            ? new Date(lastMsgA.created_at).getTime()
+            : Date.now()
           : 0;
-        const timeB = b.lastMessage?.created_at
-          ? new Date(b.lastMessage.created_at).getTime()
+        const timeB = lastMsgB
+          ? lastMsgB.created_at
+            ? new Date(lastMsgB.created_at).getTime()
+            : Date.now()
           : 0;
         return timeB - timeA;
       }
@@ -104,15 +162,21 @@ const ChatList = () => {
     setOrderedChats(sortedChats);
   }, [chats, pinnedChats]);
 
-  const handleLongPress = (chatUUID) => {
+  const handleLongPress = (chatUUID: string) => {
     if (!isSelectionMode) initiateSelection(chatUUID);
   };
 
-  const handlePress = (chatUUID) => {
+  const handlePress = (chatUUID: string) => {
     if (isSelectionMode) {
       toggleSelection(chatUUID);
+    } else if (isForwarding) {
+      completeForwarding(chatUUID);
     } else {
-      onChatSelect(chatUUID);
+      if (hasShareIntent) {
+        onChatSelectWithIntent(chatUUID);
+      } else {
+        onChatSelect(chatUUID);
+      }
     }
   };
 
@@ -157,7 +221,6 @@ const ChatList = () => {
         />
         <Icon
           name={"Search02Icon"}
-          
           onPress={() => tabNavigator.navigate("Search")}
         />
       </BlurredHeader>
@@ -171,13 +234,17 @@ const ChatList = () => {
         style={{
           paddingHorizontal: 10,
           paddingVertical: 5,
-          backgroundColor: "#2951a9",
+          backgroundColor: theme.backgroundMain,
         }}
         commsHeader={commsHeaderComponent}
       >
-        <Icon name={"Cancel01Icon"}  onPress={clearSelection} />
-        <Text style={styles.headerTitle}>{selectedItems.length} selected</Text>
-        <Icon name={"PinIcon"}  onPress={handlePinItems} />
+        <Icon name={"Cancel01Icon"} onPress={clearSelection} />
+        <AppText
+          style={styles.headerTitle}
+          translationKey="tabs.chatList.selected"
+          translationOptions={{ count: selectedItems.length }}
+        />
+        <Icon name={"PinIcon"} onPress={handlePinItems} />
       </BlurredHeader>
     ),
     [
@@ -189,7 +256,57 @@ const ChatList = () => {
     ],
   );
 
-  const renderItem = ({ item }) => {
+  const renderIntentHeader = useCallback(
+    () => (
+      <BlurredHeader
+        style={{
+          paddingHorizontal: 10,
+          paddingVertical: 5,
+          backgroundColor: theme.backgroundMain,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+        commsHeader={commsHeaderComponent}
+      >
+        <View style={{ width: 40, alignItems: "flex-start" }}>
+          <Icon name={"Cancel01Icon"} onPress={() => resetShareIntent()} />
+        </View>
+        <AppText
+          style={[styles.headerTitle, { flex: 1, textAlign: "center" }]}
+          translationKey="tabs.chatList.intentSharing"
+        />
+        <View style={{ width: 40 }} />
+      </BlurredHeader>
+    ),
+    [styles.headerTitle, resetShareIntent, commsHeaderComponent],
+  );
+
+  const renderForwardingHeader = useCallback(
+    () => (
+      <BlurredHeader
+        style={{
+          paddingHorizontal: 10,
+          paddingVertical: 5,
+          backgroundColor: theme.backgroundMain,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+        commsHeader={commsHeaderComponent}
+      >
+        <View style={{ width: 40, alignItems: "flex-start" }}>
+          <Icon name={"Cancel01Icon"} onPress={() => resetForwarding()} />
+        </View>
+        <AppText
+          style={[styles.headerTitle, { flex: 1, textAlign: "center" }]}
+          translationKey="tabs.chatList.forwarding"
+        />
+        <View style={{ width: 40 }} />
+      </BlurredHeader>
+    ),
+    [styles.headerTitle, resetForwarding, commsHeaderComponent],
+  );
+
+  const renderItem = ({ item }: { item: Chat }) => {
     const isPinned = ((pinnedChats as any[]) || []).some(
       (p) => p.chatUUID === item.uuid,
     );
@@ -208,7 +325,13 @@ const ChatList = () => {
 
   return (
     <>
-      {isSelectionMode ? renderSelectionHeader() : renderDefaultHeader()}
+      {isSelectionMode
+        ? renderSelectionHeader()
+        : isForwarding
+          ? renderForwardingHeader()
+          : hasShareIntent
+            ? renderIntentHeader()
+            : renderDefaultHeader()}
 
       <FlatList
         style={styles.flatList}

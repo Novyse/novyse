@@ -1,16 +1,18 @@
 import React from "react";
 import {
   View,
-  Text,
   StyleSheet,
-  Platform,
   Linking,
   TouchableOpacity,
   Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useThemeContext } from "../../context/ThemeContext";
 import { useLocalSearchParams, useRouter } from "expo-router";
+
+import { useThemeContext } from "@/src/context/ThemeContext";
+
+import AppText from "@/src/components/AppText";
+
 import { APP_VERSION } from "../../app.config";
 
 const DOWNLOAD_URL = "https://novyse.com/#download";
@@ -29,14 +31,8 @@ export default function UpdateRequiredScreen() {
     router.replace("/");
   };
 
-  const gradientColors = (theme.backgroundMainGradient as [
-    string,
-    string,
-    ...string[],
-  ]) ?? ["#013480", "#177FC0"];
-
   return (
-    <LinearGradient colors={gradientColors} style={styles.container}>
+    <LinearGradient colors={theme.backgroundMainGradient} style={styles.container}>
       {/* Logo */}
       <View style={styles.logoContainer}>
         <Image
@@ -45,54 +41,70 @@ export default function UpdateRequiredScreen() {
           resizeMode="contain"
         />
       </View>
-
       {/* Text content */}
-      <Text style={styles.title}>Update Required</Text>
-      <Text style={styles.subtitle}>
-        A new version of Novyse is available and required to continue.{"\n"}
-        Please update to access the latest features and security improvements.
-      </Text>
-
+      <AppText
+        style={styles.title}
+        translationKey="layout.updateRequired.title"
+      />
+      <AppText
+        style={styles.subtitle}
+        translationKey="layout.updateRequired.subtitle"
+      />
       {/* Version Info */}
       <View style={styles.versionContainer}>
-        <Text style={styles.versionText}>Current: {APP_VERSION}</Text>
+        <AppText
+          style={styles.versionText}
+          translationKey="layout.updateRequired.currentVersion"
+          translationOptions={{
+            version: APP_VERSION,
+          }}
+        />
         {minVersion && (
-          <Text style={styles.versionText}>Required: {minVersion}</Text>
+          <AppText
+            style={styles.versionText}
+            translationKey="layout.updateRequired.requiredVersion"
+            translationOptions={{
+              version: minVersion,
+            }}
+          />
         )}
       </View>
-
       {/* CTA Button */}
       <TouchableOpacity
         style={styles.button}
         onPress={handleUpdatePress}
         activeOpacity={0.85}
       >
-        <Text style={styles.buttonText}>Download Latest Version</Text>
+        <AppText
+          style={styles.buttonText}
+          translationKey="layout.updateRequired.downloadLatestVersion"
+        />
       </TouchableOpacity>
-
       {/* Go Back Button & Warning */}
       <View style={styles.backContainer}>
-        <Text style={styles.warningText}>
-          Note: If you continue without updating, online features will be
-          unavailable.
-        </Text>
+        <AppText
+          style={styles.warningText}
+          translationKey="layout.updateRequired.warning"
+        />
         <TouchableOpacity
           style={styles.secondaryButton}
           onPress={handleGoBack}
           activeOpacity={0.7}
         >
-          <Text style={styles.secondaryButtonText}>Go back to Novyse</Text>
+          <AppText
+            style={styles.secondaryButtonText}
+            translationKey="layout.updateRequired.goBack"
+          />
         </TouchableOpacity>
       </View>
-
       {/* Helper link */}
-      <Text style={styles.helperText}>
-        Visit{" "}
-        <Text style={styles.linkText} onPress={handleUpdatePress}>
-          novyse.com
-        </Text>{" "}
-        to get the update for your device.
-      </Text>
+      <AppText
+        style={styles.helperText}
+        translationKey="layout.updateRequired.helperText"
+        translationOptions={{
+          link: "https://novyse.com/#download",
+        }}
+      />
     </LinearGradient>
   );
 }
@@ -116,29 +128,29 @@ const createStyle = (theme: any) =>
       width: 56,
       height: 56,
       borderRadius: 28,
-      backgroundColor: "rgba(79, 140, 255, 0.25)",
+      backgroundColor: theme.backgroundCard,
       borderWidth: 1.5,
-      borderColor: "rgba(79, 140, 255, 0.6)",
+      borderColor: theme.borderColor,
       alignItems: "center",
       justifyContent: "center",
       marginBottom: 28,
     },
     iconBadgeText: {
       fontSize: 24,
-      color: "#4f8cff",
+      color: theme.text,
       fontWeight: "700",
     },
     title: {
       fontSize: 26,
       fontWeight: "700",
-      color: theme.text ?? "#ffffff",
+      color: theme.text,
       marginBottom: 14,
       textAlign: "center",
       letterSpacing: 0.3,
     },
     subtitle: {
       fontSize: 15,
-      color: theme.iconSecondary ?? "#c9d1d9",
+      color: theme.subtitle,
       textAlign: "center",
       marginBottom: 20,
       lineHeight: 22,
@@ -148,22 +160,22 @@ const createStyle = (theme: any) =>
       flexDirection: "row",
       gap: 16,
       marginBottom: 36,
-      backgroundColor: "rgba(0, 0, 0, 0.2)",
+      backgroundColor: theme.backgroundMain,
       paddingVertical: 6,
       paddingHorizontal: 12,
       borderRadius: 20,
     },
     versionText: {
       fontSize: 12,
-      color: theme.placeholderText ?? "#c9c9c9",
+      color: theme.text,
       fontWeight: "600",
     },
     button: {
-      backgroundColor: theme.primary ?? "#4f8cff",
+      backgroundColor: theme.primary,
       paddingVertical: 15,
       paddingHorizontal: 36,
       borderRadius: 12,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOpacity: 0.25,
       shadowRadius: 8,
       shadowOffset: { width: 0, height: 4 },
@@ -171,7 +183,7 @@ const createStyle = (theme: any) =>
       marginBottom: 20,
     },
     buttonText: {
-      color: "#ffffff",
+      color: theme.text,
       fontWeight: "700",
       fontSize: 16,
       letterSpacing: 0.2,
@@ -182,7 +194,7 @@ const createStyle = (theme: any) =>
     },
     warningText: {
       fontSize: 12,
-      color: theme.placeholderText ?? "#c9c9c9",
+      color: theme.subtitle,
       textAlign: "center",
       marginBottom: 8,
       paddingHorizontal: 20,
@@ -193,19 +205,19 @@ const createStyle = (theme: any) =>
       paddingHorizontal: 20,
     },
     secondaryButtonText: {
-      color: theme.iconSecondary ?? "#c9d1d9",
+      color: theme.text,
       fontWeight: "600",
       fontSize: 14,
       textDecorationLine: "underline",
     },
     helperText: {
       fontSize: 13,
-      color: theme.placeholderText ?? "#c9c9c9",
+      color: theme.subtitle,
       textAlign: "center",
       lineHeight: 20,
     },
     linkText: {
-      color: theme.primary ?? "#4f8cff",
+      color: theme.textLink,
       textDecorationLine: "underline",
     },
   });

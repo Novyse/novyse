@@ -1,16 +1,18 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { DateTime } from "luxon";
+import { useTranslation } from "react-i18next";
 
 import SmartBackground from "@/src/components/SmartBackground";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
 
-import useUserStore from "@/context/UserContext";
+import useUserStore from "@/src/context/UserContext";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
-import { ThemeContext } from "@/context/ThemeContext";
-import { useActiveChatStore } from "@/context/ActiveChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
 
@@ -24,11 +26,17 @@ const ChatListItem = React.memo(
     onPress,
     onLongPress,
   }) => {
+    const { t } = useTranslation();
     const { theme } = useContext(ThemeContext);
     const styles = React.useMemo(() => createStyle(theme), [theme]);
     const localUserUUID = useUserStore((state) => state.localUserUUID);
-    const { name: displayName, profilePictureUUID: displayPfp } =
-      useChatMetadata(item);
+    const {
+      name: displayName,
+      profilePictureUUID: displayPfp,
+      type: chatType,
+      onlineMembersCount,
+      memberActivityData,
+    } = useChatMetadata(item);
 
     const draftText = useActiveChatStore(
       (state) => state.chatUIStates[item.uuid || item.handle]?.newMessageText,
@@ -39,7 +47,9 @@ const ChatListItem = React.memo(
 
     const parseTime = (dateTimeMessage) => {
       if (!dateTimeMessage) return "";
-      return DateTime.fromJSDate(new Date(dateTimeMessage)).toFormat("HH:mm");
+      return DateTime.fromISO(dateTimeMessage, { zone: "utc" })
+        .toLocal()
+        .toFormat("HH:mm");
     };
 
     const lastMessage =
@@ -63,18 +73,18 @@ const ChatListItem = React.memo(
       const isDraft = message.type === "DRAFT";
 
       if (isDraft) {
-        sender = "Draft: ";
+        sender = `${t("chat.listItem.draft")}: `;
       } else if (message.type === "system") {
         sender = "";
       } else if (message.senderUUID === localUserUUID) {
-        sender = "You: ";
+        sender = `${t("chat.listItem.you")}: `;
       } else if (message.senderUUID) {
-        sender = `${relevantUser?.name || "Unknown"}: `;
+        sender = `${relevantUser?.name || t("chat.listItem.unknown")}: `;
       } else {
-        sender = "Unknown: ";
+        sender = `${t("chat.listItem.unknown")}: `;
       }
       return (
-        <Text
+        <AppText
           style={[
             styles.chatSubtitle,
             styles.gridText,
@@ -82,11 +92,8 @@ const ChatListItem = React.memo(
           ]}
           numberOfLines={1}
           ellipsizeMode="tail"
-          selectable={false}
-        >
-          {sender}
-          {content}
-        </Text>
+          text={`${sender}${content}`}
+        />
       );
     };
 
@@ -94,9 +101,8 @@ const ChatListItem = React.memo(
       <View style={styles.chatItem}>
         <SmartBackground
           colors={
-            isSelected || isActive
-              ? theme?.backgroundChatListItemSelectedGradient
-              : "transparent"
+            isSelected ||
+            (isActive && theme.backgroundChatListItemSelectedGradient)
           }
           style={[StyleSheet.absoluteFill, { borderRadius: 100 }]}
         />
@@ -110,29 +116,39 @@ const ChatListItem = React.memo(
               <Icon name={"Tick02Icon"} />
             </View>
           )}
-          <Avatar uuid={displayPfp} theme={theme} style={styles.avatar} />
+          <Avatar
+            uuid={displayPfp}
+            theme={theme}
+            style={styles.avatar}
+            isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
+          />
           <View style={styles.chatItemGrid}>
             {/* LEFT */}
             <View style={styles.leftContainer}>
               <View style={styles.titleRow}>
-                <Text
+                <AppText
                   style={[styles.chatTitle, styles.gridText]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
-                  selectable={false}
-                >
-                  {displayName}
-                </Text>
+                  text={displayName}
+                />
               </View>
               <View style={styles.subtitleRow}>
-                {displayMessage(
-                  draftText || draftFiles?.length > 0
-                    ? {
-                        type: "DRAFT",
-                        content: draftText || "",
-                        files: draftFiles,
-                      }
-                    : lastMessage,
+                {memberActivityData && memberActivityData.length > 0 ? (
+                  <AppText
+                    style={styles.chatSubtitle}
+                    text={messageUtils.formatActivity(memberActivityData)}
+                  />
+                ) : (
+                  displayMessage(
+                    draftText || draftFiles?.length > 0
+                      ? {
+                          type: "DRAFT",
+                          content: draftText || "",
+                          files: draftFiles,
+                        }
+                      : lastMessage,
+                  )
                 )}
               </View>
             </View>
@@ -145,12 +161,10 @@ const ChatListItem = React.memo(
                     {!lastMessage.created_at ? (
                       <Icon name={"Clock01Icon"} size={14} />
                     ) : (
-                      <>
-                        <Icon name={"TickDouble02Icon"} size={18} />
-                        <Text style={styles.chatDateText} selectable={false}>
-                          {parseTime(lastMessage.created_at)}
-                        </Text>
-                      </>
+                      <AppText
+                        style={styles.chatDateText}
+                        text={parseTime(lastMessage.created_at)}
+                      />
                     )}
                   </>
                 )}
@@ -160,9 +174,7 @@ const ChatListItem = React.memo(
                 {isPinned && <Icon name={"PinIcon"} size={16} />}
                 {unreadCount > 0 && (
                   <View style={styles.ball}>
-                    <Text style={styles.ballText} selectable={false}>
-                      {unreadCount}
-                    </Text>
+                    <AppText style={styles.ballText} text={unreadCount} />
                   </View>
                 )}
               </View>
@@ -238,7 +250,7 @@ function createStyle(theme) {
       top: 5,
       left: 5,
       zIndex: 1,
-      backgroundColor: "#25b34bff",
+      backgroundColor: theme.backgroundSuccess,
       borderRadius: 999,
     },
     leftContainer: {

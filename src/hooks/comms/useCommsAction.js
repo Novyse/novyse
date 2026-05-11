@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useCommsContext } from "@/context/CommsContext";
+import { useTranslation } from "react-i18next";
+import { useCommsContext } from "@/src/context/CommsContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { connectToLiveKit } from "@/src/utils/comms/livekit";
 import { Room } from "livekit-client";
@@ -8,9 +9,11 @@ import platform from "@/src/utils/device/type";
 
 import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
 
-// user-facing error text (HTML allowed for link)
-const DEVICE_ERROR_MESSAGE =
-  'We couldn\'t retrieve the device. Please try again. <a href="https://www.novyse.com/help/troubleshooting/comms/devices" target="_blank">Troubleshooting</a>';
+const getDeviceErrorMessage = (t) =>
+  t("chat.bottomBar.overview.errors.deviceError", {
+    troubleshooting: t("common.troubleshooting"),
+    link: t("chat.bottomBar.overview.errors.troubleshootingLink"),
+  });
 
 const useCommsAction = (chatUUID, sub) => {
   const {
@@ -33,7 +36,10 @@ const useCommsAction = (chatUUID, sub) => {
     setIsVideoEnabled,
     error,
     setError,
+    setStreams,
   } = useCommsContext();
+
+  const { t } = useTranslation();
 
   const [connecting, setConnecting] = useState(false);
   const [roomMatch, setRoomMatch] = useState(false);
@@ -137,8 +143,6 @@ const useCommsAction = (chatUUID, sub) => {
 
       SoundPlayer.getInstance().playSound("comms.join");
 
-      setConnecting(false);
-
       setTimeout(async () => {
         if (roomInstance.localParticipant) {
           try {
@@ -149,13 +153,18 @@ const useCommsAction = (chatUUID, sub) => {
             setError(null);
           } catch (err) {
             console.error("Failed enabling microphone after join", err);
-            setError(DEVICE_ERROR_MESSAGE);
+            setError(getDeviceErrorMessage(t));
           }
         }
       }, 1000);
     } catch (error) {
-      setError("Please try again later.");
-      return;
+      if (error.response && error.response.status === 409) {
+        setError(t("chat.comms.error.chatFull"));
+      } else {
+        setError(t("chat.comms.error.generic"));
+      }
+    } finally {
+      setConnecting(false);
     }
   };
 
@@ -175,7 +184,7 @@ const useCommsAction = (chatUUID, sub) => {
       setIsAudioEnabled(newState);
     } catch (e) {
       console.error("Failed toggling microphone state", e);
-      setError(DEVICE_ERROR_MESSAGE);
+      setError(getDeviceErrorMessage(t));
     }
   };
 
@@ -187,7 +196,7 @@ const useCommsAction = (chatUUID, sub) => {
       setIsVideoEnabled(newState);
     } catch (e) {
       console.error("Failed toggling video state", e);
-      setError(DEVICE_ERROR_MESSAGE);
+      setError(getDeviceErrorMessage(t));
     }
   };
 
@@ -203,7 +212,7 @@ const useCommsAction = (chatUUID, sub) => {
         setError(null);
       } catch (e) {
         console.error("Failed switching microphone device", e);
-        setError(DEVICE_ERROR_MESSAGE);
+        setError(getDeviceErrorMessage(t));
       }
     }
     switchMicrophone();
@@ -217,7 +226,7 @@ const useCommsAction = (chatUUID, sub) => {
         setError(null);
       } catch (e) {
         console.error("Failed switching camera device", e);
-        setError(DEVICE_ERROR_MESSAGE);
+        setError(getDeviceErrorMessage(t));
       }
     }
     switchCamera();
@@ -255,9 +264,18 @@ const useCommsAction = (chatUUID, sub) => {
         await videoTrack.restartTrack({
           facingMode,
         });
+
+        // Refresh the local stream in context to trigger UI update
+        if (room.localParticipant) {
+          const newStream = new MediaStream([videoTrack.mediaStreamTrack]);
+          setStreams((prev) => ({
+            ...prev,
+            [room.localParticipant.identity]: newStream,
+          }));
+        }
       } catch (e) {
         console.error("Failed switching camera facing mode", e);
-        setError(DEVICE_ERROR_MESSAGE);
+        setError(getDeviceErrorMessage(t));
       }
     }
     switchFacingMode();

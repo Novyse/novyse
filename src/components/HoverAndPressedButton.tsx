@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { Pressable, StyleSheet, ViewStyle } from "react-native";
-import { Theme, ThemeContext } from "@/context/ThemeContext";
+import { Theme, ThemeContext } from "@/src/context/ThemeContext";
 
 interface HoverAndPressedButtonProps {
   children: React.ReactNode;
@@ -18,8 +18,8 @@ interface HoverAndPressedButtonProps {
 const HoverAndPressedButton = ({
   children,
   onPress,
-  onLongPress = () => {},
-  onContextMenu = () => {},
+  onLongPress,
+  onContextMenu,
   style = {},
   hoveredStyle = {},
   pressedStyle = {},
@@ -32,14 +32,18 @@ const HoverAndPressedButton = ({
 
   const PressableAny = Pressable as any;
 
+  const hasAction = onPress || onLongPress || onContextMenu;
+
   return (
     <PressableAny
       style={({ pressed, hovered }: any) => [
         styles.baseContainer as ViewStyle,
         style as ViewStyle,
         hovered &&
+          hasAction &&
           ({ ...styles.baseHovered, ...(hoveredStyle as object) } as any),
         pressed &&
+          hasAction &&
           ({ ...styles.basePressed, ...(pressedStyle as object) } as any),
         disabled && (styles.disabled as ViewStyle),
       ]}
@@ -63,11 +67,11 @@ const createStyle = (theme: Theme) =>
       transition: "background-color 0.2s ease",
     } as any,
     baseHovered: {
-      backgroundColor: "rgba(0, 0, 0, 0.1)",
+      backgroundColor: theme.iconHovered,
       cursor: "pointer",
     } as any,
     basePressed: {
-      backgroundColor: "rgba(0, 0, 0, 0.3)",
+      backgroundColor: theme.iconPressed,
       opacity: 0.9,
     },
     disabled: {

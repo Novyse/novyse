@@ -1,12 +1,17 @@
-import { authApi } from "../../config";
-import { setCurrentToken } from "../token-manager";
-import { performPasskeyAuthentication } from "../lib/passkey";
+import { authApi } from "@/src/utils/backend-services/config";
+import InternalPlatform from "@/src/utils/device/type";
+import { setCurrentToken } from "@/src/utils/backend-services/auth/token-manager";
+import { performPasskeyAuthentication } from "@/src/utils/backend-services/auth/lib/passkey";
 
-const API_PATH = "/auth/signin/passkey";
+const API_PATH = "/signin/passkey";
 
 export async function signInPasskey(turnstileToken: string) {
   try {
-    const optionsRes = await authApi.post(`${API_PATH}/challenge`, { turnstileToken });
+    const optionsRes = await authApi.post(`${API_PATH}/challenge`, { turnstileToken }, {
+      headers: {
+        "x-platform": InternalPlatform,
+      },
+    });
     const options = optionsRes.data;
 
 
@@ -16,7 +21,11 @@ export async function signInPasskey(turnstileToken: string) {
       assertionResponse,
     }, {
       withCredentials: true,
+      headers: {
+        "x-platform": InternalPlatform,
+      },
     });
+
 
     const completeData = completeRes.data;
 

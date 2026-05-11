@@ -1,5 +1,5 @@
 import { getPlatform } from "@/src/utils/device/type";
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 
 const useMessageGestures = (
   setTriggeredMessage,

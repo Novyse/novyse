@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   TouchableOpacity,
@@ -15,12 +15,15 @@ import Animated, {
 } from "react-native-reanimated";
 
 import BlurredView from "../BlurredView";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 const TabBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
 }) => {
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyle(theme);
 
   const visibleRoutes = state.routes.filter((route) => {
     const { options } = descriptors[route.key];
@@ -119,7 +122,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
             >
               {options.tabBarIcon({
                 focused: isFocused,
-                color: isFocused ? "#ffffff" : "#aaaaaa",
+                color: isFocused ? theme.icon : theme.subtitle,
                 size: 24,
               })}
             </TouchableOpacity>
@@ -132,41 +135,42 @@ const TabBar: React.FC<BottomTabBarProps> = ({
 
 export default TabBar;
 
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    bottom: 25,
-    alignSelf: "center",
-    borderRadius: 30,
-    height: 60,
-    minWidth: 200,
-    maxWidth: 230,
-  },
-  blurredContainer: {
-    flex: 1,
-    borderRadius: 30,
-    width: "100%",
-    height: "100%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    alignSelf: "center",
-    padding: 5,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  tabButton: {
-    flex: 1,
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1,
-  },
-  indicator: {
-    position: "absolute",
-    left: 5,
-    height: 50, // container 60 - padding 5*2
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    borderRadius: 25,
-  },
-});
+const createStyle = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      position: "absolute",
+      bottom: 25,
+      alignSelf: "center",
+      borderRadius: 30,
+      height: 60,
+      minWidth: 200,
+      maxWidth: 230,
+    },
+    blurredContainer: {
+      flex: 1,
+      borderRadius: 30,
+      width: "100%",
+      height: "100%",
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      alignSelf: "center",
+      padding: 5,
+      borderWidth: 1,
+    },
+    tabButton: {
+      flex: 1,
+      height: "100%",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 1,
+    },
+    indicator: {
+      position: "absolute",
+      left: 5,
+      height: 50, // container 60 - padding 5*2
+      backgroundColor: theme.primary,
+      borderRadius: 25,
+      opacity: 0.25,
+    },
+  });

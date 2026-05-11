@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { LoginColors } from "@/constants/LoginColors";
+import { View, Pressable, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
+import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 
 interface Props {
   steps: { id: number }[];
@@ -32,21 +33,54 @@ export default function SignupTimeline({
                 style={[
                   styles.circle,
                   isCompleted
-                    ? { backgroundColor: LoginColors[loginTheme].completedBackground, borderColor: LoginColors[loginTheme].completedBorder }
+                    ? {
+                        backgroundColor:
+                          LoginColors[loginTheme as LoginTheme]
+                            .completedBackground,
+                        borderColor:
+                          LoginColors[loginTheme as LoginTheme].completedBorder,
+                      }
                     : isCurrent
-                      ? { backgroundColor: LoginColors[loginTheme].currentBackground, borderColor: LoginColors[loginTheme].currentBorder }
-                      : { backgroundColor: LoginColors[loginTheme].pendingBackground, borderColor: LoginColors[loginTheme].pendingBorder },
+                      ? {
+                          backgroundColor:
+                            LoginColors[loginTheme as LoginTheme]
+                              .currentBackground,
+                          borderColor:
+                            LoginColors[loginTheme as LoginTheme].currentBorder,
+                        }
+                      : {
+                          backgroundColor:
+                            LoginColors[loginTheme as LoginTheme]
+                              .pendingBackground,
+                          borderColor:
+                            LoginColors[loginTheme as LoginTheme].pendingBorder,
+                        },
                 ]}
                 onPress={isAccessible ? () => onStepPress(index) : undefined}
                 disabled={!isAccessible}
               >
-                <Text style={[styles.number, { color: LoginColors[loginTheme].timelineNumber }]} selectable={false}>
-                  {step.id}
-                </Text>
+                <AppText
+                  style={[
+                    styles.number,
+                    {
+                      color:
+                        LoginColors[loginTheme as LoginTheme].timelineNumber,
+                    },
+                  ]}
+                  text={String(step.id)}
+                />
               </Pressable>
             </View>
             {!isLast && (
-              <View style={[styles.line, { backgroundColor: LoginColors[loginTheme].backgroundTimeline }]} />
+              <View
+                style={[
+                  styles.line,
+                  {
+                    backgroundColor:
+                      LoginColors[loginTheme as LoginTheme].backgroundTimeline,
+                  },
+                ]}
+              />
             )}
           </React.Fragment>
         );

@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, StyleSheet, Image } from "react-native";
+import AppText from "@/src/components/AppText";
 import { LinearGradient } from "expo-linear-gradient";
 import { LoginColors } from "@/constants/LoginColors";
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 import logoNovyse from "@/assets/images/logo-novyse.png";
 import Icon from "@/src/components/Icon";
 
@@ -22,22 +23,30 @@ export default function ErrorPage() {
       <View style={styles.card}>
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
-          
-          <View style={styles.iconCircle}>
-            <Icon name="Note01Icon" color={LoginColors[LOGIN_THEME].title} size={48} />
-          </View>
 
-          <Text style={styles.title}>System Restriction</Text>
-          <Text style={styles.message}>
-            This app can only be opened in one browser window at a time. Please
-            close any other instances of the app and try again.
-          </Text>
-          <Text style={styles.messageSecondary}>
-            Additionally, this app is not usable in incognito mode due to security requirements.
-          </Text>
-          <Text style={styles.messageTertiary}>
-            If you think this is an error, try reloading the page or restarting the application.
-          </Text>
+          <View style={styles.iconCircle}>
+            <Icon
+              name="Note01Icon"
+              color={LoginColors[LOGIN_THEME].title}
+              size={48}
+            />
+          </View>
+          <AppText
+            style={styles.title}
+            translationKey="common.errorPage.title"
+          />
+          <AppText
+            style={styles.message}
+            translationKey="common.errorPage.message"
+          />
+          <AppText
+            style={styles.messageSecondary}
+            translationKey="common.errorPage.messageSecondary"
+          />
+          <AppText
+            style={styles.messageTertiary}
+            translationKey="common.errorPage.messageTertiary"
+          />
         </View>
       </View>
     </LinearGradient>
@@ -71,13 +80,13 @@ function createStyle(isSmallScreen: boolean) {
       marginBottom: 32,
     },
     iconCircle: {
-       width: 80,
-       height: 80,
-       borderRadius: 40,
-       backgroundColor: "rgba(1, 52, 128, 0.1)",
-       justifyContent: "center",
-       alignItems: "center",
-       marginBottom: 24,
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: LoginColors[LOGIN_THEME].subtitle,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 24,
     },
     title: {
       fontSize: 32,

@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import Avatar from "@/src/components/Avatar";
-import Icon from "@/src/components/Icon";
 import Badges from "@/src/components/badge/Badges";
 
 interface ProfileHeaderProps {
@@ -40,10 +40,8 @@ export default function ProfileHeader({
         // style={styles.avatar}
       />
 
-      <Text style={styles.nameSurnameText}>
-        {name} {surname}
-      </Text>
-      <Text style={styles.usernameText}>@{username}</Text>
+      <AppText style={styles.nameSurnameText} text={`${name} ${surname || ""}`} />
+      <AppText style={styles.usernameText} text={`@${username}`} />
 
       <Badges userUUID={uuid} />
     </View>
@@ -57,50 +55,20 @@ const createStyles = (theme: any) =>
       marginTop: -60,
       paddingHorizontal: 20,
     },
-    avatarContainer: {
-      position: "relative",
-    },
-    editAvatarBtn: {
-      position: "absolute",
-      top: 0,
-      right: 0,
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 999,
-      padding: 6,
-    },
     avatar: {
-      borderColor: "#123367",
+      borderColor: theme.backgroundMain,
       borderWidth: 5,
-      backgroundColor: "#123367",
+      backgroundColor: theme.backgroundMain,
     },
     nameSurnameText: {
       fontSize: 24,
       fontWeight: "bold",
-      color: "white",
+      color: theme.text,
       marginBottom: 4,
     },
     usernameText: {
       fontSize: 14,
       color: theme.text,
       marginBottom: 16,
-    },
-    badgesRow: {
-      flexDirection: "row",
-      gap: 10,
-      marginBottom: 30,
-    },
-    badge: {
-      paddingHorizontal: 12,
-      paddingVertical: 4,
-      borderRadius: 12,
-      borderWidth: 1,
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    badgeText: {
-      color: "white",
-      fontSize: 12,
-      fontWeight: "600",
-      marginLeft: 6,
     },
   });

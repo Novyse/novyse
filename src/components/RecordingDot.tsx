@@ -1,11 +1,13 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useContext } from "react";
 import { Animated, StyleSheet } from "react-native";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface RecordingDotProps {
   isRecording?: boolean;
 }
 
 const RecordingDot = ({ isRecording = false }: RecordingDotProps) => {
+  const { theme } = useContext(ThemeContext);
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -37,13 +39,13 @@ const RecordingDot = ({ isRecording = false }: RecordingDotProps) => {
     };
   }, [isRecording, opacityAnim]);
 
-  return <Animated.View style={[styles(opacityAnim).dot]} />;
+  return <Animated.View style={[styles(opacityAnim, theme).dot]} />;
 };
 
-const styles = (opacityAnim: Animated.Value) =>
+const styles = (opacityAnim: Animated.Value, theme: any) =>
   StyleSheet.create({
     dot: {
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: {
         width: 0,
         height: 1,
@@ -54,8 +56,8 @@ const styles = (opacityAnim: Animated.Value) =>
       width: 10,
       height: 10,
       borderRadius: 100,
-      backgroundColor: "#FF3B30",
-      opacity: opacityAnim,
+      backgroundColor: theme.dangerText,
+      opacity: opacityAnim as any,
     },
   });
 

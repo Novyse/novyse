@@ -1,23 +1,34 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Text, Pressable } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
+import { useScreen } from "@/src/context/ScreenContext";
 
 import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+
+import chatUtils from "@/src/utils/chat/messageFormat";
 
 const MainHeader = ({
   chatUUIDorHandle,
+  chatType,
   selectedChatName,
   selectedChatPictureUUID,
+  memberCount,
+  onlineMembersCount,
+  memberActivityData,
+  lastAccessAt,
   contentView,
   setContentView,
   onBack = () => router.back(),
   navToOverview,
-  isSmallScreen,
 }) => {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
+  const { isSmallScreen, isMediumScreen } = useScreen();
   const styles = createStyle(theme);
 
   return (
@@ -32,12 +43,46 @@ const MainHeader = ({
         />
       </View>
 
-        <Pressable onPress={navToOverview} style={styles.headerCenter}>
-          <Avatar uuid={selectedChatPictureUUID} theme={theme} />
-          <Text style={styles.chatTitle} numberOfLines={1}>
-            {selectedChatName}
-          </Text>
-        </Pressable>
+      <Pressable onPress={navToOverview} style={styles.headerCenter}>
+        <Avatar
+          uuid={selectedChatPictureUUID}
+          theme={theme}
+          isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
+        />
+        <View style={styles.headerCenterText}>
+          <AppText
+            style={styles.chatTitle}
+            numberOfLines={1}
+            text={selectedChatName}
+          />
+          {memberActivityData && memberActivityData.length > 0 ? (
+            <AppText
+              style={styles.chatSubtitle}
+              numberOfLines={1}
+              text={chatUtils.formatActivity(memberActivityData, chatType)}
+            />
+          ) : (
+            <>
+              {chatType === "DM" &&
+                onlineMembersCount === 1 &&
+                lastAccessAt && (
+                  <AppText
+                    style={styles.chatSubtitle}
+                    numberOfLines={1}
+                    text={`${t("chat.header.lastSeen")}: ${chatUtils.formatLastSeen(lastAccessAt)}`}
+                  />
+                )}
+              {chatType === "GROUP" && (
+                <AppText
+                  style={styles.chatSubtitle}
+                  numberOfLines={1}
+                  text={`${t("chat.header.members", { count: memberCount })}${onlineMembersCount > 0 ? `, ${t("chat.header.online", { count: onlineMembersCount })}` : ""}`}
+                />
+              )}
+            </>
+          )}
+        </View>
+      </Pressable>
 
       <View style={styles.headerRight}>
         {contentView !== "chat" && (
@@ -54,7 +99,7 @@ const MainHeader = ({
             onPress={() => setContentView("vocal")}
           />
         )}
-        {!isSmallScreen && contentView !== "both" && (
+        {!isSmallScreen && !isMediumScreen && contentView !== "both" && (
           <Icon
             name="BorderVerticalIcon"
             style={styles.iconButton}
@@ -100,10 +145,21 @@ function createStyle(theme) {
       justifyContent: "center",
       alignItems: "center",
     },
+    headerCenterText: {
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+    },
     chatTitle: {
       fontSize: 15,
       color: theme.text,
       fontWeight: "600",
+      textAlign: "center",
+      flexShrink: 1,
+    },
+    chatSubtitle: {
+      fontSize: 12,
+      color: theme.text,
       textAlign: "center",
       flexShrink: 1,
     },

@@ -1,7 +1,7 @@
 import { authApi } from "../config";
 import { getAuthToken } from "./token-manager";
 
-const API_PATH = `/auth/apikey`;
+const API_PATH = `/apikey`;
 
 export const apikey = {
   /**

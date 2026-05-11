@@ -1,15 +1,16 @@
 import axios from "axios";
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { getOs, getPlatform } from "../device/type.js";
 
-import { getAuthToken } from "./auth/token-manager";
-import { API_LINK } from "./config";
+import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
+import useNetworkStore from "@/src/context/NetworkContext";
 
-import { BRANCH, APP_VERSION } from "../../../app.config";
+import { getOs, getPlatform } from "@/src/utils/device/type";
+
+import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
 
 const api = axios.create({
-  baseURL: API_LINK,
+  baseURL: API_BASE_URL,
   withCredentials: false,
   timeout: 10000,
   headers: {
@@ -25,6 +26,22 @@ const api = axios.create({
  */
 
 api.interceptors.request.use(async (request) => {
+  const { isSynced, isConnected } = useNetworkStore.getState();
+
+  const isSyncOrAuthRequest =
+    request.url === "/user/update" ||
+    request.url === "/user/initialize" ||
+    request.skipAuth;
+
+  if (!isSyncOrAuthRequest) {
+    if (!isConnected) {
+      throw new Error("Network offline");
+    }
+    if (!isSynced) {
+      throw new Error("App not synced yet");
+    }
+  }
+
   if (request.skipAuth) {
     return request;
   }
@@ -51,29 +68,40 @@ api.interceptors.request.use((request) => {
   return request;
 });
 
-api.interceptors.response.use(async (response) => {
-  if (Platform.OS !== "web") {
-    const newSessionId = response.headers["x-set-session-id"];
-    if (newSessionId) {
-      await SecureStore.setItemAsync("sessionId", String(newSessionId));
-    }
-  }
+api.interceptors.response.use(
+  async (response) => {
+    // Clear API error on success
+    useNetworkStore.getState().setApiError(null);
 
-  if (BRANCH !== "production") {
-    console.log(
-      `Response: ${response.config.method.toUpperCase()} ${response.config.url}`,
-      response.data || {},
-    );
-  }
-  return response;
-});
+    if (Platform.OS !== "web") {
+      const newSessionId = response.headers["x-set-session-id"];
+      if (newSessionId) {
+        await SecureStore.setItemAsync("sessionId", String(newSessionId));
+      }
+    }
+
+    if (BRANCH !== "production") {
+      console.log(
+        `Response: ${response.config.method.toUpperCase()} ${response.config.url}`,
+        response.data || {},
+      );
+    }
+    return response;
+  },
+  async (error) => {
+    if (error.response && error.response.status === 500) {
+      useNetworkStore.getState().setApiError("Errore del server (500)");
+    }
+    return Promise.reject(error);
+  },
+);
 
 const gateway = {
   check: {
     /**
      * Check if a handle is available.
      * @param {String} handle
-     * @returns {Object} { success: boolean, free?: boolean }
+     * @returns {Object} { success: boolean, available?: boolean }
      */
     async handle(handle) {
       const response = await api.get(`/check/handle?handle=${handle}`, {
@@ -81,8 +109,8 @@ const gateway = {
       });
       const success = response.data.success;
       if (success) {
-        const free = response.data.data.free;
-        return { success, free };
+        const available = response.data.data.available;
+        return { success, available };
       }
       return { success };
     },
@@ -97,50 +125,47 @@ const gateway = {
       const response = await api.get("/user/initialize");
       const success = response.data.success;
       if (success) {
-        const { local, devices, chats, users, messages, at } =
-          response.data.data;
-        return { success, local, devices, chats, users, messages, at };
+        const { local, users, chats, messages } = response.data.data;
+        return { success, local, users, chats, messages };
       }
       return { success };
     },
 
     /**
-     * Update user data since last update time.
-     * @param {Timestamp} lastUpdateTime
-     * @returns {Object} { success: boolean, user?:{ uuid?: String, name?: String, surname?: String, handle?: String}, chats?: Array[{uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}], messages?: Array[@SamueleOrazioDurante da completare]}
+     * Update user data using sync identifiers.
+     * @param {Object} local { eventID }
+     * @param {Array} chats [{ chatUUID, messageID, eventID }]
+     * @param {Array} users [{ userUUID, profileEventID }]
+     * @returns {Object} { success: boolean, ... }
      */
+    async update(local, chats, users) {
+      const response = await api.post("/user/update", { local, chats, users });
 
-    async update(lastUpdateTime) {
-      // lastUpdateTime is a timestamp with ISO 8601 format
-      if (!lastUpdateTime) {
-        console.error("lastUpdateTime is required for user.update");
-        return { success: false };
-      }
-      if (isNaN(Date.parse(lastUpdateTime))) {
-        console.error("lastUpdateTime is not a valid ISO 8601 timestamp");
-        return { success: false };
-      }
-      const response = await api.get(
-        `/user/update?at=${encodeURIComponent(lastUpdateTime)}`,
-      );
-      console.log(response);
       const success = response.data.success;
       if (success) {
-        const { local, user, chat, message, at } = response.data.data;
-        return { success, local, user, chat, message, at };
+        const { local, users, chats, messages } = response.data.data;
+        return { success, local, users, chats, messages };
       }
 
       return { success };
     },
+
     /**
-     * Delete user's account.
-     * @returns {boolean} true if the account was successfully deleted, false otherwise
+     * Fetch presence information for a list of users.
+     * @param {Array<string>} userUUIDs
+     * @returns {Object} { success: boolean, data?: Array }
      */
-    async delete() {
-      const response = await api.delete(`/auth/user`);
+    async presence(userUUIDs) {
+      if (!userUUIDs || userUUIDs.length === 0)
+        return { success: true, data: [] };
+      const response = await api.post("/user/presence", { userUUIDs });
       const success = response.data.success;
-      return success;
+      if (success) {
+        return { success, data: response.data.data };
+      }
+      return { success };
     },
+
     profile: {
       picture: {
         /**
@@ -174,8 +199,8 @@ const gateway = {
           });
           const success = response.data.success;
           if (success) {
-            const { profilePictureUUID } = response.data.data;
-            return { success, profilePictureUUID };
+            const { profilePictureUUID, profileEventID } = response.data.data;
+            return { success, profilePictureUUID, profileEventID };
           }
           return { success };
         },
@@ -185,18 +210,19 @@ const gateway = {
          * Update user's profile information.
          * @param {String} name
          * @param {String} surname
-         * @param {String} description
+         * @param {String} biography
          * @returns {Object} { success: boolean }
          */
-        async all(name = "", surname = "", description = "") {
+        async all(name = "", surname = "", biography = "") {
           const response = await api.patch("/user/profile", {
             name,
             surname,
-            description,
+            biography,
           });
           const success = response.data.success;
           if (success) {
-            return { success };
+            const { profileEventID } = response.data.data;
+            return { success, profileEventID };
           }
           return { success };
         },
@@ -323,7 +349,7 @@ const gateway = {
     /**
      * Join a chat by its handle.
      * @param {String} handle
-     * @returns { Object } { success: boolean, chat?: { uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}, messages?: Array[@SamueleOrazioDurante da completare] }
+     * @returns { Object } { success: boolean, chat?: { uuid?: String, type? : [DM, CHANNEL, GROUP, FORUM], created_at?: timestamp, members?: Array[{userUUID?: String, role_id?: Int}]}, messages?: Array[] }
      */
     async join(handle) {
       try {
@@ -356,8 +382,8 @@ const gateway = {
           }
           const response = await api.put(`/chat/pin`, { chatUUID, position });
           const success = response.data.success;
-          const realPosition = response.data.data.position;
-          return { success, position: realPosition };
+          const { position: realPosition, userEventID } = response.data.data;
+          return { success, position: realPosition, userEventID };
         } catch (error) {
           console.error("Error pinning chat:", error);
           throw error;
@@ -377,6 +403,10 @@ const gateway = {
             data: { chatUUID },
           });
           const success = response.data.success;
+          if (success) {
+            const { userEventID } = response.data.data;
+            return { success, userEventID };
+          }
           return { success };
         } catch (error) {
           console.error("Error unpinning chat:", error);
@@ -497,6 +527,10 @@ const gateway = {
           },
         });
         const success = response.data.success;
+        if (success) {
+          const { chatEventID } = response.data.data;
+          return { success, chatEventID };
+        }
         return { success };
       } catch (error) {
         console.error("Error in message.delete:", error);
@@ -527,7 +561,8 @@ const gateway = {
         });
         const success = response.data.success;
         if (success) {
-          return { success };
+          const { chatEventID } = response.data.data;
+          return { success, chatEventID };
         }
         return { success };
       } catch (error) {
@@ -557,7 +592,8 @@ const gateway = {
           });
           const success = response.data.success;
           if (success) {
-            return { success };
+            const { pinnedAt, chatEventID } = response.data.data;
+            return { success, pinnedAt, chatEventID };
           }
           return { success };
         } catch (error) {
@@ -588,7 +624,8 @@ const gateway = {
           });
           const success = response.data.success;
           if (success) {
-            return { success };
+            const { chatEventID } = response.data.data;
+            return { success, chatEventID };
           }
           return { success };
         } catch (error) {
@@ -621,9 +658,9 @@ const gateway = {
             reaction,
           });
           const success = response.data.success;
-          const at = response.data.data.at;
           if (success) {
-            return { success, at };
+            const { reactedAt, chatEventID } = response.data.data;
+            return { success, reactedAt, chatEventID };
           }
           return { success };
         } catch (error) {
@@ -657,7 +694,8 @@ const gateway = {
           });
           const success = response.data.success;
           if (success) {
-            return { success };
+            const { chatEventID } = response.data.data;
+            return { success, chatEventID };
           }
           return { success };
         } catch (error) {
@@ -665,6 +703,30 @@ const gateway = {
           throw error;
         }
       },
+    },
+    async read(chatUUID, messageID) {
+      try {
+        if (!chatUUID || !messageID) {
+          throw new Error(
+            "Missing required fields for reading message",
+            chatUUID,
+            messageID,
+          );
+        }
+        const response = await api.post("/message/read", {
+          chatUUID,
+          messageID,
+        });
+        const success = response.data.success;
+        if (success) {
+          const { chatEventID, userUUID, readAt } = response.data.data;
+          return { success, chatEventID, userUUID, readAt };
+        }
+        return { success };
+      } catch (error) {
+        console.error("Error in message.read:", error);
+        throw error;
+      }
     },
   },
 
@@ -689,6 +751,24 @@ const gateway = {
         return { success };
       } catch (error) {
         console.error("Error in file.retrieve:", error);
+        throw error;
+      }
+    },
+    /**
+     * Delete a file upload (cancel upload).
+     * @param {String} fileUUID
+     * @returns {Object} { success: boolean }
+     */
+    async delete(fileUUID) {
+      try {
+        if (!fileUUID) {
+          throw new Error("fileUUID is required to delete file");
+        }
+        const response = await api.delete(`/file?fileUUID=${fileUUID}`);
+        const success = response.data.success;
+        return { success };
+      } catch (error) {
+        console.error("Error in file.delete:", error);
         throw error;
       }
     },
@@ -731,19 +811,14 @@ const gateway = {
           );
           const success = response.data.success;
           if (success) {
-            console.log("comms room response data:", response.data);
-            const roomInfo = response.data.data.roomInfo;
-            const remoteParticipants = response.data.data.participants;
-            const room = {
-              roomInfo,
-              remoteParticipants,
-            };
-            return { success, room };
+            const room = response.data.data.room;
+            const participants = response.data.data.participants;
+            return { success, room, participants };
           }
           return { success };
         } catch (error) {
           if (error.response && error.response.status === 404) {
-            return { success: true, room: [] };
+            return { success: true, room: [], participants: [] };
           }
           console.error("Error in comms.room.get:", error);
           throw error;
@@ -754,21 +829,21 @@ const gateway = {
 
   notification: {
     /**
-     * Set the Expo push token for the current user.
+     * Set the FCM push token for the current user.
      * @param {String} token
      * @returns {Promise<boolean>}
      */
-    async setExpoToken(token) {
+    async setFCMToken(token) {
       try {
         if (!token) {
-          throw new Error("token is required to set expo token");
+          throw new Error("token is required to set FCM token");
         }
-        const response = await api.patch("/notification/expo-push-token", {
-          expoPushToken: token,
+        const response = await api.patch("/notification/push-token", {
+          pushToken: token,
         });
         return response.data.success;
       } catch (error) {
-        console.error("Error in notification.setExpoToken:", error);
+        console.error("Error in notification.setFCMToken:", error);
         throw error;
       }
     },

@@ -10,9 +10,9 @@ import AudioHeader from "./audio";
 import PinnedMessageHeader from "./pinnedMessage";
 import CommsHeader from "./CommsHeader";
 
-import { AudioPlayerContext } from "@/context/AudioPlayerContext";
-import useChatStore from "@/context/ChatContext";
-import { useCommsContext } from "@/context/CommsContext";
+import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
+import useChatStore from "@/src/context/ChatContext";
+import { useCommsContext } from "@/src/context/CommsContext";
 
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 
@@ -42,7 +42,15 @@ const Header = ({
     return chat?.pinnedMessages;
   });
 
-  const { name, profilePictureUUID } = useChatMetadata(chatUUIDorHandle);
+  const {
+    name,
+    profilePictureUUID,
+    type: chatType,
+    memberCount,
+    onlineMembersCount,
+    memberActivityData,
+    lastAccessAt,
+  } = useChatMetadata(chatUUIDorHandle);
 
   const { connected, room, participants } = useCommsContext();
 
@@ -61,13 +69,17 @@ const Header = ({
         {(!selectedMessages || selectedMessages.length === 0) && (
           <MainHeader
             chatUUIDorHandle={chatUUIDorHandle}
+            chatType={chatType}
             selectedChatName={name}
             selectedChatPictureUUID={profilePictureUUID}
+            memberCount={memberCount}
+            onlineMembersCount={onlineMembersCount}
+            memberActivityData={memberActivityData}
+            lastAccessAt={lastAccessAt}
             contentView={contentView}
             setContentView={setContentView}
             onBack={onBack}
             navToOverview={navToOverview}
-            isSmallScreen={isSmallScreen}
           />
         )}
         {selectedMessages && selectedMessages.length > 0 && (
@@ -99,10 +111,6 @@ const Header = ({
 };
 function createStyle() {
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      overflow: "hidden",
-    },
     headerBase: {
       overflow: "hidden",
     },

@@ -1,6 +1,8 @@
 import React, { useContext, useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { useTranslation } from "react-i18next";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import AppText from "@/src/components/AppText";
 
 import { countryList, regionList } from "@/constants/Location";
 
@@ -15,7 +17,7 @@ interface PersonalInfoProps {
     name: string;
     surname: string;
     username: string;
-    description: string;
+    biography: string;
     birthday: string;
     country: string;
     region: string;
@@ -29,15 +31,14 @@ export default function PersonalInfo({
   onChangeField,
   isSmallScreen = false,
 }: PersonalInfoProps) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext) as { theme: any };
   const styles = createStyles(theme, isSmallScreen);
 
   const [nameVal, setNameVal] = useState(initialValues.name);
   const [surnameVal, setSurnameVal] = useState(initialValues.surname);
   const [usernameVal, setUsernameVal] = useState(initialValues.username);
-  const [descriptionVal, setDescriptionVal] = useState(
-    initialValues.description,
-  );
+  const [descriptionVal, setDescriptionVal] = useState(initialValues.biography);
   const [birthdayVal, setBirthdayVal] = useState(initialValues.birthday);
   const [countryVal, setCountryVal] = useState(initialValues.country);
   const [regionVal, setRegionVal] = useState(initialValues.region);
@@ -47,7 +48,7 @@ export default function PersonalInfo({
     setNameVal(initialValues.name);
     setSurnameVal(initialValues.surname);
     setUsernameVal(initialValues.username);
-    setDescriptionVal(initialValues.description);
+    setDescriptionVal(initialValues.biography);
     setBirthdayVal(initialValues.birthday);
     setCountryVal(initialValues.country);
     setRegionVal(initialValues.region);
@@ -67,18 +68,21 @@ export default function PersonalInfo({
 
   return (
     <>
-      <SectionHeader icon="UserIcon" title="Personal Info" />
+      <SectionHeader
+        icon="UserIcon"
+        translationKey="settings.modifyProfile.personalInfo"
+      />
 
       <View style={styles.row}>
         <View style={styles.halfInput}>
-          <Label text={"Name"} />
+          <Label translationKey="settings.modifyProfile.name" />
           <TextInput
             value={nameVal}
             onChange={(val) => handleFieldChange("name", val, setNameVal)}
           />
         </View>
         <View style={styles.halfInput}>
-          <Label text={"Surname"} />
+          <Label translationKey="settings.modifyProfile.surname" />
           <TextInput
             value={surnameVal}
             onChange={(val) => handleFieldChange("surname", val, setSurnameVal)}
@@ -88,25 +92,25 @@ export default function PersonalInfo({
 
       <View style={styles.fullInput}>
         <View style={styles.labelRow}>
-          <Label text={"Description"} />
-          <Text style={styles.charCount}>
+          <Label translationKey="settings.modifyProfile.biography" />
+          <AppText style={styles.charCount}>
             {descriptionLength}/{MAX_CHAR_COUNT}
-          </Text>
+          </AppText>
         </View>
         <TextInput
-          placeholder="Tell us about yourself..."
+          placeholder={t("settings.modifyProfile.biographyPlaceholder")}
           value={descriptionVal}
           maxLenght={MAX_CHAR_COUNT}
           numberOfLines={4}
           onChange={(val) =>
-            handleFieldChange("description", val, setDescriptionVal)
+            handleFieldChange("biography", val, setDescriptionVal)
           }
         />
       </View>
 
       <View style={styles.row}>
         <View style={styles.halfInput}>
-          <Label text={"Username"} />
+          <Label translationKey="settings.modifyProfile.username" />
           <TextInput
             value={usernameVal}
             disabled={true}
@@ -117,9 +121,9 @@ export default function PersonalInfo({
           />
         </View>
         <View style={styles.halfInput}>
-          <Label text={"Birthday"} />
+          <Label translationKey="settings.modifyProfile.birthday" />
           <DateInput
-            placeholder="DD/MM/YYYY"
+            placeholder={t("settings.modifyProfile.birthdayFormat")}
             value={birthdayVal}
             disabled={true}
             onChange={(val) =>
@@ -131,11 +135,13 @@ export default function PersonalInfo({
 
       <View style={styles.row}>
         <View style={styles.halfInput}>
-          <Label text={"Region"} />
+          <Label translationKey="settings.modifyProfile.region" />
           <SelectInput
             options={regionList[countryVal as keyof typeof regionList] || []}
             placeholder={
-              !countryVal ? "Select a country first" : "Select your region"
+              !countryVal
+                ? t("settings.modifyProfile.selectCountryFirst")
+                : t("settings.modifyProfile.selectRegion")
             }
             value={regionVal}
             disabled={!countryVal}
@@ -144,10 +150,10 @@ export default function PersonalInfo({
           />
         </View>
         <View style={styles.halfInput}>
-          <Label text={"Country"} />
+          <Label translationKey="settings.modifyProfile.country" />
           <SelectInput
             options={countryList}
-            placeholder="Select your country"
+            placeholder={t("settings.modifyProfile.selectCountry")}
             disabled={true}
             value={countryVal}
             onChange={(val) => handleFieldChange("country", val, setCountryVal)}
@@ -180,12 +186,5 @@ const createStyles = (theme: any, isSmallScreen: boolean) =>
     charCount: {
       fontSize: 11,
       color: theme.text,
-    },
-    inputIconWrapper: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 99,
-      paddingHorizontal: 12,
     },
   });

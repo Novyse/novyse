@@ -17,7 +17,7 @@ export class UserRepository {
 
   /**
    * Adds a user to the database.
-   * @param {Object} user - User object containing uuid, name, surname, profilePictureUuid, handle, description, birthday, region, country
+   * @param {Object} user - User object containing uuid, name, surname, profilePictureUuid, handle, biography, birthday, region, country
    * @returns {boolean} true if user added successfully, false otherwise
    */
   async add(user: any): Promise<boolean> {
@@ -38,17 +38,20 @@ export class UserRepository {
       // Insert user into the user table
       await this.db.runAsync(
         `
-        INSERT OR IGNORE INTO user (uuid, name, surname, profilePictureUUID, description, birthday, region, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+        INSERT OR IGNORE INTO user (uuid, name, surname, profilePictureUUID, bannerPictureUUID, biography, birthday, region, country, color, profileEventID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
         [
           user.uuid,
           user.name,
           user.surname || null,
           user.profilePictureUUID || null,
-          user.description || null,
+          user.bannerPictureUUID || null,
+          user.biography || null,
           user.birthday || null,
           user.region || null,
           user.country || null,
+          user.color || null,
+          user.profileEventID || 0,
         ],
       );
       // Insert handle into the handle table
@@ -62,6 +65,64 @@ export class UserRepository {
       return true;
     } catch (error) {
       console.error("Error adding user:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Adds multiple users to the database.
+   * @param {Array} users - Array of user objects
+   * @returns {boolean} true if users added successfully, false otherwise
+   */
+  async addMultiple(users: any[]): Promise<boolean> {
+    try {
+      if (!users || !Array.isArray(users) || users.length === 0) {
+        console.error("No users to add.");
+        return false;
+      }
+
+      const userPlaceholders = users
+        .map(() => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .join(", ");
+
+      const userValues: any[] = [];
+      for (const user of users) {
+        userValues.push(
+          user.uuid,
+          user.name,
+          user.surname || null,
+          user.profilePictureUUID || null,
+          user.bannerPictureUUID || null,
+          user.biography || null,
+          user.birthday || null,
+          user.region || null,
+          user.country || null,
+          user.color || null,
+          user.profileEventID || 0,
+        );
+      }
+
+      await this.db.runAsync(
+        `INSERT OR IGNORE INTO user (uuid, name, surname, profilePictureUUID, bannerPictureUUID, biography, birthday, region, country, color, profileEventID) VALUES ${userPlaceholders};`,
+        userValues,
+      );
+
+      const handlePlaceholders = users.map(() => `(?, 'USER', ?)`).join(", ");
+
+      const handleValues: any[] = [];
+      for (const user of users) {
+        handleValues.push(user.uuid, user.handle);
+      }
+
+      await this.db.runAsync(
+        `INSERT OR IGNORE INTO handle (userUUID, type, handle) VALUES ${handlePlaceholders};`,
+        handleValues,
+      );
+
+      console.log(`${users.length} users added successfully.`);
+      return true;
+    } catch (error) {
+      console.error("Error adding multiple users:", error);
       return false;
     }
   }
@@ -133,6 +194,41 @@ export class UserRepository {
       } catch (error) {
         console.error("Error retrieving user by handle:", error);
         return null;
+      }
+    },
+  };
+
+  update = {
+    /**
+     * Get all event IDs for chats and users for synchronization.
+     * @returns {Object} { chats: Array, users: Array }
+     */
+    getAllEventsIDs: async (): Promise<{
+      chats: { chatUUID: string; messageID: number; eventID: number }[];
+      users: { userUUID: string; profileEventID: number }[];
+    }> => {
+      try {
+        const chats: any[] = await this.db.getAllAsync(`
+          SELECT 
+            c.uuid as chatUUID, 
+            COALESCE(c.eventID, 0) as eventID, 
+            COALESCE(MAX(m.id), 0) as messageID
+          FROM chat c
+          LEFT JOIN message m ON c.uuid = m.chatUUID
+          GROUP BY c.uuid
+        `);
+
+        const users: any[] = await this.db.getAllAsync(`
+          SELECT 
+            uuid as userUUID, 
+            COALESCE(profileEventID, 0) as profileEventID 
+          FROM user
+        `);
+
+        return { chats, users };
+      } catch (error) {
+        console.error("Error retrieving all event IDs:", error);
+        return { chats: [], users: [] };
       }
     },
   };

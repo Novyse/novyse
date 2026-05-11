@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import { Pressable, ViewStyle, StyleProp } from "react-native";
 
 // Cache per le icone importate (lazy loading per performance)

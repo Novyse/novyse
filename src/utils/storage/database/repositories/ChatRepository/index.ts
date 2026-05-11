@@ -1,20 +1,31 @@
 import { SQLiteDatabase } from "expo-sqlite";
 import { MemberRepository } from "./MemberRepository";
 
-import database from "@/src/utils/storage/database";
-
 export class ChatRepository {
   db: SQLiteDatabase;
   member: MemberRepository;
+  messageRepository: any;
+  handleRepository: any;
 
-  constructor(db: SQLiteDatabase) {
+  constructor(
+    db: SQLiteDatabase,
+    messageRepository?: any,
+    handleRepository?: any,
+  ) {
     this.db = db;
     this.member = new MemberRepository(db);
+    this.messageRepository = messageRepository;
+    this.handleRepository = handleRepository;
   }
 
   setDb(db: SQLiteDatabase) {
     this.db = db;
     this.member.setDb(db);
+  }
+
+  setRepositories(messageRepository: any, handleRepository: any) {
+    this.messageRepository = messageRepository;
+    this.handleRepository = handleRepository;
   }
 
   /**
@@ -46,13 +57,14 @@ export class ChatRepository {
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO chat (uuid, type, name, description, profilePictureUUID) VALUES (?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO chat (uuid, type, name, description, profilePictureUUID, eventID) VALUES (?, ?, ?, ?, ?, ?);`,
         [
           chat.uuid,
           chat.type,
           chat.name || null,
           chat.description || null,
           chat.profilePictureUUID || null,
+          chat.eventID || 0,
         ],
       );
 
@@ -66,13 +78,13 @@ export class ChatRepository {
         await this.member.add(chat.uuid, member);
       }
 
-      if (chat.pinnedMessages) {
+      if (chat.pinnedMessages && this.messageRepository) {
         for (const pinnedMessage of chat.pinnedMessages) {
-          await database.message.pin.add(
+          await this.messageRepository.pin.add(
             chat.uuid,
             pinnedMessage.messageID,
-            pinnedMessage.pinned_at,
-            pinnedMessage.pinned_by,
+            pinnedMessage.pinnedAt,
+            pinnedMessage.pinnedBy,
           );
         }
       }
@@ -84,9 +96,93 @@ export class ChatRepository {
     }
   }
 
+  /**
+   * Adds multiple chats to the database.
+   * @param {Array} chats - Array of chat objects
+   * @returns {boolean} true if chats added successfully, false otherwise
+   */
+  async addMultiple(chats: any[]): Promise<boolean> {
+    try {
+      if (!chats || !Array.isArray(chats) || chats.length === 0) {
+        console.error("No chats to add.");
+        return false;
+      }
+
+      const chatPlaceholders = chats.map(() => `(?, ?, ?, ?, ?, ?)`).join(", ");
+
+      const chatValues: any[] = [];
+      for (const chat of chats) {
+        chatValues.push(
+          chat.uuid,
+          chat.type,
+          chat.name || null,
+          chat.description || null,
+          chat.profilePictureUUID || null,
+          chat.eventID || 0,
+        );
+      }
+
+      await this.db.runAsync(
+        `INSERT OR IGNORE INTO chat (uuid, type, name, description, profilePictureUUID, eventID) VALUES ${chatPlaceholders};`,
+        chatValues,
+      );
+
+      const handles = chats.filter((c) => c.handle);
+      if (handles.length > 0) {
+        const handlePlaceholders = handles
+          .map(() => `(?, 'CHAT', ?)`)
+          .join(", ");
+        const handleValues: any[] = [];
+        for (const chat of handles) {
+          handleValues.push(chat.uuid, chat.handle);
+        }
+        await this.db.runAsync(
+          `INSERT OR IGNORE INTO handle (chatUUID, type, handle) VALUES ${handlePlaceholders};`,
+          handleValues,
+        );
+      }
+
+      // Bulk add members
+      const allMembers: any[] = [];
+      for (const chat of chats) {
+        if (chat.members && Array.isArray(chat.members)) {
+          for (const member of chat.members) {
+            allMembers.push({ chatUUID: chat.uuid, user: member });
+          }
+        }
+      }
+
+      if (allMembers.length > 0) {
+        await this.member.addMultiple(allMembers);
+      }
+
+      // Pinned messages
+      if (this.messageRepository) {
+        for (const chat of chats) {
+          if (chat.pinnedMessages && Array.isArray(chat.pinnedMessages)) {
+            for (const pinnedMessage of chat.pinnedMessages) {
+              await this.messageRepository.pin.add(
+                chat.uuid,
+                pinnedMessage.messageID,
+                pinnedMessage.pinnedAt,
+                pinnedMessage.pinnedBy,
+              );
+            }
+          }
+        }
+      }
+
+      console.log(`${chats.length} chats added successfully.`);
+      return true;
+    } catch (error: any) {
+      console.error("Error adding multiple chats:", error);
+      return false;
+    }
+  }
+
   pin = {
     add: async (chatUUID: any, position: any): Promise<any> => {
-      try { 
+      try {
         if (!chatUUID) {
           console.error("Missing required fields to pin chat.");
           return false;
@@ -161,15 +257,105 @@ export class ChatRepository {
   };
 
   get = {
-    all: async (): Promise<any[]> => {
+    all: async (localUserUUID?: string): Promise<any[]> => {
       try {
         const result: any[] = await this.db.getAllAsync(`SELECT * FROM chat`);
 
         for (const chat of result) {
-          chat.messages = await database.message.last.get(chat.uuid);
-          chat.unreadCount = Math.floor(Math.random() * 10);
+
+          if (localUserUUID) {
+            const row = await this.db.getFirstAsync<{ count: number }>(
+              `SELECT COUNT(*) as count 
+               FROM message 
+               WHERE chatUUID = ? 
+                 AND senderUUID != ?
+                 AND id > (
+                     SELECT COALESCE(MAX(message_id), 0) 
+                     FROM message_read 
+                     WHERE chat_uuid = ? AND user_uuid = ?
+                 )
+                 AND created_at > (
+                     SELECT joined_at 
+                     FROM member 
+                     WHERE chatUUID = ? AND userUUID = ?
+                 )`,
+              [
+                chat.uuid,
+                localUserUUID,
+                chat.uuid,
+                localUserUUID,
+                chat.uuid,
+                localUserUUID,
+              ],
+            );
+            chat.unreadCount = row?.count || 0;
+
+            // Load oldest unread message ID if it exists
+            const oldestRow = await this.db.getFirstAsync<{ id: number }>(
+              `SELECT MIN(id) as id 
+               FROM message 
+               WHERE chatUUID = ? 
+                 AND senderUUID != ?
+                 AND id > (
+                     SELECT COALESCE(MAX(message_id), 0) 
+                     FROM message_read 
+                     WHERE chat_uuid = ? AND user_uuid = ?
+                 )
+                 AND created_at > (
+                     SELECT joined_at 
+                     FROM member 
+                     WHERE chatUUID = ? AND userUUID = ?
+                 )`,
+              [
+                chat.uuid,
+                localUserUUID,
+                chat.uuid,
+                localUserUUID,
+                chat.uuid,
+                localUserUUID,
+              ],
+            );
+
+            const initialMessages = [];
+            if (oldestRow?.id && this.messageRepository) {
+              const oldestUnread = await this.messageRepository.get.by.id(
+                chat.uuid,
+                oldestRow.id,
+              );
+              if (oldestUnread) initialMessages.push(oldestUnread);
+            }
+
+            // Load last message and append if different from oldest unread
+            if (this.messageRepository) {
+              const lastMessageArr = await this.messageRepository.last.get(
+                chat.uuid,
+              );
+              const lastMessage = lastMessageArr?.[0];
+              if (
+                lastMessage &&
+                (!oldestRow?.id || lastMessage.id !== oldestRow.id)
+              ) {
+                initialMessages.push(lastMessage);
+              }
+            }
+
+            chat.messages = initialMessages;
+          } else {
+            chat.unreadCount = 0;
+            if (this.messageRepository) {
+              chat.messages = await this.messageRepository.last.get(chat.uuid);
+            } else {
+              chat.messages = [];
+            }
+          }
+
           chat.members = await this.member.get.by.chatUUID(chat.uuid);
-          chat.handle = await database.handle.get.by.uuid("chat", chat.uuid);
+          if (this.handleRepository) {
+            chat.handle = await this.handleRepository.get.by.uuid(
+              "chat",
+              chat.uuid,
+            );
+          }
 
           chat.pinnedMessages =
             (await this.db.getAllAsync(

@@ -24,13 +24,49 @@ export class MemberRepository {
       }
       // Insert member into the member table
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO member (userUUID, chatUUID) VALUES (?, ?);`,
-        [user.uuid, chatUUID],
+        `INSERT OR IGNORE INTO member (userUUID, chatUUID, joined_at) VALUES (?, ?, ?);`,
+        [user.uuid, chatUUID, user.joined_at || new Date().toISOString()],
       );
       console.log(`User ${user.uuid} added to chat ${chatUUID} successfully.`);
       return true;
     } catch (error) {
       console.error("Error adding member to chat:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Adds multiple members to the database.
+   * @param {Array} members - Array of { chatUUID, user } objects
+   * @returns {boolean} true if members added successfully, false otherwise
+   */
+  async addMultiple(members: any[]): Promise<boolean> {
+    try {
+      if (!members || !Array.isArray(members) || members.length === 0) {
+        console.error("No members to add.");
+        return false;
+      }
+
+      const placeholders = members.map(() => `(?, ?, ?)`).join(", ");
+      const values: any[] = [];
+
+      for (const m of members) {
+        values.push(
+          m.user.uuid,
+          m.chatUUID,
+          m.user.joined_at || new Date().toISOString(),
+        );
+      }
+
+      await this.db.runAsync(
+        `INSERT OR IGNORE INTO member (userUUID, chatUUID, joined_at) VALUES ${placeholders};`,
+        values,
+      );
+
+      console.log(`${members.length} members added successfully.`);
+      return true;
+    } catch (error) {
+      console.error("Error adding multiple members:", error);
       return false;
     }
   }
@@ -48,7 +84,7 @@ export class MemberRepository {
           }
 
           const members = await this.db.getAllAsync<any>(
-            `SELECT m.userUUID as uuid
+            `SELECT m.userUUID as uuid, m.joined_at as joinedAt
              FROM member m
              WHERE m.chatUUID = ?;`,
             [chatUUID],
@@ -57,7 +93,8 @@ export class MemberRepository {
           return members.map((m) => ({
             uuid: m.uuid,
             role: "member",
-            joinedAt: new Date(),
+            action: null,
+            joinedAt: new Date(m.joinedAt),
           }));
         } catch (error) {
           console.error("Error retrieving members by chat UUID:", error);

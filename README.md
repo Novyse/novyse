@@ -22,7 +22,7 @@
 
 <!-- TECH STACK RELATED -->
 
-<img alt='Node.js' src='https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white'/>
+<img alt='Bun' src='https://img.shields.io/badge/Bun-000000?style=for-the-badge&logo=bun&logoColor=white'/>
 <img alt='React Native' src='https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB'/>
 <img alt='Electron' src='https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=electron&logoColor=%2347848F&color=%231b1c26'/>
 
@@ -75,7 +75,7 @@
 
 ## About The Project
 
-Novyse is an open-source messaging application built with React Native, designed to provide a simple, intuitive, and feature-rich communication platform. It supports real-time text-based chats across various types, including direct messages (DMs), group chats, channels, and forums, while integrating advanced features like voice and video calls powered by WebRTC. The app includes user authentication, customizable themes, privacy settings, and cross-platform compatibility for iOS, Android, web, and desktop via Electron. Currently in active development, Novyse emphasizes user privacy, open-source collaboration, and a clean, responsive interface to foster seamless conversations and community interactions.
+Novyse (/noʊˈvaɪs/) is an open-source messaging application built with React Native, designed to provide a simple, intuitive, and feature-rich communication platform. It supports real-time text-based chats across various types, including direct messages (DMs), group chats, channels, and forums, while integrating advanced features like voice and video calls powered by WebRTC. The app includes user authentication, customizable themes, privacy settings, and cross-platform compatibility for iOS, Android, web, and desktop via Electron. Currently in active development, Novyse emphasizes user privacy, open-source collaboration, and a clean, responsive interface to foster seamless conversations and community interactions.
 
 ## Updates and Roadmap
 
@@ -90,7 +90,8 @@ Additionally, the website features a complete [roadmap](https://www.novyse.com/r
 
 ## Preview Version
 
-A preview version with new features that are not yet fully tested may be available at [preview.novyse.com](https://preview.novyse.com). 
+A preview version with new features that are not yet fully tested may be available at [preview.novyse.com](https://preview.novyse.com).
+
 > [!WARNING]
 > We recommend not saving important data on this version, as data may be deleted with version changes, and there could be significant bugs affecting app usage.
 
@@ -98,10 +99,7 @@ A preview version with new features that are not yet fully tested may be availab
 
 We welcome contributions from the community! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
 
-For developers interested in contributing or building the application, refer to the documentation in the `docs/` folder:
-
-- [Build Documentation](docs/build.md): Instructions on how to build the app for different platforms.
-- [Developer Setup](docs/dev.md): Guide to set up the local development environment.
+Please read our [Contributing Guidelines](CONTRIBUTING.md) to get started. You can also find our [Code of Conduct](CODE_OF_CONDUCT.md) and [Security Policy](SECURITY.md) for more information.
 
 ### Contact
 

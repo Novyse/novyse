@@ -1,15 +1,15 @@
 import { v6 } from "uuid";
 
-import useNetworkStore from "@/context/NetworkContext";
+import useNetworkStore from "@/src/context/NetworkContext";
 
-import gateway from "@/src/utils/backend-services/api-gateway.js";
+import gateway from "@/src/utils/backend-services/api-gateway";
 import database from "@/src/utils/storage/database";
-import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
-import S3Uploader from "@/src/utils/storage/file/s3Bucket.js";
+import eventEmitter from "@/src/utils/global/Events/EventEmitter";
+import S3Uploader from "@/src/utils/storage/file/s3Bucket";
 import storage from "@/src/utils/storage/file";
 
-import { getFileType } from "@/src/utils/storage/file/type.js";
-import { getDuration, getWaveform } from "@/src/utils/storage/file/media.js";
+import { getFileType } from "@/src/utils/storage/file/type";
+import { getDuration, getWaveform } from "@/src/utils/storage/file/media";
 
 class QueueManager {
   constructor() {
@@ -317,8 +317,19 @@ class QueueManager {
               // Download file from S3 bucket
               const bytes = await S3Uploader.download(
                 downloadedFile.downloadURL,
+                fileToDownload,
+                (progress) => {
+                  this.notifyProgress(fileToDownload, progress);
+                },
               );
 
+              if (bytes === "CANCELLED") {
+                console.info(
+                  "Download cancelled by user for file:",
+                  fileToDownload,
+                );
+                return;
+              }
               if (!bytes) {
                 throw new Error("File download failed from S3");
               }
@@ -442,7 +453,7 @@ class QueueManager {
       }
       // Remove files ( uri, ref ) before sending
       cleanFiles = files.map((file) => {
-        const { uri, ref, duration, ...rest } = file;
+        const { uuid, uri, ref, duration, ...rest } = file;
         return rest;
       });
     }
@@ -475,6 +486,12 @@ class QueueManager {
       } else if (message.status === "pending") {
         // If message is pending, modify the job to an upload one
         await this.messageUploading(job.id, message);
+
+        // Preserve original content and type
+        message.content = content;
+        message.type = type;
+        message.replyTos = replyTos;
+
         await this.addOutgoingMessageJob(
           message,
           job.params.chat,
@@ -500,10 +517,16 @@ class QueueManager {
     const response = await gateway.message.edit(chatUUID, messageID, content);
 
     if (response.success) {
-      await eventEmitter.message.update(chatUUID, messageID, "edit", {
-        content,
-        pendingEditJobId: null,
-      });
+      await eventEmitter.message.update(
+        chatUUID,
+        messageID,
+        "edit",
+        response.chatEventID,
+        {
+          content,
+          pendingEditJobId: null,
+        },
+      );
     } else {
       throw new Error("Message modify failed");
     }
@@ -516,16 +539,94 @@ class QueueManager {
   async processPendingUploadJob(job) {
     // Upload every file to S3 Bucket
     const { message } = job.params;
-    const { files } = message;
-    for (const file of files) {
+
+    // Initialize progress for all files to 0% to show them as pending in the UI
+    for (const file of message.files) {
+      this.notifyProgress(file.uuid, { loaded: 0, total: file.size || 0 });
+    }
+
+    job.params.deletionPromises = job.params.deletionPromises || [];
+
+    const filesToUpload = [...message.files];
+    for (const file of filesToUpload) {
+      // Skip if the file was already removed from the message (e.g. cancelled while waiting)
+      if (!message.files.some((f) => f.uuid === file.uuid)) {
+        continue;
+      }
+
       if (file.ref) {
         const uri = await storage.read(file.ref);
-        await S3Uploader.upload(file.uploadURL, uri, this.notifyProgress);
+        const success = await S3Uploader.upload(
+          file.uploadURL,
+          uri,
+          file.uuid,
+          (progress) => {
+            this.notifyProgress(file.uuid, progress);
+          },
+        );
+
+        if (success === "CANCELLED") {
+          // Ensure it's removed from message files (might have been removed by cancelFileTransfer)
+          if (message.files.some((f) => f.uuid === file.uuid)) {
+            message.files = message.files.filter((f) => f.uuid !== file.uuid);
+
+            // Collect deletion promise
+            job.params.deletionPromises.push(
+              gateway.file
+                .delete(file.uuid)
+                .catch((e) =>
+                  console.error("Failed to delete file from server:", e),
+                ),
+            );
+
+            // Notify UI that a file was removed
+            eventEmitter.getEmitter().emit("message:update", {
+              chatUUID: job.params.chat.uuid,
+              messageID: job.id,
+              action: "edit",
+              data: { files: message.files },
+            });
+          }
+
+          continue; // Move to the next file
+        }
+        if (!success) {
+          throw new Error("File upload failed to S3");
+        }
       } else {
         throw new Error("File reference missing for upload");
       }
     }
-    // After all files are uploaded, upload job to confirm
+
+    // Check if the message is now empty (no files and no text content)
+    if (
+      message.files.length === 0 &&
+      (!message.content || message.content.trim() === "")
+    ) {
+      console.info(
+        `Pending message ${job.id} deleted because all files were cancelled and there is no text content.`,
+      );
+      const currentIndex = this.queue.findIndex((j) => j.id === job.id);
+      if (currentIndex !== -1) {
+        this.queue.splice(currentIndex, 1);
+      }
+      await this.removeJob(job.id);
+
+      // Notify UI that message was deleted
+      eventEmitter.getEmitter().emit("message:update", {
+        chatUUID: job.params.chat.uuid,
+        messageID: job.id,
+        action: "delete",
+      });
+      return;
+    }
+
+    // Wait for all deletions to finish before proceeding to confirm/delete message
+    if (job.params.deletionPromises.length > 0) {
+      await Promise.all(job.params.deletionPromises);
+    }
+
+    // After all files are uploaded (or some cancelled but message persists), proceed to confirm
     await this.addOutgoingMessageJob(
       message,
       job.params.chat,
@@ -602,13 +703,28 @@ class QueueManager {
 
     if (success && fileInfo && fileInfo.downloadURL) {
       // Download file from S3 bucket
-      const bytes = await S3Uploader.download(fileInfo.downloadURL);
+      const bytes = await S3Uploader.download(
+        fileInfo.downloadURL,
+        fileUUID,
+        (progress) => {
+          this.notifyProgress(fileUUID, progress);
+        },
+      );
 
+      if (bytes === "CANCELLED") {
+        console.info("Download cancelled by user for file:", fileUUID);
+        return;
+      }
       if (!bytes) {
         throw new Error("File download failed from S3");
       }
       // Save file to storage
-      const { ref, size } = await storage.save.byBytes(bytes, fileUUID);
+      const finalBytes =
+        bytes instanceof Blob
+          ? new Blob([bytes], { type: bytes.type || fileInfo.mimeType })
+          : bytes;
+
+      const { ref, size } = await storage.save.byBytes(finalBytes, fileUUID);
 
       if (!ref || !size || size <= 0) {
         const errorMsg = `File save to storage failed for file ${fileUUID}: ref=${ref}, size=${size}`;
@@ -679,9 +795,7 @@ class QueueManager {
 
     // Revert UI changes
     if (job.type === "OUTGOING_MESSAGE") {
-      if (
-        job.params.status === "PENDING_SEND"
-      ) {
+      if (job.params.status === "PENDING_SEND") {
         await eventEmitter.getEmitter().emit("message:update", {
           chatUUID,
           messageID: jobId,
@@ -1073,11 +1187,12 @@ class QueueManager {
   }
 
   /**
-   * Notify upload progress
+   * Notify upload/download progress
+   * @param {String} uuid
    * @param {Object} progress { loaded, total }
    */
-  notifyProgress(progress) {
-    eventEmitter.getEmitter().emit("message:progress", progress);
+  notifyProgress(uuid, progress) {
+    eventEmitter.getEmitter().emit("message:progress", { uuid, ...progress });
   }
 
   /**
@@ -1101,6 +1216,61 @@ class QueueManager {
    */
   messageFailed(tempId, error) {
     eventEmitter.getEmitter().emit("message:failed", { tempId, error });
+  }
+  /**
+   * Cancel an ongoing file transfer (upload or download)
+   * @param {String} fileUUID
+   */
+  async cancelFileTransfer(fileUUID) {
+    // 1. Find the job that contains this file and remove it from the queue/message
+    const job = this.queue.find(
+      (j) =>
+        j.params.message &&
+        j.params.message.files &&
+        j.params.message.files.some((f) => f.uuid === fileUUID),
+    );
+
+    if (job) {
+      const { message } = job.params;
+      message.files = message.files.filter((f) => f.uuid !== fileUUID);
+
+      // If no files left and no content, cancel the whole job
+      if (
+        message.files.length === 0 &&
+        (!message.content || message.content.trim() === "")
+      ) {
+        await this.cancelJob(job.id, job.params.chat.uuid);
+        // Also cancel the S3 transfer for the current file before returning
+        S3Uploader.cancel(fileUUID);
+        this.notifyProgress(fileUUID, { loaded: 0, total: 0 });
+        return;
+      }
+
+      // Only delete from server if the file was already registered (not in PENDING_SEND)
+      if (job.params.status !== "PENDING_SEND") {
+        if (!job.params.deletionPromises) job.params.deletionPromises = [];
+        job.params.deletionPromises.push(
+          gateway.file
+            .delete(fileUUID)
+            .catch((e) =>
+              console.error("Failed to delete file from server:", e),
+            ),
+        );
+      }
+
+      // Notify UI that a file was removed
+      eventEmitter.getEmitter().emit("message:update", {
+        chatUUID: job.params.chat.uuid,
+        messageID: job.id,
+        action: "edit",
+        data: { files: message.files },
+      });
+    }
+
+    // 2. Cancel the actual S3 transfer
+    S3Uploader.cancel(fileUUID);
+    // Clear the progress UI
+    this.notifyProgress(fileUUID, { loaded: 0, total: 0 });
   }
 }
 

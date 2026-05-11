@@ -1,53 +1,69 @@
-import React, { useContext } from "react";
-import { StyleSheet, Alert, View } from "react-native";
+import React, { useContext, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import MyStatusBar from "@/src/components/MyStatusBar";
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import QRCodeReader from "@/src/components/QRCodeReader";
+import StatusMessage from "@/src/components/StatusMessage";
 
-import gateway from "@/src/utils/backend-services/api-gateway";
+import auth from "@/src/utils/backend-services/auth";
 
 export default function QrscannerRoute() {
-  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
+  const { t } = useTranslation();
+  const onBack = () =>
+    router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   const insets = useSafeAreaInsets();
 
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
   const handleCodeScanned = async (content: string) => {
     try {
-      console.log("QR Code content:", content);
+      const response = await auth.qrcode.authenticate(content);
 
-      const success = await gateway.auth.scanQRCodeToken(content);
-
-      if (!success) {
-        Alert.alert("Errore", "QR Code non valido o già scansionato.");
+      if (!response.success) {
+        setError(t("settings.qrScanner.invalidCode"));
         return;
       }
 
-      Alert.alert(
-        "Successo",
-        "L'accesso verrà eseguito a breve, attendi quale istante...",
-      );
+      setSuccess(t("settings.qrScanner.loginSuccess"));
     } catch (error) {
-      Alert.alert("Errore", "Impossibile gestire la scansione del codice QR.");
+      setError(t("settings.qrScanner.scanError"));
     }
   };
 
   return (
     <View style={styles.container}>
-      <MyStatusBar
-        style="light"
-        backgroundColor={"transparent"}
-        translucent={true}
-        hidden={true}
-      />
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
-        <HeaderWithBackArrow title={"QR Scanner"} onBack={onBack} />
+        <HeaderWithBackArrow
+          translationKey="settings.menu.qrScanner"
+          onBack={onBack}
+        />
       </View>
+
+      <View style={[styles.statusMessageContainer, { top: insets.top + 80 }]}>
+        <StatusMessage
+          type="error"
+          content={[error || ""]}
+          visible={!!error}
+          onClose={() => setError(null)}
+        />
+
+        <StatusMessage
+          type="success"
+          content={[success || ""]}
+          visible={!!success}
+          timeout={3000}
+          onClose={() => setSuccess(null)}
+        />
+      </View>
+
       <QRCodeReader onCodeScanned={handleCodeScanned} />
     </View>
   );
@@ -64,5 +80,11 @@ const createStyle = (theme: any) =>
       left: 10,
       right: 0,
       zIndex: 1,
+    },
+    statusMessageContainer: {
+      position: "absolute",
+      left: 10,
+      right: 10,
+      zIndex: 10,
     },
   });

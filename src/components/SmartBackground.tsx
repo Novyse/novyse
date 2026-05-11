@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { View, ViewStyle } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { ThemeContext } from "../../context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface GradientPoint {
   x: number;

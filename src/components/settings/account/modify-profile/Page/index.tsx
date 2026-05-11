@@ -8,15 +8,16 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
+import AppText from "@/src/components/AppText";
 import Banner from "@/src/components/Banner";
 import ProfileHeader from "@/src/components/profile/ProfileHeader";
 import FormSection from "@/src/components/settings/account/modify-profile/Page/FormSection";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import StatusMessage from "@/src/components/StatusMessage";
 
-import { useThemeContext } from "@/context/ThemeContext";
-import { useScreen } from "@/context/ScreenContext";
-import useUserStore from "@/context/UserContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import useUserStore from "@/src/context/UserContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
@@ -26,7 +27,7 @@ interface ModifyProfileProps {
   surname: string;
   username: string;
   email?: string;
-  description?: string;
+  biography?: string;
   birthday: string;
   country: string;
   region?: string;
@@ -38,8 +39,7 @@ export default function ModifyProfile({
   name,
   surname,
   username,
-  email = "",
-  description = "",
+  biography = "",
   birthday,
   country,
   region = "",
@@ -58,7 +58,7 @@ export default function ModifyProfile({
     name,
     surname,
     username,
-    description: description ?? "",
+    biography: biography ?? "",
     birthday: birthday ?? "",
     country: country ?? "",
     region: region ?? "",
@@ -88,14 +88,14 @@ export default function ModifyProfile({
       name,
       surname,
       username,
-      description: description ?? "",
+      biography: biography ?? "",
       birthday: birthday ?? "",
       country: country ?? "",
       region: region ?? "",
     };
     setBaseValues(original);
     setFormValues(original);
-  }, [name, surname, username, description, birthday, country, region]);
+  }, [name, surname, username, biography, birthday, country, region]);
 
   const hasChanges = Object.keys(baseValues).some(
     (key) =>
@@ -116,20 +116,13 @@ export default function ModifyProfile({
     setMessage("");
     setError("");
     try {
-      const {
-        name,
-        surname,
-        username,
-        description,
-        birthday,
-        country,
-        region,
-      } = formValues;
+      const { name, surname, username, biography, birthday, country, region } =
+        formValues;
 
       const response = await gateway.user.profile.update.all(
         name,
         surname,
-        description,
+        biography,
       );
 
       if ((response as any).success) {
@@ -138,13 +131,13 @@ export default function ModifyProfile({
           userUUID: userUUID as string,
         });
         setBaseValues(formValues);
-        setMessage("Profile updated successfully");
+        setMessage("settings.modifyProfile.success");
       } else {
-        setError("Error updating profile");
+        setError("settings.modifyProfile.error");
       }
     } catch (e: any) {
       console.error("Error saving profile", e);
-      setError(e.message || "Error saving profile");
+      setError("settings.modifyProfile.saveError");
     } finally {
       setIsSaving(false);
     }
@@ -159,10 +152,7 @@ export default function ModifyProfile({
           showsVerticalScrollIndicator={false}
         >
           {/* Glass Card Container */}
-          <LinearGradient
-            colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.01)"]}
-            style={styles.glassPanel}
-          >
+          <LinearGradient colors={[theme.backgroundMain]} style={styles.glassPanel}>
             <Banner
               theme={theme}
               height={isSmallScreen ? 120 : 180}
@@ -190,20 +180,29 @@ export default function ModifyProfile({
       </View>
       {!message && !error && hasChanges && (
         <View style={styles.floatingBar}>
-          <Text style={styles.floatingText}>
-            Careful - you have unsaved changes!
-          </Text>
+          <AppText
+            style={styles.floatingText}
+            translationKey="settings.modifyProfile.unsavedChanges"
+          />
           <View style={styles.floatingButtons}>
             <HoverAndPressedButton
               style={styles.restoreBtn}
               onPress={handleRestore}
             >
-              <Text style={styles.restoreText}>Restore</Text>
+              <AppText
+                style={styles.restoreText}
+                translationKey="settings.modifyProfile.restore"
+              />
             </HoverAndPressedButton>
             <HoverAndPressedButton style={styles.saveBtn} onPress={handleSave}>
-              <Text style={styles.saveText}>
-                {isSaving ? "Saving..." : "Save"}
-              </Text>
+              <AppText
+                style={styles.saveText}
+                translationKey={
+                  isSaving
+                    ? "settings.modifyProfile.saving"
+                    : "settings.modifyProfile.save"
+                }
+              />
             </HoverAndPressedButton>
           </View>
         </View>
@@ -212,14 +211,14 @@ export default function ModifyProfile({
         <StatusMessage
           type="success"
           visible={!!message}
-          content={[message]}
+          translationKey={message}
           timeout={5000}
           onClose={() => setMessage("")}
         />
         <StatusMessage
           type="error"
           visible={!!error}
-          content={[error]}
+          translationKey={error}
           timeout={5000}
           onClose={() => setError("")}
         />
@@ -246,9 +245,6 @@ const createStyles = (
     },
     glassPanel: {
       borderRadius: 24,
-      borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.1)",
-      backgroundColor: "rgba(30, 41, 59, 0.4)",
       overflow: "hidden",
       width: isSmallScreen ? "100%" : "90%",
       maxWidth: 600,
@@ -258,7 +254,7 @@ const createStyles = (
       position: "absolute",
       bottom: isSmallScreen ? 20 : 40,
       alignSelf: "center",
-      backgroundColor: "rgba(30, 41, 59, 0.6)",
+      backgroundColor: theme.backgroundModalOverlay,
       borderRadius: 24,
       paddingVertical: 12,
       paddingHorizontal: 20,
@@ -267,12 +263,7 @@ const createStyles = (
       alignItems: "center",
       width: isSmallScreen ? "90%" : 500,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.1)",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 6,
+      borderColor: theme.borderColor,
     },
     floatingText: {
       color: theme.text,
@@ -288,7 +279,7 @@ const createStyles = (
       paddingVertical: 8,
       paddingHorizontal: 16,
       borderRadius: 8,
-      backgroundColor: "rgba(255, 255, 255, 0.05)",
+      backgroundColor: theme.backgroundTextField,
     },
     restoreText: {
       color: theme.text,
@@ -299,10 +290,10 @@ const createStyles = (
       paddingVertical: 8,
       paddingHorizontal: 16,
       borderRadius: 8,
-      backgroundColor: "#2563eb",
+      backgroundColor: theme.primary,
     },
     saveText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 14,
       fontWeight: "600",
     },

@@ -1,8 +1,9 @@
-import { authApi } from "../../config";
-import { getAuthToken } from "../token-manager";
-import { performPasskeyRegistration } from "../lib/passkey";
+import { authApi } from "@/src/utils/backend-services/config";
+import InternalPlatform from "@/src/utils/device/type";
+import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
+import { performPasskeyRegistration } from "@/src/utils/backend-services/auth/lib/passkey";
 
-const API_PATH = `/auth/settings/passkey`;
+const API_PATH = `/settings/passkey`;
 
 export const passkey = {
   /**
@@ -12,7 +13,10 @@ export const passkey = {
     try {
       const token = await getAuthToken();
       const response = await authApi.get(API_PATH, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-platform": InternalPlatform,
+        },
       });
       return { success: true, data: response.data };
     } catch (error: any) {
@@ -35,7 +39,10 @@ export const passkey = {
         `${API_PATH}/add/challenge`,
         {},
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "x-platform": InternalPlatform,
+          },
         },
       );
       const options = challengeRes.data;
@@ -47,7 +54,10 @@ export const passkey = {
         `${API_PATH}/add/complete`,
         { registrationResponse },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "x-platform": InternalPlatform,
+          },
         },
       );
 
@@ -67,7 +77,10 @@ export const passkey = {
     try {
       const token = await getAuthToken();
       const response = await authApi.delete(`${API_PATH}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-platform": InternalPlatform,
+        },
       });
       return { success: true, data: response.data };
     } catch (error: any) {
@@ -78,3 +91,4 @@ export const passkey = {
     }
   },
 };
+

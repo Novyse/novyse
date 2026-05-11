@@ -16,7 +16,11 @@ const LoginPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (username: string, password: string, captchaToken: string) => {
+  const handleLogin = async (
+    username: string,
+    password: string,
+    captchaToken: string,
+  ) => {
     if (!username) {
       setError("Username cannot be empty");
       return;
@@ -39,15 +43,8 @@ const LoginPassword = () => {
       }
 
       if (!requires2FA) {
-        if (await authInit.initializeApp()) {
-          // data should contain accessToken (web) or sessionId (mobile) and userUUID
-          await authInit.setLogin({
-            userUUID: data.userUUID,
-            accessToken: data.token,
-            sessionId: data.session_id,
-          });
-          router.replace("/app");
-        }
+        await authInit.setLogin(data.userUUID, data.sessionID, data.session_id);
+        router.replace("/app");
       } else {
         router.navigate({
           pathname: "/verify",
@@ -77,14 +74,8 @@ const LoginPassword = () => {
       }
 
       const { data } = ok;
-      if (await authInit.initializeApp()) {
-        await authInit.setLogin({
-          userUUID: data.userUUID,
-          accessToken: data.token,
-          sessionId: data.session_id,
-        });
-        router.replace("/app");
-      }
+      await authInit.setLogin(data.userUUID, data.sessionID, data.session_id);
+      router.replace("/app");
     } catch (e: any) {
       console.error(e);
       setError("An unexpected error occurred during passkey login");

@@ -1,6 +1,14 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet, FlatList, ListRenderItem, ViewStyle, TextStyle } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  ListRenderItem,
+  ViewStyle,
+  TextStyle,
+} from "react-native";
+import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
 import Avatar from "@/src/components/Avatar";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
@@ -30,19 +38,18 @@ const MentionBar: React.FC<MentionBarProps> = ({ members, onSelectMember }) => {
       style={styles.memberItem}
       onPress={() => onSelectMember(item)}
     >
-      <Avatar
-        size={32}
-        name={item.name}
-        surname={item.surname}
-        profilePictureUUID={item.profilePictureUUID}
-      />
+      <Avatar size={32} uuid={item.profilePictureUUID} theme={theme} />
       <View style={styles.memberInfo}>
-        <Text style={styles.memberName} numberOfLines={1}>
-          {item.name} {item.surname}
-        </Text>
-        <Text style={styles.memberHandle} numberOfLines={1}>
-          @{item.handle}
-        </Text>
+        <AppText
+          style={styles.memberName}
+          numberOfLines={1}
+          text={`${item.name} ${item.surname}`}
+        />
+        <AppText
+          style={styles.memberHandle}
+          numberOfLines={1}
+          text={`@${item.handle}`}
+        />
       </View>
     </HoverAndPressedButton>
   );

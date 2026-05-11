@@ -1,16 +1,18 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import Icon from "./Icon";
 import BlurredHeader from "./BlurredHeader";
 
 interface HeaderWithBackArrowProps {
   title?: string;
+  translationKey?: string;
   onBack?: () => void;
 }
 
-const HeaderWithBackArrow = ({ title, onBack }: HeaderWithBackArrowProps) => {
+const HeaderWithBackArrow = ({ title, translationKey, onBack }: HeaderWithBackArrowProps) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
@@ -26,20 +28,22 @@ const HeaderWithBackArrow = ({ title, onBack }: HeaderWithBackArrowProps) => {
           style={styles.icon}
         />
       )}
-      {title && (
+      {translationKey ? (
         <View style={styles.titleContainer}>
-          <Text style={styles.titleText} numberOfLines={1} ellipsizeMode="tail">
-            {title}
-          </Text>
+          <AppText style={styles.titleText} translationKey={translationKey} numberOfLines={1} ellipsizeMode="tail" />
         </View>
-      )}
+      ) : title ? (
+        <View style={styles.titleContainer}>
+          <AppText style={styles.titleText} text={title} numberOfLines={1} ellipsizeMode="tail" />
+        </View>
+      ) : null}
 
       <View style={styles.icon} />
     </BlurredHeader>
   );
 };
 
-const createStyle = (theme: unknown) =>
+const createStyle = (theme: any) =>
   StyleSheet.create({
     icon: {
       width: 45,
@@ -54,7 +58,7 @@ const createStyle = (theme: unknown) =>
     titleText: {
       fontSize: 18,
       fontWeight: "600",
-      color: "white",
+      color: theme.text,
       textAlign: "center",
     },
   });

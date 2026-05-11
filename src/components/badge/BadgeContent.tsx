@@ -1,18 +1,19 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useContext } from "react";
+import { StyleSheet } from "react-native";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 
 const BadgeContent = ({ name, icon, textColor }: any) => {
-  const defaultTextColor = textColor || "white";
+  const { theme } = useContext(ThemeContext);
+  const defaultTextColor = textColor || theme.text;
   return (
     <>
       {icon && <Icon name={icon} size={12} color={defaultTextColor} />}
-      <Text
-        selectable={false}
+      <AppText
         style={[styles.badgeText, { color: defaultTextColor }]}
-      >
-        {name}
-      </Text>
+        text={name}
+      />
     </>
   );
 };

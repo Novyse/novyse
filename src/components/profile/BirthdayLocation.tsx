@@ -1,8 +1,9 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { LinearGradient } from "expo-linear-gradient";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
 interface BirthdayLocationProps {
@@ -25,30 +26,56 @@ export default function BirthdayLocation({
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.01)"]}
+        colors={theme.backgroundMainGradient}
         style={styles.glassCard}
       >
         <View style={styles.content}>
           {birthday && (
             <View style={styles.item}>
-              <View style={[styles.iconContainer, { backgroundColor: "rgba(168, 100, 255, 0.2)" }]}>
-                <Icon name="BirthdayIcon" size={16} color="#A864FF" />
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: theme.primary },
+                ]}
+              >
+                <Icon name="BirthdayIcon" size={16} />
               </View>
               <View style={styles.textContainer}>
-                <Text style={styles.label}>BORN</Text>
-                <Text style={styles.value}>{birthday}</Text>
+                <AppText
+                  style={styles.label}
+                  translationKey="profile.birthdayLocation.born"
+                />
+                <AppText style={styles.value} text={birthday} />
               </View>
             </View>
           )}
 
           {country && (
-            <View style={[styles.item, birthday && { marginTop: 16, borderTopWidth: 1, borderTopColor: "rgba(255, 255, 255, 0.1)", paddingTop: 16 }]}>
-              <View style={[styles.iconContainer, { backgroundColor: "rgba(16, 185, 129, 0.2)" }]}>
-                <Icon name="LocationIcon" size={16} color="#10B981" />
+            <View
+              style={[
+                styles.item,
+                birthday && {
+                  marginTop: 16,
+                  borderTopWidth: 1,
+                  borderTopColor: theme.borderColor,
+                  paddingTop: 16,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: theme.primary },
+                ]}
+              >
+                <Icon name="LocationIcon" size={16} />
               </View>
               <View style={styles.textContainer}>
-                <Text style={styles.label}>LOCATION</Text>
-                <Text style={styles.value}>{country}</Text>
+                <AppText
+                  style={styles.label}
+                  translationKey="profile.birthdayLocation.location"
+                />
+                <AppText style={styles.value} text={country} />
               </View>
             </View>
           )}
@@ -67,8 +94,8 @@ const createStyles = (theme: any) =>
     glassCard: {
       borderRadius: 16,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.1)",
-      backgroundColor: "rgba(30, 41, 59, 0.4)",
+      borderColor: theme.borderColor,
+      backgroundColor: theme.backgroundMain,
       overflow: "hidden",
     },
     content: {
@@ -101,7 +128,7 @@ const createStyles = (theme: any) =>
     },
     value: {
       fontSize: 14,
-      color: "rgba(255, 255, 255, 0.9)",
+      color: theme.text,
       fontWeight: "500",
     },
   });

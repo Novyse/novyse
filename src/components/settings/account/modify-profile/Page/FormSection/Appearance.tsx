@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import Icon from "@/src/components/Icon";
 
@@ -14,17 +14,20 @@ export default function Appareance() {
 
   return (
     <>
-      <SectionHeader icon="Pen01Icon" title="Appareance" />
+      <SectionHeader
+        icon="Pen01Icon"
+        translationKey="settings.modifyProfile.appearance"
+      />
       <View style={styles.overlayWrapper}>
         <View style={styles.row}>
-          <Label text={"Profile color"} />
+          <Label translationKey="settings.modifyProfile.profileColor" />
           <View style={styles.colorRow}>
             <ColorDot color="#3b82f6" selected />
             <ColorDot color="#a855f7" />
             <ColorDot color="#10b981" />
             <ColorDot color="#f43f5e" />
           </View>
-          <Label text={"Background color"} />
+          <Label translationKey="settings.modifyProfile.backgroundColor" />
           <View style={styles.colorRow}>
             <ColorDot color="#3b82f6" />
             <ColorDot color="#a855f7" />
@@ -33,7 +36,7 @@ export default function Appareance() {
           </View>
         </View>
         <View style={styles.infoContainer}>
-          <Icon name="UnavailableIcon"  color="white" />
+          <Icon name="UnavailableIcon" />
         </View>
       </View>
     </>
@@ -51,7 +54,7 @@ const createStyles = (theme: any) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      backgroundColor: theme.backgroundModalOverlay,
       alignItems: "center",
       justifyContent: "center",
       pointerEvents: "none",

@@ -2,7 +2,7 @@ import * as opaqueLib from "react-native-opaque";
 import { authApi, OPAQUE_SERVER_IDENTITY } from "../../config";
 import { getAuthToken } from "../token-manager";
 
-const API_PATH = `/auth/settings/opaque`;
+const API_PATH = `/settings/opaque`;
 
 export const opaque = {
   /**
@@ -18,7 +18,10 @@ export const opaque = {
     } catch (error: any) {
       return {
         success: false,
-        error: error.response?.data?.message || error.message,
+        error:
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message,
       };
     }
   },
@@ -76,7 +79,10 @@ export const opaque = {
       console.error("Settings OPAQUE setup error:", error);
       return {
         success: false,
-        error: error.response?.data?.message || error.message,
+        error:
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message,
       };
     }
   },
@@ -98,7 +104,10 @@ export const opaque = {
     } catch (error: any) {
       return {
         success: false,
-        error: error.response?.data?.message || error.message,
+        error:
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message,
       };
     }
   },

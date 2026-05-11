@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from "react";
 import { StatusBar } from "react-native";
 
-import { useScreen } from "@/context/ScreenContext";
-import { useCommsContext } from "@/context/CommsContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import { useCommsContext } from "@/src/context/CommsContext";
 
 import { Track } from "livekit-client";
 import Platform from "@/src/utils/device/type";
@@ -45,11 +45,9 @@ const useLayout = (room, participants, containerDimensions) => {
     if (fullscreenStreamUUID) {
       if (!isMobile) {
         // request system fullscreen on web
-        document.documentElement
-          .requestFullscreen()
-          .catch((err) => {
-            console.error("Error entering fullscreen:", err);
-          });
+        document.documentElement.requestFullscreen().catch((err) => {
+          console.error("Error entering fullscreen:", err);
+        });
       } else {
         // hide the status bar on native when a stream is in fullscreen
         StatusBar.setHidden(true, "fade");
@@ -57,11 +55,9 @@ const useLayout = (room, participants, containerDimensions) => {
     } else {
       if (!isMobile) {
         if (document.fullscreenElement) {
-          document
-            .exitFullscreen()
-            .catch((err) => {
-              console.error("Error exiting fullscreen:", err);
-            });
+          document.exitFullscreen().catch((err) => {
+            console.error("Error exiting fullscreen:", err);
+          });
         }
       } else {
         StatusBar.setHidden(false, "fade");
@@ -107,6 +103,7 @@ const useLayout = (room, participants, containerDimensions) => {
         name,
         metadata,
         stream: videoStream,
+        participant,
         isScreenShare: false,
         isLocal,
       });
@@ -122,7 +119,27 @@ const useLayout = (room, participants, containerDimensions) => {
             type: "screen",
             deviceUUID,
             streamUUID: tp.trackSid,
-            name,
+            name: `${name} (Screen Share)`,
+            metadata,
+            participant,
+            stream: screenStream,
+            isScreenShare: true,
+            isLocal,
+          });
+        });
+      } else if (participant.tracks) {
+        const screenTracks = participant.tracks.filter(
+          (t) =>
+            t.source === "SCREEN_SHARE" ||
+            t.source === Track.Source.ScreenShare,
+        );
+        screenTracks.forEach((t) => {
+          const screenStream = streams[t.sid];
+          items.push({
+            type: "screen",
+            deviceUUID,
+            streamUUID: t.sid,
+            name: `${name} (Screen Share)`,
             metadata,
             participant,
             stream: screenStream,

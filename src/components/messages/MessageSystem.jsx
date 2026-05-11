@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
-import { Text, StyleSheet } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
-import useUserStore from "@/context/UserContext";
+import { StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
 import BlurredView from "../BlurredView";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
@@ -21,9 +22,7 @@ const MessageSystem = ({ type, data }) => {
       colors={theme.backgroundDateSeparator}
       style={styles.container}
     >
-      <Text style={styles.text} selectable={false}>
-        {content}
-      </Text>
+      <AppText style={styles.text} text={content} />
     </BlurredView>
   );
 
@@ -32,6 +31,33 @@ const MessageSystem = ({ type, data }) => {
       return renderPill(data);
     case "system":
       return renderPill(systemText);
+    case "separator-with-lines":
+      return (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginVertical: 12,
+            marginHorizontal: 15,
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              height: StyleSheet.hairlineWidth,
+              backgroundColor: theme.backgroundDateSeparator,
+            }}
+          />
+          <View style={{ marginHorizontal: 10 }}>{renderPill(data)}</View>
+          <View
+            style={{
+              flex: 1,
+              height: StyleSheet.hairlineWidth,
+              backgroundColor: theme.backgroundDateSeparator,
+            }}
+          />
+        </View>
+      );
     default:
       return null;
   }

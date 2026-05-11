@@ -16,15 +16,18 @@ CREATE TABLE IF NOT EXISTS user (
     name TEXT NOT NULL,
     surname TEXT,
     profilePictureUUID TEXT,
-    description TEXT,
+    bannerPictureUUID TEXT,
+    biography TEXT,
     birthday DATE,
     region TEXT,
-    country TEXT
+    country TEXT,
+    color TEXT,
+    profileEventID INTEGER DEFAULT 0
 );
 
 
 -- Insert system user for system messages
-INSERT OR IGNORE INTO user (uuid, name, surname, description)
+INSERT OR IGNORE INTO user (uuid, name, surname, biography)
 VALUES ('00000000-0000-0000-0000-000000000000', 'System', '', 'System user');
 
 CREATE TABLE IF NOT EXISTS handle_type (
@@ -53,6 +56,7 @@ CREATE TABLE IF NOT EXISTS chat (
     name TEXT,
     description TEXT,
     profilePictureUUID TEXT,
+    eventID INTEGER DEFAULT 0,
     FOREIGN KEY (type) REFERENCES chat_type(value)
 );
 
@@ -65,6 +69,7 @@ CREATE TABLE IF NOT EXISTS chat_pin (
 CREATE TABLE IF NOT EXISTS member (
     userUUID TEXT NOT NULL,
     chatUUID TEXT NOT NULL,
+    joined_at TIMESTAMP NOT NULL,
     PRIMARY KEY (userUUID, chatUUID),
     FOREIGN KEY (userUUID) REFERENCES user(uuid),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid)
@@ -159,6 +164,18 @@ CREATE TABLE IF NOT EXISTS message_reply (
 
 CREATE INDEX IF NOT EXISTS idx_message_reply_chat_msg ON message_reply(chatUUID, messageID);
 
+CREATE TABLE IF NOT EXISTS message_read (
+    chat_uuid TEXT NOT NULL,
+    message_id INTEGER NOT NULL,
+    user_uuid TEXT NOT NULL,
+    read_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_message_read PRIMARY KEY (chat_uuid, message_id, user_uuid),
+    CONSTRAINT fk_message_read_message FOREIGN KEY (chat_uuid, message_id) REFERENCES message (chatUUID, id) ON DELETE CASCADE,
+    FOREIGN KEY (user_uuid) REFERENCES user (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_message_read_user_chat ON message_read (chat_uuid, user_uuid, message_id DESC);
+
 CREATE TABLE IF NOT EXISTS pending_message (
     id TEXT NOT NULL,
     jobType TEXT NOT NULL,
@@ -190,7 +207,7 @@ CREATE TABLE IF NOT EXISTS pending_file (
 CREATE TABLE IF NOT EXISTS bot (
     uuid TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    description TEXT,
+    biography TEXT,
     profilePictureUUID TEXT,
     FOREIGN KEY (profilePictureUUID) REFERENCES file(uuid)
 );

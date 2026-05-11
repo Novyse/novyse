@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Pressable, StyleSheet, FlatList } from "react-native";
+import { View, Pressable, StyleSheet, FlatList } from "react-native";
 import { Platform } from "react-native";
 
 import { Room } from "livekit-client";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 
 import ModalBase from "../../modalSheets/ModalBase";
 import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/AppText";
 
 const CameraSelector = ({
   visible,
@@ -56,17 +57,25 @@ const CameraSelector = ({
       >
         <Icon
           name={"Camera01Icon"}
-          color={isSelected ? "#4CAF50" : theme.text}
+          color={isSelected ? theme.iconSuccess : theme.text}
         />
         <View style={styles.cameraInfo}>
-          <Text style={[styles.cameraName, isSelected && styles.selectedText]}>
-            {item.label || `Camera ${item.deviceId}`}
-          </Text>
+          <AppText
+            style={[styles.cameraName, isSelected && styles.selectedText]}
+          >
+            {item.label ||
+              t("chat.comms.selectors.camera.defaultName", {
+                id: item.deviceId,
+              })}
+          </AppText>
           {isSelected && (
-            <Text style={styles.currentLabel}>Currently Selected</Text>
+            <AppText
+              style={styles.currentLabel}
+              translationKey="chat.comms.selectors.camera.currentlySelected"
+            />
           )}
         </View>
-        {isSelected && <Icon name={"Tick02Icon"} color="#4CAF50" />}
+        {isSelected && <Icon name={"Tick02Icon"} color={theme.iconSuccess} />}
       </Pressable>
     );
   };
@@ -74,12 +83,18 @@ const CameraSelector = ({
   return (
     <ModalBase visible={visible} onClose={onClose} theme={theme}>
       <View style={styles.header}>
-        <Text style={styles.title}>Select Camera</Text>
+        <AppText
+          style={styles.title}
+          translationKey="chat.comms.selectors.camera.title"
+        />
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading cameras...</Text>
+          <AppText
+            style={styles.loadingText}
+            translationKey="chat.comms.selectors.camera.loading"
+          />
         </View>
       ) : (
         <FlatList
@@ -105,10 +120,7 @@ function createStyle(theme) {
     title: {
       fontSize: 18,
       fontWeight: "600",
-      color: "white",
-    },
-    closeButton: {
-      padding: 4,
+      color: theme.text,
     },
     loadingContainer: {
       padding: 40,
@@ -116,7 +128,7 @@ function createStyle(theme) {
     },
     loadingText: {
       fontSize: 16,
-      color: "white",
+      color: theme.text,
     },
     cameraList: {
       maxHeight: 300,
@@ -154,7 +166,7 @@ function createStyle(theme) {
     selectedCamera: {
       backgroundColor: theme.backgroundMainGradient[1],
       borderWidth: 1,
-      borderColor: "#4CAF50",
+      borderColor: theme.successText,
     },
     cameraInfo: {
       flex: 1,
@@ -166,11 +178,11 @@ function createStyle(theme) {
       fontWeight: "500",
     },
     selectedText: {
-      color: "#4CAF50",
+      color: theme.successText,
     },
     currentLabel: {
       fontSize: 12,
-      color: "#4CAF50",
+      color: theme.successText,
       marginTop: 2,
     },
   });

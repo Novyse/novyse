@@ -1,9 +1,21 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import HoverAndPressedButton from "../../HoverAndPressedButton";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
+import HoverAndPressedButton from "../../HoverAndPressedButton";
 
-const Button = ({ id, icon, title, subtitle, selected, onSelect, theme, disabled }) => {
+const Button = ({
+  id,
+  icon,
+  title,
+  titleKey,
+  subtitle,
+  subtitleKey,
+  selected,
+  onSelect,
+  theme,
+  disabled,
+}) => {
   const styles = createStyles(theme);
   return (
     <HoverAndPressedButton
@@ -12,23 +24,24 @@ const Button = ({ id, icon, title, subtitle, selected, onSelect, theme, disabled
       disabled={disabled}
     >
       <View style={styles.cardIconContainer}>
-        <Icon
-          name={icon}
-          
-          color={selected === id ? "#FFFFFF" : "#8F90A6"}
-        />
+        <Icon name={icon} />
       </View>
-      <Text style={[styles.cardTitle, selected === id && styles.textSelected]}>
-        {title}
-      </Text>
-      <Text style={styles.cardSubtitle}>{subtitle}</Text>
+      <AppText
+        style={[styles.cardTitle, selected === id && styles.textSelected]}
+        translationKey={titleKey}
+        text={title}
+      />
+      <AppText
+        style={styles.cardSubtitle}
+        translationKey={subtitleKey}
+        text={subtitle}
+      />
     </HoverAndPressedButton>
   );
 };
 
 const createStyles = (theme) =>
   StyleSheet.create({
-    // Cards Styles
     card: {
       flex: 1,
       backgroundColor: theme.backgroundCard,

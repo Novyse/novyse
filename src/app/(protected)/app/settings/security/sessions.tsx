@@ -1,12 +1,19 @@
-import React, { useContext, useState, useEffect } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import React, { useContext, useState } from "react";
+import { StyleSheet, View, Pressable } from "react-native";
+import AppText from "@/src/components/AppText";
+
+import { DateTime } from "luxon";
+
 import { router } from "expo-router";
-import { ThemeContext } from "@/context/ThemeContext";
+import { useTranslation } from "react-i18next";
+
+import { ThemeContext } from "@/src/context/ThemeContext";
+
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsButton from "@/src/components/settings/SettingsButton";
 import StatusMessage from "@/src/components/StatusMessage";
 import SecurityListCard from "@/src/components/settings/security/SecurityListCard";
+import SessionInfo from "@/src/components/settings/security/SessionInfo";
 
 import auth from "@/src/utils/backend-services/auth";
 
@@ -15,11 +22,13 @@ interface Session {
   device: string;
   deviceType: "desktop" | "mobile";
   ip: string;
+  createdAt: string;
   lastActive: string;
   isCurrent: boolean;
 }
 
 export default function SessionsRoute() {
+  const { t } = useTranslation();
   const onBack = () =>
     router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
@@ -32,20 +41,20 @@ export default function SessionsRoute() {
 
   const formatLastActive = (dateStr: string) => {
     try {
-      const date = new Date(dateStr);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
+      const date = DateTime.fromISO(dateStr, { zone: "utc" }).toLocal();
+      const now = DateTime.now();
+      const diffMs = now.toMillis() - date.toMillis();
       const diffMins = Math.floor(diffMs / 60000);
       const diffHours = Math.floor(diffMins / 60);
       const diffDays = Math.floor(diffHours / 24);
 
-      if (diffMins < 1) return "Just now";
-      if (diffMins < 60) return `${diffMins}m ago`;
-      if (diffHours < 24) return `${diffHours}h ago`;
-      if (diffDays === 1) return `Yesterday`;
-      return date.toLocaleDateString();
+      if (diffMins < 1) return t("settings.security.justNow");
+      if (diffMins < 60) return `${diffMins}${t("settings.security.mAgo")}`;
+      if (diffHours < 24) return `${diffHours}${t("settings.security.hAgo")}`;
+      if (diffDays === 1) return t("settings.security.yesterday");
+      return date.toFormat("MMMM d, yyyy");
     } catch (e) {
-      return "Unknown";
+      return t("settings.security.unknown");
     }
   };
 
@@ -55,15 +64,16 @@ export default function SessionsRoute() {
     if (response.success) {
       const mapped = response.data.map((s: any) => ({
         id: s.id,
-        device: s.userAgent || "Unknown Device",
+        device: s.userAgent || t("settings.security.unknownDevice"),
         deviceType: s.platform === "mobile" ? "mobile" : "desktop",
-        ip: s.ipAddress || "Unknown",
-        lastActive: formatLastActive(s.createdAt),
+        ip: s.ipAddress || t("settings.security.unknown"),
+        createdAt: formatLastActive(s.createdAt),
+        lastActive: formatLastActive(s.lastActiveAt),
         isCurrent: s.isCurrent,
       }));
       setSessions(mapped);
     } else {
-      setError(response.error || "Failed to load sessions");
+      setError(response.error || t("settings.security.failedToLoadSessions"));
     }
     setIsLoading(false);
   };
@@ -75,20 +85,25 @@ export default function SessionsRoute() {
   const handleDisconnect = async (id: number) => {
     const response = await auth.settings.session.revoke(id);
     if (response.success) {
-      setSuccess("Session disconnected");
+      setSuccess(t("settings.security.sessionDisconnected"));
       fetchSessions();
     } else {
-      setError(response.error || "Failed to disconnect session");
+      setError(
+        response.error || t("settings.security.sessionDisconnectFailed"),
+      );
     }
   };
 
   const handleDisconnectAll = async () => {
     const response = await auth.settings.session.revokeOther();
     if (response.success) {
-      setSuccess("All other sessions disconnected");
+      setSuccess(t("settings.security.allOtherSessionsDisconnected"));
       fetchSessions();
     } else {
-      setError(response.error || "Failed to disconnect other sessions");
+      setError(
+        response.error ||
+          t("settings.security.allOtherSessionsDisconnectFailed"),
+      );
     }
   };
 
@@ -96,13 +111,20 @@ export default function SessionsRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow title="Sessions" onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.security.sessionsLabel"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Active Sessions</Text>
-          <Text style={styles.subtitle}>
-            Manage your active sessions across devices
-          </Text>
+          <AppText
+            style={styles.title}
+            translationKey="settings.security.activeSessions"
+          />
+          <AppText
+            style={styles.subtitle}
+            translationKey="settings.security.manageSessions"
+          />
         </View>
 
         <StatusMessage
@@ -121,11 +143,17 @@ export default function SessionsRoute() {
                   ? "SmartPhone01Icon"
                   : "ComputerIcon"
               }
-              iconColor={session.isCurrent ? "#00C851" : "#6366f1"}
               title={session.device}
-              subtitle={`${session.ip} · ${session.lastActive}`}
-              badge={session.isCurrent ? "Current" : undefined}
-              badgeColor="#00C851"
+              subtitle={
+                <SessionInfo
+                  ip={session.ip}
+                  createdAt={session.createdAt}
+                  lastActive={session.lastActive}
+                />
+              }
+              badge={
+                session.isCurrent ? t("settings.security.current") : undefined
+              }
               isHighlighted={session.isCurrent}
               onDelete={
                 !session.isCurrent
@@ -146,9 +174,10 @@ export default function SessionsRoute() {
                 pressed && styles.disconnectAllButtonPressed,
               ]}
             >
-              <Text style={styles.disconnectAllText}>
-                Disconnect All Other Sessions ({otherSessionsCount})
-              </Text>
+              <AppText
+                style={styles.disconnectAllText}
+                text={`${t("settings.security.disconnectAllOtherSessions")} (${otherSessionsCount})`}
+              />
             </Pressable>
           </View>
         )}
@@ -180,7 +209,7 @@ const createStyle = (theme: any) =>
     },
     subtitle: {
       fontSize: 16,
-      color: "#a0a0a0",
+      color: theme.subtitle,
       lineHeight: 22,
     },
     listContainer: {
@@ -193,21 +222,21 @@ const createStyle = (theme: any) =>
       marginTop: 8,
     },
     disconnectAllButton: {
-      backgroundColor: "#FF4757",
+      backgroundColor: theme.iconDanger,
       paddingHorizontal: 24,
       paddingVertical: 14,
       borderRadius: 24,
     },
     disconnectAllButtonHovered: {
-      backgroundColor: "#e8414f",
+      backgroundColor: theme.settingsHoveredButton,
       cursor: "pointer" as any,
     },
     disconnectAllButtonPressed: {
-      backgroundColor: "#d13a47",
+      backgroundColor: theme.settingsPressedButton,
       opacity: 0.9,
     },
     disconnectAllText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },

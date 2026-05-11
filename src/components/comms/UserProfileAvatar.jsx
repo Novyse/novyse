@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import React, { useEffect, useState, useContext } from "react";
+import { View, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { getColors } from "react-native-image-colors";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
 import Avatar from "@/src/components/Avatar";
+import AppText from "../AppText";
 
 const UserProfileAvatar = ({
   userHandle,
@@ -15,15 +16,15 @@ const UserProfileAvatar = ({
   containerWidth,
   containerHeight,
 }) => {
-  const { theme } = useThemeContext();
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyles(theme);
   const { uri } = useProfilePicture(profilePictureUUID);
 
-  const fallbackColors = ["#667eea", "#764ba2"];
+  const fallbackColors = [theme.primary, theme.secondary];
   const [gradientColors, setGradientColors] = useState(fallbackColors);
 
-  const [isMounted, setIsMounted] = useState(true);
-
   useEffect(() => {
+    let isMounted = true;
     const getGradientColors = async () => {
       if (uri) {
         try {
@@ -52,7 +53,7 @@ const UserProfileAvatar = ({
     getGradientColors();
 
     return () => {
-      setIsMounted(false);
+      isMounted = false;
     };
   }, [uri]);
 
@@ -89,14 +90,12 @@ const UserProfileAvatar = ({
             <Avatar uuid={profilePictureUUID} size={avatarSize} theme={theme} />
           </View>
           <View style={styles.nameContainer}>
-            <Text
+            <AppText
               style={styles.userName}
               numberOfLines={1}
               ellipsizeMode="tail"
-              selectable={false}
-            >
-              {userHandle || "Unknown User"}
-            </Text>
+              text={userHandle || "Unknown User"}
+            />
           </View>
         </View>
       </LinearGradient>
@@ -104,7 +103,7 @@ const UserProfileAvatar = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
     overflow: "hidden",
     borderRadius: 10,
@@ -128,14 +127,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 10,
     left: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    backgroundColor: theme.backgroundModalOverlay,
     borderRadius: 14,
     paddingHorizontal: 8,
     paddingVertical: 4,
     maxWidth: "70%",
   },
   userName: {
-    color: "#FFFFFF",
+    color: theme.text,
     fontSize: 14,
     fontWeight: "600",
     textAlign: "left",

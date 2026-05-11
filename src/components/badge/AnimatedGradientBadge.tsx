@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
@@ -10,10 +10,13 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import BadgeContent from "./BadgeContent";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 const AnimatedGradientBadge = ({ badge }: any) => {
   const { name, icon, color } = badge;
   const { bgColors, textColor, borderColor } = color;
+
+  const { theme } = useContext(ThemeContext);
 
   const glareTranslateX = useSharedValue(-80);
   const flowTranslateX = useSharedValue(-60);
@@ -50,10 +53,7 @@ const AnimatedGradientBadge = ({ badge }: any) => {
   }, [glareTranslateX, flowTranslateX]);
 
   const glareStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: glareTranslateX.value },
-      { rotate: "18deg" },
-    ],
+    transform: [{ translateX: glareTranslateX.value }, { rotate: "18deg" }],
     opacity: 0.6,
   }));
 
@@ -79,7 +79,9 @@ const AnimatedGradientBadge = ({ badge }: any) => {
         style={StyleSheet.absoluteFill}
       />
       {/* Color under glare */}
-      <Animated.View style={[styles.flowOverlay, flowStyle, {pointerEvents:"none"}]} >
+      <Animated.View
+        style={[styles.flowOverlay, flowStyle, { pointerEvents: "none" }]}
+      >
         <LinearGradient
           colors={[bgColors[0], bgColors[bgColors.length - 1]]}
           start={{ x: 0, y: 0 }}
@@ -88,12 +90,14 @@ const AnimatedGradientBadge = ({ badge }: any) => {
         />
       </Animated.View>
       {/* Animated Glare */}
-      <Animated.View style={[styles.glareOverlay, glareStyle, {pointerEvents:"none"}]}>
+      <Animated.View
+        style={[styles.glareOverlay, glareStyle, { pointerEvents: "none" }]}
+      >
         <LinearGradient
           colors={[
-            "rgba(255,255,255,0)",
-            "rgba(255,255,255,0.7)",
-            "rgba(255,255,255,0)",
+            theme.badgeGlareFirstLast,
+            theme.badgeGlareMiddle,
+            theme.badgeGlareFirstLast,
           ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}

@@ -1,40 +1,39 @@
-import React from "react";
+import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
 interface MicrophoneArrowButtonProps {
   onPress: () => void;
-  theme?: {
-    background: string;
-  };
 }
 
-const MicrophoneArrowButton = ({
-  onPress,
-  theme,
-}: MicrophoneArrowButtonProps) => {
+const MicrophoneArrowButton = ({ onPress }: MicrophoneArrowButtonProps) => {
+  const { theme } = useContext(ThemeContext);
+  const styles = createStyles(theme);
+
   return (
     <Icon
       name={"ArrowDown01Icon"}
-      style={[styles.arrowButton, { backgroundColor: theme?.background }]}
+      style={[styles.arrowButton, { backgroundColor: theme.backgroundMain }]}
       onPress={onPress}
     />
   );
 };
 
-const styles = StyleSheet.create({
-  arrowButton: {
-    position: "absolute",
-    top: -8,
-    right: -8,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    arrowButton: {
+      position: "absolute",
+      top: -8,
+      right: -8,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: theme.borderColor,
+    },
+  });
 
 export default MicrophoneArrowButton;

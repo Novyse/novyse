@@ -1,7 +1,10 @@
-import React, { memo, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Platform } from "react-native";
+import React, { memo, useMemo, useEffect, useRef, useContext } from "react";
+import { View, StyleSheet, Platform, Pressable } from "react-native";
 
 import { getPlatform } from "@/src/utils/device/type";
+import { useCommsContext } from "@/src/context/CommsContext";
+import { useTranslation } from "react-i18next";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import UserProfileAvatar from "./UserProfileAvatar";
 import BlurredView from "../BlurredView";
@@ -19,6 +22,8 @@ const UserCard = memo(
   ({
     streamUUID,
     deviceUUID,
+    chatUUID,
+    sub,
     stream = null,
     displayName,
     metadata = {},
@@ -33,7 +38,23 @@ const UserCard = memo(
     height,
     margin,
     isSpeaking,
+    facingMode,
   }) => {
+    const { t } = useTranslation();
+    const {
+      connected,
+      checkRoomMatch,
+      setTriggeredStream,
+      setTriggeredPosition,
+      localMuted,
+    } = useCommsContext();
+
+    const { theme } = useContext(ThemeContext);
+    const styles = createStyles(theme); 
+
+    const volKey = isScreenShare ? streamUUID : deviceUUID;
+    const isLocalMuted = localMuted[volKey] ?? false;
+
     const videoRef = useRef(null);
     useEffect(() => {
       if (platform === "web" && videoRef.current) {
@@ -43,6 +64,10 @@ const UserCard = memo(
 
     const parsedMetadata = JSON.parse(metadata);
     const profilePictureUUID = parsedMetadata.profilePictureUUID || null;
+
+    const finalDisplayName = isLocal
+      ? `${displayName} (${t("chat.listItem.you")})`
+      : displayName;
 
     const speakingOverlayStyle = useMemo(() => {
       const baseStyle = [styles.speakingOverlayContainer];
@@ -62,10 +87,31 @@ const UserCard = memo(
       }
 
       return baseStyle;
-    }, [isScreenShare, isSpeaking]);
+    }, [isScreenShare, isSpeaking, styles]);
 
     const hasControls =
       (stream && stream.active && !isLocal) || (isScreenShare && isLocal);
+
+    const handlePress = (event) => {
+      if (!connected || !checkRoomMatch(chatUUID, sub)) {
+        return;
+      }
+      
+      if (event && event.preventDefault) {
+        event.preventDefault();
+      }
+
+      const { pageX, pageY } = event?.nativeEvent || {};
+
+      setTriggeredPosition({ x: pageX || 0, y: pageY || 0 });
+      setTriggeredStream({
+        streamUUID,
+        deviceUUID,
+        displayName: finalDisplayName,
+        isScreenShare,
+        isLocal,
+      });
+    };
 
     return (
       <View
@@ -79,6 +125,13 @@ const UserCard = memo(
           isFullScreen && styles.fullscreenContainer,
         ]}
       >
+        {isLocalMuted && (
+          <View style={styles.muteIndicatorContainer}>
+              <View style={styles.controlsRow}>
+                <Icon name="MicOff01Icon" size={16} color={theme.iconDanger} />
+              </View>
+          </View>
+        )}
         {hasControls && (
           <View style={styles.controlsContainer}>
             <BlurredView style={styles.controlsBlurred}>
@@ -87,7 +140,6 @@ const UserCard = memo(
                   <Icon
                     name={!isPinned ? "PinIcon" : "PinOffIcon"}
                     size={20}
-                    color="white"
                     onPress={() => onPin(streamUUID)}
                   />
                 )}
@@ -97,7 +149,6 @@ const UserCard = memo(
                       !isFullScreen ? "ArrowExpand01Icon" : "ArrowShrink01Icon"
                     }
                     size={20}
-                    color="white"
                     onPress={() => onFullScreen(streamUUID)}
                   />
                 )}
@@ -105,7 +156,6 @@ const UserCard = memo(
                   <Icon
                     name="ComputerRemoveIcon"
                     size={20}
-                    color="white"
                     onPress={() => stopScreenShare(streamUUID)}
                   />
                 )}
@@ -114,19 +164,27 @@ const UserCard = memo(
           </View>
         )}
 
-        <View style={styles.videoContainer}>
+        <Pressable
+          style={styles.videoContainer}
+          onPress={handlePress}
+          onLongPress={handlePress}
+          // @ts-ignore
+          onContextMenu={handlePress}
+          delayLongPress={500}
+        >
           <VideoContent
             streamUUID={streamUUID}
             deviceUUID={deviceUUID}
             stream={stream}
             isLocal={isLocal}
-            displayName={displayName}
+            displayName={finalDisplayName}
             profilePictureUUID={profilePictureUUID}
             width={width}
             height={height}
+            facingMode={facingMode}
           />
           <View style={speakingOverlayStyle} />
-        </View>
+        </Pressable>
       </View>
     );
   },
@@ -142,7 +200,11 @@ const VideoContent = memo(
     profilePictureUUID,
     width,
     height,
+    facingMode,
   }) => {
+    const { theme } = useContext(ThemeContext);
+    const styles = createStyles(theme);
+
     const streamActive =
       stream && stream.getVideoTracks().some((track) => track.enabled);
 
@@ -160,7 +222,7 @@ const VideoContent = memo(
         {streamActive ? (
           platform === "mobile" ? (
             <RTCView
-              key={streamUUID}
+              key={`${streamUUID}_${isLocal ? facingMode : ""}`}
               streamURL={stream.toURL()}
               style={[styles.videoStream, { objectFit: "contain" }]}
               muted={isLocal}
@@ -188,7 +250,7 @@ const VideoContent = memo(
   },
 );
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   profile: {
     backgroundColor: "transparent",
     borderRadius: 10,
@@ -198,6 +260,12 @@ const styles = StyleSheet.create({
   controlsContainer: {
     position: "absolute",
     top: 0,
+    right: 0,
+    zIndex: 20,
+  },
+  muteIndicatorContainer: {
+    position: "absolute",
+    bottom: 0,
     right: 0,
     zIndex: 20,
   },
@@ -215,7 +283,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     padding: 5,
     borderRadius: 5,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: theme.backgroundModalOverlay,
   },
   fullscreenContainer: {
     position: "absolute",
@@ -223,7 +291,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "black",
+    backgroundColor: theme.shadowColor,
     zIndex: 1,
   },
   speakingOverlayContainer: {
@@ -241,23 +309,18 @@ const styles = StyleSheet.create({
   },
   speakingOverlay: {
     borderWidth: 2,
-    borderColor: "#00FF00",
+    borderColor: theme.successText,
     opacity: 1,
     ...(Platform.OS === "web" && {
       boxShadow:
-        "inset 0 0 15px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.6)",
+        `inset 0 0 15px ${theme.successText}, 0 0 20px ${theme.successText}`,
     }),
     ...(Platform.OS === "ios" && {
-      shadowColor: "#00FF00",
+      shadowColor: theme.successText,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.8,
       shadowRadius: 8,
     }),
-    // Android: solo bordo semplice, nessun effetto shadow/elevation
-    ...(Platform.OS === "android" &&
-      {
-        // Nessun effetto aggiuntivo per Android
-      }),
   },
   videoContainer: {
     width: "100%",
@@ -265,7 +328,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderRadius: 8,
     position: "relative",
-    backgroundColor: "#000",
+    backgroundColor: theme.shadowColor,
   },
   videoStream: {
     width: "100%",

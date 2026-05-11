@@ -1,21 +1,20 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, StyleSheet, Text, Image, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Image, ActivityIndicator } from "react-native";
+import AppText from "@/src/components/AppText";
 
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 
 import QRCode from "react-native-qrcode-svg";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 
-import MyStatusBar from "@/src/components/MyStatusBar";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 
 import auth from "@/src/utils/welcome/auth";
 import useQRCode from "@/src/hooks/auth/useQRCode";
 import { LoginTheme } from "@/constants/LoginColors";
-
 
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
@@ -26,16 +25,15 @@ const Welcome = () => {
   const styles = createStyle(loginTheme, isSmallScreen);
 
   const router = useRouter();
-  const handleAuthorized = useCallback(async () => {
-    if (await auth.initializeApp()) {
+  const handleAuthorized = useCallback(
+    async (data: any) => {
+      await auth.setLogin(data.userUUID, data.sessionID, data.session_id);
       router.replace("/app");
-    }
-  }, [router]);
-
-  const { qrToken, remainingTime } = useQRCode(
-    isSmallScreen,
-    handleAuthorized,
+    },
+    [router],
   );
+
+  const { qrToken, remainingTime } = useQRCode(isSmallScreen, handleAuthorized);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -58,7 +56,6 @@ const Welcome = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <MyStatusBar />
 
       {/* Glass Card */}
       <View style={styles.card}>
@@ -66,19 +63,25 @@ const Welcome = () => {
         <View style={styles.cardContent}>
           <View style={styles.logoAndTitleContainer}>
             <Image style={styles.logo} source={logoNovyse} />
-            <Text style={styles.title}>Welcome</Text>
+            <AppText style={styles.title} translationKey="auth.welcome.title" />
           </View>
 
           {/* Login / Signup buttons */}
           <View style={styles.buttonRow}>
             <View style={styles.buttonWrapper}>
               <WelcomeButton type={"back"} onPress={handleSignup}>
-                <WelcomeButtonText type={"back"} label="Sign Up" />
+                <WelcomeButtonText
+                  type={"back"}
+                  translationKey="auth.welcome.signup"
+                />
               </WelcomeButton>
             </View>
             <View style={styles.buttonWrapper}>
               <WelcomeButton type={"submit"} onPress={handleLogin}>
-                <WelcomeButtonText type={"submit"} label="Log In" />
+                <WelcomeButtonText
+                  type={"submit"}
+                  translationKey="auth.welcome.login"
+                />
               </WelcomeButton>
             </View>
           </View>
@@ -89,7 +92,10 @@ const Welcome = () => {
           <>
             <View style={styles.divider}>
               <View style={styles.lineDivider} />
-              <Text style={styles.textDivider}>OR</Text>
+              <AppText
+                style={styles.textDivider}
+                translationKey="auth.welcome.or"
+              />
               <View style={styles.lineDivider} />
             </View>
 
@@ -117,11 +123,16 @@ const Welcome = () => {
                   />
                 )}
               </View>
-              <Text style={styles.qrcodeSubtitle}>Scan QR to login</Text>
+              <AppText
+                style={styles.qrcodeSubtitle}
+                translationKey="auth.welcome.scanQr"
+              />
               {qrToken ? (
-                <Text style={styles.qrcodeSmallSubtitle}>
-                  Expires in {formatTime(remainingTime)}
-                </Text>
+                <AppText
+                  style={styles.qrcodeSmallSubtitle}
+                  translationKey="auth.welcome.expiresIn"
+                  translationOptions={{ time: formatTime(remainingTime) }}
+                />
               ) : null}
             </View>
           </>
@@ -133,7 +144,7 @@ const Welcome = () => {
 
 export default Welcome;
 
-function createStyle(loginTheme: string, isSmallScreen: boolean) {
+function createStyle(loginTheme: LoginTheme, isSmallScreen: boolean) {
   return StyleSheet.create({
     container: {
       flex: 1,

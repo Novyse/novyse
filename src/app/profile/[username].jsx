@@ -1,10 +1,11 @@
 import React, { useContext, useState, useEffect } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import Profile from "@/src/components/profile";
+import AppText from "@/src/components/AppText";
 
 import database from "@/src/utils/storage/database";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -20,7 +21,7 @@ const ProfilePage = () => {
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [profilePictureUUID, setProfilePictureUUID] = useState("");
-  const [description, setDescription] = useState("");
+  const [biography, setBiography] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -47,7 +48,7 @@ const ProfilePage = () => {
     setName(userData.name);
     setSurname(userData.surname);
     setProfilePictureUUID(userData.profilePictureUUID);
-    setDescription(userData.description);
+    setBiography(userData.biography);
   };
 
   useEffect(() => {
@@ -76,7 +77,7 @@ const ProfilePage = () => {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loadingText}>Loading profile...</Text>
+        <AppText style={styles.loadingText} translationKey="profile.loading" />
       </View>
     );
   }
@@ -84,7 +85,13 @@ const ProfilePage = () => {
   if (error) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loadingText}>Error loading profile: {error}</Text>
+        <AppText
+          style={styles.loadingText}
+          translationKey="profile.error"
+          translationOptions={{
+            error: typeof error === "string" ? error : error.message,
+          }}
+        />
       </View>
     );
   }
@@ -98,7 +105,7 @@ const ProfilePage = () => {
           surname={surname}
           username={username}
           profilePictureUUID={profilePictureUUID}
-          description={description}
+          biography={biography}
           isOnline={true}
         />
       </View>
@@ -117,7 +124,7 @@ const createStyle = (theme) =>
       position: "relative",
       overflow: "hidden",
       backgroundColor: theme.backgroundMainGradient[0],
-      width:"100%",
+      width: "100%",
       maxWidth: 1024,
       alignSelf: "center",
     },

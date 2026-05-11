@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, StyleSheet, ScrollView } from "react-native";
+import AppText from "@/src/components/AppText";
+import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
@@ -8,7 +9,7 @@ import Avatar from "@/src/components/Avatar";
 import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
 interface JoinCreateChatProps {
@@ -24,6 +25,7 @@ const JoinCreateChat = ({
   setSelectedHandle,
   setSelectedChatUUID,
 }: JoinCreateChatProps) => {
+  const { t } = useTranslation();
   const { theme } = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -50,8 +52,8 @@ const JoinCreateChat = ({
   }, [chat, isUser]);
 
   const title = isUser
-    ? "Start DM"
-    : `Join ${chat?.type ? chat.type.charAt(0).toUpperCase() + chat.type.slice(1).toLowerCase() : "Chat"}`;
+    ? t("chat.joinCreate.startDm")
+    : `${t("chat.joinCreate.join")} ${chat?.type ? chat.type.charAt(0).toUpperCase() + chat.type.slice(1).toLowerCase() : t("chat.joinCreate.joinChat")}`;
 
   return (
     <View style={styles.container}>
@@ -65,44 +67,39 @@ const JoinCreateChat = ({
             style={styles.avatar}
           />
 
-          <Text style={styles.title}>{displayName}</Text>
-          <Text style={styles.handle}>@{chat?.handle}</Text>
+          <AppText style={styles.title} text={displayName} />
+          <AppText style={styles.handle} text={`@${chat?.handle}`} />
 
           <View style={styles.infoBox}>
-            <Icon
-              name="InformationCircleIcon"
-              
-              color={"white"}
+            <Icon name="InformationCircleIcon"/>
+            <AppText
+              style={styles.infoText}
+              translationKey={
+                isUser
+                  ? "chat.joinCreate.joinUserDesc"
+                  : "chat.joinCreate.joinChatDesc"
+              }
             />
-            <Text style={styles.infoText}>
-              {isUser
-                ? "Create a new direct message conversation with this user."
-                : "This is a public chat. Join to see messages and participate."}
-            </Text>
           </View>
 
           <View style={styles.extraInfoContainer}>
             <View style={styles.extraInfoItem}>
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={20}
-                color={theme.textSecondary}
+              <Icon name="ShieldTickIcon" size={20} />
+              <AppText
+                style={styles.extraInfoText}
+                translationKey={
+                  isUser
+                    ? "chat.joinCreate.securityWip"
+                    : "chat.joinCreate.publicChannelDesc"
+                }
               />
-              <Text style={styles.extraInfoText}>
-                {isUser
-                  ? "(WIP) End-to-End Encrypted conversation. Your data remains secure."
-                  : "Messages in public channels are visible to all members."}
-              </Text>
             </View>
             <View style={styles.extraInfoItem}>
-              <Ionicons
-                name="notifications-off-outline"
-                size={20}
-                color={theme.textSecondary}
+              <Icon name="NotificationOff02Icon" size={20} />
+              <AppText
+                style={styles.extraInfoText}
+                translationKey="chat.joinCreate.notificationMuteDesc"
               />
-              <Text style={styles.extraInfoText}>
-                You can always mute notifications or leave the chat later.
-              </Text>
             </View>
           </View>
 
@@ -113,9 +110,10 @@ const JoinCreateChat = ({
               style={[styles.button, styles.primaryButton]}
               pressedStyle={styles.buttonPressed}
             >
-              <Text style={styles.primaryButtonText}>
-                {isJoining ? "Processing..." : title}
-              </Text>
+              <AppText
+                style={styles.primaryButtonText}
+                text={isJoining ? t("chat.joinCreate.processing") : title}
+              />
             </HoverAndPressedButton>
           </View>
         </View>
@@ -147,19 +145,19 @@ const createStyles = (theme: any) =>
     title: {
       fontSize: 26,
       fontWeight: "bold",
-      color: "#fff",
+      color: theme.text,
       marginBottom: 8,
       textAlign: "center",
     },
     handle: {
       fontSize: 18,
-      color: theme.textSecondary,
+      color: theme.icon,
       marginBottom: 32,
     },
     infoBox: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: theme.backgroundMainGradient[0],
+      backgroundColor: theme.backgroundMain,
       padding: 16,
       borderRadius: 12,
       marginBottom: 20,
@@ -167,7 +165,7 @@ const createStyles = (theme: any) =>
     },
     infoText: {
       flex: 1,
-      color: "white",
+      color: theme.text,
       fontSize: 14,
       lineHeight: 20,
       marginLeft: 12,
@@ -185,7 +183,7 @@ const createStyles = (theme: any) =>
     },
     extraInfoText: {
       flex: 1,
-      color: theme.textSecondary,
+      color: theme.icon,
       fontSize: 13,
       lineHeight: 18,
     },
@@ -207,7 +205,7 @@ const createStyles = (theme: any) =>
       backgroundColor: theme.primary,
     },
     primaryButtonText: {
-      color: "#fff",
+      color: theme.text,
       fontSize: 16,
       fontWeight: "600",
     },

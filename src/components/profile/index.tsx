@@ -14,8 +14,8 @@ import Connections from "./Connections";
 import BirthdayLocation from "./BirthdayLocation";
 import QRCodeModal from "./QRCodeModal";
 
-import { ThemeContext } from "@/context/ThemeContext";
-import { useScreen } from "@/context/ScreenContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { useScreen } from "@/src/context/ScreenContext";
 import SmartBackground from "../SmartBackground";
 import Icon from "@/src/components/Icon";
 
@@ -35,7 +35,7 @@ interface ProfileProps {
   profilePictureUUID?: string;
   bannerUUID?: string;
   isOnline?: boolean;
-  description?: string;
+  biography?: string;
   connections?: Connection[];
   onConnectionPress?: (connection: Connection) => void;
   onEditAvatar?: () => void;
@@ -51,7 +51,7 @@ export default function Profile({
   profilePictureUUID,
   bannerUUID,
   isOnline,
-  description,
+  biography,
   connections,
   onConnectionPress,
   onEditAvatar,
@@ -71,24 +71,16 @@ export default function Profile({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Glass Card Container */}
-        <SmartBackground
-          // colors={["rgba(255, 255, 255, 0.03)", "rgba(255, 255, 255, 0.15)"]}
-
-          style={styles.glassPanel}
-        >
+        <SmartBackground style={styles.glassPanel}>
           <View style={{ position: "relative" }}>
             <Banner theme={theme} />
 
             <Icon
               name="QrCodeIcon"
-              
-              color={"#FFFFFF"}
               onPress={() => setIsQrModalVisible(true)}
               style={styles.qrIconContainer}
             />
           </View>
-
           <ProfileHeader
             uuid={uuid}
             name={name}
@@ -100,16 +92,15 @@ export default function Profile({
           />
 
           {/* About Me Section */}
-          <AboutMe description={description} />
+          <AboutMe biography={biography} />
 
           {/* Birthday and Location Section */}
-          {birthday ||
-            (country && (
-              <BirthdayLocation birthday={birthday} country={country} />
-            ))}
+          {(!!birthday || !!country) && (
+            <BirthdayLocation birthday={birthday} country={country} />
+          )}
 
           {/* Connections Section */}
-          {connections && (
+          {connections && connections.length > 0 && (
             <Connections
               connections={connections}
               onConnectionPress={onConnectionPress}

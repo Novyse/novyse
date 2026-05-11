@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { View, StyleSheet, Pressable } from "react-native";
+import AppText from "./AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "./Icon";
 import useClipboard from "@/src/hooks/useClipboard";
 
@@ -10,7 +11,11 @@ interface CopyLabelProps {
   containerStyle?: any;
 }
 
-export default function CopyLabel({ text, label, containerStyle }: CopyLabelProps) {
+export default function CopyLabel({
+  text,
+  label,
+  containerStyle,
+}: CopyLabelProps) {
   const { theme } = useContext(ThemeContext);
   const { copyToClipboard, copied } = useClipboard();
   const styles = createStyles(theme);
@@ -21,12 +26,15 @@ export default function CopyLabel({ text, label, containerStyle }: CopyLabelProp
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <AppText style={styles.label} text={label} />}
       <View style={styles.contentContainer}>
         <View style={styles.textContainer}>
-          <Text style={styles.text} numberOfLines={1} ellipsizeMode="middle">
-            {text}
-          </Text>
+          <AppText
+            style={styles.text}
+            numberOfLines={1}
+            ellipsizeMode="middle"
+            text={text}
+          />
         </View>
         <Pressable
           onPress={handleCopy}
@@ -38,7 +46,6 @@ export default function CopyLabel({ text, label, containerStyle }: CopyLabelProp
         >
           <Icon
             name={copied ? "Tick01Icon" : "Copy01Icon"}
-            color={copied ? "#10b981" : theme.text}
             size={20}
           />
         </Pressable>
@@ -54,17 +61,15 @@ const createStyles = (theme: any) =>
     },
     label: {
       fontSize: 14,
-      color: "#a0a0a0",
+      color: theme.text,
       marginBottom: 8,
       fontWeight: "500",
     },
     contentContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: theme.divider,
+      backgroundColor: theme.primary,
+      borderRadius: 50,
       overflow: "hidden",
     },
     textContainer: {
@@ -79,11 +84,9 @@ const createStyles = (theme: any) =>
     },
     copyButton: {
       padding: 12,
-      borderLeftWidth: 1,
-      borderLeftColor: theme.divider,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: theme.backgroundCard,
+      backgroundColor: theme.primary,
     },
     copyButtonHovered: {
       backgroundColor: theme.backgroundHover,

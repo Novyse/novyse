@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
-  Text,
   Pressable,
   SafeAreaView,
   StatusBar,
 } from "react-native";
+import AppText from "@/src/components/AppText";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useEvent } from "expo";
 import Slider from "@react-native-community/slider";
@@ -25,8 +25,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { getPlatform } from "@/src/utils/device/type";
 import ModalBase from "../ModalBase";
-import { useScreen } from "@/context/ScreenContext";
+import { useScreen } from "@/src/context/ScreenContext";
 import useDownload from "@/src/hooks/file/useDownload";
+import useShare from "@/src/hooks/chat/useShare";
 
 const formatTime = (seconds) => {
   if (!seconds) return "00:00";
@@ -39,6 +40,8 @@ const speeds = [0.25, 0.5, 0.75, 1, 1.5, 2];
 
 const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
   const { downloadFile } = useDownload();
+  const { shareFileOrText } = useShare();
+  const isMobile = getPlatform() === "mobile";
   const { isSmallScreen } = useScreen();
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
 
@@ -154,6 +157,11 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
     await downloadFile({ uuid });
   };
 
+  const handleShare = async () => {
+    if (!uuid && !uri) return;
+    await shareFileOrText({ uuid, uri });
+  };
+
   if (!uri) return <View style={styles.container} />;
 
   return (
@@ -193,14 +201,13 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                 ]}
               >
                 <View style={styles.header}>
-                  <Icon name="Cancel01Icon" onPress={onClose} color="white" />
+                  <Icon name="Cancel01Icon" onPress={onClose} />
                   <View style={styles.rightButtons}>
                     {uuid && (
-                      <Icon
-                        name="Download01Icon"
-                        onPress={handleDownload}
-                        color="white"
-                      />
+                      <Icon name="Download01Icon" onPress={handleDownload} />
+                    )}
+                    {isMobile && (
+                      <Icon name="Share01Icon" onPress={handleShare} />
                     )}
                   </View>
                 </View>
@@ -209,7 +216,6 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                   <Icon
                     name="GoBackward10SecIcon"
                     size={32}
-                    color="white"
                     onPress={() => (player.currentTime -= 10)}
                   />
                   <Pressable
@@ -219,22 +225,21 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                     <Icon
                       name={isPlaying ? "PauseIcon" : "PlayIcon"}
                       size={40}
-                      color="white"
                     />
                   </Pressable>
                   <Icon
                     name="GoForward10SecIcon"
                     size={32}
-                    color="white"
                     onPress={() => (player.currentTime += 10)}
                   />
                 </View>
 
                 <View style={styles.footerContainer}>
                   <View style={styles.sliderRow}>
-                    <Text style={styles.timeText}>
-                      {formatTime(isSeeking ? seekTime : currentTime)}
-                    </Text>
+                    <AppText
+                      style={styles.timeText}
+                      text={formatTime(isSeeking ? seekTime : currentTime)}
+                    />
                     <Slider
                       style={styles.slider}
                       minimumValue={0}
@@ -252,10 +257,13 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                         setIsSeeking(false);
                         player.play();
                       }}
-                      minimumTrackTintColor="#3b82f6"
-                      thumbTintColor="#ffffff"
+                      minimumTrackTintColor={theme.primary}
+                      thumbTintColor={theme.primary}
                     />
-                    <Text style={styles.timeText}>{formatTime(duration)}</Text>
+                    <AppText
+                      style={styles.timeText}
+                      text={formatTime(duration)}
+                    />
                   </View>
 
                   <View style={styles.bottomActionsRow}>
@@ -265,7 +273,6 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                           volume === 0 ? "VolumeMute02Icon" : "VolumeHighIcon"
                         }
                         size={22}
-                        color="white"
                         onPress={() => (player.volume = volume > 0 ? 0 : 1)}
                       />
                       <Slider
@@ -274,8 +281,8 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                         maximumValue={1}
                         value={volume}
                         onValueChange={(v) => (player.volume = v)}
-                        minimumTrackTintColor="#3b82f6"
-                        thumbTintColor="#ffffff"
+                        minimumTrackTintColor={theme.primary}
+                        thumbTintColor={theme.primary}
                       />
                     </View>
                     <View style={styles.rightActions}>
@@ -283,9 +290,10 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                         style={styles.speedButton}
                         onPress={cycleSpeed}
                       >
-                        <Text style={styles.speedText}>
-                          {speeds[currentSpeedIndex]}x
-                        </Text>
+                        <AppText
+                          style={styles.speedText}
+                          text={`${speeds[currentSpeedIndex]}x`}
+                        />
                       </Pressable>
                       {getPlatform() === "web" && (
                         <Icon
@@ -294,7 +302,6 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                               ? "ArrowShrink02Icon"
                               : "ArrowExpand01Icon"
                           }
-                          color="white"
                           onPress={toggleFullscreen}
                         />
                       )}
@@ -333,7 +340,7 @@ const createStyle = (
     return StyleSheet.create({
       container: {
         flex: 1,
-        backgroundColor: "#000",
+        backgroundColor: theme.shadowColor,
         overflow: "hidden",
         alignItems: "center",
         justifyContent: "center",
@@ -350,7 +357,7 @@ const createStyle = (
       },
       overlay: {
         flex: 1,
-        backgroundColor: "rgba(0,0,0,0.4)",
+        backgroundColor: theme.backgroundModalOverlay,
         justifyContent: "space-between",
       },
       overlayLandscape: { paddingHorizontal: 40 },
@@ -374,17 +381,17 @@ const createStyle = (
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: "rgba(0,0,0,0.7)",
+        backgroundColor: theme.backgroundModalOverlay,
         justifyContent: "center",
         alignItems: "center",
         borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.2)",
+        borderColor: theme.borderColor,
       },
       footerContainer: { paddingBottom: 20, paddingHorizontal: 20 },
       sliderRow: { flexDirection: "row", alignItems: "center" },
       slider: { flex: 1, marginHorizontal: 10, height: 40 },
       timeText: {
-        color: "#fff",
+        color: theme.text,
         fontSize: 12,
         fontWeight: "600",
         minWidth: 40,
@@ -402,12 +409,12 @@ const createStyle = (
       volumeSlider: { flex: 1, marginLeft: 10, height: 30 },
       rightActions: { flexDirection: "row", alignItems: "center", gap: 20 },
       speedButton: {
-        backgroundColor: "rgba(255,255,255,0.2)",
+        backgroundColor: theme.backgroundCard,
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 5,
       },
-      speedText: { color: "white", fontSize: 12, fontWeight: "bold" },
+      speedText: { color: theme.text, fontSize: 12, fontWeight: "bold" },
     });
   })();
 

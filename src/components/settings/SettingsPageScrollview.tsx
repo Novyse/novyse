@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, ScrollView, Platform } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface SettingsPageScrollviewProps {
@@ -32,7 +32,7 @@ const SettingsPageScrollview = ({
 function createStyle(
   theme: any,
   isMenu: boolean,
-  insets: { top: number },
+  insets: { top: number; bottom: number },
   paddingTop: number,
 ) {
   return StyleSheet.create({
@@ -67,7 +67,7 @@ function createStyle(
     contentContainer: {
       gap: isMenu ? 0 : 20,
       paddingTop: paddingTop + insets.top,
-      paddingBottom: isMenu ? 0 : 20,
+      paddingBottom: (isMenu ? 0 : 20) + insets.bottom,
       paddingHorizontal: isMenu ? 0 : 20,
     },
   });
