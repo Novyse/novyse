@@ -28,6 +28,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
 import { useCommsContext } from "@/src/context/CommsContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useWindowSizeStore from "@/src/context/WindowSizeContext";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 
@@ -98,6 +99,7 @@ const ChatList = () => {
   const insets = useSafeAreaInsets();
 
   const { connected, room, participants } = useCommsContext();
+  const { isSidebarCollapsed } = useWindowSizeStore();
   const hasComms = connected && isSmallScreen;
 
   const styles = createStyle(theme, isSmallScreen, insets, hasComms);
@@ -209,23 +211,37 @@ const ChatList = () => {
   const renderDefaultHeader = useCallback(
     () => (
       <BlurredHeader
-        style={{
-          paddingHorizontal: 10,
-          paddingVertical: 5,
-        }}
+        style={[
+          {
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            justifyContent: "space-between",
+            alignItems: "center",
+          },
+          isSidebarCollapsed && {
+            width: 50,
+            height: 50,
+            borderRadius: 25,
+            paddingHorizontal: 0,
+            justifyContent: "center",
+            overflow: "hidden",
+          },
+        ]}
         commsHeader={commsHeaderComponent}
       >
         <Image
           source={require("@/assets/images/logo-novyse.png")}
           style={styles.logo}
         />
-        <Icon
-          name={"Search02Icon"}
-          onPress={() => tabNavigator.navigate("Search")}
-        />
+        {!isSidebarCollapsed && (
+          <Icon
+            name={"Search02Icon"}
+            onPress={() => tabNavigator.navigate("Search")}
+          />
+        )}
       </BlurredHeader>
     ),
-    [styles.logo, commsHeaderComponent],
+    [styles.logo, commsHeaderComponent, isSidebarCollapsed],
   );
 
   const renderSelectionHeader = useCallback(
@@ -317,6 +333,7 @@ const ChatList = () => {
         isActive={item.uuid === selectedChatUUID && !isSmallScreen}
         isPinned={isPinned}
         unreadCount={item.unreadCount}
+        isSidebarCollapsed={isSidebarCollapsed}
         onPress={handlePress}
         onLongPress={handleLongPress}
       />
@@ -342,20 +359,25 @@ const ChatList = () => {
         extraData={selectedItems}
       />
 
-      <FloatingButton
-        onPress={() => {
-          if (Platform.OS !== "web") {
-            createChatModalRef.current?.present();
-          } else {
-            setIsCreateChatModalVisible(true);
-          }
-        }}
-        iconName="ChatAddIcon"
-        size={isSmallScreen ? 16 : 24}
-        width={isSmallScreen ? 45 : 60}
-        height={isSmallScreen ? 45 : 60}
-        position={{ bottom: isSmallScreen ? 100 : 25, right: 20 }}
-      />
+      {!isSidebarCollapsed && (
+        <FloatingButton
+          onPress={() => {
+            if (Platform.OS !== "web") {
+              createChatModalRef.current?.present();
+            } else {
+              setIsCreateChatModalVisible(true);
+            }
+          }}
+          iconName="ChatAddIcon"
+          size={isSmallScreen ? 16 : 24}
+          width={isSmallScreen ? 45 : 60}
+          height={isSmallScreen ? 45 : 60}
+          position={{
+            bottom: isSmallScreen ? 100 : 25,
+            right: 20,
+          }}
+        />
+      )}
 
       <CreateChatModal
         ref={createChatModalRef}
@@ -370,6 +392,7 @@ function createStyle(theme, isSmallScreen, insets, hasComms) {
   return StyleSheet.create({
     flatList: {
       flex: 1,
+      overflow: "hidden",
       ...(Platform.OS === "web" && {
         scrollbarWidth: "thin",
         scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,

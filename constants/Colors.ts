@@ -183,7 +183,7 @@ export const Colors = {
     placeholderText: "#555555",
     backgroundDateSeparator: "#000000",
     shadowColor: "#000000",
-    borderColor: "#222222",
+    borderColor: "#000000ff",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.05)",
     backgroundStatusBar: "#000000",
     backgroundCard: "#000000",
@@ -205,48 +205,6 @@ export const Colors = {
     backgroundScrollbar: "transparent",
     scrollbarHover: "#555555",
   },
-  unifi: {
-    // 🎨 Colori primari e di base
-    icon: "white",
-    iconSuccess: "#44b244",
-    iconDanger: "#eb4444",
-    iconHover: "#d4d4d4",
-    iconPressed: "#0000004d",
-    iconSecondary: "#c9d1d9",
-    messagesLink: "#61abe6",
-    placeholderText: "#bfbfbf",
-    primary: "#4fb3e1",
-    text: "white",
-
-    // 🖼️ Background principali
-    backgroundCard: "#416a90",
-    backgroundDateSeparator: "#17212b",
-    backgroundSearchResultItem: "#376797",
-    backgroundTextField: "#374e68",
-
-    // 🧩 Vari
-    borderColor: "#272727",
-    badgeColor: "#16638e",
-
-    // 🌈 Gradients
-    backgroundChatContentGradient: ["transparent", "transparent"],
-    backgroundChatListItemGradient: ["#16638e", "#197bb0"],
-    backgroundChatListGradient: ["transparent", "transparent"],
-    backgroundChatListItemSelectedGradient: ["#2899cf", "#4fb3e1"],
-    backgroundChatTextInputGradient: ["#16638e", "#2899cf"],
-    backgroundHeaderGradient: ["transparent", "transparent"],
-    backgroundMainGradient: ["#0e283a", "#16638e"],
-    backgroundCommsFloatingBarGradient: ["#165376", "#2899cf", "#4fb3e1"],
-    backgroundMessageBaseGradient: ["#0e283a", "#2b5278"],
-    backgroundSearchGradient: ["transparent", "transparent"],
-    settingPagesGradient: ["#0e283a", "#16638e"],
-
-    // ⚙️ Settings aggiuntivi
-    ChatIconsPickerModalBorderColor: "#ffffff",
-    ChatIconsPickerModalTabInactiveText: "#b1b1b1",
-    settingsHoveredButton: "#4f8dffb9",
-    settingsPressedButton: "#2a68dc",
-  },
 };
 
 export const ThemeRegistry: Record<
@@ -261,14 +219,6 @@ export const ThemeRegistry: Record<
     modes: ["dark"],
     colors: { dark: "default" },
   },
-  light: {
-    modes: ["light"],
-    colors: { light: "light" },
-  },
-  dark: {
-    modes: ["dark"],
-    colors: { dark: "dark" },
-  },
   amoled: {
     modes: ["dark"],
     colors: { dark: "amoled" },
@@ -276,9 +226,5 @@ export const ThemeRegistry: Record<
   "Amoled Extreme": {
     modes: ["dark"],
     colors: { dark: "Amoled Extreme" },
-  },
-  unifi: {
-    modes: ["dark"],
-    colors: { dark: "unifi" },
   },
 };

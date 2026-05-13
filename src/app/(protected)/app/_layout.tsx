@@ -51,10 +51,14 @@ export default function RootLayout() {
     setDetailWidth,
     minDetailWidth,
     setMinDetailWidth,
+    isSidebarCollapsed,
+    setSidebarCollapsed,
     isStorageReady,
   } = useWindowSizeStore();
 
-  const MIN_CHAT_LIST_WIDTH = 280;
+  const SIDEBAR_THRESHOLD = 250;
+  const COLLAPSED_SIDEBAR_WIDTH = 80;
+  const MIN_CHAT_LIST_WIDTH = 80;
 
   const resizerHandlers = usePanelResizer({
     currentWidth: detailWidth,
@@ -62,8 +66,19 @@ export default function RootLayout() {
     minWidth: minDetailWidth,
     maxWidthPadding: MIN_CHAT_LIST_WIDTH + 20,
   });
-  const prevWidthRef = useRef(width);
 
+  useEffect(() => {
+    const sidebarWidth = width - detailWidth;
+
+    if (!isSidebarCollapsed && sidebarWidth < SIDEBAR_THRESHOLD) {
+      setSidebarCollapsed(true);
+      setDetailWidth(width - COLLAPSED_SIDEBAR_WIDTH);
+    } else if (isSidebarCollapsed && sidebarWidth > SIDEBAR_THRESHOLD) {
+      setSidebarCollapsed(false);
+    }
+  }, [width, detailWidth, isSidebarCollapsed]);
+
+  const prevWidthRef = useRef(width);
   useEffect(() => {
     const delta = width - prevWidthRef.current;
     prevWidthRef.current = width;
@@ -75,7 +90,7 @@ export default function RootLayout() {
       }
       return Math.max(minDetailWidth, Math.min(maxDetail, newWidth));
     });
-  }, [width, minDetailWidth, setDetailWidth]);
+  }, [width, minDetailWidth, setDetailWidth, MIN_CHAT_LIST_WIDTH]);
 
   // Initialize database if needed
   const [hasInitialized, setHasInitialized] = useState<boolean | null>(null);
@@ -160,7 +175,7 @@ export default function RootLayout() {
     return null;
   }
 
-  // For  we always show the detail stack as a full-screen overlay when a detail is open
+  // For mobile we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {
     return (
       <View
@@ -202,20 +217,36 @@ export default function RootLayout() {
     );
   }
 
+  const currentSidebarWidth = isSidebarCollapsed
+    ? COLLAPSED_SIDEBAR_WIDTH
+    : width - detailWidth;
+
   return (
     <View
       style={{
-        flexDirection: "row",
         flex: 1,
+        flexDirection: "row",
         backgroundColor: theme.backgroundMainGradient[1],
       }}
     >
-      <View style={{ flex: 1, padding: 10 }}>
-        <TabNavigator isDetailOpen={isDetailOpen} />
-      </View>
       <View
         style={{
-          width: detailWidth,
+          width: currentSidebarWidth,
+          height: "100%",
+          padding: 10,
+          paddingHorizontal: isSidebarCollapsed ? 5 : 10,
+          backgroundColor: theme.backgroundMainGradient[1],
+        }}
+      >
+        <TabNavigator isDetailOpen={isDetailOpen} />
+      </View>
+
+      <View
+        style={{
+          width: isSidebarCollapsed
+            ? width - COLLAPSED_SIDEBAR_WIDTH
+            : detailWidth,
+          height: "100%",
           position: "relative",
         }}
       >
