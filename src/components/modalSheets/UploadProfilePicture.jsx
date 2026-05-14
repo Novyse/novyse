@@ -90,7 +90,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       // Confirm upload to backend
       const confirmResponse =
         await gateway.user.profile.picture.confirm(fileUUID);
-      const { success: confirmSuccess, profilePictureUUID } = confirmResponse;
+      const { success: confirmSuccess } = confirmResponse;
       if (!confirmSuccess)
         throw new Error("Failed to confirm upload with backend");
 
@@ -98,7 +98,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       // Add to database
 
       await database.file.add(
-        profilePictureUUID,
+        fileUUID,
         file.name || file.fileName,
         file.mimeType,
         file.size || file.fileSize,
@@ -108,12 +108,12 @@ const UploadProfilePicture = ({ visible, onClose }) => {
       const { ref, size } = await storage.save.byUri(file.uri);
 
       // Add ref to database
-      await database.file.update.ref(profilePictureUUID, ref);
+      await database.file.update.ref(fileUUID, ref);
 
       // Link to local user
       await eventEmitter.user.profile.update({
         userUUID: myUUID,
-        profilePictureUUID,
+        profilePictureUUID: fileUUID,
       });
     } catch (error) {
       console.error("Error uploading profile picture:", error);
