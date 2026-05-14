@@ -77,9 +77,20 @@ const useChatStore = create<ChatState>((set, get) => ({
   },
 
   loadChats: async () => {
-    const fetchedChats = await database.chat.get.all(
-      useUserStore.getState().localUserUUID,
-    );
+    let localUserUUID = useUserStore.getState().localUserUUID;
+    if (!localUserUUID || localUserUUID === "") {
+      // if user not loaded yet, wait for it
+      await new Promise((resolve) => {
+        const unsubscribe = useUserStore.subscribe((state) => {
+          if (state.localUserUUID && state.localUserUUID !== "") {
+            resolve(state.localUserUUID);
+            unsubscribe();
+          }
+        });
+      });
+      localUserUUID = useUserStore.getState().localUserUUID;
+    }
+    const fetchedChats = await database.chat.get.all(localUserUUID);
 
     set((state) => {
       const mergedChats = fetchedChats.map((fetchedChat: any) => {
@@ -108,7 +119,8 @@ const useChatStore = create<ChatState>((set, get) => ({
       const fetchedIds = new Set(mergedChats.map((c: any) => c.uuid));
       const memoryChats = state.chats.filter((c) => !fetchedIds.has(c.uuid));
 
-      return { chats: [...mergedChats, ...memoryChats] };
+      const finalChats = [...mergedChats, ...memoryChats];
+      return { chats: finalChats };
     });
     get().setupEvents();
   },
