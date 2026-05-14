@@ -23,14 +23,6 @@ export default function ErrorPage() {
       <View style={styles.card}>
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
-
-          <View style={styles.iconCircle}>
-            <Icon
-              name="Note01Icon"
-              color={LoginColors[LOGIN_THEME].title}
-              size={48}
-            />
-          </View>
           <AppText
             style={styles.title}
             translationKey="common.errorPage.title"
@@ -78,15 +70,6 @@ function createStyle(isSmallScreen: boolean) {
       height: 100,
       width: 100,
       marginBottom: 32,
-    },
-    iconCircle: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: LoginColors[LOGIN_THEME].subtitle,
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 24,
     },
     title: {
       fontSize: 32,
