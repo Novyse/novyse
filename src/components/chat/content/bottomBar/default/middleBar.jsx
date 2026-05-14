@@ -1,5 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import { Platform, StyleSheet, TextInput, View } from "react-native";
+import { router } from "expo-router";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 import { Duration } from "luxon";
@@ -11,6 +12,7 @@ import RecordingDot from "@/src/components/RecordingDot";
 import SpeechIndicator from "@/src/components/SpeechIndicator";
 import { getPlatform } from "@/src/utils/device/type";
 import { toDroppedFile } from "@/src/components/input/WebDropZone";
+import { handleChatShortcuts } from "@/src/utils/shortcut/chatShortcuts";
 
 const MiddleBar = ({
   newMessageText,
@@ -25,6 +27,11 @@ const MiddleBar = ({
   recorderState,
   handleTogglePause,
   handleStopAndDraft,
+  onCancelReply,
+  editingMessage,
+  onCancelEdit,
+  replyingTo,
+  onPressArrowUp,
 }) => {
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
@@ -74,6 +81,16 @@ const MiddleBar = ({
                 : undefined
             }
             onFocus={onInputFocus}
+            onKeyPress={(e) => {
+              handleChatShortcuts(e, {
+                editingMessage,
+                replyingTo,
+                onCancelEdit,
+                onCancelReply,
+                onPressArrowUp,
+                isInputEmpty: newMessageText === "",
+              });
+            }}
           />
           <Icon name="SmileIcon" style={styles.icon} onPress={onToggleEmoji} />
         </BlurredView>

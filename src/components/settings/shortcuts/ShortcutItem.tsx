@@ -8,6 +8,7 @@ interface ShortcutItemProps {
   translationKey?: string;
   keys: string[];
   onPress?: () => void;
+  disabled?: boolean;
 }
 
 const ShortcutItem = ({
@@ -15,12 +16,17 @@ const ShortcutItem = ({
   translationKey,
   keys,
   onPress = () => {},
+  disabled,
 }: ShortcutItemProps) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={onPress}
+      disabled={disabled}
+    >
       {translationKey ? (
         <AppText style={styles.label} translationKey={translationKey} />
       ) : (
@@ -50,8 +56,7 @@ const createStyle = (theme: any) =>
       justifyContent: "space-between",
       paddingVertical: 12,
       paddingHorizontal: 16,
-      backgroundColor:
-        theme.backgroundMainSecondary,
+      backgroundColor: theme.backgroundMainSecondary,
       borderRadius: 12,
       marginVertical: 4,
     },

@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { Platform, View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
+import { handleChatShortcuts } from "@/src/utils/shortcut/chatShortcuts";
 
 import { KeyboardStickyView } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -118,6 +119,10 @@ const ChatContent = () => {
 
   const preparedMessages = usePreparedMessages(messages, chat.type);
 
+  useEffect(() => {
+    textInputRef.current?.focus();
+  }, []);
+
   const {
     handleSendMessage,
     handleReadMessage,
@@ -136,12 +141,15 @@ const ChatContent = () => {
     setSheetIndex,
     bottomSheetRef,
   );
-  
+
   const { startForwarding } = useForward();
 
-  const handleForward = useCallback((msg) => {
-    startForwarding([msg]);
-  }, [startForwarding]);
+  const handleForward = useCallback(
+    (msg) => {
+      startForwarding([msg]);
+    },
+    [startForwarding],
+  );
 
   const handleAppendFilesToDraft = useCallback(
     (newFiles) => {
@@ -239,6 +247,20 @@ const ChatContent = () => {
     },
     [handlePausePendingMessage],
   );
+
+  const handlePressArrowUp = useCallback(() => {
+    if (newMessageText !== "") return;
+    if (!messages || messages.length === 0) return;
+
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) return;
+
+    if (lastMessage.senderUUID === myUUID) {
+      handleEdit(lastMessage);
+    } else {
+      handleReply(lastMessage);
+    }
+  }, [messages, myUUID, handleEdit, handleReply, newMessageText]);
 
   const handleCancelReply = useCallback((messageID) => {
     if (!messageID) {
@@ -389,6 +411,29 @@ const ChatContent = () => {
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      handleChatShortcuts(e, {
+        editingMessage,
+        replyingTo,
+        onCancelEdit: handleCancelEdit,
+        onCancelReply: handleCancelReply,
+        onPressArrowUp: handlePressArrowUp,
+        isInputEmpty: newMessageText === "",
+      });
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    editingMessage,
+    replyingTo,
+    handleCancelEdit,
+    handleCancelReply,
+    handlePressArrowUp,
+    newMessageText,
+  ]);
+
   if (loading) {
     return null;
   }
@@ -450,6 +495,7 @@ const ChatContent = () => {
             mentionMembers={mentionMembers}
             onSelectMention={onSelectMention}
             onRecordingActivityChange={emitRecording}
+            onPressArrowUp={handlePressArrowUp}
           />
         </KeyboardStickyView>
 

@@ -23,6 +23,7 @@ const BottomBar = ({
   mentionMembers,
   onSelectMention,
   onRecordingActivityChange,
+  onPressArrowUp,
 }) => {
 
   const insets = useSafeAreaInsets();
@@ -53,6 +54,7 @@ const BottomBar = ({
         mentionMembers={mentionMembers}
         onSelectMention={onSelectMention}
         onRecordingActivityChange={onRecordingActivityChange}
+        onPressArrowUp={onPressArrowUp}
       />
     </View>
   );

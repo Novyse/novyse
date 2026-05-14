@@ -32,6 +32,7 @@ const DefaultBar = ({
   mentionMembers,
   onSelectMention,
   onRecordingActivityChange,
+  onPressArrowUp,
 }) => {
   const {
     isRecording,
@@ -84,6 +85,10 @@ const DefaultBar = ({
           handleTogglePause={handleTogglePause}
           handleStopAndDraft={() => handleStopAndDraft(onFileAppend)}
           onCancelReply={onCancelReply}
+          editingMessage={editingMessage}
+          onCancelEdit={onCancelEdit}
+          replyingTo={replyingTo}
+          onPressArrowUp={onPressArrowUp}
         />
 
         <RightButton

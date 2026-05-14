@@ -293,7 +293,11 @@
       "scanError": "Unable to handle QR code scan."
     },
     "shortcuts": {
-      "muteUnmute": "Mute / Unmute"
+      "muteUnmute": "Mute / Unmute",
+      "cancelEditReply": "Cancel edit / Remove reply / Close chat",
+      "arrowUpChat": "Edit / Reply to last message",
+      "chatTitle": "Chat Shortcuts",
+      "commsTitle": "Vocal Shortcuts"
     },
     "comms": {
       "title": "Comms",

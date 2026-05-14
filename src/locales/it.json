@@ -292,7 +292,11 @@
       "scanError": "Impossibile gestire la scansione del codice QR."
     },
     "shortcuts": {
-      "muteUnmute": "Silenzia / Non silenziare"
+      "muteUnmute": "Silenzia / Non silenziare",
+      "cancelEditReply": "Annulla modifica / Rimuovi risposta / Chiudi chat",
+      "arrowUpChat": "Modifica / Rispondi all'ultimo messaggio",
+      "chatTitle": "Scorciatoie Chat",
+      "commsTitle": "Scorciatoie Vocale"
     },
     "comms": {
       "title": "Comunicazioni",
