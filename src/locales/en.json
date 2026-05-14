@@ -108,6 +108,7 @@
       "noFiles": "No files shared yet",
       "notSpecified": "Not specified",
       "noBiographyYet": "No biography yet",
+      "noDescriptionYet": "No description yet",
       "actions": {
         "settings": "Settings",
         "block": "Block",
