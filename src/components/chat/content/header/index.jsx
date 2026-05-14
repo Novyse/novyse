@@ -15,6 +15,7 @@ import useChatStore from "@/src/context/ChatContext";
 import { useCommsContext } from "@/src/context/CommsContext";
 
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 const Header = ({
   chatUUIDorHandle,
@@ -34,6 +35,8 @@ const Header = ({
   const { currentUri } = useContext(AudioPlayerContext);
 
   const isVoiceActive = !!currentUri;
+
+  const setHeaderHeight = useActiveChatStore((state) => state.setHeaderHeight);
 
   const pinnedMessages = useChatStore((state) => {
     const chat = state.chats.find(
@@ -61,8 +64,20 @@ const Header = ({
 
   const activeRadius = isHeaderExpanded ? 15 : 100;
 
+  const handleLayout = React.useCallback(
+    (e) => {
+      if (setHeaderHeight) {
+        setHeaderHeight(e.nativeEvent.layout.height);
+      }
+    },
+    [setHeaderHeight],
+  );
+
   return (
-    <HeaderBase style={[styles.headerBase, { borderRadius: activeRadius }]}>
+    <HeaderBase
+      style={[styles.headerBase, { borderRadius: activeRadius }]}
+      onLayout={handleLayout}
+    >
       <BlurredView
         style={[styles.headerColumnContainer, { borderRadius: activeRadius }]}
       >

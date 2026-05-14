@@ -1,10 +1,17 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useMemo,
+} from "react";
 import { StyleSheet, Platform, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardChatScrollView } from "react-native-keyboard-controller";
 
 import useMessageActions from "@/src/hooks/chat/useMessageActions";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import MessageBase from "@/src/components/messages/MessageBase";
 import MessageSystem from "@/src/components/messages/MessageSystem";
@@ -38,7 +45,11 @@ const MessageList = ({
   onLoadMore,
 }) => {
   const insets = useSafeAreaInsets();
-  const styles = createStyle(theme, insets);
+  const headerHeight = useActiveChatStore((state) => state.headerHeight);
+  const styles = useMemo(
+    () => createStyle(theme, insets, headerHeight),
+    [theme, insets, headerHeight],
+  );
 
   const [highlightedID, setHighlightedID] = useState(null);
   const [historyStack, setHistoryStack] = useState([]);
@@ -109,7 +120,7 @@ const MessageList = ({
     onForward,
   });
 
-  const [showScrollButton, setShowScrollButton] = useState(false);
+    const [showScrollButton, setShowScrollButton] = useState(false);
   const handleScroll = useCallback((event) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
     if (contentSize.height === 0) return;
@@ -298,7 +309,7 @@ const MessageList = ({
 
 export default React.memo(MessageList);
 
-const createStyle = (theme, insets) =>
+const createStyle = (theme, insets, headerHeight = 0) =>
   StyleSheet.create({
     list: {
       flex: 1,
@@ -324,7 +335,7 @@ const createStyle = (theme, insets) =>
       }),
     },
     listContent: {
-      paddingTop: 70 + insets.top,
+      paddingTop: Math.max(70, headerHeight + 10) + insets.top,
       paddingBottom: 70 + insets.bottom,
     },
     scrollButtonContainer: {
