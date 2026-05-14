@@ -1,5 +1,6 @@
 import React from "react";
-import { View, TouchableWithoutFeedback, Text, StyleSheet } from "react-native";
+import { View, TouchableWithoutFeedback, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { OverKeyboardView } from "react-native-keyboard-controller";
@@ -13,7 +14,7 @@ const UploadFileOverlay = ({
   sheetIndex,
   onSheetChange,
   onMenuItemPress,
-  onSendMessage,
+  onFileSelected,
   bottomSheetRef,
   theme,
 }) => {
@@ -22,33 +23,44 @@ const UploadFileOverlay = ({
   const items = [
     {
       action: "Media",
+      translationKey: "chat.uploadOverlay.media",
       iconName: "Album01Icon",
-      color: "white",
+      color: theme.icon,
       disabled: false,
     },
     {
       action: "Camera",
+      translationKey: "chat.uploadOverlay.camera",
       iconName: "Camera01Icon",
-      color: "white",
+      color: theme.icon,
       disabled: true,
     },
-    { action: "File", iconName: "File01Icon", color: "white", disabled: false },
+    {
+      action: "File",
+      translationKey: "chat.uploadOverlay.file",
+      iconName: "File01Icon",
+      color: theme.icon,
+      disabled: false,
+    },
     {
       action: "Location",
+      translationKey: "chat.uploadOverlay.location",
       iconName: "Location06Icon",
-      color: "white",
+      color: theme.icon,
       disabled: true,
     },
     {
       action: "Todo",
+      translationKey: "chat.uploadOverlay.todo",
       iconName: "TaskAdd01Icon",
-      color: "white",
+      color: theme.icon,
       disabled: true,
     },
     {
       action: "Poll",
+      translationKey: "chat.uploadOverlay.poll",
       iconName: "TaskEdit01Icon",
-      color: "white",
+      color: theme.icon,
       disabled: true,
     },
   ];
@@ -56,11 +68,17 @@ const UploadFileOverlay = ({
   const handleMenuItemPress = async (action) => {
     const files = await onMenuItemPress(action);
     if (files && (action === "Media" || action === "File")) {
-      onSendMessage(files);
+      onFileSelected(files);
     }
   };
 
-  const renderMenuItem = (action, iconName, color, disabled) => (
+  const renderMenuItem = (
+    action,
+    iconName,
+    color,
+    disabled,
+    translationKey,
+  ) => (
     <HoverAndPressedButton
       key={action}
       style={styles.menuItem}
@@ -68,7 +86,7 @@ const UploadFileOverlay = ({
       disabled={disabled}
     >
       <Icon name={iconName} size={32} color={color} />
-      <Text style={styles.menuText}>{action}</Text>
+      <AppText style={styles.menuText} translationKey={translationKey} />
     </HoverAndPressedButton>
   );
 
@@ -89,6 +107,7 @@ const UploadFileOverlay = ({
                     item.iconName,
                     item.color,
                     item.disabled,
+                    item.translationKey,
                   ),
                 )}
               </View>
@@ -130,6 +149,7 @@ const UploadFileOverlay = ({
                           item.iconName,
                           item.color,
                           item.disabled,
+                          item.translationKey,
                         ),
                       )}
                     </View>
@@ -158,10 +178,10 @@ const createStyle = (theme) =>
     sheetBackground: {
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
-      backgroundColor: theme.backgroundSecondary || "#00b7ff",
+      backgroundColor: theme.backgroundMain,
     },
     handleIndicator: {
-      backgroundColor: theme.divider || "#ccc",
+      backgroundColor: theme.subtitle,
     },
     sheetContent: {
       flex: 1,
@@ -175,7 +195,7 @@ const createStyle = (theme) =>
     },
     menuItem: {
       alignItems: "center",
-      borderRadius: 10
+      borderRadius: 10,
     },
     menuText: {
       marginTop: 6,
@@ -192,12 +212,12 @@ const createStyle = (theme) =>
       zIndex: 1000,
     },
     floatingMenu: {
-      backgroundColor: theme.backgroundBottomsheet || "#F0F0F0",
+      backgroundColor: theme.backgroundMain,
       borderRadius: 15,
       padding: 10,
       alignSelf: "flex-start",
       marginLeft: 10,
-      shadowColor: "#000",
+      shadowColor: theme.shadowColor,
       shadowOffset: {
         width: 0,
         height: 2,

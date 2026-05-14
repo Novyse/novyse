@@ -1,9 +1,12 @@
 import React, { useContext, useMemo } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { View, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
-import { AudioPlayerContext } from "@/context/AudioPlayerContext";
+import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
+import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
+import FileSizeProgress from "./FileSizeProgress";
 
 import { formatTime, formatDuration } from "@/src/utils/storage/file/utils";
 import SmoothWaveform from "../SmoothWaveform";
@@ -12,8 +15,10 @@ import PlayButton from "./Button";
 const MessageVoice = ({
   audioRef,
   uuid,
+  size,
   message,
   duration,
+  isPending,
   waveform = undefined,
 }) => {
   const {
@@ -37,13 +42,17 @@ const MessageVoice = ({
   const styles = useMemo(() => createStyle(theme), [theme]);
 
   const isReady = !!playableUri;
+  const { uri: profilePictureUri } = useProfilePicture(
+    message.profile_picture_uuid,
+  );
 
   const handlePlayPress = () => {
     addInfo(
       message.chatUUID,
       message.id,
-      message.sender_name,
-      message.created_at
+      message.senderUUID,
+      profilePictureUri,
+      message.created_at,
     );
     handlePlayPause(playableUri);
   };
@@ -52,6 +61,7 @@ const MessageVoice = ({
     <View style={styles.container}>
       <PlayButton
         uuid={uuid}
+        isPending={isPending}
         isAvailable={!!audioRef}
         isReady={isReady}
         isPlaying={isThisPlaying}
@@ -72,9 +82,11 @@ const MessageVoice = ({
           />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.durationText} selectable={false}>
-            {formatTime(thisCurrentTime)} / {formatDuration(duration)}
-          </Text>
+          <AppText
+            style={styles.durationText}
+            text={`${formatTime(thisCurrentTime)} / ${formatDuration(duration)}`}
+          />
+          <FileSizeProgress uuid={uuid} size={size} style={styles.sizeText} />
         </View>
       </View>
     </View>
@@ -86,7 +98,8 @@ function createStyle(theme) {
     container: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 8,
+      paddingHorizontal: 10,
+      paddingTop: 5,
       minWidth: 180,
     },
     progressContainer: {
@@ -103,7 +116,6 @@ function createStyle(theme) {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginTop: 6,
     },
     durationText: {
       fontSize: 12,
@@ -113,10 +125,10 @@ function createStyle(theme) {
       opacity: 0.8,
     },
     sizeText: {
-      fontSize: 11,
+      fontSize: 12,
       color: theme.text,
-      opacity: 0.6,
       textAlign: "right",
+      opacity: 0.8,
     },
   });
 }

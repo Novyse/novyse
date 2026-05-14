@@ -1,0 +1,69 @@
+import React, { useState } from "react";
+import { View, Image, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+
+import Icon from "@/src/components/Icon";
+import HoverAndPressedButton from "./HoverAndPressedButton";
+
+interface BannerProps {
+  uuid?: string;
+  uri?: string;
+  height?: number;
+  theme: any;
+  onEdit?: () => void;
+}
+
+const Banner = React.memo(
+  ({ uuid, uri, height = 190, theme, onEdit = undefined }: BannerProps) => {
+    const styles = createStyles(theme, height);
+
+    const [isHovered, setIsHovered] = useState(false);
+
+    const renderBannerImage = () => (
+      <Image
+        source={{
+          uri: uri || "https://www.novyse.com/images/banner/default.jpg",
+        }}
+        style={styles.bannerImage}
+      />
+    );
+
+    return onEdit ? (
+      <HoverAndPressedButton
+        onPress={onEdit}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={styles.hoverButtonContainer}
+      >
+        {renderBannerImage()}
+        {isHovered && (
+          <View style={styles.editIconContainer}>
+            <Icon name="UnavailableIcon" color={theme.text} />
+          </View>
+        )}
+      </HoverAndPressedButton>
+    ) : (
+      renderBannerImage()
+    );
+  },
+);
+
+export default Banner;
+
+const createStyles = (theme: any, height: number) =>
+  StyleSheet.create({
+    bannerImage: {
+      width: "100%",
+      height: height,
+      resizeMode: "cover",
+    },
+    hoverButtonContainer: { padding: 0, borderRadius: 0 },
+
+    editIconContainer: {
+      position: "absolute",
+      justifyContent: "center",
+      alignItems: "center",
+      width: "100%",
+      height: "100%",
+    },
+  });

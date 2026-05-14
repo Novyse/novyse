@@ -1,7 +1,6 @@
 import EventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
 import database from "@/src/utils/storage/database";
-
-import messageUtils from "@/src/utils/chat/message";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 class GlobalEventEmitter {
   constructor() {
@@ -12,127 +11,233 @@ class GlobalEventEmitter {
     return this.eventEmitter;
   }
 
-  async newMessage(message) {
-    
-    if (!message.fromSubscription) {
-      await messageUtils.add(message);
-    }
-    const msg = await database.addSenderNameToMessage(message);
-    //@SamueleOrazioDurante to be changes, devi usare un metodo che vada a carcare nel database, eventualmente lo vada a pullare dal server, ma solo temporaneamente (il pull completo viene fatto al join)
-    this.eventEmitter.emit("message:new", msg);
-  }
-
-  async newChat(chat, messages = []) {
-    
-    await database.addChat(chat);
-
-    if (messages.length > 0) {
-      for (const message of messages) {
-        await database.addMessage(message);
-      }
-    }
-    this.eventEmitter.emit("newChat", chat);
-  }
-
-  async userJoined(chatUUID, user) {
-    
-    await database.addMember(chatUUID, user);
-    this.eventEmitter.emit("userJoined", { chatUUID, user });
-  }
-
-  async userLeft(chatUUID, user) {
-    
-    await database.removeMember(chatUUID, user);
-    this.eventEmitter.emit("userLeft", { chatUUID, user });
-  }
-
   async fileReady(fileUUID, uri) {
-    
     await database.updateFileURI(fileUUID, uri);
     this.eventEmitter.emit("fileReady", { fileUUID });
   }
 
+  message = {
+    new: async (message) => {
+      await database.message.add(message);
+      this.eventEmitter.emit("message:new", message);
+    },
+    update: async (chatUUID, messageID, action, eventID, data) => {
+      switch (action) {
+        case "edit":
+          await database.message.edit(chatUUID, messageID, data.content);
+          break;
+        case "delete":
+          await database.message.delete(chatUUID, messageID);
+          break;
+        case "pin_add":
+          await database.message.pin.add(
+            chatUUID,
+            messageID,
+            data.pinnedAt,
+            data.userUUID,
+          );
+          break;
+        case "pin_remove":
+          await database.message.pin.remove(chatUUID, messageID);
+          break;
+        case "reaction_add":
+          await database.message.reaction.add(
+            chatUUID,
+            messageID,
+            data.reaction,
+            data.reactedAt,
+            data.userUUID,
+          );
+          break;
+        case "reaction_remove":
+          await database.message.reaction.remove(
+            chatUUID,
+            messageID,
+            data.reaction,
+            data.userUUID,
+          );
+          break;
+        case "read":
+          await database.message.read.add(
+            chatUUID,
+            messageID,
+            data.userUUID,
+            data.readAt,
+          );
+          break;
+        default:
+          break;
+      }
+
+      if (eventID) {
+        await database.event.chat.update(chatUUID, eventID);
+      }
+
+      this.eventEmitter.emit("message:update", {
+        chatUUID,
+        messageID,
+        action,
+        data,
+      });
+    },
+  };
+
   user = {
+    setting: {
+      chat: {
+        update: async (chatUUID, action, eventID, data) => {
+          switch (action) {
+            case "pin_add":
+              await database.chat.pin.add(chatUUID, data.position);
+              break;
+            case "pin_remove":
+              await database.chat.pin.remove(chatUUID);
+              break;
+            default:
+              break;
+          }
+
+          if (eventID) {
+            await AsyncStorage.setItem("userEventID", eventID);
+          }
+
+          this.eventEmitter.emit("user:setting:chat:update", {
+            chatUUID,
+            action,
+            data,
+          });
+        },
+      },
+    },
     profile: {
-      picture: {
-        update: async (userUUID, profilePictureUUID) => {
-          
+      update: async (data, eventID) => {
+        const {
+          userUUID,
+          name,
+          surname,
+          biography,
+          profilePictureUUID,
+          bannerPictureUUID,
+          birthday,
+          region,
+          country,
+          color,
+          handle,
+        } = data;
+
+        if (!userUUID) return;
+
+        if (name) {
+          await database.user.profile.name.update(userUUID, name);
+        }
+        if (surname) {
+          await database.user.profile.surname.update(userUUID, surname);
+        }
+        if (biography) {
+          await database.user.profile.biography.update(userUUID, biography);
+        }
+        if (profilePictureUUID) {
           await database.user.profile.picture.update(
             userUUID,
             profilePictureUUID,
           );
-          this.eventEmitter.emit("user:profile:picture:update", {
+        }
+        if (birthday) {
+          await database.user.profile.birthday.update(userUUID, birthday);
+        }
+        if (region) {
+          await database.user.profile.region.update(userUUID, region);
+        }
+        if (country) {
+          await database.user.profile.country.update(userUUID, country);
+        }
+        if (bannerPictureUUID) {
+          await database.user.profile.banner.update(
             userUUID,
-            profilePictureUUID,
-          });
-        },
+            bannerPictureUUID,
+          );
+        }
+        if (color) {
+          await database.user.profile.color.update(userUUID, color);
+        }
+        if (handle) {
+          await database.handle.update.user(userUUID, handle);
+        }
+
+        if (eventID) {
+          await database.event.user.profile.update(userUUID, eventID);
+        }
+
+        this.eventEmitter.emit("user:profile:update", {
+          userUUID,
+          name,
+          surname,
+          biography,
+          profilePictureUUID,
+          bannerPictureUUID,
+          birthday,
+          region,
+          country,
+          color,
+          handle,
+        });
+      },
+    },
+    presence: {
+      update: async (userUUID, status, lastAccessAt = null) => {
+        this.eventEmitter.emit("user:presence:update", {
+          userUUID,
+          status,
+          lastAccessAt,
+        });
       },
     },
   };
 
   chat = {
-    pin: {
-      async add(chatUUID) {
-        
-        await database.pinChat(chatUUID);
-        this.eventEmitter.emit("chat:pin:add", { chatUUID });
+    new: async (chat, users) => {
+      if (!chat) return;
+      await database.chat.add(chat);
+
+      if (chat.messages && chat.messages.length > 0) {
+        await database.message.addMultiple(chat.messages);
+      }
+
+      for (const user of users) {
+        await database.user.add(user);
+      }
+
+      this.eventEmitter.emit("chat:new", { chat, users });
+    },
+    update: async (chatUUID, action, eventID, data) => {
+      this.eventEmitter.emit("chat:update", {
+        chatUUID,
+        action,
+        data,
+      });
+    },
+    member: {
+      join: async (chatUUID, user, eventID) => {
+        await database.chat.member.add(chatUUID, user);
+        if (eventID) {
+          await database.event.chat.update(chatUUID, eventID);
+        }
+        await database.user.add(user);
+        this.eventEmitter.emit("chat:member:joined", { chatUUID, user });
       },
-      async remove(chatUUID) {
-        
-        await database.unpinChat(chatUUID);
-        this.eventEmitter.emit("chat:pin:remove", { chatUUID });
+      leave: async (chatUUID, user) => {
+        await database.chat.member.remove(chatUUID, user);
+        this.eventEmitter.emit("chat:member:left", { chatUUID, user });
+      },
+      activity: async (chatUUID, userUUID, action) => {
+        this.eventEmitter.emit("chat:member:activity", {
+          chatUUID,
+          userUUID,
+          action,
+        });
       },
     },
   };
-
-  // -------------------- WebRTC EVENTS --------------------
-  commsJoin(data) {
-    this.eventEmitter.emit("comms_join", data);
-  }
-
-  commsLeave(data) {
-    this.eventEmitter.emit("comms_leave", data);
-  }
-
-  commsScreenShareStart(data) {
-    this.eventEmitter.emit("comms_screen_share_start", data);
-  }
-
-  commsScreenShareStop(data) {
-    this.eventEmitter.emit("comms_screen_share_stop", data);
-  }
-
-  commsCandidate(data) {
-    this.eventEmitter.emit("comms_candidate", data);
-  }
-
-  commsOffer(data) {
-    this.eventEmitter.emit("comms_offer", data);
-  }
-
-  commsAnswer(data) {
-    this.eventEmitter.emit("comms_answer", data);
-  }
-
-  commsSpeaking(data) {
-    this.eventEmitter.emit("comms_speaking", data);
-  }
-
-  commsNotSpeaking(data) {
-    this.eventEmitter.emit("comms_not_speaking", data);
-  }
-
-  commsMidToUUIDMapping(data) {
-    this.eventEmitter.emit("comms_mid_to_uuid_mapping", data);
-  }
-
-  commsWebcamOn(data) {
-    this.eventEmitter.emit("comms_webcam_on", data);
-  }
-
-  commsWebcamOff(data) {
-    this.eventEmitter.emit("comms_webcam_off", data);
-  }
 }
 
 const eventEmitter = new GlobalEventEmitter();

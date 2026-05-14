@@ -1,14 +1,18 @@
 import React, { useContext } from "react";
 import { View, ActivityIndicator } from "react-native";
 
-import { ThemeContext } from "@/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import DefaultButton from "./default";
-import DownloadButton from "./download";
+import DownloadButton from "./DownloadButton";
+import CircularProgress from "./CircularProgress";
+import useFileProgress from "@/src/hooks/file/useFileProgress";
+import queueManager from "@/src/utils/chat/queueManager";
 
 const Button = ({
   uuid,
   isAvailable,
+  isPending,
   isReady,
   isPlaying,
   type,
@@ -17,12 +21,21 @@ const Button = ({
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme, type, isAvailable);
 
+  const progress = useFileProgress(uuid);
+  const isProgressing = progress && progress.loaded < progress.total;
+
   return (
     <View disabled={!isReady} style={styles.container}>
-      {!isAvailable ? (
+      {isProgressing || isPending ? (
+        <CircularProgress
+          progress={isPending ? 0 : progress.loaded / progress.total}
+          color={theme.text}
+          onCancel={() => queueManager.cancelFileTransfer(uuid)}
+        />
+      ) : !isAvailable ? (
         <DownloadButton uuid={uuid} styles={styles} />
       ) : !isReady ? (
-        <ActivityIndicator size="small" color="#fff" />
+        <ActivityIndicator size="small" color={theme.text} />
       ) : (
         <DefaultButton
           type={type}
@@ -40,7 +53,7 @@ const createStyles = (theme, type, isAvailable) => ({
     height: 45,
     borderRadius: 100,
     backgroundColor:
-      type === "IMAGE" && isAvailable ? "#00000000" : theme.primary,
+      type === "IMAGE" && isAvailable ? null : theme.primary,
     marginRight: 12,
     justifyContent: "center",
     alignItems: "center",

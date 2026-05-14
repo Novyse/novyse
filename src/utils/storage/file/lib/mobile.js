@@ -20,7 +20,10 @@ const FileSystemUtil = {
         }
 
         const destination = new File(Paths.document, key);
-        await sourceFile.copy(destination);
+        if (destination.exists) {
+          destination.delete();
+        }
+        sourceFile.copy(destination);
         const file = destination;
 
         return { ref: key, size: file.size };

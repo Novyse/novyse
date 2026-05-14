@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import { View, StyleSheet, TouchableOpacity, Animated } from "react-native";
+import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "../../Icon";
 
 const StorageBreakdownChart = () => {
@@ -57,30 +58,29 @@ const StorageBreakdownChart = () => {
 
     return (
       <View style={styles.storageCard}>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => toggleExpand(storage.type)}
           activeOpacity={0.7}
         >
           <View style={styles.storageLabelRow}>
             <View style={styles.storageLabelLeft}>
               <View style={styles.iconContainer}>
-                <Icon
-                  name={storage.iconName}
-                  size={18}
-                  color="#FFFFFF"
-                />
+                <Icon name={storage.iconName} size={18} />
               </View>
-              <Text style={styles.storageTitle}>{storage.title}</Text>
+              <AppText
+                style={styles.storageTitle}
+                translationKey={`settings.storage.${storage.type === "local" ? "localStorage" : "cloudStorage"}`}
+              />
             </View>
             <View style={styles.storageRight}>
-              <Text style={styles.storageStat}>
+              <AppText style={styles.storageStat}>
                 {storage.totalUsed}{" "}
                 {storage.totalCapacity ? `/ ${storage.totalCapacity}` : ""} GB
-              </Text>
+              </AppText>
               <Icon
                 name={isExpanded ? "ArrowUp01Icon" : "ArrowDown01Icon"}
                 size={20}
-                color={theme?.textSecondary || theme?.text}
+                color={theme.textSecondary || theme.text}
                 style={styles.chevronIcon}
               />
             </View>
@@ -107,20 +107,33 @@ const StorageBreakdownChart = () => {
         {isExpanded && (
           <View style={styles.categoriesContainer}>
             {storage.categories.map((category, catIndex) => {
-              const segments = getSegmentWidths(storage.categories, storage.totalUsed);
+              const segments = getSegmentWidths(
+                storage.categories,
+                storage.totalUsed,
+              );
               const percentage = segments[catIndex].percentage;
 
               return (
                 <View key={category.name} style={styles.categoryItem}>
                   <View style={styles.categoryLeft}>
                     <View
-                      style={[styles.colorDot, { backgroundColor: category.color }]}
+                      style={[
+                        styles.colorDot,
+                        { backgroundColor: category.color },
+                      ]}
                     />
-                    <Text style={styles.categoryName}>{category.name}</Text>
+                    <AppText
+                      style={styles.categoryName}
+                      translationKey={`settings.storage.${category.name.toLowerCase()}`}
+                    />
                   </View>
                   <View style={styles.categoryRight}>
-                    <Text style={styles.categorySize}>{category.size} GB</Text>
-                    <Text style={styles.categoryPercentage}>{percentage}%</Text>
+                    <AppText style={styles.categorySize}>
+                      {category.size} GB
+                    </AppText>
+                    <AppText style={styles.categoryPercentage}>
+                      {percentage}%
+                    </AppText>
                   </View>
                 </View>
               );
@@ -164,14 +177,14 @@ const createStyle = (theme = {}) => {
       width: 32,
       height: 32,
       borderRadius: 8,
-      backgroundColor: theme?.primary || "#007AFF",
+      backgroundColor: theme.primary,
       alignItems: "center",
       justifyContent: "center",
     },
     storageTitle: {
       fontSize: 16,
       fontWeight: "600",
-      color: theme?.text,
+      color: theme.text,
       letterSpacing: -0.2,
     },
     storageRight: {
@@ -182,7 +195,7 @@ const createStyle = (theme = {}) => {
     storageStat: {
       fontSize: 14,
       fontWeight: "600",
-      color: theme?.textSecondary || theme?.text,
+      color: theme.textSecondary || theme.text,
     },
     chevronIcon: {
       marginLeft: 4,
@@ -191,7 +204,7 @@ const createStyle = (theme = {}) => {
       height: 16,
       borderRadius: 10,
       overflow: "hidden",
-      backgroundColor: theme?.surfaceSecondary || "#F3F4F6",
+      backgroundColor: theme.primary,
     },
     progressBarInner: {
       height: "100%",
@@ -234,19 +247,19 @@ const createStyle = (theme = {}) => {
     categoryName: {
       fontSize: 15,
       fontWeight: "500",
-      color: theme?.text,
+      color: theme.text,
     },
     categorySize: {
       fontSize: 15,
       fontWeight: "600",
-      color: theme?.text,
+      color: theme.text,
     },
     categoryPercentage: {
       fontSize: 13,
       fontWeight: "500",
       minWidth: 45,
       textAlign: "right",
-      color: theme?.textSecondary || theme?.text,
+      color: theme.textSecondary || theme.text,
       opacity: 0.7,
     },
   });

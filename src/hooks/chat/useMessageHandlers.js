@@ -1,76 +1,258 @@
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
 
-import queueManager from "@/src/utils/chat/queueManager.js";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useUserStore from "@/src/context/UserContext";
 
-import { defaultMimeType } from "@/src/utils/storage/file/type.js";
+import queueManager from "@/src/utils/chat/queueManager";
+import gateway from "@/src/utils/backend-services/api-gateway";
+import eventEmitter from "@/src/utils/global/Events/EventEmitter";
+
+import { defaultMimeType } from "@/src/utils/storage/file/type";
 
 const useMessageHandlers = (
-  chat,
-  myUUID,
   setNewMessageText,
-  setVoiceMessage,
-  setIsMicClicked,
-  setIsFileModalVisible
+  setEditingMessage,
+  textInputRef,
 ) => {
+  const chatUUID = useActiveChatStore((state) => state.selectedChatUUID);
+  const activeChatData = useActiveChatStore((state) => state.activeChatData);
+  const myUUID = useUserStore((state) => state.localUserUUID);
+
+  const focusTextInput = useCallback(() => {
+    // Do not remove timeout, without it the focus is not possible.
+    setTimeout(() => {
+      textInputRef?.current?.focus();
+    }, 0);
+  }, [textInputRef]);
+
   const handleSendMessage = useCallback(
-    async (type = "message", content, files = []) => {
+    async (type = "message", content, files = [], replyTos = []) => {
       // no content and files, so nothing happens
       if (content.trim() === "" && files.length === 0) return;
 
-      /*
-      // If chat is pending creation, remove chat.uuid and put it as job uuid
-      if (chat.pendingCreation){
-        const id = chat.uuid;
-        chat.uuid = null;
-        await queueManager.addOutgoingMessageJob(message,chat,id);
-        return;
+      if (files.length > 0) {
+        const { v6 } = require("uuid");
+        const cleanedFiles = files.map((file) => ({
+          uri: file.uri,
+          uuid: file.uuid || v6(),
+          name: file.name || file.fileName || "novyse_file_" + Date.now(),
+          mimeType:
+            file.mimeType && file.mimeType !== ""
+              ? file.mimeType
+              : defaultMimeType,
+          size: file.size,
+        }));
+        files = cleanedFiles;
       }
-      */
+
       const message = {
         senderUUID: myUUID,
         content,
         type,
+        replyTos,
         files,
+      };
+
+      const chat = {
+        uuid: chatUUID,
+        memberUUIDs: !chatUUID
+          ? activeChatData?.members?.map((m) => m.uuid)
+          : undefined,
       };
 
       await queueManager.addOutgoingMessageJob(message, chat);
 
       setNewMessageText("");
-      setVoiceMessage(true);
-      setIsMicClicked(false);
+      focusTextInput();
     },
-    [chat, setNewMessageText, setVoiceMessage, setIsMicClicked]
+    [chatUUID, myUUID, setNewMessageText, activeChatData, focusTextInput],
   );
 
-  const handleSendFileMessage = useCallback(
-    async (files) => {
-      if (!files) return;
-
-      const cleanedFiles = files.map((file) => ({
-        uri: file.uri,
-        name: file.name || file.fileName || "novyse_file_" + Date.now(),
-        mimeType:
-          file.mimeType && file.mimeType !== ""
-            ? file.mimeType
-            : defaultMimeType,
-        size: file.size,
-      }));
-      await handleSendMessage("message", "", cleanedFiles);
+  const handleReadMessage = useCallback(
+    async (messageID) => {
+      const response = await gateway.message.read(chatUUID, messageID);
+      if (response.success && response.readAt) {
+        await eventEmitter.message.update(
+          chatUUID,
+          messageID,
+          "read",
+          response.chatEventID,
+          {
+            readAt: response.readAt,
+            userUUID: myUUID,
+          },
+        );
+      }
     },
-    [handleSendMessage]
+    [chatUUID, myUUID],
   );
 
-  const handleTextChanging = useCallback(
-    (text, isMicClicked) => {
-      setVoiceMessage(text.length === 0 && !isMicClicked);
+  const handlePinMessage = useCallback(
+    async (messageID) => {
+      const response = await gateway.message.pin.add(chatUUID, messageID);
+      if (response.success) {
+        await eventEmitter.message.update(
+          chatUUID,
+          messageID,
+          "pin_add",
+          response.chatEventID,
+          {
+            pinnedAt: response.pinnedAt,
+            userUUID: myUUID,
+          },
+        );
+      }
     },
-    [setVoiceMessage]
+    [chatUUID, myUUID],
+  );
+
+  const handleUnpinMessage = useCallback(
+    async (messageID) => {
+      const response = await gateway.message.pin.remove(chatUUID, messageID);
+      if (response.success) {
+        await eventEmitter.message.update(
+          chatUUID,
+          messageID,
+          "pin_remove",
+          response.chatEventID,
+          {},
+        );
+      }
+    },
+    [chatUUID],
+  );
+
+  const handleDeleteMessage = useCallback(
+    async (messageID) => {
+      console.log(messageID, chatUUID);
+      const response = await gateway.message.delete(chatUUID, messageID);
+      if (response.success) {
+        await eventEmitter.message.update(
+          chatUUID,
+          messageID,
+          "delete",
+          response.chatEventID,
+          {},
+        );
+      }
+    },
+    [chatUUID],
+  );
+
+  const handlePausePendingMessage = useCallback(async (messageID) => {
+    return queueManager.pauseJob(messageID);
+  }, []);
+
+  const handleUpdatePendingMessage = useCallback(
+    async (messageID, content) => {
+      const success = queueManager.resumeAndModifyJob(messageID, content);
+      if (success) {
+        await eventEmitter.message.update(chatUUID, messageID, "edit", null, {
+          content,
+          pendingEditJobId: null,
+        });
+        setEditingMessage(null);
+        setNewMessageText("");
+        focusTextInput();
+      }
+      return success;
+    },
+    [chatUUID, setEditingMessage, setNewMessageText, focusTextInput],
+  );
+
+  const handleEditMessage = useCallback(
+    async (messageID, content, originalContent) => {
+      const { v6 } = require("uuid");
+      const jobId = v6();
+      const messageParams = { messageID, content, originalContent };
+      const chat = { uuid: chatUUID };
+
+      await queueManager.addOutgoingMessageJob(
+        messageParams,
+        chat,
+        jobId,
+        "PENDING_MODIFY",
+      );
+
+      await eventEmitter.message.update(chatUUID, messageID, "edit", null, {
+        content,
+        pendingEditJobId: jobId,
+      });
+
+      setEditingMessage(null);
+      setNewMessageText("");
+      focusTextInput();
+    },
+    [chatUUID, setEditingMessage, setNewMessageText, focusTextInput],
+  );
+
+  const handleCancelJob = useCallback(
+    async (message) => {
+      const jobId = message.internal ? message.id : message.pendingEditJobId;
+      if (jobId) {
+        await queueManager.cancelJob(jobId, chatUUID);
+      }
+    },
+    [chatUUID],
+  );
+
+  const handleReaction = useCallback(
+    async (message, emoji = "❤") => {
+      const existingReaction = message.reactions?.find(
+        (r) => r.emoji === emoji,
+      );
+      const hasReacted = existingReaction?.userUUIDs?.includes(myUUID);
+
+      if (hasReacted) {
+        const response = await gateway.message.reaction.remove(
+          chatUUID,
+          message.id,
+          emoji,
+        );
+        if (response.success) {
+          await eventEmitter.message.update(
+            chatUUID,
+            message.id,
+            "reaction_remove",
+            response.chatEventID,
+            { userUUID: myUUID, reaction: emoji },
+          );
+        }
+      } else {
+        const response = await gateway.message.reaction.add(
+          chatUUID,
+          message.id,
+          emoji,
+        );
+        if (response.success) {
+          await eventEmitter.message.update(
+            chatUUID,
+            message.id,
+            "reaction_add",
+            response.chatEventID,
+            {
+              userUUID: myUUID,
+              reaction: emoji,
+              reactedAt: response.reactedAt,
+            },
+          );
+        }
+      }
+    },
+    [chatUUID, myUUID],
   );
 
   return {
     handleSendMessage,
-    handleSendFileMessage,
-    handleTextChanging,
+    handleReadMessage,
+    handlePinMessage,
+    handleUnpinMessage,
+    handleDeleteMessage,
+    handleEditMessage,
+    handleCancelJob,
+    handleReaction,
+    handlePausePendingMessage,
+    handleUpdatePendingMessage,
   };
 };
 

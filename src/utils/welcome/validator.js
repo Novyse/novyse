@@ -1,51 +1,60 @@
-const validate = {
+import { z } from "zod";
+import i18n from "@/src/i18n";
+
+export const valid = {
+  twoFaMethods: ["email", "authenticator"],
+  loginMethods: ["password", "passkey"],
+};
+
+export const schemas = {
   user: {
-    email: (value) => {
-      if (!value) return false;
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailPattern.test(value);
-    },
-    password: (value) => {
-      if (!value) return false;
-      const passwordRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[a-zA-Z0-9@$!%*?&]{8,128}$/;
-      return passwordRegex.test(value);
-    },
-    name: (value) => {
-      if (!value) return false;
-      const nameRegex = /^[a-zA-Z\s]+$/;
-      return nameRegex.test(value.trim()) && value.trim() !== "";
-    },
-    surname: (value) => {
-      if (!value) return false;
-      const surnameRegex = /^[a-zA-Z\s]+$/;
-      return surnameRegex.test(value.trim()) && value.trim() !== "";
-    },
-    requirements: {
-      password:
-        "Password must be 8-128 chars, include upper/lowercase, a number and a special character (@, $, !, %, *, ?, &)",
-    },
+    email: z.string().email(i18n.t("common.validation.invalidEmail")),
+    password: z.string().min(8, i18n.t("common.validation.passwordTooShort")).max(256),
+    name: z
+      .string()
+      .trim()
+      .min(1, i18n.t("common.validation.required"))
+      .max(50, i18n.t("common.validation.nameTooLong"))
+      .regex(/^[a-zA-Z\s]+$/, i18n.t("common.validation.invalidName")),
+    surname: z
+      .string()
+      .trim()
+      .min(1, i18n.t("common.validation.required"))
+      .regex(/^[a-zA-Z\s]+$/, i18n.t("common.validation.invalidName")),
   },
   chat: {
-    name: (value) => {
-      if (!value) return false;
-      const chatNameRegex = /^[a-zA-Z0-9\s]{3,50}$/;
-      return chatNameRegex.test(value.trim()) && value.trim() !== "";
-    },
-    requirements: {
-      name: "Chat name must be 3-50 characters long and can include letters and numbers.", 
-    },
+    name: z.string().trim().min(3).max(50),
   },
-  handle: (value) => {
-    if (!value) return false;
-    const handleRegex =
-      /^(?=.{3,15}$)(?!.*_{2,})[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$/;
-    return handleRegex.test(value);
-  },
-  requirements: {
-    handle:
-      "Handle must be 3-15 characters, lowercase letters, numbers, underscores, cannot start or end with underscore, no consecutive underscores.",
+  handle: z
+    .string()
+    .min(3, i18n.t("common.validation.handleTooShort"))
+    .max(15, i18n.t("common.validation.handleTooLong"))
+    .regex(/^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$/, i18n.t("common.validation.invalidHandle"))
+    .refine((v) => !v.includes("__"), i18n.t("common.validation.handleConsecutiveUnderscores")),
+  twofa: {
+    code: z.string().length(6).regex(/^\d+$/),
   },
 };
 
-export default validate;
+const parse = (schema, value) => {
+  const res = schema.safeParse(value);
+  if (res.success) return { success: true };
+  const message = res.error.issues?.[0]?.message || i18n.t("common.validation.invalidInput");
+  return { success: false, error: message };
+};
+
+export const validate = {
+  user: {
+    email: (v) => parse(schemas.user.email, v),
+    password: (v) => parse(schemas.user.password, v),
+    name: (v) => parse(schemas.user.name, v),
+    surname: (v) => parse(schemas.user.surname, v),
+  },
+  chat: {
+    name: (v) => parse(schemas.chat.name, v),
+  },
+  handle: (v) => parse(schemas.handle, v),
+  twofa: {
+    code: (v) => parse(schemas.twofa.code, v),
+  },
+};

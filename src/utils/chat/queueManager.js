@@ -1,13 +1,15 @@
 import { v6 } from "uuid";
 
-import gateway from "@/src/utils/backend-services/api-gateway.js";
+import useNetworkStore from "@/src/context/NetworkContext";
+
+import gateway from "@/src/utils/backend-services/api-gateway";
 import database from "@/src/utils/storage/database";
-import eventEmitter from "@/src/utils/global/Events/EventEmitter.js";
-import S3Uploader from "@/src/utils/storage/file/s3Bucket.js";
+import eventEmitter from "@/src/utils/global/Events/EventEmitter";
+import S3Uploader from "@/src/utils/storage/file/s3Bucket";
 import storage from "@/src/utils/storage/file";
 
-import { getFileType } from "@/src/utils/storage/file/type.js";
-import { getDuration, getWaveform } from "@/src/utils/storage/file/media.js";
+import { getFileType } from "@/src/utils/storage/file/type";
+import { getDuration, getWaveform } from "@/src/utils/storage/file/media";
 
 class QueueManager {
   constructor() {
@@ -18,19 +20,32 @@ class QueueManager {
     this.processingInterval = 100; // 0.1 seconds
     this.errorDelay = 5000; // 5 seconds
     this.maxRetries = 5;
-    this.getConnectionStatus = undefined;
   }
 
   // Initialize the queue manager
-  async initialize(getConnectionStatus) {
+  async initialize() {
     if (this.initialized) return;
-    if (getConnectionStatus) {
-      this.getConnectionStatus = getConnectionStatus;
-    }
-    await this.loadQueue();
-    this.startConnectionMonitoring();
-    this.processQueue();
     this.initialized = true;
+
+    await this.loadQueue();
+
+    this.isConnected = useNetworkStore.getState().isConnected;
+
+    useNetworkStore.subscribe((state) => {
+      const connected = state.isConnected;
+      if (connected !== this.isConnected) {
+        this.isConnected = connected;
+        console.log(
+          "Connection state changed:",
+          connected ? "connected" : "disconnected",
+        );
+        if (this.isConnected) {
+          this.processQueue();
+        }
+      }
+    });
+
+    this.processQueue();
 
     eventEmitter.getEmitter().on("message:new", (message) => {
       if (!message.fromSubscription && !message.internal) {
@@ -41,29 +56,45 @@ class QueueManager {
     });
   }
 
-  // Start monitoring connection state
-  startConnectionMonitoring() {
-    // Check connection every 2 seconds
-    setInterval(() => {
-      const connected = this.getConnectionStatus();
-      if (connected !== this.isConnected) {
-        this.isConnected = connected;
-        console.log(
-          "Connection state changed:",
-          connected ? "connected" : "disconnected"
-        );
-        if (this.isConnected) {
-          this.processQueue();
-        }
-      }
-    }, 2000);
-  }
-
   startProcessing() {
     // Process immediately if connected
     if (this.isConnected && !this.isProcessing) {
       this.processQueue();
     }
+  }
+
+  /**
+   * Pause a specific job in the queue
+   * @param {string} jobId
+   * @returns {boolean} true if job was found and paused
+   */
+  pauseJob(jobId) {
+    const job = this.queue.find((j) => j.id === jobId);
+    if (job) {
+      job.isPaused = true;
+      console.log(`Job ${jobId} paused for editing`);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Resume and modify a paused job's text content
+   * @param {string} jobId
+   * @param {string} newContent
+   * @returns {boolean} true if job was found and modified
+   */
+  resumeAndModifyJob(jobId, newContent) {
+    const job = this.queue.find((j) => j.id === jobId);
+    if (job) {
+      job.params.message.content = newContent;
+      job.isPaused = false;
+      console.log(`Job ${jobId} resumed with new content`);
+      // @SamueleOrazioDurante da aggiungere database modification
+      this.startProcessing();
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -95,7 +126,7 @@ class QueueManager {
     message,
     chat,
     id = null,
-    status = "PENDING_SEND"
+    status = "PENDING_SEND",
   ) {
     // No id means no server UUID yet, so generate a UUIDv7
     if (!id) {
@@ -110,22 +141,9 @@ class QueueManager {
       maxRetries: this.maxRetries,
     };
 
-    // No chat UUID means chat is being created
-    if (!params.chat.uuid) {
-      params.status = "CREATING_CHAT";
-      
-      // Check if chat is already pending creation, to avoid duplicate jobs just add message to pending messages attached to chat creation
-      if (await database.isChatPendingCreation(id)) {
-        console.log("Chat is already pending creation in queue:", id);
-        await this.addPendingMessagesForChatCreation(id, message);
-        return;
-      }
-    }
-
     await this.addJob(id, "OUTGOING_MESSAGE", params);
 
-    // @SamueleOrazioDurante da capire sto eventEmitter
-    if (status === "PENDING_SEND" || status === "CREATING_CHAT") {
+    if (status === "PENDING_SEND") {
       // Emit event for new message added to queue
       await eventEmitter.getEmitter().emit("message:new", {
         chatUUID: chat.uuid,
@@ -134,6 +152,7 @@ class QueueManager {
         created_at: undefined,
         senderUUID: message.senderUUID,
         type: message.type,
+        replyTos: message.replyTos || [],
         files: message.files || [],
         internal: true,
       });
@@ -161,6 +180,9 @@ class QueueManager {
    */
 
   async addJob(id, type, params) {
+    if (!this.initialized) {
+      await this.initialize();
+    }
     const job = {
       id,
       type,
@@ -182,7 +204,16 @@ class QueueManager {
     this.isProcessing = true;
     console.log("Processing queue, jobs remaining:", this.queue.length);
 
-    const job = this.queue[0];
+    // Find the first non-paused job
+    const jobIndex = this.queue.findIndex((j) => !j.isPaused);
+    if (jobIndex === -1) {
+      console.log("All jobs in queue are currently paused.");
+      this.isProcessing = false;
+      setTimeout(() => this.processQueue(), this.processingInterval);
+      return;
+    }
+
+    const job = this.queue[jobIndex];
 
     try {
       switch (job.type) {
@@ -203,7 +234,10 @@ class QueueManager {
           throw new Error("Job type not recognized");
       }
       // After processing, remove job from queue
-      this.queue.shift();
+      const currentIndex = this.queue.findIndex((j) => j.id === job.id);
+      if (currentIndex !== -1) {
+        this.queue.splice(currentIndex, 1);
+      }
       await this.removeJob(job.id);
       console.info("Job completed successfully:", job.id);
     } catch (error) {
@@ -212,7 +246,10 @@ class QueueManager {
       job.params.attempts++;
       if (job.params.attempts >= job.params.maxRetries) {
         console.error("Job failed permanently, removing:", job.id);
-        this.queue.shift(); // Remove failed job after max retries
+        const failedIndex = this.queue.findIndex((j) => j.id === job.id);
+        if (failedIndex !== -1) {
+          this.queue.splice(failedIndex, 1);
+        }
         await this.removeJob(job.id);
       }
       // Wait errorDelay before continuing
@@ -273,15 +310,26 @@ class QueueManager {
         await Promise.all(
           filesToDownload.map(async (fileToDownload) => {
             const downloadedFile = downloadedFiles.find(
-              (df) => df.uuid === fileToDownload
+              (df) => df.uuid === fileToDownload,
             );
 
             if (downloadedFile && downloadedFile.downloadURL) {
               // Download file from S3 bucket
               const bytes = await S3Uploader.download(
-                downloadedFile.downloadURL
+                downloadedFile.downloadURL,
+                fileToDownload,
+                (progress) => {
+                  this.notifyProgress(fileToDownload, progress);
+                },
               );
 
+              if (bytes === "CANCELLED") {
+                console.info(
+                  "Download cancelled by user for file:",
+                  fileToDownload,
+                );
+                return;
+              }
               if (!bytes) {
                 throw new Error("File download failed from S3");
               }
@@ -298,7 +346,7 @@ class QueueManager {
               // Save file to storage
               const { ref, size } = await storage.save.byBytes(
                 bytes,
-                fileToDownload
+                fileToDownload,
               );
 
               if (!ref || !size || size <= 0) {
@@ -324,7 +372,7 @@ class QueueManager {
 
               const file_type = getFileType(
                 downloadedFile.mimeType,
-                downloadedFile.name
+                downloadedFile.name,
               );
 
               // Calculate duration if media file
@@ -353,7 +401,7 @@ class QueueManager {
             } else {
               throw new Error("Downloaded file info missing");
             }
-          })
+          }),
         );
       } else {
         throw new Error("Message download failed");
@@ -369,9 +417,6 @@ class QueueManager {
    */
   async processOutgoingMessageJob(job) {
     switch (job.params.status) {
-      case "CREATING_CHAT":
-        await this.processCreatingChatJob(job);
-        break;
       case "PENDING_SEND":
         await this.processSendingMessageJob(job);
         break;
@@ -390,38 +435,13 @@ class QueueManager {
   }
 
   /**
-   * Process a creating chat job
-   * @param {Object} job
-   */
-  async processCreatingChatJob(job) {
-    const response = await gateway.chat.create(
-      "DM",
-      job.params.chat.member,
-      null,
-      null
-    );
-    const success = response.success;
-    const newChat = response.chat;
-    if (success) {
-      newChat.name = newChat.members[0].name;
-      console.info("Chat created successfully:", newChat);
-      eventEmitter.getEmitter().emit("newChat", { chat: newChat, id: job.id });
-
-      // Create new job for every message pending send in this chat
-      await this.loadPendingMessagesForChatCreation(job.id, newChat);
-    } else {
-      throw new Error("Failed to create chat");
-    }
-  }
-
-  /**
    * Process a sending message job
    * @param {Object} job
    */
   // @SamueleOrazioDurante la logica qui è rimasta quella vecchia, da capire se è ottimizzata o va rifatta
   async processSendingMessageJob(job) {
     const chatUUID = job.params.chat.uuid;
-    const { content, type = "message", files } = job.params.message;
+    const { content, type = "message", files, replyTos } = job.params.message;
 
     let cleanFiles = [];
 
@@ -433,7 +453,7 @@ class QueueManager {
       }
       // Remove files ( uri, ref ) before sending
       cleanFiles = files.map((file) => {
-        const { uri, ref, duration, ...rest } = file;
+        const { uuid, uri, ref, duration, ...rest } = file;
         return rest;
       });
     }
@@ -442,7 +462,8 @@ class QueueManager {
       chatUUID,
       content,
       type,
-      cleanFiles
+      cleanFiles,
+      replyTos,
     );
 
     if (success) {
@@ -465,11 +486,17 @@ class QueueManager {
       } else if (message.status === "pending") {
         // If message is pending, modify the job to an upload one
         await this.messageUploading(job.id, message);
+
+        // Preserve original content and type
+        message.content = content;
+        message.type = type;
+        message.replyTos = replyTos;
+
         await this.addOutgoingMessageJob(
           message,
           job.params.chat,
           message.messageUUID,
-          "PENDING_UPLOAD"
+          "PENDING_UPLOAD",
         );
       } else {
         throw new Error("Message sending failed");
@@ -485,7 +512,24 @@ class QueueManager {
    */
 
   async processModifyMessageJob(job) {
-    console.warn("Modify message job processing not implemented yet");
+    const chatUUID = job.params.chat.uuid;
+    const { content, messageID } = job.params.message;
+    const response = await gateway.message.edit(chatUUID, messageID, content);
+
+    if (response.success) {
+      await eventEmitter.message.update(
+        chatUUID,
+        messageID,
+        "edit",
+        response.chatEventID,
+        {
+          content,
+          pendingEditJobId: null,
+        },
+      );
+    } else {
+      throw new Error("Message modify failed");
+    }
   }
 
   /**
@@ -495,21 +539,99 @@ class QueueManager {
   async processPendingUploadJob(job) {
     // Upload every file to S3 Bucket
     const { message } = job.params;
-    const { files } = message;
-    for (const file of files) {
+
+    // Initialize progress for all files to 0% to show them as pending in the UI
+    for (const file of message.files) {
+      this.notifyProgress(file.uuid, { loaded: 0, total: file.size || 0 });
+    }
+
+    job.params.deletionPromises = job.params.deletionPromises || [];
+
+    const filesToUpload = [...message.files];
+    for (const file of filesToUpload) {
+      // Skip if the file was already removed from the message (e.g. cancelled while waiting)
+      if (!message.files.some((f) => f.uuid === file.uuid)) {
+        continue;
+      }
+
       if (file.ref) {
         const uri = await storage.read(file.ref);
-        await S3Uploader.upload(file.uploadURL, uri, this.notifyProgress);
+        const success = await S3Uploader.upload(
+          file.uploadURL,
+          uri,
+          file.uuid,
+          (progress) => {
+            this.notifyProgress(file.uuid, progress);
+          },
+        );
+
+        if (success === "CANCELLED") {
+          // Ensure it's removed from message files (might have been removed by cancelFileTransfer)
+          if (message.files.some((f) => f.uuid === file.uuid)) {
+            message.files = message.files.filter((f) => f.uuid !== file.uuid);
+
+            // Collect deletion promise
+            job.params.deletionPromises.push(
+              gateway.file
+                .delete(file.uuid)
+                .catch((e) =>
+                  console.error("Failed to delete file from server:", e),
+                ),
+            );
+
+            // Notify UI that a file was removed
+            eventEmitter.getEmitter().emit("message:update", {
+              chatUUID: job.params.chat.uuid,
+              messageID: job.id,
+              action: "edit",
+              data: { files: message.files },
+            });
+          }
+
+          continue; // Move to the next file
+        }
+        if (!success) {
+          throw new Error("File upload failed to S3");
+        }
       } else {
         throw new Error("File reference missing for upload");
       }
     }
-    // After all files are uploaded, upload job to confirm
+
+    // Check if the message is now empty (no files and no text content)
+    if (
+      message.files.length === 0 &&
+      (!message.content || message.content.trim() === "")
+    ) {
+      console.info(
+        `Pending message ${job.id} deleted because all files were cancelled and there is no text content.`,
+      );
+      const currentIndex = this.queue.findIndex((j) => j.id === job.id);
+      if (currentIndex !== -1) {
+        this.queue.splice(currentIndex, 1);
+      }
+      await this.removeJob(job.id);
+
+      // Notify UI that message was deleted
+      eventEmitter.getEmitter().emit("message:update", {
+        chatUUID: job.params.chat.uuid,
+        messageID: job.id,
+        action: "delete",
+      });
+      return;
+    }
+
+    // Wait for all deletions to finish before proceeding to confirm/delete message
+    if (job.params.deletionPromises.length > 0) {
+      await Promise.all(job.params.deletionPromises);
+    }
+
+    // After all files are uploaded (or some cancelled but message persists), proceed to confirm
     await this.addOutgoingMessageJob(
       message,
       job.params.chat,
       v6(),
-      "PENDING_CONFIRM"
+      "PENDING_CONFIRM",
     );
   }
 
@@ -581,13 +703,28 @@ class QueueManager {
 
     if (success && fileInfo && fileInfo.downloadURL) {
       // Download file from S3 bucket
-      const bytes = await S3Uploader.download(fileInfo.downloadURL);
+      const bytes = await S3Uploader.download(
+        fileInfo.downloadURL,
+        fileUUID,
+        (progress) => {
+          this.notifyProgress(fileUUID, progress);
+        },
+      );
 
+      if (bytes === "CANCELLED") {
+        console.info("Download cancelled by user for file:", fileUUID);
+        return;
+      }
       if (!bytes) {
         throw new Error("File download failed from S3");
       }
       // Save file to storage
-      const { ref, size } = await storage.save.byBytes(bytes, fileUUID);
+      const finalBytes =
+        bytes instanceof Blob
+          ? new Blob([bytes], { type: bytes.type || fileInfo.mimeType })
+          : bytes;
+
+      const { ref, size } = await storage.save.byBytes(finalBytes, fileUUID);
 
       if (!ref || !size || size <= 0) {
         const errorMsg = `File save to storage failed for file ${fileUUID}: ref=${ref}, size=${size}`;
@@ -640,13 +777,51 @@ class QueueManager {
 
   // ROBA VECCHIA
   /**
+   * Cancel and remove a job from the queue and database
+   * @param {string} jobId
+   * @param {string} chatUUID
+   * @return {Promise<void>}
+   */
+  async cancelJob(jobId, chatUUID) {
+    const jobIndex = this.queue.findIndex((job) => job.id === jobId);
+
+    // Always attempt to remove from database
+    await this.removeJob(jobId);
+
+    if (jobIndex === -1) return;
+
+    const job = this.queue[jobIndex];
+    this.queue.splice(jobIndex, 1);
+
+    // Revert UI changes
+    if (job.type === "OUTGOING_MESSAGE") {
+      if (job.params.status === "PENDING_SEND") {
+        await eventEmitter.getEmitter().emit("message:update", {
+          chatUUID,
+          messageID: jobId,
+          action: "delete",
+        });
+      } else if (job.params.status === "PENDING_MODIFY") {
+        const { messageID, originalContent } = job.params.message;
+        await eventEmitter.getEmitter().emit("message:update", {
+          chatUUID,
+          messageID,
+          action: "edit",
+          data: { content: originalContent, pendingEditJobId: null },
+        });
+      }
+    }
+
+    console.info("Job cancelled successfully:", jobId);
+  }
+
+  /**
    * Save a single job to the database
    * @param {string} job - The job to save
    * @return {Promise<void>}
    */
   async saveJob(job) {
     try {
-      
       await database.addPendingMessage({
         id: job.id,
         jobType: job.type,
@@ -664,7 +839,6 @@ class QueueManager {
    */
   async removeJob(jobId) {
     try {
-      
       await database.removePendingMessage(jobId);
     } catch (error) {
       console.error("Error removing job from database:", error);
@@ -689,11 +863,10 @@ class QueueManager {
 
       // Update in database
       try {
-        
         await database.updatePendingMessageForUpload(
           jobId,
           params.messageUUID,
-          params.files
+          params.files,
         );
       } catch (error) {
         console.error("Error modifying job in database:", error);
@@ -721,7 +894,6 @@ class QueueManager {
 
       // Update in database
       try {
-        
         await database.updatePendingMessageToConfirm(jobId);
       } catch (error) {
         console.error("Error modifying job in database:", error);
@@ -736,14 +908,13 @@ class QueueManager {
 
   async loadQueue() {
     try {
-      
       const pendingMessages = await database.getPendingMessages();
 
       if (!pendingMessages) {
         this.queue = [];
         console.log(
           "Queue loaded from database, jobs count:",
-          this.queue.length
+          this.queue.length,
         );
         return;
       }
@@ -920,18 +1091,16 @@ class QueueManager {
         break;
     }
 
-    
     await database.job.save(job);
   }
 
   async removeJob(jobId) {
     return;
-    
+
     await database.job.remove(jobId);
   }
 
   async loadJobs() {
-    
     const pendingMessages = await database.job.loadAll();
     return pendingMessages;
   }
@@ -968,29 +1137,7 @@ class QueueManager {
       }
     }
 
-    
     await database.message.pending.add(messageData, fileData);
-  }
-
-  /**
-   * Load pending messages to queue for a chat that has just been created
-   * @param {String} pendingChatUUID
-   * @param {Object} newChat { uuid, name, type, handle, profilePictureUUID, member }
-   */
-
-  async loadPendingMessagesForChatCreation(pendingChatUUID, newChat) {
-    
-    const pendingMessages = await database.message.pending.getByChatUUID(
-      pendingChatUUID
-    );
-    for (const pendingMessage of pendingMessages) {
-      await database.message.pending.remove(pendingMessage.id);
-      await this.addOutgoingMessageJob(
-        pendingMessage,
-        newChat,
-        pendingMessage.id
-      );
-    }
   }
 
   // Download utilities
@@ -1000,22 +1147,18 @@ class QueueManager {
    * @param {String} fileUUID
    */
   async _getRef(fileUUID) {
-    
     return await database.file.get.ref(fileUUID);
   }
 
   async _addFileRef(fileUUID, ref) {
-    
     await database.file.update.ref(fileUUID, ref);
   }
 
   async _addFileDuration(fileUUID, duration) {
-    
     await database.file.update.duration(fileUUID, duration);
   }
 
   async _addFileWaveform(fileUUID, waveform) {
-    
     await database.file.update.waveform(fileUUID, waveform);
   }
 
@@ -1027,8 +1170,7 @@ class QueueManager {
    * @param {Object} message
    */
   async messageSent(tempId, message) {
-    
-    await database.addMessage(message);
+    await database.message.add(message);
     eventEmitter.getEmitter().emit("message:sent", { tempId, message });
   }
 
@@ -1045,11 +1187,12 @@ class QueueManager {
   }
 
   /**
-   * Notify upload progress
+   * Notify upload/download progress
+   * @param {String} uuid
    * @param {Object} progress { loaded, total }
    */
-  notifyProgress(progress) {
-    eventEmitter.getEmitter().emit("message:progress", progress);
+  notifyProgress(uuid, progress) {
+    eventEmitter.getEmitter().emit("message:progress", { uuid, ...progress });
   }
 
   /**
@@ -1073,6 +1216,61 @@ class QueueManager {
    */
   messageFailed(tempId, error) {
     eventEmitter.getEmitter().emit("message:failed", { tempId, error });
+  }
+  /**
+   * Cancel an ongoing file transfer (upload or download)
+   * @param {String} fileUUID
+   */
+  async cancelFileTransfer(fileUUID) {
+    // 1. Find the job that contains this file and remove it from the queue/message
+    const job = this.queue.find(
+      (j) =>
+        j.params.message &&
+        j.params.message.files &&
+        j.params.message.files.some((f) => f.uuid === fileUUID),
+    );
+
+    if (job) {
+      const { message } = job.params;
+      message.files = message.files.filter((f) => f.uuid !== fileUUID);
+
+      // If no files left and no content, cancel the whole job
+      if (
+        message.files.length === 0 &&
+        (!message.content || message.content.trim() === "")
+      ) {
+        await this.cancelJob(job.id, job.params.chat.uuid);
+        // Also cancel the S3 transfer for the current file before returning
+        S3Uploader.cancel(fileUUID);
+        this.notifyProgress(fileUUID, { loaded: 0, total: 0 });
+        return;
+      }
+
+      // Only delete from server if the file was already registered (not in PENDING_SEND)
+      if (job.params.status !== "PENDING_SEND") {
+        if (!job.params.deletionPromises) job.params.deletionPromises = [];
+        job.params.deletionPromises.push(
+          gateway.file
+            .delete(fileUUID)
+            .catch((e) =>
+              console.error("Failed to delete file from server:", e),
+            ),
+        );
+      }
+
+      // Notify UI that a file was removed
+      eventEmitter.getEmitter().emit("message:update", {
+        chatUUID: job.params.chat.uuid,
+        messageID: job.id,
+        action: "edit",
+        data: { files: message.files },
+      });
+    }
+
+    // 2. Cancel the actual S3 transfer
+    S3Uploader.cancel(fileUUID);
+    // Clear the progress UI
+    this.notifyProgress(fileUUID, { loaded: 0, total: 0 });
   }
 }
 

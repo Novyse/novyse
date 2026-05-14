@@ -1,34 +1,28 @@
-import React, { useContext, useEffect, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
-import BlurredView from "../BlurredView"; // Aggiunto import per BlurredView
+import React, { useContext } from "react";
+import { StyleSheet, View } from "react-native";
+import AppText from "@/src/components/AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
+import BlurredView from "../BlurredView";
 
-import chatUtils from "../../utils/chat/index";
+import messageUtils from "@/src/utils/chat/messageFormat";
 
 const MessageSystem = ({ type, data }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
-  // Used to calculate system message text
-  const [systemText, setSystemText] = useState("");
 
-  useEffect(() => {
-    if (type === "system") {
-      const loadSystemText = async () => {
-        const text = await chatUtils.getSystemMessageText(data);
-        setSystemText(text);
-      };
-      loadSystemText();
-    }
-  }, [type, data]);
+  // trigger re-renders when user data changes
+  useUserStore((state) => state.users[data?.content]);
+
+  const systemText =
+    type === "system" ? messageUtils.getSystemMessageText(data) : "";
 
   const renderPill = (content) => (
     <BlurredView
       colors={theme.backgroundDateSeparator}
       style={styles.container}
     >
-      <Text style={styles.text} selectable={false}>
-        {content}
-      </Text>
+      <AppText style={styles.text} text={content} />
     </BlurredView>
   );
 
@@ -37,6 +31,33 @@ const MessageSystem = ({ type, data }) => {
       return renderPill(data);
     case "system":
       return renderPill(systemText);
+    case "separator-with-lines":
+      return (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginVertical: 12,
+            marginHorizontal: 15,
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              height: StyleSheet.hairlineWidth,
+              backgroundColor: theme.backgroundDateSeparator,
+            }}
+          />
+          <View style={{ marginHorizontal: 10 }}>{renderPill(data)}</View>
+          <View
+            style={{
+              flex: 1,
+              height: StyleSheet.hairlineWidth,
+              backgroundColor: theme.backgroundDateSeparator,
+            }}
+          />
+        </View>
+      );
     default:
       return null;
   }
@@ -47,27 +68,15 @@ const createStyles = (theme) => {
     container: {
       alignSelf: "center",
       borderRadius: 20,
-      paddingHorizontal: 14,
-      paddingVertical: 6,
+      paddingHorizontal: 15,
+      paddingVertical: 5,
       marginVertical: 6,
-      shadowColor: theme.shadowColor || "#000",
-      shadowOffset: {
-        width: 0,
-        height: 3,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 4.5,
-
-      elevation: 5,
     },
     text: {
       color: theme.text,
       fontSize: 12,
       fontWeight: "600",
       textAlign: "center",
-      textShadowColor: "rgba(0, 0, 0, 0.5)",
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 2,
     },
   });
 };

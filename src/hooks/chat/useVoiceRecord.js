@@ -7,9 +7,10 @@ import {
   useAudioRecorderState,
 } from "expo-audio";
 
-import { RecordPreset } from "../../utils/record/audio/presets";
+import storage from "@/src/utils/storage/file";
+import { RecordPreset } from "@/src/utils/record/audio/presets";
 
-const useVoiceRecord = (onSendMessage) => {
+const useVoiceRecord = (onSendMessage, onActivityChange) => {
   // --- LOGICA AUDIO ---
   const [isRecording, setIsRecording] = useState(false);
   const audioRecorder = useAudioRecorder(RecordPreset.AAC);
@@ -34,7 +35,7 @@ const useVoiceRecord = (onSendMessage) => {
       if (status !== "granted") {
         Alert.alert(
           "Permesso negato",
-          "Serve il microfono per registrare audio."
+          "Serve il microfono per registrare audio.",
         );
         return;
       }
@@ -48,6 +49,7 @@ const useVoiceRecord = (onSendMessage) => {
       audioRecorder.record();
 
       setIsRecording(true);
+      onActivityChange?.(true);
     } catch (err) {
       console.error("Errore start recording:", err);
       setIsRecording(false);
@@ -63,6 +65,7 @@ const useVoiceRecord = (onSendMessage) => {
       const tempUri = audioRecorder.uri;
 
       setIsRecording(false);
+      onActivityChange?.(false);
 
       if (onSendMessage && tempUri) {
         const files = [
@@ -80,12 +83,43 @@ const useVoiceRecord = (onSendMessage) => {
     }
   };
 
+  const handleStopAndDraft = async (onAppendFilesToDraft) => {
+    if (!isRecording) return;
+
+    try {
+      await audioRecorder.stop();
+      const tempUri = audioRecorder.uri;
+
+      setIsRecording(false);
+      onActivityChange?.(false);
+
+      if (onAppendFilesToDraft && tempUri) {
+        const { ref, size } = await storage.save.byUri(tempUri);
+
+        const files = [
+          {
+            name: `novyse_vocal_${Date.now()}.m4a`,
+            uri: tempUri,
+            mimeType: "audio/aac",
+            ref,
+            size,
+          },
+        ];
+
+        onAppendFilesToDraft(files);
+      }
+    } catch (err) {
+      console.error("Errore draft recording:", err);
+    }
+  };
+
   // Annulla
   const handleCancelRecording = async () => {
     if (!isRecording) return;
     try {
       await audioRecorder.stop();
       setIsRecording(false);
+      onActivityChange?.(false);
       console.log("Registrazione annullata");
     } catch (err) {
       console.error(err);
@@ -97,8 +131,10 @@ const useVoiceRecord = (onSendMessage) => {
     try {
       if (recorderState.isRecording) {
         await audioRecorder.pause();
+        onActivityChange?.(false);
       } else {
         await audioRecorder.record();
+        onActivityChange?.(true);
       }
     } catch (err) {
       console.error("Errore toggle pause:", err);
@@ -111,6 +147,7 @@ const useVoiceRecord = (onSendMessage) => {
     recorderState,
     handleStartRecording,
     handleStopAndSend,
+    handleStopAndDraft,
     handleCancelRecording,
     handleTogglePause,
   };

@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { Alert } from "react-native";
 
-import { getPlatform } from "@/src/utils/device/type.js";
+import { getPlatform } from "@/src/utils/device/type";
 
-import { openNativeFileMenu } from "@/src/utils/storage/file/handler.js";
+import { openNativeFileMenu } from "@/src/utils/storage/file/handler";
 
 const useAttachHandlers = (
   setIsAttachMenuOpen,
   setSheetIndex,
   bottomSheetRef,
-  setIsFileModalVisible,
 ) => {
   const [attachType, setAttachType] = useState(null);
 
@@ -41,8 +40,7 @@ const useAttachHandlers = (
 
     switch (getPlatform()) {
       case "web":
-        setIsFileModalVisible(true);
-        break;
+        return await openNativeFileMenu(type);
       case "mobile":
         return await openNativeFileMenu(type);
       default:

@@ -1,48 +1,51 @@
+import { Platform } from "react-native";
+import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import auth from "@/src/utils/backend-services/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import database from "@/src/utils/storage/database";
 import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 
 import messageUtils from "@/src/utils/chat/message";
+import notificationManager from "@/src/utils/notifications/manager";
+import useUserStore from "@/src/context/UserContext";
+import useChatStore from "@/src/context/ChatContext";
+
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { resetGlobalNavState } from "@/src/components/tabs/TabNavigator";
+import {
+  ChatEventType,
+  UserProfileEventType,
+  UserEventType,
+} from "@/src/types/event";
 
 /**
- * Check if the user is logged in by verifying the presence of an access token in AsyncStorage.
+ * Check if the user is logged in by verifying local session markers.
+ * Web: Checks for the existence of the 'userUUID' in AsyncStorage.
+ * Mobile: Checks for the 'sessionId' in SecureStore.
  * @returns {Boolean} true if the user is logged in, false otherwise
  */
 const isLoggedIn = async () => {
-  const token = await AsyncStorage.getItem("accessToken");
-  return token !== null;
+  if (Platform.OS === "web") {
+    // We use the presence of 'userUUID' as marker.
+    const userUUID = await AsyncStorage.getItem("userUUID");
+    return userUUID !== null;
+  } else {
+    // On Mobile, we check for the sessionId in SecureStore.
+    try {
+      const sessionId = await SecureStore.getItemAsync("sessionId");
+      return sessionId !== null;
+    } catch (error) {
+      console.error("Error checking mobile session:", error);
+      return false;
+    }
+  }
 };
 
 const getUserUUID = async () => {
   const userUUID = await AsyncStorage.getItem("userUUID");
   return userUUID;
-};
-
-const getDeviceUUID = async () => {
-  const deviceUUID = await AsyncStorage.getItem("deviceUUID");
-  return deviceUUID;
-};
-
-/**
- * Store the last update timestamp in AsyncStorage.
- * @param {Timestamp} timestamp
- * @returns {void}
- */
-
-const setLastUpdateTimestamp = async (timestamp) => {
-  await AsyncStorage.setItem("lastUpdateTimestamp", timestamp);
-};
-
-/**
- * Get the last update timestamp from AsyncStorage.
- * @returns {string|null} The last update timestamp or null if not set.
- */
-
-const getLastUpdateTimestamp = async () => {
-  const timestamp = await AsyncStorage.getItem("lastUpdateTimestamp");
-  return timestamp;
 };
 
 /**
@@ -56,143 +59,310 @@ const checkShouldBeHere = async (router, shouldBeLoggedIn = true) => {
   const loggedIn = await isLoggedIn();
   if (shouldBeLoggedIn && !loggedIn) {
     console.warn("User should be logged in but is not. Redirecting to login.");
-    router.replace("/email-check");
+    router.replace("/welcome");
     return false;
   } else if (!shouldBeLoggedIn && loggedIn) {
     console.warn(
-      "User should not be logged in but is. Redirecting to messages."
+      "User should not be logged in but is. Redirecting to messages.",
     );
-    router.replace("/chat");
+    router.replace("/app");
     return false;
   }
   return true;
 };
 
-const initializeApp = async () => {
-  console.log("Initializing app...");
-  const { success, lastUpdateTime, user, device, chats, messages } =
+const initializeDatabase = async () => {
+  // Add expo push token if mobile
+  await notificationManager.updatePushToken();
+
+  const { success, local, chats, users, messages } =
     await gateway.user.initialize();
 
   if (success) {
-    console.info("Initialization successful:", {
-      lastUpdateTime,
-      user,
-      device,
-      chatsCount: chats,
-      messagesCount: messages,
-    });
-
-    // Set last update timestamp
-    if (lastUpdateTime) {
-      await setLastUpdateTimestamp(lastUpdateTime);
-      console.log("Last update timestamp set to:", lastUpdateTime);
-    }
-
-    // Set local user uuid in async storage
-    await AsyncStorage.setItem("userUUID", user.uuid);
-    await AsyncStorage.setItem("deviceUUID", device.uuid);
-
-    
     console.log("Database instance created:", database);
     await database.clear();
     await database.initialize();
 
     // Store user
-    await database.addUserInfo(user);
+    await database.user.add(local.user);
+    await AsyncStorage.setItem("localUserEventID", String(local.user.eventID));
 
-    // Store chats and messages in database
-    for (const chat of chats) {
-      await database.addChat(chat);
+    // Store pinned chat
+    for (const pinnedChat of local.pinnedChats) {
+      await database.chat.pin.add(pinnedChat.chatUUID, pinnedChat.position);
     }
 
-    for (const message of messages) {
-      await messageUtils.add(message);
-    }
+    await database.user.addMultiple(users);
+    await database.chat.addMultiple(chats);
+
+    await messageUtils.addMultiple(messages);
 
     console.log("All data stored in local database.");
     return true;
   }
-
-  console.error("Initialization failed.");
   return false;
 };
 
-const logout = async (router) => {
+const logout = async () => {
   console.log("Logging out user...");
-  const success = await gateway.auth.logout();
+  const success = await auth.logout();
   if (!success) {
     console.error(
-      "Logout failed at API level, but proceeding with local cleanup."
+      "Logout failed at API level, but proceeding with local cleanup.",
     );
   } else {
     console.log("Logout successful at API level.");
   }
-  
+
   await database.clear();
   await AsyncStorage.clear();
-  router.replace("/email-check");
+
+  if (Platform.OS !== "web") {
+    try {
+      await SecureStore.deleteItemAsync("sessionId");
+    } catch (error) {
+      console.error("Error clearing mobile session:", error);
+    }
+  }
+
+  // Clear every context/store
+  useUserStore.getState().clear();
+  useChatStore.getState().clear();
+  useActiveChatStore.getState().clear();
+  resetGlobalNavState();
+
+  EventEmitter.getEmitter().emit("auth:changed");
 };
 
-const update = async () => {
-  const loggedIn = await isLoggedIn();
-  if (!loggedIn) {
-    console.warn("User is not logged in. Skipping update.");
-    return false;
-  }
+const updateDatabase = async () => {
+  const gatewayLocal = {
+    eventID: (await AsyncStorage.getItem("userEventID")) || 0,
+  };
+  const { chats: gatewayChats, users: gatewayUsers } =
+    await database.user.update.getAllEventsIDs();
 
-  console.log("Starting update process...");
-
-  const lastUpdateTimestamp = await getLastUpdateTimestamp();
-  console.log("Last update timestamp:", lastUpdateTimestamp);
-
-  const { success, user, chats, messages, updated_at } =
-    await gateway.user.update(lastUpdateTimestamp);
+  const { success, local, users, chats, messages } = await gateway.user.update(
+    gatewayLocal,
+    gatewayChats,
+    gatewayUsers,
+  );
 
   if (success) {
-    console.log("Update successful:", { user, chats, messages });
-
-    
-
-    if (user) {
-      // Do nothing
-      //await database.addUserInfo(user);
+    // 1. New Chats
+    if (chats?.new && Array.isArray(chats.new) && chats.new.length > 0) {
+      console.log("Sync: Adding", chats.new.length, "new chats");
+      await database.chat.addMultiple(chats.new);
     }
 
-    if (chats && chats.length > 0) {
-      for (const chat of chats) {
-        chat.members = chat.members.map((member) => ({
-          uuid: member.uuid,
-          name: member.name,
-          surname: member.surname,
-          handle: member.handle,
-          profilePictureUUID: member.profilePictureUUID,
-        }));
-        await database.addChat(chat);
+    // 2. New Users
+    if (users?.new && Array.isArray(users.new) && users.new.length > 0) {
+      console.log("Sync: Adding", users.new.length, "new users");
+      await database.user.addMultiple(users.new);
+    }
+
+    // 3. Messages
+    if (messages && Array.isArray(messages) && messages.length > 0) {
+      console.log("Sync: Adding", messages.length, "new messages");
+      await database.message.addMultiple(messages);
+    }
+
+    // 4. Chat Events
+    if (chats?.events && Array.isArray(chats.events)) {
+      for (const event of chats.events) {
+        console.log(
+          "Sync: Chat Event received",
+          event.type,
+          "for chat",
+          event.chatUUID,
+        );
+        const chatUUID = event.chatUUID;
+        const { messageID } = event.payload;
+
+        switch (event.type) {
+          case ChatEventType.MESSAGE_EDITED:
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "edit",
+              event.id,
+              event.payload,
+            );
+            break;
+          case ChatEventType.REACTION_ADDED:
+            const reactionAddedPayload = event.payload;
+            reactionAddedPayload.reactedAt = event.createdAt;
+            reactionAddedPayload.userUUID = event.userUUID;
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "reaction_add",
+              event.id,
+              reactionAddedPayload,
+            );
+            break;
+          case ChatEventType.REACTION_REMOVED:
+            const reactionRemovedPayload = event.payload;
+            reactionRemovedPayload.userUUID = event.userUUID;
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "reaction_remove",
+              event.id,
+              reactionRemovedPayload,
+            );
+            break;
+          case ChatEventType.MESSAGE_DELETED:
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "delete",
+              event.id,
+              event.payload,
+            );
+            break;
+          case ChatEventType.MESSAGE_PINNED:
+            const messagePinnedPayload = event.payload;
+            messagePinnedPayload.pinnedAt = event.createdAt;
+            messagePinnedPayload.userUUID = event.userUUID;
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "pin_add",
+              event.id,
+              event.payload,
+            );
+            break;
+          case ChatEventType.MESSAGE_UNPINNED:
+            await EventEmitter.message.update(
+              chatUUID,
+              messageID,
+              "pin_remove",
+              event.id,
+              event.payload,
+            );
+            break;
+          case ChatEventType.MEMBER_JOINED:
+            await EventEmitter.chat.member.join(
+              chatUUID,
+              { uuid: event.userUUID },
+              event.id,
+            );
+            break;
+          case ChatEventType.MEMBER_LEFT:
+            await EventEmitter.chat.member.leave(chatUUID, {
+              uuid: event.userUUID,
+            });
+            break;
+          case ChatEventType.MESSAGE_READ:
+            await EventEmitter.message.update(
+              chatUUID,
+              event.payload.messageID,
+              "read",
+              event.id,
+              {
+                userUUID: event.userUUID,
+                readAt: event.createdAt,
+              },
+            );
+            break;
+          default:
+            console.warn("Sync: Unhandled chat event type", event.type);
+            break;
+        }
       }
     }
 
-    if (messages && messages.length > 0) {
-      for (const message of messages) {
-        await EventEmitter.newMessage(message);
+    // 5. User Profile Events
+    if (users?.events && Array.isArray(users.events)) {
+      for (const event of users.events) {
+        console.log(
+          "Sync: User Profile Event received",
+          event.type,
+          "for user",
+          event.userUUID,
+        );
+        const userUUID = event.userUUID;
+
+        switch (event.type) {
+          case UserProfileEventType.BIO_CHANGED:
+          case UserProfileEventType.PICTURE_CHANGED:
+          case UserProfileEventType.BANNER_CHANGED:
+          case UserProfileEventType.NAME_CHANGED:
+          case UserProfileEventType.SURNAME_CHANGED:
+          case UserProfileEventType.BIRTHDAY_CHANGED:
+          case UserProfileEventType.COLOR_CHANGED:
+          case UserProfileEventType.HANDLE_CHANGED:
+            await EventEmitter.user.profile.update(
+              { ...event.payload, userUUID },
+              event.id,
+            );
+            break;
+          default:
+            console.warn("Sync: Unhandled profile event type", event.type);
+            break;
+        }
       }
     }
 
-    await AsyncStorage.setItem("lastUpdateTimestamp", updated_at);
+    // 6. Local User Events
+    if (local && Array.isArray(local)) {
+      for (const event of local) {
+        console.log("Sync: Local Event received", event.type, event.id);
+        const chatUUID = event.chatUUID;
 
-    return true;
+        switch (event.type) {
+          case UserEventType.CHAT_PINNED:
+            await EventEmitter.user.setting.chat.update(
+              chatUUID,
+              "pin_add",
+              event.id,
+              event.payload,
+            );
+            break;
+          case UserEventType.CHAT_UNPINNED:
+            await EventEmitter.user.setting.chat.update(
+              chatUUID,
+              "pin_remove",
+              event.id,
+              event.payload,
+            );
+            break;
+          default:
+            console.warn("Sync: Unhandled local event type", event.type);
+            break;
+        }
+      }
+    }
   }
-  console.error("Update failed.");
-  return false;
+};
+
+const setLogin = async (userUUID, sessionID, session_id) => {
+  try {
+    await AsyncStorage.setItem("init", "false");
+
+    if (userUUID) {
+      await AsyncStorage.setItem("userUUID", String(userUUID));
+    }
+    if (sessionID) {
+      await AsyncStorage.setItem("sessionID", String(sessionID));
+    }
+
+    if (Platform.OS !== "web" && session_id) {
+      await SecureStore.setItemAsync("sessionId", String(session_id));
+    }
+
+    EventEmitter.getEmitter().emit("auth:changed");
+  } catch (error) {
+    console.error("Error during setLogin:", error);
+  }
 };
 
 export default {
   isLoggedIn,
-  getLastUpdateTimestamp,
-  setLastUpdateTimestamp,
   getUserUUID,
-  getDeviceUUID,
   checkShouldBeHere,
-  initializeApp,
+  setLogin,
+  initializeDatabase,
+  updateDatabase,
   logout,
-  update,
 };

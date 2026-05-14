@@ -1,35 +1,236 @@
-import React, { useContext } from "react";
-import { View, Pressable, StyleSheet, Text, Image } from "react-native";
-import { ThemeContext } from "@/context/ThemeContext";
+import React from "react";
+import { View, Pressable, StyleSheet } from "react-native";
+import AppText from "@/src/components/AppText";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  interpolate,
+  useAnimatedReaction,
+  useAnimatedProps,
+  withTiming,
+  withSequence,
+  withDelay,
+} from "react-native-reanimated";
+import Svg, { Circle } from "react-native-svg";
+import { scheduleOnRN } from "react-native-worklets";
+import * as Haptics from "expo-haptics";
+
+import { useThemeContext } from "@/src/context/ThemeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import useChatStore from "@/src/context/ChatContext";
+import useUserStore from "@/src/context/UserContext";
+import Icon from "../Icon";
+
+import useMessageGestures from "@/src/hooks/chat/useMessageGestures";
+
 import BlurredView from "../BlurredView";
 import { getFileType } from "@/src/utils/storage/file/type";
 import { defaultWaveform } from "@/src/utils/storage/file/media";
 
-import MessageTimestamp from "./MessageTimestamp";
 import Avatar from "../Avatar";
 
+import MessageText from "./MessageText";
 import MessageMedia from "./MessageMedia";
 import MessageOther from "./MessageOther";
 import MessageAudio from "./MessageAudio";
 import MessageVoice from "./MessageVoice";
+import MessageReply from "./MessageReply";
+import MessageTimestamp from "./MessageTimestamp";
 
-import MessageText from "./MessageText";
+const REPLY_THRESHOLD = 60;
+const MAX_SWIPE_DISTANCE = 90;
+const CIRCLE_SIZE = 36;
+const STROKE_WIDTH = 2;
+const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-const MessageBase = ({ message, isSender, onLongPress }) => {
-  const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
+const AnimatedCircle = Reanimated.createAnimatedComponent(Circle);
 
+const RightAction = ({ dragX, theme }) => {
+  const hasTriggeredHaptic = useSharedValue(false);
+
+  const triggerHaptic = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  useAnimatedReaction(
+    () => Math.abs(dragX.value),
+    (drag) => {
+      "worklet";
+      if (drag >= REPLY_THRESHOLD && !hasTriggeredHaptic.value) {
+        hasTriggeredHaptic.value = true;
+        scheduleOnRN(triggerHaptic);
+      } else if (drag < REPLY_THRESHOLD && hasTriggeredHaptic.value) {
+        hasTriggeredHaptic.value = false;
+      }
+    },
+  );
+
+  const animatedCircleProps = useAnimatedProps(() => {
+    const drag = Math.abs(dragX.value);
+    const percentage = Math.min(drag / REPLY_THRESHOLD, 1);
+    const strokeDashoffset = CIRCUMFERENCE * (1 - percentage);
+    return { strokeDashoffset };
+  });
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const drag = Math.abs(dragX.value);
+    const opacity = interpolate(drag, [0, 20], [0, 1], "clamp");
+    const scale = interpolate(drag, [0, REPLY_THRESHOLD], [0.7, 1.1], "clamp");
+    return { opacity, transform: [{ scale }] };
+  });
+
+  return (
+    <View style={rightActionStyles.container}>
+      <Reanimated.View style={[rightActionStyles.iconContainer, animatedStyle]}>
+        <Svg
+          width={CIRCLE_SIZE}
+          height={CIRCLE_SIZE}
+          style={rightActionStyles.svg}
+        >
+          <Circle
+            cx={CIRCLE_SIZE / 2}
+            cy={CIRCLE_SIZE / 2}
+            r={RADIUS}
+            stroke={theme.text}
+            strokeWidth={STROKE_WIDTH}
+            strokeOpacity={0.15}
+            fill="transparent"
+          />
+          <AnimatedCircle
+            cx={CIRCLE_SIZE / 2}
+            cy={CIRCLE_SIZE / 2}
+            r={RADIUS}
+            stroke={theme.text}
+            strokeWidth={STROKE_WIDTH}
+            fill="transparent"
+            strokeDasharray={CIRCUMFERENCE}
+            animatedProps={animatedCircleProps}
+            strokeLinecap="round"
+          />
+        </Svg>
+        <Icon name="ArrowMoveUpLeftIcon" size={18} color={theme.text} />
+      </Reanimated.View>
+    </View>
+  );
+};
+
+const rightActionStyles = StyleSheet.create({
+  container: {
+    width: MAX_SWIPE_DISTANCE,
+    justifyContent: "center",
+    alignItems: "flex-end",
+    paddingRight: 5,
+  },
+  iconContainer: {
+    width: CIRCLE_SIZE,
+    height: CIRCLE_SIZE,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  svg: {
+    position: "absolute",
+  },
+});
+
+const MessageReplyWrapper = ({
+  replyTo,
+  oldChatUUID,
+  oldMessageID,
+  navigateToMessageWithHistory,
+}) => {
+  const getMessage = useChatStore((state) => state.getMessage);
+  const getUser = useUserStore((state) => state.getUser);
+  const replyMessage = getMessage(replyTo?.chatUUID, replyTo?.messageID);
+
+  if (!replyMessage) return null;
+
+  const senderName = getUser(replyMessage.senderUUID)?.name || "Unknown User";
+
+  return (
+    <MessageReply
+      senderName={senderName}
+      message={replyMessage}
+      chatUUID={replyTo?.chatUUID}
+      messageID={replyTo?.messageID}
+      oldChatUUID={oldChatUUID}
+      oldMessageID={oldMessageID}
+      navigateToMessageWithHistory={navigateToMessageWithHistory}
+    />
+  );
+};
+
+const MessageBase = ({
+  message,
+  isSender,
+  isSelected,
+  isPinned,
+  isEdited,
+  isHighlighted,
+  repliedCount,
+  setTriggeredMessage,
+  setTriggeredMessagePosition,
+  selectedMessages,
+  setSelectedMessages,
+  onReply,
+  onReaction,
+  navigateToMessageWithHistory,
+}) => {
+  const { theme } = useThemeContext();
+  const { isSmallScreen } = useScreen();
+  const getUser = useUserStore((state) => state.getUser);
+  const chats = useChatStore((state) => state.chats);
+
+  const {
+    onMessageRightPress,
+    onMessagePress,
+    onMessageDoublePress,
+    onMessageLongPress,
+  } = useMessageGestures(
+    setTriggeredMessage,
+    setTriggeredMessagePosition,
+    selectedMessages,
+    setSelectedMessages,
+    onReply,
+    onReaction,
+  );
+
+  const swipeableRef = React.useRef(null);
   const {
     content,
     created_at,
-    showSenderName = false,
-    showAvatar = false,
-    sender_name,
-    type,
+    showSenderName,
+    showAvatar,
     files = [],
+    replyTos,
   } = message;
 
-  // object.groupby non è (ancora) supportata su react native quindi tocca fare così
+  const chat = chats.find((c) => c.uuid === message.chatUUID);
+  const chatType = chat?.type || "GROUP";
+  const styles = createStyle(theme, chatType);
+
+  const highlightOpacity = useSharedValue(0);
+
+  React.useEffect(() => {
+    if (isHighlighted) {
+      highlightOpacity.value = withSequence(
+        withTiming(1, { duration: 400 }),
+        withDelay(400, withTiming(0.2, { duration: 600 })),
+        withTiming(1, { duration: 400 }),
+        withDelay(400, withTiming(0, { duration: 1000 })),
+      );
+    } else {
+      highlightOpacity.value = withTiming(0, { duration: 300 });
+    }
+  }, [isHighlighted]);
+
+  const animatedHighlightStyle = useAnimatedStyle(() => ({
+    backgroundColor: theme.primary,
+    opacity: highlightOpacity.value * 0.4,
+    ...StyleSheet.absoluteFill,
+  }));
+
   const groupBy = (array, callback) => {
     return array.reduce((acc, item) => {
       const key = callback(item);
@@ -39,251 +240,408 @@ const MessageBase = ({ message, isSender, onLongPress }) => {
     }, {});
   };
 
-  const voiceMessages = groupBy(
-    files,
-    ({ mimeType, name }) => getFileType(mimeType, name) === "VOICE",
-  );
+  const fileGroups = {
+    voice: groupBy(files, (f) => getFileType(f.mimeType, f.name) === "VOICE"),
+    audio: groupBy(files, (f) => getFileType(f.mimeType, f.name) === "AUDIO"),
+    media: groupBy(files, (f) =>
+      ["IMAGE", "VIDEO"].includes(getFileType(f.mimeType)),
+    ),
+    other: groupBy(files, (f) =>
+      ["DOCUMENT", "CODE", "ARCHIVE", "OTHER"].includes(
+        getFileType(f.mimeType),
+      ),
+    ),
+  };
 
-  const audioMessages = groupBy(
-    files,
-    ({ mimeType, name }) => getFileType(mimeType, name) === "AUDIO",
-  );
+  const hasOnlyMedia =
+    (!content || content.trim().length === 0) &&
+    (fileGroups.media.true || []).length > 0;
 
-  const mediaMessages = groupBy(
-    files,
-    ({ mimeType }) =>
-      getFileType(mimeType) === "IMAGE" || getFileType(mimeType) === "VIDEO",
-  );
+  const hasReactions = message.reactions && message.reactions.length > 0;
 
-  const otherMessages = groupBy(files, ({ mimeType }) =>
-    ["DOCUMENT", "CODE", "ARCHIVE", "OTHER"].includes(getFileType(mimeType)),
-  );
+  const hasBeenRead = isSender && (message.readBy?.length || 0) > 0;
 
-  // Determina se ci sono solo media senza testo
-  const hasOnlyMedia = (!content || content.trim().length === 0) && (mediaMessages.true || []).length > 0;
+  console.log;
 
   const sharedContent = (
-    <View
-      style={hasOnlyMedia ? styles.mediaContainer : (showSenderName ? styles.textContainerNoTop : styles.textContainer)}
-    >
-      {/* images/videos print */}
-      {mediaMessages && <MessageMedia medias={mediaMessages.true || []} />}
-
-      {/* others print */}
-      {(otherMessages.true || []).map((otherMessage) => {
-        return (
-          <MessageOther
-            key={otherMessage.uuid}
-            fileRef={otherMessage.ref}
-            uuid={otherMessage.uuid}
-            mimeType={otherMessage.mimeType}
-            size={otherMessage.size}
-            name={otherMessage.name}
+    <View style={hasOnlyMedia ? styles.mediaContainer : null}>
+      {replyTos && replyTos.length > 0 && (
+        <View style={styles.replyTosContainer}>
+          {replyTos.map((reply, index) => (
+            <MessageReplyWrapper
+              key={`${reply.chatUUID}-${reply.messageID}-${index}`}
+              replyTo={reply}
+              oldChatUUID={message.chatUUID}
+              oldMessageID={message.id}
+              navigateToMessageWithHistory={navigateToMessageWithHistory}
+            />
+          ))}
+        </View>
+      )}
+      {fileGroups.media.true && (
+        <MessageMedia
+          medias={fileGroups.media.true}
+          isPending={message.internal}
+        />
+      )}
+      {(fileGroups.other.true || []).map((f) => (
+        <MessageOther
+          key={f.uuid}
+          fileRef={f.ref}
+          uuid={f.uuid}
+          mimeType={f.mimeType}
+          size={f.size}
+          name={f.name}
+          isPending={message.internal}
+        />
+      ))}
+      <View style={{ width: "100%" }}>
+        {(fileGroups.audio.true || []).map((f) => (
+          <MessageAudio
+            key={f.uuid}
+            audioRef={f.ref}
+            uuid={f.uuid}
+            size={f.size}
+            name={f.name}
+            message={message}
+            duration={f.duration}
+            isPending={message.internal}
           />
-        );
-      })}
-
-      {/* audios print */}
-      <View style={{ width: "100%" }}>
-        {(audioMessages.true || []).map((audioMessage) => {
-          return (
-            <MessageAudio
-              key={audioMessage.uuid}
-              audioRef={audioMessage.ref}
-              uuid={audioMessage.uuid}
-              size={audioMessage.size}
-              name={audioMessage.name}
-              message={message}
-              duration={audioMessage.duration}
-            />
-          );
-        })}
-      </View>
-
-      {/* voices print */}
-      <View style={{ width: "100%" }}>
-        {(voiceMessages.true || []).map((voiceMessage) => {
-          const waveform = Array.isArray(voiceMessage.waveform)
-            ? voiceMessage.waveform
-            : JSON.parse(
-                voiceMessage.waveform || JSON.stringify(defaultWaveform),
-              ) || defaultWaveform;
-          return (
-            <MessageVoice
-              key={voiceMessage.uuid}
-              audioRef={voiceMessage.ref}
-              uuid={voiceMessage.uuid}
-              message={message}
-              duration={voiceMessage.duration}
-              waveform={waveform}
-            />
-          );
-        })}
-      </View>
-
-      {/* Renderizza il testo e timestamp */}
-      {content &&
-        content.trim().length > 0 &&
-        (content.trim().length < 50 ? (
-          <View style={styles.textRow}>
-            <MessageText text={content} />
-            <MessageTimestamp time={created_at} />
-          </View>
-        ) : (
-          <>
-            <MessageText text={content} />
-            <MessageTimestamp time={created_at} />
-          </>
         ))}
+      </View>
+      <View style={{ width: "100%" }}>
+        {(fileGroups.voice.true || []).map((f) => (
+          <MessageVoice
+            key={f.uuid}
+            audioRef={f.ref}
+            uuid={f.uuid}
+            size={f.size}
+            message={message}
+            duration={f.duration}
+            isPending={message.internal}
+            waveform={
+              Array.isArray(f.waveform)
+                ? f.waveform
+                : JSON.parse(f.waveform || JSON.stringify(defaultWaveform))
+            }
+          />
+        ))}
+      </View>
 
-      {/* Se non c'è testo, mostra solo timestamp se necessario, cioè sempre */}
-      {!content || content.trim().length === 0 ? (
-        <MessageTimestamp time={created_at} />
-      ) : null}
+      {content?.trim().length > 0 && (
+        <View style={styles.textContainer}>
+          <MessageText
+            text={content}
+            // Passa 0 come timestampWidth quando ci sono reazioni:
+            // il timestamp non è più inline nel testo ma va sotto
+            timestampWidth={hasReactions ? 0 : 80}
+          />
+          {/* Timestamp inline (overlay) solo se NON ci sono reazioni */}
+          {!hasReactions && (
+            <View style={styles.timestampOverlay}>
+              <MessageTimestamp
+                time={created_at}
+                sent={isSender}
+                receivedByAll={hasBeenRead}
+                isEdited={isEdited}
+                isPendingEdit={!!message.pendingEditJobId}
+                isPinned={isPinned}
+                replyCount={repliedCount}
+              />
+            </View>
+          )}
+        </View>
+      )}
+
+      {!content?.trim() && !hasReactions && (
+        <MessageTimestamp
+          time={created_at}
+          sent={isSender}
+          receivedByAll={hasBeenRead}
+          isEdited={isEdited}
+          isPendingEdit={!!message.pendingEditJobId}
+          isPinned={isPinned}
+          replyCount={repliedCount}
+        />
+      )}
+
+      {/* Reazioni + timestamp sotto, stile Telegram */}
+      {hasReactions && (
+        <View style={styles.reactionsRow}>
+          <View style={styles.reactionsContainer}>
+            {message.reactions.map((reactionObj, index) => {
+              const avatars = reactionObj.userUUIDs.slice(0, 2);
+              return (
+                <Pressable
+                  key={`${reactionObj.emoji}-${index}`}
+                  style={styles.reactionPill}
+                  onPress={() => onReaction(message, reactionObj.emoji)}
+                >
+                  <AppText
+                    style={styles.reactionPillText}
+                    text={reactionObj.emoji}
+                  />
+                  <View style={styles.reactionAvatars}>
+                    {avatars.map((uUUID, i) => (
+                      <View
+                        key={uUUID}
+                        style={[
+                          styles.reactionAvatarContainer,
+                          i > 0 && styles.reactionAvatarOverlap,
+                        ]}
+                      >
+                        <Avatar
+                          uuid={getUser(uUUID)?.profilePictureUUID}
+                          size={16}
+                          theme={theme}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                  {reactionObj.userUUIDs.length > 2 && (
+                    <AppText
+                      style={styles.reactionPillText}
+                      text={`+${reactionObj.userUUIDs.length - 2}`}
+                    />
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+          {/* Timestamp allineato a destra accanto/sotto le reazioni */}
+          <MessageTimestamp
+            time={created_at}
+            sent={isSender}
+            receivedByAll={hasBeenRead}
+            isEdited={isEdited}
+            isPendingEdit={!!message.pendingEditJobId}
+            isPinned={isPinned}
+            replyCount={repliedCount}
+          />
+        </View>
+      )}
+
+      {/* Messaggio senza testo ma CON reazioni: timestamp nella reactionsRow sopra */}
+      {!content?.trim() && hasReactions && null}
     </View>
   );
 
-  if (isSender) {
-    return (
-      <BlurredView
-        // tint={"dark"}
-        style={[styles.senderBubble, showAvatar && styles.senderBubbleChained]}
-      >
-        <Pressable onLongPress={onLongPress} style={styles.pressable}>
-          {sharedContent}
-        </Pressable>
-      </BlurredView>
-    );
-  }
+  const blurredViewStyles = isSender
+    ? [styles.senderBubble, showAvatar && styles.senderBubbleChained]
+    : [styles.receiverBubble, showAvatar && styles.receiverBubbleWithAvatar];
 
-  // RECEIVER
-  return (
-    <View style={styles.receiverContainer}>
-      <View style={styles.receiverRow}>
-        {showAvatar && <Avatar size={40} uuid={message.profile_picture_uuid} />}
-        <BlurredView
-          tint={"dark"}
-          style={[
-            styles.receiverBubble,
-            showAvatar && styles.receiverBubbleWithAvatar,
-          ]}
-        >
-          <Pressable onLongPress={onLongPress} style={styles.pressable}>
+  const messageContent = (
+    <Pressable
+      onPress={(e) => onMessagePress(e, message)}
+      onLongPress={(e) => onMessageLongPress(e, message)}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        onMessageRightPress(e, message);
+      }}
+      onDoubleClick={(e) => onMessageDoublePress(e, message)}
+      style={isSender ? styles.pressable : styles.pressableReceiver}
+    >
+      {!isSender && showAvatar && (
+        <View style={styles.avatarWrapper}>
+          <Avatar
+            size={45}
+            uuid={getUser(message.senderUUID)?.profilePictureUUID}
+            theme={theme}
+          />
+        </View>
+      )}
+      <BlurredView isBorderActive={false} style={blurredViewStyles}>
+        {!isSender && (
+          <View style={styles.senderNameWrapper}>
             {showSenderName && (
-              <View style={styles.senderNameWrapper}>
-                <Text
-                  style={styles.senderName}
-                  numberOfLines={1}
-                  selectable={false}
-                >
-                  {sender_name}
-                </Text>
-              </View>
+              <AppText
+                style={styles.senderName}
+                numberOfLines={1}
+                text={getUser(message.senderUUID)?.name}
+                translationKey="chat.unknownUser"
+              />
             )}
-            {sharedContent}
-          </Pressable>
-        </BlurredView>
+          </View>
+        )}
+        {sharedContent}
+        {isSelected && !isSmallScreen && (
+          <View style={styles.selectedOverlay} />
+        )}
+      </BlurredView>
+    </Pressable>
+  );
+
+  return (
+    <>
+      <View style={styles.container}>
+        <Reanimated.View
+          style={[animatedHighlightStyle, { zIndex: -1 }]}
+          pointerEvents="none"
+        />
+        {isSmallScreen ? (
+          <ReanimatedSwipeable
+            ref={swipeableRef}
+            friction={1}
+            rightThreshold={REPLY_THRESHOLD}
+            overshootRight={false}
+            activeOffsetX={[-1, 1]}
+            failOffsetY={[-30, 30]}
+            animationOptions={{
+              damping: 25,
+              stiffness: 180,
+              mass: 0.8,
+              overshootClamping: true,
+            }}
+            renderRightActions={(_, dragX) => (
+              <RightAction dragX={dragX} theme={theme} />
+            )}
+            onSwipeableWillOpen={() => {
+              onReply(message);
+              swipeableRef.current?.close();
+            }}
+          >
+            {messageContent}
+          </ReanimatedSwipeable>
+        ) : (
+          messageContent
+        )}
       </View>
-    </View>
+      {isSelected && isSmallScreen && <View style={styles.selectedOverlay} />}
+    </>
   );
 };
 
-const createStyle = (theme) =>
+const createStyle = (theme, chatType) =>
   StyleSheet.create({
-    receiverContainer: {
-      alignSelf: "flex-start",
-      maxWidth: "80%",
+    container: {
+      width: "100%",
+      position: "relative",
     },
-    receiverRow: {
+    pressable: {
+      width: "100%",
+      paddingHorizontal: 10,
+    },
+    pressableReceiver: {
+      width: "100%",
       flexDirection: "row",
       alignItems: "flex-end",
     },
     senderBubble: {
-      overflow: "visible",
-      marginVertical: 4,
+      marginVertical: 5,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-end",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 3.84,
-      elevation: 5,
       overflow: "hidden",
     },
     senderBubbleChained: {
       borderBottomRightRadius: 4,
     },
     receiverBubble: {
-      overflow: "visible",
-      marginVertical: 4,
-      marginLeft: 58,
+      marginVertical: 5,
+      marginLeft: chatType === "DM" ? 10 : 65,
       maxWidth: "80%",
       borderRadius: 18,
       alignSelf: "flex-start",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 3.84,
-      elevation: 5,
       overflow: "hidden",
     },
     receiverBubbleWithAvatar: {
-      marginLeft: 10,
-      borderBottomLeftRadius: 4,
-    },
-    pressable: {
-      padding: 0,
-      width: "100%",
+      marginLeft: 5,
+      borderBottomLeftRadius: 5,
     },
     textContainer: {
-      flexDirection: "column",
-      alignItems: "flex-start",
-      justifyContent: "flex-start",
-      paddingHorizontal: 12,
-      paddingBottom: 8,
-      paddingTop: 8,
+      position: "relative",
+      paddingHorizontal: 10,
+      paddingVertical: 10,
     },
-    textContainerNoTop: {
-      flexDirection: "column",
-      alignItems: "flex-start",
-      justifyContent: "flex-start",
-      paddingHorizontal: 12,
-      paddingBottom: 8,
-      paddingTop: 0,
+    timestampOverlay: {
+      position: "absolute",
+      bottom: 0,
+      right: 0,
     },
     mediaContainer: {
       flexDirection: "column",
-      alignItems: "flex-start",
-      justifyContent: "flex-start",
-      paddingHorizontal: 0,
-      paddingBottom: 0,
-      paddingTop: 0,
+      width: "100%",
     },
-    textRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-end",
-      flexWrap: "wrap",
+    replyTosContainer: {
+      marginBottom: 0,
     },
     avatarWrapper: {
+      marginLeft: 10,
       marginRight: 5,
       marginBottom: 5,
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 50,
+      width: 45,
+      height: 45,
     },
     senderNameWrapper: {
-      paddingHorizontal: 12,
-      paddingTop: 8,
+      paddingHorizontal: 10,
+      paddingTop: 5,
+      flexDirection: "row",
+      justifyContent: "space-between",
     },
     senderName: {
       fontWeight: "600",
       color: theme.text,
       flexShrink: 1,
     },
+    selectedOverlay: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: theme.backgroundInfo,
+      zIndex: 1,
+      pointerEvents: "none",
+    },
+    reactionsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: 5,
+    },
+    reactionsContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 5,
+      alignItems: "center",
+      paddingHorizontal: 10,
+      paddingBottom: 10,
+    },
+    reactionPill: {
+      backgroundColor: theme.backgroundSecondary,
+      borderRadius: 12,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderWidth: 1,
+      borderColor: theme.borderColor,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 4,
+    },
+    reactionPillText: {
+      fontSize: 12,
+      color: theme.text,
+    },
+    reactionAvatars: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    reactionAvatarContainer: {
+      borderRadius: 999,
+    },
+    reactionAvatarOverlap: {
+      marginLeft: -8,
+    },
   });
 
-export default MessageBase;
+export default React.memo(
+  MessageBase,
+  (prev, next) =>
+    prev.message === next.message &&
+    prev.isSender === next.isSender &&
+    prev.isSelected === next.isSelected &&
+    prev.selectedMessages === next.selectedMessages &&
+    prev.isHighlighted === next.isHighlighted &&
+    prev.repliedCount === next.repliedCount &&
+    prev.isPinned === next.isPinned &&
+    prev.isEdited === next.isEdited &&
+    prev.onReply === next.onReply &&
+    prev.onReaction === next.onReaction,
+);
