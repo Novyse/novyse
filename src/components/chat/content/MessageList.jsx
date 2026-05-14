@@ -95,6 +95,17 @@ const MessageList = ({
     [preparedMessages, flatListRef],
   );
 
+  const scrollToMessageID = useActiveChatStore((state) => state.scrollToMessageID);
+  const setScrollToMessageID = useActiveChatStore((state) => state.setScrollToMessageID);
+  const selectedChatUUID = useActiveChatStore((state) => state.selectedChatUUID);
+
+  useEffect(() => {
+    if (scrollToMessageID) {
+      navigateToMessageWithHistory(selectedChatUUID, scrollToMessageID);
+      setScrollToMessageID(null);
+    }
+  }, [scrollToMessageID, selectedChatUUID, navigateToMessageWithHistory, setScrollToMessageID]);
+
   const {
     triggeredMessage,
     setTriggeredMessage,
