@@ -1,12 +1,12 @@
 //.ENV
 const APP_NAME = "Novyse"; // Novyse-dev Novyse
 const APP_SLUG = "novyse";
-const APP_VERSION = "0.9.2";
+const APP_VERSION = "1.0.0";
 const BUILD_NUMBER = "1";
-const BUILD_DATE = "2026/05/11 12:00:00";
+const BUILD_DATE = "2026/05/14 13:00:00";
 const EXPO_OWNER = "novyse";
 const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
-const BRANCH = "development" as "development" | "preview" | "production";
+const BRANCH = "production" as "development" | "preview" | "production";
 
 const getDomain = (sub: string) => {
   const suffix =
