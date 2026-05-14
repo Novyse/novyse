@@ -37,6 +37,7 @@
       "passwordTooShort": "La password deve contenere almeno 8 caratteri",
       "required": "Campo obbligatorio",
       "invalidName": "Il nome può contenere solo lettere e spazi",
+      "nameTooLong": "Il nome non può superare i 50 caratteri",
       "handleTooShort": "L'handle deve contenere almeno 3 caratteri",
       "handleTooLong": "L'handle non può superare i 15 caratteri",
       "invalidHandle": "L'handle può contenere solo lettere minuscole, numeri e trattini bassi, e deve iniziare e finire con una lettera o un numero",

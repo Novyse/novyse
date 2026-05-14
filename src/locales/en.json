@@ -37,6 +37,7 @@
       "passwordTooShort": "Password must be at least 8 characters",
       "required": "Required field",
       "invalidName": "Name can only contain letters and spaces",
+      "nameTooLong": "Name cannot exceed 50 characters",
       "handleTooShort": "Handle must be at least 3 characters",
       "handleTooLong": "Handle cannot exceed 15 characters",
       "invalidHandle": "Handle can only contain lowercase letters, numbers, and underscores, and must start and end with a letter or number",
