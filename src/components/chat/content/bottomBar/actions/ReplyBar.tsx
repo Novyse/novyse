@@ -1,11 +1,14 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, ViewStyle, TextStyle } from "react-native";
-import AppText from "@/src/components/AppText";
+
+import useUserStore from "@/src/context/UserContext";
 import { ThemeContext } from "@/src/context/ThemeContext";
+
+import messageUtils from "@/src/utils/chat/messageFormat";
+
+import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
-import useUserStore from "@/src/context/UserContext";
-import messageUtils from "@/src/utils/chat/messageFormat";
 
 interface Message {
   id: string | number;
@@ -23,10 +26,9 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ message, onCancel }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const relevantUUID =
-    message?.type === "system" ? message?.content : message?.senderUUID;
-  // Trigger re-renders
-  useUserStore((state) => state.users[relevantUUID]);
+  const senderUUID = message.senderUUID || "";
+  const senderName =
+    useUserStore((state) => state.users[senderUUID])?.name || "";
 
   const content = message ? messageUtils.format(message).content : null;
 
@@ -38,7 +40,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ message, onCancel }) => {
         <AppText
           style={styles.actionName}
           numberOfLines={1}
-          text={message.sender_name ?? message.senderUUID}
+          text={senderName}
         />
         <AppText style={styles.actionText} numberOfLines={1} text={content} />
       </View>
