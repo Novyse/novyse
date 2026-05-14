@@ -37,6 +37,6 @@ export const fetchToken = async (): Promise<string | null> => {
     return null;
   } catch (error) {
     console.error("Error fetching token:", error);
-    return null;
+    throw error;
   }
 };

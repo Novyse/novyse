@@ -48,8 +48,8 @@ export const getAuthToken = async (): Promise<string | null> => {
         currentToken = null;
         currentTokenExpiry = 0;
 
-        // If fetchToken returns null, it means the session is probably invalid
-        // or there's a serious network error. Trigger logout.
+        // If fetchToken returns null (not throwing), it means the server explicitly returned success: false.
+        // This typically means the session is invalid.
         EventEmitter.getEmitter().emit("invalidSession");
       }
 
@@ -57,6 +57,22 @@ export const getAuthToken = async (): Promise<string | null> => {
         onTokenUpdate(currentToken);
       }
 
+      return currentToken;
+    } catch (error: any) {
+      // Check if it's a 401 error (Unauthorized)
+      if (error.response && error.response.status === 401) {
+        currentToken = null;
+        currentTokenExpiry = 0;
+        EventEmitter.getEmitter().emit("invalidSession");
+        
+        if (onTokenUpdate) {
+          onTokenUpdate(currentToken);
+        }
+      } else {
+        // It's a 500 or network error, ignore and keep session
+        console.log("fetchToken failed with server or network error. Ignoring to maintain session.", error.message);
+      }
+      
       return currentToken;
     } finally {
       tokenRequestPromise = null;
