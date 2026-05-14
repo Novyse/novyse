@@ -43,6 +43,13 @@
       "invalidHandle": "L'handle può contenere solo lettere minuscole, numeri e trattini bassi, e deve iniziare e finire con una lettera o un numero",
       "handleConsecutiveUnderscores": "Non sono ammessi trattini bassi consecutivi",
       "invalidInput": "Input non valido"
+    },
+    "auth": {
+      "signupStep": {
+        "available": "Disponibile",
+        "alreadyInUse": "Già in uso",
+        "passwordsMismatch": "Le password non coincidono"
+      }
     }
   },
   "chat": {
@@ -393,7 +400,7 @@
       "mfa": "MFA (WIP)",
       "sessionsLabel": "Sessioni",
       "sessionsTitle": "Sessioni",
-      "apiKeys": "Chiavi API",
+      "apiKeysLabel": "Chiavi API",
       "notifications": "Notifiche (WIP)",
       "authenticator": "Autenticatore",
       "authAppDesc": "App di Autenticazione",
@@ -420,12 +427,14 @@
       "apiKeyRevokedSuccess": "Chiave API revocata con successo",
       "apiKeyRevokeFailed": "Impossibile revocare la chiave API",
       "createNewApiKey": "Crea Nuova Chiave API",
-      "createModal": {
-        "title": "Crea Nuova Chiave API",
-        "subtitle": "Dai alla tua chiave API un nome descrittivo per identificarla in seguito.",
-        "placeholder": "es. Server di Produzione",
-        "creating": "Creazione...",
-        "create": "Crea Chiave API"
+      "apiKeys": {
+        "createModal": {
+          "title": "Crea Nuova Chiave API",
+          "subtitle": "Dai alla tua chiave API un nome descrittivo per identificarla in seguito.",
+          "placeholder": "es. Server di Produzione",
+          "creating": "Creazione...",
+          "create": "Crea Chiave API"
+        }
       },
       "detailsModal": {
         "title": "Chiave API Creata",

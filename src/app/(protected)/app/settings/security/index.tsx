@@ -38,7 +38,7 @@ export default function SecurityRoute() {
         />
         <SettingsMenuItem
           navToPage="./settings/security/api-keys"
-          translationKey="settings.security.apiKeys"
+          translationKey="settings.security.apiKeysLabel"
           iconName={"Key01Icon"}
         />
         <SettingsMenuItem

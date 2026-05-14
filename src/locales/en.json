@@ -43,6 +43,13 @@
       "invalidHandle": "Handle can only contain lowercase letters, numbers, and underscores, and must start and end with a letter or number",
       "handleConsecutiveUnderscores": "Consecutive underscores are not allowed",
       "invalidInput": "Invalid input"
+    },
+    "auth": {
+      "signupStep": {
+        "available": "Available",
+        "alreadyInUse": "Already in use",
+        "passwordsMismatch": "Passwords do not match"
+      }
     }
   },
   "chat": {
@@ -394,7 +401,7 @@
       "mfa": "MFA (WIP)",
       "sessionsLabel": "Sessions",
       "sessionsTitle": "Sessions",
-      "apiKeys": "API Keys",
+      "apiKeysLabel": "API Keys",
       "notifications": "Notifications (WIP)",
       "authenticator": "Authenticator",
       "authAppDesc": "Authentication App",
@@ -421,12 +428,14 @@
       "apiKeyRevokedSuccess": "API key revoked successfully",
       "apiKeyRevokeFailed": "Failed to revoke API key",
       "createNewApiKey": "Create New API Key",
-      "createModal": {
-        "title": "Create New API Key",
-        "subtitle": "Give your API key a descriptive name to identify it later.",
-        "placeholder": "e.g. Production Server",
-        "creating": "Creating...",
-        "create": "Create API Key"
+      "apiKeys": {
+        "createModal": {
+          "title": "Create New API Key",
+          "subtitle": "Give your API key a descriptive name to identify it later.",
+          "placeholder": "e.g. My Bot",
+          "creating": "Creating...",
+          "create": "Create API Key"
+        }
       },
       "detailsModal": {
         "title": "API Key Created",
