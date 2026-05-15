@@ -1,7 +1,9 @@
+import packageJson from "./package.json";
+
 //.ENV
 const APP_NAME = "Novyse"; // Novyse-dev Novyse
 const APP_SLUG = "novyse";
-const APP_VERSION = "1.0.0";
+const APP_VERSION = packageJson.version;
 const BUILD_NUMBER = "1";
 const BUILD_DATE = "2026/05/14 13:00:00";
 const EXPO_OWNER = "novyse";
