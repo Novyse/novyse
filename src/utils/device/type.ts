@@ -1,11 +1,14 @@
 import { Platform } from "react-native";
 
-// Detect Electron
+// Detect Electrobun
 const isElectrobun = (): boolean =>
   typeof window !== "undefined" &&
-  (window as any).process &&
-  (window as any).process.versions &&
-  (window as any).process.versions.electrobun;
+  (window.location.protocol === "views:" ||
+    Boolean(
+      (window as any).process &&
+      (window as any).process.versions &&
+      (window as any).process.versions.electrobun,
+    ));
 
 export const getOs = (): "desktop" | "web" | typeof Platform.OS => {
   if (isElectrobun()) {

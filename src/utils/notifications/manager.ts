@@ -1,8 +1,10 @@
-import { Platform, AppState } from "react-native";
+import { AppState } from "react-native";
 import mobile from "./lib/mobile";
 import web from "./lib/web";
 import firebase from "./lib/firebase";
 import { useActiveChatStore } from "../../context/ActiveChatContext";
+
+import Platform from "@/src/utils/device/type";
 
 class NotificationManager {
   constructor() {
@@ -10,7 +12,7 @@ class NotificationManager {
   }
 
   async init() {
-    if (Platform.OS !== "web") {
+    if (Platform === "mobile") {
       // Initialize Firebase (token, foreground listener)
       await firebase.init((remoteMessage) => {
         this.handleRemoteMessage(remoteMessage);
@@ -22,20 +24,31 @@ class NotificationManager {
         await mobile.displayMessage(remoteMessage);
       });
     } else {
+      // Notification prompting can only be done from a user gesture on web.
+      // We skip automatic request here to avoid the browser error.
+      console.log(
+        "[NotificationManager] Web init: skipping automatic permission request.",
+      );
+    }
+  }
+
+  async requestPermissions() {
+    if (Platform === "web") {
       await web.requestPermissions();
     }
   }
 
   async updatePushToken() {
-    if (Platform.OS === "web") return;
-    await firebase.updateToken();
+    if (Platform === "mobile") {
+      await firebase.updateToken();
+    }
   }
 
   /**
    * Processes an incoming FCM message (foreground)
    */
   private async handleRemoteMessage(remoteMessage: any) {
-    if (Platform.OS !== "web") {
+    if (Platform === "mobile") {
       // Skip notification if we are already viewing the chat IN FOREGROUND
       const activeChatUUID = useActiveChatStore.getState().selectedChatUUID;
       const incomingChatUUID = remoteMessage.data?.chatUUID;
@@ -65,18 +78,23 @@ class NotificationManager {
     icon?: string,
     subtitle?: string,
   ) {
-    if (Platform.OS === "web") {
-      web.send(title, body, data, icon);
-    } else {
-      // Local display via Notifee
-      await mobile.displayMessage({
-        data: {
-          ...data,
-          content: body,
-          chatName: title,
-          chatIcon: icon,
-        },
-      });
+    switch (Platform) {
+      case "web":
+        web.send(title, body, data, icon);
+        break;
+      case "mobile":
+        // Local display via Notifee
+        await mobile.displayMessage({
+          data: {
+            ...data,
+            content: body,
+            chatName: title,
+            chatIcon: icon,
+          },
+        });
+        break;
+      case "desktop":
+        break;
     }
   }
 
@@ -87,24 +105,33 @@ class NotificationManager {
     icon?: string,
     subtitle?: string,
   ) {
-    if (Platform.OS === "web") {
-      web.sendWhenHidden(title, body, data, icon);
-    } else {
-      if (
-        AppState.currentState === "background" ||
-        AppState.currentState === "inactive"
-      ) {
-        await this.sendNotification(title, body, data, icon, subtitle);
-      }
+    switch (Platform) {
+      case "web":
+        web.sendWhenHidden(title, body, data, icon);
+        break;
+      case "mobile":
+        if (
+          AppState.currentState === "background" ||
+          AppState.currentState === "inactive"
+        ) {
+          await this.sendNotification(title, body, data, icon, subtitle);
+        }
+        break;
+      case "desktop":
+        break;
     }
   }
 
   async sendCallNotification(callData: any) {
-    if (Platform.OS === "web") {
-      return;
+    switch (Platform) {
+      case "web":
+        return;
       //web.sendCallNotification(callData);
-    } else {
-      await mobile.displayCallNotification(callData);
+      case "mobile":
+        await mobile.displayCallNotification(callData);
+        break;
+      case "desktop":
+        break;
     }
   }
 }
