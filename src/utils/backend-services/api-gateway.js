@@ -1,12 +1,10 @@
 import axios from "axios";
-import { Platform } from "react-native";
+import Platform, { getOs } from "@/src/utils/device/type";
 import * as SecureStore from "expo-secure-store";
+import { rpc } from "@/src/utils/electrobun/rpc";
 
 import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
 import useNetworkStore from "@/src/context/NetworkContext";
-
-import { getOs, getPlatform } from "@/src/utils/device/type";
-
 import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
 
 const api = axios.create({
@@ -14,7 +12,7 @@ const api = axios.create({
   withCredentials: false,
   timeout: 10000,
   headers: {
-    "x-platform": getPlatform(),
+    "x-platform": Platform,
     "x-operating-system": getOs(),
     "x-app-version": APP_VERSION,
   },
@@ -73,10 +71,23 @@ api.interceptors.response.use(
     // Clear API error on success
     useNetworkStore.getState().setApiError(null);
 
-    if (Platform.OS !== "web") {
-      const newSessionId = response.headers["x-set-session-id"];
-      if (newSessionId) {
-        await SecureStore.setItemAsync("sessionId", String(newSessionId));
+    const newSessionId = response.headers["x-set-session-id"];
+    if (newSessionId) {
+      switch (Platform) {
+        case "desktop": {
+          await rpc.request("secureStoreSet", {
+            key: "sessionId",
+            value: String(newSessionId),
+          });
+          break;
+        }
+        case "mobile": {
+          await SecureStore.setItemAsync("sessionId", String(newSessionId));
+          break;
+        }
+        case "web":
+        default:
+          break;
       }
     }
 

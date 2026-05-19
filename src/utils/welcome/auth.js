@@ -1,6 +1,7 @@
-import { Platform } from "react-native";
+import Platform from "@/src/utils/device/type";
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { rpc } from "@/src/utils/electrobun/rpc";
 
 import auth from "@/src/utils/backend-services/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -24,21 +25,35 @@ import {
  * Check if the user is logged in by verifying local session markers.
  * Web: Checks for the existence of the 'userUUID' in AsyncStorage.
  * Mobile: Checks for the 'sessionId' in SecureStore.
+ * Desktop: Checks for the existence of the 'userUUID' in AsyncStorage and 'sessionId' in OS Keychain.
  * @returns {Boolean} true if the user is logged in, false otherwise
  */
 const isLoggedIn = async () => {
-  if (Platform.OS === "web") {
-    // We use the presence of 'userUUID' as marker.
-    const userUUID = await AsyncStorage.getItem("userUUID");
-    return userUUID !== null;
-  } else {
-    // On Mobile, we check for the sessionId in SecureStore.
-    try {
-      const sessionId = await SecureStore.getItemAsync("sessionId");
-      return sessionId !== null;
-    } catch (error) {
-      console.error("Error checking mobile session:", error);
-      return false;
+  switch (Platform) {
+    case "web": {
+      const userUUID = await AsyncStorage.getItem("userUUID");
+      return userUUID !== null;
+    }
+    case "desktop": {
+      try {
+        const userUUID = await AsyncStorage.getItem("userUUID");
+        if (userUUID === null) return false;
+        const res = await rpc.request("secureStoreGet", { key: "sessionId" });
+        return res.success && res.value !== undefined;
+      } catch (error) {
+        console.error("Error checking desktop session:", error);
+        return false;
+      }
+    }
+    case "mobile":
+    default: {
+      try {
+        const sessionId = await SecureStore.getItemAsync("sessionId");
+        return sessionId !== null;
+      } catch (error) {
+        console.error("Error checking mobile session:", error);
+        return false;
+      }
     }
   }
 };
@@ -117,12 +132,26 @@ const logout = async () => {
   await database.clear();
   await AsyncStorage.clear();
 
-  if (Platform.OS !== "web") {
-    try {
-      await SecureStore.deleteItemAsync("sessionId");
-    } catch (error) {
-      console.error("Error clearing mobile session:", error);
+  switch (Platform) {
+    case "desktop": {
+      try {
+        await rpc.request("secureStoreDelete", { key: "sessionId" });
+      } catch (error) {
+        console.error("Error clearing desktop session:", error);
+      }
+      break;
     }
+    case "mobile": {
+      try {
+        await SecureStore.deleteItemAsync("sessionId");
+      } catch (error) {
+        console.error("Error clearing mobile session:", error);
+      }
+      break;
+    }
+    case "web":
+    default:
+      break;
   }
 
   // Clear every context/store
@@ -347,8 +376,25 @@ const setLogin = async (userUUID, sessionID, session_id) => {
       await AsyncStorage.setItem("sessionID", String(sessionID));
     }
 
-    if (Platform.OS !== "web" && session_id) {
-      await SecureStore.setItemAsync("sessionId", String(session_id));
+    switch (Platform) {
+      case "desktop": {
+        if (session_id) {
+          await rpc.request("secureStoreSet", {
+            key: "sessionId",
+            value: String(session_id),
+          });
+        }
+        break;
+      }
+      case "mobile": {
+        if (session_id) {
+          await SecureStore.setItemAsync("sessionId", String(session_id));
+        }
+        break;
+      }
+      case "web":
+      default:
+        break;
     }
 
     EventEmitter.getEmitter().emit("auth:changed");

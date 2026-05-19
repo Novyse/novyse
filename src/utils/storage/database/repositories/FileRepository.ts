@@ -1,13 +1,14 @@
 import { SQLiteDatabase } from "expo-sqlite";
+import ElectrobunSQLiteAdapter from "@/src/utils/storage/database/electrobunAdapter";
 
 export class FileRepository {
-  db: SQLiteDatabase;
+  db: SQLiteDatabase | ElectrobunSQLiteAdapter;
 
-  constructor(db: SQLiteDatabase) {
+  constructor(db: SQLiteDatabase | ElectrobunSQLiteAdapter) {
     this.db = db;
   }
 
-  setDb(db: SQLiteDatabase) {
+  setDb(db: SQLiteDatabase | ElectrobunSQLiteAdapter) {
     this.db = db;
   }
 

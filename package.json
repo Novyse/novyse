@@ -3,13 +3,13 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
     "dev": "expo start -cd",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "jest --watchAll",
+    "desktop": "cd desktop/novyse && bun run dev",
     "lint": "expo lint",
+    "build:web": "expo export -p web",
     "postinstall": "sed -i 's/CMAKE_CXX_STANDARD 11/CMAKE_CXX_STANDARD 20/' node_modules/react-native-opaque/android/CMakeLists.txt"
   },
   "jest": {
@@ -37,6 +37,7 @@
     "@shopify/flash-list": "2.0.2",
     "@simplewebauthn/browser": "^13.3.0",
     "axios": "^1.16.0",
+    "electrobun": "^1.18.1",
     "expo": "^55.0.20",
     "expo-asset": "~55.0.16",
     "expo-audio": "~55.0.14",

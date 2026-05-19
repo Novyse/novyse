@@ -1,5 +1,6 @@
 import axios from "axios";
-import { Platform } from "react-native";
+import Platform from "@/src/utils/device/type";
+import { rpc } from "@/src/utils/electrobun/rpc";
 import * as SecureStore from "expo-secure-store";
 import { BRANCH, AUTH_BASE_URL } from "../../../app.config";
 
@@ -29,10 +30,23 @@ authApi.interceptors.request.use(
 
 authApi.interceptors.response.use(
   async (response) => {
-    if (Platform.OS !== "web") {
-      const newSessionId = response.headers["x-set-session-id"];
-      if (newSessionId) {
-        await SecureStore.setItemAsync("sessionId", String(newSessionId));
+    const newSessionId = response.headers["x-set-session-id"];
+    if (newSessionId) {
+      switch (Platform) {
+        case "desktop": {
+          await rpc.request("secureStoreSet", {
+            key: "sessionId",
+            value: String(newSessionId),
+          });
+          break;
+        }
+        case "mobile": {
+          await SecureStore.setItemAsync("sessionId", String(newSessionId));
+          break;
+        }
+        case "web":
+        default:
+          break;
       }
     }
 

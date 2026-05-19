@@ -1,7 +1,8 @@
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
+import { rpc } from "@/src/utils/electrobun/rpc";
 
-import { getPlatform } from "@/src/utils/device/type";
+import Platform from "@/src/utils/device/type";
 
 /**
  * Pick file(s) from device storage
@@ -9,7 +10,6 @@ import { getPlatform } from "@/src/utils/device/type";
  * @returns {Array} Array of picked file assets
  */
 const pickFile = async (type = "*/*") => {
-    console.log("Picking file of type:", type);
   const result = await DocumentPicker.getDocumentAsync({
     type,
     copyToCacheDirectory: true,
@@ -30,7 +30,7 @@ const pickMedia = async (types = ["images", "videos", "livePhotos"]) => {
   if (status !== "granted") {
     console.error(
       "Permission denied",
-      "Sorry, we need camera roll permissions to make this work!"
+      "Sorry, we need camera roll permissions to make this work!",
     );
     return;
   }
@@ -50,11 +50,13 @@ const pickMedia = async (types = ["images", "videos", "livePhotos"]) => {
 };
 
 export const openNativeFileMenu = async (type) => {
-  switch (getPlatform()) {
+  switch (Platform) {
     case "mobile":
       return await openMobileFileMenu(type);
     case "web":
       return await openWebFileMenu(type);
+    case "desktop":
+      return await openDesktopFileMenu(type);
     default:
       console.warn("Unsupported platform for file picking");
   }
@@ -91,4 +93,35 @@ const openWebFileMenu = async (type) => {
   }
 
   return await pickFile(fileType);
+};
+
+const openDesktopFileMenu = async (type) => {
+  // On desktop, media and file use the same picker
+  let fileType = "*/*";
+  switch (type) {
+    case "Image":
+      fileType = "image/*";
+      break;
+    case "Media":
+      fileType = "image/*,video/*";
+      break;
+    case "File":
+      fileType = "*/*";
+      break;
+    default:
+      console.warn("Unsupported file type for desktop file picking");
+  }
+
+  try {
+    const res = await rpc.request("openFileDialog", {
+      allowedFileTypes: fileType,
+      allowsMultipleSelection: true,
+    });
+    if (res.success && res.assets) {
+      return res.assets;
+    }
+  } catch (error) {
+    console.error("openDesktopFileMenu error:", error);
+  }
+  return [];
 };

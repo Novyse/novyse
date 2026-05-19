@@ -182,22 +182,25 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
   );
 };
 
-const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) =>
-  StyleSheet.create({
+const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) => {
+  const baseWidth = isSmallScreen ? screenWidth : screenWidth * 0.7;
+  const baseHeight = isSmallScreen ? screenHeight : screenHeight * 0.7;
+
+  return StyleSheet.create({
     container: {
-      flex: 1,
       backgroundColor: "transparent",
       overflow: "hidden",
-      minHeight: isSmallScreen ? screenHeight : screenHeight * 0.7,
-      minWidth: isSmallScreen ? screenWidth : screenWidth * 0.7,
+      height: baseHeight,
+      width: baseWidth,
+      alignItems: "center",
+      justifyContent: "center",
       ...Platform.select({ web: { cursor: "grab" } }),
     },
     imageWrapper: {
-      flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      minHeight: isSmallScreen ? "100%" : screenHeight * 0.7,
-      minWidth: isSmallScreen ? "100%" : screenWidth * 0.7,
+      height: baseHeight,
+      width: baseWidth,
       ...Platform.select({
         web: {
           userSelect: "none",
@@ -227,5 +230,6 @@ const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) =>
       gap: 10,
     },
   });
+};
 
 export default ImageViewer;

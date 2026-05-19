@@ -50,7 +50,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
   const { handleFilePick } = useAttachHandlers();
 
   const handleOnChooseFile = async () => {
-    const result = await handleFilePick(type, true);
+    const result = await handleFilePick(type);
 
     if (!result) return;
 

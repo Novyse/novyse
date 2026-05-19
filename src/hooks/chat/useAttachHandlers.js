@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Alert } from "react-native";
 
-import { getPlatform } from "@/src/utils/device/type";
+import Platform from "@/src/utils/device/type";
 
 import { openNativeFileMenu } from "@/src/utils/storage/file/handler";
 
@@ -31,17 +31,15 @@ const useAttachHandlers = (
     }
   };
 
-  const handleFilePick = async (type, forced = false) => {
-    if (forced) {
-      return await openNativeFileMenu(type);
-    }
-
+  const handleFilePick = async (type) => {
     _closeFileMenu();
 
-    switch (getPlatform()) {
+    switch (Platform) {
       case "web":
         return await openNativeFileMenu(type);
       case "mobile":
+        return await openNativeFileMenu(type);
+      case "desktop":
         return await openNativeFileMenu(type);
       default:
         console.warn("Unsupported platform for file picking");
@@ -51,7 +49,7 @@ const useAttachHandlers = (
   const _closeFileMenu = async () => {
     // Close menu after action
     setIsAttachMenuOpen(false);
-    if (getPlatform() === "web") {
+    if (Platform === "web" || Platform === "desktop") {
       setSheetIndex(-1);
     } else {
       bottomSheetRef.current?.close();

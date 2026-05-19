@@ -21,7 +21,9 @@ const StatusHeader = () => {
     translationKey = "chat.statusBanner.offline";
     type = "error";
   } else if (!isSynced) {
-    message = t("chat.statusBanner.syncFailed", { count: syncRetryCountdown });
+    message = t("chat.statusBanner.syncFailed", {
+      count: syncRetryCountdown > 0 ? syncRetryCountdown : 0,
+    });
     type = "warning";
   } else if (!isSocketConnected) {
     translationKey = "chat.statusBanner.socketDisconnected";
