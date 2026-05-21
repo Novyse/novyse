@@ -9,7 +9,7 @@ export function handleCaptchaRequest(
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Cloudflare Turnstile Verification</title>
-        <script src="https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/ov2/av0/rch/7sihd/0x4AAAAAACvBX17HadrEqUCS/auto/fbE/new/normal" async defer></script>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
         <style>
             body, html {
                 margin: 0;
