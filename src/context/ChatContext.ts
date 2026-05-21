@@ -384,6 +384,12 @@ const useChatStore = create<ChatState>((set, get) => ({
   },
 
   onNewMessage: (message: any) => {
+    const myUUID = useUserStore.getState().localUserUUID;
+    const isOwnMessage =
+      !!myUUID &&
+      !!message.senderUUID &&
+      String(message.senderUUID) === String(myUUID);
+
     set((state) => ({
       chats: state.chats.map((chat) => {
         const isMatch =
@@ -419,7 +425,9 @@ const useChatStore = create<ChatState>((set, get) => ({
         return {
           ...chat,
           messages: [...updatedMessages, safeMessage],
-          unreadCount: (chat.unreadCount || 0) + (!message.internal ? 1 : 0),
+          unreadCount:
+            (chat.unreadCount || 0) +
+            (!message.internal && !isOwnMessage ? 1 : 0),
         };
       }),
     }));
