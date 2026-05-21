@@ -16,7 +16,8 @@ import Animated, {
 } from "react-native-reanimated";
 import BlurredView from "../BlurredView";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import useWindowSizeStore, { SIDEBAR_MIN } from "@/src/context/WindowSizeContext";
 import Icon from "../Icon";
 
 
@@ -26,7 +27,12 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   navigation,
 }) => {
   const { theme } = useContext(ThemeContext);
+  const { isSmallScreen } = useScreen();
   const { isSidebarCollapsed } = useWindowSizeStore();
+  const showCollapsedSidebar =
+    isSidebarCollapsed &&
+    !isSmallScreen &&
+    state.routes[state.index].name === "ChatList";
   const styles = createStyle(theme);
 
   const visibleRoutes = state.routes.filter((route) => {
@@ -139,10 +145,10 @@ const TabBar: React.FC<BottomTabBarProps> = ({
 
   const handleExpand = () => {
     setSidebarCollapsed(false);
-    setDetailWidth(width - 250); // Expand to threshold
+    setDetailWidth(width - SIDEBAR_MIN);
   };
 
-  if (isSidebarCollapsed) {
+  if (showCollapsedSidebar) {
 
     return (
       <View style={styles.collapsedContainer}>

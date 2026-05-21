@@ -10,6 +10,7 @@ import AppText from "@/src/components/AppText";
 import { useShareIntentContext } from "expo-share-intent";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useIsFocused } from "@react-navigation/native";
 
 import { Chat } from "@/src/types/chat";
 
@@ -99,7 +100,10 @@ const ChatList = () => {
   const insets = useSafeAreaInsets();
 
   const { connected, room, participants } = useCommsContext();
+  const isFocused = useIsFocused();
   const { isSidebarCollapsed } = useWindowSizeStore();
+  const showCollapsedSidebar =
+    isSidebarCollapsed && !isSmallScreen && isFocused;
   const hasComms = connected && isSmallScreen;
 
   const styles = createStyle(theme, isSmallScreen, insets, hasComms);
@@ -218,7 +222,7 @@ const ChatList = () => {
             justifyContent: "space-between",
             alignItems: "center",
           },
-          isSidebarCollapsed && {
+          showCollapsedSidebar && {
             width: 50,
             height: 50,
             borderRadius: 25,
@@ -233,7 +237,7 @@ const ChatList = () => {
           source={require("@/assets/images/logo-novyse.png")}
           style={styles.logo}
         />
-        {!isSidebarCollapsed && (
+        {!showCollapsedSidebar && (
           <Icon
             name={"Search02Icon"}
             onPress={() => tabNavigator.navigate("Search")}
@@ -241,7 +245,7 @@ const ChatList = () => {
         )}
       </BlurredHeader>
     ),
-    [styles.logo, commsHeaderComponent, isSidebarCollapsed],
+    [styles.logo, commsHeaderComponent, showCollapsedSidebar],
   );
 
   const renderSelectionHeader = useCallback(
@@ -333,7 +337,7 @@ const ChatList = () => {
         isActive={item.uuid === selectedChatUUID && !isSmallScreen}
         isPinned={isPinned}
         unreadCount={item.unreadCount}
-        isSidebarCollapsed={isSidebarCollapsed}
+        isSidebarCollapsed={showCollapsedSidebar}
         onPress={handlePress}
         onLongPress={handleLongPress}
       />
@@ -359,7 +363,7 @@ const ChatList = () => {
         extraData={selectedItems}
       />
 
-      {!isSidebarCollapsed && (
+      {!showCollapsedSidebar && (
         <FloatingButton
           onPress={() => {
             if (Platform.OS !== "web") {

@@ -4,12 +4,14 @@ import { Slot, usePathname } from "expo-router";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 
-import TabNavigator from "@/src/components/tabs/TabNavigator";
-
+import TabNavigator, { getActiveTabName } from "@/src/components/tabs/TabNavigator";
 import { useScreen } from "@/src/context/ScreenContext";
 import useChatStore from "@/src/context/ChatContext";
 import useUserStore from "@/src/context/UserContext";
-import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import useWindowSizeStore, {
+  SIDEBAR_MIN,
+  SIDEBAR_COLLAPSED,
+} from "@/src/context/WindowSizeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useNetworkStore from "@/src/context/NetworkContext";
 
@@ -56,41 +58,56 @@ export default function RootLayout() {
     isStorageReady,
   } = useWindowSizeStore();
 
-  const SIDEBAR_THRESHOLD = 250;
-  const COLLAPSED_SIDEBAR_WIDTH = 80;
-  const MIN_CHAT_LIST_WIDTH = 80;
+  const tab = getActiveTabName();
+  const onChatList = !tab || tab === "ChatList";
+  const showCollapsedSidebar =
+    isSidebarCollapsed && !isSmallScreen && onChatList;
 
   const resizerHandlers = usePanelResizer({
     currentWidth: detailWidth,
     setWidth: setDetailWidth,
     minWidth: minDetailWidth,
-    maxWidthPadding: MIN_CHAT_LIST_WIDTH + 20,
+    maxWidthPadding: SIDEBAR_COLLAPSED + 20,
   });
 
   useEffect(() => {
+    if (isSmallScreen) {
+      if (isSidebarCollapsed) setSidebarCollapsed(false);
+      return;
+    }
+    if (!onChatList) return;
     const sidebarWidth = width - detailWidth;
-
-    if (!isSidebarCollapsed && sidebarWidth < SIDEBAR_THRESHOLD) {
+    if (!isSidebarCollapsed && sidebarWidth < SIDEBAR_MIN) {
       setSidebarCollapsed(true);
-      setDetailWidth(width - COLLAPSED_SIDEBAR_WIDTH);
-    } else if (isSidebarCollapsed && sidebarWidth > SIDEBAR_THRESHOLD) {
+      setDetailWidth(width - SIDEBAR_COLLAPSED);
+    } else if (isSidebarCollapsed && sidebarWidth > SIDEBAR_MIN) {
       setSidebarCollapsed(false);
     }
-  }, [width, detailWidth, isSidebarCollapsed]);
+  }, [
+    width,
+    detailWidth,
+    isSidebarCollapsed,
+    isSmallScreen,
+    onChatList,
+    setSidebarCollapsed,
+    setDetailWidth,
+  ]);
 
   const prevWidthRef = useRef(width);
   useEffect(() => {
+    if (isSmallScreen) return;
+
     const delta = width - prevWidthRef.current;
     prevWidthRef.current = width;
     setDetailWidth((prev) => {
-      const maxDetail = width - MIN_CHAT_LIST_WIDTH - 20;
+      const maxDetail = width - SIDEBAR_COLLAPSED - 20;
       let newWidth = prev;
       if (delta > 0) {
         newWidth = prev + delta;
       }
       return Math.max(minDetailWidth, Math.min(maxDetail, newWidth));
     });
-  }, [width, minDetailWidth, setDetailWidth, MIN_CHAT_LIST_WIDTH]);
+  }, [width, minDetailWidth, setDetailWidth, isSmallScreen]);
 
   // Initialize database if needed
   const [hasInitialized, setHasInitialized] = useState<boolean | null>(null);
@@ -217,9 +234,11 @@ export default function RootLayout() {
     );
   }
 
-  const currentSidebarWidth = isSidebarCollapsed
-    ? COLLAPSED_SIDEBAR_WIDTH
-    : width - detailWidth;
+  const currentSidebarWidth = showCollapsedSidebar
+    ? SIDEBAR_COLLAPSED
+    : onChatList
+      ? width - detailWidth
+      : Math.max(width - detailWidth, SIDEBAR_MIN);
 
   return (
     <View
@@ -234,7 +253,7 @@ export default function RootLayout() {
           width: currentSidebarWidth,
           height: "100%",
           padding: 10,
-          paddingHorizontal: isSidebarCollapsed ? 5 : 10,
+          paddingHorizontal: showCollapsedSidebar ? 5 : 10,
           backgroundColor: theme.backgroundMainGradient[1],
         }}
       >
@@ -243,9 +262,7 @@ export default function RootLayout() {
 
       <View
         style={{
-          width: isSidebarCollapsed
-            ? width - COLLAPSED_SIDEBAR_WIDTH
-            : detailWidth,
+          width: width - currentSidebarWidth,
           height: "100%",
           position: "relative",
         }}
