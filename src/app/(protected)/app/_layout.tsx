@@ -16,6 +16,7 @@ import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useNetworkStore from "@/src/context/NetworkContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
+import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import auth from "@/src/utils/welcome/auth";
@@ -267,20 +268,7 @@ export default function RootLayout() {
           position: "relative",
         }}
       >
-        <View
-          //@ts-ignore
-          style={{
-            position: "absolute",
-            left: -10,
-            top: 0,
-            bottom: 0,
-            width: 20,
-            backgroundColor: "transparent",
-            cursor: "ew-resize",
-            zIndex: 10,
-          }}
-          {...resizerHandlers}
-        />
+        <PanelResizeHandle panHandlers={resizerHandlers} />
         <Slot />
       </View>
     </View>
