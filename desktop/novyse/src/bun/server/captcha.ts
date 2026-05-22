@@ -37,6 +37,11 @@ export function handleCaptchaRequest(
                     window.turnstile.render('#turnstile-container', {
                         sitekey: '0x4AAAAAACvBX17HadrEqUCS',
                         callback: function(token) {
+                            window.parent.postMessage({
+                                type: "turnstile-token",
+                                token: token
+                            }, "*");
+
                             if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.electrobun) {
                                 window.webkit.messageHandlers.electrobun.postMessage(
                                     JSON.stringify({
