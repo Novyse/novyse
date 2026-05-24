@@ -16,7 +16,6 @@ import useAuthSession from "@/src/hooks/auth/useAuthSession";
 import notificationManager from "@/src/utils/notifications/manager";
 import WindowControls from "@/src/components/desktop/WindowControls";
 import Platform from "@/src/utils/device/type";
-import SmartBackground from "@/src/components/SmartBackground";
 
 function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {
   const { theme } = useThemeContext();
