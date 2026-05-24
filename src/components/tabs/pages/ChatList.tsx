@@ -5,7 +5,8 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { StyleSheet, FlatList, Image, Platform, View } from "react-native";
+import { StyleSheet, Image, Platform, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import AppText from "@/src/components/AppText";
 import { useShareIntentContext } from "expo-share-intent";
 
@@ -32,6 +33,7 @@ import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useWindowSizeStore from "@/src/context/WindowSizeContext";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
+import { ScrollBar } from "@/constants/ScrollBar";
 
 const ChatList = () => {
   const selectedChatUUID = useActiveChatStore(
@@ -354,13 +356,14 @@ const ChatList = () => {
             ? renderIntentHeader()
             : renderDefaultHeader()}
 
-      <FlatList
+      <FlashList
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
         data={orderedChats}
         keyExtractor={(item) => item.uuid}
         renderItem={renderItem}
         extraData={selectedItems}
+        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
       />
 
       {!showCollapsedSidebar && (
@@ -397,31 +400,11 @@ function createStyle(theme, isSmallScreen, insets, hasComms) {
     flatList: {
       flex: 1,
       overflow: "hidden",
-      ...(Platform.OS === "web" && {
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
-        "::WebkitScrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::WebkitScrollbarTrack": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
-      paddingTop: (hasComms ? 140 : 75) + insets.top,
+      ...ScrollBar(theme),
     },
     flatListContent: {
       padding: 10,
-      gap: 10,
+      paddingTop: (hasComms ? 140 : 75) + insets.top + 10,
       paddingBottom: (isSmallScreen ? 180 : 90) + insets.bottom,
     },
     logo: {

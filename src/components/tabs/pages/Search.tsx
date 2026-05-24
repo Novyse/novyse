@@ -1,13 +1,14 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   TextInput,
   ActivityIndicator,
-  FlatList,
-  Platform,
+  View,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
+import { ScrollBar } from "@/constants/ScrollBar";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -158,12 +159,13 @@ const Search = () => {
         />
       )}
       {responseArray.length > 0 && (
-        <FlatList
+        <FlashList
           data={responseArray}
           renderItem={renderItem}
           contentContainerStyle={styles.flatListContent}
           keyExtractor={(item, index) => index.toString()}
           style={styles.results}
+          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
         />
       )}
       {isSearching && !isLoading && responseArray.length === 0 && (
@@ -197,27 +199,8 @@ const createStyle = (theme: any, insets: any) => {
       marginTop: 90 + insets.top,
     },
     results: {
-      paddingTop: 75 + insets.top,
       flex: 1,
-      ...(Platform.OS === "web" && {
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-        "::WebkitScrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::WebkitScrollbarTrack": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
+      ...ScrollBar(theme),
     },
     noResults: {
       marginTop: 20,
@@ -227,7 +210,7 @@ const createStyle = (theme: any, insets: any) => {
     },
     flatListContent: {
       padding: 10,
-      gap: 10,
+      paddingTop: 75 + insets.top + 10,
       paddingBottom: 10 + insets.bottom,
     },
   });

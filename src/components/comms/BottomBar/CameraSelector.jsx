@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, Pressable, StyleSheet, FlatList } from "react-native";
-import { Platform } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 
 import { Room } from "livekit-client";
 
@@ -9,6 +9,7 @@ import { useThemeContext } from "@/src/context/ThemeContext";
 import ModalBase from "../../modalSheets/ModalBase";
 import Icon from "@/src/components/Icon";
 import AppText from "@/src/components/AppText";
+import { ScrollBar } from "@/constants/ScrollBar";
 
 const CameraSelector = ({
   visible,
@@ -97,7 +98,7 @@ const CameraSelector = ({
           />
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={availableCameras}
           renderItem={renderCameraItem}
           keyExtractor={(item) => item.deviceId}
@@ -131,31 +132,14 @@ function createStyle(theme) {
       color: theme.text,
     },
     cameraList: {
+      width: "100%",
       maxHeight: 300,
+      minWidth: 300,
       padding: 20,
-      ...(Platform.OS === "web" && {
-        // Standard per Firefox (fisso, no active/drag change)
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
-        "::WebkitScrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::WebkitScrollbarTrack": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
+      ...ScrollBar(theme),
     },
     cameraItem: {
+      width: "100%",
       flexDirection: "row",
       alignItems: "center",
       padding: 15,

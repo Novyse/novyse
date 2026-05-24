@@ -17,6 +17,7 @@ import MessageBase from "@/src/components/messages/MessageBase";
 import MessageSystem from "@/src/components/messages/MessageSystem";
 import ActionMenu from "@/src/components/messages/ActionMenu";
 import Icon from "@/src/components/Icon";
+import { ScrollBar } from "@/constants/ScrollBar";
 
 const RenderScrollComponent = React.forwardRef((props, ref) => (
   <KeyboardChatScrollView {...props} ref={ref} />
@@ -324,26 +325,7 @@ const createStyle = (theme, insets, headerHeight = 0) =>
   StyleSheet.create({
     list: {
       flex: 1,
-      ...(Platform.OS === "web" && {
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
-        "::WebkitScrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::WebkitScrollbarTrack": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
+      ...ScrollBar(theme),
     },
     listContent: {
       paddingTop: Math.max(70, headerHeight + 10) + insets.top,

@@ -44,7 +44,7 @@ export const Colors = {
     settingsPressedButton: "#2a68dc",                                             //* 1
 
     // Scrollbar
-    scrollbar: "#d6d6d6",                         // TODO: usato in troppi punti, da unificare
+    scrollbar: "#013480",                         // TODO: usato in troppi punti, da unificare
     scrollbarHover: "#c7c7c7",                    // TODO: usato in troppi punti, da unificare
 
     // ?USER CAN'T CHANGE
