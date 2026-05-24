@@ -1,7 +1,7 @@
-import { getElectrobunUrl } from "../../../electrobun/url";
+import { getElectronUrl } from "../../../electron/url";
 
 const getLocalServerUrl = () => {
-  return getElectrobunUrl();
+  return getElectronUrl();
 };
 
 const DesktopStorage = {

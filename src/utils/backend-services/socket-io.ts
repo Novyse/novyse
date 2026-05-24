@@ -14,7 +14,7 @@ let socket: Socket | null = null;
 let isConnecting = false;
 
 let transportsMethods = ["polling"];
-if (Platform == "web") {
+if (Platform === "web" || Platform === "desktop") {
   transportsMethods.pop();
   transportsMethods.push("websocket");
 }

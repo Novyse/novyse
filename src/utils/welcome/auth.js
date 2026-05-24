@@ -1,7 +1,7 @@
 import Platform from "@/src/utils/device/type";
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { rpc } from "@/src/utils/electrobun/rpc";
+import { rpc } from "@/src/utils/electron/rpc";
 
 import auth from "@/src/utils/backend-services/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";

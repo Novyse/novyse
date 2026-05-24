@@ -1,14 +1,14 @@
 import { SQLiteDatabase } from "expo-sqlite";
-import ElectrobunSQLiteAdapter from "@/src/utils/storage/database/electrobunAdapter";
+import DesktopSQLiteAdapter from "@/src/utils/storage/database/desktopAdapter";
 
 export class MessageRepository {
-  db: SQLiteDatabase | ElectrobunSQLiteAdapter;
+  db: SQLiteDatabase | DesktopSQLiteAdapter;
 
-  constructor(db: SQLiteDatabase | ElectrobunSQLiteAdapter) {
+  constructor(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
   }
 
-  setDb(db: SQLiteDatabase | ElectrobunSQLiteAdapter) {
+  setDb(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
   }
 
@@ -490,7 +490,7 @@ export class MessageRepository {
     ): Promise<boolean> => {
       try {
         await this.db.runAsync(
-          `INSERT INTO pinned_message (chatUUID, messageID, pinned_at, pinned_by) VALUES (?, ?, ?, ?);`,
+          `INSERT OR IGNORE INTO pinned_message (chatUUID, messageID, pinned_at, pinned_by) VALUES (?, ?, ?, ?);`,
           [chatUUID, messageID, pinnedAt, pinnedBy],
         );
         console.log(`Message ${messageID} pinned successfully.`);

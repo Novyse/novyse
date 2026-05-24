@@ -1,9 +1,5 @@
-export function handleCaptchaRequest(
-  req: Request,
-  corsHeaders: HeadersInit,
-): Response {
-  return new Response(
-    `<!DOCTYPE html>
+export function getCaptchaHtml(siteKey: string): string {
+  return `<!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -35,21 +31,12 @@ export function handleCaptchaRequest(
             window.onload = function() {
                 if (window.turnstile) {
                     window.turnstile.render('#turnstile-container', {
-                        sitekey: '0x4AAAAAACvBX17HadrEqUCS',
+                        sitekey: '${siteKey}',
                         callback: function(token) {
                             window.parent.postMessage({
                                 type: "turnstile-token",
                                 token: token
                             }, "*");
-
-                            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.electrobun) {
-                                window.webkit.messageHandlers.electrobun.postMessage(
-                                    JSON.stringify({
-                                        id: "captcha-completed",
-                                        token: token
-                                    })
-                                );
-                            }
                         },
                         'error-callback': function(err) {
                             console.error("Turnstile error:", err);
@@ -61,12 +48,5 @@ export function handleCaptchaRequest(
             };
         </script>
     </body>
-    </html>`,
-    {
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "text/html",
-      },
-    },
-  );
+    </html>`;
 }

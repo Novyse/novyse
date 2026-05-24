@@ -1,6 +1,6 @@
 import axios from "axios";
 import Platform from "@/src/utils/device/type";
-import { rpc } from "@/src/utils/electrobun/rpc";
+import { rpc } from "@/src/utils/electron/rpc";
 import * as SecureStore from "expo-secure-store";
 import { BRANCH, AUTH_BASE_URL } from "../../../app.config";
 

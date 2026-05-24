@@ -1,4 +1,4 @@
-import { rpc } from "@/src/utils/electrobun/rpc";
+import { rpc } from "@/src/utils/electron/rpc";
 
 export default class DesktopSQLiteAdapter {
   async execAsync(source: string): Promise<void> {

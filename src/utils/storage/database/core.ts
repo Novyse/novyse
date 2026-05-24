@@ -1,5 +1,5 @@
 import { SQLiteDatabase } from "expo-sqlite";
-import ElectrobunSQLiteAdapter from "@/src/utils/storage/database/electrobunAdapter";
+import DesktopSQLiteAdapter from "@/src/utils/storage/database/desktopAdapter";
 
 import INIT_SQL from "./init.sql";
 
@@ -11,7 +11,7 @@ import { FileRepository } from "./repositories/FileRepository";
 import { EventRepository } from "./repositories/EventRepository";
 
 class Database {
-  private db: SQLiteDatabase | ElectrobunSQLiteAdapter;
+  private db: SQLiteDatabase | DesktopSQLiteAdapter;
 
   user: UserRepository;
   handle: HandleRepository;
@@ -20,7 +20,7 @@ class Database {
   file: FileRepository;
   event: EventRepository;
 
-  constructor(db: SQLiteDatabase | ElectrobunSQLiteAdapter) {
+  constructor(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
     this.user = new UserRepository(db);
     this.handle = new HandleRepository(db);
@@ -30,7 +30,7 @@ class Database {
     this.event = new EventRepository(db);
   }
 
-  setDb(db: SQLiteDatabase | ElectrobunSQLiteAdapter) {
+  setDb(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
     this.user.setDb(db);
     this.handle.setDb(db);

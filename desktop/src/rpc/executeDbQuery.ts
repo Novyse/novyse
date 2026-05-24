@@ -1,12 +1,10 @@
-import { db } from "../db";
-import type {
-  DBQueryRequest,
-  DBQueryResponse,
-} from "../../../../../src/types/rpc";
+import { getDb } from "../db";
+import type { DBQueryRequest, DBQueryResponse } from "../../../src/types/rpc";
 
 export function handleExecuteDbQuery(request: DBQueryRequest): DBQueryResponse {
   try {
     const { method, query, params } = request;
+    const db = getDb();
 
     if (method === "exec") {
       db.exec(query);
@@ -26,7 +24,7 @@ export function handleExecuteDbQuery(request: DBQueryRequest): DBQueryResponse {
       return { success: true, data: result };
     }
   } catch (error: any) {
-    console.error("bun:sqlite error:", error.message);
+    console.error("better-sqlite3 error:", error.message);
     return {
       success: false,
       error: error.message || "Unknown db error",

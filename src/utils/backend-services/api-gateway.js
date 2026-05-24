@@ -1,7 +1,7 @@
 import axios from "axios";
 import Platform, { getOs } from "@/src/utils/device/type";
 import * as SecureStore from "expo-secure-store";
-import { rpc } from "@/src/utils/electrobun/rpc";
+import { rpc } from "@/src/utils/electron/rpc";
 
 import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
 import useNetworkStore from "@/src/context/NetworkContext";

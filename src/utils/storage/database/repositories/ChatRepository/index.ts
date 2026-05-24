@@ -1,15 +1,15 @@
 import { SQLiteDatabase } from "expo-sqlite";
-import ElectrobunSQLiteAdapter from "@/src/utils/storage/database/electrobunAdapter";
+import DesktopSQLiteAdapter from "@/src/utils/storage/database/desktopAdapter";
 import { MemberRepository } from "./MemberRepository";
 
 export class ChatRepository {
-  db: SQLiteDatabase | ElectrobunSQLiteAdapter;
+  db: SQLiteDatabase | DesktopSQLiteAdapter;
   member: MemberRepository;
   messageRepository: any;
   handleRepository: any;
 
   constructor(
-    db: SQLiteDatabase | ElectrobunSQLiteAdapter,
+    db: SQLiteDatabase | DesktopSQLiteAdapter,
     messageRepository?: any,
     handleRepository?: any,
   ) {
@@ -19,7 +19,7 @@ export class ChatRepository {
     this.handleRepository = handleRepository;
   }
 
-  setDb(db: SQLiteDatabase | ElectrobunSQLiteAdapter) {
+  setDb(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
     this.member.setDb(db);
   }

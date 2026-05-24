@@ -1,7 +1,7 @@
 import { authApi } from "@/src/utils/backend-services/config";
 import * as SecureStore from "expo-secure-store";
 import Platform from "@/src/utils/device/type";
-import { rpc } from "@/src/utils/electrobun/rpc";
+import { rpc } from "@/src/utils/electron/rpc";
 
 /**
  * Fetches a new access token (JWT) from the backend.

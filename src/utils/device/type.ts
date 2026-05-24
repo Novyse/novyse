@@ -1,17 +1,12 @@
 import { Platform } from "react-native";
 
-// Detect Electrobun
-const isElectrobun = (): boolean =>
+// Detect Electron
+const isElectron = (): boolean =>
   typeof window !== "undefined" &&
-  (window.location.protocol === "views:" ||
-    Boolean(
-      (window as any).process &&
-      (window as any).process.versions &&
-      (window as any).process.versions.electrobun,
-    ));
+  (window.location.protocol === "novyse:" || Boolean((window as any).electron));
 
 export const getOs = (): "desktop" | "web" | typeof Platform.OS => {
-  if (isElectrobun()) {
+  if (isElectron()) {
     return "desktop"; // Desktop app
   }
 
@@ -24,7 +19,7 @@ export const getOs = (): "desktop" | "web" | typeof Platform.OS => {
 };
 
 export const getPlatform = (): "desktop" | "web" | "mobile" => {
-  if (isElectrobun()) {
+  if (isElectron()) {
     return "desktop";
   }
 
@@ -37,5 +32,4 @@ export const getPlatform = (): "desktop" | "web" | "mobile" => {
 };
 
 const InternalPlatform: string = getPlatform();
-
 export default InternalPlatform;
