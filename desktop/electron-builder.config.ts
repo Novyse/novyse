@@ -21,16 +21,24 @@ export default {
       from: "../dist",
       to: "dist",
     },
+    {
+      from: "../assets/images",
+      to: "assets/images",
+      filter: ["logo-novyse.png"],
+    },
   ],
   mac: {
     category: "public.app-category.social-networking",
     target: ["dmg"],
+    icon: "../assets/images/logo-novyse.png",
   },
   win: {
     target: ["nsis"],
+    icon: "../assets/images/logo-novyse.png",
   },
   linux: {
     category: "Network",
     target: ["AppImage"],
+    icon: "../assets/images/logo-novyse.png",
   },
 };

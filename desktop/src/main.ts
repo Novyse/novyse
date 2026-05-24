@@ -8,7 +8,11 @@ import { startLocalServer, getLocalServerUrl } from "./server/index";
 
 import config from "../electron-builder.config";
 
-let mainWindow;
+const appName = config.productName;
+app.name = appName;
+process.title = appName;
+
+let mainWindow: any;
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -25,11 +29,15 @@ protocol.registerSchemesAsPrivileged([
 function createWindow() {
   const appDir = app.getAppPath();
   const preloadPath = path.resolve(appDir, "build", "preload.js");
+  const iconPath = app.isPackaged
+    ? path.resolve(appDir, "assets", "images", "logo-novyse.png")
+    : path.resolve(appDir, "..", "assets", "images", "logo-novyse.png");
 
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 900,
-    title: config ? config.productName : "Novyse",
+    title: appName,
+    icon: iconPath,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
