@@ -123,6 +123,9 @@ For a development build on Android, follow these steps:
 > **Ninja Build Tools**: Download the latest Ninja .exe from the [Ninja repository releases](https://github.com/ninja-build/ninja/releases). Replace the existing `ninja.exe` in:  
 > `C:\Users\{LOCAL_USER}\AppData\Local\Android\Sdk\cmake\{VERSION}\bin`
 
+> [!WARNING]
+> **Windows EMFILE: too many files open** error: if you encounter this error you need to clear metro-cache folder inside `C:\Users\{LOCAL_USER}\AppData\Local\Temp` and `node_modules` folder, then install watchman: `winget install Facebook.Watchman`, check if it's installed correctly and then run `bunx expo start --clear` 
+
 > [!WARNING]  
 > **Audio API Error**: If you encounter a "react-native-audio-api: Restored missing prebuilt binaries" error on Windows:
 >

@@ -1,25 +1,19 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import { Pressable, ViewStyle, StyleProp } from "react-native";
+import { StyleProp, ViewStyle } from "react-native";
+import HoverAndPressedButton from "./HoverAndPressedButton";
 
-// Cache per le icone importate (lazy loading per performance)
 const iconMap: Record<string, any> = {};
 
-// Funzione helper per importare l'icona su richiesta
-const importIcon = async (iconName: string): Promise<any | null> => {
+const importIcon = async (name: string) => {
   try {
-    if (!iconMap[iconName]) {
-      const icons = await import("@hugeicons/core-free-icons") as Record<string, any>;
-      if (!icons[iconName]) {
-        console.error(`Icona ${iconName} non trovata!`);
-        return null;
-      }
-      iconMap[iconName] = icons[iconName];
+    if (!iconMap[name]) {
+      const icons = (await import("@hugeicons/core-free-icons")) as Record<string, any>;
+      iconMap[name] = icons[name] ?? null;
     }
-    return iconMap[iconName];
-  } catch (error) {
-    console.error("Errore caricamento icona:", error);
+    return iconMap[name];
+  } catch {
     return null;
   }
 };
@@ -43,63 +37,44 @@ const Icon = ({
   style,
   onPress,
 }: IconProps) => {
-  const [IconComponent, setIconComponent] = useState<any | null>(null);
-  const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [IconComponent, setIconComponent] = useState<any>(null);
+  const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
   const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
     importIcon(name).then(setIconComponent);
   }, [name]);
 
-  // Determina il colore dell'icona in hover/pressed
-  const iconColor = ({ pressed }: { pressed: boolean }): string => {
-    const isActive = onPress && (pressed || isHovered);
-    if (isActive) {
-      return hoverColor || theme.iconHover;
-    }
-    return color || theme.icon;
-  };
+  if (!IconComponent) return null;
 
-  if (!IconComponent) {
-    return null;
-  }
+  const iconColor = color || theme.icon;
+  const activeColor = hoverColor || theme.iconHover;
 
-  // Componente base dell'icona
-  const iconElement = ({ pressed }: { pressed: boolean }) => (
+  const icon = (
     <HugeiconsIcon
       icon={IconComponent}
       size={size}
-      color={iconColor({ pressed })}
+      color={hovered || pressed ? activeColor : iconColor}
       strokeWidth={strokeWidth}
-      style={style as any}
+      style={!onPress ? (style as any) : undefined}
     />
   );
 
+  if (!onPress) return icon;
 
-    return (
-      <Pressable
-        onPress={onPress}
-        onHoverIn={() => setIsHovered(true)}
-        onHoverOut={() => setIsHovered(false)}
-        disabled={onPress ? false : true}
-        style={({ pressed }) => [
-          // style di base se non viene passato altro
-          {
-            padding: 5,
-            borderRadius: 50, // Changed from string "50%" to number 50 for stability if needed, though web might support "50%"
-            // transition is not a standard RN property, but might be supported by some libraries/web
-          } as ViewStyle,
-          // style che posso passare per sovrascrivere gli style di base
-          style as ViewStyle,
-          // infine sovrascrivo sempre il background // todo (da cambiare non mi piace troppo così) @Matt3opower
-          {
-            backgroundColor: pressed ? theme.iconPressed : "transparent",
-          } as ViewStyle,
-        ]}
-      >
-        {iconElement}
-      </Pressable>
-    );
+  return (
+    <HoverAndPressedButton
+      style={style as ViewStyle}
+      onPress={onPress}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+    >
+      {icon}
+    </HoverAndPressedButton>
+  );
 };
 
 export default Icon;

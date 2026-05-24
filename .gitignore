@@ -13,6 +13,7 @@ build/
 # Expo
 .expo/
 dist/
+build/
 web-build/
 expo-env.d.ts
 

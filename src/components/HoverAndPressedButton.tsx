@@ -12,6 +12,8 @@ interface HoverAndPressedButtonProps {
   pressedStyle?: ViewStyle | ViewStyle[];
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onPressIn?: () => void;
+  onPressOut?: () => void;
   disabled?: boolean;
 }
 
@@ -25,6 +27,8 @@ const HoverAndPressedButton = ({
   pressedStyle = {},
   onMouseEnter = () => {},
   onMouseLeave = () => {},
+  onPressIn = () => {},
+  onPressOut = () => {},
   disabled = false,
 }: HoverAndPressedButtonProps) => {
   const { theme } = useContext(ThemeContext) as any;
@@ -50,6 +54,8 @@ const HoverAndPressedButton = ({
       onPress={onPress}
       onLongPress={onLongPress}
       onContextMenu={onContextMenu as any}
+      onPressIn={onPressIn as any}
+      onPressOut={onPressOut as any}
       onMouseEnter={onMouseEnter as any}
       onMouseLeave={onMouseLeave as any}
       disabled={disabled}
