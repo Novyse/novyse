@@ -2,6 +2,7 @@ import "react-native-get-random-values";
 import "@/src/i18n";
 import React, { useEffect } from "react";
 import { Stack } from "expo-router";
+import { View } from "react-native";
 
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -13,11 +14,14 @@ import { LanguageProvider } from "@/src/context/LanguageContext";
 import SplashScreen from "@/src/components/SplashScreen";
 import useAuthSession from "@/src/hooks/auth/useAuthSession";
 import notificationManager from "@/src/utils/notifications/manager";
+import WindowControls from "@/src/components/desktop/WindowControls";
+import Platform from "@/src/utils/device/type";
+import SmartBackground from "@/src/components/SmartBackground";
 
 function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {
   const { theme } = useThemeContext();
 
-  return (
+  const content = (
     <Stack
       screenOptions={{
         headerShown: false,
@@ -36,6 +40,17 @@ function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {
       <Stack.Screen name="+not-found" options={{ headerShown: false }} />
     </Stack>
   );
+
+  if (Platform === "desktop") {
+    return (
+      <View style={{ flex: 1 }}>
+        <WindowControls />
+        {content}
+      </View>
+    );
+  }
+
+  return content;
 }
 
 function RootLayoutContent() {

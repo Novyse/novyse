@@ -44,6 +44,9 @@ function createWindow() {
     height: 900,
     title: appName,
     icon: iconPath,
+    frame: false,
+    titleBarStyle: "hidden",
+    backgroundColor: "#00000000",
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -53,6 +56,13 @@ function createWindow() {
 
   mainWindow.removeMenu();
   setupTray(mainWindow);
+
+  mainWindow.on("maximize", () => {
+    mainWindow.webContents.send("window:state-changed", { isMaximized: true });
+  });
+  mainWindow.on("unmaximize", () => {
+    mainWindow.webContents.send("window:state-changed", { isMaximized: false });
+  });
 
   mainWindow.loadURL("novyse://mainview/index.html");
 
@@ -72,6 +82,27 @@ app.whenReady().then(async () => {
 
   ipcMain.on("get-local-server-url", (event: { returnValue: string }) => {
     event.returnValue = getLocalServerUrl();
+  });
+
+  ipcMain.on("window:minimize", () => {
+    if (mainWindow) mainWindow.minimize();
+  });
+
+  ipcMain.on("window:toggle-maximize", () => {
+    if (!mainWindow) return;
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  });
+
+  ipcMain.on("window:close", () => {
+    if (mainWindow) mainWindow.close();
+  });
+
+  ipcMain.handle("window:is-maximized", () => {
+    return mainWindow ? mainWindow.isMaximized() : false;
   });
 
   protocol.handle("novyse", (request: { url: string }) => {

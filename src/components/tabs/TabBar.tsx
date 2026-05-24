@@ -123,7 +123,6 @@ const TabBar: React.FC<BottomTabBarProps> = ({
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
             accessibilityLabel={options.tabBarAccessibilityLabel}
-            testID={(options as any).tabBarTestID}
             onPress={onPress}
             onLongPress={onLongPress}
             style={styles.tabButton}
