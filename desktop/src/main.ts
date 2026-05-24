@@ -2,6 +2,12 @@ const { app, BrowserWindow, ipcMain, protocol } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
+import { checkSingleInstance, setupTray } from "./tray";
+
+if (!checkSingleInstance()) {
+  process.exit(0);
+}
+
 import { initDb } from "./db";
 import { registerRpcHandlers } from "./rpc";
 import { startLocalServer, getLocalServerUrl } from "./server/index";
@@ -44,6 +50,9 @@ function createWindow() {
       preload: preloadPath,
     },
   });
+
+  mainWindow.removeMenu();
+  setupTray(mainWindow);
 
   mainWindow.loadURL("novyse://mainview/index.html");
 
