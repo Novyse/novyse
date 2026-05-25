@@ -91,8 +91,8 @@ class NotificationManager {
    * Legacy methods for internal app notifications (if still needed)
    */
   async sendNotification(
-    title?: string,
-    body?: string,
+    title: string,
+    body: string,
     data = {},
     icon?: string,
     subtitle?: string,

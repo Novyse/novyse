@@ -397,14 +397,15 @@ const useChatStore = create<ChatState>((set, get) => ({
     const chat = get().chats.find(
       (c) =>
         c.uuid === message.chatUUID ||
-        (message.chatHandle && (c as any).handle === message.chatHandle)
+        (message.chatHandle && (c as any).handle === message.chatHandle),
     );
 
     if (!isOwnMessage && !message.internal) {
       const activeChatState = useActiveChatStore.getState();
       const isViewingThisChat =
         activeChatState.selectedChatUUID === message.chatUUID ||
-        (message.chatHandle && activeChatState.selectedHandle === message.chatHandle);
+        (message.chatHandle &&
+          activeChatState.selectedHandle === message.chatHandle);
       const isInChatOrBothView =
         activeChatState.contentView === "chat" ||
         activeChatState.contentView === "both";
@@ -412,7 +413,9 @@ const useChatStore = create<ChatState>((set, get) => ({
       const shouldNotify = !(isViewingThisChat && isInChatOrBothView);
 
       if (shouldNotify) {
-        const senderName = useUserStore.getState().getUser(message.senderUUID)?.name;
+        const senderName =
+          useUserStore.getState().getUser(message.senderUUID)?.name ||
+          "Unknown";
 
         let title = senderName;
         if (chat && chat.type !== "DM") {
