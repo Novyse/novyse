@@ -292,7 +292,7 @@ const createStyle = (theme: any) =>
       flexDirection: "column",
     },
     menuItem: {
-      paddingVertical: 5,
+      paddingVertical: 8,
       paddingHorizontal: 10,
       borderRadius: 0,
     },
