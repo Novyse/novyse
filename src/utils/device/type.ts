@@ -2,7 +2,7 @@ import { Platform } from "react-native";
 
 // Detect Electron
 const isElectron = (): boolean =>
-  typeof window !== "undefined" &&
+  typeof window !== "undefined" && window.location &&
   (window.location.protocol === "novyse:" || Boolean((window as any).electron));
 
 export const getOs = (): "desktop" | "web" | typeof Platform.OS => {
