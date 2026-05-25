@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "bun run build && bunx electron .",
     "build": "bun build src/main.ts --outfile build/main.js --target node --packages external --format cjs && bun build src/preload.ts --outfile build/preload.js --target node --packages external --format cjs",
-    "dist": "electron-builder --config electron-builder.config.ts"
+    "dist": "electron-builder --config electron-builder.config.ts",
+    "postinstall": "bunx electron-rebuild"
   },
   "overrides": {
     "minimatch": "10.2.2"
@@ -27,7 +28,7 @@
     "@electron/rebuild": "^4.0.4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/mime-types": "^3.0.1",
-    "electron": "^33.0.0",
+    "electron": "^41.7.0",
     "electron-builder": "^26.8.1"
   },
   "dependencies": {
