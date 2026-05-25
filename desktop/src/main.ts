@@ -43,6 +43,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 900,
+    minWidth: 350,
+    minHeight: 800,
     title: appName,
     icon: iconPath,
     frame: false,
@@ -67,7 +69,6 @@ function createWindow() {
   });
 
   mainWindow.loadURL("novyse://mainview/index.html");
-
 
   app.commandLine.appendSwitch("ignore-gpu-blocklist");
   app.commandLine.appendSwitch("enable-gpu-rasterization");
