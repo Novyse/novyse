@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 
 import { checkSingleInstance, setupTray } from "./tray";
+import { registerShortcuts } from "./shortcuts";
 
 if (!checkSingleInstance()) {
   process.exit(0);
@@ -13,7 +14,6 @@ import { registerRpcHandlers } from "./rpc";
 import { startLocalServer, getLocalServerUrl } from "./server/index";
 
 import config from "../electron-builder.config";
-import { BRANCH } from "../../app.config";
 
 const appName = config.productName;
 app.name = appName;
@@ -57,6 +57,7 @@ function createWindow() {
 
   mainWindow.removeMenu();
   setupTray(mainWindow);
+  registerShortcuts(mainWindow);
 
   mainWindow.on("maximize", () => {
     mainWindow.webContents.send("window:state-changed", { isMaximized: true });
@@ -67,22 +68,6 @@ function createWindow() {
 
   mainWindow.loadURL("novyse://mainview/index.html");
 
-  if (BRANCH === "development") {
-    mainWindow.webContents.openDevTools({ mode: "detach" });
-    // Register shortcut to toggle DevTools during development
-    mainWindow.webContents.on(
-      "before-input-event",
-      (event: any, input: any) => {
-        if (
-          (input.control && input.shift && input.key.toLowerCase() === "i") ||
-          input.key === "F12"
-        ) {
-          mainWindow.webContents.toggleDevTools();
-          event.preventDefault();
-        }
-      },
-    );
-  }
 
   app.commandLine.appendSwitch("ignore-gpu-blocklist");
   app.commandLine.appendSwitch("enable-gpu-rasterization");
