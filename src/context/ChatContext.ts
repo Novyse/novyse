@@ -4,6 +4,10 @@ import { Chat, User, Member } from "@/src/types";
 
 import database from "@/src/utils/storage/database";
 import useUserStore from "@/src/context/UserContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+
+import notificationManager from "@/src/utils/notifications/manager";
+import messageUtils from "@/src/utils/chat/messageFormat";
 
 interface ChatState {
   chats: Chat[];
@@ -389,6 +393,39 @@ const useChatStore = create<ChatState>((set, get) => ({
       !!myUUID &&
       !!message.senderUUID &&
       String(message.senderUUID) === String(myUUID);
+
+    const chat = get().chats.find(
+      (c) =>
+        c.uuid === message.chatUUID ||
+        (message.chatHandle && (c as any).handle === message.chatHandle)
+    );
+
+    if (!isOwnMessage && !message.internal) {
+      const activeChatState = useActiveChatStore.getState();
+      const isViewingThisChat =
+        activeChatState.selectedChatUUID === message.chatUUID ||
+        (message.chatHandle && activeChatState.selectedHandle === message.chatHandle);
+      const isInChatOrBothView =
+        activeChatState.contentView === "chat" ||
+        activeChatState.contentView === "both";
+
+      const shouldNotify = !(isViewingThisChat && isInChatOrBothView);
+
+      if (shouldNotify) {
+        const senderName = useUserStore.getState().getUser(message.senderUUID)?.name;
+
+        let title = senderName;
+        if (chat && chat.type !== "DM") {
+          title = `${chat.name} - ${senderName}`;
+        }
+
+        const body = messageUtils.format(message).content;
+
+        notificationManager.sendNotification(title, body, {
+          chatUUID: message.chatUUID,
+        });
+      }
+    }
 
     set((state) => ({
       chats: state.chats.map((chat) => {

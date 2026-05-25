@@ -15,6 +15,11 @@ contextBridge.exposeInMainWorld("electron", {
   getLocalServerUrl: (): string => ipcRenderer.sendSync("get-local-server-url"),
   sendCaptchaSuccess: (token: string) =>
     ipcRenderer.send("captcha-success", token),
+  onNotificationClick: (callback: (data: any) => void) => {
+    const listener = (_event: any, data: any) => callback(data);
+    ipcRenderer.on("notification-click", listener);
+    return () => ipcRenderer.removeListener("notification-click", listener);
+  },
   window: {
     minimize: () => ipcRenderer.send("window:minimize"),
     toggleMaximize: () => ipcRenderer.send("window:toggle-maximize"),

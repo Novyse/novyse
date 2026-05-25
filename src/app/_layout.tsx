@@ -67,6 +67,7 @@ function RootLayoutContent() {
   useEffect(() => {
     if (isLoggedIn) {
       notificationManager.updatePushToken();
+      notificationManager.requestPermissions();
     }
   }, [isLoggedIn]);
 

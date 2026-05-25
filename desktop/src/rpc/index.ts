@@ -7,6 +7,7 @@ import {
 } from "./secureStore";
 import { handleOpenFileDialog } from "./openFileDialog";
 import { handleOpenFile } from "./openFile";
+import { handleShowNotification } from "./notifications";
 
 export function registerRpcHandlers() {
   ipcMain.handle("executeDbQuery", async (event, request) => {
@@ -31,5 +32,9 @@ export function registerRpcHandlers() {
 
   ipcMain.handle("openFile", async (event, request) => {
     return handleOpenFile(request);
+  });
+
+  ipcMain.handle("showNotification", async (event, request) => {
+    return handleShowNotification(request);
   });
 }

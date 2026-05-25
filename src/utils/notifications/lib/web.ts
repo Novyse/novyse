@@ -17,19 +17,14 @@ class WebNotificationManager {
     }
   }
 
-  send(title?: string, body?: string, data?: any, icon?: string) {
-    if (Platform.OS !== "web") return;
-
+  send(title: string, body: string, data?: any, icon?: string) {
     if (
       typeof window !== "undefined" &&
       "Notification" in window &&
       Notification.permission === "granted"
     ) {
-      const notificationTitle = title || "Novyse";
-      const notificationBody = body || "";
-
-      const notification = new Notification(notificationTitle, {
-        body: notificationBody,
+      const notification = new Notification(title, {
+        body,
         data,
         icon,
       });
@@ -39,15 +34,6 @@ class WebNotificationManager {
         window.focus();
         notification.close();
       };
-    }
-  }
-
-  sendWhenHidden(title?: string, body?: string, data?: any, icon?: string) {
-    if (
-      typeof document !== "undefined" &&
-      document.visibilityState === "hidden"
-    ) {
-      this.send(title, body, data, icon);
     }
   }
 }

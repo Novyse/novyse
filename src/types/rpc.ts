@@ -37,6 +37,10 @@ export type AppRPC = {
         params: OpenFileRequest;
         response: OpenFileResponse;
       };
+      showNotification: {
+        params: ShowNotificationRequest;
+        response: ShowNotificationResponse;
+      };
     };
     messages: {};
   };
@@ -96,6 +100,18 @@ export interface OpenFileRequest {
 }
 
 export interface OpenFileResponse {
+  success: boolean;
+  error?: string;
+}
+
+export interface ShowNotificationRequest {
+  title: string;
+  body: string;
+  data?: any;
+  icon?: string;
+}
+
+export interface ShowNotificationResponse {
   success: boolean;
   error?: string;
 }
