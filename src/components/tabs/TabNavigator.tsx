@@ -9,6 +9,7 @@ import {
 import { tabNavigationRef } from "@/src/utils/navigation/tabRef";
 import { useThemeContext, Theme } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useWindowSizeStore, {
   SIDEBAR_MIN,
 } from "@/src/context/WindowSizeContext";
@@ -50,6 +51,7 @@ export default function TabNavigator({
           onStateChange={(state) => {
             globalNavState = state;
             if (state?.routes[state.index]?.name === "ChatList") return;
+            useActiveChatStore.getState().clear();
             const s = useWindowSizeStore.getState();
             if (s.isSidebarCollapsed) s.setSidebarCollapsed(false);
             s.setDetailWidth((dw) => Math.min(dw, width - SIDEBAR_MIN));
