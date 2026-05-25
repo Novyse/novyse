@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ActivityIndicator, Image } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import AppText from "@/src/components/AppText";
 
 import { useScreen } from "@/src/context/ScreenContext";
 
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { LoginColors, ThemeColors } from "@/constants/LoginColors";
+import { LoginColors } from "@/constants/LoginColors";
 import gateway from "@/src/utils/backend-services/api-gateway";
-import auth from "@/src/utils/welcome/auth";
 import OtpDigitsInput from "@/src/components/OtpDigitsInput";
 import StatusMessage from "@/src/components/StatusMessage";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
@@ -94,12 +92,7 @@ const VerifyBackup: React.FC = () => {
   };
 
   return (
-    <LinearGradient
-      colors={(LoginColors[loginTheme] as ThemeColors).background as any}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.cardContent}>
           {/* <Image style={styles.logo} source={logoNovyse} /> */}
@@ -161,7 +154,7 @@ const VerifyBackup: React.FC = () => {
           />
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 

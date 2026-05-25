@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback } from "react";
 import { View, StyleSheet, Image, ActivityIndicator } from "react-native";
 import AppText from "@/src/components/AppText";
 
 import { useScreen } from "@/src/context/ScreenContext";
 
 import QRCode from "react-native-qrcode-svg";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 
@@ -50,13 +49,7 @@ const Welcome = () => {
   };
 
   return (
-    <LinearGradient
-      colors={LoginColors[loginTheme].background as any}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
-
+    <View style={styles.container}>
       {/* Glass Card */}
       <View style={styles.card}>
         {/* Main Block */}
@@ -138,7 +131,7 @@ const Welcome = () => {
           </>
         )}
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 

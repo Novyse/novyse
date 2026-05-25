@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
@@ -32,7 +31,7 @@ export default function UpdateRequiredScreen() {
   };
 
   return (
-    <LinearGradient colors={theme.backgroundMainGradient} style={styles.container}>
+    <View style={styles.container}>
       {/* Logo */}
       <View style={styles.logoContainer}>
         <Image
@@ -105,7 +104,7 @@ export default function UpdateRequiredScreen() {
           link: "https://novyse.com/#download",
         }}
       />
-    </LinearGradient>
+    </View>
   );
 }
 

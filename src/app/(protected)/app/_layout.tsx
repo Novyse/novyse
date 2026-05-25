@@ -37,10 +37,12 @@ export default function RootLayout() {
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(slideAnim, {
+    Animated.spring(slideAnim, {
       toValue: isDetailOpen ? 1 : 0,
-      duration: 300,
       useNativeDriver: true,
+      damping: 24,
+      stiffness: 180,
+      mass: 0.8,
     }).start();
 
     // This ensures state is reset for Android back gestures or explicit navigation back to chat list.
@@ -199,7 +201,18 @@ export default function RootLayout() {
       <View
         style={{ flex: 1, backgroundColor: "transparent", overflow: "hidden" }}
       >
-        <TabNavigator isDetailOpen={isDetailOpen} />
+        <Animated.View
+          style={{
+            flex: 1,
+            opacity: slideAnim.interpolate({
+              inputRange: [0, 0.15, 1],
+              outputRange: [1, 0, 0],
+            }),
+          }}
+          pointerEvents={isDetailOpen ? "none" : "auto"}
+        >
+          <TabNavigator isDetailOpen={isDetailOpen} />
+        </Animated.View>
         <Animated.View
           style={{
             position: "absolute",
@@ -207,7 +220,7 @@ export default function RootLayout() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: theme.backgroundMainGradient[1],
+            backgroundColor: "transparent",
             transform: [
               {
                 translateX: slideAnim.interpolate({
@@ -230,7 +243,7 @@ export default function RootLayout() {
   if (!isStorageReady) {
     return (
       <View
-        style={{ flex: 1, backgroundColor: theme.backgroundMainGradient[1] }}
+        style={{ flex: 1, backgroundColor: "transparent" }}
       />
     );
   }
@@ -246,7 +259,7 @@ export default function RootLayout() {
       style={{
         flex: 1,
         flexDirection: "row",
-        backgroundColor: theme.backgroundMainGradient[1],
+        backgroundColor: "transparent",
       }}
     >
       <View
@@ -255,7 +268,7 @@ export default function RootLayout() {
           height: "100%",
           padding: 10,
           paddingHorizontal: showCollapsedSidebar ? 5 : 10,
-          backgroundColor: theme.backgroundMainGradient[1],
+          backgroundColor: "transparent",
         }}
       >
         <TabNavigator isDetailOpen={isDetailOpen} />

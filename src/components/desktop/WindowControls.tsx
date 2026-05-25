@@ -10,8 +10,11 @@ import Platform from "@/src/utils/device/type";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
-const TOOLBAR_HEIGHT = 24;
+const TOOLBAR_HEIGHT = 32;
+const BUTTON_HEIGHT = 24;
 const BUTTON_WIDTH = 24;
+
+export const WINDOW_CONTROL_HEIGHT = TOOLBAR_HEIGHT;
 
 type ElectronWindowAPI = {
   minimize: () => void;
@@ -148,17 +151,17 @@ const styles = StyleSheet.create({
     height: TOOLBAR_HEIGHT,
     flexDirection: "row",
     justifyContent: "flex-end",
-    alignItems: "stretch",
+    alignItems: "flex-start",
     backgroundColor: "transparent",
     zIndex: 9999,
   },
   buttonsContainer: {
     flexDirection: "row",
-    height: TOOLBAR_HEIGHT,
+    height: BUTTON_HEIGHT,
   },
   button: {
     width: BUTTON_WIDTH,
-    height: TOOLBAR_HEIGHT,
+    height: BUTTON_HEIGHT,
     alignItems: "center",
     justifyContent: "center",
   },

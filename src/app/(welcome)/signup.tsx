@@ -7,7 +7,6 @@ import {
   View,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-import { LinearGradient } from "expo-linear-gradient";
 import AppText from "@/src/components/AppText";
 
 import { useScreen } from "@/src/context/ScreenContext";
@@ -22,8 +21,6 @@ import SignupTimeline from "@/src/components/welcome/signup/SignupTimeline";
 import SignupStepField from "@/src/components/welcome/signup/SignupStepField";
 import SignupCheckboxes from "@/src/components/welcome/signup/SignupCheckboxes";
 import TurnstileCaptcha from "@/src/components/auth/TurnstileCaptcha";
-
-// import logoNovyse from "@/assets/images/logo-novyse.png";
 
 const STEPS = [{ id: 1 }, { id: 2 }, { id: 3 }];
 
@@ -70,12 +67,7 @@ export default function Signup() {
   const isLastStep = currentStep === STEPS.length - 1;
 
   return (
-    <LinearGradient
-      colors={LoginColors[LOGIN_THEME].background as any}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.card}>
         <KeyboardAvoidingView behavior="position">
           <ScrollView contentContainerStyle={styles.cardContent}>
@@ -230,7 +222,7 @@ export default function Signup() {
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 

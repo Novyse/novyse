@@ -1,6 +1,5 @@
-import React, { useContext } from "react";
-import SmartBackground from "./SmartBackground";
-import { ThemeContext } from "@/src/context/ThemeContext";
+import React from "react";
+import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ScreenLayoutProps {
@@ -10,7 +9,6 @@ interface ScreenLayoutProps {
 }
 
 /**
- * Layout personalizzato per applicare il gradiente di sfondo a tutte le schermate
  * @param children - Contenuto della schermata
  * @param style - Stili aggiuntivi per il contenitore
  */
@@ -19,23 +17,22 @@ const ScreenLayout = ({
   style = {},
   fullscreen = false,
 }: ScreenLayoutProps) => {
-  const { theme } = useContext(ThemeContext);
   const insets = useSafeAreaInsets();
 
   return (
-    <SmartBackground
-      colors={theme.backgroundMainGradient}
+    <View
       style={[
         {
           flex: 1,
           paddingTop: fullscreen ? null : insets.top,
           paddingBottom: fullscreen ? null : insets.bottom,
+          backgroundColor: "transparent",
         },
         style,
       ]}
     >
       {children}
-    </SmartBackground>
+    </View>
   );
 };
 

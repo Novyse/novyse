@@ -1,6 +1,5 @@
 import React from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import StatusMessage from "@/src/components/StatusMessage";
 import { useTranslation } from "react-i18next";
@@ -10,10 +9,7 @@ const InitPage = () => {
   const { t } = useTranslation();
 
   return (
-    <LinearGradient
-      colors={theme.backgroundMainGradient}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.content}>
         <ActivityIndicator
           size="large"
@@ -22,7 +18,7 @@ const InitPage = () => {
         />
         <StatusMessage type="info" content={[t("layout.loadingData")]} />
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 
