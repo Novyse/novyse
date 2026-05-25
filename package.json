@@ -12,7 +12,7 @@
     "build:web": "expo export -p web",
     "build:desktop": "bun run sync-version && bun run build:web && cd desktop && bun run build && bun run dist",
     "sync-version": "node scripts/sync-version.js",
-    "postinstall": "sed -i 's/CMAKE_CXX_STANDARD 11/CMAKE_CXX_STANDARD 20/' node_modules/react-native-opaque/android/CMakeLists.txt"
+    "postinstall": "bunx replace-in-file '/CMAKE_CXX_STANDARD 11/' 'CMAKE_CXX_STANDARD 20' node_modules/react-native-opaque/android/CMakeLists.txt --isRegex"
   },
   "jest": {
     "preset": "jest-expo"
