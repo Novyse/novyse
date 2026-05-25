@@ -149,6 +149,12 @@ const ChatPageRoute = () => {
     setSelectedSub,
   ]);
 
+  useEffect(() => {
+    return () => {
+      useActiveChatStore.getState().clear();
+    };
+  }, []);
+
   const styles = useMemo(() => createStyle(theme), [theme]);
 
   // Verifica se i dati nel context appartengono effettivamente alla chat aperta nell'URL
