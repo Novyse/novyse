@@ -17,14 +17,22 @@ class WebNotificationManager {
     }
   }
 
-  send(title: string, body: string, data?: any, icon?: string) {
+  send(
+    title: string,
+    body: string,
+    data?: any,
+    icon?: string,
+    subtitle?: string,
+  ) {
     if (
       typeof window !== "undefined" &&
       "Notification" in window &&
       Notification.permission === "granted"
     ) {
+      const notificationBody = subtitle ? `${subtitle}\n${body}` : body;
+
       const notification = new Notification(title, {
-        body,
+        body: notificationBody,
         data,
         icon,
       });

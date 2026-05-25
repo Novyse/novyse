@@ -107,6 +107,7 @@ export interface OpenFileResponse {
 export interface ShowNotificationRequest {
   title: string;
   body: string;
+  subtitle?: string;
   data?: any;
   icon?: string;
 }

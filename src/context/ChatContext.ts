@@ -413,20 +413,28 @@ const useChatStore = create<ChatState>((set, get) => ({
       const shouldNotify = !(isViewingThisChat && isInChatOrBothView);
 
       if (shouldNotify) {
-        const senderName =
-          useUserStore.getState().getUser(message.senderUUID)?.name ||
-          "Unknown";
-
-        let title = senderName;
-        if (chat && chat.type !== "DM") {
-          title = `${chat.name} - ${senderName}`;
-        }
-
+        const sender = useUserStore.getState().getUser(message.senderUUID);
+        const senderName = sender?.name || "Unknown";
         const body = messageUtils.format(message).content;
 
-        notificationManager.sendNotification(title, body, {
-          chatUUID: message.chatUUID,
-        });
+        if (chat && chat.type !== "DM") {
+          // Group/Channel/Forum: title = chat name, subtitle = sender name, icon = chat picture
+          notificationManager.sendNotification(
+            chat.name,
+            body,
+            { chatUUID: message.chatUUID },
+            chat.profilePictureUUID || undefined,
+            senderName,
+          );
+        } else {
+          // DM: title = person name, no subtitle, icon = person picture
+          notificationManager.sendNotification(
+            senderName,
+            body,
+            { chatUUID: message.chatUUID },
+            sender?.profilePictureUUID || undefined,
+          );
+        }
       }
     }
 

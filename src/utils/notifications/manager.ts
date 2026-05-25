@@ -7,6 +7,7 @@ import desktop from "./lib/desktop";
 
 import { useActiveChatStore } from "../../context/ActiveChatContext";
 
+import { getProfilePictureUri } from "@/src/utils/avatar/profilePicture";
 import Platform from "@/src/utils/device/type";
 
 class NotificationManager {
@@ -88,21 +89,22 @@ class NotificationManager {
   }
 
   /**
-   * Legacy methods for internal app notifications (if still needed)
+   * Send a notification across all platforms.
    */
   async sendNotification(
     title: string,
     body: string,
     data = {},
-    icon?: string,
+    profilePictureUUID?: string,
     subtitle?: string,
   ) {
+    const icon = (await getProfilePictureUri(profilePictureUUID)) || undefined;
     switch (Platform) {
       case "web":
-        web.send(title, body, data, icon);
+        web.send(title, body, data, icon, subtitle);
         break;
       case "desktop":
-        desktop.send(title, body, data, icon);
+        desktop.send(title, body, data, icon, subtitle);
         break;
       case "mobile":
         // Local display via Notifee

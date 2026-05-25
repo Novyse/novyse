@@ -1,10 +1,17 @@
 class DesktopNotificationManager {
-  send(title: string, body: string, data?: any, icon?: string) {
+  send(
+    title: string,
+    body: string,
+    data?: any,
+    icon?: string,
+    subtitle?: string,
+  ) {
     if (typeof window !== "undefined" && (window as any).electron) {
       (window as any).electron.rpc
         .request("showNotification", {
           title,
           body,
+          subtitle,
           data,
           icon,
         })
