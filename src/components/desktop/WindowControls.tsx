@@ -10,7 +10,7 @@ import Platform from "@/src/utils/device/type";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/Icon";
 
-const TOOLBAR_HEIGHT = 32;
+const TOOLBAR_HEIGHT = 24;
 const BUTTON_HEIGHT = 24;
 const BUTTON_WIDTH = 24;
 
