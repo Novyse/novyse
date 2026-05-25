@@ -58,6 +58,7 @@ function createWindow() {
   });
 
   mainWindow.removeMenu();
+  mainWindow.setWindowButtonVisibility(false);
   setupTray(mainWindow);
   registerShortcuts(mainWindow);
 
