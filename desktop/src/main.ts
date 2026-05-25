@@ -44,7 +44,7 @@ function createWindow() {
     width: 1200,
     height: 900,
     minWidth: 350,
-    minHeight: 800,
+    minHeight: 500,
     title: appName,
     icon: iconPath,
     frame: false,
