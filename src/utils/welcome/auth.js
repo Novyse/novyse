@@ -5,6 +5,7 @@ import { rpc } from "@/src/utils/electron/rpc";
 
 import auth from "@/src/utils/backend-services/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";
+import SocketIO from "@/src/utils/backend-services/socket-io";
 import database from "@/src/utils/storage/database";
 import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 
@@ -131,6 +132,7 @@ const logout = async () => {
 
   await database.clear();
   await AsyncStorage.clear();
+  SocketIO.close();
 
   switch (Platform) {
     case "desktop": {

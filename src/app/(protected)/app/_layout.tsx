@@ -19,6 +19,7 @@ import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import SocketIO from "@/src/utils/backend-services/socket-io";
 import auth from "@/src/utils/welcome/auth";
 
 import InitPage from "@/src/components/pages/InitPage";
@@ -163,6 +164,7 @@ export default function RootLayout() {
             await AsyncStorage.setItem("init", "true");
             setHasInitialized(true);
             useNetworkStore.getState().setSynced(true);
+            SocketIO.open();
           }
         }
       } catch (error) {

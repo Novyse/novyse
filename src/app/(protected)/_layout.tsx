@@ -18,7 +18,6 @@ import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import Platform from "@/src/utils/device/type";
 
 import SetupGlobalEventReceiver from "@/src/utils/global/Events/EventReceiver";
-import SocketIO from "@/src/utils/backend-services/socket-io";
 import database from "@/src/utils/storage/database";
 
 import ErrorPage from "@/src/components/pages/ErrorPage";
@@ -47,11 +46,6 @@ function ProtectedContent() {
       database.setDb(db);
     }
   }, [db, initNetwork]);
-
-  // Open SocketIO
-  useEffect(() => {
-    SocketIO.open();
-  }, [SocketIO]);
 
   // Init livekit module for android/ios
   if (Platform === "mobile") {
