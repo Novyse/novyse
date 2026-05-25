@@ -33,5 +33,26 @@ export const ScrollBar = (theme: any) => {
     "::WebkitScrollbarThumb:hover": {
       backgroundColor: theme.scrollbarHover,
     },
+
+    "::-webkit-scrollbar": {
+      width: 6,
+      height: 6,
+    },
+    "::-webkit-scrollbar-button": {
+      display: "none",
+      width: 0,
+      height: 0,
+    },
+    "::-webkit-scrollbar-track": {
+      background: theme.backgroundScrollbar,
+      borderRadius: 3,
+    },
+    "::-webkit-scrollbar-thumb": {
+      background: theme.scrollbar,
+      borderRadius: 3,
+    },
+    "::-webkit-scrollbar-thumb:hover": {
+      background: theme.scrollbarHover,
+    },
   };
 };
