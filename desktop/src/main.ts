@@ -29,6 +29,8 @@ protocol.registerSchemesAsPrivileged([
       secure: true,
       supportFetchAPI: true,
       corsEnabled: true,
+      bypassCSP: true,
+      stream: true,
     },
   },
 ]);
@@ -106,7 +108,7 @@ app.whenReady().then(async () => {
     return mainWindow ? mainWindow.isMaximized() : false;
   });
 
-  protocol.handle("novyse", (request: { url: string }) => {
+  protocol.registerFileProtocol("novyse", (request, callback) => {
     const url = new URL(request.url);
     let pathname = url.pathname;
     if (pathname.startsWith("/")) {
@@ -124,7 +126,7 @@ app.whenReady().then(async () => {
       filePath = path.join(distPath, "index.html");
     }
 
-    return require("electron").net.fetch("file://" + filePath);
+    callback({ path: filePath });
   });
 
   createWindow();
