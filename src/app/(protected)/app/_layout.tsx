@@ -25,6 +25,7 @@ import SocketIO from "@/src/utils/backend-services/socket-io";
 import auth from "@/src/utils/welcome/auth";
 
 import InitPage from "@/src/components/pages/InitPage";
+import StartupManager from "@/src/components/layout/StartupManager";
 
 export default function RootLayout() {
   // Listen for Expo Router pathname changes to determine if a detail is open
@@ -262,6 +263,7 @@ export default function RootLayout() {
         backgroundColor: "transparent",
       }}
     >
+      <StartupManager isReady={hasInitialized} />
       <View
         style={{
           width: currentSidebarWidth,
