@@ -94,6 +94,20 @@
       "sticker": "Sticker",
       "gif": "GIF"
     },
+    "emojiCategories": {
+      "searchPlaceholder": "Cerca emoji...",
+      "recents": "Recenti",
+      "smileys": "Faccine ed Emozioni",
+      "people": "Persone e Corpo",
+      "animals": "Animali e Natura",
+      "food": "Cibo e Bevande",
+      "travel": "Viaggi e Luoghi",
+      "activities": "Attività",
+      "objects": "Oggetti",
+      "symbols": "Simboli",
+      "flags": "Bandiere",
+      "searchResults": "Risultati della Ricerca"
+    },
     "overview": {
       "tabs": {
         "members": "Membri",

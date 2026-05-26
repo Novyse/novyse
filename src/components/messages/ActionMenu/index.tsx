@@ -45,7 +45,6 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   pendingEditJobId,
 }) => {
   const { theme } = useThemeContext();
-  const styles = createStyle(theme);
   const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
   const localUserUUID = useUserStore((state) => state.localUserUUID);
@@ -70,6 +69,8 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
       adjustedY = 10;
     }
   }
+
+  const styles = createStyle(theme, adjustedX, adjustedY);
 
   let items: ActionMenuItem[] = [];
 
@@ -203,7 +204,10 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
         }}
         style={styles.overlay}
       >
-        <View style={[styles.wrapper, { top: adjustedY, left: adjustedX }]}>
+        <Pressable
+          onPress={(e) => e.stopPropagation()}
+          style={[styles.wrapper]}
+        >
           {!isPendingSend && <ReactionMenu onReaction={handleReactionPress} />}
 
           <BlurredView style={styles.menuContainer}>
@@ -263,7 +267,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
               )}
             </View>
           ) : null}
-        </View>
+        </Pressable>
       </Pressable>
     </Modal>
   );
@@ -271,7 +275,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
 
 export default ActionMenu;
 
-const createStyle = (theme: any) =>
+const createStyle = (theme: any, adjustedX: number, adjustedY: number) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -280,6 +284,8 @@ const createStyle = (theme: any) =>
       position: "absolute",
       zIndex: 1000,
       maxWidth: 175,
+      top: adjustedY,
+      left: adjustedX,
     },
     menuContainer: {
       borderRadius: 10,

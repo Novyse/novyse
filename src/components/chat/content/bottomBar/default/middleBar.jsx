@@ -19,6 +19,7 @@ const MiddleBar = ({
   textInputRef,
   onTextChange,
   onInputFocus,
+  isEmojiPickerVisible,
   onToggleEmoji,
   onSendMessage,
   onFileAppend,
@@ -132,7 +133,15 @@ const MiddleBar = ({
               });
             }}
           />
-          <Icon name="SmileIcon" style={styles.icon} onPress={onToggleEmoji} />
+          <Icon
+            name={
+              Platform === "mobile" && isEmojiPickerVisible
+                ? "KeyboardIcon"
+                : "SmileIcon"
+            }
+            style={styles.icon}
+            onPress={onToggleEmoji}
+          />
         </BlurredView>
       ) : (
         <BlurredView style={styles.container}>

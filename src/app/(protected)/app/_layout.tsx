@@ -4,7 +4,9 @@ import { Slot, usePathname } from "expo-router";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 
-import TabNavigator, { getActiveTabName } from "@/src/components/tabs/TabNavigator";
+import TabNavigator, {
+  getActiveTabName,
+} from "@/src/components/tabs/TabNavigator";
 import { useScreen } from "@/src/context/ScreenContext";
 import useChatStore from "@/src/context/ChatContext";
 import useUserStore from "@/src/context/UserContext";
@@ -243,11 +245,7 @@ export default function RootLayout() {
 
   // For larger screens, we show the detail stack in a resizable pane on the right
   if (!isStorageReady) {
-    return (
-      <View
-        style={{ flex: 1, backgroundColor: "transparent" }}
-      />
-    );
+    return <View style={{ flex: 1, backgroundColor: "transparent" }} />;
   }
 
   const currentSidebarWidth = showCollapsedSidebar

@@ -7,7 +7,9 @@ interface PanelResizeHandleProps {
   panHandlers: object;
 }
 
-export default function PanelResizeHandle({ panHandlers }: PanelResizeHandleProps) {
+export default function PanelResizeHandle({
+  panHandlers,
+}: PanelResizeHandleProps) {
   const { theme } = useContext(ThemeContext);
   const [hovered, setHovered] = useState(false);
   const styles = createStyles(theme);

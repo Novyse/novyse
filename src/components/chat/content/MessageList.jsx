@@ -8,7 +8,6 @@ import React, {
 import { StyleSheet, Platform, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { KeyboardChatScrollView } from "react-native-keyboard-controller";
 
 import useMessageActions from "@/src/hooks/chat/useMessageActions";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
@@ -18,10 +17,6 @@ import MessageSystem from "@/src/components/messages/MessageSystem";
 import ActionMenu from "@/src/components/messages/ActionMenu";
 import Icon from "@/src/components/Icon";
 import { ScrollBar } from "@/constants/ScrollBar";
-
-const RenderScrollComponent = React.forwardRef((props, ref) => (
-  <KeyboardChatScrollView {...props} ref={ref} />
-));
 
 const MessageList = ({
   ref: flatListRef,
@@ -96,16 +91,27 @@ const MessageList = ({
     [preparedMessages, flatListRef],
   );
 
-  const scrollToMessageID = useActiveChatStore((state) => state.scrollToMessageID);
-  const setScrollToMessageID = useActiveChatStore((state) => state.setScrollToMessageID);
-  const selectedChatUUID = useActiveChatStore((state) => state.selectedChatUUID);
+  const scrollToMessageID = useActiveChatStore(
+    (state) => state.scrollToMessageID,
+  );
+  const setScrollToMessageID = useActiveChatStore(
+    (state) => state.setScrollToMessageID,
+  );
+  const selectedChatUUID = useActiveChatStore(
+    (state) => state.selectedChatUUID,
+  );
 
   useEffect(() => {
     if (scrollToMessageID) {
       navigateToMessageWithHistory(selectedChatUUID, scrollToMessageID);
       setScrollToMessageID(null);
     }
-  }, [scrollToMessageID, selectedChatUUID, navigateToMessageWithHistory, setScrollToMessageID]);
+  }, [
+    scrollToMessageID,
+    selectedChatUUID,
+    navigateToMessageWithHistory,
+    setScrollToMessageID,
+  ]);
 
   const {
     triggeredMessage,
@@ -132,7 +138,7 @@ const MessageList = ({
     onForward,
   });
 
-    const [showScrollButton, setShowScrollButton] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const handleScroll = useCallback((event) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
     if (contentSize.height === 0) return;
@@ -272,7 +278,6 @@ const MessageList = ({
         }
         keyExtractor={(item) => item.uniqueKey}
         renderItem={renderMessageItem}
-        renderScrollComponent={RenderScrollComponent}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={true}
