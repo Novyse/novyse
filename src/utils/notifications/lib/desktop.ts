@@ -1,3 +1,5 @@
+import { notificationsRpc } from "@/src/utils/electron/notifications";
+
 class DesktopNotificationManager {
   send(
     title: string,
@@ -6,22 +8,7 @@ class DesktopNotificationManager {
     icon?: string,
     subtitle?: string,
   ) {
-    if (typeof window !== "undefined" && (window as any).electron) {
-      (window as any).electron.rpc
-        .request("showNotification", {
-          title,
-          body,
-          subtitle,
-          data,
-          icon,
-        })
-        .catch((err: any) => {
-          console.error(
-            "[DesktopNotificationManager] Error invoking showNotification RPC:",
-            err,
-          );
-        });
-    }
+    notificationsRpc.show(title, body, data, icon, subtitle);
   }
 }
 

@@ -8,6 +8,7 @@ import {
 import { handleOpenFileDialog } from "./openFileDialog";
 import { handleOpenFile } from "./openFile";
 import { handleShowNotification } from "./notifications";
+import { handleSetOpenOnStartup, handleGetOpenOnStartup } from "./system";
 
 export function registerRpcHandlers() {
   ipcMain.handle("executeDbQuery", async (event, request) => {
@@ -36,5 +37,13 @@ export function registerRpcHandlers() {
 
   ipcMain.handle("showNotification", async (event, request) => {
     return handleShowNotification(request);
+  });
+
+  ipcMain.handle("system:set-open-on-startup", async (event, request) => {
+    return handleSetOpenOnStartup(request);
+  });
+
+  ipcMain.handle("system:get-open-on-startup", async (event) => {
+    return handleGetOpenOnStartup();
   });
 }

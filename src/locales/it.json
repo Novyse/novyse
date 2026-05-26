@@ -252,7 +252,8 @@
       "comms": "Comunicazioni",
       "qrScanner": "Scanner QR",
       "shortcuts": "Scorciatoie",
-      "info": "Info"
+      "info": "Info",
+      "system": "Sistema"
     },
     "account": {
       "title": "Account",
@@ -491,6 +492,16 @@
       "notificationMethodRemoved": "Metodo di notifica rimosso",
       "default": "Predefinito",
       "addNotificationMethod": "Aggiungi Metodo di Notifica"
+    },
+    "system": {
+      "title": "Sistema",
+      "startupSection": "Avvio dell'Applicazione",
+      "actionsSection": "Azioni Iniziali",
+      "openOnStartup": "Apri all'avvio",
+      "joinCommsOnStartup": "Entra nelle comms all'avvio",
+      "selectChat": "Seleziona Chat",
+      "selectSub": "Seleziona Sub",
+      "none": "Nessuno"
     }
   },
   "layout": {

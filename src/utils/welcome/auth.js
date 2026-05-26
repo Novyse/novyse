@@ -1,7 +1,7 @@
 import Platform from "@/src/utils/device/type";
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { rpc } from "@/src/utils/electron/rpc";
+import { secureStoreRpc } from "@/src/utils/electron/secureStore";
 
 import auth from "@/src/utils/backend-services/auth";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -39,8 +39,8 @@ const isLoggedIn = async () => {
       try {
         const userUUID = await AsyncStorage.getItem("userUUID");
         if (userUUID === null) return false;
-        const res = await rpc.request("secureStoreGet", { key: "sessionId" });
-        return res.success && res.value !== undefined;
+        const sessionId = await secureStoreRpc.get("sessionId");
+        return sessionId !== null && sessionId !== undefined;
       } catch (error) {
         console.error("Error checking desktop session:", error);
         return false;
@@ -137,7 +137,7 @@ const logout = async () => {
   switch (Platform) {
     case "desktop": {
       try {
-        await rpc.request("secureStoreDelete", { key: "sessionId" });
+        await secureStoreRpc.delete("sessionId");
       } catch (error) {
         console.error("Error clearing desktop session:", error);
       }
@@ -381,10 +381,7 @@ const setLogin = async (userUUID, sessionID, session_id) => {
     switch (Platform) {
       case "desktop": {
         if (session_id) {
-          await rpc.request("secureStoreSet", {
-            key: "sessionId",
-            value: String(session_id),
-          });
+          await secureStoreRpc.set("sessionId", String(session_id));
         }
         break;
       }

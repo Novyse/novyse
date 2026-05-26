@@ -1,7 +1,7 @@
 import axios from "axios";
 import Platform, { getOs } from "@/src/utils/device/type";
 import * as SecureStore from "expo-secure-store";
-import { rpc } from "@/src/utils/electron/rpc";
+import { secureStoreRpc } from "@/src/utils/electron/secureStore";
 
 import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
 import useNetworkStore from "@/src/context/NetworkContext";
@@ -75,10 +75,7 @@ api.interceptors.response.use(
     if (newSessionId) {
       switch (Platform) {
         case "desktop": {
-          await rpc.request("secureStoreSet", {
-            key: "sessionId",
-            value: String(newSessionId),
-          });
+          await secureStoreRpc.set("sessionId", String(newSessionId));
           break;
         }
         case "mobile": {

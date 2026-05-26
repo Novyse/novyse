@@ -254,7 +254,8 @@
       "comms": "Comms",
       "qrScanner": "QR Scanner",
       "shortcuts": "Shortcuts",
-      "info": "Info"
+      "info": "Info",
+      "system": "System"
     },
     "account": {
       "title": "Account",
@@ -493,6 +494,16 @@
       "notificationMethodRemoved": "Notification method removed",
       "default": "Default",
       "addNotificationMethod": "Add Notification Method"
+    },
+    "system": {
+      "title": "System",
+      "startupSection": "Application Startup",
+      "actionsSection": "Initial Actions",
+      "openOnStartup": "Open on startup",
+      "joinCommsOnStartup": "Join comms on startup",
+      "selectChat": "Select Chat",
+      "selectSub": "Select Sub",
+      "none": "None"
     }
   },
   "layout": {

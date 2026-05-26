@@ -1,6 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
-import { rpc } from "@/src/utils/electron/rpc";
+import { filesRpc } from "@/src/utils/electron/files";
 
 import Platform from "@/src/utils/device/type";
 
@@ -113,12 +113,12 @@ const openDesktopFileMenu = async (type) => {
   }
 
   try {
-    const res = await rpc.request("openFileDialog", {
+    const res = await filesRpc.openDialog({
       allowedFileTypes: fileType,
       allowsMultipleSelection: true,
     });
-    if (res.success && res.assets) {
-      return res.assets;
+    if (res) {
+      return res;
     }
   } catch (error) {
     console.error("openDesktopFileMenu error:", error);

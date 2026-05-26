@@ -1,7 +1,7 @@
 import { authApi } from "@/src/utils/backend-services/config";
 import * as SecureStore from "expo-secure-store";
 import Platform from "@/src/utils/device/type";
-import { rpc } from "@/src/utils/electron/rpc";
+import { secureStoreRpc } from "@/src/utils/electron/secureStore";
 
 /**
  * Fetches a new access token (JWT) from the backend.
@@ -15,9 +15,9 @@ export const fetchToken = async (): Promise<string | null> => {
 
     switch (Platform) {
       case "desktop": {
-        const res = await rpc.request("secureStoreGet", { key: "sessionId" });
-        if (res.success && res.value) {
-          headers["x-session-id"] = res.value;
+        const sessionId = await secureStoreRpc.get("sessionId");
+        if (sessionId) {
+          headers["x-session-id"] = sessionId;
         }
         break;
       }
@@ -42,10 +42,10 @@ export const fetchToken = async (): Promise<string | null> => {
       switch (Platform) {
         case "desktop": {
           if (response.data.sessionId) {
-            await rpc.request("secureStoreSet", {
-              key: "sessionId",
-              value: String(response.data.sessionId),
-            });
+            await secureStoreRpc.set(
+              "sessionId",
+              String(response.data.sessionId),
+            );
           }
           break;
         }
