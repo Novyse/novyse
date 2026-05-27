@@ -107,9 +107,7 @@ jobs:
           bun install
           bun run build:ext
       - name: Sign and Publish to Mozilla Add-ons
-        run:
-          npx web-ext sign --api-key=${{ secrets.FIREFOX_ISSUER }} --api-secret=${{
-          secrets.FIREFOX_SECRET }} --channel=listed --source-dir=./dist-ext
+        run: npx web-ext sign --api-key=${{ secrets.FIREFOX_ISSUER }} --api-secret=${{ secrets.FIREFOX_SECRET }} --channel=listed --source-dir=./dist-ext
   build-android:
     needs: create-release
     runs-on: ubuntu-latest
