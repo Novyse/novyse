@@ -13,6 +13,12 @@ export default {
     provider: "github",
     owner: "Novyse",
     repo: "novyse",
+    channel:
+      BRANCH === "preview"
+        ? "preview"
+        : BRANCH === "development"
+          ? "dev"
+          : "latest",
   },
   directories: {
     output: "dist",

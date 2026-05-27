@@ -4,8 +4,6 @@ import packageJson from "./package.json";
 const APP_NAME = "Novyse"; // Novyse-dev Novyse
 const APP_SLUG = "novyse";
 const APP_VERSION = packageJson.version;
-const BUILD_NUMBER = "1";
-const BUILD_DATE = "2026/05/14 13:00:00";
 const EXPO_OWNER = "novyse";
 const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
 const BRANCH = "development" as "development" | "preview" | "production";
@@ -43,8 +41,6 @@ export {
   API_BASE_URL,
   SOCKET_BASE_URL,
   APP_VERSION,
-  BUILD_NUMBER,
-  BUILD_DATE,
   APP_URL,
   TINY_APP_URL,
   LANDING_PAGE_URL,
