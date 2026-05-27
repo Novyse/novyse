@@ -15,6 +15,10 @@ import { startLocalServer, getLocalServerUrl } from "./server/index";
 
 import config from "../electron-builder.config";
 
+app.commandLine.appendSwitch("ignore-gpu-blocklist");
+app.commandLine.appendSwitch("enable-gpu-rasterization");
+app.commandLine.appendSwitch("enable-zero-copy");
+
 const appName = config.productName;
 app.name = appName;
 process.title = appName;
@@ -72,10 +76,6 @@ function createWindow() {
   });
 
   mainWindow.loadURL("novyse://mainview/index.html");
-
-  app.commandLine.appendSwitch("ignore-gpu-blocklist");
-  app.commandLine.appendSwitch("enable-gpu-rasterization");
-  app.commandLine.appendSwitch("enable-zero-copy");
 }
 
 app.whenReady().then(async () => {
@@ -108,26 +108,29 @@ app.whenReady().then(async () => {
     return mainWindow ? mainWindow.isMaximized() : false;
   });
 
-  protocol.registerFileProtocol("novyse", (request, callback) => {
-    const url = new URL(request.url);
-    let pathname = url.pathname;
-    if (pathname.startsWith("/")) {
-      pathname = pathname.substring(1);
-    }
+  protocol.registerFileProtocol(
+    "novyse",
+    (request: { url: string }, callback: (x: { path: string }) => void) => {
+      const url = new URL(request.url);
+      let pathname = url.pathname;
+      if (pathname.startsWith("/")) {
+        pathname = pathname.substring(1);
+      }
 
-    const appDir = app.getAppPath();
-    const distPath = app.isPackaged
-      ? path.resolve(appDir, "dist")
-      : path.resolve(appDir, "..", "dist");
+      const appDir = app.getAppPath();
+      const distPath = app.isPackaged
+        ? path.resolve(appDir, "dist")
+        : path.resolve(appDir, "..", "dist");
 
-    let filePath = path.join(distPath, pathname);
+      let filePath = path.join(distPath, pathname);
 
-    if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
-      filePath = path.join(distPath, "index.html");
-    }
+      if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+        filePath = path.join(distPath, "index.html");
+      }
 
-    callback({ path: filePath });
-  });
+      callback({ path: filePath });
+    },
+  );
 
   createWindow();
 
