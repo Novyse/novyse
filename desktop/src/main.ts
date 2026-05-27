@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, protocol } = require("electron");
+const { app, BrowserWindow, ipcMain, protocol, shell } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
@@ -73,6 +73,23 @@ function createWindow() {
   //mainWindow.setWindowButtonVisibility(false);
   setupTray(mainWindow);
   registerShortcuts(mainWindow);
+
+  // Intercept all window.open or target="_blank" links to open in the system default browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }: { url: string }) => {
+    if (url.startsWith("http:") || url.startsWith("https:")) {
+      shell.openExternal(url);
+      return { action: "deny" };
+    }
+    return { action: "allow" };
+  });
+  mainWindow.webContents.on("will-navigate", (event: any, url: string) => {
+    if (url.startsWith("http:") || url.startsWith("https:")) {
+      if (!url.startsWith("http://localhost")) {
+        event.preventDefault();
+        shell.openExternal(url);
+      }
+    }
+  });
 
   mainWindow.on("maximize", () => {
     mainWindow.webContents.send("window:state-changed", { isMaximized: true });
