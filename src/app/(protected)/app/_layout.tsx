@@ -263,7 +263,7 @@ export default function RootLayout() {
         backgroundColor: "transparent",
       }}
     >
-      <StartupManager isReady={hasInitialized} />
+      <StartupManager />
       <View
         style={{
           width: currentSidebarWidth,

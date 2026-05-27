@@ -1,12 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import settingsManager from "@/src/utils/global/SettingsManager";
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 
-interface StartupManagerProps {
-  isReady: boolean | null;
-}
+let hasJoinedGlobal = false;
 
-export default function StartupManager({ isReady }: StartupManagerProps) {
+export default function StartupManager() {
   const [targetChat, setTargetChat] = useState<{
     uuid: string;
     sub: string | number;
@@ -15,8 +13,6 @@ export default function StartupManager({ isReady }: StartupManagerProps) {
   const { join } = useCommsAction(targetChat?.uuid, targetChat?.sub);
 
   useEffect(() => {
-    if (!isReady) return;
-
     const fetchSettings = async () => {
       try {
         const sys = (await settingsManager.getPageParameters(
@@ -35,12 +31,11 @@ export default function StartupManager({ isReady }: StartupManagerProps) {
     };
 
     fetchSettings();
-  }, [isReady]);
+  }, []);
 
-  const hasJoined = useRef(false);
   useEffect(() => {
-    if (targetChat && !hasJoined.current) {
-      hasJoined.current = true;
+    if (targetChat && !hasJoinedGlobal) {
+      hasJoinedGlobal = true;
       join();
     }
   }, [targetChat, join]);
