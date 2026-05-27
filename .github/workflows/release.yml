@@ -1,4 +1,5 @@
 name: Client release
+
 on:
   workflow_dispatch:
     inputs:
@@ -16,6 +17,10 @@ on:
         description: Patchnotes (Markdown)
         required: true
         type: string
+
+permissions:
+  contents: write
+
 jobs:
   git-flow:
     runs-on: ubuntu-latest
@@ -25,27 +30,33 @@ jobs:
         with:
           ref: development
           fetch-depth: 0
+
       - name: Set Git user
         run: |
           git config user.name "GitHub Action Bot"
           git config user.email "bot@novyse.com"
+
       - name: Update package.json
         run: |
           npm version ${{ inputs.version }} --no-git-tag-version
           git commit -am "chore: bump version to ${{ inputs.version }}"
+
       - name: Merge into target branch
         run: |
           git checkout ${{ inputs.release_type }}
           git merge development
-      - name: Update app.config.js
-        run: >
+
+      - name: Update app.config.ts
+        run: |
           # Search for BRANCH='...' and replace it with the chosen channel
-
-          sed -i 's/const BRANCH = ".*"/const BRANCH = "${{ inputs.release_type }}"/g' app.config.ts
-
+          sed -i 's/const BRANCH = "[^"]*"/const BRANCH = "${{ inputs.release_type }}"/g' app.config.ts
           git commit -am "chore: set branch to ${{ inputs.release_type }} in app.config.ts"
+
       - name: Push to GitHub
-        run: git push origin ${{ inputs.release_type }}
+        run: |
+          git push origin development
+          git push origin ${{ inputs.release_type }}
+
   create-release:
     needs: git-flow
     runs-on: ubuntu-latest
@@ -59,6 +70,7 @@ jobs:
           body: ${{ inputs.patch_notes }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   build-deploy-web:
     needs: git-flow
     runs-on: ubuntu-latest
@@ -119,15 +131,30 @@ jobs:
           npm install -g eas-cli
           bun install
       - name: Build Android (Local)
-        run:
-          eas build --platform android --local --profile ${{ inputs.release_type }}
-          --output ./app-release.apk --non-interactive
+        run: |
+          if [ "${{ inputs.release_type }}" = "production" ]; then
+            # AAB for play store release
+            eas build --platform android --local --profile production --output ./app-release.aab --non-interactive --auto-submit
+            
+            # APK for direct download
+            eas build --platform android --local --profile production-apk --output ./app-release.apk --non-interactive
+          else
+            # APK for direct download
+            eas build --platform android --local --profile preview --output ./app-release.apk --non-interactive
+          fi
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-      - name: Attach APK to GitHub Release
-        run: gh release upload v${{ inputs.version }} ./app-release.apk
+      - name: Attach Android Build Artifacts to GitHub Release
+        run: |
+          if [ -f ./app-release.aab ]; then
+            gh release upload v${{ inputs.version }} ./app-release.aab
+          fi
+          if [ -f ./app-release.apk ]; then
+            gh release upload v${{ inputs.version }} ./app-release.apk
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   build-electron-win-linux:
     needs: create-release
     runs-on: ubuntu-latest
@@ -148,6 +175,7 @@ jobs:
         run: bun run build:desktop --win --linux --publish always
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   build-electron-mac:
     needs: create-release
     runs-on: macos-latest
