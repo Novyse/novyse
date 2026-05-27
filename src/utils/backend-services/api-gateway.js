@@ -6,6 +6,7 @@ import { secureStoreRpc } from "@/src/utils/electron/secureStore";
 import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
 import useNetworkStore from "@/src/context/NetworkContext";
 import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
+import eventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -97,6 +98,12 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
+    if (error.response?.status === 426) {
+      console.warn("Client update required (426 Upgrade Required)");
+      eventEmitter.emit("clientUpdateRequired", error.response?.data?.data);
+      return Promise.reject(error);
+    }
+
     if (error.response && error.response.status === 500) {
       useNetworkStore.getState().setApiError("Errore del server (500)");
     }

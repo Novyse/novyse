@@ -9,6 +9,11 @@ export default {
   appId: identifier,
   productName: appName,
   asar: true,
+  publish: {
+    provider: "github",
+    owner: "Novyse",
+    repo: "novyse",
+  },
   directories: {
     output: "dist",
     buildResources: "build-assets",

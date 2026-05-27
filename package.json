@@ -41,6 +41,7 @@
     "axios": "^1.16.0",
     "electrobun": "^1.18.1",
     "expo": "^55.0.20",
+    "expo-application": "~55.0.15",
     "expo-asset": "~55.0.16",
     "expo-audio": "~55.0.14",
     "expo-blur": "~55.0.14",

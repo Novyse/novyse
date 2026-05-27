@@ -1,11 +1,9 @@
-import Platform from "@/src/utils/device/type";
+import { ElectronWindow, ElectronRPC } from "../../../desktop/types/electron";
 
-export let rpc: any = null;
+export let electron: ElectronWindow | null = null;
+export let rpc: ElectronRPC | null = null;
 
-if (Platform === "desktop" && typeof window !== "undefined") {
-  if ((window as any).electron && (window as any).electron.rpc) {
-    rpc = (window as any).electron.rpc;
-  } else {
-    console.warn("Electron IPC bridge not found on window.electron");
-  }
+if (typeof window !== "undefined" && window.electron) {
+  electron = window.electron;
+  rpc = electron.rpc;
 }

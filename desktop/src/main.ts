@@ -4,6 +4,12 @@ const fs = require("fs");
 
 import { checkSingleInstance, setupTray } from "./tray";
 import { registerShortcuts } from "./shortcuts";
+import {
+  initUpdater,
+  checkUpdatesAtStartup,
+  setupUpdaterListeners,
+} from "./updater";
+import { registerInstallSourceHandlers } from "./installSource";
 
 if (!checkSingleInstance()) {
   process.exit(0);
@@ -81,7 +87,9 @@ function createWindow() {
 app.whenReady().then(async () => {
   await initDb();
   registerRpcHandlers();
+  registerInstallSourceHandlers();
   startLocalServer();
+  setupUpdaterListeners();
 
   ipcMain.on("get-local-server-url", (event: { returnValue: string }) => {
     event.returnValue = getLocalServerUrl();
@@ -132,7 +140,10 @@ app.whenReady().then(async () => {
     },
   );
 
-  createWindow();
+  checkUpdatesAtStartup(() => {
+    createWindow();
+    initUpdater(mainWindow);
+  });
 
   app.on("activate", function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer, webFrame } from "electron";
+import { ElectronWindow } from "../types/electron";
 
 // Fix for Expo Router: rewrite /index.html to / so the root route matches
 webFrame.executeJavaScript(`
@@ -7,7 +8,16 @@ webFrame.executeJavaScript(`
     window.history.replaceState(null, "", newUrl);
   }
 `);
-contextBridge.exposeInMainWorld("electron", {
+
+const electronAPI: ElectronWindow = {
+  platform:
+    process.platform === "win32"
+      ? "windows"
+      : process.platform === "darwin"
+        ? "macos"
+        : process.platform === "linux"
+          ? "linux"
+          : "unknown",
   rpc: {
     request: (method: string, ...args: any[]) =>
       ipcRenderer.invoke(method, ...args),
@@ -33,4 +43,19 @@ contextBridge.exposeInMainWorld("electron", {
       return () => ipcRenderer.removeListener("window:state-changed", listener);
     },
   },
-});
+  system: {
+    getInstallSource: () => ipcRenderer.invoke("system:get-install-source"),
+  },
+  updater: {
+    check: () => ipcRenderer.invoke("updater:check"),
+    download: () => ipcRenderer.invoke("updater:download"),
+    install: () => ipcRenderer.invoke("updater:install"),
+    onStatus: (callback: (status: any) => void) => {
+      const listener = (_event: any, status: any) => callback(status);
+      ipcRenderer.on("updater:status", listener);
+      return () => ipcRenderer.removeListener("updater:status", listener);
+    },
+  },
+};
+
+contextBridge.exposeInMainWorld("electron", electronAPI);

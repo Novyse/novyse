@@ -521,7 +521,18 @@
       "downloadLatestVersion": "Scarica l'ultima versione",
       "warning": "Nota: se continui senza aggiornare, le funzionalità online non saranno disponibili.",
       "goBack": "Torna a Novyse",
-      "helperText": "Visita {link} per ottenere l'aggiornamento per il tuo dispositivo."
+      "updateNow": "Aggiorna ora",
+      "installing": "Installa e riavvia",
+      "downloading": "Download… {{percent}}%",
+      "checking": "Controllo aggiornamenti…",
+      "openPlayStore": "Apri Play Store",
+      "openAppStore": "Apri App Store",
+      "openMicrosoftStore": "Apri Microsoft Store",
+      "openGitHub": "Scarica da GitHub",
+      "updateViaSnap": "Aggiorna via Snap Store",
+      "updateViaFlatpak": "Aggiorna via Flathub",
+      "refreshPage": "Aggiorna la pagina",
+      "autoUpdateError": "Aggiornamento automatico fallito. Scarica manualmente."
     }
   },
   "tabs": {
