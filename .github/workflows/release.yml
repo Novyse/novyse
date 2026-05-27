@@ -65,7 +65,7 @@ jobs:
           body: ${{ inputs.patch_notes }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+  
   build-deploy-web:
     needs: git-flow
     runs-on: ubuntu-latest
@@ -77,39 +77,39 @@ jobs:
       - name: Setup Node # Used by expo later
         uses: actions/setup-node@v4
         with: { node-version: '18' }
-
+  
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
-
+  
       - name: Install dependencies & Build Web
         run: |
           bun install
           bun run build:web
       # DEPLOY ON WEB SERVER
-
-build-firefox:
-    needs: git-flow
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.release_type }}
-          
-      - name: Setup Node & Bun
-        uses: actions/setup-node@v4
-        with: { node-version: '18' }
-      - uses: oven-sh/setup-bun@v1
-          
-      - name: Install & Build
-        run: |
-          bun install
-          bun run build:ext 
-          
-      - name: Sign and Publish to Mozilla Add-ons
-        run: npx web-ext sign --api-key=${{ secrets.FIREFOX_ISSUER }} --api-secret=${{ secrets.FIREFOX_SECRET }} --channel=listed --source-dir=./dist-ext
-
+  
+  build-firefox:
+      needs: git-flow
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+          with:
+            ref: ${{ inputs.release_type }}
+            
+        - name: Setup Node & Bun
+          uses: actions/setup-node@v4
+          with: { node-version: '18' }
+        - uses: oven-sh/setup-bun@v1
+            
+        - name: Install & Build
+          run: |
+            bun install
+            bun run build:ext 
+            
+        - name: Sign and Publish to Mozilla Add-ons
+          run: npx web-ext sign --api-key=${{ secrets.FIREFOX_ISSUER }} --api-secret=${{ secrets.FIREFOX_SECRET }} --channel=listed --source-dir=./dist-ext
+  
   build-android:
     needs: create-release
     runs-on: ubuntu-latest
@@ -126,22 +126,22 @@ build-firefox:
         with:
           distribution: 'zulu'
           java-version: '17'
-
+  
       - name: Install EAS CLI & Dependencies
         run: |
           npm install -g eas-cli
           bun install
-
+  
       - name: Build Android (Local)
         run: eas build --platform android --local --profile ${{ inputs.release_type }} --output ./app-release.apk --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
+  
       - name: Attach APK to GitHub Release
         run: gh release upload v${{ inputs.version }} ./app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+  
   build-electron-win-linux:
     needs: create-release
     runs-on: ubuntu-latest
@@ -159,12 +159,12 @@ build-firefox:
         run: |
           bun install
           cd desktop && bun install
-
+  
       - name: Build Windows & Linux
         run: bun run build:desktop --win --linux --publish always
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+  
   build-electron-mac:
     needs: create-release
     runs-on: macos-latest
@@ -182,7 +182,7 @@ build-firefox:
         run: |
           bun install
           cd desktop && bun install
-
+  
       - name: Build Mac
         run: bun run build:desktop --mac --publish always
         env:
