@@ -90,26 +90,26 @@ jobs:
       # DEPLOY ON WEB SERVER
   
   build-firefox:
-      needs: git-flow
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-          with:
-            ref: ${{ inputs.release_type }}
-            
-        - name: Setup Node & Bun
-          uses: actions/setup-node@v4
-          with: { node-version: '18' }
-        - uses: oven-sh/setup-bun@v1
-            
-        - name: Install & Build
-          run: |
-            bun install
-            bun run build:ext 
-            
-        - name: Sign and Publish to Mozilla Add-ons
-          run: npx web-ext sign --api-key=${{ secrets.FIREFOX_ISSUER }} --api-secret=${{ secrets.FIREFOX_SECRET }} --channel=listed --source-dir=./dist-ext
-  
+    needs: git-flow
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+          
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with: { node-version: '18' }
+      - uses: oven-sh/setup-bun@v1
+          
+      - name: Install & Build
+        run: |
+          bun install
+          bun run build:ext 
+          
+      - name: Sign and Publish to Mozilla Add-ons
+        run: npx web-ext sign --api-key=${{ secrets.FIREFOX_ISSUER }} --api-secret=${{ secrets.FIREFOX_SECRET }} --channel=listed --source-dir=./dist-ext
+
   build-android:
     needs: create-release
     runs-on: ubuntu-latest
