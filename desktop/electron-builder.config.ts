@@ -54,7 +54,7 @@ export default {
       BRANCH === "production"
         ? ["AppImage", "deb", "rpm", "snap", "flatpak"]
         : ["AppImage", "deb", "rpm"],
-    icon: "../assets/images/logo-novyse.png",
+    icon: "../assets/images/logo.svg",
   },
   rpm: {
     fpm: ["--rpm-rpmbuild-define=_build_id_links none"],
