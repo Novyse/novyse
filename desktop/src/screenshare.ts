@@ -73,13 +73,13 @@ export function setupScreenShareHandler() {
     if (pendingSource) {
       const source = pendingSource;
       pendingSource = null;
-      callback({ video: source });
+      callback({ video: source, audio: "loopback" });
     } else {
       desktopCapturer
         .getSources({ types: ["screen", "window"] })
         .then((sources) => {
           if (sources && sources.length > 0) {
-            callback({ video: sources[0] });
+            callback({ video: sources[0], audio: "loopback" });
           } else {
             callback({});
           }

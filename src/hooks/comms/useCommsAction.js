@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useCommsContext } from "@/src/context/CommsContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { connectToLiveKit } from "@/src/utils/comms/livekit";
-import { Room } from "livekit-client";
+import { Room, Track } from "livekit-client";
 
 import platform from "@/src/utils/device/type";
 
@@ -292,17 +292,29 @@ const useCommsAction = (chatUUID, sub) => {
 
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
-        audio: false,
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
       });
 
-      for (const track of stream.getVideoTracks()) {
+      for (const track of stream.getTracks()) {
+        const isVideo = track.kind === "video";
+        const source = isVideo
+          ? Track.Source.ScreenShare
+          : Track.Source.ScreenShareAudio;
+
         const publication = await room.localParticipant.publishTrack(track, {
-          source: "screen_share",
+          source,
         });
-        setActiveScreenShares((prev) => ({
-          ...prev,
-          [publication.trackSid]: track,
-        }));
+
+        if (isVideo) {
+          setActiveScreenShares((prev) => ({
+            ...prev,
+            [publication.trackSid]: track,
+          }));
+        }
       }
     } else {
       const screenTracks = await room.localParticipant.createScreenTracks({
