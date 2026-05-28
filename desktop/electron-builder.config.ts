@@ -49,7 +49,10 @@ export default {
   },
   linux: {
     category: "Network",
-    target: ["AppImage", "deb", "rpm", "snap", "flatpak"],
+    target:
+      BRANCH === "production"
+        ? ["AppImage", "deb", "rpm", "snap", "flatpak"]
+        : ["AppImage", "deb", "rpm"],
     icon: "../assets/images/logo-novyse.png",
   },
 };
