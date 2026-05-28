@@ -21,7 +21,7 @@ import SmartBackground from "@/src/components/SmartBackground";
 import { View } from "react-native";
 
 // Set the background color of the navigation bar to transparent
-import { DefaultTheme } from "@react-navigation/native";
+import { DefaultTheme } from "expo-router/react-navigation";
 DefaultTheme.colors.background = "transparent";
 
 function StackLayout({ isLoggedIn }: { isLoggedIn: boolean | null }) {

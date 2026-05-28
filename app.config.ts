@@ -216,6 +216,12 @@ export default {
           androidIntentFilters: ["*/*"],
         },
       ],
+      "expo-font",
+      "expo-image",
+      "expo-localization",
+      "expo-secure-store",
+      "expo-sharing",
+      "expo-status-bar"
     ],
     experiments: {
       typedRoutes: true,

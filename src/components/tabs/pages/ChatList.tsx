@@ -11,7 +11,7 @@ import AppText from "@/src/components/AppText";
 import { useShareIntentContext } from "expo-share-intent";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused } from "expo-router/react-navigation";
 
 import { Chat } from "@/src/types/chat";
 

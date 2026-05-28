@@ -1,10 +1,10 @@
 import React from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createBottomTabNavigator } from "expo-router/js-tabs";
 import {
   NavigationContainer,
   NavigationIndependentTree,
-} from "@react-navigation/native";
+} from "expo-router/react-navigation";
 
 import { tabNavigationRef } from "@/src/utils/navigation/tabRef";
 import { useThemeContext, Theme } from "@/src/context/ThemeContext";
