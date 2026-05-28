@@ -178,6 +178,11 @@ jobs:
         run: |
           bun install
           cd desktop && bun install
+      - name: Install Wine (for Windows build)
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y wine64 wine32
       - name: Build Windows & Linux
         run: bun run build:desktop --win --linux --publish always
         env:
