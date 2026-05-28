@@ -117,7 +117,7 @@ export default function ApiKeysRoute() {
   return (
     <>
       <HeaderWithBackArrow
-        translationKey="settings.security.apiKeys"
+        translationKey="settings.security.apiKeysLabel"
         onBack={onBack}
       />
       <SettingsPageScrollview>

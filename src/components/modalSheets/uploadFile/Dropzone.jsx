@@ -6,7 +6,7 @@ import Icon from "@/src/components/Icon";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 
 import { formatFileSize } from "@/src/utils/storage/file/utils";
-import { getPlatform } from "@/src/utils/device/type";
+import { ScrollBar } from "@/constants/ScrollBar";
 
 const Dropzone = ({
   title,
@@ -138,26 +138,7 @@ const createStyle = (theme) =>
       marginTop: 15,
       width: "100%",
       maxHeight: 250,
-      ...(getPlatform() === "web" && {
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
-        "::WebkitScrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::WebkitScrollbarTrack": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
+      ...ScrollBar(theme),
     },
     fileItem: {
       flexDirection: "row",

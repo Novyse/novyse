@@ -84,7 +84,7 @@ const JoinCreateChat = ({
 
           <View style={styles.extraInfoContainer}>
             <View style={styles.extraInfoItem}>
-              <Icon name="ShieldTickIcon" size={20} />
+              <Icon name="Shield01Icon" size={20} />
               <AppText
                 style={styles.extraInfoText}
                 translationKey={

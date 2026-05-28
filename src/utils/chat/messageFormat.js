@@ -22,9 +22,21 @@ const format = (messageRef) => {
             const type = uniqueTypes[0];
             const count = types.length;
             const fileTypeMap = {
-              IMAGE: { emoji: "📷", singular: i18n.t("messageFormat.fileType.image.singular"), plural: i18n.t("messageFormat.fileType.image.plural") },
-              VIDEO: { emoji: "📹", singular: i18n.t("messageFormat.fileType.video.singular"), plural: i18n.t("messageFormat.fileType.video.plural") },
-              AUDIO: { emoji: "🎵", singular: i18n.t("messageFormat.fileType.audio.singular"), plural: i18n.t("messageFormat.fileType.audio.plural") },
+              IMAGE: {
+                emoji: "📷",
+                singular: i18n.t("messageFormat.fileType.image.singular"),
+                plural: i18n.t("messageFormat.fileType.image.plural"),
+              },
+              VIDEO: {
+                emoji: "📹",
+                singular: i18n.t("messageFormat.fileType.video.singular"),
+                plural: i18n.t("messageFormat.fileType.video.plural"),
+              },
+              AUDIO: {
+                emoji: "🎵",
+                singular: i18n.t("messageFormat.fileType.audio.singular"),
+                plural: i18n.t("messageFormat.fileType.audio.plural"),
+              },
               VOICE: {
                 emoji: "🎤",
                 singular: i18n.t("messageFormat.fileType.voice.singular"),
@@ -51,9 +63,24 @@ const format = (messageRef) => {
               singular: i18n.t("messageFormat.fileType.default.singular"),
               plural: i18n.t("messageFormat.fileType.default.plural"),
             };
+
+            let durationStr = "";
+            if (
+              count === 1 &&
+              (type === "AUDIO" || type === "VIDEO" || type === "VOICE")
+            ) {
+              const file = message.files[0];
+              if (file && file.duration) {
+                const seconds = file.duration;
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                durationStr = ` ${m}:${s.toString().padStart(2, "0")}`;
+              }
+            }
+
             message.content =
               count === 1
-                ? `${emoji} ${singular}`
+                ? `${emoji} ${singular}${durationStr}`
                 : `${count} ${emoji} ${plural}`;
           } else {
             const hasOnlyMedia = uniqueTypes.every(
@@ -157,23 +184,37 @@ const formatActivity = (memberActivityData, chatType) => {
 
   const getActionI18nKey = (action) => {
     switch (action) {
-      case "TYPING": return "typing";
-      case "RECORDING_VOICE": return "recording_voice";
-      case "RECORDING_VIDEO": return "recording_video";
-      case "UPLOADING_FILE": return "uploading_file";
-      default: return "active";
+      case "TYPING":
+        return "typing";
+      case "RECORDING_VOICE":
+        return "recording_voice";
+      case "RECORDING_VIDEO":
+        return "recording_video";
+      case "UPLOADING_FILE":
+        return "uploading_file";
+      default:
+        return "active";
     }
   };
 
   const actionKey = getActionI18nKey(majorityAction);
-  
+
   let formattedActivity = "";
   if (count === 1) {
-    formattedActivity = i18n.t(`messageFormat.activity.${actionKey}_one`, { name: names[0] });
+    formattedActivity = i18n.t(`messageFormat.activity.${actionKey}_one`, {
+      name: names[0],
+    });
   } else if (count === 2) {
-    formattedActivity = i18n.t(`messageFormat.activity.${actionKey}_two`, { name: names[0], name2: names[1] });
+    formattedActivity = i18n.t(`messageFormat.activity.${actionKey}_two`, {
+      name: names[0],
+      name2: names[1],
+    });
   } else {
-    formattedActivity = i18n.t(`messageFormat.activity.${actionKey}_other`, { name: names[0], name2: names[1], count: count - 2 });
+    formattedActivity = i18n.t(`messageFormat.activity.${actionKey}_other`, {
+      name: names[0],
+      name2: names[1],
+      count: count - 2,
+    });
   }
 
   return formattedActivity;

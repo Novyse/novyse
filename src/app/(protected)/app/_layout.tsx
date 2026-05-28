@@ -4,21 +4,28 @@ import { Slot, usePathname } from "expo-router";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 
-import TabNavigator from "@/src/components/tabs/TabNavigator";
-
+import TabNavigator, {
+  getActiveTabName,
+} from "@/src/components/tabs/TabNavigator";
 import { useScreen } from "@/src/context/ScreenContext";
 import useChatStore from "@/src/context/ChatContext";
 import useUserStore from "@/src/context/UserContext";
-import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import useWindowSizeStore, {
+  SIDEBAR_MIN,
+  SIDEBAR_COLLAPSED,
+} from "@/src/context/WindowSizeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useNetworkStore from "@/src/context/NetworkContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
+import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import SocketIO from "@/src/utils/backend-services/socket-io";
 import auth from "@/src/utils/welcome/auth";
 
 import InitPage from "@/src/components/pages/InitPage";
+import StartupManager from "@/src/components/layout/StartupManager";
 
 export default function RootLayout() {
   // Listen for Expo Router pathname changes to determine if a detail is open
@@ -34,10 +41,12 @@ export default function RootLayout() {
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(slideAnim, {
+    Animated.spring(slideAnim, {
       toValue: isDetailOpen ? 1 : 0,
-      duration: 300,
       useNativeDriver: true,
+      damping: 24,
+      stiffness: 180,
+      mass: 0.8,
     }).start();
 
     // This ensures state is reset for Android back gestures or explicit navigation back to chat list.
@@ -51,31 +60,61 @@ export default function RootLayout() {
     setDetailWidth,
     minDetailWidth,
     setMinDetailWidth,
+    isSidebarCollapsed,
+    setSidebarCollapsed,
     isStorageReady,
   } = useWindowSizeStore();
 
-  const MIN_CHAT_LIST_WIDTH = 280;
+  const tab = getActiveTabName();
+  const onChatList = !tab || tab === "ChatList";
+  const showCollapsedSidebar =
+    isSidebarCollapsed && !isSmallScreen && onChatList;
 
   const resizerHandlers = usePanelResizer({
     currentWidth: detailWidth,
     setWidth: setDetailWidth,
     minWidth: minDetailWidth,
-    maxWidthPadding: MIN_CHAT_LIST_WIDTH + 20,
+    maxWidthPadding: SIDEBAR_COLLAPSED + 20,
   });
-  const prevWidthRef = useRef(width);
 
   useEffect(() => {
+    if (isSmallScreen) {
+      if (isSidebarCollapsed) setSidebarCollapsed(false);
+      return;
+    }
+    if (!onChatList) return;
+    const sidebarWidth = width - detailWidth;
+    if (!isSidebarCollapsed && sidebarWidth < SIDEBAR_MIN) {
+      setSidebarCollapsed(true);
+      setDetailWidth(width - SIDEBAR_COLLAPSED);
+    } else if (isSidebarCollapsed && sidebarWidth > SIDEBAR_MIN) {
+      setSidebarCollapsed(false);
+    }
+  }, [
+    width,
+    detailWidth,
+    isSidebarCollapsed,
+    isSmallScreen,
+    onChatList,
+    setSidebarCollapsed,
+    setDetailWidth,
+  ]);
+
+  const prevWidthRef = useRef(width);
+  useEffect(() => {
+    if (isSmallScreen) return;
+
     const delta = width - prevWidthRef.current;
     prevWidthRef.current = width;
     setDetailWidth((prev) => {
-      const maxDetail = width - MIN_CHAT_LIST_WIDTH - 20;
+      const maxDetail = width - SIDEBAR_COLLAPSED - 20;
       let newWidth = prev;
       if (delta > 0) {
         newWidth = prev + delta;
       }
       return Math.max(minDetailWidth, Math.min(maxDetail, newWidth));
     });
-  }, [width, minDetailWidth, setDetailWidth]);
+  }, [width, minDetailWidth, setDetailWidth, isSmallScreen]);
 
   // Initialize database if needed
   const [hasInitialized, setHasInitialized] = useState<boolean | null>(null);
@@ -128,6 +167,7 @@ export default function RootLayout() {
             await AsyncStorage.setItem("init", "true");
             setHasInitialized(true);
             useNetworkStore.getState().setSynced(true);
+            SocketIO.open();
           }
         }
       } catch (error) {
@@ -160,13 +200,24 @@ export default function RootLayout() {
     return null;
   }
 
-  // For  we always show the detail stack as a full-screen overlay when a detail is open
+  // For mobile we always show the detail stack as a full-screen overlay when a detail is open
   if (isSmallScreen) {
     return (
       <View
         style={{ flex: 1, backgroundColor: "transparent", overflow: "hidden" }}
       >
-        <TabNavigator isDetailOpen={isDetailOpen} />
+        <Animated.View
+          style={{
+            flex: 1,
+            opacity: slideAnim.interpolate({
+              inputRange: [0, 0.15, 1],
+              outputRange: [1, 0, 0],
+            }),
+          }}
+          pointerEvents={isDetailOpen ? "none" : "auto"}
+        >
+          <TabNavigator isDetailOpen={isDetailOpen} />
+        </Animated.View>
         <Animated.View
           style={{
             position: "absolute",
@@ -174,7 +225,7 @@ export default function RootLayout() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: theme.backgroundMainGradient[1],
+            backgroundColor: "transparent",
             transform: [
               {
                 translateX: slideAnim.interpolate({
@@ -195,44 +246,44 @@ export default function RootLayout() {
 
   // For larger screens, we show the detail stack in a resizable pane on the right
   if (!isStorageReady) {
-    return (
-      <View
-        style={{ flex: 1, backgroundColor: theme.backgroundMainGradient[1] }}
-      />
-    );
+    return <View style={{ flex: 1, backgroundColor: "transparent" }} />;
   }
+
+  const currentSidebarWidth = showCollapsedSidebar
+    ? SIDEBAR_COLLAPSED
+    : onChatList
+      ? width - detailWidth
+      : Math.max(width - detailWidth, SIDEBAR_MIN);
 
   return (
     <View
       style={{
-        flexDirection: "row",
         flex: 1,
-        backgroundColor: theme.backgroundMainGradient[1],
+        flexDirection: "row",
+        backgroundColor: "transparent",
       }}
     >
-      <View style={{ flex: 1, padding: 10 }}>
-        <TabNavigator isDetailOpen={isDetailOpen} />
-      </View>
+      <StartupManager />
       <View
         style={{
-          width: detailWidth,
+          width: currentSidebarWidth,
+          height: "100%",
+          padding: 10,
+          paddingHorizontal: showCollapsedSidebar ? 5 : 10,
+          backgroundColor: "transparent",
+        }}
+      >
+        <TabNavigator isDetailOpen={isDetailOpen} />
+      </View>
+
+      <View
+        style={{
+          width: width - currentSidebarWidth,
+          height: "100%",
           position: "relative",
         }}
       >
-        <View
-          //@ts-ignore
-          style={{
-            position: "absolute",
-            left: -10,
-            top: 0,
-            bottom: 0,
-            width: 20,
-            backgroundColor: "transparent",
-            cursor: "ew-resize",
-            zIndex: 10,
-          }}
-          {...resizerHandlers}
-        />
+        <PanelResizeHandle panHandlers={resizerHandlers} />
         <Slot />
       </View>
     </View>

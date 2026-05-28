@@ -1,15 +1,16 @@
 import { SQLiteDatabase } from "expo-sqlite";
+import DesktopSQLiteAdapter from "@/src/utils/storage/database/desktopAdapter";
 
 import { Member } from "@/src/types";
 
 export class MemberRepository {
-  db: SQLiteDatabase;
+  db: SQLiteDatabase | DesktopSQLiteAdapter;
 
-  constructor(db: SQLiteDatabase) {
+  constructor(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
   }
 
-  setDb(db: SQLiteDatabase) {
+  setDb(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
   }
 

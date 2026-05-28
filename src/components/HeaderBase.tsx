@@ -5,12 +5,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface HeaderBaseProps {
   children: React.ReactNode;
   style?: object;
+  onLayout?: (event: any) => void;
 }
 
-const HeaderBase = ({ children, style }: HeaderBaseProps) => {
+const HeaderBase = ({ children, style, onLayout }: HeaderBaseProps) => {
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.container, style, { top: insets.top }]}>
+    <View
+      style={[styles.container, style, { top: insets.top }]}
+      onLayout={onLayout}
+    >
       {children}
     </View>
   );

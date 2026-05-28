@@ -9,10 +9,21 @@ import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 
 import { defaultMimeType } from "@/src/utils/storage/file/type";
 
-const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
+const useMessageHandlers = (
+  setNewMessageText,
+  setEditingMessage,
+  textInputRef,
+) => {
   const chatUUID = useActiveChatStore((state) => state.selectedChatUUID);
   const activeChatData = useActiveChatStore((state) => state.activeChatData);
   const myUUID = useUserStore((state) => state.localUserUUID);
+
+  const focusTextInput = useCallback(() => {
+    // Do not remove timeout, without it the focus is not possible.
+    setTimeout(() => {
+      textInputRef?.current?.focus();
+    }, 0);
+  }, [textInputRef]);
 
   const handleSendMessage = useCallback(
     async (type = "message", content, files = [], replyTos = []) => {
@@ -52,8 +63,9 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
       await queueManager.addOutgoingMessageJob(message, chat);
 
       setNewMessageText("");
+      focusTextInput();
     },
-    [chatUUID, myUUID, setNewMessageText, activeChatData],
+    [chatUUID, myUUID, setNewMessageText, activeChatData, focusTextInput],
   );
 
   const handleReadMessage = useCallback(
@@ -141,10 +153,11 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
         });
         setEditingMessage(null);
         setNewMessageText("");
+        focusTextInput();
       }
       return success;
     },
-    [chatUUID, setEditingMessage, setNewMessageText],
+    [chatUUID, setEditingMessage, setNewMessageText, focusTextInput],
   );
 
   const handleEditMessage = useCallback(
@@ -168,8 +181,9 @@ const useMessageHandlers = (setNewMessageText, setEditingMessage) => {
 
       setEditingMessage(null);
       setNewMessageText("");
+      focusTextInput();
     },
-    [chatUUID, setEditingMessage, setNewMessageText],
+    [chatUUID, setEditingMessage, setNewMessageText, focusTextInput],
   );
 
   const handleCancelJob = useCallback(

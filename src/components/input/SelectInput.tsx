@@ -1,15 +1,11 @@
 import React, { useContext, useState } from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-} from "react-native";
+import { View, StyleSheet, TouchableOpacity, Modal } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import AppText from "../AppText";
 import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
+import { ScrollBar } from "@/constants/ScrollBar";
 
 interface SelectInputProps {
   options: string[];
@@ -103,9 +99,10 @@ export default function SelectInput({
           onPress={() => setModalVisible(false)}
         >
           <View style={styles.modalContent}>
-            <FlatList
+            <FlashList
               data={options}
               keyExtractor={(item) => item}
+              style={styles.optionsList}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[
@@ -170,7 +167,12 @@ const createStyles = (theme: any) =>
       maxHeight: "50%",
       minHeight: 200,
     },
+    optionsList: {
+      width: "100%",
+      ...ScrollBar(theme),
+    },
     option: {
+      width: "100%",
       paddingHorizontal: 20,
       paddingVertical: 15,
     },

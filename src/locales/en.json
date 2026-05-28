@@ -37,11 +37,19 @@
       "passwordTooShort": "Password must be at least 8 characters",
       "required": "Required field",
       "invalidName": "Name can only contain letters and spaces",
+      "nameTooLong": "Name cannot exceed 50 characters",
       "handleTooShort": "Handle must be at least 3 characters",
       "handleTooLong": "Handle cannot exceed 15 characters",
       "invalidHandle": "Handle can only contain lowercase letters, numbers, and underscores, and must start and end with a letter or number",
       "handleConsecutiveUnderscores": "Consecutive underscores are not allowed",
       "invalidInput": "Invalid input"
+    },
+    "auth": {
+      "signupStep": {
+        "available": "Available",
+        "alreadyInUse": "Already in use",
+        "passwordsMismatch": "Passwords do not match"
+      }
     }
   },
   "chat": {
@@ -86,6 +94,20 @@
       "sticker": "Sticker",
       "gif": "GIF"
     },
+    "emojiCategories": {
+      "searchPlaceholder": "Search emoji...",
+      "recents": "Recents",
+      "smileys": "Smileys & Emotion",
+      "people": "People & Body",
+      "animals": "Animals & Nature",
+      "food": "Food & Drink",
+      "travel": "Travel & Places",
+      "activities": "Activities",
+      "objects": "Objects",
+      "symbols": "Symbols",
+      "flags": "Flags",
+      "searchResults": "Search Results"
+    },
     "overview": {
       "tabs": {
         "members": "Members",
@@ -100,6 +122,7 @@
       "noFiles": "No files shared yet",
       "notSpecified": "Not specified",
       "noBiographyYet": "No biography yet",
+      "noDescriptionYet": "No description yet",
       "actions": {
         "settings": "Settings",
         "block": "Block",
@@ -231,7 +254,8 @@
       "comms": "Comms",
       "qrScanner": "QR Scanner",
       "shortcuts": "Shortcuts",
-      "info": "Info"
+      "info": "Info",
+      "system": "System"
     },
     "account": {
       "title": "Account",
@@ -293,7 +317,11 @@
       "scanError": "Unable to handle QR code scan."
     },
     "shortcuts": {
-      "muteUnmute": "Mute / Unmute"
+      "muteUnmute": "Mute / Unmute",
+      "cancelEditReply": "Cancel edit / Remove reply / Close chat",
+      "arrowUpChat": "Edit / Reply to last message",
+      "chatTitle": "Chat Shortcuts",
+      "commsTitle": "Vocal Shortcuts"
     },
     "comms": {
       "title": "Comms",
@@ -389,7 +417,7 @@
       "mfa": "MFA (WIP)",
       "sessionsLabel": "Sessions",
       "sessionsTitle": "Sessions",
-      "apiKeys": "API Keys",
+      "apiKeysLabel": "API Keys",
       "notifications": "Notifications (WIP)",
       "authenticator": "Authenticator",
       "authAppDesc": "Authentication App",
@@ -416,12 +444,14 @@
       "apiKeyRevokedSuccess": "API key revoked successfully",
       "apiKeyRevokeFailed": "Failed to revoke API key",
       "createNewApiKey": "Create New API Key",
-      "createModal": {
-        "title": "Create New API Key",
-        "subtitle": "Give your API key a descriptive name to identify it later.",
-        "placeholder": "e.g. Production Server",
-        "creating": "Creating...",
-        "create": "Create API Key"
+      "apiKeys": {
+        "createModal": {
+          "title": "Create New API Key",
+          "subtitle": "Give your API key a descriptive name to identify it later.",
+          "placeholder": "e.g. My Bot",
+          "creating": "Creating...",
+          "create": "Create API Key"
+        }
       },
       "detailsModal": {
         "title": "API Key Created",
@@ -464,6 +494,16 @@
       "notificationMethodRemoved": "Notification method removed",
       "default": "Default",
       "addNotificationMethod": "Add Notification Method"
+    },
+    "system": {
+      "title": "System",
+      "startupSection": "Application Startup",
+      "actionsSection": "Initial Actions",
+      "openOnStartup": "Open on startup",
+      "joinCommsOnStartup": "Join comms on startup",
+      "selectChat": "Select Chat",
+      "selectSub": "Select Sub",
+      "none": "None"
     }
   },
   "layout": {
@@ -483,7 +523,18 @@
       "downloadLatestVersion": "Download Latest Version",
       "warning": "Note: If you continue without updating, online features will be unavailable.",
       "goBack": "Go back to Novyse",
-      "helperText": "Visit {link} to get the update for your device."
+      "updateNow": "Update Now",
+      "installing": "Install & Restart",
+      "downloading": "Downloading… {{percent}}%",
+      "checking": "Checking for updates…",
+      "openPlayStore": "Open Play Store",
+      "openAppStore": "Open App Store",
+      "openMicrosoftStore": "Open Microsoft Store",
+      "openGitHub": "Download from GitHub",
+      "updateViaSnap": "Update via Snap Store",
+      "updateViaFlatpak": "Update via Flathub",
+      "refreshPage": "Refresh Page",
+      "autoUpdateError": "Auto-update failed. Please download manually."
     }
   },
   "tabs": {

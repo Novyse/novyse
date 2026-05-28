@@ -5,11 +5,13 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { StyleSheet, FlatList, Image, Platform, View } from "react-native";
+import { StyleSheet, Image, Platform, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import AppText from "@/src/components/AppText";
 import { useShareIntentContext } from "expo-share-intent";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useIsFocused } from "expo-router/react-navigation";
 
 import { Chat } from "@/src/types/chat";
 
@@ -28,8 +30,10 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
 import { useCommsContext } from "@/src/context/CommsContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useWindowSizeStore from "@/src/context/WindowSizeContext";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
+import { ScrollBar } from "@/constants/ScrollBar";
 
 const ChatList = () => {
   const selectedChatUUID = useActiveChatStore(
@@ -98,6 +102,10 @@ const ChatList = () => {
   const insets = useSafeAreaInsets();
 
   const { connected, room, participants } = useCommsContext();
+  const isFocused = useIsFocused();
+  const { isSidebarCollapsed } = useWindowSizeStore();
+  const showCollapsedSidebar =
+    isSidebarCollapsed && !isSmallScreen && isFocused;
   const hasComms = connected && isSmallScreen;
 
   const styles = createStyle(theme, isSmallScreen, insets, hasComms);
@@ -209,23 +217,37 @@ const ChatList = () => {
   const renderDefaultHeader = useCallback(
     () => (
       <BlurredHeader
-        style={{
-          paddingHorizontal: 10,
-          paddingVertical: 5,
-        }}
+        style={[
+          {
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            justifyContent: "space-between",
+            alignItems: "center",
+          },
+          showCollapsedSidebar && {
+            width: 50,
+            height: 50,
+            borderRadius: 25,
+            paddingHorizontal: 0,
+            justifyContent: "center",
+            overflow: "hidden",
+          },
+        ]}
         commsHeader={commsHeaderComponent}
       >
         <Image
           source={require("@/assets/images/logo-novyse.png")}
           style={styles.logo}
         />
-        <Icon
-          name={"Search02Icon"}
-          onPress={() => tabNavigator.navigate("Search")}
-        />
+        {!showCollapsedSidebar && (
+          <Icon
+            name={"Search02Icon"}
+            onPress={() => tabNavigator.navigate("Search")}
+          />
+        )}
       </BlurredHeader>
     ),
-    [styles.logo, commsHeaderComponent],
+    [styles.logo, commsHeaderComponent, showCollapsedSidebar],
   );
 
   const renderSelectionHeader = useCallback(
@@ -317,6 +339,7 @@ const ChatList = () => {
         isActive={item.uuid === selectedChatUUID && !isSmallScreen}
         isPinned={isPinned}
         unreadCount={item.unreadCount}
+        isSidebarCollapsed={showCollapsedSidebar}
         onPress={handlePress}
         onLongPress={handleLongPress}
       />
@@ -333,29 +356,35 @@ const ChatList = () => {
             ? renderIntentHeader()
             : renderDefaultHeader()}
 
-      <FlatList
+      <FlashList
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
         data={orderedChats}
         keyExtractor={(item) => item.uuid}
         renderItem={renderItem}
         extraData={selectedItems}
+        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
       />
 
-      <FloatingButton
-        onPress={() => {
-          if (Platform.OS !== "web") {
-            createChatModalRef.current?.present();
-          } else {
-            setIsCreateChatModalVisible(true);
-          }
-        }}
-        iconName="ChatAddIcon"
-        size={isSmallScreen ? 16 : 24}
-        width={isSmallScreen ? 45 : 60}
-        height={isSmallScreen ? 45 : 60}
-        position={{ bottom: isSmallScreen ? 100 : 25, right: 20 }}
-      />
+      {!showCollapsedSidebar && (
+        <FloatingButton
+          onPress={() => {
+            if (Platform.OS !== "web") {
+              createChatModalRef.current?.present();
+            } else {
+              setIsCreateChatModalVisible(true);
+            }
+          }}
+          iconName="ChatAddIcon"
+          size={isSmallScreen ? 16 : 24}
+          width={isSmallScreen ? 45 : 60}
+          height={isSmallScreen ? 45 : 60}
+          position={{
+            bottom: isSmallScreen ? 100 : 25,
+            right: 20,
+          }}
+        />
+      )}
 
       <CreateChatModal
         ref={createChatModalRef}
@@ -370,31 +399,12 @@ function createStyle(theme, isSmallScreen, insets, hasComms) {
   return StyleSheet.create({
     flatList: {
       flex: 1,
-      ...(Platform.OS === "web" && {
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
-        "::WebkitScrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::WebkitScrollbarTrack": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
-      paddingTop: (hasComms ? 140 : 75) + insets.top,
+      overflow: "hidden",
+      ...ScrollBar(theme),
     },
     flatListContent: {
       padding: 10,
-      gap: 10,
+      paddingTop: (hasComms ? 140 : 75) + insets.top + 10,
       paddingBottom: (isSmallScreen ? 180 : 90) + insets.bottom,
     },
     logo: {

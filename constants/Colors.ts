@@ -44,7 +44,7 @@ export const Colors = {
     settingsPressedButton: "#2a68dc",                                             //* 1
 
     // Scrollbar
-    scrollbar: "#d6d6d6",                         // TODO: usato in troppi punti, da unificare
+    scrollbar: "#013480",                         // TODO: usato in troppi punti, da unificare
     scrollbarHover: "#c7c7c7",                    // TODO: usato in troppi punti, da unificare
 
     // ?USER CAN'T CHANGE
@@ -62,74 +62,148 @@ export const Colors = {
     badgeGlareMiddle: "rgba(255,255,255,0.7)"
   },
   light: {
-    primary: "#f5f5f5",
-    text: "black",
-    backgroundClassic: "white",
-    backgroundChatList: "#f5f5f5",
-    backgroundChat: "#ffffff",
-    backgroundSearchResultItem: "#e8e8e8",
-    backgroundHeader: "#f0f0f0",
-    backgroundTextField: "#ffffff",
-    backgroundChatListCheckNetwork: "#e0e0e0",
-    buttonBackground: "#f0f0f0",
-    icon: "black",
-    messagesLink: "#2399C3",
-    // Colori aggiuntivi per componenti
+    // ?USER CAN CHANGE
+
+    // Text
+    text: "#1a1a1a",
+    textLink: "#2399C3",
+    subtitle: "#666666",
     placeholderText: "#999999",
-    backgroundDateSeparator: "#e9ecef",
-    shadowColor: "#000000",
-    borderColor: "#cccccc",
-    floatingBarButtonBackground: "rgba(0, 0, 0, 0.1)",
-    backgroundStatusBar: "#ffffff", // StatusBar chiara per Light Mode
+
+    // Icons
+    icon: "#1a1a1a",
+    iconSuccess: "#2e7d32",
+    iconDanger: "#d32f2f",
+    iconWarning: "#e49f0c",
+    iconHover: "#666666",
+    iconHovered: "rgba(0, 0, 0, 0.05)",
+    iconPressed: "rgba(0, 0, 0, 0.1)",
+
+    // Background
     backgroundCard: "#ffffff",
-    // Gradients
-    backgroundMainGradient: ["#ffffff", "#f5f5f5"], // Gradiente principale dell'app
-    backgroundCommsFloatingBarGradient: ["#e3f2fd", "#bbdefb", "#90caf9"],
-    backgroundChatContentGradient: ["#ffffff", "#f5f5f5"],
-    backgroundChatListGradient: ["#f8f9fa", "#e9ecef"],
-    backgroundChatListItemGradient: ["#e9ecef", "#dee2e6"],
-    backgroundChatListItemSelectedGradient: ["#d4edda", "#c3e6cb"],
-    backgroundHeaderGradient: ["#f8f9fa", "#e9ecef"],
-    backgroundChatTextInputGradient: ["#ffffff", "#f8f9fa"],
-    backgroundMessageBaseGradient: ["#ffffff", "#f8f9fa"],
-    backgroundSearchGradient: ["#e9ecef", "#dee2e6"],
-    settingPagesGradient: ["#ffffff", "#f8f9fa", "#e9ecef"],
+    backgroundDateSeparator: "#e9ecef",
+    backgroundSearchResultItem: "#e8e8e8",
+    backgroundTextField: "#ffffff",
+    backgroundModalOverlay: "#00000080",
+    backgroundBackupCode: "#f5f5f5",
+
+    // Various
+    primary: "#2399C3",
+    secondary: "#1976a8",
+    borderColor: "rgba(0, 0, 0, 0.12)",
     badgeColor: "#2399C3",
+    shadowColor: "#000000",
+
+    // Gradients
+    backgroundMain: "#f5f5f5",
+    backgroundMainGradient: ["#ffffff", "#f5f5f5"],
+    backgroundChatContent: "transparent",
+    backgroundChatListItemSelectedGradient: ["#e3f2fd", "#bbdefb"],
+
+    // More
+    ChatIconsPickerModalTabInactiveText: "#888888",
+    settingsHoveredButton: "#2399C380",
+    settingsPressedButton: "#1976a8",
+
+    // Scrollbar
+    scrollbar: "#c0c0c0",
+    scrollbarHover: "#a0a0a0",
+
+    // ?USER CAN'T CHANGE
+
+    dangerText: "#d32f2f",
+    warningText: "#e49f0c",
+    successText: "#2e7d32",
+    infoText: "#1976a8",
+    backgroundDanger: "#ffc7c7a7",
+    backgroundWarning: "#eef370c1",
+    backgroundSuccess: "#90e190c2",
+    backgroundInfo: "#27bef95b",
+    backgroundScrollbar: "transparent",
+    badgeGlareFirstLast: "rgba(255,255,255,0)",
+    badgeGlareMiddle: "rgba(255,255,255,0.7)",
+
+    // Alias usati da alcuni componenti
+    border: "rgba(0, 0, 0, 0.12)",
+    background: "#f5f5f5",
+    backgroundInput: "#ffffff",
+    backgroundHover: "rgba(0, 0, 0, 0.05)",
+    backgroundMainSecondary: "#eeeeee",
+    separator: "#e9ecef",
+    backgroundError: "#ffc7c7a7",
+    error: "#d32f2f",
   },
   dark: {
-    primary: "#2d2d2d",
-    text: "white",
-    backgroundClassic: "#121212",
-    backgroundChatList: "#1e1e1e",
-    backgroundChat: "#121212",
-    backgroundSearchResultItem: "#2d2d2d",
-    backgroundHeader: "#1e1e1e",
-    backgroundTextField: "#2d2d2d",
-    backgroundChatListCheckNetwork: "#252525",
-    buttonBackground: "#1e1e1e",
-    icon: "white",
-    messagesLink: "#bb86fc",
-    // Colori aggiuntivi per componenti
-    placeholderText: "#999999",
-    backgroundDateSeparator: "#252525",
-    shadowColor: "#000000",
-    borderColor: "#555555",
-    floatingBarButtonBackground: "rgba(255, 255, 255, 0.15)",
-    backgroundStatusBar: "#121212", // StatusBar scura per Dark Mode
+    // ?USER CAN CHANGE
+
+    // Text
+    text: "#ffffff",
+    textLink: "#6eb5e0",
+    subtitle: "#b0b0b0",
+    placeholderText: "#888888",
+
+    // Icons
+    icon: "#ffffff",
+    iconSuccess: "#44b244",
+    iconDanger: "#eb4444",
+    iconWarning: "#e49f0c",
+    iconHover: "#c9c9c9",
+    iconHovered: "rgba(255, 255, 255, 0.07)",
+    iconPressed: "rgba(255, 255, 255, 0.04)",
+
+    // Background
     backgroundCard: "#2d2d2d",
+    backgroundDateSeparator: "#252525",
+    backgroundSearchResultItem: "#2d2d2d",
+    backgroundTextField: "#2d2d2d",
+    backgroundModalOverlay: "#00000080",
+    backgroundBackupCode: "#1e1e1e",
+
+    // Various
+    primary: "#6eb5e0",
+    secondary: "#4a90c2",
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    badgeColor: "#6eb5e0",
+    shadowColor: "#000000",
+
     // Gradients
-    backgroundMainGradient: ["#0a0a0a", "#1e1e1e"], // Gradiente principale dell'app
-    backgroundCommsFloatingBarGradient: ["#2d2d2d", "#404040", "#525252"],
-    backgroundChatContentGradient: ["#0a0a0a", "#1e1e1e"],
-    backgroundChatListGradient: ["#121212", "#1e1e1e"],
-    backgroundChatListItemGradient: ["#1e1e1e", "#2d2d2d"],
-    backgroundChatListItemSelectedGradient: ["#404040", "#525252"],
-    backgroundHeaderGradient: ["#121212", "#1e1e1e"],
-    backgroundChatTextInputGradient: ["#1e1e1e", "#2d2d2d"],
-    backgroundMessageBaseGradient: ["#0a0a0a", "#1e1e1e"],
-    backgroundSearchGradient: ["#2d2d2d", "#404040"],
-    settingPagesGradient: ["#121212", "#1e1e1e", "#2d2d2d"],
-    badgeColor: "#2d2d2d",
+    backgroundMain: "#121212",
+    backgroundMainGradient: ["#0a0a0a", "#1e1e1e"],
+    backgroundChatContent: "transparent",
+    backgroundChatListItemSelectedGradient: ["#1e3a4f", "#2d5a72"],
+
+    // More
+    ChatIconsPickerModalTabInactiveText: "#888888",
+    settingsHoveredButton: "#6eb5e080",
+    settingsPressedButton: "#4a90c2",
+
+    // Scrollbar
+    scrollbar: "#555555",
+    scrollbarHover: "#777777",
+
+    // ?USER CAN'T CHANGE
+
+    dangerText: "#eb4444",
+    warningText: "#e49f0c",
+    successText: "#44b244",
+    infoText: "#6eb5e0",
+    backgroundDanger: "#ffc7c7a7",
+    backgroundWarning: "#eef370c1",
+    backgroundSuccess: "#90e190c2",
+    backgroundInfo: "#27bef95b",
+    backgroundScrollbar: "transparent",
+    badgeGlareFirstLast: "rgba(255,255,255,0)",
+    badgeGlareMiddle: "rgba(255,255,255,0.7)",
+
+    // Alias usati da alcuni componenti
+    border: "rgba(255, 255, 255, 0.1)",
+    background: "#121212",
+    backgroundInput: "#2d2d2d",
+    backgroundHover: "rgba(255, 255, 255, 0.4)",
+    backgroundMainSecondary: "#1a1a1a",
+    separator: "#252525",
+    backgroundError: "#ffc7c7a7",
+    error: "#eb4444",
   },
   amoled: {
     primary: "#0d0d0d",
@@ -183,7 +257,7 @@ export const Colors = {
     placeholderText: "#555555",
     backgroundDateSeparator: "#000000",
     shadowColor: "#000000",
-    borderColor: "#222222",
+    borderColor: "#000000ff",
     floatingBarButtonBackground: "rgba(255, 255, 255, 0.05)",
     backgroundStatusBar: "#000000",
     backgroundCard: "#000000",
@@ -205,46 +279,26 @@ export const Colors = {
     backgroundScrollbar: "transparent",
     scrollbarHover: "#555555",
   },
-  unifi: {
-    // 🎨 Colori primari e di base
-    icon: "white",
-    iconSuccess: "#44b244",
-    iconDanger: "#eb4444",
-    iconHover: "#d4d4d4",
-    iconPressed: "#0000004d",
-    iconSecondary: "#c9d1d9",
-    messagesLink: "#61abe6",
-    placeholderText: "#bfbfbf",
-    primary: "#4fb3e1",
-    text: "white",
+};
 
-    // 🖼️ Background principali
-    backgroundCard: "#416a90",
-    backgroundDateSeparator: "#17212b",
-    backgroundSearchResultItem: "#376797",
-    backgroundTextField: "#374e68",
-
-    // 🧩 Vari
-    borderColor: "#272727",
-    badgeColor: "#16638e",
-
-    // 🌈 Gradients
-    backgroundChatContentGradient: ["transparent", "transparent"],
-    backgroundChatListItemGradient: ["#16638e", "#197bb0"],
-    backgroundChatListGradient: ["transparent", "transparent"],
-    backgroundChatListItemSelectedGradient: ["#2899cf", "#4fb3e1"],
-    backgroundChatTextInputGradient: ["#16638e", "#2899cf"],
-    backgroundHeaderGradient: ["transparent", "transparent"],
-    backgroundMainGradient: ["#0e283a", "#16638e"],
-    backgroundCommsFloatingBarGradient: ["#165376", "#2899cf", "#4fb3e1"],
-    backgroundMessageBaseGradient: ["#0e283a", "#2b5278"],
-    backgroundSearchGradient: ["transparent", "transparent"],
-    settingPagesGradient: ["#0e283a", "#16638e"],
-
-    // ⚙️ Settings aggiuntivi
-    ChatIconsPickerModalBorderColor: "#ffffff",
-    ChatIconsPickerModalTabInactiveText: "#b1b1b1",
-    settingsHoveredButton: "#4f8dffb9",
-    settingsPressedButton: "#2a68dc",
+export const ThemeRegistry: Record<
+  string,
+  { modes: ("light" | "dark")[]; colors: { light?: string; dark?: string } }
+> = {
+  classic: {
+    modes: ["light", "dark"],
+    colors: { light: "light", dark: "dark" },
+  },
+  default: {
+    modes: ["dark"],
+    colors: { dark: "default" },
+  },
+  amoled: {
+    modes: ["dark"],
+    colors: { dark: "amoled" },
+  },
+  "Amoled Extreme": {
+    modes: ["dark"],
+    colors: { dark: "Amoled Extreme" },
   },
 };

@@ -4,6 +4,10 @@ import { Chat, User, Member } from "@/src/types";
 
 import database from "@/src/utils/storage/database";
 import useUserStore from "@/src/context/UserContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+
+import notificationManager from "@/src/utils/notifications/manager";
+import messageUtils from "@/src/utils/chat/messageFormat";
 
 interface ChatState {
   chats: Chat[];
@@ -77,9 +81,20 @@ const useChatStore = create<ChatState>((set, get) => ({
   },
 
   loadChats: async () => {
-    const fetchedChats = await database.chat.get.all(
-      useUserStore.getState().localUserUUID,
-    );
+    let localUserUUID = useUserStore.getState().localUserUUID;
+    if (!localUserUUID || localUserUUID === "") {
+      // if user not loaded yet, wait for it
+      await new Promise((resolve) => {
+        const unsubscribe = useUserStore.subscribe((state) => {
+          if (state.localUserUUID && state.localUserUUID !== "") {
+            resolve(state.localUserUUID);
+            unsubscribe();
+          }
+        });
+      });
+      localUserUUID = useUserStore.getState().localUserUUID;
+    }
+    const fetchedChats = await database.chat.get.all(localUserUUID);
 
     set((state) => {
       const mergedChats = fetchedChats.map((fetchedChat: any) => {
@@ -108,7 +123,8 @@ const useChatStore = create<ChatState>((set, get) => ({
       const fetchedIds = new Set(mergedChats.map((c: any) => c.uuid));
       const memoryChats = state.chats.filter((c) => !fetchedIds.has(c.uuid));
 
-      return { chats: [...mergedChats, ...memoryChats] };
+      const finalChats = [...mergedChats, ...memoryChats];
+      return { chats: finalChats };
     });
     get().setupEvents();
   },
@@ -372,6 +388,56 @@ const useChatStore = create<ChatState>((set, get) => ({
   },
 
   onNewMessage: (message: any) => {
+    const myUUID = useUserStore.getState().localUserUUID;
+    const isOwnMessage =
+      !!myUUID &&
+      !!message.senderUUID &&
+      String(message.senderUUID) === String(myUUID);
+
+    const chat = get().chats.find(
+      (c) =>
+        c.uuid === message.chatUUID ||
+        (message.chatHandle && (c as any).handle === message.chatHandle),
+    );
+
+    if (!isOwnMessage && !message.internal) {
+      const activeChatState = useActiveChatStore.getState();
+      const isViewingThisChat =
+        activeChatState.selectedChatUUID === message.chatUUID ||
+        (message.chatHandle &&
+          activeChatState.selectedHandle === message.chatHandle);
+      const isInChatOrBothView =
+        activeChatState.contentView === "chat" ||
+        activeChatState.contentView === "both";
+
+      const shouldNotify = !(isViewingThisChat && isInChatOrBothView);
+
+      if (shouldNotify) {
+        const sender = useUserStore.getState().getUser(message.senderUUID);
+        const senderName = sender?.name || "Unknown";
+        const body = messageUtils.format(message).content;
+
+        if (chat && chat.type !== "DM") {
+          // Group/Channel/Forum: title = chat name, subtitle = sender name, icon = chat picture
+          notificationManager.sendNotification(
+            chat.name,
+            body,
+            { chatUUID: message.chatUUID },
+            chat.profilePictureUUID || undefined,
+            senderName,
+          );
+        } else {
+          // DM: title = person name, no subtitle, icon = person picture
+          notificationManager.sendNotification(
+            senderName,
+            body,
+            { chatUUID: message.chatUUID },
+            sender?.profilePictureUUID || undefined,
+          );
+        }
+      }
+    }
+
     set((state) => ({
       chats: state.chats.map((chat) => {
         const isMatch =
@@ -407,7 +473,9 @@ const useChatStore = create<ChatState>((set, get) => ({
         return {
           ...chat,
           messages: [...updatedMessages, safeMessage],
-          unreadCount: (chat.unreadCount || 0) + (!message.internal ? 1 : 0),
+          unreadCount:
+            (chat.unreadCount || 0) +
+            (!message.internal && !isOwnMessage ? 1 : 0),
         };
       }),
     }));

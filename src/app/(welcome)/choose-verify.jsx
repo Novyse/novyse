@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Image, ActivityIndicator } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
 import { useScreen } from "@/src/context/ScreenContext";
@@ -67,12 +66,7 @@ const ChooseVerify = () => {
   };
 
   return (
-    <LinearGradient
-      colors={LoginColors[loginTheme].background}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
@@ -141,7 +135,7 @@ const ChooseVerify = () => {
           </View>
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 

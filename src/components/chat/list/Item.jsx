@@ -23,6 +23,7 @@ const ChatListItem = React.memo(
     isActive,
     isPinned,
     unreadCount = 0,
+    isSidebarCollapsed = false,
     onPress,
     onLongPress,
   }) => {
@@ -98,88 +99,109 @@ const ChatListItem = React.memo(
     };
 
     return (
-      <View style={styles.chatItem}>
+      <View style={[styles.chatItem, isSidebarCollapsed && { alignItems: 'center', justifyContent: 'center' }]}>
         <SmartBackground
           colors={
             isSelected ||
             (isActive && theme.backgroundChatListItemSelectedGradient)
           }
-          style={[StyleSheet.absoluteFill, { borderRadius: 100 }]}
+          style={[
+            StyleSheet.absoluteFill, 
+            { borderRadius: 100 },
+            isSidebarCollapsed && { width: 50, height: 50, left: '50%', top: '50%', marginLeft: -25, marginTop: -25 }
+          ]}
         />
         <HoverAndPressedButton
           onPress={() => onPress(item.uuid)}
           onLongPress={() => onLongPress(item.uuid)}
-          style={styles.chatItemPressable}
+          style={[
+            styles.chatItemPressable,
+            isSidebarCollapsed && { 
+              padding: 0, 
+              justifyContent: "center", 
+              alignItems: "center",
+              width: 50, 
+              height: 50, 
+              minWidth: 50,
+              maxWidth: 50,
+              minHeight: 50,
+              maxHeight: 50,
+              borderRadius: 25, 
+              flex: 0,
+              flexGrow: 0,
+              gap: 0 
+            },
+          ]}
         >
           {isSelected && (
-            <View style={styles.selectionIndicator}>
-              <Icon name={"Tick02Icon"} />
+            <View style={[styles.selectionIndicator, isSidebarCollapsed && { top: 2, left: 2 }]}>
+              <Icon name={"Tick02Icon"} size={isSidebarCollapsed ? 12 : 16} />
             </View>
           )}
           <Avatar
             uuid={displayPfp}
             theme={theme}
-            style={styles.avatar}
+            style={[styles.avatar, isSidebarCollapsed && { marginRight: 0 }]}
             isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
           />
-          <View style={styles.chatItemGrid}>
-            {/* LEFT */}
-            <View style={styles.leftContainer}>
-              <View style={styles.titleRow}>
-                <AppText
-                  style={[styles.chatTitle, styles.gridText]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                  text={displayName}
-                />
-              </View>
-              <View style={styles.subtitleRow}>
-                {memberActivityData && memberActivityData.length > 0 ? (
+          {!isSidebarCollapsed && (
+            <View style={styles.chatItemGrid}>
+              <View style={styles.leftContainer}>
+                <View style={styles.titleRow}>
                   <AppText
-                    style={styles.chatSubtitle}
-                    text={messageUtils.formatActivity(memberActivityData)}
+                    style={[styles.chatTitle, styles.gridText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    text={displayName}
                   />
-                ) : (
-                  displayMessage(
-                    draftText || draftFiles?.length > 0
-                      ? {
-                          type: "DRAFT",
-                          content: draftText || "",
-                          files: draftFiles,
-                        }
-                      : lastMessage,
-                  )
-                )}
-              </View>
-            </View>
-
-            {/* RIGHT */}
-            <View style={styles.rightContainer}>
-              <View style={styles.dateRow}>
-                {lastMessage && (
-                  <>
-                    {!lastMessage.created_at ? (
-                      <Icon name={"Clock01Icon"} size={14} />
-                    ) : (
-                      <AppText
-                        style={styles.chatDateText}
-                        text={parseTime(lastMessage.created_at)}
-                      />
-                    )}
-                  </>
-                )}
+                </View>
+                <View style={styles.subtitleRow}>
+                  {memberActivityData && memberActivityData.length > 0 ? (
+                    <AppText
+                      style={styles.chatSubtitle}
+                      text={messageUtils.formatActivity(memberActivityData)}
+                    />
+                  ) : (
+                    displayMessage(
+                      draftText || draftFiles?.length > 0
+                        ? {
+                            type: "DRAFT",
+                            content: draftText || "",
+                            files: draftFiles,
+                          }
+                        : lastMessage,
+                    )
+                  )}
+                </View>
               </View>
 
-              <View style={styles.badgeRow}>
-                {isPinned && <Icon name={"PinIcon"} size={16} />}
-                {unreadCount > 0 && (
-                  <View style={styles.ball}>
-                    <AppText style={styles.ballText} text={unreadCount} />
-                  </View>
-                )}
+              <View style={styles.rightContainer}>
+                <View style={styles.dateRow}>
+                  {lastMessage && (
+                    <>
+                      {!lastMessage.created_at ? (
+                        <Icon name={"Clock01Icon"} size={14} />
+                      ) : (
+                        <AppText
+                          style={styles.chatDateText}
+                          text={parseTime(lastMessage.created_at)}
+                        />
+                      )}
+                    </>
+                  )}
+                </View>
+
+                <View style={styles.badgeRow}>
+                  {isPinned && <Icon name={"PinIcon"} size={16} />}
+                  {unreadCount > 0 && (
+                    <View style={styles.ball}>
+                      <AppText style={styles.ballText} text={unreadCount} />
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
-          </View>
+          )}
         </HoverAndPressedButton>
       </View>
     );
@@ -249,7 +271,7 @@ function createStyle(theme) {
       position: "absolute",
       top: 5,
       left: 5,
-      zIndex: 1,
+      zIndex: 10,
       backgroundColor: theme.backgroundSuccess,
       borderRadius: 999,
     },

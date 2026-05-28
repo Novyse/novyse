@@ -100,7 +100,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
                 style={[
                   StyleSheet.absoluteFill,
                   animatedMicStyle,
-                  { pointerEvents: "none" },
+                  { pointerEvents: "none", justifyContent: "center", alignItems: "center" },
                 ]}
               >
                 <Icon

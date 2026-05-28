@@ -91,8 +91,8 @@ const UploadFileOverlay = ({
   );
 
   const renderFloatingMenu = () =>
-    platform === "web" &&
-    sheetIndex === 0 && (
+    platform === "web" ||
+    (platform === "desktop" && sheetIndex === 0 && (
       <TouchableWithoutFeedback
         style={styles.fullScreen}
         onPress={() => onSheetChange(-1)}
@@ -115,12 +115,12 @@ const UploadFileOverlay = ({
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
-    );
+    ));
 
   return (
     <>
       {renderFloatingMenu()}
-      {platform !== "web" && (
+      {platform === "mobile" && (
         <OverKeyboardView visible={sheetIndex === 0}>
           <GestureHandlerRootView style={styles.fullScreen}>
             <TouchableWithoutFeedback

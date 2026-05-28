@@ -21,9 +21,9 @@ const FileSystemUtil = {
 
         const destination = new File(Paths.document, key);
         if (destination.exists) {
-          destination.delete();
+          await destination.delete();
         }
-        sourceFile.copy(destination);
+        await sourceFile.copy(destination);
         const file = destination;
 
         return { ref: key, size: file.size };

@@ -17,6 +17,7 @@ import FilesBar from "../actions/FilesBar";
 const DefaultBar = ({
   isAttachMenuOpen,
   onToggleAttachMenu,
+  isEmojiPickerVisible,
   onToggleEmoji,
   textInputRef,
   newMessageText = "",
@@ -32,6 +33,7 @@ const DefaultBar = ({
   mentionMembers,
   onSelectMention,
   onRecordingActivityChange,
+  onPressArrowUp,
 }) => {
   const {
     isRecording,
@@ -75,6 +77,7 @@ const DefaultBar = ({
           textInputRef={textInputRef}
           onTextChange={onTextChange}
           onInputFocus={onInputFocus}
+          isEmojiPickerVisible={isEmojiPickerVisible}
           onToggleEmoji={onToggleEmoji}
           onSendMessage={onSendMessage}
           onFileAppend={onFileAppend}
@@ -84,6 +87,10 @@ const DefaultBar = ({
           handleTogglePause={handleTogglePause}
           handleStopAndDraft={() => handleStopAndDraft(onFileAppend)}
           onCancelReply={onCancelReply}
+          editingMessage={editingMessage}
+          onCancelEdit={onCancelEdit}
+          replyingTo={replyingTo}
+          onPressArrowUp={onPressArrowUp}
         />
 
         <RightButton

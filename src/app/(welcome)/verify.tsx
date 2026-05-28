@@ -1,19 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ActivityIndicator, Image } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import AppText from "@/src/components/AppText";
 
 import { useScreen } from "@/src/context/ScreenContext";
 
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { LoginColors, ThemeColors } from "@/constants/LoginColors";
+import { LoginColors } from "@/constants/LoginColors";
 import gateway from "@/src/utils/backend-services/api-gateway";
-import auth from "@/src/utils/welcome/auth";
 import OtpDigitsInput from "@/src/components/OtpDigitsInput";
 import StatusMessage from "@/src/components/StatusMessage";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
-// import logoNovyse from "@/assets/images/logo-novyse.png";
 
 type VerificationType = "email" | "email_verification" | "authenticator";
 
@@ -98,12 +95,7 @@ const Verify: React.FC = () => {
   };
 
   return (
-    <LinearGradient
-      colors={(LoginColors[loginTheme] as ThemeColors).background as any}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.cardContent}>
           {/* <Image style={styles.logo} source={logoNovyse} /> */}
@@ -164,7 +156,7 @@ const Verify: React.FC = () => {
           />
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -177,6 +169,7 @@ function createStyle(loginTheme: "default", isSmallScreen: boolean) {
       justifyContent: "center",
       alignItems: "center",
       padding: isSmallScreen ? 0 : 24,
+      backgroundColor: "transparent",
     },
     card: {
       padding: isSmallScreen ? 16 : 24,

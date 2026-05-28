@@ -4,8 +4,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   LayoutChangeEvent,
+  useWindowDimensions,
 } from "react-native";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { BottomTabBarProps } from "expo-router/js-tabs";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -13,9 +14,12 @@ import Animated, {
   useDerivedValue,
   useAnimatedReaction,
 } from "react-native-reanimated";
-
 import BlurredView from "../BlurredView";
 import { ThemeContext } from "@/src/context/ThemeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import useWindowSizeStore, { SIDEBAR_MIN } from "@/src/context/WindowSizeContext";
+import Icon from "../Icon";
+
 
 const TabBar: React.FC<BottomTabBarProps> = ({
   state,
@@ -23,6 +27,12 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   navigation,
 }) => {
   const { theme } = useContext(ThemeContext);
+  const { isSmallScreen } = useScreen();
+  const { isSidebarCollapsed } = useWindowSizeStore();
+  const showCollapsedSidebar =
+    isSidebarCollapsed &&
+    !isSmallScreen &&
+    state.routes[state.index].name === "ChatList";
   const styles = createStyle(theme);
 
   const visibleRoutes = state.routes.filter((route) => {
@@ -71,66 +81,85 @@ const TabBar: React.FC<BottomTabBarProps> = ({
     if (!isLayoutReady) setIsLayoutReady(true);
   };
 
-  return (
-    <View style={styles.container}>
-      <BlurredView
-        intensity={60}
-        tint="dark"
-        style={styles.blurredContainer}
-        onLayout={onLayout}
-      >
-        {numTabs > 0 && isLayoutReady && (
-          <Animated.View style={[styles.indicator, animatedStyle]} />
-        )}
+  const renderTabBarContent = () => (
+    <BlurredView
+      intensity={60}
+      tint="dark"
+      style={styles.blurredContainer}
+      onLayout={onLayout}
+    >
+      {numTabs > 0 && isLayoutReady && (
+        <Animated.View style={[styles.indicator, animatedStyle]} />
+      )}
 
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const isFocused = state.index === index;
 
-          if (!options.tabBarIcon) return null;
+        if (!options.tabBarIcon) return null;
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: "tabPress",
-              target: route.key,
-              canPreventDefault: true,
-            });
+        const onPress = () => {
+          const event = navigation.emit({
+            type: "tabPress",
+            target: route.key,
+            canPreventDefault: true,
+          });
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
 
-          const onLongPress = () => {
-            navigation.emit({
-              type: "tabLongPress",
-              target: route.key,
-            });
-          };
+        const onLongPress = () => {
+          navigation.emit({
+            type: "tabLongPress",
+            target: route.key,
+          });
+        };
 
-          return (
-            <TouchableOpacity
-              key={route.key}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
-              testID={(options as any).tabBarTestID}
-              onPress={onPress}
-              onLongPress={onLongPress}
-              style={styles.tabButton}
-              activeOpacity={0.7}
-            >
-              {options.tabBarIcon({
-                focused: isFocused,
-                color: isFocused ? theme.icon : theme.subtitle,
-                size: 24,
-              })}
-            </TouchableOpacity>
-          );
-        })}
-      </BlurredView>
-    </View>
+        return (
+          <TouchableOpacity
+            key={route.key}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            style={styles.tabButton}
+            activeOpacity={0.7}
+          >
+            {options.tabBarIcon({
+              focused: isFocused,
+              color: isFocused ? theme.icon : theme.subtitle,
+              size: 24,
+            })}
+          </TouchableOpacity>
+        );
+      })}
+    </BlurredView>
   );
+
+  const { width } = useWindowDimensions();
+  const { setSidebarCollapsed, setDetailWidth } = useWindowSizeStore();
+
+  const handleExpand = () => {
+    setSidebarCollapsed(false);
+    setDetailWidth(width - SIDEBAR_MIN);
+  };
+
+  if (showCollapsedSidebar) {
+
+    return (
+      <View style={styles.collapsedContainer}>
+
+          <BlurredView style={styles.blurredToggle}>
+            <Icon name="ArrowRight01Icon" onPress={handleExpand}/>
+          </BlurredView>
+      </View>
+    );
+  }
+
+  return <View style={styles.container}>{renderTabBarContent()}</View>;
 };
 
 export default TabBar;
@@ -145,6 +174,29 @@ const createStyle = (theme: any) =>
       height: 60,
       minWidth: 200,
       maxWidth: 230,
+    },
+    collapsedContainer: {
+      position: "absolute",
+      bottom: 25,
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 100,
+    },
+    blurredToggle: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 25,
+    },
+    menuItem: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: "center",
+      alignItems: "center",
     },
     blurredContainer: {
       flex: 1,

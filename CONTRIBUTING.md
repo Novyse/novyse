@@ -123,6 +123,9 @@ For a development build on Android, follow these steps:
 > **Ninja Build Tools**: Download the latest Ninja .exe from the [Ninja repository releases](https://github.com/ninja-build/ninja/releases). Replace the existing `ninja.exe` in:  
 > `C:\Users\{LOCAL_USER}\AppData\Local\Android\Sdk\cmake\{VERSION}\bin`
 
+> [!WARNING]
+> **Windows EMFILE: too many files open** error: if you encounter this error you need to clear metro-cache folder inside `C:\Users\{LOCAL_USER}\AppData\Local\Temp` and `node_modules` folder, then install watchman: `winget install Facebook.Watchman`, check if it's installed correctly and then run `bunx expo start --clear`
+
 > [!WARNING]  
 > **Audio API Error**: If you encounter a "react-native-audio-api: Restored missing prebuilt binaries" error on Windows:
 >
@@ -197,8 +200,48 @@ You can choose one of the following methods:
 
 #### Windows / macOS / Linux
 
-> [!WARNING]  
-> Building for these platforms is not possible as of now, so there is no documentation available. (Waiting for 1.1)
+You can run and build the application for Desktop platforms using Electron and Bun.
+
+##### Development
+
+To launch the desktop application in development mode with hot-reloading:
+
+```bash
+bun run desktop
+```
+
+##### Production Build
+
+To package and compile the application for production, run:
+
+```bash
+bun run build:desktop [options]
+```
+
+###### Platform Options:
+
+- **Build for current OS**:
+  ```bash
+  bun run build:desktop
+  ```
+- **Build for Windows**:
+  ```bash
+  bun run build:desktop --win
+  ```
+- **Build for Linux**:
+  ```bash
+  bun run build:desktop --linux
+  ```
+- **Build for macOS**:
+  ```bash
+  bun run build:desktop --mac
+  ```
+- **Build for all platforms**:
+  ```bash
+  bun run build:desktop --win --mac --linux
+  ```
+
+Generated installers and packages will be located in the `desktop/dist/` directory.
 
 ---
 

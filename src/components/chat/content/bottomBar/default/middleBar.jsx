@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { Platform, StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 import { Duration } from "luxon";
@@ -11,12 +11,15 @@ import RecordingDot from "@/src/components/RecordingDot";
 import SpeechIndicator from "@/src/components/SpeechIndicator";
 import { getPlatform } from "@/src/utils/device/type";
 import { toDroppedFile } from "@/src/components/input/WebDropZone";
+import { handleChatShortcuts } from "@/src/utils/shortcut/chatShortcuts";
+import Platform from "@/src/utils/device/type";
 
 const MiddleBar = ({
   newMessageText,
   textInputRef,
   onTextChange,
   onInputFocus,
+  isEmojiPickerVisible,
   onToggleEmoji,
   onSendMessage,
   onFileAppend,
@@ -25,30 +28,75 @@ const MiddleBar = ({
   recorderState,
   handleTogglePause,
   handleStopAndDraft,
+  onCancelReply,
+  editingMessage,
+  onCancelEdit,
+  replyingTo,
+  onPressArrowUp,
 }) => {
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  // Web: intercept CTRL+V to paste images from clipboard
+  // Web/Desktop: intercept CTRL+V to paste files from clipboard
   useEffect(() => {
-    if (Platform.OS !== "web") return;
+    if (Platform !== "web" && Platform !== "desktop") return;
 
     const node = textInputRef?.current;
     const domNode = node && (node instanceof HTMLElement ? node : node._node);
     if (!domNode) return;
 
-    const handlePaste = (e) => {
-      const items = e.clipboardData?.files;
-      if (!items || items.length === 0) return;
+    const handlePaste = async (e) => {
+      const clipboardData = e.clipboardData || e.nativeEvent?.clipboardData;
 
-      const files = Array.from(items);
-      if (files.length === 0) return;
+      // 1. Synchronous attempt (Chrome, Firefox, Safari, Edge on Windows)
+      const syncFiles = clipboardData?.files?.length
+        ? Array.from(clipboardData.files)
+        : Array.from(clipboardData?.items || [])
+            .filter((item) => item.kind === "file")
+            .map((item) => item.getAsFile())
+            .filter(Boolean);
 
-      e.preventDefault();
+      if (syncFiles.length > 0) {
+        e.preventDefault();
+        onFileAppend?.(syncFiles.map(toDroppedFile));
+        return;
+      }
 
-      const droppedFiles = files.map(toDroppedFile);
-      onFileAppend?.(droppedFiles);
+      // 2. Asynchronous fallback
+      if (navigator.clipboard?.read) {
+        try {
+          const clipboardItems = await navigator.clipboard.read();
+          const files = [];
+          for (const item of clipboardItems) {
+            // Skip pure text items to let the browser handle text pasting naturally
+            if (
+              item.types.every(
+                (t) =>
+                  t === "text/plain" || t === "text/html" || t === "text/rtf",
+              )
+            ) {
+              continue;
+            }
+
+            for (const type of item.types) {
+              const blob = await item.getType(type);
+              if (blob) {
+                const ext =
+                  type.split("/")[1]?.split("+")[0]?.split(".")?.pop() || "bin";
+                const filename = blob.name || `file.${ext}`;
+                const file = new File([blob], filename, { type });
+                files.push(file);
+              }
+            }
+          }
+          if (files.length > 0) {
+            onFileAppend?.(files.map(toDroppedFile));
+          }
+        } catch (err) {
+          // Silently ignore
+        }
+      }
     };
 
     domNode.addEventListener("paste", handlePaste);
@@ -74,8 +122,26 @@ const MiddleBar = ({
                 : undefined
             }
             onFocus={onInputFocus}
+            onKeyPress={(e) => {
+              handleChatShortcuts(e, {
+                editingMessage,
+                replyingTo,
+                onCancelEdit,
+                onCancelReply,
+                onPressArrowUp,
+                isInputEmpty: newMessageText === "",
+              });
+            }}
           />
-          <Icon name="SmileIcon" style={styles.icon} onPress={onToggleEmoji} />
+          <Icon
+            name={
+              Platform === "mobile" && isEmojiPickerVisible
+                ? "KeyboardIcon"
+                : "SmileIcon"
+            }
+            style={styles.icon}
+            onPress={onToggleEmoji}
+          />
         </BlurredView>
       ) : (
         <BlurredView style={styles.container}>

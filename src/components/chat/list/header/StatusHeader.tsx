@@ -2,6 +2,8 @@ import React from "react";
 import useNetworkStore from "@/src/context/NetworkContext";
 import StatusMessage from "@/src/components/StatusMessage";
 import { useTranslation } from "react-i18next";
+import { useScreen } from "@/src/context/ScreenContext";
+import useWindowSizeStore from "@/src/context/WindowSizeContext";
 
 const StatusHeader = () => {
   const {
@@ -13,6 +15,10 @@ const StatusHeader = () => {
   } = useNetworkStore();
   const { t } = useTranslation();
 
+  const { isSmallScreen } = useScreen();
+  const { isSidebarCollapsed } = useWindowSizeStore();
+  const showCollapsed = isSidebarCollapsed && !isSmallScreen;
+
   let message: string | null = null;
   let type: "info" | "warning" | "error" = "info";
   let translationKey: string | null = null;
@@ -21,7 +27,9 @@ const StatusHeader = () => {
     translationKey = "chat.statusBanner.offline";
     type = "error";
   } else if (!isSynced) {
-    message = t("chat.statusBanner.syncFailed", { count: syncRetryCountdown });
+    message = t("chat.statusBanner.syncFailed", {
+      count: syncRetryCountdown > 0 ? syncRetryCountdown : 0,
+    });
     type = "warning";
   } else if (!isSocketConnected) {
     translationKey = "chat.statusBanner.socketDisconnected";
@@ -39,6 +47,7 @@ const StatusHeader = () => {
       translationKey={translationKey as string}
       content={message ? [message] : undefined}
       closable={false}
+      iconOnly={showCollapsed}
     />
   );
 };

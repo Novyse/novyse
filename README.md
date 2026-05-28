@@ -90,7 +90,7 @@ Additionally, the website features a complete [roadmap](https://www.novyse.com/r
 
 ## Preview Version
 
-A preview version with new features that are not yet fully tested may be available at [preview.novyse.com](https://preview.novyse.com).
+A preview version with new features that are not yet fully tested may be available at [web.preview.novyse.com](https://web.preview.novyse.com).
 
 > [!WARNING]
 > We recommend not saving important data on this version, as data may be deleted with version changes, and there could be significant bugs affecting app usage.

@@ -1,6 +1,5 @@
 import React from "react";
 import { View, StyleSheet, Image } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 
 import { useScreen } from "@/src/context/ScreenContext";
@@ -21,16 +20,14 @@ export default function NotFoundPage() {
   const styles = createStyle(isSmallScreen);
 
   return (
-    <LinearGradient
-      colors={LoginColors[LOGIN_THEME].background as any}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
-          <AppText style={styles.title} translationKey="layout.notFound.title" />
+          <AppText
+            style={styles.title}
+            translationKey="layout.notFound.title"
+          />
           <AppText
             style={styles.subtitle}
             translationKey="layout.notFound.subtitle"
@@ -41,12 +38,15 @@ export default function NotFoundPage() {
           />
           <View style={styles.buttonWrapper}>
             <WelcomeButton onPress={() => router.replace("/")} type="submit">
-              <WelcomeButtonText type="submit" translationKey="layout.notFound.goHome" />
+              <WelcomeButtonText
+                type="submit"
+                translationKey="layout.notFound.goHome"
+              />
             </WelcomeButton>
           </View>
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 

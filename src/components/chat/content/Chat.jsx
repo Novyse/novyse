@@ -5,11 +5,20 @@ import React, {
   useRef,
   useCallback,
 } from "react";
-import { Platform, View, StyleSheet } from "react-native";
-import AppText from "@/src/components/AppText";
+import { View, StyleSheet, Keyboard, BackHandler } from "react-native";
+import { handleChatShortcuts } from "@/src/utils/shortcut/chatShortcuts";
 
-import { KeyboardStickyView } from "react-native-keyboard-controller";
+import {
+  useReanimatedKeyboardAnimation,
+  useKeyboardHandler,
+} from "react-native-keyboard-controller";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
 import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers";
@@ -23,18 +32,21 @@ import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/context/UserContext";
 import useChatStore from "@/src/context/ChatContext";
+import { useKeyboardStore } from "@/src/context/KeyboardContext";
 
 import BottomBar from "@/src/components/chat/content/bottomBar";
 import MessageList from "@/src/components/chat/content/MessageList";
 import UploadFileOverlay from "@/src/components/chat/content/UploadFileOverlay";
-import ChatIconsPickerModal from "@/src/components/ChatIconsPickerModal";
+import { EmojiMenuOverlay } from "@/src/components/chat/content/emoji";
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 import WebDropZone from "@/src/components/input/WebDropZone";
 
 import { validateFiles } from "@/src/utils/storage/file/validators";
+import Platform from "@/src/utils/device/type";
 
 const ChatContent = () => {
   const { theme } = useContext(ThemeContext);
+  const insets = useSafeAreaInsets();
 
   const styles = createStyle(theme);
   const [mentionMembers, setMentionMembers] = useState([]);
@@ -44,6 +56,74 @@ const ChatContent = () => {
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
 
   const [sheetIndex, setSheetIndex] = useState(-1);
+  const savedKeyboardHeight = useKeyboardStore((state) => state.keyboardHeight);
+  const setSavedKeyboardHeight = useKeyboardStore(
+    (state) => state.setKeyboardHeight,
+  );
+
+  const lastKeyboardHeight = useSharedValue(savedKeyboardHeight);
+  const panelLift = useSharedValue(0);
+  const { height: kbHeightAnim } = useReanimatedKeyboardAnimation();
+
+  useEffect(() => {
+    if (savedKeyboardHeight !== lastKeyboardHeight.value) {
+      lastKeyboardHeight.value = savedKeyboardHeight;
+    }
+  }, [savedKeyboardHeight]);
+
+  useEffect(() => {
+    const sub = Keyboard.addListener("keyboardDidShow", (e) => {
+      if (e.endCoordinates && e.endCoordinates.height > 10) {
+        setSavedKeyboardHeight(e.endCoordinates.height);
+      }
+    });
+    return () => sub.remove();
+  }, [setSavedKeyboardHeight]);
+
+  useKeyboardHandler(
+    {
+      onMove: (e) => {
+        "worklet";
+        if (e.height > lastKeyboardHeight.value) {
+          lastKeyboardHeight.value = e.height;
+        }
+      },
+      onEnd: (e) => {
+        "worklet";
+        if (e.height > 10) {
+          if (lastKeyboardHeight.value !== e.height) {
+            lastKeyboardHeight.value = e.height;
+          }
+
+          if (panelLift.value > 0) {
+            panelLift.value = 0;
+          }
+        }
+      },
+    },
+    [],
+  );
+
+  const panelAnimatedStyle = useAnimatedStyle(() => {
+    "worklet";
+    const maxH = lastKeyboardHeight.value;
+    return {
+      height: maxH,
+      transform: [{ translateY: maxH - panelLift.value }],
+    };
+  });
+
+  const listAnimatedStyle = useAnimatedStyle(() => {
+    "worklet";
+    const k = -kbHeightAnim.value;
+    const maxLift = Math.max(k, panelLift.value);
+    const effectiveLift =
+      maxLift > 0 ? Math.max(0, maxLift - insets.bottom) : 0;
+
+    return {
+      transform: [{ translateY: -effectiveLift }],
+    };
+  });
 
   const myUUID = useUserStore((state) => state.localUserUUID);
 
@@ -118,6 +198,10 @@ const ChatContent = () => {
 
   const preparedMessages = usePreparedMessages(messages, chat.type);
 
+  useEffect(() => {
+    textInputRef.current?.focus();
+  }, []);
+
   const {
     handleSendMessage,
     handleReadMessage,
@@ -129,19 +213,22 @@ const ChatContent = () => {
     handleReaction,
     handlePausePendingMessage,
     handleUpdatePendingMessage,
-  } = useMessageHandlers(setNewMessageText, setEditingMessage);
+  } = useMessageHandlers(setNewMessageText, setEditingMessage, textInputRef);
 
   const { handleMenuItemPress } = useAttachHandlers(
     setIsAttachMenuOpen,
     setSheetIndex,
     bottomSheetRef,
   );
-  
+
   const { startForwarding } = useForward();
 
-  const handleForward = useCallback((msg) => {
-    startForwarding([msg]);
-  }, [startForwarding]);
+  const handleForward = useCallback(
+    (msg) => {
+      startForwarding([msg]);
+    },
+    [startForwarding],
+  );
 
   const handleAppendFilesToDraft = useCallback(
     (newFiles) => {
@@ -168,10 +255,37 @@ const ChatContent = () => {
   const { downloadFile } = useDownload();
 
   const toggleEmojiPicker = useCallback(() => {
-    if (Platform.OS === "web") {
-      setIsEmojiPickerVisible(!isEmojiPickerVisible);
+    if (Platform !== "mobile") {
+      setIsEmojiPickerVisible((prev) => !prev);
+      return;
     }
-  }, [isEmojiPickerVisible]);
+
+    if (isEmojiPickerVisible) {
+      setIsEmojiPickerVisible(false);
+
+      setTimeout(() => {
+        textInputRef.current?.blur();
+        setTimeout(() => {
+          textInputRef.current?.focus();
+        }, 50);
+      }, 100);
+
+      return;
+    }
+    const liveKbHeight = -kbHeightAnim.value;
+
+    if (liveKbHeight > 10) {
+      const target = Math.max(liveKbHeight, lastKeyboardHeight.value);
+      lastKeyboardHeight.value = target;
+      panelLift.value = target;
+      Keyboard.dismiss();
+    } else {
+      panelLift.value = withTiming(lastKeyboardHeight.value, {
+        duration: 250,
+      });
+    }
+    setIsEmojiPickerVisible(true);
+  }, [isEmojiPickerVisible, kbHeightAnim, panelLift, lastKeyboardHeight]);
 
   const handleEmojiSelected = useCallback(
     (emoji) => {
@@ -193,7 +307,7 @@ const ChatContent = () => {
       setSheetIndex(0);
       setIsAttachMenuOpen(true);
     } else {
-      if (Platform.OS === "web") {
+      if (Platform === "web" || Platform === "desktop") {
         setSheetIndex(-1);
         setIsAttachMenuOpen(false);
       } else {
@@ -204,10 +318,36 @@ const ChatContent = () => {
   }, [sheetIndex]);
 
   const onInputFocus = useCallback(() => {
-    if (Platform.OS !== "web" && sheetIndex !== -1) {
+    setIsEmojiPickerVisible(false);
+    if (Platform === "mobile") {
       bottomSheetRef.current?.close();
     }
   }, [sheetIndex]);
+
+  const handleEmojiOverlayClose = useCallback(() => {
+    if (Platform !== "mobile") {
+      setIsEmojiPickerVisible(false);
+      return;
+    }
+    setIsEmojiPickerVisible(false);
+    panelLift.value = withTiming(0, { duration: 220 });
+  }, [panelLift]);
+
+  useEffect(() => {
+    if (Platform === "mobile" && isEmojiPickerVisible) {
+      const backAction = () => {
+        handleEmojiOverlayClose();
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction,
+      );
+
+      return () => backHandler.remove();
+    }
+  }, [isEmojiPickerVisible, handleEmojiOverlayClose]);
 
   const handleReply = useCallback(
     (msg) => {
@@ -239,6 +379,20 @@ const ChatContent = () => {
     },
     [handlePausePendingMessage],
   );
+
+  const handlePressArrowUp = useCallback(() => {
+    if (newMessageText !== "") return;
+    if (!messages || messages.length === 0) return;
+
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) return;
+
+    if (lastMessage.senderUUID === myUUID) {
+      handleEdit(lastMessage);
+    } else {
+      handleReply(lastMessage);
+    }
+  }, [messages, myUUID, handleEdit, handleReply, newMessageText]);
 
   const handleCancelReply = useCallback((messageID) => {
     if (!messageID) {
@@ -389,6 +543,30 @@ const ChatContent = () => {
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      handleChatShortcuts(e, {
+        editingMessage,
+        replyingTo,
+        onCancelEdit: handleCancelEdit,
+        onCancelReply: handleCancelReply,
+        onPressArrowUp: handlePressArrowUp,
+        isInputEmpty: newMessageText === "",
+      });
+    };
+    if (Platform === "web" || Platform === "desktop") {
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [
+    editingMessage,
+    replyingTo,
+    handleCancelEdit,
+    handleCancelReply,
+    handlePressArrowUp,
+    newMessageText,
+  ]);
+
   if (loading) {
     return null;
   }
@@ -397,7 +575,7 @@ const ChatContent = () => {
     <View style={styles.container}>
       <WebDropZone onFilesDropped={handleAppendFilesToDraft} />
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={StyleSheet.absoluteFill}>
+        <Animated.View style={[StyleSheet.absoluteFill, listAnimatedStyle]}>
           <MessageList
             ref={flatListRef}
             preparedMessages={preparedMessages}
@@ -420,17 +598,24 @@ const ChatContent = () => {
             onDelete={handleDelete}
             onLoadMore={() => loadMoreMessages(selectedChatUUID)}
           />
-        </View>
-
-        <KeyboardStickyView
-          offset={{ closed: 0, opened: 0 }}
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-          }}
-        >
+        </Animated.View>
+        {Platform === "mobile" && (
+          <Animated.View
+            style={[styles.emojiPanelContainer, panelAnimatedStyle]}
+            pointerEvents={isEmojiPickerVisible ? "auto" : "none"}
+          >
+            <EmojiMenuOverlay
+              isVisible={isEmojiPickerVisible}
+              onClose={handleEmojiOverlayClose}
+              onSelectResult={(content, type) => {
+                if (type === "emoji") {
+                  handleEmojiSelected(content);
+                }
+              }}
+            />
+          </Animated.View>
+        )}
+        <Animated.View style={[styles.bottomBarContainer, listAnimatedStyle]}>
           <BottomBar
             newMessageText={newMessageText}
             files={files}
@@ -440,6 +625,7 @@ const ChatContent = () => {
             onFileAppend={handleAppendFilesToDraft}
             isAttachMenuOpen={isAttachMenuOpen}
             onToggleAttachMenu={handleToggleAttachMenu}
+            isEmojiPickerVisible={isEmojiPickerVisible}
             onToggleEmoji={toggleEmojiPicker}
             onInputFocus={onInputFocus}
             setBottomBarHeight={setBottomBarHeight}
@@ -450,11 +636,23 @@ const ChatContent = () => {
             mentionMembers={mentionMembers}
             onSelectMention={onSelectMention}
             onRecordingActivityChange={emitRecording}
+            onPressArrowUp={handlePressArrowUp}
           />
-        </KeyboardStickyView>
+        </Animated.View>
+        {Platform !== "mobile" && (
+          <EmojiMenuOverlay
+            isVisible={isEmojiPickerVisible}
+            onClose={handleEmojiOverlayClose}
+            onSelectResult={(content, type) => {
+              if (type === "emoji") {
+                handleEmojiSelected(content);
+              }
+            }}
+          />
+        )}
 
         <UploadFileOverlay
-          platform={Platform.OS}
+          platform={Platform}
           sheetIndex={sheetIndex}
           onSheetChange={handleSheetChange}
           onMenuItemPress={handleDraftMenuItemPress}
@@ -471,19 +669,6 @@ const ChatContent = () => {
           theme={theme}
           fullscreen={false}
         />
-
-        <ChatIconsPickerModal
-          visible={isEmojiPickerVisible}
-          anchor={{ height: bottomBarHeight }}
-          onEmojiSelected={handleEmojiSelected}
-        >
-          <View style={styles.emojiPickerContainer}>
-            <AppText
-              style={styles.placeholderText}
-              text="Emoji Picker Content"
-            />
-          </View>
-        </ChatIconsPickerModal>
       </GestureHandlerRootView>
     </View>
   );
@@ -495,6 +680,19 @@ function createStyle(theme) {
   return StyleSheet.create({
     container: {
       flex: 1,
+    },
+    bottomBarContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
+    emojiPanelContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      overflow: "hidden",
     },
     emojiPickerContainer: {
       padding: 16,

@@ -1,9 +1,10 @@
 import React, { useContext, useState, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import AppText from "@/src/components/AppText";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useChatStore from "@/src/context/ChatContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import Icon from "@/src/components/Icon";
 
@@ -45,6 +46,14 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
     );
   };
 
+  const setScrollToMessageID = useActiveChatStore((state) => state.setScrollToMessageID);
+
+  const handlePress = () => {
+    if (message) {
+      setScrollToMessageID(message.id);
+    }
+  };
+
   const hasMultiple = pinnedMessages.length > 1;
 
   return (
@@ -61,7 +70,7 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
             />
           )}
 
-          <View style={styles.pinnedTextContainer}>
+          <TouchableOpacity style={styles.pinnedTextContainer} onPress={handlePress}>
             <AppText
               style={styles.pinnedText}
               numberOfLines={1}
@@ -73,7 +82,7 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
                 text={`${currentIndex + 1} / ${pinnedMessages.length}`}
               />
             )}
-          </View>
+          </TouchableOpacity>
           {hasMultiple && (
             <Icon
               name="ArrowRight02Icon"

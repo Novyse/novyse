@@ -8,10 +8,12 @@ Run
 node_modules/
 android/
 ios/
+build/
 
 # Expo
 .expo/
 dist/
+build/
 web-build/
 expo-env.d.ts
 

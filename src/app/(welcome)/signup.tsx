@@ -7,7 +7,6 @@ import {
   View,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-import { LinearGradient } from "expo-linear-gradient";
 import AppText from "@/src/components/AppText";
 
 import { useScreen } from "@/src/context/ScreenContext";
@@ -22,8 +21,6 @@ import SignupTimeline from "@/src/components/welcome/signup/SignupTimeline";
 import SignupStepField from "@/src/components/welcome/signup/SignupStepField";
 import SignupCheckboxes from "@/src/components/welcome/signup/SignupCheckboxes";
 import TurnstileCaptcha from "@/src/components/auth/TurnstileCaptcha";
-
-// import logoNovyse from "@/assets/images/logo-novyse.png";
 
 const STEPS = [{ id: 1 }, { id: 2 }, { id: 3 }];
 
@@ -70,12 +67,7 @@ export default function Signup() {
   const isLastStep = currentStep === STEPS.length - 1;
 
   return (
-    <LinearGradient
-      colors={LoginColors[LOGIN_THEME].background as any}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.card}>
         <KeyboardAvoidingView behavior="position">
           <ScrollView contentContainerStyle={styles.cardContent}>
@@ -118,7 +110,10 @@ export default function Signup() {
                 />
                 {isLastStep && (
                   <>
-                    <TurnstileCaptcha key={captchaKey} onVerify={setCaptchaToken} />
+                    <TurnstileCaptcha
+                      key={captchaKey}
+                      onVerify={setCaptchaToken}
+                    />
                     <SignupCheckboxes
                       privacyAccepted={privacyAccepted}
                       tosAccepted={privacyAccepted}
@@ -137,7 +132,10 @@ export default function Signup() {
                 <View style={styles.buttonWrapper}>
                   <WelcomeButton onPress={handleBack} type="back">
                     {currentStep === 0 ? (
-                      <WelcomeButtonText type="back" translationKey="auth.signup.back" />
+                      <WelcomeButtonText
+                        type="back"
+                        translationKey="auth.signup.back"
+                      />
                     ) : (
                       <Icon
                         name="ArrowLeft02Icon"
@@ -170,7 +168,10 @@ export default function Signup() {
                             color={LoginColors[LOGIN_THEME].icon}
                             size={20}
                           />
-                          <WelcomeButtonText type="submit" translationKey="auth.signup.signupBtn" />
+                          <WelcomeButtonText
+                            type="submit"
+                            translationKey="auth.signup.signupBtn"
+                          />
                         </View>
                       )}
                     </WelcomeButton>
@@ -179,7 +180,7 @@ export default function Signup() {
                       disabled={
                         (isLastStep && !isFormValid) ||
                         (!isLastStep && isLoading) ||
-                        (!isLastStep && currentStep === 1 && !validateStep(1))
+                        (!isLastStep && !validateStep(currentStep))
                       }
                       onPress={() => {
                         handleNext();
@@ -196,7 +197,10 @@ export default function Signup() {
                           color={LoginColors[LOGIN_THEME].iconLoading}
                         />
                       ) : isLastStep ? (
-                        <WelcomeButtonText type="submit" translationKey="auth.signup.signupBtn" />
+                        <WelcomeButtonText
+                          type="submit"
+                          translationKey="auth.signup.signupBtn"
+                        />
                       ) : (
                         <Icon
                           name="ArrowRight02Icon"
@@ -218,7 +222,7 @@ export default function Signup() {
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 

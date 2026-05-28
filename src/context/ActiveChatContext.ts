@@ -30,6 +30,8 @@ export interface ActiveChatState extends ChatUIState {
   selectedChatUUID: string | null;
   selectedHandle: string | null;
   selectedSub: number;
+  headerHeight: number;
+  scrollToMessageID: string | null;
 
   chatUIStates: Record<string, ChatUIState>;
   activeChatData: any | null;
@@ -52,6 +54,8 @@ export interface ActiveChatState extends ChatUIState {
   setSelectedMessages: (msgs: any[] | ((prev: any[]) => any[])) => void;
   setReplyingTo: (reply: any[] | ((prev: any[]) => any[])) => void;
   setSelectedSub: (sub: number | ((prev: number) => number)) => void;
+  setHeaderHeight: (height: number) => void;
+  setScrollToMessageID: (id: string | null) => void;
 
   setSelectedChatUUID: (uuid: string | null) => Promise<void>;
   setSelectedHandle: (handle: string | null) => Promise<void>;
@@ -94,6 +98,8 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     selectedChatUUID: null,
     selectedHandle: null,
     selectedSub: 0,
+    headerHeight: 0,
+    scrollToMessageID: null,
 
     // Default current UI
     ...defaultUIState,
@@ -191,6 +197,8 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
         selectedSub:
           typeof sub === "function" ? (sub as any)(state.selectedSub) : sub,
       })),
+    setHeaderHeight: (height) => set({ headerHeight: height }),
+    setScrollToMessageID: (id) => set({ scrollToMessageID: id }),
 
     setSelectedChatUUID: async (uuid: string | null) => {
       if (uuid !== null && get().selectedChatUUID === uuid) return;

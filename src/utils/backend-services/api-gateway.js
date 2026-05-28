@@ -1,20 +1,19 @@
 import axios from "axios";
-import { Platform } from "react-native";
+import Platform, { getOs } from "@/src/utils/device/type";
 import * as SecureStore from "expo-secure-store";
+import { secureStoreRpc } from "@/src/utils/electron/secureStore";
 
 import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
 import useNetworkStore from "@/src/context/NetworkContext";
-
-import { getOs, getPlatform } from "@/src/utils/device/type";
-
 import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
+import eventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: false,
   timeout: 10000,
   headers: {
-    "x-platform": getPlatform(),
+    "x-platform": Platform,
     "x-operating-system": getOs(),
     "x-app-version": APP_VERSION,
   },
@@ -73,10 +72,20 @@ api.interceptors.response.use(
     // Clear API error on success
     useNetworkStore.getState().setApiError(null);
 
-    if (Platform.OS !== "web") {
-      const newSessionId = response.headers["x-set-session-id"];
-      if (newSessionId) {
-        await SecureStore.setItemAsync("sessionId", String(newSessionId));
+    const newSessionId = response.headers["x-set-session-id"];
+    if (newSessionId) {
+      switch (Platform) {
+        case "desktop": {
+          await secureStoreRpc.set("sessionId", String(newSessionId));
+          break;
+        }
+        case "mobile": {
+          await SecureStore.setItemAsync("sessionId", String(newSessionId));
+          break;
+        }
+        case "web":
+        default:
+          break;
       }
     }
 
@@ -89,6 +98,12 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
+    if (error.response?.status === 426) {
+      console.warn("Client update required (426 Upgrade Required)");
+      eventEmitter.emit("clientUpdateRequired", error.response?.data?.data);
+      return Promise.reject(error);
+    }
+
     if (error.response && error.response.status === 500) {
       useNetworkStore.getState().setApiError("Errore del server (500)");
     }

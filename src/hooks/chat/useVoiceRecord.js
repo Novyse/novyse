@@ -21,9 +21,17 @@ const useVoiceRecord = (onSendMessage, onActivityChange) => {
     return () => {
       // Ferma la registrazione se era in corso quando il componente si smonta
       if (isRecording) {
-        audioRecorder.stop().catch((e) => {
-          console.warn("Error during audio cleanup:", e);
-        });
+        audioRecorder
+          .stop()
+          .catch((e) => {
+            console.warn("Error during audio cleanup:", e);
+          })
+          .finally(() => {
+            setAudioModeAsync({
+              allowsRecording: false,
+              playsInSilentMode: true,
+            }).catch((e) => console.warn("Error resetting audio mode:", e));
+          });
       }
     };
   }, [audioRecorder, isRecording]);
@@ -62,6 +70,10 @@ const useVoiceRecord = (onSendMessage, onActivityChange) => {
 
     try {
       await audioRecorder.stop();
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+      });
       const tempUri = audioRecorder.uri;
 
       setIsRecording(false);
@@ -88,6 +100,10 @@ const useVoiceRecord = (onSendMessage, onActivityChange) => {
 
     try {
       await audioRecorder.stop();
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+      });
       const tempUri = audioRecorder.uri;
 
       setIsRecording(false);
@@ -118,6 +134,10 @@ const useVoiceRecord = (onSendMessage, onActivityChange) => {
     if (!isRecording) return;
     try {
       await audioRecorder.stop();
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+      });
       setIsRecording(false);
       onActivityChange?.(false);
       console.log("Registrazione annullata");

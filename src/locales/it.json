@@ -37,11 +37,19 @@
       "passwordTooShort": "La password deve contenere almeno 8 caratteri",
       "required": "Campo obbligatorio",
       "invalidName": "Il nome può contenere solo lettere e spazi",
+      "nameTooLong": "Il nome non può superare i 50 caratteri",
       "handleTooShort": "L'handle deve contenere almeno 3 caratteri",
       "handleTooLong": "L'handle non può superare i 15 caratteri",
       "invalidHandle": "L'handle può contenere solo lettere minuscole, numeri e trattini bassi, e deve iniziare e finire con una lettera o un numero",
       "handleConsecutiveUnderscores": "Non sono ammessi trattini bassi consecutivi",
       "invalidInput": "Input non valido"
+    },
+    "auth": {
+      "signupStep": {
+        "available": "Disponibile",
+        "alreadyInUse": "Già in uso",
+        "passwordsMismatch": "Le password non coincidono"
+      }
     }
   },
   "chat": {
@@ -85,6 +93,20 @@
       "emoji": "Emoji",
       "sticker": "Sticker",
       "gif": "GIF"
+    },
+    "emojiCategories": {
+      "searchPlaceholder": "Cerca emoji...",
+      "recents": "Recenti",
+      "smileys": "Faccine ed Emozioni",
+      "people": "Persone e Corpo",
+      "animals": "Animali e Natura",
+      "food": "Cibo e Bevande",
+      "travel": "Viaggi e Luoghi",
+      "activities": "Attività",
+      "objects": "Oggetti",
+      "symbols": "Simboli",
+      "flags": "Bandiere",
+      "searchResults": "Risultati della Ricerca"
     },
     "overview": {
       "tabs": {
@@ -230,7 +252,8 @@
       "comms": "Comunicazioni",
       "qrScanner": "Scanner QR",
       "shortcuts": "Scorciatoie",
-      "info": "Info"
+      "info": "Info",
+      "system": "Sistema"
     },
     "account": {
       "title": "Account",
@@ -292,7 +315,11 @@
       "scanError": "Impossibile gestire la scansione del codice QR."
     },
     "shortcuts": {
-      "muteUnmute": "Silenzia / Non silenziare"
+      "muteUnmute": "Silenzia / Non silenziare",
+      "cancelEditReply": "Annulla modifica / Rimuovi risposta / Chiudi chat",
+      "arrowUpChat": "Modifica / Rispondi all'ultimo messaggio",
+      "chatTitle": "Scorciatoie Chat",
+      "commsTitle": "Scorciatoie Vocale"
     },
     "comms": {
       "title": "Comunicazioni",
@@ -388,7 +415,7 @@
       "mfa": "MFA (WIP)",
       "sessionsLabel": "Sessioni",
       "sessionsTitle": "Sessioni",
-      "apiKeys": "Chiavi API",
+      "apiKeysLabel": "Chiavi API",
       "notifications": "Notifiche (WIP)",
       "authenticator": "Autenticatore",
       "authAppDesc": "App di Autenticazione",
@@ -415,12 +442,14 @@
       "apiKeyRevokedSuccess": "Chiave API revocata con successo",
       "apiKeyRevokeFailed": "Impossibile revocare la chiave API",
       "createNewApiKey": "Crea Nuova Chiave API",
-      "createModal": {
-        "title": "Crea Nuova Chiave API",
-        "subtitle": "Dai alla tua chiave API un nome descrittivo per identificarla in seguito.",
-        "placeholder": "es. Server di Produzione",
-        "creating": "Creazione...",
-        "create": "Crea Chiave API"
+      "apiKeys": {
+        "createModal": {
+          "title": "Crea Nuova Chiave API",
+          "subtitle": "Dai alla tua chiave API un nome descrittivo per identificarla in seguito.",
+          "placeholder": "es. Server di Produzione",
+          "creating": "Creazione...",
+          "create": "Crea Chiave API"
+        }
       },
       "detailsModal": {
         "title": "Chiave API Creata",
@@ -463,6 +492,16 @@
       "notificationMethodRemoved": "Metodo di notifica rimosso",
       "default": "Predefinito",
       "addNotificationMethod": "Aggiungi Metodo di Notifica"
+    },
+    "system": {
+      "title": "Sistema",
+      "startupSection": "Avvio dell'Applicazione",
+      "actionsSection": "Azioni Iniziali",
+      "openOnStartup": "Apri all'avvio",
+      "joinCommsOnStartup": "Entra nelle comms all'avvio",
+      "selectChat": "Seleziona Chat",
+      "selectSub": "Seleziona Sub",
+      "none": "Nessuno"
     }
   },
   "layout": {
@@ -482,7 +521,18 @@
       "downloadLatestVersion": "Scarica l'ultima versione",
       "warning": "Nota: se continui senza aggiornare, le funzionalità online non saranno disponibili.",
       "goBack": "Torna a Novyse",
-      "helperText": "Visita {link} per ottenere l'aggiornamento per il tuo dispositivo."
+      "updateNow": "Aggiorna ora",
+      "installing": "Installa e riavvia",
+      "downloading": "Download… {{percent}}%",
+      "checking": "Controllo aggiornamenti…",
+      "openPlayStore": "Apri Play Store",
+      "openAppStore": "Apri App Store",
+      "openMicrosoftStore": "Apri Microsoft Store",
+      "openGitHub": "Scarica da GitHub",
+      "updateViaSnap": "Aggiorna via Snap Store",
+      "updateViaFlatpak": "Aggiorna via Flathub",
+      "refreshPage": "Aggiorna la pagina",
+      "autoUpdateError": "Aggiornamento automatico fallito. Scarica manualmente."
     }
   },
   "tabs": {

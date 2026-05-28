@@ -2,11 +2,11 @@ import React, { useContext } from "react";
 import {
   View,
   StyleSheet,
-  FlatList,
   ListRenderItem,
   ViewStyle,
   TextStyle,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
@@ -56,7 +56,7 @@ const MentionBar: React.FC<MentionBarProps> = ({ members, onSelectMember }) => {
 
   return (
     <BlurredView style={styles.container}>
-      <FlatList
+      <FlashList
         data={members}
         renderItem={renderItem}
         keyExtractor={(item) => (item.uuid || item.userUUID || "").toString()}

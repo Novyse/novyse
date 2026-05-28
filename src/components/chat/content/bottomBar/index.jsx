@@ -13,6 +13,7 @@ const BottomBar = ({
   onFileAppend,
   isAttachMenuOpen,
   onToggleAttachMenu,
+  isEmojiPickerVisible,
   onToggleEmoji,
   onInputFocus,
   setBottomBarHeight,
@@ -23,8 +24,8 @@ const BottomBar = ({
   mentionMembers,
   onSelectMention,
   onRecordingActivityChange,
+  onPressArrowUp,
 }) => {
-
   const insets = useSafeAreaInsets();
 
   return (
@@ -38,6 +39,7 @@ const BottomBar = ({
       <DefaultBar
         isAttachMenuOpen={isAttachMenuOpen}
         onToggleAttachMenu={onToggleAttachMenu}
+        isEmojiPickerVisible={isEmojiPickerVisible}
         onToggleEmoji={onToggleEmoji}
         textInputRef={textInputRef}
         newMessageText={newMessageText}
@@ -53,6 +55,7 @@ const BottomBar = ({
         mentionMembers={mentionMembers}
         onSelectMention={onSelectMention}
         onRecordingActivityChange={onRecordingActivityChange}
+        onPressArrowUp={onPressArrowUp}
       />
     </View>
   );

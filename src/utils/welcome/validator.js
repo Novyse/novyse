@@ -14,6 +14,7 @@ export const schemas = {
       .string()
       .trim()
       .min(1, i18n.t("common.validation.required"))
+      .max(50, i18n.t("common.validation.nameTooLong"))
       .regex(/^[a-zA-Z\s]+$/, i18n.t("common.validation.invalidName")),
     surname: z
       .string()
