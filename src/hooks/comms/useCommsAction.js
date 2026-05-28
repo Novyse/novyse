@@ -285,36 +285,35 @@ const useCommsAction = (chatUUID, sub) => {
     if (!room || !room.localParticipant) return;
 
     if (platform === "desktop") {
-      const picked = await window.electron.rpc.request(
-        "screenshare:pick-source",
-      );
-      if (!picked) return; // User cancelled
-
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        },
-      });
-
-      for (const track of stream.getTracks()) {
-        const isVideo = track.kind === "video";
-        const source = isVideo
-          ? Track.Source.ScreenShare
-          : Track.Source.ScreenShareAudio;
-
-        const publication = await room.localParticipant.publishTrack(track, {
-          source,
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+          },
         });
 
-        if (isVideo) {
-          setActiveScreenShares((prev) => ({
-            ...prev,
-            [publication.trackSid]: track,
-          }));
+        for (const track of stream.getTracks()) {
+          const isVideo = track.kind === "video";
+          const source = isVideo
+            ? Track.Source.ScreenShare
+            : Track.Source.ScreenShareAudio;
+
+          const publication = await room.localParticipant.publishTrack(track, {
+            source,
+          });
+
+          if (isVideo) {
+            setActiveScreenShares((prev) => ({
+              ...prev,
+              [publication.trackSid]: track,
+            }));
+          }
         }
+      } catch (err) {
+        console.log("Screenshare cancelled or failed:", err);
       }
     } else {
       const screenTracks = await room.localParticipant.createScreenTracks({
