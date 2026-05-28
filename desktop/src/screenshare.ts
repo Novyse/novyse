@@ -1,11 +1,15 @@
-const { session, desktopCapturer, Menu, MenuItem } = require("electron");
+import { session, desktopCapturer, Menu, MenuItem } from "electron";
 
 export function setupScreenShareHandler() {
   session.defaultSession.setPermissionRequestHandler(
-    (webContents: any, permission: string, callback: any) => {
+    (_webContents, _permission, callback) => {
       callback(true);
     },
   );
+
+  session.defaultSession.setPermissionCheckHandler(() => {
+    return true;
+  });
 
   const isWayland =
     process.platform === "linux" &&
@@ -15,54 +19,58 @@ export function setupScreenShareHandler() {
 
   if (!isWayland) {
     session.defaultSession.setDisplayMediaRequestHandler(
-      (request: any, callback: any) => {
+      (_request, callback) => {
         desktopCapturer
           .getSources({ types: ["screen", "window"] })
-          .then((sources: any[]) => {
+          .then((sources) => {
             if (!sources || sources.length === 0) {
-              return callback(null);
+              callback({});
+              return;
             }
 
             const menu = new Menu();
+            let resolved = false;
 
-            let callbackCalled = false;
-
-            const safeCallback = (arg: any) => {
-              if (!callbackCalled) {
-                callbackCalled = true;
-                callback(arg);
+            const resolve = (stream: Record<string, unknown>) => {
+              if (!resolved) {
+                resolved = true;
+                callback(stream as any);
               }
             };
 
-            sources.forEach((source: any) => {
+            for (const source of sources) {
               menu.append(
                 new MenuItem({
                   label: source.name,
                   icon: source.thumbnail
                     ? source.thumbnail.resize({ height: 80 })
                     : undefined,
-                  click: () => safeCallback({ video: source }),
+                  click: () => {
+                    resolve({
+                      video: { id: source.id, name: source.name },
+                    });
+                  },
                 }),
               );
-            });
+            }
 
             menu.append(new MenuItem({ type: "separator" }));
             menu.append(
               new MenuItem({
                 label: "Cancel",
-                click: () => safeCallback(null),
+                click: () => resolve({}),
               }),
             );
 
             menu.on("menu-will-close", () => {
-              setTimeout(() => safeCallback(null), 100);
+              setTimeout(() => resolve({}), 100);
             });
 
             menu.popup();
           })
-          .catch((err: any) => {
-            console.error("Error getting desktop sources:", err);
-            callback(null);
+          .catch((err) => {
+            console.error("Failed to get desktop sources:", err);
+            callback({});
           });
       },
     );
