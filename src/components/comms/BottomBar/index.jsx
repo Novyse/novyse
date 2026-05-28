@@ -91,6 +91,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
               iconName={"Call02Icon"}
               iconColor={theme.iconSuccess}
               hoverColor={theme.successText}
+              style={{ width: 60, height: 60 }}
             />
           </BlurredView>
         )
