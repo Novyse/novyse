@@ -286,14 +286,36 @@ const useCommsAction = (chatUUID, sub) => {
 
     if (platform === "desktop") {
       try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false,
-          },
-        });
+        const result = await window.electron.rpc.request(
+          "screenshare:pick-source",
+        );
+        if (!result) return; // User cancelled
+
+        const { sourceId, includeAudio } = result;
+        let stream;
+
+        if (sourceId === "wayland") {
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: false,
+          });
+        } else {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: includeAudio
+              ? {
+                  mandatory: {
+                    chromeMediaSource: "desktop",
+                  },
+                }
+              : false,
+            video: {
+              mandatory: {
+                chromeMediaSource: "desktop",
+                chromeMediaSourceId: sourceId,
+              },
+            },
+          });
+        }
 
         for (const track of stream.getTracks()) {
           const isVideo = track.kind === "video";
@@ -329,16 +351,28 @@ const useCommsAction = (chatUUID, sub) => {
     }
   };
 
-  const stopScreenShare = async (trackSid) => {
+  const stopScreenShare = async () => {
     if (!room || !room.localParticipant) return;
-    if (activeScreenShares[trackSid]) {
-      await room.localParticipant.unpublishTrack(activeScreenShares[trackSid]);
-      setActiveScreenShares((prev) => {
-        const newMap = { ...prev };
-        delete newMap[trackSid];
-        return newMap;
-      });
+
+    // Find and stop ALL screenshare tracks (both video and audio)
+    const tracksToStop = [];
+    room.localParticipant.tracks.forEach((pub) => {
+      if (
+        pub.source === Track.Source.ScreenShare ||
+        pub.source === Track.Source.ScreenShareAudio
+      ) {
+        tracksToStop.push(pub.track);
+      }
+    });
+
+    for (const track of tracksToStop) {
+      if (track) {
+        track.stop(); // Stop media stream at browser level
+        await room.localParticipant.unpublishTrack(track);
+      }
     }
+    
+    setActiveScreenShares({});
   };
 
   return {
