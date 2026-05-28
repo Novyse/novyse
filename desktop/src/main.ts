@@ -25,7 +25,9 @@ import config from "../electron-builder.config";
 app.commandLine.appendSwitch("ignore-gpu-blocklist");
 app.commandLine.appendSwitch("enable-gpu-rasterization");
 app.commandLine.appendSwitch("enable-zero-copy");
-app.commandLine.appendSwitch("enable-features", "WebRTCPipeWireCapturer");
+if (process.platform === "linux") {
+  app.commandLine.appendSwitch("enable-features", "WebRTCPipeWireCapturer");
+}
 
 const appName = config.productName;
 app.name = appName;
