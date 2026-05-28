@@ -297,7 +297,13 @@ const useCommsAction = (chatUUID, sub) => {
         if (sourceId === "wayland") {
           stream = await navigator.mediaDevices.getDisplayMedia({
             video: true,
-            audio: false,
+            audio: includeAudio
+              ? {
+                  echoCancellation: false,
+                  noiseSuppression: false,
+                  autoGainControl: false,
+                }
+              : false,
           });
         } else {
           stream = await navigator.mediaDevices.getUserMedia({
@@ -349,18 +355,32 @@ const useCommsAction = (chatUUID, sub) => {
     }
   };
 
-  const stopScreenShare = async () => {
+  const stopScreenShare = async (trackSid) => {
     if (!room || !room.localParticipant) return;
 
-    for (const trackSid of Object.keys(activeScreenShares)) {
-      const track = activeScreenShares[trackSid];
-      if (track) {
-        track.stop();
-        await room.localParticipant.unpublishTrack(track);
-      }
+    if (activeScreenShares[trackSid]) {
+      const videoTrack = activeScreenShares[trackSid];
+      if (videoTrack.stop) videoTrack.stop();
+      await room.localParticipant.unpublishTrack(videoTrack);
+
+      setActiveScreenShares((prev) => {
+        const newMap = { ...prev };
+        delete newMap[trackSid];
+
+        for (const sid of Object.keys(newMap)) {
+          const t = newMap[sid];
+          if (
+            t &&
+            (t.source === Track.Source.ScreenShareAudio || t.kind === "audio")
+          ) {
+            if (t.stop) t.stop();
+            room.localParticipant.unpublishTrack(t).catch(() => {});
+            delete newMap[sid];
+          }
+        }
+        return newMap;
+      });
     }
-    
-    setActiveScreenShares({});
   };
 
   return {
