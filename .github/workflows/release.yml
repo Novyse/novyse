@@ -242,6 +242,10 @@ jobs:
         run: bun run build:desktop --win --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Kill zombie processes (Windows Fix)
+        if: always()
+        run: taskkill //F //IM bun.exe //T || taskkill //F //IM node.exe //T || true
 
   build-electron-mac:
     needs: create-release
