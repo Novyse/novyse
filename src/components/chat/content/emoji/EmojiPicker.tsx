@@ -344,6 +344,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.quickScrollView}
           contentContainerStyle={styles.quickScroll}
         >
           {displayedQuickEmojis.map((emoji, index) => (
@@ -367,12 +368,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
   }
 
   const categoryToolbar = !searchQuery ? (
-    <View
-      style={[
-        styles.toolbarWrapper,
-        isMobile ? styles.toolbarWrapperTop : styles.toolbarWrapperBottom,
-      ]}
-    >
+    <View style={styles.toolbarWrapper}>
       <ToggleSelector
         options={toggleOptions}
         value={activeCategory}
@@ -432,94 +428,70 @@ const createStyle = (
     fullContainer: {
       flex: 1,
       width: "100%",
-      backgroundColor: theme.primary,
+      backgroundColor: theme.backgroundMain,
       borderRadius: 10,
       overflow: "hidden",
-      borderWidth: 1,
-      borderColor: theme.borderColor,
       ...ScrollBar(theme),
     },
     searchBarContainer: {
-      paddingHorizontal: 8,
-      paddingVertical: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 10,
       width: "100%",
       backgroundColor: "transparent",
     },
     searchBarInput: {
-      height: 38,
-      borderWidth: 1,
-      borderRadius: 8,
-      paddingHorizontal: 12,
+      height: 35,
+      borderRadius: 100,
+      paddingHorizontal: 10,
       fontSize: 14,
       color: theme.text,
-      borderColor: theme.borderColor,
-      backgroundColor: theme.scrollbar,
+      backgroundColor: theme.backgroundTextField,
     },
     listWrapper: {
       flex: 1,
     },
     listContent: {
-      paddingBottom: isMobile ? 4 : 68,
+      paddingBottom: 4,
     },
     sectionHeaderContainer: {
       width: "100%",
-      paddingHorizontal: 8,
+      paddingHorizontal: 10,
     },
     sectionHeader: {
       fontSize: 13,
       fontWeight: "600",
       color: theme.text,
       marginVertical: 10,
-      marginLeft: 4,
+      marginLeft: 5,
     },
     emojiGrid: {
       flexDirection: "row",
       flexWrap: "wrap",
       justifyContent: "flex-start",
       width: "100%",
-      paddingHorizontal: 8,
+      paddingHorizontal: 10,
     },
     emojiCell: {
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: 8,
+      borderRadius: 10,
       width: `${100 / columnCount}%`,
       height: colSize,
     },
     emojiText: {
       textAlign: "center",
-      fontSize: colSize * 0.55,
+      fontSize: colSize * 0.6,
     },
     toolbarWrapper: {
-      left: 0,
-      right: 0,
-      backgroundColor: theme.scrollbar,
-      height: 52,
+      backgroundColor: theme.backgroundMain,
       justifyContent: "center",
-      paddingHorizontal: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 10,
       ...ScrollBar(theme),
-    },
-    toolbarWrapperBottom: {
-      position: "absolute",
-      bottom: 0,
-      borderTopWidth: 1,
-      borderTopColor: theme.borderColor,
-    },
-    toolbarWrapperTop: {
-      borderBottomWidth: 1,
-      borderBottomColor: theme.borderColor,
     },
     fullContainerMobile: {
       borderRadius: 0,
       borderWidth: 0,
-    },
-    toolbarContent: {
-      alignItems: "center",
-      justifyContent: "flex-start",
-      paddingHorizontal: 12,
-      minWidth: "100%",
-      height: "100%",
-      paddingBottom: 4,
     },
     toolbarIconWrapper: {
       paddingHorizontal: 12,
@@ -530,26 +502,31 @@ const createStyle = (
       marginHorizontal: 4,
       height: 32,
       backgroundColor: theme.primary,
-      borderWidth: 1,
-      borderColor: theme.borderColor,
     },
     toolbarIconWrapperActive: {
       backgroundColor: theme.primary,
       borderColor: theme.primary,
     },
     quickContainer: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       borderRadius: 10,
       paddingHorizontal: 4,
       paddingVertical: 4,
-      alignSelf: "flex-start",
-      maxWidth: 175,
+      width: "100%",
+      height: "100%",
+    },
+    quickScrollView: {
+      flex: 1,
     },
     quickScroll: {
       alignItems: "center",
+      justifyContent: "center",
       flexDirection: "row",
       gap: 4,
+      flexGrow: 1,
+      height: "100%",
     },
     emojiBtn: {
       padding: 4,

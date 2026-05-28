@@ -364,7 +364,7 @@
     },
     "storage": {
       "localStorage": "Local Storage",
-      "gbUsed": "GB used",
+      "gbUsed": "{{count}} GB used",
       "cloudStorageComingSoon": "Cloud Storage (Coming Soon)",
       "resetDatabase": "Reset Database",
       "resetDatabaseSubtitle": " (This will completely clean local database and request server all your data)",

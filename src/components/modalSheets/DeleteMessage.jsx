@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
-import ModalBase from "./ModalBase";
+import AdaptiveModal from "./AdaptiveModal";
 import AppText from "../AppText";
 
 const DeleteMessage = ({
@@ -19,10 +19,11 @@ const DeleteMessage = ({
   };
 
   return (
-    <ModalBase
+    <AdaptiveModal
       visible={visible}
       onClose={onClose}
       theme={theme}
+      mode="modal"
       fullscreen={fullscreen}
     >
       <View style={styles.contentContainer}>
@@ -57,7 +58,7 @@ const DeleteMessage = ({
           </TouchableOpacity>
         </View>
       </View>
-    </ModalBase>
+    </AdaptiveModal>
   );
 };
 

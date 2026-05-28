@@ -36,7 +36,7 @@ import { useKeyboardStore } from "@/src/context/KeyboardContext";
 
 import BottomBar from "@/src/components/chat/content/bottomBar";
 import MessageList from "@/src/components/chat/content/MessageList";
-import UploadFileOverlay from "@/src/components/chat/content/UploadFileOverlay";
+import UploadFileOverlay from "@/src/components/modalSheets/uploadFile";
 import { EmojiMenuOverlay } from "@/src/components/chat/content/emoji";
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 import WebDropZone from "@/src/components/input/WebDropZone";
@@ -54,8 +54,6 @@ const ChatContent = () => {
 
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
-
-  const [sheetIndex, setSheetIndex] = useState(-1);
   const savedKeyboardHeight = useKeyboardStore((state) => state.keyboardHeight);
   const setSavedKeyboardHeight = useKeyboardStore(
     (state) => state.setKeyboardHeight,
@@ -194,7 +192,6 @@ const ChatContent = () => {
   const flatListRef = useRef(null);
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
   const textInputRef = useRef(null);
-  const bottomSheetRef = useRef(null);
 
   const preparedMessages = usePreparedMessages(messages, chat.type);
 
@@ -215,11 +212,7 @@ const ChatContent = () => {
     handleUpdatePendingMessage,
   } = useMessageHandlers(setNewMessageText, setEditingMessage, textInputRef);
 
-  const { handleMenuItemPress } = useAttachHandlers(
-    setIsAttachMenuOpen,
-    setSheetIndex,
-    bottomSheetRef,
-  );
+  const { handleMenuItemPress } = useAttachHandlers(setIsAttachMenuOpen);
 
   const { startForwarding } = useForward();
 
@@ -294,35 +287,14 @@ const ChatContent = () => {
     [setNewMessageText],
   );
 
-  const handleSheetChange = useCallback((index) => {
-    setSheetIndex(index);
-    if (index === -1) {
-      textInputRef.current?.focus();
-      setIsAttachMenuOpen(false);
-    }
-  }, []);
-
   const handleToggleAttachMenu = useCallback(() => {
-    if (sheetIndex === -1) {
-      setSheetIndex(0);
-      setIsAttachMenuOpen(true);
-    } else {
-      if (Platform === "web" || Platform === "desktop") {
-        setSheetIndex(-1);
-        setIsAttachMenuOpen(false);
-      } else {
-        bottomSheetRef.current?.close();
-        setIsAttachMenuOpen(false);
-      }
-    }
-  }, [sheetIndex]);
+    setIsAttachMenuOpen((prev) => !prev);
+  }, []);
 
   const onInputFocus = useCallback(() => {
     setIsEmojiPickerVisible(false);
-    if (Platform === "mobile") {
-      bottomSheetRef.current?.close();
-    }
-  }, [sheetIndex]);
+    setIsAttachMenuOpen(false);
+  }, []);
 
   const handleEmojiOverlayClose = useCallback(() => {
     if (Platform !== "mobile") {
@@ -652,12 +624,10 @@ const ChatContent = () => {
         )}
 
         <UploadFileOverlay
-          platform={Platform}
-          sheetIndex={sheetIndex}
-          onSheetChange={handleSheetChange}
+          visible={isAttachMenuOpen}
+          onClose={() => setIsAttachMenuOpen(false)}
           onMenuItemPress={handleDraftMenuItemPress}
           onFileSelected={handleAppendFilesToDraft}
-          bottomSheetRef={bottomSheetRef}
           theme={theme}
         />
 

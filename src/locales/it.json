@@ -362,7 +362,7 @@
     },
     "storage": {
       "localStorage": "Archiviazione Locale",
-      "gbUsed": "GB usati",
+      "gbUsed": "{{count}} GB usati",
       "cloudStorageComingSoon": "Archiviazione Cloud (In Arrivo)",
       "resetDatabase": "Ripristina Database",
       "resetDatabaseSubtitle": " (Questo pulirà completamente il database locale e richiederà al server tutti i tuoi dati)",

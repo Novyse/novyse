@@ -16,7 +16,7 @@ import Animated, {
   clamp,
   runOnJS,
 } from "react-native-reanimated";
-import ModalBase from "../ModalBase";
+import AdaptiveModal from "../AdaptiveModal";
 import { useScreen } from "@/src/context/ScreenContext";
 import useDownload from "@/src/hooks/file/useDownload";
 import useShare from "@/src/hooks/chat/useShare";
@@ -139,10 +139,11 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
   if (!uri) return <View style={styles.container} />;
 
   return (
-    <ModalBase
+    <AdaptiveModal
       visible={visible}
       onClose={onClose}
       theme={theme}
+      mode="modal"
       scrollable={false}
       hideCloseX={true}
     >
@@ -178,7 +179,7 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
           )}
         </View>
       </GestureHandlerRootView>
-    </ModalBase>
+    </AdaptiveModal>
   );
 };
 

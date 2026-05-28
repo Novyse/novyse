@@ -185,7 +185,6 @@ function createStyles(theme: any, hasIcons?: boolean, buttonWidth?: number) {
   return StyleSheet.create({
     scrollView: {
       flexGrow: 0,
-      marginBottom: 25,
       borderRadius: 50,
     },
     scrollContent: {
