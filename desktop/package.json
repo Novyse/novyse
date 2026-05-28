@@ -1,6 +1,6 @@
 {
   "name": "novyse-desktop",
-  "version": "1.0.1-20260528.0",
+  "version": "1.0.1-20260527.0",
   "description": "A desktop client for Novyse",
   "main": "build/main.js",
   "scripts": {
