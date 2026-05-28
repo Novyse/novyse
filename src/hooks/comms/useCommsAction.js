@@ -306,14 +306,16 @@ const useCommsAction = (chatUUID, sub) => {
               : false,
           });
         } else {
+          const isWindow = sourceId.startsWith("window:");
           stream = await navigator.mediaDevices.getUserMedia({
-            audio: includeAudio
-              ? {
-                  mandatory: {
-                    chromeMediaSource: "desktop",
-                  },
-                }
-              : false,
+            audio:
+              includeAudio && !isWindow
+                ? {
+                    mandatory: {
+                      chromeMediaSource: "desktop",
+                    },
+                  }
+                : false,
             video: {
               mandatory: {
                 chromeMediaSource: "desktop",
