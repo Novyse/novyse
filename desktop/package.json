@@ -22,7 +22,11 @@
     "desktop",
     "electron"
   ],
-  "author": "Novyse",
+  "homepage": "https://www.novyse.com",
+  "author": {
+    "name": "Novyse",
+    "email": "novyse@novyse.com"
+  },
   "license": "GNU GENERAL PUBLIC LICENSE",
   "devDependencies": {
     "@electron/rebuild": "^4.0.4",
