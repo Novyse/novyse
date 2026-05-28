@@ -1,0 +1,196 @@
+name: Client release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: Channel (production/preview)
+        required: true
+        type: choice
+        options:
+          - production
+          - preview
+      version:
+        description: Version (e.g., 1.0.1-20260405.0)
+        required: true
+      patch_notes:
+        description: Patchnotes (Markdown)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  git-flow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout development branch
+        uses: actions/checkout@v4
+        with:
+          ref: development
+          fetch-depth: 0
+
+      - name: Set Git user
+        run: |
+          git config user.name "GitHub Action Bot"
+          git config user.email "bot@novyse.com"
+
+      - name: Update package.json
+        run: |
+          npm version ${{ inputs.version }} --no-git-tag-version
+          git commit -am "chore: bump version to ${{ inputs.version }}"
+
+      - name: Merge into target branch
+        run: |
+          git checkout ${{ inputs.release_type }}
+          git merge development
+
+      - name: Update app.config.ts
+        run: |
+          # Search for BRANCH='...' and replace it with the chosen channel
+          sed -i 's/const BRANCH = "[^"]*"/const BRANCH = "${{ inputs.release_type }}"/g' app.config.ts
+          git commit -am "chore: set branch to ${{ inputs.release_type }} in app.config.ts"
+
+      - name: Push to GitHub
+        run: |
+          git push origin development
+          git push origin ${{ inputs.release_type }}
+
+  create-release:
+    needs: git-flow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.version }}
+          name: Version ${{ inputs.version }}
+          prerelease: ${{ inputs.release_type == 'preview' }}
+          body: ${{ inputs.patch_notes }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-deploy-web:
+    needs: git-flow
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - name: Install dependencies & Build Web
+        run: |
+          bun install
+          bun run build:web
+  build-firefox:
+    needs: git-flow
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - uses: oven-sh/setup-bun@v1
+      - name: Install & Build
+        run: |
+          bun install
+          bun run build:ext
+      - name: Sign and Publish to Mozilla Add-ons
+        run: npx web-ext sign --api-key=${{ secrets.FIREFOX_ISSUER }} --api-secret=${{ secrets.FIREFOX_SECRET }} --channel=listed --source-dir=./dist-ext
+  build-android:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node, Bun & Java
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - uses: oven-sh/setup-bun@v1
+      - uses: actions/setup-java@v3
+        with:
+          distribution: zulu
+          java-version: "17"
+      - name: Install EAS CLI & Dependencies
+        run: |
+          npm install -g eas-cli
+          bun install
+      - name: Build Android (Local)
+        run: |
+          if [ "${{ inputs.release_type }}" = "production" ]; then
+            # AAB for play store release
+            eas build --platform android --local --profile production --output ./app-release.aab --non-interactive --auto-submit
+            
+            # APK for direct download
+            eas build --platform android --local --profile production-apk --output ./app-release.apk --non-interactive
+          else
+            # APK for direct download
+            eas build --platform android --local --profile preview --output ./app-release.apk --non-interactive
+          fi
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - name: Attach Android Build Artifacts to GitHub Release
+        run: |
+          if [ -f ./app-release.aab ]; then
+            gh release upload v${{ inputs.version }} ./app-release.aab
+          fi
+          if [ -f ./app-release.apk ]; then
+            gh release upload v${{ inputs.version }} ./app-release.apk
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-electron-win-linux:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - uses: oven-sh/setup-bun@v1
+      - name: Install Dependencies
+        run: |
+          bun install
+          cd desktop && bun install
+      - name: Build Windows & Linux
+        run: bun run build:desktop --win --linux --publish always
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-electron-mac:
+    needs: create-release
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - uses: oven-sh/setup-bun@v1
+      - name: Install Dependencies
+        run: |
+          bun install
+          cd desktop && bun install
+      - name: Build Mac
+        run: bun run build:desktop --mac --publish always
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
