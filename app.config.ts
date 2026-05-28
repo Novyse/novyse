@@ -81,7 +81,8 @@ export default {
       infoPlist: {
         UIBackgroundModes: ["audio"],
       },
-      googleServicesFile: "./GoogleService-Info.plist",
+      googleServicesFile:
+        process.env.GOOGLE_SERVICES_PLIST || "./GoogleService-Info.plist",
     },
     android: {
       adaptiveIcon: {
@@ -221,7 +222,7 @@ export default {
       "expo-localization",
       "expo-secure-store",
       "expo-sharing",
-      "expo-status-bar"
+      "expo-status-bar",
     ],
     experiments: {
       typedRoutes: true,
