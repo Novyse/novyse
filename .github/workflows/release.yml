@@ -216,23 +216,9 @@ jobs:
           cd desktop && bun install
 
       - name: Build Linux
-        run: bun run build:desktop --linux
-
-      - name: Attach Linux Build Artifacts to GitHub Release
-        run: |
-          gh release upload v${{ inputs.version }} desktop/dist/*.AppImage || true
-          gh release upload v${{ inputs.version }} desktop/dist/*.deb || true
-          gh release upload v${{ inputs.version }} desktop/dist/*.rpm || true
+        run: bun run build:desktop --linux --publish always
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload to Snapcraft
-        if: ${{ inputs.release_type == 'production' }}
-        run: snapcraft upload desktop/dist/*.snap --release=stable
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
-
-      # upload to flathub
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-electron-win:
     needs: create-release
@@ -254,15 +240,9 @@ jobs:
           bun install
 
       - name: Build Windows
-        run: bun run build:desktop --win
-
-      - name: Attach Windows Build Artifacts to GitHub Release
-        shell: bash
-        run: |
-          gh release upload v${{ inputs.version }} desktop/dist/*.exe || true
-          gh release upload v${{ inputs.version }} desktop/dist/*.msi || true
+        run: bun run build:desktop --win --publish always
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-electron-mac:
     needs: create-release
@@ -281,14 +261,9 @@ jobs:
           bun install
           cd desktop && bun install
       - name: Build Mac
-        run: bun run build:desktop --mac
-
-      - name: Attach Mac Build Artifacts to GitHub Release
-        run: |
-          gh release upload v${{ inputs.version }} desktop/dist/*.dmg || true
-          gh release upload v${{ inputs.version }} desktop/dist/*.zip || true
+        run: bun run build:desktop --mac --publish always
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-release:
     needs: [build-deploy-web, build-firefox, build-android, build-electron-linux, build-electron-win, build-electron-mac]
