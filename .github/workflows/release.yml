@@ -43,7 +43,7 @@ jobs:
           cd desktop
           npm version ${{ inputs.version }} --no-git-tag-version
           cd ..
-          git commit -am "chore: bump version to ${{ inputs.version }}"
+          git commit -am "chore: bump version to ${{ inputs.version }}" || true
 
       - name: Merge into target branch
         run: |
@@ -52,9 +52,8 @@ jobs:
 
       - name: Update app.config.ts
         run: |
-          # Search for BRANCH='...' and replace it with the chosen channel
           sed -i 's/const BRANCH = "[^"]*"/const BRANCH = "${{ inputs.release_type }}"/g' app.config.ts
-          git commit -am "chore: set branch to ${{ inputs.release_type }} in app.config.ts"
+          git commit -am "chore: set branch to ${{ inputs.release_type }} in app.config.ts" || true
 
       - name: Push to GitHub
         run: |
@@ -94,6 +93,7 @@ jobs:
         run: |
           bun install
           bun run build:web
+
   build-firefox:
     if: ${{ inputs.release_type == 'production' }}
     needs: git-flow
@@ -113,6 +113,7 @@ jobs:
           bun run build:ext
       - name: Sign and Publish to Mozilla Add-ons
         run: npx web-ext sign --api-key=${{ secrets.FIREFOX_ISSUER }} --api-secret=${{ secrets.FIREFOX_SECRET }} --channel=listed --source-dir=./dist-ext
+
   build-android:
     needs: create-release
     runs-on: ubuntu-latest
@@ -129,10 +130,16 @@ jobs:
         with:
           distribution: zulu
           java-version: "17"
+
       - name: Decode Google Services
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > ${{ github.workspace }}/google-services.json
           echo "${{ secrets.GOOGLE_SERVICES_PLIST }}" | base64 --decode > ${{ github.workspace }}/GoogleService-Info.plist
+
+      - name: Install EAS CLI & Dependencies
+        run: |
+          npm install -g eas-cli
+          bun install
 
       - name: Build Android (Local)
         run: |
@@ -147,24 +154,6 @@ jobs:
           GOOGLE_SERVICES_JSON: ${{ github.workspace }}/google-services.json
           GOOGLE_SERVICES_PLIST: ${{ github.workspace }}/GoogleService-Info.plist
 
-      - name: Install EAS CLI & Dependencies
-        run: |
-          npm install -g eas-cli
-          bun install
-      - name: Build Android (Local)
-        run: |
-          if [ "${{ inputs.release_type }}" = "production" ]; then
-            # AAB for play store release
-            eas build --platform android --local --profile production --output ./app-release.aab --non-interactive --auto-submit
-            
-            # APK for direct download
-            eas build --platform android --local --profile production-apk --output ./app-release.apk --non-interactive
-          else
-            # APK for direct download
-            eas build --platform android --local --profile preview --output ./app-release.apk --non-interactive
-          fi
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       - name: Attach Android Build Artifacts to GitHub Release
         run: |
           if [ -f ./app-release.aab ]; then
@@ -176,7 +165,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-electron-win-linux:
+  build-electron-linux:
     needs: create-release
     runs-on: ubuntu-latest
     steps:
@@ -188,23 +177,22 @@ jobs:
         with:
           node-version: "24"
       - uses: oven-sh/setup-bun@v1
+      
+      - name: Install Linux Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          sudo snap install snapcraft --classic
+
       - name: Install Dependencies
         run: |
           bun install
           cd desktop && bun install
-      - name: Install Wine (for Windows build)
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y wine64 wine32
-      - name: Build Windows & Linux
-        run: bun run build:desktop --win --linux --publish always
+          
+      - name: Build Linux
+        run: bun run build:desktop --linux --publish always
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Snapcraft
-        if: ${{ inputs.release_type == 'production' }}
-        run: sudo snap install snapcraft --classic
 
       - name: Upload to Snapcraft
         if: ${{ inputs.release_type == 'production' }}
@@ -212,12 +200,29 @@ jobs:
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
 
-      - name: Upload to Flathub
-        if: ${{ inputs.release_type == 'production' }}
+  build-electron-win:
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: oven-sh/setup-bun@v1
+
+      - name: Install Dependencies
         run: |
-          # NOTA: L'upload su Flathub solitamente avviene tramite flat-manager o PR alla repository Flathub.
-          # Sostituisci questo script con il tuo tool di deploy per Flathub (es. flat-manager-client)
-          echo "Inizio caricamento su Flathub..."
+          bun install
+          cd desktop
+          bun install
+          
+      - name: Build Windows
+        run: bun run build:desktop --win --publish always
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-electron-mac:
     needs: create-release
