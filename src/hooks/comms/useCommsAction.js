@@ -327,12 +327,10 @@ const useCommsAction = (chatUUID, sub) => {
             source,
           });
 
-          if (isVideo) {
-            setActiveScreenShares((prev) => ({
-              ...prev,
-              [publication.trackSid]: track,
-            }));
-          }
+          setActiveScreenShares((prev) => ({
+            ...prev,
+            [publication.trackSid]: publication.track,
+          }));
         }
       } catch (err) {
         console.log("Screenshare cancelled or failed:", err);
@@ -354,20 +352,10 @@ const useCommsAction = (chatUUID, sub) => {
   const stopScreenShare = async () => {
     if (!room || !room.localParticipant) return;
 
-    // Find and stop ALL screenshare tracks (both video and audio)
-    const tracksToStop = [];
-    room.localParticipant.tracks.forEach((pub) => {
-      if (
-        pub.source === Track.Source.ScreenShare ||
-        pub.source === Track.Source.ScreenShareAudio
-      ) {
-        tracksToStop.push(pub.track);
-      }
-    });
-
-    for (const track of tracksToStop) {
+    for (const trackSid of Object.keys(activeScreenShares)) {
+      const track = activeScreenShares[trackSid];
       if (track) {
-        track.stop(); // Stop media stream at browser level
+        track.stop();
         await room.localParticipant.unpublishTrack(track);
       }
     }

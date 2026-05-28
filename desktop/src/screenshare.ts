@@ -19,7 +19,20 @@ export function setupScreenShareHandler() {
 
   ipcMain.handle("screenshare:pick-source", async () => {
     if (isWayland) {
-      return { sourceId: "wayland", includeAudio: false };
+      const { dialog } = require("electron");
+      const { response } = await dialog.showMessageBox({
+        type: "question",
+        buttons: ["Video Only", "Video + System Audio", "Cancel"],
+        title: "Wayland Screen Share",
+        message: "Do you want to share your system audio?",
+        detail:
+          "Warning: sharing system audio may cause echo if you are not using headphones.",
+        defaultId: 0,
+        cancelId: 2,
+      });
+
+      if (response === 2) return null;
+      return { sourceId: "wayland", includeAudio: response === 1 };
     }
 
     const sources = await desktopCapturer.getSources({
