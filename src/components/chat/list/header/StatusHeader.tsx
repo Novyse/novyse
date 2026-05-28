@@ -2,6 +2,8 @@ import React from "react";
 import useNetworkStore from "@/src/context/NetworkContext";
 import StatusMessage from "@/src/components/StatusMessage";
 import { useTranslation } from "react-i18next";
+import { useScreen } from "@/src/context/ScreenContext";
+import useWindowSizeStore from "@/src/context/WindowSizeContext";
 
 const StatusHeader = () => {
   const {
@@ -12,6 +14,10 @@ const StatusHeader = () => {
     syncRetryCountdown,
   } = useNetworkStore();
   const { t } = useTranslation();
+
+  const { isSmallScreen } = useScreen();
+  const { isSidebarCollapsed } = useWindowSizeStore();
+  const showCollapsed = isSidebarCollapsed && !isSmallScreen;
 
   let message: string | null = null;
   let type: "info" | "warning" | "error" = "info";
@@ -41,6 +47,7 @@ const StatusHeader = () => {
       translationKey={translationKey as string}
       content={message ? [message] : undefined}
       closable={false}
+      iconOnly={showCollapsed}
     />
   );
 };
