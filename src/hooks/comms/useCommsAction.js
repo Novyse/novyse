@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useCommsContext } from "@/src/context/CommsContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { connectToLiveKit } from "@/src/utils/comms/livekit";
-import { Room } from "livekit-client";
+import { Room, Track } from "livekit-client";
 
 import platform from "@/src/utils/device/type";
 
@@ -285,24 +285,35 @@ const useCommsAction = (chatUUID, sub) => {
     if (!room || !room.localParticipant) return;
 
     if (platform === "desktop") {
-      const picked = await window.electron.rpc.request(
-        "screenshare:pick-source",
-      );
-      if (!picked) return; // User cancelled
-
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: false,
-      });
-
-      for (const track of stream.getVideoTracks()) {
-        const publication = await room.localParticipant.publishTrack(track, {
-          source: "screen_share",
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+          },
         });
-        setActiveScreenShares((prev) => ({
-          ...prev,
-          [publication.trackSid]: track,
-        }));
+
+        for (const track of stream.getTracks()) {
+          const isVideo = track.kind === "video";
+          const source = isVideo
+            ? Track.Source.ScreenShare
+            : Track.Source.ScreenShareAudio;
+
+          const publication = await room.localParticipant.publishTrack(track, {
+            source,
+          });
+
+          if (isVideo) {
+            setActiveScreenShares((prev) => ({
+              ...prev,
+              [publication.trackSid]: track,
+            }));
+          }
+        }
+      } catch (err) {
+        console.log("Screenshare cancelled or failed:", err);
       }
     } else {
       const screenTracks = await room.localParticipant.createScreenTracks({
