@@ -30,6 +30,7 @@ jobs:
         with:
           ref: development
           fetch-depth: 0
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       - name: Set Git user
         run: |
