@@ -131,8 +131,22 @@ jobs:
           java-version: "17"
       - name: Decode Google Services
         run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > google-services.json
-          echo "${{ secrets.GOOGLE_SERVICES_PLIST }}" | base64 --decode > GoogleService-Info.plist
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > ${{ github.workspace }}/google-services.json
+          echo "${{ secrets.GOOGLE_SERVICES_PLIST }}" | base64 --decode > ${{ github.workspace }}/GoogleService-Info.plist
+
+      - name: Build Android (Local)
+        run: |
+          if [ "${{ inputs.release_type }}" = "production" ]; then
+            eas build --platform android --local --profile production --output ./app-release.aab --non-interactive --auto-submit
+            eas build --platform android --local --profile production-apk --output ./app-release.apk --non-interactive
+          else
+            eas build --platform android --local --profile preview --output ./app-release.apk --non-interactive
+          fi
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          GOOGLE_SERVICES_JSON: ${{ github.workspace }}/google-services.json
+          GOOGLE_SERVICES_PLIST: ${{ github.workspace }}/GoogleService-Info.plist
+
       - name: Install EAS CLI & Dependencies
         run: |
           npm install -g eas-cli
