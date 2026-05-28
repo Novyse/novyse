@@ -40,4 +40,6 @@ config.server.enhanceMiddleware = (middleware) => {
   };
 };
 
+config.cacheStores = [];
+
 module.exports = config;
