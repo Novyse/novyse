@@ -325,6 +325,8 @@ const useCommsAction = (chatUUID, sub) => {
           });
         }
 
+        const tracksToPublish = [];
+
         for (const track of stream.getTracks()) {
           const isVideo = track.kind === "video";
           const source = isVideo
@@ -335,11 +337,28 @@ const useCommsAction = (chatUUID, sub) => {
             source,
           });
 
-          setActiveScreenShares((prev) => ({
-            ...prev,
-            [publication.trackSid]: publication.track,
-          }));
+          tracksToPublish.push({
+            trackSid: publication.trackSid,
+            track: publication.track,
+            isVideo,
+          });
         }
+
+        const video = tracksToPublish.find((t) => t.isVideo);
+        const audio = tracksToPublish.find((t) => !t.isVideo);
+
+        if (video && audio) {
+          video.track.associatedAudioSid = audio.trackSid;
+          audio.track.associatedVideoSid = video.trackSid;
+        }
+
+        setActiveScreenShares((prev) => {
+          const next = { ...prev };
+          for (const item of tracksToPublish) {
+            next[item.trackSid] = item.track;
+          }
+          return next;
+        });
       } catch (err) {
         console.log("Screenshare cancelled or failed:", err);
       }
@@ -347,13 +366,32 @@ const useCommsAction = (chatUUID, sub) => {
       const screenTracks = await room.localParticipant.createScreenTracks({
         audio: true,
       });
+
+      const tracksToPublish = [];
       for (const track of screenTracks) {
         const publication = await room.localParticipant.publishTrack(track);
-        setActiveScreenShares((prev) => ({
-          ...prev,
-          [publication.trackSid]: track,
-        }));
+        tracksToPublish.push({
+          trackSid: publication.trackSid,
+          track: track,
+          isVideo: track.kind === "video",
+        });
       }
+
+      const video = tracksToPublish.find((t) => t.isVideo);
+      const audio = tracksToPublish.find((t) => !t.isVideo);
+
+      if (video && audio) {
+        video.track.associatedAudioSid = audio.trackSid;
+        audio.track.associatedVideoSid = video.trackSid;
+      }
+
+      setActiveScreenShares((prev) => {
+        const next = { ...prev };
+        for (const item of tracksToPublish) {
+          next[item.trackSid] = item.track;
+        }
+        return next;
+      });
     }
   };
 
@@ -362,6 +400,8 @@ const useCommsAction = (chatUUID, sub) => {
 
     if (activeScreenShares[trackSid]) {
       const videoTrack = activeScreenShares[trackSid];
+      const associatedAudioSid = videoTrack.associatedAudioSid;
+
       if (videoTrack.stop) videoTrack.stop();
       await room.localParticipant.unpublishTrack(videoTrack);
 
@@ -369,16 +409,11 @@ const useCommsAction = (chatUUID, sub) => {
         const newMap = { ...prev };
         delete newMap[trackSid];
 
-        for (const sid of Object.keys(newMap)) {
-          const t = newMap[sid];
-          if (
-            t &&
-            (t.source === Track.Source.ScreenShareAudio || t.kind === "audio")
-          ) {
-            if (t.stop) t.stop();
-            room.localParticipant.unpublishTrack(t).catch(() => {});
-            delete newMap[sid];
-          }
+        if (associatedAudioSid && newMap[associatedAudioSid]) {
+          const audioTrack = newMap[associatedAudioSid];
+          if (audioTrack.stop) audioTrack.stop();
+          room.localParticipant.unpublishTrack(audioTrack).catch(() => {});
+          delete newMap[associatedAudioSid];
         }
         return newMap;
       });
