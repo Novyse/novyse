@@ -1,15 +1,6 @@
 const { session, desktopCapturer } = require("electron");
 
 export function setupScreenShareHandler() {
-  session.defaultSession.setPermissionRequestHandler(
-    (webContents: any, permission: string, callback: any) => {
-      if (permission === "display-capture" || permission === "media") {
-        callback(true);
-      } else {
-        callback(false);
-      }
-    },
-  );
 
   if (process.platform !== "linux") {
     session.defaultSession.setDisplayMediaRequestHandler(
