@@ -7,6 +7,16 @@ webFrame.executeJavaScript(`
     const newUrl = window.location.href.replace("/index.html", "/");
     window.history.replaceState(null, "", newUrl);
   }
+  if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+    const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
+    navigator.mediaDevices.getDisplayMedia = async (constraints) => {
+      if (constraints && constraints.video && typeof constraints.video === 'object') {
+        // Strip resolution constraints for desktop capture to prevent OverconstrainedError
+        constraints.video = true;
+      }
+      return await originalGetDisplayMedia(constraints);
+    };
+  }
 `);
 
 const electronAPI: ElectronWindow = {
