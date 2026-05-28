@@ -1,4 +1,4 @@
-import { session, desktopCapturer, Menu, MenuItem } from "electron";
+import { session, desktopCapturer, Menu, MenuItem, ipcMain } from "electron";
 
 export function setupScreenShareHandler() {
   session.defaultSession.setPermissionRequestHandler(
@@ -11,68 +11,50 @@ export function setupScreenShareHandler() {
     return true;
   });
 
-  const isWayland =
-    process.platform === "linux" &&
-    !!(
-      process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === "wayland"
-    );
+  // IPC: show native menu, return selected source ID (or null if cancelled)
+  ipcMain.handle("screenshare:pick-source", async () => {
+    const sources = await desktopCapturer.getSources({
+      types: ["screen", "window"],
+    });
 
-  if (!isWayland) {
-    session.defaultSession.setDisplayMediaRequestHandler(
-      (_request, callback) => {
-        desktopCapturer
-          .getSources({ types: ["screen", "window"] })
-          .then((sources) => {
-            if (!sources || sources.length === 0) {
-              callback({});
-              return;
-            }
+    if (!sources || sources.length === 0) return null;
 
-            const menu = new Menu();
-            let resolved = false;
+    return new Promise<string | null>((resolve) => {
+      const menu = new Menu();
+      let picked = false;
 
-            const resolve = (stream: Record<string, unknown>) => {
-              if (!resolved) {
-                resolved = true;
-                callback(stream as any);
-              }
-            };
+      const pick = (id: string | null) => {
+        if (!picked) {
+          picked = true;
+          resolve(id);
+        }
+      };
 
-            for (const source of sources) {
-              menu.append(
-                new MenuItem({
-                  label: source.name,
-                  icon: source.thumbnail
-                    ? source.thumbnail.resize({ height: 80 })
-                    : undefined,
-                  click: () => {
-                    resolve({
-                      video: { id: source.id, name: source.name },
-                    });
-                  },
-                }),
-              );
-            }
+      for (const source of sources) {
+        menu.append(
+          new MenuItem({
+            label: source.name,
+            icon: source.thumbnail
+              ? source.thumbnail.resize({ height: 80 })
+              : undefined,
+            click: () => pick(source.id),
+          }),
+        );
+      }
 
-            menu.append(new MenuItem({ type: "separator" }));
-            menu.append(
-              new MenuItem({
-                label: "Cancel",
-                click: () => resolve({}),
-              }),
-            );
+      menu.append(new MenuItem({ type: "separator" }));
+      menu.append(
+        new MenuItem({
+          label: "Cancel",
+          click: () => pick(null),
+        }),
+      );
 
-            menu.on("menu-will-close", () => {
-              setTimeout(() => resolve({}), 100);
-            });
+      menu.on("menu-will-close", () => {
+        setTimeout(() => pick(null), 100);
+      });
 
-            menu.popup();
-          })
-          .catch((err) => {
-            console.error("Failed to get desktop sources:", err);
-            callback({});
-          });
-      },
-    );
-  }
+      menu.popup();
+    });
+  });
 }
