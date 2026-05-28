@@ -285,19 +285,14 @@ const useCommsAction = (chatUUID, sub) => {
     if (!room || !room.localParticipant) return;
 
     if (platform === "desktop") {
-      const sourceId = await window.electron.rpc.request(
+      const picked = await window.electron.rpc.request(
         "screenshare:pick-source",
       );
-      if (!sourceId) return; // User cancelled
+      if (!picked) return; // User cancelled
 
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
         audio: false,
-        video: {
-          mandatory: {
-            chromeMediaSource: "desktop",
-            chromeMediaSourceId: sourceId,
-          },
-        },
       });
 
       for (const track of stream.getVideoTracks()) {

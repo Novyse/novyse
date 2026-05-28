@@ -11,21 +11,33 @@ export function setupScreenShareHandler() {
     return true;
   });
 
+  const isWayland =
+    process.platform === "linux" &&
+    !!(
+      process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === "wayland"
+    );
+
+  let pendingSource: Electron.DesktopCapturerSource | null = null;
+
   ipcMain.handle("screenshare:pick-source", async () => {
+    if (isWayland) return true;
+
     const sources = await desktopCapturer.getSources({
       types: ["screen", "window"],
+      thumbnailSize: { width: 160, height: 160 },
     });
 
-    if (!sources || sources.length === 0) return null;
+    if (!sources || sources.length === 0) return false;
 
-    return new Promise<string | null>((resolve) => {
+    return new Promise<boolean>((resolve) => {
       const menu = new Menu();
       let picked = false;
 
-      const pick = (id: string | null) => {
+      const pick = (source: Electron.DesktopCapturerSource | null) => {
         if (!picked) {
           picked = true;
-          resolve(id);
+          pendingSource = source;
+          resolve(source !== null);
         }
       };
 
@@ -36,7 +48,7 @@ export function setupScreenShareHandler() {
             icon: source.thumbnail
               ? source.thumbnail.resize({ height: 80 })
               : undefined,
-            click: () => pick(source.id),
+            click: () => pick(source),
           }),
         );
       }
@@ -55,5 +67,24 @@ export function setupScreenShareHandler() {
 
       menu.popup();
     });
+  });
+
+  session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
+    if (pendingSource) {
+      const source = pendingSource;
+      pendingSource = null;
+      callback({ video: source });
+    } else {
+      desktopCapturer
+        .getSources({ types: ["screen", "window"] })
+        .then((sources) => {
+          if (sources && sources.length > 0) {
+            callback({ video: sources[0] });
+          } else {
+            callback({});
+          }
+        })
+        .catch(() => callback({}));
+    }
   });
 }
