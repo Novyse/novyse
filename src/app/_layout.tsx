@@ -62,7 +62,16 @@ function RootLayoutContent() {
 
   useEffect(() => {
     if (typeof document !== "undefined") {
-      const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+      const handleContextMenu = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        const isInput =
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable;
+        if (!isInput) {
+          e.preventDefault();
+        }
+      };
       document.addEventListener("contextmenu", handleContextMenu);
       return () =>
         document.removeEventListener("contextmenu", handleContextMenu);
