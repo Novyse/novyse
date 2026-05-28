@@ -1,7 +1,7 @@
 {
   "name": "novyse",
   "main": "expo-router/entry",
-  "version": "1.0.1-20260527.0",
+  "version": "1.0.1-20260528.0",
   "scripts": {
     "dev": "expo start -cd",
     "android": "expo run:android",
