@@ -40,6 +40,9 @@ jobs:
       - name: Update package.json
         run: |
           npm version ${{ inputs.version }} --no-git-tag-version
+          cd desktop
+          npm version ${{ inputs.version }} --no-git-tag-version
+          cd ..
           git commit -am "chore: bump version to ${{ inputs.version }}"
 
       - name: Merge into target branch
