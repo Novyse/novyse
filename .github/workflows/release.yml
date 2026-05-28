@@ -91,6 +91,7 @@ jobs:
           bun install
           bun run build:web
   build-firefox:
+    if: ${{ inputs.release_type == 'production' }}
     needs: git-flow
     runs-on: ubuntu-latest
     steps:
@@ -173,6 +174,23 @@ jobs:
         run: bun run build:desktop --win --linux --publish always
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Snapcraft
+        if: ${{ inputs.release_type == 'production' }}
+        run: sudo snap install snapcraft --classic
+
+      - name: Upload to Snapcraft
+        if: ${{ inputs.release_type == 'production' }}
+        run: snapcraft upload desktop/dist/*.snap --release=stable
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
+
+      - name: Upload to Flathub
+        if: ${{ inputs.release_type == 'production' }}
+        run: |
+          # NOTA: L'upload su Flathub solitamente avviene tramite flat-manager o PR alla repository Flathub.
+          # Sostituisci questo script con il tuo tool di deploy per Flathub (es. flat-manager-client)
+          echo "Inizio caricamento su Flathub..."
 
   build-electron-mac:
     needs: create-release
