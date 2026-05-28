@@ -9,33 +9,6 @@ webFrame.executeJavaScript(`
   }
 `);
 
-const isWayland =
-  process.platform === "linux" &&
-  !!(process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === "wayland");
-
-if (!isWayland) {
-  webFrame.executeJavaScript(`
-    (function() {
-      const origGetDisplayMedia = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
-      navigator.mediaDevices.getDisplayMedia = async function(constraints) {
-        const sourceId = await window.electron.rpc.request("screenshare:pick-source");
-        if (!sourceId) {
-          throw new DOMException("Permission denied", "NotAllowedError");
-        }
-        return navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            mandatory: {
-              chromeMediaSource: "desktop",
-              chromeMediaSourceId: sourceId
-            }
-          }
-        });
-      };
-    })();
-  `);
-}
-
 const electronAPI: ElectronWindow = {
   platform:
     process.platform === "win32"

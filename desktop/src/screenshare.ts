@@ -11,7 +11,6 @@ export function setupScreenShareHandler() {
     return true;
   });
 
-  // IPC: show native menu, return selected source ID (or null if cancelled)
   ipcMain.handle("screenshare:pick-source", async () => {
     const sources = await desktopCapturer.getSources({
       types: ["screen", "window"],

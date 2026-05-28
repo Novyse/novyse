@@ -283,16 +283,43 @@ const useCommsAction = (chatUUID, sub) => {
 
   const startScreenShare = async () => {
     if (!room || !room.localParticipant) return;
-    const isAudioEnabled = platform !== "desktop";
-    const screenTracks = await room.localParticipant.createScreenTracks({
-      audio: isAudioEnabled,
-    });
-    for (const track of screenTracks) {
-      const publication = await room.localParticipant.publishTrack(track);
-      setActiveScreenShares((prev) => ({
-        ...prev,
-        [publication.trackSid]: track,
-      }));
+
+    if (platform === "desktop") {
+      const sourceId = await window.electron.rpc.request(
+        "screenshare:pick-source",
+      );
+      if (!sourceId) return; // User cancelled
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          mandatory: {
+            chromeMediaSource: "desktop",
+            chromeMediaSourceId: sourceId,
+          },
+        },
+      });
+
+      for (const track of stream.getVideoTracks()) {
+        const publication = await room.localParticipant.publishTrack(track, {
+          source: "screen_share",
+        });
+        setActiveScreenShares((prev) => ({
+          ...prev,
+          [publication.trackSid]: track,
+        }));
+      }
+    } else {
+      const screenTracks = await room.localParticipant.createScreenTracks({
+        audio: true,
+      });
+      for (const track of screenTracks) {
+        const publication = await room.localParticipant.publishTrack(track);
+        setActiveScreenShares((prev) => ({
+          ...prev,
+          [publication.trackSid]: track,
+        }));
+      }
     }
   };
 
