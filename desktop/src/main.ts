@@ -25,7 +25,10 @@ import config from "../electron-builder.config";
 app.commandLine.appendSwitch("ignore-gpu-blocklist");
 app.commandLine.appendSwitch("enable-gpu-rasterization");
 app.commandLine.appendSwitch("enable-zero-copy");
-if (process.platform === "linux") {
+const isWayland =
+  process.platform === "linux" &&
+  !!(process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === "wayland");
+if (isWayland) {
   app.commandLine.appendSwitch("enable-features", "WebRTCPipeWireCapturer");
 }
 

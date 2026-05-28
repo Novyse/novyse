@@ -3,22 +3,24 @@ const { session, desktopCapturer, Menu, MenuItem } = require("electron");
 export function setupScreenShareHandler() {
   session.defaultSession.setPermissionRequestHandler(
     (webContents: any, permission: string, callback: any) => {
-      if (permission === "display-capture" || permission === "media") {
-        callback(true);
-      } else {
-        callback(false);
-      }
+      callback(true);
     },
   );
 
-  if (process.platform !== "linux") {
+  const isWayland =
+    process.platform === "linux" &&
+    !!(
+      process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === "wayland"
+    );
+
+  if (!isWayland) {
     session.defaultSession.setDisplayMediaRequestHandler(
       (request: any, callback: any) => {
         desktopCapturer
           .getSources({ types: ["screen", "window"] })
           .then((sources: any[]) => {
             if (!sources || sources.length === 0) {
-              return callback({} as any);
+              return callback(null);
             }
 
             const menu = new Menu();
@@ -48,19 +50,19 @@ export function setupScreenShareHandler() {
             menu.append(
               new MenuItem({
                 label: "Cancel",
-                click: () => safeCallback({} as any),
+                click: () => safeCallback(null),
               }),
             );
 
             menu.on("menu-will-close", () => {
-              setTimeout(() => safeCallback({} as any), 100);
+              setTimeout(() => safeCallback(null), 100);
             });
 
             menu.popup();
           })
           .catch((err: any) => {
             console.error("Error getting desktop sources:", err);
-            callback({} as any);
+            callback(null);
           });
       },
     );
