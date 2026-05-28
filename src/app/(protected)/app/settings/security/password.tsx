@@ -137,10 +137,10 @@ export default function PasswordRoute() {
                 ? "settings.security.passwordActive"
                 : "settings.security.noPasswordSet"
             }
-            value={
+            valueKey={
               hasPassword
-                ? t("settings.security.passwordProtected")
-                : t("settings.security.addPasswordSecurity")
+                ? "settings.security.passwordProtected"
+                : "settings.security.addPasswordSecurity"
             }
             style={{ borderBottomWidth: 0 }}
           />

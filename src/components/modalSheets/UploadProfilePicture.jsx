@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 
-import ModalBase from "@/src/components/modalSheets/ModalBase";
+import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import Avatar from "@/src/components/Avatar";
 import Dropzone from "@/src/components/modalSheets/uploadFile/Dropzone";
 import Footer from "@/src/components/modalSheets/uploadFile/Footer";
@@ -136,10 +136,11 @@ const UploadProfilePicture = ({ visible, onClose }) => {
   };
 
   return (
-    <ModalBase
+    <AdaptiveModal
       visible={visible}
       onClose={onClose}
       theme={theme}
+      mode="modal"
       hideCloseX={true}
     >
       <View style={styles.container}>
@@ -201,7 +202,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
         )}
       </View>
       <WebDropZone onFilesDropped={onFileDrop} />
-    </ModalBase>
+    </AdaptiveModal>
   );
 };
 

@@ -18,19 +18,22 @@ const BottomSheetBase = forwardRef(
       enablePanDownToClose = true,
       enableOverDrag = false,
       enableDynamicSizing = false,
+      hideOverlay = false,
       ...props
     },
     ref,
   ) => {
     const renderBackdrop = useCallback(
-      (props) => (
+      (backdropProps) => (
         <BottomSheetBackdrop
-          {...props}
+          {...backdropProps}
           disappearsOnIndex={-1}
           appearsOnIndex={0}
+          opacity={hideOverlay ? 0 : 1}
+          pressBehavior="close"
         />
       ),
-      [],
+      [hideOverlay],
     );
 
     const Container = scrollable ? BottomSheetScrollView : BottomSheetView;

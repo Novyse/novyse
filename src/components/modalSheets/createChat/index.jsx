@@ -1,18 +1,10 @@
-import React, {
-  useState,
-  useContext,
-  useMemo,
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-} from "react";
+import React, { useState, useContext, useMemo } from "react";
 import {
   View,
   TextInput,
   StyleSheet,
   ActivityIndicator,
   useWindowDimensions,
-  Platform,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -21,8 +13,7 @@ import HoverAndPressedButton from "../../HoverAndPressedButton";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
-import ModalBase from "../ModalBase";
-import BottomSheetBase from "../BottomSheetBase";
+import AdaptiveModal from "../AdaptiveModal";
 import SelectButton from "./Button";
 import StatusMessage from "../../StatusMessage";
 import Icon from "@/src/components/Icon";
@@ -32,7 +23,7 @@ import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import { validate } from "@/src/utils/welcome/validator";
 
-const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
+const CreateChatModal = ({ visible, onClose }) => {
   const { theme } = useContext(ThemeContext);
   const { t } = useTranslation();
   const setSelectedChatUUID = useActiveChatStore(
@@ -40,7 +31,6 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
   );
   const { width } = useWindowDimensions();
   const isNarrow = width <= 360;
-  const isMobile = Platform.OS !== "web";
   const styles = createStyle(theme, isNarrow);
 
   const [name, setName] = useState("");
@@ -59,21 +49,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
   const [handleError, setHandleError] = useState(null);
   const [nameError, setNameError] = useState(null);
 
-  const bottomSheetModalRef = useRef(null);
   const snapPoints = useMemo(() => ["85%"], []);
-
-  useImperativeHandle(ref, () => ({
-    present: () => {
-      if (isMobile) {
-        bottomSheetModalRef.current?.present();
-      }
-    },
-    dismiss: () => {
-      if (isMobile) {
-        bottomSheetModalRef.current?.dismiss();
-      }
-    },
-  }));
 
   const resetFields = () => {
     setName("");
@@ -194,11 +170,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
       console.info("Chat created successfully", chat);
 
       resetFields();
-      if (isMobile) {
-        bottomSheetModalRef.current?.dismiss();
-      } else {
-        onClose();
-      }
+      onClose();
 
       // Notify other parts of the app about the new chat
       await eventEmitter.chat.new(chat, []);
@@ -393,13 +365,7 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
       {/* Footer */}
       <View style={[styles.footer, isNarrow && styles.footerNarrow]}>
         <HoverAndPressedButton
-          onPress={() => {
-            if (isMobile) {
-              bottomSheetModalRef.current?.dismiss();
-            } else {
-              onClose();
-            }
-          }}
+          onPress={onClose}
           style={[styles.cancelBtn, isNarrow && styles.cancelBtnNarrow]}
         >
           <AppText
@@ -421,30 +387,19 @@ const CreateChatModal = forwardRef(({ visible, onClose }, ref) => {
     </View>
   );
 
-  if (isMobile) {
-    return (
-      <BottomSheetBase
-        ref={bottomSheetModalRef}
-        snapPoints={snapPoints}
-        onClose={onClose}
-        theme={theme}
-      >
-        {ModalContent}
-      </BottomSheetBase>
-    );
-  }
-
   return (
-    <ModalBase
+    <AdaptiveModal
       visible={visible}
       onClose={onClose}
       theme={theme}
+      mode="adaptive"
+      snapPoints={snapPoints}
       hideCloseX={true}
     >
       {ModalContent}
-    </ModalBase>
+    </AdaptiveModal>
   );
-});
+};
 
 function createStyle(theme, isNarrow = false) {
   return StyleSheet.create({

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
-import ModalBase from "./ModalBase";
+import AdaptiveModal from "./AdaptiveModal";
 import Icon from "../Icon";
 import AppText from "../AppText";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -35,7 +35,7 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
   };
 
   return (
-    <ModalBase visible={visible} onClose={onClose} theme={theme}>
+    <AdaptiveModal visible={visible} onClose={onClose} theme={theme} mode="adaptive">
       <View style={styles.contentContainer}>
         <AppText
           style={styles.title}
@@ -70,7 +70,7 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
           />
         )}
       </View>
-    </ModalBase>
+    </AdaptiveModal>
   );
 };
 
