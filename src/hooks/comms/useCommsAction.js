@@ -283,8 +283,9 @@ const useCommsAction = (chatUUID, sub) => {
 
   const startScreenShare = async () => {
     if (!room || !room.localParticipant) return;
+    const isAudioEnabled = platform !== "desktop";
     const screenTracks = await room.localParticipant.createScreenTracks({
-      audio: true,
+      audio: isAudioEnabled,
     });
     for (const track of screenTracks) {
       const publication = await room.localParticipant.publishTrack(track);
