@@ -158,21 +158,21 @@ jobs:
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > ${{ github.workspace }}/google-services.json
           echo "${{ secrets.GOOGLE_SERVICES_PLIST }}" | base64 --decode > ${{ github.workspace }}/GoogleService-Info.plist
 
-      - name: Install EAS CLI & Dependencies
-        run: |
-          npm install -g eas-cli
-          bun install
+      - name: Install Dependencies
+        run: bun install
 
-      - name: Build Android (Local)
+      - name: Build Android (Local Native)
         run: |
+          bunx expo prebuild --clean
+          cd android
           if [ "${{ inputs.release_type }}" = "production" ]; then
-            eas build --platform android --local --profile production --output ./app-release.aab --non-interactive --auto-submit
-            eas build --platform android --local --profile production-apk --output ./app-release.apk --non-interactive
+            ./gradlew bundleRelease
+            ./gradlew assembleRelease
           else
-            eas build --platform android --local --profile preview --output ./app-release.apk --non-interactive
+            ./gradlew assembleRelease
           fi
+          cd ..
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           GOOGLE_SERVICES_JSON: ${{ github.workspace }}/google-services.json
           GOOGLE_SERVICES_PLIST: ${{ github.workspace }}/GoogleService-Info.plist
           _JAVA_OPTIONS: "-Xmx4g"
@@ -180,6 +180,9 @@ jobs:
 
       - name: Attach Android Build Artifacts to GitHub Release
         run: |
+          find android/app/build/outputs/bundle -name "*.aab" -exec cp {} ./app-release.aab \; || true
+          find android/app/build/outputs/apk -name "*.apk" -exec cp {} ./app-release.apk \; || true
+          
           if [ -f ./app-release.aab ]; then
             gh release upload v${{ inputs.version }} ./app-release.aab || true
           fi
@@ -280,4 +283,3 @@ jobs:
         run: gh release edit v${{ inputs.version }} --draft=false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
