@@ -107,9 +107,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-firefox:
-    needs: create-release
     if: ${{ inputs.release_type == 'production' }}
-    needs: git-flow
+    needs: [git-flow, create-release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
