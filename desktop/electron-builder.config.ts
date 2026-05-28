@@ -9,6 +9,7 @@ export default {
   appId: identifier,
   productName: appName,
   asar: true,
+  asarUnpack: ["**/*.node", "node_modules/@img/**", "node_modules/sharp/**"],
   publish: {
     provider: "github",
     owner: "Novyse",
@@ -54,5 +55,8 @@ export default {
         ? ["AppImage", "deb", "rpm", "snap", "flatpak"]
         : ["AppImage", "deb", "rpm"],
     icon: "../assets/images/logo-novyse.png",
+  },
+  rpm: {
+    fpm: ["--rpm-rpmbuild-define=_build_id_links none"],
   },
 };
