@@ -40,16 +40,16 @@ export default {
   ],
   mac: {
     category: "public.app-category.social-networking",
-    target: ["dmg"],
+    target: ["dmg", "zip"],
     icon: "../assets/images/logo-novyse.png",
   },
   win: {
-    target: ["nsis"],
+    target: ["nsis", "msi", "portable"],
     icon: "../assets/images/logo-novyse.png",
   },
   linux: {
     category: "Network",
-    target: ["AppImage"],
+    target: ["AppImage", "deb", "rpm", "snap", "flatpak"],
     icon: "../assets/images/logo-novyse.png",
   },
 };
