@@ -56,6 +56,18 @@ const electronAPI: ElectronWindow = {
       return () => ipcRenderer.removeListener("updater:status", listener);
     },
   },
+  shortcuts: {
+    register: (keys: string[], global: boolean) =>
+      ipcRenderer.send("shortcuts:register", keys, global),
+    unregister: (keys: string[], global: boolean) =>
+      ipcRenderer.send("shortcuts:unregister", keys, global),
+    unregisterAll: () => ipcRenderer.send("shortcuts:unregisterAll"),
+    onTriggered: (callback: (keys: string[]) => void) => {
+      const listener = (_event: any, keys: string[]) => callback(keys);
+      ipcRenderer.on("shortcuts:triggered", listener);
+      return () => ipcRenderer.removeListener("shortcuts:triggered", listener);
+    },
+  },
 };
 
 contextBridge.exposeInMainWorld("electron", electronAPI);

@@ -26,6 +26,12 @@ export interface ElectronWindow {
     install: () => Promise<void>;
     onStatus: (callback: (status: any) => void) => () => void;
   };
+  shortcuts: {
+    register: (keys: string[], global: boolean) => void;
+    unregister: (keys: string[], global: boolean) => void;
+    unregisterAll: () => void;
+    onTriggered: (callback: (keys: string[]) => void) => () => void;
+  };
 }
 
 declare global {
