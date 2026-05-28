@@ -70,6 +70,7 @@ jobs:
           tag_name: v${{ inputs.version }}
           name: Version ${{ inputs.version }}
           prerelease: ${{ inputs.release_type == 'preview' }}
+          draft: true
           body: ${{ inputs.patch_notes }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
