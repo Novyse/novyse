@@ -76,7 +76,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-deploy-web:
-    needs: git-flow
+    needs: create-release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -94,6 +94,17 @@ jobs:
         run: |
           bun install
           bun run build:web
+
+      - name: Package Web Build
+        run: |
+          cd dist
+          zip -r ../novyse-web-${{ inputs.version }}.zip .
+          cd ..
+
+      - name: Attach Web Build Artifact to GitHub Release
+        run: gh release upload v${{ inputs.version }} novyse-web-${{ inputs.version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-firefox:
     if: ${{ inputs.release_type == 'production' }}
@@ -132,6 +143,16 @@ jobs:
           distribution: zulu
           java-version: "17"
 
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Decode Google Services
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > ${{ github.workspace }}/google-services.json
@@ -154,14 +175,16 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           GOOGLE_SERVICES_JSON: ${{ github.workspace }}/google-services.json
           GOOGLE_SERVICES_PLIST: ${{ github.workspace }}/GoogleService-Info.plist
+          _JAVA_OPTIONS: "-Xmx4g"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m"
 
       - name: Attach Android Build Artifacts to GitHub Release
         run: |
           if [ -f ./app-release.aab ]; then
-            gh release upload v${{ inputs.version }} ./app-release.aab
+            gh release upload v${{ inputs.version }} ./app-release.aab || true
           fi
           if [ -f ./app-release.apk ]; then
-            gh release upload v${{ inputs.version }} ./app-release.apk
+            gh release upload v${{ inputs.version }} ./app-release.apk || true
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -178,20 +201,27 @@ jobs:
         with:
           node-version: "24"
       - uses: oven-sh/setup-bun@v1
-      
+
       - name: Install Linux Build Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder
+          sudo apt-get install -y flatpak flatpak-builder elfutils zip unzip
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           sudo snap install snapcraft --classic
 
       - name: Install Dependencies
         run: |
           bun install
           cd desktop && bun install
-          
+
       - name: Build Linux
-        run: bun run build:desktop --linux --publish always
+        run: bun run build:desktop --linux
+
+      - name: Attach Linux Build Artifacts to GitHub Release
+        run: |
+          gh release upload v${{ inputs.version }} desktop/dist/*.AppImage || true
+          gh release upload v${{ inputs.version }} desktop/dist/*.deb || true
+          gh release upload v${{ inputs.version }} desktop/dist/*.rpm || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -200,6 +230,8 @@ jobs:
         run: snapcraft upload desktop/dist/*.snap --release=stable
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
+
+      # upload to flathub
 
   build-electron-win:
     needs: create-release
@@ -219,9 +251,15 @@ jobs:
           bun install
           cd desktop
           bun install
-          
+
       - name: Build Windows
-        run: bun run build:desktop --win --publish always
+        run: bun run build:desktop --win
+
+      - name: Attach Windows Build Artifacts to GitHub Release
+        shell: bash
+        run: |
+          gh release upload v${{ inputs.version }} desktop/dist/*.exe || true
+          gh release upload v${{ inputs.version }} desktop/dist/*.msi || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -242,6 +280,11 @@ jobs:
           bun install
           cd desktop && bun install
       - name: Build Mac
-        run: bun run build:desktop --mac --publish always
+        run: bun run build:desktop --mac
+
+      - name: Attach Mac Build Artifacts to GitHub Release
+        run: |
+          gh release upload v${{ inputs.version }} desktop/dist/*.dmg || true
+          gh release upload v${{ inputs.version }} desktop/dist/*.zip || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
