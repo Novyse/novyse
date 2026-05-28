@@ -1,5 +1,8 @@
-import { Notification, BrowserWindow, app } from "electron";
+import { Notification, BrowserWindow, app, nativeImage } from "electron";
 import * as path from "path";
+import * as fs from "fs";
+import sharp from "sharp";
+import { FILES_DIR } from "../paths";
 import type {
   ShowNotificationRequest,
   ShowNotificationResponse,
@@ -9,12 +12,30 @@ export async function handleShowNotification(
   request: ShowNotificationRequest,
 ): Promise<ShowNotificationResponse> {
   try {
-    const { title, body, subtitle, data } = request;
+    const { title, body, subtitle, data, icon } = request;
 
     const appDir = app.getAppPath();
     const defaultIconPath = app.isPackaged
       ? path.resolve(appDir, "assets", "images", "logo-novyse.png")
       : path.resolve(appDir, "..", "assets", "images", "logo-novyse.png");
+
+    let finalIcon: string | Electron.NativeImage = defaultIconPath;
+    if (icon) {
+      const potentialIconPath = path.join(FILES_DIR, icon);
+      if (fs.existsSync(potentialIconPath)) {
+        try {
+          const buffer = fs.readFileSync(potentialIconPath);
+          const pngBuffer = await sharp(buffer)
+            .resize(256, 256, { fit: "cover" })
+            .png()
+            .toBuffer();
+
+          finalIcon = nativeImage.createFromBuffer(pngBuffer);
+        } catch (err) {
+          console.error("Failed to process notification icon with sharp:", err);
+        }
+      }
+    }
 
     let finalBody = body || "";
     if (subtitle) {
@@ -30,7 +51,7 @@ export async function handleShowNotification(
       title: title,
       subtitle: process.platform === "darwin" ? subtitle : undefined,
       body: finalBody,
-      icon: defaultIconPath,
+      icon: finalIcon,
     });
 
     notification.show();

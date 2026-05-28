@@ -98,13 +98,17 @@ class NotificationManager {
     profilePictureUUID?: string,
     subtitle?: string,
   ) {
-    const icon = (await getProfilePictureUri(profilePictureUUID)) || undefined;
+    const icon =
+      Platform !== "desktop"
+        ? (await getProfilePictureUri(profilePictureUUID)) || undefined
+        : undefined;
+
     switch (Platform) {
       case "web":
         web.send(title, body, data, icon, subtitle);
         break;
       case "desktop":
-        desktop.send(title, body, data, icon, subtitle);
+        desktop.send(title, body, data, profilePictureUUID, subtitle);
         break;
       case "mobile":
         // Local display via Notifee
