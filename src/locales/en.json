@@ -203,6 +203,21 @@
           "loading": "Loading microphones...",
           "currentlySelected": "Currently Selected",
           "defaultName": "Microphone {{id}}"
+        },
+        "screenshare": {
+          "title": "Share your screen",
+          "loading": "Loading sources...",
+          "screens": "Screens",
+          "windows": "Windows",
+          "screen": "Screen",
+          "window": "Window",
+          "includeAudio": "Share system audio",
+          "macOsAudioWarning": "Audio sharing is not supported on your macOS version.",
+          "permissionWarning": "Please allow screen recording in System Settings (Privacy & Security) to share your screen.",
+          "nativeMenuWarning": "Your Desktop environment requires selecting the screen or window from the native system portal.",
+          "share": "Share",
+          "cancel": "Cancel",
+          "startScreenShare": "Start"
         }
       }
     },

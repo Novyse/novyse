@@ -10,6 +10,7 @@ import MicrophoneSelector from "@/src/components/comms/BottomBar/MicrophoneSelec
 import MicrophoneArrowButton from "@/src/components/comms/BottomBar/MicrophoneArrowButton";
 import CameraSelector from "@/src/components/comms/BottomBar/CameraSelector";
 import CameraArrowButton from "@/src/components/comms/BottomBar/CameraArrowButton";
+import ScreenShareSelector from "@/src/components/comms/BottomBar/ScreenShareSelector";
 import StatusMessage from "@/src/components/StatusMessage";
 
 import BlurredView from "@/src/components/BlurredView";
@@ -26,6 +27,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
 
   const [showMicrophoneSelector, setShowMicrophoneSelector] = useState(false);
   const [showCameraSelector, setShowCameraSelector] = useState(false);
+  const [showScreenShareSelector, setShowScreenShareSelector] = useState(false);
 
   const {
     connecting,
@@ -125,7 +127,10 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
             />
           </View>
           <CommsBottomBarButton
-            onPress={startScreenShare}
+            onPress={() => {
+              if (Platform === "desktop") setShowScreenShareSelector(true);
+              else startScreenShare();
+            }}
             iconName={"ComputerScreenShareIcon"}
           />
           <CommsBottomBarButton
@@ -153,6 +158,12 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
         onClose={() => setShowCameraSelector(false)}
         onCameraSelected={(id) => setCameraDevice(id)}
         currentDeviceId={cameraDevice}
+      />
+
+      <ScreenShareSelector
+        visible={showScreenShareSelector}
+        onClose={() => setShowScreenShareSelector(false)}
+        onSourceSelected={startScreenShare}
       />
     </View>
   );

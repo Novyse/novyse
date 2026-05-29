@@ -25,18 +25,27 @@ import config from "../electron-builder.config";
 app.commandLine.appendSwitch("ignore-gpu-blocklist");
 app.commandLine.appendSwitch("enable-gpu-rasterization");
 app.commandLine.appendSwitch("enable-zero-copy");
-const isWayland =
-  process.platform === "linux" &&
-  !!(process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === "wayland");
-
-if (isWayland) {
-  app.commandLine.appendSwitch("enable-features", "WebRTCPipeWireCapturer");
-}
 
 if (process.platform === "win32") {
   app.commandLine.appendSwitch(
     "disable-features",
     "WebRtcAllowWgcWindowCapturer",
+  );
+}
+
+if (process.platform === "linux") {
+  const isWayland = !!(
+    process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === "wayland"
+  );
+  if (isWayland) {
+    app.commandLine.appendSwitch("enable-features", "WebRTCPipeWireCapturer");
+  }
+}
+
+if (process.platform === "darwin") {
+  app.commandLine.appendSwitch(
+    "disable-features",
+    "MacCatapLoopbackAudioForScreenShare",
   );
 }
 

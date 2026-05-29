@@ -43,6 +43,12 @@ export default {
     category: "public.app-category.social-networking",
     target: ["dmg", "zip"],
     icon: "../assets/images/logo-novyse.png",
+    extendInfo: {
+      NSAudioCaptureUsageDescription:
+        "This app requires access to system audio for screen sharing.",
+      NSScreenCaptureUsageDescription:
+        "This app requires access to screen recording to share your screen.",
+    },
   },
   win: {
     target: ["nsis", "msi", "portable"],

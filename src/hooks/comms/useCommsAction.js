@@ -281,17 +281,12 @@ const useCommsAction = (chatUUID, sub) => {
     switchFacingMode();
   }, [facingMode]);
 
-  const startScreenShare = async () => {
+  const startScreenShare = async (sourceId = null, includeAudio = false) => {
     if (!room || !room.localParticipant) return;
 
     if (platform === "desktop") {
+      if (!sourceId) return;
       try {
-        const result = await window.electron.rpc.request(
-          "screenshare:pick-source",
-        );
-        if (!result) return; // User cancelled
-
-        const { sourceId, includeAudio } = result;
         let stream;
 
         if (sourceId === "wayland") {

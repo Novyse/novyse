@@ -1,4 +1,4 @@
-import { session, desktopCapturer, Menu, MenuItem, ipcMain } from "electron";
+import { session, desktopCapturer, ipcMain, systemPreferences } from "electron";
 
 export function setupScreenShareHandler() {
   session.defaultSession.setPermissionRequestHandler(
@@ -17,22 +17,22 @@ export function setupScreenShareHandler() {
       process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === "wayland"
     );
 
-  ipcMain.handle("screenshare:pick-source", async () => {
-    if (isWayland) {
-      const { dialog } = require("electron");
-      const { response } = await dialog.showMessageBox({
-        type: "question",
-        buttons: ["Video Only", "Video + System Audio", "Cancel"],
-        title: "Wayland Screen Share",
-        message: "Do you want to share your system audio?",
-        detail:
-          "Warning: sharing system audio may cause echo if you are not using headphones.",
-        defaultId: 0,
-        cancelId: 2,
-      });
+  const isMacOs15OrHigher =
+    process.platform === "darwin" &&
+    parseInt(process.getSystemVersion().split(".")[0]) >= 15;
 
-      if (response === 2) return null;
-      return { sourceId: "wayland", includeAudio: response === 1 };
+  const shouldUseNativePicker = isWayland || isMacOs15OrHigher;
+
+  ipcMain.handle("screenshare:get-sources", async () => {
+    if (process.platform === "darwin") {
+      const status = systemPreferences.getMediaAccessStatus("screen");
+      if (status !== "granted") {
+        return { error: "permission-denied" };
+      }
+    }
+
+    if (shouldUseNativePicker) {
+      return { hasNativeScreenShareMenu: true };
     }
 
     const sources = await desktopCapturer.getSources({
@@ -40,61 +40,35 @@ export function setupScreenShareHandler() {
       thumbnailSize: { width: 160, height: 160 },
     });
 
-    if (!sources || sources.length === 0) return null;
-
-    return new Promise((resolve) => {
-      const menu = new Menu();
-      let picked = false;
-
-      const pick = (sourceId: string | null, includeAudio: boolean) => {
-        if (!picked) {
-          picked = true;
-          resolve(sourceId ? { sourceId, includeAudio } : null);
-        }
-      };
-
-      for (const source of sources) {
-        menu.append(
-          new MenuItem({
-            label: source.name,
-            icon: source.thumbnail
-              ? source.thumbnail.resize({ height: 80 })
-              : undefined,
-            submenu: [
-              {
-                label: "Share without Audio",
-                click: () => pick(source.id, false),
-              },
-              {
-                label: "Share with System Audio (Warning: may echo)",
-                click: () => pick(source.id, true),
-              },
-            ],
-          }),
-        );
-      }
-
-      menu.append(new MenuItem({ type: "separator" }));
-      menu.append(
-        new MenuItem({
-          label: "Cancel",
-          click: () => pick(null, false),
-        }),
-      );
-
-      menu.on("menu-will-close", () => {
-        setTimeout(() => pick(null, false), 100);
-      });
-
-      menu.popup();
-    });
+    return {
+      osVersion:
+        process.platform === "darwin" ? process.getSystemVersion() : undefined,
+      sources: sources.map((s) => ({
+        id: s.id,
+        name: s.name,
+        thumbnail: s.thumbnail ? s.thumbnail.toDataURL() : undefined,
+        appIcon: s.appIcon ? s.appIcon.toDataURL() : undefined,
+      })),
+    };
   });
+
+  let nativePickerTypes: ("screen" | "window")[] = ["screen", "window"];
+
+  ipcMain.handle(
+    "screenshare:set-native-type",
+    async (_, type: "screen" | "window" | "both") => {
+      if (type === "screen") nativePickerTypes = ["screen"];
+      else if (type === "window") nativePickerTypes = ["window"];
+      else nativePickerTypes = ["screen", "window"];
+      return true;
+    },
+  );
 
   session.defaultSession.setDisplayMediaRequestHandler(
     (_request, callback) => {
-      if (isWayland) {
+      if (shouldUseNativePicker) {
         desktopCapturer
-          .getSources({ types: ["screen", "window"] })
+          .getSources({ types: nativePickerTypes })
           .then((sources) => {
             if (sources && sources.length > 0) {
               callback({ video: sources[0], audio: "loopback" });
@@ -107,6 +81,6 @@ export function setupScreenShareHandler() {
         callback({});
       }
     },
-    { useSystemPicker: false },
+    { useSystemPicker: shouldUseNativePicker },
   );
 }

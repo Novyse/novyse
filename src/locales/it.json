@@ -201,6 +201,21 @@
           "loading": "Caricamento microfoni...",
           "currentlySelected": "Attualmente Selezionato",
           "defaultName": "Microfono {{id}}"
+        },
+        "screenshare": {
+          "title": "Condividi il tuo schermo",
+          "loading": "Caricamento delle sorgenti in corso...",
+          "screens": "Schermi interi",
+          "windows": "Singole finestre",
+          "screen": "Schermo",
+          "window": "Finestra",
+          "includeAudio": "Includi l'audio di sistema",
+          "macOsAudioWarning": "La condivisione audio non è supportata sulla tua versione di macOS.",
+          "permissionWarning": "Per condividere lo schermo, devi consentire all'app i permessi di registrazione schermo nelle Impostazioni di Sistema (Privacy e Sicurezza).",
+          "nativeMenuWarning": "Il tuo ambiente Desktop richiede di selezionare lo schermo o la finestra dal portale di sistema nativo.",
+          "share": "Condividi",
+          "cancel": "Annulla",
+          "startScreenShare": "Avvia"
         }
       }
     },
