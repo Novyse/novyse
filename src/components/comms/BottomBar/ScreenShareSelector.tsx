@@ -12,7 +12,6 @@ import AdaptiveModal from "../../modalSheets/AdaptiveModal";
 import AppText from "@/src/components/AppText";
 import Switch from "@/src/components/Switch";
 import ToggleSelector from "@/src/components/ToggleSelector";
-import Icon from "@/src/components/Icon";
 import { useTranslation } from "react-i18next";
 import { ScrollBar } from "@/constants/ScrollBar";
 
@@ -56,6 +55,10 @@ const ScreenShareSelector = ({
       setIncludeAudio(false);
     }
   }, [visible]);
+
+  useEffect(() => {
+    console.log(sources);
+  }, [sources]);
 
   const loadSources = async () => {
     if (!window.electron) return;
@@ -124,22 +127,32 @@ const ScreenShareSelector = ({
     }
   }, [isScreenSelected]);
 
+  const activeSources = activeTab === "screen" ? screens : windows;
+
   const renderSourceItem = (source: ScreenShareSource) => {
     const isSelected = source.id === selectedSourceId;
+
     return (
       <TouchableOpacity
         key={source.id}
         style={[styles.sourceItem, isSelected && styles.sourceItemSelected]}
         onPress={() => setSelectedSourceId(source.id)}
       >
-        {source.thumbnail ? (
-          <Image source={{ uri: source.thumbnail }} style={styles.thumbnail} />
-        ) : (
-          <View style={styles.thumbnailPlaceholder} />
-        )}
-        <AppText style={styles.sourceName} numberOfLines={1}>
-          {source.name}
-        </AppText>
+        <View style={styles.thumbnailContainer}>
+          {source.thumbnail ? (
+            <Image
+              source={{ uri: source.thumbnail }}
+              style={styles.thumbnail}
+            />
+          ) : (
+            <View style={styles.thumbnailPlaceholder} />
+          )}
+        </View>
+        <View style={styles.sourceNameContainer}>
+          <AppText style={styles.sourceName} numberOfLines={1}>
+            {source.name}
+          </AppText>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -175,49 +188,56 @@ const ScreenShareSelector = ({
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <AppText
-            style={styles.loadingText}
-            translationKey="chat.comms.selectors.screenshare.loading"
-          />
+        <View style={styles.sourcesArea}>
+          <View style={styles.loadingContainer}>
+            <AppText
+              style={styles.loadingText}
+              translationKey="chat.comms.selectors.screenshare.loading"
+            />
+          </View>
         </View>
       ) : permissionDenied ? (
-        <View style={styles.warningContainer}>
-          <AppText
-            style={styles.warningText}
-            translationKey="chat.comms.selectors.screenshare.permissionWarning"
-          />
+        <View style={styles.sourcesArea}>
+          <View style={styles.warningContainer}>
+            <AppText
+              style={styles.warningText}
+              translationKey="chat.comms.selectors.screenshare.permissionWarning"
+            />
+          </View>
         </View>
       ) : hasNativeScreenShareMenu ? null : (
-        <ScrollView
-          style={styles.listWrapper}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.grid}>
-            {(activeTab === "screen" ? screens : windows).map(renderSourceItem)}
-          </View>
-        </ScrollView>
+        <View style={styles.sourcesArea}>
+          <ScrollView
+            style={styles.listWrapper}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.grid}>
+              {activeSources.map(renderSourceItem)}
+            </View>
+          </ScrollView>
+        </View>
       )}
 
       <View style={styles.footer}>
-        {activeTab === "screen" ? (
-          audioDisabledByMac ? (
-            <AppText
-              style={styles.audioWarningText}
-              translationKey="chat.comms.selectors.screenshare.macOsAudioWarning"
-            />
-          ) : (
-            <View style={styles.audioToggleContainer}>
-              <Switch value={includeAudio} onValueChange={setIncludeAudio} />
+        <View style={styles.footerAudioRow}>
+          {activeTab === "screen" ? (
+            audioDisabledByMac ? (
               <AppText
-                style={styles.audioText}
-                translationKey="chat.comms.selectors.screenshare.includeAudio"
+                style={styles.audioWarningText}
+                translationKey="chat.comms.selectors.screenshare.macOsAudioWarning"
               />
-            </View>
-          )
-        ) : (
-          <View style={{ height: 24 }} />
-        )}
+            ) : (
+              <View style={styles.audioToggleContainer}>
+                <Switch value={includeAudio} onValueChange={setIncludeAudio} />
+                <AppText
+                  style={styles.audioText}
+                  translationKey="chat.comms.selectors.screenshare.includeAudio"
+                />
+              </View>
+            )
+          ) : null}
+        </View>
 
         <View style={styles.footerButtonsRow}>
           <TouchableOpacity
@@ -262,6 +282,7 @@ const ScreenShareSelector = ({
       theme={theme}
       mode="adaptive"
       snapPoints={hasNativeScreenShareMenu ? ["35%"] : ["90%"]}
+      scrollable={false}
     >
       {selectorContent}
     </AdaptiveModal>
@@ -274,13 +295,12 @@ function createStyle(theme: any) {
       width: "100%",
       paddingHorizontal: 20,
       paddingVertical: 10,
-      flex: 1,
     },
     header: {
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 20,
+      marginBottom: 12,
     },
     title: {
       fontSize: 18,
@@ -288,95 +308,103 @@ function createStyle(theme: any) {
       color: theme.text,
     },
     loadingContainer: {
-      padding: 40,
+      flex: 1,
       alignItems: "center",
+      justifyContent: "center",
     },
     loadingText: {
       fontSize: 16,
       color: theme.text,
     },
     warningContainer: {
-      padding: 20,
+      flex: 1,
       alignItems: "center",
+      justifyContent: "center",
       gap: 20,
+      paddingHorizontal: 20,
     },
     warningText: {
       fontSize: 14,
-      color: theme.dangerText || "red",
+      color: theme.dangerText,
       textAlign: "center",
+    },
+    sourcesArea: {
+      width: "100%",
+      height: 320,
+      minHeight: 320,
+      maxHeight: 320,
     },
     listWrapper: {
       width: "100%",
-      flex: 1,
-      minWidth: 300,
+      height: 320,
+      minHeight: 320,
+      maxHeight: 320,
       ...ScrollBar(theme),
     },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: theme.text,
-      marginTop: 10,
-      marginBottom: 10,
+    listContent: {
+      flexGrow: 1,
+      paddingBottom: 4,
     },
     grid: {
       flexDirection: "row",
       flexWrap: "wrap",
       gap: 10,
-      justifyContent: "space-between",
+      width: 400,
+      maxWidth: "100%",
+      alignSelf: "center",
     },
     sourceItem: {
-      width: "48%",
-      borderRadius: 12,
+      width: 195,
+      borderRadius: 10,
       borderWidth: 2,
       borderColor: "transparent",
       overflow: "hidden",
-      marginBottom: 10,
-      backgroundColor: theme.surface,
+      backgroundColor: theme.backgroundMain,
     },
     sourceItemSelected: {
       borderColor: theme.primary,
     },
+    thumbnailContainer: {
+      width: "100%",
+      aspectRatio: 16 / 10,
+      overflow: "hidden",
+      backgroundColor: theme.borderColor,
+    },
     thumbnail: {
       width: "100%",
-      height: 100,
+      height: "100%",
       resizeMode: "cover",
     },
     thumbnailPlaceholder: {
       width: "100%",
-      height: 100,
-      backgroundColor: theme.border,
+      height: "100%",
+      backgroundColor: theme.borderColor,
+    },
+    sourceNameContainer: {
+      height: 32,
+      justifyContent: "center",
+      paddingHorizontal: 8,
     },
     sourceName: {
       fontSize: 12,
       color: theme.text,
-      padding: 8,
       textAlign: "center",
     },
     footer: {
-      marginTop: 20,
-      gap: 15,
-      padding: 16,
+      marginTop: 12,
+      gap: 12,
+      padding: 12,
       borderTopWidth: 1,
-      borderTopColor: theme.border,
+      borderTopColor: theme.borderColor,
+    },
+    footerAudioRow: {
+      height: 28,
+      justifyContent: "center",
     },
     toggleWrapper: {
-      paddingHorizontal: 16,
-      marginBottom: 16,
+      paddingHorizontal: 12,
+      marginBottom: 12,
       alignItems: "center",
-    },
-    nativePlaceholderContainer: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      minHeight: 250,
-    },
-    iconCircle: {
-      width: 160,
-      height: 160,
-      borderRadius: 80,
-      backgroundColor: theme.surfaceHover || "rgba(0,0,0,0.05)",
-      alignItems: "center",
-      justifyContent: "center",
     },
     audioToggleContainer: {
       flexDirection: "row",
@@ -389,35 +417,36 @@ function createStyle(theme: any) {
     },
     audioWarningText: {
       fontSize: 12,
-      color: theme.dangerText || "red",
+      color: theme.dangerText,
     },
     footerButtonsRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginTop: 16,
-      gap: 12,
+      marginTop: 12,
+      gap: 10,
     },
     actionButton: {
       flex: 1,
-      padding: 12,
-      borderRadius: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 10,
+      borderRadius: 10,
       alignItems: "center",
       justifyContent: "center",
     },
     cancelButton: {
-      backgroundColor: theme.surfaceHover || "#333",
+      backgroundColor: theme.iconDanger,
     },
     cancelButtonText: {
       color: theme.text,
-      fontSize: 16,
+      fontSize: 15,
       fontWeight: "600",
     },
     startButton: {
       backgroundColor: theme.primary,
     },
     startButtonText: {
-      color: "#FFFFFF",
-      fontSize: 16,
+      color: theme.text,
+      fontSize: 15,
       fontWeight: "600",
     },
     shareButtonDisabled: {
