@@ -37,13 +37,32 @@ jobs:
           git config user.name "GitHub Action Bot"
           git config user.email "bot@novyse.com"
 
-      - name: Update package.json
+      - name: Update package.json & metainfo.xml
         run: |
           npm version ${{ inputs.version }} --no-git-tag-version
           cd desktop
           npm version ${{ inputs.version }} --no-git-tag-version
           cd ..
-          git commit -am "chore: bump version to ${{ inputs.version }}" || true
+
+          # Automatically update the Flathub AppStream metadata version and release date
+          VERSION="${{ inputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+          python3 -c "
+          import xml.etree.ElementTree as ET
+          file_path = 'desktop/flathub/org.novyse.Desktop.metainfo.xml'
+          tree = ET.parse(file_path)
+          root = tree.getroot()
+          releases = root.find('releases')
+          if releases is not None:
+              for r in list(releases):
+                  releases.remove(r)
+              new_rel = ET.Element('release', version=VERSION, date=DATE)
+              releases.insert(0, new_rel)
+          ET.indent(tree, space='  ')
+          tree.write(file_path, encoding='utf-8', xml_declaration=True)
+          "
+
+          git commit -am "chore: bump version to ${{ inputs.version }} and update Flathub metainfo" || true
 
       - name: Merge into target branch
         run: |
@@ -258,6 +277,60 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  flathub-validation:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install flatpak-node-generator & flatpak-builder-lint
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install git+https://github.com/flatpak/flatpak-builder-tools.git#subdirectory=node
+          pip3 install flatpak-builder-lint
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder elfutils
+
+      - name: Configure Flathub Repository
+        run: |
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+
+      - name: Generate clean package-lock.json files
+        run: |
+          npm install --package-lock-only
+          cd desktop && npm install --package-lock-only && cd ..
+
+      - name: Generate flatpak-node-dependencies.json
+        run: |
+          flatpak-node-generator npm -r package-lock.json -o desktop/flathub/flatpak-node-dependencies.json
+
+      - name: Run flatpak-builder-lint on Manifest
+        run: |
+          flatpak-builder-lint manifest desktop/flathub/org.novyse.Desktop.yml
+
+      - name: Install SDKs and BaseApp for test build
+        run: |
+          flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 org.electronjs.Electron2.BaseApp//24.08
+
+      - name: Run test build with flatpak-builder
+        run: |
+          flatpak-builder --user --disable-rofiles-fuse --force-clean --build-only --ccache build_dir desktop/flathub/org.novyse.Desktop.yml
+
   publish-release:
     needs:
       [
@@ -266,6 +339,7 @@ jobs:
         build-electron-linux,
         build-electron-win,
         build-electron-mac,
+        flathub-validation,
       ]
     if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
     runs-on: ubuntu-latest
