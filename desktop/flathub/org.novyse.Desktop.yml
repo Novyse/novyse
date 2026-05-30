@@ -49,6 +49,7 @@ modules:
       - install -Dm644 desktop/flathub/org.novyse.Desktop.desktop /app/share/applications/org.novyse.Desktop.desktop
       - install -Dm644 desktop/flathub/org.novyse.Desktop.metainfo.xml /app/share/metainfo/org.novyse.Desktop.metainfo.xml
     sources:
-      - type: dir
-        path: ../..
+      - type: git
+        url: https://github.com/Novyse/novyse.git
+        tag: v1.0.1-20260528.0
       - flatpak-node-dependencies.json

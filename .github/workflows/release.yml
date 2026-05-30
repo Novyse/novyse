@@ -49,6 +49,9 @@ jobs:
           DATE=$(date +%Y-%m-%d)
           python3 -c "
           import xml.etree.ElementTree as ET
+          import re
+
+          # 1. Update metainfo.xml
           file_path = 'desktop/flathub/org.novyse.Desktop.metainfo.xml'
           tree = ET.parse(file_path)
           root = tree.getroot()
@@ -60,6 +63,16 @@ jobs:
               releases.insert(0, new_rel)
           ET.indent(tree, space='  ')
           tree.write(file_path, encoding='utf-8', xml_declaration=True)
+
+          # 2. Update Flatpak manifest tag
+          manifest_path = 'desktop/flathub/org.novyse.Desktop.yml'
+          with open(manifest_path, 'r') as f:
+              yaml_content = f.read()
+
+          # Replace 'tag: <anything>' with 'tag: v<version>'
+          updated_yaml = re.sub(r'tag:\s*v?\S+', f'tag: v{VERSION}', yaml_content)
+          with open(manifest_path, 'w') as f:
+              f.write(updated_yaml)
           "
 
           git commit -am "chore: bump version to ${{ inputs.version }} and update Flathub metainfo" || true
