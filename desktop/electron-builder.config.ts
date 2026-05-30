@@ -13,17 +13,24 @@ export default {
   productName: appName,
   asar: true,
   asarUnpack: ["**/*.node", "node_modules/@img/**", "node_modules/sharp/**"],
-  publish: {
-    provider: "github",
-    owner: "Novyse",
-    repo: "novyse",
-    channel:
-      BRANCH === "preview"
-        ? "preview"
-        : BRANCH === "development"
-          ? "dev"
-          : "latest",
-  },
+  publish: [
+    {
+      provider: "github",
+      owner: "Novyse",
+      repo: "novyse",
+      channel:
+        BRANCH === "preview"
+          ? "preview"
+          : BRANCH === "development"
+            ? "dev"
+            : "latest",
+    },
+    {
+      provider: "snapStore",
+      repo: "novyse",
+      channels: ["stable"],
+    },
+  ],
   directories: {
     output: "dist",
     buildResources: "build-assets",
@@ -74,15 +81,38 @@ export default {
     category: "Network",
     target:
       BRANCH === "production"
-        ? ["AppImage", "deb", "rpm", "snap", "flatpak"]
-        : ["AppImage", "deb", "rpm"],
+        ? ["AppImage", "deb", "rpm", "flatpak", "snap"]
+        : ["AppImage", "deb", "rpm", "flatpak"],
     icon: "../assets/images/logo.svg",
     artifactName: `novyse${suffix}.\${ext}`,
   },
   appImage: {
     artifactName: `Novyse${suffix}.AppImage`,
   },
+  flatpak: {
+    artifactName: `novyse${suffix}.flatpak`,
+    runtimeVersion: "24.08",
+    finishArgs: [
+      "--socket=x11",
+      "--socket=wayland",
+      "--share=ipc",
+      "--share=network",
+      "--filesystem=home",
+      "--talk-name=org.freedesktop.Notifications",
+      "--talk-name=org.kde.StatusNotifierWatcher",
+      "--talk-name=com.canonical.AppMenu.Registrar",
+      "--device=dri",
+      "--socket=pulseaudio",
+    ],
+  },
   rpm: {
     fpm: ["--rpm-rpmbuild-define=_build_id_links none"],
+  },
+  snapcraft: {
+    base: "core24",
+    core24: {
+      confinement: "strict",
+      artifactName: `Novyse${suffix}.snap`,
+    },
   },
 };
