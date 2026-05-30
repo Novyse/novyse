@@ -60,6 +60,12 @@ export const CommsContext = React.createContext<CommsContextType | undefined>(
 const VOLUMES_MAX_SAVED = 2000;
 const VOLUMES_STORAGE_KEY = "novyse_comms_remote_volumes";
 
+const dbToLinear = (db: number) => {
+  if (db <= -30) return 0;
+  const linear = Math.pow(10, db / 20);
+  return Math.min(1.0, linear);
+};
+
 interface CommsProviderProps {
   children: React.ReactNode;
 }
@@ -104,6 +110,17 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
   const [localMuted, setLocalMuted] = React.useState<Record<string, boolean>>(
     {},
   );
+
+  const remoteVolumesRef = React.useRef<Record<string, number>>({});
+  const localMutedRef = React.useRef<Record<string, boolean>>({});
+
+  React.useEffect(() => {
+    remoteVolumesRef.current = remoteVolumes;
+  }, [remoteVolumes]);
+
+  React.useEffect(() => {
+    localMutedRef.current = localMuted;
+  }, [localMuted]);
 
   const [facingMode, setFacingMode] = React.useState<string>("environment");
 
@@ -250,11 +267,35 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
       participant: Participant,
     ) => {
       if (track.kind === "audio") {
+        let volKey = participant.identity;
+        if (publication.source === Track.Source.ScreenShareAudio) {
+          const screenVideoPub = participant.getTrackPublication(
+            Track.Source.ScreenShare,
+          );
+          volKey = screenVideoPub ? screenVideoPub.trackSid : publication.trackSid;
+        }
+
+        const db = remoteVolumesRef.current[volKey] ?? 0;
+        const isMuted = localMutedRef.current[volKey] ?? false;
+        const targetVolume = isMuted ? 0 : dbToLinear(db);
+
+        // Native LiveKit volume control
+        if (
+          track &&
+          typeof (track as any).setVolume === "function"
+        ) {
+          try {
+            (track as any).setVolume(targetVolume);
+          } catch (err) {
+            console.error("[CommsContext] Error setting volume on subscription:", err);
+          }
+        }
+
         if (Platform.OS === "web") {
           const audioEl = document.createElement("audio");
           audioEl.srcObject = (track as any).mediaStream;
           audioEl.autoplay = true;
-          audioEl.volume = 1;
+          audioEl.volume = targetVolume;
           document.body.appendChild(audioEl);
           audioEl
             .play()
@@ -563,11 +604,7 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     });
   };
 
-  const dbToLinear = (db: number) => {
-    if (db <= -30) return 0;
-    const linear = Math.pow(10, db / 20);
-    return Math.min(1.0, linear);
-  };
+
 
   React.useEffect(() => {
     if (!room) {
