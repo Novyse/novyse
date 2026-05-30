@@ -560,6 +560,7 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     setParticipants([]);
     setStreams({});
     setMutedStreams({});
+    setIsSpeakingMap(new Map());
     setIsAudioEnabled(false);
     setIsVideoEnabled(false);
     setRemoteVolumes({});
