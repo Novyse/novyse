@@ -1,0 +1,226 @@
+import React, { useState, useEffect, useContext } from "react";
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  ActivityIndicator,
+  Pressable,
+} from "react-native";
+import { useTranslation } from "react-i18next";
+import { ThemeContext } from "@/src/context/ThemeContext";
+import { useCommsContext } from "@/src/context/CommsContext";
+import AppText from "@/src/components/AppText";
+import AdaptiveModal from "../modalSheets/AdaptiveModal";
+import gateway from "@/src/utils/backend-services/api-gateway";
+
+interface WatchTogetherModalProps {
+  visible: boolean;
+  onClose: () => void;
+}
+
+export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
+  visible,
+  onClose,
+}) => {
+  const { t } = useTranslation();
+  const { theme } = useContext(ThemeContext);
+  const { room } = useCommsContext();
+  const styles = createStyles(theme);
+
+  const [videoUrl, setVideoUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const roomMetadata = room?.metadata ? JSON.parse(room.metadata) : null;
+  const watchTogether = roomMetadata?.watchTogether;
+  const isVideoActive = !!watchTogether?.url;
+
+  useEffect(() => {
+    if (visible) {
+      setVideoUrl(watchTogether?.url || "");
+      setErrorMsg("");
+      setLoading(false);
+    }
+  }, [visible]);
+
+  const handleStartSession = async () => {
+    if (!videoUrl.trim()) return;
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      const roomUUID = room?.name || "";
+      // @ts-ignore
+      const res = await gateway.watchTogether.start(roomUUID, videoUrl.trim());
+      if (res.success) {
+        onClose();
+      } else {
+        setErrorMsg(t("chat.comms.watchTogether.invalidUrl"));
+      }
+    } catch (err) {
+      console.error("[WatchTogetherModal] Failed to start:", err);
+      setErrorMsg(t("chat.comms.watchTogether.invalidUrl"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStopSession = async () => {
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      const roomUUID = room?.name || "";
+      // @ts-ignore
+      const res = await gateway.watchTogether.stop(roomUUID);
+      if (res.success) {
+        onClose();
+      } else {
+        setErrorMsg(t("chat.comms.watchTogether.invalidUrl"));
+      }
+    } catch (err) {
+      console.error("[WatchTogetherModal] Failed to stop:", err);
+      setErrorMsg(t("chat.comms.watchTogether.invalidUrl"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AdaptiveModal
+      visible={visible}
+      onClose={onClose}
+      theme={theme}
+      mode="adaptive"
+    >
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <AppText
+            style={styles.title}
+            translationKey={
+              isVideoActive
+                ? "chat.comms.watchTogether.modifyTitle"
+                : "chat.comms.watchTogether.startTitle"
+            }
+          />
+        </View>
+
+        <AppText
+          style={styles.description}
+          translationKey="chat.comms.watchTogether.description"
+        />
+
+        <TextInput
+          style={styles.textInput}
+          placeholder={t("chat.comms.watchTogether.placeholder")}
+          placeholderTextColor={theme.placeholderText}
+          value={videoUrl}
+          onChangeText={setVideoUrl}
+          onSubmitEditing={handleStartSession}
+          autoFocus
+        />
+
+        {!!errorMsg && <AppText style={styles.errorText} text={errorMsg} />}
+
+        <View style={styles.buttonsContainer}>
+          {isVideoActive && (
+            <Pressable
+              style={[styles.btn, styles.btnStop]}
+              onPress={handleStopSession}
+              disabled={loading}
+            >
+              <AppText
+                style={styles.btnTextStop}
+                translationKey="chat.comms.watchTogether.stop"
+              />
+            </Pressable>
+          )}
+
+          <Pressable
+            style={[styles.btn, styles.btnConfirm]}
+            onPress={handleStartSession}
+            disabled={loading || !videoUrl.trim()}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={theme.text} />
+            ) : (
+              <AppText
+                style={styles.btnTextConfirm}
+                translationKey={
+                  isVideoActive
+                    ? "chat.comms.watchTogether.modify"
+                    : "chat.comms.watchTogether.start"
+                }
+              />
+            )}
+          </Pressable>
+        </View>
+      </View>
+    </AdaptiveModal>
+  );
+};
+
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      padding: 24,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: theme.text,
+    },
+    description: {
+      fontSize: 14,
+      color: theme.subtitle,
+      lineHeight: 20,
+      marginBottom: 20,
+    },
+    textInput: {
+      height: 48,
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      backgroundColor: theme.backgroundTextField,
+      color: theme.text,
+      fontSize: 15,
+      marginBottom: 20,
+    },
+    errorText: {
+      color: theme.iconDanger,
+      fontSize: 13,
+      marginBottom: 16,
+    },
+    buttonsContainer: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: 12,
+    },
+    btn: {
+      height: 40,
+      paddingHorizontal: 20,
+      borderRadius: 20,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    btnConfirm: {
+      backgroundColor: theme.primary,
+    },
+    btnStop: {
+      backgroundColor: theme.iconDanger,
+      marginRight: "auto",
+    },
+    btnTextConfirm: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    btnTextStop: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+  });

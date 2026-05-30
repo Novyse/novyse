@@ -18,6 +18,8 @@ import BlurredView from "@/src/components/BlurredView";
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 
 import Platform from "@/src/utils/device/type";
+import { RoomOptionsMenu } from "../RoomOptionsMenu";
+import { WatchTogetherModal } from "../WatchTogetherModal";
 
 const CommsBottomBar = ({ chatUUID, sub }) => {
   const { theme } = useContext(ThemeContext);
@@ -28,6 +30,8 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
   const [showMicrophoneSelector, setShowMicrophoneSelector] = useState(false);
   const [showCameraSelector, setShowCameraSelector] = useState(false);
   const [showScreenShareSelector, setShowScreenShareSelector] = useState(false);
+  const [showRoomMenu, setShowRoomMenu] = useState(false);
+  const [showWatchTogether, setShowWatchTogether] = useState(false);
 
   const {
     connecting,
@@ -138,6 +142,10 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
             iconName={"Settings02Icon"}
           />
           <CommsBottomBarButton
+            onPress={() => setShowRoomMenu(true)}
+            iconName={"MoreVerticalIcon"}
+          />
+          <CommsBottomBarButton
             onPress={leave}
             iconName={"Call02Icon"}
             iconColor={theme.iconDanger}
@@ -165,6 +173,17 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
         onClose={() => setShowScreenShareSelector(false)}
         onSourceSelected={startScreenShare}
       />
+
+      <RoomOptionsMenu
+        visible={showRoomMenu}
+        onClose={() => setShowRoomMenu(false)}
+        onOpenWatchTogether={() => setShowWatchTogether(true)}
+      />
+
+      <WatchTogetherModal
+        visible={showWatchTogether}
+        onClose={() => setShowWatchTogether(false)}
+      />
     </View>
   );
 };
@@ -178,7 +197,7 @@ const createStyle = (theme) =>
       borderRadius: 30,
       height: 60,
       minWidth: 200,
-      maxWidth: 300,
+      maxWidth: 360,
       zIndex: 100,
     },
     statusWrapper: {

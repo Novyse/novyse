@@ -1,4 +1,9 @@
-import React, { forwardRef, useImperativeHandle, useRef, useEffect } from "react";
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useEffect,
+} from "react";
 import { View, StyleSheet, Platform } from "react-native";
 
 let WebView: any;
@@ -14,6 +19,7 @@ export interface TwitchPlayerProps {
   onReady?: () => void;
   onStateChange?: (state: "playing" | "paused" | "ended" | "unknown") => void;
   onTimeUpdate?: (currentTime: number, duration: number) => void;
+  style?: any;
 }
 
 export interface TwitchPlayerRef {
@@ -26,10 +32,115 @@ export interface TwitchPlayerRef {
 }
 
 export const TwitchPlayer = forwardRef<TwitchPlayerRef, TwitchPlayerProps>(
-  ({ channel, video, width = "100%", height = "100%", onReady, onStateChange, onTimeUpdate }, ref) => {
+  (
+    {
+      channel,
+      video,
+      width = "100%",
+      height = "100%",
+      onReady,
+      onStateChange,
+      onTimeUpdate,
+      style,
+    },
+    ref,
+  ) => {
     const iframeRef = useRef<any>(null);
     const webViewRef = useRef<any>(null);
+    const playerInstanceRef = useRef<any>(null);
 
+    const parentHost =
+      Platform.OS === "web" ? window.location.hostname : "localhost";
+
+    // 1. WEB ONLY: Use the dynamic Twitch JavaScript SDK to prevent Chrome null origin / srcDoc sandbox issues
+    useEffect(() => {
+      if (Platform.OS !== "web") return;
+
+      let intervalId: any;
+      let timeoutId: any;
+
+      const initPlayer = () => {
+        if (!(window as any).Twitch || !iframeRef.current) return;
+
+        try {
+          // Clear any previous elements in container
+          iframeRef.current.innerHTML = "";
+
+          const parents = Array.from(
+            new Set([parentHost, "localhost", "127.0.0.1"]),
+          );
+
+          const player = new (window as any).Twitch.Player(iframeRef.current, {
+            channel,
+            video,
+            width: "100%",
+            height: "100%",
+            controls: false, // Hide controls
+            autoplay: true,
+            muted: true,
+            parent: parents,
+          });
+          playerInstanceRef.current = player;
+          setTimeout(() => {
+            const iframe = iframeRef.current?.querySelector("iframe");
+            if (iframe) {
+              iframe.setAttribute(
+                "allow",
+                "autoplay; encrypted-media; picture-in-picture; fullscreen",
+              );
+            }
+          }, 50);
+
+          player.addEventListener((window as any).Twitch.Player.READY, () => {
+            if (onReady) onReady();
+
+            intervalId = setInterval(() => {
+              if (
+                playerInstanceRef.current &&
+                typeof playerInstanceRef.current.getCurrentTime === "function"
+              ) {
+                const current = playerInstanceRef.current.getCurrentTime();
+                const dur = playerInstanceRef.current.getDuration();
+                if (onTimeUpdate) onTimeUpdate(current, dur);
+              }
+            }, 500);
+          });
+
+          player.addEventListener((window as any).Twitch.Player.PLAY, () => {
+            if (onStateChange) onStateChange("playing");
+          });
+
+          player.addEventListener((window as any).Twitch.Player.PAUSE, () => {
+            if (onStateChange) onStateChange("paused");
+          });
+
+          player.addEventListener((window as any).Twitch.Player.ENDED, () => {
+            if (onStateChange) onStateChange("ended");
+          });
+        } catch (err) {
+          console.error("Failed to initialize Twitch Player on Web:", err);
+        }
+      };
+
+      if (!(window as any).Twitch) {
+        const script = document.createElement("script");
+        script.src = "https://player.twitch.tv/js/embed/v1.js";
+        script.async = true;
+        script.onload = () => {
+          timeoutId = setTimeout(initPlayer, 250);
+        };
+        document.body.appendChild(script);
+      } else {
+        timeoutId = setTimeout(initPlayer, 250);
+      }
+
+      return () => {
+        if (intervalId) clearInterval(intervalId);
+        if (timeoutId) clearTimeout(timeoutId);
+      };
+    }, [channel, video]);
+
+    // 2. NATIVE ONLY: Webview HTML String with parent parameters
     const htmlString = `
       <!DOCTYPE html>
       <html>
@@ -51,6 +162,9 @@ export const TwitchPlayer = forwardRef<TwitchPlayerRef, TwitchPlayerProps>(
           var options = {
             width: '100%',
             height: '100%',
+            controls: false,
+            autoplay: true,
+            muted: true,
             parent: ['localhost', '127.0.0.1']
           };
           
@@ -133,13 +247,35 @@ export const TwitchPlayer = forwardRef<TwitchPlayerRef, TwitchPlayerProps>(
     `;
 
     const sendCommand = (command: string, value?: any) => {
-      const payload = { command, value };
-      const dataStr = JSON.stringify(payload);
       if (Platform.OS === "web") {
-        if (iframeRef.current && iframeRef.current.contentWindow) {
-          iframeRef.current.contentWindow.postMessage(dataStr, "*");
+        if (!playerInstanceRef.current) return;
+        try {
+          switch (command) {
+            case "play":
+              playerInstanceRef.current.play();
+              break;
+            case "pause":
+              playerInstanceRef.current.pause();
+              break;
+            case "seek":
+              playerInstanceRef.current.seek(value);
+              break;
+            case "volume":
+              playerInstanceRef.current.setVolume(value / 100);
+              break;
+            case "mute":
+              playerInstanceRef.current.setMuted(true);
+              break;
+            case "unmute":
+              playerInstanceRef.current.setMuted(false);
+              break;
+          }
+        } catch (e) {
+          console.error("Error executing Twitch SDK action:", e);
         }
       } else {
+        const payload = { command, value };
+        const dataStr = JSON.stringify(payload);
         if (webViewRef.current) {
           const js = `window.dispatchEvent(new MessageEvent('message', { data: ${JSON.stringify(dataStr)} })); true;`;
           webViewRef.current.injectJavaScript(js);
@@ -184,7 +320,10 @@ export const TwitchPlayer = forwardRef<TwitchPlayerRef, TwitchPlayerProps>(
 
       const handleWebMessage = (event: MessageEvent) => {
         try {
-          const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+          const data =
+            typeof event.data === "string"
+              ? JSON.parse(event.data)
+              : event.data;
           if (data && data.type) {
             handlePlayerEvent(data);
           }
@@ -200,20 +339,17 @@ export const TwitchPlayer = forwardRef<TwitchPlayerRef, TwitchPlayerProps>(
     }, [onReady, onStateChange, onTimeUpdate]);
 
     return (
-      <View style={[styles.container, { width, height }]}>
+      <View style={[styles.container, { width, height }, style]}>
         {Platform.OS === "web" ? (
-          <iframe
+          <div
             ref={iframeRef}
-            srcDoc={htmlString}
-            style={{ width: "100%", height: "100%", border: "none" }}
-            allow="autoplay; encrypted-media; fullscreen"
-            allowFullScreen
+            style={{ width: "100%", height: "100%", pointerEvents: "none" }}
           />
         ) : (
           <WebView
             ref={webViewRef}
             source={{ html: htmlString }}
-            style={{ flex: 1, backgroundColor: "#000" }}
+            style={{ flex: 1, backgroundColor: "#000", pointerEvents: "none" }}
             allowsInlineMediaPlayback={true}
             mediaPlaybackRequiresUserAction={false}
             javaScriptEnabled={true}
@@ -223,7 +359,7 @@ export const TwitchPlayer = forwardRef<TwitchPlayerRef, TwitchPlayerProps>(
         )}
       </View>
     );
-  }
+  },
 );
 
 const styles = StyleSheet.create({

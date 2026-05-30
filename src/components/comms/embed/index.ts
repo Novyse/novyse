@@ -3,3 +3,5 @@ export type { VideoPlayerProps, VideoPlayerRef } from "./YouTubePlayer";
 
 export { TwitchPlayer } from "./TwitchPlayer";
 export type { TwitchPlayerProps, TwitchPlayerRef } from "./TwitchPlayer";
+
+export { WatchTogetherPlayer } from "./WatchTogetherPlayer";

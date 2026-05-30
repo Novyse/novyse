@@ -9,6 +9,8 @@ import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
 interface CommsContextType {
   room: Room | null;
   setRoom: React.Dispatch<React.SetStateAction<Room | null>>;
+  roomMetadata: string;
+  setRoomMetadata: React.Dispatch<React.SetStateAction<string>>;
   connected: boolean;
   checkRoomMatch: (chatUUID: string, sub: string | number) => boolean;
   pinnedStreamUUID: string | null;
@@ -74,6 +76,8 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
   const [connected, setConnected] = React.useState<boolean>(false);
 
   const [room, setRoom] = React.useState<Room | null>(null);
+  const [roomMetadata, setRoomMetadata] = React.useState<string>("");
+
   const [participants, setParticipants] = React.useState<Participant[]>([]);
 
   const [isAudioEnabled, setIsAudioEnabled] = React.useState<boolean>(false);
@@ -103,6 +107,21 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     x: number;
     y: number;
   }>({ x: 0, y: 0 });
+
+  React.useEffect(() => {
+    if (!room) {
+      setRoomMetadata("");
+      return;
+    }
+    setRoomMetadata(room.metadata || "");
+    const handleRoomMetadataChanged = (metadata?: string) => {
+      setRoomMetadata(metadata || "");
+    };
+    room.on("roomMetadataChanged", handleRoomMetadataChanged);
+    return () => {
+      room.off("roomMetadataChanged", handleRoomMetadataChanged);
+    };
+  }, [room]);
 
   const [remoteVolumes, setRemoteVolumes] = React.useState<
     Record<string, number>
@@ -709,6 +728,8 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     reset,
     error,
     setError,
+    roomMetadata,
+    setRoomMetadata,
   };
 
   return (

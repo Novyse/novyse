@@ -2,6 +2,7 @@
   "common": {
     "hello": "Ciao!",
     "settings": "Impostazioni",
+    "loading": "Caricamento...",
     "loadingProfile": "Caricamento profilo...",
     "error": "Errore",
     "success": "Successo",
@@ -219,6 +220,25 @@
           "cancel": "Annulla",
           "startScreenShare": "Avvia"
         }
+      },
+      "roomOptions": {
+        "title": "Opzioni Stanza",
+        "watchTogether": "Guarda Insieme",
+        "startWatchTogether": "Avvia Watch Together",
+        "modifyWatchTogether": "Modifica Watch Together",
+        "stopWatchTogether": "Interrompi Watch Together"
+      },
+      "watchTogether": {
+        "title": "Watch Together",
+        "startTitle": "Avvia Watch Together",
+        "modifyTitle": "Modifica Watch Together",
+        "description": "Incolla un link di YouTube o Twitch per sincronizzare la riproduzione con tutti i partecipanti.",
+        "placeholder": "Incolla URL di YouTube o Twitch...",
+        "cancel": "Annulla",
+        "start": "Avvia",
+        "modify": "Modifica",
+        "stop": "Interrompi",
+        "invalidUrl": "URL non valido o errore di rete."
       }
     },
     "memberCount_one": "{{count}} membro",
