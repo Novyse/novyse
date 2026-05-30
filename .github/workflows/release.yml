@@ -1,0 +1,277 @@
+name: Client release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: Channel (production/preview)
+        required: true
+        type: choice
+        options:
+          - production
+          - preview
+      version:
+        description: Version (e.g., 1.0.1-20260405.0)
+        required: true
+      patch_notes:
+        description: Patchnotes (Markdown)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  git-flow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout development branch
+        uses: actions/checkout@v4
+        with:
+          ref: development
+          fetch-depth: 0
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Set Git user
+        run: |
+          git config user.name "GitHub Action Bot"
+          git config user.email "bot@novyse.com"
+
+      - name: Update package.json
+        run: |
+          npm version ${{ inputs.version }} --no-git-tag-version
+          cd desktop
+          npm version ${{ inputs.version }} --no-git-tag-version
+          cd ..
+          git commit -am "chore: bump version to ${{ inputs.version }}" || true
+
+      - name: Merge into target branch
+        run: |
+          git checkout ${{ inputs.release_type }}
+          git merge development
+
+      - name: Update app.config.ts
+        run: |
+          sed -i 's/const BRANCH = "[^"]*"/const BRANCH = "${{ inputs.release_type }}"/g' app.config.ts
+          git commit -am "chore: set branch to ${{ inputs.release_type }} in app.config.ts" || true
+
+      - name: Push to GitHub
+        run: |
+          git push origin development
+          git push origin ${{ inputs.release_type }}
+
+  create-release:
+    needs: git-flow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.version }}
+          name: Version ${{ inputs.version }}
+          prerelease: ${{ inputs.release_type == 'preview' }}
+          draft: true
+          body: ${{ inputs.patch_notes }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-deploy-web:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - name: Install dependencies & Build Web
+        run: |
+          bun install
+          bun run build:web
+
+      - name: Package Web Build
+        run: |
+          cd dist
+          zip -r ../novyse-web-${{ inputs.version }}.zip .
+          cd ..
+
+      - name: Attach Web Build Artifact to GitHub Release
+        run: gh release upload v${{ inputs.version }} novyse-web-${{ inputs.version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-android:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node, Bun & Java
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: oven-sh/setup-bun@v1
+      - uses: actions/setup-java@v3
+        with:
+          distribution: zulu
+          java-version: "17"
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Decode Google Services
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > ${{ github.workspace }}/google-services.json
+          echo "${{ secrets.GOOGLE_SERVICES_PLIST }}" | base64 --decode > ${{ github.workspace }}/GoogleService-Info.plist
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Build Android (Local Native)
+        run: |
+          bunx expo prebuild --clean
+          cd android
+          if [ "${{ inputs.release_type }}" = "production" ]; then
+            ./gradlew bundleRelease
+            ./gradlew assembleRelease
+          else
+            ./gradlew assembleRelease
+          fi
+          cd ..
+        env:
+          GOOGLE_SERVICES_JSON: ${{ github.workspace }}/google-services.json
+          GOOGLE_SERVICES_PLIST: ${{ github.workspace }}/GoogleService-Info.plist
+          _JAVA_OPTIONS: "-Xmx4g"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m"
+
+      - name: Attach Android Build Artifacts to GitHub Release
+        run: |
+          SUFFIX=""
+          if [ "${{ inputs.release_type }}" = "preview" ]; then
+            SUFFIX="-preview"
+          fi
+
+          find android/app/build/outputs/bundle -name "*.aab" -exec cp {} ./novyse${SUFFIX}.aab \; || true
+          find android/app/build/outputs/apk -name "*.apk" -exec cp {} ./novyse${SUFFIX}.apk \; || true
+
+          if [ -f ./novyse${SUFFIX}.aab ]; then
+            gh release upload v${{ inputs.version }} ./novyse${SUFFIX}.aab || true
+          fi
+          if [ -f ./novyse${SUFFIX}.apk ]; then
+            gh release upload v${{ inputs.version }} ./novyse${SUFFIX}.apk || true
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-electron-linux:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: oven-sh/setup-bun@v1
+
+      - name: Install Linux Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder elfutils zip unzip
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sudo snap install snapcraft --classic
+
+      - name: Install Dependencies
+        run: |
+          bun install
+          cd desktop && bun install
+
+      - name: Build Linux
+        run: bun run build:desktop --linux --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-electron-win:
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: oven-sh/setup-bun@v1
+
+      - name: Install Dependencies
+        run: |
+          bun install
+          cd desktop
+          bun install
+
+      - name: Build Windows
+        run: bun run build:desktop --win --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Kill zombie processes (Windows Fix)
+        if: always()
+        run: taskkill //F //IM bun.exe //T || taskkill //F //IM node.exe //T || true
+
+  build-electron-mac:
+    needs: create-release
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: oven-sh/setup-bun@v1
+      - name: Install Dependencies
+        run: |
+          bun install
+          cd desktop && bun install
+      - name: Build Mac
+        run: bun run build:desktop --mac --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-release:
+    needs:
+      [
+        build-deploy-web,
+        build-android,
+        build-electron-linux,
+        build-electron-win,
+        build-electron-mac,
+      ]
+    if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Publish the Draft Release
+        run: gh release edit v${{ inputs.version }} --draft=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
