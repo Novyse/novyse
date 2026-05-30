@@ -189,7 +189,8 @@
       "noParticipants": "There is no one here.",
       "error": {
         "chatFull": "This chat is full",
-        "generic": "Please try again later."
+        "generic": "Please try again later.",
+        "noMicPermissionWarning": "Microphone permission is required to unmute yourself. Please allow microphone access in your browser or system settings."
       },
       "selectors": {
         "camera": {
@@ -202,7 +203,8 @@
           "title": "Select Microphone",
           "loading": "Loading microphones...",
           "currentlySelected": "Currently Selected",
-          "defaultName": "Microphone {{id}}"
+          "defaultName": "Microphone {{id}}",
+          "permissionDenied": "Microphone permission is denied. Please enable microphone access in your system settings to use voice features."
         },
         "screenshare": {
           "title": "Share your screen",

@@ -176,10 +176,29 @@ const useCommsAction = (chatUUID, sub) => {
     }
   };
 
+  const checkMicPermission = async () => {
+    try {
+      (await navigator.mediaDevices?.getUserMedia?.({ audio: true }))
+        ?.getTracks()
+        .forEach((t) => t.stop());
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const toggleAudio = async () => {
     if (!room || !room.localParticipant) return;
     try {
       const newState = !isAudioEnabled;
+      if (newState) {
+        const permitted = await checkMicPermission();
+        if (!permitted) {
+          const textError = t("chat.comms.error.noMicPermissionWarning");
+          setError(textError);
+          return;
+        }
+      }
       await room.localParticipant.setMicrophoneEnabled(newState);
       setIsAudioEnabled(newState);
     } catch (e) {

@@ -8,6 +8,7 @@ import AdaptiveModal from "../../modalSheets/AdaptiveModal";
 import SettingRow from "@/src/components/settings/SettingRow";
 import AppText from "@/src/components/AppText";
 import { ScrollBar } from "@/constants/ScrollBar";
+import StatusMessage from "@/src/components/StatusMessage";
 
 interface MicrophoneSelectorProps {
   visible: boolean;
@@ -27,20 +28,40 @@ const MicrophoneSelector = ({
 
   const [availableMicrophones, setAvailableMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (visible) {
+      setHasPermission(null);
       loadMicrophones();
     }
   }, [visible]);
 
+  const checkPermission = async () => {
+    try {
+      (await navigator.mediaDevices?.getUserMedia?.({ audio: true }))?.getTracks().forEach(t => t.stop());
+      setHasPermission(true);
+      return true;
+    } catch {
+      setHasPermission(false);
+      return false;
+    }
+  };
+
   const loadMicrophones = async () => {
     setLoading(true);
     try {
-      const microphones = await Room.getLocalDevices("audioinput");
-      setAvailableMicrophones(microphones);
-    } catch (error) {
-      console.error("Error loading microphones:", error);
+      const permitted = await checkPermission();
+      const microphones = permitted ? await Room.getLocalDevices("audioinput") : [];
+      const hasValidLabels = microphones.some(d => d.label !== "");
+      if (permitted && microphones.length > 0 && !hasValidLabels) {
+        setHasPermission(false);
+        setAvailableMicrophones([]);
+      } else {
+        setAvailableMicrophones(microphones);
+      }
+    } catch {
+      setHasPermission(false);
     } finally {
       setLoading(false);
     }
@@ -83,7 +104,16 @@ const MicrophoneSelector = ({
         />
       </View>
 
-      {loading ? (
+      {hasPermission === false ? (
+        <View style={styles.errorWrapper}>
+          <StatusMessage
+            type="error"
+            visible={true}
+            closable={false}
+            translationKey="chat.comms.selectors.microphone.permissionDenied"
+          />
+        </View>
+      ) : loading ? (
         <View style={styles.loadingContainer}>
           <AppText
             style={styles.loadingText}
@@ -141,6 +171,10 @@ function createStyle(theme: any) {
     loadingText: {
       fontSize: 16,
       color: theme.text,
+    },
+    errorWrapper: {
+      width: "100%",
+      marginTop: 10,
     },
     listWrapper: {
       width: "100%",
