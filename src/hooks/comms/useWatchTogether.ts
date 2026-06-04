@@ -10,10 +10,11 @@ export interface WatchTogetherState {
 }
 
 export interface ParsedVideo {
-  type: "youtube" | "twitch" | null;
+  type: "youtube" | "twitch" | "direct" | null;
   videoId?: string;
   channel?: string;
   video?: string;
+  videoUrl?: string;
 }
 
 // Dependency-free ASCII/UTF-8 array encoder/decoder for React Native safety
@@ -53,6 +54,12 @@ export const parseVideoUrl = (url: string): ParsedVideo => {
   const twitchChannelMatch = url.match(/twitch\.tv\/([a-zA-Z0-9_]+)/);
   if (twitchChannelMatch && twitchChannelMatch[1] !== "videos") {
     return { type: "twitch", channel: twitchChannelMatch[1] };
+  }
+
+  // Direct video file link matcher
+  const videoExtensions = /\.(mp4|webm|ogg|mov|mkv|m3u8)(?:\?.*)?$/i;
+  if (videoExtensions.test(url)) {
+    return { type: "direct", videoUrl: url };
   }
 
   return { type: null };
