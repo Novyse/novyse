@@ -1,34 +1,49 @@
-import React, {
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useEffect,
-} from "react";
-import { View, StyleSheet, Platform } from "react-native";
-
-let WebView: any;
-if (Platform.OS !== "web") {
-  WebView = require("react-native-webview").WebView;
-}
+import React, { forwardRef, useRef, useEffect } from "react";
+import { View, StyleSheet } from "react-native";
+import Platform from "@/src/utils/device/type";
+import { EmbedFrame, EmbedPlayerRef } from "./EmbedFrame";
+import { buildPlayerHtml } from "./playerHtml";
 
 export interface DirectVideoPlayerProps {
   videoUrl: string;
   width?: string | number;
   height?: string | number;
   onReady?: () => void;
-  onStateChange?: (
-    state: "playing" | "paused" | "ended" | "unknown",
-  ) => void;
+  onStateChange?: (state: "playing" | "paused" | "ended" | "unknown") => void;
   onTimeUpdate?: (currentTime: number, duration: number) => void;
 }
 
-export interface DirectVideoPlayerRef {
-  play: () => void;
-  pause: () => void;
-  seek: (seconds: number) => void;
-  setVolume: (volume: number) => void;
-  mute: () => void;
-  unmute: () => void;
+export interface DirectVideoPlayerRef extends EmbedPlayerRef {}
+
+function getDirectVideoHtml(videoUrl: string): string {
+  return buildPlayerHtml({
+    css: `body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000}
+      video{width:100%;height:100%;object-fit:contain}`,
+    bodyContent: `
+      <video id="v" playsinline autoplay muted src="${videoUrl}"></video>
+      <script>
+      var v=document.getElementById('v');
+      v.addEventListener('loadedmetadata',function(){sendToParent({type:'ready'});});
+      v.addEventListener('play',function(){sendToParent({type:'statechange',state:'playing'});});
+      v.addEventListener('pause',function(){sendToParent({type:'statechange',state:'paused'});});
+      v.addEventListener('ended',function(){sendToParent({type:'statechange',state:'ended'});});
+      v.addEventListener('timeupdate',function(){
+        sendToParent({type:'timeupdate',currentTime:v.currentTime,duration:v.duration||0});
+      });
+      function handleCommand(cmd,val){
+        if(!v)return;
+        switch(cmd){
+          case 'play':v.play().catch(function(){});break;
+          case 'pause':v.pause();break;
+          case 'seek':v.currentTime=val;break;
+          case 'volume':v.volume=val/100;break;
+          case 'mute':v.muted=true;break;
+          case 'unmute':v.muted=false;break;
+        }
+      }
+      </script>
+    `,
+  });
 }
 
 export const DirectVideoPlayer = forwardRef<
@@ -46,212 +61,76 @@ export const DirectVideoPlayer = forwardRef<
     },
     ref,
   ) => {
+    const embedRef = useRef<EmbedPlayerRef>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
-    const webViewRef = useRef<any>(null);
 
-    // Native implementation (using Webview)
-    const htmlString = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <style>
-          body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; }
-          video { width: 100%; height: 100%; object-fit: contain; }
-        </style>
-      </head>
-      <body>
-        <video id="player" playsinline autoplay muted></video>
-        <script>
-          var player = document.getElementById('player');
-          player.src = '${videoUrl}';
-
-          player.addEventListener('loadedmetadata', function() {
-            sendToParent({ type: 'ready' });
-          });
-
-          player.addEventListener('play', function() {
-            sendToParent({ type: 'statechange', state: 'playing' });
-          });
-
-          player.addEventListener('pause', function() {
-            sendToParent({ type: 'statechange', state: 'paused' });
-          });
-
-          player.addEventListener('ended', function() {
-            sendToParent({ type: 'statechange', state: 'ended' });
-          });
-
-          player.addEventListener('timeupdate', function() {
-            sendToParent({ 
-              type: 'timeupdate', 
-              currentTime: player.currentTime,
-              duration: player.duration || 0
-            });
-          });
-
-          function sendToParent(data) {
-            if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
-              window.ReactNativeWebView.postMessage(JSON.stringify(data));
-            } else {
-              window.parent.postMessage(JSON.stringify(data), '*');
-            }
-          }
-
-          window.addEventListener('message', function(e) {
-            var message;
-            try {
-              message = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-            } catch(err) {
-              return;
-            }
-            
-            if (!message || !player) return;
-            
-            switch(message.command) {
-              case 'play':
-                player.play().catch(function(e) {});
-                break;
-              case 'pause':
-                player.pause();
-                break;
-              case 'seek':
-                player.currentTime = message.value;
-                break;
-              case 'volume':
-                player.volume = message.value / 100;
-                break;
-              case 'mute':
-                player.muted = true;
-                break;
-              case 'unmute':
-                player.muted = false;
-                break;
-            }
-          });
-        </script>
-      </body>
-      </html>
-    `;
-
-    const sendCommand = (command: string, value?: any) => {
-      if (Platform.OS === "web") {
-        if (!videoRef.current) return;
-        try {
-          switch (command) {
-            case "play":
-              videoRef.current.play().catch(() => {});
-              break;
-            case "pause":
-              videoRef.current.pause();
-              break;
-            case "seek":
-              videoRef.current.currentTime = value;
-              break;
-            case "volume":
-              videoRef.current.volume = value / 100;
-              break;
-            case "mute":
-              videoRef.current.muted = true;
-              break;
-            case "unmute":
-              videoRef.current.muted = false;
-              break;
-          }
-        } catch (e) {
-          console.error("Error executing DirectVideoPlayer action:", e);
-        }
-      } else {
-        const payload = { command, value };
-        const dataStr = JSON.stringify(payload);
-        if (webViewRef.current) {
-          const js = `window.dispatchEvent(new MessageEvent('message', { data: ${JSON.stringify(dataStr)} })); true;`;
-          webViewRef.current.injectJavaScript(js);
-        }
-      }
-    };
-
-    useImperativeHandle(ref, () => ({
-      play: () => sendCommand("play"),
-      pause: () => sendCommand("pause"),
-      seek: (seconds: number) => sendCommand("seek", seconds),
-      setVolume: (volume: number) => sendCommand("volume", volume),
-      mute: () => sendCommand("mute"),
-      unmute: () => sendCommand("unmute"),
+    React.useImperativeHandle(ref, () => ({
+      play: () => embedRef.current?.play(),
+      pause: () => embedRef.current?.pause(),
+      seek: (s: number) => embedRef.current?.seek(s),
+      setVolume: (v: number) => embedRef.current?.setVolume(v),
+      mute: () => embedRef.current?.mute(),
+      unmute: () => embedRef.current?.unmute(),
     }));
 
-    const handlePlayerEvent = (data: any) => {
-      switch (data.type) {
-        case "ready":
-          if (onReady) onReady();
-          break;
-        case "statechange":
-          if (onStateChange) onStateChange(data.state);
-          break;
-        case "timeupdate":
-          if (onTimeUpdate) onTimeUpdate(data.currentTime, data.duration);
-          break;
-      }
-    };
+    const htmlContent = getDirectVideoHtml(videoUrl);
 
-    const handleNativeMessage = (event: any) => {
-      try {
-        const data = JSON.parse(event.nativeEvent.data);
-        handlePlayerEvent(data);
-      } catch (err) {
-        // Ignore invalid message formatting
-      }
-    };
+    if (Platform === "web") {
+      useEffect(() => {
+        if (!videoRef.current) return;
+        const v = videoRef.current;
 
-    // Web-only effects
-    useEffect(() => {
-      if (Platform.OS !== "web" || !videoRef.current) return;
+        const onLoaded = () => onReady?.();
+        const onPlay = () => onStateChange?.("playing");
+        const onPause = () => onStateChange?.("paused");
+        const onEnded = () => onStateChange?.("ended");
+        const onTime = () => onTimeUpdate?.(v.currentTime, v.duration || 0);
 
-      const video = videoRef.current;
+        v.addEventListener("loadedmetadata", onLoaded);
+        v.addEventListener("play", onPlay);
+        v.addEventListener("pause", onPause);
+        v.addEventListener("ended", onEnded);
+        v.addEventListener("timeupdate", onTime);
+        v.load();
 
-      const handleLoadedMetadata = () => {
-        if (onReady) onReady();
-      };
+        return () => {
+          v.removeEventListener("loadedmetadata", onLoaded);
+          v.removeEventListener("play", onPlay);
+          v.removeEventListener("pause", onPause);
+          v.removeEventListener("ended", onEnded);
+          v.removeEventListener("timeupdate", onTime);
+        };
+      }, [videoUrl]);
 
-      const handlePlay = () => {
-        if (onStateChange) onStateChange("playing");
-      };
+      React.useImperativeHandle(ref, () => ({
+        play: () => {
+          videoRef.current?.play().catch(() => {});
+        },
+        pause: () => {
+          videoRef.current?.pause();
+        },
+        seek: (s: number) => {
+          if (videoRef.current) videoRef.current.currentTime = s;
+        },
+        setVolume: (v: number) => {
+          if (videoRef.current) videoRef.current.volume = v / 100;
+        },
+        mute: () => {
+          if (videoRef.current) videoRef.current.muted = true;
+        },
+        unmute: () => {
+          if (videoRef.current) videoRef.current.muted = false;
+        },
+      }));
 
-      const handlePause = () => {
-        if (onStateChange) onStateChange("paused");
-      };
-
-      const handleEnded = () => {
-        if (onStateChange) onStateChange("ended");
-      };
-
-      const handleTimeUpdate = () => {
-        if (onTimeUpdate) {
-          onTimeUpdate(video.currentTime, video.duration || 0);
-        }
-      };
-
-      video.addEventListener("loadedmetadata", handleLoadedMetadata);
-      video.addEventListener("play", handlePlay);
-      video.addEventListener("pause", handlePause);
-      video.addEventListener("ended", handleEnded);
-      video.addEventListener("timeupdate", handleTimeUpdate);
-
-      // Trigger load if URL changes
-      video.load();
-
-      return () => {
-        video.removeEventListener("loadedmetadata", handleLoadedMetadata);
-        video.removeEventListener("play", handlePlay);
-        video.removeEventListener("pause", handlePause);
-        video.removeEventListener("ended", handleEnded);
-        video.removeEventListener("timeupdate", handleTimeUpdate);
-      };
-    }, [videoUrl]);
-
-    return (
-      <View style={[styles.container, { width: width as any, height: height as any }]}>
-        {Platform.OS === "web" ? (
+      return (
+        <View
+          style={[
+            styles.container,
+            { width: width as any, height: height as any },
+          ]}
+        >
+          {/* @ts-ignore */}
           <video
             ref={videoRef}
             src={videoUrl}
@@ -265,19 +144,19 @@ export const DirectVideoPlayer = forwardRef<
               backgroundColor: "#000",
             }}
           />
-        ) : (
-          <WebView
-            ref={webViewRef}
-            source={{ html: htmlString }}
-            style={{ flex: 1, backgroundColor: "#000" }}
-            allowsInlineMediaPlayback={true}
-            mediaPlaybackRequiresUserAction={false}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            onMessage={handleNativeMessage}
-          />
-        )}
-      </View>
+        </View>
+      );
+    }
+    return (
+      <EmbedFrame
+        ref={embedRef}
+        htmlContent={htmlContent}
+        onReady={onReady}
+        onStateChange={onStateChange}
+        onTimeUpdate={onTimeUpdate}
+        width={width}
+        height={height}
+      />
     );
   },
 );
