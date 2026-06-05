@@ -111,21 +111,7 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
         isFullScreen={isCurrentFullScreen}
         onPin={handlePin}
         onFullScreen={handleFullScreen}
-        onRemove={
-          isWatchTogether
-            ? async () => {
-                try {
-                  const gateway =
-                    require("@/src/utils/backend-services/api-gateway").default;
-                  await gateway.watchTogether.stop(
-                    room?.name || room?.sid || chatUUID,
-                  );
-                } catch (e) {
-                  console.error("Failed to stop watch together:", e);
-                }
-              }
-            : stopScreenShare
-        }
+        onRemove={stopScreenShare}
         width={isCurrentFullScreen ? containerDimensions.width : rectWidth}
         height={isCurrentFullScreen ? containerDimensions.height : rectHeight}
         margin={isCurrentFullScreen ? 0 : margin}

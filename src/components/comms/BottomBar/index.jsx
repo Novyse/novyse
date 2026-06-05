@@ -16,6 +16,7 @@ import StatusMessage from "@/src/components/StatusMessage";
 import BlurredView from "@/src/components/BlurredView";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
+import { useCommsContext } from "@/src/context/CommsContext";
 
 import Platform from "@/src/utils/device/type";
 import { RoomOptionsMenu } from "./RoomOptionsMenu";
@@ -31,7 +32,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
   const [showCameraSelector, setShowCameraSelector] = useState(false);
   const [showScreenShareSelector, setShowScreenShareSelector] = useState(false);
   const [showRoomMenu, setShowRoomMenu] = useState(false);
-  const [showWatchTogether, setShowWatchTogether] = useState(false);
+  const { showWatchTogetherModal, setShowWatchTogetherModal } = useCommsContext();
 
   const {
     connecting,
@@ -177,12 +178,12 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
       <RoomOptionsMenu
         visible={showRoomMenu}
         onClose={() => setShowRoomMenu(false)}
-        onOpenWatchTogether={() => setShowWatchTogether(true)}
+        onOpenWatchTogether={() => setShowWatchTogetherModal(true)}
       />
 
       <WatchTogetherModal
-        visible={showWatchTogether}
-        onClose={() => setShowWatchTogether(false)}
+        visible={showWatchTogetherModal}
+        onClose={() => setShowWatchTogetherModal(false)}
       />
     </View>
   );

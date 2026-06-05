@@ -20,7 +20,8 @@ const CommsMenu = ({
   position,
 }) => {
   const { theme } = useThemeContext();
-  const { localMuted, toggleLocalMute } = useCommsContext();
+  const { localMuted, toggleLocalMute, setShowWatchTogetherModal } =
+    useCommsContext();
   const styles = createStyles(theme);
   const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -65,6 +66,9 @@ const CommsMenu = ({
   } = displayData;
 
   const volKey = isScreenShare ? activeStreamUUID : activeDeviceUUID;
+  const isWatchTogether =
+    activeDeviceUUID === "watch-together" &&
+    activeStreamUUID === "watch-together";
 
   const menuWidth = 220;
   const menuHeight = isLocal ? 150 : 250;
@@ -141,7 +145,10 @@ const CommsMenu = ({
                       color={isMuted ? theme.iconDanger : theme.text}
                     />
                     <AppText
-                      style={[styles.menuText, isMuted && { color: theme.iconDanger }]}
+                      style={[
+                        styles.menuText,
+                        isMuted && { color: theme.iconDanger },
+                      ]}
                       text={isMuted ? "Unmute" : "Mute"}
                     />
                   </View>
@@ -150,30 +157,48 @@ const CommsMenu = ({
 
               {/* Volume Slider Section */}
               {isLocal === false && (
-                <VolumeControl
-                  volKey={volKey}
-                  isScreenShare={isScreenShare}
-                />
+                <VolumeControl volKey={volKey} isScreenShare={isScreenShare} />
               )}
 
-              {/* WIP Buttons */}
-              <HoverAndPressedButton style={styles.menuItem} onPress={() => {}}>
+              {/* Actions Button */}
+              <HoverAndPressedButton
+                style={styles.menuItem}
+                onPress={() => {
+                  onClose();
+                  if (isWatchTogether) {
+                    setShowWatchTogetherModal(true);
+                  }
+                }}
+              >
                 <View style={styles.menuItemContent}>
                   <Icon name="Settings02Icon" size={20} color={theme.text} />
-                  <AppText style={styles.menuText} text="Actions (WIP)" />
+                  {isWatchTogether ? (
+                    <AppText
+                      style={styles.menuText}
+                      translationKey="chat.comms.watchTogether.modify"
+                    />
+                  ) : (
+                    <AppText style={styles.menuText} text="Actions (WIP)" />
+                  )}
                 </View>
               </HoverAndPressedButton>
 
-              <HoverAndPressedButton style={styles.menuItem} onPress={() => {}}>
-                <View style={styles.menuItemContent}>
-                  <Icon
-                    name="InformationCircleIcon"
-                    size={20}
-                    color={theme.text}
-                  />
-                  <AppText style={styles.menuText} text="Info (WIP)" />
-                </View>
-              </HoverAndPressedButton>
+              {/* Info Button */}
+              {!isWatchTogether && (
+                <HoverAndPressedButton
+                  style={styles.menuItem}
+                  onPress={() => {}}
+                >
+                  <View style={styles.menuItemContent}>
+                    <Icon
+                      name="InformationCircleIcon"
+                      size={20}
+                      color={theme.text}
+                    />
+                    <AppText style={styles.menuText} text="Info (WIP)" />
+                  </View>
+                </HoverAndPressedButton>
+              )}
             </View>
           </BlurredView>
         </View>
@@ -182,7 +207,8 @@ const CommsMenu = ({
   );
 };
 
-const createStyles = (theme) => StyleSheet.create({
+const createStyles = (theme) =>
+  StyleSheet.create({
     overlay: {
       flex: 1,
     },

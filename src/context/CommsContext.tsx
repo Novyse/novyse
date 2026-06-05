@@ -53,6 +53,9 @@ interface CommsContextType {
   reset: () => void;
   error: string | null;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
+
+  showWatchTogetherModal: boolean;
+  setShowWatchTogetherModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const CommsContext = React.createContext<CommsContextType | undefined>(
@@ -107,6 +110,9 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     x: number;
     y: number;
   }>({ x: 0, y: 0 });
+
+  const [showWatchTogetherModal, setShowWatchTogetherModal] =
+    React.useState<boolean>(false);
 
   React.useEffect(() => {
     if (!room) {
@@ -587,6 +593,7 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     setTriggeredStream(null);
     setTriggeredPosition({ x: 0, y: 0 });
     setError(null);
+    setShowWatchTogetherModal(false);
   };
 
   const setRemoteVolume = async (
@@ -730,6 +737,8 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     setError,
     roomMetadata,
     setRoomMetadata,
+    showWatchTogetherModal,
+    setShowWatchTogetherModal,
   };
 
   return (

@@ -167,11 +167,9 @@ const UserCard = memo(
                     onPress={() => onFullScreen(streamUUID)}
                   />
                 ) : null}
-                {(isScreenShare && isLocal) || isWatchTogether ? (
+                {isScreenShare && isLocal ? (
                   <Icon
-                    name={
-                      isWatchTogether ? "Cancel01Icon" : "ComputerRemoveIcon"
-                    }
+                    name="ComputerRemoveIcon"
                     size={20}
                     onPress={() => onRemove(streamUUID)}
                   />
