@@ -50,6 +50,21 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
     }
   }
 
+  let supportedStyle = styles.supportedCompactText;
+  let supportedText = `${t("chat.comms.watchTogether.notSupported")} - ${t("chat.comms.watchTogether.supportedLinks")}: ${t("chat.comms.watchTogether.typeYoutube")}, ${t("chat.comms.watchTogether.typeDirect")}`;
+
+  if (videoUrl.trim()) {
+    if (isValid) {
+      supportedStyle = styles.supportedSuccessText;
+      supportedText = t("chat.comms.watchTogether.detectedType", {
+        type: detectedTypeText,
+      });
+    } else {
+      supportedStyle = styles.supportedErrorText;
+      supportedText = `${t("chat.comms.watchTogether.notSupported")} - ${t("chat.comms.watchTogether.supportedLinks")}: ${t("chat.comms.watchTogether.typeYoutube")}, ${t("chat.comms.watchTogether.typeDirect")}`;
+    }
+  }
+
   useEffect(() => {
     if (visible) {
       setVideoUrl(watchTogether?.url || "");
@@ -133,30 +148,10 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
           autoFocus
         />
 
-        {videoUrl.trim() ? (
-          isValid ? (
-            <AppText
-              style={styles.detectedText}
-              text={t("chat.comms.watchTogether.detectedType", {
-                type: detectedTypeText,
-              })}
-            />
-          ) : (
-            <AppText
-              style={styles.errorText}
-              text={t("chat.comms.watchTogether.notSupported")}
-            />
-          )
-        ) : null}
-
         {!!errorMsg && <AppText style={styles.errorText} text={errorMsg} />}
 
         <View style={styles.supportedCompactContainer}>
-          <AppText style={styles.supportedCompactText}>
-            {t("chat.comms.watchTogether.supportedLinks")}:{" "}
-            {t("chat.comms.watchTogether.typeYoutube")},{" "}
-            {t("chat.comms.watchTogether.typeDirect")}
-          </AppText>
+          <AppText style={supportedStyle} text={supportedText} />
         </View>
 
         <View style={styles.buttonsContainer}>
@@ -232,12 +227,6 @@ const createStyles = (theme: any) =>
       fontSize: 15,
       marginBottom: 20,
     },
-    detectedText: {
-      color: theme.iconSuccess,
-      fontSize: 13,
-      fontWeight: "500",
-      marginBottom: 16,
-    },
     errorText: {
       color: theme.iconDanger,
       fontSize: 13,
@@ -246,11 +235,21 @@ const createStyles = (theme: any) =>
     supportedCompactContainer: {
       marginTop: 4,
       marginBottom: 16,
-      opacity: 0.6,
     },
     supportedCompactText: {
       fontSize: 11,
       color: theme.subtitle,
+      opacity: 0.6,
+    },
+    supportedSuccessText: {
+      fontSize: 11,
+      color: theme.iconSuccess,
+      fontWeight: "600",
+    },
+    supportedErrorText: {
+      fontSize: 11,
+      color: theme.iconDanger,
+      fontWeight: "600",
     },
     buttonsContainer: {
       flexDirection: "row",
