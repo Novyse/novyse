@@ -11,11 +11,10 @@ import notifee, {
   AndroidPerson,
   EventDetail,
 } from "react-native-notify-kit";
-import { Platform } from "react-native";
+import { Platform, DeviceEventEmitter } from "react-native";
 import { router } from "expo-router";
 import { DateTime } from "luxon";
 import messageFormat from "../../chat/messageFormat";
-import gateway from "../../backend-services/api-gateway";
 
 class MobileNotificationManager {
   private processedMessageIds = new Set<string>();
@@ -86,6 +85,12 @@ class MobileNotificationManager {
           if (notification?.id) {
             await notifee.cancelNotification(notification.id);
           }
+        } else if (pressAction?.id === "toggle_mic") {
+          DeviceEventEmitter.emit("comms_toggle_mic");
+        } else if (pressAction?.id === "toggle_cam") {
+          DeviceEventEmitter.emit("comms_toggle_cam");
+        } else if (pressAction?.id === "leave_voice") {
+          DeviceEventEmitter.emit("comms_leave_voice");
         }
         break;
     }
@@ -440,7 +445,79 @@ class MobileNotificationManager {
       },
     });
   }
+  async displayVoiceChatNotification(
+    chatName: string,
+    isMicOn: boolean,
+    isCamOn: boolean,
+    chatUUID: string,
+  ) {
+    if (Platform.OS !== "android") return;
+
+    try {
+      await notifee.createChannel({
+        id: "voice_chat_service",
+        name: "Voice Chat Background Service",
+        importance: AndroidImportance.LOW,
+      });
+
+      await notifee.displayNotification({
+        title: "Voice Chat: " + chatName,
+        body: "Tap to return to call",
+        id: "voice_chat_persistent",
+        android: {
+          channelId: "voice_chat_service",
+          category: AndroidCategory.SERVICE,
+          ongoing: true,
+          asForegroundService: true,
+          smallIcon: "notification_icon",
+          pressAction: { id: "default" },
+          actions: [
+            {
+              title: isMicOn ? "Mute Mic" : "Unmute Mic",
+              pressAction: { id: "toggle_mic" },
+            },
+            {
+              title: isCamOn ? "Turn Cam Off" : "Turn Cam On",
+              pressAction: { id: "toggle_cam" },
+            },
+            {
+              title: "Disconnect",
+              pressAction: { id: "leave_voice" },
+            },
+          ],
+        },
+        data: {
+          chatUUID,
+        },
+      });
+    } catch (e) {
+      console.error(
+        "[MobileNotificationManager] Error displaying voice chat notification:",
+        e,
+      );
+    }
+  }
+
+  async hideVoiceChatNotification() {
+    if (Platform.OS !== "android") return;
+    try {
+      await notifee.stopForegroundService();
+      await notifee.cancelNotification("voice_chat_persistent");
+    } catch (e) {
+      console.error(
+        "[MobileNotificationManager] Error hiding voice chat notification:",
+        e,
+      );
+    }
+  }
 }
 
+if (Platform.OS === "android") {
+  notifee.registerForegroundService((notification) => {
+    return new Promise(() => {
+      // The promise must not resolve until we explicitly stop the service
+    });
+  });
+}
 const mobileNotificationManager = new MobileNotificationManager();
 export default mobileNotificationManager;
