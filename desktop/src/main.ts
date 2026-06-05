@@ -19,7 +19,6 @@ import { initDb } from "./db";
 import { registerRpcHandlers } from "./rpc";
 import { startLocalServer, getLocalServerUrl } from "./server";
 import { setupScreenShareHandler } from "./screenshare";
-import { setupEmbedHandlers } from "./embed";
 
 import config from "../electron-builder.config";
 
@@ -133,7 +132,6 @@ app.whenReady().then(async () => {
   startLocalServer();
   setupUpdaterListeners();
   setupScreenShareHandler();
-  setupEmbedHandlers();
 
   ipcMain.on("get-local-server-url", (event: { returnValue: string }) => {
     event.returnValue = getLocalServerUrl();

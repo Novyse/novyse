@@ -7,7 +7,6 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import { useWatchTogether } from "@/src/hooks/comms/useWatchTogether";
 import { useCommsContext } from "@/src/context/CommsContext";
 import { YouTubePlayer } from "./YouTubePlayer";
-import { TwitchPlayer } from "./TwitchPlayer";
 import { DirectVideoPlayer } from "./DirectVideoPlayer";
 
 const formatTime = (seconds: number): string => {
@@ -88,10 +87,7 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
   const styles = createStyles(theme);
 
   // If no session is active, return null immediately so it disappears completely
-  if (
-    !watchTogetherState ||
-    (!parsedVideo.videoId && !parsedVideo.channel && !parsedVideo.videoUrl)
-  ) {
+  if (!watchTogetherState || (!parsedVideo.videoId && !parsedVideo.videoUrl)) {
     return null;
   }
 
@@ -104,15 +100,6 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
           <YouTubePlayer
             ref={playerRef}
             videoId={parsedVideo.videoId}
-            onReady={handleReady}
-            onStateChange={onPlayerStateChange}
-            onTimeUpdate={onPlayerTimeUpdate}
-          />
-        ) : parsedVideo.type === "twitch" ? (
-          <TwitchPlayer
-            ref={playerRef}
-            channel={parsedVideo.channel}
-            video={parsedVideo.video}
             onReady={handleReady}
             onStateChange={onPlayerStateChange}
             onTimeUpdate={onPlayerTimeUpdate}

@@ -10,8 +10,9 @@ import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
 import AppText from "@/src/components/AppText";
-import AdaptiveModal from "../modalSheets/AdaptiveModal";
+import AdaptiveModal from "../../modalSheets/AdaptiveModal";
 import gateway from "@/src/utils/backend-services/api-gateway";
+import { parseVideoUrl } from "@/src/hooks/comms/useWatchTogether";
 
 interface WatchTogetherModalProps {
   visible: boolean;
@@ -35,6 +36,20 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
   const watchTogether = roomMetadata?.watchTogether;
   const isVideoActive = !!watchTogether?.url;
 
+  const parsed = videoUrl.trim()
+    ? parseVideoUrl(videoUrl.trim())
+    : { type: null };
+  const isValid = parsed.type !== null;
+
+  let detectedTypeText = "";
+  if (videoUrl.trim()) {
+    if (parsed.type === "youtube") {
+      detectedTypeText = t("chat.comms.watchTogether.typeYoutube");
+    } else if (parsed.type === "direct") {
+      detectedTypeText = t("chat.comms.watchTogether.typeDirect");
+    }
+  }
+
   useEffect(() => {
     if (visible) {
       setVideoUrl(watchTogether?.url || "");
@@ -44,7 +59,7 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
   }, [visible]);
 
   const handleStartSession = async () => {
-    if (!videoUrl.trim()) return;
+    if (!videoUrl.trim() || !isValid) return;
     setLoading(true);
     setErrorMsg("");
     try {
@@ -118,7 +133,31 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
           autoFocus
         />
 
+        {videoUrl.trim() ? (
+          isValid ? (
+            <AppText
+              style={styles.detectedText}
+              text={t("chat.comms.watchTogether.detectedType", {
+                type: detectedTypeText,
+              })}
+            />
+          ) : (
+            <AppText
+              style={styles.errorText}
+              text={t("chat.comms.watchTogether.notSupported")}
+            />
+          )
+        ) : null}
+
         {!!errorMsg && <AppText style={styles.errorText} text={errorMsg} />}
+
+        <View style={styles.supportedCompactContainer}>
+          <AppText style={styles.supportedCompactText}>
+            {t("chat.comms.watchTogether.supportedLinks")}:{" "}
+            {t("chat.comms.watchTogether.typeYoutube")},{" "}
+            {t("chat.comms.watchTogether.typeDirect")}
+          </AppText>
+        </View>
 
         <View style={styles.buttonsContainer}>
           {isVideoActive && (
@@ -135,9 +174,13 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
           )}
 
           <Pressable
-            style={[styles.btn, styles.btnConfirm]}
+            style={[
+              styles.btn,
+              styles.btnConfirm,
+              (loading || !videoUrl.trim() || !isValid) && styles.btnDisabled,
+            ]}
             onPress={handleStartSession}
-            disabled={loading || !videoUrl.trim()}
+            disabled={loading || !videoUrl.trim() || !isValid}
           >
             {loading ? (
               <ActivityIndicator size="small" color={theme.text} />
@@ -189,10 +232,25 @@ const createStyles = (theme: any) =>
       fontSize: 15,
       marginBottom: 20,
     },
+    detectedText: {
+      color: theme.iconSuccess,
+      fontSize: 13,
+      fontWeight: "500",
+      marginBottom: 16,
+    },
     errorText: {
       color: theme.iconDanger,
       fontSize: 13,
       marginBottom: 16,
+    },
+    supportedCompactContainer: {
+      marginTop: 4,
+      marginBottom: 16,
+      opacity: 0.6,
+    },
+    supportedCompactText: {
+      fontSize: 11,
+      color: theme.subtitle,
     },
     buttonsContainer: {
       flexDirection: "row",
@@ -222,5 +280,8 @@ const createStyles = (theme: any) =>
       color: theme.text,
       fontSize: 14,
       fontWeight: "600",
+    },
+    btnDisabled: {
+      opacity: 0.5,
     },
   });

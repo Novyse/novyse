@@ -234,13 +234,18 @@
         "title": "Watch Together",
         "startTitle": "Start Watch Together",
         "modifyTitle": "Modify Watch Together",
-        "description": "Paste a YouTube or Twitch link to sync playback with all participants.",
-        "placeholder": "Paste YouTube or Twitch URL...",
+        "description": "Paste a YouTube or direct video link to sync playback with all participants.",
+        "placeholder": "Paste YouTube or video URL...",
         "cancel": "Cancel",
         "start": "Start",
         "modify": "Modify",
         "stop": "Stop",
-        "invalidUrl": "Invalid URL or network error."
+        "invalidUrl": "Invalid URL or network error.",
+        "supportedLinks": "Supported Links",
+        "detectedType": "Detected: {{type}}",
+        "notSupported": "Unsupported link format",
+        "typeYoutube": "YouTube",
+        "typeDirect": "Direct Video (MP4, WebM, etc.)"
       }
     },
     "memberCount_one": "{{count}} member",

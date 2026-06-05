@@ -10,10 +10,8 @@ export interface WatchTogetherState {
 }
 
 export interface ParsedVideo {
-  type: "youtube" | "twitch" | "direct" | null;
+  type: "youtube" | "direct" | null;
   videoId?: string;
-  channel?: string;
-  video?: string;
   videoUrl?: string;
 }
 
@@ -43,17 +41,6 @@ export const parseVideoUrl = (url: string): ParsedVideo => {
   const ytMatch = url.match(ytRegExp);
   if (ytMatch && ytMatch[2].length === 11) {
     return { type: "youtube", videoId: ytMatch[2] };
-  }
-
-  // Twitch matchers
-  const twitchVideoMatch = url.match(/twitch\.tv\/videos\/([0-9]+)/);
-  if (twitchVideoMatch) {
-    return { type: "twitch", video: twitchVideoMatch[1] };
-  }
-
-  const twitchChannelMatch = url.match(/twitch\.tv\/([a-zA-Z0-9_]+)/);
-  if (twitchChannelMatch && twitchChannelMatch[1] !== "videos") {
-    return { type: "twitch", channel: twitchChannelMatch[1] };
   }
 
   // Direct video file link matcher

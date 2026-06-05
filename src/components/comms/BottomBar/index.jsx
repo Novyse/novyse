@@ -18,8 +18,8 @@ import BlurredView from "@/src/components/BlurredView";
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 
 import Platform from "@/src/utils/device/type";
-import { RoomOptionsMenu } from "../RoomOptionsMenu";
-import { WatchTogetherModal } from "../WatchTogetherModal";
+import { RoomOptionsMenu } from "./RoomOptionsMenu";
+import { WatchTogetherModal } from "./WatchTogetherModal";
 
 const CommsBottomBar = ({ chatUUID, sub }) => {
   const { theme } = useContext(ThemeContext);

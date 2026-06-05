@@ -232,13 +232,18 @@
         "title": "Watch Together",
         "startTitle": "Avvia Watch Together",
         "modifyTitle": "Modifica Watch Together",
-        "description": "Incolla un link di YouTube o Twitch per sincronizzare la riproduzione con tutti i partecipanti.",
-        "placeholder": "Incolla URL di YouTube o Twitch...",
+        "description": "Incolla un link di YouTube o un link video diretto per sincronizzare la riproduzione con tutti i partecipanti.",
+        "placeholder": "Incolla URL di YouTube o del video...",
         "cancel": "Annulla",
         "start": "Avvia",
         "modify": "Modifica",
         "stop": "Interrompi",
-        "invalidUrl": "URL non valido o errore di rete."
+        "invalidUrl": "URL non valido o errore di rete.",
+        "supportedLinks": "Link Supportati",
+        "detectedType": "Rilevato: {{type}}",
+        "notSupported": "Formato link non supportato",
+        "typeYoutube": "YouTube",
+        "typeDirect": "Video Diretto (MP4, WebM, ecc.)"
       }
     },
     "memberCount_one": "{{count}} membro",

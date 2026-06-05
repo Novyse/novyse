@@ -3,9 +3,9 @@ import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
-import HoverAndPressedButton from "../HoverAndPressedButton";
+import HoverAndPressedButton from "../../HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
-import AdaptiveModal from "../modalSheets/AdaptiveModal";
+import AdaptiveModal from "../../modalSheets/AdaptiveModal";
 
 interface RoomOptionsMenuProps {
   visible: boolean;
