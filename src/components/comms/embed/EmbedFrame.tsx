@@ -39,6 +39,7 @@ export interface EmbedFrameProps {
   pointerEventsNone?: boolean;
   width?: string | number;
   height?: string | number;
+  baseUrl?: string;
 }
 
 export const EmbedFrame = forwardRef<EmbedPlayerRef, EmbedFrameProps>(
@@ -53,6 +54,7 @@ export const EmbedFrame = forwardRef<EmbedPlayerRef, EmbedFrameProps>(
       pointerEventsNone = false,
       width = "100%",
       height = "100%",
+      baseUrl,
     },
     ref,
   ) => {
@@ -225,13 +227,14 @@ export const EmbedFrame = forwardRef<EmbedPlayerRef, EmbedFrameProps>(
       >
         <WebView
           ref={webViewRef}
-          source={{ html: htmlContent }}
+          source={{ html: htmlContent, baseUrl }}
           style={{ flex: 1, backgroundColor: "#000" }}
           allowsInlineMediaPlayback={true}
           mediaPlaybackRequiresUserAction={false}
           javaScriptEnabled={true}
           domStorageEnabled={true}
           onMessage={handleNativeMessage}
+          userAgent="Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
         />
       </View>
     );

@@ -29,7 +29,7 @@ function getYouTubeHtml(videoId: string): string {
       function onYouTubeIframeAPIReady(){
         player=new YT.Player('player',{
           height:'100%',width:'100%',videoId:'${videoId}',
-          playerVars:{playsinline:1,controls:0,rel:0,showinfo:0,enablejsapi:1,modestbranding:1,iv_load_policy:3,disablekb:1,fs:0},
+          playerVars:{playsinline:1,controls:0,rel:0,showinfo:0,enablejsapi:1,modestbranding:1,iv_load_policy:3,disablekb:1,fs:0,origin:'https://novyse.com'},
           events:{'onReady':function(){
             sendToParent({type:'ready'});
             setInterval(function(){
@@ -198,6 +198,7 @@ export const YouTubePlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       <EmbedFrame
         ref={embedRef}
         htmlContent={htmlContent}
+        baseUrl="https://novyse.com"
         onReady={onReady}
         onStateChange={onStateChange}
         onTimeUpdate={onTimeUpdate}
