@@ -137,6 +137,7 @@ const UserCard = memo(
             margin: margin / 2,
           },
           isFullScreen && styles.fullscreenContainer,
+          isFullScreen && { borderRadius: 0 },
         ]}
       >
         {isLocalMuted && (
@@ -180,10 +181,11 @@ const UserCard = memo(
         )}
 
         {connected && isWatchTogether ? (
-          <View style={styles.videoContainer}>
+          <View style={[styles.videoContainer, isFullScreen && { borderRadius: 0 }]}>
             <WatchTogetherPlayer
               width={width}
               height={height}
+              isFullScreen={isFullScreen}
               onVideoPress={handlePress}
             />
           </View>

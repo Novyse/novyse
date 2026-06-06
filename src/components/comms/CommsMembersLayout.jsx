@@ -5,9 +5,8 @@ import React, {
   useContext,
   useRef,
 } from "react";
-import { View, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet, Platform, Modal, Dimensions } from "react-native";
 import AppText from "@/src/components/AppText";
-import { createPortal } from "react-dom";
 
 import { useCommsContext } from "@/src/context/CommsContext";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -82,6 +81,8 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
     facingMode,
   } = useCommsAction();
 
+  const isMobile = Platform.OS === "android" || Platform.OS === "ios";
+
   const renderRectangle = (
     streamUUID,
     deviceUUID,
@@ -90,10 +91,21 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
     metadata,
     isLocal,
     isScreenShare,
+    forFullscreen = false,
   ) => {
     const isWatchTogether =
       deviceUUID === "watch-together" && streamUUID === "watch-together";
     const isCurrentFullScreen = fullscreenStreamUUID === streamUUID;
+
+    // On mobile fullscreen, use actual screen dimensions
+    let fsWidth = containerDimensions.width;
+    let fsHeight = containerDimensions.height;
+    if (isMobile && isCurrentFullScreen) {
+      const screen = Dimensions.get("screen");
+      // In landscape the larger dimension is width
+      fsWidth = Math.max(screen.width, screen.height);
+      fsHeight = Math.min(screen.width, screen.height);
+    }
 
     return (
       <UserCard
@@ -112,8 +124,8 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
         onPin={handlePin}
         onFullScreen={handleFullScreen}
         onRemove={stopScreenShare}
-        width={isCurrentFullScreen ? containerDimensions.width : rectWidth}
-        height={isCurrentFullScreen ? containerDimensions.height : rectHeight}
+        width={isCurrentFullScreen ? fsWidth : rectWidth}
+        height={isCurrentFullScreen ? fsHeight : rectHeight}
         margin={isCurrentFullScreen ? 0 : margin}
         isSpeaking={speakingStates[deviceUUID]}
         facingMode={facingMode}
@@ -121,12 +133,40 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
     );
   };
 
+  // Find the fullscreen item (if any) for mobile modal rendering
+  const fullscreenItem = fullscreenStreamUUID
+    ? layoutItems.find((item) => item.streamUUID === fullscreenStreamUUID)
+    : null;
+
   return (
     <View
       ref={containerRef}
       style={styles.container}
       onLayout={onContainerLayout}
     >
+      {/* Mobile: render fullscreen content in a Modal for true immersive fullscreen */}
+      {isMobile && fullscreenItem && (
+        <Modal
+          visible={true}
+          animationType="fade"
+          statusBarTranslucent={true}
+          supportedOrientations={["landscape"]}
+          onRequestClose={() => handleFullScreen(fullscreenItem.streamUUID)}
+        >
+          <View style={styles.mobileFullscreenModal}>
+            {renderRectangle(
+              fullscreenItem.streamUUID,
+              fullscreenItem.deviceUUID,
+              fullscreenItem.stream,
+              fullscreenItem.name,
+              fullscreenItem.metadata,
+              fullscreenItem.isLocal,
+              fullscreenItem.isScreenShare,
+              true,
+            )}
+          </View>
+        </Modal>
+      )}
       <View
         style={[
           styles.grid,
@@ -152,6 +192,11 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
 
               // Hide other items from view while fullscreen is active
               if (fullscreenStreamUUID && !isCurrentFullScreen) {
+                return null;
+              }
+
+              // On mobile, fullscreen is handled by Modal above
+              if (isMobile && isCurrentFullScreen) {
                 return null;
               }
 
@@ -211,6 +256,12 @@ const createStyles = (theme) =>
       bottom: 0,
       backgroundColor: theme.shadowColor,
       zIndex: 10000,
+    },
+    mobileFullscreenModal: {
+      flex: 1,
+      backgroundColor: "#000",
+      justifyContent: "center",
+      alignItems: "center",
     },
     grid: {
       paddingTop: 160,

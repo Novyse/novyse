@@ -6,6 +6,7 @@ import { useCommsContext } from "@/src/context/CommsContext";
 
 import { Track } from "livekit-client";
 import Platform from "@/src/utils/device/type";
+import * as ScreenOrientation from "expo-screen-orientation";
 
 const useLayout = (room, participants, containerDimensions, containerRef) => {
   // Costants
@@ -56,6 +57,11 @@ const useLayout = (room, participants, containerDimensions, containerRef) => {
       } else {
         // hide the status bar on native when a stream is in fullscreen
         StatusBar.setHidden(true, "fade");
+        ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.LANDSCAPE,
+        ).catch((err) => {
+          console.error("Error locking landscape orientation:", err);
+        });
       }
     } else {
       if (!isMobile) {
@@ -66,6 +72,11 @@ const useLayout = (room, participants, containerDimensions, containerRef) => {
         }
       } else {
         StatusBar.setHidden(false, "fade");
+        ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT_UP,
+        ).catch((err) => {
+          console.error("Error locking portrait orientation:", err);
+        });
       }
     }
   }, [fullscreenStreamUUID, isMobile]);

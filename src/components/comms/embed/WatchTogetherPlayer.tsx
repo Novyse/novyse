@@ -20,6 +20,7 @@ interface WatchTogetherPlayerProps {
   width?: number;
   height?: number;
   margin?: number;
+  isFullScreen?: boolean;
   onVideoPress?: (event: any) => void;
 }
 
@@ -27,6 +28,7 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
   width,
   height,
   margin,
+  isFullScreen = false,
   onVideoPress,
 }) => {
   const { theme } = useContext(ThemeContext);
@@ -94,7 +96,7 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
   const isPlaying = watchTogetherState.status === "playing";
 
   return (
-    <View style={[styles.container, { width: "100%", height: "100%" }]}>
+    <View style={[styles.container, { width: "100%", height: "100%" }, isFullScreen && { borderRadius: 0 }]}>
       <View style={styles.playerContainer}>
         {parsedVideo.type === "youtube" && parsedVideo.videoId ? (
           <YouTubePlayer
