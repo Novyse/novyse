@@ -1,6 +1,7 @@
 import React, {
   useEffect,
   useRef,
+  useCallback,
   forwardRef,
   useImperativeHandle,
 } from "react";
@@ -56,20 +57,30 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
     ref,
   ) => {
     const useBottomSheetPresentation =
-      mode === "bottomsheet" ||
-      (mode === "adaptive" && Platform.OS === "android");
+      mode === "bottomsheet" || (mode === "adaptive" && Platform.OS !== "web");
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
+    const isOpenRef = useRef(false);
+
+    const handleSheetDismiss = useCallback(() => {
+      isOpenRef.current = false;
+      onClose();
+    }, [onClose]);
 
     useEffect(() => {
-      if (!useBottomSheetPresentation) {
-        return;
+      if (!useBottomSheetPresentation) return;
+
+      if (visible && !isOpenRef.current) {
+        const timer = setTimeout(() => {
+          bottomSheetRef.current?.present();
+          isOpenRef.current = true;
+        }, 50);
+        return () => clearTimeout(timer);
       }
 
-      if (visible) {
-        bottomSheetRef.current?.present();
-      } else {
+      if (!visible && isOpenRef.current) {
         bottomSheetRef.current?.dismiss();
+        isOpenRef.current = false;
       }
     }, [visible, useBottomSheetPresentation]);
 
@@ -77,13 +88,15 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
       ref,
       () => ({
         present: () => {
-          if (useBottomSheetPresentation) {
+          if (useBottomSheetPresentation && !isOpenRef.current) {
             bottomSheetRef.current?.present();
+            isOpenRef.current = true;
           }
         },
         dismiss: () => {
-          if (useBottomSheetPresentation) {
+          if (useBottomSheetPresentation && isOpenRef.current) {
             bottomSheetRef.current?.dismiss();
+            isOpenRef.current = false;
           }
         },
       }),
@@ -95,7 +108,7 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
         <BottomSheetBase
           ref={bottomSheetRef}
           snapPoints={snapPoints}
-          onClose={onClose}
+          onClose={handleSheetDismiss}
           theme={theme}
           scrollable={scrollable}
           hideOverlay={hideOverlay}

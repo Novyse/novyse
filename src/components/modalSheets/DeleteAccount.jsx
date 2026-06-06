@@ -55,7 +55,7 @@ const DeleteAccount = ({ visible, onClose }) => {
       visible={visible}
       onClose={handleClose}
       theme={theme}
-      mode="modal"
+      mode="adaptive"
       hideCloseX={true}
     >
       <View style={styles.contentContainer}>
