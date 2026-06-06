@@ -151,9 +151,15 @@ const ChatPageRoute = () => {
 
   useEffect(() => {
     return () => {
-      useActiveChatStore.getState().clear();
+      const state = useActiveChatStore.getState();
+      if (
+        state.selectedChatUUID === chatUUIDorHandle ||
+        state.selectedHandle === chatUUIDorHandle
+      ) {
+        state.clear();
+      }
     };
-  }, []);
+  }, [chatUUIDorHandle]);
 
   const styles = useMemo(() => createStyle(theme), [theme]);
 
