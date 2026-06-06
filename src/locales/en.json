@@ -186,6 +186,15 @@
       }
     },
     "comms": {
+      "notification": {
+        "inCall": "In Call: {{chatName}}",
+        "tapToReturn": "Tap to return to call",
+        "muteMic": "Mute Mic",
+        "unmuteMic": "Unmute Mic",
+        "turnCamOff": "Turn Cam Off",
+        "turnCamOn": "Turn Cam On",
+        "disconnect": "Disconnect"
+      },
       "participantsInCall": "{{count}} participants in call",
       "noParticipants": "There is no one here.",
       "error": {

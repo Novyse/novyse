@@ -1,12 +1,13 @@
 import * as React from "react";
 import "@/src/utils/polyfills";
 import { Track, Room, Participant, TrackPublication } from "livekit-client";
-import { Platform, DeviceEventEmitter } from "react-native";
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import mobileNotificationManager from "@/src/utils/notifications/lib/mobile";
 
 import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
+import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 
 interface CommsContextType {
   room: Room | null;
@@ -82,6 +83,9 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
 
   const [room, setRoom] = React.useState<Room | null>(null);
   const [roomMetadata, setRoomMetadata] = React.useState<string>("");
+
+  const currentChatUUID = room ? ((room as any).roomInfo?.name || "").split("_")[0] : undefined;
+  const { name: chatName } = useChatMetadata(currentChatUUID);
 
   const [participants, setParticipants] = React.useState<Participant[]>([]);
 
@@ -702,17 +706,8 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     });
   }, [remoteVolumes, localMuted, room]);
 
-  // Voice Chat Notification Synchronization
   React.useEffect(() => {
     if (connected && room) {
-      let chatName = "Voice Chat";
-      try {
-        const roomInfo = (room as any).roomInfo;
-        const parsedMetadata = roomMetadata ? JSON.parse(roomMetadata) : null;
-        chatName = parsedMetadata?.title || roomInfo?.name || "Voice Chat";
-      } catch (e) {
-        // Ignore
-      }
       const roomName = (room as any).roomInfo?.name || "";
       const chatUUID = roomName.split("_")[0];
 
@@ -725,58 +720,7 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     } else {
       mobileNotificationManager.hideVoiceChatNotification();
     }
-  }, [connected, room, isAudioEnabled, isVideoEnabled, roomMetadata]);
-
-  // Voice Chat Notification Actions (from Background)
-  React.useEffect(() => {
-    const micListener = DeviceEventEmitter.addListener(
-      "comms_toggle_mic",
-      async () => {
-        if (room && room.localParticipant) {
-          try {
-            const newState = !isAudioEnabled;
-            await room.localParticipant.setMicrophoneEnabled(newState);
-            setIsAudioEnabled(newState);
-          } catch (e) {
-            console.error(
-              "Failed toggling microphone state from background",
-              e,
-            );
-          }
-        }
-      },
-    );
-
-    const camListener = DeviceEventEmitter.addListener(
-      "comms_toggle_cam",
-      async () => {
-        if (room && room.localParticipant) {
-          try {
-            const newState = !isVideoEnabled;
-            await room.localParticipant.setCameraEnabled(newState);
-            setIsVideoEnabled(newState);
-          } catch (e) {
-            console.error("Failed toggling video state from background", e);
-          }
-        }
-      },
-    );
-
-    const leaveListener = DeviceEventEmitter.addListener(
-      "comms_leave_voice",
-      () => {
-        if (room) {
-          room.disconnect();
-        }
-      },
-    );
-
-    return () => {
-      micListener.remove();
-      camListener.remove();
-      leaveListener.remove();
-    };
-  }, [room, isAudioEnabled, isVideoEnabled]);
+  }, [connected, room, isAudioEnabled, isVideoEnabled, chatName]);
 
   const value: CommsContextType = {
     room,

@@ -184,6 +184,15 @@
       }
     },
     "comms": {
+      "notification": {
+        "inCall": "In chiamata: {{chatName}}",
+        "tapToReturn": "Tocca per tornare alla chiamata",
+        "muteMic": "Silenzia Mic",
+        "unmuteMic": "Attiva Mic",
+        "turnCamOff": "Spegni Cam",
+        "turnCamOn": "Accendi Cam",
+        "disconnect": "Disconnetti"
+      },
       "participantsInCall": "{{count}} partecipanti alla chiamata",
       "noParticipants": "Non c'è nessuno qui.",
       "error": {

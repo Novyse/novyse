@@ -15,6 +15,8 @@ import { Platform, DeviceEventEmitter } from "react-native";
 import { router } from "expo-router";
 import { DateTime } from "luxon";
 import messageFormat from "../../chat/messageFormat";
+import i18n from "../../../i18n";
+import { useActiveChatStore } from "../../../context/ActiveChatContext";
 
 class MobileNotificationManager {
   private processedMessageIds = new Set<string>();
@@ -65,7 +67,13 @@ class MobileNotificationManager {
       case EventType.PRESS:
         const chatUUID = notification?.data?.chatUUID;
         if (chatUUID) {
-          router.push(`/app/chat/${chatUUID}/0`);
+          if (notification.id === "novyse_comms_persistent") {
+            const activeStore = useActiveChatStore.getState();
+            await activeStore.setSelectedChatUUID(chatUUID as string);
+            activeStore.setContentView("vocal");
+          } else {
+            router.push(`/app/chat/${chatUUID}/0`);
+          }
         }
         if (notification?.id) {
           await notifee.cancelNotification(notification.id);
@@ -80,7 +88,9 @@ class MobileNotificationManager {
         } else if (pressAction?.id === "answer_call") {
           const chatUUID = notification?.data?.chatUUID;
           if (chatUUID) {
-            router.push(`/app/chat/${chatUUID}/0`);
+            const activeStore = useActiveChatStore.getState();
+            await activeStore.setSelectedChatUUID(chatUUID as string);
+            activeStore.setContentView("vocal");
           }
           if (notification?.id) {
             await notifee.cancelNotification(notification.id);
@@ -455,17 +465,17 @@ class MobileNotificationManager {
 
     try {
       await notifee.createChannel({
-        id: "voice_chat_service",
-        name: "Voice Chat Background Service",
+        id: "novyse_comms_service",
+        name: "Novyse Comms",
         importance: AndroidImportance.LOW,
       });
 
       await notifee.displayNotification({
-        title: "Voice Chat: " + chatName,
-        body: "Tap to return to call",
-        id: "voice_chat_persistent",
+        title: i18n.t("chat.comms.notification.inCall", { chatName }),
+        body: i18n.t("chat.comms.notification.tapToReturn"),
+        id: "novyse_comms_persistent",
         android: {
-          channelId: "voice_chat_service",
+          channelId: "novyse_comms_service",
           category: AndroidCategory.SERVICE,
           ongoing: true,
           asForegroundService: true,
@@ -473,15 +483,19 @@ class MobileNotificationManager {
           pressAction: { id: "default" },
           actions: [
             {
-              title: isMicOn ? "Mute Mic" : "Unmute Mic",
+              title: isMicOn
+                ? i18n.t("chat.comms.notification.muteMic")
+                : i18n.t("chat.comms.notification.unmuteMic"),
               pressAction: { id: "toggle_mic" },
             },
             {
-              title: isCamOn ? "Turn Cam Off" : "Turn Cam On",
+              title: isCamOn
+                ? i18n.t("chat.comms.notification.turnCamOff")
+                : i18n.t("chat.comms.notification.turnCamOn"),
               pressAction: { id: "toggle_cam" },
             },
             {
-              title: "Disconnect",
+              title: i18n.t("chat.comms.notification.disconnect"),
               pressAction: { id: "leave_voice" },
             },
           ],
@@ -502,7 +516,7 @@ class MobileNotificationManager {
     if (Platform.OS !== "android") return;
     try {
       await notifee.stopForegroundService();
-      await notifee.cancelNotification("voice_chat_persistent");
+      await notifee.cancelNotification("novyse_comms_persistent");
     } catch (e) {
       console.error(
         "[MobileNotificationManager] Error hiding voice chat notification:",

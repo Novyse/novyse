@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { DeviceEventEmitter } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useCommsContext } from "@/src/context/CommsContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -6,6 +7,7 @@ import { connectToLiveKit } from "@/src/utils/comms/livekit";
 import { Room, Track } from "livekit-client";
 
 import platform from "@/src/utils/device/type";
+
 
 import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
 
@@ -431,6 +433,29 @@ const useCommsAction = (chatUUID, sub) => {
       });
     }
   };
+
+  useEffect(() => {
+    if (platform !== "mobile") return;
+
+    const micListener = DeviceEventEmitter.addListener(
+      "comms_toggle_mic",
+      toggleAudio
+    );
+    const camListener = DeviceEventEmitter.addListener(
+      "comms_toggle_cam",
+      toggleVideo
+    );
+    const leaveListener = DeviceEventEmitter.addListener(
+      "comms_leave_voice",
+      leave
+    );
+
+    return () => {
+      micListener.remove();
+      camListener.remove();
+      leaveListener.remove();
+    };
+  }, [room, isAudioEnabled, isVideoEnabled]);
 
   return {
     connecting,
