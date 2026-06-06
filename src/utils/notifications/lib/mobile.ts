@@ -243,7 +243,12 @@ class MobileNotificationManager {
 
       const resolveLocalURI = async (uuid: string | null | undefined) => {
         if (!uuid || typeof uuid !== "string") return undefined;
-        if (uuid.startsWith("http")) return uuid;
+        if (
+          uuid.startsWith("http") ||
+          uuid.startsWith("file://") ||
+          uuid.startsWith("/")
+        )
+          return uuid;
         if (uuid.length < 20) return undefined;
         try {
           // 1. Try local storage
