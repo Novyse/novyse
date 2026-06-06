@@ -67,12 +67,12 @@ class MobileNotificationManager {
       case EventType.PRESS:
         const chatUUID = notification?.data?.chatUUID;
         if (chatUUID) {
+          const activeStore = useActiveChatStore.getState();
+          await activeStore.setSelectedChatUUID(chatUUID as string);
           if (notification.id === "novyse_comms_persistent") {
-            const activeStore = useActiveChatStore.getState();
-            await activeStore.setSelectedChatUUID(chatUUID as string);
             activeStore.setContentView("vocal");
           } else {
-            router.push(`/app/chat/${chatUUID}/0`);
+            activeStore.setContentView("chat");
           }
         }
         if (notification?.id) {
