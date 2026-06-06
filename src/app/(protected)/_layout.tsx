@@ -9,7 +9,7 @@ import DesktopSQLiteAdapter from "@/src/utils/storage/database/desktopAdapter";
 
 import { AudioPlayerProvider } from "@/src/context/AudioPlayerContext";
 
-import { ShareIntentProvider } from "expo-share-intent";
+//import { ShareIntentProvider } from "expo-share-intent";
 
 import { CommsProvider } from "@/src/context/CommsContext";
 import useNetworkStore from "@/src/context/NetworkContext";
@@ -54,22 +54,22 @@ function ProtectedContent() {
   }
 
   return (
-    <ShareIntentProvider
-      options={{
-        debug: BRANCH === "development",
-        resetOnBackground: true,
-        onResetShareIntent: () => {
-          setSelectedChatUUID(null);
-          tabNavigator.navigate("ChatList");
-        },
-      }}
-    >
+    // <ShareIntentProvider
+    //   options={{
+    //     debug: BRANCH === "development",
+    //     resetOnBackground: true,
+    //     onResetShareIntent: () => {
+    //       setSelectedChatUUID(null);
+    //       tabNavigator.navigate("ChatList");
+    //     },
+    //   }}
+    // >
       <AudioPlayerProvider>
         <CommsProvider>
           <Slot />
         </CommsProvider>
       </AudioPlayerProvider>
-    </ShareIntentProvider>
+    // </ShareIntentProvider>
   );
 }
 
