@@ -422,7 +422,12 @@ const useChatStore = create<ChatState>((set, get) => ({
           notificationManager.sendNotification(
             chat.name,
             body,
-            { chatUUID: message.chatUUID },
+            {
+              chatUUID: message.chatUUID,
+              senderUUID: message.senderUUID,
+              id: message.id,
+              messageId: message.id,
+            },
             chat.profilePictureUUID || undefined,
             senderName,
           );
@@ -431,7 +436,12 @@ const useChatStore = create<ChatState>((set, get) => ({
           notificationManager.sendNotification(
             senderName,
             body,
-            { chatUUID: message.chatUUID },
+            {
+              chatUUID: message.chatUUID,
+              senderUUID: message.senderUUID,
+              id: message.id,
+              messageId: message.id,
+            },
             sender?.profilePictureUUID || undefined,
           );
         }

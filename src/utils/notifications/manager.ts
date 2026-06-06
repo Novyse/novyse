@@ -68,6 +68,19 @@ class NotificationManager {
   private async handleRemoteMessage(remoteMessage: any) {
     switch (Platform) {
       case "mobile":
+        // Skip FCM notification if we are in foreground and Socket.io is connected.
+        try {
+          const SocketIO = (await import("../backend-services/socket-io")).default;
+          if (AppState.currentState === "active" && SocketIO.isOpen()) {
+            console.log(
+              "[NotificationManager] Skipping FCM message in foreground because Socket.IO is connected."
+            );
+            return;
+          }
+        } catch (e) {
+          console.error("[NotificationManager] Error importing or checking SocketIO:", e);
+        }
+
         // Skip notification if we are already viewing the chat IN FOREGROUND
         const activeChatUUID = useActiveChatStore.getState().selectedChatUUID;
         const incomingChatUUID = remoteMessage.data?.chatUUID;

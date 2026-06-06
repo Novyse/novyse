@@ -126,7 +126,7 @@ class MobileNotificationManager {
       );
 
       // 2. Ensure channel exists (idempotent)
-      const channelId = "chat_messages_v4";
+      const channelId = "novyse_chat_messages";
       const channelSettings: AndroidChannel = {
         id: channelId,
         name: "Chat Messages",
