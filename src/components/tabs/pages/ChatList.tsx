@@ -2,7 +2,7 @@ import React, { useState, useContext, useCallback, useEffect } from "react";
 import { StyleSheet, Image, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import AppText from "@/src/components/AppText";
-// import { useShareIntentContext } from "expo-share-intent";
+import { useShareIntentContext } from "expo-share-intent";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useIsFocused } from "expo-router/react-navigation";
@@ -41,17 +41,8 @@ const ChatList = () => {
     setSelectedChatUUID(chatUUIDorHandle as string);
   };
 
-  const { hasShareIntent, shareIntent, resetShareIntent } = {
-    hasShareIntent: false,
-    shareIntent: {
-      text: "",
-      files: [],
-    },
-    resetShareIntent: () => {},
-  };
-
-  // const { hasShareIntent, shareIntent, resetShareIntent } =
-  //   useShareIntentContext();
+  const { hasShareIntent, shareIntent, resetShareIntent } =
+    useShareIntentContext();
 
   const { isForwarding, completeForwarding, resetForwarding } = useForward();
 
