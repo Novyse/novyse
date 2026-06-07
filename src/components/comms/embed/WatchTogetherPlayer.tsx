@@ -1,5 +1,5 @@
 import React, { useRef, useContext, useEffect } from "react";
-import { View, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet, Pressable, Animated } from "react-native";
 import Slider from "@react-native-community/slider";
 import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
@@ -86,6 +86,59 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
     }
   };
 
+  const [controlsVisible, setControlsVisible] = React.useState(true);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+
+  const isPlaying = watchTogetherState?.status === "playing";
+
+  const showControlsAndResetTimer = () => {
+    setControlsVisible(true);
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+    if (isPlaying) {
+      hideTimeoutRef.current = setTimeout(() => {
+        setControlsVisible(false);
+      }, 3000);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (isPlaying) {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+      hideTimeoutRef.current = setTimeout(() => {
+        setControlsVisible(false);
+      }, 1000);
+    }
+  };
+
+  useEffect(() => {
+    if (isPlaying) {
+      showControlsAndResetTimer();
+    } else {
+      setControlsVisible(true);
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    }
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    };
+  }, [isPlaying]);
+
+  useEffect(() => {
+    Animated.timing(opacityAnim, {
+      toValue: controlsVisible ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [controlsVisible]);
+
   const styles = createStyles(theme);
 
   // If no session is active, return null immediately so it disappears completely
@@ -93,10 +146,20 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
     return null;
   }
 
-  const isPlaying = watchTogetherState.status === "playing";
-
   return (
-    <View style={[styles.container, { width: "100%", height: "100%" }, isFullScreen && { borderRadius: 0 }]}>
+    <View
+      style={[
+        styles.container,
+        { width: "100%", height: "100%" },
+        isFullScreen && { borderRadius: 0 },
+      ]}
+      // @ts-ignore
+      onMouseMove={showControlsAndResetTimer}
+      // @ts-ignore
+      onMouseEnter={showControlsAndResetTimer}
+      // @ts-ignore
+      onMouseLeave={handleMouseLeave}
+    >
       <View style={styles.playerContainer}>
         {parsedVideo.type === "youtube" && parsedVideo.videoId ? (
           <YouTubePlayer
@@ -132,10 +195,15 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
               { outline: "none", cursor: "pointer" },
             ]}
             onPress={() => {
-              if (isPlaying) {
-                triggerPause();
+              if (!controlsVisible) {
+                showControlsAndResetTimer();
               } else {
-                triggerPlay();
+                if (isPlaying) {
+                  triggerPause();
+                } else {
+                  triggerPlay();
+                }
+                showControlsAndResetTimer();
               }
             }}
             onLongPress={onVideoPress}
@@ -151,10 +219,21 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
 
       {/* 2. Sleek Custom Synchronization Controls Overlay */}
       {(parsedVideo.type === "youtube" || parsedVideo.type === "direct") && (
-        <View style={styles.controlsContainer}>
+        <Animated.View
+          style={[styles.controlsContainer, { opacity: opacityAnim }]}
+          pointerEvents={controlsVisible ? "auto" : "none"}
+          onTouchStart={showControlsAndResetTimer}
+        >
           <Pressable
             style={styles.playPauseBtn}
-            onPress={isPlaying ? triggerPause : triggerPlay}
+            onPress={() => {
+              if (isPlaying) {
+                triggerPause();
+              } else {
+                triggerPlay();
+              }
+              showControlsAndResetTimer();
+            }}
           >
             <Icon
               name={isPlaying ? "PauseIcon" : "PlayIcon"}
@@ -171,7 +250,10 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
             minimumTrackTintColor={theme.primary}
             maximumTrackTintColor={theme.borderColor}
             thumbTintColor={theme.primary}
-            onSlidingComplete={triggerSeek}
+            onSlidingComplete={(value) => {
+              triggerSeek(value);
+              showControlsAndResetTimer();
+            }}
           />
 
           <View style={styles.timeWrapper}>
@@ -180,7 +262,7 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
               text={`${formatTime(currentTime)} / ${formatTime(duration)}`}
             />
           </View>
-        </View>
+        </Animated.View>
       )}
     </View>
   );

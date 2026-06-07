@@ -1,5 +1,12 @@
-import React, { memo, useMemo, useEffect, useRef, useContext } from "react";
-import { View, StyleSheet, Platform, Pressable } from "react-native";
+import React, {
+  memo,
+  useMemo,
+  useEffect,
+  useRef,
+  useContext,
+  useState,
+} from "react";
+import { View, StyleSheet, Platform, Pressable, Animated } from "react-native";
 
 import { getPlatform } from "@/src/utils/device/type";
 import { useCommsContext } from "@/src/context/CommsContext";
@@ -57,6 +64,47 @@ const UserCard = memo(
     const volKey = isScreenShare ? streamUUID : deviceUUID;
     const isLocalMuted = localMuted[volKey] ?? false;
 
+    const [controlsVisible, setControlsVisible] = useState(true);
+    const hideTimeoutRef = useRef(null);
+    const opacityAnim = useRef(new Animated.Value(1)).current;
+
+    const showControlsAndResetTimer = () => {
+      setControlsVisible(true);
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+      hideTimeoutRef.current = setTimeout(() => {
+        setControlsVisible(false);
+      }, 3000);
+    };
+
+    const handleMouseLeave = () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+      hideTimeoutRef.current = setTimeout(() => {
+        setControlsVisible(false);
+      }, 1000);
+    };
+
+    const isStreamActive = stream && stream.active;
+    useEffect(() => {
+      showControlsAndResetTimer();
+      return () => {
+        if (hideTimeoutRef.current) {
+          clearTimeout(hideTimeoutRef.current);
+        }
+      };
+    }, [isStreamActive]);
+
+    useEffect(() => {
+      Animated.timing(opacityAnim, {
+        toValue: controlsVisible ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }, [controlsVisible]);
+
     const videoRef = useRef(null);
     useEffect(() => {
       if (platform === "web" && videoRef.current) {
@@ -107,6 +155,8 @@ const UserCard = memo(
       (connected && isWatchTogether);
 
     const handlePress = (event) => {
+      showControlsAndResetTimer();
+
       if (!connected || !checkRoomMatch(chatUUID, sub)) {
         return;
       }
@@ -139,6 +189,9 @@ const UserCard = memo(
           isFullScreen && styles.fullscreenContainer,
           isFullScreen && { borderRadius: 0 },
         ]}
+        onMouseMove={showControlsAndResetTimer}
+        onMouseEnter={showControlsAndResetTimer}
+        onMouseLeave={handleMouseLeave}
       >
         {isLocalMuted && (
           <View style={styles.muteIndicatorContainer}>
@@ -148,7 +201,11 @@ const UserCard = memo(
           </View>
         )}
         {hasControls && (
-          <View style={styles.controlsContainer}>
+          <Animated.View
+            style={[styles.controlsContainer, { opacity: opacityAnim }]}
+            pointerEvents={controlsVisible ? "auto" : "none"}
+            onTouchStart={showControlsAndResetTimer}
+          >
             <BlurredView style={styles.controlsBlurred}>
               <View style={styles.controlsRow}>
                 {(stream && stream.active && !isLocal && !isFullScreen) ||
@@ -156,7 +213,10 @@ const UserCard = memo(
                   <Icon
                     name={!isPinned ? "PinIcon" : "PinOffIcon"}
                     size={20}
-                    onPress={() => onPin(streamUUID)}
+                    onPress={() => {
+                      onPin(streamUUID);
+                      showControlsAndResetTimer();
+                    }}
                   />
                 ) : null}
                 {(stream && stream.active && !isLocal) || isWatchTogether ? (
@@ -165,23 +225,31 @@ const UserCard = memo(
                       !isFullScreen ? "ArrowExpand01Icon" : "ArrowShrink01Icon"
                     }
                     size={20}
-                    onPress={() => onFullScreen(streamUUID)}
+                    onPress={() => {
+                      onFullScreen(streamUUID);
+                      showControlsAndResetTimer();
+                    }}
                   />
                 ) : null}
                 {isScreenShare && isLocal ? (
                   <Icon
                     name="ComputerRemoveIcon"
                     size={20}
-                    onPress={() => onRemove(streamUUID)}
+                    onPress={() => {
+                      onRemove(streamUUID);
+                      showControlsAndResetTimer();
+                    }}
                   />
                 ) : null}
               </View>
             </BlurredView>
-          </View>
+          </Animated.View>
         )}
 
         {connected && isWatchTogether ? (
-          <View style={[styles.videoContainer, isFullScreen && { borderRadius: 0 }]}>
+          <View
+            style={[styles.videoContainer, isFullScreen && { borderRadius: 0 }]}
+          >
             <WatchTogetherPlayer
               width={width}
               height={height}
