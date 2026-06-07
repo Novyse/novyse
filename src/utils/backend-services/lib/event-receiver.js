@@ -1,16 +1,17 @@
 import eventEmitter from "../../global/Events/EventEmitter";
 
-let socket = null;
-let initialized = false;
+let activeSocket = null;
 
 const eventReceiver = {
   initialize: async (sock) => {
-    if (initialized) {
-      console.warn("eventReceiver already initialized, skipping");
+    if (activeSocket === sock) {
+      console.warn(
+        "eventReceiver already initialized for this socket, skipping",
+      );
       return;
     }
-    socket = sock;
-    initialized = true;
+    activeSocket = sock;
+    const socket = sock;
 
     socket.on("user:profile:update", async (data) => {
       await eventEmitter.user.profile.update(data, data.profileEventID);

@@ -338,20 +338,17 @@ const useChatStore = create<ChatState>((set, get) => ({
     const { default: eventEmitter }: any =
       await import("@/src/utils/global/Events/EventEmitter");
 
-    eventEmitter.getEmitter().on("chat:new", get().onNewChat);
-    eventEmitter.getEmitter().on("chat:member:joined", get().onMemberJoin);
-    eventEmitter.getEmitter().on("chat:member:activity", get().onActivity);
-    eventEmitter.getEmitter().on("message:new", get().onNewMessage);
-    eventEmitter.getEmitter().on("message:upload", get().onMessageUpload);
-    eventEmitter
-      .getEmitter()
-      .on("message:downloaded", get().onMessageDownloaded);
-    eventEmitter.getEmitter().on("message:sent", get().onMessageSent);
-    eventEmitter.getEmitter().on("message:update", get().onMessageUpdate);
-    eventEmitter.getEmitter().on("file:downloaded", get().onFileDownloaded);
-    eventEmitter
-      .getEmitter()
-      .on("user:setting:chat:update", get().onUserChatSettingUpdate);
+    const emitter = eventEmitter.getEmitter();
+    emitter.on("chat:new", get().onNewChat);
+    emitter.on("chat:member:joined", get().onMemberJoin);
+    emitter.on("chat:member:activity", get().onActivity);
+    emitter.on("message:new", get().onNewMessage);
+    emitter.on("message:upload", get().onMessageUpload);
+    emitter.on("message:downloaded", get().onMessageDownloaded);
+    emitter.on("message:sent", get().onMessageSent);
+    emitter.on("message:update", get().onMessageUpdate);
+    emitter.on("file:downloaded", get().onFileDownloaded);
+    emitter.on("user:setting:chat:update", get().onUserChatSettingUpdate);
 
     set({ _eventsSetup: true });
   },
@@ -454,7 +451,17 @@ const useChatStore = create<ChatState>((set, get) => ({
           chat.uuid === message.chatUUID ||
           (message.chatHandle && (chat as any).handle === message.chatHandle);
         if (!isMatch) return chat;
-        if (chat.messages.some((m: any) => m.id === message.id)) return chat;
+        if (chat.messages.some((m: any) => m.id === message.id)) {
+          return chat;
+        }
+        if (isOwnMessage && !message.internal) {
+          const hasPending = chat.messages.some(
+            (m: any) => m.internal === true,
+          );
+          if (hasPending) {
+            return chat;
+          }
+        }
 
         const safeMessage = {
           ...message,
