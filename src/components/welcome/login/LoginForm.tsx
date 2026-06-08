@@ -316,6 +316,7 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       paddingHorizontal: 20,
     },
     textInput: {
+      marginTop: 24,
       paddingVertical: 10,
       paddingHorizontal: 15,
       borderRadius: 25,

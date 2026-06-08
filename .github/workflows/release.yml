@@ -1,0 +1,428 @@
+name: Client release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: Channel (production/preview)
+        required: true
+        type: choice
+        options:
+          - production
+          - preview
+      version:
+        description: Version (e.g., 1.0.1-20260405.0)
+        required: true
+      patch_notes:
+        description: Patchnotes (Markdown)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  git-flow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout development branch
+        uses: actions/checkout@v4
+        with:
+          ref: development
+          fetch-depth: 0
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Set Git user
+        run: |
+          git config user.name "GitHub Action Bot"
+          git config user.email "bot@novyse.com"
+
+      - name: Update package.json & metainfo.xml
+        run: |
+          npm version ${{ inputs.version }} --no-git-tag-version
+          cd desktop
+          npm version ${{ inputs.version }} --no-git-tag-version
+          cd ..
+
+          # Automatically update the Flathub AppStream metadata version and release date
+          export VERSION="${{ inputs.version }}"
+          export DATE=$(date +%Y-%m-%d)
+          python3 -c "
+          import os
+          import xml.etree.ElementTree as ET
+          import re
+
+          VERSION = os.environ.get('VERSION')
+          DATE = os.environ.get('DATE')
+
+           # 1. Update metainfo.xml
+          file_path = 'desktop/flathub/org.novyse.desktop.metainfo.xml'
+          tree = ET.parse(file_path)
+          root = tree.getroot()
+          releases = root.find('releases')
+          if releases is not None:
+              for r in list(releases):
+                  releases.remove(r)
+              new_rel = ET.Element('release', version=VERSION, date=DATE)
+              releases.insert(0, new_rel)
+          ET.indent(tree, space='  ')
+          tree.write(file_path, encoding='utf-8', xml_declaration=True)
+
+          # 2. Update Flatpak manifest tag
+          manifest_path = 'desktop/flathub/org.novyse.desktop.yml'
+          with open(manifest_path, 'r') as f:
+              yaml_content = f.read()
+
+          # Replace 'tag: <anything>' with 'tag: v<version>'
+          updated_yaml = re.sub(r'tag:\s*v?\S+', f'tag: v{VERSION}', yaml_content)
+          with open(manifest_path, 'w') as f:
+              f.write(updated_yaml)
+          "
+
+          git commit -am "chore: bump version to ${{ inputs.version }} and update Flathub metainfo" || true
+
+      - name: Merge into target branch
+        run: |
+          git checkout ${{ inputs.release_type }}
+          git merge development
+
+      - name: Update app.config.ts
+        run: |
+          sed -i 's/const BRANCH = "[^"]*"/const BRANCH = "${{ inputs.release_type }}"/g' app.config.ts
+          git commit -am "chore: set branch to ${{ inputs.release_type }} in app.config.ts" || true
+
+      - name: Push to GitHub
+        run: |
+          git push origin development
+          git push origin ${{ inputs.release_type }}
+
+  create-release:
+    needs: git-flow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.version }}
+          name: Version ${{ inputs.version }}
+          prerelease: ${{ inputs.release_type == 'preview' }}
+          draft: true
+          body: ${{ inputs.patch_notes }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-deploy-web:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - name: Install dependencies & Build Web
+        run: |
+          bun install
+          bun run build:web
+
+      - name: Package Web Build
+        run: |
+          cd dist
+          zip -r ../novyse-web-${{ inputs.version }}.zip .
+          cd ..
+
+      - name: Attach Web Build Artifact to GitHub Release
+        run: gh release upload v${{ inputs.version }} novyse-web-${{ inputs.version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-android:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node, Bun & Java
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: oven-sh/setup-bun@v1
+      - uses: actions/setup-java@v3
+        with:
+          distribution: zulu
+          java-version: "17"
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Decode Google Services
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > ${{ github.workspace }}/google-services.json
+          echo "${{ secrets.GOOGLE_SERVICES_PLIST }}" | base64 --decode > ${{ github.workspace }}/GoogleService-Info.plist
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Build Android (Local Native)
+        run: |
+          bunx expo prebuild --clean
+          cd android
+          if [ "${{ inputs.release_type }}" = "production" ]; then
+            ./gradlew bundleRelease
+            ./gradlew assembleRelease
+          else
+            ./gradlew assembleRelease
+          fi
+          cd ..
+        env:
+          GOOGLE_SERVICES_JSON: ${{ github.workspace }}/google-services.json
+          GOOGLE_SERVICES_PLIST: ${{ github.workspace }}/GoogleService-Info.plist
+          _JAVA_OPTIONS: "-Xmx4g"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m"
+
+      - name: Attach Android Build Artifacts to GitHub Release
+        run: |
+          SUFFIX=""
+          if [ "${{ inputs.release_type }}" = "preview" ]; then
+            SUFFIX="-preview"
+          fi
+
+          find android/app/build/outputs/bundle -name "*.aab" -exec cp {} ./novyse${SUFFIX}.aab \; || true
+          find android/app/build/outputs/apk -name "*.apk" -exec cp {} ./novyse${SUFFIX}.apk \; || true
+
+          if [ -f ./novyse${SUFFIX}.aab ]; then
+            gh release upload v${{ inputs.version }} ./novyse${SUFFIX}.aab || true
+          fi
+          if [ -f ./novyse${SUFFIX}.apk ]; then
+            gh release upload v${{ inputs.version }} ./novyse${SUFFIX}.apk || true
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-electron-linux:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: oven-sh/setup-bun@v1
+
+      - name: Install Linux Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder elfutils zip unzip
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+          sudo snap install snapcraft --classic
+
+      - name: Install Dependencies
+        run: |
+          bun install
+          cd desktop && bun install
+
+      - name: Build Linux
+        run: bun run build:desktop --linux --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+
+  build-electron-win:
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: oven-sh/setup-bun@v1
+
+      - name: Install Dependencies
+        run: |
+          bun install
+          cd desktop
+          bun install
+
+      - name: Build Windows
+        run: bun run build:desktop --win --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Kill zombie processes (Windows Fix)
+        if: always()
+        run: taskkill //F //IM bun.exe //T || taskkill //F //IM node.exe //T || true
+
+  build-electron-mac:
+    needs: create-release
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: oven-sh/setup-bun@v1
+      - name: Install Dependencies
+        run: |
+          bun install
+          cd desktop && bun install
+      - name: Build Mac
+        run: bun run build:desktop --mac --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  flathub-validation:
+    needs: create-release
+    runs-on: ubuntu-latest
+    if: ${{ inputs.release_type == 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+
+        with:
+          ref: ${{ inputs.release_type }}
+
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install flatpak-node-generator & flatpak-builder-lint
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install git+https://github.com/flatpak/flatpak-builder-tools.git#subdirectory=node
+          pip3 install flatpak-builder-lint
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder elfutils
+
+      - name: Configure Flathub Repository
+        run: |
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+
+      - name: Generate clean package-lock.json files
+        run: |
+          npm install --package-lock-only
+          cd desktop && npm install --package-lock-only && cd ..
+
+      - name: Generate flatpak-node-dependencies.json
+        run: |
+          flatpak-node-generator npm -r package-lock.json -o desktop/flathub/flatpak-node-dependencies.json
+
+      - name: Run flatpak-builder-lint on Manifest
+        run: |
+          flatpak-builder-lint manifest desktop/flathub/org.novyse.desktop.yml
+
+      - name: Install SDKs and BaseApp for test build
+        run: |
+          flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 org.electronjs.Electron2.BaseApp//24.08
+
+      - name: Run test build with flatpak-builder
+        run: |
+          flatpak-builder --user --disable-rofiles-fuse --force-clean --build-only --ccache build_dir desktop/flathub/org.novyse.desktop.yml
+
+  publish-release:
+    needs:
+      [
+        build-deploy-web,
+        build-android,
+        build-electron-linux,
+        build-electron-win,
+        build-electron-mac,
+        flathub-validation,
+      ]
+    if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Publish the Draft Release
+        run: gh release edit v${{ inputs.version }} --draft=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-flathub:
+    needs: publish-release
+    runs-on: ubuntu-latest
+    if: ${{ inputs.release_type == 'production' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install flatpak-node-generator
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install git+https://github.com/flatpak/flatpak-builder-tools.git#subdirectory=node
+
+      - name: Generate clean package-lock.json files
+        run: |
+          npm install --package-lock-only
+          cd desktop && npm install --package-lock-only && cd ..
+
+      - name: Generate flatpak-node-dependencies.json
+        run: |
+          flatpak-node-generator npm -r package-lock.json -o desktop/flathub/flatpak-node-dependencies.json
+
+      - name: Checkout Flathub Repository
+        uses: actions/checkout@v4
+        with:
+          repository: flathub/org.novyse.desktop
+          path: flathub-repo
+          token: ${{ secrets.FLATHUB_DEPLOY_TOKEN }}
+
+      - name: Copy manifest files to Flathub Repo
+        run: |
+          cp desktop/flathub/org.novyse.desktop.yml flathub-repo/org.novyse.desktop.yml
+          cp desktop/flathub/org.novyse.desktop.desktop flathub-repo/org.novyse.desktop.desktop
+          cp desktop/flathub/org.novyse.desktop.metainfo.xml flathub-repo/org.novyse.desktop.metainfo.xml
+          cp desktop/flathub/run.sh flathub-repo/run.sh
+          cp desktop/flathub/flatpak-node-dependencies.json flathub-repo/flatpak-node-dependencies.json
+
+      - name: Commit and Push to Flathub
+        run: |
+          cd flathub-repo
+          git config user.name "GitHub Action Bot"
+          git config user.email "bot@novyse.com"
+          git add .
+          git commit -m "Update to version ${{ inputs.version }}" || exit 0
+          git push origin master

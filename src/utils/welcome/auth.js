@@ -339,7 +339,7 @@ const updateDatabase = async () => {
     if (local && Array.isArray(local)) {
       for (const event of local) {
         console.log("Sync: Local Event received", event.type, event.id);
-        const chatUUID = event.chatUUID;
+        const chatUUID = event.chatUUID || event.payload?.chatUUID;
 
         switch (event.type) {
           case UserEventType.CHAT_PINNED:

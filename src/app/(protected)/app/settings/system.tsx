@@ -136,7 +136,7 @@ export default function SystemRoute() {
         <Section titleKey="settings.system.startupSection">
           <SettingRow
             iconName="ComputerIcon"
-            labelText={t("settings.system.openOnStartup")}
+            labelKey="settings.system.openOnStartup"
             type="SWITCH"
             isEnabled={!!systemSettings.openOnStartup}
             onToggle={(value) => updateSetting("openOnStartup", value)}

@@ -31,13 +31,6 @@ config.resolver.alias = {
   "@": "/",
 };
 
-// Add COEP and COOP headers to support SharedArrayBuffer
-config.server.enhanceMiddleware = (middleware) => {
-  return (req, res, next) => {
-    res.setHeader("Cross-Origin-Embedder-Policy", "credentialless");
-    res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-    middleware(req, res, next);
-  };
-};
+config.cacheStores = [];
 
 module.exports = config;

@@ -98,7 +98,7 @@ class GlobalEventEmitter {
           }
 
           if (eventID) {
-            await AsyncStorage.setItem("userEventID", eventID);
+            await AsyncStorage.setItem("userEventID", String(eventID));
           }
 
           this.eventEmitter.emit("user:setting:chat:update", {

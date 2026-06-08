@@ -24,9 +24,9 @@ const ReactionMenu: React.FC<ReactionMenuProps> = ({ onReaction }) => {
 
     Animated.parallel([
       Animated.spring(animHeight, {
-        toValue: 300,
-        damping: 14,
-        stiffness: 110,
+        toValue: 306,
+        damping: 17,
+        stiffness: 130,
         useNativeDriver: false,
       }),
       Animated.timing(animOpacity, {

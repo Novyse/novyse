@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
+import { DeviceEventEmitter } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useCommsContext } from "@/src/context/CommsContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { connectToLiveKit } from "@/src/utils/comms/livekit";
-import { Room } from "livekit-client";
+import { Room, Track } from "livekit-client";
 
 import platform from "@/src/utils/device/type";
+
 
 import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
 
@@ -176,10 +178,29 @@ const useCommsAction = (chatUUID, sub) => {
     }
   };
 
+  const checkMicPermission = async () => {
+    try {
+      (await navigator.mediaDevices?.getUserMedia?.({ audio: true }))
+        ?.getTracks()
+        .forEach((t) => t.stop());
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const toggleAudio = async () => {
     if (!room || !room.localParticipant) return;
     try {
       const newState = !isAudioEnabled;
+      if (newState) {
+        const permitted = await checkMicPermission();
+        if (!permitted) {
+          const textError = t("chat.comms.error.noMicPermissionWarning");
+          setError(textError);
+          return;
+        }
+      }
       await room.localParticipant.setMicrophoneEnabled(newState);
       setIsAudioEnabled(newState);
     } catch (e) {
@@ -281,31 +302,160 @@ const useCommsAction = (chatUUID, sub) => {
     switchFacingMode();
   }, [facingMode]);
 
-  const startScreenShare = async () => {
+  const startScreenShare = async (sourceId = null, includeAudio = false) => {
     if (!room || !room.localParticipant) return;
-    const screenTracks = await room.localParticipant.createScreenTracks({
-      audio: true,
-    });
-    for (const track of screenTracks) {
-      const publication = await room.localParticipant.publishTrack(track);
-      setActiveScreenShares((prev) => ({
-        ...prev,
-        [publication.trackSid]: track,
-      }));
+
+    if (platform === "desktop") {
+      if (!sourceId) return;
+      try {
+        let stream;
+
+        if (sourceId === "wayland") {
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: includeAudio
+              ? {
+                  echoCancellation: false,
+                  noiseSuppression: false,
+                  autoGainControl: false,
+                }
+              : false,
+          });
+        } else {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: includeAudio
+              ? {
+                  mandatory: {
+                    chromeMediaSource: "desktop",
+                  },
+                }
+              : false,
+            video: {
+              mandatory: {
+                chromeMediaSource: "desktop",
+                chromeMediaSourceId: sourceId,
+              },
+            },
+          });
+        }
+
+        const tracksToPublish = [];
+
+        for (const track of stream.getTracks()) {
+          const isVideo = track.kind === "video";
+          const source = isVideo
+            ? Track.Source.ScreenShare
+            : Track.Source.ScreenShareAudio;
+
+          const publication = await room.localParticipant.publishTrack(track, {
+            source,
+          });
+
+          tracksToPublish.push({
+            trackSid: publication.trackSid,
+            track: publication.track,
+            isVideo,
+          });
+        }
+
+        const video = tracksToPublish.find((t) => t.isVideo);
+        const audio = tracksToPublish.find((t) => !t.isVideo);
+
+        if (video && audio) {
+          video.track.associatedAudioSid = audio.trackSid;
+          audio.track.associatedVideoSid = video.trackSid;
+        }
+
+        setActiveScreenShares((prev) => {
+          const next = { ...prev };
+          for (const item of tracksToPublish) {
+            next[item.trackSid] = item.track;
+          }
+          return next;
+        });
+      } catch (err) {
+        console.log("Screenshare cancelled or failed:", err);
+      }
+    } else {
+      const screenTracks = await room.localParticipant.createScreenTracks({
+        audio: true,
+      });
+
+      const tracksToPublish = [];
+      for (const track of screenTracks) {
+        const publication = await room.localParticipant.publishTrack(track);
+        tracksToPublish.push({
+          trackSid: publication.trackSid,
+          track: track,
+          isVideo: track.kind === "video",
+        });
+      }
+
+      const video = tracksToPublish.find((t) => t.isVideo);
+      const audio = tracksToPublish.find((t) => !t.isVideo);
+
+      if (video && audio) {
+        video.track.associatedAudioSid = audio.trackSid;
+        audio.track.associatedVideoSid = video.trackSid;
+      }
+
+      setActiveScreenShares((prev) => {
+        const next = { ...prev };
+        for (const item of tracksToPublish) {
+          next[item.trackSid] = item.track;
+        }
+        return next;
+      });
     }
   };
 
   const stopScreenShare = async (trackSid) => {
     if (!room || !room.localParticipant) return;
+
     if (activeScreenShares[trackSid]) {
-      await room.localParticipant.unpublishTrack(activeScreenShares[trackSid]);
+      const videoTrack = activeScreenShares[trackSid];
+      const associatedAudioSid = videoTrack.associatedAudioSid;
+
+      if (videoTrack.stop) videoTrack.stop();
+      await room.localParticipant.unpublishTrack(videoTrack);
+
       setActiveScreenShares((prev) => {
         const newMap = { ...prev };
         delete newMap[trackSid];
+
+        if (associatedAudioSid && newMap[associatedAudioSid]) {
+          const audioTrack = newMap[associatedAudioSid];
+          if (audioTrack.stop) audioTrack.stop();
+          room.localParticipant.unpublishTrack(audioTrack).catch(() => {});
+          delete newMap[associatedAudioSid];
+        }
         return newMap;
       });
     }
   };
+
+  useEffect(() => {
+    if (platform !== "mobile") return;
+
+    const micListener = DeviceEventEmitter.addListener(
+      "comms_toggle_mic",
+      toggleAudio
+    );
+    const camListener = DeviceEventEmitter.addListener(
+      "comms_toggle_cam",
+      toggleVideo
+    );
+    const leaveListener = DeviceEventEmitter.addListener(
+      "comms_leave_voice",
+      leave
+    );
+
+    return () => {
+      micListener.remove();
+      camListener.remove();
+      leaveListener.remove();
+    };
+  }, [room, isAudioEnabled, isVideoEnabled]);
 
   return {
     connecting,

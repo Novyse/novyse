@@ -1,4 +1,4 @@
-import React, {useContext} from "react";
+import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
 import AppText from "@/src/components/AppText";
@@ -21,6 +21,7 @@ const VolumeControl = ({ volKey, isScreenShare }) => {
   const handleValueChange = (val) => {
     const newDbValue = Math.round(val - 30);
     setLocalDb(newDbValue);
+    setRemoteVolume(volKey, newDbValue, false);
   };
 
   const handleSlidingComplete = (val) => {
@@ -58,37 +59,38 @@ const VolumeControl = ({ volKey, isScreenShare }) => {
   );
 };
 
-const createStyles = (theme) => StyleSheet.create({
-  sliderContainer: {
-    padding: 12,
-    marginTop: 4,
-  },
-  sliderHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  sliderHeaderLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  sliderLabel: {
-    fontSize: 13,
-    marginLeft: 6,
-    opacity: 0.8,
-    color: theme.text, // Fallback color, will be overridden by theme if needed
-  },
-  dbText: {
-    fontSize: 12,
-    fontWeight: "600",
-    opacity: 0.6,
-    color: theme.text,
-  },
-  slider: {
-    width: "100%",
-    height: 35,
-  },
-});
+const createStyles = (theme) =>
+  StyleSheet.create({
+    sliderContainer: {
+      padding: 12,
+      marginTop: 4,
+    },
+    sliderHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 8,
+    },
+    sliderHeaderLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    sliderLabel: {
+      fontSize: 13,
+      marginLeft: 6,
+      opacity: 0.8,
+      color: theme.text, // Fallback color, will be overridden by theme if needed
+    },
+    dbText: {
+      fontSize: 12,
+      fontWeight: "600",
+      opacity: 0.6,
+      color: theme.text,
+    },
+    slider: {
+      width: "100%",
+      height: 35,
+    },
+  });
 
 export default VolumeControl;

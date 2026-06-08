@@ -153,7 +153,7 @@ const createStyles = (
     },
     toggleWrapper: {
       paddingHorizontal: 10,
-      paddingTop: 14,
+      paddingTop: 10,
       alignItems: "center",
       justifyContent: "center",
     },

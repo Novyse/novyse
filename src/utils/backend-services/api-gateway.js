@@ -842,6 +842,91 @@ const gateway = {
     },
   },
 
+  watchTogether: {
+    async start(roomUUID, url) {
+      try {
+        if (!roomUUID || !url) {
+          throw new Error(
+            "roomUUID and url are required to start watch together",
+          );
+        }
+        const response = await api.post("/comms/watch-together/start", {
+          roomUUID,
+          url,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error in watchTogether.start:", error);
+        throw error;
+      }
+    },
+    async play(roomUUID, timestamp) {
+      try {
+        if (!roomUUID || timestamp === undefined) {
+          throw new Error(
+            "roomUUID and timestamp are required to play watch together",
+          );
+        }
+        const response = await api.post("/comms/watch-together/play", {
+          roomUUID,
+          timestamp,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error in watchTogether.play:", error);
+        throw error;
+      }
+    },
+    async pause(roomUUID, timestamp) {
+      try {
+        if (!roomUUID || timestamp === undefined) {
+          throw new Error(
+            "roomUUID and timestamp are required to pause watch together",
+          );
+        }
+        const response = await api.post("/comms/watch-together/pause", {
+          roomUUID,
+          timestamp,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error in watchTogether.pause:", error);
+        throw error;
+      }
+    },
+    async seek(roomUUID, timestamp) {
+      try {
+        if (!roomUUID || timestamp === undefined) {
+          throw new Error(
+            "roomUUID and timestamp are required to seek watch together",
+          );
+        }
+        const response = await api.post("/comms/watch-together/seek", {
+          roomUUID,
+          timestamp,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error in watchTogether.seek:", error);
+        throw error;
+      }
+    },
+    async stop(roomUUID) {
+      try {
+        if (!roomUUID) {
+          throw new Error("roomUUID is required to stop watch together");
+        }
+        const response = await api.post("/comms/watch-together/stop", {
+          roomUUID,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error in watchTogether.stop:", error);
+        throw error;
+      }
+    },
+  },
+
   notification: {
     /**
      * Set the FCM push token for the current user.

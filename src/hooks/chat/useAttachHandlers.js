@@ -5,11 +5,7 @@ import Platform from "@/src/utils/device/type";
 
 import { openNativeFileMenu } from "@/src/utils/storage/file/handler";
 
-const useAttachHandlers = (
-  setIsAttachMenuOpen,
-  setSheetIndex,
-  bottomSheetRef,
-) => {
+const useAttachHandlers = (setIsAttachMenuOpen) => {
   const [attachType, setAttachType] = useState(null);
 
   const handleMenuItemPress = async (item) => {
@@ -47,13 +43,7 @@ const useAttachHandlers = (
   };
 
   const _closeFileMenu = async () => {
-    // Close menu after action
-    setIsAttachMenuOpen(false);
-    if (Platform === "web" || Platform === "desktop") {
-      setSheetIndex(-1);
-    } else {
-      bottomSheetRef.current?.close();
-    }
+    setIsAttachMenuOpen?.(false);
   };
 
   return {

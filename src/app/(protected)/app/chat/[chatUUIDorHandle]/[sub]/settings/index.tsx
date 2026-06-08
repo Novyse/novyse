@@ -73,15 +73,15 @@ const ChatSettings = () => {
         <Section titleKey="chat.settings.notifications">
           <SettingRow
             iconName="Notification01Icon"
-            labelText={t("chat.settings.muteNotifications")}
+            labelKey="chat.settings.muteNotifications"
             type="SWITCH"
             isEnabled={muteNotifications}
             onToggle={setMuteNotifications}
           />
           <SettingRow
             iconName="Clock01Icon"
-            labelText={t("chat.settings.muteDuration")}
-            value={muteNotifications ? t("chat.settings.muteFor8h") : undefined}
+            labelKey="chat.settings.muteDuration"
+            valueKey={muteNotifications ? "chat.settings.muteFor8h" : undefined}
             onPress={() => {}}
             style={{ borderBottomWidth: 0 }}
           />
@@ -91,7 +91,7 @@ const ChatSettings = () => {
         <Section titleKey="chat.settings.chatOptions">
           <SettingRow
             iconName="Timer02Icon"
-            labelText={t("chat.settings.disappearingMessages")}
+            labelKey="chat.settings.disappearingMessages"
             type="SWITCH"
             isEnabled={disappearingMessages}
             onToggle={setDisappearingMessages}
@@ -103,7 +103,7 @@ const ChatSettings = () => {
           <Section titleKey="chat.settings.privacy">
             <SettingRow
               iconName="Tick02Icon"
-              labelText={t("chat.settings.readReceipts")}
+              labelKey="chat.settings.readReceipts"
               type="SWITCH"
               isEnabled={readReceipts}
               onToggle={setReadReceipts}
@@ -117,22 +117,22 @@ const ChatSettings = () => {
           <Section titleKey="chat.settings.groupSettings">
             <SettingRow
               iconName="UserAdd01Icon"
-              labelText={t("chat.settings.addMembers")}
+              labelKey="chat.settings.addMembers"
               onPress={() => {}}
             />
             <SettingRow
               iconName="UserGroupIcon"
-              labelText={t("chat.settings.manageMembers")}
+              labelKey="chat.settings.manageMembers"
               onPress={() => {}}
             />
             <SettingRow
               iconName="LinkSquare01Icon"
-              labelText={t("chat.settings.inviteLink")}
+              labelKey="chat.settings.inviteLink"
               onPress={() => {}}
             />
             <SettingRow
               iconName="PencilEdit01Icon"
-              labelText={t("chat.settings.editGroupInfo")}
+              labelKey="chat.settings.editGroupInfo"
               onPress={() => {}}
               style={{ borderBottomWidth: 0 }}
             />
@@ -144,7 +144,7 @@ const ChatSettings = () => {
           <Section theme={theme} style={{ marginBottom: 40 }}>
             <SettingRow
               iconName="UnavailableIcon"
-              labelText={t("common.block")}
+              labelKey="common.block"
               danger
               onPress={() => {}}
               style={{ borderBottomWidth: 0 }}

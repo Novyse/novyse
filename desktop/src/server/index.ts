@@ -46,6 +46,26 @@ export function startLocalServer(): string {
   localApp.get("/files/:key", handleFileGet);
   localApp.head("/files/:key", handleFileHead);
 
+  const embedPages = new Map<string, string>();
+  let embedCounter = 0;
+
+  localApp.post(
+    "/embed/html",
+    express.text({ type: "*/*", limit: "2mb" }),
+    (req: any, res: any) => {
+      const id = `embed_${++embedCounter}`;
+      embedPages.set(id, req.body);
+      const port = listener?.address()?.port || 0;
+      res.json({ url: `http://localhost:${port}/embed/html/${id}` });
+    },
+  );
+
+  localApp.get("/embed/html/:id", (req: any, res: any) => {
+    const html = embedPages.get(req.params.id);
+    if (!html) return res.status(404).send("Not found");
+    res.type("html").send(html);
+  });
+
   listener = localApp.listen(0, "localhost", () => {
     const port = listener.address().port;
     localServerUrl = `http://localhost:${port}`;

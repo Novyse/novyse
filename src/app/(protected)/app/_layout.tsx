@@ -118,6 +118,8 @@ export default function RootLayout() {
 
   // Initialize database if needed
   const [hasInitialized, setHasInitialized] = useState<boolean | null>(null);
+  const initChatContext = useChatStore((state) => state.init);
+  const initUserContext = useUserStore((state) => state.init);
 
   useEffect(() => {
     let retryInterval: any = null;
@@ -126,9 +128,10 @@ export default function RootLayout() {
       try {
         const initValue = await AsyncStorage.getItem("init");
         if (initValue === "true") {
+          let updateSuccess = false;
           try {
             await auth.updateDatabase();
-            useNetworkStore.getState().setSynced(true);
+            updateSuccess = true;
           } catch (updateError) {
             console.warn(
               "Failed to update database, starting retry loop:",
@@ -159,15 +162,22 @@ export default function RootLayout() {
               }
             }, 1000);
           }
+
+          await Promise.all([initChatContext(), initUserContext()]);
+
+          // If database update was successful initially
+          if (updateSuccess) {
+            useNetworkStore.getState().setSynced(true);
+          }
           setHasInitialized(true);
         } else {
           setHasInitialized(false);
           const success = await auth.initializeDatabase();
           if (success) {
             await AsyncStorage.setItem("init", "true");
-            setHasInitialized(true);
+            await Promise.all([initChatContext(), initUserContext()]);
             useNetworkStore.getState().setSynced(true);
-            SocketIO.open();
+            setHasInitialized(true);
           }
         }
       } catch (error) {
@@ -180,17 +190,7 @@ export default function RootLayout() {
     return () => {
       if (retryInterval) clearInterval(retryInterval);
     };
-  }, []);
-
-  // Load chats & user data in zustand
-  const initChatContext = useChatStore((state) => state.init);
-  const initUserContext = useUserStore((state) => state.init);
-  useEffect(() => {
-    if (hasInitialized === true) {
-      initChatContext();
-      initUserContext();
-    }
-  }, [initChatContext, initUserContext, hasInitialized]);
+  }, [initChatContext, initUserContext]);
 
   if (hasInitialized === false) {
     return <InitPage />;

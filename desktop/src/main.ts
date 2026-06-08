@@ -17,13 +17,37 @@ if (!checkSingleInstance()) {
 
 import { initDb } from "./db";
 import { registerRpcHandlers } from "./rpc";
-import { startLocalServer, getLocalServerUrl } from "./server/index";
+import { startLocalServer, getLocalServerUrl } from "./server";
+import { setupScreenShareHandler } from "./screenshare";
 
 import config from "../electron-builder.config";
 
 app.commandLine.appendSwitch("ignore-gpu-blocklist");
 app.commandLine.appendSwitch("enable-gpu-rasterization");
 app.commandLine.appendSwitch("enable-zero-copy");
+
+if (process.platform === "win32") {
+  app.commandLine.appendSwitch(
+    "disable-features",
+    "WebRtcAllowWgcWindowCapturer",
+  );
+}
+
+if (process.platform === "linux") {
+  const isWayland = !!(
+    process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === "wayland"
+  );
+  if (isWayland) {
+    app.commandLine.appendSwitch("enable-features", "WebRTCPipeWireCapturer");
+  }
+}
+
+if (process.platform === "darwin") {
+  app.commandLine.appendSwitch(
+    "disable-features",
+    "MacCatapLoopbackAudioForScreenShare",
+  );
+}
 
 const appName = config.productName;
 app.name = appName;
@@ -107,6 +131,7 @@ app.whenReady().then(async () => {
   registerInstallSourceHandlers();
   startLocalServer();
   setupUpdaterListeners();
+  setupScreenShareHandler();
 
   ipcMain.on("get-local-server-url", (event: { returnValue: string }) => {
     event.returnValue = getLocalServerUrl();

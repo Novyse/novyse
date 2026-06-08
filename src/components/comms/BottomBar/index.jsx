@@ -10,13 +10,17 @@ import MicrophoneSelector from "@/src/components/comms/BottomBar/MicrophoneSelec
 import MicrophoneArrowButton from "@/src/components/comms/BottomBar/MicrophoneArrowButton";
 import CameraSelector from "@/src/components/comms/BottomBar/CameraSelector";
 import CameraArrowButton from "@/src/components/comms/BottomBar/CameraArrowButton";
+import ScreenShareSelector from "@/src/components/comms/BottomBar/ScreenShareSelector";
 import StatusMessage from "@/src/components/StatusMessage";
 
 import BlurredView from "@/src/components/BlurredView";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
+import { useCommsContext } from "@/src/context/CommsContext";
 
 import Platform from "@/src/utils/device/type";
+import { RoomOptionsMenu } from "./RoomOptionsMenu";
+import { WatchTogetherModal } from "./WatchTogetherModal";
 
 const CommsBottomBar = ({ chatUUID, sub }) => {
   const { theme } = useContext(ThemeContext);
@@ -26,6 +30,9 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
 
   const [showMicrophoneSelector, setShowMicrophoneSelector] = useState(false);
   const [showCameraSelector, setShowCameraSelector] = useState(false);
+  const [showScreenShareSelector, setShowScreenShareSelector] = useState(false);
+  const [showRoomMenu, setShowRoomMenu] = useState(false);
+  const { showWatchTogetherModal, setShowWatchTogetherModal } = useCommsContext();
 
   const {
     connecting,
@@ -91,6 +98,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
               iconName={"Call02Icon"}
               iconColor={theme.iconSuccess}
               hoverColor={theme.successText}
+              style={{ width: 60, height: 60 }}
             />
           </BlurredView>
         )
@@ -124,12 +132,19 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
             />
           </View>
           <CommsBottomBarButton
-            onPress={startScreenShare}
+            onPress={() => {
+              if (Platform === "desktop") setShowScreenShareSelector(true);
+              else startScreenShare();
+            }}
             iconName={"ComputerScreenShareIcon"}
           />
           <CommsBottomBarButton
             onPress={() => router.push("/app/settings/comms")}
             iconName={"Settings02Icon"}
+          />
+          <CommsBottomBarButton
+            onPress={() => setShowRoomMenu(true)}
+            iconName={"MoreVerticalIcon"}
           />
           <CommsBottomBarButton
             onPress={leave}
@@ -153,6 +168,23 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
         onCameraSelected={(id) => setCameraDevice(id)}
         currentDeviceId={cameraDevice}
       />
+
+      <ScreenShareSelector
+        visible={showScreenShareSelector}
+        onClose={() => setShowScreenShareSelector(false)}
+        onSourceSelected={startScreenShare}
+      />
+
+      <RoomOptionsMenu
+        visible={showRoomMenu}
+        onClose={() => setShowRoomMenu(false)}
+        onOpenWatchTogether={() => setShowWatchTogetherModal(true)}
+      />
+
+      <WatchTogetherModal
+        visible={showWatchTogetherModal}
+        onClose={() => setShowWatchTogetherModal(false)}
+      />
     </View>
   );
 };
@@ -166,7 +198,7 @@ const createStyle = (theme) =>
       borderRadius: 30,
       height: 60,
       minWidth: 200,
-      maxWidth: 300,
+      maxWidth: 360,
       zIndex: 100,
     },
     statusWrapper: {

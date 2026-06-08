@@ -1,11 +1,5 @@
-import React, {
-  useState,
-  useContext,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
-import { StyleSheet, Image, Platform, View } from "react-native";
+import React, { useState, useContext, useCallback, useEffect } from "react";
+import { StyleSheet, Image, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import AppText from "@/src/components/AppText";
 import { useShareIntentContext } from "expo-share-intent";
@@ -122,7 +116,6 @@ const ChatList = () => {
 
   const [isCreateChatModalVisible, setIsCreateChatModalVisible] =
     useState(false);
-  const createChatModalRef = useRef(null);
 
   useEffect(() => {
     if (chats.length === 0) {
@@ -368,13 +361,7 @@ const ChatList = () => {
 
       {!showCollapsedSidebar && (
         <FloatingButton
-          onPress={() => {
-            if (Platform.OS !== "web") {
-              createChatModalRef.current?.present();
-            } else {
-              setIsCreateChatModalVisible(true);
-            }
-          }}
+          onPress={() => setIsCreateChatModalVisible(true)}
           iconName="ChatAddIcon"
           size={isSmallScreen ? 16 : 24}
           width={isSmallScreen ? 45 : 60}
@@ -387,7 +374,6 @@ const ChatList = () => {
       )}
 
       <CreateChatModal
-        ref={createChatModalRef}
         visible={isCreateChatModalVisible}
         onClose={() => setIsCreateChatModalVisible(false)}
       />

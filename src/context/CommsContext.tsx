@@ -4,11 +4,16 @@ import { Track, Room, Participant, TrackPublication } from "livekit-client";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import mobileNotificationManager from "@/src/utils/notifications/lib/mobile";
+
 import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
+import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 
 interface CommsContextType {
   room: Room | null;
   setRoom: React.Dispatch<React.SetStateAction<Room | null>>;
+  roomMetadata: string;
+  setRoomMetadata: React.Dispatch<React.SetStateAction<string>>;
   connected: boolean;
   checkRoomMatch: (chatUUID: string, sub: string | number) => boolean;
   pinnedStreamUUID: string | null;
@@ -51,6 +56,9 @@ interface CommsContextType {
   reset: () => void;
   error: string | null;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
+
+  showWatchTogetherModal: boolean;
+  setShowWatchTogetherModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const CommsContext = React.createContext<CommsContextType | undefined>(
@@ -60,6 +68,12 @@ export const CommsContext = React.createContext<CommsContextType | undefined>(
 const VOLUMES_MAX_SAVED = 2000;
 const VOLUMES_STORAGE_KEY = "novyse_comms_remote_volumes";
 
+const dbToLinear = (db: number) => {
+  if (db <= -30) return 0;
+  const linear = Math.pow(10, db / 20);
+  return Math.min(10.0, linear);
+};
+
 interface CommsProviderProps {
   children: React.ReactNode;
 }
@@ -68,6 +82,11 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
   const [connected, setConnected] = React.useState<boolean>(false);
 
   const [room, setRoom] = React.useState<Room | null>(null);
+  const [roomMetadata, setRoomMetadata] = React.useState<string>("");
+
+  const currentChatUUID = room ? ((room as any).roomInfo?.name || "").split("_")[0] : undefined;
+  const { name: chatName } = useChatMetadata(currentChatUUID);
+
   const [participants, setParticipants] = React.useState<Participant[]>([]);
 
   const [isAudioEnabled, setIsAudioEnabled] = React.useState<boolean>(false);
@@ -98,12 +117,41 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     y: number;
   }>({ x: 0, y: 0 });
 
+  const [showWatchTogetherModal, setShowWatchTogetherModal] =
+    React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (!room) {
+      setRoomMetadata("");
+      return;
+    }
+    setRoomMetadata(room.metadata || "");
+    const handleRoomMetadataChanged = (metadata?: string) => {
+      setRoomMetadata(metadata || "");
+    };
+    room.on("roomMetadataChanged", handleRoomMetadataChanged);
+    return () => {
+      room.off("roomMetadataChanged", handleRoomMetadataChanged);
+    };
+  }, [room]);
+
   const [remoteVolumes, setRemoteVolumes] = React.useState<
     Record<string, number>
   >({});
   const [localMuted, setLocalMuted] = React.useState<Record<string, boolean>>(
     {},
   );
+
+  const remoteVolumesRef = React.useRef<Record<string, number>>({});
+  const localMutedRef = React.useRef<Record<string, boolean>>({});
+
+  React.useEffect(() => {
+    remoteVolumesRef.current = remoteVolumes;
+  }, [remoteVolumes]);
+
+  React.useEffect(() => {
+    localMutedRef.current = localMuted;
+  }, [localMuted]);
 
   const [facingMode, setFacingMode] = React.useState<string>("environment");
 
@@ -250,11 +298,36 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
       participant: Participant,
     ) => {
       if (track.kind === "audio") {
+        let volKey = participant.identity;
+        if (publication.source === Track.Source.ScreenShareAudio) {
+          const screenVideoPub = participant.getTrackPublication(
+            Track.Source.ScreenShare,
+          );
+          volKey = screenVideoPub
+            ? screenVideoPub.trackSid
+            : publication.trackSid;
+        }
+
+        const db = remoteVolumesRef.current[volKey] ?? 0;
+        const isMuted = localMutedRef.current[volKey] ?? false;
+        const targetVolume = isMuted ? 0 : dbToLinear(db);
+
+        if (track && typeof (track as any).setVolume === "function") {
+          try {
+            (track as any).setVolume(targetVolume);
+          } catch (err) {
+            console.error(
+              "[CommsContext] Error setting volume on subscription:",
+              err,
+            );
+          }
+        }
+
         if (Platform.OS === "web") {
           const audioEl = document.createElement("audio");
           audioEl.srcObject = (track as any).mediaStream;
           audioEl.autoplay = true;
-          audioEl.volume = 1;
+          audioEl.volume = Math.min(1.0, targetVolume);
           document.body.appendChild(audioEl);
           audioEl
             .play()
@@ -518,6 +591,7 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     setParticipants([]);
     setStreams({});
     setMutedStreams({});
+    setIsSpeakingMap(new Map());
     setIsAudioEnabled(false);
     setIsVideoEnabled(false);
     setRemoteVolumes({});
@@ -525,6 +599,7 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     setTriggeredStream(null);
     setTriggeredPosition({ x: 0, y: 0 });
     setError(null);
+    setShowWatchTogetherModal(false);
   };
 
   const setRemoteVolume = async (
@@ -563,12 +638,6 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     });
   };
 
-  const dbToLinear = (db: number) => {
-    if (db <= -30) return 0;
-    const linear = Math.pow(10, db / 20);
-    return Math.min(1.0, linear);
-  };
-
   React.useEffect(() => {
     if (!room) {
       return;
@@ -594,8 +663,9 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
         // Web Audio element synchronization
         if (Platform.OS === "web" && micPub.trackSid) {
           const audioEl = audioElementsRef.current.get(micPub.trackSid);
-          if (audioEl && audioEl.volume !== targetVolume) {
-            audioEl.volume = targetVolume;
+          const webVolume = Math.min(1.0, targetVolume);
+          if (audioEl && audioEl.volume !== webVolume) {
+            audioEl.volume = webVolume;
           }
         }
       }
@@ -627,13 +697,30 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
 
         if (Platform.OS === "web") {
           const audioEl = audioElementsRef.current.get(screenAudioPub.trackSid);
-          if (audioEl && audioEl.volume !== targetVolume) {
-            audioEl.volume = targetVolume;
+          const webVolume = Math.min(1.0, targetVolume);
+          if (audioEl && audioEl.volume !== webVolume) {
+            audioEl.volume = webVolume;
           }
         }
       }
     });
   }, [remoteVolumes, localMuted, room]);
+
+  React.useEffect(() => {
+    if (connected && room) {
+      const roomName = (room as any).roomInfo?.name || "";
+      const chatUUID = roomName.split("_")[0];
+
+      mobileNotificationManager.displayVoiceChatNotification(
+        chatName,
+        isAudioEnabled,
+        isVideoEnabled,
+        chatUUID,
+      );
+    } else {
+      mobileNotificationManager.hideVoiceChatNotification();
+    }
+  }, [connected, room, isAudioEnabled, isVideoEnabled, chatName]);
 
   const value: CommsContextType = {
     room,
@@ -670,6 +757,10 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     reset,
     error,
     setError,
+    roomMetadata,
+    setRoomMetadata,
+    showWatchTogetherModal,
+    setShowWatchTogetherModal,
   };
 
   return (

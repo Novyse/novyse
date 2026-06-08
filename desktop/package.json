@@ -1,6 +1,6 @@
 {
   "name": "novyse-desktop",
-  "version": "1.0.1-20260528.0",
+  "version": "1.0.2-20260608.0",
   "description": "A desktop client for Novyse",
   "main": "build/main.js",
   "scripts": {
@@ -39,6 +39,7 @@
     "better-sqlite3": "^12.10.0",
     "electron-updater": "^6.8.3",
     "express": "^5.2.1",
-    "mime-types": "^3.0.2"
+    "mime-types": "^3.0.2",
+    "sharp": "^0.34.5"
   }
 }
