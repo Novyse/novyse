@@ -62,15 +62,15 @@ class FirebaseMessagingManager {
       }
     });
 
-    // Subscribe to network store changes to retry FCM token sync when online & synced
-    let wasReady = false;
+    // Subscribe to network store changes to retry FCM token sync when online
+    let wasConnected = false;
     useNetworkStore.subscribe(async (state) => {
-      const isReady = state.isConnected && state.isSynced;
-      if (isReady && !wasReady) {
-        console.log("Network online & app synced, updating FCM token...");
+      const isConnected = state.isConnected;
+      if (isConnected && !wasConnected) {
+        console.log("Network online, updating FCM token...");
         await this.updateToken();
       }
-      wasReady = isReady;
+      wasConnected = isConnected;
     });
   }
 
@@ -91,6 +91,14 @@ class FirebaseMessagingManager {
     const authToken = await getAuthToken();
     if (!authToken) {
       console.log("User not logged in, skipping FCM token sync to backend.");
+      return;
+    }
+
+    const { isConnected } = useNetworkStore.getState();
+    if (!isConnected) {
+      console.log(
+        `[FirebaseMessaging] App not connected. Skipping push token sync for now.`,
+      );
       return;
     }
 

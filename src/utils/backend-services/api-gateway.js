@@ -27,12 +27,13 @@ const api = axios.create({
 api.interceptors.request.use(async (request) => {
   const { isSynced, isConnected } = useNetworkStore.getState();
 
-  const isSyncOrAuthRequest =
+  const shouldBypassSyncCheck =
     request.url === "/user/update" ||
     request.url === "/user/initialize" ||
+    request.url === "/notification/push-token" ||
     request.skipAuth;
 
-  if (!isSyncOrAuthRequest) {
+  if (!shouldBypassSyncCheck) {
     if (!isConnected) {
       throw new Error("Network offline");
     }
