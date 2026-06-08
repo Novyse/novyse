@@ -15,6 +15,7 @@ import {
   getAuthToken,
   setOnTokenUpdate,
 } from "../../backend-services/auth/token-manager";
+import useNetworkStore from "@/src/context/NetworkContext";
 
 const FCM_TOKEN_KEY = "fcm_push_token";
 
@@ -59,6 +60,17 @@ class FirebaseMessagingManager {
         console.log("Auth token updated, syncing FCM token...");
         await this.updateToken();
       }
+    });
+
+    // Subscribe to network store changes to retry FCM token sync when online & synced
+    let wasReady = false;
+    useNetworkStore.subscribe(async (state) => {
+      const isReady = state.isConnected && state.isSynced;
+      if (isReady && !wasReady) {
+        console.log("Network online & app synced, updating FCM token...");
+        await this.updateToken();
+      }
+      wasReady = isReady;
     });
   }
 
