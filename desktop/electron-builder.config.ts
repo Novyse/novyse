@@ -108,11 +108,9 @@ export default {
   rpm: {
     fpm: ["--rpm-rpmbuild-define=_build_id_links none"],
   },
-  snapcraft: {
+  snap: {
     base: "core24",
-    core24: {
-      confinement: "strict",
-      artifactName: `Novyse${suffix}.snap`,
-    },
+    confinement: "strict",
+    artifactName: `Novyse${suffix}.snap`,
   },
 };
