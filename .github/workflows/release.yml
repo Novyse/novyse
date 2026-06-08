@@ -171,6 +171,7 @@ jobs:
       - name: Build Android (Local Native)
         run: |
           bunx expo prebuild
+          node scripts/patch-android-build.js
           cd android
           if [ "${{ inputs.release_type }}" = "production" ]; then
             ./gradlew bundleRelease assembleRelease
@@ -191,15 +192,41 @@ jobs:
             SUFFIX="-preview"
           fi
 
-          find android/app/build/outputs/bundle -name "*.aab" -exec cp {} ./novyse${SUFFIX}.aab \; || true
-          find android/app/build/outputs/apk -name "*.apk" -exec cp {} ./novyse${SUFFIX}.apk \; || true
+          # Copy and rename AAB files
+          find android/app/build/outputs/bundle -name "*.aab" | while read -r aab_path; do
+            filename=$(basename "$aab_path")
+            new_name=$(echo "$filename" | sed "s/app-/novyse${SUFFIX}-/; s/-release//")
+            if [ "$new_name" = "novyse${SUFFIX}.aab" ]; then
+              cp "$aab_path" "./novyse${SUFFIX}.aab"
+            else
+              cp "$aab_path" "./$new_name"
+            fi
+          done
 
-          if [ -f ./novyse${SUFFIX}.aab ]; then
-            gh release upload v${{ inputs.version }} ./novyse${SUFFIX}.aab || true
-          fi
-          if [ -f ./novyse${SUFFIX}.apk ]; then
-            gh release upload v${{ inputs.version }} ./novyse${SUFFIX}.apk || true
-          fi
+          # Copy and rename APK files (handles both single and split ABI APKs)
+          find android/app/build/outputs/apk -name "*.apk" | while read -r apk_path; do
+            filename=$(basename "$apk_path")
+            new_name=$(echo "$filename" | sed "s/app-/novyse${SUFFIX}-/; s/-release//")
+            if [ "$new_name" = "novyse${SUFFIX}.apk" ]; then
+              cp "$apk_path" "./novyse${SUFFIX}.apk"
+            else
+              cp "$apk_path" "./$new_name"
+            fi
+          done
+
+          # Upload AAB artifacts
+          for f in ./novyse${SUFFIX}*.aab; do
+            if [ -f "$f" ]; then
+              gh release upload v${{ inputs.version }} "$f" --clobber || true
+            fi
+          done
+
+          # Upload APK artifacts
+          for f in ./novyse${SUFFIX}*.apk; do
+            if [ -f "$f" ]; then
+              gh release upload v${{ inputs.version }} "$f" --clobber || true
+            fi
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
