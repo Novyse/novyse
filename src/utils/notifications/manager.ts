@@ -12,7 +12,30 @@ import Platform from "@/src/utils/device/type";
 
 class NotificationManager {
   constructor() {
+    this.registerBackgroundHandler();
     this.init();
+  }
+
+  registerBackgroundHandler() {
+    if (Platform === "mobile") {
+      try {
+        firebase.setBackgroundHandler(async (remoteMessage) => {
+          console.log(
+            "[NotificationManager] FCM Message received in background:",
+            remoteMessage,
+          );
+          await mobile.displayMessage(remoteMessage);
+        });
+        console.log(
+          "[NotificationManager] Background message handler registered synchronously.",
+        );
+      } catch (e) {
+        console.error(
+          "[NotificationManager] Failed to register background handler:",
+          e,
+        );
+      }
+    }
   }
 
   async init() {
@@ -21,12 +44,6 @@ class NotificationManager {
         // Initialize Firebase (token, foreground listener)
         await firebase.init((remoteMessage) => {
           this.handleRemoteMessage(remoteMessage);
-        });
-
-        // Background handler (must be called early)
-        firebase.setBackgroundHandler(async (remoteMessage) => {
-          console.log("FCM Message received in background:", remoteMessage);
-          await mobile.displayMessage(remoteMessage);
         });
         break;
       case "desktop":
@@ -70,15 +87,19 @@ class NotificationManager {
       case "mobile":
         // Skip FCM notification if we are in foreground and Socket.io is connected.
         try {
-          const SocketIO = (await import("../backend-services/socket-io")).default;
+          const SocketIO = (await import("../backend-services/socket-io"))
+            .default;
           if (AppState.currentState === "active" && SocketIO.isOpen()) {
             console.log(
-              "[NotificationManager] Skipping FCM message in foreground because Socket.IO is connected."
+              "[NotificationManager] Skipping FCM message in foreground because Socket.IO is connected.",
             );
             return;
           }
         } catch (e) {
-          console.error("[NotificationManager] Error importing or checking SocketIO:", e);
+          console.error(
+            "[NotificationManager] Error importing or checking SocketIO:",
+            e,
+          );
         }
 
         // Skip notification if we are already viewing the chat IN FOREGROUND
