@@ -51,8 +51,8 @@ jobs:
           import xml.etree.ElementTree as ET
           import re
 
-          # 1. Update metainfo.xml
-          file_path = 'desktop/flathub/org.novyse.Desktop.metainfo.xml'
+           # 1. Update metainfo.xml
+          file_path = 'desktop/flathub/org.novyse.desktop.metainfo.xml'
           tree = ET.parse(file_path)
           root = tree.getroot()
           releases = root.find('releases')
@@ -65,7 +65,7 @@ jobs:
           tree.write(file_path, encoding='utf-8', xml_declaration=True)
 
           # 2. Update Flatpak manifest tag
-          manifest_path = 'desktop/flathub/org.novyse.Desktop.yml'
+          manifest_path = 'desktop/flathub/org.novyse.desktop.yml'
           with open(manifest_path, 'r') as f:
               yaml_content = f.read()
 
@@ -293,8 +293,10 @@ jobs:
   flathub-validation:
     needs: create-release
     runs-on: ubuntu-latest
+    if: ${{ inputs.release_type == 'production' }}
     steps:
       - uses: actions/checkout@v4
+
         with:
           ref: ${{ inputs.release_type }}
 
@@ -334,7 +336,7 @@ jobs:
 
       - name: Run flatpak-builder-lint on Manifest
         run: |
-          flatpak-builder-lint manifest desktop/flathub/org.novyse.Desktop.yml
+          flatpak-builder-lint manifest desktop/flathub/org.novyse.desktop.yml
 
       - name: Install SDKs and BaseApp for test build
         run: |
@@ -342,7 +344,7 @@ jobs:
 
       - name: Run test build with flatpak-builder
         run: |
-          flatpak-builder --user --disable-rofiles-fuse --force-clean --build-only --ccache build_dir desktop/flathub/org.novyse.Desktop.yml
+          flatpak-builder --user --disable-rofiles-fuse --force-clean --build-only --ccache build_dir desktop/flathub/org.novyse.desktop.yml
 
   publish-release:
     needs:
@@ -364,3 +366,59 @@ jobs:
         run: gh release edit v${{ inputs.version }} --draft=false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-flathub:
+    needs: publish-release
+    runs-on: ubuntu-latest
+    if: ${{ inputs.release_type == 'production' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install flatpak-node-generator
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install git+https://github.com/flatpak/flatpak-builder-tools.git#subdirectory=node
+
+      - name: Generate clean package-lock.json files
+        run: |
+          npm install --package-lock-only
+          cd desktop && npm install --package-lock-only && cd ..
+
+      - name: Generate flatpak-node-dependencies.json
+        run: |
+          flatpak-node-generator npm -r package-lock.json -o desktop/flathub/flatpak-node-dependencies.json
+
+      - name: Checkout Flathub Repository
+        uses: actions/checkout@v4
+        with:
+          repository: flathub/org.novyse.desktop
+          path: flathub-repo
+          token: ${{ secrets.FLATHUB_DEPLOY_TOKEN }}
+
+      - name: Copy manifest files to Flathub Repo
+        run: |
+          cp desktop/flathub/org.novyse.desktop.yml flathub-repo/org.novyse.desktop.yml
+          cp desktop/flathub/org.novyse.desktop.desktop flathub-repo/org.novyse.desktop.desktop
+          cp desktop/flathub/org.novyse.desktop.metainfo.xml flathub-repo/org.novyse.desktop.metainfo.xml
+          cp desktop/flathub/run.sh flathub-repo/run.sh
+          cp desktop/flathub/flatpak-node-dependencies.json flathub-repo/flatpak-node-dependencies.json
+
+      - name: Commit and Push to Flathub
+        run: |
+          cd flathub-repo
+          git config user.name "GitHub Action Bot"
+          git config user.email "bot@novyse.com"
+          git add .
+          git commit -m "Update to version ${{ inputs.version }}" || exit 0
+          git push origin master

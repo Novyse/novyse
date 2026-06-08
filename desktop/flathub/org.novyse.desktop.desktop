@@ -2,7 +2,7 @@
 Name=Novyse
 Comment=Next-Gen Communications. Connect, collaborate, and communicate securely.
 Exec=novyse %U
-Icon=org.novyse.Desktop
+Icon=org.novyse.desktop
 Type=Application
 Terminal=false
 Categories=Network;InstantMessaging;Chat;

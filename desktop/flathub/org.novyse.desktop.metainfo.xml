@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>org.novyse.Desktop</id>
+  <id>org.novyse.desktop</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Novyse</name>
@@ -19,7 +19,7 @@
       <li>Full Offline Mode: Access all your messages and data offline, with seamless automatic synchronization when you reconnect.</li>
     </ul>
   </description>
-  <launchable type="desktop-id">org.novyse.Desktop.desktop</launchable>
+  <launchable type="desktop-id">org.novyse.desktop.desktop</launchable>
   <url type="homepage">https://www.novyse.com</url>
   <url type="bugtracker">https://github.com/Novyse/novyse/issues</url>
   <screenshots>

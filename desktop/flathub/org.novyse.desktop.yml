@@ -1,4 +1,4 @@
-app-id: org.novyse.Desktop
+app-id: org.novyse.desktop
 runtime: org.freedesktop.Platform
 runtime-version: "24.08"
 sdk: org.freedesktop.Sdk
@@ -44,10 +44,10 @@ modules:
       - install -Dm755 desktop/flathub/run.sh /app/bin/novyse
 
       - mkdir -p /app/share/icons/hicolor/scalable/apps
-      - cp assets/images/logo.svg /app/share/icons/hicolor/scalable/apps/org.novyse.Desktop.svg || cp assets/images/logo-novyse.png /app/share/icons/hicolor/scalable/apps/org.novyse.Desktop.png || true
+      - cp assets/images/logo.svg /app/share/icons/hicolor/scalable/apps/org.novyse.desktop.svg || cp assets/images/logo-novyse.png /app/share/icons/hicolor/scalable/apps/org.novyse.desktop.png || true
 
-      - install -Dm644 desktop/flathub/org.novyse.Desktop.desktop /app/share/applications/org.novyse.Desktop.desktop
-      - install -Dm644 desktop/flathub/org.novyse.Desktop.metainfo.xml /app/share/metainfo/org.novyse.Desktop.metainfo.xml
+      - install -Dm644 desktop/flathub/org.novyse.desktop.desktop /app/share/applications/org.novyse.desktop.desktop
+      - install -Dm644 desktop/flathub/org.novyse.desktop.metainfo.xml /app/share/metainfo/org.novyse.desktop.metainfo.xml
     sources:
       - type: git
         url: https://github.com/Novyse/novyse.git
