@@ -154,20 +154,11 @@ jobs:
         with:
           node-version: "24"
       - uses: oven-sh/setup-bun@v1
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: "17"
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          cache: gradle
 
       - name: Decode Google Services
         run: |
@@ -179,11 +170,10 @@ jobs:
 
       - name: Build Android (Local Native)
         run: |
-          bunx expo prebuild --clean
+          bunx expo prebuild
           cd android
           if [ "${{ inputs.release_type }}" = "production" ]; then
-            ./gradlew bundleRelease
-            ./gradlew assembleRelease
+            ./gradlew bundleRelease assembleRelease
           else
             ./gradlew assembleRelease
           fi
