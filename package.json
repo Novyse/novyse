@@ -55,7 +55,7 @@
     "expo-localization": "~56.0.6",
     "expo-router": "~56.2.9",
     "expo-screen-orientation": "~56.0.5",
-    "expo-secure-store": "~56.0.4",
+    "expo-secure-store": "^56.0.4",
     "expo-share-intent": "^7.0.0",
     "expo-sharing": "~56.0.16",
     "expo-splash-screen": "~56.0.10",
