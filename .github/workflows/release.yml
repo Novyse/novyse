@@ -45,11 +45,15 @@ jobs:
           cd ..
 
           # Automatically update the Flathub AppStream metadata version and release date
-          VERSION="${{ inputs.version }}"
-          DATE=$(date +%Y-%m-%d)
+          export VERSION="${{ inputs.version }}"
+          export DATE=$(date +%Y-%m-%d)
           python3 -c "
+          import os
           import xml.etree.ElementTree as ET
           import re
+
+          VERSION = os.environ.get('VERSION')
+          DATE = os.environ.get('DATE')
 
            # 1. Update metainfo.xml
           file_path = 'desktop/flathub/org.novyse.desktop.metainfo.xml'
