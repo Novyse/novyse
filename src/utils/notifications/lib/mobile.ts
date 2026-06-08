@@ -119,7 +119,7 @@ class MobileNotificationManager {
 
     try {
       // 1. Ensure permissions
-      const settings = await notifee.requestPermission();
+      const settings = await notifee.getNotificationSettings();
       console.log(
         "[MobileNotificationManager] Permission status:",
         settings.authorizationStatus,
@@ -173,6 +173,22 @@ class MobileNotificationManager {
       const useChatStore = (await import("@/src/context/ChatContext")).default;
       const useUserStore = (await import("@/src/context/UserContext")).default;
       const database = (await import("../../storage/database")).default;
+
+      // Ensure DB is connected in Headless mode (when UI SQLiteProvider is not mounted)
+      if (!database.file.db) {
+        const SQLite = await import("expo-sqlite");
+        database.setDb(SQLite.openDatabaseSync("novyse"));
+      }
+
+      // Ensure Network Context knows we are online in Headless mode
+      const useNetworkStore = (await import("@/src/context/NetworkContext"))
+        .default;
+      if (!useNetworkStore.getState().isConnected) {
+        const NetInfo = (await import("@react-native-community/netinfo"))
+          .default;
+        const netState = await NetInfo.fetch();
+        useNetworkStore.setState({ isConnected: netState.isConnected ?? true });
+      }
 
       // 3.1 Resolve Chat
       let chat = chatUUID
@@ -252,6 +268,7 @@ class MobileNotificationManager {
         if (uuid.length < 20) return undefined;
         try {
           // 1. Try local storage
+          const database = (await import("../../storage/database")).default;
           const storage = (await import("../../storage/file")).default;
           const ref = await database.file.get.ref(uuid);
           if (ref) {

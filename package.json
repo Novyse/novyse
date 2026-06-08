@@ -1,6 +1,6 @@
 {
   "name": "novyse",
-  "main": "expo-router/entry",
+  "main": "index.ts",
   "version": "1.0.2-20260608.0",
   "scripts": {
     "dev": "expo start -cd",
