@@ -51,5 +51,5 @@ modules:
     sources:
       - type: git
         url: https://github.com/Novyse/novyse.git
-        tag: v1.0.1-20260528.0
+        tag: v1.0.2-20260608.0
       - flatpak-node-dependencies.json
