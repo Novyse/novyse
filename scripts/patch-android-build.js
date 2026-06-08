@@ -19,6 +19,18 @@ try {
       updated = true;
     }
 
+    // Boost Gradle JVM Memory Args to avoid OutOfMemory / Metaspace exhaustion
+    if (props.includes("org.gradle.jvmargs=")) {
+      const currentJvmArgsMatch = props.match(/org\.gradle\.jvmargs=(.*)/);
+      if (currentJvmArgsMatch && !currentJvmArgsMatch[1].includes("-Xmx4096m")) {
+        props = props.replace(/org\.gradle\.jvmargs=.*/, "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m");
+        updated = true;
+      }
+    } else {
+      props += "\norg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m";
+      updated = true;
+    }
+
     if (updated) {
       fs.writeFileSync(gradlePropsPath, props, "utf8");
       console.log(
@@ -62,9 +74,16 @@ try {
 
     if (content.includes(targetBlock)) {
       content = content.replace(targetBlock, splitsConfig);
+
+      const excludeBlock = `\n\n// Configure the React Native bundling task to exclude desktop, android, and ios directories\ntasks.configureEach { task ->\n    if (task.name.contains("createBundle") && task.name.contains("JsAndAssets")) {\n        task.sources.exclude("desktop/**")\n        task.sources.exclude("android/**")\n        task.sources.exclude("ios/**")\n    }\n}\n`;
+
+      if (!content.includes('exclude("desktop/**")')) {
+        content += excludeBlock;
+      }
+
       fs.writeFileSync(buildGradlePath, content, "utf8");
       console.log(
-        "[PATCH] Successfully updated build.gradle with ABI splits configuration.",
+        "[PATCH] Successfully updated build.gradle with ABI splits configuration and task exclusions.",
       );
     } else {
       console.error(
