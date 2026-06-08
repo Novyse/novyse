@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a Security Vulnerability
+    url: https://github.com/Novyse/novyse/security/advisories/new
+    about: Please report security vulnerabilities privately rather than opening public issues.
+  - name: Contributing Guidelines
+    url: https://github.com/Novyse/novyse/blob/main/CONTRIBUTING.md
+    about: Read our guidelines on how to contribute code and make changes.

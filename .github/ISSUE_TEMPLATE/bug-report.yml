@@ -8,7 +8,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## 🐛 Bug Report
+        ## Bug Report
 
         Please fill out the following information to help us investigate the issue.
 
@@ -24,7 +24,7 @@ body:
   - type: input
     id: actual_behavior
     attributes:
-      label: ❌ Actual Behavior
+      label: Actual Behavior
       description: What actually happened?
       placeholder: e.g., The "Submit" button does nothing when clicked.
     validations:
@@ -33,7 +33,7 @@ body:
   - type: textarea
     id: steps_to_reproduce
     attributes:
-      label: 📍 Steps to Reproduce
+      label: Steps to Reproduce
       description: Step-by-step instructions to reproduce the issue.
       placeholder: |
         1. Go to '...'
@@ -45,7 +45,7 @@ body:
   - type: dropdown
     id: platform
     attributes:
-      label: 📱 Platform
+      label: Platform
       description: On which platform did you experience the issue?
       options:
         - Web
@@ -59,33 +59,33 @@ body:
   - type: input
     id: browser_info
     attributes:
-      label: 🌐 Browser Info (if Web)
+      label: Browser Info (if Web)
       description: Browser name and version (e.g., Chrome 120.0.0.0)
       placeholder: "You can find this info at: https://www.whatismybrowser.com/"
-  
+
   - type: input
     id: user_agent
     attributes:
-      label: 🧾 User Agent (if Web)
+      label: User Agent (if Web)
       description: Paste your user agent string
-      placeholder: Find it here: https://www.whatismybrowser.com/
-  
+      placeholder: "Find it here: https://www.whatismybrowser.com/"
+
   - type: input
     id: device_info
     attributes:
-      label: 📱 Device Info (if Mobile)
+      label: Device Info (if Mobile)
       description: Device model and OS version (e.g., iPhone 13, iOS 17.0.3 or Samsung Galaxy S23, Android 14)
-  
+
   - type: input
     id: app_version
     attributes:
-      label: 🏷️ App Version (if applicable)
+      label: App Version (if applicable)
       description: Version number of the app (if not applicable, leave blank)
 
   - type: textarea
     id: client_logs
     attributes:
-      label: 📄 Client Logs
+      label: Client Logs
       description: Paste any relevant client-side error logs or messages. Console logs, etc.
       placeholder: |
         - To get logs in a browser: Right-click > "Inspect" > "Console"
@@ -95,7 +95,7 @@ body:
   - type: textarea
     id: server_logs
     attributes:
-      label: 🖥️ Server Logs (if available)
+      label: Server Logs (if available)
       description: Include relevant backend/server logs here.
       placeholder: |
         - To retrieve logs, use: `docker logs <container>` or `tail -n 100 /var/log/app.log`
@@ -104,13 +104,13 @@ body:
   - type: textarea
     id: media
     attributes:
-      label: 📸 Screenshots / Recordings
+      label: Screenshots / Recordings
       description: Add any screenshots, screen recordings, or GIFs that demonstrate the issue.
-  
+
   - type: dropdown
     id: frequency
     attributes:
-      label: 🔁 Is this issue reproducible?
+      label: Is this issue reproducible?
       options:
         - Always
         - Sometimes
@@ -122,5 +122,5 @@ body:
   - type: textarea
     id: additional_notes
     attributes:
-      label: 🧩 Additional Notes
+      label: Additional Notes
       description: Anything else that might help us understand the issue better.
