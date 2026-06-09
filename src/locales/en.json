@@ -195,6 +195,10 @@
         "turnCamOn": "Turn Cam On",
         "disconnect": "Disconnect"
       },
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "fullscreen": "Fullscreen",
+      "exitFullscreen": "Exit Fullscreen",
       "participantsInCall": "{{count}} participants in call",
       "noParticipants": "There is no one here.",
       "error": {
