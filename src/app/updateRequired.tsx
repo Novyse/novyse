@@ -13,7 +13,7 @@ import { useThemeContext } from "@/src/context/ThemeContext";
 
 import AppText from "@/src/components/AppText";
 
-import { APP_VERSION } from "../../app.config";
+import { APP_VERSION, BRANCH } from "../../app.config";
 import Platform, {
   getInstallSource,
   supportsAutoUpdate,
@@ -32,7 +32,10 @@ const STORE_URLS: Partial<Record<InstallSource, string>> = {
   "linux-flatpak": "https://flathub.org/apps/com.novyse.Novyse",
 };
 
-const GITHUB_URL = "https://github.com/Novyse/novyse/releases/latest";
+const GITHUB_URL =
+  BRANCH === "production"
+    ? "https://github.com/Novyse/novyse/releases/latest"
+    : "https://github.com/Novyse/novyse/releases";
 
 // --- Button label translation keys by install source ---
 const BUTTON_KEYS: Partial<Record<InstallSource, string>> = {
