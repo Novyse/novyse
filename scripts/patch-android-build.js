@@ -22,8 +22,14 @@ try {
     // Boost Gradle JVM Memory Args to avoid OutOfMemory / Metaspace exhaustion
     if (props.includes("org.gradle.jvmargs=")) {
       const currentJvmArgsMatch = props.match(/org\.gradle\.jvmargs=(.*)/);
-      if (currentJvmArgsMatch && !currentJvmArgsMatch[1].includes("-Xmx4096m")) {
-        props = props.replace(/org\.gradle\.jvmargs=.*/, "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m");
+      if (
+        currentJvmArgsMatch &&
+        !currentJvmArgsMatch[1].includes("-Xmx4096m")
+      ) {
+        props = props.replace(
+          /org\.gradle\.jvmargs=.*/,
+          "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m",
+        );
         updated = true;
       }
     } else {
@@ -55,7 +61,7 @@ try {
     }
     splits {
         abi {
-            enable true
+            enable !project.gradle.startParameter.taskNames.any { it.toLowerCase().contains("bundle") }
             reset()
             include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
             universalApk false

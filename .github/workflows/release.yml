@@ -173,7 +173,7 @@ jobs:
           node scripts/patch-android-build.js
           cd android
           if [ "${{ inputs.release_type }}" = "production" ]; then
-            ./gradlew bundleRelease assembleRelease
+            ./gradlew bundleRelease && ./gradlew assembleRelease
           else
             ./gradlew assembleRelease
           fi
