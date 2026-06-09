@@ -158,7 +158,6 @@ jobs:
         with:
           distribution: zulu
           java-version: "17"
-          cache: gradle
 
       - name: Decode Google Services
         run: |
