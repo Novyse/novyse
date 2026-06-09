@@ -25,11 +25,15 @@ export default {
             ? "dev"
             : "latest",
     },
-    {
-      provider: "snapStore",
-      repo: "novyse",
-      channels: ["stable"],
-    },
+    ...(process.platform === "linux"
+      ? [
+          {
+            provider: "snapStore",
+            repo: "novyse",
+            channels: ["stable"],
+          },
+        ]
+      : []),
   ],
   directories: {
     output: "dist",
