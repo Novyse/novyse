@@ -536,7 +536,19 @@ class MobileNotificationManager {
 
   async hideVoiceChatNotification() {
     if (Platform.OS !== "android") return;
+    
     try {
+      // Metodo "più pulito": interroghiamo direttamente il sistema operativo
+      // per sapere se la notifica del servizio in background è attualmente attiva.
+      const displayedNotifications = await notifee.getDisplayedNotifications();
+      const isServiceRunning = displayedNotifications.some(
+        (n) => n.id === "novyse_comms_persistent"
+      );
+
+      if (!isServiceRunning) {
+        return; // Il servizio non è in esecuzione, evitiamo il comando di stop fatale.
+      }
+      
       await notifee.stopForegroundService();
       await notifee.cancelNotification("novyse_comms_persistent");
     } catch (e) {
