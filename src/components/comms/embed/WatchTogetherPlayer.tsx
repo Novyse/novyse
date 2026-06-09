@@ -58,11 +58,16 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
     return Math.min(1.0, linear);
   };
 
+  const isPlaying = watchTogetherState?.status === "playing";
+
   // Refs to hold latest values for dependency-free keyboard handler
   const currentTimeRef = useRef(currentTime);
   const durationRef = useRef(duration);
-
+  const isPlayingRef = useRef(isPlaying);
+  const triggerPlayRef = useRef(triggerPlay);
+  const triggerPauseRef = useRef(triggerPause);
   const triggerSeekRef = useRef(triggerSeek);
+  const showControlsAndResetTimerRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     currentTimeRef.current = currentTime;
@@ -71,6 +76,18 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
   useEffect(() => {
     durationRef.current = duration;
   }, [duration]);
+
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+
+  useEffect(() => {
+    triggerPlayRef.current = triggerPlay;
+  }, [triggerPlay]);
+
+  useEffect(() => {
+    triggerPauseRef.current = triggerPause;
+  }, [triggerPause]);
 
   useEffect(() => {
     triggerSeekRef.current = triggerSeek;
@@ -127,11 +144,21 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
       }
 
       switch (e.key) {
+        case " ": {
+          e.preventDefault();
+          if (isPlayingRef.current) {
+            triggerPauseRef.current();
+          } else {
+            triggerPlayRef.current();
+          }
+          showControlsAndResetTimerRef.current();
+          break;
+        }
         case "ArrowLeft": {
           e.preventDefault();
           const targetTime = Math.max(0, currentTimeRef.current - 5);
           throttledSeek(targetTime);
-          showControlsAndResetTimer();
+          showControlsAndResetTimerRef.current();
           break;
         }
         case "ArrowRight": {
@@ -141,7 +168,7 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
             currentTimeRef.current + 5,
           );
           throttledSeek(targetTime);
-          showControlsAndResetTimer();
+          showControlsAndResetTimerRef.current();
           break;
         }
         case "ArrowUp": {
@@ -151,14 +178,14 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
             currentTimeRef.current + 30,
           );
           throttledSeek(targetTime);
-          showControlsAndResetTimer();
+          showControlsAndResetTimerRef.current();
           break;
         }
         case "ArrowDown": {
           e.preventDefault();
           const targetTime = Math.max(0, currentTimeRef.current - 30);
           throttledSeek(targetTime);
-          showControlsAndResetTimer();
+          showControlsAndResetTimerRef.current();
           break;
         }
         default:
@@ -207,8 +234,6 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
-  const isPlaying = watchTogetherState?.status === "playing";
-
   const showControlsAndResetTimer = () => {
     setControlsVisible(true);
     if (hideTimeoutRef.current) {
@@ -220,6 +245,8 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
       }, 3000);
     }
   };
+
+  showControlsAndResetTimerRef.current = showControlsAndResetTimer;
 
   const handleMouseLeave = () => {
     if (isPlaying) {
