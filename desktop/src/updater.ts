@@ -1,6 +1,7 @@
 import { autoUpdater, UpdateInfo } from "electron-updater";
 import { BrowserWindow, ipcMain, app } from "electron";
 import { detectInstallSource, supportsAutoUpdate } from "./installSource";
+import { BRANCH } from "../../app.config";
 
 let mainWindowRef: BrowserWindow | null = null;
 let splashWindow: BrowserWindow | null = null;
@@ -174,6 +175,15 @@ function closeSplash() {
 }
 
 export function setupUpdaterListeners() {
+  autoUpdater.channel =
+    BRANCH === "preview"
+      ? "preview"
+      : BRANCH === "development"
+        ? "dev"
+        : "latest";
+
+  autoUpdater.allowPrerelease = BRANCH === "preview" || BRANCH === "development";
+
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
 
