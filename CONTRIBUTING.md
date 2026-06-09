@@ -191,6 +191,25 @@ You can choose one of the following methods:
    ./gradlew bundleRelease
    ```
 
+**Option 3: Local Build (Using Package Script)**
+
+You can use the convenient project script to automatically handle prebuilding, patching, and gradle builds:
+
+- Build both APK and AAB (default):
+  ```bash
+  bun run build:android
+  # or
+  bun run build:android --all
+  ```
+- Build only APK:
+  ```bash
+  bun run build:android --apk
+  ```
+- Build only AAB:
+  ```bash
+  bun run build:android --aab
+  ```
+
 ### Other Platforms
 
 #### iOS

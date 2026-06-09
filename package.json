@@ -17,7 +17,7 @@
     "lint": "expo lint",
     "build:web": "expo export -p web",
     "build:desktop": "bun run sync-version && bun run build:web && cd desktop && bun run build && bun run dist",
-    "build:android": "bun run prebuild && node scripts/patch-android-build.js && cd android && ./gradlew bundleRelease && ./gradlew assembleRelease && cd ..",
+    "build:android": "node scripts/build-android.js",
     "sync-version": "node scripts/sync-version.js",
     "postinstall": "bunx replace-in-file '/CMAKE_CXX_STANDARD 11/' 'CMAKE_CXX_STANDARD 20' node_modules/react-native-opaque/android/CMakeLists.txt --isRegex"
   },
