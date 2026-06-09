@@ -25,15 +25,6 @@ export default {
             ? "dev"
             : "latest",
     },
-    ...(process.platform === "linux"
-      ? [
-          {
-            provider: "snapStore",
-            repo: "novyse",
-            channels: ["stable"],
-          },
-        ]
-      : []),
   ],
   directories: {
     output: "dist",
@@ -83,12 +74,11 @@ export default {
   },
   linux: {
     category: "Network",
-    target:
-      BRANCH === "production"
-        ? ["AppImage", "deb", "rpm", "flatpak", "snap"]
-        : ["AppImage", "deb", "rpm", "flatpak"],
+    target: ["AppImage", "deb", "rpm", "flatpak", "snap"],
     icon: "../assets/images/logo.svg",
     artifactName: `novyse${suffix}.\${ext}`,
+    maintainer: "Novyse <contact@novyse.com>",
+    vendor: "Novyse",
   },
   appImage: {
     artifactName: `Novyse${suffix}.AppImage`,
@@ -116,5 +106,27 @@ export default {
     base: "core24",
     confinement: "strict",
     artifactName: `Novyse${suffix}.snap`,
+    publish: [
+      {
+        provider: "github",
+        owner: "Novyse",
+        repo: "novyse",
+        channel:
+          BRANCH === "preview"
+            ? "preview"
+            : BRANCH === "development"
+              ? "dev"
+              : "latest",
+      },
+      ...(BRANCH === "production"
+        ? [
+            {
+              provider: "snapStore",
+              repo: "novyse",
+              channels: ["stable"],
+            },
+          ]
+        : []),
+    ],
   },
 };

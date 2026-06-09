@@ -20,8 +20,16 @@ const CommsMenu = ({
   position,
 }) => {
   const { theme } = useThemeContext();
-  const { localMuted, toggleLocalMute, setShowWatchTogetherModal } =
-    useCommsContext();
+  const {
+    localMuted,
+    toggleLocalMute,
+    setShowWatchTogetherModal,
+    pinnedStreamUUID,
+    setPinnedStreamUUID,
+    fullscreenStreamUUID,
+    setFullScreenStreamUUID,
+    streams,
+  } = useCommsContext();
   const styles = createStyles(theme);
   const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -70,8 +78,32 @@ const CommsMenu = ({
     activeDeviceUUID === "watch-together" &&
     activeStreamUUID === "watch-together";
 
+  const isCurrentlyPinned = pinnedStreamUUID === activeStreamUUID;
+  const isCurrentlyFullScreen = fullscreenStreamUUID === activeStreamUUID;
+
+  const activeStreamObj = streams[activeStreamUUID];
+  const streamActive = activeStreamObj && activeStreamObj.active;
+
+  const showPinButton =
+    ((streamActive && !isLocal) || isWatchTogether) && !isCurrentlyFullScreen;
+  const showFullscreenButton = (streamActive && !isLocal) || isWatchTogether;
+
+  const handlePinPress = () => {
+    setPinnedStreamUUID((prev) =>
+      prev === activeStreamUUID ? null : activeStreamUUID,
+    );
+    onClose();
+  };
+
+  const handleFullScreenPress = () => {
+    setFullScreenStreamUUID((prev) =>
+      prev === activeStreamUUID ? null : activeStreamUUID,
+    );
+    onClose();
+  };
+
   const menuWidth = 220;
-  const menuHeight = isLocal ? 150 : 250;
+  const menuHeight = isLocal ? 150 : 320;
 
   let adjustedX = displayData.position?.x || 0;
   let adjustedY = displayData.position?.y || 0;
@@ -158,6 +190,56 @@ const CommsMenu = ({
               {/* Volume Slider Section */}
               {isLocal === false && (
                 <VolumeControl volKey={volKey} isScreenShare={isScreenShare} />
+              )}
+
+              {/* Pin Button */}
+              {showPinButton && (
+                <HoverAndPressedButton
+                  style={styles.menuItem}
+                  onPress={handlePinPress}
+                >
+                  <View style={styles.menuItemContent}>
+                    <Icon
+                      name={isCurrentlyPinned ? "PinOffIcon" : "PinIcon"}
+                      size={20}
+                      color={theme.text}
+                    />
+                    <AppText
+                      style={styles.menuText}
+                      translationKey={
+                        isCurrentlyPinned ? "chat.comms.unpin" : "chat.comms.pin"
+                      }
+                    />
+                  </View>
+                </HoverAndPressedButton>
+              )}
+
+              {/* Fullscreen Button */}
+              {showFullscreenButton && (
+                <HoverAndPressedButton
+                  style={styles.menuItem}
+                  onPress={handleFullScreenPress}
+                >
+                  <View style={styles.menuItemContent}>
+                    <Icon
+                      name={
+                        isCurrentlyFullScreen
+                          ? "ArrowShrink01Icon"
+                          : "ArrowExpand01Icon"
+                      }
+                      size={20}
+                      color={theme.text}
+                    />
+                    <AppText
+                      style={styles.menuText}
+                      translationKey={
+                        isCurrentlyFullScreen
+                          ? "chat.comms.exitFullscreen"
+                          : "chat.comms.fullscreen"
+                      }
+                    />
+                  </View>
+                </HoverAndPressedButton>
               )}
 
               {/* Actions Button */}

@@ -1,6 +1,6 @@
 {
   "name": "novyse-desktop",
-  "version": "1.0.2-20260609.0",
+  "version": "1.0.2-20260609.1",
   "description": "A desktop client for Novyse",
   "main": "build/main.js",
   "scripts": {
@@ -25,7 +25,8 @@
   "homepage": "https://www.novyse.com",
   "author": {
     "name": "Novyse",
-    "email": "novyse@novyse.com"
+    "email": "contact@novyse.com",
+    "url": "https://www.novyse.com"
   },
   "license": "GNU GENERAL PUBLIC LICENSE",
   "devDependencies": {

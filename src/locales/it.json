@@ -193,6 +193,10 @@
         "turnCamOn": "Accendi Cam",
         "disconnect": "Disconnetti"
       },
+      "pin": "Fissa",
+      "unpin": "Sblocca",
+      "fullscreen": "Schermo intero",
+      "exitFullscreen": "Riduci",
       "participantsInCall": "{{count}} partecipanti alla chiamata",
       "noParticipants": "Non c'è nessuno qui.",
       "error": {
