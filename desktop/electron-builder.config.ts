@@ -74,12 +74,11 @@ export default {
   },
   linux: {
     category: "Network",
-    target:
-      BRANCH === "production"
-        ? ["AppImage", "deb", "rpm", "flatpak", "snap"]
-        : ["AppImage", "deb", "rpm", "flatpak"],
+    target: ["AppImage", "deb", "rpm", "flatpak", "snap"],
     icon: "../assets/images/logo.svg",
     artifactName: `novyse${suffix}.\${ext}`,
+    maintainer: "Novyse <contact@novyse.com>",
+    vendor: "Novyse",
   },
   appImage: {
     artifactName: `Novyse${suffix}.AppImage`,

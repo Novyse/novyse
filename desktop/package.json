@@ -25,7 +25,8 @@
   "homepage": "https://www.novyse.com",
   "author": {
     "name": "Novyse",
-    "email": "novyse@novyse.com"
+    "email": "contact@novyse.com",
+    "url": "https://www.novyse.com"
   },
   "license": "GNU GENERAL PUBLIC LICENSE",
   "devDependencies": {
