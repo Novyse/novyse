@@ -1,7 +1,7 @@
 {
   "name": "novyse",
   "main": "index.ts",
-  "version": "1.0.2-20260608.0",
+  "version": "1.0.2-20260609.0",
   "scripts": {
     "dev": "expo start -cd",
     "prebuild": "expo prebuild --clean",
