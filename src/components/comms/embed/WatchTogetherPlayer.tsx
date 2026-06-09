@@ -1,5 +1,5 @@
 import React, { useRef, useContext, useEffect } from "react";
-import { View, StyleSheet, Pressable, Animated } from "react-native";
+import { View, StyleSheet, Pressable, Animated, Platform } from "react-native";
 import Slider from "@react-native-community/slider";
 import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
@@ -57,6 +57,123 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
     const linear = Math.pow(10, db / 20);
     return Math.min(1.0, linear);
   };
+
+  // Refs to hold latest values for dependency-free keyboard handler
+  const currentTimeRef = useRef(currentTime);
+  const durationRef = useRef(duration);
+
+  const triggerSeekRef = useRef(triggerSeek);
+
+  useEffect(() => {
+    currentTimeRef.current = currentTime;
+  }, [currentTime]);
+
+  useEffect(() => {
+    durationRef.current = duration;
+  }, [duration]);
+
+  useEffect(() => {
+    triggerSeekRef.current = triggerSeek;
+  }, [triggerSeek]);
+
+  const lastSeekBroadcastRef = useRef<number>(0);
+  const pendingSeekTimeRef = useRef<number | null>(null);
+  const pendingSeekTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const throttledSeek = (time: number) => {
+    // Seek local player instantly
+    playerRef.current?.seek(time);
+
+    // Clear any pending debounced seek
+    if (pendingSeekTimeoutRef.current) {
+      clearTimeout(pendingSeekTimeoutRef.current);
+      pendingSeekTimeoutRef.current = null;
+    }
+
+    const now = Date.now();
+    const timeSinceLastBroadcast = now - lastSeekBroadcastRef.current;
+
+    if (timeSinceLastBroadcast >= 300) {
+      // It's been long enough, broadcast immediately
+      triggerSeekRef.current(time);
+      lastSeekBroadcastRef.current = now;
+      pendingSeekTimeRef.current = null;
+    } else {
+      // Queue it up to broadcast at the end of the throttle period
+      pendingSeekTimeRef.current = time;
+      pendingSeekTimeoutRef.current = setTimeout(() => {
+        if (pendingSeekTimeRef.current !== null) {
+          triggerSeekRef.current(pendingSeekTimeRef.current);
+          lastSeekBroadcastRef.current = Date.now();
+          pendingSeekTimeRef.current = null;
+        }
+      }, 300 - timeSinceLastBroadcast);
+    }
+  };
+
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input, textarea, or editable element
+      const activeEl = document.activeElement;
+      if (
+        activeEl &&
+        (activeEl.tagName === "INPUT" ||
+          activeEl.tagName === "TEXTAREA" ||
+          (activeEl as HTMLElement).isContentEditable)
+      ) {
+        return;
+      }
+
+      switch (e.key) {
+        case "ArrowLeft": {
+          e.preventDefault();
+          const targetTime = Math.max(0, currentTimeRef.current - 5);
+          throttledSeek(targetTime);
+          showControlsAndResetTimer();
+          break;
+        }
+        case "ArrowRight": {
+          e.preventDefault();
+          const targetTime = Math.min(
+            durationRef.current || 100,
+            currentTimeRef.current + 5,
+          );
+          throttledSeek(targetTime);
+          showControlsAndResetTimer();
+          break;
+        }
+        case "ArrowUp": {
+          e.preventDefault();
+          const targetTime = Math.min(
+            durationRef.current || 100,
+            currentTimeRef.current + 30,
+          );
+          throttledSeek(targetTime);
+          showControlsAndResetTimer();
+          break;
+        }
+        case "ArrowDown": {
+          e.preventDefault();
+          const targetTime = Math.max(0, currentTimeRef.current - 30);
+          throttledSeek(targetTime);
+          showControlsAndResetTimer();
+          break;
+        }
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      if (pendingSeekTimeoutRef.current) {
+        clearTimeout(pendingSeekTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Synchronize local volume and mute states to the embedded player
   useEffect(() => {
