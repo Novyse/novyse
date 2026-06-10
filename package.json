@@ -19,7 +19,7 @@
     "build:desktop": "bun run sync-version && bun run build:web && cd desktop && bun run build && bun run dist",
     "build:android": "node scripts/build-android.js",
     "sync-version": "node scripts/sync-version.js",
-    "postinstall": "bunx install-skia && node scripts/copy-canvaskit.js && bunx replace-in-file '/CMAKE_CXX_STANDARD 11/' 'CMAKE_CXX_STANDARD 20' node_modules/react-native-opaque/android/CMakeLists.txt --isRegex"
+    "postinstall": "bunx install-skia && node scripts/copy-canvaskit.js && node scripts/patch-react-native-opaque.js && node scripts/download-react-native-audio-api-binaries.js && node scripts/patch-react-native-audio-api.js"
   },
   "jest": {
     "preset": "jest-expo"

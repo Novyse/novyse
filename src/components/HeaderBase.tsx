@@ -10,6 +10,7 @@ interface HeaderBaseProps {
 
 const HeaderBase = ({ children, style, onLayout }: HeaderBaseProps) => {
   const insets = useSafeAreaInsets();
+
   return (
     <View
       style={[styles.container, style, { top: insets.top }]}

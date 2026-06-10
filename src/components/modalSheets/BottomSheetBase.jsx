@@ -48,10 +48,9 @@ const BottomSheetBase = forwardRef(
             },
           ]}
           isBorderActive={false}
-          intensity={50}
         />
       ),
-      [theme.isDark],
+      [],
     );
 
     const Container = scrollable ? BottomSheetScrollView : BottomSheetView;

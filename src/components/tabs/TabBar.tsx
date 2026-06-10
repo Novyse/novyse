@@ -63,7 +63,6 @@ const TabBar: React.FC<BottomTabBarProps> = ({
     return lastValidIndex.value;
   }, [visibleIndex]);
 
-  // Niente useEffect — reagisce direttamente ai cambiamenti
   useAnimatedReaction(
     () => activeVisibleIndex.value * tabWidth.value,
     (target) => {
@@ -147,13 +146,11 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   };
 
   if (showCollapsedSidebar) {
-
     return (
       <View style={styles.collapsedContainer}>
-
-          <BlurredView style={styles.blurredToggle}>
-            <Icon name="ArrowRight01Icon" onPress={handleExpand}/>
-          </BlurredView>
+        <BlurredView style={styles.blurredToggle}>
+          <Icon name="ArrowRight01Icon" onPress={handleExpand} />
+        </BlurredView>
       </View>
     );
   }
@@ -190,13 +187,6 @@ const createStyle = (theme: any) =>
       borderColor: theme.border,
       borderRadius: 25,
     },
-    menuItem: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: "center",
-      alignItems: "center",
-    },
     blurredContainer: {
       flex: 1,
       borderRadius: 30,
@@ -219,9 +209,10 @@ const createStyle = (theme: any) =>
     indicator: {
       position: "absolute",
       left: 5,
-      height: 50, // container 60 - padding 5*2
+      height: 50,
       backgroundColor: theme.primary,
       borderRadius: 25,
       opacity: 0.25,
+      zIndex: 0,
     },
   });

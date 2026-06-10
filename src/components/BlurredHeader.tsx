@@ -8,20 +8,18 @@ import StatusHeader from "./chat/list/header/StatusHeader";
 interface BlurredHeaderProps {
   children: React.ReactNode;
   style?: object;
-  intensity?: number;
   commsHeader?: React.ReactNode;
 }
 
 const BlurredHeader = ({
   children,
   style,
-  intensity,
   commsHeader,
 }: BlurredHeaderProps) => {
   const styles = createStyles();
   return (
     <HeaderBase>
-      <BlurredView style={[styles.container, style]} intensity={intensity}>
+      <BlurredView style={[styles.container, style]}>
         {children}
       </BlurredView>
       {commsHeader && <View style={{ width: "100%" }}>{commsHeader}</View>}
