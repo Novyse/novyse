@@ -84,7 +84,6 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   const renderTabBarContent = () => (
     <BlurredView
       intensity={60}
-      tint="dark"
       style={styles.blurredContainer}
       onLayout={onLayout}
     >

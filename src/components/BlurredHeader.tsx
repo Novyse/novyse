@@ -9,7 +9,6 @@ interface BlurredHeaderProps {
   children: React.ReactNode;
   style?: object;
   intensity?: number;
-  tint?: "light" | "dark" | "default";
   commsHeader?: React.ReactNode;
 }
 
@@ -17,17 +16,12 @@ const BlurredHeader = ({
   children,
   style,
   intensity,
-  tint,
   commsHeader,
 }: BlurredHeaderProps) => {
   const styles = createStyles();
   return (
     <HeaderBase>
-      <BlurredView
-        style={[styles.container, style]}
-        intensity={intensity}
-        tint={tint}
-      >
+      <BlurredView style={[styles.container, style]} intensity={intensity}>
         {children}
       </BlurredView>
       {commsHeader && <View style={{ width: "100%" }}>{commsHeader}</View>}

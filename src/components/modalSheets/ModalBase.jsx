@@ -23,8 +23,8 @@ const ModalBase = ({
     popover,
   });
 
-  const ContainerComponent = isSmallScreen || popover ? View : BlurredView;
-  const containerProps = isSmallScreen || popover ? {} : { intensity: 40 };
+  const ContainerComponent = popover ? View : BlurredView;
+  const containerProps = popover ? {} : { intensity: 40 };
 
   if (!visible) {
     return null;
@@ -95,12 +95,14 @@ function createStyle(theme, isSmallScreen, shouldUseFullscreen, options = {}) {
     },
     overlay: {
       flex: 1,
-      backgroundColor: hideOverlay ? "transparent" : theme.backgroundModalOverlay,
+      backgroundColor: hideOverlay
+        ? "transparent"
+        : theme.backgroundModalOverlay,
       justifyContent: popover ? "flex-end" : "center",
       alignItems: popover ? "flex-start" : "center",
     },
     container: {
-      backgroundColor: isSmallScreen || popover ? theme.backgroundMain : undefined,
+      backgroundColor: popover ? theme.backgroundMain : undefined,
       borderRadius: shouldUseFullscreen ? 0 : 15,
       shadowColor: theme.shadowColor,
       shadowOffset: {
