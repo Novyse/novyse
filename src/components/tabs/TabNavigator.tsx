@@ -9,7 +9,6 @@ import {
 import { tabNavigationRef } from "@/src/utils/navigation/tabRef";
 import { useThemeContext, Theme } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useWindowSizeStore, {
   SIDEBAR_MIN,
 } from "@/src/context/WindowSizeContext";
@@ -32,11 +31,7 @@ export const resetGlobalNavState = () => {
 export const getActiveTabName = () =>
   globalNavState?.routes[globalNavState.index]?.name as string | undefined;
 
-export default function TabNavigator({
-  isDetailOpen,
-}: {
-  isDetailOpen?: boolean;
-}) {
+export default function TabNavigator() {
   const { theme } = useThemeContext();
   const { isSmallScreen } = useScreen();
   const { width } = useWindowDimensions();
@@ -61,7 +56,7 @@ export default function TabNavigator({
         >
           <Tab.Navigator
             tabBar={(props) => <TabBar {...props} />}
-            backBehavior={isDetailOpen ? "none" : "firstRoute"}
+            backBehavior="none"
             screenOptions={{
               sceneStyle: { backgroundColor: "transparent" },
               animation: "shift",
