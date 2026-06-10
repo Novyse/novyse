@@ -2,7 +2,9 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
-import QRCode from "react-native-qrcode-svg";
+import QRCode from "react-native-qrcode-skia";
+import { LinearGradient, vec } from "@shopify/react-native-skia";
+import { Image } from "react-native";
 
 import useClipboard from "@/src/hooks/useClipboard";
 
@@ -50,14 +52,34 @@ const QRCodeModal = ({
           <View style={{ height: 15 }} />
           <QRCode
             value={profileLink}
-            logo={logoForQR}
             size={200}
-            enableLinearGradient={true}
-            linearGradient={theme.backgroundMainGradient}
-            logoBorderRadius={100}
-            logoMargin={5}
-            logoBackgroundColor={theme.icon}
-          />
+            logoAreaSize={65}
+            logoAreaBorderRadius={12}
+            logo={
+              <View
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 10,
+                  backgroundColor: theme.icon,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  overflow: "hidden",
+                }}
+              >
+                <Image
+                  source={logoForQR}
+                  style={{ width: 40, height: 40, resizeMode: "contain" }}
+                />
+              </View>
+            }
+          >
+            <LinearGradient
+              start={vec(0, 0)}
+              end={vec(0, 200)}
+              colors={theme.backgroundMainGradient}
+            />
+          </QRCode>
           <AppText
             style={styles.usernameText}
             text={`@${username ? username.toLocaleUpperCase() : ""}`}

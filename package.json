@@ -19,7 +19,7 @@
     "build:desktop": "bun run sync-version && bun run build:web && cd desktop && bun run build && bun run dist",
     "build:android": "node scripts/build-android.js",
     "sync-version": "node scripts/sync-version.js",
-    "postinstall": "bunx install-skia && bunx replace-in-file '/CMAKE_CXX_STANDARD 11/' 'CMAKE_CXX_STANDARD 20' node_modules/react-native-opaque/android/CMakeLists.txt --isRegex"
+    "postinstall": "bunx install-skia && node scripts/copy-canvaskit.js && bunx replace-in-file '/CMAKE_CXX_STANDARD 11/' 'CMAKE_CXX_STANDARD 20' node_modules/react-native-opaque/android/CMakeLists.txt --isRegex"
   },
   "jest": {
     "preset": "jest-expo"
@@ -90,7 +90,7 @@
     "react-native-opaque": "^0.3.1",
     "react-native-pager-view": "8.0.1",
     "react-native-passkey": "^3.3.3",
-    "react-native-qrcode-svg": "^6.3.21",
+    "react-native-qrcode-skia": "^0.4.0",
     "react-native-reanimated": "4.3.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
