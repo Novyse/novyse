@@ -12,7 +12,6 @@ import { Chat } from "@/src/types/chat";
 import Icon from "@/src/components/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import BlurredHeader from "@/src/components/BlurredHeader";
-import BlurredView from "@/src/components/BlurredView";
 import ChatListItem from "@/src/components/chat/list/Item";
 import FloatingButton from "@/src/components/FloatingButton";
 import CreateChatModal from "@/src/components/modalSheets/createChat";
@@ -27,7 +26,6 @@ import { useScreen } from "@/src/context/ScreenContext";
 import { useCommsContext } from "@/src/context/CommsContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useWindowSizeStore from "@/src/context/WindowSizeContext";
-import SmartBackground from "@/src/components/SmartBackground";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 import { ScrollBar } from "@/constants/ScrollBar";
@@ -360,11 +358,15 @@ const ChatList = () => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <SmartBackground
-        colors={theme.backgroundMainGradient}
-        style={StyleSheet.absoluteFill}
-      />
+    <>
+      {isSelectionMode
+        ? renderSelectionHeader()
+        : isForwarding
+          ? renderForwardingHeader()
+          : hasShareIntent
+            ? renderIntentHeader()
+            : renderDefaultHeader()}
+
       <FlashList
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
@@ -374,16 +376,6 @@ const ChatList = () => {
         extraData={selectedItems}
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
       />
-
-      <View style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
-        {isSelectionMode
-          ? renderSelectionHeader()
-          : isForwarding
-            ? renderForwardingHeader()
-            : hasShareIntent
-              ? renderIntentHeader()
-              : renderDefaultHeader()}
-      </View>
 
       {!showCollapsedSidebar && (
         <FloatingButton
@@ -403,7 +395,7 @@ const ChatList = () => {
         visible={isCreateChatModalVisible}
         onClose={() => setIsCreateChatModalVisible(false)}
       />
-    </View>
+    </>
   );
 };
 
