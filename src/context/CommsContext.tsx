@@ -67,6 +67,7 @@ export const CommsContext = React.createContext<CommsContextType | undefined>(
 
 const VOLUMES_MAX_SAVED = 2000;
 const VOLUMES_STORAGE_KEY = "novyse_comms_remote_volumes";
+const WATCH_TOGETHER_STREAM_UUID = "watch-together";
 
 const dbToLinear = (db: number) => {
   if (db <= -30) return 0;
@@ -134,6 +135,25 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
       room.off("roomMetadataChanged", handleRoomMetadataChanged);
     };
   }, [room]);
+
+  // Reset pin/fullscreen when Watch Together stops (same as screen share track removal)
+  React.useEffect(() => {
+    if (!roomMetadata) return;
+
+    try {
+      const parsed = JSON.parse(roomMetadata);
+      if (!parsed?.watchTogether?.url) {
+        setPinnedStreamUUID((prev) =>
+          prev === WATCH_TOGETHER_STREAM_UUID ? null : prev,
+        );
+        setFullScreenStreamUUID((prev) =>
+          prev === WATCH_TOGETHER_STREAM_UUID ? null : prev,
+        );
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, [roomMetadata]);
 
   const [remoteVolumes, setRemoteVolumes] = React.useState<
     Record<string, number>
