@@ -1,6 +1,7 @@
 import "react-native-get-random-values";
 import "@/src/i18n";
 import React, { useEffect } from "react";
+import { View } from "react-native";
 import { Stack } from "expo-router";
 
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -10,15 +11,16 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { ScreenProvider } from "@/src/context/ScreenContext";
 import { ThemeProvider, useThemeContext } from "@/src/context/ThemeContext";
 import { LanguageProvider } from "@/src/context/LanguageContext";
-import SplashScreen from "@/src/components/SplashScreen";
 import useAuthSession from "@/src/hooks/auth/useAuthSession";
-import notificationManager from "@/src/utils/notifications/manager";
+
+import SplashScreen from "@/src/components/SplashScreen";
+import SmartBackground from "@/src/components/SmartBackground";
 import WindowControls, {
   WINDOW_CONTROL_HEIGHT,
 } from "@/src/components/desktop/WindowControls";
+
+import notificationManager from "@/src/utils/notifications/manager";
 import Platform from "@/src/utils/device/type";
-import SmartBackground from "@/src/components/SmartBackground";
-import { View } from "react-native";
 
 // Set the background color of the navigation bar to transparent
 import { DefaultTheme } from "expo-router/react-navigation";
