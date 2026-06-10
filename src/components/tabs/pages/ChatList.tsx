@@ -10,6 +10,7 @@ import { useIsFocused } from "expo-router/react-navigation";
 import { Chat } from "@/src/types/chat";
 
 import Icon from "@/src/components/Icon";
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import BlurredHeader from "@/src/components/BlurredHeader";
 import BlurredView from "@/src/components/BlurredView";
 import ChatListItem from "@/src/components/chat/list/Item";
@@ -230,19 +231,36 @@ const ChatList = () => {
         ]}
         commsHeader={commsHeaderComponent}
       >
-        <Image
-          source={require("@/assets/images/logo-novyse.png")}
-          style={styles.logo}
-        />
-        {!showCollapsedSidebar && (
-          <Icon
-            name={"Search02Icon"}
-            onPress={() => tabNavigator.navigate("Search")}
+        <HoverAndPressedButton
+          onPress={
+            !showCollapsedSidebar
+              ? () => tabNavigator.navigate("Search")
+              : undefined
+          }
+          disabled={showCollapsedSidebar}
+          style={[
+            styles.headerPressable,
+            showCollapsedSidebar && styles.headerPressableCollapsed,
+          ]}
+          hoveredStyle={styles.headerPressableFeedback}
+          pressedStyle={styles.headerPressableFeedback}
+        >
+          <Image
+            source={require("@/assets/images/logo-novyse.png")}
+            style={styles.logo}
           />
-        )}
+          {!showCollapsedSidebar && <Icon name="Search02Icon" />}
+        </HoverAndPressedButton>
       </BlurredHeader>
     ),
-    [styles.logo, commsHeaderComponent, showCollapsedSidebar],
+    [
+      styles.logo,
+      styles.headerPressable,
+      styles.headerPressableCollapsed,
+      styles.headerPressableFeedback,
+      commsHeaderComponent,
+      showCollapsedSidebar,
+    ],
   );
 
   const renderSelectionHeader = useCallback(
@@ -404,6 +422,23 @@ function createStyle(theme, isSmallScreen, insets, hasComms) {
     logo: {
       width: 24,
       height: 24,
+    },
+    headerPressable: {
+      flex: 1,
+      alignSelf: "stretch",
+      flexDirection: "row",
+      width: "100%",
+      height: "100%",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 0,
+      borderRadius: 0,
+    },
+    headerPressableCollapsed: {
+      justifyContent: "center",
+    },
+    headerPressableFeedback: {
+      backgroundColor: "transparent",
     },
     headerTitle: {
       color: theme.text,
