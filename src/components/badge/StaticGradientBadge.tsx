@@ -7,6 +7,14 @@ const StaticGradientBadge = ({ badge }: any) => {
   const { name, icon, color } = badge;
   const { bgColors, textColor, borderColor } = color;
 
+  const safeBgColors = Array.isArray(bgColors)
+    ? bgColors.length === 0
+      ? ["transparent", "transparent"]
+      : bgColors.length === 1
+        ? [bgColors[0], bgColors[0]]
+        : bgColors
+    : ["transparent", "transparent"];
+
   return (
     <View
       style={[
@@ -18,7 +26,7 @@ const StaticGradientBadge = ({ badge }: any) => {
       ]}
     >
       <LinearGradient
-        colors={bgColors as [string, string, ...string[]]}
+        colors={safeBgColors as [string, string, ...string[]]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={StyleSheet.absoluteFill}

@@ -152,7 +152,10 @@ export default function ModifyProfile({
           showsVerticalScrollIndicator={false}
         >
           {/* Glass Card Container */}
-          <LinearGradient colors={[theme.backgroundMain]} style={styles.glassPanel}>
+          <LinearGradient
+            colors={theme.backgroundMainGradient as [string, string]}
+            style={styles.glassPanel}
+          >
             <Banner
               theme={theme}
               height={isSmallScreen ? 120 : 180}
