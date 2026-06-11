@@ -24,28 +24,26 @@ export const ReactionPill = ({
 }: ReactionPillProps) => {
   const { theme } = useContext(ThemeContext);
   const getUser = useUserStore((state) => state.getUser);
-  
+
   const particleRef = useRef<any>(null);
   const countRef = useRef<number>(reactionObj.userUUIDs.length);
+  const messageIdRef = useRef<string>(message.id);
 
   useEffect(() => {
-    const messageAge = Date.now() - messageMountedAt;
-    if (messageAge > 600) {
-      const timer = setTimeout(() => {
-        particleRef.current?.trigger(reactionObj.emoji, 24, 12);
-      }, 50);
-      return () => clearTimeout(timer);
+    if (messageIdRef.current !== message.id) {
+      // View was recycled for a different message
+      messageIdRef.current = message.id;
+      countRef.current = reactionObj.userUUIDs.length;
+      return;
     }
-  }, [messageMountedAt, reactionObj.emoji]);
 
-  useEffect(() => {
     const prevCount = countRef.current;
     const currentCount = reactionObj.userUUIDs.length;
     if (currentCount > prevCount) {
       particleRef.current?.trigger(reactionObj.emoji, 24, 12);
     }
     countRef.current = currentCount;
-  }, [reactionObj.userUUIDs.length, reactionObj.emoji]);
+  }, [reactionObj.userUUIDs.length, reactionObj.emoji, message.id]);
 
   const avatars = reactionObj.userUUIDs.slice(0, 2);
   const styles = createStyles(theme);
@@ -55,10 +53,7 @@ export const ReactionPill = ({
       style={styles.reactionPill}
       onPress={() => onReaction(message, reactionObj.emoji)}
     >
-      <AppText
-        style={styles.reactionPillText}
-        text={reactionObj.emoji}
-      />
+      <AppText style={styles.reactionPillText} text={reactionObj.emoji} />
       <View style={styles.reactionAvatars}>
         {avatars.map((uUUID, i) => (
           <View
