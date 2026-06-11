@@ -17,13 +17,24 @@ async function getFilePath(key: string) {
   return join(secureDir, `.${key}`);
 }
 
+async function waitForEncryption(): Promise<void> {
+  if (safeStorage.isEncryptionAvailable()) {
+    return;
+  }
+  console.log(
+    "safeStorage encryption is not available yet. Waiting for keyring/wallet unlock...",
+  );
+  while (!safeStorage.isEncryptionAvailable()) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  console.log("safeStorage encryption is now available.");
+}
+
 export async function handleSecureStoreSet(
   request: SecureStoreSetRequest,
 ): Promise<SecureStoreSetResponse> {
   try {
-    if (!safeStorage.isEncryptionAvailable()) {
-      throw new Error("Encryption is not available on this platform/session.");
-    }
+    await waitForEncryption();
 
     const filePath = await getFilePath(request.key);
     const buffer = safeStorage.encryptString(request.value);
@@ -40,10 +51,6 @@ export async function handleSecureStoreGet(
   request: SecureStoreGetRequest,
 ): Promise<SecureStoreGetResponse> {
   try {
-    if (!safeStorage.isEncryptionAvailable()) {
-      throw new Error("Encryption is not available on this platform/session.");
-    }
-
     const filePath = await getFilePath(request.key);
     const buffer = await readFile(filePath).catch(() => null);
 
@@ -51,6 +58,7 @@ export async function handleSecureStoreGet(
       return { success: true, value: undefined };
     }
 
+    await waitForEncryption();
     const value = safeStorage.decryptString(buffer);
     return { success: true, value };
   } catch (error: any) {
