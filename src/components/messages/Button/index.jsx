@@ -28,7 +28,7 @@ const Button = ({
     <View disabled={!isReady} style={styles.container}>
       {isProgressing || isPending ? (
         <CircularProgress
-          progress={isPending ? 0 : progress.loaded / progress.total}
+          progress={progress && progress.total > 0 ? progress.loaded / progress.total : 0}
           color={theme.text}
           onCancel={() => queueManager.cancelFileTransfer(uuid)}
         />
