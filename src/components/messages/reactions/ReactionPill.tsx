@@ -30,6 +30,18 @@ export const ReactionPill = ({
   const messageIdRef = useRef<string>(message.id);
 
   useEffect(() => {
+    if (messageIdRef.current !== message.id) return;
+
+    const messageAge = Date.now() - messageMountedAt;
+    if (messageAge > 600) {
+      const timer = setTimeout(() => {
+        particleRef.current?.trigger(reactionObj.emoji, 24, 12);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [messageMountedAt, reactionObj.emoji]);
+
+  useEffect(() => {
     if (messageIdRef.current !== message.id) {
       // View was recycled for a different message
       messageIdRef.current = message.id;
