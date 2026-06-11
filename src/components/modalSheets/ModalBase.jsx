@@ -23,16 +23,13 @@ const ModalBase = ({
     popover,
   });
 
-  const ContainerComponent = popover ? View : BlurredView;
-  const containerProps = popover ? {} : { intensity: 40 };
-
   if (!visible) {
     return null;
   }
 
   const content = (
     <Pressable style={styles.overlay} onPress={onClose}>
-      <ContainerComponent style={styles.container} {...containerProps}>
+      <BlurredView style={styles.container}>
         {scrollable ? (
           <ScrollView
             style={styles.scrollView}
@@ -64,7 +61,7 @@ const ModalBase = ({
             </Pressable>
           </View>
         )}
-      </ContainerComponent>
+      </BlurredView>
     </Pressable>
   );
 
@@ -102,15 +99,7 @@ function createStyle(theme, isSmallScreen, shouldUseFullscreen, options = {}) {
       alignItems: popover ? "flex-start" : "center",
     },
     container: {
-      backgroundColor: popover ? theme.backgroundMain : undefined,
       borderRadius: shouldUseFullscreen ? 0 : 15,
-      shadowColor: theme.shadowColor,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: popover ? 3 : 4,
       elevation: 5,
       width: shouldUseFullscreen ? "100%" : "auto",
       height: shouldUseFullscreen ? "100%" : "auto",

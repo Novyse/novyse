@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
+
 import AppText from "@/src/components/AppText";
-import { LinearGradient } from "expo-linear-gradient";
+import BlurredView from "@/src/components/BlurredView";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
@@ -15,8 +16,7 @@ export default function AboutMe({ biography }: AboutMeProps) {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={theme.backgroundMainGradient as [string, string]}
+      <BlurredView
         style={styles.glassCard}
       >
         <View style={styles.content}>
@@ -30,7 +30,7 @@ export default function AboutMe({ biography }: AboutMeProps) {
             translationKey={"profile.aboutMe.noDescription"}
           />
         </View>
-      </LinearGradient>
+      </BlurredView>
     </View>
   );
 }

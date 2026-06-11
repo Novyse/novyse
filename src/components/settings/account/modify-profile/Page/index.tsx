@@ -4,9 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   useWindowDimensions,
-  Text,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
 import AppText from "@/src/components/AppText";
 import Banner from "@/src/components/Banner";
@@ -14,6 +12,7 @@ import ProfileHeader from "@/src/components/profile/ProfileHeader";
 import FormSection from "@/src/components/settings/account/modify-profile/Page/FormSection";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import StatusMessage from "@/src/components/StatusMessage";
+import BlurredView from "@/src/components/BlurredView";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
@@ -152,10 +151,7 @@ export default function ModifyProfile({
           showsVerticalScrollIndicator={false}
         >
           {/* Glass Card Container */}
-          <LinearGradient
-            colors={theme.backgroundMainGradient as [string, string]}
-            style={styles.glassPanel}
-          >
+          <BlurredView style={styles.glassPanel}>
             <Banner
               theme={theme}
               height={isSmallScreen ? 120 : 180}
@@ -178,11 +174,11 @@ export default function ModifyProfile({
 
             {/* Spacer for bottom footer */}
             <View style={{ height: hasChanges ? 80 : 20 }} />
-          </LinearGradient>
+          </BlurredView>
         </ScrollView>
       </View>
       {!message && !error && hasChanges && (
-        <View style={styles.floatingBar}>
+        <BlurredView style={styles.floatingBar}>
           <AppText
             style={styles.floatingText}
             translationKey="settings.modifyProfile.unsavedChanges"
@@ -208,7 +204,7 @@ export default function ModifyProfile({
               />
             </HoverAndPressedButton>
           </View>
-        </View>
+        </BlurredView>
       )}
       <View style={styles.floatingMessageWrapper}>
         <StatusMessage

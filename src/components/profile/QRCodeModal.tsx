@@ -11,7 +11,7 @@ import useClipboard from "@/src/hooks/useClipboard";
 import logoForQR from "@/assets/images/logo-novyse.png";
 import { APP_URL } from "@/app.config";
 
-import ModalBase from "@/src/components/modalSheets/ModalBase";
+import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import Icon from "@/src/components/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Avatar from "@/src/components/Avatar";
@@ -43,7 +43,7 @@ const QRCodeModal = ({
   };
 
   return (
-    <ModalBase visible={visible} onClose={onClose} theme={theme}>
+    <AdaptiveModal visible={visible} onClose={onClose} theme={theme} snapPoints={["90%"]}>
       <View style={styles.container}>
         <View style={styles.qrcodeContainer}>
           <View style={styles.avatarPosition}>
@@ -106,7 +106,7 @@ const QRCodeModal = ({
           </HoverAndPressedButton>
         </View>
       </View>
-    </ModalBase>
+    </AdaptiveModal>
   );
 };
 

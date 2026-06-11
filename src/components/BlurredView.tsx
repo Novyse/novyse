@@ -33,7 +33,7 @@ const BlurredView = ({
         <View
           style={[
             styles.blurBackground,
-            { backgroundColor: theme.backgroundCard },
+            { backgroundColor: theme.backgroundMain },
           ]}
           pointerEvents="none"
         />
@@ -71,7 +71,7 @@ const createStyles = (
     },
     blurBackground: {
       ...StyleSheet.absoluteFill,
-      zIndex: 0,
+      zIndex: -1,
     },
   });
 
