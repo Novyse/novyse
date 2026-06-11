@@ -25,6 +25,21 @@ const BlurredView = ({
   const styles = createStyles(theme, isBorderActive, isDark);
   const containerStyle = [styles.container, style];
 
+  const flattenedStyle = StyleSheet.flatten(style) || {};
+  const borderRadius = flattenedStyle.borderRadius ?? 1000;
+  const borderTopLeftRadius = flattenedStyle.borderTopLeftRadius;
+  const borderTopRightRadius = flattenedStyle.borderTopRightRadius;
+  const borderBottomLeftRadius = flattenedStyle.borderBottomLeftRadius;
+  const borderBottomRightRadius = flattenedStyle.borderBottomRightRadius;
+
+  const radiusStyle = {
+    borderRadius,
+    ...(borderTopLeftRadius !== undefined && { borderTopLeftRadius }),
+    ...(borderTopRightRadius !== undefined && { borderTopRightRadius }),
+    ...(borderBottomLeftRadius !== undefined && { borderBottomLeftRadius }),
+    ...(borderBottomRightRadius !== undefined && { borderBottomRightRadius }),
+  };
+
   const os = getOs();
 
   if (os === "android") {
@@ -34,6 +49,7 @@ const BlurredView = ({
           style={[
             styles.blurBackground,
             { backgroundColor: theme.backgroundMain },
+            radiusStyle,
           ]}
           pointerEvents="none"
         />
@@ -48,7 +64,7 @@ const BlurredView = ({
       <BlurView
         intensity={intensity}
         tint={isDark ? "dark" : "light"}
-        style={styles.blurBackground}
+        style={[styles.blurBackground, radiusStyle]}
         pointerEvents="none"
       />
       {children}
