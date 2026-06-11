@@ -1,13 +1,8 @@
 import React, { ReactNode } from "react";
-import {
-  StyleSheet,
-  ViewStyle,
-  StyleProp,
-  View,
-} from "react-native";
+import { StyleSheet, ViewStyle, StyleProp, View } from "react-native";
 import { Theme } from "@/src/context/ThemeContext";
 import { useThemeContext } from "@/src/context/ThemeContext";
-import PlatformType, { getOs } from "@/src/utils/device/type";
+import Platform, { getOs } from "@/src/utils/device/type";
 import NativeBlur from "./NativeBlur";
 
 interface BlurredViewProps {
@@ -34,7 +29,7 @@ const BlurredView = ({
   const overlayColor = getOverlayColor(isDark);
   const blurPx = Math.round(intensity / 5);
 
-  if (PlatformType === "web" || PlatformType === "desktop") {
+  if (Platform === "web" || Platform === "desktop") {
     return (
       <View style={containerStyle} {...rest}>
         <View
@@ -62,7 +57,11 @@ const BlurredView = ({
 
   return (
     <View style={containerStyle} {...rest} collapsable={false}>
-      <View style={styles.blurBackground} pointerEvents="none" collapsable={false}>
+      <View
+        style={styles.blurBackground}
+        pointerEvents="none"
+        collapsable={false}
+      >
         <NativeBlur
           blurType={blurType}
           blurAmount={blurAmount}
@@ -78,7 +77,11 @@ const BlurredView = ({
   );
 };
 
-const createStyles = (theme: Theme, isBorderActive: boolean, _isDark: boolean) =>
+const createStyles = (
+  theme: Theme,
+  isBorderActive: boolean,
+  _isDark: boolean,
+) =>
   StyleSheet.create({
     container: {
       position: "relative",
