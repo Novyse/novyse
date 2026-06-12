@@ -9,6 +9,9 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Device from "expo-device";
+import * as FileSystem from "expo-file-system";
+import * as FileSystemLegacy from "expo-file-system/legacy";
+import * as IntentLauncher from "expo-intent-launcher";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 
@@ -42,7 +45,7 @@ const GITHUB_URL =
 const BUTTON_KEYS: Partial<Record<InstallSource, string>> = {
   "play-store": "layout.updateRequired.openPlayStore",
   "app-store": "layout.updateRequired.openAppStore",
-  "android-apk": "layout.updateRequired.openGitHub",
+  "android-apk": "layout.updateRequired.updateNow",
   "windows-nsis": "layout.updateRequired.updateNow",
   "windows-portable": "layout.updateRequired.openGitHub",
   "windows-store": "layout.updateRequired.openMicrosoftStore",
@@ -139,16 +142,130 @@ export default function UpdateRequiredScreen() {
 
     if (canAutoUpdate) {
       if (updaterStatus === "downloaded") {
-        // Install & restart
-        updaterRpc.install();
+        if (installSource === "android-apk") {
+          try {
+            const apkFile = new FileSystem.File(
+              FileSystem.Paths.document,
+              "update.apk",
+            );
+            const contentUri = await FileSystemLegacy.getContentUriAsync(
+              apkFile.uri,
+            );
+            await IntentLauncher.startActivityAsync(
+              "android.intent.action.VIEW",
+              {
+                data: contentUri,
+                flags: 1,
+                type: "application/vnd.android.package-archive",
+              },
+            );
+          } catch (err) {
+            console.error("Failed to install APK:", err);
+            setUpdaterError("Failed to install APK");
+          }
+        } else {
+          // Install & restart per desktop
+          updaterRpc.install();
+        }
         return;
       }
+
       if (updaterStatus === "idle" || updaterStatus === "error") {
-        // download flow
-        setUpdaterStatus("checking");
-        setUpdaterError(null);
-        updaterRpc.check();
-        return;
+        if (installSource === "android-apk") {
+          setUpdaterStatus("checking");
+          setUpdaterError(null);
+
+          try {
+            const architectures = Device.supportedCpuArchitectures;
+            if (architectures && architectures.length > 0) {
+              const isProd = BRANCH === "production";
+              const suffix = isProd ? "" : "-preview";
+
+              const response = await fetch(
+                "https://api.github.com/repos/Novyse/novyse/releases",
+              );
+              if (response.ok) {
+                const releases = await response.json();
+                const targetRelease = releases.find(
+                  (r: any) => r.prerelease === !isProd,
+                );
+
+                if (targetRelease) {
+                  let foundAsset = null;
+                  for (const arch of architectures) {
+                    const expectedAssetName = `novyse${suffix}-${arch}.apk`;
+                    foundAsset = targetRelease.assets.find(
+                      (a: any) => a.name === expectedAssetName,
+                    );
+                    if (foundAsset) break;
+                  }
+
+                  if (foundAsset) {
+                    const url = foundAsset.browser_download_url;
+                    setUpdaterStatus("downloading");
+
+                    const destination = new FileSystem.File(
+                      FileSystem.Paths.document,
+                      "update.apk",
+                    );
+                    const file = await FileSystem.File.downloadFileAsync(
+                      url,
+                      destination,
+                      {
+                        idempotent: true,
+                        onProgress: (data) => {
+                          if (data.totalBytes > 0) {
+                            const progress =
+                              data.bytesWritten / data.totalBytes;
+                            setDownloadPercent(progress * 100);
+                          }
+                        },
+                      },
+                    );
+
+                    if (file) {
+                      setUpdaterStatus("downloaded");
+                      const contentUri =
+                        await FileSystemLegacy.getContentUriAsync(file.uri);
+                      await IntentLauncher.startActivityAsync(
+                        "android.intent.action.VIEW",
+                        {
+                          data: contentUri,
+                          flags: 1,
+                          type: "application/vnd.android.package-archive",
+                        },
+                      );
+                      return;
+                    }
+                  } else {
+                    setUpdaterError("No matching APK found");
+                    setUpdaterStatus("error");
+                  }
+                } else {
+                  setUpdaterError("Release not found");
+                  setUpdaterStatus("error");
+                }
+              } else {
+                setUpdaterError("Failed to fetch releases");
+                setUpdaterStatus("error");
+              }
+            } else {
+              setUpdaterError("No architectures detected");
+              setUpdaterStatus("error");
+            }
+          } catch (err) {
+            console.error("[UpdateRequired] Failed to download APK:", err);
+            setUpdaterError("Download failed");
+            setUpdaterStatus("error");
+          }
+          return;
+        } else {
+          // download flow per desktop
+          setUpdaterStatus("checking");
+          setUpdaterError(null);
+          updaterRpc.check();
+          return;
+        }
       }
       // If currently checking or downloading, button is disabled (no-op)
       return;
@@ -156,51 +273,6 @@ export default function UpdateRequiredScreen() {
 
     // Not auto-updatable: open the correct store or GitHub
     let url = STORE_URLS[installSource] || GITHUB_URL;
-
-    if (installSource === "android-apk") {
-      try {
-        const architectures = Device.supportedCpuArchitectures;
-        if (architectures && architectures.length > 0) {
-          const isProd = BRANCH === "production";
-          const suffix = isProd ? "" : "-preview";
-
-          const response = await fetch(
-            "https://api.github.com/repos/Novyse/novyse/releases",
-          );
-          if (response.ok) {
-            const releases = await response.json();
-            // Find the correct release (prerelease: false for production, true for preview)
-            const targetRelease = releases.find(
-              (r: any) => r.prerelease === !isProd,
-            );
-
-            if (targetRelease) {
-              let foundAsset = null;
-              // Search for the asset for the first available architecture among those supported by the device
-              for (const arch of architectures) {
-                const expectedAssetName = `novyse${suffix}-${arch}.apk`;
-                foundAsset = targetRelease.assets.find(
-                  (a: any) => a.name === expectedAssetName,
-                );
-                if (foundAsset) break;
-              }
-
-              if (foundAsset) {
-                url = foundAsset.browser_download_url;
-              } else {
-                url = targetRelease.html_url;
-              }
-            }
-          }
-        }
-      } catch (err) {
-        console.error(
-          "[UpdateRequired] Failed to detect architecture or fetch release:",
-          err,
-        );
-      }
-    }
-
     Linking.openURL(url);
   }, [installSource, canAutoUpdate, updaterStatus]);
 

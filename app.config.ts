@@ -124,6 +124,7 @@ export default {
         "WAKE_LOCK",
         "USE_FULL_SCREEN_INTENT",
         "VIBRATE",
+        "REQUEST_INSTALL_PACKAGES",
       ],
       googleServicesFile:
         process.env.GOOGLE_SERVICES_JSON || "./google-services.json",

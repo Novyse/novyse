@@ -63,6 +63,7 @@ const AUTO_UPDATE_SOURCES: InstallSource[] = [
   "linux-appimage",
   "linux-deb-rpm",
   "macos-dmg",
+  "android-apk",
 ];
 
 let cachedInstallSource: InstallSource | null = null;
