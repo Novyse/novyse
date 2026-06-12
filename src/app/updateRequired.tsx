@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Device from "expo-device";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 
@@ -127,7 +128,7 @@ export default function UpdateRequiredScreen() {
 
   const canAutoUpdate = supportsAutoUpdate(installSource);
 
-  const handlePrimaryPress = useCallback(() => {
+  const handlePrimaryPress = useCallback(async () => {
     if (installSource === "web") {
       // Web: just reload the page
       if (typeof window !== "undefined") {
@@ -154,7 +155,52 @@ export default function UpdateRequiredScreen() {
     }
 
     // Not auto-updatable: open the correct store or GitHub
-    const url = STORE_URLS[installSource] || GITHUB_URL;
+    let url = STORE_URLS[installSource] || GITHUB_URL;
+
+    if (installSource === "android-apk") {
+      try {
+        const architectures = Device.supportedCpuArchitectures;
+        if (architectures && architectures.length > 0) {
+          const isProd = BRANCH === "production";
+          const suffix = isProd ? "" : "-preview";
+
+          const response = await fetch(
+            "https://api.github.com/repos/Novyse/novyse/releases",
+          );
+          if (response.ok) {
+            const releases = await response.json();
+            // Find the correct release (prerelease: false for production, true for preview)
+            const targetRelease = releases.find(
+              (r: any) => r.prerelease === !isProd,
+            );
+
+            if (targetRelease) {
+              let foundAsset = null;
+              // Search for the asset for the first available architecture among those supported by the device
+              for (const arch of architectures) {
+                const expectedAssetName = `novyse${suffix}-${arch}.apk`;
+                foundAsset = targetRelease.assets.find(
+                  (a: any) => a.name === expectedAssetName,
+                );
+                if (foundAsset) break;
+              }
+
+              if (foundAsset) {
+                url = foundAsset.browser_download_url;
+              } else {
+                url = targetRelease.html_url;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error(
+          "[UpdateRequired] Failed to detect architecture or fetch release:",
+          err,
+        );
+      }
+    }
+
     Linking.openURL(url);
   }, [installSource, canAutoUpdate, updaterStatus]);
 

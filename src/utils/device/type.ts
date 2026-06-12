@@ -85,7 +85,9 @@ export const getInstallSource = async (): Promise<InstallSource> => {
         const referrer = await Application.getInstallReferrerAsync();
         if (
           referrer &&
-          (referrer.includes("utm_source") || referrer.includes("google-play"))
+          (referrer.includes("utm_source=google-play") ||
+            referrer.includes("google-play") ||
+            referrer.includes("android.vending"))
         ) {
           cachedInstallSource = "play-store";
         } else {
