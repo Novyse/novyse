@@ -111,7 +111,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-deploy-web:
+  build-web:
     needs: create-release
     runs-on: ubuntu-latest
     steps:
@@ -131,22 +131,6 @@ jobs:
           bun install
           bun run build:web
 
-      - name: Set Cloudflare Project
-        id: cf-settings
-        run: |
-          if [[ "${{ inputs.release_type }}" == "production" ]]; then
-            echo "project=novyse-web" >> $GITHUB_OUTPUT
-          else
-            echo "project=novyse-web-preview" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=${{ steps.cf-settings.outputs.project }}
-
       - name: Package Web Build
         run: |
           cd dist
@@ -157,6 +141,13 @@ jobs:
         run: gh release upload v${{ inputs.version }} novyse-web-${{ inputs.version }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload dist for deploy job
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: dist/
+          retention-days: 1
 
   build-android:
     needs: create-release
@@ -197,6 +188,7 @@ jobs:
         env:
           GOOGLE_SERVICES_JSON: ${{ github.workspace }}/google-services.json
           GOOGLE_SERVICES_PLIST: ${{ github.workspace }}/GoogleService-Info.plist
+          NODE_OPTIONS: "--max-old-space-size=4096"
           _JAVA_OPTIONS: "-Xmx4g"
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m"
 
@@ -385,7 +377,7 @@ jobs:
   publish-release:
     needs:
       [
-        build-deploy-web,
+        build-web,
         build-android,
         build-electron-linux,
         build-electron-win,
@@ -402,6 +394,32 @@ jobs:
         run: gh release edit v${{ inputs.version }} --draft=false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-web:
+    needs: publish-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download web dist
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: dist/
+
+      - name: Set Cloudflare Project
+        id: cf-settings
+        run: |
+          if [[ "${{ inputs.release_type }}" == "production" ]]; then
+            echo "project=novyse-web" >> $GITHUB_OUTPUT
+          else
+            echo "project=novyse-web-preview" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=${{ steps.cf-settings.outputs.project }} --commit-dirty=true
 
   publish-flathub:
     needs: publish-release
