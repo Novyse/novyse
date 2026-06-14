@@ -340,13 +340,12 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder elfutils libcairo2-dev libgirepository1.0-dev pkg-config gir1.2-appstream-1.0
+          sudo apt-get install -y flatpak flatpak-builder elfutils
 
-      - name: Install flatpak-node-generator & flatpak-builder-lint
+      - name: Install flatpak-node-generator
         run: |
           python3 -m pip install --upgrade pip
           pip3 install git+https://github.com/flatpak/flatpak-builder-tools.git#subdirectory=node
-          pip3 install git+https://github.com/flathub/flatpak-builder-lint.git
 
       - name: Configure Flathub Repository
         run: |
@@ -363,7 +362,7 @@ jobs:
 
       - name: Run flatpak-builder-lint on Manifest
         run: |
-          flatpak-builder-lint manifest desktop/flathub/org.novyse.desktop.yml
+          docker run --rm -v "$(pwd):/src:ro" ghcr.io/flathub-infra/flatpak-builder-lint:latest manifest /src/desktop/flathub/org.novyse.desktop.yml
 
       - name: Install SDKs and BaseApp for test build
         run: |
