@@ -340,7 +340,7 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder elfutils libcairo2-dev libgirepository1.0-dev pkg-config
+          sudo apt-get install -y flatpak flatpak-builder elfutils libcairo2-dev libgirepository1.0-dev pkg-config gir1.2-appstream-1.0
 
       - name: Install flatpak-node-generator & flatpak-builder-lint
         run: |
