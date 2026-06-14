@@ -355,7 +355,7 @@ jobs:
       - name: Generate clean package-lock.json files
         run: |
           npm install --package-lock-only --legacy-peer-deps --ignore-scripts
-          cd desktop && npm install --package-lock-only && cd ..
+          cd desktop && npm install --package-lock-only --ignore-scripts && cd ..
 
       - name: Generate flatpak-node-dependencies.json
         run: |
@@ -448,7 +448,7 @@ jobs:
       - name: Generate clean package-lock.json files
         run: |
           npm install --package-lock-only --legacy-peer-deps --ignore-scripts
-          cd desktop && npm install --package-lock-only && cd ..
+          cd desktop && npm install --package-lock-only --ignore-scripts && cd ..
 
       - name: Generate flatpak-node-dependencies.json
         run: |
