@@ -61,3 +61,4 @@ GoogleService-Info.plist
 
 # Skia WebAssembly
 public/canvaskit.wasm
+novyse-release.keystore

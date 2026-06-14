@@ -101,6 +101,48 @@ try {
     console.error("[PATCH] android/app/build.gradle not found!");
     process.exit(1);
   }
+  // 3. Inject release signing configuration (only when ANDROID_KEYSTORE_FILE is set)
+  if (process.env.ANDROID_KEYSTORE_FILE) {
+    let buildContent = fs.readFileSync(buildGradlePath, "utf8");
+
+    const releaseSigningConfig = `
+        release {
+            storeFile file(System.getenv("ANDROID_KEYSTORE_FILE"))
+            storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            keyAlias System.getenv("ANDROID_KEY_ALIAS")
+            keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+        }`;
+
+    if (
+      buildContent.includes("signingConfigs {") &&
+      !buildContent.includes('System.getenv("ANDROID_KEYSTORE_FILE")')
+    ) {
+      buildContent = buildContent.replace(
+        /signingConfigs\s*\{/,
+        `signingConfigs {\n${releaseSigningConfig}`,
+      );
+    }
+
+    const buildTypesIndex = buildContent.indexOf("buildTypes {");
+    if (buildTypesIndex !== -1) {
+      let beforeBuildTypes = buildContent.substring(0, buildTypesIndex);
+      let afterBuildTypes = buildContent.substring(buildTypesIndex);
+
+      afterBuildTypes = afterBuildTypes.replace(
+        /(release\s*\{[\s\S]*?)signingConfig signingConfigs\.debug/,
+        "$1signingConfig signingConfigs.release",
+      );
+
+      buildContent = beforeBuildTypes + afterBuildTypes;
+    }
+
+    fs.writeFileSync(buildGradlePath, buildContent, "utf8");
+    console.log("[PATCH] Successfully injected release signing configuration.");
+  } else {
+    console.log(
+      "[PATCH] ANDROID_KEYSTORE_FILE not set, skipping signing config injection.",
+    );
+  }
 } catch (error) {
   console.error("[PATCH] Failed to patch Android build configuration:", error);
   process.exit(1);
