@@ -182,7 +182,8 @@ export function setupUpdaterListeners() {
         ? "dev"
         : "latest";
 
-  autoUpdater.allowPrerelease = BRANCH === "preview" || BRANCH === "development";
+  autoUpdater.allowPrerelease =
+    BRANCH === "preview" || BRANCH === "development";
 
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
@@ -241,18 +242,33 @@ export function setupUpdaterListeners() {
     }
   });
 
-  autoUpdater.on("error", (err) => {
-    sendStatus("error", { message: err.message });
+  autoUpdater.on("error", (err: any) => {
+    const isNoVersions =
+      err.code === "ERR_UPDATER_NO_PUBLISHED_VERSIONS" ||
+      err.message?.includes("No published versions");
+
+    if (isNoVersions) {
+      sendStatus("not-available", { version: app.getVersion() });
+    } else {
+      sendStatus("error", { message: err.message });
+    }
 
     if (startupCompleteCallback) {
-      console.error("[updater] Startup update error:", err);
-      updateSplash("Update failed. Starting app...", 0);
+      if (isNoVersions) {
+        updateSplash("Up to date!", 100);
+      } else {
+        console.error("[updater] Startup update error:", err);
+        updateSplash("Update failed. Starting app...", 0);
+      }
       const callback = startupCompleteCallback;
       startupCompleteCallback = null;
-      setTimeout(() => {
-        closeSplash();
-        callback();
-      }, 1500);
+      setTimeout(
+        () => {
+          closeSplash();
+          callback();
+        },
+        isNoVersions ? 800 : 1500,
+      );
     }
   });
 
