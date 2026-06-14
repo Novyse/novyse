@@ -31,10 +31,10 @@ modules:
   - name: novyse
     buildsystem: simple
     build-commands:
-      - npm ci --offline --no-audit --no-fund
-      - npm run build:web
+      - npm ci --offline --no-audit --no-fund --legacy-peer-deps --ignore-scripts
+      - npx expo export -p web
 
-      - cd desktop && npm ci --offline --no-audit --no-fund && npm run build
+      - cd desktop && npm ci --offline --no-audit --no-fund --legacy-peer-deps --ignore-scripts && npm run build
       - cd desktop && ./node_modules/.bin/electron-builder --linux dir --config electron-builder.config.ts
 
       - cp -R desktop/dist/linux-unpacked /app/main
