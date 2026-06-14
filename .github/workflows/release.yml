@@ -342,7 +342,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           pip3 install git+https://github.com/flatpak/flatpak-builder-tools.git#subdirectory=node
-          pip3 install flatpak-builder-lint
+          pip3 install git+https://github.com/flathub/flatpak-builder-lint.git
 
       - name: Install System Dependencies
         run: |
