@@ -56,7 +56,7 @@ jobs:
           DATE = os.environ.get('DATE')
 
            # 1. Update metainfo.xml
-          file_path = 'desktop/flathub/org.novyse.desktop.metainfo.xml'
+          file_path = 'desktop/flathub/com.novyse.Novyse.metainfo.xml'
           tree = ET.parse(file_path)
           root = tree.getroot()
           releases = root.find('releases')
@@ -69,7 +69,7 @@ jobs:
           tree.write(file_path, encoding='utf-8', xml_declaration=True)
 
           # 2. Update Flatpak manifest tag
-          manifest_path = 'desktop/flathub/org.novyse.desktop.yml'
+          manifest_path = 'desktop/flathub/com.novyse.Novyse.yml'
           with open(manifest_path, 'r') as f:
               yaml_content = f.read()
 
@@ -362,7 +362,7 @@ jobs:
 
       - name: Run flatpak-builder-lint on Manifest
         run: |
-          docker run --rm -v "$(pwd):/src:ro" ghcr.io/flathub-infra/flatpak-builder-lint:latest manifest /src/desktop/flathub/org.novyse.desktop.yml
+          docker run --rm -v "$(pwd):/src:ro" ghcr.io/flathub-infra/flatpak-builder-lint:latest manifest /src/desktop/flathub/com.novyse.Novyse.yml
 
       - name: Install SDKs and BaseApp for test build
         run: |
@@ -370,7 +370,7 @@ jobs:
 
       - name: Run test build with flatpak-builder
         run: |
-          flatpak-builder --user --disable-rofiles-fuse --force-clean --build-only --ccache build_dir desktop/flathub/org.novyse.desktop.yml
+          flatpak-builder --user --disable-rofiles-fuse --force-clean --build-only --ccache build_dir desktop/flathub/com.novyse.Novyse.yml
 
   publish-release:
     needs:
@@ -456,15 +456,15 @@ jobs:
       - name: Checkout Flathub Repository
         uses: actions/checkout@v4
         with:
-          repository: flathub/org.novyse.desktop
+          repository: flathub/com.novyse.Novyse
           path: flathub-repo
           token: ${{ secrets.FLATHUB_DEPLOY_TOKEN }}
 
       - name: Copy manifest files to Flathub Repo
         run: |
-          cp desktop/flathub/org.novyse.desktop.yml flathub-repo/org.novyse.desktop.yml
-          cp desktop/flathub/org.novyse.desktop.desktop flathub-repo/org.novyse.desktop.desktop
-          cp desktop/flathub/org.novyse.desktop.metainfo.xml flathub-repo/org.novyse.desktop.metainfo.xml
+          cp desktop/flathub/com.novyse.Novyse.yml flathub-repo/com.novyse.Novyse.yml
+          cp desktop/flathub/com.novyse.Novyse.desktop flathub-repo/com.novyse.Novyse.desktop
+          cp desktop/flathub/com.novyse.Novyse.metainfo.xml flathub-repo/com.novyse.Novyse.metainfo.xml
           cp desktop/flathub/run.sh flathub-repo/run.sh
           cp desktop/flathub/flatpak-node-dependencies.json flathub-repo/flatpak-node-dependencies.json
 
