@@ -118,6 +118,15 @@ export default {
               ? "dev"
               : "latest",
       },
+      ...(BRANCH === "production"
+        ? [
+            {
+              provider: "snapStore",
+              repo: "novyse",
+              channels: ["stable"],
+            },
+          ]
+        : []),
     ],
   },
 };
