@@ -267,7 +267,6 @@ jobs:
         run: bun run build:desktop --linux --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       - name: Publish to Snap Store
         if: inputs.release_type == 'production'
