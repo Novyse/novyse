@@ -105,6 +105,7 @@ export default {
   snap: {
     base: "core24",
     confinement: "strict",
+    icon: "../assets/images/logo-novyse.png",
     artifactName: `Novyse${suffix}.snap`,
     publish: [
       {
