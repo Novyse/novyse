@@ -324,7 +324,6 @@ jobs:
     if: ${{ inputs.release_type == 'production' }}
     steps:
       - uses: actions/checkout@v4
-
         with:
           ref: ${{ inputs.release_type }}
 
@@ -428,6 +427,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
 
       - name: Setup Node & Bun
         uses: actions/setup-node@v4
