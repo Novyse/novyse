@@ -75,7 +75,7 @@ export default {
   linux: {
     category: "Network",
     target: ["AppImage", "deb", "rpm", "flatpak", "snap"],
-    icon: "../assets/images/logo.svg",
+    icon: "../assets/images/logo-novyse.png",
     artifactName: `novyse${suffix}.\${ext}`,
     maintainer: "Novyse <contact@novyse.com>",
     vendor: "Novyse",
