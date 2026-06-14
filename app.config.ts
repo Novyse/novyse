@@ -85,6 +85,7 @@ export default {
         process.env.GOOGLE_SERVICES_PLIST || "./GoogleService-Info.plist",
     },
     android: {
+      versionCode: 2,
       adaptiveIcon: {
         foregroundImage: "./assets/images/novyse-icon-logo.png",
         backgroundColor: "#ffffff",
@@ -124,7 +125,9 @@ export default {
         "WAKE_LOCK",
         "USE_FULL_SCREEN_INTENT",
         "VIBRATE",
-        "REQUEST_INSTALL_PACKAGES",
+        ...(process.env.IS_PLAY_STORE === "true"
+          ? []
+          : ["REQUEST_INSTALL_PACKAGES"]),
       ],
       googleServicesFile:
         process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
