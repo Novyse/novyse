@@ -396,8 +396,6 @@ const createStyles = (theme: any) =>
       alignItems: "center",
       paddingVertical: 14,
       paddingHorizontal: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.border,
     },
     dmInfoIconContainer: {
       width: 36,

@@ -4,7 +4,8 @@ import AppText from "@/src/components/AppText";
 
 import { useScreen } from "@/src/context/ScreenContext";
 
-import QRCode from "react-native-qrcode-svg";
+import QRCode from "react-native-qrcode-skia";
+import { LinearGradient, vec } from "@shopify/react-native-skia";
 import { useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 
@@ -97,18 +98,39 @@ const Welcome = () => {
                 {qrToken ? (
                   <QRCode
                     value={qrToken}
-                    logo={logoNovyse}
-                    size={styles.qrcodeContainer.width}
-                    enableLinearGradient={true}
-                    linearGradient={
-                      LoginColors[loginTheme].QRCodeGradient as any
+                    size={220}
+                    logoAreaSize={65}
+                    logoAreaBorderRadius={12}
+                    logo={
+                      <View
+                        style={{
+                          width: 55,
+                          height: 55,
+                          borderRadius: 10,
+                          backgroundColor:
+                            LoginColors[loginTheme].QRCodeLogoBacground,
+                          justifyContent: "center",
+                          alignItems: "center",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <Image
+                          source={logoNovyse}
+                          style={{
+                            width: 45,
+                            height: 45,
+                            resizeMode: "contain",
+                          }}
+                        />
+                      </View>
                     }
-                    logoBorderRadius={100}
-                    logoMargin={5}
-                    logoBackgroundColor={
-                      LoginColors[loginTheme].QRCodeLogoBacground
-                    }
-                  />
+                  >
+                    <LinearGradient
+                      start={vec(0, 0)}
+                      end={vec(0, 220)}
+                      colors={LoginColors[loginTheme].QRCodeGradient}
+                    />
+                  </QRCode>
                 ) : (
                   <ActivityIndicator
                     size="large"

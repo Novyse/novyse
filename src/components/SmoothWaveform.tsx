@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
-import { Animated, Easing, View, Pressable, ScrollView } from "react-native";
+import { Animated, Easing, View, ScrollView, PanResponder } from "react-native";
 import { defaultWaveform } from "@/src/utils/storage/file/media";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
@@ -22,10 +22,11 @@ export default function SmoothWaveform({
   reset,
   isMoving,
 }: SmoothWaveformProps) {
-
   const progressAnim = useRef(new Animated.Value(0)).current;
   const [progress, setProgress] = useState<number>(0);
   const waveformRef = useRef<View>(null);
+  const layoutRef = useRef({ width: 0, pageX: 0 });
+  const isDragging = useRef(false);
 
   const { theme } = useContext(ThemeContext);
 
@@ -40,7 +41,7 @@ export default function SmoothWaveform({
   }, [maxValue]);
 
   useEffect(() => {
-    if (isMoving && maxValue > 0) {
+    if (isMoving && maxValue > 0 && !isDragging.current) {
       if (!currentValue) {
         progressAnim.setValue(0);
       }
@@ -52,10 +53,14 @@ export default function SmoothWaveform({
         easing: Easing.linear,
         useNativeDriver: false,
       }).start();
-    } else {
+    } else if (!isDragging.current) {
       progressAnim.stopAnimation();
+      // Only set to currentValue if not currently dragging
+      if (!isMoving && currentValue >= 0) {
+        progressAnim.setValue(currentValue);
+      }
     }
-  }, [maxValue, isMoving, playbackRate]);
+  }, [maxValue, isMoving, playbackRate, currentValue]);
 
   useEffect(() => {
     if (reset) {
@@ -63,37 +68,68 @@ export default function SmoothWaveform({
     }
   }, [reset]);
 
-  const handleWaveformPress = (event: {
-    nativeEvent: { pageX: number };
-  }): void => {
-    if (waveformRef.current) {
-      waveformRef.current.measure((x, y, width, height, pageX, pageY) => {
-        const relativeX = event.nativeEvent.pageX - pageX;
-        const progressValue = Math.max(0, Math.min(1, relativeX / width));
-        const seekValue = progressValue * maxValue;
-        if (isMoving) {
-          onSeek(seekValue);
+  const updateProgress = (pageX: number) => {
+    const { width, pageX: viewPageX } = layoutRef.current;
+    if (width > 0) {
+      const relativeX = pageX - viewPageX;
+      const progressValue = Math.max(0, Math.min(1, relativeX / width));
+      const seekValue = progressValue * maxValue;
+      progressAnim.setValue(seekValue);
+      return seekValue;
+    }
+    return 0;
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        isDragging.current = true;
+        progressAnim.stopAnimation();
+
+        if (waveformRef.current) {
+          waveformRef.current.measure((x, y, width, height, pageX, pageY) => {
+            layoutRef.current = { width, pageX };
+            updateProgress(evt.nativeEvent.pageX);
+          });
         }
-        progressAnim.setValue(seekValue);
+      },
+      onPanResponderMove: (evt) => {
+        updateProgress(evt.nativeEvent.pageX);
+      },
+      onPanResponderRelease: (evt) => {
+        isDragging.current = false;
+        const seekValue = updateProgress(evt.nativeEvent.pageX);
+
+        // Seek works even when paused
+        onSeek(seekValue);
 
         if (isMoving) {
           Animated.timing(progressAnim, {
             toValue: maxValue,
-            duration: Math.max((maxValue - seekValue) * 1000, 100),
+            duration:
+              Math.max((maxValue - seekValue) * 1000, 100) / playbackRate,
             easing: Easing.linear,
             useNativeDriver: false,
           }).start();
         }
-      });
-    }
-  };
+      },
+      onPanResponderTerminate: (evt) => {
+        isDragging.current = false;
+        const seekValue = updateProgress(evt.nativeEvent.pageX);
+        onSeek(seekValue);
+      },
+    }),
+  ).current;
 
   return (
     <View style={{ width: "100%", height: 40 }} ref={waveformRef}>
-      <Pressable onPress={handleWaveformPress} style={{ flex: 1 }}>
+      <View {...panResponder.panHandlers} style={{ flex: 1 }}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          scrollEnabled={false}
           style={{ flex: 1 }}
         >
           <View
@@ -121,7 +157,7 @@ export default function SmoothWaveform({
             })}
           </View>
         </ScrollView>
-      </Pressable>
+      </View>
     </View>
   );
 }

@@ -18,6 +18,7 @@ import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useNetworkStore from "@/src/context/NetworkContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
+import useMobileBackHandler from "@/src/hooks/layout/useMobileBackHandler";
 import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -32,9 +33,9 @@ export default function RootLayout() {
   // With flat structure, detail is open if path is NOT /app and NOT /app/
   const pathname = usePathname();
   const isDetailOpen = pathname !== "/app" && pathname !== "/app/";
-
   // Pan responder for resizing the detail pane on larger screens
   const { isSmallScreen } = useScreen();
+  useMobileBackHandler(isSmallScreen, isDetailOpen);
   const { theme } = useThemeContext();
   const { width } = useWindowDimensions();
 
@@ -216,7 +217,7 @@ export default function RootLayout() {
           }}
           pointerEvents={isDetailOpen ? "none" : "auto"}
         >
-          <TabNavigator isDetailOpen={isDetailOpen} />
+          <TabNavigator />
         </Animated.View>
         <Animated.View
           style={{
@@ -273,7 +274,7 @@ export default function RootLayout() {
           backgroundColor: "transparent",
         }}
       >
-        <TabNavigator isDetailOpen={isDetailOpen} />
+        <TabNavigator />
       </View>
 
       <View

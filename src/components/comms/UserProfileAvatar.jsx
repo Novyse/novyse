@@ -29,10 +29,15 @@ const UserProfileAvatar = ({
       if (uri) {
         try {
           const extractedColors = await getColors(uri, { cache: true });
-          const nextGradient = [
-            extractedColors?.dominant,
-            extractedColors?.vibrant,
-          ];
+          const primaryColor =
+            extractedColors?.dominant ||
+            extractedColors?.primary ||
+            theme.primary;
+          const secondaryColor =
+            extractedColors?.vibrant ||
+            extractedColors?.secondary ||
+            theme.secondary;
+          const nextGradient = [primaryColor, secondaryColor];
 
           if (isMounted) {
             setGradientColors(nextGradient);
@@ -103,42 +108,43 @@ const UserProfileAvatar = ({
   );
 };
 
-const createStyles = (theme) => StyleSheet.create({
-  container: {
-    overflow: "hidden",
-    borderRadius: 10,
-  },
-  gradient: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
-  contentContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  nameContainer: {
-    position: "absolute",
-    bottom: 10,
-    left: 10,
-    backgroundColor: theme.backgroundModalOverlay,
-    borderRadius: 14,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    maxWidth: "70%",
-  },
-  userName: {
-    color: theme.text,
-    fontSize: 14,
-    fontWeight: "600",
-    textAlign: "left",
-  },
-});
+const createStyles = (theme) =>
+  StyleSheet.create({
+    container: {
+      overflow: "hidden",
+      borderRadius: 10,
+    },
+    gradient: {
+      flex: 1,
+      width: "100%",
+      height: "100%",
+    },
+    contentContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",
+    },
+    nameContainer: {
+      position: "absolute",
+      bottom: 10,
+      left: 10,
+      backgroundColor: theme.backgroundModalOverlay,
+      borderRadius: 14,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      maxWidth: "70%",
+    },
+    userName: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: "600",
+      textAlign: "left",
+    },
+  });
 
 export default UserProfileAvatar;

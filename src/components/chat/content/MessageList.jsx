@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import { StyleSheet, Platform, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -15,7 +15,9 @@ import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import MessageBase from "@/src/components/messages/MessageBase";
 import MessageSystem from "@/src/components/messages/MessageSystem";
 import ActionMenu from "@/src/components/messages/ActionMenu";
+import BlurredView from "@/src/components/BlurredView";
 import Icon from "@/src/components/Icon";
+
 import { ScrollBar } from "@/constants/ScrollBar";
 
 const MessageList = ({
@@ -296,14 +298,14 @@ const MessageList = ({
         onViewableItemsChanged={handleViewableItemsChanged}
       />
       {showScrollButton && (
-        <View style={styles.scrollButtonContainer}>
+        <BlurredView style={styles.scrollButtonContainer}>
           <Icon
             name={"ArrowDown01Icon"}
             size={33}
             color={theme.text}
             onPress={handleScrollButton}
           />
-        </View>
+        </BlurredView>
       )}
       <ActionMenu
         visible={!!triggeredMessage}
@@ -344,7 +346,6 @@ const createStyle = (theme, insets, headerHeight = 0) =>
       height: 45,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: theme.primary,
       borderRadius: 25,
       elevation: 5,
       zIndex: 10,

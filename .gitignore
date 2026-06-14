@@ -58,3 +58,6 @@ dist.zip
 # firebase
 google-services.json
 GoogleService-Info.plist
+
+# Skia WebAssembly
+public/canvaskit.wasm

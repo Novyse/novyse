@@ -2,6 +2,9 @@ import React, { useState, useRef } from "react";
 import { StyleSheet, Animated, View } from "react-native";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import { EmojiPicker } from "@/src/components/chat/content/emoji";
+import BlurredView from "@/src/components/BlurredView";
+
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurredView);
 
 interface ReactionMenuProps {
   onReaction: (emoji: string) => void;
@@ -48,7 +51,7 @@ const ReactionMenu: React.FC<ReactionMenuProps> = ({ onReaction }) => {
   return (
     <View style={styles.wrapper}>
       <View style={styles.placeholder} />
-      <Animated.View style={styles.container}>
+      <AnimatedBlurView style={styles.container}>
         {isExpanded ? (
           <EmojiPicker mode="full" onSelectEmoji={onReaction} />
         ) : (
@@ -56,9 +59,10 @@ const ReactionMenu: React.FC<ReactionMenuProps> = ({ onReaction }) => {
             mode="quick"
             onSelectEmoji={onReaction}
             onExpandMenu={handleExpand}
+            defaultWidth={175}
           />
         )}
-      </Animated.View>
+      </AnimatedBlurView>
     </View>
   );
 };

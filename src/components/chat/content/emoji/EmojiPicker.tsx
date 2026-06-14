@@ -33,6 +33,7 @@ interface EmojiPickerProps {
   mode: "quick" | "full";
   onSelectEmoji: (emoji: string) => void;
   onExpandMenu?: () => void;
+  defaultWidth?: number;
 }
 
 const STORAGE_KEY = "novyse-recent-emojis";
@@ -101,12 +102,13 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
   mode,
   onSelectEmoji,
   onExpandMenu,
+  defaultWidth,
 }) => {
   const { theme } = useThemeContext();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
-  const [containerWidth, setContainerWidth] = useState(360);
+  const [containerWidth, setContainerWidth] = useState(defaultWidth || 360);
   const [activeCategory, setActiveCategory] = useState("Smileys & Emotion");
 
   const columnCount = containerWidth < 200 ? 4 : 8;
@@ -340,7 +342,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
 
   if (mode === "quick") {
     return (
-      <BlurredView style={styles.quickContainer}>
+      <View style={styles.quickContainer}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -363,7 +365,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
             <Icon name="ArrowDown01Icon" size={24} color={theme.icon} />
           </TouchableOpacity>
         )}
-      </BlurredView>
+      </View>
     );
   }
 
@@ -428,7 +430,7 @@ const createStyle = (
     fullContainer: {
       flex: 1,
       width: "100%",
-      backgroundColor: theme.backgroundMain,
+      backgroundColor: "transparent",
       borderRadius: 10,
       overflow: "hidden",
       ...ScrollBar(theme),
@@ -483,7 +485,7 @@ const createStyle = (
       fontSize: colSize * 0.6,
     },
     toolbarWrapper: {
-      backgroundColor: theme.backgroundMain,
+      backgroundColor: "transparent",
       justifyContent: "center",
       paddingHorizontal: 10,
       paddingVertical: 10,

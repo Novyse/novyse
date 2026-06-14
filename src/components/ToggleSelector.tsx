@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
-  View,
   TouchableOpacity,
   StyleSheet,
   LayoutChangeEvent,
@@ -15,6 +14,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
+import BlurredView from "@/src/components/BlurredView";
 import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 
@@ -141,7 +141,7 @@ function ToggleSelector<T extends string = string>({
       contentContainerStyle={styles.scrollContent}
       style={[styles.scrollView, style]}
     >
-      <View style={styles.toggleContainer} onLayout={onLayout}>
+      <BlurredView style={styles.toggleContainer} onLayout={onLayout}>
         {containerWidth > 0 && (
           <Animated.View style={[styles.animatedBackground, animatedStyle]} />
         )}
@@ -176,7 +176,7 @@ function ToggleSelector<T extends string = string>({
             </TouchableOpacity>
           );
         })}
-      </View>
+      </BlurredView>
     </ScrollView>
   );
 }

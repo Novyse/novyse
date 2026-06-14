@@ -37,6 +37,7 @@ import MessageAudio from "./MessageAudio";
 import MessageVoice from "./MessageVoice";
 import MessageReply from "./MessageReply";
 import MessageTimestamp from "./MessageTimestamp";
+import ReactionPill from "./reactions/ReactionPill";
 
 const REPLY_THRESHOLD = 60;
 const MAX_SWIPE_DISTANCE = 90;
@@ -181,6 +182,7 @@ const MessageBase = ({
   const { isSmallScreen } = useScreen();
   const getUser = useUserStore((state) => state.getUser);
   const chats = useChatStore((state) => state.chats);
+  const mountTimeRef = React.useRef(Date.now());
 
   const {
     onMessageRightPress,
@@ -369,44 +371,15 @@ const MessageBase = ({
       {hasReactions && (
         <View style={styles.reactionsRow}>
           <View style={styles.reactionsContainer}>
-            {message.reactions.map((reactionObj, index) => {
-              const avatars = reactionObj.userUUIDs.slice(0, 2);
-              return (
-                <Pressable
-                  key={`${reactionObj.emoji}-${index}`}
-                  style={styles.reactionPill}
-                  onPress={() => onReaction(message, reactionObj.emoji)}
-                >
-                  <AppText
-                    style={styles.reactionPillText}
-                    text={reactionObj.emoji}
-                  />
-                  <View style={styles.reactionAvatars}>
-                    {avatars.map((uUUID, i) => (
-                      <View
-                        key={uUUID}
-                        style={[
-                          styles.reactionAvatarContainer,
-                          i > 0 && styles.reactionAvatarOverlap,
-                        ]}
-                      >
-                        <Avatar
-                          uuid={getUser(uUUID)?.profilePictureUUID}
-                          size={16}
-                          theme={theme}
-                        />
-                      </View>
-                    ))}
-                  </View>
-                  {reactionObj.userUUIDs.length > 2 && (
-                    <AppText
-                      style={styles.reactionPillText}
-                      text={`+${reactionObj.userUUIDs.length - 2}`}
-                    />
-                  )}
-                </Pressable>
-              );
-            })}
+            {message.reactions.map((reactionObj) => (
+              <ReactionPill
+                key={reactionObj.emoji}
+                reactionObj={reactionObj}
+                message={message}
+                onReaction={onReaction}
+                messageMountedAt={mountTimeRef.current}
+              />
+            ))}
           </View>
           {/* Timestamp allineato a destra accanto/sotto le reazioni */}
           <MessageTimestamp

@@ -62,6 +62,14 @@ const AnimatedGradientBadge = ({ badge }: any) => {
     opacity: 0.4,
   }));
 
+  const safeBgColors = Array.isArray(bgColors)
+    ? bgColors.length === 0
+      ? ["transparent", "transparent"]
+      : bgColors.length === 1
+        ? [bgColors[0], bgColors[0]]
+        : bgColors
+    : ["transparent", "transparent"];
+
   return (
     <View
       style={[
@@ -73,7 +81,7 @@ const AnimatedGradientBadge = ({ badge }: any) => {
       ]}
     >
       <LinearGradient
-        colors={bgColors as [string, string, ...string[]]}
+        colors={safeBgColors as [string, string, ...string[]]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={StyleSheet.absoluteFill}
@@ -83,7 +91,7 @@ const AnimatedGradientBadge = ({ badge }: any) => {
         style={[styles.flowOverlay, flowStyle, { pointerEvents: "none" }]}
       >
         <LinearGradient
-          colors={[bgColors[0], bgColors[bgColors.length - 1]]}
+          colors={[safeBgColors[0], safeBgColors[safeBgColors.length - 1]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={StyleSheet.absoluteFill}
@@ -95,9 +103,9 @@ const AnimatedGradientBadge = ({ badge }: any) => {
       >
         <LinearGradient
           colors={[
-            theme.badgeGlareFirstLast,
-            theme.badgeGlareMiddle,
-            theme.badgeGlareFirstLast,
+            theme.badgeGlareFirstLast || "rgba(255,255,255,0)",
+            theme.badgeGlareMiddle || "rgba(255,255,255,0.7)",
+            theme.badgeGlareFirstLast || "rgba(255,255,255,0)",
           ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}

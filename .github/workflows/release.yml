@@ -131,6 +131,22 @@ jobs:
           bun install
           bun run build:web
 
+      - name: Set Cloudflare Project
+        id: cf-settings
+        run: |
+          if [[ "${{ inputs.release_type }}" == "production" ]]; then
+            echo "project=novyse-web" >> $GITHUB_OUTPUT
+          else
+            echo "project=novyse-web-preview" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=${{ steps.cf-settings.outputs.project }}
+
       - name: Package Web Build
         run: |
           cd dist
@@ -173,7 +189,7 @@ jobs:
           node scripts/patch-android-build.js
           cd android
           if [ "${{ inputs.release_type }}" = "production" ]; then
-            ./gradlew bundleRelease assembleRelease
+            ./gradlew bundleRelease && ./gradlew assembleRelease
           else
             ./gradlew assembleRelease
           fi

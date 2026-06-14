@@ -127,11 +127,14 @@ For a development build on Android, follow these steps:
 > **Windows EMFILE: too many files open** error: if you encounter this error you need to clear metro-cache folder inside `C:\Users\{LOCAL_USER}\AppData\Local\Temp` and `node_modules` folder, then install watchman: `winget install Facebook.Watchman`, check if it's installed correctly and then run `bunx expo start --clear`
 
 > [!WARNING]  
-> **Audio API Error**: If you encounter a "react-native-audio-api: Restored missing prebuilt binaries" error on Windows:
+> **Audio API Error**: If you encounter a `react-native-audio-api:downloadPrebuiltBinaries FAILED` error on Windows, restore the missing prebuilt binaries by running:
 >
-> ```text
-> react-native-audio-api: Restored missing prebuilt binaries (libopusfile.a, jniLibs, etc.) by executing the package's internal download script. This resolves the ninja: error.
-> ```
+>```bash
+>node scripts/download-react-native-audio-api-binaries.js
+>node scripts/patch-react-native-audio-api.js
+>```
+>
+>This downloads `libopusfile.a`, `jniLibs`, and related native assets without relying on WSL/bash during the Gradle build.
 
 #### Preview Build
 
@@ -190,6 +193,25 @@ You can choose one of the following methods:
    # For AAB (Google Play Store)
    ./gradlew bundleRelease
    ```
+
+**Option 3: Local Build (Using Package Script)**
+
+You can use the convenient project script to automatically handle prebuilding, patching, and gradle builds:
+
+- Build both APK and AAB (default):
+  ```bash
+  bun run build:android
+  # or
+  bun run build:android --all
+  ```
+- Build only APK:
+  ```bash
+  bun run build:android --apk
+  ```
+- Build only AAB:
+  ```bash
+  bun run build:android --aab
+  ```
 
 ### Other Platforms
 

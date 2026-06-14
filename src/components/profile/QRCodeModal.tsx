@@ -2,14 +2,16 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
-import QRCode from "react-native-qrcode-svg";
+import QRCode from "react-native-qrcode-skia";
+import { LinearGradient, vec } from "@shopify/react-native-skia";
+import { Image } from "react-native";
 
 import useClipboard from "@/src/hooks/useClipboard";
 
 import logoForQR from "@/assets/images/logo-novyse.png";
 import { APP_URL } from "@/app.config";
 
-import ModalBase from "@/src/components/modalSheets/ModalBase";
+import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import Icon from "@/src/components/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Avatar from "@/src/components/Avatar";
@@ -41,7 +43,7 @@ const QRCodeModal = ({
   };
 
   return (
-    <ModalBase visible={visible} onClose={onClose} theme={theme}>
+    <AdaptiveModal visible={visible} onClose={onClose} theme={theme} snapPoints={["90%"]}>
       <View style={styles.container}>
         <View style={styles.qrcodeContainer}>
           <View style={styles.avatarPosition}>
@@ -50,14 +52,34 @@ const QRCodeModal = ({
           <View style={{ height: 15 }} />
           <QRCode
             value={profileLink}
-            logo={logoForQR}
             size={200}
-            enableLinearGradient={true}
-            linearGradient={theme.backgroundMainGradient}
-            logoBorderRadius={100}
-            logoMargin={5}
-            logoBackgroundColor={theme.icon}
-          />
+            logoAreaSize={65}
+            logoAreaBorderRadius={12}
+            logo={
+              <View
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 10,
+                  backgroundColor: theme.icon,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  overflow: "hidden",
+                }}
+              >
+                <Image
+                  source={logoForQR}
+                  style={{ width: 40, height: 40, resizeMode: "contain" }}
+                />
+              </View>
+            }
+          >
+            <LinearGradient
+              start={vec(0, 0)}
+              end={vec(0, 200)}
+              colors={theme.backgroundMainGradient}
+            />
+          </QRCode>
           <AppText
             style={styles.usernameText}
             text={`@${username ? username.toLocaleUpperCase() : ""}`}
@@ -84,7 +106,7 @@ const QRCodeModal = ({
           </HoverAndPressedButton>
         </View>
       </View>
-    </ModalBase>
+    </AdaptiveModal>
   );
 };
 

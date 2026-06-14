@@ -99,16 +99,32 @@ const ChatListItem = React.memo(
     };
 
     return (
-      <View style={[styles.chatItem, isSidebarCollapsed && { alignItems: 'center', justifyContent: 'center' }]}>
+      <View
+        style={[
+          styles.chatItem,
+          isSidebarCollapsed && {
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        ]}
+      >
         <SmartBackground
           colors={
-            isSelected ||
-            (isActive && theme.backgroundChatListItemSelectedGradient)
+            isSelected || isActive
+              ? theme.backgroundChatListItemSelectedGradient
+              : null
           }
           style={[
-            StyleSheet.absoluteFill, 
+            StyleSheet.absoluteFill,
             { borderRadius: 100 },
-            isSidebarCollapsed && { width: 50, height: 50, left: '50%', top: '50%', marginLeft: -25, marginTop: -25 }
+            isSidebarCollapsed && {
+              width: 50,
+              height: 50,
+              left: "50%",
+              top: "50%",
+              marginLeft: -25,
+              marginTop: -25,
+            },
           ]}
         />
         <HoverAndPressedButton
@@ -116,25 +132,30 @@ const ChatListItem = React.memo(
           onLongPress={() => onLongPress(item.uuid)}
           style={[
             styles.chatItemPressable,
-            isSidebarCollapsed && { 
-              padding: 0, 
-              justifyContent: "center", 
+            isSidebarCollapsed && {
+              padding: 0,
+              justifyContent: "center",
               alignItems: "center",
-              width: 50, 
-              height: 50, 
+              width: 50,
+              height: 50,
               minWidth: 50,
               maxWidth: 50,
               minHeight: 50,
               maxHeight: 50,
-              borderRadius: 25, 
+              borderRadius: 25,
               flex: 0,
               flexGrow: 0,
-              gap: 0 
+              gap: 0,
             },
           ]}
         >
           {isSelected && (
-            <View style={[styles.selectionIndicator, isSidebarCollapsed && { top: 2, left: 2 }]}>
+            <View
+              style={[
+                styles.selectionIndicator,
+                isSidebarCollapsed && { top: 2, left: 2 },
+              ]}
+            >
               <Icon name={"Tick02Icon"} size={isSidebarCollapsed ? 12 : 16} />
             </View>
           )}

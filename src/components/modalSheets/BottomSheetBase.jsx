@@ -6,6 +6,7 @@ import {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BlurredView from "../BlurredView";
 
 const BottomSheetBase = forwardRef(
   (
@@ -29,11 +30,27 @@ const BottomSheetBase = forwardRef(
           {...backdropProps}
           disappearsOnIndex={-1}
           appearsOnIndex={0}
-          opacity={hideOverlay ? 0 : 1}
+          opacity={hideOverlay ? 0 : 0.5}
           pressBehavior="close"
         />
       ),
       [hideOverlay],
+    );
+
+    const renderBackground = useCallback(
+      ({ style }) => (
+        <BlurredView
+          style={[
+            style,
+            {
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+            },
+          ]}
+          isBorderActive={false}
+        />
+      ),
+      [],
     );
 
     const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
@@ -49,11 +66,8 @@ const BottomSheetBase = forwardRef(
         enableOverDrag={enableOverDrag}
         enableDynamicSizing={enableDynamicSizing}
         backdropComponent={renderBackdrop}
-        backgroundStyle={{
-          backgroundColor: theme.backgroundMain,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-        }}
+        backgroundComponent={renderBackground}
+        backgroundStyle={{ backgroundColor: "transparent" }}
         handleIndicatorStyle={{
           backgroundColor: theme.icon,
           width: 40,
