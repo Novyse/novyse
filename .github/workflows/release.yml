@@ -267,7 +267,16 @@ jobs:
         run: bun run build:desktop --linux --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to Snap Store
+        if: inputs.release_type == 'production'
+        uses: snapcore/action-publish@v1
+        env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          store_login: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          snap: desktop/dist/Novyse.snap
+          release: stable
 
   build-electron-win:
     needs: create-release
