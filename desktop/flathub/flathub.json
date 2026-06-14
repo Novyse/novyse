@@ -1,0 +1,9 @@
+{
+  "flatpak-builder-lint": {
+    "exceptions": {
+      "finish-args-home-filesystem-access": "The application requires home directory access to function correctly (e.g. file sharing/downloads in chat).",
+      "appid-ends-with-lowercase-desktop": "Renaming the app-id at this stage would require migrating the Flathub repository and user installations.",
+      "appid-url-not-reachable": "The novyse.org domain is not used; the correct domain is novyse.com."
+    }
+  }
+}

@@ -467,6 +467,7 @@ jobs:
           cp desktop/flathub/org.novyse.desktop.metainfo.xml flathub-repo/org.novyse.desktop.metainfo.xml
           cp desktop/flathub/run.sh flathub-repo/run.sh
           cp desktop/flathub/flatpak-node-dependencies.json flathub-repo/flatpak-node-dependencies.json
+          cp desktop/flathub/flathub.json flathub-repo/flathub.json
 
       - name: Commit and Push to Flathub
         run: |
