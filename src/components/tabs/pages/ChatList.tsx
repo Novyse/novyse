@@ -1,19 +1,16 @@
-import React, {
-  useState,
-  useContext,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
-import { StyleSheet, FlatList, Image, Platform, View } from "react-native";
+import React, { useState, useContext, useCallback, useEffect } from "react";
+import { StyleSheet, Image, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import AppText from "@/src/components/AppText";
 import { useShareIntentContext } from "expo-share-intent";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useIsFocused } from "expo-router/react-navigation";
 
 import { Chat } from "@/src/types/chat";
 
 import Icon from "@/src/components/Icon";
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import BlurredHeader from "@/src/components/BlurredHeader";
 import ChatListItem from "@/src/components/chat/list/Item";
 import FloatingButton from "@/src/components/FloatingButton";
@@ -31,6 +28,7 @@ import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useWindowSizeStore from "@/src/context/WindowSizeContext";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
+import { ScrollBar } from "@/constants/ScrollBar";
 
 const ChatList = () => {
   const selectedChatUUID = useActiveChatStore(
@@ -99,7 +97,10 @@ const ChatList = () => {
   const insets = useSafeAreaInsets();
 
   const { connected, room, participants } = useCommsContext();
+  const isFocused = useIsFocused();
   const { isSidebarCollapsed } = useWindowSizeStore();
+  const showCollapsedSidebar =
+    isSidebarCollapsed && !isSmallScreen && isFocused;
   const hasComms = connected && isSmallScreen;
 
   const styles = createStyle(theme, isSmallScreen, insets, hasComms);
@@ -116,7 +117,6 @@ const ChatList = () => {
 
   const [isCreateChatModalVisible, setIsCreateChatModalVisible] =
     useState(false);
-  const createChatModalRef = useRef(null);
 
   useEffect(() => {
     if (chats.length === 0) {
@@ -218,7 +218,7 @@ const ChatList = () => {
             justifyContent: "space-between",
             alignItems: "center",
           },
-          isSidebarCollapsed && {
+          showCollapsedSidebar && {
             width: 50,
             height: 50,
             borderRadius: 25,
@@ -229,19 +229,36 @@ const ChatList = () => {
         ]}
         commsHeader={commsHeaderComponent}
       >
-        <Image
-          source={require("@/assets/images/logo-novyse.png")}
-          style={styles.logo}
-        />
-        {!isSidebarCollapsed && (
-          <Icon
-            name={"Search02Icon"}
-            onPress={() => tabNavigator.navigate("Search")}
+        <HoverAndPressedButton
+          onPress={
+            !showCollapsedSidebar
+              ? () => tabNavigator.navigate("Search")
+              : undefined
+          }
+          disabled={showCollapsedSidebar}
+          style={[
+            styles.headerPressable,
+            showCollapsedSidebar && styles.headerPressableCollapsed,
+          ]}
+          hoveredStyle={styles.headerPressableFeedback}
+          pressedStyle={styles.headerPressableFeedback}
+        >
+          <Image
+            source={require("@/assets/images/logo-novyse.png")}
+            style={styles.logo}
           />
-        )}
+          {!showCollapsedSidebar && <Icon name="Search02Icon" />}
+        </HoverAndPressedButton>
       </BlurredHeader>
     ),
-    [styles.logo, commsHeaderComponent, isSidebarCollapsed],
+    [
+      styles.logo,
+      styles.headerPressable,
+      styles.headerPressableCollapsed,
+      styles.headerPressableFeedback,
+      commsHeaderComponent,
+      showCollapsedSidebar,
+    ],
   );
 
   const renderSelectionHeader = useCallback(
@@ -333,7 +350,7 @@ const ChatList = () => {
         isActive={item.uuid === selectedChatUUID && !isSmallScreen}
         isPinned={isPinned}
         unreadCount={item.unreadCount}
-        isSidebarCollapsed={isSidebarCollapsed}
+        isSidebarCollapsed={showCollapsedSidebar}
         onPress={handlePress}
         onLongPress={handleLongPress}
       />
@@ -350,24 +367,19 @@ const ChatList = () => {
             ? renderIntentHeader()
             : renderDefaultHeader()}
 
-      <FlatList
+      <FlashList
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
         data={orderedChats}
         keyExtractor={(item) => item.uuid}
         renderItem={renderItem}
         extraData={selectedItems}
+        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
       />
 
-      {!isSidebarCollapsed && (
+      {!showCollapsedSidebar && (
         <FloatingButton
-          onPress={() => {
-            if (Platform.OS !== "web") {
-              createChatModalRef.current?.present();
-            } else {
-              setIsCreateChatModalVisible(true);
-            }
-          }}
+          onPress={() => setIsCreateChatModalVisible(true)}
           iconName="ChatAddIcon"
           size={isSmallScreen ? 16 : 24}
           width={isSmallScreen ? 45 : 60}
@@ -380,7 +392,6 @@ const ChatList = () => {
       )}
 
       <CreateChatModal
-        ref={createChatModalRef}
         visible={isCreateChatModalVisible}
         onClose={() => setIsCreateChatModalVisible(false)}
       />
@@ -393,36 +404,33 @@ function createStyle(theme, isSmallScreen, insets, hasComms) {
     flatList: {
       flex: 1,
       overflow: "hidden",
-      ...(Platform.OS === "web" && {
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
-        "::WebkitScrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::WebkitScrollbarTrack": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
-      paddingTop: (hasComms ? 140 : 75) + insets.top,
+      ...ScrollBar(theme),
     },
     flatListContent: {
       padding: 10,
-      gap: 10,
+      paddingTop: (hasComms ? 140 : 75) + insets.top + 10,
       paddingBottom: (isSmallScreen ? 180 : 90) + insets.bottom,
     },
     logo: {
       width: 24,
       height: 24,
+    },
+    headerPressable: {
+      flex: 1,
+      alignSelf: "stretch",
+      flexDirection: "row",
+      width: "100%",
+      height: "100%",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 0,
+      borderRadius: 0,
+    },
+    headerPressableCollapsed: {
+      justifyContent: "center",
+    },
+    headerPressableFeedback: {
+      backgroundColor: "transparent",
     },
     headerTitle: {
       color: theme.text,

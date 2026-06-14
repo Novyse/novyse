@@ -3,6 +3,8 @@ import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
+import BlurredView from "@/src/components/BlurredView";
+
 import SectionHeader from "@/src/components/SectionHeader";
 import Icon from "@/src/components/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
@@ -107,9 +109,9 @@ export default function Connections() {
             onConnect={() => {}}
           />
         </View>
-        <View style={styles.infoContainer}>
+        <BlurredView style={styles.infoContainer}>
           <Icon name="UnavailableIcon"/>
-        </View>
+        </BlurredView>
       </View>
     </>
   );

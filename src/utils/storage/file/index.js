@@ -1,8 +1,8 @@
 import web from "./lib/web";
 import mobile from "./lib/mobile";
-import { Platform } from "react-native";
+import desktop from "./lib/desktop";
 
-import { getPlatform } from "../../device/type";
+import Platform from "../../device/type";
 
 const storage = {
   save: {
@@ -18,9 +18,13 @@ const storage = {
       let ref = undefined;
       let size = -1;
 
-      const platform = getPlatform();
-
-      switch (platform) {
+      switch (Platform) {
+        case "desktop": {
+          const result = await desktop.save.byUri(uri);
+          ref = result.ref;
+          size = result.size;
+          break;
+        }
         case "web": {
           const result = await web.save.byUri(uri);
           ref = result.ref;
@@ -34,7 +38,7 @@ const storage = {
           break;
         }
         default:
-          throw new Error(`Unsupported platform: ${platform}`);
+          throw new Error(`Unsupported platform: ${Platform}`);
       }
 
       return { ref, size };
@@ -51,9 +55,14 @@ const storage = {
       }
       let ref = undefined;
       let size = -1;
-      const platform = getPlatform();
 
-      switch (platform) {
+      switch (Platform) {
+        case "desktop": {
+          const result = await desktop.save.byBlob(bytes, key);
+          ref = result.ref;
+          size = result.size;
+          break;
+        }
         case "web": {
           const result = await web.save.byBlob(bytes, key);
           ref = result.ref;
@@ -67,7 +76,7 @@ const storage = {
           break;
         }
         default:
-          throw new Error(`Unsupported platform: ${platform}`);
+          throw new Error(`Unsupported platform: ${Platform}`);
       }
 
       return { ref, size };
@@ -75,44 +84,54 @@ const storage = {
   },
 
   async read(ref) {
-    let uri = undefined;
-    if (Platform.OS === "web") {
-      // Web
-      uri = await web.read(ref);
-    } else {
-      // Mobile
-      uri = await mobile.read(ref);
+    switch (Platform) {
+      case "desktop":
+        return await desktop.read(ref);
+      case "web":
+        return await web.read(ref);
+      case "mobile":
+        return await mobile.read(ref);
+      default:
+        return null;
     }
-    return uri;
   },
 
   async getBlob(uri) {
-    if (Platform.OS === "web") {
-      // Web
-      return await web.getBlob(uri);
-    } else {
-      // Mobile
-      return await mobile.getBlob(uri);
+    switch (Platform) {
+      case "desktop":
+        return await desktop.getBlob(uri);
+      case "web":
+        return await web.getBlob(uri);
+      case "mobile":
+        return await mobile.getBlob(uri);
+      default:
+        return null;
     }
   },
 
   async getArrayBuffer(uri) {
-    if (Platform.OS === "web") {
-      // Web
-      return await web.getArrayBuffer(uri);
-    } else {
-      // Mobile
-      return await mobile.getBlob(uri);
+    switch (Platform) {
+      case "desktop":
+        return await desktop.getArrayBuffer(uri);
+      case "web":
+        return await web.getArrayBuffer(uri);
+      case "mobile":
+        return await mobile.getBlob(uri);
+      default:
+        return null;
     }
   },
 
   async getUri(blob, uuid) {
-    if (Platform.OS === "web") {
-      // Web
-      return await web.getUri(blob);
-    } else {
-      // Mobile
-      return await mobile.getUri(blob, uuid);
+    switch (Platform) {
+      case "desktop":
+        return await desktop.getUri(blob);
+      case "web":
+        return await web.getUri(blob);
+      case "mobile":
+        return await mobile.getUri(blob, uuid);
+      default:
+        return null;
     }
   },
 };

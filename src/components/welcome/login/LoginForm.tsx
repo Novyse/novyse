@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { View, TextInput, StyleSheet, Platform, Image } from "react-native";
 import { useTranslation } from "react-i18next";
-import { LinearGradient } from "expo-linear-gradient";
 import AppText from "@/src/components/AppText";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 import { useScreen } from "@/src/context/ScreenContext";
@@ -66,13 +65,7 @@ const LoginForm = ({
   };
 
   return (
-    <LinearGradient
-      colors={LoginColors[loginTheme].background as any}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
-
+    <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.cardContent}>
           {/* <Image style={styles.logo} source={logoNovyse} /> */}
@@ -274,7 +267,7 @@ const LoginForm = ({
           </View>
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -323,6 +316,7 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       paddingHorizontal: 20,
     },
     textInput: {
+      marginTop: 24,
       paddingVertical: 10,
       paddingHorizontal: 15,
       borderRadius: 25,

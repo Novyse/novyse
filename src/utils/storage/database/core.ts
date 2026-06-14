@@ -1,4 +1,5 @@
 import { SQLiteDatabase } from "expo-sqlite";
+import DesktopSQLiteAdapter from "@/src/utils/storage/database/desktopAdapter";
 
 import INIT_SQL from "./init.sql";
 
@@ -10,7 +11,7 @@ import { FileRepository } from "./repositories/FileRepository";
 import { EventRepository } from "./repositories/EventRepository";
 
 class Database {
-  private db: SQLiteDatabase;
+  private db: SQLiteDatabase | DesktopSQLiteAdapter;
 
   user: UserRepository;
   handle: HandleRepository;
@@ -19,7 +20,7 @@ class Database {
   file: FileRepository;
   event: EventRepository;
 
-  constructor(db: SQLiteDatabase) {
+  constructor(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
     this.user = new UserRepository(db);
     this.handle = new HandleRepository(db);
@@ -29,7 +30,7 @@ class Database {
     this.event = new EventRepository(db);
   }
 
-  setDb(db: SQLiteDatabase) {
+  setDb(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
     this.user.setDb(db);
     this.handle.setDb(db);

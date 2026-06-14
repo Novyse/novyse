@@ -2,6 +2,7 @@
   "common": {
     "hello": "Ciao!",
     "settings": "Impostazioni",
+    "loading": "Caricamento...",
     "loadingProfile": "Caricamento profilo...",
     "error": "Errore",
     "success": "Successo",
@@ -94,6 +95,20 @@
       "sticker": "Sticker",
       "gif": "GIF"
     },
+    "emojiCategories": {
+      "searchPlaceholder": "Cerca emoji...",
+      "recents": "Recenti",
+      "smileys": "Faccine ed Emozioni",
+      "people": "Persone e Corpo",
+      "animals": "Animali e Natura",
+      "food": "Cibo e Bevande",
+      "travel": "Viaggi e Luoghi",
+      "activities": "Attività",
+      "objects": "Oggetti",
+      "symbols": "Simboli",
+      "flags": "Bandiere",
+      "searchResults": "Risultati della Ricerca"
+    },
     "overview": {
       "tabs": {
         "members": "Membri",
@@ -169,11 +184,25 @@
       }
     },
     "comms": {
+      "notification": {
+        "inCall": "In chiamata: {{chatName}}",
+        "tapToReturn": "Tocca per tornare alla chiamata",
+        "muteMic": "Silenzia Mic",
+        "unmuteMic": "Attiva Mic",
+        "turnCamOff": "Spegni Cam",
+        "turnCamOn": "Accendi Cam",
+        "disconnect": "Disconnetti"
+      },
+      "pin": "Fissa",
+      "unpin": "Sblocca",
+      "fullscreen": "Schermo intero",
+      "exitFullscreen": "Riduci",
       "participantsInCall": "{{count}} partecipanti alla chiamata",
       "noParticipants": "Non c'è nessuno qui.",
       "error": {
         "chatFull": "Questa chat è piena",
-        "generic": "Per favore riprova più tardi."
+        "generic": "Per favore riprova più tardi.",
+        "noMicPermissionWarning": "Il permesso del microfono è richiesto per riattivare l'audio. Consenti l'accesso al microfono nelle impostazioni del browser o del sistema."
       },
       "selectors": {
         "camera": {
@@ -186,8 +215,48 @@
           "title": "Seleziona Microfono",
           "loading": "Caricamento microfoni...",
           "currentlySelected": "Attualmente Selezionato",
-          "defaultName": "Microfono {{id}}"
+          "defaultName": "Microfono {{id}}",
+          "permissionDenied": "Il permesso del microfono è negato. Abilita l'accesso al microfono nelle impostazioni di sistema per utilizzare le funzionalità vocali."
+        },
+        "screenshare": {
+          "title": "Condividi il tuo schermo",
+          "loading": "Caricamento delle sorgenti in corso...",
+          "screens": "Schermi interi",
+          "windows": "Singole finestre",
+          "screen": "Schermo",
+          "window": "Finestra",
+          "includeAudio": "Includi l'audio di sistema",
+          "macOsAudioWarning": "La condivisione audio non è supportata sulla tua versione di macOS.",
+          "permissionWarning": "Per condividere lo schermo, devi consentire all'app i permessi di registrazione schermo nelle Impostazioni di Sistema (Privacy e Sicurezza).",
+          "nativeMenuWarning": "Il tuo ambiente Desktop richiede di selezionare lo schermo o la finestra dal portale di sistema nativo.",
+          "share": "Condividi",
+          "cancel": "Annulla",
+          "startScreenShare": "Avvia"
         }
+      },
+      "roomOptions": {
+        "title": "Opzioni Stanza",
+        "watchTogether": "Guarda Insieme",
+        "startWatchTogether": "Avvia Watch Together",
+        "modifyWatchTogether": "Modifica Watch Together",
+        "stopWatchTogether": "Interrompi Watch Together"
+      },
+      "watchTogether": {
+        "title": "Watch Together",
+        "startTitle": "Avvia Watch Together",
+        "modifyTitle": "Modifica Watch Together",
+        "description": "Incolla un link di YouTube o un link video diretto per sincronizzare la riproduzione con tutti i partecipanti.",
+        "placeholder": "Incolla URL di YouTube o del video...",
+        "cancel": "Annulla",
+        "start": "Avvia",
+        "modify": "Modifica",
+        "stop": "Interrompi",
+        "invalidUrl": "URL non valido o errore di rete.",
+        "supportedLinks": "Link Supportati",
+        "detectedType": "Rilevato: {{type}}",
+        "notSupported": "Formato link non supportato",
+        "typeYoutube": "YouTube",
+        "typeDirect": "Video Diretto (MP4, WebM, ecc.)"
       }
     },
     "memberCount_one": "{{count}} membro",
@@ -238,7 +307,8 @@
       "comms": "Comunicazioni",
       "qrScanner": "Scanner QR",
       "shortcuts": "Scorciatoie",
-      "info": "Info"
+      "info": "Info",
+      "system": "Sistema"
     },
     "account": {
       "title": "Account",
@@ -347,7 +417,7 @@
     },
     "storage": {
       "localStorage": "Archiviazione Locale",
-      "gbUsed": "GB usati",
+      "gbUsed": "{{count}} GB usati",
       "cloudStorageComingSoon": "Archiviazione Cloud (In Arrivo)",
       "resetDatabase": "Ripristina Database",
       "resetDatabaseSubtitle": " (Questo pulirà completamente il database locale e richiederà al server tutti i tuoi dati)",
@@ -477,6 +547,16 @@
       "notificationMethodRemoved": "Metodo di notifica rimosso",
       "default": "Predefinito",
       "addNotificationMethod": "Aggiungi Metodo di Notifica"
+    },
+    "system": {
+      "title": "Sistema",
+      "startupSection": "Avvio dell'Applicazione",
+      "actionsSection": "Azioni Iniziali",
+      "openOnStartup": "Apri all'avvio",
+      "joinCommsOnStartup": "Entra nelle comms all'avvio",
+      "selectChat": "Seleziona Chat",
+      "selectSub": "Seleziona Sub",
+      "none": "Nessuno"
     }
   },
   "layout": {
@@ -496,7 +576,18 @@
       "downloadLatestVersion": "Scarica l'ultima versione",
       "warning": "Nota: se continui senza aggiornare, le funzionalità online non saranno disponibili.",
       "goBack": "Torna a Novyse",
-      "helperText": "Visita {link} per ottenere l'aggiornamento per il tuo dispositivo."
+      "updateNow": "Aggiorna ora",
+      "installing": "Installa e riavvia",
+      "downloading": "Download… {{percent}}%",
+      "checking": "Controllo aggiornamenti…",
+      "openPlayStore": "Apri Play Store",
+      "openAppStore": "Apri App Store",
+      "openMicrosoftStore": "Apri Microsoft Store",
+      "openGitHub": "Scarica da GitHub",
+      "updateViaSnap": "Aggiorna via Snap Store",
+      "updateViaFlatpak": "Aggiorna via Flathub",
+      "refreshPage": "Aggiorna la pagina",
+      "autoUpdateError": "Aggiornamento automatico fallito. Scarica manualmente."
     }
   },
   "tabs": {

@@ -1,14 +1,17 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { View, StyleSheet, useWindowDimensions } from "react-native";
+import { createBottomTabNavigator } from "expo-router/js-tabs";
 import {
   NavigationContainer,
   NavigationIndependentTree,
-} from "@react-navigation/native";
+} from "expo-router/react-navigation";
 
 import { tabNavigationRef } from "@/src/utils/navigation/tabRef";
 import { useThemeContext, Theme } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
+import useWindowSizeStore, {
+  SIDEBAR_MIN,
+} from "@/src/context/WindowSizeContext";
 
 import TabBar from "@/src/components/tabs/TabBar";
 import Icon from "@/src/components/Icon";
@@ -25,9 +28,13 @@ export const resetGlobalNavState = () => {
   globalNavState = undefined;
 };
 
-export default function TabNavigator({ isDetailOpen }: { isDetailOpen?: boolean }) {
+export const getActiveTabName = () =>
+  globalNavState?.routes[globalNavState.index]?.name as string | undefined;
+
+export default function TabNavigator() {
   const { theme } = useThemeContext();
   const { isSmallScreen } = useScreen();
+  const { width } = useWindowDimensions();
   const styles = createStyle(theme, isSmallScreen);
 
   return (
@@ -38,6 +45,10 @@ export default function TabNavigator({ isDetailOpen }: { isDetailOpen?: boolean 
           initialState={globalNavState}
           onStateChange={(state) => {
             globalNavState = state;
+            if (state?.routes[state.index]?.name === "ChatList") return;
+            const s = useWindowSizeStore.getState();
+            if (s.isSidebarCollapsed) s.setSidebarCollapsed(false);
+            s.setDetailWidth((dw) => Math.min(dw, width - SIDEBAR_MIN));
           }}
           documentTitle={{
             formatter: (options, route) => `Novyse - App`,
@@ -45,7 +56,7 @@ export default function TabNavigator({ isDetailOpen }: { isDetailOpen?: boolean 
         >
           <Tab.Navigator
             tabBar={(props) => <TabBar {...props} />}
-            backBehavior={isDetailOpen ? "none" : "firstRoute"}
+            backBehavior="none"
             screenOptions={{
               sceneStyle: { backgroundColor: "transparent" },
               animation: "shift",
@@ -101,9 +112,7 @@ function createStyle(theme: Theme, isSmallScreen: boolean) {
       position: "relative",
       borderRadius: isSmallScreen ? 0 : 15,
       overflow: "hidden",
-      backgroundColor: isSmallScreen
-        ? theme.backgroundMainGradient[1]
-        : "transparent",
+      backgroundColor: "transparent",
     },
   });
 }

@@ -1,16 +1,17 @@
 import { SQLiteDatabase } from "expo-sqlite";
+import DesktopSQLiteAdapter from "@/src/utils/storage/database/desktopAdapter";
 import { ProfileRepository } from "./ProfileRepository";
 
 export class UserRepository {
-  db: SQLiteDatabase;
+  db: SQLiteDatabase | DesktopSQLiteAdapter;
   profile: ProfileRepository;
 
-  constructor(db: SQLiteDatabase) {
+  constructor(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
     this.profile = new ProfileRepository(db);
   }
 
-  setDb(db: SQLiteDatabase) {
+  setDb(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
     this.profile.setDb(db);
   }

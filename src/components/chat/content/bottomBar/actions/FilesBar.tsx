@@ -130,7 +130,7 @@ const FilesBar = () => {
           const name = file.name || "File";
 
           return (
-            <View key={index} style={styles.chipOuter}>
+            <BlurredView key={index} style={styles.chipOuter}>
               <View style={[styles.chip, isInvalid && styles.chipInvalid]}>
                 <Icon
                   name="FileIcon"
@@ -169,7 +169,7 @@ const FilesBar = () => {
                   text={invalidInfo.errors[0]}
                 />
               )}
-            </View>
+            </BlurredView>
           );
         })}
       </ScrollView>
@@ -230,7 +230,6 @@ const createStyle = (theme: any) =>
       borderRadius: 10,
       paddingHorizontal: 10,
       paddingVertical: 6,
-      backgroundColor: theme.primary,
       overflow: "hidden",
     },
     chipInvalid: {

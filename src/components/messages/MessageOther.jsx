@@ -7,6 +7,8 @@ import useUriResolver from "@/src/hooks/file/useUriResolver";
 import FileSizeProgress from "./FileSizeProgress";
 
 import FileButton from "./Button";
+import { filesRpc } from "@/src/utils/electron/files";
+import Platform from "@/src/utils/device/type";
 
 const MessageOther = ({ fileRef, uuid, mimeType, size, name, isPending }) => {
   const { theme } = useContext(ThemeContext);
@@ -15,7 +17,9 @@ const MessageOther = ({ fileRef, uuid, mimeType, size, name, isPending }) => {
   const { uri: fileUri } = useUriResolver(fileRef);
 
   const handlePress = () => {
-    if (fileUri) {
+    if (Platform === "desktop" && fileRef) {
+      filesRpc.openFile(fileRef);
+    } else if (fileUri) {
       Linking.openURL(fileUri).catch((err) =>
         console.error("Failed to open file:", err),
       );

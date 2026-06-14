@@ -214,6 +214,7 @@ export default function SignupStepField({
             value={signupMode}
             onChange={onSignupModeChange}
             disabled={isLoading}
+            style={styles.modeToggle}
           />
         )}
         {signupMode === "password" && (
@@ -324,6 +325,10 @@ const createStyles = (colors: any) => {
     group: {
       width: "100%",
       alignItems: "center",
+    },
+    modeToggle: {
+      width: 300,
+      marginBottom: 24,
     },
     inputGroup: {
       marginBottom: 16,

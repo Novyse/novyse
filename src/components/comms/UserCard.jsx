@@ -1,5 +1,12 @@
-import React, { memo, useMemo, useEffect, useRef, useContext } from "react";
-import { View, StyleSheet, Platform, Pressable } from "react-native";
+import React, {
+  memo,
+  useMemo,
+  useEffect,
+  useRef,
+  useContext,
+  useState,
+} from "react";
+import { View, StyleSheet, Platform, Pressable, Animated } from "react-native";
 
 import { getPlatform } from "@/src/utils/device/type";
 import { useCommsContext } from "@/src/context/CommsContext";
@@ -9,6 +16,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import UserProfileAvatar from "./UserProfileAvatar";
 import BlurredView from "../BlurredView";
 import Icon from "../Icon";
+import { WatchTogetherPlayer } from "./embed/WatchTogetherPlayer";
 
 const platform = getPlatform();
 
@@ -29,11 +37,12 @@ const UserCard = memo(
     metadata = {},
     isLocal = false,
     isScreenShare = false,
+    isWatchTogether = false,
     isPinned = false,
     isFullScreen = false,
     onPin,
     onFullScreen,
-    stopScreenShare,
+    onRemove,
     width,
     height,
     margin,
@@ -50,10 +59,51 @@ const UserCard = memo(
     } = useCommsContext();
 
     const { theme } = useContext(ThemeContext);
-    const styles = createStyles(theme); 
+    const styles = createStyles(theme);
 
     const volKey = isScreenShare ? streamUUID : deviceUUID;
     const isLocalMuted = localMuted[volKey] ?? false;
+
+    const [controlsVisible, setControlsVisible] = useState(true);
+    const hideTimeoutRef = useRef(null);
+    const opacityAnim = useRef(new Animated.Value(1)).current;
+
+    const showControlsAndResetTimer = () => {
+      setControlsVisible(true);
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+      hideTimeoutRef.current = setTimeout(() => {
+        setControlsVisible(false);
+      }, 3000);
+    };
+
+    const handleMouseLeave = () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+      hideTimeoutRef.current = setTimeout(() => {
+        setControlsVisible(false);
+      }, 1000);
+    };
+
+    const isStreamActive = stream && stream.active;
+    useEffect(() => {
+      showControlsAndResetTimer();
+      return () => {
+        if (hideTimeoutRef.current) {
+          clearTimeout(hideTimeoutRef.current);
+        }
+      };
+    }, [isStreamActive]);
+
+    useEffect(() => {
+      Animated.timing(opacityAnim, {
+        toValue: controlsVisible ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }, [controlsVisible]);
 
     const videoRef = useRef(null);
     useEffect(() => {
@@ -62,7 +112,17 @@ const UserCard = memo(
       }
     }, [stream]);
 
-    const parsedMetadata = JSON.parse(metadata);
+    const parsedMetadata = useMemo(() => {
+      if (!metadata) return {};
+      if (typeof metadata === "string") {
+        try {
+          return JSON.parse(metadata);
+        } catch (e) {
+          return {};
+        }
+      }
+      return metadata;
+    }, [metadata]);
     const profilePictureUUID = parsedMetadata.profilePictureUUID || null;
 
     const finalDisplayName = isLocal
@@ -90,13 +150,17 @@ const UserCard = memo(
     }, [isScreenShare, isSpeaking, styles]);
 
     const hasControls =
-      (stream && stream.active && !isLocal) || (isScreenShare && isLocal);
+      (stream && stream.active && !isLocal) ||
+      (isScreenShare && isLocal) ||
+      (connected && isWatchTogether);
 
     const handlePress = (event) => {
+      showControlsAndResetTimer();
+
       if (!connected || !checkRoomMatch(chatUUID, sub)) {
         return;
       }
-      
+
       if (event && event.preventDefault) {
         event.preventDefault();
       }
@@ -123,68 +187,119 @@ const UserCard = memo(
             margin: margin / 2,
           },
           isFullScreen && styles.fullscreenContainer,
+          isFullScreen && { borderRadius: 0 },
         ]}
+        onMouseMove={showControlsAndResetTimer}
+        onMouseEnter={showControlsAndResetTimer}
+        onMouseLeave={handleMouseLeave}
       >
         {isLocalMuted && (
           <View style={styles.muteIndicatorContainer}>
-              <View style={styles.controlsRow}>
-                <Icon name="MicOff01Icon" size={16} color={theme.iconDanger} />
-              </View>
+            <View style={styles.controlsRow}>
+              <Icon name="MicOff01Icon" size={16} color={theme.iconDanger} />
+            </View>
           </View>
         )}
         {hasControls && (
-          <View style={styles.controlsContainer}>
+          <Animated.View
+            style={[styles.controlsContainer, { opacity: opacityAnim }]}
+            pointerEvents={controlsVisible ? "auto" : "none"}
+            onTouchStart={showControlsAndResetTimer}
+          >
             <BlurredView style={styles.controlsBlurred}>
               <View style={styles.controlsRow}>
-                {stream && stream.active && !isLocal && !isFullScreen && (
+                {(stream && stream.active && !isLocal && !isFullScreen) ||
+                (isWatchTogether && !isFullScreen) ? (
                   <Icon
                     name={!isPinned ? "PinIcon" : "PinOffIcon"}
                     size={20}
-                    onPress={() => onPin(streamUUID)}
+                    onPress={() => {
+                      onPin(streamUUID);
+                      showControlsAndResetTimer();
+                    }}
                   />
-                )}
-                {stream && stream.active && !isLocal && (
+                ) : null}
+                {(stream && stream.active && !isLocal) || isWatchTogether ? (
                   <Icon
                     name={
                       !isFullScreen ? "ArrowExpand01Icon" : "ArrowShrink01Icon"
                     }
                     size={20}
-                    onPress={() => onFullScreen(streamUUID)}
+                    onPress={() => {
+                      onFullScreen(streamUUID);
+                      showControlsAndResetTimer();
+                    }}
                   />
-                )}
-                {isScreenShare && isLocal && (
+                ) : null}
+                {isScreenShare && isLocal ? (
                   <Icon
                     name="ComputerRemoveIcon"
                     size={20}
-                    onPress={() => stopScreenShare(streamUUID)}
+                    onPress={() => {
+                      onRemove(streamUUID);
+                      showControlsAndResetTimer();
+                    }}
                   />
-                )}
+                ) : null}
               </View>
             </BlurredView>
-          </View>
+          </Animated.View>
         )}
 
-        <Pressable
-          style={styles.videoContainer}
-          onPress={handlePress}
-          onLongPress={handlePress}
-          // @ts-ignore
-          onContextMenu={handlePress}
-          delayLongPress={500}
-        >
-          <VideoContent
-            streamUUID={streamUUID}
-            deviceUUID={deviceUUID}
-            stream={stream}
-            isLocal={isLocal}
-            displayName={finalDisplayName}
-            profilePictureUUID={profilePictureUUID}
-            width={width}
-            height={height}
-            facingMode={facingMode}
-          />
-          <View style={speakingOverlayStyle} />
-        </Pressable>
+        {connected && isWatchTogether ? (
+          <View
+            style={[styles.videoContainer, isFullScreen && { borderRadius: 0 }]}
+          >
+            <WatchTogetherPlayer
+              width={width}
+              height={height}
+              isFullScreen={isFullScreen}
+              onVideoPress={handlePress}
+            />
+          </View>
+        ) : isWatchTogether ? (
+          <Pressable
+            style={[
+              styles.videoContainer,
+              { outline: "none", cursor: "pointer" },
+            ]}
+            onPress={handlePress}
+            onLongPress={handlePress}
+            // @ts-ignore
+            onContextMenu={handlePress}
+            delayLongPress={500}
+          >
+            <UserProfileAvatar
+              userHandle={displayName}
+              deviceUUID={deviceUUID}
+              profilePictureUUID={null}
+              containerWidth={width}
+              containerHeight={height}
+            />
+          </Pressable>
+        ) : (
+          <Pressable
+            style={styles.videoContainer}
+            onPress={handlePress}
+            onLongPress={handlePress}
+            // @ts-ignore
+            onContextMenu={handlePress}
+            delayLongPress={500}
+          >
+            <VideoContent
+              streamUUID={streamUUID}
+              deviceUUID={deviceUUID}
+              stream={stream}
+              isLocal={isLocal}
+              displayName={finalDisplayName}
+              profilePictureUUID={profilePictureUUID}
+              width={width}
+              height={height}
+              facingMode={facingMode}
+            />
+            <View style={speakingOverlayStyle} />
+          </Pressable>
+        )}
       </View>
     );
   },
@@ -250,91 +365,91 @@ const VideoContent = memo(
   },
 );
 
-const createStyles = (theme) => StyleSheet.create({
-  profile: {
-    backgroundColor: "transparent",
-    borderRadius: 10,
-    overflow: "hidden",
-    position: "relative",
-  },
-  controlsContainer: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    zIndex: 20,
-  },
-  muteIndicatorContainer: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    zIndex: 20,
-  },
-  controlsBlurred: {
-    margin: 5,
-    borderRadius: 40,
-    overflow: "hidden",
-  },
-  controlsRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    padding: 5,
-  },
-  controlButton: {
-    marginLeft: 5,
-    padding: 5,
-    borderRadius: 5,
-    backgroundColor: theme.backgroundModalOverlay,
-  },
-  fullscreenContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: theme.shadowColor,
-    zIndex: 1,
-  },
-  speakingOverlayContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 10,
-    pointerEvents: "none",
-    zIndex: 10,
-    borderWidth: 0,
-    borderColor: "transparent",
-    opacity: 0,
-  },
-  speakingOverlay: {
-    borderWidth: 2,
-    borderColor: theme.successText,
-    opacity: 1,
-    ...(Platform.OS === "web" && {
-      boxShadow:
-        `inset 0 0 15px ${theme.successText}, 0 0 20px ${theme.successText}`,
-    }),
-    ...(Platform.OS === "ios" && {
-      shadowColor: theme.successText,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.8,
-      shadowRadius: 8,
-    }),
-  },
-  videoContainer: {
-    width: "100%",
-    height: "100%",
-    overflow: "hidden",
-    borderRadius: 8,
-    position: "relative",
-    backgroundColor: theme.shadowColor,
-  },
-  videoStream: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 8,
-  },
-});
+const createStyles = (theme) =>
+  StyleSheet.create({
+    profile: {
+      backgroundColor: "transparent",
+      borderRadius: 10,
+      overflow: "hidden",
+      position: "relative",
+    },
+    controlsContainer: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      zIndex: 20,
+    },
+    muteIndicatorContainer: {
+      position: "absolute",
+      bottom: 0,
+      right: 0,
+      zIndex: 20,
+    },
+    controlsBlurred: {
+      margin: 5,
+      borderRadius: 40,
+      overflow: "hidden",
+    },
+    controlsRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      padding: 5,
+    },
+    controlButton: {
+      marginLeft: 5,
+      padding: 5,
+      borderRadius: 5,
+      backgroundColor: theme.backgroundModalOverlay,
+    },
+    fullscreenContainer: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: theme.shadowColor,
+      zIndex: 1,
+    },
+    speakingOverlayContainer: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      borderRadius: 10,
+      pointerEvents: "none",
+      zIndex: 10,
+      borderWidth: 0,
+      borderColor: "transparent",
+      opacity: 0,
+    },
+    speakingOverlay: {
+      borderWidth: 2,
+      borderColor: theme.successText,
+      opacity: 1,
+      ...(Platform.OS === "web" && {
+        boxShadow: `inset 0 0 15px ${theme.successText}, 0 0 20px ${theme.successText}`,
+      }),
+      ...(Platform.OS === "ios" && {
+        shadowColor: theme.successText,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 8,
+      }),
+    },
+    videoContainer: {
+      width: "100%",
+      height: "100%",
+      overflow: "hidden",
+      borderRadius: 8,
+      position: "relative",
+      backgroundColor: theme.shadowColor,
+    },
+    videoStream: {
+      width: "100%",
+      height: "100%",
+      borderRadius: 8,
+    },
+  });
 
 export default UserCard;

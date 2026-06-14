@@ -4,40 +4,50 @@ import { Slot, usePathname } from "expo-router";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 
-import TabNavigator from "@/src/components/tabs/TabNavigator";
-
+import TabNavigator, {
+  getActiveTabName,
+} from "@/src/components/tabs/TabNavigator";
 import { useScreen } from "@/src/context/ScreenContext";
 import useChatStore from "@/src/context/ChatContext";
 import useUserStore from "@/src/context/UserContext";
-import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import useWindowSizeStore, {
+  SIDEBAR_MIN,
+  SIDEBAR_COLLAPSED,
+} from "@/src/context/WindowSizeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useNetworkStore from "@/src/context/NetworkContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
+import useMobileBackHandler from "@/src/hooks/layout/useMobileBackHandler";
+import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import SocketIO from "@/src/utils/backend-services/socket-io";
 import auth from "@/src/utils/welcome/auth";
 
 import InitPage from "@/src/components/pages/InitPage";
+import StartupManager from "@/src/components/layout/StartupManager";
 
 export default function RootLayout() {
   // Listen for Expo Router pathname changes to determine if a detail is open
   // With flat structure, detail is open if path is NOT /app and NOT /app/
   const pathname = usePathname();
   const isDetailOpen = pathname !== "/app" && pathname !== "/app/";
-
   // Pan responder for resizing the detail pane on larger screens
   const { isSmallScreen } = useScreen();
+  useMobileBackHandler(isSmallScreen, isDetailOpen);
   const { theme } = useThemeContext();
   const { width } = useWindowDimensions();
 
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(slideAnim, {
+    Animated.spring(slideAnim, {
       toValue: isDetailOpen ? 1 : 0,
-      duration: 300,
       useNativeDriver: true,
+      damping: 24,
+      stiffness: 180,
+      mass: 0.8,
     }).start();
 
     // This ensures state is reset for Android back gestures or explicit navigation back to chat list.
@@ -56,44 +66,61 @@ export default function RootLayout() {
     isStorageReady,
   } = useWindowSizeStore();
 
-  const SIDEBAR_THRESHOLD = 250;
-  const COLLAPSED_SIDEBAR_WIDTH = 80;
-  const MIN_CHAT_LIST_WIDTH = 80;
+  const tab = getActiveTabName();
+  const onChatList = !tab || tab === "ChatList";
+  const showCollapsedSidebar =
+    isSidebarCollapsed && !isSmallScreen && onChatList;
 
   const resizerHandlers = usePanelResizer({
     currentWidth: detailWidth,
     setWidth: setDetailWidth,
     minWidth: minDetailWidth,
-    maxWidthPadding: MIN_CHAT_LIST_WIDTH + 20,
+    maxWidthPadding: SIDEBAR_COLLAPSED + 20,
   });
 
   useEffect(() => {
+    if (isSmallScreen) {
+      if (isSidebarCollapsed) setSidebarCollapsed(false);
+      return;
+    }
+    if (!onChatList) return;
     const sidebarWidth = width - detailWidth;
-
-    if (!isSidebarCollapsed && sidebarWidth < SIDEBAR_THRESHOLD) {
+    if (!isSidebarCollapsed && sidebarWidth < SIDEBAR_MIN) {
       setSidebarCollapsed(true);
-      setDetailWidth(width - COLLAPSED_SIDEBAR_WIDTH);
-    } else if (isSidebarCollapsed && sidebarWidth > SIDEBAR_THRESHOLD) {
+      setDetailWidth(width - SIDEBAR_COLLAPSED);
+    } else if (isSidebarCollapsed && sidebarWidth > SIDEBAR_MIN) {
       setSidebarCollapsed(false);
     }
-  }, [width, detailWidth, isSidebarCollapsed]);
+  }, [
+    width,
+    detailWidth,
+    isSidebarCollapsed,
+    isSmallScreen,
+    onChatList,
+    setSidebarCollapsed,
+    setDetailWidth,
+  ]);
 
   const prevWidthRef = useRef(width);
   useEffect(() => {
+    if (isSmallScreen) return;
+
     const delta = width - prevWidthRef.current;
     prevWidthRef.current = width;
     setDetailWidth((prev) => {
-      const maxDetail = width - MIN_CHAT_LIST_WIDTH - 20;
+      const maxDetail = width - SIDEBAR_COLLAPSED - 20;
       let newWidth = prev;
       if (delta > 0) {
         newWidth = prev + delta;
       }
       return Math.max(minDetailWidth, Math.min(maxDetail, newWidth));
     });
-  }, [width, minDetailWidth, setDetailWidth, MIN_CHAT_LIST_WIDTH]);
+  }, [width, minDetailWidth, setDetailWidth, isSmallScreen]);
 
   // Initialize database if needed
   const [hasInitialized, setHasInitialized] = useState<boolean | null>(null);
+  const initChatContext = useChatStore((state) => state.init);
+  const initUserContext = useUserStore((state) => state.init);
 
   useEffect(() => {
     let retryInterval: any = null;
@@ -102,9 +129,10 @@ export default function RootLayout() {
       try {
         const initValue = await AsyncStorage.getItem("init");
         if (initValue === "true") {
+          let updateSuccess = false;
           try {
             await auth.updateDatabase();
-            useNetworkStore.getState().setSynced(true);
+            updateSuccess = true;
           } catch (updateError) {
             console.warn(
               "Failed to update database, starting retry loop:",
@@ -135,14 +163,22 @@ export default function RootLayout() {
               }
             }, 1000);
           }
+
+          await Promise.all([initChatContext(), initUserContext()]);
+
+          // If database update was successful initially
+          if (updateSuccess) {
+            useNetworkStore.getState().setSynced(true);
+          }
           setHasInitialized(true);
         } else {
           setHasInitialized(false);
           const success = await auth.initializeDatabase();
           if (success) {
             await AsyncStorage.setItem("init", "true");
-            setHasInitialized(true);
+            await Promise.all([initChatContext(), initUserContext()]);
             useNetworkStore.getState().setSynced(true);
+            setHasInitialized(true);
           }
         }
       } catch (error) {
@@ -155,17 +191,7 @@ export default function RootLayout() {
     return () => {
       if (retryInterval) clearInterval(retryInterval);
     };
-  }, []);
-
-  // Load chats & user data in zustand
-  const initChatContext = useChatStore((state) => state.init);
-  const initUserContext = useUserStore((state) => state.init);
-  useEffect(() => {
-    if (hasInitialized === true) {
-      initChatContext();
-      initUserContext();
-    }
-  }, [initChatContext, initUserContext, hasInitialized]);
+  }, [initChatContext, initUserContext]);
 
   if (hasInitialized === false) {
     return <InitPage />;
@@ -181,7 +207,18 @@ export default function RootLayout() {
       <View
         style={{ flex: 1, backgroundColor: "transparent", overflow: "hidden" }}
       >
-        <TabNavigator isDetailOpen={isDetailOpen} />
+        <Animated.View
+          style={{
+            flex: 1,
+            opacity: slideAnim.interpolate({
+              inputRange: [0, 0.15, 1],
+              outputRange: [1, 0, 0],
+            }),
+          }}
+          pointerEvents={isDetailOpen ? "none" : "auto"}
+        >
+          <TabNavigator />
+        </Animated.View>
         <Animated.View
           style={{
             position: "absolute",
@@ -189,7 +226,7 @@ export default function RootLayout() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: theme.backgroundMainGradient[1],
+            backgroundColor: "transparent",
             transform: [
               {
                 translateX: slideAnim.interpolate({
@@ -210,60 +247,44 @@ export default function RootLayout() {
 
   // For larger screens, we show the detail stack in a resizable pane on the right
   if (!isStorageReady) {
-    return (
-      <View
-        style={{ flex: 1, backgroundColor: theme.backgroundMainGradient[1] }}
-      />
-    );
+    return <View style={{ flex: 1, backgroundColor: "transparent" }} />;
   }
 
-  const currentSidebarWidth = isSidebarCollapsed
-    ? COLLAPSED_SIDEBAR_WIDTH
-    : width - detailWidth;
+  const currentSidebarWidth = showCollapsedSidebar
+    ? SIDEBAR_COLLAPSED
+    : onChatList
+      ? width - detailWidth
+      : Math.max(width - detailWidth, SIDEBAR_MIN);
 
   return (
     <View
       style={{
         flex: 1,
         flexDirection: "row",
-        backgroundColor: theme.backgroundMainGradient[1],
+        backgroundColor: "transparent",
       }}
     >
+      <StartupManager />
       <View
         style={{
           width: currentSidebarWidth,
           height: "100%",
           padding: 10,
-          paddingHorizontal: isSidebarCollapsed ? 5 : 10,
-          backgroundColor: theme.backgroundMainGradient[1],
+          paddingHorizontal: showCollapsedSidebar ? 5 : 10,
+          backgroundColor: "transparent",
         }}
       >
-        <TabNavigator isDetailOpen={isDetailOpen} />
+        <TabNavigator />
       </View>
 
       <View
         style={{
-          width: isSidebarCollapsed
-            ? width - COLLAPSED_SIDEBAR_WIDTH
-            : detailWidth,
+          width: width - currentSidebarWidth,
           height: "100%",
           position: "relative",
         }}
       >
-        <View
-          //@ts-ignore
-          style={{
-            position: "absolute",
-            left: -10,
-            top: 0,
-            bottom: 0,
-            width: 20,
-            backgroundColor: "transparent",
-            cursor: "ew-resize",
-            zIndex: 10,
-          }}
-          {...resizerHandlers}
-        />
+        <PanelResizeHandle panHandlers={resizerHandlers} />
         <Slot />
       </View>
     </View>

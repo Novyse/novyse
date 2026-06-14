@@ -8,10 +8,12 @@ Run
 node_modules/
 android/
 ios/
+build/
 
 # Expo
 .expo/
 dist/
+build/
 web-build/
 expo-env.d.ts
 
@@ -56,3 +58,6 @@ dist.zip
 # firebase
 google-services.json
 GoogleService-Info.plist
+
+# Skia WebAssembly
+public/canvaskit.wasm

@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS pinned_message (
     pinned_by TEXT NOT NULL,
     PRIMARY KEY (chatUUID, messageID),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
-    FOREIGN KEY (messageID) REFERENCES message(id)
+    FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id)
 );
 
 CREATE TABLE IF NOT EXISTS edited_message (
@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS edited_message (
     messageID INTEGER NOT NULL,
     PRIMARY KEY (chatUUID, messageID),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
-    FOREIGN KEY (messageID) REFERENCES message(id)
+    FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id)
 );
 
 CREATE TABLE IF NOT EXISTS deleted_message (
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS deleted_message (
     messageID INTEGER NOT NULL,
     PRIMARY KEY (chatUUID, messageID),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
-    FOREIGN KEY (messageID) REFERENCES message(id)
+    FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id)
 );
 
 CREATE TABLE IF NOT EXISTS reaction_message (
@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS reaction_message (
     at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (chatUUID, messageID, userUUID, reaction),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
-    FOREIGN KEY (messageID) REFERENCES message(id),
+    FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id),
     FOREIGN KEY (userUUID) REFERENCES user(uuid)
 );
 
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS message_files (
     fileUUID TEXT NOT NULL,
     PRIMARY KEY (chatUUID, messageID, fileUUID),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
-    FOREIGN KEY (messageID) REFERENCES message(id),
+    FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id),
     FOREIGN KEY (fileUUID) REFERENCES file(uuid)
 );
 

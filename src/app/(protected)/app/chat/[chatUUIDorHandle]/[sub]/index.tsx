@@ -19,6 +19,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import useWindowSizeStore from "@/src/context/WindowSizeContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
+import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
 import { useForward } from "@/src/hooks/chat/useForward";
 
@@ -148,6 +149,18 @@ const ChatPageRoute = () => {
     setSelectedSub,
   ]);
 
+  useEffect(() => {
+    return () => {
+      const state = useActiveChatStore.getState();
+      if (
+        state.selectedChatUUID === chatUUIDorHandle ||
+        state.selectedHandle === chatUUIDorHandle
+      ) {
+        state.clear();
+      }
+    };
+  }, [chatUUIDorHandle]);
+
   const styles = useMemo(() => createStyle(theme), [theme]);
 
   // Verifica se i dati nel context appartengono effettivamente alla chat aperta nell'URL
@@ -240,23 +253,7 @@ const ChatPageRoute = () => {
                 position: "relative",
               }}
             >
-              <View
-                //@ts-ignore
-                style={{
-                  position: "absolute",
-                  left: -10,
-                  top: 0,
-                  bottom: 0,
-                  width: 20,
-                  backgroundColor: "transparent",
-                  cursor: "ew-resize",
-                  zIndex: 10,
-                  alignItems: "center",
-                }}
-                {...resizerHandlers}
-              >
-                <View style={styles.splitSeparator} />
-              </View>
+              <PanelResizeHandle panHandlers={resizerHandlers} />
               <VocalContent />
             </View>
           </View>
@@ -317,11 +314,6 @@ function createStyle(theme: any) {
     },
     splitContainer: { flex: 1, flexDirection: "row" },
     splitPanel: { flex: 1, height: "100%" },
-    splitSeparator: {
-      width: 1,
-      backgroundColor: theme.backgroundDateSeparator,
-      height: "100%",
-    },
   });
 }
 

@@ -43,7 +43,8 @@ export default function StorageRoute() {
           <SettingRow
             iconName="Database02Icon"
             labelKey="settings.storage.localStorage"
-            value={`${(usedStorage / (1024 * 1024 * 1024)).toFixed(2)} ${t("settings.storage.gbUsed")}`}
+            valueKey="settings.storage.gbUsed"
+            valueOptions={{ count: (usedStorage / (1024 * 1024 * 1024)).toFixed(2) }}
             onPress={handleNavigateToLocal}
           />
           <SettingRow

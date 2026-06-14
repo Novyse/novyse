@@ -1,6 +1,5 @@
 import storage from "./index";
-import { getPlatform } from "../../device/type";
-
+import Platform from "@/src/utils/device/type";
 class S3Uploader {
   static activeTransfers = new Map();
 
@@ -132,14 +131,14 @@ class S3Uploader {
   }
 
   static getResponseType() {
-    const platform = getPlatform();
-    switch (platform) {
+    switch (Platform) {
       case "web":
+      case "desktop":
         return "blob";
       case "mobile":
         return "arraybuffer";
       default:
-        throw new Error(`Unsupported platform: ${platform}`);
+        throw new Error(`Unsupported platform: ${Platform}`);
     }
   }
 

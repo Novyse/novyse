@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, StyleProp, ViewStyle } from "react-native";
 import Icon from "@/src/components/Icon";
 
 interface CommsBottomBarButtonProps {
@@ -6,6 +6,7 @@ interface CommsBottomBarButtonProps {
   iconName: string;
   iconColor: string;
   hoverColor?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 const CommsBottomBarButton = ({
@@ -13,6 +14,7 @@ const CommsBottomBarButton = ({
   iconName,
   iconColor,
   hoverColor,
+  style,
 }: CommsBottomBarButtonProps) => {
   const styles = createStyle();
 
@@ -20,7 +22,7 @@ const CommsBottomBarButton = ({
     <Icon
       name={iconName}
       color={iconColor}
-      style={styles.iconButton}
+      style={[styles.iconButton, style]}
       onPress={onPress}
       hoverColor={hoverColor}
     />

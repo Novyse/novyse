@@ -1,12 +1,12 @@
+import packageJson from "./package.json";
+
 //.ENV
 const APP_NAME = "Novyse"; // Novyse-dev Novyse
 const APP_SLUG = "novyse";
-const APP_VERSION = "1.0.0";
-const BUILD_NUMBER = "1";
-const BUILD_DATE = "2026/05/14 13:00:00";
+const APP_VERSION = packageJson.version;
 const EXPO_OWNER = "novyse";
 const EAS_PROJECT_ID = "3f91b058-96c7-45ff-abb5-511b5d084b64";
-const BRANCH = "production" as "development" | "preview" | "production";
+const BRANCH = "development" as "development" | "preview" | "production";
 
 const getDomain = (sub: string) => {
   const suffix =
@@ -41,8 +41,6 @@ export {
   API_BASE_URL,
   SOCKET_BASE_URL,
   APP_VERSION,
-  BUILD_NUMBER,
-  BUILD_DATE,
   APP_URL,
   TINY_APP_URL,
   LANDING_PAGE_URL,
@@ -83,7 +81,8 @@ export default {
       infoPlist: {
         UIBackgroundModes: ["audio"],
       },
-      googleServicesFile: "./GoogleService-Info.plist",
+      googleServicesFile:
+        process.env.GOOGLE_SERVICES_PLIST || "./GoogleService-Info.plist",
     },
     android: {
       adaptiveIcon: {
@@ -125,6 +124,7 @@ export default {
         "WAKE_LOCK",
         "USE_FULL_SCREEN_INTENT",
         "VIBRATE",
+        "REQUEST_INSTALL_PACKAGES",
       ],
       googleServicesFile:
         process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
@@ -218,6 +218,12 @@ export default {
           androidIntentFilters: ["*/*"],
         },
       ],
+      "expo-font",
+      "expo-image",
+      "expo-localization",
+      "expo-secure-store",
+      "expo-sharing",
+      "expo-status-bar",
     ],
     experiments: {
       typedRoutes: true,

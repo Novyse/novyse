@@ -1,8 +1,10 @@
 import React, { useContext } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import HeaderBase from "@/src/components/HeaderBase";
 import BlurredView from "@/src/components/BlurredView";
+import ChatHeaderBackdrop from "./ChatHeaderBackdrop";
+import { useScreen } from "@/src/context/ScreenContext";
 
 import MainHeader from "./main";
 import SelectedHeader from "./SelectedHeader";
@@ -31,6 +33,9 @@ const Header = ({
   onDelete,
 }) => {
   const styles = createStyle();
+  const insets = useSafeAreaInsets();
+  const { isSmallScreen: isMobileLayout } = useScreen();
+  const useFullWidthBackdrop = isMobileLayout;
 
   const { currentUri } = useContext(AudioPlayerContext);
 
@@ -64,70 +69,105 @@ const Header = ({
 
   const activeRadius = isHeaderExpanded ? 15 : 100;
 
-  const handleLayout = React.useCallback(
+  const [backdropHeight, setBackdropHeight] = React.useState(0);
+
+  const handleContentLayout = React.useCallback(
     (e) => {
+      const height = e.nativeEvent.layout.height;
+      setBackdropHeight(height);
+
       if (setHeaderHeight) {
-        setHeaderHeight(e.nativeEvent.layout.height);
+        setHeaderHeight(height);
       }
     },
     [setHeaderHeight],
   );
 
   return (
-    <HeaderBase
-      style={[styles.headerBase, { borderRadius: activeRadius }]}
-      onLayout={handleLayout}
+    <View
+      style={[
+        styles.root,
+        useFullWidthBackdrop ? styles.rootMobile : { top: insets.top },
+      ]}
     >
-      <BlurredView
-        style={[styles.headerColumnContainer, { borderRadius: activeRadius }]}
-      >
-        {(!selectedMessages || selectedMessages.length === 0) && (
-          <MainHeader
-            chatUUIDorHandle={chatUUIDorHandle}
-            chatType={chatType}
-            selectedChatName={name}
-            selectedChatPictureUUID={profilePictureUUID}
-            memberCount={memberCount}
-            onlineMembersCount={onlineMembersCount}
-            memberActivityData={memberActivityData}
-            lastAccessAt={lastAccessAt}
-            contentView={contentView}
-            setContentView={setContentView}
-            onBack={onBack}
-            navToOverview={navToOverview}
-          />
-        )}
-        {selectedMessages && selectedMessages.length > 0 && (
-          <SelectedHeader
-            chatUUIDorHandle={chatUUIDorHandle}
-            selectedMessages={selectedMessages}
-            setSelectedMessages={setSelectedMessages}
-            isSmallScreen={isSmallScreen}
-            onReply={onReply}
-            onForward={onForward}
-            onDelete={onDelete}
-          />
-        )}
+      {useFullWidthBackdrop && (
+        <ChatHeaderBackdrop height={backdropHeight} />
+      )}
 
-        {hasPinnedMessage && (
-          <PinnedMessageHeader pinnedMessages={pinnedMessages} />
-        )}
-        {isVoiceActive && <AudioHeader />}
-        {hasComms && (
-          <CommsHeader
-            connected={connected}
-            roomName={room?.roomInfo.name}
-            participantsCount={participants.length}
-          />
-        )}
-      </BlurredView>
-    </HeaderBase>
+      <View
+        style={[
+          styles.content,
+          useFullWidthBackdrop
+            ? { paddingTop: insets.top }
+            : { paddingTop: 10 },
+        ]}
+        onLayout={handleContentLayout}
+      >
+        <BlurredView
+          style={[styles.headerColumnContainer, { borderRadius: activeRadius }]}
+          isBorderActive={false}
+        >
+          {(!selectedMessages || selectedMessages.length === 0) && (
+            <MainHeader
+              chatUUIDorHandle={chatUUIDorHandle}
+              chatType={chatType}
+              selectedChatName={name}
+              selectedChatPictureUUID={profilePictureUUID}
+              memberCount={memberCount}
+              onlineMembersCount={onlineMembersCount}
+              memberActivityData={memberActivityData}
+              lastAccessAt={lastAccessAt}
+              contentView={contentView}
+              setContentView={setContentView}
+              onBack={onBack}
+              navToOverview={navToOverview}
+            />
+          )}
+          {selectedMessages && selectedMessages.length > 0 && (
+            <SelectedHeader
+              chatUUIDorHandle={chatUUIDorHandle}
+              selectedMessages={selectedMessages}
+              setSelectedMessages={setSelectedMessages}
+              isSmallScreen={isSmallScreen}
+              onReply={onReply}
+              onForward={onForward}
+              onDelete={onDelete}
+            />
+          )}
+
+          {hasPinnedMessage && (
+            <PinnedMessageHeader pinnedMessages={pinnedMessages} />
+          )}
+          {isVoiceActive && <AudioHeader />}
+          {hasComms && (
+            <CommsHeader
+              connected={connected}
+              roomName={room?.roomInfo.name}
+              participantsCount={participants.length}
+            />
+          )}
+        </BlurredView>
+      </View>
+    </View>
   );
 };
+
 function createStyle() {
   return StyleSheet.create({
-    headerBase: {
-      overflow: "hidden",
+    root: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      width: "100%",
+      zIndex: 1,
+    },
+    rootMobile: {
+      top: 0,
+    },
+    content: {
+      width: "100%",
+      paddingHorizontal: 10,
+      paddingBottom: 10,
     },
     headerColumnContainer: {
       flexDirection: "column",

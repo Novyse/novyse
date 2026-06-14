@@ -1,9 +1,12 @@
-import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Platform } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, StyleSheet } from "react-native";
 import { CLOUDFLARE_TURNSTILE_PUBLIC } from "@/app.config";
 
+import Platform from "@/src/utils/device/type";
+import { getElectronUrl } from "@/src/utils/electron/url";
+
 let WebView: any;
-if (Platform.OS !== "web") {
+if (Platform === "mobile") {
   try {
     WebView = require("react-native-webview").WebView;
   } catch (e) {
@@ -19,9 +22,47 @@ const TurnstileCaptcha: React.FC<TurnstileCaptchaProps> = ({ onVerify }) => {
   const siteKey = CLOUDFLARE_TURNSTILE_PUBLIC;
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const [electronUrl, setElectronUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (Platform.OS === "web") {
+    if (Platform === "desktop") {
+      const fetchUrl = () => {
+        const base = getElectronUrl();
+        if (base) return `${base}/captcha`;
+        return null;
+      };
+
+      const url = fetchUrl();
+      if (url) {
+        setElectronUrl(url);
+      } else {
+        const interval = setInterval(() => {
+          const currentUrl = fetchUrl();
+          if (currentUrl) {
+            setElectronUrl(currentUrl);
+            clearInterval(interval);
+          }
+        }, 100);
+        return () => clearInterval(interval);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (Platform === "desktop") {
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data?.type === "turnstile-token") {
+          onVerify(event.data.token);
+        }
+      };
+
+      window.addEventListener("message", handleMessage);
+      return () => window.removeEventListener("message", handleMessage);
+    }
+  }, [onVerify]);
+
+  useEffect(() => {
+    if (Platform === "web") {
       const scriptId = "cloudflare-turnstile-script";
       if (!document.getElementById(scriptId)) {
         const script = document.createElement("script");
@@ -80,13 +121,28 @@ const TurnstileCaptcha: React.FC<TurnstileCaptchaProps> = ({ onVerify }) => {
     return null;
   }
 
-  if (Platform.OS === "web") {
+  if (Platform === "web") {
     return (
       <View style={styles.container}>
         {/* @ts-ignore - div is valid in react-native-web */}
         <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
       </View>
     );
+  }
+
+  if (Platform === "desktop") {
+    if (electronUrl) {
+      return (
+        <View style={styles.container}>
+          {/* @ts-ignore */}
+          <iframe
+            src={electronUrl}
+            style={{ width: "100%", height: "100%", border: "none" }}
+          />
+        </View>
+      );
+    }
+    return null;
   }
 
   if (!WebView) {

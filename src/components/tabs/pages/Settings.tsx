@@ -1,8 +1,7 @@
 import React from "react";
-import { Platform } from "react-native";
-
 import SettingsMenuItem from "@/src/components/settings/SettingsMenuItem";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
+import Platform from "@/src/utils/device/type";
 
 const settingsList = [
   {
@@ -30,7 +29,7 @@ const settingsList = [
     iconName: "VolumeHighIcon",
     navToPage: "./settings/comms",
   },
-  ...(Platform.OS === "android"
+  ...(Platform === "mobile"
     ? [
         {
           translationKey: "settings.menu.qrScanner",
@@ -39,12 +38,21 @@ const settingsList = [
         },
       ]
     : []),
-  ...(Platform.OS === "web"
+  ...(Platform === "web" || Platform === "desktop"
     ? [
         {
           translationKey: "settings.menu.shortcuts",
           iconName: "KeyboardIcon",
           navToPage: "./settings/shortcuts",
+        },
+      ]
+    : []),
+  ...(Platform === "desktop"
+    ? [
+        {
+          translationKey: "settings.menu.system",
+          iconName: "ComputerIcon",
+          navToPage: "./settings/system",
         },
       ]
     : []),

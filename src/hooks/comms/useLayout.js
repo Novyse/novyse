@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StatusBar } from "react-native";
 
 import { useScreen } from "@/src/context/ScreenContext";
@@ -6,8 +6,9 @@ import { useCommsContext } from "@/src/context/CommsContext";
 
 import { Track } from "livekit-client";
 import Platform from "@/src/utils/device/type";
+import * as ScreenOrientation from "expo-screen-orientation";
 
-const useLayout = (room, participants, containerDimensions) => {
+const useLayout = (room, participants, containerDimensions, containerRef) => {
   // Costants
   const ASPECT_RATIO = 16 / 9;
   const MARGIN = 4;
@@ -22,7 +23,10 @@ const useLayout = (room, participants, containerDimensions) => {
     fullscreenStreamUUID,
     setFullScreenStreamUUID,
     streams,
+    roomMetadata: contextMetadata,
   } = useCommsContext();
+
+  const metadata = contextMetadata || room?.metadata;
 
   const handlePin = useCallback(
     (streamUUID) => {
@@ -44,13 +48,20 @@ const useLayout = (room, participants, containerDimensions) => {
   useEffect(() => {
     if (fullscreenStreamUUID) {
       if (!isMobile) {
-        // request system fullscreen on web
-        document.documentElement.requestFullscreen().catch((err) => {
+        // request system fullscreen on web on specific container ref to hide headers
+        const element =
+          (containerRef && containerRef.current) || document.documentElement;
+        element.requestFullscreen().catch((err) => {
           console.error("Error entering fullscreen:", err);
         });
       } else {
         // hide the status bar on native when a stream is in fullscreen
         StatusBar.setHidden(true, "fade");
+        ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.LANDSCAPE,
+        ).catch((err) => {
+          console.error("Error locking landscape orientation:", err);
+        });
       }
     } else {
       if (!isMobile) {
@@ -61,6 +72,11 @@ const useLayout = (room, participants, containerDimensions) => {
         }
       } else {
         StatusBar.setHidden(false, "fade");
+        ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT_UP,
+        ).catch((err) => {
+          console.error("Error locking portrait orientation:", err);
+        });
       }
     }
   }, [fullscreenStreamUUID, isMobile]);
@@ -86,6 +102,26 @@ const useLayout = (room, participants, containerDimensions) => {
 
   const getLayoutItems = useCallback(() => {
     const items = [];
+
+    // Add Watch Together card if active in room metadata
+    try {
+      const roomMetadata = metadata ? JSON.parse(metadata) : null;
+      if (roomMetadata?.watchTogether?.url) {
+        items.push({
+          deviceUUID: "watch-together",
+          streamUUID: "watch-together",
+          name: "Watch Together",
+          metadata: roomMetadata.watchTogether,
+          isScreenShare: false,
+          isLocal: false,
+          stream: null,
+          participant: null,
+        });
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+
     if (!participants || !Array.isArray(participants)) return items;
 
     participants.forEach((participant) => {
@@ -158,7 +194,7 @@ const useLayout = (room, participants, containerDimensions) => {
     }
 
     return filteredItems;
-  }, [participants, room, pinnedStreamUUID, streams]);
+  }, [participants, room, metadata, pinnedStreamUUID, streams]);
 
   const calculateLayout = useCallback(() => {
     const layoutItems = getLayoutItems();

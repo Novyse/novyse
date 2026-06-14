@@ -4,6 +4,10 @@ import { Chat, User, Member } from "@/src/types";
 
 import database from "@/src/utils/storage/database";
 import useUserStore from "@/src/context/UserContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+
+import notificationManager from "@/src/utils/notifications/manager";
+import messageUtils from "@/src/utils/chat/messageFormat";
 
 interface ChatState {
   chats: Chat[];
@@ -334,20 +338,17 @@ const useChatStore = create<ChatState>((set, get) => ({
     const { default: eventEmitter }: any =
       await import("@/src/utils/global/Events/EventEmitter");
 
-    eventEmitter.getEmitter().on("chat:new", get().onNewChat);
-    eventEmitter.getEmitter().on("chat:member:joined", get().onMemberJoin);
-    eventEmitter.getEmitter().on("chat:member:activity", get().onActivity);
-    eventEmitter.getEmitter().on("message:new", get().onNewMessage);
-    eventEmitter.getEmitter().on("message:upload", get().onMessageUpload);
-    eventEmitter
-      .getEmitter()
-      .on("message:downloaded", get().onMessageDownloaded);
-    eventEmitter.getEmitter().on("message:sent", get().onMessageSent);
-    eventEmitter.getEmitter().on("message:update", get().onMessageUpdate);
-    eventEmitter.getEmitter().on("file:downloaded", get().onFileDownloaded);
-    eventEmitter
-      .getEmitter()
-      .on("user:setting:chat:update", get().onUserChatSettingUpdate);
+    const emitter = eventEmitter.getEmitter();
+    emitter.on("chat:new", get().onNewChat);
+    emitter.on("chat:member:joined", get().onMemberJoin);
+    emitter.on("chat:member:activity", get().onActivity);
+    emitter.on("message:new", get().onNewMessage);
+    emitter.on("message:upload", get().onMessageUpload);
+    emitter.on("message:downloaded", get().onMessageDownloaded);
+    emitter.on("message:sent", get().onMessageSent);
+    emitter.on("message:update", get().onMessageUpdate);
+    emitter.on("file:downloaded", get().onFileDownloaded);
+    emitter.on("user:setting:chat:update", get().onUserChatSettingUpdate);
 
     set({ _eventsSetup: true });
   },
@@ -384,13 +385,83 @@ const useChatStore = create<ChatState>((set, get) => ({
   },
 
   onNewMessage: (message: any) => {
+    const myUUID = useUserStore.getState().localUserUUID;
+    const isOwnMessage =
+      !!myUUID &&
+      !!message.senderUUID &&
+      String(message.senderUUID) === String(myUUID);
+
+    const chat = get().chats.find(
+      (c) =>
+        c.uuid === message.chatUUID ||
+        (message.chatHandle && (c as any).handle === message.chatHandle),
+    );
+
+    if (!isOwnMessage && !message.internal) {
+      const activeChatState = useActiveChatStore.getState();
+      const isViewingThisChat =
+        activeChatState.selectedChatUUID === message.chatUUID ||
+        (message.chatHandle &&
+          activeChatState.selectedHandle === message.chatHandle);
+      const isInChatOrBothView =
+        activeChatState.contentView === "chat" ||
+        activeChatState.contentView === "both";
+
+      const shouldNotify = !(isViewingThisChat && isInChatOrBothView);
+
+      if (shouldNotify) {
+        const sender = useUserStore.getState().getUser(message.senderUUID);
+        const senderName = sender?.name || "Unknown";
+        const body = messageUtils.format(message).content;
+
+        if (chat && chat.type !== "DM") {
+          // Group/Channel/Forum: title = chat name, subtitle = sender name, icon = chat picture
+          notificationManager.sendNotification(
+            chat.name,
+            body,
+            {
+              chatUUID: message.chatUUID,
+              senderUUID: message.senderUUID,
+              id: message.id,
+              messageId: message.id,
+            },
+            chat.profilePictureUUID || undefined,
+            senderName,
+          );
+        } else {
+          // DM: title = person name, no subtitle, icon = person picture
+          notificationManager.sendNotification(
+            senderName,
+            body,
+            {
+              chatUUID: message.chatUUID,
+              senderUUID: message.senderUUID,
+              id: message.id,
+              messageId: message.id,
+            },
+            sender?.profilePictureUUID || undefined,
+          );
+        }
+      }
+    }
+
     set((state) => ({
       chats: state.chats.map((chat) => {
         const isMatch =
           chat.uuid === message.chatUUID ||
           (message.chatHandle && (chat as any).handle === message.chatHandle);
         if (!isMatch) return chat;
-        if (chat.messages.some((m: any) => m.id === message.id)) return chat;
+        if (chat.messages.some((m: any) => m.id === message.id)) {
+          return chat;
+        }
+        if (isOwnMessage && !message.internal) {
+          const hasPending = chat.messages.some(
+            (m: any) => m.internal === true,
+          );
+          if (hasPending) {
+            return chat;
+          }
+        }
 
         const safeMessage = {
           ...message,
@@ -419,7 +490,9 @@ const useChatStore = create<ChatState>((set, get) => ({
         return {
           ...chat,
           messages: [...updatedMessages, safeMessage],
-          unreadCount: (chat.unreadCount || 0) + (!message.internal ? 1 : 0),
+          unreadCount:
+            (chat.unreadCount || 0) +
+            (!message.internal && !isOwnMessage ? 1 : 0),
         };
       }),
     }));

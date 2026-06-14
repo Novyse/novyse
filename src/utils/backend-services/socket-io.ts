@@ -1,20 +1,20 @@
 import { io, Socket } from "socket.io-client";
 
-import { getAuthToken } from "./auth/token-manager";
+import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
 
-import eventEmitter from "../global/Events/EventEmitter";
-import eventReceiver from "./lib/event-receiver";
-import eventSender from "./lib/event-sender";
+import eventEmitter from "@/src/utils/global/Events/EventEmitter";
+import eventReceiver from "@/src/utils/backend-services/lib/event-receiver";
+import eventSender from "@/src/utils/backend-services/lib/event-sender";
 import useNetworkStore from "@/src/context/NetworkContext";
 
-import { SOCKET_BASE_URL } from "../../../app.config";
-import { Platform } from "react-native";
+import { SOCKET_BASE_URL } from "@/app.config";
+import Platform from "@/src/utils/device/type";
 
 let socket: Socket | null = null;
 let isConnecting = false;
 
 let transportsMethods = ["polling"];
-if (Platform.OS == "web") {
+if (Platform === "web" || Platform === "desktop") {
   transportsMethods.pop();
   transportsMethods.push("websocket");
 }

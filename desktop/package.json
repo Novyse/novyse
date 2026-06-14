@@ -1,0 +1,46 @@
+{
+  "name": "novyse-desktop",
+  "version": "1.0.2-20260614.0",
+  "description": "A desktop client for Novyse",
+  "main": "build/main.js",
+  "scripts": {
+    "dev": "bun run build && bunx electron .",
+    "build": "bun build src/main.ts --outfile build/main.js --target node --packages external --format cjs && bun build src/preload.ts --outfile build/preload.js --target node --packages external --format cjs",
+    "dist": "electron-builder --config electron-builder.config.ts",
+    "postinstall": "bunx electron-rebuild"
+  },
+  "overrides": {
+    "minimatch": "10.2.2"
+  },
+  "resolutions": {
+    "minimatch": "10.2.2"
+  },
+  "keywords": [
+    "messaging",
+    "chat",
+    "novyse",
+    "desktop",
+    "electron"
+  ],
+  "homepage": "https://www.novyse.com",
+  "author": {
+    "name": "Novyse",
+    "email": "contact@novyse.com",
+    "url": "https://www.novyse.com"
+  },
+  "license": "GNU GENERAL PUBLIC LICENSE",
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/mime-types": "^3.0.1",
+    "electron": "^41.7.0",
+    "electron-builder": "^26.8.1"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.10.0",
+    "electron-updater": "^6.8.3",
+    "express": "^5.2.1",
+    "mime-types": "^3.0.2",
+    "sharp": "^0.34.5"
+  }
+}

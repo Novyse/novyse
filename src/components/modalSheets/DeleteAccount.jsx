@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
-import ModalBase from "@/src/components/modalSheets/ModalBase";
+import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import StatusMessage from "@/src/components/StatusMessage";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -51,10 +51,11 @@ const DeleteAccount = ({ visible, onClose }) => {
   };
 
   return (
-    <ModalBase
+    <AdaptiveModal
       visible={visible}
       onClose={handleClose}
       theme={theme}
+      mode="adaptive"
       hideCloseX={true}
     >
       <View style={styles.contentContainer}>
@@ -136,7 +137,7 @@ const DeleteAccount = ({ visible, onClose }) => {
           </HoverAndPressedButton>
         </View>
       </View>
-    </ModalBase>
+    </AdaptiveModal>
   );
 };
 

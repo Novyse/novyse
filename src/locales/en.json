@@ -2,6 +2,7 @@
   "common": {
     "hello": "Hello!",
     "settings": "Settings",
+    "loading": "Loading...",
     "loadingProfile": "Loading profile...",
     "error": "Error",
     "success": "Success",
@@ -94,6 +95,20 @@
       "sticker": "Sticker",
       "gif": "GIF"
     },
+    "emojiCategories": {
+      "searchPlaceholder": "Search emoji...",
+      "recents": "Recents",
+      "smileys": "Smileys & Emotion",
+      "people": "People & Body",
+      "animals": "Animals & Nature",
+      "food": "Food & Drink",
+      "travel": "Travel & Places",
+      "activities": "Activities",
+      "objects": "Objects",
+      "symbols": "Symbols",
+      "flags": "Flags",
+      "searchResults": "Search Results"
+    },
     "overview": {
       "tabs": {
         "members": "Members",
@@ -171,11 +186,25 @@
       }
     },
     "comms": {
+      "notification": {
+        "inCall": "In Call: {{chatName}}",
+        "tapToReturn": "Tap to return to call",
+        "muteMic": "Mute Mic",
+        "unmuteMic": "Unmute Mic",
+        "turnCamOff": "Turn Cam Off",
+        "turnCamOn": "Turn Cam On",
+        "disconnect": "Disconnect"
+      },
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "fullscreen": "Fullscreen",
+      "exitFullscreen": "Exit Fullscreen",
       "participantsInCall": "{{count}} participants in call",
       "noParticipants": "There is no one here.",
       "error": {
         "chatFull": "This chat is full",
-        "generic": "Please try again later."
+        "generic": "Please try again later.",
+        "noMicPermissionWarning": "Microphone permission is required to unmute yourself. Please allow microphone access in your browser or system settings."
       },
       "selectors": {
         "camera": {
@@ -188,8 +217,48 @@
           "title": "Select Microphone",
           "loading": "Loading microphones...",
           "currentlySelected": "Currently Selected",
-          "defaultName": "Microphone {{id}}"
+          "defaultName": "Microphone {{id}}",
+          "permissionDenied": "Microphone permission is denied. Please enable microphone access in your system settings to use voice features."
+        },
+        "screenshare": {
+          "title": "Share your screen",
+          "loading": "Loading sources...",
+          "screens": "Screens",
+          "windows": "Windows",
+          "screen": "Screen",
+          "window": "Window",
+          "includeAudio": "Share system audio",
+          "macOsAudioWarning": "Audio sharing is not supported on your macOS version.",
+          "permissionWarning": "Please allow screen recording in System Settings (Privacy & Security) to share your screen.",
+          "nativeMenuWarning": "Your Desktop environment requires selecting the screen or window from the native system portal.",
+          "share": "Share",
+          "cancel": "Cancel",
+          "startScreenShare": "Start"
         }
+      },
+      "roomOptions": {
+        "title": "Room Options",
+        "watchTogether": "Watch Together",
+        "startWatchTogether": "Start Watch Together",
+        "modifyWatchTogether": "Modify Watch Together",
+        "stopWatchTogether": "Stop Watch Together"
+      },
+      "watchTogether": {
+        "title": "Watch Together",
+        "startTitle": "Start Watch Together",
+        "modifyTitle": "Modify Watch Together",
+        "description": "Paste a YouTube or direct video link to sync playback with all participants.",
+        "placeholder": "Paste YouTube or video URL...",
+        "cancel": "Cancel",
+        "start": "Start",
+        "modify": "Modify",
+        "stop": "Stop",
+        "invalidUrl": "Invalid URL or network error.",
+        "supportedLinks": "Supported Links",
+        "detectedType": "Detected: {{type}}",
+        "notSupported": "Unsupported link format",
+        "typeYoutube": "YouTube",
+        "typeDirect": "Direct Video (MP4, WebM, etc.)"
       }
     },
     "memberCount_one": "{{count}} member",
@@ -240,7 +309,8 @@
       "comms": "Comms",
       "qrScanner": "QR Scanner",
       "shortcuts": "Shortcuts",
-      "info": "Info"
+      "info": "Info",
+      "system": "System"
     },
     "account": {
       "title": "Account",
@@ -349,7 +419,7 @@
     },
     "storage": {
       "localStorage": "Local Storage",
-      "gbUsed": "GB used",
+      "gbUsed": "{{count}} GB used",
       "cloudStorageComingSoon": "Cloud Storage (Coming Soon)",
       "resetDatabase": "Reset Database",
       "resetDatabaseSubtitle": " (This will completely clean local database and request server all your data)",
@@ -479,6 +549,16 @@
       "notificationMethodRemoved": "Notification method removed",
       "default": "Default",
       "addNotificationMethod": "Add Notification Method"
+    },
+    "system": {
+      "title": "System",
+      "startupSection": "Application Startup",
+      "actionsSection": "Initial Actions",
+      "openOnStartup": "Open on startup",
+      "joinCommsOnStartup": "Join comms on startup",
+      "selectChat": "Select Chat",
+      "selectSub": "Select Sub",
+      "none": "None"
     }
   },
   "layout": {
@@ -498,7 +578,18 @@
       "downloadLatestVersion": "Download Latest Version",
       "warning": "Note: If you continue without updating, online features will be unavailable.",
       "goBack": "Go back to Novyse",
-      "helperText": "Visit {link} to get the update for your device."
+      "updateNow": "Update Now",
+      "installing": "Install & Restart",
+      "downloading": "Downloading… {{percent}}%",
+      "checking": "Checking for updates…",
+      "openPlayStore": "Open Play Store",
+      "openAppStore": "Open App Store",
+      "openMicrosoftStore": "Open Microsoft Store",
+      "openGitHub": "Download from GitHub",
+      "updateViaSnap": "Update via Snap Store",
+      "updateViaFlatpak": "Update via Flathub",
+      "refreshPage": "Refresh Page",
+      "autoUpdateError": "Auto-update failed. Please download manually."
     }
   },
   "tabs": {

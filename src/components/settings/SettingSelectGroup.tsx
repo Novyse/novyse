@@ -6,7 +6,11 @@ import Icon from "@/src/components/Icon";
 export type SelectOption<T extends string = string> = {
   value: T;
   labelKey?: string;
+  labelOptions?: Record<string, any>;
   labelText?: string;
+  valueText?: string;
+  valueKey?: string;
+  valueOptions?: Record<string, any>;
   iconName?: string;
   leftElement?: React.ReactNode;
 };
@@ -34,7 +38,11 @@ function SettingSelectGroup<T extends string = string>({
             iconName={option.iconName}
             leftElement={option.leftElement}
             labelKey={option.labelKey}
+            labelOptions={option.labelOptions}
             labelText={option.labelText}
+            value={option.valueText}
+            valueKey={option.valueKey}
+            valueOptions={option.valueOptions}
             type="SELECT_GROUP"
             onPress={() => onChange(option.value)}
             isSelected={isSelected}

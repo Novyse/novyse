@@ -114,9 +114,16 @@ const SmartBackground = ({
       }
     } else {
       // Se è un gradiente valido, usa LinearGradient
+      const safeColors =
+        colorValue.length === 0
+          ? ["transparent", "transparent"]
+          : colorValue.length === 1
+            ? [colorValue[0], colorValue[0]]
+            : colorValue;
+
       return (
         <LinearGradient
-          colors={colorValue as [string, string, ...string[]]}
+          colors={safeColors as [string, string, ...string[]]}
           start={start}
           end={end}
           style={style as ViewStyle}

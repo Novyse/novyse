@@ -5,6 +5,7 @@ export const getVideoDuration = async (uri) => {
 
   switch (platform) {
     case "web":
+    case "desktop":
       return await getWebVideoDuration(uri);
     case "mobile":
       return await getMobileVideoDuration(uri);

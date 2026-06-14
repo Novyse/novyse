@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+export const SIDEBAR_MIN = 250;
+export const SIDEBAR_COLLAPSED = 80;
+
 interface WindowSizeState {
   detailWidth: number;
   minDetailWidth: number;

@@ -11,11 +11,12 @@ import notifee, {
   AndroidPerson,
   EventDetail,
 } from "react-native-notify-kit";
-import { Platform } from "react-native";
+import { Platform, DeviceEventEmitter } from "react-native";
 import { router } from "expo-router";
 import { DateTime } from "luxon";
 import messageFormat from "../../chat/messageFormat";
-import gateway from "../../backend-services/api-gateway";
+import i18n from "../../../i18n";
+import { useActiveChatStore } from "../../../context/ActiveChatContext";
 
 class MobileNotificationManager {
   private processedMessageIds = new Set<string>();
@@ -66,7 +67,13 @@ class MobileNotificationManager {
       case EventType.PRESS:
         const chatUUID = notification?.data?.chatUUID;
         if (chatUUID) {
-          router.push(`/app/chat/${chatUUID}/0`);
+          const activeStore = useActiveChatStore.getState();
+          await activeStore.setSelectedChatUUID(chatUUID as string);
+          if (notification.id === "novyse_comms_persistent") {
+            activeStore.setContentView("vocal");
+          } else {
+            activeStore.setContentView("chat");
+          }
         }
         if (notification?.id) {
           await notifee.cancelNotification(notification.id);
@@ -81,11 +88,19 @@ class MobileNotificationManager {
         } else if (pressAction?.id === "answer_call") {
           const chatUUID = notification?.data?.chatUUID;
           if (chatUUID) {
-            router.push(`/app/chat/${chatUUID}/0`);
+            const activeStore = useActiveChatStore.getState();
+            await activeStore.setSelectedChatUUID(chatUUID as string);
+            activeStore.setContentView("vocal");
           }
           if (notification?.id) {
             await notifee.cancelNotification(notification.id);
           }
+        } else if (pressAction?.id === "toggle_mic") {
+          DeviceEventEmitter.emit("comms_toggle_mic");
+        } else if (pressAction?.id === "toggle_cam") {
+          DeviceEventEmitter.emit("comms_toggle_cam");
+        } else if (pressAction?.id === "leave_voice") {
+          DeviceEventEmitter.emit("comms_leave_voice");
         }
         break;
     }
@@ -104,14 +119,14 @@ class MobileNotificationManager {
 
     try {
       // 1. Ensure permissions
-      const settings = await notifee.requestPermission();
+      const settings = await notifee.getNotificationSettings();
       console.log(
         "[MobileNotificationManager] Permission status:",
         settings.authorizationStatus,
       );
 
       // 2. Ensure channel exists (idempotent)
-      const channelId = "chat_messages_v4";
+      const channelId = "novyse_chat_messages";
       const channelSettings: AndroidChannel = {
         id: channelId,
         name: "Chat Messages",
@@ -158,6 +173,22 @@ class MobileNotificationManager {
       const useChatStore = (await import("@/src/context/ChatContext")).default;
       const useUserStore = (await import("@/src/context/UserContext")).default;
       const database = (await import("../../storage/database")).default;
+
+      // Ensure DB is connected in Headless mode (when UI SQLiteProvider is not mounted)
+      if (!database.file.db) {
+        const SQLite = await import("expo-sqlite");
+        database.setDb(SQLite.openDatabaseSync("novyse"));
+      }
+
+      // Ensure Network Context knows we are online in Headless mode
+      const useNetworkStore = (await import("@/src/context/NetworkContext"))
+        .default;
+      if (!useNetworkStore.getState().isConnected) {
+        const NetInfo = (await import("@react-native-community/netinfo"))
+          .default;
+        const netState = await NetInfo.fetch();
+        useNetworkStore.setState({ isConnected: netState.isConnected ?? true });
+      }
 
       // 3.1 Resolve Chat
       let chat = chatUUID
@@ -228,10 +259,16 @@ class MobileNotificationManager {
 
       const resolveLocalURI = async (uuid: string | null | undefined) => {
         if (!uuid || typeof uuid !== "string") return undefined;
-        if (uuid.startsWith("http")) return uuid;
+        if (
+          uuid.startsWith("http") ||
+          uuid.startsWith("file://") ||
+          uuid.startsWith("/")
+        )
+          return uuid;
         if (uuid.length < 20) return undefined;
         try {
           // 1. Try local storage
+          const database = (await import("../../storage/database")).default;
           const storage = (await import("../../storage/file")).default;
           const ref = await database.file.get.ref(uuid);
           if (ref) {
@@ -440,7 +477,95 @@ class MobileNotificationManager {
       },
     });
   }
+  async displayVoiceChatNotification(
+    chatName: string,
+    isMicOn: boolean,
+    isCamOn: boolean,
+    chatUUID: string,
+  ) {
+    if (Platform.OS !== "android") return;
+
+    try {
+      await notifee.createChannel({
+        id: "novyse_comms_service",
+        name: "Novyse Comms",
+        importance: AndroidImportance.LOW,
+      });
+
+      await notifee.displayNotification({
+        title: i18n.t("chat.comms.notification.inCall", { chatName }),
+        body: i18n.t("chat.comms.notification.tapToReturn"),
+        id: "novyse_comms_persistent",
+        android: {
+          channelId: "novyse_comms_service",
+          category: AndroidCategory.SERVICE,
+          ongoing: true,
+          asForegroundService: true,
+          smallIcon: "notification_icon",
+          pressAction: { id: "default" },
+          actions: [
+            {
+              title: isMicOn
+                ? i18n.t("chat.comms.notification.muteMic")
+                : i18n.t("chat.comms.notification.unmuteMic"),
+              pressAction: { id: "toggle_mic" },
+            },
+            {
+              title: isCamOn
+                ? i18n.t("chat.comms.notification.turnCamOff")
+                : i18n.t("chat.comms.notification.turnCamOn"),
+              pressAction: { id: "toggle_cam" },
+            },
+            {
+              title: i18n.t("chat.comms.notification.disconnect"),
+              pressAction: { id: "leave_voice" },
+            },
+          ],
+        },
+        data: {
+          chatUUID,
+        },
+      });
+    } catch (e) {
+      console.error(
+        "[MobileNotificationManager] Error displaying voice chat notification:",
+        e,
+      );
+    }
+  }
+
+  async hideVoiceChatNotification() {
+    if (Platform.OS !== "android") return;
+    
+    try {
+      // Metodo "più pulito": interroghiamo direttamente il sistema operativo
+      // per sapere se la notifica del servizio in background è attualmente attiva.
+      const displayedNotifications = await notifee.getDisplayedNotifications();
+      const isServiceRunning = displayedNotifications.some(
+        (n) => n.id === "novyse_comms_persistent"
+      );
+
+      if (!isServiceRunning) {
+        return; // Il servizio non è in esecuzione, evitiamo il comando di stop fatale.
+      }
+      
+      await notifee.stopForegroundService();
+      await notifee.cancelNotification("novyse_comms_persistent");
+    } catch (e) {
+      console.error(
+        "[MobileNotificationManager] Error hiding voice chat notification:",
+        e,
+      );
+    }
+  }
 }
 
+if (Platform.OS === "android") {
+  notifee.registerForegroundService((notification) => {
+    return new Promise(() => {
+      // The promise must not resolve until we explicitly stop the service
+    });
+  });
+}
 const mobileNotificationManager = new MobileNotificationManager();
 export default mobileNotificationManager;

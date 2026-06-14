@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import QRCode from "react-native-qrcode-svg";
+import { View, Text, StyleSheet, Image } from "react-native";
+import QRCode from "react-native-qrcode-skia";
+import { LinearGradient, vec } from "@shopify/react-native-skia";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import useClipboard from "@/src/hooks/useClipboard";
@@ -30,14 +31,34 @@ const AddAuthenticator = ({
       <View style={styles.qrcodeContainer}>
         <QRCode
           value={otpauth}
-          logo={QRLogo}
           size={QRSize}
-          enableLinearGradient={true}
-          linearGradient={theme.backgroundMainGradient}
-          logoBorderRadius={100}
-          logoMargin={5}
-          logoBackgroundColor={theme.text}
-        />
+          logoAreaSize={55}
+          logoAreaBorderRadius={10}
+          logo={
+            <View
+              style={{
+                width: 45,
+                height: 45,
+                borderRadius: 8,
+                backgroundColor: theme.text,
+                justifyContent: "center",
+                alignItems: "center",
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                source={QRLogo}
+                style={{ width: 35, height: 35, resizeMode: "contain" }}
+              />
+            </View>
+          }
+        >
+          <LinearGradient
+            start={vec(0, 0)}
+            end={vec(0, QRSize)}
+            colors={theme.backgroundMainGradient}
+          />
+        </QRCode>
       </View>
       <View style={styles.secretKeyContainer}>
         <Text

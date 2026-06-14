@@ -10,8 +10,11 @@ export type SettingRowProps = {
   iconName?: string;
   leftElement?: React.ReactNode;
   labelKey?: string;
+  labelOptions?: Record<string, any>;
   labelText?: string;
   value?: string;
+  valueKey?: string;
+  valueOptions?: Record<string, any>;
   onPress?: () => void;
   danger?: boolean;
   style?: any;
@@ -32,8 +35,11 @@ const SettingRow = ({
   iconName,
   leftElement,
   labelKey,
+  labelOptions,
   labelText,
   value,
+  valueKey,
+  valueOptions,
   onPress,
   danger = false,
   style,
@@ -73,13 +79,20 @@ const SettingRow = ({
           <AppText
             style={[settingRowStyles.label, { color: textColor }]}
             translationKey={labelKey}
+            translationOptions={labelOptions}
           />
         ) : (
           <AppText style={[settingRowStyles.label, { color: textColor }]}>
             {labelText}
           </AppText>
         )}
-        {value && type !== "VALUE" ? (
+        {valueKey ? (
+          <AppText
+            style={[settingRowStyles.value, { color: theme.subtitle }]}
+            translationKey={valueKey}
+            translationOptions={valueOptions}
+          />
+        ) : value && type !== "VALUE" ? (
           <AppText style={[settingRowStyles.value, { color: theme.subtitle }]}>
             {value}
           </AppText>
@@ -96,7 +109,13 @@ const SettingRow = ({
               />
             );
           case "VALUE":
-            return value ? (
+            return valueKey ? (
+              <AppText
+                style={[settingRowStyles.rightValue, { color: theme.subtitle }]}
+                translationKey={valueKey}
+                translationOptions={valueOptions}
+              />
+            ) : value ? (
               <AppText
                 style={[settingRowStyles.rightValue, { color: theme.subtitle }]}
               >

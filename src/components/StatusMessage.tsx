@@ -22,6 +22,7 @@ interface StatusMessageProps {
   timeout?: number | null;
   onClose?: () => void;
   closable?: boolean;
+  iconOnly?: boolean;
 }
 
 interface ThemeColors {
@@ -43,6 +44,7 @@ const StatusMessage = ({
   timeout = null,
   onClose,
   closable = true,
+  iconOnly = false,
 }: StatusMessageProps) => {
   const [isVisible, setIsVisible] = useState<boolean>(visible);
   const fade = useSharedValue(0);
@@ -132,70 +134,84 @@ const StatusMessage = ({
 
   return (
     <Animated.View style={[styles.container, containerStyle]}>
-      <View style={styles.inner}>
-        <View style={styles.iconContainer}>
+      <View style={[styles.inner, iconOnly && styles.innerCompact]}>
+        <View
+          style={[
+            styles.iconContainer,
+            iconOnly && styles.iconContainerCompact,
+          ]}
+        >
           <Icon name={icon.name} size={20} color={icon.color} />
         </View>
 
-        <View style={styles.contentContainer}>
-          <AppText
-            style={styles.title}
-            translationKey={`common.status.${titleKey.toLowerCase()}`}
-          />
-          {translationKey ? (
-            <AppText
-              style={styles.contentText}
-              translationKey={translationKey}
-            />
-          ) : (
-            list.map((value, index) => {
-              const formattedText =
-                (list.length > 1 ? `• ${value}` : value) ?? "";
-              const linkRegex =
-                /<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1[^>]*>(.*?)<\/a>/gi;
-              const parts = [];
-              let lastIndex = 0;
-              let match;
-
-              while ((match = linkRegex.exec(formattedText)) !== null) {
-                if (match.index > lastIndex) {
-                  parts.push(formattedText.substring(lastIndex, match.index));
-                }
-                const url = match[2];
-                const linkText = match[3];
-
-                parts.push(
-                  <AppText
-                    key={`link-${index}-${lastIndex}`}
-                    style={styles.linkText}
-                    onPress={() => Linking.openURL(url)}
-                    text={linkText}
-                  />,
-                );
-                lastIndex = linkRegex.lastIndex;
-              }
-
-              if (lastIndex < formattedText.length) {
-                parts.push(formattedText.substring(lastIndex));
-              }
-
-              return (
+        {!iconOnly && (
+          <>
+            <View style={styles.contentContainer}>
+              <AppText
+                style={styles.title}
+                translationKey={`common.status.${titleKey.toLowerCase()}`}
+              />
+              {translationKey ? (
                 <AppText
-                  key={index}
                   style={styles.contentText}
-                  text={parts.length > 0 ? undefined : formattedText}
-                >
-                  {parts.length > 0 ? parts : null}
-                </AppText>
-              );
-            })
-          )}
-        </View>
+                  translationKey={translationKey}
+                />
+              ) : (
+                list.map((value, index) => {
+                  const formattedText =
+                    (list.length > 1 ? `• ${value}` : value) ?? "";
+                  const linkRegex =
+                    /<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1[^>]*>(.*?)<\/a>/gi;
+                  const parts = [];
+                  let lastIndex = 0;
+                  let match;
 
-        {closable && (
-          <HoverAndPressedButton onPress={handleClose} style={styles.closeButton}>
-            <Icon name="Cancel01Icon" size={18} color={icon.color} />
-          </HoverAndPressedButton>
+                  while ((match = linkRegex.exec(formattedText)) !== null) {
+                    if (match.index > lastIndex) {
+                      parts.push(
+                        formattedText.substring(lastIndex, match.index),
+                      );
+                    }
+                    const url = match[2];
+                    const linkText = match[3];
+
+                    parts.push(
+                      <AppText
+                        key={`link-${index}-${lastIndex}`}
+                        style={styles.linkText}
+                        onPress={() => Linking.openURL(url)}
+                        text={linkText}
+                      />,
+                    );
+                    lastIndex = linkRegex.lastIndex;
+                  }
+
+                  if (lastIndex < formattedText.length) {
+                    parts.push(formattedText.substring(lastIndex));
+                  }
+
+                  return (
+                    <AppText
+                      key={index}
+                      style={styles.contentText}
+                      text={parts.length > 0 ? undefined : formattedText}
+                    >
+                      {parts.length > 0 ? parts : null}
+                    </AppText>
+                  );
+                })
+              )}
+            </View>
+
+            {closable && (
+              <HoverAndPressedButton
+                onPress={handleClose}
+                style={styles.closeButton}
+              >
+                <Icon name="Cancel01Icon" size={18} color={icon.color} />
+              </HoverAndPressedButton>
+            )}
+          </>
         )}
       </View>
 
@@ -231,9 +247,18 @@ const createStyles = (colors: ThemeColors) => {
       flexDirection: "row",
       alignItems: "flex-start",
     },
+    innerCompact: {
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 12,
+    },
     iconContainer: {
       marginRight: 12,
       marginTop: 2,
+    },
+    iconContainerCompact: {
+      marginRight: 0,
+      marginTop: 0,
     },
     contentContainer: {
       flex: 1,

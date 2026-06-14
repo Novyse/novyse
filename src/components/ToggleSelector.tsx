@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
-  View,
   TouchableOpacity,
   StyleSheet,
   LayoutChangeEvent,
   ScrollView,
+  Platform,
 } from "react-native";
 import { useRef } from "react";
 import Animated, {
@@ -13,11 +13,15 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import AppText from "./AppText";
+
+import BlurredView from "@/src/components/BlurredView";
+import AppText from "@/src/components/AppText";
+import Icon from "@/src/components/Icon";
 
 export interface ToggleOption<T extends string = string> {
   value: T;
-  label: string;
+  label?: string;
+  icon?: string;
 }
 
 interface ToggleSelectorProps<T extends string = string> {
@@ -25,6 +29,8 @@ interface ToggleSelectorProps<T extends string = string> {
   value: T;
   onChange: (value: T) => void;
   disabled?: boolean;
+  style?: any;
+  buttonWidth?: number;
 }
 
 function ToggleSelector<T extends string = string>({
@@ -32,9 +38,12 @@ function ToggleSelector<T extends string = string>({
   value,
   onChange,
   disabled = false,
+  style,
+  buttonWidth,
 }: ToggleSelectorProps<T>) {
   const { theme } = useContext(ThemeContext);
-  const styles = createStyles(theme);
+  const hasIcons = options.some((opt) => opt.icon);
+  const styles = createStyles(theme, hasIcons, buttonWidth);
 
   const [containerWidth, setContainerWidth] = useState(0);
   const translateX = useSharedValue(0);
@@ -50,14 +59,70 @@ function ToggleSelector<T extends string = string>({
         stiffness: 500,
       });
 
-      // Auto-scroll to active item
       scrollViewRef.current?.scrollTo({
-        x: activeIndex * itemWidth - 20, // Center a bit
+        x: activeIndex * itemWidth - 20,
         animated: true,
       });
     }
   }, [activeIndex, itemWidth, containerWidth]);
 
+  const scrollRefCallback = (node: any) => {
+    if (Platform.OS === "web" && node) {
+      const el = node.getScrollableNode?.() || node;
+      if (el && typeof el.addEventListener === "function") {
+        const onWheel = (e: WheelEvent) => {
+          if (e.deltaY !== 0) {
+            e.preventDefault();
+            el.scrollLeft += e.deltaY;
+          }
+        };
+        let isDown = false;
+        let startX: number;
+        let scrollLeft: number;
+
+        const onMouseDown = (e: MouseEvent) => {
+          isDown = true;
+          startX = e.pageX - el.offsetLeft;
+          scrollLeft = el.scrollLeft;
+        };
+
+        const onMouseLeave = () => {
+          isDown = false;
+        };
+
+        const onMouseUp = () => {
+          isDown = false;
+        };
+
+        const onMouseMove = (e: MouseEvent) => {
+          if (!isDown) return;
+          e.preventDefault();
+          const x = e.pageX - el.offsetLeft;
+          const walk = (x - startX) * 1.5;
+          el.scrollLeft = scrollLeft - walk;
+        };
+
+        el.addEventListener("wheel", onWheel, { passive: false });
+        el.addEventListener("mousedown", onMouseDown);
+        el.addEventListener("mouseleave", onMouseLeave);
+        el.addEventListener("mouseup", onMouseUp);
+        el.addEventListener("mousemove", onMouseMove);
+
+        node._cleanup = () => {
+          el.removeEventListener("wheel", onWheel);
+          el.removeEventListener("mousedown", onMouseDown);
+          el.removeEventListener("mouseleave", onMouseLeave);
+          el.removeEventListener("mouseup", onMouseUp);
+          el.removeEventListener("mousemove", onMouseMove);
+        };
+      }
+    } else if (Platform.OS === "web" && !node) {
+      if (scrollViewRef.current && (scrollViewRef.current as any)._cleanup) {
+        (scrollViewRef.current as any)._cleanup();
+      }
+    }
+    (scrollViewRef as any).current = node;
+  };
 
   const onLayout = (event: LayoutChangeEvent) => {
     setContainerWidth(event.nativeEvent.layout.width - 10);
@@ -70,13 +135,13 @@ function ToggleSelector<T extends string = string>({
 
   return (
     <ScrollView
-      ref={scrollViewRef}
+      ref={scrollRefCallback}
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
-      style={styles.scrollView}
+      style={[styles.scrollView, style]}
     >
-      <View style={styles.toggleContainer} onLayout={onLayout}>
+      <BlurredView style={styles.toggleContainer} onLayout={onLayout}>
         {containerWidth > 0 && (
           <Animated.View style={[styles.animatedBackground, animatedStyle]} />
         )}
@@ -92,24 +157,34 @@ function ToggleSelector<T extends string = string>({
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
             >
-              <AppText
-                style={[styles.toggleText, isActive && styles.toggleTextActive]}
-                text={option.label}
-                numberOfLines={1}
-              />
+              {option.icon ? (
+                <Icon
+                  name={option.icon}
+                  size={18}
+                  color={isActive ? theme.text : theme.subtitle}
+                />
+              ) : (
+                <AppText
+                  style={[
+                    styles.toggleText,
+                    isActive && styles.toggleTextActive,
+                  ]}
+                  text={option.label || ""}
+                  numberOfLines={1}
+                />
+              )}
             </TouchableOpacity>
           );
         })}
-      </View>
+      </BlurredView>
     </ScrollView>
   );
 }
 
-function createStyles(theme: any) {
+function createStyles(theme: any, hasIcons?: boolean, buttonWidth?: number) {
   return StyleSheet.create({
     scrollView: {
       flexGrow: 0,
-      marginBottom: 25,
       borderRadius: 50,
     },
     scrollContent: {
@@ -142,7 +217,7 @@ function createStyles(theme: any) {
       flex: 1,
       paddingVertical: 8,
       paddingHorizontal: 12,
-      minWidth: 110,
+      minWidth: buttonWidth !== undefined ? buttonWidth : hasIcons ? 46 : 110,
       alignItems: "center",
       justifyContent: "center",
       borderRadius: 25,

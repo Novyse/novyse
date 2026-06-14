@@ -17,6 +17,7 @@ import FilesBar from "../actions/FilesBar";
 const DefaultBar = ({
   isAttachMenuOpen,
   onToggleAttachMenu,
+  isEmojiPickerVisible,
   onToggleEmoji,
   textInputRef,
   newMessageText = "",
@@ -76,6 +77,7 @@ const DefaultBar = ({
           textInputRef={textInputRef}
           onTextChange={onTextChange}
           onInputFocus={onInputFocus}
+          isEmojiPickerVisible={isEmojiPickerVisible}
           onToggleEmoji={onToggleEmoji}
           onSendMessage={onSendMessage}
           onFileAppend={onFileAppend}

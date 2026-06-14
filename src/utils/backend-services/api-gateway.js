@@ -1,20 +1,19 @@
 import axios from "axios";
-import { Platform } from "react-native";
+import Platform, { getOs } from "@/src/utils/device/type";
 import * as SecureStore from "expo-secure-store";
+import { secureStoreRpc } from "@/src/utils/electron/secureStore";
 
 import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
 import useNetworkStore from "@/src/context/NetworkContext";
-
-import { getOs, getPlatform } from "@/src/utils/device/type";
-
 import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
+import eventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: false,
   timeout: 10000,
   headers: {
-    "x-platform": getPlatform(),
+    "x-platform": Platform,
     "x-operating-system": getOs(),
     "x-app-version": APP_VERSION,
   },
@@ -28,12 +27,13 @@ const api = axios.create({
 api.interceptors.request.use(async (request) => {
   const { isSynced, isConnected } = useNetworkStore.getState();
 
-  const isSyncOrAuthRequest =
+  const shouldBypassSyncCheck =
     request.url === "/user/update" ||
     request.url === "/user/initialize" ||
+    request.url === "/notification/push-token" ||
     request.skipAuth;
 
-  if (!isSyncOrAuthRequest) {
+  if (!shouldBypassSyncCheck) {
     if (!isConnected) {
       throw new Error("Network offline");
     }
@@ -73,10 +73,20 @@ api.interceptors.response.use(
     // Clear API error on success
     useNetworkStore.getState().setApiError(null);
 
-    if (Platform.OS !== "web") {
-      const newSessionId = response.headers["x-set-session-id"];
-      if (newSessionId) {
-        await SecureStore.setItemAsync("sessionId", String(newSessionId));
+    const newSessionId = response.headers["x-set-session-id"];
+    if (newSessionId) {
+      switch (Platform) {
+        case "desktop": {
+          await secureStoreRpc.set("sessionId", String(newSessionId));
+          break;
+        }
+        case "mobile": {
+          await SecureStore.setItemAsync("sessionId", String(newSessionId));
+          break;
+        }
+        case "web":
+        default:
+          break;
       }
     }
 
@@ -89,6 +99,12 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
+    if (error.response?.status === 426) {
+      console.warn("Client update required (426 Upgrade Required)");
+      eventEmitter.emit("clientUpdateRequired", error.response?.data?.data);
+      return Promise.reject(error);
+    }
+
     if (error.response && error.response.status === 500) {
       useNetworkStore.getState().setApiError("Errore del server (500)");
     }
@@ -824,6 +840,91 @@ const gateway = {
           throw error;
         }
       },
+    },
+  },
+
+  watchTogether: {
+    async start(roomUUID, url) {
+      try {
+        if (!roomUUID || !url) {
+          throw new Error(
+            "roomUUID and url are required to start watch together",
+          );
+        }
+        const response = await api.post("/comms/watch-together/start", {
+          roomUUID,
+          url,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error in watchTogether.start:", error);
+        throw error;
+      }
+    },
+    async play(roomUUID, timestamp) {
+      try {
+        if (!roomUUID || timestamp === undefined) {
+          throw new Error(
+            "roomUUID and timestamp are required to play watch together",
+          );
+        }
+        const response = await api.post("/comms/watch-together/play", {
+          roomUUID,
+          timestamp,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error in watchTogether.play:", error);
+        throw error;
+      }
+    },
+    async pause(roomUUID, timestamp) {
+      try {
+        if (!roomUUID || timestamp === undefined) {
+          throw new Error(
+            "roomUUID and timestamp are required to pause watch together",
+          );
+        }
+        const response = await api.post("/comms/watch-together/pause", {
+          roomUUID,
+          timestamp,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error in watchTogether.pause:", error);
+        throw error;
+      }
+    },
+    async seek(roomUUID, timestamp) {
+      try {
+        if (!roomUUID || timestamp === undefined) {
+          throw new Error(
+            "roomUUID and timestamp are required to seek watch together",
+          );
+        }
+        const response = await api.post("/comms/watch-together/seek", {
+          roomUUID,
+          timestamp,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error in watchTogether.seek:", error);
+        throw error;
+      }
+    },
+    async stop(roomUUID) {
+      try {
+        if (!roomUUID) {
+          throw new Error("roomUUID is required to stop watch together");
+        }
+        const response = await api.post("/comms/watch-together/stop", {
+          roomUUID,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error in watchTogether.stop:", error);
+        throw error;
+      }
     },
   },
 

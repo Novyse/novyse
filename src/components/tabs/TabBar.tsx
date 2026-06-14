@@ -6,7 +6,7 @@ import {
   LayoutChangeEvent,
   useWindowDimensions,
 } from "react-native";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { BottomTabBarProps } from "expo-router/js-tabs";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -16,7 +16,8 @@ import Animated, {
 } from "react-native-reanimated";
 import BlurredView from "../BlurredView";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import { useScreen } from "@/src/context/ScreenContext";
+import useWindowSizeStore, { SIDEBAR_MIN } from "@/src/context/WindowSizeContext";
 import Icon from "../Icon";
 
 
@@ -26,7 +27,12 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   navigation,
 }) => {
   const { theme } = useContext(ThemeContext);
+  const { isSmallScreen } = useScreen();
   const { isSidebarCollapsed } = useWindowSizeStore();
+  const showCollapsedSidebar =
+    isSidebarCollapsed &&
+    !isSmallScreen &&
+    state.routes[state.index].name === "ChatList";
   const styles = createStyle(theme);
 
   const visibleRoutes = state.routes.filter((route) => {
@@ -57,7 +63,6 @@ const TabBar: React.FC<BottomTabBarProps> = ({
     return lastValidIndex.value;
   }, [visibleIndex]);
 
-  // Niente useEffect — reagisce direttamente ai cambiamenti
   useAnimatedReaction(
     () => activeVisibleIndex.value * tabWidth.value,
     (target) => {
@@ -78,7 +83,6 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   const renderTabBarContent = () => (
     <BlurredView
       intensity={60}
-      tint="dark"
       style={styles.blurredContainer}
       onLayout={onLayout}
     >
@@ -117,7 +121,6 @@ const TabBar: React.FC<BottomTabBarProps> = ({
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
             accessibilityLabel={options.tabBarAccessibilityLabel}
-            testID={(options as any).tabBarTestID}
             onPress={onPress}
             onLongPress={onLongPress}
             style={styles.tabButton}
@@ -139,17 +142,15 @@ const TabBar: React.FC<BottomTabBarProps> = ({
 
   const handleExpand = () => {
     setSidebarCollapsed(false);
-    setDetailWidth(width - 250); // Expand to threshold
+    setDetailWidth(width - SIDEBAR_MIN);
   };
 
-  if (isSidebarCollapsed) {
-
+  if (showCollapsedSidebar) {
     return (
       <View style={styles.collapsedContainer}>
-
-          <BlurredView style={styles.blurredToggle}>
-            <Icon name="ArrowRight01Icon" onPress={handleExpand}/>
-          </BlurredView>
+        <BlurredView style={styles.blurredToggle}>
+          <Icon name="ArrowRight01Icon" onPress={handleExpand} />
+        </BlurredView>
       </View>
     );
   }
@@ -186,13 +187,6 @@ const createStyle = (theme: any) =>
       borderColor: theme.border,
       borderRadius: 25,
     },
-    menuItem: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: "center",
-      alignItems: "center",
-    },
     blurredContainer: {
       flex: 1,
       borderRadius: 30,
@@ -215,9 +209,10 @@ const createStyle = (theme: any) =>
     indicator: {
       position: "absolute",
       left: 5,
-      height: 50, // container 60 - padding 5*2
+      height: 50,
       backgroundColor: theme.primary,
       borderRadius: 25,
       opacity: 0.25,
+      zIndex: 0,
     },
   });

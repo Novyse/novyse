@@ -1,13 +1,14 @@
 import { SQLiteDatabase } from "expo-sqlite";
+import DesktopSQLiteAdapter from "@/src/utils/storage/database/desktopAdapter";
 
 export class FileRepository {
-  db: SQLiteDatabase;
+  db: SQLiteDatabase | DesktopSQLiteAdapter;
 
-  constructor(db: SQLiteDatabase) {
+  constructor(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
   }
 
-  setDb(db: SQLiteDatabase) {
+  setDb(db: SQLiteDatabase | DesktopSQLiteAdapter) {
     this.db = db;
   }
 

@@ -1,8 +1,9 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import Icon from "@/src/components/Icon";
+import BlurredView from "@/src/components/BlurredView";
 
 import Label from "@/src/components/Label";
 import SectionHeader from "@/src/components/SectionHeader";
@@ -35,9 +36,9 @@ export default function Appareance() {
             <ColorDot color="#f43f5e" />
           </View>
         </View>
-        <View style={styles.infoContainer}>
+        <BlurredView style={styles.infoContainer}>
           <Icon name="UnavailableIcon" />
-        </View>
+        </BlurredView>
       </View>
     </>
   );

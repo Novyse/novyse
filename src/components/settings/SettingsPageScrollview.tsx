@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { StyleSheet, ScrollView, Platform } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScrollBar } from "@/constants/ScrollBar";
 
 interface SettingsPageScrollviewProps {
   children: React.ReactNode;
@@ -43,26 +44,7 @@ function createStyle(
       maxWidth: 768,
       alignSelf: "center",
 
-      ...(Platform.OS === "web" && {
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
-        "::WebkitScrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::WebkitScrollbarTrack": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
+      ...ScrollBar(theme),
     },
     contentContainer: {
       gap: isMenu ? 0 : 20,

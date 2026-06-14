@@ -9,6 +9,7 @@ import {
   Platform,
 } from "react-native";
 import AppText from "./AppText";
+import { ScrollBar } from "@/constants/ScrollBar";
 
 interface DropdownOption {
   label: string;
@@ -181,26 +182,7 @@ const createStyles = (theme: any) =>
     },
     dropdownList: {
       width: "100%",
-      ...(Platform.OS === "web" && {
-        scrollbarWidth: "thin",
-        scrollbarColor: `${theme.scrollbar} ${theme.backgroundScrollbar}`,
-
-        "::WebkitScrollbar": {
-          width: 6,
-          backgroundColor: theme.backgroundScrollbar,
-        },
-        "::WebkitScrollbarTrack": {
-          backgroundColor: theme.backgroundScrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb": {
-          backgroundColor: theme.scrollbar,
-          borderRadius: 3,
-        },
-        "::WebkitScrollbarThumb:hover": {
-          backgroundColor: theme.scrollbarHover,
-        },
-      }),
+      ...ScrollBar(theme),
     },
     option: {
       padding: 15,

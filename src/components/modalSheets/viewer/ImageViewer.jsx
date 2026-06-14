@@ -16,7 +16,7 @@ import Animated, {
   clamp,
   runOnJS,
 } from "react-native-reanimated";
-import ModalBase from "../ModalBase";
+import AdaptiveModal from "../AdaptiveModal";
 import { useScreen } from "@/src/context/ScreenContext";
 import useDownload from "@/src/hooks/file/useDownload";
 import useShare from "@/src/hooks/chat/useShare";
@@ -139,10 +139,11 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
   if (!uri) return <View style={styles.container} />;
 
   return (
-    <ModalBase
+    <AdaptiveModal
       visible={visible}
       onClose={onClose}
       theme={theme}
+      mode="modal"
       scrollable={false}
       hideCloseX={true}
     >
@@ -178,26 +179,29 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
           )}
         </View>
       </GestureHandlerRootView>
-    </ModalBase>
+    </AdaptiveModal>
   );
 };
 
-const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) =>
-  StyleSheet.create({
+const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) => {
+  const baseWidth = isSmallScreen ? screenWidth : screenWidth * 0.7;
+  const baseHeight = isSmallScreen ? screenHeight : screenHeight * 0.7;
+
+  return StyleSheet.create({
     container: {
-      flex: 1,
       backgroundColor: "transparent",
       overflow: "hidden",
-      minHeight: isSmallScreen ? screenHeight : screenHeight * 0.7,
-      minWidth: isSmallScreen ? screenWidth : screenWidth * 0.7,
+      height: baseHeight,
+      width: baseWidth,
+      alignItems: "center",
+      justifyContent: "center",
       ...Platform.select({ web: { cursor: "grab" } }),
     },
     imageWrapper: {
-      flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      minHeight: isSmallScreen ? "100%" : screenHeight * 0.7,
-      minWidth: isSmallScreen ? "100%" : screenWidth * 0.7,
+      height: baseHeight,
+      width: baseWidth,
       ...Platform.select({
         web: {
           userSelect: "none",
@@ -227,5 +231,6 @@ const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) =>
       gap: 10,
     },
   });
+};
 
 export default ImageViewer;
