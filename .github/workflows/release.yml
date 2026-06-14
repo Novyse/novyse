@@ -328,7 +328,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   flathub-validation:
-    needs: create-release
+    needs: publish-release
     runs-on: ubuntu-latest
     if: ${{ inputs.release_type == 'production' }}
     steps:
@@ -389,7 +389,6 @@ jobs:
         build-electron-linux,
         build-electron-win,
         build-electron-mac,
-        flathub-validation,
       ]
     if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
     runs-on: ubuntu-latest
@@ -429,7 +428,7 @@ jobs:
           command: pages deploy dist --project-name=${{ steps.cf-settings.outputs.project }} --commit-dirty=true
 
   publish-flathub:
-    needs: publish-release
+    needs: flathub-validation
     runs-on: ubuntu-latest
     if: ${{ inputs.release_type == 'production' }}
     steps:
