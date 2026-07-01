@@ -159,13 +159,6 @@ const ScreenShareSelector = ({
 
   const selectorContent = (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <AppText
-          style={styles.title}
-          translationKey="chat.comms.selectors.screenshare.title"
-        />
-      </View>
-
       <View style={styles.toggleWrapper}>
         <ToggleSelector
           buttonWidth={160}
@@ -283,6 +276,7 @@ const ScreenShareSelector = ({
       mode="adaptive"
       snapPoints={hasNativeScreenShareMenu ? ["35%"] : ["90%"]}
       scrollable={false}
+      titleTranslationKey="chat.comms.selectors.screenshare.title"
     >
       {selectorContent}
     </AdaptiveModal>
@@ -293,19 +287,6 @@ function createStyle(theme: any) {
   return StyleSheet.create({
     container: {
       width: "100%",
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-    },
-    header: {
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 12,
-    },
-    title: {
-      fontSize: 18,
-      fontWeight: "600",
-      color: theme.text,
     },
     loadingContainer: {
       flex: 1,

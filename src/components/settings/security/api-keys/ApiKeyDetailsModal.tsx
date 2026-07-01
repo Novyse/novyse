@@ -23,12 +23,16 @@ export default function ApiKeyDetailsModal({
   const styles = createStyles(theme);
 
   return (
-    <ModalBase visible={visible} onClose={onClose} theme={theme}>
+    <ModalBase
+      visible={visible}
+      onClose={onClose}
+      theme={theme}
+      titleTranslationKey="settings.security.apiKeys.detailsModal.title"
+    >
       <View style={styles.container}>
         <View style={styles.successIconContainer}>
           <Icon name="CheckmarkCircle02Icon" color={theme.iconSuccess} size={48} />
         </View>
-        <AppText style={styles.title} translationKey="settings.security.apiKeys.detailsModal.title" />
         <AppText style={styles.subtitle} translationKey="settings.security.apiKeys.detailsModal.subtitle" />
 
         <CopyLabel text={apiKey} label={t("settings.security.apiKeys.detailsModal.label")} />
@@ -58,13 +62,6 @@ const createStyles = (theme: any) =>
     successIconContainer: {
       alignItems: "center",
       marginBottom: 16,
-    },
-    title: {
-      fontSize: 22,
-      fontWeight: "bold",
-      color: theme.text,
-      marginBottom: 8,
-      textAlign: "center",
     },
     subtitle: {
       fontSize: 14,

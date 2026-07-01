@@ -35,12 +35,14 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
   };
 
   return (
-    <AdaptiveModal visible={visible} onClose={onClose} theme={theme} mode="adaptive">
+    <AdaptiveModal
+      visible={visible}
+      onClose={onClose}
+      theme={theme}
+      mode="adaptive"
+      titleTranslationKey="modals.backup_codes.title"
+    >
       <View style={styles.contentContainer}>
-        <AppText
-          style={styles.title}
-          translationKey="modals.backup_codes.title"
-        />
         <AppText
           style={styles.subtitle}
           translationKey="modals.backup_codes.subtitle"

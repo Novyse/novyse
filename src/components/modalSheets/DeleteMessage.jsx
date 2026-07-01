@@ -25,12 +25,9 @@ const DeleteMessage = ({
       theme={theme}
       mode="modal"
       fullscreen={fullscreen}
+      titleTranslationKey="modals.delete_message.title"
     >
       <View style={styles.contentContainer}>
-        <AppText
-          style={styles.title}
-          translationKey="modals.delete_message.title"
-        />
         <AppText
           style={styles.subtitle}
           translationKey="modals.delete_message.subtitle"

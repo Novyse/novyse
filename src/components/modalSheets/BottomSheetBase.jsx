@@ -7,6 +7,7 @@ import {
 } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BlurredView from "../BlurredView";
+import ModalHeader from "./ModalHeader";
 
 const BottomSheetBase = forwardRef(
   (
@@ -20,6 +21,11 @@ const BottomSheetBase = forwardRef(
       enableOverDrag = false,
       enableDynamicSizing = false,
       hideOverlay = false,
+      hideCloseX = false,
+      title,
+      titleTranslationKey,
+      titleTranslationOptions,
+      titleStyle,
       ...props
     },
     ref,
@@ -54,8 +60,11 @@ const BottomSheetBase = forwardRef(
     );
 
     const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
-
     const insets = useSafeAreaInsets();
+    const contentPadding = {
+      padding: 10,
+      paddingBottom: insets.bottom + 10,
+    };
 
     return (
       <BottomSheetModal
@@ -75,7 +84,19 @@ const BottomSheetBase = forwardRef(
         onDismiss={onClose}
         {...props}
       >
-        <Container style={{ flex: 1, paddingBottom: insets.bottom }}>
+        <Container
+          style={scrollable ? { flex: 1 } : contentPadding}
+          contentContainerStyle={scrollable ? contentPadding : undefined}
+        >
+          <ModalHeader
+            title={title}
+            titleTranslationKey={titleTranslationKey}
+            titleTranslationOptions={titleTranslationOptions}
+            titleStyle={titleStyle}
+            hideCloseX={hideCloseX}
+            onClose={onClose}
+            theme={theme}
+          />
           {children}
         </Container>
       </BottomSheetModal>
