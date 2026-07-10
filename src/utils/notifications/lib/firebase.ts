@@ -52,7 +52,7 @@ class FirebaseMessagingManager {
     });
 
     // Listen for auth token updates to sync FCM token upon login
-    auth.token.onUpdate(async (authToken: String) => {
+    auth.token.onUpdate(async (authToken: String | null) => {
       if (authToken) {
         console.log("Auth token updated, syncing FCM token...");
         await this.updateToken();
