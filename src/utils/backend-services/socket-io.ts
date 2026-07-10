@@ -1,6 +1,6 @@
 import { io, Socket } from "socket.io-client";
 
-import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
+import { auth } from "@/src/utils/backend-services/auth";
 
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import eventReceiver from "@/src/utils/backend-services/lib/event-receiver";
@@ -41,7 +41,7 @@ const SocketIO = {
 
       isConnecting = true;
 
-      const accessToken = await getAuthToken();
+      const accessToken = await auth.token.get();
 
       socket = io(SOCKET_BASE_URL, {
         path: "/socket.io",

@@ -5,7 +5,7 @@ import { secureStoreRpc } from "@/src/utils/electron/secureStore";
 
 import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
 import useNetworkStore from "@/src/context/NetworkContext";
-import { getAuthToken } from "@/src/utils/backend-services/auth/token-manager";
+import { auth } from "@/src/utils/backend-services/auth";
 import eventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
 
 const api = axios.create({
@@ -45,7 +45,7 @@ api.interceptors.request.use(async (request) => {
   if (request.skipAuth) {
     return request;
   }
-  const accessToken = await getAuthToken();
+  const accessToken = await auth.token.get();
   if (accessToken) {
     request.headers["Authorization"] = `Bearer ${accessToken}`;
   }

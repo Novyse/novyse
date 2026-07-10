@@ -11,10 +11,7 @@ import {
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import gateway from "../../backend-services/api-gateway";
-import {
-  getAuthToken,
-  setOnTokenUpdate,
-} from "../../backend-services/auth/token-manager";
+import { auth } from "@/src/utils/backend-services/auth";
 import useNetworkStore from "@/src/context/NetworkContext";
 
 const FCM_TOKEN_KEY = "fcm_push_token";
@@ -55,7 +52,7 @@ class FirebaseMessagingManager {
     });
 
     // Listen for auth token updates to sync FCM token upon login
-    setOnTokenUpdate(async (authToken) => {
+    auth.token.onUpdate(async (authToken: String) => {
       if (authToken) {
         console.log("Auth token updated, syncing FCM token...");
         await this.updateToken();
@@ -88,7 +85,7 @@ class FirebaseMessagingManager {
 
   private async saveToken(token: string) {
     // Only send the token to the backend if the user is authenticated
-    const authToken = await getAuthToken();
+    const authToken = await auth.token.get();
     if (!authToken) {
       console.log("User not logged in, skipping FCM token sync to backend.");
       return;

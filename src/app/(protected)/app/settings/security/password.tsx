@@ -46,7 +46,7 @@ export default function PasswordRoute() {
     }
     setIsLoading(true);
     try {
-      const response = await auth.settings.opaque.setup(newPassword);
+      const response = await auth.settings.opaque(newPassword);
       if (response.success) {
         setSuccess(t("settings.security.changePasswordSuccess"));
         resetForm();
