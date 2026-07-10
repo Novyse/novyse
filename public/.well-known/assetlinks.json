@@ -8,7 +8,7 @@
       "namespace": "android_app",
       "package_name": "com.novyse",
       "sha256_cert_fingerprints": [
-        "95:A7:80:0D:31:B6:D0:61:99:62:B3:A1:D8:68:B4:6C:34:0E:2C:37:F9:14:D7:16:F2:50:C9:08:58:71"
+        "95:A7:80:0D:31:B6:D0:61:99:62:B3:A1:D8:68:B4:6C:34:0E:2C:37:F9:14:D7:16:F2:50:C9:08:58:71:55:54"
       ]
     }
   },
@@ -21,7 +21,7 @@
       "namespace": "android_app",
       "package_name": "com.novyse.preview",
       "sha256_cert_fingerprints": [
-        "95:A7:80:0D:31:B6:D0:61:99:62:B3:A1:D8:68:B4:6C:34:0E:2C:37:F9:14:D7:16:F2:50:C9:08:58:71"
+        "95:A7:80:0D:31:B6:D0:61:99:62:B3:A1:D8:68:B4:6C:34:0E:2C:37:F9:14:D7:16:F2:50:C9:08:58:71:55:54"
       ]
     }
   }
