@@ -14,6 +14,7 @@ build/
 .expo/
 dist/
 build/
+build-assets/
 web-build/
 expo-env.d.ts
 
