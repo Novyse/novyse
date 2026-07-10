@@ -81,6 +81,9 @@ const LoginForm = ({
               autoCapitalize="none"
               autoCorrect={false}
               editable={!isLoading}
+              textContentType="username"
+              autoComplete="username"
+              importantForAutofill="yes"
             />
 
             {/* Password */}
@@ -104,6 +107,9 @@ const LoginForm = ({
                 secureTextEntry={secureTextEntry}
                 autoCapitalize="none"
                 editable={!isLoading}
+                textContentType="password"
+                autoComplete="password"
+                importantForAutofill="yes"
                 onSubmitEditing={
                   Platform.OS === "web" ? handleSubmit : undefined
                 }
