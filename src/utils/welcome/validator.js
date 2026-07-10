@@ -3,13 +3,15 @@ import i18n from "@/src/i18n";
 
 export const valid = {
   twoFaMethods: ["email", "authenticator"],
-  loginMethods: ["password", "passkey"],
 };
 
 export const schemas = {
   user: {
-    email: z.string().email(i18n.t("common.validation.invalidEmail")),
-    password: z.string().min(8, i18n.t("common.validation.passwordTooShort")).max(256),
+    email: z.email(i18n.t("common.validation.invalidEmail")),
+    password: z
+      .string()
+      .min(8, i18n.t("common.validation.passwordTooShort"))
+      .max(256),
     name: z
       .string()
       .trim()
@@ -29,8 +31,14 @@ export const schemas = {
     .string()
     .min(3, i18n.t("common.validation.handleTooShort"))
     .max(15, i18n.t("common.validation.handleTooLong"))
-    .regex(/^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$/, i18n.t("common.validation.invalidHandle"))
-    .refine((v) => !v.includes("__"), i18n.t("common.validation.handleConsecutiveUnderscores")),
+    .regex(
+      /^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$/,
+      i18n.t("common.validation.invalidHandle"),
+    )
+    .refine(
+      (v) => !v.includes("__"),
+      i18n.t("common.validation.handleConsecutiveUnderscores"),
+    ),
   twofa: {
     code: z.string().length(6).regex(/^\d+$/),
   },
@@ -39,7 +47,8 @@ export const schemas = {
 const parse = (schema, value) => {
   const res = schema.safeParse(value);
   if (res.success) return { success: true };
-  const message = res.error.issues?.[0]?.message || i18n.t("common.validation.invalidInput");
+  const message =
+    res.error.issues?.[0]?.message || i18n.t("common.validation.invalidInput");
   return { success: false, error: message };
 };
 

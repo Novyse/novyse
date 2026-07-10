@@ -45,7 +45,6 @@ export default function Signup() {
     slideAnim,
     fadeAnim,
     isFormValid,
-    isPasskeyValid,
     setShowPassword,
     setShowConfirmPassword,
     setPrivacyAccepted,
@@ -54,15 +53,10 @@ export default function Signup() {
     handleChange,
     handleNext,
     handleBack,
-    handlePasskeySignup,
     goToStep,
     validateStep,
     setCaptchaToken,
   } = useSignup();
-
-  const [signupMode, setSignupMode] = useState<"password" | "passkey">(
-    "password",
-  );
 
   const isLastStep = currentStep === STEPS.length - 1;
 
@@ -93,8 +87,6 @@ export default function Signup() {
               >
                 <SignupStepField
                   currentStep={currentStep}
-                  signupMode={signupMode}
-                  onSignupModeChange={setSignupMode}
                   form={form}
                   showPassword={showPassword}
                   showConfirmPassword={showConfirmPassword}
@@ -145,70 +137,38 @@ export default function Signup() {
                   </WelcomeButton>
                 </View>
                 <View style={styles.buttonWrapper}>
-                  {currentStep === 2 && signupMode === "passkey" ? (
-                    // In passkey mode at step 2, the main CTA becomes "Sign up with Passkey"
-                    <WelcomeButton
-                      disabled={!isPasskeyValid || isLoading}
-                      onPress={() => {
-                        handlePasskeySignup();
+                  <WelcomeButton
+                    disabled={
+                      (isLastStep && !isFormValid) ||
+                      (!isLastStep && isLoading) ||
+                      (!isLastStep && !validateStep(currentStep))
+                    }
+                    onPress={() => {
+                      handleNext();
+                      if (currentStep === 2) {
                         setCaptchaToken(null);
                         setCaptchaKey((prev) => prev + 1);
-                      }}
-                      type="submit"
-                    >
-                      {isLoading ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={LoginColors[LOGIN_THEME].iconLoading}
-                        />
-                      ) : (
-                        <View style={styles.passkeyButtonContent}>
-                          <Icon
-                            name="FingerPrintIcon"
-                            color={LoginColors[LOGIN_THEME].icon}
-                            size={20}
-                          />
-                          <WelcomeButtonText
-                            type="submit"
-                            translationKey="auth.signup.signupBtn"
-                          />
-                        </View>
-                      )}
-                    </WelcomeButton>
-                  ) : (
-                    <WelcomeButton
-                      disabled={
-                        (isLastStep && !isFormValid) ||
-                        (!isLastStep && isLoading) ||
-                        (!isLastStep && !validateStep(currentStep))
                       }
-                      onPress={() => {
-                        handleNext();
-                        if (currentStep === 2) {
-                          setCaptchaToken(null);
-                          setCaptchaKey((prev) => prev + 1);
-                        }
-                      }}
-                      type="submit"
-                    >
-                      {isLoading && isLastStep ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={LoginColors[LOGIN_THEME].iconLoading}
-                        />
-                      ) : isLastStep ? (
-                        <WelcomeButtonText
-                          type="submit"
-                          translationKey="auth.signup.signupBtn"
-                        />
-                      ) : (
-                        <Icon
-                          name="ArrowRight02Icon"
-                          color={LoginColors[LOGIN_THEME].icon}
-                        />
-                      )}
-                    </WelcomeButton>
-                  )}
+                    }}
+                    type="submit"
+                  >
+                    {isLoading && isLastStep ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={LoginColors[LOGIN_THEME].iconLoading}
+                      />
+                    ) : isLastStep ? (
+                      <WelcomeButtonText
+                        type="submit"
+                        translationKey="auth.signup.signupBtn"
+                      />
+                    ) : (
+                      <Icon
+                        name="ArrowRight02Icon"
+                        color={LoginColors[LOGIN_THEME].icon}
+                      />
+                    )}
+                  </WelcomeButton>
                 </View>
               </View>
 
@@ -273,12 +233,6 @@ function createStyle(isSmallScreen: boolean) {
     buttonWrapper: {
       flex: 1,
       marginHorizontal: 4,
-    },
-    passkeyButtonContent: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 8,
     },
   });
 }

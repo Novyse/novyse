@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
 import { StyleSheet, View, TextInput } from "react-native";
 import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
@@ -20,10 +20,7 @@ export default function PasswordRoute() {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const [hasPassword, setHasPassword] = useState(false);
-  const [showForm, setShowForm] = useState<"change" | "set" | "remove" | null>(
-    null,
-  );
+  const [showForm, setShowForm] = useState<"change" | null>(null);
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,50 +28,11 @@ export default function PasswordRoute() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState("");
 
-  const fetchStatus = async () => {
-    setIsLoading(true);
-    const response = await auth.settings.opaque.getStatus();
-    if (response.success && response.data.setup !== undefined) {
-      setHasPassword(response.data.setup);
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    fetchStatus();
-  }, []);
-
   const resetForm = () => {
     setNewPassword("");
     setConfirmPassword("");
     setShowForm(null);
     setError(null);
-  };
-
-  const handleSetPassword = async () => {
-    if (!newPassword || !confirmPassword) {
-      setError(t("settings.security.fillAllFields"));
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError(t("settings.security.passwordsDontMatch"));
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const response = await auth.settings.opaque.setup(newPassword);
-      if (response.success) {
-        setHasPassword(true);
-        setSuccess(t("settings.security.setPasswordSuccess"));
-        resetForm();
-      } else {
-        setError(response.error || t("settings.security.setPasswordFailed"));
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleChangePassword = async () => {
@@ -102,26 +60,6 @@ export default function PasswordRoute() {
     }
   };
 
-  const handleRemovePassword = async () => {
-    setIsLoading(true);
-    try {
-      const response = await auth.settings.opaque.deactivate();
-      if (response.success) {
-        setHasPassword(false);
-        setSuccess(t("settings.security.deactivatePasswordSuccess"));
-        resetForm();
-      } else {
-        setError(
-          response.error || t("settings.security.deactivatePasswordFailed"),
-        );
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <>
       <HeaderWithBackArrow
@@ -131,109 +69,25 @@ export default function PasswordRoute() {
       <SettingsPageScrollview>
         <Section titleKey="settings.security.status" style={{ marginTop: 20 }}>
           <SettingRow
-            iconName={hasPassword ? "CheckmarkCircle02Icon" : "Cancel01Icon"}
-            labelKey={
-              hasPassword
-                ? "settings.security.passwordActive"
-                : "settings.security.noPasswordSet"
-            }
-            valueKey={
-              hasPassword
-                ? "settings.security.passwordProtected"
-                : "settings.security.addPasswordSecurity"
-            }
+            iconName="CheckmarkCircle02Icon"
+            labelKey="settings.security.passwordActive"
+            valueKey="settings.security.passwordProtected"
             style={{ borderBottomWidth: 0 }}
           />
         </Section>
 
         {!showForm && (
           <Section titleKey="settings.security.actions">
-            {!hasPassword ? (
-              <SettingRow
-                iconName="PlusSignIcon"
-                labelKey="settings.security.setPassword"
-                onPress={() => setShowForm("set")}
-                style={{ borderBottomWidth: 0 }}
-              />
-            ) : (
-              <>
-                <SettingRow
-                  iconName="Edit02Icon"
-                  labelKey="settings.security.changePassword"
-                  onPress={() => setShowForm("change")}
-                />
-                <SettingRow
-                  iconName="Delete02Icon"
-                  labelKey="settings.security.removePassword"
-                  onPress={() => setShowForm("remove")}
-                  danger={true}
-                  style={{ borderBottomWidth: 0 }}
-                />
-              </>
-            )}
+            <SettingRow
+              iconName="Edit02Icon"
+              labelKey="settings.security.changePassword"
+              onPress={() => setShowForm("change")}
+              style={{ borderBottomWidth: 0 }}
+            />
           </Section>
         )}
 
         {/* Set Password Form */}
-        {showForm === "set" && (
-          <Section titleKey="settings.security.setPassword">
-            <View style={styles.formContainer}>
-              <StatusMessage
-                type="error"
-                content={[error || ""]}
-                visible={!!error}
-                onClose={() => setError(null)}
-              />
-
-              <View style={styles.inputContainer}>
-                <AppText
-                  style={styles.inputLabel}
-                  translationKey="settings.security.newPassword"
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder={t("settings.security.enterNewPassword")}
-                  placeholderTextColor={theme.placeholderText}
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  secureTextEntry
-                  autoCapitalize="none"
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <AppText
-                  style={styles.inputLabel}
-                  translationKey="settings.security.confirmPassword"
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder={t("settings.security.confirmNewPasswordInput")}
-                  placeholderTextColor={theme.placeholderText}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry
-                  autoCapitalize="none"
-                />
-              </View>
-
-              <View style={styles.formButtons}>
-                <SettingsButton
-                  text={
-                    isLoading
-                      ? t("settings.security.setting")
-                      : t("settings.security.setPassword")
-                  }
-                  onPress={handleSetPassword}
-                  disabled={isLoading}
-                />
-                <SettingsButton
-                  translationKey="settings.security.cancel"
-                  onPress={resetForm}
-                />
-              </View>
-            </View>
-          </Section>
-        )}
 
         {/* Change Password Form */}
         {showForm === "change" && (
@@ -297,42 +151,6 @@ export default function PasswordRoute() {
                 <AppText
                   style={styles.noteText}
                   translationKey="settings.security.passwordNote"
-                />
-              </View>
-            </View>
-          </Section>
-        )}
-
-        {/* Remove Password Form */}
-        {showForm === "remove" && (
-          <Section titleKey="settings.security.removePassword">
-            <View style={styles.formContainer}>
-              <AppText
-                style={styles.warningText}
-                translationKey="settings.security.removePasswordWarning"
-              />
-
-              <StatusMessage
-                type="error"
-                content={[error || ""]}
-                visible={!!error}
-                onClose={() => setError(null)}
-              />
-
-              <View style={styles.formButtons}>
-                <SettingsButton
-                  text={
-                    isLoading
-                      ? t("settings.security.removing")
-                      : t("settings.security.removePassword")
-                  }
-                  onPress={handleRemovePassword}
-                  disabled={isLoading}
-                  style={{ backgroundColor: theme.backgroundDanger }}
-                />
-                <SettingsButton
-                  translationKey="settings.security.cancel"
-                  onPress={resetForm}
                 />
               </View>
             </View>

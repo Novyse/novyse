@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, TextInput, StyleSheet, Platform, Image } from "react-native";
+import { View, TextInput, StyleSheet, Platform } from "react-native";
 import { useTranslation } from "react-i18next";
 import AppText from "@/src/components/AppText";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
@@ -12,40 +12,29 @@ import { router } from "expo-router";
 
 import TextLink from "../../TextLink";
 import TurnstileCaptcha from "../../auth/TurnstileCaptcha";
-import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
 
 interface LoginFormProps {
   onLogin: (username: string, password: string, captchaToken: string) => void;
-  onLoginWithPasskey: (captchaToken: string) => void;
+
   onSignup: () => void;
   isLoading?: boolean;
   error?: string | null;
   onErrorDismiss?: () => void;
   urlUsername?: string;
   urlSignedup?: boolean;
-  urlType?: "opaque" | "passkey";
 }
-
-const LOGIN_MODE_OPTIONS: ToggleOption<"password" | "passkey">[] = [
-  { value: "password", label: "Password" },
-  { value: "passkey", label: "Passkey" },
-];
 
 const LoginForm = ({
   onLogin,
-  onLoginWithPasskey,
   onSignup,
   isLoading = false,
   error,
   onErrorDismiss,
   urlUsername,
   urlSignedup,
-  urlType,
 }: LoginFormProps) => {
   const { t } = useTranslation();
-  const [loginMode, setLoginMode] = useState<"password" | "passkey">(
-    urlType === "passkey" ? "passkey" : "password",
-  );
+
   const [username, setUsername] = useState((urlUsername || "").toLowerCase());
   const [password, setPassword] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -74,163 +63,105 @@ const LoginForm = ({
             style={styles.subtitle}
             translationKey="auth.login.subtitle"
           />
-
-          <View style={{ width: 300 }}>
-            {/* Mode Toggle */}
-            <ToggleSelector
-              options={LOGIN_MODE_OPTIONS}
-              value={loginMode}
-              onChange={setLoginMode}
-              disabled={isLoading}
+          <View style={{ width: 300 }}></View>
+          <>
+            {/* Username */}
+            <TextInput
+              style={[styles.textInput, error ? styles.inputError : null]}
+              value={username}
+              onChangeText={(text) => {
+                const lowerText = text.toLowerCase();
+                setUsername(lowerText);
+                if (error) onErrorDismiss?.();
+              }}
+              placeholder={t("auth.signupStep.usernamePlaceholder")}
+              placeholderTextColor={
+                LoginColors[loginTheme].placeholderTextInput
+              }
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!isLoading}
             />
-          </View>
 
-          {loginMode === "password" ? (
-            <>
-              {/* Username */}
+            {/* Password */}
+            <View
+              style={[
+                styles.passwordContainer,
+                error ? styles.inputError : null,
+              ]}
+            >
               <TextInput
-                style={[styles.textInput, error ? styles.inputError : null]}
-                value={username}
+                style={styles.passwordInput}
+                value={password}
                 onChangeText={(text) => {
-                  const lowerText = text.toLowerCase();
-                  setUsername(lowerText);
+                  setPassword(text);
                   if (error) onErrorDismiss?.();
                 }}
-                placeholder={t("auth.signupStep.usernamePlaceholder")}
+                placeholder={t("auth.signupStep.password")}
                 placeholderTextColor={
                   LoginColors[loginTheme].placeholderTextInput
                 }
+                secureTextEntry={secureTextEntry}
                 autoCapitalize="none"
-                autoCorrect={false}
                 editable={!isLoading}
+                onSubmitEditing={
+                  Platform.OS === "web" ? handleSubmit : undefined
+                }
               />
+              <Icon
+                name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
+                color={LoginColors[loginTheme].iconShowHideField}
+                style={styles.eyeButton}
+                onPress={() => setSecureTextEntry((v) => !v)}
+              />
+            </View>
 
-              {/* Password */}
-              <View
-                style={[
-                  styles.passwordContainer,
-                  error ? styles.inputError : null,
-                ]}
-              >
-                <TextInput
-                  style={styles.passwordInput}
-                  value={password}
-                  onChangeText={(text) => {
-                    setPassword(text);
-                    if (error) onErrorDismiss?.();
-                  }}
-                  placeholder={t("auth.signupStep.password")}
-                  placeholderTextColor={
-                    LoginColors[loginTheme].placeholderTextInput
-                  }
-                  secureTextEntry={secureTextEntry}
-                  autoCapitalize="none"
-                  editable={!isLoading}
-                  onSubmitEditing={
-                    Platform.OS === "web" ? handleSubmit : undefined
-                  }
-                />
-                <Icon
-                  name={secureTextEntry ? "ViewIcon" : "ViewOffIcon"}
-                  color={LoginColors[loginTheme].iconShowHideField}
-                  style={styles.eyeButton}
-                  onPress={() => setSecureTextEntry((v) => !v)}
-                />
-              </View>
-
-              <View style={styles.opaqueLink}>
-                <AppText
-                  style={styles.opaqueLinkText}
-                  translationKey="auth.login.securedBy"
-                />
-                <TextLink
-                  style={styles.opaqueLinkTextBold}
-                  href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
-                >
-                  OPAQUE
-                </TextLink>
-              </View>
-
-              <View style={styles.buttonRow}>
-                <View style={styles.buttonWrapper}>
-                  <WelcomeButton
-                    onPress={() => {
-                      router.canGoBack() ? router.back() : router.navigate("/");
-                    }}
-                    disabled={isLoading}
-                    type={"back"}
-                  >
-                    <WelcomeButtonText
-                      translationKey="auth.login.back"
-                      type={"back"}
-                    />
-                  </WelcomeButton>
-                </View>
-                <View style={styles.buttonWrapper}>
-                  <WelcomeButton
-                    onPress={handleSubmit}
-                    disabled={
-                      isLoading || !username || !password || !captchaToken
-                    }
-                    type={"submit"}
-                  >
-                    <WelcomeButtonText
-                      translationKey="auth.welcome.login"
-                      type={"submit"}
-                    />
-                  </WelcomeButton>
-                </View>
-              </View>
-            </>
-          ) : (
-            <View style={styles.passkeyModeContent}>
+            <View style={styles.opaqueLink}>
               <AppText
-                style={styles.passkeyDescription}
-                translationKey="auth.login.passkeyDesc"
+                style={styles.opaqueLinkText}
+                translationKey="auth.login.securedBy"
               />
+              <TextLink
+                style={styles.opaqueLinkTextBold}
+                href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
+              >
+                OPAQUE
+              </TextLink>
+            </View>
 
-              <View style={styles.passkeyButtonWrapperLarge}>
+            <TurnstileCaptcha key={captchaKey} onVerify={setCaptchaToken} />
+
+            <View style={styles.buttonRow}>
+              <View style={styles.buttonWrapper}>
                 <WelcomeButton
                   onPress={() => {
-                    onLoginWithPasskey(captchaToken!);
-                    setCaptchaToken(null);
-                    setCaptchaKey((prev) => prev + 1);
+                    router.canGoBack() ? router.back() : router.navigate("/");
                   }}
-                  disabled={isLoading || !captchaToken}
-                  type={"submit"}
+                  disabled={isLoading}
+                  type={"back"}
                 >
-                  <View style={styles.passkeyButtonContent}>
-                    <Icon
-                      name="FingerPrintIcon"
-                      color={LoginColors[loginTheme].icon}
-                    />
-                    <WelcomeButtonText
-                      translationKey="auth.login.loginWithPasskey"
-                      type={"submit"}
-                    />
-                  </View>
+                  <WelcomeButtonText
+                    translationKey="auth.login.back"
+                    type={"back"}
+                  />
                 </WelcomeButton>
               </View>
-
-              <View style={styles.buttonRow}>
-                <View style={styles.buttonWrapper}>
-                  <WelcomeButton
-                    onPress={() => {
-                      router.canGoBack() ? router.back() : router.navigate("/");
-                    }}
-                    disabled={isLoading}
-                    type={"back"}
-                  >
-                    <WelcomeButtonText
-                      translationKey="auth.login.back"
-                      type={"back"}
-                    />
-                  </WelcomeButton>
-                </View>
+              <View style={styles.buttonWrapper}>
+                <WelcomeButton
+                  onPress={handleSubmit}
+                  disabled={
+                    isLoading || !username || !password || !captchaToken
+                  }
+                  type={"submit"}
+                >
+                  <WelcomeButtonText
+                    translationKey="auth.welcome.login"
+                    type={"submit"}
+                  />
+                </WelcomeButton>
               </View>
             </View>
-          )}
-
+          </>
           {/* Status messages */}
           <View style={styles.containerStatus}>
             <StatusMessage
@@ -241,11 +172,7 @@ const LoginForm = ({
             />
             <StatusMessage
               type="success"
-              translationKey={
-                urlType === "passkey"
-                  ? "auth.signupStep.signupSuccessPasskey"
-                  : "auth.signupStep.signupSuccessPassword"
-              }
+              translationKey={"auth.signupStep.signupSuccessPassword"}
               visible={signedup}
               timeout={5000}
               onClose={() => {
@@ -253,9 +180,6 @@ const LoginForm = ({
               }}
             />
           </View>
-
-          <TurnstileCaptcha key={captchaKey} onVerify={setCaptchaToken} />
-
           {/* Signup link */}
           <View style={styles.link}>
             <AppText style={styles.linkText}>
@@ -316,7 +240,6 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       paddingHorizontal: 20,
     },
     textInput: {
-      marginTop: 24,
       paddingVertical: 10,
       paddingHorizontal: 15,
       borderRadius: 25,
@@ -367,7 +290,6 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       gap: 12,
       width: "100%",
       maxWidth: 300,
-      marginTop: 20,
     },
     buttonWrapper: {
       flex: 1,
@@ -407,30 +329,6 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       color: LoginColors[loginTheme].title,
       fontWeight: "600",
       fontSize: 11,
-    },
-    passkeyModeContent: {
-      width: "100%",
-      maxWidth: 300,
-      alignItems: "center",
-      paddingTop: 10,
-    },
-    passkeyDescription: {
-      fontSize: 14,
-      color: LoginColors[loginTheme].subtitle2,
-      textAlign: "center",
-      marginBottom: 32,
-      lineHeight: 20,
-    },
-    passkeyButtonWrapperLarge: {
-      width: "100%",
-      alignItems: "center",
-      marginBottom: 10,
-    },
-    passkeyButtonContent: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 12,
     },
   });
 }

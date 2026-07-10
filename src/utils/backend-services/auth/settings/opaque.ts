@@ -6,27 +6,6 @@ const API_PATH = `/settings/opaque`;
 
 export const opaque = {
   /**
-   * Check if OPAQUE password is setup
-   */
-  async getStatus() {
-    try {
-      const token = await getAuthToken();
-      const response = await authApi.get(`${API_PATH}/status`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return { success: true, data: response.data };
-    } catch (error: any) {
-      return {
-        success: false,
-        error:
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message,
-      };
-    }
-  },
-
-  /**
    * Unified password setup/change method
    */
   async setup(password: string) {

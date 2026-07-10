@@ -21,11 +21,6 @@ export default function SecurityRoute() {
           iconName={"LockPasswordIcon"}
         />
         <SettingsMenuItem
-          navToPage="./settings/security/passkeys"
-          translationKey="settings.security.passkeys"
-          iconName={"FingerPrintIcon"}
-        />
-        <SettingsMenuItem
           navToPage="./settings/security/mfa"
           translationKey="settings.security.mfa"
           iconName={"TwoFactorAccessIcon"}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import AppText from "@/src/components/AppText";
@@ -6,18 +6,11 @@ import { LoginColors } from "@/constants/LoginColors";
 import { validate } from "@/src/utils/welcome/validator";
 import Icon from "@/src/components/Icon";
 import TextLink from "@/src/components/TextLink";
-import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
 import StatusMessage from "@/src/components/StatusMessage";
-
-const SIGNUP_MODE_OPTIONS: ToggleOption<"password" | "passkey">[] = [
-  { value: "password", label: "Password" },
-  { value: "passkey", label: "Passkey" },
-];
 
 interface Props {
   currentStep: number;
-  signupMode?: "password" | "passkey";
-  onSignupModeChange?: (mode: "password" | "passkey") => void;
+
   form: {
     name: string;
     password: string;
@@ -37,8 +30,6 @@ interface Props {
 
 export default function SignupStepField({
   currentStep,
-  signupMode = "password",
-  onSignupModeChange,
   form,
   showPassword,
   showConfirmPassword,
@@ -208,113 +199,104 @@ export default function SignupStepField({
 
     return (
       <View style={styles.group}>
-        {onSignupModeChange && (
-          <ToggleSelector
-            options={SIGNUP_MODE_OPTIONS}
-            value={signupMode}
-            onChange={onSignupModeChange}
-            disabled={isLoading}
-            style={styles.modeToggle}
+        <View style={styles.inputGroup}>
+          <AppText
+            style={[styles.label, { color: colors.subtitle }]}
+            translationKey="auth.signupStep.password"
           />
+          <View
+            style={[
+              styles.inputContainer,
+              {
+                borderColor: colors.borderTextInput,
+                backgroundColor: colors.backgroundTextInput,
+              },
+              inputBorder(validate.user.password(form.password), form.password),
+            ]}
+          >
+            <TextInput
+              style={[styles.textInput, { color: colors.text }]}
+              value={form.password}
+              placeholder={t("auth.signupStep.password")}
+              placeholderTextColor={colors.placeholderTextInput}
+              secureTextEntry={showPassword}
+              onChangeText={(v) => onChangeField("password", v)}
+              autoCapitalize="none"
+            />
+            <Icon
+              name={showPassword ? "ViewIcon" : "ViewOffIcon"}
+              color={colors.iconShowHideField}
+              style={styles.eyeButton}
+              onPress={onTogglePassword}
+            />
+          </View>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <AppText
+            style={[styles.label, { color: colors.subtitle }]}
+            translationKey="auth.signupStep.confirmPassword"
+          />
+          <View
+            style={[
+              styles.inputContainer,
+              {
+                borderColor: colors.borderTextInput,
+                backgroundColor: colors.backgroundTextInput,
+              },
+              inputBorder(
+                passwordsMatch
+                  ? { success: true }
+                  : confirmMismatch
+                    ? { success: false }
+                    : null,
+                form.confirmPassword,
+              ),
+            ]}
+          >
+            <TextInput
+              style={[styles.textInput, { color: colors.text }]}
+              value={form.confirmPassword}
+              placeholder={t("auth.signupStep.confirmPasswordPlaceholder")}
+              placeholderTextColor={colors.placeholderTextInput}
+              secureTextEntry={showConfirmPassword}
+              onChangeText={(v) => onChangeField("confirmPassword", v)}
+              autoCapitalize="none"
+            />
+            <Icon
+              name={showConfirmPassword ? "ViewIcon" : "ViewOffIcon"}
+              color={colors.iconShowHideField}
+              style={styles.eyeButton}
+              onPress={onToggleConfirmPassword}
+            />
+          </View>
+        </View>
+
+        {passwordErrors.length > 0 && (
+          <View
+            style={{
+              width: "100%",
+              maxWidth: 300,
+              marginBottom: 16,
+              marginTop: -8,
+            }}
+          >
+            <StatusMessage type="error" content={passwordErrors} />
+          </View>
         )}
-        {signupMode === "password" && (
-          <>
-            <View style={styles.inputGroup}>
-              <AppText
-                style={[styles.label, { color: colors.subtitle }]}
-                translationKey="auth.signupStep.password"
-              />
-              <View
-                style={[
-                  styles.inputContainer,
-                  {
-                    borderColor: colors.borderTextInput,
-                    backgroundColor: colors.backgroundTextInput,
-                  },
-                  inputBorder(
-                    validate.user.password(form.password),
-                    form.password,
-                  ),
-                ]}
-              >
-                <TextInput
-                  style={[styles.textInput, { color: colors.text }]}
-                  value={form.password}
-                  placeholder={t("auth.signupStep.password")}
-                  placeholderTextColor={colors.placeholderTextInput}
-                  secureTextEntry={showPassword}
-                  onChangeText={(v) => onChangeField("password", v)}
-                  autoCapitalize="none"
-                />
-                <Icon
-                  name={showPassword ? "ViewIcon" : "ViewOffIcon"}
-                  color={colors.iconShowHideField}
-                  style={styles.eyeButton}
-                  onPress={onTogglePassword}
-                />
-              </View>
-            </View>
 
-            <View style={styles.inputGroup}>
-              <AppText
-                style={[styles.label, { color: colors.subtitle }]}
-                translationKey="auth.signupStep.confirmPassword"
-              />
-              <View
-                style={[
-                  styles.inputContainer,
-                  {
-                    borderColor: colors.borderTextInput,
-                    backgroundColor: colors.backgroundTextInput,
-                  },
-                  inputBorder(
-                    passwordsMatch
-                      ? { success: true }
-                      : confirmMismatch
-                        ? { success: false }
-                        : null,
-                    form.confirmPassword,
-                  ),
-                ]}
-              >
-                <TextInput
-                  style={[styles.textInput, { color: colors.text }]}
-                  value={form.confirmPassword}
-                  placeholder={t("auth.signupStep.confirmPasswordPlaceholder")}
-                  placeholderTextColor={colors.placeholderTextInput}
-                  secureTextEntry={showConfirmPassword}
-                  onChangeText={(v) => onChangeField("confirmPassword", v)}
-                  autoCapitalize="none"
-                />
-                <Icon
-                  name={showConfirmPassword ? "ViewIcon" : "ViewOffIcon"}
-                  color={colors.iconShowHideField}
-                  style={styles.eyeButton}
-                  onPress={onToggleConfirmPassword}
-                />
-              </View>
-            </View>
-
-            {passwordErrors.length > 0 && (
-              <View style={{ width: "100%", maxWidth: 300, marginBottom: 16, marginTop: -8 }}>
-                <StatusMessage type="error" content={passwordErrors} />
-              </View>
-            )}
-
-            <View style={styles.opaqueLink}>
-              <AppText
-                style={styles.opaqueLinkText}
-                translationKey="auth.login.securedBy"
-              />
-              <TextLink
-                style={styles.opaqueLinkTextBold}
-                href="https://opaque-auth.com/"
-              >
-                OPAQUE
-              </TextLink>
-            </View>
-          </>
-        )}
+        <View style={styles.opaqueLink}>
+          <AppText
+            style={styles.opaqueLinkText}
+            translationKey="auth.login.securedBy"
+          />
+          <TextLink
+            style={styles.opaqueLinkTextBold}
+            href="https://opaque-auth.com/"
+          >
+            OPAQUE
+          </TextLink>
+        </View>
       </View>
     );
   }
@@ -326,10 +308,7 @@ const createStyles = (colors: any) => {
       width: "100%",
       alignItems: "center",
     },
-    modeToggle: {
-      width: 300,
-      marginBottom: 24,
-    },
+
     inputGroup: {
       marginBottom: 16,
       width: "100%",
