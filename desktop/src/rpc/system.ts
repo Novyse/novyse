@@ -25,14 +25,14 @@ export function handleSetOpenOnStartup(request: { openAtLogin: boolean }) {
           : ` "${app.getAppPath()}" --hidden`;
 
         const desktopContent = `[Desktop Entry]
-Type=Application
-Version=1.0
-Name=${app.name}
-Comment=Start ${app.name} on login
-Exec="${execPath}"${execArgs}
-StartupNotify=false
-Terminal=false
-`;
+          Type=Application
+          Version=${app.getVersion()}
+          Name=${app.name}
+          Comment=Start ${app.name} on login
+          Exec="${execPath}"${execArgs}
+          StartupNotify=false
+          Terminal=false
+        `;
         fs.writeFileSync(autostartFilePath, desktopContent, "utf-8");
       } else {
         if (fs.existsSync(autostartFilePath)) {
