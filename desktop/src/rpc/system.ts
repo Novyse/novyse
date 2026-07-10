@@ -20,7 +20,9 @@ export function handleSetOpenOnStartup(request: { openAtLogin: boolean }) {
         }
 
         const execPath = process.env.APPIMAGE || process.execPath;
-        const execArgs = app.isPackaged ? "" : ` "${app.getAppPath()}"`;
+        const execArgs = app.isPackaged
+          ? " --hidden"
+          : ` "${app.getAppPath()}" --hidden`;
 
         const desktopContent = `[Desktop Entry]
 Type=Application
@@ -39,7 +41,10 @@ Terminal=false
       }
       return { success: true };
     } else {
-      app.setLoginItemSettings({ openAtLogin: request.openAtLogin });
+      app.setLoginItemSettings({
+        openAtLogin: request.openAtLogin,
+        args: ["--hidden"],
+      });
       return { success: true };
     }
   } catch (error) {
@@ -54,7 +59,7 @@ export function handleGetOpenOnStartup() {
       const autostartFilePath = getAutostartFilePath();
       return { success: true, openAtLogin: fs.existsSync(autostartFilePath) };
     } else {
-      const settings = app.getLoginItemSettings();
+      const settings = app.getLoginItemSettings({ args: ["--hidden"] });
       return { success: true, openAtLogin: settings.openAtLogin };
     }
   } catch (error) {

@@ -76,6 +76,8 @@ function createWindow() {
     ? path.resolve(appDir, "assets", "images", "logo-novyse.png")
     : path.resolve(appDir, "..", "assets", "images", "logo-novyse.png");
 
+  const isHidden = process.argv.includes("--hidden");
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 900,
@@ -84,6 +86,7 @@ function createWindow() {
     title: appName,
     icon: iconPath,
     frame: false,
+    show: !isHidden,
     titleBarStyle: "hidden",
     backgroundColor: "#00000000",
     webPreferences: {
