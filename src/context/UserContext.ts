@@ -183,7 +183,18 @@ const useUserStore = create<UserState>((set, get) => ({
     }
   },
 
-  clear: () => {
+  clear: async () => {
+    const { default: eventEmitter } =
+      await import("@/src/utils/global/Events/EventEmitter");
+    const emitter = eventEmitter.getEmitter();
+
+    if (get()._eventsSetup) {
+      emitter.off("user:profile:update", get().onProfileUpdate);
+      emitter.off("user:presence:update", get().onPresenceUpdate);
+      emitter.off("chat:new", get().onNewChat);
+      emitter.off("chat:member:joined", get().onNewMember);
+    }
+
     set({
       localUserUUID: "",
       users: {},

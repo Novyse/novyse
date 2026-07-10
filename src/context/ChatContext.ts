@@ -807,7 +807,24 @@ const useChatStore = create<ChatState>((set, get) => ({
     }));
   },
 
-  clear: () => {
+  clear: async () => {
+    const { default: eventEmitter }: any =
+      await import("@/src/utils/global/Events/EventEmitter");
+    const emitter = eventEmitter.getEmitter();
+
+    if (get()._eventsSetup) {
+      emitter.off("chat:new", get().onNewChat);
+      emitter.off("chat:member:joined", get().onMemberJoin);
+      emitter.off("chat:member:activity", get().onActivity);
+      emitter.off("message:new", get().onNewMessage);
+      emitter.off("message:upload", get().onMessageUpload);
+      emitter.off("message:downloaded", get().onMessageDownloaded);
+      emitter.off("message:sent", get().onMessageSent);
+      emitter.off("message:update", get().onMessageUpdate);
+      emitter.off("file:downloaded", get().onFileDownloaded);
+      emitter.off("user:setting:chat:update", get().onUserChatSettingUpdate);
+    }
+
     set({
       chats: [],
       pinnedChats: [],

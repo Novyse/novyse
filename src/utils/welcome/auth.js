@@ -133,6 +133,7 @@ const logout = async () => {
   await database.clear();
   await AsyncStorage.clear();
   SocketIO.close();
+  useNetworkStore.getState().setSynced(false);
 
   switch (Platform) {
     case "desktop": {
