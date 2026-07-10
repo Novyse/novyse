@@ -90,7 +90,7 @@ export default function SelectInput({
       <Modal
         visible={modalVisible}
         transparent
-        animationType="slide"
+        animationType="none"
         onRequestClose={() => setModalVisible(false)}
       >
         <TouchableOpacity

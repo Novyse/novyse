@@ -63,7 +63,7 @@ export default function DateInput({
           text={displayValue}
         />
       </Pressable>
-      <Modal visible={open} transparent animationType="slide">
+      <Modal visible={open} transparent animationType="none">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             {Platform.select({

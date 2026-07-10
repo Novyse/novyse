@@ -111,7 +111,7 @@ export const EmojiMenuOverlay: React.FC<EmojiMenuOverlayProps> = ({
       <Modal
         visible={isVisible}
         transparent={true}
-        animationType="fade"
+        animationType="none"
         onRequestClose={handleClose}
       >
         <TouchableWithoutFeedback onPress={handleClose}>

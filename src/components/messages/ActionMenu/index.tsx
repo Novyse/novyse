@@ -192,7 +192,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
     <Modal
       transparent
       visible={visible}
-      animationType="fade"
+      animationType="none"
       onRequestClose={onClose}
     >
       <Pressable
