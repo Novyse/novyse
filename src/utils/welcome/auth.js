@@ -13,6 +13,7 @@ import messageUtils from "@/src/utils/chat/message";
 import notificationManager from "@/src/utils/notifications/manager";
 import useUserStore from "@/src/context/UserContext";
 import useChatStore from "@/src/context/ChatContext";
+import useNetworkStore from "@/src/context/NetworkContext";
 
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import { resetGlobalNavState } from "@/src/components/tabs/TabNavigator";
