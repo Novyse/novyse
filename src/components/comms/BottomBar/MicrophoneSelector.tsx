@@ -97,13 +97,6 @@ const MicrophoneSelector = ({
 
   const selectorContent = (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <AppText
-          style={styles.title}
-          translationKey="chat.comms.selectors.microphone.title"
-        />
-      </View>
-
       {hasPermission === false ? (
         <View style={styles.errorWrapper}>
           <StatusMessage
@@ -124,6 +117,7 @@ const MicrophoneSelector = ({
         <View style={styles.listWrapper}>
           <FlashList
             data={availableMicrophones}
+            style={styles.listContent}
             renderItem={renderMicrophoneItem}
             keyExtractor={(item) => item.deviceId}
             showsVerticalScrollIndicator={false}
@@ -140,6 +134,7 @@ const MicrophoneSelector = ({
       theme={theme}
       mode="adaptive"
       snapPoints={["50%"]}
+      titleTranslationKey="chat.comms.selectors.microphone.title"
     >
       {selectorContent}
     </AdaptiveModal>
@@ -150,8 +145,6 @@ function createStyle(theme: any) {
   return StyleSheet.create({
     container: {
       width: "100%",
-      paddingHorizontal: 20,
-      paddingVertical: 10,
     },
     header: {
       flexDirection: "row",
@@ -181,6 +174,9 @@ function createStyle(theme: any) {
       maxHeight: 300,
       minWidth: 300,
       ...ScrollBar(theme),
+    },
+    listContent: {
+      borderRadius: 15,
     },
   });
 }

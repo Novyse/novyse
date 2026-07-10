@@ -76,13 +76,6 @@ const CameraSelector = ({
 
   const selectorContent = (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <AppText
-          style={styles.title}
-          translationKey="chat.comms.selectors.camera.title"
-        />
-      </View>
-
       {loading ? (
         <View style={styles.loadingContainer}>
           <AppText
@@ -94,6 +87,7 @@ const CameraSelector = ({
         <View style={styles.listWrapper}>
           <FlashList
             data={availableCameras}
+            style={styles.listContent}
             renderItem={renderCameraItem}
             keyExtractor={(item) => item.deviceId}
             showsVerticalScrollIndicator={false}
@@ -110,6 +104,7 @@ const CameraSelector = ({
       theme={theme}
       mode="adaptive"
       snapPoints={["50%"]}
+      titleTranslationKey="chat.comms.selectors.camera.title"
     >
       {selectorContent}
     </AdaptiveModal>
@@ -120,8 +115,6 @@ function createStyle(theme: any) {
   return StyleSheet.create({
     container: {
       width: "100%",
-      paddingHorizontal: 20,
-      paddingVertical: 10,
     },
     header: {
       flexDirection: "row",
@@ -147,6 +140,9 @@ function createStyle(theme: any) {
       maxHeight: 300,
       minWidth: 300,
       ...ScrollBar(theme),
+    },
+    listContent: {
+      borderRadius: 15,
     },
   });
 }

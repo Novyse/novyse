@@ -1,8 +1,7 @@
 import React from "react";
 import { Modal, StyleSheet, Pressable, ScrollView, View } from "react-native";
-import Icon from "../Icon";
 import BlurredView from "../BlurredView";
-
+import ModalHeader from "./ModalHeader";
 import { useScreen } from "@/src/context/ScreenContext";
 
 const ModalBase = ({
@@ -15,10 +14,14 @@ const ModalBase = ({
   fullscreen = false,
   hideOverlay = false,
   popover = false,
+  title,
+  titleTranslationKey,
+  titleTranslationOptions,
+  titleStyle,
 }) => {
   const { isSmallScreen } = useScreen();
   const shouldUseFullscreen = fullscreen && isSmallScreen && !popover;
-  const styles = createStyle(theme, isSmallScreen, shouldUseFullscreen, {
+  const styles = createStyle(theme, shouldUseFullscreen, {
     hideOverlay,
     popover,
   });
@@ -27,41 +30,37 @@ const ModalBase = ({
     return null;
   }
 
+  const renderBody = () => (
+    <View style={styles.inner}>
+      <ModalHeader
+        title={title}
+        titleTranslationKey={titleTranslationKey}
+        titleTranslationOptions={titleTranslationOptions}
+        titleStyle={titleStyle}
+        hideCloseX={hideCloseX}
+        onClose={onClose}
+        theme={theme}
+      />
+      {scrollable ? (
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          bounces={false}
+        >
+          {children}
+        </ScrollView>
+      ) : (
+        <View style={styles.body}>{children}</View>
+      )}
+    </View>
+  );
+
   const content = (
     <Pressable style={styles.overlay} onPress={onClose}>
-      <BlurredView style={styles.container}>
-        {scrollable ? (
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.contentStyle}
-          >
-            <Pressable>
-              {!hideCloseX && (
-                <Icon
-                  name={"Cancel01Icon"}
-                  style={styles.closeIcon}
-                  onPress={onClose}
-                />
-              )}
-              {children}
-            </Pressable>
-          </ScrollView>
-        ) : (
-          <View style={styles.scrollView}>
-            <Pressable style={styles.contentStyle}>
-              {!hideCloseX && (
-                <Icon
-                  name={"Cancel01Icon"}
-                  style={styles.closeIcon}
-                  onPress={onClose}
-                />
-              )}
-              {children}
-            </Pressable>
-          </View>
-        )}
-      </BlurredView>
+      <Pressable style={styles.modalAnchor} onPress={() => {}}>
+        <BlurredView style={styles.container}>{renderBody()}</BlurredView>
+      </Pressable>
     </Pressable>
   );
 
@@ -81,7 +80,7 @@ const ModalBase = ({
   );
 };
 
-function createStyle(theme, isSmallScreen, shouldUseFullscreen, options = {}) {
+function createStyle(theme, shouldUseFullscreen, options = {}) {
   const { hideOverlay = false, popover = false } = options;
 
   return StyleSheet.create({
@@ -97,28 +96,38 @@ function createStyle(theme, isSmallScreen, shouldUseFullscreen, options = {}) {
         : theme.backgroundModalOverlay,
       justifyContent: popover ? "flex-end" : "center",
       alignItems: popover ? "flex-start" : "center",
+      paddingVertical: shouldUseFullscreen ? 0 : 24,
+      paddingHorizontal: shouldUseFullscreen ? 0 : popover ? 0 : 10,
+    },
+    modalAnchor: {
+      width: shouldUseFullscreen ? "100%" : popover ? undefined : "100%",
+      maxWidth: shouldUseFullscreen ? "100%" : popover ? undefined : 520,
+      maxHeight: "100%",
+      flexShrink: 1,
+      alignSelf: popover ? "flex-start" : "center",
+      marginLeft: popover ? 10 : 0,
+      marginBottom: popover ? 70 : 0,
     },
     container: {
       borderRadius: shouldUseFullscreen ? 0 : 15,
       elevation: 5,
-      width: shouldUseFullscreen ? "100%" : "auto",
-      height: shouldUseFullscreen ? "100%" : "auto",
-      maxWidth: shouldUseFullscreen ? "100%" : popover ? undefined : "90%",
-      maxHeight: shouldUseFullscreen ? "100%" : popover ? undefined : "90%",
-      marginHorizontal: shouldUseFullscreen ? 0 : popover ? 0 : 10,
-      marginLeft: popover ? 10 : 0,
-      marginBottom: popover ? 70 : 0,
+      width: shouldUseFullscreen ? "100%" : undefined,
+      maxHeight: "100%",
+      flexShrink: 1,
+    },
+    inner: {
+      padding: 15,
+      maxHeight: "100%",
+      flexShrink: 1,
     },
     scrollView: {
-      maxHeight: "100%",
+      flexShrink: 1,
     },
-    closeIcon: {
-      alignSelf: "flex-end",
+    scrollContent: {
+      flexGrow: 1,
     },
-    contentStyle: {
-      flexGrow: isSmallScreen ? 1 : null,
-      alignContent: "center",
-      justifyContent: "center",
+    body: {
+      flexShrink: 1,
     },
   });
 }

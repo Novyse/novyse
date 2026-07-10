@@ -120,19 +120,13 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
       onClose={onClose}
       theme={theme}
       mode="adaptive"
+      titleTranslationKey={
+        isVideoActive
+          ? "chat.comms.watchTogether.modifyTitle"
+          : "chat.comms.watchTogether.startTitle"
+      }
     >
       <View style={styles.container}>
-        <View style={styles.header}>
-          <AppText
-            style={styles.title}
-            translationKey={
-              isVideoActive
-                ? "chat.comms.watchTogether.modifyTitle"
-                : "chat.comms.watchTogether.startTitle"
-            }
-          />
-        </View>
-
         <AppText
           style={styles.description}
           translationKey="chat.comms.watchTogether.description"
@@ -198,20 +192,7 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
 
 const createStyles = (theme: any) =>
   StyleSheet.create({
-    container: {
-      padding: 24,
-    },
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 16,
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: "700",
-      color: theme.text,
-    },
+    container: {},
     description: {
       fontSize: 14,
       color: theme.subtitle,
@@ -226,6 +207,7 @@ const createStyles = (theme: any) =>
       color: theme.text,
       fontSize: 15,
       marginBottom: 20,
+      outlineStyle: "none" as any,
     },
     errorText: {
       color: theme.iconDanger,

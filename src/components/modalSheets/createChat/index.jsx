@@ -185,16 +185,10 @@ const CreateChatModal = ({ visible, onClose }) => {
     <View style={styles.contentContainer}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <AppText
-            style={styles.modalTitle}
-            translationKey="modals.create_chat.title"
-          />
-          <AppText
-            style={styles.modalSubtitle}
-            translationKey="modals.create_chat.subtitle"
-          />
-        </View>
+        <AppText
+          style={styles.modalSubtitle}
+          translationKey="modals.create_chat.subtitle"
+        />
       </View>
 
       {/* Chat Identity */}
@@ -395,6 +389,7 @@ const CreateChatModal = ({ visible, onClose }) => {
       mode="adaptive"
       snapPoints={snapPoints}
       hideCloseX={true}
+      titleTranslationKey="modals.create_chat.title"
     >
       {ModalContent}
     </AdaptiveModal>

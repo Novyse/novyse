@@ -16,6 +16,7 @@ import StatusMessage from "@/src/components/StatusMessage";
 import logoForQR from "@/assets/images/logo-novyse.png";
 
 import ModalBase from "@/src/components/modalSheets/ModalBase";
+import AppText from "@/src/components/AppText";
 
 const ModalVerifyMethod = ({
   visible,
@@ -82,13 +83,9 @@ const ModalVerifyMethod = ({
         onClose();
       }}
       theme={theme}
-      hideCloseX={false}
+      titleTranslationKey={getFormattedVerificationTypeKey()}
     >
       <View style={styles.cardContent}>
-        <AppText
-          style={styles.title}
-          translationKey={getFormattedVerificationTypeKey()}
-        />
         <AppText
           style={styles.subtitle}
           translationKey={getSubtitleTextKey()}

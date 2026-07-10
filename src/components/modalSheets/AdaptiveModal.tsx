@@ -34,6 +34,10 @@ export interface AdaptiveModalProps {
   enablePanDownToClose?: boolean;
   enableOverDrag?: boolean;
   enableDynamicSizing?: boolean;
+  title?: string;
+  titleTranslationKey?: string;
+  titleTranslationOptions?: Record<string, unknown>;
+  titleStyle?: object;
 }
 
 const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
@@ -53,6 +57,10 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
       enablePanDownToClose = true,
       enableOverDrag = false,
       enableDynamicSizing = false,
+      title,
+      titleTranslationKey,
+      titleTranslationOptions,
+      titleStyle,
     },
     ref,
   ) => {
@@ -112,6 +120,11 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
           theme={theme}
           scrollable={scrollable}
           hideOverlay={hideOverlay}
+          hideCloseX={hideCloseX}
+          title={title}
+          titleTranslationKey={titleTranslationKey}
+          titleTranslationOptions={titleTranslationOptions}
+          titleStyle={titleStyle}
           enablePanDownToClose={enablePanDownToClose}
           enableOverDrag={enableOverDrag}
           enableDynamicSizing={enableDynamicSizing}
@@ -131,6 +144,10 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
         hideCloseX={hideCloseX}
         hideOverlay={hideOverlay}
         popover={popover}
+        title={title}
+        titleTranslationKey={titleTranslationKey}
+        titleTranslationOptions={titleTranslationOptions}
+        titleStyle={titleStyle}
       >
         {children}
       </ModalBase>

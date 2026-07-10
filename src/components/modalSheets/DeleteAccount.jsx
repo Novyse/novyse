@@ -57,20 +57,15 @@ const DeleteAccount = ({ visible, onClose }) => {
       theme={theme}
       mode="adaptive"
       hideCloseX={true}
+      titleTranslationKey="modals.delete_account.title"
+      titleStyle={styles.modalTitle}
     >
       <View style={styles.contentContainer}>
-        {/* Header */}
         <View style={styles.header}>
-          <View>
-            <AppText
-              style={styles.modalTitle}
-              translationKey="modals.delete_account.title"
-            />
-            <AppText
-              style={styles.modalSubtitle}
-              translationKey="modals.delete_account.warning"
-            />
-          </View>
+          <AppText
+            style={styles.modalSubtitle}
+            translationKey="modals.delete_account.warning"
+          />
         </View>
 
         {/* Confirmation Identity */}
@@ -152,10 +147,7 @@ const createStyles = (theme) => {
       justifyContent: "space-between",
     },
     modalTitle: {
-      fontSize: 22,
-      fontWeight: "700",
       color: theme.dangerText,
-      marginBottom: 6,
     },
     modalSubtitle: {
       fontSize: 14,

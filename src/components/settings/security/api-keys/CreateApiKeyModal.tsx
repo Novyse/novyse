@@ -32,9 +32,13 @@ export default function CreateApiKeyModal({
   };
 
   return (
-    <ModalBase visible={visible} onClose={onClose} theme={theme}>
+    <ModalBase
+      visible={visible}
+      onClose={onClose}
+      theme={theme}
+      titleTranslationKey="settings.security.apiKeys.createModal.title"
+    >
       <View style={styles.container}>
-        <AppText style={styles.title} translationKey="settings.security.apiKeys.createModal.title" />
         <AppText style={styles.subtitle} translationKey="settings.security.apiKeys.createModal.subtitle" />
         <TextInput
           placeholder={t("settings.security.apiKeys.createModal.placeholder")}
@@ -64,16 +68,8 @@ export default function CreateApiKeyModal({
 const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
-      padding: 24,
       width: 400,
       maxWidth: "100%",
-    },
-    title: {
-      fontSize: 22,
-      fontWeight: "bold",
-      color: theme.text,
-      marginBottom: 8,
-      textAlign: "center",
     },
     subtitle: {
       fontSize: 14,
