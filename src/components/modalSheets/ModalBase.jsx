@@ -73,7 +73,7 @@ const ModalBase = ({
       visible={visible}
       transparent={true}
       onRequestClose={onClose}
-      animationType="fade"
+      animationType="none"
     >
       {content}
     </Modal>

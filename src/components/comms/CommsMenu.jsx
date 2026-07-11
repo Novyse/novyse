@@ -134,7 +134,7 @@ const CommsMenu = ({
     <Modal
       transparent
       visible={visible}
-      animationType="fade"
+      animationType="none"
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
@@ -303,7 +303,7 @@ const createStyles = (theme) =>
       borderRadius: 12,
       padding: 10,
       zIndex: 1000,
-      overflow: "hidden",
+      overflow: "hidden"
     },
     header: {
       paddingBottom: 10,

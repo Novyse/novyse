@@ -148,7 +148,7 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
       {isMobile && fullscreenItem && (
         <Modal
           visible={true}
-          animationType="fade"
+          animationType="none"
           statusBarTranslucent={true}
           supportedOrientations={["landscape"]}
           onRequestClose={() => handleFullScreen(fullscreenItem.streamUUID)}
