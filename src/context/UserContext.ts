@@ -163,23 +163,29 @@ const useUserStore = create<UserState>((set, get) => ({
     const userUUIDs = Object.keys(users);
     if (userUUIDs.length === 0) return;
 
-    const response = (await gateway.user.presence(userUUIDs)) as any;
-    if (response.success && response.data) {
-      set((state) => {
-        const updatedUsers = { ...state.users };
-        Object.entries(response.data).forEach(
-          ([userUUID, p]: [string, any]) => {
-            if (updatedUsers[userUUID]) {
-              updatedUsers[userUUID] = {
-                ...updatedUsers[userUUID],
-                status: p.status,
-                lastAccessAt: p.lastAccessAt ? new Date(p.lastAccessAt) : null,
-              };
-            }
-          },
-        );
-        return { users: updatedUsers };
-      });
+    try {
+      const response = (await gateway.user.presence(userUUIDs)) as any;
+      if (response.success && response.data) {
+        set((state) => {
+          const updatedUsers = { ...state.users };
+          Object.entries(response.data).forEach(
+            ([userUUID, p]: [string, any]) => {
+              if (updatedUsers[userUUID]) {
+                updatedUsers[userUUID] = {
+                  ...updatedUsers[userUUID],
+                  status: p.status,
+                  lastAccessAt: p.lastAccessAt
+                    ? new Date(p.lastAccessAt)
+                    : null,
+                };
+              }
+            },
+          );
+          return { users: updatedUsers };
+        });
+      }
+    } catch (error) {
+      console.warn("Could not fetch presence:", error);
     }
   },
 
