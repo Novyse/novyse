@@ -30,11 +30,21 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ message, onCancel }) => {
   const senderName =
     useUserStore((state) => state.users[senderUUID])?.name || "";
 
-  const content = message ? messageUtils.format(message).content : null;
+  const hasRange = message.rangeStart != null && message.rangeEnd != null;
+
+  const content = message
+    ? hasRange
+      ? messageUtils
+          .format(message)
+          .content.slice(message.rangeStart, message.rangeEnd)
+      : messageUtils.format(message).content
+    : null;
+
+  const iconName = hasRange ? "QuoteIcon" : "ArrowMoveUpLeftIcon";
 
   return (
     <View style={styles.actionContainer}>
-      <Icon name="ArrowMoveUpLeftIcon" size={18} />
+      <Icon name={iconName} size={18} />
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
         <AppText
@@ -69,7 +79,7 @@ const ReplyBar: React.FC<ReplyBarProps> = ({ replyingTo, onCancelReply }) => {
     <BlurredView style={styles.listContainer}>
       {replyingTo.map((msg) => (
         <ReplyItem
-          key={"reply-" + msg.id}
+          key={"reply-" + msg.id + msg.rangeStart + msg.rangeEnd}
           message={msg}
           onCancel={onCancelReply}
         />

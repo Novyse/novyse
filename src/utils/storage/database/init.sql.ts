@@ -152,13 +152,13 @@ CREATE TABLE IF NOT EXISTS message_files (
 );
 
 CREATE TABLE IF NOT EXISTS message_reply (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     chatUUID TEXT NOT NULL,
     messageID INTEGER NOT NULL,
     replyTo_chatUUID TEXT NOT NULL,
     replyTo_messageID INTEGER NOT NULL,
     replyTo_rangeStart INTEGER,
     replyTo_rangeEnd INTEGER,
-    PRIMARY KEY (chatUUID, messageID, replyTo_chatUUID, replyTo_messageID),
     FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id)
 );
 

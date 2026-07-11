@@ -52,7 +52,7 @@ const useMessageActions = ({
           onReply?.(currentMsg);
           break;
         case "QuoteAndReply":
-          onReply?.(currentMsg);
+          onReply?.(currentMsg, data.rangeStart, data.rangeEnd);
           break;
         case "Forward":
           onForward?.(currentMsg);

@@ -52,6 +52,7 @@ const MessageList = ({
   );
 
   const [highlightedID, setHighlightedID] = useState(null);
+  const [highlightedRange, setHighlightedRange] = useState(null);
   const [historyStack, setHistoryStack] = useState([]);
   const initialScrollIndexRef = useRef(null);
 
@@ -96,7 +97,7 @@ const MessageList = ({
   }
 
   const navigateToMessageWithHistory = useCallback(
-    (chatUUID, messageID, oldChatUUID, oldMessageID) => {
+    (chatUUID, messageID, oldChatUUID, oldMessageID, rangeStart, rangeEnd) => {
       const index = preparedMessages.findIndex(
         (m) =>
           m.type !== "separator" &&
@@ -109,15 +110,24 @@ const MessageList = ({
           setHistoryStack((prev) => [...prev, oldMessageID]);
         }
 
-        setHighlightedID(messageID);
         flatListRef.current?.scrollToIndex({
           index,
           animated: true,
           viewPosition: 0.5,
         });
-
-        // Autoclear highlight after a short delay
-        setTimeout(() => setHighlightedID(null), 2000);
+        if (rangeStart != null && rangeEnd != null) {
+          setHighlightedID(messageID);
+          setTimeout(() => {
+            setHighlightedID(null);
+            setHighlightedRange({ messageID, rangeStart, rangeEnd });
+            setTimeout(() => setHighlightedRange(null), 3000);
+          }, 1000); // 1 second message highlight, then 3 seconds text highlight
+        } else {
+          setHighlightedID(messageID);
+          setTimeout(() => {
+            setHighlightedID(null);
+          }, 2000);
+        }
       }
     },
     [preparedMessages, flatListRef],
@@ -241,6 +251,11 @@ const MessageList = ({
             isSender={message.senderUUID === myUUID}
             isSelected={selectedMessages.some((msg) => msg.id === message.id)}
             isHighlighted={message.id == highlightedID}
+            highlightedRange={
+              highlightedRange?.messageID === message.id
+                ? highlightedRange
+                : null
+            }
             isEdited={editedMessages.some(
               (p) => (p.messageID || p) == message.id,
             )}
@@ -263,14 +278,14 @@ const MessageList = ({
       editedMessages,
       pinnedMessages,
       highlightedID,
+      highlightedRange,
       onReply,
       onReaction,
       onEditMessage,
       setTriggeredMessage,
       setTriggeredMessagePosition,
-      setTriggeredMessage,
-      setTriggeredMessagePosition,
       setSelectedMessages,
+      navigateToMessageWithHistory,
     ],
   );
 

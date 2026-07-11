@@ -156,6 +156,8 @@ const MessageReplyWrapper = ({
       message={replyMessage}
       chatUUID={replyTo?.chatUUID}
       messageID={replyTo?.messageID}
+      rangeStart={replyTo?.rangeStart}
+      rangeEnd={replyTo?.rangeEnd}
       oldChatUUID={oldChatUUID}
       oldMessageID={oldMessageID}
       navigateToMessageWithHistory={navigateToMessageWithHistory}
@@ -170,6 +172,7 @@ const MessageBase = ({
   isPinned,
   isEdited,
   isHighlighted,
+  highlightedRange,
   repliedCount,
   setTriggeredMessage,
   setTriggeredMessagePosition,
@@ -351,15 +354,16 @@ const MessageBase = ({
         ))}
       </View>
 
-      {content?.trim().length > 0 && (
+      {message.content?.trim().length > 0 && (
         <View style={styles.textContainer}>
           <MessageText
-            text={content}
+            message={message}
+            onReply={onReply}
             // Passa 0 come timestampWidth quando ci sono reazioni:
             // il timestamp non è più inline nel testo ma va sotto
             timestampWidth={hasReactions ? 0 : 80}
             isSelected={isSelected}
-            messageId={message.id}
+            highlightedRange={highlightedRange}
             onTaskListItemPress={handleTaskListItemPress}
           />
           {/* Timestamp inline (overlay) solo se NON ci sono reazioni */}
@@ -643,6 +647,7 @@ export default React.memo(
     prev.isSelected === next.isSelected &&
     prev.selectedMessages === next.selectedMessages &&
     prev.isHighlighted === next.isHighlighted &&
+    prev.highlightedRange === next.highlightedRange &&
     prev.repliedCount === next.repliedCount &&
     prev.isPinned === next.isPinned &&
     prev.isEdited === next.isEdited &&

@@ -5,11 +5,15 @@ import { useThemeContext } from "@/src/context/ThemeContext";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
 
+import Icon from "@/src/components/Icon";
+
 const MessageReply = ({
   senderName,
   message,
   chatUUID,
   messageID,
+  rangeStart,
+  rangeEnd,
   oldChatUUID,
   oldMessageID,
   navigateToMessageWithHistory,
@@ -18,10 +22,17 @@ const MessageReply = ({
   const styles = createStyle(theme);
 
   const [text, setText] = useState("");
+  const isQuote = rangeStart != null && rangeEnd != null;
+
   useEffect(() => {
     const formatted = messageUtils.format(message);
-    setText(formatted.content);
-  }, [message]);
+    if (isQuote) {
+      const sliced = formatted.content?.substring(rangeStart, rangeEnd);
+      setText(sliced || formatted.content);
+    } else {
+      setText(formatted.content);
+    }
+  }, [message, rangeStart, rangeEnd, isQuote]);
 
   return (
     <Pressable
@@ -32,17 +43,22 @@ const MessageReply = ({
           messageID,
           oldChatUUID,
           oldMessageID,
+          rangeStart,
+          rangeEnd,
         )
       }
     >
       <View style={styles.innerContainer}>
         <View style={styles.accent} />
         <View style={styles.content}>
-          <AppText
-            style={styles.senderName}
-            numberOfLines={1}
-            text={senderName ?? "Unknown"}
-          />
+          <View style={styles.headerRow}>
+            <AppText
+              style={styles.senderName}
+              numberOfLines={1}
+              text={senderName ?? "Unknown"}
+            />
+            {isQuote && <Icon name="QuoteIcon" size={14} color={theme.icon} />}
+          </View>
           <AppText style={styles.text} numberOfLines={2} text={text ?? ""} />
         </View>
       </View>
@@ -72,11 +88,16 @@ const createStyle = (theme) =>
       paddingVertical: 5,
       justifyContent: "center",
     },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 2,
+    },
     senderName: {
       fontWeight: "600",
       fontSize: 12,
       color: theme.icon,
-      marginBottom: 2,
     },
     text: {
       fontSize: 12,

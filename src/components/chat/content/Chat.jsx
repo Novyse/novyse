@@ -322,13 +322,21 @@ const ChatContent = () => {
   }, [isEmojiPickerVisible, handleEmojiOverlayClose]);
 
   const handleReply = useCallback(
-    (msg) => {
+    (msg, rangeStart, rangeEnd) => {
       setReplyingTo((prev) => {
-        if (prev.find((r) => r.id === msg.id)) return prev;
+        if (
+          prev.find(
+            (r) =>
+              r.id === msg.id &&
+              r.rangeStart === rangeStart &&
+              r.rangeEnd === rangeEnd,
+          )
+        )
+          return prev;
         if (prev.length >= 3) {
-          return [...prev.slice(1), msg];
+          return [...prev.slice(1), { ...msg, rangeStart, rangeEnd }];
         }
-        return [...prev, msg];
+        return [...prev, { ...msg, rangeStart, rangeEnd }];
       });
       setNewMessageText("");
       setEditingMessage(null); // clear edit when replying
@@ -483,6 +491,8 @@ const ChatContent = () => {
         const replyTos = replyingTo.map((msg) => ({
           chatUUID: msg.chatUUID,
           messageID: msg.id,
+          rangeStart: msg.rangeStart,
+          rangeEnd: msg.rangeEnd,
         }));
         setReplyingTo([]);
 

@@ -7,29 +7,51 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import Platform from "@/src/utils/device/type";
 
 const MessageText = ({
-  text,
+  message,
+  onReply,
   timestampWidth = 80,
   isSelected = false,
-  messageId,
+  highlightedRange,
   onTaskListItemPress,
 }) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const styles = createStyle(theme);
 
-  if (!text?.trim()) return null;
+  if (!message.content?.trim()) return null;
 
   // Process username mentions as links
-  let preprocessedText = text
+  let preprocessedText = message.content
     .trimStart()
     .replace(/(^|\s)@(\w+)/g, "$1[@$2](/profile/$2)");
 
-  const normalized =
+  let normalized =
     preprocessedText + `  ${"\u00A0".repeat(Math.ceil(timestampWidth / 4))}`;
+
+  if (
+    highlightedRange &&
+    highlightedRange.rangeStart != null &&
+    highlightedRange.rangeEnd != null
+  ) {
+    const { rangeStart, rangeEnd } = highlightedRange;
+    if (
+      rangeStart >= 0 &&
+      rangeEnd <= normalized.length &&
+      rangeStart < rangeEnd
+    ) {
+      normalized =
+        normalized.slice(0, rangeStart) +
+        "==" +
+        normalized.slice(rangeStart, rangeEnd) +
+        "==" +
+        normalized.slice(rangeEnd);
+    }
+  }
 
   const markdownElement = (
     <EnrichedMarkdownText
       flavor="github"
+      md4cFlags={{ highlight: true }}
       selectable={
         Platform === "web" || Platform === "desktop" ? true : isSelected
       }
@@ -45,26 +67,33 @@ const MessageText = ({
           Linking.openURL(url);
         }
       }}
-      selectionMenuConfig={{
-        copyAsMarkdown: { enabled: false },
-      }}
-      contextMenuItems={[
-        {
-          text: "Quote",
-          onPress: (event) => {
-            const useChatStore = require("@/src/context/ChatContext").default;
-            useChatStore.getState().setReplyingTo({
-              messageId: messageId,
-              text: event.text,
-            });
+      {...(Platform !== "web" && Platform !== "desktop"
+        ? {
+            selectionMenuConfig: {
+              copyAsMarkdown: { enabled: false },
+            },
+            contextMenuItems: [
+              {
+                text: "Quote",
+                onPress: (event) => {
+                  if (onReply) {
+                    onReply(
+                      message,
+                      event.selection?.start,
+                      event.selection?.end,
+                    );
+                  }
+                  const {
+                    useActiveChatStore,
+                  } = require("@/src/context/ActiveChatContext");
 
-            // Deselect the message when an action is performed
-            const useActiveChatStore =
-              require("@/src/context/ActiveChatContext").default;
-            useActiveChatStore.getState().setSelectedMessages([]);
-          },
-        },
-      ]}
+                  // Deselect the message when an action is performed
+                  useActiveChatStore.getState().setSelectedMessages([]);
+                },
+              },
+            ],
+          }
+        : {})}
       selectionColor={theme.primary + "40"}
       style={styles.text}
       markdownStyle={{
@@ -80,6 +109,7 @@ const MessageText = ({
         link: { color: theme.textLink, underline: true },
         strong: { fontWeight: "bold" },
         em: { fontStyle: "italic" },
+        highlight: { backgroundColor: theme.primary + "60", color: theme.text },
         table: {
           color: theme.text,
           headerBackgroundColor: theme.iconHovered,
@@ -109,13 +139,13 @@ const MessageText = ({
   if (Platform === "web" || Platform === "desktop") {
     return (
       <View
-        nativeID={`message-text-${messageId}`}
+        nativeID={`message-text-${message.id}`}
         onMouseDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
         style={{ userSelect: "text", cursor: "text" }}
       >
         <style>{`
-          #message-text-${messageId} ::selection {
+          #message-text-${message.id} ::selection {
             background-color: ${theme.primary}40 !important;
           }
         `}</style>

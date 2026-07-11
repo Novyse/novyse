@@ -225,6 +225,18 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   const handleMenuItemPress = (action: string) => {
     if (action === "Copy Selected") {
       onAction(action, { text: selectedText });
+    } else if (action === "QuoteAndReply") {
+      let rangeStart = undefined;
+      let rangeEnd = undefined;
+      if (selectedText && message?.content) {
+        const textToFind = selectedText.trim();
+        const start = message.content.indexOf(textToFind);
+        if (start !== -1) {
+          rangeStart = start;
+          rangeEnd = start + textToFind.length;
+        }
+      }
+      onAction(action, { rangeStart, rangeEnd });
     } else {
       onAction(action);
     }
