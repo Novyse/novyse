@@ -79,14 +79,15 @@ const createStyle = (theme) =>
       minHeight: 45,
     },
     accent: {
-      width: 3,
-      backgroundColor: theme.icon,
+      width: 4,
+      backgroundColor: theme.primary,
     },
     content: {
       flex: 1,
       paddingHorizontal: 8,
       paddingVertical: 5,
       justifyContent: "center",
+      backgroundColor: theme.secondary + "30",
     },
     headerRow: {
       flexDirection: "row",

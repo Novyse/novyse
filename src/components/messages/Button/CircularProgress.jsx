@@ -57,9 +57,7 @@ const CircularProgress = ({ progress, onCancel }) => {
           strokeDasharray={CIRCUMFERENCE}
           animatedProps={animatedCircleProps}
           strokeLinecap="round"
-          originX={CIRCLE_SIZE / 2}
-          originY={CIRCLE_SIZE / 2}
-          rotation="-90"
+          transform={`rotate(-90, ${CIRCLE_SIZE / 2}, ${CIRCLE_SIZE / 2})`}
         />
       </Svg>
       {onCancel && (
