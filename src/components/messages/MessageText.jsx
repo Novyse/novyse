@@ -5,7 +5,7 @@ import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Platform from "@/src/utils/device/type";
-import { getMarkdownStyle } from "@/src/constants/markdownStyles";
+import { getMarkdownStyle } from "@/constants/markdownStyles";
 
 const MessageText = ({
   message,

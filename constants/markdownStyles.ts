@@ -1,4 +1,12 @@
-export const getMarkdownStyle = (theme) => ({
+import type {
+  MarkdownStyle,
+  MarkdownTextInputStyle,
+} from "react-native-enriched-markdown";
+import type { Theme } from "@/src/context/ThemeContext";
+
+export const getMarkdownStyle = (
+  theme: Theme,
+): MarkdownStyle & MarkdownTextInputStyle => ({
   paragraph: { color: theme.text },
   h1: { color: theme.text },
   h2: { color: theme.text },
@@ -7,14 +15,14 @@ export const getMarkdownStyle = (theme) => ({
   h5: { color: theme.text },
   h6: { color: theme.text },
   list: { color: theme.text },
-  listItem: { color: theme.text },
   link: { color: theme.textLink, underline: true },
   strong: { fontWeight: "bold" },
   em: { fontStyle: "italic" },
   highlight: { backgroundColor: theme.primary + "60", color: theme.text },
   spoiler: {
-    color: theme.placeholderText,
-    particles: { density: 10, speed: 20 },
+    color: theme.primary,
+    backgroundColor: theme.backgroundSearchResultItem,
+    particles: { density: 25, speed: 45 },
     solid: { borderRadius: 6 },
   },
   math: {
@@ -47,15 +55,5 @@ export const getMarkdownStyle = (theme) => ({
     checkmarkColor: theme.backgroundCard,
     checkedTextColor: theme.placeholderText,
     checkedStrikethrough: true,
-  },
-});
-
-export const getMarkdownTextInputStyle = (theme) => ({
-  spoiler: {
-    color: theme.text,
-    backgroundColor: theme.resolvedMode === "dark" ? "#444444" : "#dddddd",
-  },
-  link: {
-    color: theme.textLink,
   },
 });
