@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import { StyleSheet, View, TextInput } from "react-native";
 import { EnrichedMarkdownTextInput } from "react-native-enriched-markdown";
 import AppText from "@/src/components/AppText";
@@ -38,6 +38,26 @@ const MiddleBar = ({
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+
+  const lastValueRef = useRef(newMessageText);
+
+  useEffect(() => {
+    if (
+      Platform !== "web" &&
+      EnrichedMarkdownTextInput &&
+      textInputRef?.current
+    ) {
+      if (newMessageText !== lastValueRef.current) {
+        textInputRef.current.setValue(newMessageText || "");
+        lastValueRef.current = newMessageText;
+      }
+    }
+  }, [newMessageText]);
+
+  const handleTextChange = (text) => {
+    lastValueRef.current = text;
+    onTextChange?.(text);
+  };
 
   // Web/Desktop: auto-resize textarea to fit content
   useEffect(() => {
@@ -130,7 +150,7 @@ const MiddleBar = ({
     <>
       {!isRecording ? (
         <BlurredView style={styles.container}>
-          {Platform.OS === "web" || !EnrichedMarkdownTextInput ? (
+          {Platform === "web" || !EnrichedMarkdownTextInput ? (
             <TextInput
               ref={textInputRef}
               style={styles.textInput}
@@ -138,7 +158,7 @@ const MiddleBar = ({
               multiline={true}
               numberOfLines={1}
               value={newMessageText}
-              onChangeText={onTextChange}
+              onChangeText={handleTextChange}
               placeholder={t("chat.bottomBar.placeholder")}
               placeholderTextColor={theme.placeholderText}
               cursorColor={theme.placeholderText}
@@ -173,7 +193,8 @@ const MiddleBar = ({
               maxLength={2000}
               multiline={true}
               numberOfLines={1}
-              onChangeText={onTextChange}
+              defaultValue={newMessageText}
+              onChangeText={handleTextChange}
               placeholder={t("chat.bottomBar.placeholder")}
               placeholderTextColor={theme.placeholderText}
               cursorColor={theme.placeholderText}
@@ -287,8 +308,8 @@ const createStyle = (theme) =>
       marginLeft: 10,
       minWidth: 45,
       textAlignVertical: "center",
-      paddingTop: Platform.OS === "web" ? 12 : 12,
-      paddingBottom: Platform.OS === "web" ? 12 : 12,
+      paddingTop: Platform === "web" ? 12 : 12,
+      paddingBottom: Platform === "web" ? 12 : 12,
     },
     icon: {
       width: 45,
