@@ -21,6 +21,10 @@ import BlurredHeader from "@/src/components/BlurredHeader";
 import ItemSearch from "@/src/components/chat/list/ItemSearch";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
+import { useStatusBannerOffset } from "@/src/hooks/useStatusBannerOffset";
+import useNetworkStore from "@/src/context/NetworkContext";
+
+const SEARCH_HEADER_OFFSET = 90;
 
 interface SearchResult {
   handle: string;
@@ -37,8 +41,10 @@ const Search = () => {
   const setSelectedHandle = useActiveChatStore(
     (state) => state.setSelectedHandle,
   );
-  const intets = useSafeAreaInsets();
-  const styles = createStyle(theme, intets);
+  const insets = useSafeAreaInsets();
+  const statusBannerOffset = useStatusBannerOffset();
+  const apiError = useNetworkStore((state) => state.apiError);
+  const styles = createStyle(theme, insets, statusBannerOffset);
 
   const [responseArray, setResponseArray] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -168,7 +174,7 @@ const Search = () => {
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
         />
       )}
-      {isSearching && !isLoading && responseArray.length === 0 && (
+      {isSearching && !isLoading && responseArray.length === 0 && !apiError && (
         <AppText
           style={styles.noResults}
           translationKey="tabs.search.noResults"
@@ -180,7 +186,10 @@ const Search = () => {
 
 export default Search;
 
-const createStyle = (theme: any, insets: any) => {
+const createStyle = (theme: any, insets: any, statusBannerOffset: number) => {
+  const contentTop =
+    SEARCH_HEADER_OFFSET + insets.top + statusBannerOffset;
+
   return StyleSheet.create({
     searchIcon: {
       marginRight: 10,
@@ -196,21 +205,22 @@ const createStyle = (theme: any, insets: any) => {
       outlineStyle: "none" as any,
     },
     loader: {
-      marginTop: 90 + insets.top,
+      marginTop: contentTop,
     },
     results: {
       flex: 1,
       ...ScrollBar(theme),
     },
     noResults: {
-      marginTop: 20,
+      marginTop: contentTop,
+      paddingHorizontal: 20,
       textAlign: "center",
       color: theme.text,
       fontSize: 16,
     },
     flatListContent: {
       padding: 10,
-      paddingTop: 75 + insets.top + 10,
+      paddingTop: contentTop,
       paddingBottom: 10 + insets.bottom,
     },
   });
