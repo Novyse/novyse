@@ -26,6 +26,7 @@ import { useScreen } from "@/src/context/ScreenContext";
 import { useCommsContext } from "@/src/context/CommsContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import { useStatusBannerOffset } from "@/src/hooks/useStatusBannerOffset";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 import { ScrollBar } from "@/constants/ScrollBar";
@@ -102,8 +103,15 @@ const ChatList = () => {
   const showCollapsedSidebar =
     isSidebarCollapsed && !isSmallScreen && isFocused;
   const hasComms = connected && isSmallScreen;
+  const statusBannerOffset = useStatusBannerOffset();
 
-  const styles = createStyle(theme, isSmallScreen, insets, hasComms);
+  const styles = createStyle(
+    theme,
+    isSmallScreen,
+    insets,
+    hasComms,
+    statusBannerOffset,
+  );
 
   const {
     selectedItems,
@@ -399,7 +407,13 @@ const ChatList = () => {
   );
 };
 
-function createStyle(theme, isSmallScreen, insets, hasComms) {
+function createStyle(
+  theme,
+  isSmallScreen,
+  insets,
+  hasComms,
+  statusBannerOffset,
+) {
   return StyleSheet.create({
     flatList: {
       flex: 1,
@@ -408,7 +422,8 @@ function createStyle(theme, isSmallScreen, insets, hasComms) {
     },
     flatListContent: {
       padding: 10,
-      paddingTop: (hasComms ? 140 : 75) + insets.top + 10,
+      paddingTop:
+        (hasComms ? 140 : 75) + insets.top + 10 + statusBannerOffset,
       paddingBottom: (isSmallScreen ? 180 : 90) + insets.bottom,
     },
     logo: {
