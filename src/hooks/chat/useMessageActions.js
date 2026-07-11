@@ -51,11 +51,17 @@ const useMessageActions = ({
         case "Reply":
           onReply?.(currentMsg);
           break;
+        case "QuoteAndReply":
+          onReply?.(currentMsg);
+          break;
         case "Forward":
           onForward?.(currentMsg);
           break;
         case "Copy":
           onCopy?.(currentMsg);
+          break;
+        case "Copy Selected":
+          onCopy?.({ ...currentMsg, content: data.text });
           break;
         case "Download":
           onDownload?.(currentMsg);

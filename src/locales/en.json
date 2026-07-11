@@ -59,9 +59,11 @@
     "unknownUser": "Unknown User",
     "messageActions": {
       "reply": "Reply",
+      "quoteAndReply": "Quote and reply",
       "pin": "Pin",
       "unpin": "Unpin",
       "copy": "Copy",
+      "copySelected": "Copy selected",
       "download": "Download",
       "cancelEdit": "Cancel Edit",
       "edit": "Edit",

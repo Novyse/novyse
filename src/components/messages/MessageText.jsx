@@ -1,11 +1,18 @@
 import React, { useContext } from "react";
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { EnrichedMarkdownText } from "react-native-enriched-markdown";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
+import Platform from "@/src/utils/device/type";
 
-const MessageText = ({ text, timestampWidth = 80, onTaskListItemPress }) => {
+const MessageText = ({
+  text,
+  timestampWidth = 80,
+  isSelected = false,
+  messageId,
+  onTaskListItemPress,
+}) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const styles = createStyle(theme);
@@ -20,22 +27,45 @@ const MessageText = ({ text, timestampWidth = 80, onTaskListItemPress }) => {
   const normalized =
     preprocessedText + `  ${"\u00A0".repeat(Math.ceil(timestampWidth / 4))}`;
 
-  return (
+  const markdownElement = (
     <EnrichedMarkdownText
       flavor="github"
-      selectable={true}
+      selectable={
+        Platform === "web" || Platform === "desktop" ? true : isSelected
+      }
       markdown={normalized}
       onTaskListItemPress={onTaskListItemPress}
       onLinkPress={({ url }) => {
         if (url.startsWith("/profile/")) {
           const username = url.replace("/profile/", "");
           router.push(`/profile/${username.toLowerCase()}`);
-        } else if (Platform.OS === "web") {
+        } else if (Platform === "web" || Platform === "desktop") {
           window.open(url, "_blank");
         } else {
           Linking.openURL(url);
         }
       }}
+      selectionMenuConfig={{
+        copyAsMarkdown: { enabled: false },
+      }}
+      contextMenuItems={[
+        {
+          text: "Quote",
+          onPress: (event) => {
+            const useChatStore = require("@/src/context/ChatContext").default;
+            useChatStore.getState().setReplyingTo({
+              messageId: messageId,
+              text: event.text,
+            });
+
+            // Deselect the message when an action is performed
+            const useActiveChatStore =
+              require("@/src/context/ActiveChatContext").default;
+            useActiveChatStore.getState().setSelectedMessages([]);
+          },
+        },
+      ]}
+      selectionColor={theme.primary + "40"}
       style={styles.text}
       markdownStyle={{
         paragraph: { color: theme.text },
@@ -74,6 +104,27 @@ const MessageText = ({ text, timestampWidth = 80, onTaskListItemPress }) => {
       }}
     />
   );
+
+  // Allow text selection on web and desktop
+  if (Platform === "web" || Platform === "desktop") {
+    return (
+      <View
+        nativeID={`message-text-${messageId}`}
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        style={{ userSelect: "text", cursor: "text" }}
+      >
+        <style>{`
+          #message-text-${messageId} ::selection {
+            background-color: ${theme.primary}40 !important;
+          }
+        `}</style>
+        <View>{markdownElement}</View>
+      </View>
+    );
+  }
+
+  return markdownElement;
 };
 
 const createStyle = (theme) =>

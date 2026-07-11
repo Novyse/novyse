@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Pressable, StyleSheet } from "react-native";
+import Platform from "@/src/utils/device/type";
 import AppText from "@/src/components/AppText";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import Reanimated, {
@@ -357,6 +358,8 @@ const MessageBase = ({
             // Passa 0 come timestampWidth quando ci sono reazioni:
             // il timestamp non è più inline nel testo ma va sotto
             timestampWidth={hasReactions ? 0 : 80}
+            isSelected={isSelected}
+            messageId={message.id}
             onTaskListItemPress={handleTaskListItemPress}
           />
           {/* Timestamp inline (overlay) solo se NON ci sono reazioni */}
@@ -427,7 +430,12 @@ const MessageBase = ({
   const messageContent = (
     <Pressable
       onPress={(e) => onMessagePress(e, message)}
-      onLongPress={(e) => onMessageLongPress(e, message)}
+      onLongPress={(e) => {
+        if (isSelected && Platform === "mobile") {
+          return; // Prevent message deselection to keep the native menu alive
+        }
+        onMessageLongPress(e, message);
+      }}
       onContextMenu={(e) => {
         e.preventDefault();
         onMessageRightPress(e, message);
@@ -546,6 +554,7 @@ const createStyle = (theme, chatType) =>
       position: "relative",
       paddingHorizontal: 10,
       paddingVertical: 10,
+      userSelect: "text",
     },
     timestampOverlay: {
       position: "absolute",
@@ -580,6 +589,7 @@ const createStyle = (theme, chatType) =>
     selectedOverlay: {
       ...StyleSheet.absoluteFill,
       backgroundColor: theme.backgroundInfo,
+      opacity: 0.25,
       zIndex: 1,
       pointerEvents: "none",
     },

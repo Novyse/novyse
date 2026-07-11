@@ -9,10 +9,12 @@ import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
 import ReactionMenu from "@/src/components/messages/ActionMenu/ReactionsMenu";
+import Platform from "@/src/utils/device/type";
 
 interface ActionMenuItem {
   action: string;
   translationKey: string;
+  text?: string;
   iconName: string;
   color: string;
 }
@@ -72,6 +74,44 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
 
   const styles = createStyle(theme, adjustedX, adjustedY);
 
+  const [selectedText, setSelectedText] = React.useState("");
+
+  React.useEffect(() => {
+    if (!visible || typeof window === "undefined" || !message?.id) {
+      setSelectedText("");
+      return;
+    }
+
+    const selection = window.getSelection?.();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const text = selection.toString().trim();
+    const messageElement = document.getElementById(
+      `message-text-${message.id}`,
+    );
+
+    if (
+      text &&
+      messageElement &&
+      selection.anchorNode &&
+      messageElement.contains(selection.anchorNode)
+    ) {
+      setSelectedText(selection.toString());
+      const range = selection.getRangeAt(0).cloneRange();
+
+      // Modal traps focus and clears selection on mount. We restore it shortly after.
+      const timer = setTimeout(() => {
+        const currentSel = window.getSelection?.();
+        if (currentSel) {
+          currentSel.removeAllRanges();
+          currentSel.addRange(range);
+        }
+      }, 0);
+
+      return () => clearTimeout(timer);
+    }
+  }, [visible, message?.id]);
+
   let items: ActionMenuItem[] = [];
 
   if (isPendingSend) {
@@ -100,6 +140,14 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
           iconName: "ArrowMoveUpLeftIcon",
           color: theme.text,
         },
+        selectedText
+          ? {
+              action: "QuoteAndReply",
+              translationKey: "chat.messageActions.quoteAndReply",
+              iconName: "ArrowMoveUpLeftIcon",
+              color: theme.text,
+            }
+          : undefined,
         !isPinned
           ? {
               action: "Pin",
@@ -119,6 +167,14 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
           iconName: "Copy02Icon",
           color: theme.text,
         },
+        selectedText
+          ? {
+              action: "Copy Selected",
+              translationKey: "chat.messageActions.copySelected",
+              iconName: "Copy01Icon",
+              color: theme.text,
+            }
+          : undefined,
         isDownloadAllowed
           ? {
               action: "Download",
@@ -167,7 +223,11 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   }
 
   const handleMenuItemPress = (action: string) => {
-    onAction(action);
+    if (action === "Copy Selected") {
+      onAction(action, { text: selectedText });
+    } else {
+      onAction(action);
+    }
     onClose();
   };
 
@@ -224,6 +284,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
                       style={styles.menuText}
                       numberOfLines={1}
                       translationKey={item.translationKey}
+                      text={item.text}
                     />
                   </View>
                 </HoverAndPressedButton>

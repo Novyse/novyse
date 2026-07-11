@@ -5,9 +5,10 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, AppState } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Clipboard from "expo-clipboard";
 
 import useMessageActions from "@/src/hooks/chat/useMessageActions";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
@@ -53,6 +54,34 @@ const MessageList = ({
   const [highlightedID, setHighlightedID] = useState(null);
   const [historyStack, setHistoryStack] = useState([]);
   const initialScrollIndexRef = useRef(null);
+
+  // Exit selection mode if the user copies something to the clipboard
+  useEffect(() => {
+    let subscription = null;
+    if (selectedMessages && selectedMessages.length > 0) {
+      subscription = Clipboard.addClipboardListener(() => {
+        setSelectedMessages([]);
+      });
+    }
+    return () => {
+      if (subscription) subscription.remove();
+    };
+  }, [selectedMessages?.length, setSelectedMessages]);
+
+  // Exit selection mode if the app goes to the background (e.g., opens native Share or Translate menu)
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "inactive" || nextAppState === "background") {
+        if (selectedMessages && selectedMessages.length > 0) {
+          setSelectedMessages([]);
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [selectedMessages, setSelectedMessages]);
 
   if (
     initialScrollIndexRef.current === null &&

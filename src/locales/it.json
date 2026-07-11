@@ -59,9 +59,11 @@
     "unknownUser": "Sconosciuto",
     "messageActions": {
       "reply": "Rispondi",
+      "quoteAndReply": "Cita e rispondi",
       "pin": "Fissa",
       "unpin": "Rimuovi",
       "copy": "Copia",
+      "copySelected": "Copia selezione",
       "download": "Scarica",
       "cancelEdit": "Annulla Modifica",
       "edit": "Modifica",
