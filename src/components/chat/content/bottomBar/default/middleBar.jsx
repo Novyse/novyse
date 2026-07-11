@@ -14,6 +14,7 @@ import { getPlatform } from "@/src/utils/device/type";
 import { toDroppedFile } from "@/src/components/input/WebDropZone";
 import { handleChatShortcuts } from "@/src/utils/shortcut/chatShortcuts";
 import Platform from "@/src/utils/device/type";
+import { getMarkdownTextInputStyle } from "@/src/constants/markdownStyles";
 
 const MiddleBar = ({
   newMessageText,
@@ -198,6 +199,7 @@ const MiddleBar = ({
               placeholder={t("chat.bottomBar.placeholder")}
               placeholderTextColor={theme.placeholderText}
               cursorColor={theme.placeholderText}
+              markdownStyle={getMarkdownTextInputStyle(theme)}
               onFocus={onInputFocus}
               onKeyPress={(e) => {
                 const key = e.nativeEvent?.key || e.key;

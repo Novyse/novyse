@@ -5,6 +5,7 @@ import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Platform from "@/src/utils/device/type";
+import { getMarkdownStyle } from "@/src/constants/markdownStyles";
 
 const MessageText = ({
   message,
@@ -96,42 +97,7 @@ const MessageText = ({
         : {})}
       selectionColor={theme.primary + "40"}
       style={styles.text}
-      markdownStyle={{
-        paragraph: { color: theme.text },
-        h1: { color: theme.text },
-        h2: { color: theme.text },
-        h3: { color: theme.text },
-        h4: { color: theme.text },
-        h5: { color: theme.text },
-        h6: { color: theme.text },
-        list: { color: theme.text },
-        listItem: { color: theme.text },
-        link: { color: theme.textLink, underline: true },
-        strong: { fontWeight: "bold" },
-        em: { fontStyle: "italic" },
-        highlight: { backgroundColor: theme.primary + "60", color: theme.text },
-        table: {
-          color: theme.text,
-          headerBackgroundColor: theme.iconHovered,
-          headerTextColor: theme.text,
-          rowEvenBackgroundColor: "transparent",
-          rowOddBackgroundColor: theme.iconHovered,
-          borderColor: theme.borderColor,
-          borderWidth: 1,
-          borderRadius: 8,
-          cellPaddingHorizontal: 10,
-          cellPaddingVertical: 8,
-        },
-        taskList: {
-          checkedColor: theme.primary,
-          borderColor: theme.borderColor,
-          checkboxSize: 18,
-          checkboxBorderRadius: 6,
-          checkmarkColor: theme.backgroundCard,
-          checkedTextColor: theme.placeholderText,
-          checkedStrikethrough: true,
-        },
-      }}
+      markdownStyle={getMarkdownStyle(theme)}
     />
   );
 
