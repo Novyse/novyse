@@ -1,158 +1,91 @@
 import React, { useContext } from "react";
 import { StyleSheet, Platform } from "react-native";
-import AppText from "@/src/components/AppText";
+import { EnrichedMarkdownText } from "react-native-enriched-markdown";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-const URL_REGEX =
-  /(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])(\S*)/g;
-const MENTION_REGEX = /@(\w+)/g;
-const EMAIL_REGEX = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
-
-const MessageText = ({ text, timestampWidth = 80 }) => {
+const MessageText = ({ text, timestampWidth = 80, onTaskListItemPress }) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const styles = createStyle(theme);
 
   if (!text?.trim()) return null;
 
-  const normalized = text.trimStart();
+  // Process username mentions as links
+  let preprocessedText = text
+    .trimStart()
+    .replace(/(^|\s)@(\w+)/g, "$1[@$2](/profile/$2)");
 
-  const spacer = (
-    <AppText
-      key="spacer"
-      style={{ opacity: 0, fontSize: 12 }}
-      text={`  ${"\u00A0".repeat(Math.ceil(timestampWidth / 4))}`}
-    />
-  );
-
-  const segments = parseSegments(normalized);
-
-  const parts = segments.map(({ type, value, url, username }, i) => {
-    if (type === "url") {
-      return (
-        <AppText
-          key={i}
-          style={styles.link}
-          onPress={() =>
-            Platform.OS === "web"
-              ? window.open(url, "_blank")
-              : Linking.openURL(url)
-          }
-          text={value}
-        />
-      );
-    }
-    if (type === "mention") {
-      return (
-        <AppText
-          key={i}
-          style={styles.link}
-          onPress={() => router.push(`/profile/${username.toLowerCase()}`)}
-          text={value}
-        />
-      );
-    }
-    if (type === "email") {
-      return (
-        <AppText
-          key={i}
-          style={styles.link}
-          onPress={() => Linking.openURL(`mailto:${value}`)}
-          text={value}
-        />
-      );
-    }
-    return <AppText key={i} style={styles.text} text={value} />;
-  });
+  const normalized =
+    preprocessedText + `  ${"\u00A0".repeat(Math.ceil(timestampWidth / 4))}`;
 
   return (
-    <AppText style={styles.text}>
-      {parts}
-      {spacer}
-    </AppText>
+    <EnrichedMarkdownText
+      flavor="github"
+      selectable={true}
+      markdown={normalized}
+      onTaskListItemPress={onTaskListItemPress}
+      onLinkPress={({ url }) => {
+        if (url.startsWith("/profile/")) {
+          const username = url.replace("/profile/", "");
+          router.push(`/profile/${username.toLowerCase()}`);
+        } else if (Platform.OS === "web") {
+          window.open(url, "_blank");
+        } else {
+          Linking.openURL(url);
+        }
+      }}
+      style={styles.text}
+      markdownStyle={{
+        paragraph: { color: theme.text },
+        h1: { color: theme.text },
+        h2: { color: theme.text },
+        h3: { color: theme.text },
+        h4: { color: theme.text },
+        h5: { color: theme.text },
+        h6: { color: theme.text },
+        list: { color: theme.text },
+        listItem: { color: theme.text },
+        link: { color: theme.textLink, underline: true },
+        strong: { fontWeight: "bold" },
+        em: { fontStyle: "italic" },
+        table: {
+          color: theme.text,
+          headerBackgroundColor: theme.iconHovered,
+          headerTextColor: theme.text,
+          rowEvenBackgroundColor: "transparent",
+          rowOddBackgroundColor: theme.iconHovered,
+          borderColor: theme.borderColor,
+          borderWidth: 1,
+          borderRadius: 8,
+          cellPaddingHorizontal: 10,
+          cellPaddingVertical: 8,
+        },
+        taskList: {
+          checkedColor: theme.primary,
+          borderColor: theme.borderColor,
+          checkboxSize: 18,
+          checkboxBorderRadius: 6,
+          checkmarkColor: theme.backgroundCard,
+          checkedTextColor: theme.placeholderText,
+          checkedStrikethrough: true,
+        },
+      }}
+    />
   );
 };
-
-// Estrae i segmenti url/mention/plain dal testo
-function parseSegments(text) {
-  const matches = [];
-  let m;
-
-  URL_REGEX.lastIndex = 0;
-  while ((m = URL_REGEX.exec(text)) !== null)
-    matches.push({
-      type: "url",
-      index: m.index,
-      length: m[0].length,
-      raw: m[0],
-    });
-
-  MENTION_REGEX.lastIndex = 0;
-  while ((m = MENTION_REGEX.exec(text)) !== null)
-    matches.push({
-      type: "mention",
-      index: m.index,
-      length: m[0].length,
-      raw: m[0],
-    });
-
-  EMAIL_REGEX.lastIndex = 0;
-  while ((m = EMAIL_REGEX.exec(text)) !== null)
-    matches.push({
-      type: "email",
-      index: m.index,
-      length: m[0].length,
-      raw: m[0],
-    });
-
-  matches.sort((a, b) => a.index - b.index);
-
-  const segments = [];
-  let cursor = 0;
-
-  for (const { type, index, length, raw } of matches) {
-    if (index < cursor) continue; // Skip overlapping matches
-
-    if (index > cursor)
-      segments.push({ type: "plain", value: text.slice(cursor, index) });
-
-    if (type === "url") {
-      segments.push({
-        type: "url",
-        value: raw,
-        url: raw.startsWith("http") ? raw : `https://${raw}`,
-      });
-    } else if (type === "mention") {
-      segments.push({ type: "mention", value: raw, username: raw.slice(1) });
-    } else {
-      segments.push({ type: "email", value: raw });
-    }
-    cursor = index + length;
-  }
-
-  if (cursor < text.length)
-    segments.push({ type: "plain", value: text.slice(cursor) });
-
-  return segments;
-}
 
 const createStyle = (theme) =>
   StyleSheet.create({
     text: {
-      color: theme.text,
       fontSize: 15,
       ...(Platform.OS === "web" && {
         wordBreak: "break-word",
         overflowWrap: "break-word",
         whiteSpace: "pre-wrap",
+        userSelect: "text",
       }),
-    },
-    link: {
-      color: theme.textLink,
-      fontSize: 15,
-      textDecorationLine: "underline",
     },
   });
 

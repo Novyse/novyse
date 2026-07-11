@@ -36,6 +36,7 @@ const MessageList = ({
   onCopy,
   onDownload,
   onEdit,
+  onEditMessage,
   onCancel,
   onDelete,
   onReaction,
@@ -207,6 +208,7 @@ const MessageList = ({
             message={message}
             onReply={onReply}
             onReaction={onReaction}
+            onEditMessage={onEditMessage}
             isSender={message.senderUUID === myUUID}
             isSelected={selectedMessages.some((msg) => msg.id === message.id)}
             isHighlighted={message.id == highlightedID}
@@ -234,6 +236,7 @@ const MessageList = ({
       highlightedID,
       onReply,
       onReaction,
+      onEditMessage,
       setTriggeredMessage,
       setTriggeredMessagePosition,
       setTriggeredMessage,

@@ -115,7 +115,7 @@ const createStyle = (theme) => ({
   },
   inputRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-end",
     minHeight: 55,
     gap: 10,
   },

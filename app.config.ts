@@ -206,6 +206,7 @@ export default {
           androidFSTypes: ["mediaPlayback"],
         },
       ],
+      "react-native-enriched-markdown",
       "@livekit/react-native-expo-plugin",
       [
         "expo-share-intent",

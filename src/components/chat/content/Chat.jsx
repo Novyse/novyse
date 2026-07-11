@@ -565,6 +565,7 @@ const ChatContent = () => {
             onCopy={handleCopy}
             onDownload={handleDownload}
             onEdit={handleEdit}
+            onEditMessage={handleEditMessage}
             onForward={handleForward}
             onCancel={handleCancelJob}
             onDelete={handleDelete}

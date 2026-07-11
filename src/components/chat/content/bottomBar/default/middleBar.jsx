@@ -1,5 +1,6 @@
 import React, { useContext, useEffect } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, View, TextInput } from "react-native";
+import { EnrichedMarkdownTextInput } from "react-native-enriched-markdown";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 import { Duration } from "luxon";
@@ -37,6 +38,28 @@ const MiddleBar = ({
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+
+  // Web/Desktop: auto-resize textarea to fit content
+  useEffect(() => {
+    if (Platform !== "web" && Platform !== "desktop") return;
+
+    const node = textInputRef?.current;
+    const domNode = node && (node instanceof HTMLElement ? node : node._node);
+    if (!domNode) return;
+
+    const textarea =
+      domNode.tagName === "TEXTAREA"
+        ? domNode
+        : domNode.querySelector("textarea");
+    if (!textarea) return;
+
+    // Measure true scrollHeight then cap to max (max 5-6 lines)
+    const MAX_INPUT_HEIGHT = 130;
+    textarea.style.height = "auto";
+    const desired = textarea.scrollHeight;
+    textarea.style.height = `${Math.min(desired, MAX_INPUT_HEIGHT)}px`;
+    textarea.style.overflowY = desired > MAX_INPUT_HEIGHT ? "auto" : "hidden";
+  }, [textInputRef, newMessageText]);
 
   // Web/Desktop: intercept CTRL+V to paste files from clipboard
   useEffect(() => {
@@ -107,32 +130,76 @@ const MiddleBar = ({
     <>
       {!isRecording ? (
         <BlurredView style={styles.container}>
-          <TextInput
-            ref={textInputRef}
-            style={styles.textInput}
-            maxLength={2000}
-            value={newMessageText}
-            onChangeText={onTextChange}
-            placeholder={t("chat.bottomBar.placeholder")}
-            placeholderTextColor={theme.placeholderText}
-            cursorColor={theme.placeholderText}
-            onSubmitEditing={
-              getPlatform() != "mobile"
-                ? () => onSendMessage("message", newMessageText)
-                : undefined
-            }
-            onFocus={onInputFocus}
-            onKeyPress={(e) => {
-              handleChatShortcuts(e, {
-                editingMessage,
-                replyingTo,
-                onCancelEdit,
-                onCancelReply,
-                onPressArrowUp,
-                isInputEmpty: newMessageText === "",
-              });
-            }}
-          />
+          {Platform.OS === "web" || !EnrichedMarkdownTextInput ? (
+            <TextInput
+              ref={textInputRef}
+              style={styles.textInput}
+              maxLength={2000}
+              multiline={true}
+              numberOfLines={1}
+              value={newMessageText}
+              onChangeText={onTextChange}
+              placeholder={t("chat.bottomBar.placeholder")}
+              placeholderTextColor={theme.placeholderText}
+              cursorColor={theme.placeholderText}
+              onFocus={onInputFocus}
+              onKeyPress={(e) => {
+                const key = e.nativeEvent?.key || e.key;
+                const isShift = e.nativeEvent?.shiftKey || e.shiftKey;
+                if (key === "Enter" && getPlatform() !== "mobile") {
+                  if (!isShift) {
+                    e.preventDefault();
+                    onSendMessage(
+                      "message",
+                      newMessageText.trimStart().trimEnd(),
+                    );
+                    return;
+                  }
+                }
+                handleChatShortcuts(e, {
+                  editingMessage,
+                  replyingTo,
+                  onCancelEdit,
+                  onCancelReply,
+                  onPressArrowUp,
+                  isInputEmpty: newMessageText === "",
+                });
+              }}
+            />
+          ) : (
+            <EnrichedMarkdownTextInput
+              ref={textInputRef}
+              style={styles.textInput}
+              maxLength={2000}
+              multiline={true}
+              numberOfLines={1}
+              onChangeText={onTextChange}
+              placeholder={t("chat.bottomBar.placeholder")}
+              placeholderTextColor={theme.placeholderText}
+              cursorColor={theme.placeholderText}
+              onFocus={onInputFocus}
+              onKeyPress={(e) => {
+                const key = e.nativeEvent?.key || e.key;
+                const isShift = e.nativeEvent?.shiftKey || e.shiftKey;
+                if (key === "Enter" && getPlatform() !== "mobile") {
+                  if (!isShift) {
+                    e.preventDefault();
+                    onSendMessage("message", newMessageText.trimStart());
+                    return;
+                  }
+                }
+                handleChatShortcuts(e, {
+                  editingMessage,
+                  replyingTo,
+                  onCancelEdit,
+                  onCancelReply,
+                  onPressArrowUp,
+                  isInputEmpty: newMessageText === "",
+                });
+              }}
+            />
+          )}
+
           <Icon
             name={
               Platform === "mobile" && isEmojiPickerVisible
@@ -144,7 +211,7 @@ const MiddleBar = ({
           />
         </BlurredView>
       ) : (
-        <BlurredView style={styles.container}>
+        <BlurredView style={styles.recordingContainer}>
           <View style={styles.recordState}>
             <RecordingDot isRecording={!isPaused} />
 
@@ -195,9 +262,19 @@ const createStyle = (theme) =>
     container: {
       flex: 1,
       flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      borderRadius: 22.5,
+      paddingHorizontal: 5,
+      minHeight: 45,
+      maxHeight: 150,
+    },
+    recordingContainer: {
+      flex: 1,
+      flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: 100,
+      borderRadius: 22.5,
       paddingHorizontal: 5,
       height: 45,
     },
@@ -209,6 +286,9 @@ const createStyle = (theme) =>
       alignSelf: "stretch",
       marginLeft: 10,
       minWidth: 45,
+      textAlignVertical: "center",
+      paddingTop: Platform.OS === "web" ? 12 : 12,
+      paddingBottom: Platform.OS === "web" ? 12 : 12,
     },
     icon: {
       width: 45,

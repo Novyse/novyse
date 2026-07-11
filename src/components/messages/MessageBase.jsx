@@ -176,6 +176,7 @@ const MessageBase = ({
   setSelectedMessages,
   onReply,
   onReaction,
+  onEditMessage,
   navigateToMessageWithHistory,
 }) => {
   const { theme } = useThemeContext();
@@ -263,7 +264,26 @@ const MessageBase = ({
 
   const hasBeenRead = isSender && (message.readBy?.length || 0) > 0;
 
-  console.log;
+  const handleTaskListItemPress = async ({ index, checked, text }) => {
+    let matchCount = -1;
+    // We match the task list marker: '- [ ]' or '* [x]', etc.
+    const newMarkdown = content.replace(
+      /^(\s*(?:[-*+]|\d+\.)\s+)\[([ xX])\]/gm,
+      (match, prefix, state) => {
+        matchCount++;
+        if (matchCount === index) {
+          return `${prefix}[${checked ? "x" : " "}]`;
+        }
+        return match;
+      },
+    );
+
+    if (newMarkdown !== content) {
+      if (onEditMessage) {
+        onEditMessage(message.id, newMarkdown, content);
+      }
+    }
+  };
 
   const sharedContent = (
     <View style={hasOnlyMedia ? styles.mediaContainer : null}>
@@ -337,6 +357,7 @@ const MessageBase = ({
             // Passa 0 come timestampWidth quando ci sono reazioni:
             // il timestamp non è più inline nel testo ma va sotto
             timestampWidth={hasReactions ? 0 : 80}
+            onTaskListItemPress={handleTaskListItemPress}
           />
           {/* Timestamp inline (overlay) solo se NON ci sono reazioni */}
           {!hasReactions && (
