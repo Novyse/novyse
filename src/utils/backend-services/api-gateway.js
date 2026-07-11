@@ -106,7 +106,7 @@ api.interceptors.response.use(
     }
 
     if (error.response && error.response.status === 500) {
-      useNetworkStore.getState().setApiError("Errore del server (500)");
+      useNetworkStore.getState().setApiError("Server error (500)");
     }
     return Promise.reject(error);
   },
