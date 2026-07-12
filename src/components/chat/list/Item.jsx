@@ -159,12 +159,24 @@ const ChatListItem = React.memo(
               <Icon name={"Tick02Icon"} size={isSidebarCollapsed ? 12 : 16} />
             </View>
           )}
-          <Avatar
-            uuid={displayPfp}
-            theme={theme}
-            style={[styles.avatar, isSidebarCollapsed && { marginRight: 0 }]}
-            isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
-          />
+          <View
+            style={[
+              styles.avatarWrapper,
+              isSidebarCollapsed && styles.avatarWrapperCollapsed,
+            ]}
+          >
+            <Avatar
+              uuid={displayPfp}
+              theme={theme}
+              style={[styles.avatar, isSidebarCollapsed && { marginRight: 0 }]}
+              isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
+            />
+            {isSidebarCollapsed && unreadCount > 0 && (
+              <View style={styles.collapsedUnreadBadge}>
+                <AppText style={styles.ballText} text={unreadCount} />
+              </View>
+            )}
+          </View>
           {!isSidebarCollapsed && (
             <View style={styles.chatItemGrid}>
               <View style={styles.leftContainer}>
@@ -245,11 +257,29 @@ function createStyle(theme) {
       borderRadius: 100,
       gap: 10,
     },
+    avatarWrapper: {
+      marginRight: 10,
+    },
+    avatarWrapperCollapsed: {
+      marginRight: 0,
+      position: "relative",
+    },
     avatar: {
       width: 45,
       height: 45,
       borderRadius: 20,
-      marginRight: 10,
+    },
+    collapsedUnreadBadge: {
+      position: "absolute",
+      top: -2,
+      right: -4,
+      borderRadius: 10,
+      minWidth: 20,
+      height: 20,
+      paddingHorizontal: 4,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.badgeColor,
     },
     chatTitle: {
       fontSize: 16,
