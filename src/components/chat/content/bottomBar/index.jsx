@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DefaultBar from "./default";
 
 const BottomBar = ({
+  chatType,
   newMessageText,
   files,
   textInputRef,
@@ -23,6 +24,8 @@ const BottomBar = ({
   onCancelEdit,
   mentionMembers,
   onSelectMention,
+  onChangeMention,
+  onEndMention,
   onRecordingActivityChange,
   onPressArrowUp,
 }) => {
@@ -37,6 +40,7 @@ const BottomBar = ({
       style={{ paddingBottom: insets.bottom + 5 }}
     >
       <DefaultBar
+        chatType={chatType}
         isAttachMenuOpen={isAttachMenuOpen}
         onToggleAttachMenu={onToggleAttachMenu}
         isEmojiPickerVisible={isEmojiPickerVisible}
@@ -54,6 +58,8 @@ const BottomBar = ({
         onCancelEdit={onCancelEdit}
         mentionMembers={mentionMembers}
         onSelectMention={onSelectMention}
+        onChangeMention={onChangeMention}
+        onEndMention={onEndMention}
         onRecordingActivityChange={onRecordingActivityChange}
         onPressArrowUp={onPressArrowUp}
       />

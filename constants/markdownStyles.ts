@@ -56,4 +56,11 @@ export const getMarkdownStyle = (
     checkedTextColor: theme.placeholderText,
     checkedStrikethrough: true,
   },
+  linkVariants: {
+    "^/profile/": {
+      color: theme.primary,
+      backgroundColor: theme.primary + "20",
+      underline: false,
+    },
+  },
 });

@@ -171,7 +171,19 @@ const ChatContent = () => {
   const editedMessages = chat?.editedMessages || [];
   const pinnedMessages = chat?.pinnedMessages || [];
 
-  const members = chat?.members;
+  const allUsers = useUserStore((state) => state.users);
+  const members = React.useMemo(() => {
+    return (chat?.members || []).map((m) => {
+      const user = allUsers[m.uuid];
+      return {
+        ...m,
+        handle: user.handle,
+        name: user.name,
+        surname: user?.surname || "",
+        profilePictureUUID: user.profilePictureUUID,
+      };
+    });
+  }, [chat?.members, allUsers]);
   const settings = chat?.settings || {
     file: {
       singleFileSize: 52428800,
@@ -394,34 +406,76 @@ const ChatContent = () => {
     [setMessageToDelete],
   );
 
-  const onSelectMention = useCallback((member) => {
-    setNewMessageText((prev) => {
-      const lastAtIndex = prev.lastIndexOf("@");
-      if (lastAtIndex === -1) return prev;
-      return prev.substring(0, lastAtIndex) + `@${member.handle} `;
-    });
+  const onChangeMention = useCallback(
+    ({ indicator, text }) => {
+      if (chat?.type === "DM") {
+        setMentionMembers([]);
+        return;
+      }
+      const query = text.toLowerCase();
+      const filtered = members.filter(
+        (m) =>
+          m.uuid !== myUUID &&
+          m.handle &&
+          m.handle.toLowerCase().includes(query),
+      );
+      setMentionMembers(filtered);
+    },
+    [members, myUUID, chat?.type],
+  );
+
+  const onEndMention = useCallback(() => {
     setMentionMembers([]);
-    textInputRef.current?.focus();
   }, []);
+
+  const onSelectMention = useCallback(
+    (member) => {
+      if (
+        Platform !== "web" &&
+        Platform !== "desktop" &&
+        textInputRef.current?.insertMention
+      ) {
+        textInputRef.current.insertMention(
+          `@${member.handle}`,
+          `/profile/${member.handle}`,
+        );
+      } else {
+        // Web / Desktop standard TextInput fallback - inserts plain text as before
+        setNewMessageText((prev) => {
+          const lastAtIndex = prev.lastIndexOf("@");
+          if (lastAtIndex === -1) return prev;
+          return prev.substring(0, lastAtIndex) + `@${member.handle} `;
+        });
+        setMentionMembers([]);
+        textInputRef.current?.focus();
+      }
+    },
+    [textInputRef],
+  );
 
   const handleTextChange = useCallback(
     (text) => {
       setNewMessageText(text);
 
-      // Robust mention detection: look for "@" at the end of the text or preceded by space
-      const mentionMatch = text.match(/(?:^|\s)@(\w*)$/);
-      if (mentionMatch) {
-        const query = mentionMatch[1].toLowerCase();
-        const filtered = members.filter(
-          (m) =>
-            m.uuid !== myUUID &&
-            ((m.handle && m.handle.toLowerCase().includes(query)) ||
-              (m.name && m.name.toLowerCase().includes(query)) ||
-              (m.surname && m.surname.toLowerCase().includes(query))),
-        );
-        setMentionMembers(filtered);
-      } else {
-        setMentionMembers([]);
+      // Mention detection via Regex only on Web/Desktop
+      if (Platform === "web" || Platform === "desktop") {
+        if (chat?.type === "DM") {
+          setMentionMembers([]);
+          return;
+        }
+        const mentionMatch = text.match(/(?:^|\s)@(\w*)$/);
+        if (mentionMatch) {
+          const query = mentionMatch[1].toLowerCase();
+          const filtered = members.filter(
+            (m) =>
+              m.uuid !== myUUID &&
+              m.handle &&
+              m.handle.toLowerCase().includes(query),
+          );
+          setMentionMembers(filtered);
+        } else {
+          setMentionMembers([]);
+        }
       }
     },
     [members, myUUID],
@@ -472,6 +526,7 @@ const ChatContent = () => {
         // Prevent sending if there are invalid files
         return;
       }
+      setMentionMembers([]); // @SamueleOrazioDurante da rimuovere quando web avrà la stessa textinput di markdown
 
       if (editingMessage) {
         // If content is the same then do nothing
@@ -600,6 +655,7 @@ const ChatContent = () => {
         )}
         <Animated.View style={[styles.bottomBarContainer, listAnimatedStyle]}>
           <BottomBar
+            chatType={chat?.type}
             newMessageText={newMessageText}
             files={files}
             textInputRef={textInputRef}
@@ -618,6 +674,8 @@ const ChatContent = () => {
             onCancelEdit={handleCancelEdit}
             mentionMembers={mentionMembers}
             onSelectMention={onSelectMention}
+            onChangeMention={onChangeMention}
+            onEndMention={onEndMention}
             onRecordingActivityChange={emitRecording}
             onPressArrowUp={handlePressArrowUp}
           />

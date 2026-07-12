@@ -54,8 +54,10 @@ const MentionBar: React.FC<MentionBarProps> = ({ members, onSelectMember }) => {
     </HoverAndPressedButton>
   );
 
+  const listHeight = Math.min(220, members.length * 53);
+
   return (
-    <BlurredView style={styles.container}>
+    <BlurredView style={[styles.container, { height: listHeight }]}>
       <FlashList
         data={members}
         renderItem={renderItem}
@@ -64,6 +66,8 @@ const MentionBar: React.FC<MentionBarProps> = ({ members, onSelectMember }) => {
         keyboardShouldPersistTaps="always"
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         contentContainerStyle={styles.listContent}
+        estimatedItemSize={52}
+        style={{ flex: 1 }}
       />
     </BlurredView>
   );

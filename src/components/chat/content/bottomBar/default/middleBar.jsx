@@ -17,6 +17,7 @@ import Platform from "@/src/utils/device/type";
 import { getMarkdownStyle } from "@/constants/markdownStyles";
 
 const MiddleBar = ({
+  chatType,
   newMessageText,
   textInputRef,
   onTextChange,
@@ -35,6 +36,9 @@ const MiddleBar = ({
   onCancelEdit,
   replyingTo,
   onPressArrowUp,
+  onStartMention,
+  onChangeMention,
+  onEndMention,
 }) => {
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
@@ -201,6 +205,9 @@ const MiddleBar = ({
               cursorColor={theme.placeholderText}
               markdownStyle={getMarkdownStyle(theme)}
               onFocus={onInputFocus}
+              mentionIndicators={chatType !== "DM" ? ["@"] : []}
+              onChangeMention={onChangeMention}
+              onEndMention={onEndMention}
               onKeyPress={(e) => {
                 const key = e.nativeEvent?.key || e.key;
                 const isShift = e.nativeEvent?.shiftKey || e.shiftKey;

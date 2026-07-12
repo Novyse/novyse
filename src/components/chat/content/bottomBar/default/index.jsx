@@ -15,6 +15,7 @@ import ReplyBar from "../actions/ReplyBar";
 import FilesBar from "../actions/FilesBar";
 
 const DefaultBar = ({
+  chatType,
   isAttachMenuOpen,
   onToggleAttachMenu,
   isEmojiPickerVisible,
@@ -32,6 +33,8 @@ const DefaultBar = ({
   onCancelEdit,
   mentionMembers,
   onSelectMention,
+  onChangeMention,
+  onEndMention,
   onRecordingActivityChange,
   onPressArrowUp,
 }) => {
@@ -73,6 +76,7 @@ const DefaultBar = ({
           onToggleAttachMenu={onToggleAttachMenu}
         />
         <MiddleBar
+          chatType={chatType}
           newMessageText={newMessageText}
           textInputRef={textInputRef}
           onTextChange={onTextChange}
@@ -91,6 +95,8 @@ const DefaultBar = ({
           onCancelEdit={onCancelEdit}
           replyingTo={replyingTo}
           onPressArrowUp={onPressArrowUp}
+          onChangeMention={onChangeMention}
+          onEndMention={onEndMention}
         />
 
         <RightButton
