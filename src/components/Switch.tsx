@@ -12,21 +12,39 @@ interface SwitchProps {
   onValueChange: (value: boolean) => void;
 }
 
+const TRACK_TRAVEL = 20;
+const TOGGLE_THRESHOLD = TRACK_TRAVEL / 2;
+
 const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
   const isEnabledRef = useRef<boolean>(value);
 
-  useEffect(() => {
-    isEnabledRef.current = value;
+  const snapToValue = (enabled: boolean) => {
     Animated.spring(animatedValue, {
-      toValue: value ? 1 : 0,
+      toValue: enabled ? 1 : 0,
       useNativeDriver: false,
       friction: 8,
       tension: 80,
     }).start();
+  };
+
+  useEffect(() => {
+    isEnabledRef.current = value;
+    snapToValue(value);
   }, [value, animatedValue]);
+
+  const getTargetValue = (gestureState: PanResponderGestureState) => {
+    const isClick = Math.abs(gestureState.dx) < 5;
+    if (isClick) {
+      return !isEnabledRef.current;
+    }
+
+    const startPos = isEnabledRef.current ? TRACK_TRAVEL : 0;
+    const finalPos = startPos + gestureState.dx;
+    return finalPos > TOGGLE_THRESHOLD;
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -36,22 +54,28 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
         gestureState: PanResponderGestureState,
       ) => Math.abs(gestureState.dx) > 2,
 
+      onPanResponderGrant: () => {
+        animatedValue.stopAnimation();
+      },
+
       onPanResponderMove: (_, gestureState: PanResponderGestureState) => {
-        const startPos = isEnabledRef.current ? 20 : 0;
+        const startPos = isEnabledRef.current ? TRACK_TRAVEL : 0;
         const moved = startPos + gestureState.dx;
-        const clamped = Math.max(0, Math.min(20, moved));
-        animatedValue.setValue(clamped / 20);
+        const clamped = Math.max(0, Math.min(TRACK_TRAVEL, moved));
+        animatedValue.setValue(clamped / TRACK_TRAVEL);
       },
 
       onPanResponderRelease: (_, gestureState: PanResponderGestureState) => {
-        const isClick = Math.abs(gestureState.dx) < 5;
-        if (isClick) {
-          onValueChange(!isEnabledRef.current);
-        } else {
-          const startPos = isEnabledRef.current ? 20 : 0;
-          const finalPos = startPos + gestureState.dx;
-          onValueChange(finalPos > 10);
+        const targetValue = getTargetValue(gestureState);
+        snapToValue(targetValue);
+
+        if (targetValue !== isEnabledRef.current) {
+          onValueChange(targetValue);
         }
+      },
+
+      onPanResponderTerminate: () => {
+        snapToValue(isEnabledRef.current);
       },
     }),
   ).current;

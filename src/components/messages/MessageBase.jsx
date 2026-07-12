@@ -456,7 +456,7 @@ const MessageBase = ({
           />
         </View>
       )}
-      <BlurredView isBorderActive={false} style={blurredViewStyles}>
+      <BlurredView style={blurredViewStyles}>
         {!isSender && (
           <View style={styles.senderNameWrapper}>
             {showSenderName && (

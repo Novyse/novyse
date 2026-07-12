@@ -105,7 +105,6 @@ const Header = ({
       >
         <BlurredView
           style={[styles.headerColumnContainer, { borderRadius: activeRadius }]}
-          isBorderActive={false}
         >
           {(!selectedMessages || selectedMessages.length === 0) && (
             <MainHeader
