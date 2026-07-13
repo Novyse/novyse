@@ -5,6 +5,7 @@ import AppText from "@/src/components/AppText";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import AdaptiveModal from "../AdaptiveModal";
+import Platform from "@/src/utils/device/type";
 
 const MENU_ITEMS = [
   {
@@ -67,6 +68,10 @@ const UploadFileOverlay = ({
     }
   };
 
+  const filteredMenuItems = MENU_ITEMS.filter(
+    (item) => !(item.action === "Recording" && Platform === "mobile"),
+  );
+
   return (
     <AdaptiveModal
       visible={visible}
@@ -81,7 +86,7 @@ const UploadFileOverlay = ({
     >
       <View style={styles.content}>
         <View style={styles.menuRow}>
-          {MENU_ITEMS.map((item) => (
+          {filteredMenuItems.map((item) => (
             <HoverAndPressedButton
               key={item.action}
               style={styles.menuItem}
