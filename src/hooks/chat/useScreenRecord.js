@@ -27,6 +27,11 @@ const useScreenRecord = (onActivityChange) => {
   const isStoppingRef = useRef(false);
   const isBusyStoppingRef = useRef(false); // prevents double-call
 
+  const originalStreamsRef = useRef([]);
+  const analyserRef = useRef(null);
+  const dataArrayRef = useRef(null);
+  const [metering, setMetering] = useState(-60);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -45,10 +50,19 @@ const useScreenRecord = (onActivityChange) => {
       mediaStreamRef.current.getTracks().forEach((t) => t.stop());
       mediaStreamRef.current = null;
     }
+    originalStreamsRef.current.forEach((s) => {
+      s.getTracks().forEach((t) => t.stop());
+    });
+    originalStreamsRef.current = [];
+    if (analyserRef.current) {
+      analyserRef.current.disconnect();
+      analyserRef.current = null;
+    }
     mediaRecorderRef.current = null;
     chunksRef.current = [];
     startTimeRef.current = 0;
     elapsedBeforePauseRef.current = 0;
+    setMetering(-60);
   }, []);
 
   const _startTimer = useCallback(() => {
@@ -58,6 +72,22 @@ const useScreenRecord = (onActivityChange) => {
         elapsedBeforePauseRef.current +
         (Date.now() - startTimeRef.current);
       setDurationMillis(elapsed);
+
+      // Compute metering
+      if (analyserRef.current && dataArrayRef.current) {
+        analyserRef.current.getByteTimeDomainData(dataArrayRef.current);
+        let sum = 0;
+        for (let i = 0; i < dataArrayRef.current.length; i++) {
+          const val = (dataArrayRef.current[i] - 128) / 128;
+          sum += val * val;
+        }
+        const rms = Math.sqrt(sum / dataArrayRef.current.length);
+        let db = 20 * Math.log10(rms);
+        if (db < -60 || !isFinite(db)) db = -60;
+        setMetering(db);
+      } else {
+        setMetering(-60);
+      }
     }, 100);
   }, []);
 
@@ -68,6 +98,7 @@ const useScreenRecord = (onActivityChange) => {
     }
     elapsedBeforePauseRef.current +=
       Date.now() - startTimeRef.current;
+    setMetering(-60);
   }, []);
 
   // Ref to always have the latest cancel function for track.onended
@@ -79,30 +110,72 @@ const useScreenRecord = (onActivityChange) => {
    */
   const handleStartScreenRecording = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: true,
       });
 
-      const audioTracks = stream.getAudioTracks();
+      let micStream = null;
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+      } catch (err) {
+        console.warn("Could not get microphone stream:", err);
+      }
 
-      mediaStreamRef.current = stream;
+      originalStreamsRef.current = [screenStream];
+      if (micStream) originalStreamsRef.current.push(micStream);
+
+      let mixedStream = screenStream;
+      let hasAudio = screenStream.getAudioTracks().length > 0 || (micStream && micStream.getAudioTracks().length > 0);
+      
+      if (hasAudio) {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const dest = audioContext.createMediaStreamDestination();
+        
+        if (screenStream.getAudioTracks().length > 0) {
+          const source1 = audioContext.createMediaStreamSource(new MediaStream([screenStream.getAudioTracks()[0]]));
+          source1.connect(dest);
+        }
+
+        if (micStream && micStream.getAudioTracks().length > 0) {
+          const source2 = audioContext.createMediaStreamSource(micStream);
+          source2.connect(dest);
+
+          const analyser = audioContext.createAnalyser();
+          analyser.fftSize = 256;
+          source2.connect(analyser);
+          analyserRef.current = analyser;
+          dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
+        }
+
+        mixedStream = new MediaStream([
+          ...screenStream.getVideoTracks(),
+          ...dest.stream.getAudioTracks(),
+        ]);
+      }
+
+      mediaStreamRef.current = mixedStream;
       isStoppingRef.current = false;
       isBusyStoppingRef.current = false;
 
       // Pick MIME type based on actual tracks in the stream
-      const hasAudio = audioTracks.length > 0;
       const mimeType = _getPreferredMimeType(hasAudio);
 
       // Create MediaRecorder — try with options first, fall back to no options
       let recorder;
       try {
-        recorder = new MediaRecorder(stream, {
+        recorder = new MediaRecorder(mixedStream, {
           mimeType,
           videoBitsPerSecond: 2500000,
         });
       } catch (err) {
-        recorder = new MediaRecorder(stream);
+        recorder = new MediaRecorder(mixedStream);
       }
 
       chunksRef.current = [];
@@ -118,7 +191,7 @@ const useScreenRecord = (onActivityChange) => {
       });
 
       // If the user stops sharing via the browser's own "Stop sharing" button
-      stream.getVideoTracks().forEach((track) => {
+      screenStream.getVideoTracks().forEach((track) => {
         track.addEventListener("ended", () => {
           if (!isStoppingRef.current) {
             cancelRef.current?.();
@@ -288,6 +361,8 @@ const useScreenRecord = (onActivityChange) => {
     screenRecordingState: {
       durationMillis,
       isRecording: isRecording && !isPaused,
+      metering,
+      activeStream: mediaStreamRef.current,
     },
     handleStartScreenRecording,
     handleStopScreenAndDraft: handleStopAndDraft,

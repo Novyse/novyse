@@ -242,54 +242,68 @@ const MiddleBar = ({
           />
         </BlurredView>
       ) : (
-        <BlurredView style={styles.recordingContainer}>
-          <View style={styles.recordState}>
-            <RecordingDot isRecording={!isPaused} />
+        <View style={styles.recordingWrapper}>
+          {isScreenRecording && recorderState?.activeStream && (Platform === "web" || Platform === "desktop") && (
+            <View style={styles.previewContainer}>
+              {React.createElement("video", {
+                autoPlay: true,
+                muted: true,
+                style: {
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  borderRadius: 10,
+                },
+                ref: (ref) => {
+                  if (ref && ref.srcObject !== recorderState.activeStream) {
+                    ref.srcObject = recorderState.activeStream;
+                  }
+                },
+              })}
+            </View>
+          )}
+          <BlurredView style={styles.recordingContainer}>
+            <View style={styles.recordState}>
+              <RecordingDot isRecording={!isPaused} />
 
-            <AppText
-              style={styles.durationText}
-              text={Duration.fromMillis(
-                recorderState?.durationMillis || 0,
-              ).toFormat("m:ss.SSS")}
-            />
-          </View>
-
-          {/* Voice/Screen Activity */}
-          <View style={styles.speechContainer}>
-            {isScreenRecording ? (
               <AppText
-                style={styles.screenRecordingLabel}
-                text={isPaused ? "⏸ Screen Recording" : "● Screen Recording"}
+                style={styles.durationText}
+                text={Duration.fromMillis(
+                  recorderState?.durationMillis || 0,
+                ).toFormat("m:ss.SSS")}
               />
-            ) : (
+            </View>
+
+            {/* Voice/Screen Activity */}
+            <View style={styles.speechContainer}>
               <SpeechIndicator audioLevel={recorderState.metering} />
-            )}
-          </View>
+            </View>
 
-          <View style={styles.actionsContainer}>
-            {/* Stop and Draft button */}
-            <Icon
-              name="Add01Icon"
-              style={styles.pauseResumeIcon}
-              onPress={handleStopAndDraft}
-            />
+            <View style={styles.actionsContainer}>
+              {/* Stop and Draft button */}
+              <Icon
+                name="Add01Icon"
+                style={styles.pauseResumeIcon}
+                onPress={handleStopAndDraft}
+              />
 
-            {/* Pause/Resume button */}
-            {!isPaused ? (
-              <Icon
-                name="PauseIcon"
-                style={styles.pauseResumeIcon}
-                onPress={handleTogglePause}
-              />
-            ) : (
-              <Icon
-                name="PlayIcon"
-                style={styles.pauseResumeIcon}
-                onPress={handleTogglePause}
-              />
-            )}
-          </View>
-        </BlurredView>
+              {/* Pause/Resume button */}
+              {!isPaused ? (
+                <Icon
+                  name="PauseIcon"
+                  style={styles.pauseResumeIcon}
+                  onPress={handleTogglePause}
+                />
+              ) : (
+                <Icon
+                  name="PlayIcon"
+                  style={styles.pauseResumeIcon}
+                  onPress={handleTogglePause}
+                />
+              )}
+            </View>
+          </BlurredView>
+        </View>
       )}
     </>
   );
@@ -297,6 +311,21 @@ const MiddleBar = ({
 
 const createStyle = (theme) =>
   StyleSheet.create({
+    recordingWrapper: {
+      flex: 1,
+      flexDirection: "column",
+      justifyContent: "flex-end",
+    },
+    previewContainer: {
+      width: "100%",
+      maxWidth: 250,
+      height: 140,
+      marginBottom: 10,
+      borderRadius: 10,
+      overflow: "hidden",
+      backgroundColor: "transparent",
+      alignSelf: "center",
+    },
     container: {
       flex: 1,
       flexDirection: "row",
@@ -308,7 +337,7 @@ const createStyle = (theme) =>
       maxHeight: 150,
     },
     recordingContainer: {
-      flex: 1,
+      width: "100%",
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
