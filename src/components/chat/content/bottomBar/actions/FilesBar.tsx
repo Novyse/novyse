@@ -1,15 +1,31 @@
-import React, { useContext } from "react";
-import { View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
-import AppText from "@/src/components/AppText";
+import React, { useContext, useState } from "react";
+import {
+  View,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Linking,
+} from "react-native";
 import { useTranslation } from "react-i18next";
-import { ThemeContext } from "@/src/context/ThemeContext";
+
 import Icon from "@/src/components/Icon";
 import BlurredView from "@/src/components/BlurredView";
+import ImageViewer from "@/src/components/modalSheets/viewer/ImageViewer";
+import VideoViewer from "@/src/components/modalSheets/viewer/VideoViewer";
+import AppText from "@/src/components/AppText";
+
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useAudioPlayer } from "@/src/context/AudioPlayerContext";
+import useUserStore from "@/src/context/UserContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
+
 import {
   formatFileSize,
   calculateTotalSize,
 } from "@/src/utils/storage/file/utils";
+import { getFileType, getMimeType } from "@/src/utils/storage/file/type";
+import Platform from "@/src/utils/device/type";
+import { filesRpc } from "@/src/utils/electron/files";
 
 const FilesBar = () => {
   const { t } = useTranslation();
@@ -28,6 +44,40 @@ const FilesBar = () => {
   };
   const invalidFiles = useActiveChatStore((state) => state.invalidFiles) || [];
   const setInvalidFiles = useActiveChatStore((state) => state.setInvalidFiles);
+
+  const [viewImageUri, setViewImageUri] = useState<string | null>(null);
+  const [viewVideoUri, setViewVideoUri] = useState<string | null>(null);
+  const { handlePlayPause, addInfo, isPlaying } = useAudioPlayer();
+
+  const handleFilePress = (file: any) => {
+    const mimeType = getMimeType(file);
+    const category = getFileType(mimeType, file.name || file.fileName || "");
+    const fileUri = file.uri;
+    if (!fileUri) return;
+
+    if (category === "IMAGE") {
+      setViewImageUri(fileUri);
+    } else if (category === "VIDEO") {
+      setViewVideoUri(fileUri);
+    } else if (category === "AUDIO" || category === "VOICE") {
+      addInfo(
+        activeChat?.uuid || "",
+        "draft",
+        useUserStore.getState().localUserUUID || "",
+        "",
+        Date.now(),
+      );
+      handlePlayPause(fileUri);
+    } else {
+      if (Platform === "desktop") {
+        filesRpc.openFile(fileUri);
+      } else {
+        Linking.openURL(fileUri).catch((err) =>
+          console.error("Failed to open file:", err),
+        );
+      }
+    }
+  };
 
   if (!files || files.length === 0) return null;
 
@@ -85,95 +135,129 @@ const FilesBar = () => {
   };
 
   return (
-    <BlurredView style={styles.container}>
-      <View style={styles.header}>
-        <Icon name="FileAttachmentIcon" size={18} />
-        <View style={styles.accent} />
-        <View style={styles.headerMeta}>
-          <AppText
-            style={[styles.headerTitle, { color: theme.icon }]}
-            numberOfLines={1}
-            text={t(
-              `chat.bottomBar.files.${files.length === 1 ? "one" : "other"}`,
-              { count: files.length },
-            )}
-          />
-          <AppText
-            style={[styles.headerSub, isNearLimit && styles.headerSubDanger]}
-            numberOfLines={1}
-            text={`${formatFileSize(totalSize)} / ${formatFileSize(maxTotalSize)}`}
+    <>
+      <BlurredView style={styles.container}>
+        <View style={styles.header}>
+          <Icon name="FileAttachmentIcon" size={18} />
+          <View style={styles.accent} />
+          <View style={styles.headerMeta}>
+            <AppText
+              style={[styles.headerTitle, { color: theme.icon }]}
+              numberOfLines={1}
+              text={t(
+                `chat.bottomBar.files.${files.length === 1 ? "one" : "other"}`,
+                { count: files.length },
+              )}
+            />
+            <AppText
+              style={[styles.headerSub, isNearLimit && styles.headerSubDanger]}
+              numberOfLines={1}
+              text={`${formatFileSize(totalSize)} / ${formatFileSize(maxTotalSize)}`}
+            />
+          </View>
+          <Icon
+            name="Cancel01Icon"
+            size={18}
+            color={theme.placeholderText}
+            onPress={handleClearAll}
           />
         </View>
-        <Icon
-          name="Cancel01Icon"
-          size={18}
-          color={theme.placeholderText}
-          onPress={handleClearAll}
-        />
-      </View>
 
-      <View style={styles.divider} />
+        <View style={styles.divider} />
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        style={{ borderRadius: 10 }}
-        decelerationRate="fast"
-      >
-        {files.map((file, index) => {
-          const invalidInfo = invalidFiles.find(
-            (item: any) => item.index === index,
-          );
-          const isInvalid = !!invalidInfo;
-          const fileSize = file.size || file.fileSize || 0;
-          const name = file.name || "File";
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          style={{ borderRadius: 10 }}
+          decelerationRate="fast"
+        >
+          {files.map((file, index) => {
+            const invalidInfo = invalidFiles.find(
+              (item: any) => item.index === index,
+            );
+            const isInvalid = !!invalidInfo;
+            const fileSize = file.size || file.fileSize || 0;
+            const name = file.name || "File";
 
-          return (
-            <BlurredView key={index} style={styles.chipOuter}>
-              <View style={[styles.chip, isInvalid && styles.chipInvalid]}>
-                <Icon
-                  name="FileIcon"
-                  size={18}
-                  color={isInvalid ? theme.dangerText : theme.icon}
-                />
-                <View style={styles.chipText}>
-                  <AppText
-                    style={[
-                      styles.chipName,
-                      isInvalid && styles.chipNameInvalid,
-                    ]}
-                    numberOfLines={1}
-                    text={name || t("chat.bottomBar.files.file")}
-                  />
-                  <AppText
-                    style={styles.chipSize}
-                    text={formatFileSize(fileSize)}
-                  />
+            const mimeType = getMimeType(file);
+            const category = getFileType(mimeType, name);
+            let iconName = "DocumentAttachmentIcon";
+            if (category === "IMAGE") iconName = "Album01Icon";
+            else if (category === "VIDEO") iconName = "Video02Icon";
+            else if (category === "AUDIO" || category === "VOICE")
+              isPlaying ? (iconName = "PauseIcon") : (iconName = "PlayIcon");
+
+            return (
+              <BlurredView key={index} style={styles.chipOuter}>
+                <View style={[styles.chip, isInvalid && styles.chipInvalid]}>
+                  <TouchableOpacity
+                    style={styles.chipContent}
+                    onPress={() => handleFilePress(file)}
+                    activeOpacity={0.7}
+                  >
+                    <Icon
+                      name={iconName}
+                      size={18}
+                      color={isInvalid ? theme.dangerText : theme.icon}
+                    />
+                    <View style={styles.chipText}>
+                      <AppText
+                        style={[
+                          styles.chipName,
+                          isInvalid && styles.chipNameInvalid,
+                        ]}
+                        numberOfLines={1}
+                        text={name || t("chat.bottomBar.files.file")}
+                      />
+                      <AppText
+                        style={styles.chipSize}
+                        text={formatFileSize(fileSize)}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleRemoveFile(index)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Icon
+                      name="Cancel01Icon"
+                      size={18}
+                      color={theme.placeholderText}
+                    />
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  onPress={() => handleRemoveFile(index)}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Icon
-                    name="Cancel01Icon"
-                    size={18}
-                    color={theme.placeholderText}
+                {isInvalid && (
+                  <AppText
+                    style={styles.dangerText}
+                    numberOfLines={1}
+                    text={invalidInfo.errors[0]}
                   />
-                </TouchableOpacity>
-              </View>
-              {isInvalid && (
-                <AppText
-                  style={styles.dangerText}
-                  numberOfLines={1}
-                  text={invalidInfo.errors[0]}
-                />
-              )}
-            </BlurredView>
-          );
-        })}
-      </ScrollView>
-    </BlurredView>
+                )}
+              </BlurredView>
+            );
+          })}
+        </ScrollView>
+      </BlurredView>
+      {viewImageUri && (
+        <ImageViewer
+          visible={!!viewImageUri}
+          onClose={() => setViewImageUri(null)}
+          uri={viewImageUri}
+          theme={theme}
+          uuid={undefined}
+        />
+      )}
+      {viewVideoUri && (
+        <VideoViewer
+          visible={!!viewVideoUri}
+          onClose={() => setViewVideoUri(null)}
+          uri={viewVideoUri}
+          theme={theme}
+          uuid={undefined}
+        />
+      )}
+    </>
   );
 };
 
@@ -231,6 +315,12 @@ const createStyle = (theme: any) =>
       paddingHorizontal: 10,
       paddingVertical: 6,
       overflow: "hidden",
+    },
+    chipContent: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 7,
     },
     chipInvalid: {
       borderColor: theme.dangerText,
