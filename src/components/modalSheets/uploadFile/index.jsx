@@ -26,6 +26,12 @@ const MENU_ITEMS = [
     disabled: false,
   },
   {
+    action: "Recording",
+    translationKey: "chat.uploadOverlay.recording",
+    iconName: "RecordIcon",
+    disabled: false,
+  },
+  {
     action: "Location",
     translationKey: "chat.uploadOverlay.location",
     iconName: "Location06Icon",

@@ -28,6 +28,7 @@ const BottomBar = ({
   onEndMention,
   onRecordingActivityChange,
   onPressArrowUp,
+  startScreenRecordingRef,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -62,6 +63,7 @@ const BottomBar = ({
         onEndMention={onEndMention}
         onRecordingActivityChange={onRecordingActivityChange}
         onPressArrowUp={onPressArrowUp}
+        startScreenRecordingRef={startScreenRecordingRef}
       />
     </View>
   );

@@ -39,6 +39,7 @@ const MiddleBar = ({
   onStartMention,
   onChangeMention,
   onEndMention,
+  isScreenRecording,
 }) => {
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
@@ -253,9 +254,16 @@ const MiddleBar = ({
             />
           </View>
 
-          {/* Voice Activity */}
+          {/* Voice/Screen Activity */}
           <View style={styles.speechContainer}>
-            <SpeechIndicator audioLevel={recorderState.metering} />
+            {isScreenRecording ? (
+              <AppText
+                style={styles.screenRecordingLabel}
+                text={isPaused ? "⏸ Screen Recording" : "● Screen Recording"}
+              />
+            ) : (
+              <SpeechIndicator audioLevel={recorderState.metering} />
+            )}
           </View>
 
           <View style={styles.actionsContainer}>
@@ -354,6 +362,12 @@ const createStyle = (theme) =>
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
+    },
+    screenRecordingLabel: {
+      color: theme.text,
+      fontSize: 13,
+      fontWeight: "600",
+      letterSpacing: 0.5,
     },
   });
 

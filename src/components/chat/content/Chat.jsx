@@ -224,7 +224,15 @@ const ChatContent = () => {
     handleUpdatePendingMessage,
   } = useMessageHandlers(setNewMessageText, setEditingMessage, textInputRef);
 
-  const { handleMenuItemPress } = useAttachHandlers(setIsAttachMenuOpen);
+  const startScreenRecordingRef = useRef(null);
+  const handleStartScreenRecording = useCallback(() => {
+    startScreenRecordingRef.current?.();
+  }, []);
+
+  const { handleMenuItemPress } = useAttachHandlers(
+    setIsAttachMenuOpen,
+    handleStartScreenRecording,
+  );
 
   const { startForwarding } = useForward();
 
@@ -572,8 +580,7 @@ const ChatContent = () => {
       stopTyping,
     ],
   );
-
-  const handleDraftMenuItemPress = async (action) => {
+  const handleAttachMenuItemPress = async (action) => {
     const newFiles = await handleMenuItemPress(action);
     if (newFiles) {
       handleAppendFilesToDraft(newFiles);
@@ -678,6 +685,7 @@ const ChatContent = () => {
             onEndMention={onEndMention}
             onRecordingActivityChange={emitRecording}
             onPressArrowUp={handlePressArrowUp}
+            startScreenRecordingRef={startScreenRecordingRef}
           />
         </Animated.View>
         {Platform !== "mobile" && (
@@ -695,7 +703,7 @@ const ChatContent = () => {
         <UploadFileOverlay
           visible={isAttachMenuOpen}
           onClose={() => setIsAttachMenuOpen(false)}
-          onMenuItemPress={handleDraftMenuItemPress}
+          onMenuItemPress={handleAttachMenuItemPress}
           onFileSelected={handleAppendFilesToDraft}
           theme={theme}
         />

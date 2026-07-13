@@ -1,9 +1,10 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import { View } from "react-native";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import useVoiceRecord from "@/src/hooks/chat/useVoiceRecord";
+import useScreenRecord from "@/src/hooks/chat/useScreenRecord";
 
 import LeftButton from "./leftButton";
 import MiddleBar from "./middleBar";
@@ -37,6 +38,7 @@ const DefaultBar = ({
   onEndMention,
   onRecordingActivityChange,
   onPressArrowUp,
+  startScreenRecordingRef,
 }) => {
   const {
     isRecording,
@@ -48,6 +50,30 @@ const DefaultBar = ({
     handleTogglePause,
     handleCancelRecording,
   } = useVoiceRecord(onSendMessage, onRecordingActivityChange);
+
+  const {
+    isScreenRecording,
+    isScreenRecordingPaused,
+    screenRecordingState,
+    handleStartScreenRecording,
+    handleStopScreenAndDraft,
+    handleStopScreenAndSend,
+    handleToggleScreenPause,
+    handleCancelScreenRecording,
+  } = useScreenRecord(onRecordingActivityChange);
+
+  useEffect(() => {
+    if (startScreenRecordingRef) {
+      startScreenRecordingRef.current = handleStartScreenRecording;
+    }
+  }, [startScreenRecordingRef, handleStartScreenRecording]);
+
+  // Unified recording state
+  const activeRecording = isScreenRecording || isRecording;
+  const activePaused = isScreenRecording ? isScreenRecordingPaused : isPaused;
+  const activeRecorderState = isScreenRecording
+    ? screenRecordingState
+    : recorderState;
 
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
@@ -70,8 +96,12 @@ const DefaultBar = ({
 
       <View style={styles.inputRow}>
         <LeftButton
-          isRecording={isRecording}
-          onCancelVocal={handleCancelRecording}
+          isRecording={activeRecording}
+          onCancelVocal={
+            isScreenRecording
+              ? handleCancelScreenRecording
+              : handleCancelRecording
+          }
           isAttachMenuOpen={isAttachMenuOpen}
           onToggleAttachMenu={onToggleAttachMenu}
         />
@@ -85,11 +115,20 @@ const DefaultBar = ({
           onToggleEmoji={onToggleEmoji}
           onSendMessage={onSendMessage}
           onFileAppend={onFileAppend}
-          isRecording={isRecording}
-          isPaused={isPaused}
-          recorderState={recorderState}
-          handleTogglePause={handleTogglePause}
-          handleStopAndDraft={() => handleStopAndDraft(onFileAppend)}
+          isRecording={activeRecording}
+          isPaused={activePaused}
+          recorderState={activeRecorderState}
+          handleTogglePause={
+            isScreenRecording
+              ? handleToggleScreenPause
+              : handleTogglePause
+          }
+          handleStopAndDraft={
+            isScreenRecording
+              ? () => handleStopScreenAndDraft(onFileAppend)
+              : () => handleStopAndDraft(onFileAppend)
+          }
+          isScreenRecording={isScreenRecording}
           onCancelReply={onCancelReply}
           editingMessage={editingMessage}
           onCancelEdit={onCancelEdit}
@@ -100,10 +139,12 @@ const DefaultBar = ({
         />
 
         <RightButton
-          isRecording={isRecording}
+          isRecording={activeRecording}
           onSendMessage={onSendMessage}
           handleStartRecording={handleStartRecording}
-          handleStopAndSend={handleStopAndSend}
+          handleStopAndSend={
+            isScreenRecording ? () => handleStopScreenAndSend(onSendMessage) : handleStopAndSend
+          }
           newMessageText={newMessageText}
           hasFiles={files?.length > 0}
         />

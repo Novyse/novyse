@@ -84,6 +84,7 @@
       "media": "Media",
       "camera": "Camera",
       "file": "File",
+      "recording": "Recording",
       "location": "Location",
       "todo": "Todo",
       "poll": "Poll"
