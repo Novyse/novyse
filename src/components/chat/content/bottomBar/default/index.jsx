@@ -14,6 +14,7 @@ import MentionBar from "../actions/MentionBar";
 import EditBar from "../actions/EditBar";
 import ReplyBar from "../actions/ReplyBar";
 import FilesBar from "../actions/FilesBar";
+import ScreenRecordingPreview from "../actions/ScreenRecordingPreview";
 
 const DefaultBar = ({
   chatType,
@@ -80,6 +81,11 @@ const DefaultBar = ({
 
   return (
     <View style={styles.container}>
+      <ScreenRecordingPreview
+        isScreenRecording={isScreenRecording}
+        activeStream={screenRecordingState?.activeStream}
+        theme={theme}
+      />
       {/* Mention Bar */}
       {mentionMembers && mentionMembers.length > 0 && (
         <MentionBar members={mentionMembers} onSelectMember={onSelectMention} />
@@ -119,9 +125,7 @@ const DefaultBar = ({
           isPaused={activePaused}
           recorderState={activeRecorderState}
           handleTogglePause={
-            isScreenRecording
-              ? handleToggleScreenPause
-              : handleTogglePause
+            isScreenRecording ? handleToggleScreenPause : handleTogglePause
           }
           handleStopAndDraft={
             isScreenRecording
@@ -143,7 +147,9 @@ const DefaultBar = ({
           onSendMessage={onSendMessage}
           handleStartRecording={handleStartRecording}
           handleStopAndSend={
-            isScreenRecording ? () => handleStopScreenAndSend(onSendMessage) : handleStopAndSend
+            isScreenRecording
+              ? () => handleStopScreenAndSend(onSendMessage)
+              : handleStopAndSend
           }
           newMessageText={newMessageText}
           hasFiles={files?.length > 0}

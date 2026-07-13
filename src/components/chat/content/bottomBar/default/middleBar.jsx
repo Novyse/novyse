@@ -243,25 +243,6 @@ const MiddleBar = ({
         </BlurredView>
       ) : (
         <View style={styles.recordingWrapper}>
-          {isScreenRecording && recorderState?.activeStream && (Platform === "web" || Platform === "desktop") && (
-            <View style={styles.previewContainer}>
-              {React.createElement("video", {
-                autoPlay: true,
-                muted: true,
-                style: {
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  borderRadius: 10,
-                },
-                ref: (ref) => {
-                  if (ref && ref.srcObject !== recorderState.activeStream) {
-                    ref.srcObject = recorderState.activeStream;
-                  }
-                },
-              })}
-            </View>
-          )}
           <BlurredView style={styles.recordingContainer}>
             <View style={styles.recordState}>
               <RecordingDot isRecording={!isPaused} />
@@ -315,16 +296,6 @@ const createStyle = (theme) =>
       flex: 1,
       flexDirection: "column",
       justifyContent: "flex-end",
-    },
-    previewContainer: {
-      width: "100%",
-      maxWidth: 250,
-      height: 140,
-      marginBottom: 10,
-      borderRadius: 10,
-      overflow: "hidden",
-      backgroundColor: "transparent",
-      alignSelf: "center",
     },
     container: {
       flex: 1,
