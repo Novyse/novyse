@@ -144,7 +144,7 @@ const MessageReplyWrapper = ({
 }) => {
   const getMessage = useChatStore((state) => state.getMessage);
   const getUser = useUserStore((state) => state.getUser);
-  const replyMessage = getMessage(replyTo?.chatUUID, replyTo?.messageID);
+  const replyMessage = getMessage(replyTo?.chatUUID, replyTo?.subID, replyTo?.messageID);
 
   if (!replyMessage) return null;
 
@@ -295,7 +295,7 @@ const MessageBase = ({
         <View style={styles.replyTosContainer}>
           {replyTos.map((reply, index) => (
             <MessageReplyWrapper
-              key={`${reply.chatUUID}-${reply.messageID}-${index}`}
+              key={`${reply.chatUUID}-${reply.subID}-${reply.messageID}-${index}`}
               replyTo={reply}
               oldChatUUID={message.chatUUID}
               oldMessageID={message.id}

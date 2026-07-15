@@ -24,7 +24,7 @@ interface ChatState {
     chatUUID: string | null,
     chatHandle?: string | null,
   ) => Promise<void>;
-  getMessage: (chatUUID: string, messageID: string) => any;
+  getMessage: (chatUUID: string, subID: number, messageID: string) => any;
   _eventsSetup: boolean;
   setupEvents: () => Promise<void>;
   onNewChat: (data: { chat: Chat; users: User[] }) => void;
@@ -35,12 +35,18 @@ interface ChatState {
   onMessageSent: (payload: { tempId: string; message: any }) => void;
   onMessageUpdate: (payload: {
     chatUUID: string;
+    subID: number;
     messageID: string;
     action: string;
     data: any;
   }) => void;
   onFileDownloaded: (payload: { file: any }) => void;
   onUserChatSettingUpdate: (payload: {
+    chatUUID: string;
+    action: string;
+    data: any;
+  }) => void;
+  onChatUpdate: (payload: {
     chatUUID: string;
     action: string;
     data: any;
@@ -255,6 +261,7 @@ const useChatStore = create<ChatState>((set, get) => ({
               data.name ||
               (type === "USER" ? `${data.name} ${data.surname}` : "Unknown"),
             profilePictureUUID,
+            subs: data.subs,
             messages: messages.reverse(),
             members: members.map((m: any) => ({
               uuid: m.userUUID || m,
@@ -296,13 +303,14 @@ const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
-  getMessage: (chatUUID: string, messageID: string) => {
+  getMessage: (chatUUID: string, subID: number, messageID: string) => {
     const chat = get().chats.find((c) => c.uuid === chatUUID);
     if (!chat) return null;
 
     const cachedMessage =
-      chat.messages.find((m: any) => String(m.id) === String(messageID)) ||
-      null;
+      chat.messages.find(
+        (m: any) => String(m.id) === String(messageID) && m.subID === subID,
+      ) || null;
     if (cachedMessage) return cachedMessage;
     return null;
     // @SamueleOrazioDurante pull da db se non è in cache
@@ -340,6 +348,7 @@ const useChatStore = create<ChatState>((set, get) => ({
 
     const emitter = eventEmitter.getEmitter();
     emitter.on("chat:new", get().onNewChat);
+    emitter.on("chat:update", get().onChatUpdate);
     emitter.on("chat:member:joined", get().onMemberJoin);
     emitter.on("chat:member:activity", get().onActivity);
     emitter.on("message:new", get().onNewMessage);
@@ -473,12 +482,16 @@ const useChatStore = create<ChatState>((set, get) => ({
           message.replyTos.forEach((replyTo: any) => {
             if (replyTo.chatUUID === chat.uuid) {
               updatedMessages = updatedMessages.map((m: any) => {
-                if (m.id === replyTo.messageID) {
+                if (m.id === replyTo.messageID && m.subID === replyTo.subID) {
                   return {
                     ...m,
                     repliedFroms: [
                       ...(m.repliedFroms || []),
-                      { chatUUID: message.chatUUID, messageID: message.id },
+                      {
+                        chatUUID: message.chatUUID,
+                        subID: message.subID,
+                        messageID: message.id,
+                      },
                     ],
                   };
                 }
@@ -566,11 +579,13 @@ const useChatStore = create<ChatState>((set, get) => ({
 
   onMessageUpdate: ({
     chatUUID: eChatUUID,
+    subID,
     messageID,
     action,
     data,
   }: {
     chatUUID: string;
+    subID: number;
     messageID: string;
     action: string;
     data: any;
@@ -586,7 +601,7 @@ const useChatStore = create<ChatState>((set, get) => ({
 
             let reduction = 0;
             const updatedMessages = messagesList.map((msg: any) => {
-              if (Number(msg.id) <= targetMessageID) {
+              if (Number(msg.id) <= targetMessageID && msg.subID === subID) {
                 const wasAlreadyRead = (msg.readBy || []).some(
                   (r: any) => String(r.userUUID) === String(data.userUUID),
                 );
@@ -627,10 +642,12 @@ const useChatStore = create<ChatState>((set, get) => ({
               ...chat,
               editedMessages: [
                 ...(chat.editedMessages || []),
-                messageID,
+                { subID, messageID },
               ] as any,
               messages: chat.messages.map((msg: any) =>
-                msg.id === messageID ? { ...msg, ...data } : msg,
+                String(msg.id) === String(messageID) && msg.subID === subID
+                  ? { ...msg, ...data }
+                  : msg,
               ),
             };
 
@@ -638,7 +655,8 @@ const useChatStore = create<ChatState>((set, get) => ({
             return {
               ...chat,
               messages: chat.messages.filter(
-                (msg: any) => msg.id !== messageID,
+                (msg: any) =>
+                  String(msg.id) !== String(messageID) || msg.subID !== subID,
               ),
             };
 
@@ -647,7 +665,7 @@ const useChatStore = create<ChatState>((set, get) => ({
               ...chat,
               pinnedMessages: [
                 ...(chat.pinnedMessages || []),
-                { chatUUID: eChatUUID, messageID },
+                { chatUUID: eChatUUID, subID, messageID },
               ] as any,
             };
 
@@ -655,7 +673,8 @@ const useChatStore = create<ChatState>((set, get) => ({
             return {
               ...chat,
               pinnedMessages: (chat.pinnedMessages || []).filter(
-                (p: any) => (p.messageID || p) !== messageID,
+                (p: any) =>
+                  (p.messageID || p) !== messageID || p.subID !== subID,
               ),
             };
 
@@ -663,7 +682,8 @@ const useChatStore = create<ChatState>((set, get) => ({
             return {
               ...chat,
               messages: chat.messages.map((msg: any) => {
-                if (msg.id !== messageID) return msg;
+                if (String(msg.id) !== String(messageID) || msg.subID !== subID)
+                  return msg;
                 const reactions = msg.reactions || [];
                 const existingIdx = reactions.findIndex(
                   (r: any) => r.emoji === data.reaction,
@@ -695,7 +715,12 @@ const useChatStore = create<ChatState>((set, get) => ({
             return {
               ...chat,
               messages: chat.messages.map((msg: any) => {
-                if (msg.id !== messageID || !msg.reactions) return msg;
+                if (
+                  String(msg.id) !== String(messageID) ||
+                  msg.subID !== subID ||
+                  !msg.reactions
+                )
+                  return msg;
                 const existingIdx = msg.reactions.findIndex(
                   (r: any) => r.emoji === data.reaction,
                 );
@@ -785,6 +810,68 @@ const useChatStore = create<ChatState>((set, get) => ({
       });
     }
   },
+
+  onChatUpdate: ({
+    chatUUID,
+    action,
+    data,
+  }: {
+    chatUUID: string;
+    action: string;
+    data: any;
+  }) => {
+    set((state) => ({
+      chats: state.chats.map((chat) => {
+        if (chat.uuid !== chatUUID) return chat;
+
+        switch (action) {
+          case "sub_create": {
+            const newSub = data.sub || data;
+            const existingSubs = (chat as any).subs || [];
+            if (existingSubs.some((s: any) => s.id === newSub.id)) return chat;
+            return { ...chat, subs: [...existingSubs, newSub] };
+          }
+          case "sub_rename": {
+            const subToRename = data.sub || data;
+            return {
+              ...chat,
+              subs: ((chat as any).subs || []).map((s: any) =>
+                s.id === subToRename.id ? { ...s, name: subToRename.name } : s,
+              ),
+            };
+          }
+          case "sub_delete": {
+            const subIDToDelete = data.subID ?? data.id;
+            return {
+              ...chat,
+              subs: ((chat as any).subs || []).filter(
+                (s: any) => s.id !== subIDToDelete,
+              ),
+              messages: chat.messages.filter(
+                (m: any) => m.subID !== subIDToDelete,
+              ),
+            };
+          }
+          case "rename": {
+            if (chat.type === "DM") return chat;
+            return {
+              ...chat,
+              name: data.name,
+            };
+          }
+          case "picture": {
+            if (chat.type === "DM") return chat;
+            return {
+              ...chat,
+              profilePictureUUID: data.pictureUUID,
+            };
+          }
+          default:
+            return chat;
+        }
+      }),
+    }));
+  },
   onActivity: ({
     chatUUID,
     userUUID,
@@ -814,6 +901,7 @@ const useChatStore = create<ChatState>((set, get) => ({
 
     if (get()._eventsSetup) {
       emitter.off("chat:new", get().onNewChat);
+      emitter.off("chat:update", get().onChatUpdate);
       emitter.off("chat:member:joined", get().onMemberJoin);
       emitter.off("chat:member:activity", get().onActivity);
       emitter.off("message:new", get().onNewMessage);

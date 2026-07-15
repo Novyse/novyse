@@ -384,6 +384,92 @@ const gateway = {
         throw error;
       }
     },
+    /**
+     * Rename a chat.
+     * @param {String} chatUUID
+     * @param {String} name
+     * @returns {Object} { success: boolean, name?: String, chatEventID?: Number }
+     */
+    async rename(chatUUID, name) {
+      try {
+        if (!chatUUID || !name) {
+          throw new Error("Missing required fields for renaming chat");
+        }
+        const response = await api.patch("/chat/rename", {
+          chatUUID,
+          name,
+        });
+        const success = response.data.success;
+        if (success) {
+          const { name: newName, chatEventID } = response.data.data;
+          return { success, name: newName, chatEventID };
+        }
+        return { success };
+      } catch (error) {
+        console.error("Error in chat.rename:", error);
+        throw error;
+      }
+    },
+    picture: {
+      /**
+       * Request an upload URL for a chat picture.
+       * @param {String} chatUUID
+       * @param {String} name - File name
+       * @param {String} mimeType - File MIME type
+       * @param {Number} size - File size in bytes
+       * @returns {Object} { success: boolean, fileUUID?: String, uploadURL?: String, expiresAt?: String }
+       */
+      async requestUpload(chatUUID, name, mimeType, size) {
+        try {
+          if (!chatUUID || !name || !mimeType || !size) {
+            throw new Error("Missing required fields for chat picture upload");
+          }
+          const response = await api.patch("/chat/picture", {
+            chatUUID,
+            name,
+            mimeType,
+            size,
+          });
+          const success = response.data.success;
+          if (success) {
+            const { fileUUID, uploadURL, expiresAt } = response.data.data;
+            return { success, fileUUID, uploadURL, expiresAt };
+          }
+          return { success };
+        } catch (error) {
+          console.error("Error in chat.picture.requestUpload:", error);
+          throw error;
+        }
+      },
+      /**
+       * Confirm a chat picture upload.
+       * @param {String} chatUUID
+       * @param {String} fileUUID
+       * @returns {Object} { success: boolean, pictureUUID?: String, chatEventID?: Number }
+       */
+      async confirm(chatUUID, fileUUID) {
+        try {
+          if (!chatUUID || !fileUUID) {
+            throw new Error(
+              "Missing required fields for confirming chat picture",
+            );
+          }
+          const response = await api.post("/chat/picture/confirm", {
+            chatUUID,
+            fileUUID,
+          });
+          const success = response.data.success;
+          if (success) {
+            const { pictureUUID, chatEventID } = response.data.data;
+            return { success, pictureUUID, chatEventID };
+          }
+          return { success };
+        } catch (error) {
+          console.error("Error in chat.picture.confirm:", error);
+          throw error;
+        }
+      },
+    },
     pin: {
       /**
        * Pin a chat.
@@ -430,25 +516,98 @@ const gateway = {
         }
       },
     },
+    sub: {
+      /**
+       * Create a new sub-channel in a forum chat.
+       * @param {String} chatUUID
+       * @param {String} name
+       * @returns {Object} { success: boolean, sub?: { id: number, name: string, created_at: string } }
+       */
+      async create(chatUUID, name) {
+        try {
+          if (!chatUUID || !name) {
+            throw new Error("Missing required fields for creating sub");
+          }
+          const response = await api.post("/chat/sub/create", {
+            chatUUID,
+            name,
+          });
+          const success = response.data.success;
+          if (success) {
+            const sub = response.data.data;
+            return { success, sub };
+          }
+          return { success };
+        } catch (error) {
+          console.error("Error in chat.sub.create:", error);
+          throw error;
+        }
+      },
+      /**
+       * Rename a sub-channel.
+       * @param {String} chatUUID
+       * @param {Number} id
+       * @param {String} name
+       * @returns {Object} { success: boolean }
+       */
+      async rename(chatUUID, id, name) {
+        try {
+          if (!chatUUID || id == null || !name) {
+            throw new Error("Missing required fields for renaming sub");
+          }
+          const response = await api.patch("/chat/sub/rename", {
+            chatUUID,
+            id,
+            name,
+          });
+          return { success: response.data.success };
+        } catch (error) {
+          console.error("Error in chat.sub.rename:", error);
+          throw error;
+        }
+      },
+      /**
+       * Delete a sub-channel (cascades to all messages).
+       * @param {String} chatUUID
+       * @param {Number} id
+       * @returns {Object} { success: boolean }
+       */
+      async delete(chatUUID, id) {
+        try {
+          if (!chatUUID || id == null) {
+            throw new Error("Missing required fields for deleting sub");
+          }
+          const response = await api.delete("/chat/sub/delete", {
+            data: { chatUUID, id },
+          });
+          return { success: response.data.success };
+        } catch (error) {
+          console.error("Error in chat.sub.delete:", error);
+          throw error;
+        }
+      },
+    },
   },
   message: {
     /**
      * Retrive a specific message from a specified chat.
      * @param {String} chatUUID
+     * @param {Number} subID
      * @param {String} messageID
      * @returns Promise<{success: boolean, message?: Object}>
      */
-    async retrieve(chatUUID, messageID) {
+    async retrieve(chatUUID, subID, messageID) {
       try {
-        if (!chatUUID || !messageID) {
+        if (!chatUUID || subID == null || !messageID) {
           throw new Error(
             "Missing required fields for retrieving message",
             chatUUID,
+            subID,
             messageID,
           );
         }
         const response = await api.get(
-          `/message?chatUUID=${chatUUID}&messageID=${messageID}`,
+          `/message?chatUUID=${chatUUID}&subID=${subID}&messageID=${messageID}`,
         );
         const success = response.data.success;
         if (success) {
@@ -464,6 +623,7 @@ const gateway = {
     /**
      * Send a message to a chat.
      * @param {String} chatUUID
+     * @param {Number} subID
      * @param {String} content
      * @param {String} type
      * @param {Array} files { name: String, size: Int, type: String}
@@ -471,20 +631,23 @@ const gateway = {
      */
     async send(
       chatUUID,
+      subID = 0,
       content = undefined,
       type = "message",
       files = undefined,
       replyTos = undefined,
     ) {
       try {
-        if (!chatUUID) {
+        if (!chatUUID || subID == null) {
           throw new Error(
             "Missing required fields for sending message",
             chatUUID,
+            subID,
           );
         }
         const response = await api.post("/message", {
           chatUUID,
+          subID,
           content,
           type,
           files,
@@ -523,22 +686,25 @@ const gateway = {
     /**
      * Delete a message from a chat.
      * @param {String} chatUUID
+     * @param {Number} subID
      * @param {String} messageID
      * @returns Promise<{success: boolean}>
      */
-    async delete(chatUUID, messageID) {
+    async delete(chatUUID, subID, messageID) {
       try {
-        if (!chatUUID || !messageID) {
+        if (!chatUUID || subID == null || !messageID) {
           throw new Error(
             "Missing required fields for deleting message",
             chatUUID,
+            subID,
             messageID,
           );
         }
-        console.log(chatUUID, messageID);
+        console.log(chatUUID, subID, messageID);
         const response = await api.delete("/message", {
           data: {
             chatUUID,
+            subID,
             messageID,
           },
         });
@@ -556,22 +722,25 @@ const gateway = {
     /**
      * Edit a message.
      * @param {String} chatUUID
+     * @param {Number} subID
      * @param {String} messageID
      * @param {String} content
      * @returns Promise<{success: boolean}>
      */
-    async edit(chatUUID, messageID, content) {
+    async edit(chatUUID, subID, messageID, content) {
       try {
-        if (!chatUUID || !messageID || !content) {
+        if (!chatUUID || subID == null || !messageID || !content) {
           throw new Error(
             "Missing required fields for editing message",
             chatUUID,
+            subID,
             messageID,
             content,
           );
         }
         const response = await api.patch("/message", {
           chatUUID,
+          subID,
           messageID,
           content,
         });
@@ -590,20 +759,23 @@ const gateway = {
       /**
        * Pin a message.
        * @param {String} chatUUID
+       * @param {Number} subID
        * @param {String} messageID
        * @returns Promise<{success: boolean}>
        */
-      async add(chatUUID, messageID) {
+      async add(chatUUID, subID, messageID) {
         try {
-          if (!chatUUID || !messageID) {
+          if (!chatUUID || subID == null || !messageID) {
             throw new Error(
               "Missing required fields for pinning message",
               chatUUID,
+              subID,
               messageID,
             );
           }
           const response = await api.put("/message/pin", {
             chatUUID,
+            subID,
             messageID,
           });
           const success = response.data.success;
@@ -620,21 +792,24 @@ const gateway = {
       /**
        * Unpin a message.
        * @param {String} chatUUID
+       * @param {Number} subID
        * @param {String} messageID
        * @returns Promise<{success: boolean}>
        */
-      async remove(chatUUID, messageID) {
+      async remove(chatUUID, subID, messageID) {
         try {
-          if (!chatUUID || !messageID) {
+          if (!chatUUID || subID == null || !messageID) {
             throw new Error(
               "Missing required fields for unpinning message",
               chatUUID,
+              subID,
               messageID,
             );
           }
           const response = await api.delete("/message/pin", {
             data: {
               chatUUID,
+              subID,
               messageID,
             },
           });
@@ -654,22 +829,25 @@ const gateway = {
       /**
        * Add a reaction to a message.
        * @param {String} chatUUID
+       * @param {Number} subID
        * @param {String} messageID
        * @param {String} reaction
        * @returns {Promise<{success: boolean, at: Timestamp}>}
        */
-      async add(chatUUID, messageID, reaction) {
+      async add(chatUUID, subID, messageID, reaction) {
         try {
-          if (!chatUUID || !messageID || !reaction) {
+          if (!chatUUID || subID == null || !messageID || !reaction) {
             throw new Error(
               "Missing required fields for adding reaction",
               chatUUID,
+              subID,
               messageID,
               reaction,
             );
           }
           const response = await api.put("/message/reaction", {
             chatUUID,
+            subID,
             messageID,
             reaction,
           });
@@ -687,16 +865,18 @@ const gateway = {
       /**
        * Remove a reaction to a message.
        * @param {String} chatUUID
+       * @param {Number} subID
        * @param {String} messageID
        * @param {String} reaction
        * @returns {Promise<{success: boolean}>}
        */
-      async remove(chatUUID, messageID, reaction) {
+      async remove(chatUUID, subID, messageID, reaction) {
         try {
-          if (!chatUUID || !messageID || !reaction) {
+          if (!chatUUID || subID == null || !messageID || !reaction) {
             throw new Error(
               "Missing required fields for removing reaction",
               chatUUID,
+              subID,
               messageID,
               reaction,
             );
@@ -704,6 +884,7 @@ const gateway = {
           const response = await api.delete("/message/reaction", {
             data: {
               chatUUID,
+              subID,
               messageID,
               reaction,
             },
@@ -720,17 +901,19 @@ const gateway = {
         }
       },
     },
-    async read(chatUUID, messageID) {
+    async read(chatUUID, subID, messageID) {
       try {
-        if (!chatUUID || !messageID) {
+        if (!chatUUID || subID == null || !messageID) {
           throw new Error(
             "Missing required fields for reading message",
             chatUUID,
+            subID,
             messageID,
           );
         }
         const response = await api.post("/message/read", {
           chatUUID,
+          subID,
           messageID,
         });
         const success = response.data.success;

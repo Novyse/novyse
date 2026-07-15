@@ -31,10 +31,11 @@ export class MessageRepository {
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO message (id, chatUUID, subID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
+          message.subID,
           message.senderUUID,
           message.content || null,
           message.type || "message",
@@ -224,7 +225,7 @@ export class MessageRepository {
         return false;
       }
       const placeholders = messages
-        .map(() => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .map(() => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .join(", ");
       const values: any[] = [];
       for (const message of messages) {
@@ -240,6 +241,7 @@ export class MessageRepository {
         values.push(
           message.id,
           message.chatUUID,
+          message.subID,
           message.senderUUID,
           message.content || null,
           message.type || "message",
@@ -256,7 +258,7 @@ export class MessageRepository {
         );
       }
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES ${placeholders};`,
+        `INSERT OR IGNORE INTO message (id, chatUUID, subID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES ${placeholders};`,
         values,
       );
       console.log(`${messages.length} messages added successfully.`);

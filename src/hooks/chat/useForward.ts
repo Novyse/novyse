@@ -57,6 +57,7 @@ export const useForward = () => {
 
         const message = {
           senderUUID: myUUID,
+          subID: 0,
           content: msg.content || "",
           type: msg.type,
           replyTos: [],

@@ -553,6 +553,7 @@ const ChatContent = () => {
         const allFiles = [...(files || []), ...(extraFiles || [])];
         const replyTos = replyingTo.map((msg) => ({
           chatUUID: msg.chatUUID,
+          subID: msg.subID,
           messageID: msg.id,
           rangeStart: msg.rangeStart,
           rangeEnd: msg.rangeEnd,

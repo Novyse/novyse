@@ -43,9 +43,10 @@ const eventReceiver = {
     });
 
     socket.on("message:read", async (data) => {
-      const { chatUUID, messageID, userUUID, readAt, chatEventID } = data;
+      const { chatUUID, subID, messageID, userUUID, readAt, chatEventID } = data;
       await eventEmitter.message.update(
         chatUUID,
+        subID,
         messageID,
         "read",
         chatEventID,
@@ -56,6 +57,7 @@ const eventReceiver = {
     socket.on("message:update", async (data) => {
       await eventEmitter.message.update(
         data.chatUUID,
+        data.subID,
         data.messageID,
         data.action,
         data.chatEventID,

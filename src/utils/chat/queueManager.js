@@ -147,6 +147,7 @@ class QueueManager {
       // Emit event for new message added to queue
       await eventEmitter.getEmitter().emit("message:new", {
         chatUUID: chat.uuid,
+        subID: message.subID,
         id,
         content: message.content,
         created_at: undefined,
@@ -284,7 +285,7 @@ class QueueManager {
   async processPendingDownloadJob(job) {
     const { message } = job.params;
 
-    const { id, chatUUID, files } = message;
+    const { id, chatUUID, subID = 0, files } = message;
 
     const filesToDownload = [];
 
@@ -302,7 +303,7 @@ class QueueManager {
 
     if (filesToDownload && filesToDownload.length > 0) {
       const { success, message: downloadedMessage } =
-        await gateway.message.retrieve(chatUUID, id);
+        await gateway.message.retrieve(chatUUID, subID, id);
 
       const downloadedFiles = downloadedMessage.files;
 
@@ -441,7 +442,13 @@ class QueueManager {
   // @SamueleOrazioDurante la logica qui è rimasta quella vecchia, da capire se è ottimizzata o va rifatta
   async processSendingMessageJob(job) {
     const chatUUID = job.params.chat.uuid;
-    const { content, type = "message", files, replyTos } = job.params.message;
+    const {
+      subID,
+      content,
+      type = "message",
+      files,
+      replyTos,
+    } = job.params.message;
 
     let cleanFiles = [];
 
@@ -460,6 +467,7 @@ class QueueManager {
 
     const { success, message } = await gateway.message.send(
       chatUUID,
+      subID,
       content,
       type,
       cleanFiles,
@@ -513,12 +521,18 @@ class QueueManager {
 
   async processModifyMessageJob(job) {
     const chatUUID = job.params.chat.uuid;
-    const { content, messageID } = job.params.message;
-    const response = await gateway.message.edit(chatUUID, messageID, content);
+    const { subID, content, messageID } = job.params.message;
+    const response = await gateway.message.edit(
+      chatUUID,
+      subID,
+      messageID,
+      content,
+    );
 
     if (response.success) {
       await eventEmitter.message.update(
         chatUUID,
+        subID,
         messageID,
         "edit",
         response.chatEventID,

@@ -15,7 +15,9 @@ const useMessageHandlers = (
   textInputRef,
 ) => {
   const chatUUID = useActiveChatStore((state) => state.selectedChatUUID);
+  const selectedSub = useActiveChatStore((state) => state.selectedSub);
   const activeChatData = useActiveChatStore((state) => state.activeChatData);
+
   const myUUID = useUserStore((state) => state.localUserUUID);
 
   const focusTextInput = useCallback(() => {
@@ -47,6 +49,7 @@ const useMessageHandlers = (
 
       const message = {
         senderUUID: myUUID,
+        subID: selectedSub,
         content,
         type,
         replyTos,
@@ -65,15 +68,27 @@ const useMessageHandlers = (
       setNewMessageText("");
       focusTextInput();
     },
-    [chatUUID, myUUID, setNewMessageText, activeChatData, focusTextInput],
+    [
+      chatUUID,
+      selectedSub,
+      myUUID,
+      setNewMessageText,
+      activeChatData,
+      focusTextInput,
+    ],
   );
 
   const handleReadMessage = useCallback(
     async (messageID) => {
-      const response = await gateway.message.read(chatUUID, messageID);
+      const response = await gateway.message.read(
+        chatUUID,
+        selectedSub,
+        messageID,
+      );
       if (response.success && response.readAt) {
         await eventEmitter.message.update(
           chatUUID,
+          selectedSub,
           messageID,
           "read",
           response.chatEventID,
@@ -84,15 +99,20 @@ const useMessageHandlers = (
         );
       }
     },
-    [chatUUID, myUUID],
+    [chatUUID, selectedSub, myUUID],
   );
 
   const handlePinMessage = useCallback(
     async (messageID) => {
-      const response = await gateway.message.pin.add(chatUUID, messageID);
+      const response = await gateway.message.pin.add(
+        chatUUID,
+        selectedSub,
+        messageID,
+      );
       if (response.success) {
         await eventEmitter.message.update(
           chatUUID,
+          selectedSub,
           messageID,
           "pin_add",
           response.chatEventID,
@@ -103,15 +123,20 @@ const useMessageHandlers = (
         );
       }
     },
-    [chatUUID, myUUID],
+    [chatUUID, selectedSub, myUUID],
   );
 
   const handleUnpinMessage = useCallback(
     async (messageID) => {
-      const response = await gateway.message.pin.remove(chatUUID, messageID);
+      const response = await gateway.message.pin.remove(
+        chatUUID,
+        selectedSub,
+        messageID,
+      );
       if (response.success) {
         await eventEmitter.message.update(
           chatUUID,
+          selectedSub,
           messageID,
           "pin_remove",
           response.chatEventID,
@@ -119,16 +144,21 @@ const useMessageHandlers = (
         );
       }
     },
-    [chatUUID],
+    [chatUUID, selectedSub],
   );
 
   const handleDeleteMessage = useCallback(
     async (messageID) => {
-      console.log(messageID, chatUUID);
-      const response = await gateway.message.delete(chatUUID, messageID);
+      console.log(messageID, chatUUID, selectedSub);
+      const response = await gateway.message.delete(
+        chatUUID,
+        selectedSub,
+        messageID,
+      );
       if (response.success) {
         await eventEmitter.message.update(
           chatUUID,
+          selectedSub,
           messageID,
           "delete",
           response.chatEventID,
@@ -136,7 +166,7 @@ const useMessageHandlers = (
         );
       }
     },
-    [chatUUID],
+    [chatUUID, selectedSub],
   );
 
   const handlePausePendingMessage = useCallback(async (messageID) => {
@@ -147,24 +177,37 @@ const useMessageHandlers = (
     async (messageID, content) => {
       const success = queueManager.resumeAndModifyJob(messageID, content);
       if (success) {
-        await eventEmitter.message.update(chatUUID, messageID, "edit", null, {
-          content,
-          pendingEditJobId: null,
-        });
+        await eventEmitter.message.update(
+          chatUUID,
+          selectedSub,
+          messageID,
+          "edit",
+          null,
+          {
+            content,
+            pendingEditJobId: null,
+          },
+        );
         setEditingMessage(null);
         setNewMessageText("");
         focusTextInput();
       }
       return success;
     },
-    [chatUUID, setEditingMessage, setNewMessageText, focusTextInput],
+    [
+      chatUUID,
+      selectedSub,
+      setEditingMessage,
+      setNewMessageText,
+      focusTextInput,
+    ],
   );
 
   const handleEditMessage = useCallback(
     async (messageID, content, originalContent) => {
       const { v6 } = require("uuid");
       const jobId = v6();
-      const messageParams = { messageID, content, originalContent };
+      const messageParams = { subID: selectedSub, messageID, content, originalContent };
       const chat = { uuid: chatUUID };
 
       await queueManager.addOutgoingMessageJob(
@@ -174,16 +217,29 @@ const useMessageHandlers = (
         "PENDING_MODIFY",
       );
 
-      await eventEmitter.message.update(chatUUID, messageID, "edit", null, {
-        content,
-        pendingEditJobId: jobId,
-      });
+      await eventEmitter.message.update(
+        chatUUID,
+        selectedSub,
+        messageID,
+        "edit",
+        null,
+        {
+          content,
+          pendingEditJobId: jobId,
+        },
+      );
 
       setEditingMessage(null);
       setNewMessageText("");
       focusTextInput();
     },
-    [chatUUID, setEditingMessage, setNewMessageText, focusTextInput],
+    [
+      chatUUID,
+      selectedSub,
+      setEditingMessage,
+      setNewMessageText,
+      focusTextInput,
+    ],
   );
 
   const handleCancelJob = useCallback(
@@ -206,12 +262,14 @@ const useMessageHandlers = (
       if (hasReacted) {
         const response = await gateway.message.reaction.remove(
           chatUUID,
+          selectedSub,
           message.id,
           emoji,
         );
         if (response.success) {
           await eventEmitter.message.update(
             chatUUID,
+            selectedSub,
             message.id,
             "reaction_remove",
             response.chatEventID,
@@ -221,12 +279,14 @@ const useMessageHandlers = (
       } else {
         const response = await gateway.message.reaction.add(
           chatUUID,
+          selectedSub,
           message.id,
           emoji,
         );
         if (response.success) {
           await eventEmitter.message.update(
             chatUUID,
+            selectedSub,
             message.id,
             "reaction_add",
             response.chatEventID,
@@ -239,7 +299,7 @@ const useMessageHandlers = (
         }
       }
     },
-    [chatUUID, myUUID],
+    [chatUUID, selectedSub, myUUID],
   );
 
   return {

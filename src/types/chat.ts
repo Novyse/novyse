@@ -6,6 +6,12 @@ import {
   DeletedMessage,
 } from "./message";
 
+export interface Sub {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
 interface ChatSettings {
   file: {
     singleFileSize: number;
@@ -16,6 +22,7 @@ interface ChatSettings {
 
 interface BaseChat {
   uuid: string;
+  subs: Sub[];
   messages: Message[];
   unreadCount: number;
   pinnedMessages: PinnedMessage[];

@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS file (
 CREATE TABLE IF NOT EXISTS message (
     id INTEGER NOT NULL,
     chatUUID TEXT NOT NULL,
+    subID INTEGER NOT NULL,
     senderUUID TEXT NOT NULL,
     content TEXT,
     type TEXT NOT NULL DEFAULT 'message',

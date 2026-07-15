@@ -215,6 +215,7 @@ const updateDatabase = async () => {
           case ChatEventType.MESSAGE_EDITED:
             await EventEmitter.message.update(
               chatUUID,
+              event.payload.subID,
               messageID,
               "edit",
               event.id,
@@ -227,6 +228,7 @@ const updateDatabase = async () => {
             reactionAddedPayload.userUUID = event.userUUID;
             await EventEmitter.message.update(
               chatUUID,
+              event.payload.subID,
               messageID,
               "reaction_add",
               event.id,
@@ -238,6 +240,7 @@ const updateDatabase = async () => {
             reactionRemovedPayload.userUUID = event.userUUID;
             await EventEmitter.message.update(
               chatUUID,
+              event.payload.subID,
               messageID,
               "reaction_remove",
               event.id,
@@ -247,6 +250,7 @@ const updateDatabase = async () => {
           case ChatEventType.MESSAGE_DELETED:
             await EventEmitter.message.update(
               chatUUID,
+              event.payload.subID,
               messageID,
               "delete",
               event.id,
@@ -259,6 +263,7 @@ const updateDatabase = async () => {
             messagePinnedPayload.userUUID = event.userUUID;
             await EventEmitter.message.update(
               chatUUID,
+              event.payload.subID,
               messageID,
               "pin_add",
               event.id,
@@ -268,6 +273,7 @@ const updateDatabase = async () => {
           case ChatEventType.MESSAGE_UNPINNED:
             await EventEmitter.message.update(
               chatUUID,
+              event.payload.subID,
               messageID,
               "pin_remove",
               event.id,
@@ -289,6 +295,7 @@ const updateDatabase = async () => {
           case ChatEventType.MESSAGE_READ:
             await EventEmitter.message.update(
               chatUUID,
+              event.payload.subID,
               event.payload.messageID,
               "read",
               event.id,
