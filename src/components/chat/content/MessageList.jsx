@@ -257,10 +257,14 @@ const MessageList = ({
                 : null
             }
             isEdited={editedMessages.some(
-              (p) => (p.messageID || p) == message.id,
+              (p) =>
+                (p.messageID || p) == message.id &&
+                (p.subID === undefined || p.subID === message.subID),
             )}
             isPinned={pinnedMessages.some(
-              (p) => (p.messageID || p) == message.id,
+              (p) =>
+                (p.messageID || p) == message.id &&
+                (p.subID === undefined || p.subID === message.subID),
             )}
             repliedCount={message.repliedFroms?.length || 0}
             setTriggeredMessage={setTriggeredMessage}
@@ -361,7 +365,9 @@ const MessageList = ({
         onClose={handleClose}
         position={triggeredMessagePosition}
         isPinned={pinnedMessages.some(
-          (p) => (p.messageID || p) == triggeredMessage?.id,
+          (p) =>
+            (p.messageID || p) == triggeredMessage?.id &&
+            (p.subID === undefined || p.subID === triggeredMessage?.subID),
         )}
         isEditedAllowed={isEditedAllowed}
         isDeletedAllowed={isDeletedAllowed}

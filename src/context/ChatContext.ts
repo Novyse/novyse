@@ -460,7 +460,11 @@ const useChatStore = create<ChatState>((set, get) => ({
           chat.uuid === message.chatUUID ||
           (message.chatHandle && (chat as any).handle === message.chatHandle);
         if (!isMatch) return chat;
-        if (chat.messages.some((m: any) => m.id === message.id)) {
+        if (
+          chat.messages.some(
+            (m: any) => m.id === message.id && m.subID === message.subID,
+          )
+        ) {
           return chat;
         }
         if (isOwnMessage && !message.internal) {
@@ -538,7 +542,7 @@ const useChatStore = create<ChatState>((set, get) => ({
         return {
           ...chat,
           messages: chat.messages.map((msg: any) =>
-            msg.id === message.id
+            msg.id === message.id && msg.subID === message.subID
               ? {
                   ...msg,
                   files: msg.files.map((f: any) =>
@@ -557,7 +561,7 @@ const useChatStore = create<ChatState>((set, get) => ({
       chats: state.chats.map((chat) => {
         if (chat.uuid !== message.chatUUID) return chat;
         const filteredMessages = chat.messages.filter(
-          (msg: any) => msg.id !== message.id,
+          (msg: any) => !(msg.id === message.id && msg.subID === message.subID),
         );
         return {
           ...chat,

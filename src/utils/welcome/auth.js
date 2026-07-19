@@ -280,6 +280,28 @@ const updateDatabase = async () => {
               event.payload,
             );
             break;
+          case ChatEventType.SUB_CREATED:
+            await EventEmitter.chat.update(chatUUID, "sub_create", event.id, {
+              sub: {
+                id: event.payload.subID,
+                name: event.payload.name,
+                created_at: event.createdAt,
+              },
+            });
+            break;
+          case ChatEventType.SUB_RENAMED:
+            await EventEmitter.chat.update(chatUUID, "sub_rename", event.id, {
+              sub: {
+                id: event.payload.subID,
+                name: event.payload.name,
+              },
+            });
+            break;
+          case ChatEventType.SUB_DELETED:
+            await EventEmitter.chat.update(chatUUID, "sub_delete", event.id, {
+              subID: event.payload.subID,
+            });
+            break;
           case ChatEventType.MEMBER_JOINED:
             await EventEmitter.chat.member.join(
               chatUUID,

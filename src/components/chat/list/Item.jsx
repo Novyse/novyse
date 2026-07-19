@@ -1,13 +1,12 @@
 import React, { useContext } from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 import { DateTime } from "luxon";
 import { useTranslation } from "react-i18next";
 
-import SmartBackground from "@/src/components/SmartBackground";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
+import BaseListItem from "./BaseListItem";
 
 import useUserStore from "@/src/context/UserContext";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
@@ -98,265 +97,85 @@ const ChatListItem = React.memo(
       );
     };
 
-    return (
-      <View
-        style={[
-          styles.chatItem,
-          isSidebarCollapsed && {
-            alignItems: "center",
-            justifyContent: "center",
-          },
-        ]}
-      >
-        <SmartBackground
-          colors={
-            isSelected || isActive
-              ? theme.backgroundChatListItemSelectedGradient
-              : null
-          }
-          style={[
-            StyleSheet.absoluteFill,
-            { borderRadius: 100 },
-            isSidebarCollapsed && {
-              width: 50,
-              height: 50,
-              left: "50%",
-              top: "50%",
-              marginLeft: -25,
-              marginTop: -25,
-            },
-          ]}
+    const dateNode = lastMessage ? (
+      <>
+        {!lastMessage.created_at ? (
+          <Icon name={"Clock01Icon"} size={14} />
+        ) : (
+          <AppText
+            style={styles.chatDateText}
+            text={parseTime(lastMessage.created_at)}
+          />
+        )}
+      </>
+    ) : null;
+
+    const subtitleNode =
+      memberActivityData && memberActivityData.length > 0 ? (
+        <AppText
+          style={styles.chatSubtitle}
+          text={messageUtils.formatActivity(memberActivityData)}
         />
-        <HoverAndPressedButton
-          onPress={() => onPress(item.uuid)}
-          onLongPress={() => onLongPress(item.uuid)}
-          style={[
-            styles.chatItemPressable,
-            isSidebarCollapsed && {
-              padding: 0,
-              justifyContent: "center",
-              alignItems: "center",
-              width: 50,
-              height: 50,
-              minWidth: 50,
-              maxWidth: 50,
-              minHeight: 50,
-              maxHeight: 50,
-              borderRadius: 25,
-              flex: 0,
-              flexGrow: 0,
-              gap: 0,
-            },
-          ]}
-        >
-          {isSelected && (
-            <View
-              style={[
-                styles.selectionIndicator,
-                isSidebarCollapsed && { top: 2, left: 2 },
-              ]}
-            >
-              <Icon name={"Tick02Icon"} size={isSidebarCollapsed ? 12 : 16} />
-            </View>
-          )}
-          <View
-            style={[
-              styles.avatarWrapper,
-              isSidebarCollapsed && styles.avatarWrapperCollapsed,
-            ]}
-          >
-            <Avatar
-              uuid={displayPfp}
-              theme={theme}
-              style={[styles.avatar, isSidebarCollapsed && { marginRight: 0 }]}
-              isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
-            />
-            {isSidebarCollapsed && unreadCount > 0 && (
-              <View style={styles.collapsedUnreadBadge}>
-                <AppText style={styles.ballText} text={unreadCount} />
-              </View>
-            )}
-          </View>
-          {!isSidebarCollapsed && (
-            <View style={styles.chatItemGrid}>
-              <View style={styles.leftContainer}>
-                <View style={styles.titleRow}>
-                  <AppText
-                    style={[styles.chatTitle, styles.gridText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    text={displayName}
-                  />
-                </View>
-                <View style={styles.subtitleRow}>
-                  {memberActivityData && memberActivityData.length > 0 ? (
-                    <AppText
-                      style={styles.chatSubtitle}
-                      text={messageUtils.formatActivity(memberActivityData)}
-                    />
-                  ) : (
-                    displayMessage(
-                      draftText || draftFiles?.length > 0
-                        ? {
-                            type: "DRAFT",
-                            content: draftText || "",
-                            files: draftFiles,
-                          }
-                        : lastMessage,
-                    )
-                  )}
-                </View>
-              </View>
+      ) : (
+        displayMessage(
+          draftText || draftFiles?.length > 0
+            ? {
+                type: "DRAFT",
+                content: draftText || "",
+                files: draftFiles,
+              }
+            : lastMessage,
+        )
+      );
 
-              <View style={styles.rightContainer}>
-                <View style={styles.dateRow}>
-                  {lastMessage && (
-                    <>
-                      {!lastMessage.created_at ? (
-                        <Icon name={"Clock01Icon"} size={14} />
-                      ) : (
-                        <AppText
-                          style={styles.chatDateText}
-                          text={parseTime(lastMessage.created_at)}
-                        />
-                      )}
-                    </>
-                  )}
-                </View>
+    const renderAvatar = () => (
+      <Avatar
+        uuid={displayPfp}
+        theme={theme}
+        style={[styles.avatar, isSidebarCollapsed && { marginRight: 0 }]}
+        isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
+      />
+    );
 
-                <View style={styles.badgeRow}>
-                  {isPinned && <Icon name={"PinIcon"} size={16} />}
-                  {unreadCount > 0 && (
-                    <View style={styles.ball}>
-                      <AppText style={styles.ballText} text={unreadCount} />
-                    </View>
-                  )}
-                </View>
-              </View>
-            </View>
-          )}
-        </HoverAndPressedButton>
-      </View>
+    return (
+      <BaseListItem
+        id={item.uuid}
+        title={displayName}
+        subtitleNode={subtitleNode}
+        dateNode={dateNode}
+        unreadCount={unreadCount}
+        isSidebarCollapsed={isSidebarCollapsed}
+        isSelected={isSelected}
+        isActive={isActive}
+        isPinned={isPinned}
+        onPress={onPress}
+        onLongPress={onLongPress}
+        renderAvatar={renderAvatar}
+      />
     );
   },
 );
 
 function createStyle(theme) {
   return StyleSheet.create({
-    chatItem: {
-      borderRadius: 100,
-      height: 60,
-    },
-    chatItemPressable: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingLeft: 10,
-      paddingRight: 15,
-      width: "100%",
-      flex: 1,
-      borderRadius: 100,
-      gap: 10,
-    },
-    avatarWrapper: {
-      marginRight: 10,
-    },
-    avatarWrapperCollapsed: {
-      marginRight: 0,
-      position: "relative",
-    },
     avatar: {
       width: 45,
       height: 45,
       borderRadius: 20,
     },
-    collapsedUnreadBadge: {
-      position: "absolute",
-      top: -2,
-      right: -4,
-      borderRadius: 10,
-      minWidth: 20,
-      height: 20,
-      paddingHorizontal: 4,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: theme.badgeColor,
-    },
-    chatTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: theme.text,
-    },
     chatSubtitle: {
       fontSize: 14,
       color: theme.text,
     },
-    chatItemGrid: {
-      flexDirection: "row",
-      flex: 1,
-      justifyContent: "space-between",
-    },
     gridText: {
       fontSize: 14,
       color: theme.text,
-    },
-    ball: {
-      borderRadius: 10,
-      width: 20,
-      height: 20,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: theme.badgeColor,
-    },
-    ballText: {
-      textAlign: "center",
-      color: theme.text,
-      fontSize: 12,
     },
     chatDateText: {
       fontSize: 14,
       color: theme.text,
       textAlign: "right",
       marginLeft: 5,
-    },
-    selectionIndicator: {
-      position: "absolute",
-      top: 5,
-      left: 5,
-      zIndex: 10,
-      backgroundColor: theme.backgroundSuccess,
-      borderRadius: 999,
-    },
-    leftContainer: {
-      flex: 1,
-      flexDirection: "column",
-      justifyContent: "center",
-    },
-    titleRow: {
-      height: 22,
-      justifyContent: "center",
-    },
-    subtitleRow: {
-      height: 20,
-      justifyContent: "center",
-    },
-    rightContainer: {
-      flexDirection: "column",
-      alignItems: "flex-end",
-      justifyContent: "center",
-    },
-    dateRow: {
-      height: 22,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: 3,
-    },
-    badgeRow: {
-      height: 20,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: 5,
     },
   });
 }

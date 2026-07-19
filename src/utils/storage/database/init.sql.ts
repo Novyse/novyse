@@ -60,6 +60,15 @@ CREATE TABLE IF NOT EXISTS chat (
     FOREIGN KEY (type) REFERENCES chat_type(value)
 );
 
+CREATE TABLE IF NOT EXISTS chat_sub (
+    id INTEGER NOT NULL,
+    chatUUID TEXT NOT NULL,
+    name TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (chatUUID, id),
+    FOREIGN KEY (chatUUID) REFERENCES chat(uuid) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS chat_pin (
     chatUUID TEXT PRIMARY KEY,
     position INTEGER NOT NULL,
@@ -96,82 +105,91 @@ CREATE TABLE IF NOT EXISTS message (
     system_action TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     replyTo_chatUUID TEXT,
+    replyTo_subID INTEGER,
     replyTo_messageID INTEGER,
     replyTo_rangeStart INTEGER,
     replyTo_rangeEnd INTEGER,
-    PRIMARY KEY (chatUUID, id),
+    PRIMARY KEY (chatUUID, subID, id),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
     FOREIGN KEY (senderUUID) REFERENCES user(uuid)
 );
 
 CREATE TABLE IF NOT EXISTS pinned_message (
     chatUUID TEXT NOT NULL,
+    subID INTEGER NOT NULL,
     messageID INTEGER NOT NULL,
     pinned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     pinned_by TEXT NOT NULL,
-    PRIMARY KEY (chatUUID, messageID),
+    PRIMARY KEY (chatUUID, subID, messageID),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
-    FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id)
+    FOREIGN KEY (chatUUID, subID, messageID) REFERENCES message(chatUUID, subID, id)
 );
 
 CREATE TABLE IF NOT EXISTS edited_message (
     chatUUID TEXT NOT NULL,
+    subID INTEGER NOT NULL,
     messageID INTEGER NOT NULL,
-    PRIMARY KEY (chatUUID, messageID),
+    PRIMARY KEY (chatUUID, subID, messageID),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
-    FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id)
+    FOREIGN KEY (chatUUID, subID, messageID) REFERENCES message(chatUUID, subID, id)
 );
 
 CREATE TABLE IF NOT EXISTS deleted_message (
     chatUUID TEXT NOT NULL,
+    subID INTEGER NOT NULL,
     messageID INTEGER NOT NULL,
-    PRIMARY KEY (chatUUID, messageID),
+    PRIMARY KEY (chatUUID, subID, messageID),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
-    FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id)
+    FOREIGN KEY (chatUUID, subID, messageID) REFERENCES message(chatUUID, subID, id)
 );
 
 CREATE TABLE IF NOT EXISTS reaction_message (
     chatUUID TEXT NOT NULL,
+    subID INTEGER NOT NULL,
     messageID INTEGER NOT NULL,
     userUUID TEXT NOT NULL,
     reaction TEXT NOT NULL,
     at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (chatUUID, messageID, userUUID, reaction),
+    PRIMARY KEY (chatUUID, subID, messageID, userUUID, reaction),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
-    FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id),
+    FOREIGN KEY (chatUUID, subID, messageID) REFERENCES message(chatUUID, subID, id),
     FOREIGN KEY (userUUID) REFERENCES user(uuid)
 );
 
 CREATE TABLE IF NOT EXISTS message_files (
     chatUUID TEXT NOT NULL,
+    subID INTEGER NOT NULL,
     messageID INTEGER NOT NULL,
     fileUUID TEXT NOT NULL,
-    PRIMARY KEY (chatUUID, messageID, fileUUID),
+    PRIMARY KEY (chatUUID, subID, messageID, fileUUID),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
-    FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id),
+    FOREIGN KEY (chatUUID, subID, messageID) REFERENCES message(chatUUID, subID, id),
     FOREIGN KEY (fileUUID) REFERENCES file(uuid)
 );
 
 CREATE TABLE IF NOT EXISTS message_reply (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     chatUUID TEXT NOT NULL,
+    subID INTEGER NOT NULL,
     messageID INTEGER NOT NULL,
     replyTo_chatUUID TEXT NOT NULL,
+    replyTo_subID INTEGER NOT NULL,
     replyTo_messageID INTEGER NOT NULL,
     replyTo_rangeStart INTEGER,
     replyTo_rangeEnd INTEGER,
-    FOREIGN KEY (chatUUID, messageID) REFERENCES message(chatUUID, id)
+    FOREIGN KEY (chatUUID, subID, messageID) REFERENCES message(chatUUID, subID, id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_message_reply_chat_msg ON message_reply(chatUUID, messageID);
+CREATE INDEX IF NOT EXISTS idx_message_reply_chat_msg ON message_reply(chatUUID, subID, messageID);
 
 CREATE TABLE IF NOT EXISTS message_read (
     chat_uuid TEXT NOT NULL,
+    sub_id INTEGER NOT NULL,
     message_id INTEGER NOT NULL,
     user_uuid TEXT NOT NULL,
     read_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_message_read PRIMARY KEY (chat_uuid, message_id, user_uuid),
-    CONSTRAINT fk_message_read_message FOREIGN KEY (chat_uuid, message_id) REFERENCES message (chatUUID, id) ON DELETE CASCADE,
+    CONSTRAINT pk_message_read PRIMARY KEY (chat_uuid, sub_id, message_id, user_uuid),
+    CONSTRAINT fk_message_read_message FOREIGN KEY (chat_uuid, sub_id, message_id) REFERENCES message (chatUUID, subID, id) ON DELETE CASCADE,
     FOREIGN KEY (user_uuid) REFERENCES user (uuid) ON DELETE CASCADE
 );
 

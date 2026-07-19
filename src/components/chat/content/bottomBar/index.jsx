@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import DefaultBar from "./default";
+import ChannelBar from "./ChannelBar";
 
 const BottomBar = ({
   chatType,
@@ -40,31 +41,35 @@ const BottomBar = ({
       }
       style={{ paddingBottom: insets.bottom + 5 }}
     >
-      <DefaultBar
-        chatType={chatType}
-        isAttachMenuOpen={isAttachMenuOpen}
-        onToggleAttachMenu={onToggleAttachMenu}
-        isEmojiPickerVisible={isEmojiPickerVisible}
-        onToggleEmoji={onToggleEmoji}
-        textInputRef={textInputRef}
-        newMessageText={newMessageText}
-        files={files}
-        onTextChange={onTextChange}
-        onSendMessage={onSendMessage}
-        onFileAppend={onFileAppend}
-        onInputFocus={onInputFocus}
-        replyingTo={replyingTo}
-        onCancelReply={onCancelReply}
-        editingMessage={editingMessage}
-        onCancelEdit={onCancelEdit}
-        mentionMembers={mentionMembers}
-        onSelectMention={onSelectMention}
-        onChangeMention={onChangeMention}
-        onEndMention={onEndMention}
-        onRecordingActivityChange={onRecordingActivityChange}
-        onPressArrowUp={onPressArrowUp}
-        startScreenRecordingRef={startScreenRecordingRef}
-      />
+      {chatType === "CHANNEL" ? (
+        <ChannelBar />
+      ) : (
+        <DefaultBar
+          chatType={chatType}
+          isAttachMenuOpen={isAttachMenuOpen}
+          onToggleAttachMenu={onToggleAttachMenu}
+          isEmojiPickerVisible={isEmojiPickerVisible}
+          onToggleEmoji={onToggleEmoji}
+          textInputRef={textInputRef}
+          newMessageText={newMessageText}
+          files={files}
+          onTextChange={onTextChange}
+          onSendMessage={onSendMessage}
+          onFileAppend={onFileAppend}
+          onInputFocus={onInputFocus}
+          replyingTo={replyingTo}
+          onCancelReply={onCancelReply}
+          editingMessage={editingMessage}
+          onCancelEdit={onCancelEdit}
+          mentionMembers={mentionMembers}
+          onSelectMention={onSelectMention}
+          onChangeMention={onChangeMention}
+          onEndMention={onEndMention}
+          onRecordingActivityChange={onRecordingActivityChange}
+          onPressArrowUp={onPressArrowUp}
+          startScreenRecordingRef={startScreenRecordingRef}
+        />
+      )}
     </View>
   );
 };

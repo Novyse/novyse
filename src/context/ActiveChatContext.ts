@@ -8,6 +8,7 @@ import useUserStore from "./UserContext";
 
 export interface ChatUIState {
   contentView: "chat" | "vocal" | "both";
+  selectedSub: number;
   newMessageText: string;
   files: any[];
   invalidFiles: any[];
@@ -18,6 +19,7 @@ export interface ChatUIState {
 
 const defaultUIState: ChatUIState = {
   contentView: "chat",
+  selectedSub: 0,
   newMessageText: "",
   files: [],
   invalidFiles: [],
@@ -57,8 +59,14 @@ export interface ActiveChatState extends ChatUIState {
   setHeaderHeight: (height: number) => void;
   setScrollToMessageID: (id: string | null) => void;
 
-  setSelectedChatUUID: (uuid: string | null) => Promise<void>;
-  setSelectedHandle: (handle: string | null) => Promise<void>;
+  setSelectedChatUUID: (
+    uuid: string | null,
+    subOverride?: number,
+  ) => Promise<void>;
+  setSelectedHandle: (
+    handle: string | null,
+    subOverride?: number,
+  ) => Promise<void>;
   clear: () => void;
 }
 
@@ -117,6 +125,7 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
       if (!id) return;
       const uiState = {
         contentView: state.contentView,
+        selectedSub: state.selectedSub,
         newMessageText: state.newMessageText,
         files: state.files,
         invalidFiles: state.invalidFiles,
@@ -192,18 +201,20 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
       }));
       get().saveCurrentUIState();
     },
-    setSelectedSub: (sub) =>
+    setSelectedSub: (sub) => {
       set((state) => ({
         selectedSub:
           typeof sub === "function" ? (sub as any)(state.selectedSub) : sub,
-      })),
+      }));
+      get().saveCurrentUIState();
+    },
     setHeaderHeight: (height) => set({ headerHeight: height }),
     setScrollToMessageID: (id) => set({ scrollToMessageID: id }),
 
-    setSelectedChatUUID: async (uuid: string | null) => {
+    setSelectedChatUUID: async (uuid: string | null, subOverride?: number) => {
       if (uuid !== null && get().selectedChatUUID === uuid) return;
 
-      const { selectedSub, saveCurrentUIState, loadUIState } = get();
+      const { saveCurrentUIState, loadUIState } = get();
 
       saveCurrentUIState();
 
@@ -211,23 +222,25 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
       const chatData = localChats.find((c: any) => c.uuid === uuid) || null;
 
       const newUI = loadUIState(uuid);
+      const targetSub = subOverride ?? newUI.selectedSub ?? 0;
 
       set({
         selectedChatUUID: uuid,
         selectedHandle: null,
         activeChatData: chatData,
         ...newUI,
+        selectedSub: targetSub,
       });
 
       if (uuid) {
-        router.navigate(`/app/chat/${uuid}/${selectedSub}`);
+        router.navigate(`/app/chat/${uuid}/${targetSub}`);
       }
     },
 
-    setSelectedHandle: async (handle: string | null) => {
+    setSelectedHandle: async (handle: string | null, subOverride?: number) => {
       if (handle !== null && get().selectedHandle === handle) return;
 
-      const { selectedSub, saveCurrentUIState, loadUIState } = get();
+      const { saveCurrentUIState, loadUIState } = get();
 
       saveCurrentUIState();
 
@@ -254,14 +267,16 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
 
       if (localChat) {
         const newUI = loadUIState(localChat.uuid);
+        const targetSub = subOverride ?? newUI.selectedSub ?? 0;
         set({
           selectedHandle: null,
           selectedChatUUID: localChat.uuid,
           activeChatData: localChat,
           ...newUI,
+          selectedSub: targetSub,
         });
         if (localChat.uuid) {
-          router.replace(`/app/chat/${localChat.uuid}/${selectedSub}`);
+          router.replace(`/app/chat/${localChat.uuid}/${targetSub}`);
         }
         return;
       }
@@ -300,13 +315,15 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
 
             if (existingByUUID) {
               const newUI = loadUIState(fetchedChat.uuid);
+              const targetSub = subOverride ?? newUI.selectedSub ?? 0;
               set({
                 selectedChatUUID: fetchedChat.uuid,
                 selectedHandle: null,
                 activeChatData: existingByUUID,
                 ...newUI,
+                selectedSub: targetSub,
               });
-              router.push(`/app/chat/${fetchedChat.uuid}/${selectedSub}`);
+              router.push(`/app/chat/${fetchedChat.uuid}/${targetSub}`);
               return;
             }
           }
@@ -319,13 +336,15 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
       if (currentState.selectedHandle !== handle) return;
 
       const newUI = loadUIState(handle);
+      const targetSub = subOverride ?? newUI.selectedSub ?? 0;
       set({
         activeChatData: fetchedChat,
         ...newUI,
+        selectedSub: targetSub,
       });
 
       if (handle) {
-        router.replace(`/app/chat/${handle}/${selectedSub}`);
+        router.replace(`/app/chat/${handle}/${targetSub}`);
       }
     },
 

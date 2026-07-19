@@ -166,8 +166,13 @@ const ChatContent = () => {
     useActivityEmitter(selectedChatUUID);
 
   const chat = useActiveChatStore((state) => state.activeChatData);
+  const selectedSub = useActiveChatStore((state) => state.selectedSub);
 
-  const messages = chat?.messages;
+  const messages = React.useMemo(() => {
+    const all = chat?.messages;
+    if (!all || chat?.type !== "FORUM") return all; // @SamueleOrazioDurante chat.type === "DM" && impostazione subs abilitata
+    return all.filter((m) => m.subID === selectedSub);
+  }, [chat?.messages, chat?.type, selectedSub]);
   const editedMessages = chat?.editedMessages || [];
   const pinnedMessages = chat?.pinnedMessages || [];
 

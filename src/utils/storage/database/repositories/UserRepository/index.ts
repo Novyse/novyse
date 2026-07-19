@@ -205,24 +205,52 @@ export class UserRepository {
      * @returns {Object} { chats: Array, users: Array }
      */
     getAllEventsIDs: async (): Promise<{
-      chats: { chatUUID: string; messageID: number; eventID: number }[];
+      chats: {
+        chatUUID: string;
+        eventID: number;
+        subs: { subID: number; messageID: number }[];
+      }[];
       users: { userUUID: string; profileEventID: number }[];
     }> => {
       try {
-        const chats: any[] = await this.db.getAllAsync(`
-          SELECT 
-            c.uuid as chatUUID, 
-            COALESCE(c.eventID, 0) as eventID, 
-            COALESCE(MAX(m.id), 0) as messageID
-          FROM chat c
-          LEFT JOIN message m ON c.uuid = m.chatUUID
-          GROUP BY c.uuid
+        const chatRows: any[] = await this.db.getAllAsync(`
+          SELECT
+            uuid as chatUUID,
+            COALESCE(eventID, 0) as eventID
+          FROM chat
         `);
 
+        const subRows: any[] = await this.db.getAllAsync(`
+          SELECT
+            chatUUID,
+            subID,
+            COALESCE(MAX(id), 0) as messageID
+          FROM message
+          GROUP BY chatUUID, subID
+        `);
+
+        const subsByChat: Record<
+          string,
+          { subID: number; messageID: number }[]
+        > = {};
+        for (const row of subRows) {
+          if (!subsByChat[row.chatUUID]) subsByChat[row.chatUUID] = [];
+          subsByChat[row.chatUUID].push({
+            subID: row.subID,
+            messageID: row.messageID,
+          });
+        }
+
+        const chats = chatRows.map((c: any) => ({
+          chatUUID: c.chatUUID,
+          eventID: c.eventID,
+          subs: subsByChat[c.chatUUID] || [],
+        }));
+
         const users: any[] = await this.db.getAllAsync(`
-          SELECT 
-            uuid as userUUID, 
-            COALESCE(profileEventID, 0) as profileEventID 
+          SELECT
+            uuid as userUUID,
+            COALESCE(profileEventID, 0) as profileEventID
           FROM user
         `);
 

@@ -238,7 +238,6 @@ const CreateChatModal = ({ visible, onClose }) => {
             selected={type}
             onSelect={setType}
             theme={theme}
-            disabled={true}
           />
           <SelectButton
             id="FORUM"
@@ -248,7 +247,6 @@ const CreateChatModal = ({ visible, onClose }) => {
             selected={type}
             onSelect={setType}
             theme={theme}
-            disabled={true}
           />
         </View>
       </View>

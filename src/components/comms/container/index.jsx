@@ -12,7 +12,8 @@ const VocalContent = () => {
   const chatUUIDorHandle = useActiveChatStore(
     (state) => state.selectedChatUUID,
   );
-  const { room, participants } = useCommsData(chatUUIDorHandle, 0);
+  const selectedSub = useActiveChatStore((state) => state.selectedSub);
+  const { room, participants } = useCommsData(chatUUIDorHandle, selectedSub);
 
   return (
     <View style={{ flex: 1 }}>
@@ -20,11 +21,11 @@ const VocalContent = () => {
         participants={participants}
         room={room}
         chatUUID={chatUUIDorHandle}
-        sub={0}
+        sub={selectedSub}
       />
 
       {chatUUIDorHandle && (
-        <CommsBottomBar chatUUID={chatUUIDorHandle} sub={0} />
+        <CommsBottomBar chatUUID={chatUUIDorHandle} sub={selectedSub} />
       )}
     </View>
   );

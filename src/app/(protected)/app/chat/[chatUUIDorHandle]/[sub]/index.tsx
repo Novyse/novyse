@@ -16,7 +16,11 @@ import VocalContent from "@/src/components/comms/container";
 import { useScreen } from "@/src/context/ScreenContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import useWindowSizeStore, {
+  SUBLIST_MIN,
+  CHAT_MIN,
+  VOCAL_MIN,
+} from "@/src/context/WindowSizeContext";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
@@ -26,6 +30,7 @@ import { useForward } from "@/src/hooks/chat/useForward";
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 import JoinCreateChat from "@/src/components/chat/JoinCreateChat";
 import AppText from "@/src/components/AppText";
+import SubList from "@/src/components/chat/content/SubList";
 
 const ChatPageRoute = () => {
   const params = useLocalSearchParams();
@@ -59,8 +64,6 @@ const ChatPageRoute = () => {
     (state) => state.setEditingMessage,
   );
 
-  const chat = useActiveChatStore((state) => state.activeChatData);
-
   const { handleDeleteMessage } = useMessageHandlers(
     setNewMessageText,
     setEditingMessage,
@@ -82,35 +85,86 @@ const ChatPageRoute = () => {
   const [containerWidth, setContainerWidth] = useState(0);
   const { width } = useWindowDimensions();
 
-  const { vocalWidth, setVocalWidth, setDetailWidth, setMinDetailWidth } =
-    useWindowSizeStore();
+  const {
+    vocalWidth,
+    setVocalWidth,
+    subListWidth,
+    setSubListWidth,
+    setDetailWidth,
+    setMinDetailWidth,
+  } = useWindowSizeStore();
 
+  const chat = useActiveChatStore((state) => state.activeChatData);
+  const isForum = chat?.type === "FORUM";
+
+  // Effective width available to the columns rendered by this page
+  // (SubList | Chat | Vocal). Falls back to the window width until the
+  // container has been measured to avoid a broken first frame.
+  const availableWidth = containerWidth || width;
+  const effectiveSubListWidth = isForum && !isSmallScreen ? subListWidth : 0;
+
+  // The vocal panel can only ever occupy the space left after the SubList and
+  // the minimum chat width have been reserved.
   const resizerHandlers = usePanelResizer({
     currentWidth: vocalWidth,
     setWidth: setVocalWidth,
-    minWidth: 350,
-    maxWidthPadding: 350,
-    containerWidth: containerWidth || undefined,
+    minWidth: VOCAL_MIN,
+    maxWidthPadding: CHAT_MIN,
+    containerWidth: availableWidth - effectiveSubListWidth,
   });
 
+  // The SubList can grow until it would push the chat (and, when open, the
+  // vocal panel) below their minimum widths.
+  const subListResizerHandlers = usePanelResizer({
+    currentWidth: subListWidth,
+    setWidth: setSubListWidth,
+    minWidth: SUBLIST_MIN,
+    maxWidthPadding: CHAT_MIN + (contentView === "both" ? vocalWidth : 0),
+    containerWidth: availableWidth,
+    reverse: false,
+  });
+
+  // Keep the vocal panel width inside the space left by the SubList + chat.
   useEffect(() => {
-    // Determine effective container width for math, but handle zero-width initialization gracefully
-    const cw = containerWidth || width;
-    const maxVocal = cw - 350;
-    setVocalWidth((prev) => Math.max(350, Math.min(maxVocal, prev)));
-  }, [containerWidth, width, contentView, setVocalWidth]);
+    const contentWidth = availableWidth - effectiveSubListWidth;
+    const maxVocal = contentWidth - CHAT_MIN;
+    setVocalWidth((prev) =>
+      Math.max(VOCAL_MIN, Math.min(Math.max(VOCAL_MIN, maxVocal), prev)),
+    );
+  }, [availableWidth, effectiveSubListWidth, contentView, setVocalWidth]);
+
+  // Keep the SubList width inside the space left by the chat (+ vocal panel).
+  useEffect(() => {
+    if (!isForum || isSmallScreen) return;
+    const reservedForContent =
+      CHAT_MIN + (contentView === "both" ? vocalWidth : 0);
+    const maxSubList = availableWidth - reservedForContent;
+    setSubListWidth((prev) =>
+      Math.max(SUBLIST_MIN, Math.min(Math.max(SUBLIST_MIN, maxSubList), prev)),
+    );
+  }, [
+    availableWidth,
+    contentView,
+    vocalWidth,
+    isForum,
+    isSmallScreen,
+    setSubListWidth,
+  ]);
 
   useEffect(() => {
     if (!setMinDetailWidth) return;
+    // Reserve room for the SubList column in forums so the detail pane can
+    // never shrink below what its columns need.
+    const subListReserve = isForum && !isSmallScreen ? SUBLIST_MIN : 0;
     if (contentView === "both") {
-      setMinDetailWidth(700);
+      setMinDetailWidth(700 + subListReserve);
     } else {
-      setMinDetailWidth(400);
+      setMinDetailWidth(400 + subListReserve);
     }
     return () => {
       setMinDetailWidth(400);
     };
-  }, [contentView, setMinDetailWidth]);
+  }, [contentView, isForum, isSmallScreen, setMinDetailWidth]);
 
   // Auto-collapse split view when window is too narrow
   useEffect(() => {
@@ -124,21 +178,25 @@ const ChatPageRoute = () => {
       const state = useActiveChatStore.getState();
 
       const subIndex = params.sub ? parseInt(params.sub as string, 10) : 0;
-      if (state.selectedSub !== subIndex) {
-        setSelectedSub(subIndex);
-      }
 
       if (
         chatUUIDorHandle === state.selectedChatUUID ||
         chatUUIDorHandle === state.selectedHandle
-      )
+      ) {
+        // Same chat, only the sub changed (or first render): follow the URL.
+        if (state.selectedSub !== subIndex) {
+          setSelectedSub(subIndex);
+        }
         return;
+      }
 
+      // Switching chat: the sub in the URL is authoritative so it isn't
+      // overridden by the previously-remembered sub.
       // Assume if it contains '-', it's a UUID, else handle
       if ((chatUUIDorHandle as string).includes("-")) {
-        setSelectedChatUUID(chatUUIDorHandle as string);
+        setSelectedChatUUID(chatUUIDorHandle as string, subIndex);
       } else {
-        setSelectedHandle(chatUUIDorHandle as string);
+        setSelectedHandle(chatUUIDorHandle as string, subIndex);
       }
     }
   }, [
@@ -238,17 +296,14 @@ const ChatPageRoute = () => {
         return <VocalContent />;
       case "both":
         return (
-          <View
-            style={styles.splitContainer}
-            onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
-          >
-            <View style={{ flex: 1, height: "100%", minWidth: 350 }}>
+          <View style={styles.splitContainer}>
+            <View style={{ flex: 1, height: "100%", minWidth: CHAT_MIN }}>
               <ChatContent />
             </View>
             <View
               style={{
                 width: vocalWidth,
-                minWidth: 350,
+                minWidth: VOCAL_MIN,
                 height: "100%",
                 position: "relative",
               }}
@@ -284,7 +339,32 @@ const ChatPageRoute = () => {
           setDeleteModalVisible(true);
         }}
       />
-      {renderContent()}
+      <View
+        style={{ flex: 1, flexDirection: "row" }}
+        onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+      >
+        {isForum && (
+          <SubList
+            chat={chat}
+            selectedSub={sub ? parseInt(sub as string, 10) : 0}
+            isSmallScreen={isSmallScreen}
+            subListWidth={subListWidth}
+          />
+        )}
+        <View
+          style={{
+            flex: 1,
+            height: "100%",
+            minWidth: CHAT_MIN,
+            position: "relative",
+          }}
+        >
+          {isForum && !isSmallScreen && (
+            <PanelResizeHandle panHandlers={subListResizerHandlers} />
+          )}
+          {renderContent()}
+        </View>
+      </View>
       <DeleteMessageModal
         visible={deleteModalVisible}
         onClose={() => setDeleteModalVisible(false)}
