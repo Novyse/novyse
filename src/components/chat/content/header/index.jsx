@@ -8,6 +8,7 @@ import { useScreen } from "@/src/context/ScreenContext";
 
 import MainHeader from "./main";
 import SelectedHeader from "./SelectedHeader";
+import SearchHeader from "./SearchHeader";
 import AudioHeader from "./audio";
 import PinnedMessageHeader from "./pinnedMessage";
 import CommsHeader from "./CommsHeader";
@@ -42,6 +43,17 @@ const Header = ({
   const isVoiceActive = !!currentUri;
 
   const setHeaderHeight = useActiveChatStore((state) => state.setHeaderHeight);
+
+  const [searchMode, setSearchMode] = React.useState(false);
+
+  const hasSelection = selectedMessages && selectedMessages.length > 0;
+
+  React.useEffect(() => {
+    setSearchMode(false);
+  }, [chatUUIDorHandle]);
+  React.useEffect(() => {
+    if (hasSelection) setSearchMode(false);
+  }, [hasSelection]);
 
   const pinnedMessages = useChatStore((state) => {
     const chat = state.chats.find(
@@ -106,7 +118,10 @@ const Header = ({
         <BlurredView
           style={[styles.headerColumnContainer, { borderRadius: activeRadius }]}
         >
-          {(!selectedMessages || selectedMessages.length === 0) && (
+          {!hasSelection && searchMode && (
+            <SearchHeader onClose={() => setSearchMode(false)} />
+          )}
+          {!hasSelection && !searchMode && (
             <MainHeader
               chatUUIDorHandle={chatUUIDorHandle}
               chatType={chatType}
@@ -120,9 +135,10 @@ const Header = ({
               setContentView={setContentView}
               onBack={onBack}
               navToOverview={navToOverview}
+              onOpenSearch={() => setSearchMode(true)}
             />
           )}
-          {selectedMessages && selectedMessages.length > 0 && (
+          {hasSelection && (
             <SelectedHeader
               chatUUIDorHandle={chatUUIDorHandle}
               selectedMessages={selectedMessages}

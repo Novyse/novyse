@@ -25,6 +25,7 @@ const MainHeader = ({
   setContentView,
   onBack = () => router.back(),
   navToOverview,
+  onOpenSearch,
 }) => {
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
@@ -85,6 +86,13 @@ const MainHeader = ({
       </Pressable>
 
       <View style={styles.headerRight}>
+        {onOpenSearch && (
+          <Icon
+            name="Search01Icon"
+            style={styles.iconButton}
+            onPress={onOpenSearch}
+          />
+        )}
         {contentView !== "chat" && (
           <Icon
             name="Message02Icon"

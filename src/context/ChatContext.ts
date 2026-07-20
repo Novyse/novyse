@@ -20,6 +20,11 @@ interface ChatState {
   loadChats: () => Promise<void>;
   loadPinnedChats: () => Promise<void>;
   loadMoreMessages: (chatUUID: string) => Promise<void>;
+  ensureMessageLoaded: (
+    chatUUID: string,
+    subID: number,
+    messageID: string | number,
+  ) => Promise<boolean>;
   selectChat: (
     chatUUID: string | null,
     chatHandle?: string | null,
@@ -171,6 +176,39 @@ const useChatStore = create<ChatState>((set, get) => ({
       ),
     }));
   },
+  ensureMessageLoaded: async (
+    chatUUID: string,
+    subID: number,
+    messageID: string | number,
+  ) => {
+    const found = () => {
+      const chat = get().chats.find((c) => c.uuid === chatUUID);
+      return !!chat?.messages?.some(
+        (m: any) =>
+          String(m.id) === String(messageID) && (m.subID ?? 0) === (subID ?? 0),
+      );
+    };
+
+    let guard = 0;
+    while (!found() && guard < 300) {
+      const state = get();
+      if (state.loadingMessages[chatUUID]) {
+        // An initial load or another page fetch is in flight: wait for it.
+        await new Promise((r) => setTimeout(r, 80));
+      } else if (state.hasMore[chatUUID] === false) {
+        break; // Nothing more to load and still not found.
+      } else if (state.hasMore[chatUUID] === undefined) {
+        // Chat hasn't been initialised (selectChat not done yet): wait briefly.
+        await new Promise((r) => setTimeout(r, 80));
+      } else {
+        await get().loadMoreMessages(chatUUID);
+      }
+      guard++;
+    }
+
+    return found();
+  },
+
   // @SamueleOrazioDurante sto metodo è da vedere
   selectChat: async (
     chatUUID: string | null,

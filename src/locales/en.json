@@ -171,7 +171,10 @@
       },
       "online": "{{count}} online",
       "lastSeen": "Last seen",
-      "selected": "{{count}} selected"
+      "selected": "{{count}} selected",
+      "search": {
+        "placeholder": "Search in this chat"
+      }
     },
     "bottomBar": {
       "editing": "Editing",
@@ -603,7 +606,9 @@
     },
     "search": {
       "search": "Search",
-      "noResults": "No results found"
+      "noResults": "No results found",
+      "chats": "Chats",
+      "messages": "Messages"
     }
   },
   "profile": {

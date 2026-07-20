@@ -12,6 +12,7 @@ import * as Clipboard from "expo-clipboard";
 
 import useMessageActions from "@/src/hooks/chat/useMessageActions";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useChatStore from "@/src/context/ChatContext";
 
 import MessageBase from "@/src/components/messages/MessageBase";
 import MessageSystem from "@/src/components/messages/MessageSystem";
@@ -142,15 +143,65 @@ const MessageList = ({
   const selectedChatUUID = useActiveChatStore(
     (state) => state.selectedChatUUID,
   );
+  const selectedSub = useActiveChatStore((state) => state.selectedSub);
+  const messageHighlight = useActiveChatStore(
+    (state) => state.messageHighlight,
+  );
+  const ensureMessageLoaded = useChatStore(
+    (state) => state.ensureMessageLoaded,
+  );
+
+  const scrollAttemptsRef = useRef(0);
 
   useEffect(() => {
-    if (scrollToMessageID) {
-      navigateToMessageWithHistory(selectedChatUUID, scrollToMessageID);
+    if (!scrollToMessageID) {
+      scrollAttemptsRef.current = 0;
+      return;
+    }
+
+    const index = preparedMessages.findIndex(
+      (m) =>
+        m.type !== "separator" &&
+        String(m.data?.id) === String(scrollToMessageID),
+    );
+
+    if (index !== -1) {
+      const isSearchJump =
+        messageHighlight &&
+        String(messageHighlight.messageID) === String(scrollToMessageID);
+
+      if (isSearchJump) {
+        flatListRef.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.5,
+        });
+        setHighlightedID(scrollToMessageID);
+        setTimeout(() => setHighlightedID(null), 2000);
+      } else {
+        navigateToMessageWithHistory(selectedChatUUID, scrollToMessageID);
+      }
       setScrollToMessageID(null);
+      scrollAttemptsRef.current = 0;
+    } else if (selectedChatUUID) {
+      ensureMessageLoaded(
+        selectedChatUUID,
+        selectedSub ?? 0,
+        scrollToMessageID,
+      );
+      scrollAttemptsRef.current += 1;
+      if (scrollAttemptsRef.current > 40) {
+        setScrollToMessageID(null);
+        scrollAttemptsRef.current = 0;
+      }
     }
   }, [
     scrollToMessageID,
+    preparedMessages,
     selectedChatUUID,
+    selectedSub,
+    messageHighlight,
+    ensureMessageLoaded,
     navigateToMessageWithHistory,
     setScrollToMessageID,
   ]);
@@ -242,6 +293,18 @@ const MessageList = ({
         return <MessageSystem type={"system"} data={item.data} />;
       } else {
         const message = item.data;
+        const isSearchTarget =
+          messageHighlight &&
+          String(messageHighlight.messageID) === String(message.id) &&
+          (messageHighlight.subID === undefined ||
+            messageHighlight.subID === (message.subID ?? 0));
+        const searchRange = isSearchTarget
+          ? {
+              messageID: message.id,
+              rangeStart: messageHighlight.rangeStart,
+              rangeEnd: messageHighlight.rangeEnd,
+            }
+          : null;
         return (
           <MessageBase
             message={message}
@@ -252,9 +315,10 @@ const MessageList = ({
             isSelected={selectedMessages.some((msg) => msg.id === message.id)}
             isHighlighted={message.id == highlightedID}
             highlightedRange={
-              highlightedRange?.messageID === message.id
+              searchRange ||
+              (highlightedRange?.messageID === message.id
                 ? highlightedRange
-                : null
+                : null)
             }
             isEdited={editedMessages.some(
               (p) =>
@@ -283,6 +347,7 @@ const MessageList = ({
       pinnedMessages,
       highlightedID,
       highlightedRange,
+      messageHighlight,
       onReply,
       onReaction,
       onEditMessage,

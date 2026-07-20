@@ -34,6 +34,13 @@ export interface ActiveChatState extends ChatUIState {
   selectedSub: number;
   headerHeight: number;
   scrollToMessageID: string | null;
+  messageHighlight: {
+    chatUUID: string;
+    subID: number;
+    messageID: string | number;
+    rangeStart: number;
+    rangeEnd: number;
+  } | null;
 
   chatUIStates: Record<string, ChatUIState>;
   activeChatData: any | null;
@@ -58,6 +65,15 @@ export interface ActiveChatState extends ChatUIState {
   setSelectedSub: (sub: number | ((prev: number) => number)) => void;
   setHeaderHeight: (height: number) => void;
   setScrollToMessageID: (id: string | null) => void;
+  setMessageHighlight: (
+    target: {
+      chatUUID: string;
+      subID: number;
+      messageID: string | number;
+      rangeStart: number;
+      rangeEnd: number;
+    } | null,
+  ) => void;
 
   setSelectedChatUUID: (
     uuid: string | null,
@@ -108,6 +124,7 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     selectedSub: 0,
     headerHeight: 0,
     scrollToMessageID: null,
+    messageHighlight: null,
 
     // Default current UI
     ...defaultUIState,
@@ -210,6 +227,7 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
     },
     setHeaderHeight: (height) => set({ headerHeight: height }),
     setScrollToMessageID: (id) => set({ scrollToMessageID: id }),
+    setMessageHighlight: (target) => set({ messageHighlight: target }),
 
     setSelectedChatUUID: async (uuid: string | null, subOverride?: number) => {
       if (uuid !== null && get().selectedChatUUID === uuid) return;

@@ -169,7 +169,10 @@
         "select_date": "Seleziona data",
         "confirm": "Conferma"
       },
-      "selected": "{{count}} selezionati"
+      "selected": "{{count}} selezionati",
+      "search": {
+        "placeholder": "Cerca in questa chat"
+      }
     },
     "bottomBar": {
       "editing": "Modifica",
@@ -601,7 +604,9 @@
     },
     "search": {
       "search": "Cerca",
-      "noResults": "Nessun risultato trovato"
+      "noResults": "Nessun risultato trovato",
+      "chats": "Chat",
+      "messages": "Messaggi"
     }
   },
   "profile": {

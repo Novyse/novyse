@@ -15,7 +15,7 @@ interface ChatListItemSearchProps {
     surname?: string;
     handle: string;
     profilePictureUUID: string;
-    type: "USER" | "GROUP" | "FORUM" | "CHANNEL";
+    type: "USER" | "GROUP" | "FORUM" | "CHANNEL" | "DM";
     memberCount?: number;
   };
   onPress: (handle: string) => void;
@@ -46,11 +46,11 @@ const ChatListItemSearch = React.memo(
               style={styles.profileHandle}
               numberOfLines={1}
               ellipsizeMode="tail"
-              text={`${item?.handle ? `@${item.handle}` : ""}${
+              text={`${item?.handle ? `@${item.handle}  •` : ""}${
                 item.type === "GROUP" ||
                 item.type === "FORUM" ||
                 item.type === "CHANNEL"
-                  ? ` • ${t("chat.memberCount", { count: item.memberCount })}`
+                  ? `${t("chat.memberCount", { count: item.memberCount })}`
                   : ""
               }`}
             />

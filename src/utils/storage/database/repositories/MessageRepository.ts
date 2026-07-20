@@ -468,6 +468,54 @@ export class MessageRepository {
       },
     },
   };
+  async search(
+    query: string,
+    options: { chatUUID?: string; subID?: number; limit?: number } = {},
+  ): Promise<any[]> {
+    try {
+      const trimmed = (query || "").trim();
+      if (!trimmed) return [];
+
+      const { chatUUID, subID, limit = 50 } = options;
+
+      const escaped = trimmed.replace(/[\\%_]/g, (c) => `\\${c}`);
+      const like = `%${escaped}%`;
+
+      const conditions: string[] = [
+        "m.content IS NOT NULL",
+        "m.content LIKE ? ESCAPE '\\'",
+        "m.type = 'message'",
+      ];
+      const params: any[] = [like];
+
+      if (chatUUID) {
+        conditions.push("m.chatUUID = ?");
+        params.push(chatUUID);
+        if (subID !== undefined && subID !== null) {
+          conditions.push("m.subID = ?");
+          params.push(subID);
+        }
+      }
+
+      params.push(limit);
+
+      const results: any[] = await this.db.getAllAsync(
+        `SELECT m.id, m.chatUUID, m.subID, m.senderUUID, m.content, m.type, m.created_at,
+                u.name as sender_name, u.profilePictureUUID as profile_picture_uuid
+           FROM message m
+           JOIN user u ON m.senderUUID = u.uuid
+           WHERE ${conditions.join(" AND ")}
+           ORDER BY m.created_at DESC
+           LIMIT ?;`,
+        params,
+      );
+
+      return results;
+    } catch (error) {
+      console.error("Error searching messages:", error);
+      return [];
+    }
+  }
 
   async edit(
     chatUUID: any,
