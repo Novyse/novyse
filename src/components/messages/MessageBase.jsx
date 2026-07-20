@@ -33,12 +33,14 @@ import Avatar from "../Avatar";
 
 import MessageText from "./MessageText";
 import MessageMedia from "./MessageMedia";
+import MessageGif from "./MessageGif";
 import MessageOther from "./MessageOther";
 import MessageAudio from "./MessageAudio";
 import MessageVoice from "./MessageVoice";
 import MessageReply from "./MessageReply";
 import MessageTimestamp from "./MessageTimestamp";
 import ReactionPill from "./reactions/ReactionPill";
+import messageUtils from "@/src/utils/chat/messageFormat";
 
 const REPLY_THRESHOLD = 60;
 const MAX_SWIPE_DISTANCE = 90;
@@ -144,7 +146,11 @@ const MessageReplyWrapper = ({
 }) => {
   const getMessage = useChatStore((state) => state.getMessage);
   const getUser = useUserStore((state) => state.getUser);
-  const replyMessage = getMessage(replyTo?.chatUUID, replyTo?.subID, replyTo?.messageID);
+  const replyMessage = getMessage(
+    replyTo?.chatUUID,
+    replyTo?.subID,
+    replyTo?.messageID,
+  );
 
   if (!replyMessage) return null;
 
@@ -260,9 +266,16 @@ const MessageBase = ({
     ),
   };
 
+  const gifUrls = messageUtils.extractGifUrls(content || "");
+  const textWithoutGifs = messageUtils.stripGifUrls(content || "");
+  const hasTextContent = textWithoutGifs.length > 0;
+  const hasOnlyGifs =
+    gifUrls.length > 0 && !hasTextContent && files.length === 0;
+
   const hasOnlyMedia =
-    (!content || content.trim().length === 0) &&
-    (fileGroups.media.true || []).length > 0;
+    ((!content || content.trim().length === 0) &&
+      (fileGroups.media.true || []).length > 0) ||
+    hasOnlyGifs;
 
   const hasReactions = message.reactions && message.reactions.length > 0;
 
@@ -354,10 +367,18 @@ const MessageBase = ({
         ))}
       </View>
 
-      {message.content?.trim().length > 0 && (
+      {gifUrls.length > 0 && (
+        <View style={styles.gifsContainer}>
+          {gifUrls.map((url, index) => (
+            <MessageGif key={`${url}-${index}`} url={url} />
+          ))}
+        </View>
+      )}
+
+      {hasTextContent && (
         <View style={styles.textContainer}>
           <MessageText
-            message={message}
+            message={{ ...message, content: textWithoutGifs }}
             onReply={onReply}
             // Passa 0 come timestampWidth quando ci sono reazioni:
             // il timestamp non è più inline nel testo ma va sotto
@@ -383,7 +404,7 @@ const MessageBase = ({
         </View>
       )}
 
-      {!content?.trim() && !hasReactions && (
+      {!hasTextContent && !hasReactions && (
         <MessageTimestamp
           time={created_at}
           sent={isSender}
@@ -421,9 +442,6 @@ const MessageBase = ({
           />
         </View>
       )}
-
-      {/* Messaggio senza testo ma CON reazioni: timestamp nella reactionsRow sopra */}
-      {!content?.trim() && hasReactions && null}
     </View>
   );
 
@@ -568,6 +586,12 @@ const createStyle = (theme, chatType) =>
     mediaContainer: {
       flexDirection: "column",
       width: "100%",
+    },
+    gifsContainer: {
+      flexDirection: "column",
+      gap: 4,
+      width: "100%",
+      overflow: "hidden",
     },
     replyTosContainer: {
       marginBottom: 0,

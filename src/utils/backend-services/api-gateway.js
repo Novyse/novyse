@@ -298,6 +298,41 @@ const gateway = {
       }
       return { success };
     },
+
+    /**
+     * Search / trending GIFs via API gateway.
+     * @param {String} [query] - empty -> trending
+     * @param {{ limit?: number, page?: number, provider?: string }} [options]
+     * @returns {Object} { success, data?: { items, providers }, error? }
+     */
+    async gif(query = "", options = {}) {
+      const {
+        limit = 24,
+        page = 1,
+        provider = "all",
+      } = typeof options === "object" && options !== null
+        ? options
+        : { limit: options };
+      const params = new URLSearchParams({
+        query: query || "",
+        limit: String(limit ?? 24),
+        page: String(page ?? 1),
+        provider: provider || "all",
+      });
+      const response = await api.get(`/search/gif?${params.toString()}`);
+      const success = response.data.success;
+      if (success) {
+        const raw = response.data.data;
+        const data = Array.isArray(raw)
+          ? { items: raw, providers: [] }
+          : {
+              items: raw?.items || [],
+              providers: raw?.providers || [],
+            };
+        return { success, data };
+      }
+      return { success, error: response.data?.error };
+    },
   },
 
   gather: {

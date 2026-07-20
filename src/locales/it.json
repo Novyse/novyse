@@ -112,6 +112,14 @@
       "flags": "Bandiere",
       "searchResults": "Risultati della Ricerca"
     },
+    "gifCategories": {
+      "searchPlaceholder": "Cerca GIF",
+      "recents": "Recenti",
+      "popular": "Popolari",
+      "searchResults": "Risultati della Ricerca",
+      "noResults": "Nessuna GIF trovata",
+      "providerAll": "Tutti"
+    },
     "overview": {
       "tabs": {
         "members": "Membri",
@@ -731,6 +739,10 @@
       "archive": {
         "singular": "Archivio",
         "plural": "Archivi"
+      },
+      "gif": {
+        "singular": "GIF",
+        "plural": "GIF"
       },
       "default": {
         "singular": "File",

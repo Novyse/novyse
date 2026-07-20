@@ -661,6 +661,9 @@ const ChatContent = () => {
               onSelectResult={(content, type) => {
                 if (type === "emoji") {
                   handleEmojiSelected(content);
+                } else if (type === "gif") {
+                  handleSendOrEdit("message", content);
+                  handleEmojiOverlayClose();
                 }
               }}
             />
@@ -701,6 +704,9 @@ const ChatContent = () => {
             onSelectResult={(content, type) => {
               if (type === "emoji") {
                 handleEmojiSelected(content);
+              } else if (type === "gif") {
+                handleSendOrEdit("message", content);
+                handleEmojiOverlayClose();
               }
             }}
           />

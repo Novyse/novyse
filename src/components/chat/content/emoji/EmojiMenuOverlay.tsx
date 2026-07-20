@@ -58,7 +58,13 @@ export const EmojiMenuOverlay: React.FC<EmojiMenuOverlayProps> = ({
       case "sticker":
         return <StickerPicker />;
       case "gif":
-        return <GifPicker />;
+        return (
+          <GifPicker
+            onSelectGif={(url) => {
+              onSelectResult(url, "gif");
+            }}
+          />
+        );
       default:
         return null;
     }

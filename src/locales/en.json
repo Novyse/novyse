@@ -112,6 +112,14 @@
       "flags": "Flags",
       "searchResults": "Search Results"
     },
+    "gifCategories": {
+      "searchPlaceholder": "Search GIFs",
+      "recents": "Recents",
+      "popular": "Popular",
+      "searchResults": "Search Results",
+      "noResults": "No GIFs found",
+      "providerAll": "All"
+    },
     "overview": {
       "tabs": {
         "members": "Members",
@@ -733,6 +741,10 @@
       "archive": {
         "singular": "Archive File",
         "plural": "Archive Files"
+      },
+      "gif": {
+        "singular": "GIF",
+        "plural": "GIFs"
       },
       "default": {
         "singular": "File",

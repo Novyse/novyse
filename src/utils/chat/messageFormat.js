@@ -91,6 +91,15 @@ const format = (messageRef) => {
               : `${message.files.length} 📎 ${i18n.t("messageFormat.files")}`;
           }
         }
+      } else {
+        const gifUrls = extractGifUrls(message.content);
+        const textWithoutGifs = stripGifUrls(message.content);
+        if (gifUrls.length > 0 && !textWithoutGifs) {
+          message.content =
+            gifUrls.length === 1
+              ? `🎞️ ${i18n.t("messageFormat.fileType.gif.singular")}`
+              : `${gifUrls.length} 🎞️ ${i18n.t("messageFormat.fileType.gif.plural")}`;
+        }
       }
     }
   }
@@ -257,4 +266,54 @@ const formatLastSeen = (lastAccessAt) => {
   }
 };
 
-export default { format, getSystemMessageText, formatActivity, formatLastSeen };
+/** .gif link */
+const GIF_URL_REGEX = /https?:\/\/[^\s<>"'`]+?\.gif(?:\?[^\s<>"'`]*)?/gi;
+
+const normalizeGifUrl = (raw) =>
+  raw
+    .trim()
+    .replace(/[),.;!?]+$/, "")
+    .replace(/^http:/, "https:");
+
+const extractGifUrls = (content) => {
+  if (!content) return [];
+  GIF_URL_REGEX.lastIndex = 0;
+  const matches = content.match(GIF_URL_REGEX) || [];
+  const seen = new Set();
+  const result = [];
+  for (const raw of matches) {
+    const url = normalizeGifUrl(raw);
+    if (!seen.has(url)) {
+      seen.add(url);
+      result.push(url);
+    }
+  }
+  return result;
+};
+
+const stripGifUrls = (content) => {
+  if (!content) return "";
+  return content
+    .replace(GIF_URL_REGEX, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+};
+
+const getGifMediaUrl = (url) => {
+  if (!url || typeof url !== "string") return null;
+  const normalized = normalizeGifUrl(url);
+  if (/\.gif(?:\?|$)/i.test(normalized)) return normalized;
+  return null;
+};
+
+export default {
+  format,
+  getSystemMessageText,
+  formatActivity,
+  formatLastSeen,
+  extractGifUrls,
+  stripGifUrls,
+  getGifMediaUrl,
+};
