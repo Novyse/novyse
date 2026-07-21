@@ -1,10 +1,13 @@
 import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/AppText";
-import { ThemeContext } from "@/src/context/ThemeContext";
 
-import Icon from "./Icon";
-import BlurredHeader from "./BlurredHeader";
+import AppText from "@/src/components/AppText";
+import AppHeader from "@/src/components/header/AppHeader";
+import {
+  headerIconButtonStyle,
+} from "@/src/components/header/AppHeaderRow";
+import Icon from "@/src/components/Icon";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface HeaderWithBackArrowProps {
   title?: string;
@@ -12,49 +15,43 @@ interface HeaderWithBackArrowProps {
   onBack?: () => void;
 }
 
-const HeaderWithBackArrow = ({ title, translationKey, onBack }: HeaderWithBackArrowProps) => {
+const HeaderWithBackArrow = ({
+  title,
+  translationKey,
+  onBack,
+}: HeaderWithBackArrowProps) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  return (
-    <BlurredHeader>
-      {onBack && (
-        <Icon
-          name="ArrowLeft02Icon"
-          onPress={() => {
-            onBack();
-          }}
-          
-          style={styles.icon}
-        />
-      )}
-      {translationKey ? (
-        <View style={styles.titleContainer}>
-          <AppText style={styles.titleText} translationKey={translationKey} numberOfLines={1} ellipsizeMode="tail" />
-        </View>
-      ) : title ? (
-        <View style={styles.titleContainer}>
-          <AppText style={styles.titleText} text={title} numberOfLines={1} ellipsizeMode="tail" />
-        </View>
-      ) : null}
+  const titleNode = translationKey ? (
+    <AppText
+      style={styles.titleText}
+      translationKey={translationKey}
+      numberOfLines={1}
+    />
+  ) : title ? (
+    <AppText style={styles.titleText} text={title} numberOfLines={1} />
+  ) : null;
 
-      <View style={styles.icon} />
-    </BlurredHeader>
+  return (
+    <AppHeader
+      left={
+        onBack ? (
+          <Icon
+            name="ArrowLeft02Icon"
+            onPress={onBack}
+            style={headerIconButtonStyle.iconButton}
+          />
+        ) : undefined
+      }
+      center={titleNode}
+      right={<View style={headerIconButtonStyle.iconButton} />}
+    />
   );
 };
 
-const createStyle = (theme: any) =>
+const createStyle = (theme: { text: string }) =>
   StyleSheet.create({
-    icon: {
-      width: 45,
-      height: 45,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    titleContainer: {
-      justifyContent: "center",
-      paddingHorizontal: 15,
-    },
     titleText: {
       fontSize: 18,
       fontWeight: "600",

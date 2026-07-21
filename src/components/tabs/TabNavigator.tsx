@@ -15,7 +15,7 @@ import useWindowSizeStore, {
 
 import TabBar from "@/src/components/tabs/TabBar";
 import Icon from "@/src/components/Icon";
-
+import BlurredView from "@/src/components/BlurredView";
 import ChatList from "@/src/components/tabs/pages/ChatList";
 import Settings from "@/src/components/tabs/pages/Settings";
 import ProfilePage from "@/src/components/tabs/pages/Profile";
@@ -38,7 +38,7 @@ export default function TabNavigator() {
   const styles = createStyle(theme, isSmallScreen);
 
   return (
-    <View style={styles.blurredContainer}>
+    <BlurredView style={styles.blurredContainer}>
       <NavigationIndependentTree>
         <NavigationContainer
           ref={tabNavigationRef}
@@ -101,7 +101,7 @@ export default function TabNavigator() {
           </Tab.Navigator>
         </NavigationContainer>
       </NavigationIndependentTree>
-    </View>
+    </BlurredView>
   );
 }
 
@@ -110,7 +110,7 @@ function createStyle(theme: Theme, isSmallScreen: boolean) {
     blurredContainer: {
       flex: 1,
       position: "relative",
-      borderRadius: isSmallScreen ? 0 : 15,
+      borderRadius: isSmallScreen ? 0 : 25,
       overflow: "hidden",
       backgroundColor: "transparent",
     },

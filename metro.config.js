@@ -31,4 +31,6 @@ config.resolver.alias = {
   "@": "/",
 };
 
+config.cacheStores = [];
+
 module.exports = config;

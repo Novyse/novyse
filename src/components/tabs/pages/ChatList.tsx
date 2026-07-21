@@ -1,5 +1,5 @@
 import React, { useState, useContext, useCallback, useEffect } from "react";
-import { StyleSheet, Image, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import AppText from "@/src/components/AppText";
 import { useShareIntentContext } from "expo-share-intent";
@@ -10,9 +10,15 @@ import { useIsFocused } from "expo-router/react-navigation";
 import { Chat } from "@/src/types/chat";
 
 import Icon from "@/src/components/Icon";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
-import BlurredHeader from "@/src/components/BlurredHeader";
+import AppHeader from "@/src/components/header/AppHeader";
+import { headerIconButtonStyle } from "@/src/components/header/AppHeaderRow";
+import {
+  COMMS_HEADER_OFFSET,
+  getAppHeaderScrollPaddingTop,
+} from "@/src/components/header/constants";
 import ChatListItem from "@/src/components/chat/list/Item";
+import ChatListHeader from "@/src/components/chat/list/header/ChatListHeader";
+import StatusHeader from "@/src/components/chat/list/header/StatusHeader";
 import FloatingButton from "@/src/components/FloatingButton";
 import CreateChatModal from "@/src/components/modalSheets/createChat";
 import CommsHeader from "@/src/components/chat/content/header/CommsHeader";
@@ -28,7 +34,6 @@ import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useWindowSizeStore from "@/src/context/WindowSizeContext";
 import { useStatusBannerOffset } from "@/src/hooks/useStatusBannerOffset";
 
-import { tabNavigator } from "@/src/utils/navigation/tabRef";
 import { ScrollBar } from "@/constants/ScrollBar";
 
 const ChatList = () => {
@@ -105,14 +110,6 @@ const ChatList = () => {
   const hasComms = connected && isSmallScreen;
   const statusBannerOffset = useStatusBannerOffset();
 
-  const styles = createStyle(
-    theme,
-    isSmallScreen,
-    insets,
-    hasComms,
-    statusBannerOffset,
-  );
-
   const {
     selectedItems,
     isSelectionMode,
@@ -120,6 +117,14 @@ const ChatList = () => {
     initiateSelection,
     clearSelection,
   } = useSelection<string>();
+
+  const styles = createStyle(
+    theme,
+    isSmallScreen,
+    insets,
+    hasComms,
+    statusBannerOffset,
+  );
 
   const [orderedChats, setOrderedChats] = useState<any[]>([]);
 
@@ -218,75 +223,42 @@ const ChatList = () => {
 
   const renderDefaultHeader = useCallback(
     () => (
-      <BlurredHeader
-        style={[
-          {
-            paddingHorizontal: 10,
-            paddingVertical: 5,
-            justifyContent: "space-between",
-            alignItems: "center",
-          },
-          showCollapsedSidebar && {
-            width: 50,
-            height: 50,
-            borderRadius: 25,
-            paddingHorizontal: 0,
-            justifyContent: "center",
-            overflow: "hidden",
-          },
-        ]}
+      <ChatListHeader
         commsHeader={commsHeaderComponent}
-      >
-        <HoverAndPressedButton
-          onPress={
-            !showCollapsedSidebar
-              ? () => tabNavigator.navigate("Search")
-              : undefined
-          }
-          disabled={showCollapsedSidebar}
-          style={[
-            styles.headerPressable,
-            showCollapsedSidebar && styles.headerPressableCollapsed,
-          ]}
-          hoveredStyle={styles.headerPressableFeedback}
-          pressedStyle={styles.headerPressableFeedback}
-        >
-          <Image
-            source={require("@/assets/images/logo-novyse.png")}
-            style={styles.logo}
-          />
-          {!showCollapsedSidebar && <Icon name="Search02Icon" />}
-        </HoverAndPressedButton>
-      </BlurredHeader>
+        collapsed={showCollapsedSidebar}
+        onCreateChat={() => setIsCreateChatModalVisible(true)}
+      />
     ),
-    [
-      styles.logo,
-      styles.headerPressable,
-      styles.headerPressableCollapsed,
-      styles.headerPressableFeedback,
-      commsHeaderComponent,
-      showCollapsedSidebar,
-    ],
+    [commsHeaderComponent, showCollapsedSidebar],
   );
 
   const renderSelectionHeader = useCallback(
     () => (
-      <BlurredHeader
-        style={{
-          paddingHorizontal: 10,
-          paddingVertical: 5,
-          backgroundColor: theme.backgroundMain,
-        }}
-        commsHeader={commsHeaderComponent}
-      >
-        <Icon name={"Cancel01Icon"} onPress={clearSelection} />
-        <AppText
-          style={styles.headerTitle}
-          translationKey="tabs.chatList.selected"
-          translationOptions={{ count: selectedItems.length }}
-        />
-        <Icon name={"PinIcon"} onPress={handlePinItems} />
-      </BlurredHeader>
+      <AppHeader
+        left={
+          <Icon
+            name="Cancel01Icon"
+            onPress={clearSelection}
+            style={headerIconButtonStyle.iconButton}
+          />
+        }
+        center={
+          <AppText
+            style={styles.headerTitle}
+            translationKey="tabs.chatList.selected"
+            translationOptions={{ count: selectedItems.length }}
+          />
+        }
+        right={
+          <Icon
+            name="PinIcon"
+            onPress={handlePinItems}
+            style={headerIconButtonStyle.iconButton}
+          />
+        }
+        footer={commsHeaderComponent}
+        belowBlur={<StatusHeader />}
+      />
     ),
     [
       selectedItems.length,
@@ -299,50 +271,48 @@ const ChatList = () => {
 
   const renderIntentHeader = useCallback(
     () => (
-      <BlurredHeader
-        style={{
-          paddingHorizontal: 10,
-          paddingVertical: 5,
-          backgroundColor: theme.backgroundMain,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-        commsHeader={commsHeaderComponent}
-      >
-        <View style={{ width: 40, alignItems: "flex-start" }}>
-          <Icon name={"Cancel01Icon"} onPress={() => resetShareIntent()} />
-        </View>
-        <AppText
-          style={[styles.headerTitle, { flex: 1, textAlign: "center" }]}
-          translationKey="tabs.chatList.intentSharing"
-        />
-        <View style={{ width: 40 }} />
-      </BlurredHeader>
+      <AppHeader
+        left={
+          <Icon
+            name="Cancel01Icon"
+            onPress={() => resetShareIntent()}
+            style={headerIconButtonStyle.iconButton}
+          />
+        }
+        center={
+          <AppText
+            style={styles.headerTitle}
+            translationKey="tabs.chatList.intentSharing"
+          />
+        }
+        right={<View style={headerIconButtonStyle.iconButton} />}
+        footer={commsHeaderComponent}
+        belowBlur={<StatusHeader />}
+      />
     ),
     [styles.headerTitle, resetShareIntent, commsHeaderComponent],
   );
 
   const renderForwardingHeader = useCallback(
     () => (
-      <BlurredHeader
-        style={{
-          paddingHorizontal: 10,
-          paddingVertical: 5,
-          backgroundColor: theme.backgroundMain,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-        commsHeader={commsHeaderComponent}
-      >
-        <View style={{ width: 40, alignItems: "flex-start" }}>
-          <Icon name={"Cancel01Icon"} onPress={() => resetForwarding()} />
-        </View>
-        <AppText
-          style={[styles.headerTitle, { flex: 1, textAlign: "center" }]}
-          translationKey="tabs.chatList.forwarding"
-        />
-        <View style={{ width: 40 }} />
-      </BlurredHeader>
+      <AppHeader
+        left={
+          <Icon
+            name="Cancel01Icon"
+            onPress={() => resetForwarding()}
+            style={headerIconButtonStyle.iconButton}
+          />
+        }
+        center={
+          <AppText
+            style={styles.headerTitle}
+            translationKey="tabs.chatList.forwarding"
+          />
+        }
+        right={<View style={headerIconButtonStyle.iconButton} />}
+        footer={commsHeaderComponent}
+        belowBlur={<StatusHeader />}
+      />
     ),
     [styles.headerTitle, resetForwarding, commsHeaderComponent],
   );
@@ -366,7 +336,7 @@ const ChatList = () => {
   };
 
   return (
-    <>
+    <View style={styles.container}>
       {isSelectionMode
         ? renderSelectionHeader()
         : isForwarding
@@ -403,7 +373,7 @@ const ChatList = () => {
         visible={isCreateChatModalVisible}
         onClose={() => setIsCreateChatModalVisible(false)}
       />
-    </>
+    </View>
   );
 };
 
@@ -415,6 +385,9 @@ function createStyle(
   statusBannerOffset,
 ) {
   return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
     flatList: {
       flex: 1,
       overflow: "hidden",
@@ -422,35 +395,17 @@ function createStyle(
     },
     flatListContent: {
       padding: 10,
-      paddingTop:
-        (hasComms ? 140 : 75) + insets.top + 10 + statusBannerOffset,
+      paddingTop: getAppHeaderScrollPaddingTop(insets.top, {
+        commsFooterOffset: hasComms ? COMMS_HEADER_OFFSET : 0,
+        statusBannerOffset,
+      }),
       paddingBottom: (isSmallScreen ? 180 : 90) + insets.bottom,
-    },
-    logo: {
-      width: 24,
-      height: 24,
-    },
-    headerPressable: {
-      flex: 1,
-      alignSelf: "stretch",
-      flexDirection: "row",
-      width: "100%",
-      height: "100%",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: 0,
-      borderRadius: 0,
-    },
-    headerPressableCollapsed: {
-      justifyContent: "center",
-    },
-    headerPressableFeedback: {
-      backgroundColor: "transparent",
     },
     headerTitle: {
       color: theme.text,
       fontSize: 18,
       fontWeight: "bold",
+      textAlign: "center",
     },
   });
 }

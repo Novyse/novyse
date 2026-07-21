@@ -39,7 +39,7 @@ const BottomBar = ({
         setBottomBarHeight &&
         setBottomBarHeight(event.nativeEvent.layout.height)
       }
-      style={{ paddingBottom: insets.bottom + 5 }}
+      style={{ paddingBottom: insets.bottom + 10 }}
     >
       {chatType === "CHANNEL" ? (
         <ChannelBar />

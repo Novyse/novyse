@@ -4,6 +4,7 @@ import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 
 import Icon from "@/src/components/Icon";
+import { HEADER_ROW_HEIGHT, ICON_BUTTON_SIZE } from "@/src/components/header/constants";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
@@ -189,15 +190,12 @@ const SearchHeader = ({ onClose }) => {
 };
 
 function createStyle(theme) {
-  const HEADER_MAIN_HEIGHT = 55;
-  const ICON_SIZE = 40;
-
   return StyleSheet.create({
     headerMainRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      height: HEADER_MAIN_HEIGHT,
+      height: HEADER_ROW_HEIGHT,
       width: "100%",
     },
     headerLeft: {
@@ -224,8 +222,8 @@ function createStyle(theme) {
       textAlign: "center",
     },
     iconButton: {
-      width: ICON_SIZE,
-      height: ICON_SIZE,
+      width: ICON_BUTTON_SIZE,
+      height: ICON_BUTTON_SIZE,
       justifyContent: "center",
       alignItems: "center",
     },

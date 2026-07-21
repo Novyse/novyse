@@ -2,12 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, useWindowDimensions, Animated } from "react-native";
 import { Slot, usePathname } from "expo-router";
 
-import { useThemeContext } from "@/src/context/ThemeContext";
-
+import { useScreen } from "@/src/context/ScreenContext";
 import TabNavigator, {
   getActiveTabName,
 } from "@/src/components/tabs/TabNavigator";
-import { useScreen } from "@/src/context/ScreenContext";
 import useChatStore from "@/src/context/ChatContext";
 import useUserStore from "@/src/context/UserContext";
 import useWindowSizeStore, {
@@ -36,7 +34,6 @@ export default function RootLayout() {
   // Pan responder for resizing the detail pane on larger screens
   const { isSmallScreen } = useScreen();
   useMobileBackHandler(isSmallScreen, isDetailOpen);
-  const { theme } = useThemeContext();
   const { width } = useWindowDimensions();
 
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -269,8 +266,10 @@ export default function RootLayout() {
         style={{
           width: currentSidebarWidth,
           height: "100%",
-          padding: 10,
-          paddingHorizontal: showCollapsedSidebar ? 5 : 10,
+          paddingTop: 10,
+          paddingBottom: 10,
+          paddingLeft: 10,
+          paddingRight: 0,
           backgroundColor: "transparent",
         }}
       >

@@ -610,7 +610,8 @@
     "chatList": {
       "selected": "{{count}} selected",
       "intentSharing": "Select chat",
-      "forwarding": "Forward to..."
+      "forwarding": "Forward to...",
+      "searchPlaceholder": "Search chats..."
     },
     "search": {
       "search": "Search",

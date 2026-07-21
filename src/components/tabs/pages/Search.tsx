@@ -23,14 +23,14 @@ import gateway from "@/src/utils/backend-services/api-gateway";
 import database from "@/src/utils/storage/database";
 import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
-import BlurredHeader from "@/src/components/BlurredHeader";
+import AppHeader from "@/src/components/header/AppHeader";
+import { headerIconButtonStyle } from "@/src/components/header/AppHeaderRow";
+import { getAppHeaderScrollPaddingTop } from "@/src/components/header/constants";
 import ItemSearch from "@/src/components/chat/list/ItemSearch";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 import { useStatusBannerOffset } from "@/src/hooks/useStatusBannerOffset";
 import useNetworkStore from "@/src/context/NetworkContext";
-
-const SEARCH_HEADER_OFFSET = 90;
 
 interface SearchResult {
   uuid: string | null;
@@ -352,38 +352,40 @@ const Search = () => {
 
   return (
     <>
-      <BlurredHeader style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
-        <Icon
-          name="Search01Icon"
-          size={20}
-          color={theme.placeholderText}
-          hoverColor={theme.iconHover}
-          onPress={() => {}}
-          style={styles.searchIcon}
-        />
-        <TextInput
-          placeholder={t("tabs.search.search")}
-          placeholderTextColor={theme.placeholderText}
-          style={styles.searchBar}
-          value={searchText}
-          onChangeText={(text) => {
-            setSearchText(text);
-            handleChange(text);
-          }}
-        />
-        <Icon
-          name="Cancel01Icon"
-          size={20}
-          color={theme.placeholderText}
-          hoverColor={theme.iconHover}
-          onPress={() => {
-            tabNavigator.navigate("ChatList");
-            setSearchText("");
-            handleChange("");
-          }}
-          style={styles.closeIcon}
-        />
-      </BlurredHeader>
+      <AppHeader
+        left={
+          <Icon
+            name="Search01Icon"
+            hoverColor={theme.iconHover}
+            style={headerIconButtonStyle.iconButton}
+            onPress={() => { }}
+          />
+        }
+        center={
+          <TextInput
+            placeholder={t("tabs.search.search")}
+            placeholderTextColor={theme.placeholderText}
+            style={styles.searchBar}
+            value={searchText}
+            onChangeText={(text) => {
+              setSearchText(text);
+              handleChange(text);
+            }}
+          />
+        }
+        right={
+          <Icon
+            name="Cancel01Icon"
+            hoverColor={theme.iconHover}
+            onPress={() => {
+              tabNavigator.navigate("ChatList");
+              setSearchText("");
+              handleChange("");
+            }}
+            style={headerIconButtonStyle.iconButton}
+          />
+        }
+      />
       {isLoading && !hasResults && (
         <ActivityIndicator
           size="large"
@@ -415,21 +417,17 @@ const Search = () => {
 export default Search;
 
 const createStyle = (theme: any, insets: any, statusBannerOffset: number) => {
-  const contentTop = SEARCH_HEADER_OFFSET + insets.top + statusBannerOffset;
+  const contentTop = getAppHeaderScrollPaddingTop(insets.top, {
+    statusBannerOffset,
+  });
 
   return StyleSheet.create({
-    searchIcon: {
-      marginRight: 10,
-    },
-    closeIcon: {
-      marginLeft: 10,
-    },
     searchBar: {
       flex: 1,
       fontSize: 16,
-      marginLeft: 5,
       color: theme.text,
       outlineStyle: "none" as any,
+      minWidth: 30
     },
     loader: {
       marginTop: contentTop,

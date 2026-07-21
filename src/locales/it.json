@@ -608,7 +608,8 @@
     "chatList": {
       "selected": "{{count}} selezionate",
       "intentSharing": "Seleziona chat",
-      "forwarding": "Inoltra a..."
+      "forwarding": "Inoltra a...",
+      "searchPlaceholder": "Cerca chat..."
     },
     "search": {
       "search": "Cerca",

@@ -3,6 +3,7 @@ import { StyleSheet, ScrollView, Platform } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScrollBar } from "@/constants/ScrollBar";
+import { SETTINGS_HEADER_SCROLL_PADDING } from "@/src/components/header/constants";
 
 interface SettingsPageScrollviewProps {
   children: React.ReactNode;
@@ -13,7 +14,7 @@ interface SettingsPageScrollviewProps {
 const SettingsPageScrollview = ({
   children,
   isMenu = false,
-  paddingTop = 90,
+  paddingTop = SETTINGS_HEADER_SCROLL_PADDING,
 }: SettingsPageScrollviewProps) => {
   const { theme } = useContext(ThemeContext);
   const insets = useSafeAreaInsets();

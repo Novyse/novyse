@@ -12,6 +12,7 @@ interface TextInputProps {
   maxLenght?: number;
   numberOfLines?: number;
   onChange?: (text: string) => void;
+  onFocus?: () => void;
 }
 
 export default function TextInput({
@@ -22,6 +23,7 @@ export default function TextInput({
   maxLenght,
   numberOfLines = 1,
   onChange,
+  onFocus,
 }: TextInputProps) {
   const isMultiline = numberOfLines > 1;
 
@@ -38,6 +40,7 @@ export default function TextInput({
         placeholder={placeholder}
         editable={!disabled}
         onChangeText={onChange}
+        onFocus={onFocus}
         maxLength={maxLenght}
         placeholderTextColor={theme.placeholderText}
         multiline={isMultiline}

@@ -55,8 +55,8 @@ function ToggleSelector<T extends string = string>({
   useEffect(() => {
     if (containerWidth > 0) {
       translateX.value = withSpring(activeIndex * itemWidth, {
-        damping: 70,
-        stiffness: 500,
+        damping: 95,
+        stiffness: 700,
       });
 
       scrollViewRef.current?.scrollTo({
@@ -134,50 +134,50 @@ function ToggleSelector<T extends string = string>({
   }));
 
   return (
-    <ScrollView
-      ref={scrollRefCallback}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-      style={[styles.scrollView, style]}
-    >
-      <BlurredView style={styles.toggleContainer} onLayout={onLayout}>
-        {containerWidth > 0 && (
-          <Animated.View style={[styles.animatedBackground, animatedStyle]} />
-        )}
-        {options.map((option) => {
-          const isActive = option.value === value;
-          return (
-            <TouchableOpacity
-              key={option.value}
-              style={styles.toggleButton}
-              onPress={() => !disabled && onChange(option.value)}
-              disabled={disabled}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isActive }}
-            >
-              {option.icon ? (
-                <Icon
-                  name={option.icon}
-                  size={18}
-                  color={isActive ? theme.text : theme.subtitle}
-                />
-              ) : (
-                <AppText
-                  style={[
-                    styles.toggleText,
-                    isActive && styles.toggleTextActive,
-                  ]}
-                  text={option.label || ""}
-                  numberOfLines={1}
-                />
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </BlurredView>
-    </ScrollView>
+      <ScrollView
+        ref={scrollRefCallback}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        style={[styles.scrollView, style]}
+      >
+        <BlurredView style={styles.toggleContainer} onLayout={onLayout}>
+          {containerWidth > 0 && (
+            <Animated.View style={[styles.animatedBackground, animatedStyle]} />
+          )}
+          {options.map((option) => {
+            const isActive = option.value === value;
+            return (
+              <TouchableOpacity
+                key={option.value}
+                style={styles.toggleButton}
+                onPress={() => !disabled && onChange(option.value)}
+                disabled={disabled}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isActive }}
+              >
+                {option.icon ? (
+                  <Icon
+                    name={option.icon}
+                    size={18}
+                    color={isActive ? theme.text : theme.subtitle}
+                  />
+                ) : (
+                  <AppText
+                    style={[
+                      styles.toggleText,
+                      isActive && styles.toggleTextActive,
+                    ]}
+                    text={option.label || ""}
+                    numberOfLines={1}
+                  />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </BlurredView>
+      </ScrollView>
   );
 }
 
@@ -193,7 +193,6 @@ function createStyles(theme: any, hasIcons?: boolean, buttonWidth?: number) {
     },
     toggleContainer: {
       flexDirection: "row",
-      backgroundColor: theme.iconPressed,
       borderRadius: 50,
       padding: 5,
       minWidth: "100%",

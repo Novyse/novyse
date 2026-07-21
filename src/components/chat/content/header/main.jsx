@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Pressable } from "react-native";
+import { StyleSheet, Pressable, View } from "react-native";
 import AppText from "@/src/components/AppText";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,9 @@ import { useScreen } from "@/src/context/ScreenContext";
 
 import Icon from "@/src/components/Icon";
 import Avatar from "@/src/components/Avatar";
+import AppHeaderRow, {
+  headerIconButtonStyle,
+} from "@/src/components/header/AppHeaderRow";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
@@ -33,125 +36,101 @@ const MainHeader = ({
   const styles = createStyle(theme);
 
   return (
-    <View style={styles.headerMainRow}>
-      <View style={styles.headerLeft}>
+    <AppHeaderRow
+      left={
         <Icon
           name={
             isSmallScreen && onBack ? "ArrowLeft02Icon" : "MoreVerticalIcon"
           }
           onPress={isSmallScreen && onBack ? onBack : () => {}}
-          style={styles.iconButton}
+          style={headerIconButtonStyle.iconButton}
         />
-      </View>
-
-      <Pressable onPress={navToOverview} style={styles.headerCenter}>
-        <Avatar
-          uuid={selectedChatPictureUUID}
-          theme={theme}
-          isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
-        />
-        <View style={styles.headerCenterText}>
-          <AppText
-            style={styles.chatTitle}
-            numberOfLines={1}
-            text={selectedChatName}
+      }
+      center={
+        <Pressable onPress={navToOverview} style={styles.headerCenter}>
+          <Avatar
+            uuid={selectedChatPictureUUID}
+            theme={theme}
+            isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
           />
-          {memberActivityData && memberActivityData.length > 0 ? (
+          <View style={styles.headerCenterText}>
             <AppText
-              style={styles.chatSubtitle}
+              style={styles.chatTitle}
               numberOfLines={1}
-              text={chatUtils.formatActivity(memberActivityData, chatType)}
+              text={selectedChatName}
             />
-          ) : (
-            <>
-              {chatType === "DM" &&
-                onlineMembersCount === 1 &&
-                lastAccessAt && (
+            {memberActivityData && memberActivityData.length > 0 ? (
+              <AppText
+                style={styles.chatSubtitle}
+                numberOfLines={1}
+                text={chatUtils.formatActivity(memberActivityData, chatType)}
+              />
+            ) : (
+              <>
+                {chatType === "DM" &&
+                  onlineMembersCount === 1 &&
+                  lastAccessAt && (
+                    <AppText
+                      style={styles.chatSubtitle}
+                      numberOfLines={1}
+                      text={`${t("chat.header.lastSeen")}: ${chatUtils.formatLastSeen(lastAccessAt)}`}
+                    />
+                  )}
+                {chatType === "GROUP" && (
                   <AppText
                     style={styles.chatSubtitle}
                     numberOfLines={1}
-                    text={`${t("chat.header.lastSeen")}: ${chatUtils.formatLastSeen(lastAccessAt)}`}
+                    text={`${t("chat.header.members", { count: memberCount })}${onlineMembersCount > 0 ? `, ${t("chat.header.online", { count: onlineMembersCount })}` : ""}`}
                   />
                 )}
-              {chatType === "GROUP" && (
-                <AppText
-                  style={styles.chatSubtitle}
-                  numberOfLines={1}
-                  text={`${t("chat.header.members", { count: memberCount })}${onlineMembersCount > 0 ? `, ${t("chat.header.online", { count: onlineMembersCount })}` : ""}`}
-                />
-              )}
-            </>
+              </>
+            )}
+          </View>
+        </Pressable>
+      }
+      right={
+        <>
+          {onOpenSearch && (
+            <Icon
+              name="Search01Icon"
+              style={headerIconButtonStyle.iconButton}
+              onPress={onOpenSearch}
+            />
           )}
-        </View>
-      </Pressable>
-
-      <View style={styles.headerRight}>
-        {onOpenSearch && (
-          <Icon
-            name="Search01Icon"
-            style={styles.iconButton}
-            onPress={onOpenSearch}
-          />
-        )}
-        {contentView !== "chat" && (
-          <Icon
-            name="Message02Icon"
-            style={styles.iconButton}
-            onPress={() => setContentView("chat")}
-          />
-        )}
-        {contentView !== "vocal" && (
-          <Icon
-            name="AudioWave01Icon"
-            style={styles.iconButton}
-            onPress={() => setContentView("vocal")}
-          />
-        )}
-        {!isSmallScreen && !isMediumScreen && contentView !== "both" && (
-          <Icon
-            name="BorderVerticalIcon"
-            style={styles.iconButton}
-            onPress={() => setContentView("both")}
-          />
-        )}
-      </View>
-    </View>
+          {contentView !== "chat" && (
+            <Icon
+              name="Message02Icon"
+              style={headerIconButtonStyle.iconButton}
+              onPress={() => setContentView("chat")}
+            />
+          )}
+          {contentView !== "vocal" && (
+            <Icon
+              name="AudioWave01Icon"
+              style={headerIconButtonStyle.iconButton}
+              onPress={() => setContentView("vocal")}
+            />
+          )}
+          {!isSmallScreen && !isMediumScreen && contentView !== "both" && (
+            <Icon
+              name="BorderVerticalIcon"
+              style={headerIconButtonStyle.iconButton}
+              onPress={() => setContentView("both")}
+            />
+          )}
+        </>
+      }
+    />
   );
 };
 
 function createStyle(theme) {
-  const HEADER_MAIN_HEIGHT = 55;
-  const ICON_SIZE = 40;
-
   return StyleSheet.create({
-    headerMainRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      height: HEADER_MAIN_HEIGHT,
-      width: "100%",
-    },
-    headerLeft: {
-      alignItems: "flex-start",
-      justifyContent: "center",
-    },
     headerCenter: {
-      flex: 1,
       gap: 10,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-    },
-    headerRight: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: 4,
-    },
-    iconButton: {
-      width: ICON_SIZE,
-      height: ICON_SIZE,
-      justifyContent: "center",
-      alignItems: "center",
     },
     headerCenterText: {
       flexDirection: "column",
