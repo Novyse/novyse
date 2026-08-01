@@ -23,8 +23,8 @@ const ChatListHeader = ({
       left={
         !collapsed ? (
           <Icon
-            name="PlusSignIcon"
-            onPress={onCreateChat}
+            name="Search01Icon"
+            onPress={() => tabNavigator.navigate("Search")}
             style={headerIconButtonStyle.iconButton}
           />
         ) : undefined
@@ -42,8 +42,8 @@ const ChatListHeader = ({
       right={
         !collapsed ? (
           <Icon
-            name="Search01Icon"
-            onPress={() => tabNavigator.navigate("Search")}
+            name="PlusSignIcon"
+            onPress={onCreateChat}
             style={headerIconButtonStyle.iconButton}
           />
         ) : undefined
