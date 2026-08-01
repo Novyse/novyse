@@ -188,12 +188,10 @@ const LoginForm = ({
           </View>
           {/* Signup link */}
           <View style={styles.link}>
-            <AppText style={styles.linkText}>
-              <AppText translationKey="auth.login.dontHaveAccount" />
-              <TextLink style={styles.linkTextBold} onPress={onSignup}>
-                <AppText translationKey="auth.welcome.signup" />
-              </TextLink>
-            </AppText>
+            <AppText style={styles.linkText} translationKey="auth.login.dontHaveAccount" />
+            <TextLink style={styles.linkTextBold} onPress={onSignup}>
+              <AppText translationKey="auth.welcome.signup" />
+            </TextLink>
           </View>
         </View>
       </View>
@@ -307,7 +305,10 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
     },
     link: {
       marginTop: 20,
+      flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
+      gap: 4,
     },
     opaqueLink: {
       flexDirection: "row",
