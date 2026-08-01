@@ -1,8 +1,9 @@
 import React from "react";
 import { router } from "expo-router";
-import SettingsMenuItem from "@/src/components/settings/SettingsMenuItem";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
+import Section from "@/src/components/settings/Section";
+import SettingRow from "@/src/components/settings/SettingRow";
 
 export default function SecurityRoute() {
   const onBack = () =>
@@ -14,35 +15,37 @@ export default function SecurityRoute() {
         translationKey="settings.menu.security"
         onBack={onBack}
       />
-      <SettingsPageScrollview isMenu={true}>
-        <SettingsMenuItem
-          navToPage="./settings/security/password"
-          translationKey="settings.security.password"
-          iconName={"LockPasswordIcon"}
-        />
-        <SettingsMenuItem
-          navToPage="./settings/security/mfa"
-          translationKey="settings.security.mfa"
-          iconName={"TwoFactorAccessIcon"}
-          disabled={true}
-        />
-        <SettingsMenuItem
-          navToPage="./settings/security/sessions"
-          translationKey="settings.security.sessionsLabel"
-          iconName={"ComputerIcon"}
-        />
-        <SettingsMenuItem
-          navToPage="./settings/security/api-keys"
-          translationKey="settings.security.apiKeysLabel"
-          iconName={"Key01Icon"}
-        />
-        <SettingsMenuItem
-          navToPage="./settings/security/notifications"
-          translationKey="settings.security.notifications"
-          iconName={"Notification03Icon"}
-          disabled={true}
-        />
+      <SettingsPageScrollview>
+        <Section>
+          <SettingRow
+            iconName="LockPasswordIcon"
+            labelKey="settings.security.password"
+            onPress={() => router.push("/app/settings/security/password")}
+          />
+          <SettingRow
+            iconName="TwoFactorAccessIcon"
+            labelKey="settings.security.mfa"
+            onPress={() => router.push("/app/settings/security/mfa")}
+          />
+          <SettingRow
+            iconName="ComputerIcon"
+            labelKey="settings.security.sessionsLabel"
+            onPress={() => router.push("/app/settings/security/sessions")}
+          />
+          <SettingRow
+            iconName="Key01Icon"
+            labelKey="settings.security.apiKeysLabel"
+            onPress={() => router.push("/app/settings/security/api-keys")}
+          />
+          <SettingRow
+            iconName="Notification03Icon"
+            labelKey="settings.security.notifications"
+            onPress={() => router.push("/app/settings/security/notifications")}
+            style={{ borderBottomWidth: 0 }}
+          />
+        </Section>
       </SettingsPageScrollview>
     </>
   );
 }
+
