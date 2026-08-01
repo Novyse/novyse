@@ -838,7 +838,9 @@
       },
       "errors": {
         "handleTaken": "Handle già in uso",
-        "handleError": "Errore nel controllo disponibilità handle"
+        "handleError": "Errore nel controllo disponibilità handle",
+        "nameRequired": "Il nome è obbligatorio",
+        "genericError": "Si è verificato un errore, riprova"
       }
     }
   }

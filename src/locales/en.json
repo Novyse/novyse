@@ -840,7 +840,9 @@
       },
       "errors": {
         "handleTaken": "Handle already in use",
-        "handleError": "Error checking handle availability"
+        "handleError": "Error checking handle availability",
+        "nameRequired": "Name is required",
+        "genericError": "An error occurred, please try again"
       }
     }
   }

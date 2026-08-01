@@ -27,7 +27,7 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
 
   const handleCreate = async () => {
     if (!name || name.trim().length === 0) {
-      setError(t("modals.create_chat.requirements.name") || "Name is required");
+      setError(t("modals.create_chat.errors.nameRequired"));
       return;
     }
 
@@ -43,7 +43,7 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
       onClose();
       await eventEmitter.chat.update(chatUUID, "sub_create", null, { sub });
     } else {
-      setError("Failed to create sub");
+      setError(t("modals.create_chat.errors.genericError"));
     }
   };
 
