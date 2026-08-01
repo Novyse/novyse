@@ -567,6 +567,7 @@
       "startupSection": "Avvio dell'Applicazione",
       "actionsSection": "Azioni Iniziali",
       "openOnStartup": "Apri all'avvio",
+      "openMinimized": "Apri ridotto ad icona",
       "joinCommsOnStartup": "Entra nelle comms all'avvio",
       "selectChat": "Seleziona Chat",
       "selectSub": "Seleziona Sub",

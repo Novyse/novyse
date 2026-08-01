@@ -1,22 +1,35 @@
 import { rpc, electron } from "@/src/utils/electron/rpc";
 
 export const systemRpc = {
-  getOpenOnStartup: async (): Promise<boolean> => {
-    if (!rpc) return false;
+  getOpenOnStartup: async (): Promise<{
+    openAtLogin: boolean;
+    openMinimized: boolean;
+  }> => {
+    if (!rpc) return { openAtLogin: false, openMinimized: false };
     try {
       const response = await rpc.request("system:get-open-on-startup");
-      return response && response.success ? response.openAtLogin : false;
+      if (response && response.success) {
+        return {
+          openAtLogin: !!response.openAtLogin,
+          openMinimized: !!response.openMinimized,
+        };
+      }
+      return { openAtLogin: false, openMinimized: false };
     } catch (error) {
       console.error("RPC Error getOpenOnStartup:", error);
-      return false;
+      return { openAtLogin: false, openMinimized: false };
     }
   },
 
-  setOpenOnStartup: async (openAtLogin: boolean): Promise<boolean> => {
+  setOpenOnStartup: async (
+    openAtLogin: boolean,
+    openMinimized?: boolean,
+  ): Promise<boolean> => {
     if (!rpc) return false;
     try {
       const response = await rpc.request("system:set-open-on-startup", {
         openAtLogin,
+        openMinimized,
       });
       return response && response.success;
     } catch (error) {

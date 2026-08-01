@@ -48,8 +48,12 @@ export default function SystemRoute() {
       setIsLoading(true);
       const settings =
         await settingsManager.getPageParameters("settings.system");
-      const openOnStartup = await systemRpc.getOpenOnStartup();
-      setSystemSettings({ ...(settings || {}), openOnStartup });
+      const startupData = await systemRpc.getOpenOnStartup();
+      setSystemSettings({
+        ...(settings || {}),
+        openOnStartup: startupData.openAtLogin,
+        openMinimized: startupData.openMinimized,
+      });
     } catch (error) {
       console.error("Error loading system settings:", error);
     } finally {
@@ -59,8 +63,15 @@ export default function SystemRoute() {
 
   const updateSetting = async (key: string, value: any) => {
     try {
-      if (key === "openOnStartup") {
-        await systemRpc.setOpenOnStartup(value);
+      if (key === "openOnStartup" || key === "openMinimized") {
+        const newOpenOnStartup =
+          key === "openOnStartup" ? value : !!systemSettings.openOnStartup;
+        const newOpenMinimized =
+          key === "openMinimized" ? value : !!systemSettings.openMinimized;
+
+        await systemRpc.setOpenOnStartup(newOpenOnStartup, newOpenMinimized);
+        await settingsManager.setSingleParameter(`settings.system.${key}`, value);
+
         setSystemSettings((prev: any) => ({
           ...prev,
           [key]: value,
@@ -140,8 +151,18 @@ export default function SystemRoute() {
             type="SWITCH"
             isEnabled={!!systemSettings.openOnStartup}
             onToggle={(value) => updateSetting("openOnStartup", value)}
-            style={{ borderBottomWidth: 0 }}
+            style={!systemSettings.openOnStartup ? { borderBottomWidth: 0 } : undefined}
           />
+          {!!systemSettings.openOnStartup && (
+            <SettingRow
+              iconName="CollapseIcon"
+              labelKey="settings.system.openMinimized"
+              type="SWITCH"
+              isEnabled={!!systemSettings.openMinimized}
+              onToggle={(value) => updateSetting("openMinimized", value)}
+              style={{ borderBottomWidth: 0 }}
+            />
+          )}
         </Section>
 
         <Section titleKey="settings.system.actionsSection">

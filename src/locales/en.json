@@ -569,6 +569,7 @@
       "startupSection": "Application Startup",
       "actionsSection": "Initial Actions",
       "openOnStartup": "Open on startup",
+      "openMinimized": "Open minimized",
       "joinCommsOnStartup": "Join comms on startup",
       "selectChat": "Select Chat",
       "selectSub": "Select Sub",
