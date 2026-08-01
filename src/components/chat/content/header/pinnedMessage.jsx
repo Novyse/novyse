@@ -1,11 +1,12 @@
 import React, { useContext, useState, useEffect } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
-import AppText from "@/src/components/AppText";
+import { useRouter } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useChatStore from "@/src/context/ChatContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
+import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
 
 const PinnedMessageHeader = ({ pinnedMessages }) => {
@@ -47,10 +48,22 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
     );
   };
 
-  const setScrollToMessageID = useActiveChatStore((state) => state.setScrollToMessageID);
+  const setScrollToMessageID = useActiveChatStore(
+    (state) => state.setScrollToMessageID,
+  );
+  const selectedSub = useActiveChatStore((state) => state.selectedSub);
+  const router = useRouter();
 
   const handlePress = () => {
     if (message) {
+      if (
+        pinnedMessage?.subID !== undefined &&
+        pinnedMessage.subID !== selectedSub
+      ) {
+        router.push(
+          `/app/chat/${pinnedMessage.chatUUID}/${pinnedMessage.subID}`,
+        );
+      }
       setScrollToMessageID(message.id);
     }
   };
@@ -71,7 +84,10 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
             />
           )}
 
-          <TouchableOpacity style={styles.pinnedTextContainer} onPress={handlePress}>
+          <TouchableOpacity
+            style={styles.pinnedTextContainer}
+            onPress={handlePress}
+          >
             <AppText
               style={styles.pinnedText}
               numberOfLines={1}
