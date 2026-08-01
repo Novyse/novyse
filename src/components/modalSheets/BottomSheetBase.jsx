@@ -49,8 +49,10 @@ const BottomSheetBase = forwardRef(
           style={[
             style,
             {
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
+              borderTopLeftRadius: 25,
+              borderTopRightRadius: 25,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
             },
           ]}
           isBorderActive={false}
