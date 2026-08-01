@@ -12,6 +12,9 @@ import SettingsPageScrollview from "@/src/components/settings/SettingsPageScroll
 import useChatStore from "@/src/context/ChatContext";
 import SettingRow from "@/src/components/settings/SettingRow";
 import Section from "@/src/components/settings/Section";
+import useUserStore from "@/src/context/UserContext";
+import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
+import { Role } from "@/src/types/chat";
 
 const ChatSettings = () => {
   const { theme } = useContext(ThemeContext);
@@ -41,6 +44,21 @@ const ChatSettings = () => {
     router.canGoBack() ? router.back() : router.push("/app");
 
   const membersCount = chat?.members?.length ?? 0;
+
+  const localUserUUID = useUserStore((state) => state.localUserUUID);
+  const myMember = chat?.members?.find((m) => m.uuid === localUserUUID);
+  const myRoleIDs = myMember?.roleIDs;
+  const myRoles =
+    (myRoleIDs
+      ?.map((id) => chat?.roles?.find((r) => r.id === id))
+      .filter(Boolean) as Role[]) || [];
+
+  const canManageMembers =
+    hasPermission(myRoles, PERMISSIONS.KICK_MEMBER) ||
+    hasPermission(myRoles, PERMISSIONS.BAN_MEMBER) ||
+    hasPermission(myRoles, PERMISSIONS.ASSIGN_ROLE);
+  const canManageInvite = hasPermission(myRoles, PERMISSIONS.MANAGE_INVITE);
+  const canManageChat = hasPermission(myRoles, PERMISSIONS.MANAGE_CHAT);
 
   return (
     <>
@@ -115,27 +133,35 @@ const ChatSettings = () => {
         {/* ── Group-only settings ── */}
         {!isDM && (
           <Section titleKey="chat.settings.groupSettings">
-            <SettingRow
-              iconName="UserAdd01Icon"
-              labelKey="chat.settings.addMembers"
-              onPress={() => {}}
-            />
-            <SettingRow
-              iconName="UserGroupIcon"
-              labelKey="chat.settings.manageMembers"
-              onPress={() => {}}
-            />
-            <SettingRow
-              iconName="LinkSquare01Icon"
-              labelKey="chat.settings.inviteLink"
-              onPress={() => {}}
-            />
-            <SettingRow
-              iconName="PencilEdit01Icon"
-              labelKey="chat.settings.editGroupInfo"
-              onPress={() => {}}
-              style={{ borderBottomWidth: 0 }}
-            />
+            {canManageInvite && (
+              <SettingRow
+                iconName="UserAdd01Icon"
+                labelKey="chat.settings.addMembers"
+                onPress={() => {}}
+              />
+            )}
+            {canManageMembers && (
+              <SettingRow
+                iconName="UserGroupIcon"
+                labelKey="chat.settings.manageMembers"
+                onPress={() => {}}
+              />
+            )}
+            {canManageInvite && (
+              <SettingRow
+                iconName="LinkSquare01Icon"
+                labelKey="chat.settings.inviteLink"
+                onPress={() => {}}
+              />
+            )}
+            {canManageChat && (
+              <SettingRow
+                iconName="PencilEdit01Icon"
+                labelKey="chat.settings.editGroupInfo"
+                onPress={() => {}}
+                style={{ borderBottomWidth: 0 }}
+              />
+            )}
           </Section>
         )}
 

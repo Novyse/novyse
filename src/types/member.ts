@@ -1,6 +1,6 @@
 export interface Member {
   uuid: string;
-  role: string;
+  roleIDs: number[];
   action:
     | "TYPING"
     | "RECORDING_VOICE"

@@ -17,6 +17,9 @@ import BlurredView from "@/src/components/BlurredView";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import { useCommsContext } from "@/src/context/CommsContext";
+import useUserStore from "@/src/context/UserContext";
+import useChatStore from "@/src/context/ChatContext";
+import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 
 import Platform from "@/src/utils/device/type";
 import { RoomOptionsMenu } from "./RoomOptionsMenu";
@@ -58,6 +61,24 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
     error,
     clearError,
   } = useCommsAction(chatUUID, sub);
+
+  const myUUID = useUserStore((state) => state.localUserUUID);
+  const chat = useChatStore((state) => state.chats[chatUUID]);
+  const myMember = chat?.members?.find((m) => m.uuid === myUUID);
+  const myRoleIDs = myMember?.roleIDs;
+  const myRoles =
+    myRoleIDs?.reduce((acc, id) => {
+      const role = chat?.roles?.find((r) => r.id === id);
+      if (role) acc.push(role);
+      return acc;
+    }, []) || [];
+  const canSpeak = hasPermission(myRoles, PERMISSIONS.SPEAK_VOCAL, sub?.type);
+  const canVideo = hasPermission(myRoles, PERMISSIONS.VIDEO_VOCAL, sub?.type);
+  const canScreenShare = hasPermission(
+    myRoles,
+    PERMISSIONS.SCREENSHARE_VOCAL,
+    sub?.type,
+  );
 
   // Shortcut: Ctrl+F12 per mutare il microfono (solo web)
   useEffect(() => {
@@ -107,44 +128,50 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
         )
       ) : (
         <BlurredView style={styles.blurredContainer}>
-          <View style={styles.microphoneButtonContainer}>
-            <CommsBottomBarButton
-              onPress={toggleAudio}
-              iconName={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
-            />
-            {!isMobile && (
-              <MicrophoneArrowButton
+          {canSpeak && (
+            <View style={styles.microphoneButtonContainer}>
+              <CommsBottomBarButton
+                onPress={toggleAudio}
+                iconName={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
+              />
+              {!isMobile && (
+                <MicrophoneArrowButton
+                  onPress={() => {
+                    if (connected && roomMatch) setShowMicrophoneSelector(true);
+                  }}
+                  theme={theme}
+                />
+              )}
+            </View>
+          )}
+          {canVideo && (
+            <View style={styles.cameraButtonContainer}>
+              <CommsBottomBarButton
+                onPress={toggleVideo}
+                iconName={isVideoEnabled ? "Video02Icon" : "VideoOffIcon"}
+              />
+
+              <CameraArrowButton
                 onPress={() => {
-                  if (connected && roomMatch) setShowMicrophoneSelector(true);
+                  if (connected && roomMatch) handleCameraArrowPress();
                 }}
                 theme={theme}
               />
-            )}
-          </View>
-          <View style={styles.cameraButtonContainer}>
-            <CommsBottomBarButton
-              onPress={toggleVideo}
-              iconName={isVideoEnabled ? "Video02Icon" : "VideoOffIcon"}
-            />
-
-            <CameraArrowButton
-              onPress={() => {
-                if (connected && roomMatch) handleCameraArrowPress();
-              }}
-              theme={theme}
-            />
-          </View>
+            </View>
+          )}
           <CommsBottomBarButton
             onPress={toggleAudioOutput}
             iconName={isAudioOutputEnabled ? "VolumeHighIcon" : "VolumeOffIcon"}
           />
-          <CommsBottomBarButton
-            onPress={() => {
-              if (Platform === "desktop") setShowScreenShareSelector(true);
-              else startScreenShare();
-            }}
-            iconName={"ComputerScreenShareIcon"}
-          />
+          {canScreenShare && (
+            <CommsBottomBarButton
+              onPress={() => {
+                if (Platform === "desktop") setShowScreenShareSelector(true);
+                else startScreenShare();
+              }}
+              iconName={"ComputerScreenShareIcon"}
+            />
+          )}
           <CommsBottomBarButton
             onPress={() => router.push("/app/settings/comms")}
             iconName={"Settings02Icon"}

@@ -43,6 +43,7 @@ import WebDropZone from "@/src/components/input/WebDropZone";
 
 import { validateFiles } from "@/src/utils/storage/file/validators";
 import Platform from "@/src/utils/device/type";
+import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 
 import SubList from "@/src/components/chat/content/SubList";
 import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
@@ -743,12 +744,27 @@ const ChatContent = () => {
 
           if (!canSendText) return null;
 
+          const myMember = chat?.members?.find((m) => m.uuid === myUUID);
+          const myRoleIDs = myMember?.roleIDs;
+          const myRoles =
+            myRoleIDs?.reduce((acc, id) => {
+              const role = chat?.roles?.find((r) => r.id === id);
+              if (role) acc.push(role);
+              return acc;
+            }, []) || [];
+          const canSendMessage = hasPermission(
+            myRoles,
+            PERMISSIONS.SEND_MESSAGE,
+            subType,
+          );
+
           return (
             <Animated.View
               style={[styles.bottomBarContainer, listAnimatedStyle]}
             >
               <BottomBar
                 chatType={chat?.type}
+                readOnly={!canSendMessage}
                 newMessageText={newMessageText}
                 files={files}
                 textInputRef={textInputRef}

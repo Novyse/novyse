@@ -213,6 +213,7 @@ const MessageList = ({
     setTriggeredMessagePosition,
     isEditedAllowed,
     isDeletedAllowed,
+    isPinnedAllowed,
     onAction,
     handleClose,
   } = useMessageActions({
@@ -436,6 +437,7 @@ const MessageList = ({
         )}
         isEditedAllowed={isEditedAllowed}
         isDeletedAllowed={isDeletedAllowed}
+        isPinnedAllowed={isPinnedAllowed}
         isDownloadAllowed={triggeredMessage?.files?.length > 0}
         isPendingSend={triggeredMessage?.internal === true}
         pendingEditJobId={triggeredMessage?.pendingEditJobId}

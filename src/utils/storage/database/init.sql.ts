@@ -76,9 +76,21 @@ CREATE TABLE IF NOT EXISTS chat_pin (
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid)
 );
 
+CREATE TABLE IF NOT EXISTS role (
+    id INTEGER NOT NULL,
+    chatUUID TEXT NOT NULL,
+    name TEXT NOT NULL,
+    permission TEXT NOT NULL,
+    level INTEGER NOT NULL,
+    color TEXT,
+    PRIMARY KEY (chatUUID, id),
+    FOREIGN KEY (chatUUID) REFERENCES chat(uuid) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS member (
     userUUID TEXT NOT NULL,
     chatUUID TEXT NOT NULL,
+    role_ids TEXT NOT NULL DEFAULT '[]',
     joined_at TIMESTAMP NOT NULL,
     PRIMARY KEY (userUUID, chatUUID),
     FOREIGN KEY (userUUID) REFERENCES user(uuid),

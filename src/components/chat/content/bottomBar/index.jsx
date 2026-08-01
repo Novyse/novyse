@@ -30,6 +30,7 @@ const BottomBar = ({
   onRecordingActivityChange,
   onPressArrowUp,
   startScreenRecordingRef,
+  readOnly,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -41,7 +42,7 @@ const BottomBar = ({
       }
       style={{ paddingBottom: insets.bottom + 10 }}
     >
-      {chatType === "CHANNEL" ? (
+      {readOnly ? (
         <ChannelBar />
       ) : (
         <DefaultBar
@@ -68,6 +69,7 @@ const BottomBar = ({
           onRecordingActivityChange={onRecordingActivityChange}
           onPressArrowUp={onPressArrowUp}
           startScreenRecordingRef={startScreenRecordingRef}
+          readOnly={readOnly}
         />
       )}
     </View>

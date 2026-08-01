@@ -79,6 +79,22 @@ export class ChatRepository {
         await this.member.add(chat.uuid, member);
       }
 
+      if (chat.roles && Array.isArray(chat.roles)) {
+        for (const role of chat.roles) {
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO role (id, chatUUID, name, permission, level, color) VALUES (?, ?, ?, ?, ?, ?);`,
+            [
+              role.id,
+              chat.uuid,
+              role.name,
+              String(role.permission),
+              role.level,
+              role.color || null,
+            ],
+          );
+        }
+      }
+
       if (chat.subs && Array.isArray(chat.subs)) {
         for (const sub of chat.subs) {
           await this.db.runAsync(
@@ -174,6 +190,36 @@ export class ChatRepository {
             allSubs.push({ chatUUID: chat.uuid, ...sub });
           }
         }
+      }
+
+      const allRoles: any[] = [];
+      for (const chat of chats) {
+        if (chat.roles && Array.isArray(chat.roles)) {
+          for (const role of chat.roles) {
+            allRoles.push({ chatUUID: chat.uuid, ...role });
+          }
+        }
+      }
+
+      if (allRoles.length > 0) {
+        const rolePlaceholders = allRoles
+          .map(() => `(?, ?, ?, ?, ?, ?)`)
+          .join(", ");
+        const roleValues: any[] = [];
+        for (const role of allRoles) {
+          roleValues.push(
+            role.id,
+            role.chatUUID,
+            role.name,
+            String(role.permission),
+            role.level,
+            role.color || null,
+          );
+        }
+        await this.db.runAsync(
+          `INSERT OR IGNORE INTO role (id, chatUUID, name, permission, level, color) VALUES ${rolePlaceholders};`,
+          roleValues,
+        );
       }
 
       if (allSubs.length > 0) {
@@ -474,6 +520,12 @@ export class ChatRepository {
               sub.lastMessage = subMsgMap[sub.id] || null;
             }
           }
+
+          chat.roles =
+            (await this.db.getAllAsync(
+              `SELECT * FROM role WHERE chatUUID = ? ORDER BY id ASC;`,
+              [chat.uuid],
+            )) || [];
 
           chat.pinnedMessages =
             (await this.db.getAllAsync(

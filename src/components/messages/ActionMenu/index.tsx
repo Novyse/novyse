@@ -28,6 +28,7 @@ interface ActionMenuProps {
   isPinned: boolean;
   isEditedAllowed: boolean;
   isDeletedAllowed: boolean;
+  isPinnedAllowed?: boolean;
   isDownloadAllowed: boolean;
   isPendingSend?: boolean;
   pendingEditJobId?: string | null;
@@ -42,6 +43,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
   isPinned,
   isEditedAllowed,
   isDeletedAllowed,
+  isPinnedAllowed,
   isDownloadAllowed,
   isPendingSend,
   pendingEditJobId,
@@ -148,19 +150,21 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
               color: theme.text,
             }
           : undefined,
-        !isPinned
-          ? {
-              action: "Pin",
-              translationKey: "chat.messageActions.pin",
-              iconName: "PinIcon",
-              color: theme.text,
-            }
-          : {
-              action: "Unpin",
-              translationKey: "chat.messageActions.unpin",
-              iconName: "PinOffIcon",
-              color: theme.text,
-            },
+        isPinnedAllowed
+          ? !isPinned
+            ? {
+                action: "Pin",
+                translationKey: "chat.messageActions.pin",
+                iconName: "PinIcon",
+                color: theme.text,
+              }
+            : {
+                action: "Unpin",
+                translationKey: "chat.messageActions.unpin",
+                iconName: "PinOffIcon",
+                color: theme.text,
+              }
+          : undefined,
         {
           action: "Copy",
           translationKey: "chat.messageActions.copy",

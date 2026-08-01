@@ -5,10 +5,12 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import { useRouter } from "expo-router";
 import FloatingButton from "@/src/components/FloatingButton";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useUserStore from "@/src/context/UserContext";
 import { FlashList } from "@shopify/flash-list";
 import BaseListItem from "@/src/components/chat/list/BaseListItem";
 import messageUtils from "@/src/utils/chat/messageFormat";
 import CreateSubModal from "@/src/components/modalSheets/createSub";
+import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 
 import VocalSubSubtitle from "./VocalSubSubtitle";
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
@@ -25,14 +27,24 @@ const SubList = ({
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const headerHeight = useActiveChatStore((state) => state.headerHeight) || 60;
+  const localUserUUID = useUserStore((state) => state.localUserUUID);
   const styles = createStyle(theme, isSmallScreen);
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
 
   const { checkRoomMatch } = useCommsContext();
-  const { join } = useCommsAction(chat.uuid, selectedSub);
+  const { join } = useCommsAction(chat?.uuid, selectedSub);
 
   // If width is very small (e.g. less than 150), only show initials
   const isCollapsed = isSmallScreen || subListWidth < 150;
+
+  const myMember = chat?.members?.find((m) => m.uuid === localUserUUID);
+  const myRoleIDs =
+    myMember?.roleIDs && myMember.roleIDs.length > 0 ? myMember.roleIDs : [2];
+  const myRoles = myRoleIDs
+    .map((id) => chat?.roles?.find((r) => Number(r.id) === Number(id)))
+    .filter(Boolean);
+
+  const canManageSub = hasPermission(myRoles, PERMISSIONS.MANAGE_SUB);
 
   const getLastMessagePreview = (sub) => {
     if (chat.messages) {
@@ -110,7 +122,7 @@ const SubList = ({
         {
           width: isSmallScreen ? 70 : subListWidth,
           marginTop: headerHeight,
-          marginBottom: (bottomBarHeight || 0),
+          marginBottom: bottomBarHeight || 0,
           marginLeft: 10,
         },
       ]}
@@ -125,17 +137,19 @@ const SubList = ({
         contentContainerStyle={{ padding: 10 }}
       />
 
-      <FloatingButton
-        onPress={() => setCreateModalVisible(true)}
-        iconName="PlusSignIcon"
-        size={isCollapsed ? 16 : 20}
-        width={isCollapsed ? 40 : 50}
-        height={isCollapsed ? 40 : 50}
-        position={{
-          bottom: 15,
-          right: isCollapsed ? 15 : 20,
-        }}
-      />
+      {canManageSub && (
+        <FloatingButton
+          onPress={() => setCreateModalVisible(true)}
+          iconName="PlusSignIcon"
+          size={isCollapsed ? 16 : 20}
+          width={isCollapsed ? 40 : 50}
+          height={isCollapsed ? 40 : 50}
+          position={{
+            bottom: 15,
+            right: isCollapsed ? 15 : 20,
+          }}
+        />
+      )}
 
       <CreateSubModal
         visible={isCreateModalVisible}
