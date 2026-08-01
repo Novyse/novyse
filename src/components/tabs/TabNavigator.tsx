@@ -36,9 +36,10 @@ export default function TabNavigator() {
   const { isSmallScreen } = useScreen();
   const { width } = useWindowDimensions();
   const styles = createStyle(theme, isSmallScreen);
+  const Container = isSmallScreen ? View : BlurredView;
 
   return (
-    <BlurredView style={styles.blurredContainer}>
+    <Container style={styles.blurredContainer}>
       <NavigationIndependentTree>
         <NavigationContainer
           ref={tabNavigationRef}
@@ -101,7 +102,7 @@ export default function TabNavigator() {
           </Tab.Navigator>
         </NavigationContainer>
       </NavigationIndependentTree>
-    </BlurredView>
+    </Container>
   );
 }
 
@@ -112,7 +113,7 @@ function createStyle(theme: Theme, isSmallScreen: boolean) {
       position: "relative",
       borderRadius: isSmallScreen ? 0 : 25,
       overflow: "hidden",
-      backgroundColor: "transparent",
+      // backgroundColor: "transparent",
     },
   });
 }
