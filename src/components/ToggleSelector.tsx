@@ -22,6 +22,7 @@ export interface ToggleOption<T extends string = string> {
   value: T;
   label?: string;
   icon?: string;
+  disabled?: boolean;
 }
 
 interface ToggleSelectorProps<T extends string = string> {
@@ -134,50 +135,65 @@ function ToggleSelector<T extends string = string>({
   }));
 
   return (
-      <ScrollView
-        ref={scrollRefCallback}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        style={[styles.scrollView, style]}
-      >
-        <BlurredView style={styles.toggleContainer} onLayout={onLayout}>
-          {containerWidth > 0 && (
-            <Animated.View style={[styles.animatedBackground, animatedStyle]} />
-          )}
-          {options.map((option) => {
-            const isActive = option.value === value;
-            return (
-              <TouchableOpacity
-                key={option.value}
-                style={styles.toggleButton}
-                onPress={() => !disabled && onChange(option.value)}
-                disabled={disabled}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isActive }}
-              >
-                {option.icon ? (
-                  <Icon
-                    name={option.icon}
-                    size={18}
-                    color={isActive ? theme.text : theme.subtitle}
-                  />
-                ) : (
-                  <AppText
-                    style={[
-                      styles.toggleText,
-                      isActive && styles.toggleTextActive,
-                    ]}
-                    text={option.label || ""}
-                    numberOfLines={1}
-                  />
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </BlurredView>
-      </ScrollView>
+    <ScrollView
+      ref={scrollRefCallback}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+      style={[styles.scrollView, style]}
+    >
+      <BlurredView style={styles.toggleContainer} onLayout={onLayout}>
+        {containerWidth > 0 && (
+          <Animated.View style={[styles.animatedBackground, animatedStyle]} />
+        )}
+        {options.map((option) => {
+          const isActive = option.value === value;
+          return (
+            <TouchableOpacity
+              key={option.value}
+              style={[
+                styles.toggleButton,
+                option.disabled && styles.toggleButtonDisabled,
+              ]}
+              onPress={() =>
+                !disabled && !option.disabled && onChange(option.value)
+              }
+              disabled={disabled || option.disabled}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityState={{
+                selected: isActive,
+                disabled: option.disabled,
+              }}
+            >
+              {option.icon ? (
+                <Icon
+                  name={option.icon}
+                  size={18}
+                  color={
+                    isActive
+                      ? theme.text
+                      : option.disabled
+                        ? theme.placeholderText
+                        : theme.subtitle
+                  }
+                />
+              ) : (
+                <AppText
+                  style={[
+                    styles.toggleText,
+                    isActive && styles.toggleTextActive,
+                    option.disabled && styles.toggleTextDisabled,
+                  ]}
+                  text={option.label || ""}
+                  numberOfLines={1}
+                />
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </BlurredView>
+    </ScrollView>
   );
 }
 
@@ -222,6 +238,9 @@ function createStyles(theme: any, hasIcons?: boolean, buttonWidth?: number) {
       borderRadius: 25,
       zIndex: 1,
     },
+    toggleButtonDisabled: {
+      opacity: 0.5,
+    },
     toggleText: {
       fontSize: 14,
       fontWeight: "600",
@@ -230,6 +249,9 @@ function createStyles(theme: any, hasIcons?: boolean, buttonWidth?: number) {
     },
     toggleTextActive: {
       color: theme.text,
+    },
+    toggleTextDisabled: {
+      color: theme.placeholderText,
     },
   });
 }

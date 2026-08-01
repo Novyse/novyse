@@ -8,7 +8,6 @@ import { Room, Track } from "livekit-client";
 
 import platform from "@/src/utils/device/type";
 
-
 import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
 
 const getDeviceErrorMessage = (t) =>
@@ -115,7 +114,10 @@ const useCommsAction = (chatUUID, sub) => {
     }
   }, [room]);
 
-  const join = async () => {
+  const join = async (overrideChatUUID, overrideSub) => {
+    const targetChatUUID = overrideChatUUID ?? chatUUID;
+    const targetSub = overrideSub ?? sub;
+
     setConnecting(true);
     if (connected) {
       leave();
@@ -123,8 +125,8 @@ const useCommsAction = (chatUUID, sub) => {
 
     try {
       const { success, token, url } = await gateway.comms.getToken(
-        chatUUID,
-        sub,
+        targetChatUUID,
+        targetSub,
       );
 
       if (!success) {
@@ -439,15 +441,15 @@ const useCommsAction = (chatUUID, sub) => {
 
     const micListener = DeviceEventEmitter.addListener(
       "comms_toggle_mic",
-      toggleAudio
+      toggleAudio,
     );
     const camListener = DeviceEventEmitter.addListener(
       "comms_toggle_cam",
-      toggleVideo
+      toggleVideo,
     );
     const leaveListener = DeviceEventEmitter.addListener(
       "comms_leave_voice",
-      leave
+      leave,
     );
 
     return () => {

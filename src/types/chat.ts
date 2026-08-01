@@ -9,6 +9,7 @@ import {
 export interface Sub {
   id: number;
   name: string;
+  type: "MIXED" | "TEXT" | "VOCAL" | "ANNOUNCE" | "BROADCAST" | "BOARD";
   created_at: string;
 }
 

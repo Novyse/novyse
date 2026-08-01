@@ -18,6 +18,7 @@ import chatUtils from "@/src/utils/chat/messageFormat";
 const MainHeader = ({
   chatUUIDorHandle,
   chatType,
+  subType,
   selectedChatName,
   selectedChatPictureUUID,
   memberCount,
@@ -34,6 +35,9 @@ const MainHeader = ({
   const { theme } = useContext(ThemeContext);
   const { isSmallScreen, isMediumScreen } = useScreen();
   const styles = createStyle(theme);
+
+  const canSendText = ["MIXED", "TEXT", "ANNOUNCE"].includes(subType);
+  const canEnterVocal = ["MIXED", "VOCAL"].includes(subType);
 
   return (
     <AppHeaderRow
@@ -90,34 +94,37 @@ const MainHeader = ({
       }
       right={
         <>
-          {onOpenSearch && (
+          {onOpenSearch && ["MIXED", "TEXT", "ANNOUNCE"].includes(subType) && (
             <Icon
               name="Search01Icon"
               style={headerIconButtonStyle.iconButton}
               onPress={onOpenSearch}
             />
           )}
-          {contentView !== "chat" && (
+          {subType === "MIXED" && contentView !== "chat" && (
             <Icon
               name="Message02Icon"
               style={headerIconButtonStyle.iconButton}
               onPress={() => setContentView("chat")}
             />
           )}
-          {contentView !== "vocal" && (
+          {subType === "MIXED" && contentView !== "vocal" && (
             <Icon
               name="AudioWave01Icon"
               style={headerIconButtonStyle.iconButton}
               onPress={() => setContentView("vocal")}
             />
           )}
-          {!isSmallScreen && !isMediumScreen && contentView !== "both" && (
-            <Icon
-              name="BorderVerticalIcon"
-              style={headerIconButtonStyle.iconButton}
-              onPress={() => setContentView("both")}
-            />
-          )}
+          {subType === "MIXED" &&
+            !isSmallScreen &&
+            !isMediumScreen &&
+            contentView !== "both" && (
+              <Icon
+                name="BorderVerticalIcon"
+                style={headerIconButtonStyle.iconButton}
+                onPress={() => setContentView("both")}
+              />
+            )}
         </>
       }
     />

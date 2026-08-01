@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useRouter } from "expo-router";
@@ -10,12 +10,19 @@ import BaseListItem from "@/src/components/chat/list/BaseListItem";
 import messageUtils from "@/src/utils/chat/messageFormat";
 import CreateSubModal from "@/src/components/modalSheets/createSub";
 
+import VocalSubSubtitle from "./VocalSubSubtitle";
+import useCommsAction from "@/src/hooks/comms/useCommsAction";
+import { useCommsContext } from "@/src/context/CommsContext";
+
 const SubList = ({ chat, selectedSub, isSmallScreen, subListWidth }) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const headerHeight = useActiveChatStore((state) => state.headerHeight) || 60;
   const styles = createStyle(theme, isSmallScreen);
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
+
+  const { checkRoomMatch } = useCommsContext();
+  const { join } = useCommsAction(chat.uuid, selectedSub);
 
   // If width is very small (e.g. less than 150), only show initials
   const isCollapsed = isSmallScreen || subListWidth < 150;
@@ -40,11 +47,20 @@ const SubList = ({ chat, selectedSub, isSmallScreen, subListWidth }) => {
     const isActive = selectedSub === sub.id;
     const lastMsgPreview = getLastMessagePreview(sub);
 
-    const subtitleNode = (
-      <AppText style={styles.preview} numberOfLines={1}>
-        {lastMsgPreview || ""}
-      </AppText>
-    );
+    const subtitleNode =
+      sub.type === "VOCAL" ? (
+        <VocalSubSubtitle
+          chatUUID={chat.uuid}
+          subId={sub.id}
+          theme={theme}
+          defaultPreview={lastMsgPreview}
+          listStyles={styles}
+        />
+      ) : (
+        <AppText style={styles.preview} numberOfLines={1}>
+          {lastMsgPreview || ""}
+        </AppText>
+      );
 
     const renderAvatar = () => (
       <View style={[styles.avatar, isActive && styles.activeAvatar]}>
@@ -65,7 +81,16 @@ const SubList = ({ chat, selectedSub, isSmallScreen, subListWidth }) => {
         isSelected={false}
         isActive={isActive}
         isPinned={false}
-        onPress={() => router.push(`/app/chat/${chat.uuid}/${sub.id}`)}
+        onPress={() => {
+          if (sub.type === "VOCAL") {
+            const isJoined = checkRoomMatch(chat.uuid, sub.id);
+            if (!isJoined) {
+              join(chat.uuid, sub.id);
+              return;
+            }
+          }
+          router.push(`/app/chat/${chat.uuid}/${sub.id}`);
+        }}
         renderAvatar={renderAvatar}
       />
     );

@@ -82,8 +82,8 @@ export class ChatRepository {
       if (chat.subs && Array.isArray(chat.subs)) {
         for (const sub of chat.subs) {
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, created_at) VALUES (?, ?, ?, ?);`,
-            [sub.id, chat.uuid, sub.name, sub.created_at],
+            `INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, type, created_at) VALUES (?, ?, ?, ?, ?);`,
+            [sub.id, chat.uuid, sub.name, sub.type, sub.created_at],
           );
         }
       }
@@ -177,18 +177,19 @@ export class ChatRepository {
       }
 
       if (allSubs.length > 0) {
-        const subPlaceholders = allSubs.map(() => `(?, ?, ?, ?)`).join(", ");
+        const subPlaceholders = allSubs.map(() => `(?, ?, ?, ?, ?)`).join(", ");
         const subValues: any[] = [];
         for (const sub of allSubs) {
           subValues.push(
             sub.id || 0,
             sub.chatUUID,
             sub.name || null,
+            sub.type,
             sub.created_at || sub.createdAt || new Date().toISOString(),
           );
         }
         await this.db.runAsync(
-          `INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, created_at) VALUES ${subPlaceholders};`,
+          `INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, type, created_at) VALUES ${subPlaceholders};`,
           subValues,
         );
       }
@@ -298,11 +299,12 @@ export class ChatRepository {
     add: async (chatUUID: string, sub: any): Promise<boolean> => {
       try {
         await this.db.runAsync(
-          `INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, created_at) VALUES (?, ?, ?, ?);`,
+          `INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, type, created_at) VALUES (?, ?, ?, ?, ?);`,
           [
             sub.id,
             chatUUID,
             sub.name,
+            sub.type,
             sub.created_at || sub.createdAt || new Date().toISOString(),
           ],
         );

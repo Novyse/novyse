@@ -11,6 +11,7 @@ import AppText from "@/src/components/AppText";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
+import ToggleSelector from "@/src/components/ToggleSelector";
 
 const CreateSubModal = ({ visible, onClose, chatUUID }) => {
   const { theme } = useContext(ThemeContext);
@@ -22,6 +23,8 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
 
   const snapPoints = useMemo(() => ["50%"], []);
 
+  const [type, setType] = useState("MIXED");
+
   const handleCreate = async () => {
     if (!name || name.trim().length === 0) {
       setError(t("modals.create_chat.requirements.name") || "Name is required");
@@ -31,9 +34,11 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
     const { success, sub } = await gateway.chat.sub.create(
       chatUUID,
       name.trim(),
+      type,
     );
     if (success) {
       setName("");
+      setType("MIXED");
       setError(null);
       onClose();
       await eventEmitter.chat.update(chatUUID, "sub_create", null, { sub });
@@ -45,7 +50,6 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
   const ModalContent = (
     <View style={styles.contentContainer}>
       <View style={styles.header}>
-        <AppText style={styles.modalTitle} text="Create a new Sub" />
         <AppText
           style={styles.modalSubtitle}
           text="Enter a name for the sub-channel"
@@ -67,6 +71,24 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
             setError(null);
           }}
         />
+      </View>
+
+      <View style={styles.section}>
+        <AppText style={styles.inputLabel} text="Sub Type" />
+        <View style={{ marginBottom: 12 }}>
+          <ToggleSelector
+            options={[
+              { value: "MIXED", label: "Mixed" },
+              { value: "TEXT", label: "Text" },
+              { value: "VOCAL", label: "Vocal" },
+              { value: "ANNOUNCE", label: "Announce" },
+              { value: "BROADCAST", label: "Broadcast", disabled: true },
+              { value: "BOARD", label: "Board", disabled: true },
+            ]}
+            value={type}
+            onChange={(val) => setType(val)}
+          />
+        </View>
       </View>
 
       <StatusMessage
@@ -117,12 +139,6 @@ function createStyle(theme) {
     },
     header: {
       marginBottom: 20,
-    },
-    modalTitle: {
-      fontSize: 22,
-      fontWeight: "700",
-      color: theme.text,
-      marginBottom: 6,
     },
     modalSubtitle: {
       fontSize: 14,

@@ -60,6 +60,10 @@ const Header = ({
     lastAccessAt,
   } = useChatMetadata(chatUUIDorHandle);
 
+  const chatData = useActiveChatStore((state) => state.activeChatData);
+  const selectedSub = useActiveChatStore((state) => state.selectedSub);
+  const subType = chatData?.subs?.find((s) => s.id === selectedSub)?.type;
+
   const { connected, room, participants } = useCommsContext();
   const hasPinnedMessage = pinnedMessages && pinnedMessages.length > 0;
   const hasComms = connected;
@@ -91,6 +95,7 @@ const Header = ({
     <MainHeader
       chatUUIDorHandle={chatUUIDorHandle}
       chatType={chatType}
+      subType={subType}
       selectedChatName={name}
       selectedChatPictureUUID={profilePictureUUID}
       memberCount={memberCount}

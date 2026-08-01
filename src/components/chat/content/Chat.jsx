@@ -669,34 +669,45 @@ const ChatContent = () => {
             />
           </Animated.View>
         )}
-        <Animated.View style={[styles.bottomBarContainer, listAnimatedStyle]}>
-          <BottomBar
-            chatType={chat?.type}
-            newMessageText={newMessageText}
-            files={files}
-            textInputRef={textInputRef}
-            onTextChange={handleTextChangeWithActivity}
-            onSendMessage={handleSendOrEdit}
-            onFileAppend={handleAppendFilesToDraft}
-            isAttachMenuOpen={isAttachMenuOpen}
-            onToggleAttachMenu={handleToggleAttachMenu}
-            isEmojiPickerVisible={isEmojiPickerVisible}
-            onToggleEmoji={toggleEmojiPicker}
-            onInputFocus={onInputFocus}
-            setBottomBarHeight={setBottomBarHeight}
-            replyingTo={replyingTo}
-            onCancelReply={handleCancelReply}
-            editingMessage={editingMessage}
-            onCancelEdit={handleCancelEdit}
-            mentionMembers={mentionMembers}
-            onSelectMention={onSelectMention}
-            onChangeMention={onChangeMention}
-            onEndMention={onEndMention}
-            onRecordingActivityChange={emitRecording}
-            onPressArrowUp={handlePressArrowUp}
-            startScreenRecordingRef={startScreenRecordingRef}
-          />
-        </Animated.View>
+        {(() => {
+          const subType = chat?.subs?.find((s) => s.id === selectedSub)?.type;
+          const canSendText = ["MIXED", "TEXT", "ANNOUNCE"].includes(subType);
+
+          if (!canSendText) return null;
+
+          return (
+            <Animated.View
+              style={[styles.bottomBarContainer, listAnimatedStyle]}
+            >
+              <BottomBar
+                chatType={chat?.type}
+                newMessageText={newMessageText}
+                files={files}
+                textInputRef={textInputRef}
+                onTextChange={handleTextChangeWithActivity}
+                onSendMessage={handleSendOrEdit}
+                onFileAppend={handleAppendFilesToDraft}
+                isAttachMenuOpen={isAttachMenuOpen}
+                onToggleAttachMenu={handleToggleAttachMenu}
+                isEmojiPickerVisible={isEmojiPickerVisible}
+                onToggleEmoji={toggleEmojiPicker}
+                onInputFocus={onInputFocus}
+                setBottomBarHeight={setBottomBarHeight}
+                replyingTo={replyingTo}
+                onCancelReply={handleCancelReply}
+                editingMessage={editingMessage}
+                onCancelEdit={handleCancelEdit}
+                mentionMembers={mentionMembers}
+                onSelectMention={onSelectMention}
+                onChangeMention={onChangeMention}
+                onEndMention={onEndMention}
+                onRecordingActivityChange={emitRecording}
+                onPressArrowUp={handlePressArrowUp}
+                startScreenRecordingRef={startScreenRecordingRef}
+              />
+            </Animated.View>
+          );
+        })()}
         {Platform !== "mobile" && (
           <EmojiMenuOverlay
             isVisible={isEmojiPickerVisible}

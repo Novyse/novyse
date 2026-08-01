@@ -556,9 +556,10 @@ const gateway = {
        * Create a new sub-channel in a forum chat.
        * @param {String} chatUUID
        * @param {String} name
-       * @returns {Object} { success: boolean, sub?: { id: number, name: string, created_at: string } }
+       * @param {String} type - "MIXED" | "TEXT" | "VOCAL" | "ANNOUNCE" | "BROADCAST" | "BOARD"
+       * @returns {Object} { success: boolean, sub?: { id: number, name: string, type: string, created_at: string } }
        */
-      async create(chatUUID, name) {
+      async create(chatUUID, name, type) {
         try {
           if (!chatUUID || !name) {
             throw new Error("Missing required fields for creating sub");
@@ -566,6 +567,7 @@ const gateway = {
           const response = await api.post("/chat/sub/create", {
             chatUUID,
             name,
+            type,
           });
           const success = response.data.success;
           if (success) {

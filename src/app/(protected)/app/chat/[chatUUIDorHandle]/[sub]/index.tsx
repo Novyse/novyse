@@ -46,6 +46,7 @@ const ChatPageRoute = () => {
   const setSelectedHandle = useActiveChatStore(
     (state) => state.setSelectedHandle,
   );
+  const selectedSub = useActiveChatStore((state) => state.selectedSub);
   const setSelectedSub = useActiveChatStore((state) => state.setSelectedSub);
   const selectedMessages = useActiveChatStore(
     (state) => state.selectedMessages,
@@ -172,6 +173,19 @@ const ChatPageRoute = () => {
       setContentView("chat");
     }
   }, [isSmallScreen, isMediumScreen, contentView, setContentView]);
+
+  const subType = chat?.subs?.find((s) => s.id === selectedSub)?.type;
+
+  useEffect(() => {
+    if (subType === "VOCAL" && contentView !== "vocal") {
+      setContentView("vocal");
+    } else if (
+      ["TEXT", "ANNOUNCE"].includes(subType as string) &&
+      contentView !== "chat"
+    ) {
+      setContentView("chat");
+    }
+  }, [subType, contentView, setContentView]);
 
   useEffect(() => {
     if (chatUUIDorHandle) {
