@@ -14,6 +14,10 @@ import { useCommsContext } from "@/src/context/CommsContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
+import {
+  HEADER_ROW_HEIGHT,
+  ICON_BUTTON_SIZE,
+} from "@/src/components/header/constants";
 
 interface CommsHeaderProps {
   connected: boolean;
@@ -79,6 +83,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
         <AppText
           style={styles.participantsText}
           numberOfLines={1}
+          ellipsizeMode="tail"
           translationKey="chat.comms.participantsInCall"
           translationOptions={{ count: participantsCount }}
         />
@@ -113,6 +118,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
               name={"Call02Icon"}
               color={theme.iconDanger}
               hoverColor={theme.iconDanger}
+              style={styles.iconButton}
               onPress={leave}
             />
           </>
@@ -121,6 +127,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
             name="Call02Icon"
             color={theme.iconSuccess}
             hoverColor={theme.iconSuccess}
+            style={styles.iconButton}
             onPress={() => join()}
           />
         )}
@@ -130,37 +137,36 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
 };
 
 function createStyle(theme: any, connected: boolean) {
-  const HEADER_MAIN_HEIGHT = 60;
-  const ICON_SIZE = 34;
-
   return StyleSheet.create({
     headerMainRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      height: HEADER_MAIN_HEIGHT,
+      height: HEADER_ROW_HEIGHT,
       width: "100%",
-      paddingHorizontal: 10,
-      borderRadius: 15,
+      paddingHorizontal: 6,
       backgroundColor: "transparent",
-      marginBottom: 10,
+      overflow: "hidden",
     },
     headerLeft: {
+      flex: 1,
+      flexShrink: 1,
+      minWidth: 0,
       flexDirection: "row",
       alignItems: "center",
       gap: 8,
-      paddingLeft: 8,
-      paddingRight: 50,
+      paddingLeft: 4,
+      overflow: "hidden",
     },
     headerRight: {
+      flexShrink: 0,
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
-      paddingRight: 4,
+      gap: 4,
     },
     iconButton: {
-      width: ICON_SIZE,
-      height: ICON_SIZE,
+      width: ICON_BUTTON_SIZE,
+      height: ICON_BUTTON_SIZE,
       justifyContent: "center",
       alignItems: "center",
     },
@@ -171,7 +177,9 @@ function createStyle(theme: any, connected: boolean) {
       alignItems: "center",
     },
     participantsText: {
-      fontSize: 16,
+      flex: 1,
+      flexShrink: 1,
+      fontSize: 15,
       color: theme.text,
       fontWeight: "600",
     },
