@@ -33,6 +33,7 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
   const chatStore = useChatStore();
   const message = chatStore.getMessage(
     pinnedMessage?.chatUUID,
+    pinnedMessage?.subID,
     pinnedMessage?.messageID,
   );
 
