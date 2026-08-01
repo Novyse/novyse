@@ -46,13 +46,16 @@ const ChatListItemSearch = React.memo(
               style={styles.profileHandle}
               numberOfLines={1}
               ellipsizeMode="tail"
-              text={`${item?.handle ? `@${item.handle}  •` : ""}${
+              text={[
+                item?.handle ? `@${item.handle}` : "",
                 item.type === "GROUP" ||
                 item.type === "FORUM" ||
                 item.type === "CHANNEL"
-                  ? `${t("chat.memberCount", { count: item.memberCount })}`
-                  : ""
-              }`}
+                  ? t("chat.memberCount", { count: item.memberCount })
+                  : "",
+              ]
+                .filter(Boolean)
+                .join(" • ")}
             />
           </View>
         </HoverAndPressedButton>

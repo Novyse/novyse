@@ -307,7 +307,9 @@ const Search = () => {
         <ItemSearch
           item={item.item as any}
           onPress={(handle) => {
-            if (item.item.uuid) {
+            if (item.item.type === "USER") {
+              setSelectedHandle(handle);
+            } else if (item.item.uuid) {
               setSelectedChatUUID(item.item.uuid);
             } else {
               setSelectedHandle(handle);
@@ -428,7 +430,7 @@ const createStyle = (theme: any, insets: any, statusBannerOffset: number) => {
       color: theme.text,
       outlineStyle: "none" as any,
       minWidth: 30,
-      marginLeft: 5
+      marginLeft: 5,
     },
     loader: {
       marginTop: contentTop,
