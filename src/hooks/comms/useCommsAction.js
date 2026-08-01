@@ -50,9 +50,6 @@ const useCommsAction = (chatUUID, sub) => {
 
   const [microphoneDevice, setMicrophoneDevice] = useState(null);
   const [cameraDevice, setCameraDevice] = useState(null);
-  const [speakerDevice, setSpeakerDevice] = useState(null);
-
-  const isMobile = platform === "mobile";
 
   // @SamueleOrazioDurante temp init function, this will be removed in the 1.2 with the comms settings menù implementation
   const initHardwareDevices = async (roomInstance) => {
@@ -89,7 +86,6 @@ const useCommsAction = (chatUUID, sub) => {
 
     setMicrophoneDevice(microphone);
     setCameraDevice(camera);
-    setSpeakerDevice(speaker);
   };
 
   useEffect(() => {
@@ -112,7 +108,6 @@ const useCommsAction = (chatUUID, sub) => {
 
       setMicrophoneDevice(null);
       setCameraDevice(null);
-      setSpeakerDevice(null);
     }
   }, [room]);
 
@@ -260,26 +255,6 @@ const useCommsAction = (chatUUID, sub) => {
     }
     switchCamera();
   }, [cameraDevice]);
-
-  useEffect(() => {
-    async function switchSpeaker() {
-      if (!room || !room.localParticipant || !speakerDevice || isMobile) return;
-      try {
-        const deviceId =
-          typeof speakerDevice === "string"
-            ? speakerDevice
-            : speakerDevice.deviceId;
-        if (!deviceId || room.getActiveDevice("audiooutput") === deviceId)
-          return;
-
-        await room.switchActiveDevice("audiooutput", deviceId);
-        setError(null);
-      } catch (e) {
-        console.error("Failed switching speaker device", e);
-      }
-    }
-    switchSpeaker();
-  }, [speakerDevice, room, isMobile]);
 
   useEffect(() => {
     async function switchFacingMode() {
@@ -474,7 +449,6 @@ const useCommsAction = (chatUUID, sub) => {
     isVideoEnabled,
     microphoneDevice,
     cameraDevice,
-    speakerDevice,
     facingMode,
     pinnedStreamUUID,
     fullscreenStreamUUID,
@@ -486,7 +460,6 @@ const useCommsAction = (chatUUID, sub) => {
     toggleFacingMode,
     setMicrophoneDevice,
     setCameraDevice,
-    setSpeakerDevice,
     setFacingMode,
     startScreenShare,
     stopScreenShare,
