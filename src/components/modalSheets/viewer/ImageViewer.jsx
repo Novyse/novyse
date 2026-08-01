@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Pressable, Platform } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { StyleSheet, View, Platform, Modal, StatusBar } from "react-native";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useWindowDimensions } from "react-native";
@@ -16,7 +16,7 @@ import Animated, {
   clamp,
   runOnJS,
 } from "react-native-reanimated";
-import AdaptiveModal from "../AdaptiveModal";
+import * as ScreenOrientation from "expo-screen-orientation";
 import { useScreen } from "@/src/context/ScreenContext";
 import useDownload from "@/src/hooks/file/useDownload";
 import useShare from "@/src/hooks/chat/useShare";
@@ -29,10 +29,10 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
   const isMobile = PlatformType === "mobile";
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const { isSmallScreen } = useScreen();
-
-  const styles = createStyle(theme, screenHeight, screenWidth, isSmallScreen);
+  const containerRef = useRef(null);
 
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
@@ -41,7 +41,65 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
 
-  const toggleControls = () => setControlsVisible(!controlsVisible);
+  const toggleControls = () => setControlsVisible((prev) => !prev);
+
+  // Fullscreen and Orientation handling
+  useEffect(() => {
+    if (PlatformType === "web") {
+      const handler = () => setIsFullscreen(!!document.fullscreenElement);
+      document.addEventListener("fullscreenchange", handler);
+      return () => document.removeEventListener("fullscreenchange", handler);
+    } else {
+      const sub = ScreenOrientation.addOrientationChangeListener((e) => {
+        const isL = e.orientationInfo.orientation > 2;
+        setIsFullscreen(isL);
+        StatusBar.setHidden(isL, "fade");
+      });
+      return () => ScreenOrientation.removeOrientationChangeListener(sub);
+    }
+  }, []);
+
+  const toggleFullscreen = async () => {
+    if (PlatformType === "web") {
+      if (!document.fullscreenElement) {
+        containerRef.current?.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    } else {
+      const nextState = !isFullscreen;
+      setIsFullscreen(nextState);
+      StatusBar.setHidden(nextState, "fade");
+      if (nextState) {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.LANDSCAPE,
+        );
+      } else {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT_UP,
+        );
+      }
+    }
+  };
+
+  const resetZoom = () => {
+    scale.value = 1;
+    savedScale.value = 1;
+    translateX.value = 0;
+    translateY.value = 0;
+    savedTranslateX.value = 0;
+    savedTranslateY.value = 0;
+  };
+
+  const handleClose = () => {
+    resetZoom();
+    if (isFullscreen && PlatformType !== "web") {
+      setIsFullscreen(false);
+      StatusBar.setHidden(false, "fade");
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    }
+    onClose();
+  };
 
   // GESTO PINCH (Zoom)
   const pinchGesture = Gesture.Pinch()
@@ -50,7 +108,6 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
     })
     .onEnd(() => {
       if (scale.value < 1.1) {
-        // Effetto calamita alla posizione originale
         scale.value = withSpring(1);
         translateX.value = withSpring(0);
         translateY.value = withSpring(0);
@@ -132,76 +189,129 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
   };
 
   const handleDownload = async () => {
-    if (!uuid) return;
-    await downloadFile({ uuid });
+    if (!uuid && !uri) return;
+    if (uuid) {
+      await downloadFile({ uuid });
+    }
   };
 
-  if (!uri) return <View style={styles.container} />;
+  const styles = createStyle(theme, isFullscreen);
+
+  if (!visible || !uri) return null;
 
   return (
-    <AdaptiveModal
+    <Modal
       visible={visible}
-      onClose={onClose}
-      theme={theme}
-      mode="modal"
-      scrollable={false}
-      hideCloseX={true}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={handleClose}
+      statusBarTranslucent={true}
     >
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={styles.modalRoot}>
         <View
+          ref={containerRef}
           style={styles.container}
           // @ts-ignore
           onWheel={onWheel}
         >
-          <GestureDetector gesture={composedGestures}>
-            <Animated.View style={[styles.imageWrapper, animatedStyle]}>
-              <Image
-                source={{ uri }}
-                style={styles.image}
-                contentFit="contain"
-                transition={0}
-                //@ts-ignore
-                draggable={false}
-              />
-            </Animated.View>
-          </GestureDetector>
-
           {controlsVisible && (
-            <SafeAreaView style={styles.header}>
-              <Icon name="Cancel01Icon" onPress={onClose} />
-              <View style={styles.rightButtons}>
-                {uuid && (
-                  <Icon name="Download01Icon" onPress={handleDownload} />
-                )}
-                {isMobile && <Icon name="Share01Icon" onPress={handleShare} />}
+            <SafeAreaView style={styles.headerSafeArea}>
+              <View style={styles.header}>
+                <Icon
+                  name="Cancel01Icon"
+                  onPress={handleClose}
+                  color={theme.icon}
+                  hoverColor={theme.iconHover}
+                />
+                <View style={styles.rightButtons}>
+                  <Icon
+                    name="Download01Icon"
+                    onPress={handleDownload}
+                    color={theme.icon}
+                    hoverColor={theme.iconHover}
+                  />
+                  <Icon
+                    name={isFullscreen ? "ArrowShrink02Icon" : "ArrowExpand01Icon"}
+                    onPress={toggleFullscreen}
+                    color={theme.icon}
+                    hoverColor={theme.iconHover}
+                  />
+                  {isMobile && (
+                    <Icon
+                      name="Share01Icon"
+                      onPress={handleShare}
+                      color={theme.icon}
+                      hoverColor={theme.iconHover}
+                    />
+                  )}
+                </View>
               </View>
             </SafeAreaView>
           )}
+
+          <View style={styles.imageContainer}>
+            <GestureDetector gesture={composedGestures}>
+              <Animated.View style={[styles.imageWrapper, animatedStyle]}>
+                <Image
+                  source={{ uri }}
+                  style={styles.image}
+                  contentFit="contain"
+                  transition={0}
+                  //@ts-ignore
+                  draggable={false}
+                />
+              </Animated.View>
+            </GestureDetector>
+          </View>
         </View>
       </GestureHandlerRootView>
-    </AdaptiveModal>
+    </Modal>
   );
 };
 
-const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) => {
-  const baseWidth = isSmallScreen ? screenWidth : screenWidth * 0.7;
-  const baseHeight = isSmallScreen ? screenHeight : screenHeight * 0.7;
-
+const createStyle = (theme, isFullscreen) => {
   return StyleSheet.create({
+    modalRoot: {
+      flex: 1,
+      backgroundColor: theme.backgroundModalOverlay,
+    },
     container: {
-      backgroundColor: "transparent",
+      flex: 1,
+      backgroundColor: theme.backgroundModalOverlay,
       overflow: "hidden",
-      height: baseHeight,
-      width: baseWidth,
-      alignItems: "center",
-      justifyContent: "center",
       ...Platform.select({ web: { cursor: "grab" } }),
     },
-    imageWrapper: {
+    headerSafeArea: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1000,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+    },
+    rightButtons: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+    },
+    imageContainer: {
+      flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      height: baseHeight,
-      width: baseWidth,
+      width: "100%",
+      height: "100%",
+    },
+    imageWrapper: {
+      width: isFullscreen ? "100%" : "85%",
+      height: isFullscreen ? "100%" : "85%",
+      justifyContent: "center",
+      alignItems: "center",
       ...Platform.select({
         web: {
           userSelect: "none",
@@ -215,22 +325,8 @@ const createStyle = (theme, screenHeight, screenWidth, isSmallScreen) => {
       height: "100%",
       pointerEvents: "none",
     },
-    header: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      paddingHorizontal: 20,
-      paddingTop: 10,
-      zIndex: 100,
-    },
-    rightButtons: {
-      flexDirection: "row",
-      gap: 10,
-    },
   });
 };
 
 export default ImageViewer;
+
