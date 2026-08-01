@@ -102,23 +102,23 @@ function createStyle(theme, shouldUseFullscreen, options = {}) {
     modalAnchor: {
       width: shouldUseFullscreen ? "100%" : popover ? undefined : "100%",
       maxWidth: shouldUseFullscreen ? "100%" : popover ? undefined : 520,
-      maxHeight: "100%",
-      flexShrink: 1,
-      alignSelf: popover ? "flex-start" : "center",
-      marginLeft: popover ? 10 : 0,
-      marginBottom: popover ? 70 : 0,
+      maxHeight: popover ? undefined : "100%",
+      flexShrink: popover ? 0 : 1,
+      alignSelf: popover ? "flex-end" : "center",
+      marginRight: 0,
+      marginBottom: popover ? 45 : 0,
     },
     container: {
       borderRadius: shouldUseFullscreen ? 0 : 15,
       elevation: 5,
       width: shouldUseFullscreen ? "100%" : undefined,
-      maxHeight: "100%",
-      flexShrink: 1,
+      maxHeight: popover ? undefined : "100%",
+      flexShrink: popover ? 0 : 1,
     },
     inner: {
       padding: 15,
-      maxHeight: "100%",
-      flexShrink: 1,
+      maxHeight: popover ? undefined : "100%",
+      flexShrink: popover ? 0 : 1,
     },
     scrollView: {
       flexShrink: 1,
@@ -127,7 +127,7 @@ function createStyle(theme, shouldUseFullscreen, options = {}) {
       flexGrow: 1,
     },
     body: {
-      flexShrink: 1,
+      flexShrink: popover ? 0 : 1,
     },
   });
 }

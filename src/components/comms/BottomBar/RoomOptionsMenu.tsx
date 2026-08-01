@@ -67,25 +67,25 @@ export const RoomOptionsMenu: React.FC<RoomOptionsMenuProps> = ({
 const createStyles = (theme: any) =>
   StyleSheet.create({
     content: {
-      padding: 16,
+      padding: 6,
     },
     menuColumn: {
       flexDirection: "column",
-      gap: 6,
+      gap: 4,
     },
     menuItem: {
-      paddingVertical: 10,
-      paddingHorizontal: 12,
-      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+      borderRadius: 6,
       backgroundColor: theme.backgroundTextField,
     },
     menuItemContent: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
+      gap: 10,
     },
     menuText: {
-      fontSize: 14,
+      fontSize: 13,
       color: theme.text,
       fontWeight: "600",
     },
