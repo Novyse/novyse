@@ -166,20 +166,16 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelectGif }) => {
   const listData = useMemo(() => {
     const data: Array<
       | { type: "header"; key: string; titleKey: string }
-      | { type: "row"; key: string; gifs: GifResult[] }
+      | ({ type: "gif"; key: string } & GifResult)
     > = [];
 
     const pushSection = (key: string, titleKey: string, gifs: GifResult[]) => {
       const filtered = filterByProvider(gifs, selectedProvider);
       if (filtered.length === 0) return;
       data.push({ type: "header", key: `header-${key}`, titleKey });
-      for (let i = 0; i < filtered.length; i += columnCount) {
-        data.push({
-          type: "row",
-          key: `row-${key}-${i}`,
-          gifs: filtered.slice(i, i + columnCount),
-        });
-      }
+      filtered.forEach((gif) => {
+        data.push({ type: "gif", key: `${key}-${gif.id}`, ...gif });
+      });
     };
 
     if (isSearching) {
@@ -190,14 +186,7 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelectGif }) => {
     }
 
     return data;
-  }, [
-    isSearching,
-    searchResults,
-    recentGifs,
-    trending,
-    columnCount,
-    selectedProvider,
-  ]);
+  }, [isSearching, searchResults, recentGifs, trending, selectedProvider]);
 
   const renderItem = useCallback(
     ({ item }: { item: (typeof listData)[number] }) => {
@@ -212,32 +201,23 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelectGif }) => {
         );
       }
 
+      const aspect = item.width && item.height ? item.width / item.height : 1;
+      const itemHeight = cellWidth / Math.max(aspect, 0.6);
+
       return (
-        <View style={[styles.gifRow, { gap }]}>
-          {item.gifs.map((gif) => {
-            const aspect = gif.width / gif.height;
-            return (
-              <TouchableOpacity
-                key={gif.id}
-                style={[
-                  styles.gifCell,
-                  {
-                    width: cellWidth,
-                    height: cellWidth / Math.max(aspect, 0.6),
-                  },
-                ]}
-                onPress={() => handleSelect(gif)}
-                activeOpacity={0.8}
-              >
-                <ExpoImage
-                  source={{ uri: gif.previewUrl }}
-                  style={styles.gifImage}
-                  contentFit="cover"
-                  recyclingKey={gif.id}
-                />
-              </TouchableOpacity>
-            );
-          })}
+        <View style={styles.gifCellWrapper}>
+          <TouchableOpacity
+            style={[styles.gifCell, { height: itemHeight }]}
+            onPress={() => handleSelect(item)}
+            activeOpacity={0.8}
+          >
+            <ExpoImage
+              source={{ uri: item.previewUrl }}
+              style={styles.gifImage}
+              contentFit="cover"
+              recyclingKey={item.id}
+            />
+          </TouchableOpacity>
         </View>
       );
     },
@@ -295,6 +275,14 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelectGif }) => {
           <FlashList
             data={listData}
             keyExtractor={(item) => item.key}
+            masonry
+            numColumns={columnCount}
+            optimizeItemArrangement={true}
+            overrideItemLayout={(layout, item) => {
+              if (item.type === "header") {
+                layout.span = columnCount;
+              }
+            }}
             renderItem={renderItem}
             estimatedItemSize={120}
             contentContainerStyle={styles.listContent}
@@ -356,10 +344,8 @@ const createStyle = (theme: any) =>
       marginVertical: 8,
       marginLeft: 5,
     },
-    gifRow: {
-      flexDirection: "row",
-      paddingHorizontal: 10,
-      marginBottom: 6,
+    gifCellWrapper: {
+      padding: 3,
     },
     gifCell: {
       borderRadius: 8,
