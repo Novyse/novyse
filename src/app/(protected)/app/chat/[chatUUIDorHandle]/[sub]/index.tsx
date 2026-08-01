@@ -319,10 +319,8 @@ const ChatPageRoute = () => {
                 width: vocalWidth,
                 minWidth: VOCAL_MIN,
                 height: "100%",
-                position: "relative",
               }}
             >
-              <PanelResizeHandle panHandlers={resizerHandlers} />
               <VocalContent />
             </View>
           </View>
