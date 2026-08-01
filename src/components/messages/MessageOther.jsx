@@ -1,29 +1,21 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Pressable, Linking } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import AppText from "@/src/components/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import useUriResolver from "@/src/hooks/file/useUriResolver";
+import useOpenFile from "@/src/hooks/file/useOpenFile";
 import FileSizeProgress from "./FileSizeProgress";
 
 import FileButton from "./Button";
-import { filesRpc } from "@/src/utils/electron/files";
-import Platform from "@/src/utils/device/type";
 
 const MessageOther = ({ fileRef, uuid, mimeType, size, name, isPending }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
-  const { uri: fileUri } = useUriResolver(fileRef);
+  const { openFile } = useOpenFile();
 
   const handlePress = () => {
-    if (Platform === "desktop" && fileRef) {
-      filesRpc.openFile(fileRef);
-    } else if (fileUri) {
-      Linking.openURL(fileUri).catch((err) =>
-        console.error("Failed to open file:", err),
-      );
-    }
+    openFile({ fileRef, uuid, mimeType, name });
   };
 
   return (
@@ -32,7 +24,7 @@ const MessageOther = ({ fileRef, uuid, mimeType, size, name, isPending }) => {
         uuid={uuid}
         isPending={isPending}
         isAvailable={!!fileRef}
-        isReady={!!fileUri}
+        isReady={!!fileRef}
         type={"OTHER"}
         handleDefaultPress={handlePress}
       />
