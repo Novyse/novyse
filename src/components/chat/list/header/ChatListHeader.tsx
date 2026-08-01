@@ -20,6 +20,7 @@ const ChatListHeader = ({
   return (
     <AppHeader
       collapsed={collapsed}
+      onPress={() => tabNavigator.navigate("Search")}
       left={
         !collapsed ? (
           <Icon

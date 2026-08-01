@@ -1,5 +1,11 @@
 import React, { useCallback, useState } from "react";
-import { LayoutChangeEvent, StyleSheet, View, ViewStyle } from "react-native";
+import {
+  LayoutChangeEvent,
+  StyleSheet,
+  View,
+  ViewStyle,
+  Pressable,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import BlurredView from "@/src/components/BlurredView";
@@ -24,6 +30,7 @@ interface AppHeaderProps {
   collapsed?: boolean;
   fullWidthBackdrop?: boolean;
   onLayout?: (height: number) => void;
+  onPress?: () => void;
   style?: ViewStyle;
 }
 
@@ -38,6 +45,7 @@ const AppHeader = ({
   collapsed = false,
   fullWidthBackdrop = false,
   onLayout,
+  onPress,
   style,
 }: AppHeaderProps) => {
   const insets = useSafeAreaInsets();
@@ -81,16 +89,18 @@ const AppHeader = ({
         ]}
         onLayout={handleContentLayout}
       >
-        <BlurredView
-          style={[
-            styles.blurColumn,
-            collapsed && styles.blurColumnCollapsed,
-            { borderRadius: collapsed ? 25 : borderRadius },
-          ]}
-        >
-          {rowContent}
-          {footer}
-        </BlurredView>
+        <Pressable onPress={onPress}>
+          <BlurredView
+            style={[
+              styles.blurColumn,
+              collapsed && styles.blurColumnCollapsed,
+              { borderRadius: collapsed ? 25 : borderRadius },
+            ]}
+          >
+            {rowContent}
+            {footer}
+          </BlurredView>
+        </Pressable>
         {belowBlur}
       </View>
     </View>
