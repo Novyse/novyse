@@ -28,6 +28,7 @@
         "expo-asset": "~57.0.3",
         "expo-audio": "~57.0.0",
         "expo-blur": "~57.0.0",
+        "expo-build-properties": "^57.0.8",
         "expo-camera": "~57.0.1",
         "expo-clipboard": "~57.0.0",
         "expo-constants": "~57.0.3",
@@ -371,7 +372,7 @@
 
     "@expo/router-server": ["@expo/router-server@57.0.2", "", { "dependencies": { "debug": "^4.3.4" }, "peerDependencies": { "@expo/metro-runtime": "^57.0.3", "expo": "*", "expo-constants": "^57.0.3", "expo-font": "^57.0.0", "expo-router": "*", "expo-server": "^57.0.0", "react": "*", "react-dom": "*", "react-server-dom-webpack": "~19.0.1 || ~19.1.2 || ~19.2.1" }, "optionalPeers": ["@expo/metro-runtime", "expo-router", "react-dom", "react-server-dom-webpack"] }, "sha512-hu9qhnq2PKuwMXIoRMAa2+HUeqSut9HwiQf3a62tfGTIxPN3rKUZ10TozEEB+Pd/7WIa238sXMS5v1YhTuC9gA=="],
 
-    "@expo/schema-utils": ["@expo/schema-utils@57.0.1", "", {}, "sha512-IVdaqtP3+iHFRE/y22mKijQtZanLcB18q1zi2kfN6RINTCryyzM7qHGsWHc5LBJbOuj1G4avCOECs97hOJm0GQ=="],
+    "@expo/schema-utils": ["@expo/schema-utils@57.0.2", "", {}, "sha512-fMu/jyN0l1Wzv7XkeWR4IYCx1M8ryui3FdBNGrWwbRgJ7EhxXxK8E2jxP2W3pbgUwUY0V3hG8+GyfCZwny+Lxw=="],
 
     "@expo/sdk-runtime-versions": ["@expo/sdk-runtime-versions@1.0.0", "", {}, "sha512-Doz2bfiPndXYFPMRwPyGa1k5QaKDVpY806UJj570epIiMzWaYyCtobasyfC++qfIXVb5Ocy7r3tP9d62hAQ7IQ=="],
 
@@ -1192,6 +1193,8 @@
     "expo-audio": ["expo-audio@57.0.0", "", { "peerDependencies": { "expo": "*", "expo-asset": "*", "react": "*", "react-native": "*" } }, "sha512-4eV3rIFksVygrnm/dxdrP3Umjsn9/1Zr6cgBzoFtm43nw65g4s3WB5nkszG3JB4a2zpQ9N/IRS5EdRqXqLdbSg=="],
 
     "expo-blur": ["expo-blur@57.0.0", "", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-cn+LlmOdf7swx80v6yngW9AVl7m1F4cQGpfeJx/Jckgb6C4/sdA5jy/f4wBJCGCZs+2qpPEjlUkQ2Q2+7LQiuA=="],
+
+    "expo-build-properties": ["expo-build-properties@57.0.8", "", { "dependencies": { "@expo/schema-utils": "^57.0.2", "resolve-from": "^5.0.0", "semver": "^7.6.0" }, "peerDependencies": { "expo": "*" } }, "sha512-6/SDeqKLKaF8MRfLZ3JhiiDN0y5uXtyefhWRZ42ZX03QVZ8Fw4dnbdTSHpsBvbKNIluYk5bP/zosdwkbeeNd9A=="],
 
     "expo-camera": ["expo-camera@57.0.1", "", { "dependencies": { "barcode-detector": "^3.0.0" }, "peerDependencies": { "expo": "*", "react": "*", "react-native": "*", "react-native-web": "*" }, "optionalPeers": ["react-native-web"] }, "sha512-OtQOOFQ8djlB/UXlETa+Agu9m88P6d1go0VIO9b/a54AFUuowUqEH9vpzkq5iJ4jVhvJSblm/II7kLtwNnxW7Q=="],
 
@@ -2393,6 +2396,8 @@
 
     "@expo/cli/@expo/env": ["@expo/env@2.4.1", "", { "dependencies": { "chalk": "^4.0.0", "debug": "^4.3.4", "getenv": "^2.0.0" } }, "sha512-3c9Mg9x0HmGPEsVrGAGyEDJsNUOZ55cZvZ47/HLmXh7MHV9Zv7My73wThklKrObaBBoMfE4YqpKjYKDRzojpjQ=="],
 
+    "@expo/cli/@expo/schema-utils": ["@expo/schema-utils@57.0.1", "", {}, "sha512-IVdaqtP3+iHFRE/y22mKijQtZanLcB18q1zi2kfN6RINTCryyzM7qHGsWHc5LBJbOuj1G4avCOECs97hOJm0GQ=="],
+
     "@expo/cli/semver": ["semver@7.7.4", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA=="],
 
     "@expo/cli/ws": ["ws@8.20.0", "", { "peerDependencies": { "bufferutil": "^4.0.1", "utf-8-validate": ">=5.0.2" }, "optionalPeers": ["bufferutil", "utf-8-validate"] }, "sha512-sAt8BhgNbzCtgGbt2OxmpuryO63ZoDk/sqaB/znQm94T4fCEsy/yV+7CdC1kJhOU9lboAEU7R3kquuycDoibVA=="],
@@ -2509,7 +2514,11 @@
 
     "escodegen/source-map": ["source-map@0.6.1", "", {}, "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g=="],
 
+    "expo-build-properties/semver": ["semver@7.7.4", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA=="],
+
     "expo-modules-autolinking/commander": ["commander@7.2.0", "", {}, "sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw=="],
+
+    "expo-router/@expo/schema-utils": ["@expo/schema-utils@57.0.1", "", {}, "sha512-IVdaqtP3+iHFRE/y22mKijQtZanLcB18q1zi2kfN6RINTCryyzM7qHGsWHc5LBJbOuj1G4avCOECs97hOJm0GQ=="],
 
     "fbjs/promise": ["promise@7.3.1", "", { "dependencies": { "asap": "~2.0.3" } }, "sha512-nolQXZ/4L+bP/UGlkfaIujX9BKxGwmQ9OT4mOt5yvy8iK1h3wqTEJCijzGANTCCl9nWjY41juyAn2K3Q1hLLTg=="],
 
