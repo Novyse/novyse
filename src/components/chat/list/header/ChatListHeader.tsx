@@ -33,7 +33,6 @@ const ChatListHeader = ({
         collapsed ? (
           <Icon
             name="Search01Icon"
-            size={22}
             onPress={() => tabNavigator.navigate("Search")}
             style={headerIconButtonStyle.iconButton}
           />

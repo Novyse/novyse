@@ -141,7 +141,12 @@ const SearchHeader = ({ onClose }) => {
   return (
     <View style={styles.headerMainRow}>
       <View style={styles.headerLeft}>
-        <Icon name="Search01Icon" size={20} color={theme.placeholderText} />
+        <Icon
+          name="Search01Icon"
+          color={theme.placeholderText}
+          onPress={() => {}}
+          style={styles.iconButton}
+        />
         <TextInput
           ref={inputRef}
           placeholder={t("chat.header.search.placeholder")}
@@ -209,7 +214,7 @@ function createStyle(theme) {
       gap: 2,
     },
     input: {
-      marginLeft: 8,
+      marginLeft: 5,
       flex: 1,
       fontSize: 16,
       color: theme.text,

@@ -358,7 +358,7 @@ const Search = () => {
             name="Search01Icon"
             hoverColor={theme.iconHover}
             style={headerIconButtonStyle.iconButton}
-            onPress={() => { }}
+            onPress={() => {}}
           />
         }
         center={
@@ -427,7 +427,8 @@ const createStyle = (theme: any, insets: any, statusBannerOffset: number) => {
       fontSize: 16,
       color: theme.text,
       outlineStyle: "none" as any,
-      minWidth: 30
+      minWidth: 30,
+      marginLeft: 5
     },
     loader: {
       marginTop: contentTop,
