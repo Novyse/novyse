@@ -28,6 +28,8 @@ interface CommsContextType {
   setFacingMode: React.Dispatch<React.SetStateAction<string>>;
   isAudioEnabled: boolean;
   setIsAudioEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  isAudioOutputEnabled: boolean;
+  setIsAudioOutputEnabled: React.Dispatch<React.SetStateAction<boolean>>;
   isVideoEnabled: boolean;
   setIsVideoEnabled: React.Dispatch<React.SetStateAction<boolean>>;
   participants: Participant[];
@@ -85,12 +87,16 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
   const [room, setRoom] = React.useState<Room | null>(null);
   const [roomMetadata, setRoomMetadata] = React.useState<string>("");
 
-  const currentChatUUID = room ? ((room as any).roomInfo?.name || "").split("_")[0] : undefined;
+  const currentChatUUID = room
+    ? ((room as any).roomInfo?.name || "").split("_")[0]
+    : undefined;
   const { name: chatName } = useChatMetadata(currentChatUUID);
 
   const [participants, setParticipants] = React.useState<Participant[]>([]);
 
   const [isAudioEnabled, setIsAudioEnabled] = React.useState<boolean>(false);
+  const [isAudioOutputEnabled, setIsAudioOutputEnabled] =
+    React.useState<boolean>(true);
   const [isVideoEnabled, setIsVideoEnabled] = React.useState<boolean>(false);
 
   const [isSpeakingMap, setIsSpeakingMap] = React.useState<
@@ -164,6 +170,7 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
 
   const remoteVolumesRef = React.useRef<Record<string, number>>({});
   const localMutedRef = React.useRef<Record<string, boolean>>({});
+  const isAudioOutputEnabledRef = React.useRef<boolean>(true);
 
   React.useEffect(() => {
     remoteVolumesRef.current = remoteVolumes;
@@ -172,6 +179,10 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
   React.useEffect(() => {
     localMutedRef.current = localMuted;
   }, [localMuted]);
+
+  React.useEffect(() => {
+    isAudioOutputEnabledRef.current = isAudioOutputEnabled;
+  }, [isAudioOutputEnabled]);
 
   const [facingMode, setFacingMode] = React.useState<string>("environment");
 
@@ -330,7 +341,8 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
 
         const db = remoteVolumesRef.current[volKey] ?? 0;
         const isMuted = localMutedRef.current[volKey] ?? false;
-        const targetVolume = isMuted ? 0 : dbToLinear(db);
+        const targetVolume =
+          isMuted || !isAudioOutputEnabledRef.current ? 0 : dbToLinear(db);
 
         if (track && typeof (track as any).setVolume === "function") {
           try {
@@ -613,6 +625,7 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     setMutedStreams({});
     setIsSpeakingMap(new Map());
     setIsAudioEnabled(false);
+    setIsAudioOutputEnabled(true);
     setIsVideoEnabled(false);
     setRemoteVolumes({});
     setLocalMuted({});
@@ -670,7 +683,8 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
         const volKey = participant.identity;
         const db = remoteVolumes[volKey] ?? 0;
         const isMuted = localMuted[volKey] ?? false;
-        const targetVolume = isMuted ? 0 : dbToLinear(db);
+        const targetVolume =
+          isMuted || !isAudioOutputEnabled ? 0 : dbToLinear(db);
 
         // Native LiveKit volume control
         if (
@@ -705,7 +719,8 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
 
         const db = remoteVolumes[volKey] ?? 0;
         const isMuted = localMuted[volKey] ?? false;
-        const targetVolume = isMuted ? 0 : dbToLinear(db);
+        const targetVolume =
+          isMuted || !isAudioOutputEnabled ? 0 : dbToLinear(db);
 
         if (
           screenAudioPub.track &&
@@ -724,7 +739,7 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
         }
       }
     });
-  }, [remoteVolumes, localMuted, room]);
+  }, [remoteVolumes, localMuted, room, isAudioOutputEnabled]);
 
   React.useEffect(() => {
     if (connected && room) {
@@ -757,6 +772,8 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     setFacingMode,
     isAudioEnabled,
     setIsAudioEnabled,
+    isAudioOutputEnabled,
+    setIsAudioOutputEnabled,
     isVideoEnabled,
     setIsVideoEnabled,
     participants,

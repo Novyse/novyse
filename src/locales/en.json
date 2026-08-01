@@ -234,6 +234,12 @@
           "defaultName": "Microphone {{id}}",
           "permissionDenied": "Microphone permission is denied. Please enable microphone access in your system settings to use voice features."
         },
+        "speaker": {
+          "title": "Select Speaker",
+          "loading": "Loading speakers...",
+          "currentlySelected": "Currently Selected",
+          "defaultName": "Speaker {{id}}"
+        },
         "screenshare": {
           "title": "Share your screen",
           "loading": "Loading sources...",

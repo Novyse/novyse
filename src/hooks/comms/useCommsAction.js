@@ -33,6 +33,8 @@ const useCommsAction = (chatUUID, sub) => {
     setFacingMode,
     isAudioEnabled,
     setIsAudioEnabled,
+    isAudioOutputEnabled,
+    setIsAudioOutputEnabled,
     isVideoEnabled,
     setIsVideoEnabled,
     error,
@@ -221,6 +223,10 @@ const useCommsAction = (chatUUID, sub) => {
       console.error("Failed toggling video state", e);
       setError(getDeviceErrorMessage(t));
     }
+  };
+
+  const toggleAudioOutput = () => {
+    setIsAudioOutputEnabled((prev) => !prev);
   };
 
   const toggleFacingMode = () => {
@@ -464,6 +470,7 @@ const useCommsAction = (chatUUID, sub) => {
     connected,
     roomMatch,
     isAudioEnabled,
+    isAudioOutputEnabled,
     isVideoEnabled,
     microphoneDevice,
     cameraDevice,
@@ -474,6 +481,7 @@ const useCommsAction = (chatUUID, sub) => {
     join,
     leave,
     toggleAudio,
+    toggleAudioOutput,
     toggleVideo,
     toggleFacingMode,
     setMicrophoneDevice,

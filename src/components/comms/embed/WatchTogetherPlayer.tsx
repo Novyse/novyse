@@ -32,10 +32,10 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
   onVideoPress,
 }) => {
   const { theme } = useContext(ThemeContext);
-  const { localMuted, remoteVolumes } = useCommsContext();
+  const { localMuted, remoteVolumes, isAudioOutputEnabled } = useCommsContext();
   const playerRef = useRef<any>(null);
 
-  const isMuted = localMuted["watch-together"] ?? false;
+  const isMuted = (localMuted["watch-together"] ?? false) || !isAudioOutputEnabled;
   const dbVolume = remoteVolumes["watch-together"] ?? 0;
 
   const {

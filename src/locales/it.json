@@ -232,6 +232,12 @@
           "defaultName": "Microfono {{id}}",
           "permissionDenied": "Il permesso del microfono è negato. Abilita l'accesso al microfono nelle impostazioni di sistema per utilizzare le funzionalità vocali."
         },
+        "speaker": {
+          "title": "Seleziona Altoparlante",
+          "loading": "Caricamento altoparlanti...",
+          "currentlySelected": "Attualmente Selezionato",
+          "defaultName": "Altoparlante {{id}}"
+        },
         "screenshare": {
           "title": "Condividi il tuo schermo",
           "loading": "Caricamento delle sorgenti in corso...",
