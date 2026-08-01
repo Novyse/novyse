@@ -52,6 +52,8 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
     (state) => state.setScrollToMessageID,
   );
   const selectedSub = useActiveChatStore((state) => state.selectedSub);
+  const setContentView = useActiveChatStore((state) => state.setContentView);
+  const contentView = useActiveChatStore((state) => state.contentView);
   const router = useRouter();
 
   const handlePress = () => {
@@ -63,6 +65,9 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
         router.push(
           `/app/chat/${pinnedMessage.chatUUID}/${pinnedMessage.subID}`,
         );
+      }
+      if (contentView === "vocal") {
+        setContentView("chat");
       }
       setScrollToMessageID(message.id);
     }
