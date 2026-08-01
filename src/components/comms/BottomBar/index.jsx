@@ -94,7 +94,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
         ) : (
           <BlurredView style={styles.iconButton}>
             <CommsBottomBarButton
-              onPress={join}
+              onPress={() => join()}
               iconName={"Call02Icon"}
               iconColor={theme.iconSuccess}
               hoverColor={theme.successText}
