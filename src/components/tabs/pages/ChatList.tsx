@@ -355,20 +355,6 @@ const ChatList = () => {
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
       />
 
-      {!showCollapsedSidebar && (
-        <FloatingButton
-          onPress={() => setIsCreateChatModalVisible(true)}
-          iconName="ChatAddIcon"
-          size={isSmallScreen ? 16 : 24}
-          width={isSmallScreen ? 45 : 60}
-          height={isSmallScreen ? 45 : 60}
-          position={{
-            bottom: isSmallScreen ? 100 : 25,
-            right: 20,
-          }}
-        />
-      )}
-
       <CreateChatModal
         visible={isCreateChatModalVisible}
         onClose={() => setIsCreateChatModalVisible(false)}
