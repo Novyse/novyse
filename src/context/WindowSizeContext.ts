@@ -59,33 +59,41 @@ const useWindowSizeStore = create<WindowSizeState>((set, get) => ({
     const nextWidth =
       typeof width === "function" ? width(get().detailWidth) : width;
     set({ detailWidth: nextWidth });
-    saveToStorage(get());
+    saveToStorageThrottled(get());
   },
 
   setMinDetailWidth: (minWidth) => {
     set({ minDetailWidth: minWidth });
-    saveToStorage(get());
+    saveToStorageThrottled(get());
   },
 
   setVocalWidth: (width) => {
     const nextWidth =
       typeof width === "function" ? width(get().vocalWidth) : width;
     set({ vocalWidth: nextWidth });
-    saveToStorage(get());
+    saveToStorageThrottled(get());
   },
 
   setSubListWidth: (width) => {
     const nextWidth =
       typeof width === "function" ? width(get().subListWidth) : width;
     set({ subListWidth: nextWidth });
-    saveToStorage(get());
+    saveToStorageThrottled(get());
   },
 
   setSidebarCollapsed: (collapsed) => {
     set({ isSidebarCollapsed: collapsed });
-    saveToStorage(get());
+    saveToStorageThrottled(get());
   },
 }));
+
+let saveTimeout: any = null;
+const saveToStorageThrottled = (state: WindowSizeState) => {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    saveToStorage(state);
+  }, 500);
+};
 
 const saveToStorage = async (state: WindowSizeState) => {
   try {

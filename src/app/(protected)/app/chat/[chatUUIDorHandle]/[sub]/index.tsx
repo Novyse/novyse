@@ -354,30 +354,10 @@ const ChatPageRoute = () => {
         }}
       />
       <View
-        style={{ flex: 1, flexDirection: "row" }}
+        style={{ flex: 1 }}
         onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
       >
-        {isForum && (
-          <SubList
-            chat={chat}
-            selectedSub={sub ? parseInt(sub as string, 10) : 0}
-            isSmallScreen={isSmallScreen}
-            subListWidth={subListWidth}
-          />
-        )}
-        <View
-          style={{
-            flex: 1,
-            height: "100%",
-            minWidth: CHAT_MIN,
-            position: "relative",
-          }}
-        >
-          {isForum && !isSmallScreen && (
-            <PanelResizeHandle panHandlers={subListResizerHandlers} />
-          )}
-          {renderContent()}
-        </View>
+        {renderContent()}
       </View>
       <DeleteMessageModal
         visible={deleteModalVisible}

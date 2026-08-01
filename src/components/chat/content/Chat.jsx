@@ -44,9 +44,20 @@ import WebDropZone from "@/src/components/input/WebDropZone";
 import { validateFiles } from "@/src/utils/storage/file/validators";
 import Platform from "@/src/utils/device/type";
 
+import SubList from "@/src/components/chat/content/SubList";
+import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
+import useWindowSizeStore, {
+  SUBLIST_MIN,
+  CHAT_MIN,
+} from "@/src/context/WindowSizeContext";
+import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
+import { useScreen } from "@/src/context/ScreenContext";
+
 const ChatContent = () => {
   const { theme } = useContext(ThemeContext);
   const insets = useSafeAreaInsets();
+  const { isSmallScreen } = useScreen();
+  const { subListWidth, setSubListWidth } = useWindowSizeStore();
 
   const styles = createStyle(theme);
   const [mentionMembers, setMentionMembers] = useState([]);
@@ -148,6 +159,18 @@ const ChatContent = () => {
   const setEditingMessage = useActiveChatStore(
     (state) => state.setEditingMessage,
   );
+
+  const chat = useActiveChatStore((state) => state.activeChatData);
+  const selectedSub = useActiveChatStore((state) => state.selectedSub);
+  const isForum = chat?.type === "FORUM";
+
+  const subListResizerHandlers = usePanelResizer({
+    currentWidth: subListWidth,
+    setWidth: setSubListWidth,
+    minWidth: SUBLIST_MIN,
+    maxWidthPadding: CHAT_MIN,
+    reverse: false,
+  });
   const files = useActiveChatStore((state) => state.files);
   const setFiles = useActiveChatStore((state) => state.setFiles);
   const invalidFiles = useActiveChatStore((state) => state.invalidFiles);
@@ -164,9 +187,6 @@ const ChatContent = () => {
 
   const { emitTyping, stopTyping, emitRecording } =
     useActivityEmitter(selectedChatUUID);
-
-  const chat = useActiveChatStore((state) => state.activeChatData);
-  const selectedSub = useActiveChatStore((state) => state.selectedSub);
 
   const messages = React.useMemo(() => {
     const all = chat?.messages;
@@ -626,29 +646,77 @@ const ChatContent = () => {
       <WebDropZone onFilesDropped={handleAppendFilesToDraft} />
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Animated.View style={[StyleSheet.absoluteFill, listAnimatedStyle]}>
-          <MessageList
-            ref={flatListRef}
-            preparedMessages={preparedMessages}
-            editedMessages={editedMessages}
-            pinnedMessages={pinnedMessages}
-            selectedMessages={selectedMessages}
-            setSelectedMessages={setSelectedMessages}
-            myUUID={myUUID}
-            theme={theme}
-            onRead={handleRead}
-            onPin={handlePin}
-            onUnpin={handleUnpin}
-            onReply={handleReply}
-            onReaction={handleReaction}
-            onCopy={handleCopy}
-            onDownload={handleDownload}
-            onEdit={handleEdit}
-            onEditMessage={handleEditMessage}
-            onForward={handleForward}
-            onCancel={handleCancelJob}
-            onDelete={handleDelete}
-            onLoadMore={() => loadMoreMessages(selectedChatUUID)}
-          />
+          {isForum ? (
+            <View style={{ flex: 1, flexDirection: "row" }}>
+              <SubList
+                chat={chat}
+                selectedSub={selectedSub}
+                isSmallScreen={isSmallScreen}
+                subListWidth={subListWidth}
+                bottomBarHeight={bottomBarHeight}
+              />
+              <View
+                style={{
+                  flex: 1,
+                  height: "100%",
+                  minWidth: isSmallScreen ? 0 : CHAT_MIN,
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                {!isSmallScreen && (
+                  <PanelResizeHandle panHandlers={subListResizerHandlers} />
+                )}
+                <MessageList
+                  ref={flatListRef}
+                  preparedMessages={preparedMessages}
+                  editedMessages={editedMessages}
+                  pinnedMessages={pinnedMessages}
+                  selectedMessages={selectedMessages}
+                  setSelectedMessages={setSelectedMessages}
+                  myUUID={myUUID}
+                  theme={theme}
+                  onRead={handleRead}
+                  onPin={handlePin}
+                  onUnpin={handleUnpin}
+                  onReply={handleReply}
+                  onReaction={handleReaction}
+                  onCopy={handleCopy}
+                  onDownload={handleDownload}
+                  onEdit={handleEdit}
+                  onEditMessage={handleEditMessage}
+                  onForward={handleForward}
+                  onCancel={handleCancelJob}
+                  onDelete={handleDelete}
+                  onLoadMore={() => loadMoreMessages(selectedChatUUID)}
+                />
+              </View>
+            </View>
+          ) : (
+            <MessageList
+              ref={flatListRef}
+              preparedMessages={preparedMessages}
+              editedMessages={editedMessages}
+              pinnedMessages={pinnedMessages}
+              selectedMessages={selectedMessages}
+              setSelectedMessages={setSelectedMessages}
+              myUUID={myUUID}
+              theme={theme}
+              onRead={handleRead}
+              onPin={handlePin}
+              onUnpin={handleUnpin}
+              onReply={handleReply}
+              onReaction={handleReaction}
+              onCopy={handleCopy}
+              onDownload={handleDownload}
+              onEdit={handleEdit}
+              onEditMessage={handleEditMessage}
+              onForward={handleForward}
+              onCancel={handleCancelJob}
+              onDelete={handleDelete}
+              onLoadMore={() => loadMoreMessages(selectedChatUUID)}
+            />
+          )}
         </Animated.View>
         {Platform === "mobile" && (
           <Animated.View

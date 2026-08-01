@@ -13,8 +13,15 @@ import CreateSubModal from "@/src/components/modalSheets/createSub";
 import VocalSubSubtitle from "./VocalSubSubtitle";
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import { useCommsContext } from "@/src/context/CommsContext";
+import BlurredView from "@/src/components/BlurredView";
 
-const SubList = ({ chat, selectedSub, isSmallScreen, subListWidth }) => {
+const SubList = ({
+  chat,
+  selectedSub,
+  isSmallScreen,
+  subListWidth,
+  bottomBarHeight = 0,
+}) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const headerHeight = useActiveChatStore((state) => state.headerHeight) || 60;
@@ -97,12 +104,14 @@ const SubList = ({ chat, selectedSub, isSmallScreen, subListWidth }) => {
   };
 
   return (
-    <View
+    <BlurredView
       style={[
         styles.container,
         {
           width: isSmallScreen ? 70 : subListWidth,
-          paddingTop: headerHeight + 10,
+          marginTop: headerHeight,
+          marginBottom: (bottomBarHeight || 0),
+          marginLeft: 10,
         },
       ]}
     >
@@ -113,6 +122,7 @@ const SubList = ({ chat, selectedSub, isSmallScreen, subListWidth }) => {
         keyExtractor={(item) => String(item.id)}
         extraData={{ selectedSub, isCollapsed }}
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+        contentContainerStyle={{ padding: 10 }}
       />
 
       <FloatingButton
@@ -122,7 +132,7 @@ const SubList = ({ chat, selectedSub, isSmallScreen, subListWidth }) => {
         width={isCollapsed ? 40 : 50}
         height={isCollapsed ? 40 : 50}
         position={{
-          bottom: 20,
+          bottom: 15,
           right: isCollapsed ? 15 : 20,
         }}
       />
@@ -132,16 +142,18 @@ const SubList = ({ chat, selectedSub, isSmallScreen, subListWidth }) => {
         onClose={() => setCreateModalVisible(false)}
         chatUUID={chat.uuid}
       />
-    </View>
+    </BlurredView>
   );
 };
 
 function createStyle(theme, isSmallScreen) {
   return StyleSheet.create({
     container: {
-      height: "100%",
-      paddingBottom: 10,
+      flexGrow: 0,
+      flexShrink: 0,
       position: "relative",
+      borderRadius: 25,
+      overflow: "hidden",
     },
     avatar: {
       width: 40,
