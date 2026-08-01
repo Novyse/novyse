@@ -475,16 +475,14 @@ const MessageBase = ({
         </View>
       )}
       <BlurredView style={blurredViewStyles}>
-        {!isSender && (
+        {!isSender && showSenderName && (
           <View style={styles.senderNameWrapper}>
-            {showSenderName && (
-              <AppText
-                style={styles.senderName}
-                numberOfLines={1}
-                text={getUser(message.senderUUID)?.name}
-                translationKey="chat.unknownUser"
-              />
-            )}
+            <AppText
+              style={styles.senderName}
+              numberOfLines={1}
+              text={getUser(message.senderUUID)?.name}
+              translationKey="chat.unknownUser"
+            />
           </View>
         )}
         {sharedContent}

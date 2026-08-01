@@ -28,10 +28,18 @@ const Video = ({
   const [currentRatio, setCurrentRatio] = useState(() => {
     if (propAspectRatio) return propAspectRatio;
     if (width && height) return width / height;
-    return ratioCache.get(uuid) || null;
+    return ratioCache.get(uuid) || 1.5;
   });
 
   const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const newRatio = propAspectRatio || (width && height ? width / height : null);
+    if (newRatio) {
+      setCurrentRatio(newRatio);
+      ratioCache.set(uuid, newRatio);
+    }
+  }, [propAspectRatio, width, height, uuid]);
 
   const player = useVideoPlayer(uri, (p) => {
     p.loop = true;
@@ -77,7 +85,7 @@ const Video = ({
         <VideoView
           player={player}
           style={styles.video}
-          contentFit="contain" // Contain ensures no cropping ever
+          contentFit="cover"
           nativeControls={false}
           onVideoSizeChange={handleVideoSizeChange}
         />
@@ -110,14 +118,12 @@ const createStyle = (theme, isSingle, aspectRatio) =>
   StyleSheet.create({
     container: {
       width: "100%",
-      height: "100%",
       minHeight: 75,
-      backgroundColor: theme.backgroundColor,
       aspectRatio: isSingle ? aspectRatio || undefined : undefined,
+      height: isSingle ? undefined : "100%",
       overflow: "hidden",
     },
     video: {
-      flex: 1,
       width: "100%",
       height: "100%",
     },

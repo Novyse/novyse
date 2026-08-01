@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   StyleSheet,
   View,
   Pressable,
-  SafeAreaView,
   StatusBar,
+  Modal,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AppText from "@/src/components/AppText";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useEvent } from "expo";
@@ -24,7 +25,6 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { getPlatform } from "@/src/utils/device/type";
-import AdaptiveModal from "../AdaptiveModal";
 import { useScreen } from "@/src/context/ScreenContext";
 import useDownload from "@/src/hooks/file/useDownload";
 import useShare from "@/src/hooks/chat/useShare";
@@ -50,6 +50,8 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
   const [currentSpeedIndex, setCurrentSpeedIndex] = useState(3);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [seekTime, setSeekTime] = useState(0);
+  const [isAdjustingVolume, setIsAdjustingVolume] = useState(false);
+  const [localVolume, setLocalVolume] = useState(1);
 
   const styles = createStyle(
     theme,
@@ -79,26 +81,32 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
     transform: [{ scale: scale.value }],
   }));
 
-  const player = useVideoPlayer(uri, (p) => {
+  const setupPlayer = useCallback((p) => {
     p.loop = false;
-    p.timeUpdateEventInterval = 0.05;
-    p.play();
-  });
+    p.timeUpdateEventInterval = 0.1;
+  }, []);
 
-  const { isPlaying } = useEvent(player, "playingChange", {
-    isPlaying: player.playing,
-  });
-  const { currentTime } = useEvent(player, "timeUpdate", {
-    currentTime: player.currentTime,
-  });
-  const { volume } = useEvent(player, "volumeChange", {
-    volume: player.volume,
-  });
+  const player = useVideoPlayer(uri, setupPlayer);
+
+  const playingChangeEvent = useEvent(player, "playingChange");
+  const isPlaying = playingChangeEvent?.isPlaying ?? player.playing ?? false;
+
+  const timeUpdateEvent = useEvent(player, "timeUpdate");
+  const currentTime = timeUpdateEvent?.currentTime ?? player.currentTime ?? 0;
+
+  const volumeChangeEvent = useEvent(player, "volumeChange");
+  const volume = volumeChangeEvent?.volume ?? player.volume ?? 1;
+
+  const statusChangeEvent = useEvent(player, "statusChange");
+  const status = statusChangeEvent?.status ?? player.status;
+
   const duration = player.duration || 0;
 
   useEffect(() => {
-    if (!isSeeking) setSeekTime(currentTime);
-  }, [currentTime, isSeeking]);
+    if (status === "readyToPlay" && player) {
+      player.play();
+    }
+  }, [status, player]);
 
   // Gestione Fullscreen e Orientamento
   useEffect(() => {
@@ -133,7 +141,10 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
         containerRef.current?.requestFullscreen?.();
       else document.exitFullscreen?.();
     } else {
-      if (!isFullscreen) {
+      const nextState = !isFullscreen;
+      setIsFullscreen(nextState);
+      StatusBar.setHidden(nextState, "fade");
+      if (nextState) {
         await ScreenOrientation.lockAsync(
           ScreenOrientation.OrientationLock.LANDSCAPE,
         );
@@ -145,7 +156,37 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
     }
   };
 
+  const togglePlayPause = () => {
+    if (!player) return;
+    handleUserActivity();
+
+    if (duration > 0 && currentTime >= duration - 0.3) {
+      player.currentTime = 0;
+      player.play();
+      return;
+    }
+
+    if (isPlaying || player.playing) {
+      player.pause();
+    } else {
+      player.play();
+    }
+  };
+
+  const skipBackward = () => {
+    if (!player) return;
+    player.currentTime = Math.max(0, (player.currentTime || 0) - 10);
+    handleUserActivity();
+  };
+
+  const skipForward = () => {
+    if (!player) return;
+    player.currentTime = Math.min(duration, (player.currentTime || 0) + 10);
+    handleUserActivity();
+  };
+
   const cycleSpeed = () => {
+    if (!player) return;
     const nextIndex = (currentSpeedIndex + 1) % speeds.length;
     setCurrentSpeedIndex(nextIndex);
     player.playbackRate = speeds[nextIndex];
@@ -162,18 +203,17 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
     await shareFileOrText({ uuid, uri });
   };
 
-  if (!uri) return <View style={styles.container} />;
+  if (!visible || !uri) return null;
 
   return (
-    <AdaptiveModal
+    <Modal
       visible={visible}
-      onClose={onClose}
-      theme={theme}
-      mode="modal"
-      scrollable={false}
-      hideCloseX={true}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}
+      statusBarTranslucent={true}
     >
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={styles.modalRoot}>
         <View
           ref={containerRef}
           style={styles.container}
@@ -202,13 +242,28 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                 ]}
               >
                 <View style={styles.header}>
-                  <Icon name="Cancel01Icon" onPress={onClose} />
+                  <Icon
+                    name="Cancel01Icon"
+                    onPress={onClose}
+                    color={theme.icon}
+                    hoverColor={theme.iconHover}
+                  />
                   <View style={styles.rightButtons}>
                     {uuid && (
-                      <Icon name="Download01Icon" onPress={handleDownload} />
+                      <Icon
+                        name="Download01Icon"
+                        onPress={handleDownload}
+                        color={theme.icon}
+                        hoverColor={theme.iconHover}
+                      />
                     )}
                     {isMobile && (
-                      <Icon name="Share01Icon" onPress={handleShare} />
+                      <Icon
+                        name="Share01Icon"
+                        onPress={handleShare}
+                        color={theme.icon}
+                        hoverColor={theme.iconHover}
+                      />
                     )}
                   </View>
                 </View>
@@ -217,21 +272,27 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                   <Icon
                     name="GoBackward10SecIcon"
                     size={32}
-                    onPress={() => (player.currentTime -= 10)}
+                    onPress={skipBackward}
+                    color={theme.icon}
+                    hoverColor={theme.iconHover}
                   />
                   <Pressable
                     style={styles.playButtonMain}
-                    onPress={() => (isPlaying ? player.pause() : player.play())}
+                    onPress={togglePlayPause}
                   >
                     <Icon
                       name={isPlaying ? "PauseIcon" : "PlayIcon"}
                       size={40}
+                      color={theme.icon}
+                      hoverColor={theme.iconHover}
                     />
                   </Pressable>
                   <Icon
                     name="GoForward10SecIcon"
                     size={32}
-                    onPress={() => (player.currentTime += 10)}
+                    onPress={skipForward}
+                    color={theme.icon}
+                    hoverColor={theme.iconHover}
                   />
                 </View>
 
@@ -248,13 +309,14 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                       value={isSeeking ? seekTime : currentTime}
                       onSlidingStart={() => {
                         setIsSeeking(true);
+                        setSeekTime(currentTime);
                         player.pause();
                       }}
                       onValueChange={(v) => {
                         setSeekTime(v);
-                        player.currentTime = v;
                       }}
                       onSlidingComplete={(v) => {
+                        player.currentTime = v;
                         setIsSeeking(false);
                         player.play();
                       }}
@@ -271,17 +333,35 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                     <View style={styles.volumeContainer}>
                       <Icon
                         name={
-                          volume === 0 ? "VolumeMute02Icon" : "VolumeHighIcon"
+                          (isAdjustingVolume ? localVolume : volume) === 0
+                            ? "VolumeMute02Icon"
+                            : "VolumeHighIcon"
                         }
                         size={22}
-                        onPress={() => (player.volume = volume > 0 ? 0 : 1)}
+                        onPress={() => {
+                          const newVol = (isAdjustingVolume ? localVolume : volume) > 0 ? 0 : 1;
+                          player.volume = newVol;
+                          setLocalVolume(newVol);
+                        }}
+                        color={theme.icon}
+                        hoverColor={theme.iconHover}
                       />
                       <Slider
                         style={styles.volumeSlider}
                         minimumValue={0}
                         maximumValue={1}
-                        value={volume}
-                        onValueChange={(v) => (player.volume = v)}
+                        value={isAdjustingVolume ? localVolume : volume}
+                        onSlidingStart={() => {
+                          setIsAdjustingVolume(true);
+                          setLocalVolume(volume);
+                        }}
+                        onValueChange={(v) => {
+                          setLocalVolume(v);
+                        }}
+                        onSlidingComplete={(v) => {
+                          player.volume = v;
+                          setIsAdjustingVolume(false);
+                        }}
                         minimumTrackTintColor={theme.primary}
                         thumbTintColor={theme.primary}
                       />
@@ -296,16 +376,16 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                           text={`${speeds[currentSpeedIndex]}x`}
                         />
                       </Pressable>
-                      {getPlatform() === "web" && (
-                        <Icon
-                          name={
-                            isFullscreen
-                              ? "ArrowShrink02Icon"
-                              : "ArrowExpand01Icon"
-                          }
-                          onPress={toggleFullscreen}
-                        />
-                      )}
+                      <Icon
+                        name={
+                          isFullscreen
+                            ? "ArrowShrink02Icon"
+                            : "ArrowExpand01Icon"
+                        }
+                        onPress={toggleFullscreen}
+                        color={theme.icon}
+                        hoverColor={theme.iconHover}
+                      />
                     </View>
                   </View>
                 </View>
@@ -314,7 +394,7 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
           </Pressable>
         </View>
       </GestureHandlerRootView>
-    </AdaptiveModal>
+    </Modal>
   );
 };
 
@@ -325,30 +405,30 @@ const createStyle = (
   isSmallScreen,
   isFullScreen,
 ) =>
-  // Per evitare che i video verticali vengano tagliati su schermi verticali,
-  // limitiamo l'aspect ratio massimo del contenitore a ~16:9.
-  // In questo modo `contentFit="contain"` riesce sempre a mostrare il video intero.
   (() => {
     const isFull = isSmallScreen || isFullScreen;
     const baseWidth = isFull ? screenWidth : screenWidth * 0.9;
     const baseMaxHeight = isFull ? screenHeight : screenHeight * 0.9;
 
-    // aspect ratio massimo verticale (circa 9:16)
     const MAX_VERTICAL_AR = 16 / 9;
     const idealHeight = baseWidth * MAX_VERTICAL_AR;
     const constrainedHeight = Math.min(baseMaxHeight, idealHeight);
 
     return StyleSheet.create({
+      modalRoot: {
+        flex: 1,
+        backgroundColor: theme.backgroundModalOverlay,
+      },
       container: {
         flex: 1,
-        backgroundColor: theme.shadowColor,
+        backgroundColor: theme.backgroundModalOverlay,
         overflow: "hidden",
         alignItems: "center",
         justifyContent: "center",
       },
       videoContainer: {
-        width: baseWidth,
-        height: constrainedHeight,
+        width: isFullScreen ? "100%" : baseWidth,
+        height: isFullScreen ? "100%" : constrainedHeight,
         justifyContent: "center",
         alignItems: "center",
       },
@@ -420,3 +500,4 @@ const createStyle = (
   })();
 
 export default VideoViewer;
+
