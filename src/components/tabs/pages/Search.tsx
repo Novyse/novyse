@@ -40,6 +40,7 @@ interface SearchResult {
   type: "USER" | "GROUP" | "FORUM" | "CHANNEL" | "DM";
   profilePictureUUID?: string;
   memberCount?: number;
+  isRemote?: boolean;
 }
 
 interface MessageResult {
@@ -195,10 +196,12 @@ const Search = () => {
             ...remoteUsers.map((user: any) => ({
               ...user,
               type: "USER" as const,
+              isRemote: true,
             })),
             ...remoteChats.map((chat: any) => ({
               ...chat,
               type: (chat.type || "GROUP") as "GROUP" | "FORUM" | "CHANNEL",
+              isRemote: true,
             })),
           ];
         } catch (error) {
@@ -307,7 +310,7 @@ const Search = () => {
         <ItemSearch
           item={item.item as any}
           onPress={(handle) => {
-            if (item.item.type === "USER") {
+            if (item.item.isRemote && handle) {
               setSelectedHandle(handle);
             } else if (item.item.uuid) {
               setSelectedChatUUID(item.item.uuid);
