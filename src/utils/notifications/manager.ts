@@ -128,10 +128,17 @@ class NotificationManager {
   async sendNotification(
     title: string,
     body: string,
-    data = {},
+    data: any = {},
     profilePictureUUID?: string,
     subtitle?: string,
   ) {
+    const isSystemSender =
+      typeof data?.senderUUID === "string" &&
+      data.senderUUID.replace(/-/g, "").startsWith("000000");
+
+    const finalTitle = isSystemSender && !subtitle ? "" : title;
+    const finalSubtitle = isSystemSender ? "" : subtitle;
+
     const icon =
       Platform !== "desktop"
         ? (await getProfilePictureUri(profilePictureUUID)) || undefined
@@ -139,10 +146,10 @@ class NotificationManager {
 
     switch (Platform) {
       case "web":
-        web.send(title, body, data, icon, subtitle);
+        web.send(finalTitle, body, data, icon, finalSubtitle);
         break;
       case "desktop":
-        desktop.send(title, body, data, profilePictureUUID, subtitle);
+        desktop.send(finalTitle, body, data, profilePictureUUID, finalSubtitle);
         break;
       case "mobile":
         // Local display via Notifee
@@ -150,7 +157,7 @@ class NotificationManager {
           data: {
             ...data,
             content: body,
-            chatName: title,
+            chatName: finalTitle,
             chatIcon: icon,
           },
         });
