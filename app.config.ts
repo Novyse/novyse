@@ -228,6 +228,16 @@ export default {
       "expo-secure-store",
       "expo-sharing",
       "expo-status-bar",
+      [
+        "expo-build-properties",
+        {
+          android: {
+            packagingOptions: {
+              useLegacyPackaging: false,
+            },
+          },
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
