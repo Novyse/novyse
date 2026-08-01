@@ -21,11 +21,13 @@ const VocalContent = () => {
     (state) => state.selectedChatUUID,
   );
   const selectedSub = useActiveChatStore((state) => state.selectedSub);
+  const contentView = useActiveChatStore((state) => state.contentView);
   const chat = useActiveChatStore((state) => state.activeChatData);
   const { isSmallScreen } = useScreen();
   const { subListWidth, setSubListWidth } = useWindowSizeStore();
   const { room, participants } = useCommsData(chatUUIDorHandle, selectedSub);
   const isForum = chat?.type === "FORUM";
+  const showSubList = isForum && contentView !== "both";
 
   const subListResizerHandlers = usePanelResizer({
     currentWidth: subListWidth,
@@ -38,7 +40,7 @@ const VocalContent = () => {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1, flexDirection: "row" }}>
-        {isForum && (
+        {showSubList && (
           <SubList
             chat={chat}
             selectedSub={selectedSub}
@@ -48,7 +50,7 @@ const VocalContent = () => {
           />
         )}
         <View style={{ flex: 1, height: "100%", position: "relative" }}>
-          {isForum && !isSmallScreen && (
+          {showSubList && !isSmallScreen && (
             <PanelResizeHandle panHandlers={subListResizerHandlers} />
           )}
           <CommsMembersLayout
