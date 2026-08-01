@@ -60,8 +60,7 @@ const AppHeader = ({
     [onLayout],
   );
 
-  const isExpanded = expanded || !!footer;
-  const borderRadius = isExpanded ? 15 : 100;
+  const borderRadius = expanded ? 15 : 100;
   const rowContent =
     children ??
     (collapsed ? (

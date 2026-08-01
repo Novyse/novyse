@@ -66,7 +66,10 @@ const Header = ({
 
   const { connected, room, participants } = useCommsContext();
   const hasPinnedMessage = pinnedMessages && pinnedMessages.length > 0;
-  const hasComms = connected;
+  const commsRoomChatUUID = room?.roomInfo?.name
+    ? room.roomInfo.name.split("_")[0]
+    : null;
+  const hasComms = connected && commsRoomChatUUID === chatUUIDorHandle;
   const isHeaderExpanded = hasPinnedMessage || hasComms || isVoiceActive;
 
   const handleContentLayout = React.useCallback(
@@ -116,19 +119,21 @@ const Header = ({
       fullWidthBackdrop={useFullWidthBackdrop}
       onLayout={handleContentLayout}
       footer={
-        <>
-          {hasPinnedMessage && (
-            <PinnedMessageHeader pinnedMessages={pinnedMessages} />
-          )}
-          {isVoiceActive && <AudioHeader />}
-          {hasComms && (
-            <CommsHeader
-              connected={connected}
-              roomName={room?.roomInfo.name}
-              participantsCount={participants.length}
-            />
-          )}
-        </>
+        isHeaderExpanded ? (
+          <>
+            {hasPinnedMessage && (
+              <PinnedMessageHeader pinnedMessages={pinnedMessages} />
+            )}
+            {isVoiceActive && <AudioHeader />}
+            {hasComms && (
+              <CommsHeader
+                connected={connected}
+                roomName={room?.roomInfo.name}
+                participantsCount={participants.length}
+              />
+            )}
+          </>
+        ) : null
       }
     >
       {rowContent}
