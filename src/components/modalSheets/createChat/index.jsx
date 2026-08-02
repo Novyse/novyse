@@ -9,6 +9,9 @@ import {
 import { useTranslation } from "react-i18next";
 
 import HoverAndPressedButton from "../../HoverAndPressedButton";
+import Button from "@/src/components/ui/button/Button";
+import CustomTextInput from "@/src/components/ui/input/TextInput";
+import ToggleSelector from "@/src/components/ToggleSelector";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
@@ -30,8 +33,8 @@ const CreateChatModal = ({ visible, onClose }) => {
     (state) => state.setSelectedChatUUID,
   );
   const { width } = useWindowDimensions();
-  const isNarrow = width <= 360;
-  const styles = createStyle(theme, isNarrow);
+
+  const styles = createStyle(theme);
 
   const [name, setName] = useState("");
   const [type, setType] = useState("GROUP"); // 'GROUP', 'CHANNEL', 'FORUM'
@@ -50,6 +53,22 @@ const CreateChatModal = ({ visible, onClose }) => {
   const [nameError, setNameError] = useState(null);
 
   const snapPoints = useMemo(() => ["85%"], []);
+
+  const privacyOptions = useMemo(
+    () => [
+      {
+        value: "PRIVATE",
+        label: t("modals.create_chat.privacy.private"),
+        icon: "SquareLock02Icon",
+      },
+      {
+        value: "PUBLIC",
+        label: t("modals.create_chat.privacy.public"),
+        icon: "Globe02Icon",
+      },
+    ],
+    [t],
+  );
 
   const resetFields = () => {
     setName("");
@@ -182,7 +201,7 @@ const CreateChatModal = ({ visible, onClose }) => {
   };
 
   const ModalContent = (
-    <View style={styles.contentContainer}>
+    <View>
       {/* Header */}
       <View style={styles.header}>
         <AppText
@@ -201,12 +220,10 @@ const CreateChatModal = ({ visible, onClose }) => {
           style={styles.inputLabel}
           translationKey="modals.create_chat.fields.name"
         />
-        <TextInput
-          style={styles.input}
+        <CustomTextInput
           placeholder={t("modals.create_chat.fields.namePlaceholder")}
-          placeholderTextColor={theme.placeholderText}
           value={name}
-          onChangeText={handleNameChange}
+          onChange={handleNameChange}
         />
         <AppText
           style={styles.helperText}
@@ -257,49 +274,11 @@ const CreateChatModal = ({ visible, onClose }) => {
           style={styles.sectionLabel}
           translationKey="modals.create_chat.sections.privacy"
         />
-        <View style={styles.toggleContainer}>
-          <HoverAndPressedButton
-            style={[
-              styles.toggleBtn,
-              privacy === "PRIVATE" && styles.toggleBtnActive,
-            ]}
-            onPress={() => handlePrivacyChange("PRIVATE")}
-          >
-            <Icon
-              name="SquareLock02Icon"
-              size={16}
-              color={privacy === "PRIVATE" ? theme.text : theme.subtitle}
-            />
-            <AppText
-              style={[
-                styles.toggleText,
-                privacy === "PRIVATE" && styles.textWhite,
-              ]}
-              translationKey="modals.create_chat.privacy.private"
-            />
-          </HoverAndPressedButton>
-
-          <HoverAndPressedButton
-            style={[
-              styles.toggleBtn,
-              privacy === "PUBLIC" && styles.toggleBtnActive,
-            ]}
-            onPress={() => handlePrivacyChange("PUBLIC")}
-          >
-            <Icon
-              name="Globe02Icon"
-              size={16}
-              color={privacy === "PUBLIC" ? theme.text : theme.subtitle}
-            />
-            <AppText
-              style={[
-                styles.toggleText,
-                privacy === "PUBLIC" && styles.textWhite,
-              ]}
-              translationKey="modals.create_chat.privacy.public"
-            />
-          </HoverAndPressedButton>
-        </View>
+        <ToggleSelector
+          options={privacyOptions}
+          value={privacy}
+          onChange={handlePrivacyChange}
+        />
       </View>
 
       {/* Chat Handle */}
@@ -309,32 +288,26 @@ const CreateChatModal = ({ visible, onClose }) => {
             style={styles.inputLabel}
             translationKey="modals.create_chat.fields.handle"
           />
-          <View style={styles.inputWrapper}>
-            <AppText style={styles.prefix} text="@" />
-            <TextInput
-              style={styles.inputWithPrefix}
-              placeholder={t("modals.create_chat.fields.handlePlaceholder")}
-              placeholderTextColor={theme.placeholderText}
-              value={handle}
-              onChangeText={handleHandleChange}
-              autoCapitalize="none"
-            />
-            {isHandleLoading ? (
-              <ActivityIndicator
-                size="small"
-                color={theme.icon}
-                style={styles.loader}
-              />
-            ) : handleAvailability === true ? (
-              <Icon name="Tick02Icon" size={20} color={theme.successText} />
-            ) : handleAvailability === false ? (
-              <Icon
-                name="MultiplicationSignIcon"
-                size={20}
-                color={theme.dangerText}
-              />
-            ) : null}
-          </View>
+          <CustomTextInput
+            prefix="@"
+            placeholder={t("modals.create_chat.fields.handlePlaceholder")}
+            value={handle}
+            onChange={handleHandleChange}
+            autoCapitalize="none"
+            suffix={
+              isHandleLoading ? (
+                <ActivityIndicator size="small" color={theme.icon} />
+              ) : handleAvailability === true ? (
+                <Icon name="Tick02Icon" size={20} color={theme.successText} />
+              ) : handleAvailability === false ? (
+                <Icon
+                  name="MultiplicationSignIcon"
+                  size={20}
+                  color={theme.dangerText}
+                />
+              ) : null
+            }
+          />
           <AppText
             style={styles.helperText}
             translationKey="modals.create_chat.fields.handleHelper"
@@ -355,26 +328,12 @@ const CreateChatModal = ({ visible, onClose }) => {
       />
 
       {/* Footer */}
-      <View style={[styles.footer, isNarrow && styles.footerNarrow]}>
-        <HoverAndPressedButton
-          onPress={onClose}
-          style={[styles.cancelBtn, isNarrow && styles.cancelBtnNarrow]}
-        >
-          <AppText
-            style={styles.cancelBtnText}
-            translationKey="modals.create_chat.actions.cancel"
-          />
-        </HoverAndPressedButton>
-        <HoverAndPressedButton
-          style={[styles.createBtn, isNarrow && styles.createBtnNarrow]}
+      <View style={styles.footer}>
+        <Button
+          translationKey="modals.create_chat.actions.create"
+          icon="PlusSignIcon"
           onPress={handleCreateChat}
-        >
-          <Icon name="PlusSignIcon" size={18} color={theme.text} />
-          <AppText
-            style={styles.createBtnText}
-            translationKey="modals.create_chat.actions.create"
-          />
-        </HoverAndPressedButton>
+        />
       </View>
     </View>
   );
@@ -386,7 +345,6 @@ const CreateChatModal = ({ visible, onClose }) => {
       theme={theme}
       mode="adaptive"
       snapPoints={snapPoints}
-      hideCloseX={true}
       titleTranslationKey="modals.create_chat.title"
     >
       {ModalContent}
@@ -394,11 +352,8 @@ const CreateChatModal = ({ visible, onClose }) => {
   );
 };
 
-function createStyle(theme, isNarrow = false) {
+function createStyle(theme) {
   return StyleSheet.create({
-    contentContainer: {
-      padding: 20,
-    },
     // Header
     header: {
       flexDirection: "row",
@@ -432,47 +387,10 @@ function createStyle(theme, isNarrow = false) {
       color: theme.text,
       marginBottom: 8,
     },
-    input: {
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      fontSize: 15,
-      color: theme.text,
-      outlineStyle: "none",
-    },
     helperText: {
       fontSize: 12,
       color: theme.placeholderText,
       marginTop: 6,
-    },
-    // Privacy Toggle
-    toggleContainer: {
-      flexDirection: "row",
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 12,
-      padding: 4,
-    },
-    toggleBtn: {
-      flex: 1,
-      flexDirection: "row",
-      paddingVertical: 10,
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 8,
-    },
-    toggleBtnActive: {
-      backgroundColor: theme.primary,
-    },
-    toggleText: {
-      fontSize: 14,
-      fontWeight: "500",
-      color: theme.placeholderText,
-      marginLeft: 6,
-    },
-    textWhite: {
-      color: theme.text,
-      marginLeft: 6,
     },
     // Cards Styles
     cardsRow: {
@@ -481,81 +399,15 @@ function createStyle(theme, isNarrow = false) {
       flexWrap: "wrap",
       gap: 8,
     },
-    // Handle Input with Prefix
-    inputWrapper: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-    },
-    prefix: {
-      fontSize: 16,
-      color: theme.placeholderText,
-      fontWeight: "600",
-      marginRight: 4,
-    },
-    inputWithPrefix: {
-      flex: 1,
-      paddingVertical: 12,
-      fontSize: 15,
-      color: theme.text,
-      outlineStyle: "none",
-    },
     // Footer
     footer: {
       flexDirection: "row",
       justifyContent: "flex-end",
       alignItems: "center",
-      padding: 16,
-      marginTop: 24,
+      paddingTop: 16,
+      marginTop: 16,
       borderTopWidth: 1,
       borderTopColor: theme.backgroundCard,
-    },
-    footerNarrow: {
-      flexDirection: "column-reverse",
-      alignItems: "stretch",
-      padding: 12,
-    },
-    cancelBtn: {
-      marginRight: 16,
-      paddingVertical: 10,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-    },
-    cancelBtnNarrow: {
-      marginRight: 0,
-      marginTop: 8,
-      width: "100%",
-      paddingVertical: 12,
-      paddingHorizontal: 12,
-    },
-    cancelBtnText: {
-      color: theme.icon,
-      fontSize: 15,
-      fontWeight: "500",
-      textAlign: isNarrow ? "center" : "left",
-    },
-    createBtn: {
-      backgroundColor: theme.primary,
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-      borderRadius: 8,
-    },
-    createBtnNarrow: {
-      width: "100%",
-      justifyContent: "center",
-      paddingVertical: 12,
-      paddingHorizontal: 12,
-    },
-    createBtnText: {
-      color: theme.text,
-      fontSize: 15,
-      fontWeight: "600",
-      marginLeft: 4,
-      textAlign: "center",
     },
   });
 }

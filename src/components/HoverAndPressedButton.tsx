@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Pressable, StyleSheet, ViewStyle } from "react-native";
+import { Pressable, StyleSheet, ViewStyle, StyleProp } from "react-native";
 import { Theme, ThemeContext } from "@/src/context/ThemeContext";
 
 interface HoverAndPressedButtonProps {
@@ -7,9 +7,9 @@ interface HoverAndPressedButtonProps {
   onPress?: () => void;
   onLongPress?: () => void;
   onContextMenu?: () => void;
-  style?: ViewStyle | ViewStyle[];
-  hoveredStyle?: ViewStyle | ViewStyle[];
-  pressedStyle?: ViewStyle | ViewStyle[];
+  style?: StyleProp<ViewStyle>;
+  hoveredStyle?: StyleProp<ViewStyle>;
+  pressedStyle?: StyleProp<ViewStyle>;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   onPressIn?: () => void;
@@ -38,18 +38,20 @@ const HoverAndPressedButton = ({
 
   const hasAction = onPress || onLongPress || onContextMenu;
 
+  const flatStyle = StyleSheet.flatten(style);
+  const flatHoveredStyle = StyleSheet.flatten(hoveredStyle);
+  const flatPressedStyle = StyleSheet.flatten(pressedStyle);
+
   return (
     <PressableAny
       style={({ pressed, hovered }: any) => [
-        styles.baseContainer as ViewStyle,
-        style as ViewStyle,
-        hovered &&
-          hasAction &&
-          ({ ...styles.baseHovered, ...(hoveredStyle as object) } as any),
-        pressed &&
-          hasAction &&
-          ({ ...styles.basePressed, ...(pressedStyle as object) } as any),
-        disabled && (styles.disabled as ViewStyle),
+        styles.baseContainer,
+        flatStyle,
+        hovered && hasAction && styles.baseHovered,
+        hovered && hasAction && flatHoveredStyle,
+        pressed && hasAction && styles.basePressed,
+        pressed && hasAction && flatPressedStyle,
+        disabled && styles.disabled,
       ]}
       onPress={onPress}
       onLongPress={onLongPress}

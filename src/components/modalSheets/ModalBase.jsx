@@ -116,7 +116,7 @@ function createStyle(theme, shouldUseFullscreen, options = {}) {
       flexShrink: popover ? 0 : 1,
     },
     inner: {
-      padding: 15,
+      padding: 25,
       maxHeight: popover ? undefined : "100%",
       flexShrink: popover ? 0 : 1,
     },

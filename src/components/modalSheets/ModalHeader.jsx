@@ -59,7 +59,7 @@ function createStyles(theme) {
     headerBar: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 10,
+      marginBottom: 25,
     },
     headerBarIconOnly: {
       justifyContent: "flex-end",

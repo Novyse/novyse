@@ -43,8 +43,10 @@ function ToggleSelector<T extends string = string>({
   buttonWidth,
 }: ToggleSelectorProps<T>) {
   const { theme } = useContext(ThemeContext);
-  const hasIcons = options.some((opt) => opt.icon);
-  const styles = createStyles(theme, hasIcons, buttonWidth);
+
+  // for reference see createChatModal implementation
+  const isIconOnly = options.every((opt) => opt.icon && !opt.label);
+  const styles = createStyles(theme, isIconOnly, buttonWidth);
 
   const [containerWidth, setContainerWidth] = useState(0);
   const translateX = useSharedValue(0);
@@ -166,7 +168,7 @@ function ToggleSelector<T extends string = string>({
                 disabled: option.disabled,
               }}
             >
-              {option.icon ? (
+              {option.icon && (
                 <Icon
                   name={option.icon}
                   size={18}
@@ -178,14 +180,15 @@ function ToggleSelector<T extends string = string>({
                         : theme.subtitle
                   }
                 />
-              ) : (
+              )}
+              {option.label && (
                 <AppText
                   style={[
                     styles.toggleText,
                     isActive && styles.toggleTextActive,
                     option.disabled && styles.toggleTextDisabled,
                   ]}
-                  text={option.label || ""}
+                  text={option.label}
                   numberOfLines={1}
                 />
               )}
@@ -197,7 +200,7 @@ function ToggleSelector<T extends string = string>({
   );
 }
 
-function createStyles(theme: any, hasIcons?: boolean, buttonWidth?: number) {
+function createStyles(theme: any, isIconOnly?: boolean, buttonWidth?: number) {
   return StyleSheet.create({
     scrollView: {
       flexGrow: 0,
@@ -222,17 +225,14 @@ function createStyles(theme: any, hasIcons?: boolean, buttonWidth?: number) {
       bottom: 5,
       backgroundColor: theme.primary,
       borderRadius: 25,
-      shadowColor: theme.shadowColor,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
     },
     toggleButton: {
       flex: 1,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      minWidth: buttonWidth !== undefined ? buttonWidth : hasIcons ? 46 : 110,
+      flexDirection: "row",
+      gap: 5,
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      minWidth: buttonWidth !== undefined ? buttonWidth : isIconOnly ? 45 : 110,
       alignItems: "center",
       justifyContent: "center",
       borderRadius: 25,
@@ -242,7 +242,7 @@ function createStyles(theme: any, hasIcons?: boolean, buttonWidth?: number) {
       opacity: 0.5,
     },
     toggleText: {
-      fontSize: 14,
+      fontSize: 15,
       fontWeight: "600",
       color: theme.subtitle,
       textAlign: "center",

@@ -7,23 +7,27 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 interface TextInputProps {
   value?: string;
   prefix?: string;
+  suffix?: React.ReactNode;
   placeholder?: string;
   disabled?: boolean;
   maxLenght?: number;
   numberOfLines?: number;
   onChange?: (text: string) => void;
   onFocus?: () => void;
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
 }
 
 export default function TextInput({
   value,
   prefix,
+  suffix,
   placeholder,
   disabled = false,
   maxLenght,
   numberOfLines = 1,
   onChange,
   onFocus,
+  autoCapitalize,
 }: TextInputProps) {
   const isMultiline = numberOfLines > 1;
 
@@ -45,7 +49,10 @@ export default function TextInput({
         placeholderTextColor={theme.placeholderText}
         multiline={isMultiline}
         numberOfLines={numberOfLines}
+        autoCapitalize={autoCapitalize}
       />
+
+      {suffix && <View style={styles.suffix}>{suffix}</View>}
     </View>
   );
 }
@@ -63,7 +70,7 @@ const createStyles = (theme: any, disabled: boolean, isMultiline: boolean) =>
     },
     TextInput: {
       color: theme.text,
-      width: "100%",
+      flex: 1,
       fontSize: 14,
       outlineStyle: "solid",
       outlineWidth: 0,
@@ -72,5 +79,8 @@ const createStyles = (theme: any, disabled: boolean, isMultiline: boolean) =>
       fontSize: 14,
       color: theme.placeholderText,
       marginRight: 8,
+    },
+    suffix: {
+      marginLeft: 8,
     },
   });
