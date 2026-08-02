@@ -39,7 +39,7 @@ import MessageList from "@/src/components/chat/content/MessageList";
 import UploadFileOverlay from "@/src/components/modalSheets/uploadFile";
 import { EmojiMenuOverlay } from "@/src/components/chat/content/emoji";
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
-import WebDropZone from "@/src/components/input/WebDropZone";
+import WebDropZone from "@/src/components/ui/input/WebDropZone";
 
 import { validateFiles } from "@/src/utils/storage/file/validators";
 import Platform from "@/src/utils/device/type";

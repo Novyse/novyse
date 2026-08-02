@@ -8,9 +8,9 @@ import { countryList, regionList } from "@/constants/Location";
 
 import Label from "@/src/components/Label";
 import SectionHeader from "@/src/components/SectionHeader";
-import TextInput from "@/src/components/input/TextInput";
-import SelectInput from "@/src/components/input/SelectInput";
-import DateInput from "@/src/components/input/DateInput";
+import TextInput from "@/src/components/ui/input/TextInput";
+import SelectInput from "@/src/components/ui/input/SelectInput";
+import DateInput from "@/src/components/ui/input/DateInput";
 
 interface PersonalInfoProps {
   initialValues: {

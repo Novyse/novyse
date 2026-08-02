@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import ModalBase from "../../../modalSheets/ModalBase";
-import TextInput from "../../../input/TextInput";
+import TextInput from "@/src/components/ui/input/TextInput";
 import AppText from "@/src/components/AppText";
 import { useTranslation } from "react-i18next";
 
@@ -39,7 +39,10 @@ export default function CreateApiKeyModal({
       titleTranslationKey="settings.security.apiKeys.createModal.title"
     >
       <View style={styles.container}>
-        <AppText style={styles.subtitle} translationKey="settings.security.apiKeys.createModal.subtitle" />
+        <AppText
+          style={styles.subtitle}
+          translationKey="settings.security.apiKeys.createModal.subtitle"
+        />
         <TextInput
           placeholder={t("settings.security.apiKeys.createModal.placeholder")}
           value={name}
@@ -55,9 +58,13 @@ export default function CreateApiKeyModal({
           ]}
           disabled={!name.trim() || isLoading}
         >
-          <AppText 
+          <AppText
             style={styles.buttonText}
-            translationKey={isLoading ? "settings.security.apiKeys.createModal.creating" : "settings.security.apiKeys.createModal.create"}
+            translationKey={
+              isLoading
+                ? "settings.security.apiKeys.createModal.creating"
+                : "settings.security.apiKeys.createModal.create"
+            }
           />
         </Pressable>
       </View>

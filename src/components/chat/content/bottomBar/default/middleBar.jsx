@@ -11,7 +11,7 @@ import BlurredView from "@/src/components/BlurredView";
 import RecordingDot from "@/src/components/RecordingDot";
 import SpeechIndicator from "@/src/components/SpeechIndicator";
 import { getPlatform } from "@/src/utils/device/type";
-import { toDroppedFile } from "@/src/components/input/WebDropZone";
+import { toDroppedFile } from "@/src/components/ui/input/WebDropZone";
 import { handleChatShortcuts } from "@/src/utils/shortcut/chatShortcuts";
 import Platform from "@/src/utils/device/type";
 import { getMarkdownStyle } from "@/constants/markdownStyles";

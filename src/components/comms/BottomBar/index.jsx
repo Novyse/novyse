@@ -5,7 +5,6 @@ import { router } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import CommsBottomBarButton from "@/src/components/comms/BottomBar/Button";
 import MicrophoneSelector from "@/src/components/comms/BottomBar/MicrophoneSelector";
 import MicrophoneArrowButton from "@/src/components/comms/BottomBar/MicrophoneArrowButton";
 import CameraSelector from "@/src/components/comms/BottomBar/CameraSelector";
@@ -14,6 +13,7 @@ import ScreenShareSelector from "@/src/components/comms/BottomBar/ScreenShareSel
 import StatusMessage from "@/src/components/StatusMessage";
 
 import BlurredView from "@/src/components/BlurredView";
+import Icon from "@/src/components/Icon";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import { useCommsContext } from "@/src/context/CommsContext";
@@ -113,17 +113,17 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
       </View>
       {!connected || !roomMatch ? (
         connecting ? (
-          <BlurredView style={styles.iconButton}>
+          <BlurredView style={styles.joinIconButton}>
             <ActivityIndicator color={theme.icon} size="small" />
           </BlurredView>
         ) : (
-          <BlurredView style={styles.iconButton}>
-            <CommsBottomBarButton
+          <BlurredView style={styles.joinIconButton}>
+            <Icon
               onPress={() => join()}
-              iconName={"Call02Icon"}
-              iconColor={theme.iconSuccess}
+              name={"Call02Icon"}
+              color={theme.iconSuccess}
               hoverColor={theme.successText}
-              style={{ width: 60, height: 60 }}
+              style={[styles.icon, { width: 60, height: 60 }]}
             />
           </BlurredView>
         )
@@ -131,9 +131,10 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
         <BlurredView style={styles.blurredContainer}>
           {canSpeak && (
             <View style={styles.microphoneButtonContainer}>
-              <CommsBottomBarButton
+              <Icon
                 onPress={toggleAudio}
-                iconName={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
+                name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
+                style={styles.icon}
               />
               {!isMobile && (
                 <MicrophoneArrowButton
@@ -147,9 +148,10 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
           )}
           {canVideo && (
             <View style={styles.cameraButtonContainer}>
-              <CommsBottomBarButton
+              <Icon
                 onPress={toggleVideo}
-                iconName={isVideoEnabled ? "Video02Icon" : "VideoOffIcon"}
+                name={isVideoEnabled ? "Video02Icon" : "VideoOffIcon"}
+                style={styles.icon}
               />
 
               <CameraArrowButton
@@ -160,32 +162,37 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
               />
             </View>
           )}
-          <CommsBottomBarButton
+          <Icon
             onPress={toggleAudioOutput}
-            iconName={isAudioOutputEnabled ? "VolumeHighIcon" : "VolumeOffIcon"}
+            name={isAudioOutputEnabled ? "VolumeHighIcon" : "VolumeOffIcon"}
+            style={styles.icon}
           />
           {canScreenShare && (
-            <CommsBottomBarButton
+            <Icon
               onPress={() => {
                 if (Platform === "desktop") setShowScreenShareSelector(true);
                 else startScreenShare();
               }}
-              iconName={"ComputerScreenShareIcon"}
+              name={"ComputerScreenShareIcon"}
+              style={styles.icon}
             />
           )}
-          <CommsBottomBarButton
+          <Icon
             onPress={() => router.push("/app/settings/comms")}
-            iconName={"Settings02Icon"}
+            name={"Settings02Icon"}
+            style={styles.icon}
           />
-          <CommsBottomBarButton
+          <Icon
             onPress={() => setShowRoomMenu(true)}
-            iconName={"MoreVerticalIcon"}
+            name={"MoreVerticalIcon"}
+            style={styles.icon}
           />
-          <CommsBottomBarButton
+          <Icon
             onPress={leave}
-            iconName={"Call02Icon"}
-            iconColor={theme.iconDanger}
+            name={"Call02Icon"}
+            color={theme.iconDanger}
             hoverColor={theme.dangerText}
+            style={styles.icon}
           />
         </BlurredView>
       )}
@@ -260,13 +267,20 @@ const createStyle = (theme) =>
     cameraButtonContainer: {
       position: "relative",
     },
-    iconButton: {
+    joinIconButton: {
       position: "absolute",
       bottom: 5,
       height: 60,
       width: 60,
       borderRadius: 999,
       alignSelf: "center",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    icon: {
+      borderRadius: 100,
+      height: 45,
+      width: 45,
       alignItems: "center",
       justifyContent: "center",
     },
