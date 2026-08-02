@@ -26,16 +26,15 @@ const useMessageActions = ({
   const selectedChatUUID = useActiveChatStore(
     (state) => state.selectedChatUUID,
   );
-  const chat = useChatStore((state) => state.chats[selectedChatUUID]);
+  const chat = useChatStore((state) =>
+    state.chats.find((c) => c.uuid === selectedChatUUID),
+  );
 
   const myMember = chat?.members?.find((m) => m.uuid === localUserUUID);
-  const myRoleIDs = myMember?.roleIDs;
-  const myRoles =
-    myRoleIDs?.reduce((acc, id) => {
-      const role = chat?.roles?.find((r) => r.id === id);
-      if (role) acc.push(role);
-      return acc;
-    }, []) || [];
+  const myRoleIDs = myMember?.roleIDs || [];
+  const myRoles = (chat?.roles || []).filter((r) =>
+    myRoleIDs.some((id) => Number(r.id) === Number(id)),
+  );
   const myLevel = getEffectiveLevel(myRoles);
   const canPinPerm = hasPermission(myRoles, PERMISSIONS.PIN_MESSAGE);
   const canDeletePerm = hasPermission(myRoles, PERMISSIONS.DELETE_MESSAGE);
@@ -56,15 +55,18 @@ const useMessageActions = ({
       let targetLevel = 0;
       if (triggeredMessage.senderUUID !== myUUID) {
         const targetMember = chat?.members?.find(
-          (m) => m.uuid === triggeredMessage.senderUUID,
+          (m) => (m.uuid || m.userUUID) === triggeredMessage.senderUUID,
         );
-        const targetRoleIDs = targetMember?.roleIDs;
-        const targetRoles =
-          targetRoleIDs?.reduce((acc, id) => {
-            const role = chat?.roles?.find((r) => r.id === id);
-            if (role) acc.push(role);
-            return acc;
-          }, []) || [];
+        const rawTargetRoleIDs =
+          targetMember?.roleIDs ||
+          targetMember?.role_ids ||
+          targetMember?.roleIds ||
+          [];
+        const targetRoleIDs =
+          rawTargetRoleIDs.length > 0 ? rawTargetRoleIDs : [2];
+        const targetRoles = (chat?.roles || []).filter((r) =>
+          targetRoleIDs.some((id) => Number(r.id) === Number(id)),
+        );
         targetLevel = getEffectiveLevel(targetRoles);
       }
 

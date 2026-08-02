@@ -14,6 +14,7 @@ import Avatar from "@/src/components/Avatar";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import useChatStore from "@/src/context/ChatContext";
+import RoleBadge from "@/src/components/badge/RoleBadge";
 
 type GroupTab =
   | "members"
@@ -145,7 +146,6 @@ const ChatOverview = () => {
   };
 
   const renderMembers = (chat: any) => {
-    console.log(chat);
     if (!chat?.members || chat.members.length === 0) {
       return (
         <AppText
@@ -155,11 +155,20 @@ const ChatOverview = () => {
       );
     }
 
+    const chatRoles = chat?.roles || [];
+
     return (
       <View style={styles.listContainer}>
         {chat.members.map((member: any, index: number) => {
           const mUUID = member.uuid || member.userUUID;
           const user = mUUID ? users[mUUID] || member : member;
+
+          const memberRoleIDs = member.roleIDs ||
+            member.role_ids ||
+            member.roleIds || [2];
+          const resolvedRoles = chatRoles.filter((r: any) =>
+            memberRoleIDs.some((id: number) => Number(r.id) === Number(id)),
+          );
 
           return (
             <Pressable
@@ -191,9 +200,22 @@ const ChatOverview = () => {
                 <AppText style={styles.memberName}>
                   {user.name || user.handle || t("chat.listItem.unknown")}
                 </AppText>
-                <AppText style={styles.memberRole}>
-                  {member.role || t("messageFormat.system.user")}
-                </AppText>
+                <View style={styles.roleBadgesContainer}>
+                  {resolvedRoles.length > 0 ? (
+                    resolvedRoles.map((role: any) => (
+                      <RoleBadge
+                        key={role.id}
+                        name={role.name}
+                        color={role.color}
+                      />
+                    ))
+                  ) : (
+                    <RoleBadge
+                      name={t("messageFormat.system.user")}
+                      color={210}
+                    />
+                  )}
+                </View>
               </View>
               {member.joinedAt && (
                 <AppText style={styles.memberJoinedAt}>
@@ -456,6 +478,30 @@ const createStyles = (theme: any) =>
       fontSize: 14,
       color: theme.subtitle,
       marginTop: 2,
+    },
+    roleBadgesContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6,
+      marginTop: 4,
+    },
+    roleBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 10,
+      borderWidth: 1,
+      gap: 4,
+    },
+    roleBadgeDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+    },
+    roleBadgeText: {
+      fontSize: 11,
+      fontWeight: "600",
     },
     memberJoinedAt: {
       fontSize: 12,

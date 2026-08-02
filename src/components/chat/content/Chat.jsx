@@ -744,19 +744,18 @@ const ChatContent = () => {
 
           if (!canSendText) return null;
 
-          const myMember = chat?.members?.find((m) => m.uuid === myUUID);
-          const myRoleIDs = myMember?.roleIDs;
-          const myRoles =
-            myRoleIDs?.reduce((acc, id) => {
-              const role = chat?.roles?.find((r) => r.id === id);
-              if (role) acc.push(role);
-              return acc;
-            }, []) || [];
-          const canSendMessage = hasPermission(
-            myRoles,
-            PERMISSIONS.SEND_MESSAGE,
-            subType,
+          const isDMorGroup = chat?.type === "DM" || chat?.type === "GROUP";
+          const myMember = chat?.members?.find(
+            (m) => (m.uuid || m.userUUID) === myUUID,
           );
+          const myRoleIDs = myMember?.roleIDs || [];
+          const myRoles = (chat?.roles || []).filter((r) =>
+            myRoleIDs.some((id) => Number(r.id) === Number(id)),
+          );
+
+          const canSendMessage =
+            isDMorGroup ||
+            hasPermission(myRoles, PERMISSIONS.SEND_MESSAGE, subType);
 
           return (
             <Animated.View

@@ -81,6 +81,12 @@ export class ChatRepository {
 
       if (chat.roles && Array.isArray(chat.roles)) {
         for (const role of chat.roles) {
+          const colorValue =
+            role.color != null
+              ? typeof role.color === "object"
+                ? JSON.stringify(role.color)
+                : String(role.color)
+              : null;
           await this.db.runAsync(
             `INSERT OR IGNORE INTO role (id, chatUUID, name, permission, level, color) VALUES (?, ?, ?, ?, ?, ?);`,
             [
@@ -89,7 +95,7 @@ export class ChatRepository {
               role.name,
               String(role.permission),
               role.level,
-              role.color || null,
+              colorValue,
             ],
           );
         }
@@ -207,13 +213,19 @@ export class ChatRepository {
           .join(", ");
         const roleValues: any[] = [];
         for (const role of allRoles) {
+          const colorValue =
+            role.color != null
+              ? typeof role.color === "object"
+                ? JSON.stringify(role.color)
+                : String(role.color)
+              : null;
           roleValues.push(
             role.id,
             role.chatUUID,
             role.name,
             String(role.permission),
             role.level,
-            role.color || null,
+            colorValue,
           );
         }
         await this.db.runAsync(

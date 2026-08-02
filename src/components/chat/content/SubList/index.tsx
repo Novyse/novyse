@@ -37,12 +37,13 @@ const SubList = ({
   // If width is very small (e.g. less than 150), only show initials
   const isCollapsed = isSmallScreen || subListWidth < 150;
 
-  const myMember = chat?.members?.find((m) => m.uuid === localUserUUID);
-  const myRoleIDs =
-    myMember?.roleIDs && myMember.roleIDs.length > 0 ? myMember.roleIDs : [2];
-  const myRoles = myRoleIDs
-    .map((id) => chat?.roles?.find((r) => Number(r.id) === Number(id)))
-    .filter(Boolean);
+  const myMember = chat?.members?.find(
+    (m: any) => (m.uuid || m.userUUID) === localUserUUID,
+  );
+  const myRoleIDs = myMember?.roleIDs || [];
+  const myRoles = (chat?.roles || []).filter((r: any) =>
+    myRoleIDs.some((id: number) => Number(r.id) === Number(id)),
+  );
 
   const canManageSub = hasPermission(myRoles, PERMISSIONS.MANAGE_SUB);
 

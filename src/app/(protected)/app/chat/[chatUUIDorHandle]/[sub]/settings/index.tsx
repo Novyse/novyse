@@ -47,11 +47,10 @@ const ChatSettings = () => {
 
   const localUserUUID = useUserStore((state) => state.localUserUUID);
   const myMember = chat?.members?.find((m) => m.uuid === localUserUUID);
-  const myRoleIDs = myMember?.roleIDs;
-  const myRoles =
-    (myRoleIDs
-      ?.map((id) => chat?.roles?.find((r) => r.id === id))
-      .filter(Boolean) as Role[]) || [];
+  const myRoleIDs = myMember?.roleIDs || [];
+  const myRoles = (chat?.roles || []).filter((r) =>
+    myRoleIDs.some((id) => Number(r.id) === Number(id)),
+  ) as Role[];
 
   const canManageMembers =
     hasPermission(myRoles, PERMISSIONS.KICK_MEMBER) ||

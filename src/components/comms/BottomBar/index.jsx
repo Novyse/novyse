@@ -63,15 +63,16 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
   } = useCommsAction(chatUUID, sub);
 
   const myUUID = useUserStore((state) => state.localUserUUID);
-  const chat = useChatStore((state) => state.chats[chatUUID]);
-  const myMember = chat?.members?.find((m) => m.uuid === myUUID);
-  const myRoleIDs = myMember?.roleIDs;
-  const myRoles =
-    myRoleIDs?.reduce((acc, id) => {
-      const role = chat?.roles?.find((r) => r.id === id);
-      if (role) acc.push(role);
-      return acc;
-    }, []) || [];
+  const chat = useChatStore((state) =>
+    state.chats.find((c) => c.uuid === chatUUID),
+  );
+  const myMember = chat?.members?.find(
+    (m) => (m.uuid || m.userUUID) === myUUID,
+  );
+  const myRoleIDs = myMember?.roleIDs || [];
+  const myRoles = (chat?.roles || []).filter((r) =>
+    myRoleIDs.some((id) => Number(r.id) === Number(id)),
+  );
   const canSpeak = hasPermission(myRoles, PERMISSIONS.SPEAK_VOCAL, sub?.type);
   const canVideo = hasPermission(myRoles, PERMISSIONS.VIDEO_VOCAL, sub?.type);
   const canScreenShare = hasPermission(
