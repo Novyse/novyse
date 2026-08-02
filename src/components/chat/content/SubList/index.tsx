@@ -9,7 +9,7 @@ import useUserStore from "@/src/context/UserContext";
 import { FlashList } from "@shopify/flash-list";
 import BaseListItem from "@/src/components/chat/list/BaseListItem";
 import messageUtils from "@/src/utils/chat/messageFormat";
-import CreateSubModal from "@/src/components/modalSheets/createSub";
+import CreateSubModal from "@/src/components/features/sub/createSub/CreateSubModal";
 import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 
 import VocalSubSubtitle from "./VocalSubSubtitle";

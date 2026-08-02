@@ -2,9 +2,9 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/AppText";
 import Icon from "@/src/components/Icon";
-import HoverAndPressedButton from "../../HoverAndPressedButton";
+import HoverAndPressedButton from "../../../HoverAndPressedButton";
 
-const Button = ({
+const ChatTypeButtom = ({
   id,
   icon,
   title,
@@ -75,4 +75,4 @@ const createStyles = (theme) =>
     },
   });
 
-export default Button;
+export default ChatTypeButtom;

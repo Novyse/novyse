@@ -1,14 +1,12 @@
 import React, { useState, useContext, useMemo } from "react";
 import {
   View,
-  TextInput,
   StyleSheet,
   ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import HoverAndPressedButton from "../../HoverAndPressedButton";
 import Button from "@/src/components/ui/button/Button";
 import CustomTextInput from "@/src/components/ui/input/TextInput";
 import ToggleSelector from "@/src/components/ToggleSelector";
@@ -16,9 +14,9 @@ import ToggleSelector from "@/src/components/ToggleSelector";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
-import AdaptiveModal from "../AdaptiveModal";
-import SelectButton from "./Button";
-import StatusMessage from "../../StatusMessage";
+import AdaptiveModal from "../../../modalSheets/AdaptiveModal";
+import SelectButton from "./ChatTypeButton";
+import StatusMessage from "../../../StatusMessage";
 import Icon from "@/src/components/Icon";
 import AppText from "@/src/components/AppText";
 

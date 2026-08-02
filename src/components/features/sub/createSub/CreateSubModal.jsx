@@ -1,12 +1,12 @@
 import React, { useState, useContext, useMemo } from "react";
-import { View, TextInput, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import HoverAndPressedButton from "../../HoverAndPressedButton";
+import Button from "@/src/components/ui/button/Button";
+import CustomTextInput from "@/src/components/ui/input/TextInput";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import AdaptiveModal from "../AdaptiveModal";
-import StatusMessage from "../../StatusMessage";
-import Icon from "@/src/components/Icon";
+import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
+import StatusMessage from "@/src/components/StatusMessage";
 import AppText from "@/src/components/AppText";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -48,7 +48,7 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
   };
 
   const ModalContent = (
-    <View style={styles.contentContainer}>
+    <View>
       <View style={styles.header}>
         <AppText
           style={styles.modalSubtitle}
@@ -61,12 +61,10 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
           style={styles.inputLabel}
           translationKey="modals.create_chat.fields.name"
         />
-        <TextInput
-          style={styles.input}
+        <CustomTextInput
           placeholder={t("modals.create_chat.fields.namePlaceholder")}
-          placeholderTextColor={theme.placeholderText}
           value={name}
-          onChangeText={(val) => {
+          onChange={(val) => {
             setName(val);
             setError(null);
           }}
@@ -75,7 +73,7 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
 
       <View style={styles.section}>
         <AppText style={styles.inputLabel} text="Sub Type" />
-        <View style={{ marginBottom: 12 }}>
+        <View>
           <ToggleSelector
             options={[
               { value: "MIXED", label: "Mixed" },
@@ -100,19 +98,11 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
       />
 
       <View style={styles.footer}>
-        <HoverAndPressedButton onPress={onClose} style={styles.cancelBtn}>
-          <AppText
-            style={styles.cancelBtnText}
-            translationKey="modals.create_chat.actions.cancel"
-          />
-        </HoverAndPressedButton>
-        <HoverAndPressedButton style={styles.createBtn} onPress={handleCreate}>
-          <Icon name="PlusSignIcon" size={18} color={theme.text} />
-          <AppText
-            style={styles.createBtnText}
-            translationKey="modals.create_chat.actions.create"
-          />
-        </HoverAndPressedButton>
+        <Button
+          translationKey="modals.create_chat.actions.create"
+          icon="PlusSignIcon"
+          onPress={handleCreate}
+        />
       </View>
     </View>
   );
@@ -124,7 +114,6 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
       theme={theme}
       mode="adaptive"
       snapPoints={snapPoints}
-      hideCloseX={true}
       title="Create Sub"
     >
       {ModalContent}
@@ -134,9 +123,6 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
 
 function createStyle(theme) {
   return StyleSheet.create({
-    contentContainer: {
-      padding: 20,
-    },
     header: {
       marginBottom: 20,
     },
@@ -153,48 +139,14 @@ function createStyle(theme) {
       color: theme.text,
       marginBottom: 8,
     },
-    input: {
-      backgroundColor: theme.backgroundCard,
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      fontSize: 15,
-      color: theme.text,
-      outlineStyle: "none",
-    },
     footer: {
       flexDirection: "row",
       justifyContent: "flex-end",
       alignItems: "center",
-      padding: 16,
-      marginTop: 24,
+      paddingTop: 16,
+      marginTop: 16,
       borderTopWidth: 1,
       borderTopColor: theme.backgroundCard,
-    },
-    cancelBtn: {
-      marginRight: 16,
-      paddingVertical: 10,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-    },
-    cancelBtnText: {
-      color: theme.icon,
-      fontSize: 15,
-      fontWeight: "500",
-    },
-    createBtn: {
-      backgroundColor: theme.primary,
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-      borderRadius: 8,
-    },
-    createBtnText: {
-      color: theme.text,
-      fontSize: 15,
-      fontWeight: "600",
-      marginLeft: 4,
     },
   });
 }

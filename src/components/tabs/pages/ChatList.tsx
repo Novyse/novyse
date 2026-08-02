@@ -20,7 +20,7 @@ import ChatListItem from "@/src/components/chat/list/Item";
 import ChatListHeader from "@/src/components/chat/list/header/ChatListHeader";
 import StatusHeader from "@/src/components/chat/list/header/StatusHeader";
 import FloatingButton from "@/src/components/FloatingButton";
-import CreateChatModal from "@/src/components/modalSheets/createChat";
+import CreateChatModal from "@/src/components/features/chat/createChat/CreateChatModal";
 import CommsHeader from "@/src/components/chat/content/header/CommsHeader";
 
 import useChatStore from "@/src/context/ChatContext";
