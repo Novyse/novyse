@@ -6,7 +6,7 @@ import AnimatedGradientBadge from "./AnimatedGradientBadge";
 import StaticGradientBadge from "./StaticGradientBadge";
 import SolidBadge from "./SolidBadge";
 
-const BadgeRenderer = ({ badge }: any) => {
+export const BadgeRenderer = ({ badge }: any) => {
   if (!badge?.color?.type) return null;
 
   switch (badge.color.type) {

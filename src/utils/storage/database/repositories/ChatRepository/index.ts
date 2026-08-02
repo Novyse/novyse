@@ -81,12 +81,7 @@ export class ChatRepository {
 
       if (chat.roles && Array.isArray(chat.roles)) {
         for (const role of chat.roles) {
-          const colorValue =
-            role.color != null
-              ? typeof role.color === "object"
-                ? JSON.stringify(role.color)
-                : String(role.color)
-              : null;
+          const colorValue = role.color ? JSON.stringify(role.color) : null;
           await this.db.runAsync(
             `INSERT OR IGNORE INTO role (id, chatUUID, name, permission, level, color) VALUES (?, ?, ?, ?, ?, ?);`,
             [
@@ -213,12 +208,7 @@ export class ChatRepository {
           .join(", ");
         const roleValues: any[] = [];
         for (const role of allRoles) {
-          const colorValue =
-            role.color != null
-              ? typeof role.color === "object"
-                ? JSON.stringify(role.color)
-                : String(role.color)
-              : null;
+          const colorValue = role.color ? JSON.stringify(role.color) : null;
           roleValues.push(
             role.id,
             role.chatUUID,
@@ -533,11 +523,15 @@ export class ChatRepository {
             }
           }
 
-          chat.roles =
+          const fetchedRoles: any[] =
             (await this.db.getAllAsync(
               `SELECT * FROM role WHERE chatUUID = ? ORDER BY id ASC;`,
               [chat.uuid],
             )) || [];
+          chat.roles = fetchedRoles.map((r) => ({
+            ...r,
+            color: r.color ? JSON.parse(r.color) : null,
+          }));
 
           chat.pinnedMessages =
             (await this.db.getAllAsync(

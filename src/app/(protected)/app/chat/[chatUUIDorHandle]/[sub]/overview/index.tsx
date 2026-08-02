@@ -14,7 +14,7 @@ import Avatar from "@/src/components/Avatar";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import useChatStore from "@/src/context/ChatContext";
-import RoleBadge from "@/src/components/badge/RoleBadge";
+import { BadgeRenderer } from "@/src/components/badge/Badges";
 
 type GroupTab =
   | "members"
@@ -201,20 +201,9 @@ const ChatOverview = () => {
                   {user.name || user.handle || t("chat.listItem.unknown")}
                 </AppText>
                 <View style={styles.roleBadgesContainer}>
-                  {resolvedRoles.length > 0 ? (
-                    resolvedRoles.map((role: any) => (
-                      <RoleBadge
-                        key={role.id}
-                        name={role.name}
-                        color={role.color}
-                      />
-                    ))
-                  ) : (
-                    <RoleBadge
-                      name={t("messageFormat.system.user")}
-                      color={210}
-                    />
-                  )}
+                  {resolvedRoles.map((role: any) => (
+                    <BadgeRenderer key={role.id} badge={role} />
+                  ))}
                 </View>
               </View>
               {member.joinedAt && (
