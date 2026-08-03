@@ -15,7 +15,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 
 import UserProfileAvatar from "./UserProfileAvatar";
 import BlurredView from "../BlurredView";
-import Icon from "../Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import { WatchTogetherPlayer } from "./embed/WatchTogetherPlayer";
 
 const platform = getPlatform();

@@ -1,9 +1,9 @@
 import { Platform, Pressable, StyleSheet, View } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import * as Linking from "expo-linking";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 import { PRIVACY_POLICY_URL, TOS_URL } from "@/app.config";
-import TextLink from "@/src/components/TextLink";
+import TextLink from "@/src/components/ui/text/LinkText";
 
 interface Props {
   privacyAccepted: boolean;

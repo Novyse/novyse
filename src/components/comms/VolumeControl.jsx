@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
-import AppText from "@/src/components/AppText";
-import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/ui/text/AppText";
+import Icon from "@/src/components/ui/icon/Icon";
 import { useCommsContext } from "@/src/context/CommsContext";
 import { ThemeContext } from "@/src/context/ThemeContext";
 

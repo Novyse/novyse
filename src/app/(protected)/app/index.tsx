@@ -1,7 +1,7 @@
-import React, {useContext} from "react";
+import React, { useContext } from "react";
 import { View } from "react-native";
-import AppText from "@/src/components/AppText";
-import {ThemeContext} from "@/src/context/ThemeContext";
+import AppText from "@/src/components/ui/text/AppText";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 export default function RootLayout() {
   const { theme } = useContext(ThemeContext);

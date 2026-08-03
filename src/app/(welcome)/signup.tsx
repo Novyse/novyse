@@ -7,14 +7,14 @@ import {
   View,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import { useScreen } from "@/src/context/ScreenContext";
 import { LoginColors } from "@/constants/LoginColors";
 import { useSignup } from "@/src/hooks/welcome/useSignup";
 
 import StatusMessage from "@/src/components/StatusMessage";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 import SignupTimeline from "@/src/components/welcome/signup/SignupTimeline";

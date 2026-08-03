@@ -6,7 +6,7 @@ import { Room } from "livekit-client";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import AdaptiveModal from "../../modalSheets/AdaptiveModal";
 import SettingRow from "@/src/components/settings/SettingRow";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { ScrollBar } from "@/constants/ScrollBar";
 import StatusMessage from "@/src/components/StatusMessage";
 
@@ -26,7 +26,9 @@ const MicrophoneSelector = ({
   const { theme } = useThemeContext();
   const styles = createStyle(theme);
 
-  const [availableMicrophones, setAvailableMicrophones] = useState<MediaDeviceInfo[]>([]);
+  const [availableMicrophones, setAvailableMicrophones] = useState<
+    MediaDeviceInfo[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
@@ -39,7 +41,9 @@ const MicrophoneSelector = ({
 
   const checkPermission = async () => {
     try {
-      (await navigator.mediaDevices?.getUserMedia?.({ audio: true }))?.getTracks().forEach(t => t.stop());
+      (await navigator.mediaDevices?.getUserMedia?.({ audio: true }))
+        ?.getTracks()
+        .forEach((t) => t.stop());
       setHasPermission(true);
       return true;
     } catch {
@@ -52,8 +56,10 @@ const MicrophoneSelector = ({
     setLoading(true);
     try {
       const permitted = await checkPermission();
-      const microphones = permitted ? await Room.getLocalDevices("audioinput") : [];
-      const hasValidLabels = microphones.some(d => d.label !== "");
+      const microphones = permitted
+        ? await Room.getLocalDevices("audioinput")
+        : [];
+      const hasValidLabels = microphones.some((d) => d.label !== "");
       if (permitted && microphones.length > 0 && !hasValidLabels) {
         setHasPermission(false);
         setAvailableMicrophones([]);
@@ -72,7 +78,13 @@ const MicrophoneSelector = ({
     onClose();
   };
 
-  const renderMicrophoneItem = ({ item, index }: { item: MediaDeviceInfo; index: number }) => {
+  const renderMicrophoneItem = ({
+    item,
+    index,
+  }: {
+    item: MediaDeviceInfo;
+    index: number;
+  }) => {
     const isSelected =
       item.deviceId === currentDeviceId ||
       (currentDeviceId === "default" &&
@@ -83,10 +95,18 @@ const MicrophoneSelector = ({
       <SettingRow
         key={item.deviceId}
         iconName="Mic02Icon"
-        labelKey={!item.label ? "chat.comms.selectors.microphone.defaultName" : undefined}
+        labelKey={
+          !item.label
+            ? "chat.comms.selectors.microphone.defaultName"
+            : undefined
+        }
         labelOptions={!item.label ? { id: item.deviceId } : undefined}
         labelText={item.label || undefined}
-        valueKey={isSelected ? "chat.comms.selectors.microphone.currentlySelected" : undefined}
+        valueKey={
+          isSelected
+            ? "chat.comms.selectors.microphone.currentlySelected"
+            : undefined
+        }
         type="SELECT_GROUP"
         isSelected={isSelected}
         onPress={() => handleMicrophoneSelect(item)}

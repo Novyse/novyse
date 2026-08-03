@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { useShareIntentContext } from "expo-share-intent";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,17 +9,16 @@ import { useIsFocused } from "expo-router/react-navigation";
 
 import { Chat } from "@/src/types/chat";
 
-import Icon from "@/src/components/Icon";
-import AppHeader from "@/src/components/header/AppHeader";
-import { headerIconButtonStyle } from "@/src/components/header/AppHeaderRow";
+import Icon from "@/src/components/ui/icon/Icon";
+import AppHeader from "@/src/components/features/header/AppHeader";
+import { headerIconButtonStyle } from "@/src/components/features/header/AppHeaderRow";
 import {
   COMMS_HEADER_OFFSET,
   getAppHeaderScrollPaddingTop,
-} from "@/src/components/header/constants";
+} from "@/src/components/features/header/constants";
 import ChatListItem from "@/src/components/chat/list/Item";
 import ChatListHeader from "@/src/components/chat/list/header/ChatListHeader";
 import StatusHeader from "@/src/components/chat/list/header/StatusHeader";
-import FloatingButton from "@/src/components/FloatingButton";
 import CreateChatModal from "@/src/components/features/chat/createChat/CreateChatModal";
 import CommsHeader from "@/src/components/chat/content/header/CommsHeader";
 

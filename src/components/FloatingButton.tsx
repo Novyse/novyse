@@ -4,7 +4,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 
 import BlurredView from "./BlurredView";
 import HoverAndPressedButton from "./HoverAndPressedButton";
-import Icon from "./Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 interface FloatingButtonProps {
   onPress: () => void;

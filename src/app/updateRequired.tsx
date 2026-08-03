@@ -15,7 +15,7 @@ import * as IntentLauncher from "expo-intent-launcher";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import { APP_VERSION, BRANCH } from "../../app.config";
 import Platform, {

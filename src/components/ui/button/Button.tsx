@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { StyleSheet, ViewStyle, TextStyle, StyleProp } from "react-native";
 import { Theme, ThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/AppText";
-import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/ui/text/AppText";
+import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 
 export interface ButtonProps {
@@ -51,11 +51,7 @@ export default function Button({
 
     if (typeof icon === "string") {
       return (
-        <Icon
-          name={icon}
-          size={iconSize}
-          color={iconColor || theme.text}
-        />
+        <Icon name={icon} size={iconSize} color={iconColor || theme.text} />
       );
     }
 
@@ -64,10 +60,7 @@ export default function Button({
 
   return (
     <HoverAndPressedButton
-      style={[
-        styles.createBtn,
-        style,
-      ]}
+      style={[styles.createBtn, style]}
       hoveredStyle={[styles.hovered, hoveredStyle]}
       pressedStyle={[styles.pressed, pressedStyle]}
       onPress={onPress}

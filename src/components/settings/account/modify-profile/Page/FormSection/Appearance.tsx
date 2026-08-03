@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import BlurredView from "@/src/components/BlurredView";
 
 import Label from "@/src/components/Label";

@@ -9,7 +9,7 @@ import {
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 import AdaptiveModal from "../../modalSheets/AdaptiveModal";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import Switch from "@/src/components/Switch";
 import ToggleSelector from "@/src/components/ToggleSelector";
 import { useTranslation } from "react-i18next";

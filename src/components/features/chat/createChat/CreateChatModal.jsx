@@ -17,8 +17,8 @@ import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import AdaptiveModal from "../../../modalSheets/AdaptiveModal";
 import SelectButton from "./ChatTypeButton";
 import StatusMessage from "../../../StatusMessage";
-import Icon from "@/src/components/Icon";
-import AppText from "@/src/components/AppText";
+import Icon from "@/src/components/ui/icon/Icon";
+import AppText from "@/src/components/ui/text/AppText";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";

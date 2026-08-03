@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";

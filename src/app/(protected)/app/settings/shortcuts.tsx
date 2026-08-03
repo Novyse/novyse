@@ -6,7 +6,7 @@ import SettingsPageScrollview from "@/src/components/settings/SettingsPageScroll
 import SettingsCard from "@/src/components/settings/SettingsCard";
 import ShortcutItem from "@/src/components/settings/shortcuts/ShortcutItem";
 import StatusMessage from "@/src/components/StatusMessage";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import { shortcutsRpc } from "@/src/utils/electron/shortcuts";
 import { getPlatform } from "@/src/utils/device/type";

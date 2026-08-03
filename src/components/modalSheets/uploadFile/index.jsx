@@ -1,9 +1,9 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import AdaptiveModal from "../AdaptiveModal";
 import Platform from "@/src/utils/device/type";
 

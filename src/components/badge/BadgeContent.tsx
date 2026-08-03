@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/AppText";
-import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/ui/text/AppText";
+import Icon from "@/src/components/ui/icon/Icon";
 
 const BadgeContent = ({ name, icon, textColor }: any) => {
   const { theme } = useContext(ThemeContext);

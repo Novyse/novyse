@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { View, StyleSheet, Platform, Modal, Dimensions } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import { useCommsContext } from "@/src/context/CommsContext";
 import { ThemeContext } from "@/src/context/ThemeContext";

@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import BlurredView from "@/src/components/BlurredView";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -16,9 +16,7 @@ export default function AboutMe({ biography }: AboutMeProps) {
 
   return (
     <View style={styles.container}>
-      <BlurredView
-        style={styles.glassCard}
-      >
+      <BlurredView style={styles.glassCard}>
         <View style={styles.content}>
           <AppText
             style={styles.title}

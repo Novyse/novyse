@@ -1,12 +1,12 @@
 import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import AppHeaderRow, {
   headerIconButtonStyle,
-} from "@/src/components/header/AppHeaderRow";
+} from "@/src/components/features/header/AppHeaderRow";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import PlatformType from "@/src/utils/device/type";

@@ -17,7 +17,7 @@ import QRCodeModal from "./QRCodeModal";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
 import SmartBackground from "../SmartBackground";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 interface Connection {
   name: string;

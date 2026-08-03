@@ -7,7 +7,7 @@ import {
   TextStyle,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
 import Avatar from "@/src/components/Avatar";

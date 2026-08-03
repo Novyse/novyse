@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 import { ScrollBar } from "@/constants/ScrollBar";
 
@@ -21,11 +21,11 @@ import useUserStore from "@/src/context/UserContext";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import database from "@/src/utils/storage/database";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import Avatar from "@/src/components/Avatar";
-import AppHeader from "@/src/components/header/AppHeader";
-import { headerIconButtonStyle } from "@/src/components/header/AppHeaderRow";
-import { getAppHeaderScrollPaddingTop } from "@/src/components/header/constants";
+import AppHeader from "@/src/components/features/header/AppHeader";
+import { headerIconButtonStyle } from "@/src/components/features/header/AppHeaderRow";
+import { getAppHeaderScrollPaddingTop } from "@/src/components/features/header/constants";
 import ItemSearch from "@/src/components/chat/list/ItemSearch";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";

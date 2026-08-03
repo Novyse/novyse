@@ -1,9 +1,9 @@
 import React from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import ModalBase from "../../../modalSheets/ModalBase";
-import Icon from "../../../Icon";
-import CopyLabel from "../../../CopyLabel";
-import AppText from "@/src/components/AppText";
+import ModalBase from "@/src/components/modalSheets/ModalBase";
+import Icon from "@/src/components/ui/icon/Icon";
+import CopyLabel from "@/src/components/CopyLabel";
+import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 
 interface ApiKeyDetailsModalProps {
@@ -31,11 +31,21 @@ export default function ApiKeyDetailsModal({
     >
       <View style={styles.container}>
         <View style={styles.successIconContainer}>
-          <Icon name="CheckmarkCircle02Icon" color={theme.iconSuccess} size={48} />
+          <Icon
+            name="CheckmarkCircle02Icon"
+            color={theme.iconSuccess}
+            size={48}
+          />
         </View>
-        <AppText style={styles.subtitle} translationKey="settings.security.apiKeys.detailsModal.subtitle" />
+        <AppText
+          style={styles.subtitle}
+          translationKey="settings.security.apiKeys.detailsModal.subtitle"
+        />
 
-        <CopyLabel text={apiKey} label={t("settings.security.apiKeys.detailsModal.label")} />
+        <CopyLabel
+          text={apiKey}
+          label={t("settings.security.apiKeys.detailsModal.label")}
+        />
 
         <Pressable
           onPress={onClose}
@@ -45,7 +55,10 @@ export default function ApiKeyDetailsModal({
             pressed && styles.buttonPressed,
           ]}
         >
-          <AppText style={styles.buttonText} translationKey="settings.security.apiKeys.detailsModal.saved" />
+          <AppText
+            style={styles.buttonText}
+            translationKey="settings.security.apiKeys.detailsModal.saved"
+          />
         </Pressable>
       </View>
     </ModalBase>

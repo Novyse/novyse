@@ -16,7 +16,7 @@ import StatusMessage from "@/src/components/StatusMessage";
 import logoForQR from "@/assets/images/logo-novyse.png";
 
 import ModalBase from "@/src/components/modalSheets/ModalBase";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 const ModalVerifyMethod = ({
   visible,

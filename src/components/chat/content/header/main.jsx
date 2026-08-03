@@ -1,15 +1,15 @@
 import React, { useContext } from "react";
 import { StyleSheet, Pressable, View } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useScreen } from "@/src/context/ScreenContext";
 
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import Avatar from "@/src/components/Avatar";
 import AppHeaderRow, {
   headerIconButtonStyle,
-} from "@/src/components/header/AppHeaderRow";
+} from "@/src/components/features/header/AppHeaderRow";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 

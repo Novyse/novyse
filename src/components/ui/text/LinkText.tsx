@@ -13,7 +13,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 
 const AnimatedAppText = Animated.createAnimatedComponent(AppText);
 
-interface TextLinkProps {
+interface LinkTextProps {
   children: React.ReactNode;
   onPress?: (e: GestureResponderEvent) => void;
   href?: string;
@@ -21,13 +21,13 @@ interface TextLinkProps {
   activeOpacity?: number;
 }
 
-export default function TextLink({
+export default function LinkText({
   children,
   onPress,
   href,
   style,
   activeOpacity = 0.4,
-}: TextLinkProps) {
+}: LinkTextProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   const { theme } = useContext(ThemeContext);
@@ -73,7 +73,7 @@ export default function TextLink({
           showUnderline && styles.underline,
           { opacity },
           style,
-          {color: theme.textLink}
+          { color: theme.textLink },
         ]}
         // @ts-ignore - onMouseEnter/onMouseLeave are web-only props
         onMouseEnter={() => setIsHovered(true)}

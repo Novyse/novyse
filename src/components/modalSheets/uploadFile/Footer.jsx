@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "../../AppText";
+import AppText from "../../ui/text/AppText";
 import HoverAndPressedButton from "../../HoverAndPressedButton";
 
 const Footer = ({

@@ -8,11 +8,11 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import BlurredView from "@/src/components/BlurredView";
 import ImageViewer from "@/src/components/modalSheets/viewer/ImageViewer";
 import VideoViewer from "@/src/components/modalSheets/viewer/VideoViewer";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import { useAudioPlayer } from "@/src/context/AudioPlayerContext";

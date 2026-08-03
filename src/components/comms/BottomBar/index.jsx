@@ -13,7 +13,7 @@ import ScreenShareSelector from "@/src/components/comms/BottomBar/ScreenShareSel
 import StatusMessage from "@/src/components/StatusMessage";
 
 import BlurredView from "@/src/components/BlurredView";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import { useCommsContext } from "@/src/context/CommsContext";

@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import SmartBackground from "@/src/components/SmartBackground";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
@@ -111,9 +111,7 @@ const BaseListItem = React.memo(
                     text={title}
                   />
                 </View>
-                <View style={styles.subtitleRow}>
-                  {subtitleNode}
-                </View>
+                <View style={styles.subtitleRow}>{subtitleNode}</View>
               </View>
 
               <View style={styles.rightContainer}>

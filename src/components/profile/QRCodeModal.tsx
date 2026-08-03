@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 import QRCode from "react-native-qrcode-skia";
 import { LinearGradient, vec } from "@shopify/react-native-skia";
@@ -12,7 +12,7 @@ import logoForQR from "@/assets/images/logo-novyse.png";
 import { APP_URL } from "@/app.config";
 
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Avatar from "@/src/components/Avatar";
 
@@ -43,7 +43,12 @@ const QRCodeModal = ({
   };
 
   return (
-    <AdaptiveModal visible={visible} onClose={onClose} theme={theme} snapPoints={["90%"]}>
+    <AdaptiveModal
+      visible={visible}
+      onClose={onClose}
+      theme={theme}
+      snapPoints={["90%"]}
+    >
       <View style={styles.container}>
         <View style={styles.qrcodeContainer}>
           <View style={styles.avatarPosition}>

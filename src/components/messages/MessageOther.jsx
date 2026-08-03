@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import useOpenFile from "@/src/hooks/file/useOpenFile";

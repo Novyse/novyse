@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Pressable, StyleSheet, Dimensions, Modal } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
 import HoverAndPressedButton from "../HoverAndPressedButton";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import BlurredView from "../BlurredView";
 import VolumeControl from "./VolumeControl";
 
@@ -207,7 +207,9 @@ const CommsMenu = ({
                     <AppText
                       style={styles.menuText}
                       translationKey={
-                        isCurrentlyPinned ? "chat.comms.unpin" : "chat.comms.pin"
+                        isCurrentlyPinned
+                          ? "chat.comms.unpin"
+                          : "chat.comms.pin"
                       }
                     />
                   </View>
@@ -303,7 +305,7 @@ const createStyles = (theme) =>
       borderRadius: 12,
       padding: 10,
       zIndex: 1000,
-      overflow: "hidden"
+      overflow: "hidden",
     },
     header: {
       paddingBottom: 10,

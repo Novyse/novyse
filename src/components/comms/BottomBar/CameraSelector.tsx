@@ -6,7 +6,7 @@ import { Room } from "livekit-client";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import AdaptiveModal from "../../modalSheets/AdaptiveModal";
 import SettingRow from "@/src/components/settings/SettingRow";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { ScrollBar } from "@/constants/ScrollBar";
 
 interface CameraSelectorProps {
@@ -25,7 +25,9 @@ const CameraSelector = ({
   const { theme } = useThemeContext();
   const styles = createStyle(theme);
 
-  const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
+  const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>(
+    [],
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -51,7 +53,13 @@ const CameraSelector = ({
     onClose();
   };
 
-  const renderCameraItem = ({ item, index }: { item: MediaDeviceInfo; index: number }) => {
+  const renderCameraItem = ({
+    item,
+    index,
+  }: {
+    item: MediaDeviceInfo;
+    index: number;
+  }) => {
     const isSelected =
       item.deviceId === currentDeviceId ||
       (currentDeviceId === "default" &&
@@ -62,10 +70,16 @@ const CameraSelector = ({
       <SettingRow
         key={item.deviceId}
         iconName="Camera01Icon"
-        labelKey={!item.label ? "chat.comms.selectors.camera.defaultName" : undefined}
+        labelKey={
+          !item.label ? "chat.comms.selectors.camera.defaultName" : undefined
+        }
         labelOptions={!item.label ? { id: item.deviceId } : undefined}
         labelText={item.label || undefined}
-        valueKey={isSelected ? "chat.comms.selectors.camera.currentlySelected" : undefined}
+        valueKey={
+          isSelected
+            ? "chat.comms.selectors.camera.currentlySelected"
+            : undefined
+        }
         type="SELECT_GROUP"
         isSelected={isSelected}
         onPress={() => handleCameraSelect(item)}

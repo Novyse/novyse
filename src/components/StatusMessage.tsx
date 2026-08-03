@@ -8,8 +8,8 @@ import Animated, {
 } from "react-native-reanimated";
 
 import HoverAndPressedButton from "./HoverAndPressedButton";
-import Icon from "@/src/components/Icon";
-import AppText from "./AppText";
+import Icon from "@/src/components/ui/icon/Icon";
+import AppText from "./ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 type StatusMessageType = "success" | "error" | "warning" | "info";

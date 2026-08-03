@@ -1,11 +1,11 @@
 import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 import { router } from "expo-router";
 
@@ -45,7 +45,11 @@ const SettingsMenuItem = ({
   };
 
   return (
-    <HoverAndPressedButton onPress={handlePress} style={styles.menuItem} disabled={disabled}>
+    <HoverAndPressedButton
+      onPress={handlePress}
+      style={styles.menuItem}
+      disabled={disabled}
+    >
       <View style={styles.menuItemIcon}>
         <Icon name={iconName} color={iconColor || theme.text} />
       </View>

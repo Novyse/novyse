@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { View, Platform, StyleSheet } from "react-native";
 import { ThemeContext, Theme } from "@/src/context/ThemeContext";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 interface PanelResizeHandleProps {
   panHandlers: object;

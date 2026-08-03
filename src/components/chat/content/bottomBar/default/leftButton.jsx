@@ -4,7 +4,7 @@ import { StyleSheet, Animated, Pressable } from "react-native";
 import BlurredView from "@/src/components/BlurredView";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 const LeftButton = ({
   isRecording,

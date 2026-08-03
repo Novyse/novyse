@@ -6,7 +6,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import Banner from "@/src/components/Banner";
 import ProfileHeader from "@/src/components/profile/ProfileHeader";
 import FormSection from "@/src/components/settings/account/modify-profile/Page/FormSection";

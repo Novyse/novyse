@@ -15,8 +15,8 @@ import Animated, {
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import BlurredView from "@/src/components/BlurredView";
-import AppText from "@/src/components/AppText";
-import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/ui/text/AppText";
+import Icon from "@/src/components/ui/icon/Icon";
 
 export interface ToggleOption<T extends string = string> {
   value: T;

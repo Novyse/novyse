@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { View, TextInput, StyleSheet, Platform } from "react-native";
 import { useTranslation } from "react-i18next";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 import { useScreen } from "@/src/context/ScreenContext";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 import StatusMessage from "@/src/components/StatusMessage";
 import { router } from "expo-router";
 
-import TextLink from "../../TextLink";
+import TextLink from "../../ui/text/LinkText";
 import TurnstileCaptcha from "../../auth/TurnstileCaptcha";
 
 interface LoginFormProps {
@@ -188,7 +188,10 @@ const LoginForm = ({
           </View>
           {/* Signup link */}
           <View style={styles.link}>
-            <AppText style={styles.linkText} translationKey="auth.login.dontHaveAccount" />
+            <AppText
+              style={styles.linkText}
+              translationKey="auth.login.dontHaveAccount"
+            />
             <TextLink style={styles.linkTextBold} onPress={onSignup}>
               <AppText translationKey="auth.welcome.signup" />
             </TextLink>

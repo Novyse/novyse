@@ -1,12 +1,10 @@
 import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
 
-import AppText from "@/src/components/AppText";
-import AppHeader from "@/src/components/header/AppHeader";
-import {
-  headerIconButtonStyle,
-} from "@/src/components/header/AppHeaderRow";
-import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/ui/text/AppText";
+import AppHeader from "@/src/components/features/header/AppHeader";
+import { headerIconButtonStyle } from "@/src/components/features/header/AppHeaderRow";
+import Icon from "@/src/components/ui/icon/Icon";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface HeaderWithBackArrowProps {

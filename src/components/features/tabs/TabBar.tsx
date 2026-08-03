@@ -14,12 +14,13 @@ import Animated, {
   useDerivedValue,
   useAnimatedReaction,
 } from "react-native-reanimated";
-import BlurredView from "../BlurredView";
+import BlurredView from "@/src/components/BlurredView";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
-import useWindowSizeStore, { SIDEBAR_MIN } from "@/src/context/WindowSizeContext";
-import Icon from "../Icon";
-
+import useWindowSizeStore, {
+  SIDEBAR_MIN,
+} from "@/src/context/WindowSizeContext";
+import Icon from "@/src/components/ui/icon/Icon";
 
 const TabBar: React.FC<BottomTabBarProps> = ({
   state,

@@ -1,9 +1,9 @@
 import React, { useContext, useState, useRef } from "react";
 import { StyleSheet, View, Platform } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { createPortal } from "react-dom";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import Icon from "../Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import { DateTime } from "luxon";
 
 const MessageTimestamp = ({

@@ -25,9 +25,9 @@ import { ScrollBar } from "@/constants/ScrollBar";
 import { useThemeContext } from "@/src/context/ThemeContext";
 
 import BlurredView from "@/src/components/BlurredView";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import ToggleSelector from "@/src/components/ToggleSelector";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 interface EmojiPickerProps {
   mode: "quick" | "full";

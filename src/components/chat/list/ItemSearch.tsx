@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 
 import SmartBackground from "@/src/components/SmartBackground";

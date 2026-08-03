@@ -1,17 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import {
-  StyleSheet,
-  View,
-  Pressable,
-  StatusBar,
-  Modal,
-} from "react-native";
+import { StyleSheet, View, Pressable, StatusBar, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useEvent } from "expo";
 import Slider from "@react-native-community/slider";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { useWindowDimensions } from "react-native";
 import {
@@ -339,7 +333,10 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                         }
                         size={22}
                         onPress={() => {
-                          const newVol = (isAdjustingVolume ? localVolume : volume) > 0 ? 0 : 1;
+                          const newVol =
+                            (isAdjustingVolume ? localVolume : volume) > 0
+                              ? 0
+                              : 1;
                           player.volume = newVol;
                           setLocalVolume(newVol);
                         }}
@@ -500,4 +497,3 @@ const createStyle = (
   })();
 
 export default VideoViewer;
-

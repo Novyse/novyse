@@ -10,12 +10,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import BlurredView from "@/src/components/BlurredView";
 import ChatHeaderBackdrop from "@/src/components/chat/content/header/ChatHeaderBackdrop";
-import AppHeaderRow from "@/src/components/header/AppHeaderRow";
+import AppHeaderRow from "@/src/components/features/header/AppHeaderRow";
 import {
   HEADER_INNER_PADDING,
   HEADER_ROW_HEIGHT,
   HEADER_SHELL_PADDING,
-} from "@/src/components/header/constants";
+} from "@/src/components/features/header/constants";
 
 interface AppHeaderProps {
   left?: React.ReactNode;

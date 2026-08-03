@@ -1,12 +1,12 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import BlurredView from "@/src/components/BlurredView";
 
 import SectionHeader from "@/src/components/SectionHeader";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 
 interface ConnectionCardProps {
@@ -47,7 +47,11 @@ function ConnectionCard({
             },
           ]}
         >
-          <Icon name={icon} size={20} color={connected ? theme.primary : theme.icon} />
+          <Icon
+            name={icon}
+            size={20}
+            color={connected ? theme.primary : theme.icon}
+          />
         </View>
         <View>
           <AppText
@@ -110,7 +114,7 @@ export default function Connections() {
           />
         </View>
         <BlurredView style={styles.infoContainer}>
-          <Icon name="UnavailableIcon"/>
+          <Icon name="UnavailableIcon" />
         </BlurredView>
       </View>
     </>

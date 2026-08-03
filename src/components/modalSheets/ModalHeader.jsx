@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "../AppText";
-import Icon from "../Icon";
+import AppText from "../ui/text/AppText";
+import Icon from "@/src/components/ui/icon/Icon";
 
 const ModalHeader = ({
   title,
@@ -44,11 +44,7 @@ const ModalHeader = ({
         />
       )}
       {shouldShowClose && (
-        <Icon
-          name="Cancel01Icon"
-          style={styles.closeIcon}
-          onPress={onClose}
-        />
+        <Icon name="Cancel01Icon" style={styles.closeIcon} onPress={onClose} />
       )}
     </View>
   );

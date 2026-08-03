@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { StyleProp, ViewStyle } from "react-native";
-import HoverAndPressedButton from "./HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 
 const iconMap: Record<string, any> = {};
 

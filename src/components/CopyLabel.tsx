@@ -1,8 +1,8 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import AppText from "./AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import Icon from "./Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import useClipboard from "@/src/hooks/useClipboard";
 
 interface CopyLabelProps {
@@ -44,10 +44,7 @@ export default function CopyLabel({
             pressed && styles.copyButtonPressed,
           ]}
         >
-          <Icon
-            name={copied ? "Tick01Icon" : "Copy01Icon"}
-            size={20}
-          />
+          <Icon name={copied ? "Tick01Icon" : "Copy01Icon"} size={20} />
         </Pressable>
       </View>
     </View>

@@ -21,7 +21,7 @@ import { useScreen } from "@/src/context/ScreenContext";
 import useDownload from "@/src/hooks/file/useDownload";
 import useShare from "@/src/hooks/chat/useShare";
 import PlatformType from "@/src/utils/device/type";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
   const { downloadFile } = useDownload();
@@ -96,7 +96,9 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
     if (isFullscreen && PlatformType !== "web") {
       setIsFullscreen(false);
       StatusBar.setHidden(false, "fade");
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT_UP,
+      );
     }
     onClose();
   };
@@ -231,7 +233,9 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
                     hoverColor={theme.iconHover}
                   />
                   <Icon
-                    name={isFullscreen ? "ArrowShrink02Icon" : "ArrowExpand01Icon"}
+                    name={
+                      isFullscreen ? "ArrowShrink02Icon" : "ArrowExpand01Icon"
+                    }
                     onPress={toggleFullscreen}
                     color={theme.icon}
                     hoverColor={theme.iconHover}
@@ -329,4 +333,3 @@ const createStyle = (theme, isFullscreen) => {
 };
 
 export default ImageViewer;
-

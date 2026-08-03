@@ -17,7 +17,7 @@ import SplashScreen from "@/src/components/SplashScreen";
 import SmartBackground from "@/src/components/SmartBackground";
 import WindowControls, {
   WINDOW_CONTROL_HEIGHT,
-} from "@/src/components/desktop/WindowControls";
+} from "@/src/components/features/desktop/WindowControls";
 
 import notificationManager from "@/src/utils/notifications/manager";
 import Platform from "@/src/utils/device/type";

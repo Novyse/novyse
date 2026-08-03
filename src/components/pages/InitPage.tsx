@@ -1,7 +1,6 @@
-import React from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 const InitPage = () => {
   const { theme } = useThemeContext();

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 
@@ -10,7 +10,7 @@ import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 interface JoinCreateChatProps {
   chat: any;
@@ -71,7 +71,7 @@ const JoinCreateChat = ({
           <AppText style={styles.handle} text={`@${chat?.handle}`} />
 
           <View style={styles.infoBox}>
-            <Icon name="InformationCircleIcon"/>
+            <Icon name="InformationCircleIcon" />
             <AppText
               style={styles.infoText}
               translationKey={

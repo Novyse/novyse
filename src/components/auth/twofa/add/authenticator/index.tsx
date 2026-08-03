@@ -6,7 +6,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 
 import useClipboard from "@/src/hooks/useClipboard";
 
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 interface AddAuthenticatorProps {
   secret: string;

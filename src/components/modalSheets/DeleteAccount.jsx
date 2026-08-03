@@ -1,11 +1,11 @@
 import React, { useContext, useState } from "react";
 import { View, StyleSheet, TextInput, Linking } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import { useRouter } from "expo-router";
 
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import StatusMessage from "@/src/components/StatusMessage";
 

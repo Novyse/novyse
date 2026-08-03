@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { StyleSheet, View, Pressable } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 interface SecurityListCardProps {
   iconName: string;
@@ -48,7 +48,9 @@ const SecurityListCard = ({
     >
       <View style={styles.row}>
         <View style={styles.info}>
-          <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
+          <View
+            style={[styles.iconContainer, { backgroundColor: iconBgColor }]}
+          >
             <Icon name={iconName} />
           </View>
           <View style={styles.details}>
@@ -81,10 +83,7 @@ const SecurityListCard = ({
                 !active && { backgroundColor: theme.iconSuccess },
               ]}
             >
-              <Icon
-                name={active ? "ViewOffIcon" : "ViewIcon"}
-                size={20}
-              />
+              <Icon name={active ? "ViewOffIcon" : "ViewIcon"} size={20} />
             </Pressable>
           )}
           {onDelete && (
@@ -96,7 +95,7 @@ const SecurityListCard = ({
                 pressed && styles.deleteButtonPressed,
               ]}
             >
-              <Icon name="Delete02Icon"/>
+              <Icon name="Delete02Icon" />
             </Pressable>
           )}
         </View>

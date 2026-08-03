@@ -8,7 +8,7 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
-import AppText from "./AppText";
+import AppText from "./ui/text/AppText";
 import { ScrollBar } from "@/constants/ScrollBar";
 
 interface DropdownOption {

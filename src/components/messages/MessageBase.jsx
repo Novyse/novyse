@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Pressable, StyleSheet } from "react-native";
 import Platform from "@/src/utils/device/type";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import Reanimated, {
   useSharedValue,
@@ -21,7 +21,7 @@ import { useThemeContext } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
 import useChatStore from "@/src/context/ChatContext";
 import useUserStore from "@/src/context/UserContext";
-import Icon from "../Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 import useMessageGestures from "@/src/hooks/chat/useMessageGestures";
 

@@ -7,7 +7,7 @@ import {
   BarcodeScanningResult,
 } from "expo-camera";
 
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 

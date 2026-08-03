@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { StyleSheet, View, TouchableOpacity } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
@@ -194,13 +194,21 @@ export default function CommsRoute() {
         onBack={onBack}
       />
       <SettingsPageScrollview>
-        <StatusMessage type="warning" translationKey="common.developerNote" closable={false}/>
+        <StatusMessage
+          type="warning"
+          translationKey="common.developerNote"
+          closable={false}
+        />
         <SettingsCard>
           <AppText
             style={styles.sectionTitle}
             translationKey="settings.comms.inputDevices"
           />
-          <StatusMessage type="warning" translationKey="settings.comms.inputDevicesWarning" closable={false}/>
+          <StatusMessage
+            type="warning"
+            translationKey="settings.comms.inputDevicesWarning"
+            closable={false}
+          />
 
           {devicesLoading ? (
             <View style={styles.disabledField}>
@@ -477,5 +485,5 @@ const createStyle = (theme: any) =>
       color: theme.subtitle,
       fontSize: 12,
       fontFamily: "monospace",
-    }
+    },
   });

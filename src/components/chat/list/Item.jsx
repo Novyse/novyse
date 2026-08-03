@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { DateTime } from "luxon";
 import { useTranslation } from "react-i18next";
 
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import Avatar from "@/src/components/Avatar";
 import BaseListItem from "./BaseListItem";
 

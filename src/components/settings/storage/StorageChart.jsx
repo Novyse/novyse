@@ -1,8 +1,8 @@
-import React, { useContext, useState } from "react";
-import { View, StyleSheet, TouchableOpacity, Animated } from "react-native";
-import AppText from "@/src/components/AppText";
+import { useContext, useState } from "react";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
+import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import Icon from "../../Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 const StorageBreakdownChart = () => {
   const { theme } = useContext(ThemeContext);

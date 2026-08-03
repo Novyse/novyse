@@ -13,13 +13,13 @@ import useWindowSizeStore, {
   SIDEBAR_MIN,
 } from "@/src/context/WindowSizeContext";
 
-import TabBar from "@/src/components/tabs/TabBar";
-import Icon from "@/src/components/Icon";
+import TabBar from "@/src/components/features/tabs/TabBar";
+import Icon from "@/src/components/ui/icon/Icon";
 import BlurredView from "@/src/components/BlurredView";
-import ChatList from "@/src/components/tabs/pages/ChatList";
-import Settings from "@/src/components/tabs/pages/Settings";
-import ProfilePage from "@/src/components/tabs/pages/Profile";
-import Search from "@/src/components/tabs/pages/Search";
+import ChatList from "@/src/components/pages/tabs/ChatList";
+import Settings from "@/src/components/pages/tabs/Settings";
+import ProfilePage from "@/src/components/pages/tabs/Profile";
+import Search from "@/src/components/pages/tabs/Search";
 
 const Tab = createBottomTabNavigator();
 

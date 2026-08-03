@@ -7,7 +7,7 @@ import CustomTextInput from "@/src/components/ui/input/TextInput";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import StatusMessage from "@/src/components/StatusMessage";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";

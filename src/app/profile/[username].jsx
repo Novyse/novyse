@@ -5,7 +5,7 @@ import { useLocalSearchParams } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import Profile from "@/src/components/profile";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import database from "@/src/utils/storage/database";
 import gateway from "@/src/utils/backend-services/api-gateway";

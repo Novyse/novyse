@@ -4,7 +4,7 @@ import { StyleSheet, View, ViewStyle } from "react-native";
 import {
   HEADER_ROW_HEIGHT,
   ICON_BUTTON_SIZE,
-} from "@/src/components/header/constants";
+} from "@/src/components/features/header/constants";
 
 interface AppHeaderRowProps {
   left?: React.ReactNode;

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/AppText";
-import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/ui/text/AppText";
+import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Animated, {
   useSharedValue,

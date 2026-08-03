@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
@@ -70,7 +70,10 @@ export default function SystemRoute() {
           key === "openMinimized" ? value : !!systemSettings.openMinimized;
 
         await systemRpc.setOpenOnStartup(newOpenOnStartup, newOpenMinimized);
-        await settingsManager.setSingleParameter(`settings.system.${key}`, value);
+        await settingsManager.setSingleParameter(
+          `settings.system.${key}`,
+          value,
+        );
 
         setSystemSettings((prev: any) => ({
           ...prev,
@@ -151,7 +154,11 @@ export default function SystemRoute() {
             type="SWITCH"
             isEnabled={!!systemSettings.openOnStartup}
             onToggle={(value) => updateSetting("openOnStartup", value)}
-            style={!systemSettings.openOnStartup ? { borderBottomWidth: 0 } : undefined}
+            style={
+              !systemSettings.openOnStartup
+                ? { borderBottomWidth: 0 }
+                : undefined
+            }
           />
           {!!systemSettings.openOnStartup && (
             <SettingRow

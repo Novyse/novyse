@@ -8,7 +8,7 @@ import {
   TextInput,
   Platform,
 } from "react-native";
-import AppText from "../../AppText";
+import AppText from "../text/AppText";
 import { useTranslation } from "react-i18next";
 import DatePicker from "react-native-date-picker";
 import { DateTime } from "luxon";

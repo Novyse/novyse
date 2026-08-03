@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -10,7 +10,7 @@ import StatusMessage from "@/src/components/StatusMessage";
 import SecurityListCard from "@/src/components/settings/security/SecurityListCard";
 import Section from "@/src/components/settings/Section";
 import SettingRow from "@/src/components/settings/SettingRow";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import auth from "@/src/utils/backend-services/auth";
 import CreateApiKeyModal from "@/src/components/settings/security/api-keys/CreateApiKeyModal";
 import ApiKeyDetailsModal from "@/src/components/settings/security/api-keys/ApiKeyDetailsModal";

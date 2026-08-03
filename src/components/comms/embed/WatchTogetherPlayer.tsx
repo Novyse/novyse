@@ -1,8 +1,8 @@
 import React, { useRef, useContext, useEffect } from "react";
 import { View, StyleSheet, Pressable, Animated, Platform } from "react-native";
 import Slider from "@react-native-community/slider";
-import AppText from "@/src/components/AppText";
-import Icon from "@/src/components/Icon";
+import AppText from "@/src/components/ui/text/AppText";
+import Icon from "@/src/components/ui/icon/Icon";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useWatchTogether } from "@/src/hooks/comms/useWatchTogether";
 import { useCommsContext } from "@/src/context/CommsContext";
@@ -35,7 +35,8 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
   const { localMuted, remoteVolumes, isAudioOutputEnabled } = useCommsContext();
   const playerRef = useRef<any>(null);
 
-  const isMuted = (localMuted["watch-together"] ?? false) || !isAudioOutputEnabled;
+  const isMuted =
+    (localMuted["watch-together"] ?? false) || !isAudioOutputEnabled;
   const dbVolume = remoteVolumes["watch-together"] ?? 0;
 
   const {

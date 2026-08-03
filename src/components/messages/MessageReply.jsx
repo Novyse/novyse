@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { useThemeContext } from "@/src/context/ThemeContext";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
 
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 const MessageReply = ({
   senderName,

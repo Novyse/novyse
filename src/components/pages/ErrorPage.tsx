@@ -1,11 +1,9 @@
-import React from "react";
 import { View, StyleSheet, Image } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { LinearGradient } from "expo-linear-gradient";
 import { LoginColors } from "@/constants/LoginColors";
 import { useScreen } from "@/src/context/ScreenContext";
 import logoNovyse from "@/assets/images/logo-novyse.png";
-import Icon from "@/src/components/Icon";
 
 const LOGIN_THEME = "default";
 

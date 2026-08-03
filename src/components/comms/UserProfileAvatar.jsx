@@ -7,7 +7,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
 import Avatar from "@/src/components/Avatar";
-import AppText from "../AppText";
+import AppText from "../ui/text/AppText";
 
 const UserProfileAvatar = ({
   userHandle,

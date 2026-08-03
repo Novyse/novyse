@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 
 type WelcomeButtonTextType = "submit" | "back";

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 import AdaptiveModal from "./AdaptiveModal";
-import Icon from "../Icon";
-import AppText from "../AppText";
+import Icon from "@/src/components/ui/icon/Icon";
+import AppText from "../ui/text/AppText";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
 import useClipboard from "@/src/hooks/useClipboard";

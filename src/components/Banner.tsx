@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Image, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "./HoverAndPressedButton";
 
 interface BannerProps {

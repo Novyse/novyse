@@ -1,10 +1,13 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { View, StyleSheet, TextInput, ActivityIndicator } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 
-import Icon from "@/src/components/Icon";
-import { HEADER_ROW_HEIGHT, ICON_BUTTON_SIZE } from "@/src/components/header/constants";
+import Icon from "@/src/components/ui/icon/Icon";
+import {
+  HEADER_ROW_HEIGHT,
+  ICON_BUTTON_SIZE,
+} from "@/src/components/features/header/constants";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";

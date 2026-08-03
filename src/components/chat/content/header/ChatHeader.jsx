@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { useScreen } from "@/src/context/ScreenContext";
-import AppHeader from "@/src/components/header/AppHeader";
+import AppHeader from "@/src/components/features/header/AppHeader";
 import MainHeader from "./main";
 import SelectedHeader from "./SelectedHeader";
 import SearchHeader from "./SearchHeader";
@@ -13,7 +13,7 @@ import { useCommsContext } from "@/src/context/CommsContext";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
-const Header = ({
+const ChatHeader = ({
   chatUUIDorHandle,
   contentView,
   setContentView,
@@ -141,4 +141,4 @@ const Header = ({
   );
 };
 
-export default React.memo(Header);
+export default React.memo(ChatHeader);

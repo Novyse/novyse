@@ -16,7 +16,7 @@ import useChatStore from "@/src/context/ChatContext";
 import useNetworkStore from "@/src/context/NetworkContext";
 
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
-import { resetGlobalNavState } from "@/src/components/tabs/TabNavigator";
+import { resetGlobalNavState } from "@/src/components/features/tabs/TabNavigator";
 import {
   ChatEventType,
   UserProfileEventType,

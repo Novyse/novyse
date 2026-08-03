@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import AdaptiveModal from "./AdaptiveModal";
-import AppText from "../AppText";
+import AppText from "../ui/text/AppText";
 
 const DeleteMessage = ({
   visible,

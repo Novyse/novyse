@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import AppText from "../../AppText";
+import AppText from "../text/AppText";
 import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/src/context/ThemeContext";

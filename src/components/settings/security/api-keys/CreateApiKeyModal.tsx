@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import ModalBase from "../../../modalSheets/ModalBase";
 import TextInput from "@/src/components/ui/input/TextInput";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 
 interface CreateApiKeyModalProps {

@@ -5,7 +5,7 @@ import { Slot, usePathname } from "expo-router";
 import { useScreen } from "@/src/context/ScreenContext";
 import TabNavigator, {
   getActiveTabName,
-} from "@/src/components/tabs/TabNavigator";
+} from "@/src/components/features/tabs/TabNavigator";
 import useChatStore from "@/src/context/ChatContext";
 import useUserStore from "@/src/context/UserContext";
 import useWindowSizeStore, {

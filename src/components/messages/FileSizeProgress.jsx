@@ -1,5 +1,5 @@
 import React from "react";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import useFileProgress from "@/src/hooks/file/useFileProgress";
 import { formatFileSize } from "@/src/utils/storage/file/utils";
 

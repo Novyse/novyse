@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { StyleSheet, View, Pressable } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -8,7 +8,7 @@ import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
 import SettingsButton from "@/src/components/settings/SettingsButton";
 import StatusMessage from "@/src/components/StatusMessage";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 interface MfaMethod {
   id: string;
@@ -112,7 +112,7 @@ export default function MfaRoute() {
               <View style={styles.methodHeader}>
                 <View style={styles.methodInfo}>
                   <View style={styles.iconContainer}>
-                    <Icon name={method.iconName}/>
+                    <Icon name={method.iconName} />
                   </View>
                   <View style={styles.methodDetails}>
                     <AppText style={styles.methodName} text={method.name} />
@@ -140,7 +140,7 @@ export default function MfaRoute() {
                           pressed && styles.deleteButtonPressed,
                         ]}
                       >
-                        <Icon name="Delete02Icon"/>
+                        <Icon name="Delete02Icon" />
                       </Pressable>
                     </View>
                   ) : (
@@ -152,7 +152,7 @@ export default function MfaRoute() {
                         pressed && styles.addButtonPressed,
                       ]}
                     >
-                      <Icon name="PlusSignCircleIcon"/>
+                      <Icon name="PlusSignCircleIcon" />
                       <AppText
                         style={styles.addButtonText}
                         translationKey="settings.security.add"

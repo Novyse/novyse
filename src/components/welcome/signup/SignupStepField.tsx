@@ -1,11 +1,11 @@
 import React from "react";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import { LoginColors } from "@/constants/LoginColors";
 import { validate } from "@/src/utils/welcome/validator";
-import Icon from "@/src/components/Icon";
-import TextLink from "@/src/components/TextLink";
+import Icon from "@/src/components/ui/icon/Icon";
+import TextLink from "@/src/components/ui/text/LinkText";
 import StatusMessage from "@/src/components/StatusMessage";
 
 interface Props {

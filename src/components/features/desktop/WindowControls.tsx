@@ -8,7 +8,7 @@ import {
 
 import Platform from "@/src/utils/device/type";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 const TOOLBAR_HEIGHT = 24;
 const BUTTON_HEIGHT = 24;

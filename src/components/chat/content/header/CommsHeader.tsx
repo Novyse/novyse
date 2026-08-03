@@ -1,13 +1,13 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
 
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
@@ -17,7 +17,7 @@ import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import {
   HEADER_ROW_HEIGHT,
   ICON_BUTTON_SIZE,
-} from "@/src/components/header/constants";
+} from "@/src/components/features/header/constants";
 
 interface CommsHeaderProps {
   connected: boolean;
@@ -76,10 +76,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
   return (
     <Pressable style={styles.headerMainRow} onPress={handlePress}>
       <View style={styles.headerLeft}>
-        <Icon
-          name="UserMultipleIcon"
-          style={styles.iconButtonSmall}
-        />
+        <Icon name="UserMultipleIcon" style={styles.iconButtonSmall} />
         <AppText
           style={styles.participantsText}
           numberOfLines={1}
@@ -98,14 +95,16 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
               onPress={toggleVideo}
             />
             <Pressable style={styles.iconButton} onPress={toggleAudio}>
-              <Icon
-                name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
-              />
+              <Icon name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"} />
               <Animated.View
                 style={[
                   StyleSheet.absoluteFill,
                   animatedMicStyle,
-                  { pointerEvents: "none", justifyContent: "center", alignItems: "center" },
+                  {
+                    pointerEvents: "none",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  },
                 ]}
               >
                 <Icon

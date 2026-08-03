@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 import useCommsData from "@/src/hooks/comms/useCommsData";
 import useUserStore from "@/src/context/UserContext";
 import Avatar from "@/src/components/Avatar";

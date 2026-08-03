@@ -11,7 +11,7 @@ import gateway from "@/src/utils/backend-services/api-gateway";
 import StatusMessage from "@/src/components/StatusMessage";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
-import AppText from "@/src/components/AppText";
+import AppText from "@/src/components/ui/text/AppText";
 
 import logoNovyse from "@/assets/images/logo-novyse.png";
 

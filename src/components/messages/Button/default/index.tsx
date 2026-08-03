@@ -1,5 +1,5 @@
 import React from "react";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 
 type MediaType = "VOICE" | "AUDIO" | "VIDEO" | "IMAGE";
 
@@ -27,7 +27,11 @@ const DefaultButton = ({
         return <></>;
       default:
         return (
-          <Icon name="DocumentAttachmentIcon" size={33} onPress={handleDefaultPress} />
+          <Icon
+            name="DocumentAttachmentIcon"
+            size={33}
+            onPress={handleDefaultPress}
+          />
         );
     }
   };
