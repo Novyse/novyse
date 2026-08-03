@@ -7,10 +7,10 @@ import {
 } from "react-native";
 
 import AppText from "@/src/components/ui/text/AppText";
+import Button from "@/src/components/ui/button/Button";
 import Banner from "@/src/components/Banner";
 import ProfileHeader from "@/src/components/profile/ProfileHeader";
 import FormSection from "@/src/components/features/settings/account/modify-profile/modifyProfileForm/ModifyProfileForm";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import StatusMessage from "@/src/components/StatusMessage";
 import BlurredView from "@/src/components/BlurredView";
 
@@ -184,25 +184,20 @@ export default function ModifyProfilePanel({
             translationKey="settings.modifyProfile.unsavedChanges"
           />
           <View style={styles.floatingButtons}>
-            <HoverAndPressedButton
-              style={styles.restoreBtn}
+            <Button
+              translationKey="settings.modifyProfile.restore"
               onPress={handleRestore}
-            >
-              <AppText
-                style={styles.restoreText}
-                translationKey="settings.modifyProfile.restore"
-              />
-            </HoverAndPressedButton>
-            <HoverAndPressedButton style={styles.saveBtn} onPress={handleSave}>
-              <AppText
-                style={styles.saveText}
-                translationKey={
-                  isSaving
-                    ? "settings.modifyProfile.saving"
-                    : "settings.modifyProfile.save"
-                }
-              />
-            </HoverAndPressedButton>
+              disabled={isSaving}
+            />
+            <Button
+              translationKey={
+                isSaving
+                  ? "settings.modifyProfile.saving"
+                  : "settings.modifyProfile.save"
+              }
+              onPress={handleSave}
+              disabled={isSaving}
+            />
           </View>
         </BlurredView>
       )}
@@ -243,7 +238,7 @@ const createStyles = (
       paddingBottom: isSmallScreen ? 10 : 20,
     },
     glassPanel: {
-      borderRadius: 24,
+      borderRadius: 25,
       overflow: "hidden",
       width: isSmallScreen ? "100%" : "90%",
       maxWidth: 600,
@@ -254,15 +249,13 @@ const createStyles = (
       bottom: isSmallScreen ? 20 : 40,
       alignSelf: "center",
       backgroundColor: theme.backgroundModalOverlay,
-      borderRadius: 24,
-      paddingVertical: 12,
-      paddingHorizontal: 20,
+      borderRadius: 25,
+      paddingVertical: 15,
+      paddingHorizontal: 15,
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       width: isSmallScreen ? "90%" : 500,
-      borderWidth: 1,
-      borderColor: theme.borderColor,
     },
     floatingText: {
       color: theme.text,
@@ -273,28 +266,6 @@ const createStyles = (
     floatingButtons: {
       flexDirection: "row",
       gap: 12,
-    },
-    restoreBtn: {
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      backgroundColor: theme.backgroundTextField,
-    },
-    restoreText: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "600",
-    },
-    saveBtn: {
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      backgroundColor: theme.primary,
-    },
-    saveText: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "600",
     },
     floatingMessageWrapper: {
       position: "absolute",

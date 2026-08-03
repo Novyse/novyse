@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import Section from "@/src/components/features/settings/SettingsSection";
-import SettingRow from "@/src/components/features/settings/SettingRow";
+import SettingRow from "@/src/components/features/settings/SettingsRow";
 import DeleteAccount from "@/src/components/modalSheets/DeleteAccount";
 
 import auth from "@/src/utils/welcome/auth";

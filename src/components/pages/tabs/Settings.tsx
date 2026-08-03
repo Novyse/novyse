@@ -1,7 +1,7 @@
 import React from "react";
 import { router } from "expo-router";
 import Section from "@/src/components/features/settings/SettingsSection";
-import SettingRow from "@/src/components/features/settings/SettingRow";
+import SettingRow from "@/src/components/features/settings/SettingsRow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import Platform from "@/src/utils/device/type";
 

@@ -109,7 +109,7 @@ function createStyle(theme, shouldUseFullscreen, options = {}) {
       marginBottom: popover ? 45 : 0,
     },
     container: {
-      borderRadius: shouldUseFullscreen ? 0 : 15,
+      borderRadius: shouldUseFullscreen ? 0 : 25,
       elevation: 5,
       width: shouldUseFullscreen ? "100%" : undefined,
       maxHeight: popover ? undefined : "100%",

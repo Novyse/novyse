@@ -8,7 +8,9 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 
 import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
-import InputDeviceDropdown from "@/src/components/DropdownMenu";
+import CameraSelector from "@/src/components/comms/BottomBar/CameraSelector";
+import MicrophoneSelector from "@/src/components/comms/BottomBar/MicrophoneSelector";
+import Button from "@/src/components/ui/button/Button";
 import settingsManager from "@/src/utils/global/SettingsManager";
 
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
@@ -25,6 +27,8 @@ export default function CommsRoute() {
   const [audioDevices, setAudioDevices] = useState<any[]>([]);
   const [videoDevices, setVideoDevices] = useState<any[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
+  const [micModalVisible, setMicModalVisible] = useState(false);
+  const [cameraModalVisible, setCameraModalVisible] = useState(false);
   const styles = createStyle(theme);
 
   useEffect(() => {
@@ -219,49 +223,52 @@ export default function CommsRoute() {
             </View>
           ) : (
             <>
-              <InputDeviceDropdown
-                label={t("settings.comms.microphone")}
-                value={
-                  audioSettings.microphoneDeviceId ||
-                  (audioDeviceOptions.length > 0
-                    ? audioDeviceOptions[0].value
-                    : "")
+              <AppText
+                style={styles.fieldLabel}
+                translationKey="settings.comms.microphone"
+              />
+              <Button
+                text={
+                  audioDeviceOptions.find(
+                    (o) => o.value === audioSettings.microphoneDeviceId,
+                  )?.label || t("settings.comms.microphone")
                 }
-                options={
-                  audioDeviceOptions.length > 0
-                    ? audioDeviceOptions
-                    : [
-                        {
-                          label: t("settings.comms.noMicrophonesFound"),
-                          value: "",
-                        },
-                      ]
-                }
-                onValueChange={(value) =>
-                  updateSetting("microphoneDeviceId", value)
-                }
-                theme={theme}
-                disabled={audioDeviceOptions.length === 0}
+                icon="Mic02Icon"
+                onPress={() => setMicModalVisible(true)}
+                style={{ width: "100%", marginBottom: 15 }}
               />
 
-              <InputDeviceDropdown
-                label={t("settings.comms.webcam")}
-                value={
-                  audioSettings.webcamDeviceId ||
-                  (videoDeviceOptions.length > 0
-                    ? videoDeviceOptions[0].value
-                    : "")
+              <AppText
+                style={styles.fieldLabel}
+                translationKey="settings.comms.webcam"
+              />
+              <Button
+                text={
+                  videoDeviceOptions.find(
+                    (o) => o.value === audioSettings.webcamDeviceId,
+                  )?.label || t("settings.comms.webcam")
                 }
-                options={
-                  videoDeviceOptions.length > 0
-                    ? videoDeviceOptions
-                    : [{ label: t("settings.comms.noCamerasFound"), value: "" }]
+                icon="Camera01Icon"
+                onPress={() => setCameraModalVisible(true)}
+                style={{ width: "100%", marginBottom: 15 }}
+              />
+
+              <MicrophoneSelector
+                visible={micModalVisible}
+                onClose={() => setMicModalVisible(false)}
+                currentDeviceId={audioSettings.microphoneDeviceId || "default"}
+                onMicrophoneSelected={(deviceId) =>
+                  updateSetting("microphoneDeviceId", deviceId)
                 }
-                onValueChange={(value) =>
-                  updateSetting("webcamDeviceId", value)
+              />
+
+              <CameraSelector
+                visible={cameraModalVisible}
+                onClose={() => setCameraModalVisible(false)}
+                currentDeviceId={audioSettings.webcamDeviceId || "default"}
+                onCameraSelected={(deviceId) =>
+                  updateSetting("webcamDeviceId", deviceId)
                 }
-                theme={theme}
-                disabled={videoDeviceOptions.length === 0}
               />
             </>
           )}

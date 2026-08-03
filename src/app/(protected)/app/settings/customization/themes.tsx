@@ -6,7 +6,7 @@ import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import { Colors, ThemeRegistry } from "@/constants/Colors";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import Section from "@/src/components/features/settings/SettingsSection";
-import SettingSelectGroup from "@/src/components/features/settings/SettingSelectGroup";
+import SettingSelectGroup from "@/src/components/features/settings/SettingsSelectGroup";
 
 export default function ThemesRoute() {
   const onBack = () =>

@@ -10,7 +10,7 @@ import Avatar from "@/src/components/Avatar";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import useChatStore from "@/src/context/ChatContext";
-import SettingRow from "@/src/components/features/settings/SettingRow";
+import SettingRow from "@/src/components/features/settings/SettingsRow";
 import Section from "@/src/components/features/settings/SettingsSection";
 import useUserStore from "@/src/context/UserContext";
 import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";

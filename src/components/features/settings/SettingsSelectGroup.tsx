@@ -1,7 +1,5 @@
-import React, { useContext } from "react";
-import { ThemeContext } from "@/src/context/ThemeContext";
-import SettingRow from "@/src/components/features/settings/SettingRow";
-import Icon from "@/src/components/ui/icon/Icon";
+import React from "react";
+import SettingRow from "@/src/components/features/settings/SettingsRow";
 
 export type SelectOption<T extends string = string> = {
   value: T;
@@ -15,17 +13,17 @@ export type SelectOption<T extends string = string> = {
   leftElement?: React.ReactNode;
 };
 
-export type SettingSelectGroupProps<T extends string = string> = {
+export type SettingsSelectGroupProps<T extends string = string> = {
   options: SelectOption<T>[];
   value: T;
   onChange: (val: T) => void;
 };
 
-function SettingSelectGroup<T extends string = string>({
+function SettingsSelectGroup<T extends string = string>({
   options,
   value,
   onChange,
-}: SettingSelectGroupProps<T>) {
+}: SettingsSelectGroupProps<T>) {
   return (
     <>
       {options.map((option, index) => {
@@ -54,4 +52,4 @@ function SettingSelectGroup<T extends string = string>({
   );
 }
 
-export default SettingSelectGroup;
+export default SettingsSelectGroup;

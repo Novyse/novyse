@@ -14,18 +14,13 @@ const SettingsCard = ({ children, style }: SettingsCardProps) => {
   return <View style={[styles.card, style]}>{children}</View>;
 };
 
-function createStyle(theme) {
+function createStyle(theme: any) {
   return StyleSheet.create({
     card: {
-      padding: 24,
-      elevation: 2,
+      padding: 25,
       width: "100%",
-      shadowRadius: 4,
-      borderRadius: 16,
-      shadowOpacity: 0.1,
+      borderRadius: 25,
       overflow: "hidden",
-      shadowColor: theme.shadowColor,
-      shadowOffset: { width: 0, height: 2 },
       backgroundColor: theme.backgroundMain,
     },
   });

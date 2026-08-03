@@ -7,7 +7,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import Section from "@/src/components/features/settings/SettingsSection";
-import SettingSelectGroup from "@/src/components/features/settings/SettingSelectGroup";
+import SettingSelectGroup from "@/src/components/features/settings/SettingsSelectGroup";
 
 export default function LanguageRoute() {
   const { i18n } = useTranslation();

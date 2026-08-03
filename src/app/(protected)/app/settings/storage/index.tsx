@@ -7,7 +7,7 @@ import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import auth from "@/src/utils/welcome/auth";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import Section from "@/src/components/features/settings/SettingsSection";
-import SettingRow from "@/src/components/features/settings/SettingRow";
+import SettingRow from "@/src/components/features/settings/SettingsRow";
 
 import useStorage from "@/src/hooks/settings/useStorage";
 

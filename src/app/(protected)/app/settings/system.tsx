@@ -6,10 +6,11 @@ import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import DropdownMenu from "@/src/components/DropdownMenu";
+import SystemChatSelector from "@/src/components/features/settings/system/SystemChatSelector";
+import SystemSubSelector from "@/src/components/features/settings/system/SystemSubSelector";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import Section from "@/src/components/features/settings/SettingsSection";
-import SettingRow from "@/src/components/features/settings/SettingRow";
+import SettingRow from "@/src/components/features/settings/SettingsRow";
 
 import useChatStore from "@/src/context/ChatContext";
 import useUserStore from "@/src/context/UserContext";
@@ -99,7 +100,7 @@ export default function SystemRoute() {
   };
 
   const chatOptions = [
-    { label: t("settings.system.none") || "None", value: "" },
+    { labelText: t("settings.system.none") || "None", value: "", iconName: "Chat01Icon" },
     ...chats.map((chat) => {
       let displayName = chat.name || "Unknown Chat";
       if (chat.type === "DM") {
@@ -115,13 +116,14 @@ export default function SystemRoute() {
         }
       }
       return {
-        label: displayName,
+        labelText: displayName,
         value: chat.uuid,
+        iconName: "Chat01Icon",
       };
     }),
   ];
 
-  const subOptions = [{ label: "0", value: "0" }];
+  const subOptions = [{ labelText: "0", value: "0", iconName: "Layers01Icon" }];
 
   if (isLoading || !systemSettings) {
     return (
@@ -174,20 +176,16 @@ export default function SystemRoute() {
 
         <Section titleKey="settings.system.actionsSection">
           <View style={{ paddingHorizontal: 15 }}>
-            <DropdownMenu
-              label={t("settings.system.selectChat")}
+            <SystemChatSelector
               value={systemSettings.joinCommsChatId || ""}
               options={chatOptions}
-              onValueChange={(value) => updateSetting("joinCommsChatId", value)}
-              theme={theme}
+              onChatSelected={(value) => updateSetting("joinCommsChatId", value)}
             />
 
-            <DropdownMenu
-              label={t("settings.system.selectSub")}
+            <SystemSubSelector
               value={"0"}
               options={subOptions}
-              onValueChange={() => {}}
-              theme={theme}
+              onSubSelected={() => {}}
               disabled={true}
             />
           </View>

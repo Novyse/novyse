@@ -42,12 +42,12 @@ function createStyle(
       flex: 1,
       width: "100%",
       height: "100%",
-      maxWidth: 768,
-      alignSelf: "center",
-
       ...ScrollBar(theme),
     },
     contentContainer: {
+      alignSelf: "center",
+      width: "100%",
+      maxWidth: 768,
       gap: isMenu ? 0 : 20,
       paddingTop: paddingTop + insets.top,
       paddingBottom: (isMenu ? 0 : 20) + insets.bottom,

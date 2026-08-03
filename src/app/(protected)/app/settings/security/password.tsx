@@ -10,7 +10,7 @@ import Button from "@/src/components/ui/button/Button";
 import TextInput from "@/src/components/ui/input/TextInput";
 import StatusMessage from "@/src/components/StatusMessage";
 import Section from "@/src/components/features/settings/SettingsSection";
-import SettingRow from "@/src/components/features/settings/SettingRow";
+import SettingRow from "@/src/components/features/settings/SettingsRow";
 
 import auth from "@/src/utils/backend-services/auth";
 

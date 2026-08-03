@@ -34,7 +34,6 @@ const SettingsSection = ({ titleKey, children, style }: SettingsSectionProps) =>
 
 const sectionStyles = StyleSheet.create({
   container: {
-    marginHorizontal: 20,
     marginBottom: 25,
   },
   title: {
@@ -46,7 +45,7 @@ const sectionStyles = StyleSheet.create({
     marginLeft: 5, 
   },
   card: {
-    borderRadius: 16,
+    borderRadius: 25,
     overflow: "hidden",
   },
 });

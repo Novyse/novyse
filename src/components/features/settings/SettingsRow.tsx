@@ -6,7 +6,7 @@ import Icon from "@/src/components/ui/icon/Icon";
 import Switch from "@/src/components/ui/switch/Switch";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 
-export type SettingRowProps = {
+export type SettingsRowProps = {
   iconName?: string;
   leftElement?: React.ReactNode;
   labelKey?: string;
@@ -18,20 +18,20 @@ export type SettingRowProps = {
   onPress?: () => void;
   danger?: boolean;
   style?: any;
-  type?: SettingRowType;
+  type?: SettingsRowType;
   isEnabled?: boolean;
   onToggle?: (val: boolean) => void;
   isSelected?: boolean;
 };
 
-export type SettingRowType =
+export type SettingsRowType =
   | "SWITCH"
   | "VALUE"
   | "NAVIGATE"
   | "MODAL"
   | "SELECT_GROUP";
 
-const SettingRow = ({
+const SettingsRow = ({
   iconName,
   leftElement,
   labelKey,
@@ -47,7 +47,7 @@ const SettingRow = ({
   isEnabled,
   onToggle,
   isSelected = false,
-}: SettingRowProps) => {
+}: SettingsRowProps) => {
   const { theme } = useContext(ThemeContext);
   const rowColor = danger ? theme.dangerText : theme.primary;
   const textColor = danger ? theme.dangerText : theme.text;
@@ -55,7 +55,7 @@ const SettingRow = ({
   return (
     <HoverAndPressedButton
       style={[
-        settingRowStyles.row,
+        SettingsRowStyles.row,
         { borderBottomColor: theme.borderColor },
         style,
       ]}
@@ -66,7 +66,7 @@ const SettingRow = ({
       ) : iconName ? (
         <View
           style={[
-            settingRowStyles.iconContainer,
+            SettingsRowStyles.iconContainer,
             { backgroundColor: rowColor + "15" },
           ]}
         >
@@ -74,26 +74,26 @@ const SettingRow = ({
         </View>
       ) : null}
 
-      <View style={settingRowStyles.labelContainer}>
+      <View style={SettingsRowStyles.labelContainer}>
         {labelKey ? (
           <AppText
-            style={[settingRowStyles.label, { color: textColor }]}
+            style={[SettingsRowStyles.label, { color: textColor }]}
             translationKey={labelKey}
             translationOptions={labelOptions}
           />
         ) : (
-          <AppText style={[settingRowStyles.label, { color: textColor }]}>
+          <AppText style={[SettingsRowStyles.label, { color: textColor }]}>
             {labelText}
           </AppText>
         )}
         {valueKey ? (
           <AppText
-            style={[settingRowStyles.value, { color: theme.subtitle }]}
+            style={[SettingsRowStyles.value, { color: theme.subtitle }]}
             translationKey={valueKey}
             translationOptions={valueOptions}
           />
         ) : value && type !== "VALUE" ? (
-          <AppText style={[settingRowStyles.value, { color: theme.subtitle }]}>
+          <AppText style={[SettingsRowStyles.value, { color: theme.subtitle }]}>
             {value}
           </AppText>
         ) : null}
@@ -111,13 +111,13 @@ const SettingRow = ({
           case "VALUE":
             return valueKey ? (
               <AppText
-                style={[settingRowStyles.rightValue, { color: theme.subtitle }]}
+                style={[SettingsRowStyles.rightValue, { color: theme.subtitle }]}
                 translationKey={valueKey}
                 translationOptions={valueOptions}
               />
             ) : value ? (
               <AppText
-                style={[settingRowStyles.rightValue, { color: theme.subtitle }]}
+                style={[SettingsRowStyles.rightValue, { color: theme.subtitle }]}
               >
                 {value}
               </AppText>
@@ -126,14 +126,14 @@ const SettingRow = ({
             return (
               <View
                 style={[
-                  settingRowStyles.radioOuter,
+                  SettingsRowStyles.radioOuter,
                   { borderColor: isSelected ? theme.primary : theme.subtitle },
                 ]}
               >
                 {isSelected && (
                   <View
                     style={[
-                      settingRowStyles.radioInner,
+                      SettingsRowStyles.radioInner,
                       { backgroundColor: theme.primary },
                     ]}
                   />
@@ -152,7 +152,7 @@ const SettingRow = ({
   );
 };
 
-const settingRowStyles = StyleSheet.create({
+const SettingsRowStyles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -199,4 +199,4 @@ const settingRowStyles = StyleSheet.create({
   },
 });
 
-export default SettingRow;
+export default SettingsRow;

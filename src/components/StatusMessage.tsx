@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext } from "react";
 import { View, StyleSheet, Linking } from "react-native";
 import Animated, {
   useSharedValue,
@@ -237,8 +237,7 @@ const createStyles = (colors: ThemeColors) => {
   return StyleSheet.create({
     container: {
       backgroundColor: colors.bg,
-      borderRadius: 12,
-      marginTop: 12,
+      borderRadius: 25,
       width: "100%",
       overflow: "hidden",
     },

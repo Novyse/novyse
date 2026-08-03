@@ -9,7 +9,7 @@ import SettingsPageScrollview from "@/src/components/features/settings/SettingsP
 import StatusMessage from "@/src/components/StatusMessage";
 import SecurityListCard from "@/src/components/features/settings/security/SecurityListCard";
 import Section from "@/src/components/features/settings/SettingsSection";
-import SettingRow from "@/src/components/features/settings/SettingRow";
+import SettingRow from "@/src/components/features/settings/SettingsRow";
 import Icon from "@/src/components/ui/icon/Icon";
 import auth from "@/src/utils/backend-services/auth";
 import CreateApiKeyModal from "@/src/components/features/settings/security/api-keys/CreateApiKeyModal";
