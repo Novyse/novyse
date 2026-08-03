@@ -5,7 +5,9 @@ import { useLocalSearchParams, router } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/context/UserContext";
-import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
+import ToggleSelector, {
+  ToggleOption,
+} from "@/src/components/ui/switch/SegmentedSwitch";
 import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 import Icon from "@/src/components/ui/icon/Icon";

@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import AppText from "@/src/components/ui/text/AppText";
 import Icon from "@/src/components/ui/icon/Icon";
-import Switch from "@/src/components/Switch";
+import Switch from "@/src/components/ui/switch/Switch";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 
 export type SettingRowProps = {

@@ -25,7 +25,7 @@ export interface ToggleOption<T extends string = string> {
   disabled?: boolean;
 }
 
-interface ToggleSelectorProps<T extends string = string> {
+interface SegmentedSwitchProps<T extends string = string> {
   options: ToggleOption<T>[];
   value: T;
   onChange: (value: T) => void;
@@ -34,14 +34,14 @@ interface ToggleSelectorProps<T extends string = string> {
   buttonWidth?: number;
 }
 
-function ToggleSelector<T extends string = string>({
+function SegmentedSwitch<T extends string = string>({
   options,
   value,
   onChange,
   disabled = false,
   style,
   buttonWidth,
-}: ToggleSelectorProps<T>) {
+}: SegmentedSwitchProps<T>) {
   const { theme } = useContext(ThemeContext);
 
   // for reference see createChatModal implementation
@@ -256,4 +256,4 @@ function createStyles(theme: any, isIconOnly?: boolean, buttonWidth?: number) {
   });
 }
 
-export default ToggleSelector;
+export default SegmentedSwitch;

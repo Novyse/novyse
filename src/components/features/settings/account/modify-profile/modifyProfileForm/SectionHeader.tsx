@@ -22,7 +22,7 @@ export default function SectionHeader({
 
   return (
     <View style={styles.sectionHeader}>
-      <Icon name={icon} size={20} style={{ marginRight: 8 }} />
+      <Icon name={icon} size={20} />
       {translationKey ? (
         <AppText style={styles.sectionTitle} translationKey={translationKey} />
       ) : title ? (
@@ -40,8 +40,9 @@ const createStyles = (theme: any) =>
       marginBottom: 12,
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: 15,
       fontWeight: "600",
       color: theme.text,
+      marginLeft: 10,
     },
   });

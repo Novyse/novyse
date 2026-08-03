@@ -26,7 +26,7 @@ import { useThemeContext } from "@/src/context/ThemeContext";
 
 import BlurredView from "@/src/components/BlurredView";
 import Icon from "@/src/components/ui/icon/Icon";
-import ToggleSelector from "@/src/components/ToggleSelector";
+import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
 import AppText from "@/src/components/ui/text/AppText";
 
 interface EmojiPickerProps {

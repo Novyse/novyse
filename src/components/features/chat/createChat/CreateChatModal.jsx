@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 
 import Button from "@/src/components/ui/button/Button";
 import CustomTextInput from "@/src/components/ui/input/TextInput";
-import ToggleSelector from "@/src/components/ToggleSelector";
+import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";

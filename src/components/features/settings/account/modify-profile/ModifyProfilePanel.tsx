@@ -9,7 +9,7 @@ import {
 import AppText from "@/src/components/ui/text/AppText";
 import Banner from "@/src/components/Banner";
 import ProfileHeader from "@/src/components/profile/ProfileHeader";
-import FormSection from "@/src/components/features/settings/account/modify-profile/modifyProfileForm";
+import FormSection from "@/src/components/features/settings/account/modify-profile/modifyProfileForm/ModifyProfileForm";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import StatusMessage from "@/src/components/StatusMessage";
 import BlurredView from "@/src/components/BlurredView";

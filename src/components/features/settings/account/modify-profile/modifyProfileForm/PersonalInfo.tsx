@@ -7,7 +7,7 @@ import AppText from "@/src/components/ui/text/AppText";
 import { countryList, regionList } from "@/constants/Location";
 
 import Label from "@/src/components/Label";
-import SectionHeader from "@/src/components/SectionHeader";
+import SectionHeader from "@/src/components/features/settings/account/modify-profile/modifyProfileForm/SectionHeader";
 import TextInput from "@/src/components/ui/input/TextInput";
 import SelectInput from "@/src/components/ui/input/SelectInput";
 import DateInput from "@/src/components/ui/input/DateInput";

@@ -6,7 +6,7 @@ import Appareance from "./Appearance";
 import Connections from "./Connections";
 import Divider from "@/src/components/Divider";
 
-interface FormSectionProps {
+interface ModifyProfileFormProps {
   values: {
     name: string;
     surname: string;
@@ -20,11 +20,11 @@ interface FormSectionProps {
   isSmallScreen?: boolean;
 }
 
-export default function FormSection({
+export default function ModifyProfileForm({
   values,
   onChangeField,
   isSmallScreen = false,
-}: FormSectionProps) {
+}: ModifyProfileFormProps) {
   return (
     <View style={styles.formSection}>
       {/* Personal Info */}

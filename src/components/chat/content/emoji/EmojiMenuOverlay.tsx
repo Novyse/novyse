@@ -13,7 +13,7 @@ import { StickerPicker } from "./StickerPicker";
 import { GifPicker } from "./GifPicker";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
-import ToggleSelector from "@/src/components/ToggleSelector";
+import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
 
 type TabType = "emoji" | "sticker" | "gif";
 

@@ -142,9 +142,6 @@ const SubList = ({
         <FloatingButton
           onPress={() => setCreateModalVisible(true)}
           iconName="PlusSignIcon"
-          size={isCollapsed ? 16 : 20}
-          width={isCollapsed ? 40 : 50}
-          height={isCollapsed ? 40 : 50}
           position={{
             bottom: 15,
             right: isCollapsed ? 15 : 20,
@@ -161,7 +158,7 @@ const SubList = ({
   );
 };
 
-function createStyle(theme, isSmallScreen) {
+function createStyle(theme: any) {
   return StyleSheet.create({
     container: {
       flexGrow: 0,

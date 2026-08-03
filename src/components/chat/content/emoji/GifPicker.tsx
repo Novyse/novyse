@@ -20,7 +20,7 @@ import { t } from "i18next";
 import { ScrollBar } from "@/constants/ScrollBar";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import AppText from "@/src/components/ui/text/AppText";
-import ToggleSelector from "@/src/components/ToggleSelector";
+import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 

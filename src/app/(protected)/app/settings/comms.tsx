@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 
-import ToggleSelector from "@/src/components/ToggleSelector";
+import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
 import InputDeviceDropdown from "@/src/components/DropdownMenu";
 import settingsManager from "@/src/utils/global/SettingsManager";
 

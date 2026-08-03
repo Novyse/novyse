@@ -11,7 +11,7 @@ import AppText from "@/src/components/ui/text/AppText";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
-import ToggleSelector from "@/src/components/ToggleSelector";
+import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
 
 const CreateSubModal = ({ visible, onClose, chatUUID }) => {
   const { theme } = useContext(ThemeContext);

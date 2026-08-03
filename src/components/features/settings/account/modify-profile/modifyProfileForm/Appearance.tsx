@@ -6,7 +6,7 @@ import Icon from "@/src/components/ui/icon/Icon";
 import BlurredView from "@/src/components/BlurredView";
 
 import Label from "@/src/components/Label";
-import SectionHeader from "@/src/components/SectionHeader";
+import SectionHeader from "@/src/components/features/settings/account/modify-profile/modifyProfileForm/SectionHeader";
 import ColorDot from "@/src/components/ColorDot";
 
 export default function Appareance() {

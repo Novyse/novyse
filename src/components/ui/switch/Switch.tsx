@@ -26,7 +26,7 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
       toValue: enabled ? 1 : 0,
       useNativeDriver: false,
       friction: 8,
-      tension: 80,
+      tension: 100,
     }).start();
   };
 
@@ -87,7 +87,7 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
 
   const backgroundColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ["#4c85ceff", "#30ae5eff"],
+    outputRange: [theme.secondary + 75, theme.successText],
   });
 
   return (
@@ -102,15 +102,15 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
 
 const createStyles = (theme: any) => StyleSheet.create({
   track: {
-    width: 44,
-    height: 24,
-    borderRadius: 12,
+    width: 45,
+    height: 25,
+    borderRadius: 20,
     justifyContent: "center",
   },
   thumb: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 19,
+    height: 19,
+    borderRadius: 20,
     backgroundColor: theme.text,
     shadowColor: theme.shadowColor,
     shadowOffset: { width: 0, height: 2 },

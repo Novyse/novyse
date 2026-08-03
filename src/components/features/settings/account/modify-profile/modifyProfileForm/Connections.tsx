@@ -5,7 +5,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 
 import BlurredView from "@/src/components/BlurredView";
 
-import SectionHeader from "@/src/components/SectionHeader";
+import SectionHeader from "@/src/components/features/settings/account/modify-profile/modifyProfileForm/SectionHeader";
 import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 

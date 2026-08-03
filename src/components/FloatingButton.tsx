@@ -19,8 +19,8 @@ const FloatingButton: React.FC<FloatingButtonProps> = ({
   onPress,
   iconName,
   size = 24,
-  width = 60,
-  height = 60,
+  width = 45,
+  height = 45,
   position = { bottom: 25, right: 20 },
 }) => {
   const { theme } = useContext(ThemeContext);
