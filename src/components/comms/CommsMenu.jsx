@@ -4,7 +4,7 @@ import AppText from "@/src/components/ui/text/AppText";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
-import HoverAndPressedButton from "../HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
 import BlurredView from "../BlurredView";
 import VolumeControl from "./VolumeControl";

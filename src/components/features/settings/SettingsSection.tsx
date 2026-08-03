@@ -3,13 +3,13 @@ import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-interface SectionProps {
+interface SettingsSectionProps {
   titleKey?: string;
   children: React.ReactNode;
   style?: any;
 }
 
-const Section = ({ titleKey, children, style }: SectionProps) => {
+const SettingsSection = ({ titleKey, children, style }: SettingsSectionProps) => {
   const { theme } = useContext(ThemeContext);
 
   return (
@@ -41,9 +41,9 @@ const sectionStyles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     textTransform: "uppercase",
-    letterSpacing: 0.8,
+    letterSpacing: 1,
     marginBottom: 10,
-    marginLeft: 5,
+    marginLeft: 5, 
   },
   card: {
     borderRadius: 16,
@@ -51,4 +51,4 @@ const sectionStyles = StyleSheet.create({
   },
 });
 
-export default Section;
+export default SettingsSection;

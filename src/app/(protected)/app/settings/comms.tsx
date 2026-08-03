@@ -11,8 +11,8 @@ import ToggleSelector from "@/src/components/ToggleSelector";
 import InputDeviceDropdown from "@/src/components/DropdownMenu";
 import settingsManager from "@/src/utils/global/SettingsManager";
 
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsCard from "@/src/components/settings/SettingsCard";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import SettingsCard from "@/src/components/features/settings/SettingsCard";
 import StatusMessage from "@/src/components/StatusMessage";
 
 export default function CommsRoute() {

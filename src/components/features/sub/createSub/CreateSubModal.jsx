@@ -140,9 +140,6 @@ function createStyle(theme) {
       marginBottom: 8,
     },
     footer: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      alignItems: "center",
       paddingTop: 16,
       marginTop: 16,
       borderTopWidth: 1,

@@ -4,18 +4,27 @@ import { router } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import { Colors, ThemeRegistry } from "@/constants/Colors";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import Section from "@/src/components/settings/Section";
-import SettingSelectGroup from "@/src/components/settings/SettingSelectGroup";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import Section from "@/src/components/features/settings/SettingsSection";
+import SettingSelectGroup from "@/src/components/features/settings/SettingSelectGroup";
 
 export default function ThemesRoute() {
-  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
-  const { setColorTheme, theme, colorTheme, appearanceMode, setAppearanceMode } = useContext(ThemeContext);
+  const onBack = () =>
+    router.canGoBack() ? router.back() : router.push("/app");
+  const {
+    setColorTheme,
+    theme,
+    colorTheme,
+    appearanceMode,
+    setAppearanceMode,
+  } = useContext(ThemeContext);
   const styles = createStyle(theme);
 
   // Ottieni la configurazione del tema attuale
   const themeConfig = ThemeRegistry[colorTheme];
-  const supportsMultipleModes = themeConfig ? themeConfig.modes.length > 1 : true;
+  const supportsMultipleModes = themeConfig
+    ? themeConfig.modes.length > 1
+    : true;
 
   // Ottieni la lista dei temi disponibili dal Registry
   const availableThemes = Object.keys(ThemeRegistry);
@@ -29,15 +38,30 @@ export default function ThemesRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow translationKey="settings.customization.themes" onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.customization.themes"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
         {supportsMultipleModes && (
           <Section titleKey="settings.modifyProfile.appearance">
             <SettingSelectGroup
               options={[
-                { value: "system", labelKey: "settings.themeOptions.system", iconName: "Settings01Icon" },
-                { value: "light", labelKey: "settings.themeOptions.light", iconName: "Sun03Icon" },
-                { value: "dark", labelKey: "settings.themeOptions.dark", iconName: "Moon02Icon" },
+                {
+                  value: "system",
+                  labelKey: "settings.themeOptions.system",
+                  iconName: "Settings01Icon",
+                },
+                {
+                  value: "light",
+                  labelKey: "settings.themeOptions.light",
+                  iconName: "Sun03Icon",
+                },
+                {
+                  value: "dark",
+                  labelKey: "settings.themeOptions.dark",
+                  iconName: "Moon02Icon",
+                },
               ]}
               value={appearanceMode}
               onChange={setAppearanceMode}

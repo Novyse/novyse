@@ -9,7 +9,7 @@ import {
 import AppText from "@/src/components/ui/text/AppText";
 import Banner from "@/src/components/Banner";
 import ProfileHeader from "@/src/components/profile/ProfileHeader";
-import FormSection from "@/src/components/settings/account/modify-profile/Page/FormSection";
+import FormSection from "@/src/components/features/settings/account/modify-profile/modifyProfileForm";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import StatusMessage from "@/src/components/StatusMessage";
 import BlurredView from "@/src/components/BlurredView";
@@ -21,7 +21,7 @@ import useUserStore from "@/src/context/UserContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 
-interface ModifyProfileProps {
+interface ModifyProfilePanelProps {
   name: string;
   surname: string;
   username: string;
@@ -34,7 +34,7 @@ interface ModifyProfileProps {
   onEditAvatar?: () => void;
 }
 
-export default function ModifyProfile({
+export default function ModifyProfilePanel({
   name,
   surname,
   username,
@@ -44,7 +44,7 @@ export default function ModifyProfile({
   region = "",
   profilePictureUUID,
   onEditAvatar,
-}: ModifyProfileProps) {
+}: ModifyProfilePanelProps) {
   const { theme } = useThemeContext();
   const { width, height } = useWindowDimensions();
   const { isSmallScreen } = useScreen();

@@ -13,8 +13,10 @@ interface TextInputProps {
   maxLenght?: number;
   numberOfLines?: number;
   onChange?: (text: string) => void;
+  onChangeText?: (text: string) => void;
   onFocus?: () => void;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  secureTextEntry?: boolean;
 }
 
 export default function TextInput({
@@ -26,8 +28,10 @@ export default function TextInput({
   maxLenght,
   numberOfLines = 1,
   onChange,
+  onChangeText,
   onFocus,
   autoCapitalize,
+  secureTextEntry,
 }: TextInputProps) {
   const isMultiline = numberOfLines > 1;
 
@@ -43,13 +47,14 @@ export default function TextInput({
         value={value ?? ""}
         placeholder={placeholder}
         editable={!disabled}
-        onChangeText={onChange}
+        onChangeText={onChangeText || onChange}
         onFocus={onFocus}
         maxLength={maxLenght}
         placeholderTextColor={theme.placeholderText}
         multiline={isMultiline}
         numberOfLines={numberOfLines}
         autoCapitalize={autoCapitalize}
+        secureTextEntry={secureTextEntry}
       />
 
       {suffix && <View style={styles.suffix}>{suffix}</View>}
@@ -57,13 +62,13 @@ export default function TextInput({
   );
 }
 
-const createStyles = (theme: any, disabled: boolean, isMultiline: boolean) =>
+const createStyles = (theme: any, disabled: boolean) =>
   StyleSheet.create({
     inputContainer: {
       paddingHorizontal: 20,
-      paddingVertical: 14,
+      paddingVertical: 15,
       flexDirection: "row",
-      borderRadius: isMultiline ? 16 : 99,
+      borderRadius: 25,
       alignItems: "center",
       backgroundColor: theme.backgroundCard,
       opacity: disabled ? 0.6 : 1,
@@ -71,12 +76,12 @@ const createStyles = (theme: any, disabled: boolean, isMultiline: boolean) =>
     TextInput: {
       color: theme.text,
       flex: 1,
-      fontSize: 14,
+      fontSize: 15,
       outlineStyle: "solid",
       outlineWidth: 0,
     },
     prefix: {
-      fontSize: 14,
+      fontSize: 15,
       color: theme.placeholderText,
       marginRight: 8,
     },

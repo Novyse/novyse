@@ -2,9 +2,9 @@ import React, { useEffect } from "react";
 import { router } from "expo-router";
 
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsCard from "@/src/components/settings/SettingsCard";
-import ShortcutItem from "@/src/components/settings/shortcuts/ShortcutItem";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import SettingsCard from "@/src/components/features/settings/SettingsCard";
+import ShortcutItem from "@/src/components/features/settings/shortcuts/ShortcutItem";
 import StatusMessage from "@/src/components/StatusMessage";
 import AppText from "@/src/components/ui/text/AppText";
 

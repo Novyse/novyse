@@ -9,7 +9,7 @@ import useUserStore from "@/src/context/UserContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import UploadProfilePicture from "@/src/components/modalSheets/UploadProfilePicture";
 
-import Page from "@/src/components/settings/account/modify-profile/Page";
+import Page from "@/src/components/features/settings/account/modify-profile/ModifyProfilePanel";
 
 export default function AccountModifyRoute() {
   const onBack = () =>

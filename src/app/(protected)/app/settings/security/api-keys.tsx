@@ -5,15 +5,15 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import StatusMessage from "@/src/components/StatusMessage";
-import SecurityListCard from "@/src/components/settings/security/SecurityListCard";
-import Section from "@/src/components/settings/Section";
-import SettingRow from "@/src/components/settings/SettingRow";
+import SecurityListCard from "@/src/components/features/settings/security/SecurityListCard";
+import Section from "@/src/components/features/settings/SettingsSection";
+import SettingRow from "@/src/components/features/settings/SettingRow";
 import Icon from "@/src/components/ui/icon/Icon";
 import auth from "@/src/utils/backend-services/auth";
-import CreateApiKeyModal from "@/src/components/settings/security/api-keys/CreateApiKeyModal";
-import ApiKeyDetailsModal from "@/src/components/settings/security/api-keys/ApiKeyDetailsModal";
+import CreateApiKeyModal from "@/src/components/features/settings/security/api-keys/CreateApiKeyModal";
+import ApiKeyDetailsModal from "@/src/components/features/settings/security/api-keys/ApiKeyDetailsModal";
 
 interface ApiKey {
   id: string;

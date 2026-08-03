@@ -3,23 +3,27 @@ import { View, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import Section from "@/src/components/settings/Section";
-import SettingRow from "@/src/components/settings/SettingRow";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import Section from "@/src/components/features/settings/SettingsSection";
+import SettingRow from "@/src/components/features/settings/SettingRow";
 import DeleteAccount from "@/src/components/modalSheets/DeleteAccount";
 
 import auth from "@/src/utils/welcome/auth";
 
 export default function AccountRoute() {
   const router = useRouter();
-  const onBack = () => (router.canGoBack() ? router.back() : router.push("/app"));
+  const onBack = () =>
+    router.canGoBack() ? router.back() : router.push("/app");
 
   const [isDeleteAccountModalVisible, setIsDeleteAccountModalVisible] =
     useState(false);
 
   return (
     <View style={styles.container}>
-      <HeaderWithBackArrow translationKey="settings.account.title" onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.account.title"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
         <Section>
           <SettingRow
@@ -57,4 +61,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-

@@ -1,8 +1,8 @@
-import React from "react";
-import { View, StyleSheet, Pressable } from "react-native";
-import ModalBase from "@/src/components/modalSheets/ModalBase";
+import { View, StyleSheet } from "react-native";
+import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import Icon from "@/src/components/ui/icon/Icon";
 import CopyLabel from "@/src/components/CopyLabel";
+import Button from "@/src/components/ui/button/Button";
 import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 
@@ -23,10 +23,11 @@ export default function ApiKeyDetailsModal({
   const styles = createStyles(theme);
 
   return (
-    <ModalBase
+    <AdaptiveModal
       visible={visible}
       onClose={onClose}
       theme={theme}
+      mode="modal"
       titleTranslationKey="settings.security.apiKeys.detailsModal.title"
     >
       <View style={styles.container}>
@@ -47,21 +48,13 @@ export default function ApiKeyDetailsModal({
           label={t("settings.security.apiKeys.detailsModal.label")}
         />
 
-        <Pressable
+        <Button
+          translationKey="settings.security.apiKeys.detailsModal.saved"
           onPress={onClose}
-          style={({ pressed, hovered }: any) => [
-            styles.button,
-            hovered && styles.buttonHovered,
-            pressed && styles.buttonPressed,
-          ]}
-        >
-          <AppText
-            style={styles.buttonText}
-            translationKey="settings.security.apiKeys.detailsModal.saved"
-          />
-        </Pressable>
+          style={{ marginTop: 24 }}
+        />
       </View>
-    </ModalBase>
+    </AdaptiveModal>
   );
 }
 
@@ -82,27 +75,5 @@ const createStyles = (theme: any) =>
       marginBottom: 24,
       textAlign: "center",
       lineHeight: 20,
-    },
-    button: {
-      backgroundColor: theme.primary,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: 14,
-      borderRadius: 12,
-      marginTop: 24,
-    },
-    buttonHovered: {
-      backgroundColor: theme.settingsHoveredButton,
-      cursor: "pointer" as any,
-    },
-    buttonPressed: {
-      backgroundColor: theme.settingsPressedButton,
-      opacity: 0.9,
-    },
-    buttonText: {
-      color: theme.text,
-      fontSize: 16,
-      fontWeight: "600",
     },
   });

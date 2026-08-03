@@ -4,9 +4,9 @@ import { router } from "expo-router";
 
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import { APP_VERSION } from "@/app.config";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import Section from "@/src/components/settings/Section";
-import SettingRow from "@/src/components/settings/SettingRow";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import Section from "@/src/components/features/settings/SettingsSection";
+import SettingRow from "@/src/components/features/settings/SettingRow";
 
 export default function InfoRoute() {
   const onBack = () =>

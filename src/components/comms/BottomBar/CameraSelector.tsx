@@ -5,7 +5,7 @@ import { Room } from "livekit-client";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 import AdaptiveModal from "../../modalSheets/AdaptiveModal";
-import SettingRow from "@/src/components/settings/SettingRow";
+import SettingRow from "@/src/components/features/settings/SettingRow";
 import AppText from "@/src/components/ui/text/AppText";
 import { ScrollBar } from "@/constants/ScrollBar";
 

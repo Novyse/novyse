@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import SettingRow from "@/src/components/settings/SettingRow";
+import SettingRow from "@/src/components/features/settings/SettingRow";
 import Icon from "@/src/components/ui/icon/Icon";
 
 export type SelectOption<T extends string = string> = {

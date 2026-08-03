@@ -1,15 +1,16 @@
 import React, { useContext, useState } from "react";
-import { StyleSheet, View, TextInput } from "react-native";
+import { StyleSheet, View } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsButton from "@/src/components/settings/SettingsButton";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import Button from "@/src/components/ui/button/Button";
+import TextInput from "@/src/components/ui/input/TextInput";
 import StatusMessage from "@/src/components/StatusMessage";
-import Section from "@/src/components/settings/Section";
-import SettingRow from "@/src/components/settings/SettingRow";
+import Section from "@/src/components/features/settings/SettingsSection";
+import SettingRow from "@/src/components/features/settings/SettingRow";
 
 import auth from "@/src/utils/backend-services/auth";
 
@@ -106,9 +107,7 @@ export default function PasswordRoute() {
                   translationKey="settings.security.newPassword"
                 />
                 <TextInput
-                  style={styles.input}
                   placeholder={t("settings.security.enterNewPassword")}
-                  placeholderTextColor={theme.placeholderText}
                   value={newPassword}
                   onChangeText={setNewPassword}
                   secureTextEntry
@@ -121,9 +120,7 @@ export default function PasswordRoute() {
                   translationKey="settings.security.confirmNewPassword"
                 />
                 <TextInput
-                  style={styles.input}
                   placeholder={t("settings.security.confirmNewPasswordInput")}
-                  placeholderTextColor={theme.placeholderText}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   secureTextEntry
@@ -132,7 +129,7 @@ export default function PasswordRoute() {
               </View>
 
               <View style={styles.formButtons}>
-                <SettingsButton
+                <Button
                   text={
                     isLoading
                       ? t("settings.security.changing")
@@ -141,7 +138,7 @@ export default function PasswordRoute() {
                   onPress={handleChangePassword}
                   disabled={isLoading}
                 />
-                <SettingsButton
+                <Button
                   translationKey="settings.security.cancel"
                   onPress={resetForm}
                 />
@@ -188,16 +185,6 @@ const createStyle = (theme: any) =>
       fontSize: 16,
       fontWeight: "600",
       marginBottom: 8,
-    },
-    input: {
-      backgroundColor: theme.backgroundTextField,
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      fontSize: 16,
-      color: theme.text,
-      borderWidth: 1,
-      borderColor: theme.borderColor,
     },
     formButtons: {
       gap: 10,

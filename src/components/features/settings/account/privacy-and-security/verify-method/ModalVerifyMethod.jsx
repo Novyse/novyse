@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   StyleSheet,
-  ActivityIndicator,
-  Pressable,
-  Platform,
 } from "react-native";
 
 import useOTP from "@/src/hooks/auth/useOTP";
@@ -15,7 +12,8 @@ import OtpDigitsInput from "@/src/components/OtpDigitsInput";
 import StatusMessage from "@/src/components/StatusMessage";
 import logoForQR from "@/assets/images/logo-novyse.png";
 
-import ModalBase from "@/src/components/modalSheets/ModalBase";
+import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
+import Button from "@/src/components/ui/button/Button";
 import AppText from "@/src/components/ui/text/AppText";
 
 const ModalVerifyMethod = ({
@@ -75,7 +73,7 @@ const ModalVerifyMethod = ({
   };
 
   return (
-    <ModalBase
+    <AdaptiveModal
       visible={visible}
       onClose={() => {
         setOtp(["", "", "", "", "", ""]);
@@ -83,6 +81,7 @@ const ModalVerifyMethod = ({
         onClose();
       }}
       theme={theme}
+      mode="modal"
       titleTranslationKey={getFormattedVerificationTypeKey()}
     >
       <View style={styles.cardContent}>
@@ -107,23 +106,12 @@ const ModalVerifyMethod = ({
             error={!!error}
             inputCount={6}
           />
-          <Pressable
-            style={[
-              styles.submitButton,
-              isLoading && styles.submitButtonDisabled,
-            ]}
+          <Button
+            translationKey="auth.verify.verifyBtn"
             onPress={handlePress}
             disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator size="small" color={theme.textInverted} />
-            ) : (
-              <AppText
-                style={styles.submitButtonText}
-                translationKey="auth.verify.verifyBtn"
-              />
-            )}
-          </Pressable>
+            style={{ width: "100%" }}
+          />
         </View>
 
         <StatusMessage
@@ -133,7 +121,7 @@ const ModalVerifyMethod = ({
           onClose={() => setError(null)}
         />
       </View>
-    </ModalBase>
+    </AdaptiveModal>
   );
 };
 
@@ -161,22 +149,6 @@ function createStyle(theme) {
       width: "100%",
       alignItems: "center",
       gap: 24,
-    },
-    submitButton: {
-      backgroundColor: theme.primary,
-      borderRadius: 8,
-      paddingVertical: 14,
-      alignItems: "center",
-      width: "100%",
-      justifyContent: "center",
-    },
-    submitButtonDisabled: {
-      opacity: 0.5,
-    },
-    submitButtonText: {
-      color: theme.text,
-      fontWeight: "600",
-      fontSize: 16,
     },
   });
 }

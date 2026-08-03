@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import Section from "@/src/components/settings/Section";
-import SettingSelectGroup from "@/src/components/settings/SettingSelectGroup";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import Section from "@/src/components/features/settings/SettingsSection";
+import SettingSelectGroup from "@/src/components/features/settings/SettingSelectGroup";
 
 export default function LanguageRoute() {
   const { i18n } = useTranslation();
@@ -23,23 +23,23 @@ export default function LanguageRoute() {
   }, [i18n.language]);
 
   const languages = [
-    { 
-      value: "en", 
+    {
+      value: "en",
       labelText: "English",
       leftElement: (
         <View style={styles.emojiContainer}>
           <Text style={styles.emoji}>🇬🇧</Text>
         </View>
-      )
+      ),
     },
-    { 
-      value: "it", 
+    {
+      value: "it",
       labelText: "Italiano",
       leftElement: (
         <View style={styles.emojiContainer}>
           <Text style={styles.emoji}>🇮🇹</Text>
         </View>
-      )
+      ),
     },
   ];
 

@@ -5,8 +5,8 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsButton from "@/src/components/settings/SettingsButton";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import Button from "@/src/components/ui/button/Button";
 import StatusMessage from "@/src/components/StatusMessage";
 import Icon from "@/src/components/ui/icon/Icon";
 
@@ -166,11 +166,11 @@ export default function MfaRoute() {
         </View>
 
         <View style={styles.buttonContainer}>
-          <SettingsButton
+          <Button
             translationKey="settings.security.showBackupCodes"
             onPress={handleShowBackupCodes}
           />
-          <SettingsButton
+          <Button
             translationKey="settings.security.resetBackupCodes"
             onPress={handleResetBackupCodes}
           />

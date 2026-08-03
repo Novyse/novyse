@@ -3,9 +3,9 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsCard from "@/src/components/settings/SettingsCard";
-import StorageBreakdown from "@/src/components/settings/storage/StorageBreakdown";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import SettingsCard from "@/src/components/features/settings/SettingsCard";
+import StorageBreakdown from "@/src/components/features/settings/storage/StorageBreakdown";
 
 export default function CloudStorageRoute() {
   const { t } = useTranslation();
@@ -41,5 +41,3 @@ export default function CloudStorageRoute() {
     </>
   );
 }
-
-

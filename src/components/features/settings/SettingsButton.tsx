@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { StyleSheet, StyleProp, ViewStyle, TextStyle } from "react-native";
 import { Theme, ThemeContext } from "@/src/context/ThemeContext";
-import HoverAndPressedButton from "../HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import AppText from "@/src/components/ui/text/AppText";
 
 interface SettingsButtonProps {
