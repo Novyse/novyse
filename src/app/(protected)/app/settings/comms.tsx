@@ -15,7 +15,7 @@ import settingsManager from "@/src/utils/global/SettingsManager";
 
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/features/settings/SettingsCard";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 
 export default function CommsRoute() {
   const { t } = useTranslation();

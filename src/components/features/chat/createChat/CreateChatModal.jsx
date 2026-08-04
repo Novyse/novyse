@@ -16,7 +16,7 @@ import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import AdaptiveModal from "../../../modalSheets/AdaptiveModal";
 import SelectButton from "./ChatTypeButton";
-import StatusMessage from "../../../StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import Icon from "@/src/components/ui/icon/Icon";
 import AppText from "@/src/components/ui/text/AppText";
 

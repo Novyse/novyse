@@ -6,7 +6,7 @@ import { LoginColors } from "@/constants/LoginColors";
 import { validate } from "@/src/utils/welcome/validator";
 import Icon from "@/src/components/ui/icon/Icon";
 import TextLink from "@/src/components/ui/text/LinkText";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 
 interface Props {
   currentStep: number;

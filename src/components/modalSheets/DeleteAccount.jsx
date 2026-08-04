@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/context/UserContext";

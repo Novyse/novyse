@@ -13,7 +13,7 @@ import { useScreen } from "@/src/context/ScreenContext";
 import { LoginColors } from "@/constants/LoginColors";
 import { useSignup } from "@/src/hooks/welcome/useSignup";
 
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import Icon from "@/src/components/ui/icon/Icon";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";

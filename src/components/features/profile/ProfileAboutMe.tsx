@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 
 import AppText from "@/src/components/ui/text/AppText";
@@ -6,11 +6,11 @@ import BlurredView from "@/src/components/BlurredView";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-interface AboutMeProps {
+interface ProfileAboutMeProps {
   biography?: string;
 }
 
-export default function AboutMe({ biography }: AboutMeProps) {
+export default function ProfileAboutMe({ biography }: ProfileAboutMeProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
@@ -37,18 +37,15 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       paddingHorizontal: 20,
-      paddingVertical: 16,
+      paddingVertical: 15,
     },
     glassCard: {
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: theme.borderColor,
-      backgroundColor: theme.backgroundMain,
+      borderRadius: 15,
       overflow: "hidden",
     },
     content: {
       paddingHorizontal: 20,
-      paddingVertical: 16,
+      paddingVertical: 15,
     },
     title: {
       fontSize: 12,

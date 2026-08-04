@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { LinearGradient } from "expo-linear-gradient";
@@ -6,15 +6,15 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
 
-interface BirthdayLocationProps {
+interface ProfileBirthdayLocationProps {
   birthday?: string;
   country?: string;
 }
 
-export default function BirthdayLocation({
+export default function ProfileBirthdayLocation({
   birthday,
   country,
-}: BirthdayLocationProps) {
+}: ProfileBirthdayLocationProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
@@ -89,18 +89,15 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       paddingHorizontal: 20,
-      paddingVertical: 16,
+      paddingVertical: 15,
     },
     glassCard: {
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: theme.borderColor,
-      backgroundColor: theme.backgroundMain,
+      borderRadius: 15,
       overflow: "hidden",
     },
     content: {
       paddingHorizontal: 20,
-      paddingVertical: 16,
+      paddingVertical: 15,
     },
     item: {
       flexDirection: "row",

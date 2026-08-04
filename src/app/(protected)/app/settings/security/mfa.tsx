@@ -7,7 +7,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import Button from "@/src/components/ui/button/Button";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import Icon from "@/src/components/ui/icon/Icon";
 
 interface MfaMethod {

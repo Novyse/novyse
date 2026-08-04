@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 
@@ -72,6 +72,6 @@ const createStyles = (theme: any) =>
     usernameText: {
       fontSize: 14,
       color: theme.text,
-      marginBottom: 16,
+      marginBottom: 15,
     },
   });

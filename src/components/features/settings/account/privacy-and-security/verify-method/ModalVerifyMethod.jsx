@@ -1,15 +1,12 @@
 import React, { useState } from "react";
-import {
-  View,
-  StyleSheet,
-} from "react-native";
+import { View, StyleSheet } from "react-native";
 
 import useOTP from "@/src/hooks/auth/useOTP";
 
 import AddAuthenticator from "@/src/components/auth/twofa/add/authenticator";
 import OtpDigitsInput from "@/src/components/OtpDigitsInput";
 
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import logoForQR from "@/assets/images/logo-novyse.png";
 
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";

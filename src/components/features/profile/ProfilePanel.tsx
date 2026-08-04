@@ -1,22 +1,19 @@
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import {
   View,
   ScrollView,
   StyleSheet,
-  useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import Banner from "@/src/components/Banner";
+import ProfileBanner from "@/src/components/features/profile/ProfileBanner";
 import ProfileHeader from "./ProfileHeader";
-import AboutMe from "./AboutMe";
-import Connections from "./Connections";
-import BirthdayLocation from "./BirthdayLocation";
-import QRCodeModal from "./QRCodeModal";
+import AboutMe from "./ProfileAboutMe";
+import Connections from "./ProfileConnections";
+import BirthdayLocation from "./ProfileBirthdayLocation";
+import QRCodeModal from "./ProfileQRCodeModal";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import { useScreen } from "@/src/context/ScreenContext";
-import SmartBackground from "../SmartBackground";
+import SmartBackground from "../../SmartBackground";
 import Icon from "@/src/components/ui/icon/Icon";
 
 interface Connection {
@@ -25,7 +22,7 @@ interface Connection {
   url?: string;
 }
 
-interface ProfileProps {
+interface ProfilePanelProps {
   uuid: string;
   name: string;
   surname: string;
@@ -41,7 +38,7 @@ interface ProfileProps {
   onEditAvatar?: () => void;
 }
 
-export default function Profile({
+export default function ProfilePanel({
   uuid,
   name,
   surname,
@@ -55,15 +52,13 @@ export default function Profile({
   connections,
   onConnectionPress,
   onEditAvatar,
-}: ProfileProps) {
+}: ProfilePanelProps) {
   const { theme } = useContext(ThemeContext);
-  const { width, height } = useWindowDimensions();
-  const { isSmallScreen } = useScreen();
   const insets = useSafeAreaInsets();
 
   const [isQrModalVisible, setIsQrModalVisible] = useState(false);
 
-  const styles = createStyles(theme, isSmallScreen, height, insets);
+  const styles = createStyles(insets);
 
   return (
     <View style={styles.container}>
@@ -73,7 +68,7 @@ export default function Profile({
       >
         <SmartBackground style={styles.glassPanel}>
           <View style={{ position: "relative" }}>
-            <Banner theme={theme} />
+            <ProfileBanner />
 
             <Icon
               name="QrCodeIcon"
@@ -121,12 +116,12 @@ export default function Profile({
   );
 }
 
-const createStyles = (
-  theme: any,
-  isSmallScreen: boolean,
-  screenHeight: number,
-  insets: { top: number; bottom: number; left: number; right: number },
-) =>
+const createStyles = (insets: {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}) =>
   StyleSheet.create({
     container: {
       flex: 1,

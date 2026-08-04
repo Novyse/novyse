@@ -5,7 +5,7 @@ import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/features/settings/SettingsCard";
 import ShortcutItem from "@/src/components/features/settings/shortcuts/ShortcutItem";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import AppText from "@/src/components/ui/text/AppText";
 
 import { shortcutsRpc } from "@/src/utils/electron/shortcuts";

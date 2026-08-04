@@ -1,6 +1,6 @@
 import React from "react";
 import useNetworkStore from "@/src/context/NetworkContext";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import { useTranslation } from "react-i18next";
 import { useScreen } from "@/src/context/ScreenContext";
 import useWindowSizeStore from "@/src/context/WindowSizeContext";

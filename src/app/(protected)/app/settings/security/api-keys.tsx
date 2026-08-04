@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import SecurityListCard from "@/src/components/features/settings/security/SecurityListCard";
 import Section from "@/src/components/features/settings/SettingsSection";
 import SettingRow from "@/src/components/features/settings/SettingsRow";

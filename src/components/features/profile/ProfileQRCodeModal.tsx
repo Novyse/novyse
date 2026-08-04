@@ -1,4 +1,3 @@
-import React from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
@@ -16,7 +15,7 @@ import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 import Avatar from "@/src/components/Avatar";
 
-interface QRCodeModalProps {
+interface ProfileQRCodeModalProps {
   visible: boolean;
   onClose: () => void;
   username: string;
@@ -24,13 +23,13 @@ interface QRCodeModalProps {
   theme: any;
 }
 
-const QRCodeModal = ({
+const ProfileQRCodeModal = ({
   visible,
   onClose,
   username,
   profilePictureUUID,
   theme,
-}: QRCodeModalProps) => {
+}: ProfileQRCodeModalProps) => {
   const { t } = useTranslation();
   const styles = createStyles(theme);
 
@@ -118,12 +117,11 @@ const QRCodeModal = ({
 const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
-      padding: 20,
+      paddingTop: 55,
       alignItems: "center",
       justifyContent: "center",
       width: "100%",
       minWidth: 320,
-      marginTop: 40,
       position: "relative",
     },
     avatarPosition: {
@@ -142,18 +140,17 @@ const createStyles = (theme: any) =>
     qrcodeContainer: {
       alignItems: "center",
       justifyContent: "center",
-      padding: 10,
+      padding: 15,
       marginBottom: 10,
       paddingHorizontal: 30,
       backgroundColor: theme.icon,
-      borderRadius: 12,
-      borderWidth: 1.5,
+      borderRadius: 25,
+      borderWidth: 3,
       borderColor: theme.primary,
     },
     linkContainer: {
       width: "100%",
-      marginTop: 10,
-      marginBottom: 10,
+      marginTop: 15,
     },
     copyBox: {
       flexDirection: "row",
@@ -171,4 +168,4 @@ const createStyles = (theme: any) =>
     },
   });
 
-export default QRCodeModal;
+export default ProfileQRCodeModal;

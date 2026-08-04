@@ -7,7 +7,7 @@ import { useScreen } from "@/src/context/ScreenContext";
 import Icon from "@/src/components/ui/icon/Icon";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import { router } from "expo-router";
 
 import TextLink from "../../ui/text/LinkText";

@@ -2,7 +2,7 @@ import React from "react";
 
 import useUserStore from "@/src/context/UserContext";
 
-import Profile from "@/src/components/profile";
+import Profile from "@/src/components/features/profile/ProfilePanel";
 
 const defaultProfilePictureUUID = "00000000-0000-0000-0000-000000000000";
 

@@ -5,7 +5,7 @@ import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import Avatar from "@/src/components/Avatar";
 import Dropzone from "@/src/components/modalSheets/uploadFile/Dropzone";
 import Footer from "@/src/components/modalSheets/uploadFile/Footer";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import WebDropZone from "@/src/components/ui/input/WebDropZone";
 
 import { ThemeContext } from "@/src/context/ThemeContext";

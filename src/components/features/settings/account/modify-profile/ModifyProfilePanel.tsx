@@ -8,10 +8,10 @@ import {
 
 import AppText from "@/src/components/ui/text/AppText";
 import Button from "@/src/components/ui/button/Button";
-import Banner from "@/src/components/Banner";
-import ProfileHeader from "@/src/components/profile/ProfileHeader";
+import ProfileBanner from "@/src/components/features/profile/ProfileBanner";
+import ProfileHeader from "@/src/components/features/profile/ProfileHeader";
 import FormSection from "@/src/components/features/settings/account/modify-profile/modifyProfileForm/ModifyProfileForm";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import BlurredView from "@/src/components/BlurredView";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
@@ -152,11 +152,7 @@ export default function ModifyProfilePanel({
         >
           {/* Glass Card Container */}
           <BlurredView style={styles.glassPanel}>
-            <Banner
-              theme={theme}
-              height={isSmallScreen ? 120 : 180}
-              onEdit={() => {}}
-            />
+            <ProfileBanner height={isSmallScreen ? 120 : 180} onEdit={() => {}} />
             <ProfileHeader
               uuid={userUUID}
               name={name}

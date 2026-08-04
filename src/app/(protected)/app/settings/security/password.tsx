@@ -8,7 +8,7 @@ import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import Button from "@/src/components/ui/button/Button";
 import TextInput from "@/src/components/ui/input/TextInput";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import Section from "@/src/components/features/settings/SettingsSection";
 import SettingRow from "@/src/components/features/settings/SettingsRow";
 

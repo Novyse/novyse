@@ -8,7 +8,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import OtpDigitsInput from "@/src/components/OtpDigitsInput";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 import WelcomeButton from "@/src/components/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
 

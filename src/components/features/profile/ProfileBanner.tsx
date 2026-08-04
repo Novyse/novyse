@@ -1,25 +1,22 @@
 import React, { useState } from "react";
 import { View, Image, StyleSheet } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-
 import Icon from "@/src/components/ui/icon/Icon";
-import HoverAndPressedButton from "./HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 
-interface BannerProps {
+interface ProfileBannerProps {
   uuid?: string;
   uri?: string;
   height?: number;
-  theme: any;
   onEdit?: () => void;
 }
 
-const Banner = React.memo(
-  ({ uuid, uri, height = 190, theme, onEdit = undefined }: BannerProps) => {
-    const styles = createStyles(theme, height);
+const ProfileBanner = React.memo(
+  ({ uuid, uri, height = 190, onEdit = undefined }: ProfileBannerProps) => {
+    const styles = createStyles(height);
 
     const [isHovered, setIsHovered] = useState(false);
 
-    const renderBannerImage = () => (
+    const renderProfileBannerImage = () => (
       <Image
         source={{
           uri: uri || "https://www.novyse.com/images/banner/default.jpg",
@@ -35,22 +32,22 @@ const Banner = React.memo(
         onMouseLeave={() => setIsHovered(false)}
         style={styles.hoverButtonContainer}
       >
-        {renderBannerImage()}
+        {renderProfileBannerImage()}
         {isHovered && (
           <View style={styles.editIconContainer}>
-            <Icon name="UnavailableIcon" color={theme.text} />
+            <Icon name="UnavailableIcon"/>
           </View>
         )}
       </HoverAndPressedButton>
     ) : (
-      renderBannerImage()
+      renderProfileBannerImage()
     );
   },
 );
 
-export default Banner;
+export default ProfileBanner;
 
-const createStyles = (theme: any, height: number) =>
+const createStyles = (height: number) =>
   StyleSheet.create({
     bannerImage: {
       width: "100%",

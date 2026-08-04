@@ -10,7 +10,7 @@ import MicrophoneArrowButton from "@/src/components/comms/BottomBar/MicrophoneAr
 import CameraSelector from "@/src/components/comms/BottomBar/CameraSelector";
 import CameraArrowButton from "@/src/components/comms/BottomBar/CameraArrowButton";
 import ScreenShareSelector from "@/src/components/comms/BottomBar/ScreenShareSelector";
-import StatusMessage from "@/src/components/StatusMessage";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 
 import BlurredView from "@/src/components/BlurredView";
 import Icon from "@/src/components/ui/icon/Icon";

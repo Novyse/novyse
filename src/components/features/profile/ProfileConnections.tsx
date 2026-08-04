@@ -1,8 +1,7 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { View, StyleSheet, TouchableOpacity, Linking } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { LinearGradient } from "expo-linear-gradient";
-import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
@@ -13,16 +12,15 @@ interface Connection {
   url?: string;
 }
 
-interface ConnectionsProps {
+interface ProfileConnectionsProps {
   connections?: Connection[];
   onConnectionPress?: (connection: Connection) => void;
 }
 
-export default function Connections({
+export default function ProfileConnections({
   connections,
   onConnectionPress,
-}: ConnectionsProps) {
-  const { t } = useTranslation();
+}: ProfileConnectionsProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
@@ -83,18 +81,15 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       paddingHorizontal: 20,
-      paddingVertical: 16,
+      paddingVertical: 15,
     },
     glassCard: {
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: theme.borderColor,
-      backgroundColor: theme.backgroundMain,
+      borderRadius: 15,
       overflow: "hidden",
     },
     content: {
       paddingHorizontal: 20,
-      paddingVertical: 16,
+      paddingVertical: 15,
     },
     title: {
       fontSize: 12,
