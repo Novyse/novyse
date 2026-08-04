@@ -8,6 +8,7 @@ import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
 
 export type SettingsRowProps = {
   iconName?: string;
+  rightIconName?: string;
   leftElement?: React.ReactNode;
   labelKey?: string;
   labelOptions?: Record<string, any>;
@@ -47,6 +48,7 @@ const SettingsRow = ({
   isEnabled,
   onToggle,
   isSelected = false,
+  rightIconName = "ArrowRight01Icon",
 }: SettingsRowProps) => {
   const { theme } = useContext(ThemeContext);
   const rowColor = danger ? theme.dangerText : theme.primary;
@@ -111,13 +113,19 @@ const SettingsRow = ({
           case "VALUE":
             return valueKey ? (
               <AppText
-                style={[SettingsRowStyles.rightValue, { color: theme.subtitle }]}
+                style={[
+                  SettingsRowStyles.rightValue,
+                  { color: theme.subtitle },
+                ]}
                 translationKey={valueKey}
                 translationOptions={valueOptions}
               />
             ) : value ? (
               <AppText
-                style={[SettingsRowStyles.rightValue, { color: theme.subtitle }]}
+                style={[
+                  SettingsRowStyles.rightValue,
+                  { color: theme.subtitle },
+                ]}
               >
                 {value}
               </AppText>
@@ -144,7 +152,7 @@ const SettingsRow = ({
           case "MODAL":
           default:
             return onPress ? (
-              <Icon name="ArrowRight01Icon" color={theme.subtitle} size={20} />
+              <Icon name={rightIconName} color={theme.subtitle} size={20} />
             ) : null;
         }
       })()}

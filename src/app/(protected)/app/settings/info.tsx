@@ -35,11 +35,13 @@ export default function InfoRoute() {
           <SettingRow
             labelKey="settings.info.viewOnGithub"
             iconName="GithubIcon"
+            rightIconName="Share05Icon"
             onPress={() => openLink("https://github.com/Novyse/novyse")}
           />
           <SettingRow
             labelKey="settings.info.roadmap"
             iconName="GlobalIcon"
+            rightIconName="Share05Icon"
             onPress={() => openLink("https://www.novyse.com/roadmap")}
             style={{ borderBottomWidth: 0 }}
           />
@@ -49,6 +51,7 @@ export default function InfoRoute() {
           <SettingRow
             labelKey="settings.info.privacyPolicy"
             iconName="Shield01Icon"
+            rightIconName="Share05Icon"
             onPress={() =>
               openLink("https://www.novyse.com/legal/privacy-policy")
             }
@@ -56,6 +59,7 @@ export default function InfoRoute() {
           <SettingRow
             labelKey="settings.info.termsOfService"
             iconName="AlignBoxTopCenterIcon"
+            rightIconName="Share05Icon"
             onPress={() =>
               openLink("https://www.novyse.com/legal/terms-of-service")
             }
@@ -63,6 +67,7 @@ export default function InfoRoute() {
           <SettingRow
             labelKey="settings.info.cookiePolicy"
             iconName="CookieIcon"
+            rightIconName="Share05Icon"
             onPress={() =>
               openLink("https://www.novyse.com/legal/cookie-policy")
             }
