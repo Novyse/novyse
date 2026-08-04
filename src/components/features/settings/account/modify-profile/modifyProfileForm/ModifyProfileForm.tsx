@@ -4,7 +4,7 @@ import { View, StyleSheet } from "react-native";
 import PersonalInfo from "./PersonalInfo";
 import Appareance from "./Appearance";
 import Connections from "./Connections";
-import Divider from "@/src/components/Divider";
+import Divider from "@/src/components/ui/divider/Divider";
 
 interface ModifyProfileFormProps {
   values: {

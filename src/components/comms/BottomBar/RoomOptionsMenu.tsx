@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
-import HoverAndPressedButton from "../../HoverAndPressedButton";
+import HoverAndPressedButton from "../../ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
 import AdaptiveModal from "../../modalSheets/AdaptiveModal";
 

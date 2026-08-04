@@ -5,7 +5,7 @@ import AppText from "@/src/components/ui/text/AppText";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/context/UserContext";
 
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
 import BlurredView from "@/src/components/BlurredView";
 import ReactionMenu from "@/src/components/messages/ActionMenu/ReactionsMenu";

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import QRCodeReader from "@/src/components/QRCodeReader";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 

@@ -4,7 +4,7 @@ import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 
 import SmartBackground from "@/src/components/SmartBackground";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Avatar from "@/src/components/Avatar";
 
 import { ThemeContext } from "@/src/context/ThemeContext";

@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import SystemChatSelector from "@/src/components/features/settings/system/SystemChatSelector";
 import SystemSubSelector from "@/src/components/features/settings/system/SystemSubSelector";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
@@ -100,7 +100,11 @@ export default function SystemRoute() {
   };
 
   const chatOptions = [
-    { labelText: t("settings.system.none") || "None", value: "", iconName: "Chat01Icon" },
+    {
+      labelText: t("settings.system.none") || "None",
+      value: "",
+      iconName: "Chat01Icon",
+    },
     ...chats.map((chat) => {
       let displayName = chat.name || "Unknown Chat";
       if (chat.type === "DM") {
@@ -179,7 +183,9 @@ export default function SystemRoute() {
             <SystemChatSelector
               value={systemSettings.joinCommsChatId || ""}
               options={chatOptions}
-              onChatSelected={(value) => updateSetting("joinCommsChatId", value)}
+              onChatSelected={(value) =>
+                updateSetting("joinCommsChatId", value)
+              }
             />
 
             <SystemSubSelector

@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 
 import Icon from "@/src/components/ui/icon/Icon";
-import HoverAndPressedButton from "../../HoverAndPressedButton";
+import HoverAndPressedButton from "../../ui/button/HoverAndPressedButton";
 
 import { formatFileSize } from "@/src/utils/storage/file/utils";
 import { ScrollBar } from "@/constants/ScrollBar";

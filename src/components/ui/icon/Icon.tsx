@@ -2,14 +2,17 @@ import React, { useContext, useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { StyleProp, ViewStyle } from "react-native";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 
 const iconMap: Record<string, any> = {};
 
 const importIcon = async (name: string) => {
   try {
     if (!iconMap[name]) {
-      const icons = (await import("@hugeicons/core-free-icons")) as Record<string, any>;
+      const icons = (await import("@hugeicons/core-free-icons")) as Record<
+        string,
+        any
+      >;
       iconMap[name] = icons[name] ?? null;
     }
     return iconMap[name];

@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import Icon from "@/src/components/ui/icon/Icon";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 // @SamueleOrazioDurante this is temporary, the final UI will be different, the buttons will work, and it will named differently

@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 
 import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
 import CameraSelector from "@/src/components/comms/BottomBar/CameraSelector";

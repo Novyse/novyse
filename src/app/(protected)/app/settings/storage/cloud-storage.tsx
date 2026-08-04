@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/features/settings/SettingsCard";
 import StorageBreakdown from "@/src/components/features/settings/storage/StorageBreakdown";

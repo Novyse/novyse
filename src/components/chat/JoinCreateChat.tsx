@@ -4,10 +4,10 @@ import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Avatar from "@/src/components/Avatar";
 import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";

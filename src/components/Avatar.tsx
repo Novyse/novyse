@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { View, Image, StyleSheet, ImageStyle, StyleProp } from "react-native";
 
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
 import { ThemeContext } from "@/src/context/ThemeContext";
 

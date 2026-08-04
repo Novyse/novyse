@@ -4,7 +4,7 @@ import AppText from "@/src/components/ui/text/AppText";
 
 import { useRouter } from "expo-router";
 
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import StatusMessage from "@/src/components/features/status/StatusMessage";

@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import Icon from "@/src/components/ui/icon/Icon";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import Avatar from "@/src/components/Avatar";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import useChatStore from "@/src/context/ChatContext";
 import { BadgeRenderer } from "@/src/components/badge/Badges";

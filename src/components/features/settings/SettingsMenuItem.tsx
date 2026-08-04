@@ -4,7 +4,7 @@ import AppText from "@/src/components/ui/text/AppText";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
 
 import { router } from "expo-router";

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Image, StyleSheet } from "react-native";
 import Icon from "@/src/components/ui/icon/Icon";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 
 interface ProfileBannerProps {
   uuid?: string;
@@ -35,7 +35,7 @@ const ProfileBanner = React.memo(
         {renderProfileBannerImage()}
         {isHovered && (
           <View style={styles.editIconContainer}>
-            <Icon name="UnavailableIcon"/>
+            <Icon name="UnavailableIcon" />
           </View>
         )}
       </HoverAndPressedButton>

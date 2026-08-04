@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import { Colors, ThemeRegistry } from "@/constants/Colors";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import Section from "@/src/components/features/settings/SettingsSection";

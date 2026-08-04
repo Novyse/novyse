@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet } from "react-native";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 
 type WelcomeButtonType = "submit" | "back";

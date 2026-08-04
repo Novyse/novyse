@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 
 import SmartBackground from "@/src/components/SmartBackground";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
 
 import { ThemeContext } from "@/src/context/ThemeContext";

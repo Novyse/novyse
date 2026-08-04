@@ -6,7 +6,7 @@ import { router } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/context/UserContext";
 
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import UploadProfilePicture from "@/src/components/modalSheets/UploadProfilePicture";
 
 import Page from "@/src/components/features/settings/account/modify-profile/ModifyProfilePanel";

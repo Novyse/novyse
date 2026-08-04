@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import Avatar from "@/src/components/Avatar";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import useChatStore from "@/src/context/ChatContext";
 import SettingRow from "@/src/components/features/settings/SettingsRow";

@@ -2,7 +2,7 @@ import React from "react";
 import { Linking } from "react-native";
 import { router } from "expo-router";
 
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import { APP_VERSION } from "@/app.config";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import Section from "@/src/components/features/settings/SettingsSection";

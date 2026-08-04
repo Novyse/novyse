@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import Icon from "@/src/components/ui/icon/Icon";
-import HoverAndPressedButton from "../../../HoverAndPressedButton";
+import HoverAndPressedButton from "../../../ui/button/HoverAndPressedButton";
 
 const ChatTypeButtom = ({
   id,

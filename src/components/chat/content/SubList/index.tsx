@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useRouter } from "expo-router";
-import FloatingButton from "@/src/components/FloatingButton";
+import FloatingButton from "@/src/components/ui/button/FloatingButton";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useUserStore from "@/src/context/UserContext";
 import { FlashList } from "@shopify/flash-list";

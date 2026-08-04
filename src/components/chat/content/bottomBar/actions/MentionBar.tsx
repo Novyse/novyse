@@ -11,7 +11,7 @@ import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
 import Avatar from "@/src/components/Avatar";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 
 interface Member {
   uuid?: string;

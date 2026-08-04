@@ -4,7 +4,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import AppText from "@/src/components/ui/text/AppText";
 import Icon from "@/src/components/ui/icon/Icon";
 import Switch from "@/src/components/ui/switch/Switch";
-import HoverAndPressedButton from "@/src/components/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 
 export type SettingsRowProps = {
   iconName?: string;
