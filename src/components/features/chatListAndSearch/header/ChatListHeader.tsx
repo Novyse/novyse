@@ -3,7 +3,7 @@ import React from "react";
 import AppHeader from "@/src/components/features/header/AppHeader";
 import { headerIconButtonStyle } from "@/src/components/features/header/AppHeaderRow";
 import Icon from "@/src/components/ui/icon/Icon";
-import StatusHeader from "@/src/components/chat/list/header/StatusHeader";
+import StatusHeader from "@/src/components/features/chatList/header/StatusHeader";
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 
 interface ChatListHeaderProps {

@@ -470,7 +470,6 @@ const MessageBase = ({
           <Avatar
             size={45}
             uuid={getUser(message.senderUUID)?.profilePictureUUID}
-            theme={theme}
           />
         </View>
       )}

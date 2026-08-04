@@ -28,7 +28,7 @@ import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
 import { useForward } from "@/src/hooks/chat/useForward";
 
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
-import JoinCreateChat from "@/src/components/chat/JoinCreateChat";
+import JoinCreateChat from "@/src/components/features/chat/createChat/CreateOrJoinChatPanel";
 import AppText from "@/src/components/ui/text/AppText";
 import SubList from "@/src/components/chat/content/SubList";
 

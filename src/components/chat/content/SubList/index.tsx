@@ -7,7 +7,7 @@ import FloatingButton from "@/src/components/ui/button/FloatingButton";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useUserStore from "@/src/context/UserContext";
 import { FlashList } from "@shopify/flash-list";
-import BaseListItem from "@/src/components/chat/list/BaseListItem";
+import BaseListItem from "@/src/components/features/chatList/BaseListItem";
 import messageUtils from "@/src/utils/chat/messageFormat";
 import CreateSubModal from "@/src/components/features/sub/createSub/CreateSubModal";
 import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";

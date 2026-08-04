@@ -118,7 +118,7 @@ const Settings = () => {
   const sections = getSections();
 
   return (
-    <SettingsPageScrollview paddingTop={15} >
+    <SettingsPageScrollview paddingTop={15} paddingBottom={65}>
       {sections.map((section, sectionIdx) => (
         <Section key={sectionIdx} titleKey={section.titleKey}>
           {section.items.map((setting, itemIdx) => {

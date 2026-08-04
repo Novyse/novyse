@@ -73,7 +73,6 @@ const ChatSettings = () => {
         <View style={styles.header}>
           <Avatar
             uuid={profilePictureUUID || undefined}
-            theme={theme}
             style={styles.profilePicture}
           />
           <AppText style={styles.chatName}>

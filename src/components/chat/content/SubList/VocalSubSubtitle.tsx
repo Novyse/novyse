@@ -34,7 +34,7 @@ const VocalSubSubtitle = ({
         const user = getUser(uUUID);
         return (
           <View key={uUUID} style={[styles.reactionAvatarContainer]}>
-            <Avatar uuid={user?.profilePictureUUID} size={18} theme={theme} />
+            <Avatar uuid={user?.profilePictureUUID} size={18}/>
           </View>
         );
       })}

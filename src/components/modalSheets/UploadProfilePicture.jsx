@@ -159,7 +159,6 @@ const UploadProfilePicture = ({ visible, onClose }) => {
                 : null
             }
             size={120}
-            theme={theme}
           />
         </View>
 

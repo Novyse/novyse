@@ -38,7 +38,7 @@ const MentionBar: React.FC<MentionBarProps> = ({ members, onSelectMember }) => {
       style={styles.memberItem}
       onPress={() => onSelectMember(item)}
     >
-      <Avatar size={32} uuid={item.profilePictureUUID} theme={theme} />
+      <Avatar size={32} uuid={item.profilePictureUUID}/>
       <View style={styles.memberInfo}>
         <AppText
           style={styles.memberName}

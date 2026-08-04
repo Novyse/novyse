@@ -92,7 +92,7 @@ const UserProfileAvatar = ({
               },
             ]}
           >
-            <Avatar uuid={profilePictureUUID} size={avatarSize} theme={theme} />
+            <Avatar uuid={profilePictureUUID} size={avatarSize}/>
           </View>
           <View style={styles.nameContainer}>
             <AppText

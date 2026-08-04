@@ -131,7 +131,6 @@ const ChatListItem = React.memo(
     const renderAvatar = () => (
       <Avatar
         uuid={displayPfp}
-        theme={theme}
         style={[styles.avatar, isSidebarCollapsed && { marginRight: 0 }]}
         isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
       />

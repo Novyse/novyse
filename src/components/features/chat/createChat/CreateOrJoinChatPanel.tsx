@@ -1,30 +1,30 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 
-import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Avatar from "@/src/components/Avatar";
 import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
+import Button from "@/src/components/ui/button/Button";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
 
-interface JoinCreateChatProps {
+interface CreateOrJoinChatPanelProps {
   chat: any;
   sub: string;
   setSelectedHandle: (handle: string | null) => void;
   setSelectedChatUUID: (uuid: string | null) => void;
 }
 
-const JoinCreateChat = ({
+const CreateOrJoinChatPanel = ({
   chat,
   sub,
   setSelectedHandle,
   setSelectedChatUUID,
-}: JoinCreateChatProps) => {
+}: CreateOrJoinChatPanelProps) => {
   const { t } = useTranslation();
   const { theme } = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -60,15 +60,16 @@ const JoinCreateChat = ({
       <HeaderWithBackArrow title={title} onBack={handleCancel} />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
-          <Avatar
-            uuid={chat?.profilePictureUUID}
-            size={120}
-            theme={theme}
-            style={styles.avatar}
-          />
+          <View style={styles.userInfo}>
+            <Avatar
+              uuid={chat?.profilePictureUUID}
+              size={120}
+              style={styles.avatar}
+            />
 
-          <AppText style={styles.title} text={displayName} />
-          <AppText style={styles.handle} text={`@${chat?.handle}`} />
+            <AppText style={styles.title} text={displayName} />
+            <AppText style={styles.handle} text={`@${chat?.handle}`} />
+          </View>
 
           <View style={styles.infoBox}>
             <Icon name="InformationCircleIcon" />
@@ -103,19 +104,11 @@ const JoinCreateChat = ({
             </View>
           </View>
 
-          <View style={styles.buttonContainer}>
-            <HoverAndPressedButton
-              onPress={handleProceed}
-              disabled={isJoining}
-              style={[styles.button, styles.primaryButton]}
-              pressedStyle={styles.buttonPressed}
-            >
-              <AppText
-                style={styles.primaryButtonText}
-                text={isJoining ? t("chat.joinCreate.processing") : title}
-              />
-            </HoverAndPressedButton>
-          </View>
+          <Button
+            onPress={handleProceed}
+            disabled={isJoining}
+            translationKey={isJoining ? "chat.joinCreate.processing" : title}
+          />
         </View>
       </ScrollView>
     </View>
@@ -126,7 +119,6 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "transparent",
     },
     scrollContainer: {
       flexGrow: 1,
@@ -137,29 +129,34 @@ const createStyles = (theme: any) =>
     content: {
       width: "100%",
       maxWidth: 400,
+    },
+    userInfo: {
+      alignContent: "center",
       alignItems: "center",
+      flex: 1
     },
     avatar: {
-      marginBottom: 24,
+      marginBottom: 25,
     },
     title: {
-      fontSize: 26,
+      fontSize: 25,
       fontWeight: "bold",
       color: theme.text,
-      marginBottom: 8,
+      marginBottom: 10,
       textAlign: "center",
     },
     handle: {
       fontSize: 18,
       color: theme.icon,
-      marginBottom: 32,
+      marginBottom: 30,
+      textAlign: "center",
     },
     infoBox: {
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: theme.backgroundMain,
-      padding: 16,
-      borderRadius: 12,
+      padding: 15,
+      borderRadius: 25,
       marginBottom: 20,
       width: "100%",
     },
@@ -172,14 +169,14 @@ const createStyles = (theme: any) =>
     },
     extraInfoContainer: {
       width: "100%",
-      marginBottom: 32,
-      gap: 16,
-      paddingHorizontal: 8,
+      marginBottom: 30,
+      gap: 15,
+      paddingHorizontal: 10,
     },
     extraInfoItem: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
+      gap: 10,
     },
     extraInfoText: {
       flex: 1,
@@ -187,28 +184,9 @@ const createStyles = (theme: any) =>
       fontSize: 13,
       lineHeight: 18,
     },
-    buttonContainer: {
-      width: "100%",
-      gap: 12,
-    },
-    button: {
-      width: "100%",
-      paddingVertical: 18,
-      borderRadius: 12,
-      alignItems: "center",
-      justifyContent: "center",
-    },
     buttonPressed: {
       opacity: 0.8,
     },
-    primaryButton: {
-      backgroundColor: theme.primary,
-    },
-    primaryButtonText: {
-      color: theme.text,
-      fontSize: 16,
-      fontWeight: "600",
-    },
   });
 
-export default JoinCreateChat;
+export default CreateOrJoinChatPanel;

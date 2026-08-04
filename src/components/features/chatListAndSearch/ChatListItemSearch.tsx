@@ -34,7 +34,7 @@ const ChatListItemSearch = React.memo(
           disabled={false}
           style={styles.chatItemPressable}
         >
-          <Avatar uuid={item.profilePictureUUID} theme={theme} />
+          <Avatar uuid={item.profilePictureUUID}/>
           <View style={styles.textContainer}>
             <AppText
               style={styles.resultText}

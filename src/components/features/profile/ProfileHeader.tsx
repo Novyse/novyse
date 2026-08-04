@@ -34,7 +34,6 @@ export default function ProfileHeader({
       <Avatar
         uuid={profilePictureUUID}
         size={120}
-        theme={theme}
         isOnline={isOnline}
         onEdit={onEditAvatar}
         // style={styles.avatar}

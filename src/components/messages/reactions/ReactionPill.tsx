@@ -78,7 +78,6 @@ export const ReactionPill = ({
             <Avatar
               uuid={getUser(uUUID)?.profilePictureUUID}
               size={16}
-              theme={theme}
             />
           </View>
         ))}

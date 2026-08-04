@@ -1,7 +1,7 @@
 import { View, StyleSheet } from "react-native";
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import Icon from "@/src/components/ui/icon/Icon";
-import CopyLabel from "@/src/components/CopyApiKeyButton";
+import CopyLabel from "@/src/components/features/settings/security/api-keys/CopyApiKeyButton";
 import Button from "@/src/components/ui/button/Button";
 import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
