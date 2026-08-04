@@ -13,7 +13,7 @@ import { StickerPicker } from "./StickerPicker";
 import { GifPicker } from "./GifPicker";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
-import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
+import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 
 type TabType = "emoji" | "sticker" | "gif";
 
@@ -77,7 +77,7 @@ export const EmojiMenuOverlay: React.FC<EmojiMenuOverlayProps> = ({
     <View style={styles.mobileContainer}>
       <View style={styles.contentContainer}>{renderContent()}</View>
       <View style={styles.mobileToggleWrapper}>
-        <ToggleSelector
+        <SegmentedSwitch
           options={[
             { value: "emoji", label: "Emoji" },
             { value: "sticker", label: "Sticker" },
@@ -95,7 +95,7 @@ export const EmojiMenuOverlay: React.FC<EmojiMenuOverlayProps> = ({
   const WebInnerContent = (
     <View style={styles.container}>
       <View style={styles.toggleWrapper}>
-        <ToggleSelector
+        <SegmentedSwitch
           options={[
             { value: "emoji", label: "Emoji" },
             { value: "sticker", label: "Sticker" },

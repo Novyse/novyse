@@ -20,7 +20,7 @@ import { t } from "i18next";
 import { ScrollBar } from "@/constants/ScrollBar";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import AppText from "@/src/components/ui/text/AppText";
-import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
+import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 
@@ -246,7 +246,7 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelectGif }) => {
 
       {providerOptions.length > 0 && (
         <View style={styles.providerToggleWrapper}>
-          <ToggleSelector
+          <SegmentedSwitch
             options={providerOptions}
             value={selectedProvider}
             onChange={setSelectedProvider}

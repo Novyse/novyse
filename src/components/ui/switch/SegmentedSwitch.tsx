@@ -5,6 +5,7 @@ import {
   LayoutChangeEvent,
   ScrollView,
   Platform,
+  View,
 } from "react-native";
 import { useRef } from "react";
 import Animated, {
@@ -17,6 +18,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import BlurredView from "@/src/components/BlurredView";
 import AppText from "@/src/components/ui/text/AppText";
 import Icon from "@/src/components/ui/icon/Icon";
+import Label from "../label/Label";
 
 export interface ToggleOption<T extends string = string> {
   value: T;
@@ -32,6 +34,8 @@ interface SegmentedSwitchProps<T extends string = string> {
   disabled?: boolean;
   style?: any;
   buttonWidth?: number;
+  label?: string;
+  labelTranslationKey?: string;
 }
 
 function SegmentedSwitch<T extends string = string>({
@@ -41,6 +45,8 @@ function SegmentedSwitch<T extends string = string>({
   disabled = false,
   style,
   buttonWidth,
+  label,
+  labelTranslationKey,
 }: SegmentedSwitchProps<T>) {
   const { theme } = useContext(ThemeContext);
 
@@ -136,7 +142,7 @@ function SegmentedSwitch<T extends string = string>({
     width: itemWidth,
   }));
 
-  return (
+  const switchElement = (
     <ScrollView
       ref={scrollRefCallback}
       horizontal
@@ -198,10 +204,24 @@ function SegmentedSwitch<T extends string = string>({
       </BlurredView>
     </ScrollView>
   );
+
+  if (label || labelTranslationKey) {
+    return (
+      <View style={styles.container}>
+        <Label text={label} translationKey={labelTranslationKey} />
+        {switchElement}
+      </View>
+    );
+  }
+
+  return switchElement;
 }
 
 function createStyles(theme: any, isIconOnly?: boolean, buttonWidth?: number) {
   return StyleSheet.create({
+    container: {
+      width: "100%",
+    },
     scrollView: {
       flexGrow: 0,
       borderRadius: 50,

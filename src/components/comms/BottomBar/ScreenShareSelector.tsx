@@ -11,7 +11,7 @@ import { useThemeContext } from "@/src/context/ThemeContext";
 import AdaptiveModal from "../../modalSheets/AdaptiveModal";
 import AppText from "@/src/components/ui/text/AppText";
 import Switch from "@/src/components/ui/switch/Switch";
-import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
+import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 import { useTranslation } from "react-i18next";
 import { ScrollBar } from "@/constants/ScrollBar";
 
@@ -160,7 +160,7 @@ const ScreenShareSelector = ({
   const selectorContent = (
     <View style={styles.container}>
       <View style={styles.toggleWrapper}>
-        <ToggleSelector
+        <SegmentedSwitch
           buttonWidth={160}
           options={[
             {

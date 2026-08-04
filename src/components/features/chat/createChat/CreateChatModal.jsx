@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo } from "react";
+import { useState, useContext, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -8,8 +8,8 @@ import {
 import { useTranslation } from "react-i18next";
 
 import Button from "@/src/components/ui/button/Button";
-import CustomTextInput from "@/src/components/ui/input/TextInput";
-import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
+import TextInput from "@/src/components/ui/input/TextInput";
+import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
@@ -214,11 +214,8 @@ const CreateChatModal = ({ visible, onClose }) => {
           style={styles.sectionLabel}
           translationKey="modals.create_chat.sections.identity"
         />
-        <AppText
-          style={styles.inputLabel}
-          translationKey="modals.create_chat.fields.name"
-        />
-        <CustomTextInput
+        <TextInput
+          labelTranslationKey="modals.create_chat.fields.name"
           placeholder={t("modals.create_chat.fields.namePlaceholder")}
           value={name}
           onChange={handleNameChange}
@@ -268,11 +265,8 @@ const CreateChatModal = ({ visible, onClose }) => {
 
       {/* Privacy Settings */}
       <View style={styles.section}>
-        <AppText
-          style={styles.sectionLabel}
-          translationKey="modals.create_chat.sections.privacy"
-        />
-        <ToggleSelector
+        <SegmentedSwitch
+          labelTranslationKey="modals.create_chat.sections.privacy"
           options={privacyOptions}
           value={privacy}
           onChange={handlePrivacyChange}
@@ -282,11 +276,8 @@ const CreateChatModal = ({ visible, onClose }) => {
       {/* Chat Handle */}
       {privacy === "PUBLIC" && (
         <View style={styles.section}>
-          <AppText
-            style={styles.inputLabel}
-            translationKey="modals.create_chat.fields.handle"
-          />
-          <CustomTextInput
+          <TextInput
+            labelTranslationKey="modals.create_chat.fields.handle"
             prefix="@"
             placeholder={t("modals.create_chat.fields.handlePlaceholder")}
             value={handle}
@@ -357,12 +348,6 @@ function createStyle(theme) {
       flexDirection: "row",
       justifyContent: "space-between",
     },
-    modalTitle: {
-      fontSize: 22,
-      fontWeight: "700",
-      color: theme.text,
-      marginBottom: 6,
-    },
     modalSubtitle: {
       fontSize: 14,
       color: theme.placeholderText,
@@ -379,11 +364,6 @@ function createStyle(theme) {
       letterSpacing: 1,
       marginBottom: 12,
       textTransform: "uppercase",
-    },
-    inputLabel: {
-      fontSize: 14,
-      color: theme.text,
-      marginBottom: 8,
     },
     helperText: {
       fontSize: 12,

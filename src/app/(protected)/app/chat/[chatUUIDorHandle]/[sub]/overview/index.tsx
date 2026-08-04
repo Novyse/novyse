@@ -5,7 +5,7 @@ import { useLocalSearchParams, router } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/context/UserContext";
-import ToggleSelector, {
+import SegmentedSwitch, {
   ToggleOption,
 } from "@/src/components/ui/switch/SegmentedSwitch";
 import AppText from "@/src/components/ui/text/AppText";
@@ -295,13 +295,13 @@ const ChatOverview = () => {
 
         <View style={styles.tabsSection}>
           {isDM ? (
-            <ToggleSelector
+            <SegmentedSwitch
               options={dmTabs}
               value={selectedDMTab}
               onChange={(val) => setSelectedDMTab(val)}
             />
           ) : (
-            <ToggleSelector
+            <SegmentedSwitch
               options={groupTabs}
               value={selectedGroupTab}
               onChange={(val) => setSelectedGroupTab(val)}

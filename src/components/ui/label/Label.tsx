@@ -5,7 +5,9 @@ import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface LabelProps {
+  // text to print generale text (doesn't change with languages)
   text?: string;
+  // translationKey to print text that change with languages
   translationKey?: string;
 }
 

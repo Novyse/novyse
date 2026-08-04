@@ -815,9 +815,9 @@
       "title": "Create New Chat",
       "subtitle": "Configure your new chat space settings below.",
       "sections": {
-        "identity": "CHAT IDENTITY",
-        "commsStyle": "COMMUNICATION STYLE",
-        "privacy": "PRIVACY SETTINGS"
+        "identity": "Chat Identity",
+        "commsStyle": "Communication Style",
+        "privacy": "Privacy Settings"
       },
       "fields": {
         "name": "Chat Name",

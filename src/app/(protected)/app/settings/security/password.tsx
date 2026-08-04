@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { router } from "expo-router";
@@ -11,7 +11,6 @@ import TextInput from "@/src/components/ui/input/TextInput";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import Section from "@/src/components/features/settings/SettingsSection";
 import SettingRow from "@/src/components/features/settings/SettingsRow";
-
 import auth from "@/src/utils/backend-services/auth";
 
 export default function PasswordRoute() {
@@ -102,11 +101,8 @@ export default function PasswordRoute() {
               />
 
               <View style={styles.inputContainer}>
-                <AppText
-                  style={styles.inputLabel}
-                  translationKey="settings.security.newPassword"
-                />
                 <TextInput
+                  labelTranslationKey="settings.security.newPassword"
                   placeholder={t("settings.security.enterNewPassword")}
                   value={newPassword}
                   onChangeText={setNewPassword}
@@ -115,11 +111,8 @@ export default function PasswordRoute() {
                 />
               </View>
               <View style={styles.inputContainer}>
-                <AppText
-                  style={styles.inputLabel}
-                  translationKey="settings.security.confirmNewPassword"
-                />
                 <TextInput
+                  labelTranslationKey="settings.security.confirmNewPassword"
                   placeholder={t("settings.security.confirmNewPasswordInput")}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
@@ -179,12 +172,6 @@ const createStyle = (theme: any) =>
     },
     inputContainer: {
       marginBottom: 20,
-    },
-    inputLabel: {
-      color: theme.text,
-      fontSize: 16,
-      fontWeight: "600",
-      marginBottom: 8,
     },
     formButtons: {
       gap: 10,

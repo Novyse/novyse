@@ -813,9 +813,9 @@
       "title": "Crea Nuova Chat",
       "subtitle": "Configura le impostazioni della tua nuova chat qui sotto.",
       "sections": {
-        "identity": "IDENTITÀ CHAT",
-        "commsStyle": "STILE DI COMUNICAZIONE",
-        "privacy": "IMPOSTAZIONI PRIVACY"
+        "identity": "Identità Chat",
+        "commsStyle": "Stile Di Comunicazione",
+        "privacy": "Impostazioni Privacy"
       },
       "fields": {
         "name": "Nome Chat",

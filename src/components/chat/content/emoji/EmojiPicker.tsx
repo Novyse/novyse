@@ -26,7 +26,7 @@ import { useThemeContext } from "@/src/context/ThemeContext";
 
 import BlurredView from "@/src/components/BlurredView";
 import Icon from "@/src/components/ui/icon/Icon";
-import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
+import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 import AppText from "@/src/components/ui/text/AppText";
 
 interface EmojiPickerProps {
@@ -371,14 +371,14 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
 
   const categoryToolbar = !searchQuery ? (
     <View style={styles.toolbarWrapper}>
-      <ToggleSelector
+      <SegmentedSwitch
         options={toggleOptions}
         value={activeCategory}
         onChange={(val) => {
           const idx = activeCategoriesList.findIndex((cat) => cat.key === val);
           scrollToCategory(val, idx);
         }}
-        style={styles.categoryToggleSelector}
+        style={styles.categorySegmentedSwitch}
       />
     </View>
   ) : null;
@@ -549,7 +549,7 @@ const createStyle = (
       marginLeft: 2,
       backgroundColor: "transparent",
     },
-    categoryToggleSelector: {
+    categorySegmentedSwitch: {
       marginBottom: 0,
     },
   });

@@ -1,9 +1,9 @@
-import React, { useState, useContext, useMemo } from "react";
+import { useState, useContext, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import Button from "@/src/components/ui/button/Button";
-import CustomTextInput from "@/src/components/ui/input/TextInput";
+import TextInput from "@/src/components/ui/input/TextInput";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
@@ -11,7 +11,7 @@ import AppText from "@/src/components/ui/text/AppText";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
-import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
+import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 
 const CreateSubModal = ({ visible, onClose, chatUUID }) => {
   const { theme } = useContext(ThemeContext);
@@ -57,11 +57,8 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
       </View>
 
       <View style={styles.section}>
-        <AppText
-          style={styles.inputLabel}
-          translationKey="modals.create_chat.fields.name"
-        />
-        <CustomTextInput
+        <TextInput
+          labelTranslationKey="modals.create_chat.fields.name"
           placeholder={t("modals.create_chat.fields.namePlaceholder")}
           value={name}
           onChange={(val) => {
@@ -72,21 +69,19 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
       </View>
 
       <View style={styles.section}>
-        <AppText style={styles.inputLabel} text="Sub Type" />
-        <View>
-          <ToggleSelector
-            options={[
-              { value: "MIXED", label: "Mixed" },
-              { value: "TEXT", label: "Text" },
-              { value: "VOCAL", label: "Vocal" },
-              { value: "ANNOUNCE", label: "Announce" },
-              { value: "BROADCAST", label: "Broadcast", disabled: true },
-              { value: "BOARD", label: "Board", disabled: true },
-            ]}
-            value={type}
-            onChange={(val) => setType(val)}
-          />
-        </View>
+        <SegmentedSwitch
+          label="Sub Type"
+          options={[
+            { value: "MIXED", label: "Mixed" },
+            { value: "TEXT", label: "Text" },
+            { value: "VOCAL", label: "Vocal" },
+            { value: "ANNOUNCE", label: "Announce" },
+            { value: "BROADCAST", label: "Broadcast", disabled: true },
+            { value: "BOARD", label: "Board", disabled: true },
+          ]}
+          value={type}
+          onChange={(val) => setType(val)}
+        />
       </View>
 
       <StatusMessage

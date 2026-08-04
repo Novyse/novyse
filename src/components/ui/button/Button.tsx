@@ -87,7 +87,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 10,
+      paddingVertical: 15,
       paddingHorizontal: 20,
       borderRadius: 100,
     },

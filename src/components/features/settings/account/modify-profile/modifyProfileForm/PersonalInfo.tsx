@@ -6,7 +6,7 @@ import AppText from "@/src/components/ui/text/AppText";
 
 import { countryList, regionList } from "@/constants/Location";
 
-import Label from "@/src/components/Label";
+import Label from "@/src/components/ui/label/Label";
 import SectionHeader from "@/src/components/features/settings/account/modify-profile/modifyProfileForm/SectionHeader";
 import TextInput from "@/src/components/ui/input/TextInput";
 import SelectInput from "@/src/components/ui/input/SelectInput";
@@ -75,15 +75,15 @@ export default function PersonalInfo({
 
       <View style={styles.row}>
         <View style={styles.halfInput}>
-          <Label translationKey="settings.modifyProfile.name" />
           <TextInput
+            labelTranslationKey="settings.modifyProfile.name"
             value={nameVal}
             onChange={(val) => handleFieldChange("name", val, setNameVal)}
           />
         </View>
         <View style={styles.halfInput}>
-          <Label translationKey="settings.modifyProfile.surname" />
           <TextInput
+            labelTranslationKey="settings.modifyProfile.surname"
             value={surnameVal}
             onChange={(val) => handleFieldChange("surname", val, setSurnameVal)}
           />
@@ -91,13 +91,8 @@ export default function PersonalInfo({
       </View>
 
       <View style={styles.fullInput}>
-        <View style={styles.labelRow}>
-          <Label translationKey="settings.modifyProfile.biography" />
-          <AppText style={styles.charCount}>
-            {descriptionLength}/{MAX_CHAR_COUNT}
-          </AppText>
-        </View>
         <TextInput
+          labelTranslationKey="settings.modifyProfile.biography"
           placeholder={t("settings.modifyProfile.biographyPlaceholder")}
           value={descriptionVal}
           maxLenght={MAX_CHAR_COUNT}
@@ -106,12 +101,15 @@ export default function PersonalInfo({
             handleFieldChange("biography", val, setDescriptionVal)
           }
         />
+        <AppText style={styles.charCount}>
+          {descriptionLength}/{MAX_CHAR_COUNT}
+        </AppText>
       </View>
 
       <View style={styles.row}>
         <View style={styles.halfInput}>
-          <Label translationKey="settings.modifyProfile.username" />
           <TextInput
+            labelTranslationKey="settings.modifyProfile.username"
             value={usernameVal}
             disabled={true}
             onChange={(val) =>
@@ -178,13 +176,10 @@ const createStyles = (theme: any, isSmallScreen: boolean) =>
     fullInput: {
       marginBottom: isSmallScreen ? 16 : 20,
     },
-    labelRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
     charCount: {
       fontSize: 11,
       color: theme.text,
+      alignSelf: "flex-end",
+      marginTop: 4,
     },
   });

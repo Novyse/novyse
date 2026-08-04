@@ -7,11 +7,12 @@ import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 
-import ToggleSelector from "@/src/components/ui/switch/SegmentedSwitch";
+import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 import CameraSelector from "@/src/components/comms/BottomBar/CameraSelector";
 import MicrophoneSelector from "@/src/components/comms/BottomBar/MicrophoneSelector";
 import Button from "@/src/components/ui/button/Button";
 import settingsManager from "@/src/utils/global/SettingsManager";
+import Label from "@/src/components/ui/label/Label";
 
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/features/settings/SettingsCard";
@@ -217,16 +218,12 @@ export default function CommsRoute() {
           {devicesLoading ? (
             <View style={styles.disabledField}>
               <AppText
-                style={styles.label}
                 translationKey="settings.comms.loadingDevices"
               />
             </View>
           ) : (
             <>
-              <AppText
-                style={styles.fieldLabel}
-                translationKey="settings.comms.microphone"
-              />
+              <Label translationKey="settings.comms.microphone" />
               <Button
                 text={
                   audioDeviceOptions.find(
@@ -238,10 +235,7 @@ export default function CommsRoute() {
                 style={{ width: "100%", marginBottom: 15 }}
               />
 
-              <AppText
-                style={styles.fieldLabel}
-                translationKey="settings.comms.webcam"
-              />
+              <Label translationKey="settings.comms.webcam" />
               <Button
                 text={
                   videoDeviceOptions.find(
@@ -273,11 +267,8 @@ export default function CommsRoute() {
             </>
           )}
 
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.entryMode"
-          />
-          <ToggleSelector
+          <SegmentedSwitch
+            labelTranslationKey="settings.comms.entryMode"
             options={entryModeOptions}
             value={audioSettings.entryMode || "AUDIO_ONLY"}
             onChange={(value) => updateSetting("entryMode", value)}
@@ -289,20 +280,14 @@ export default function CommsRoute() {
             style={styles.sectionTitle}
             translationKey="settings.comms.videoSettings"
           />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.webcamQuality"
-          />
-          <ToggleSelector
+          <SegmentedSwitch
+            labelTranslationKey="settings.comms.webcamQuality"
             options={qualityOptions}
             value={audioSettings.webcamQuality || "HD"}
             onChange={(value) => updateSetting("webcamQuality", value)}
           />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.webcamFPS"
-          />
-          <ToggleSelector
+          <SegmentedSwitch
+            labelTranslationKey="settings.comms.webcamFPS"
             options={fpsOptions}
             value={String(audioSettings.webcamFPS || 30)}
             onChange={(value) => updateSetting("webcamFPS", Number(value))}
@@ -314,29 +299,20 @@ export default function CommsRoute() {
             style={styles.sectionTitle}
             translationKey="settings.comms.screenShareSettings"
           />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.screenShareQuality"
-          />
-          <ToggleSelector
+          <SegmentedSwitch
+            labelTranslationKey="settings.comms.screenShareQuality"
             options={qualityOptions}
             value={audioSettings.screenShareQuality || "HD"}
             onChange={(value) => updateSetting("screenShareQuality", value)}
           />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.screenShareFPS"
-          />
-          <ToggleSelector
+          <SegmentedSwitch
+            labelTranslationKey="settings.comms.screenShareFPS"
             options={fpsOptions}
             value={String(audioSettings.screenShareFPS || 30)}
             onChange={(value) => updateSetting("screenShareFPS", Number(value))}
           />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.screenShareAudio"
-          />
-          <ToggleSelector
+          <SegmentedSwitch
+            labelTranslationKey="settings.comms.screenShareAudio"
             options={audioOptions}
             value={audioSettings.screenShareAudio ? "ON" : "OFF"}
             onChange={(value) =>
@@ -350,31 +326,22 @@ export default function CommsRoute() {
             style={styles.sectionTitle}
             translationKey="settings.comms.audioProcessing"
           />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.noiseSuppression"
-          />
-          <ToggleSelector
+          <SegmentedSwitch
+            labelTranslationKey="settings.comms.noiseSuppression"
             options={noiseSuppressionOptions}
             value={audioSettings.noiseSuppressionLevel || "MEDIUM"}
             onChange={(value) => updateSetting("noiseSuppressionLevel", value)}
           />
 
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.expander"
-          />
-          <ToggleSelector
+          <SegmentedSwitch
+            labelTranslationKey="settings.comms.expander"
             options={expanderOptions}
             value={audioSettings.expanderLevel || "MEDIUM"}
             onChange={(value) => updateSetting("expanderLevel", value)}
           />
 
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.noiseGate"
-          />
-          <ToggleSelector
+          <SegmentedSwitch
+            labelTranslationKey="settings.comms.noiseGate"
             options={noiseGateOptions}
             value={audioSettings.noiseGateType || "ADAPTIVE"}
             onChange={(value) => updateSetting("noiseGateType", value)}
@@ -383,11 +350,8 @@ export default function CommsRoute() {
           {(audioSettings.noiseGateType === "HYBRID" ||
             audioSettings.noiseGateType === "MANUAL") && (
             <>
-              <AppText
-                style={styles.fieldLabel}
-                translationKey="settings.comms.noiseGateThreshold"
-              />
-              <ToggleSelector
+              <SegmentedSwitch
+                labelTranslationKey="settings.comms.noiseGateThreshold"
                 options={noiseGateThresholdOptions}
                 value={String(audioSettings.noiseGateThreshold || -20)}
                 onChange={(value) =>
@@ -397,11 +361,8 @@ export default function CommsRoute() {
             </>
           )}
 
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.typingAttenuation"
-          />
-          <ToggleSelector
+          <SegmentedSwitch
+            labelTranslationKey="settings.comms.typingAttenuation"
             options={typingAttenuationOptions}
             value={audioSettings.typingAttenuationLevel || "MEDIUM"}
             onChange={(value) => updateSetting("typingAttenuationLevel", value)}
@@ -453,17 +414,6 @@ const createStyle = (theme: any) =>
       color: theme.text,
       fontSize: 16,
       fontWeight: "600",
-    },
-    label: {
-      color: theme.text,
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    fieldLabel: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "600",
-      marginBottom: 8,
     },
     sectionTitle: {
       color: theme.text,
