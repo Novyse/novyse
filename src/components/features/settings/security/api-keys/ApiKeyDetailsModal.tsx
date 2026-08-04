@@ -1,7 +1,7 @@
 import { View, StyleSheet } from "react-native";
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import Icon from "@/src/components/ui/icon/Icon";
-import CopyLabel from "@/src/components/CopyLabel";
+import CopyLabel from "@/src/components/CopyApiKeyButton";
 import Button from "@/src/components/ui/button/Button";
 import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
@@ -51,7 +51,7 @@ export default function ApiKeyDetailsModal({
         <Button
           translationKey="settings.security.apiKeys.detailsModal.saved"
           onPress={onClose}
-          style={{ marginTop: 24 }}
+          style={{ marginTop: 25 }}
         />
       </View>
     </AdaptiveModal>
@@ -60,11 +60,6 @@ export default function ApiKeyDetailsModal({
 
 const createStyles = (theme: any) =>
   StyleSheet.create({
-    container: {
-      padding: 24,
-      width: 400,
-      maxWidth: "100%",
-    },
     successIconContainer: {
       alignItems: "center",
       marginBottom: 16,

@@ -9,17 +9,19 @@ interface SettingsPageScrollviewProps {
   children: React.ReactNode;
   isMenu?: boolean;
   paddingTop?: number;
+  paddingBottom?: number;
 }
 
 const SettingsPageScrollview = ({
   children,
   isMenu = false,
   paddingTop = SETTINGS_HEADER_SCROLL_PADDING,
+  paddingBottom = 0,
 }: SettingsPageScrollviewProps) => {
   const { theme } = useContext(ThemeContext);
   const insets = useSafeAreaInsets();
 
-  const styles = createStyle(theme, isMenu, insets, paddingTop);
+  const styles = createStyle(theme, isMenu, insets, paddingTop, paddingBottom);
 
   return (
     <ScrollView
@@ -36,6 +38,7 @@ function createStyle(
   isMenu: boolean,
   insets: { top: number; bottom: number },
   paddingTop: number,
+  paddingBottom: number,
 ) {
   return StyleSheet.create({
     container: {
@@ -50,7 +53,7 @@ function createStyle(
       maxWidth: 768,
       gap: isMenu ? 0 : 20,
       paddingTop: paddingTop + insets.top,
-      paddingBottom: (isMenu ? 0 : 20) + insets.bottom,
+      paddingBottom: (isMenu ? 0 : 20) + paddingBottom + insets.bottom,
       paddingHorizontal: isMenu ? 0 : 20,
     },
   });

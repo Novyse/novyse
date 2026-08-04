@@ -5,17 +5,19 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
 import useClipboard from "@/src/hooks/useClipboard";
 
-interface CopyLabelProps {
+//! @MatteoMagnani7 questo schifo è da rifare
+
+interface CopyApiKeyButtonProps {
   text: string;
   label?: string;
   containerStyle?: any;
 }
 
-export default function CopyLabel({
+export default function CopyApiKeyButton({
   text,
   label,
   containerStyle,
-}: CopyLabelProps) {
+}: CopyApiKeyButtonProps) {
   const { theme } = useContext(ThemeContext);
   const { copyToClipboard, copied } = useClipboard();
   const styles = createStyles(theme);
@@ -65,14 +67,14 @@ const createStyles = (theme: any) =>
     contentContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: theme.primary,
+      backgroundColor: theme.secondary,
       borderRadius: 50,
       overflow: "hidden",
     },
     textContainer: {
       flex: 1,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
     },
     text: {
       color: theme.text,

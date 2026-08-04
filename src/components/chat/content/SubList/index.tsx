@@ -143,7 +143,7 @@ const SubList = ({
           onPress={() => setCreateModalVisible(true)}
           iconName="PlusSignIcon"
           position={{
-            bottom: 15,
+            bottom: 20,
             right: isCollapsed ? 15 : 20,
           }}
         />

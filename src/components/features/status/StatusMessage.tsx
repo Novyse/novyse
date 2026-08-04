@@ -242,18 +242,18 @@ const createStyles = (colors: ThemeColors) => {
       overflow: "hidden",
     },
     inner: {
-      padding: 16,
+      padding: 15,
       flexDirection: "row",
       alignItems: "flex-start",
+      borderRadius: 25,
     },
     innerCompact: {
       justifyContent: "center",
       alignItems: "center",
-      padding: 12,
+      padding: 10,
     },
     iconContainer: {
-      marginRight: 12,
-      marginTop: 2,
+      marginRight: 10,
     },
     iconContainerCompact: {
       marginRight: 0,
@@ -280,8 +280,8 @@ const createStyles = (colors: ThemeColors) => {
       fontWeight: "700",
     },
     closeButton: {
-      padding: 4,
-      marginLeft: 8,
+      padding: 5,
+      marginLeft: 10,
     },
     progressTrack: {
       position: "absolute",
