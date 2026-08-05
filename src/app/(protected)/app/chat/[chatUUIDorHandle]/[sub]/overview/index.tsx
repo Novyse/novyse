@@ -16,7 +16,7 @@ import Avatar from "@/src/components/Avatar";
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import useChatStore from "@/src/context/ChatContext";
-import { BadgeRenderer } from "@/src/components/badge/Badges";
+import { BadgeRenderer } from "@/src/components/features/badge/Badges";
 
 type GroupTab =
   | "members"

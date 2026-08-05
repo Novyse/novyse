@@ -29,7 +29,7 @@ export default function Badges({ userUUID }: { userUUID: string }) {
       if (!userUUID) return;
 
       try {
-        const { success, badges: apiBadges } =
+        const { success, badges: apiBadges } =    // @SamueleOrazioDurante @MatteoMagnani7 quando abbiamo voglia diamogli i types che l'api resituisce, così va via l'errore di tipizzazione
           await gateway.user.profile.badges.get(userUUID);
 
         if (success && isMounted) {

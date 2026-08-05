@@ -5,7 +5,7 @@ import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import Avatar from "@/src/components/Avatar";
-import Badges from "@/src/components/badge/Badges";
+import Badges from "@/src/components/features/badge/Badges";
 
 interface ProfileHeaderProps {
   uuid: string;
