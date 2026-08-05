@@ -26,7 +26,7 @@ import Avatar from "@/src/components/Avatar";
 import AppHeader from "@/src/components/features/header/AppHeader";
 import { headerIconButtonStyle } from "@/src/components/features/header/AppHeaderRow";
 import { getAppHeaderScrollPaddingTop } from "@/src/components/features/header/constants";
-import ItemSearch from "@/src/components/features/chatList/ChatListItemSearch";
+import ItemSearch from "@/src/components/features/chatListAndSearch/ChatListItemSearch";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 import { useStatusBannerOffset } from "@/src/hooks/useStatusBannerOffset";

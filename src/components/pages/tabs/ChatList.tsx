@@ -16,9 +16,9 @@ import {
   COMMS_HEADER_OFFSET,
   getAppHeaderScrollPaddingTop,
 } from "@/src/components/features/header/constants";
-import ChatListItem from "@/src/components/features/chatList/ChatListItem";
-import ChatListHeader from "@/src/components/features/chatList/header/ChatListHeader";
-import StatusHeader from "@/src/components/features/chatList/header/StatusHeader";
+import ChatListItem from "@/src/components/features/chatListAndSearch/ChatListItem";
+import ChatListHeader from "@/src/components/features/chatListAndSearch/header/ChatListHeader";
+import StatusHeader from "@/src/components/features/chatListAndSearch/header/StatusHeader";
 import CreateChatModal from "@/src/components/features/chat/createChat/CreateChatModal";
 import CommsHeader from "@/src/components/chat/content/header/CommsHeader";
 
