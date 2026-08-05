@@ -92,7 +92,7 @@ export default function SignupStepField({
               autoCapitalize="sentences"
             />
           </View>
-          {!validation.success && form.name && (
+          {!!(!validation.success && form.name) && (
             <StatusMessage
               type="error"
               content={[validation.error]}
@@ -163,10 +163,10 @@ export default function SignupStepField({
             ) : null}
           </View>
           <View style={styles.requirements}>
-            {handleError && form.handle && (
+            {!!(handleError && form.handle) && (
               <StatusMessage type="error" content={[handleError]} />
             )}
-            {handleAvailable === true && !handleError && form.handle && (
+            {!!(handleAvailable === true && !handleError && form.handle) && (
               <AppText
                 style={{
                   color: colors.signupReqGreen,

@@ -60,13 +60,13 @@ export default function SignupCheckboxes({
       <View style={styles.row}>
         <Checkbox checked={privacyAccepted} onPress={onTogglePrivacyTos} />
         <AppText style={styles.text}>
-          <AppText translationKey="auth.signupStep.iAccept" />{" "}
+          <AppText style={styles.text} translationKey="auth.signupStep.iAccept" />{" "}
           <AppText
             translationKey="auth.signupStep.privacyPolicy"
             style={{ color: colors.link }}
             onPress={() => openUrl(PRIVACY_POLICY_URL)}
           />{" "}
-          <AppText translationKey="auth.signupStep.and" />{" "}
+          <AppText style={styles.text} translationKey="auth.signupStep.and" />{" "}
           <AppText
             translationKey="auth.signupStep.termsOfService"
             style={{ color: colors.link }}

@@ -3,7 +3,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 
 import authInit from "@/src/utils/welcome/auth";
 import auth from "@/src/utils/backend-services/auth";
-import LoginForm from "@/src/components/welcome/login/LoginForm";
+import LoginForm from "@/src/components/features/welcome/login/LoginForm";
 
 const LoginPassword = () => {
   const router = useRouter();

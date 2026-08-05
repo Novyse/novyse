@@ -15,11 +15,11 @@ import { useSignup } from "@/src/hooks/welcome/useSignup";
 
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import Icon from "@/src/components/ui/icon/Icon";
-import WelcomeButton from "@/src/components/welcome/WelcomeButton";
-import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
-import SignupTimeline from "@/src/components/welcome/signup/SignupTimeline";
-import SignupStepField from "@/src/components/welcome/signup/SignupStepField";
-import SignupCheckboxes from "@/src/components/welcome/signup/SignupCheckboxes";
+import WelcomeButton from "@/src/components/features/welcome/WelcomeButton";
+import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonText";
+import SignupTimeline from "@/src/components/features/welcome/signup/SignupTimeline";
+import SignupStepField from "@/src/components/features/welcome/signup/SignupStepField";
+import SignupCheckboxes from "@/src/components/features/welcome/signup/SignupCheckboxes";
 import TurnstileCaptcha from "@/src/components/auth/TurnstileCaptcha";
 
 const STEPS = [{ id: 1 }, { id: 2 }, { id: 3 }];

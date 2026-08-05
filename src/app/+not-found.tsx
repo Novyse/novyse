@@ -6,8 +6,8 @@ import { useScreen } from "@/src/context/ScreenContext";
 
 import { LoginColors } from "@/constants/LoginColors";
 
-import WelcomeButton from "@/src/components/welcome/WelcomeButton";
-import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
+import WelcomeButton from "@/src/components/features/welcome/WelcomeButton";
+import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonText";
 import AppText from "@/src/components/ui/text/AppText";
 
 import logoNovyse from "@/assets/images/logo-novyse.png";

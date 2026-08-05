@@ -14,7 +14,10 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 const AnimatedAppText = Animated.createAnimatedComponent(AppText);
 
 interface LinkTextProps {
-  children: React.ReactNode;
+  text?: string;
+  translationKey?: string;
+  translationOptions?: Record<string, any>;
+  children?: React.ReactNode;
   onPress?: (e: GestureResponderEvent) => void;
   href?: string;
   style?: StyleProp<TextStyle>;
@@ -22,6 +25,9 @@ interface LinkTextProps {
 }
 
 export default function LinkText({
+  text,
+  translationKey,
+  translationOptions,
   children,
   onPress,
   href,
@@ -68,6 +74,9 @@ export default function LinkText({
       accessibilityRole="link"
     >
       <AnimatedAppText
+        text={text}
+        translationKey={translationKey}
+        translationOptions={translationOptions}
         style={[
           styles.base,
           showUnderline && styles.underline,

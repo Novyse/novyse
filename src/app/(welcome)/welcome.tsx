@@ -9,8 +9,8 @@ import { LinearGradient, vec } from "@shopify/react-native-skia";
 import { useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 
-import WelcomeButton from "@/src/components/welcome/WelcomeButton";
-import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
+import WelcomeButton from "@/src/components/features/welcome/WelcomeButton";
+import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonText";
 
 import auth from "@/src/utils/welcome/auth";
 import useQRCode from "@/src/hooks/auth/useQRCode";
@@ -165,10 +165,10 @@ function createStyle(loginTheme: LoginTheme, isSmallScreen: boolean) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      padding: isSmallScreen ? 0 : 24,
+      padding: isSmallScreen ? 0 : 25,
     },
     card: {
-      padding: isSmallScreen ? 16 : 24,
+      padding: isSmallScreen ? 15 : 25,
       borderRadius: isSmallScreen ? 0 : 25,
       overflow: "hidden",
       flexDirection: isSmallScreen ? "column" : "row",
@@ -214,7 +214,7 @@ function createStyle(loginTheme: LoginTheme, isSmallScreen: boolean) {
       fontSize: 14,
       color: LoginColors[loginTheme].subtitle,
       textAlign: "center",
-      marginTop: 2,
+      marginTop: 5,
       fontWeight: "500",
     },
     qrcodeContainer: {
@@ -227,7 +227,6 @@ function createStyle(loginTheme: LoginTheme, isSmallScreen: boolean) {
       borderRadius: 25,
       borderColor: LoginColors[loginTheme].borderQRCode,
       borderWidth: 1.5,
-      padding: 15,
     },
     logo: {
       alignSelf: "center",

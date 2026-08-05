@@ -5,13 +5,13 @@ import AppText from "@/src/components/ui/text/AppText";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 import { useScreen } from "@/src/context/ScreenContext";
 import Icon from "@/src/components/ui/icon/Icon";
-import WelcomeButton from "@/src/components/welcome/WelcomeButton";
-import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
+import WelcomeButton from "@/src/components/features/welcome/WelcomeButton";
+import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonText";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import { router } from "expo-router";
 
-import TextLink from "../../ui/text/LinkText";
-import TurnstileCaptcha from "../../auth/TurnstileCaptcha";
+import TextLink from "../../../ui/text/LinkText";
+import TurnstileCaptcha from "../../../auth/TurnstileCaptcha";
 
 interface LoginFormProps {
   onLogin: (username: string, password: string, captchaToken: string) => void;
@@ -129,10 +129,9 @@ const LoginForm = ({
               />
               <TextLink
                 style={styles.opaqueLinkTextBold}
+                text="OPAQUE"
                 href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
-              >
-                OPAQUE
-              </TextLink>
+              />
             </View>
 
             <TurnstileCaptcha key={captchaKey} onVerify={setCaptchaToken} />
@@ -192,9 +191,11 @@ const LoginForm = ({
               style={styles.linkText}
               translationKey="auth.login.dontHaveAccount"
             />
-            <TextLink style={styles.linkTextBold} onPress={onSignup}>
-              <AppText translationKey="auth.welcome.signup" />
-            </TextLink>
+            <TextLink
+              onPress={onSignup}
+              style={styles.linkTextBold}
+              translationKey="auth.welcome.signup"
+            />
           </View>
         </View>
       </View>
@@ -336,7 +337,6 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       fontSize: 14,
     },
     opaqueLinkTextBold: {
-      color: LoginColors[loginTheme].title,
       fontWeight: "600",
       fontSize: 11,
     },

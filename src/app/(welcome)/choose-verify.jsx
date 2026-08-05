@@ -9,8 +9,8 @@ import { LoginColors } from "@/constants/LoginColors";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
 import StatusMessage from "@/src/components/features/status/StatusMessage";
-import WelcomeButton from "@/src/components/welcome/WelcomeButton";
-import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
+import WelcomeButton from "@/src/components/features/welcome/WelcomeButton";
+import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonText";
 import AppText from "@/src/components/ui/text/AppText";
 
 import logoNovyse from "@/assets/images/logo-novyse.png";
