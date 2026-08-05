@@ -1,11 +1,10 @@
 import React, { useContext } from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 
-import SmartBackground from "@/src/components/SmartBackground";
-import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Avatar from "@/src/components/Avatar";
+import BaseListItem from "./BaseListItem";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
@@ -27,66 +26,55 @@ const ChatListItemSearch = React.memo(
     const { t } = useTranslation();
     const styles = createStyle(theme);
 
+    const title = `${item.name}${item?.surname ? ` ${item?.surname}` : ""}`;
+
+    const subtitleNode = (
+      <AppText
+        style={styles.profileHandle}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+        text={[
+          item?.handle ? `@${item.handle}` : "",
+          item.type === "GROUP" ||
+          item.type === "FORUM" ||
+          item.type === "CHANNEL"
+            ? t("chat.memberCount", { count: item.memberCount })
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" • ")}
+      />
+    );
+
+    const renderAvatar = () => (
+      <Avatar
+        uuid={item.profilePictureUUID}
+        style={styles.avatar}
+      />
+    );
+
     return (
-      <SmartBackground style={styles.chatItem}>
-        <HoverAndPressedButton
-          onPress={() => onPress(item.handle)}
-          disabled={false}
-          style={styles.chatItemPressable}
-        >
-          <Avatar uuid={item.profilePictureUUID}/>
-          <View style={styles.textContainer}>
-            <AppText
-              style={styles.resultText}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-              text={`${item.name}${item?.surname ? ` ${item?.surname}` : ""}`}
-            />
-            <AppText
-              style={styles.profileHandle}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-              text={[
-                item?.handle ? `@${item.handle}` : "",
-                item.type === "GROUP" ||
-                item.type === "FORUM" ||
-                item.type === "CHANNEL"
-                  ? t("chat.memberCount", { count: item.memberCount })
-                  : "",
-              ]
-                .filter(Boolean)
-                .join(" • ")}
-            />
-          </View>
-        </HoverAndPressedButton>
-      </SmartBackground>
+      <BaseListItem
+        id={item.handle}
+        title={title}
+        subtitleNode={subtitleNode}
+        renderAvatar={renderAvatar}
+        onPress={onPress}
+      />
     );
   },
 );
 
 function createStyle(theme: any) {
   return StyleSheet.create({
-    chatItem: { borderRadius: 15, height: 65 },
-    chatItemPressable: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: 10,
-      width: "100%",
-      flex: 1,
-      borderRadius: 150,
-    },
-    resultText: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: theme.text,
-    },
     profileHandle: {
       fontSize: 14,
       color: theme.text,
     },
-    textContainer: {
-      flex: 1,
-      marginLeft: 10,
+    avatar: {
+      width: 45,
+      height: 45,
+      borderRadius: 20,
     },
   });
 }

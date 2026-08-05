@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   StyleSheet,
   TextInput,
   ActivityIndicator,
   View,
-  Pressable,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 import { ScrollBar } from "@/constants/ScrollBar";
@@ -18,6 +17,7 @@ import { useThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useChatStore from "@/src/context/ChatContext";
 import useUserStore from "@/src/context/UserContext";
+import Label from "@/src/components/ui/label/Label";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import database from "@/src/utils/storage/database";
@@ -26,7 +26,8 @@ import Avatar from "@/src/components/Avatar";
 import AppHeader from "@/src/components/features/header/AppHeader";
 import { headerIconButtonStyle } from "@/src/components/features/header/AppHeaderRow";
 import { getAppHeaderScrollPaddingTop } from "@/src/components/features/header/constants";
-import ItemSearch from "@/src/components/features/chatListAndSearch/ChatListItemSearch";
+import ChatListItemSearch from "@/src/components/features/chatListAndSearch/ChatListItemSearch";
+import BaseListItem from "@/src/components/features/chatListAndSearch/BaseListItem";
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 import { useStatusBannerOffset } from "@/src/hooks/useStatusBannerOffset";
@@ -88,6 +89,16 @@ const Search = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [timer, setTimer] = useState<number | null>(null);
   const [searchText, setSearchText] = useState("");
+  const inputRef = useRef<TextInput>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const timeout = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timeout);
+    }, [])
+  );
 
   useEffect(() => {
     return () => {
@@ -213,9 +224,9 @@ const Search = () => {
       // Local first, then remote — skip remote entries already covered locally
       // (same handle or same uuid).
       const localKeys = new Set(
-        localChats.flatMap(
-          (c) => [c.uuid, c.handle?.toLowerCase()].filter(Boolean) as string[],
-        ),
+          localChats.flatMap(
+              (c) => [c.uuid, c.handle?.toLowerCase()].filter(Boolean) as string[],
+          ),
       );
       const merged = [
         ...localChats,
@@ -279,7 +290,7 @@ const Search = () => {
   if (responseArray.length > 0) {
     listData.push({
       kind: "section",
-      label: t("tabs.search.chats"),
+      label: "tabs.search.chats",
       key: "section-chats",
     });
     responseArray.forEach((item, i) =>
@@ -289,7 +300,7 @@ const Search = () => {
   if (messageResults.length > 0) {
     listData.push({
       kind: "section",
-      label: t("tabs.search.messages"),
+      label: "tabs.search.messages",
       key: "section-messages",
     });
     messageResults.forEach((item) =>
@@ -303,11 +314,11 @@ const Search = () => {
 
   const renderItem = ({ item }: { item: ListRow }) => {
     if (item.kind === "section") {
-      return <AppText style={styles.sectionHeader} text={item.label} />;
+      return <Label translationKey={item.label} />;
     }
     if (item.kind === "chat") {
       return (
-        <ItemSearch
+        <ChatListItemSearch
           item={item.item as any}
           onPress={(handle) => {
             if (item.item.isRemote && handle) {
@@ -322,34 +333,33 @@ const Search = () => {
       );
     }
     const msg = item.item;
+    const subtitleNode = (
+      <AppText
+        style={styles.messageContent}
+        numberOfLines={1}
+        text={msg.content || ""}
+      />
+    );
+    const dateNode = !!chatNameOf(msg.chatUUID) ? (
+      <AppText
+        style={styles.messageChatName}
+        numberOfLines={1}
+        text={chatNameOf(msg.chatUUID)}
+      />
+    ) : null;
+    const renderAvatar = () => (
+      <Avatar uuid={msg.profile_picture_uuid} style={styles.avatar} />
+    );
+
     return (
-      <Pressable
-        style={styles.messageRow}
+      <BaseListItem
+        id={msg.id}
+        title={msg.sender_name || ""}
+        subtitleNode={subtitleNode}
+        dateNode={dateNode}
+        renderAvatar={renderAvatar}
         onPress={() => handleMessagePress(msg)}
-      >
-        <Avatar uuid={msg.profile_picture_uuid} size={40} />
-        <View style={styles.messageTextContainer}>
-          <View style={styles.messageTopRow}>
-            <AppText
-              style={styles.messageSender}
-              numberOfLines={1}
-              text={msg.sender_name || ""}
-            />
-            {!!chatNameOf(msg.chatUUID) && (
-              <AppText
-                style={styles.messageChatName}
-                numberOfLines={1}
-                text={chatNameOf(msg.chatUUID)}
-              />
-            )}
-          </View>
-          <AppText
-            style={styles.messageContent}
-            numberOfLines={1}
-            text={msg.content || ""}
-          />
-        </View>
-      </Pressable>
+      />
     );
   };
 
@@ -368,6 +378,7 @@ const Search = () => {
         }
         center={
           <TextInput
+            ref={inputRef}
             placeholder={t("tabs.search.search")}
             placeholderTextColor={theme.placeholderText}
             style={styles.searchBar}
@@ -434,6 +445,7 @@ const createStyle = (theme: any, insets: any, statusBannerOffset: number) => {
       outlineStyle: "none" as any,
       minWidth: 30,
       marginLeft: 5,
+      paddingVertical: 15
     },
     loader: {
       marginTop: contentTop,
@@ -463,28 +475,10 @@ const createStyle = (theme: any, insets: any, statusBannerOffset: number) => {
       paddingTop: 6,
       paddingBottom: 2,
     },
-    messageRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
-      paddingVertical: 6,
-      paddingHorizontal: 6,
-    },
-    messageTextContainer: {
-      flex: 1,
-      justifyContent: "center",
-    },
-    messageTopRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 8,
-    },
-    messageSender: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: theme.text,
-      flexShrink: 1,
+    avatar: {
+      width: 45,
+      height: 45,
+      borderRadius: 20,
     },
     messageChatName: {
       fontSize: 12,
@@ -493,7 +487,7 @@ const createStyle = (theme: any, insets: any, statusBannerOffset: number) => {
     },
     messageContent: {
       fontSize: 14,
-      color: theme.placeholderText,
     },
   });
 };
+

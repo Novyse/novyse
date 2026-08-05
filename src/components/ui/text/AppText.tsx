@@ -1,5 +1,6 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useContext } from "react";
 import { Text as RNText, TextProps as RNTextProps } from "react-native";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import { useTranslation } from "react-i18next";
 
 export interface AppTextProps extends RNTextProps {
@@ -8,6 +9,7 @@ export interface AppTextProps extends RNTextProps {
   translationOptions?: Record<string, any>;
   fontFamily?: string;
   children?: React.ReactNode;
+  color?: string;
 }
 
 const AppText = React.forwardRef<RNText, AppTextProps>(
@@ -19,11 +21,13 @@ const AppText = React.forwardRef<RNText, AppTextProps>(
       children,
       style,
       fontFamily,
+      color,
       ...rest
     },
     ref,
   ) => {
     const { t } = useTranslation();
+    const {theme} = useContext(ThemeContext);
 
     const content = useMemo(() => {
       if (text !== undefined && text !== null) {
@@ -40,6 +44,7 @@ const AppText = React.forwardRef<RNText, AppTextProps>(
         ref={ref}
         style={[
           fontFamily ? { fontFamily } : undefined,
+          { color: color || theme.text },
           style,
         ]}
         selectable={false}

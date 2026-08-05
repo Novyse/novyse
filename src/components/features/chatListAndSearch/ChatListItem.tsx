@@ -15,17 +15,28 @@ import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
 
+interface ChatListItemProps {
+  item: any;
+  isSelected?: boolean;
+  isActive?: boolean;
+  isPinned?: boolean;
+  unreadCount?: number;
+  isSidebarCollapsed?: boolean;
+  onPress?: (id: string) => void;
+  onLongPress?: (id: string) => void;
+}
+
 const ChatListItem = React.memo(
   ({
     item,
-    isSelected,
-    isActive,
-    isPinned,
+    isSelected = false,
+    isActive = false,
+    isPinned = false,
     unreadCount = 0,
     isSidebarCollapsed = false,
     onPress,
     onLongPress,
-  }) => {
+  }: ChatListItemProps) => {
     const { t } = useTranslation();
     const { theme } = useContext(ThemeContext);
     const styles = React.useMemo(() => createStyle(theme), [theme]);
@@ -45,7 +56,7 @@ const ChatListItem = React.memo(
       (state) => state.chatUIStates[item.uuid || item.handle]?.files,
     );
 
-    const parseTime = (dateTimeMessage) => {
+    const parseTime = (dateTimeMessage: string) => {
       if (!dateTimeMessage) return "";
       return DateTime.fromISO(dateTimeMessage, { zone: "utc" })
         .toLocal()
@@ -63,7 +74,7 @@ const ChatListItem = React.memo(
         : lastMessage?.senderUUID;
     const relevantUser = useUserStore((state) => state.users[relevantUUID]);
 
-    const displayMessage = (message) => {
+    const displayMessage = (message: any) => {
       if (!message) return null;
 
       const formattedMessage = messageUtils.format(message);
@@ -155,7 +166,7 @@ const ChatListItem = React.memo(
   },
 );
 
-function createStyle(theme) {
+function createStyle(theme: any) {
   return StyleSheet.create({
     avatar: {
       width: 45,

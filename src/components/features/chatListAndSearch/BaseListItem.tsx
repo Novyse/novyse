@@ -8,6 +8,21 @@ import Icon from "@/src/components/ui/icon/Icon";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
+export interface BaseListItemProps {
+  id: string | number;
+  title: string;
+  subtitleNode?: React.ReactNode;
+  dateNode?: React.ReactNode;
+  unreadCount?: number;
+  isSidebarCollapsed?: boolean;
+  isSelected?: boolean;
+  isActive?: boolean;
+  isPinned?: boolean;
+  onPress?: (id: any) => void;
+  onLongPress?: (id: any) => void;
+  renderAvatar: () => React.ReactNode;
+}
+
 const BaseListItem = React.memo(
   ({
     id,
@@ -22,7 +37,7 @@ const BaseListItem = React.memo(
     onPress,
     onLongPress,
     renderAvatar,
-  }) => {
+  }: BaseListItemProps) => {
     const { theme } = useContext(ThemeContext);
     const styles = React.useMemo(() => createStyle(theme), [theme]);
 
@@ -96,7 +111,7 @@ const BaseListItem = React.memo(
             {renderAvatar()}
             {isSidebarCollapsed && unreadCount > 0 && (
               <View style={styles.collapsedUnreadBadge}>
-                <AppText style={styles.ballText} text={unreadCount} />
+                <AppText style={styles.ballText} text={unreadCount.toString()} />
               </View>
             )}
           </View>
@@ -121,7 +136,7 @@ const BaseListItem = React.memo(
                   {isPinned && <Icon name={"PinIcon"} size={16} />}
                   {unreadCount > 0 && (
                     <View style={styles.ball}>
-                      <AppText style={styles.ballText} text={unreadCount} />
+                      <AppText style={styles.ballText} text={unreadCount.toString()} />
                     </View>
                   )}
                 </View>
@@ -134,7 +149,7 @@ const BaseListItem = React.memo(
   },
 );
 
-function createStyle(theme) {
+function createStyle(theme: any) {
   return StyleSheet.create({
     chatItem: {
       borderRadius: 100,

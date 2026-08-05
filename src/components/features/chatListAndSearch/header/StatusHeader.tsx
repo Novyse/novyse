@@ -1,4 +1,3 @@
-import React from "react";
 import useNetworkStore from "@/src/context/NetworkContext";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import { useTranslation } from "react-i18next";
