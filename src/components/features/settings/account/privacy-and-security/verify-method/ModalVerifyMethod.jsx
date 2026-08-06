@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 
 import useOTP from "@/src/hooks/auth/useOTP";
 
-import AddAuthenticator from "@/src/components/auth/twofa/add/authenticator";
+import AddAuthenticator from "@/src/components/features/settings/account/privacy-and-security/verify-method/AddAuthenticator";
 import OtpDigitsInput from "@/src/components/OtpDigitsInput";
 
 import StatusMessage from "@/src/components/features/status/StatusMessage";

@@ -20,7 +20,7 @@ import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonTe
 import SignupTimeline from "@/src/components/features/welcome/signup/SignupTimeline";
 import SignupStepField from "@/src/components/features/welcome/signup/SignupStepField";
 import SignupCheckboxes from "@/src/components/features/welcome/signup/SignupCheckboxes";
-import TurnstileCaptcha from "@/src/components/auth/TurnstileCaptcha";
+import TurnstileCaptcha from "@/src/components/features/welcome/auth/TurnstileCaptcha";
 
 const STEPS = [{ id: 1 }, { id: 2 }, { id: 3 }];
 

@@ -10,7 +10,7 @@ import FileSizeProgress from "./FileSizeProgress";
 
 import { formatTime, formatDuration } from "@/src/utils/storage/file/utils";
 
-import SmoothSlider from "../SmoothSlider";
+import SmoothSlider from "../ui/slider/SmoothSlider";
 import PlayButton from "./Button";
 
 const MessageAudio = ({

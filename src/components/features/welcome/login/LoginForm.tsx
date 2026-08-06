@@ -11,7 +11,7 @@ import StatusMessage from "@/src/components/features/status/StatusMessage";
 import { router } from "expo-router";
 
 import TextLink from "../../../ui/text/LinkText";
-import TurnstileCaptcha from "../../../auth/TurnstileCaptcha";
+import TurnstileCaptcha from "../auth/TurnstileCaptcha";
 
 interface LoginFormProps {
   onLogin: (username: string, password: string, captchaToken: string) => void;
