@@ -5,7 +5,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
 import BlurredView from "@/src/components/BlurredView";
 
-const RightButton = ({
+const RightButtonBottomBar = ({
   isRecording,
   newMessageText,
   hasFiles,
@@ -60,4 +60,4 @@ const createStyle = (theme) =>
     },
   });
 
-export default RightButton;
+export default RightButtonBottomBar;

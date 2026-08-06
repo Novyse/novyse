@@ -23,6 +23,7 @@ const SubList = ({
   isSmallScreen,
   subListWidth,
   bottomBarHeight = 0,
+  hasActionBars = false,
 }) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
@@ -123,7 +124,7 @@ const SubList = ({
         {
           width: isSmallScreen ? 70 : subListWidth,
           marginTop: headerHeight,
-          marginBottom: bottomBarHeight || 0,
+          marginBottom: (bottomBarHeight || 0) + (hasActionBars ? 10 : 0),
           marginLeft: 10,
         },
       ]}

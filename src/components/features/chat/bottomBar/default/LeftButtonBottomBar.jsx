@@ -6,7 +6,7 @@ import BlurredView from "@/src/components/BlurredView";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
 
-const LeftButton = ({
+const LeftButtonBottomBar = ({
   isRecording,
   isAttachMenuOpen = false,
   onToggleAttachMenu,
@@ -65,4 +65,4 @@ const createStyle = (theme) =>
     },
   });
 
-export default LeftButton;
+export default LeftButtonBottomBar;

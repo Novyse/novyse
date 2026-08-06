@@ -2,10 +2,10 @@ import React from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import DefaultBar from "./default";
+import DefaultBar from "./default/DefaultBottomBar";
 import ChannelBar from "./ChannelBar";
 
-const BottomBar = ({
+const ChatBottomBar = ({
   chatType,
   newMessageText,
   files,
@@ -76,4 +76,4 @@ const BottomBar = ({
   );
 };
 
-export default BottomBar;
+export default ChatBottomBar;

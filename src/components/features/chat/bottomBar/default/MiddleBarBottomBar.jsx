@@ -16,7 +16,7 @@ import { handleChatShortcuts } from "@/src/utils/shortcut/chatShortcuts";
 import Platform from "@/src/utils/device/type";
 import { getMarkdownStyle } from "@/constants/markdownStyles";
 
-const MiddleBar = ({
+const MiddleBarBottomBar = ({
   chatType,
   newMessageText,
   textInputRef,
@@ -302,7 +302,7 @@ const createStyle = (theme) =>
       flexDirection: "row",
       alignItems: "flex-end",
       justifyContent: "space-between",
-      borderRadius: 22.5,
+      borderRadius: 25,
       paddingHorizontal: 5,
       minHeight: 45,
       maxHeight: 150,
@@ -325,8 +325,8 @@ const createStyle = (theme) =>
       marginLeft: 10,
       minWidth: 45,
       textAlignVertical: "center",
-      paddingTop: Platform === "web" ? 12 : 12,
-      paddingBottom: Platform === "web" ? 12 : 12,
+      paddingTop: Platform === "web" ? 10 : 10,
+      paddingBottom: Platform === "web" ? 10 : 10,
     },
     icon: {
       width: 45,
@@ -371,4 +371,4 @@ const createStyle = (theme) =>
     },
   });
 
-export default MiddleBar;
+export default MiddleBarBottomBar;

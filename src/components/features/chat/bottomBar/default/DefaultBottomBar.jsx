@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect } from "react";
 import { View } from "react-native";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -6,9 +6,9 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import useVoiceRecord from "@/src/hooks/chat/useVoiceRecord";
 import useScreenRecord from "@/src/hooks/chat/useScreenRecord";
 
-import LeftButton from "./leftButton";
-import MiddleBar from "./middleBar";
-import RightButton from "./rightButton";
+import LeftButton from "./LeftButtonBottomBar";
+import MiddleBar from "./MiddleBarBottomBar";
+import RightButton from "./RightButtonBottomBar";
 
 import MentionBar from "../actions/MentionBar";
 import EditBar from "../actions/EditBar";
@@ -16,7 +16,7 @@ import ReplyBar from "../actions/ReplyBar";
 import FilesBar from "../actions/FilesBar";
 import ScreenRecordingPreview from "../actions/ScreenRecordingPreview";
 
-const DefaultBar = ({
+const DefaultBottomBar = ({
   chatType,
   isAttachMenuOpen,
   onToggleAttachMenu,
@@ -205,4 +205,4 @@ const createStyle = (theme) => ({
   },
 });
 
-export default DefaultBar;
+export default DefaultBottomBar;

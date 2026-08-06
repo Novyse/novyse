@@ -45,13 +45,14 @@ const MessageList = ({
   onReaction,
   onForward,
   onLoadMore,
+  bottomBarHeight = 0,
 }) => {
   const insets = useSafeAreaInsets();
   const {theme} = useContext(ThemeContext);
   const headerHeight = useActiveChatStore((state) => state.headerHeight);
   const styles = useMemo(
-    () => createStyle(theme, insets, headerHeight),
-    [theme, insets, headerHeight],
+    () => createStyle(theme, insets, headerHeight, bottomBarHeight),
+    [theme, insets, headerHeight, bottomBarHeight],
   );
 
   const [highlightedID, setHighlightedID] = useState(null);
@@ -450,20 +451,20 @@ const MessageList = ({
 
 export default React.memo(MessageList);
 
-const createStyle = (theme, insets, headerHeight = 0) =>
+const createStyle = (theme, insets, headerHeight = 0, bottomBarHeight = 0) =>
   StyleSheet.create({
     list: {
       flex: 1,
       ...ScrollBar(theme),
     },
     listContent: {
-      paddingTop: Math.max(70, headerHeight + 10) + insets.top,
-      paddingBottom: 70 + insets.bottom,
+      paddingTop: 65 + insets.top,
+      paddingBottom: Math.max(60, bottomBarHeight) + insets.bottom,
     },
     scrollButtonContainer: {
       position: "absolute",
       right: 10,
-      bottom: 80 + insets.bottom,
+      bottom: Math.max(80, bottomBarHeight + 20) + insets.bottom,
       width: 45,
       height: 45,
       justifyContent: "center",

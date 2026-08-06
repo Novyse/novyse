@@ -34,7 +34,7 @@ import useUserStore from "@/src/context/UserContext";
 import useChatStore from "@/src/context/ChatContext";
 import { useKeyboardStore } from "@/src/context/KeyboardContext";
 
-import BottomBar from "@/src/components/chat/content/bottomBar";
+import BottomBar from "@/src/components/features/chat/bottomBar/ChatBottomBar";
 import MessageList from "@/src/components/features/chat/content/MessageList";
 import UploadFileOverlay from "@/src/components/modalSheets/uploadFile";
 import { EmojiMenuOverlay } from "@/src/components/features/chat/content/emoji/EmojiMenuOverlay";
@@ -655,6 +655,7 @@ const ChatContent = () => {
                 isSmallScreen={isSmallScreen}
                 subListWidth={subListWidth}
                 bottomBarHeight={bottomBarHeight}
+                hasActionBars={!!(editingMessage || (replyingTo && replyingTo.length > 0))}
               />
               <View
                 style={{
@@ -689,6 +690,7 @@ const ChatContent = () => {
                   onCancel={handleCancelJob}
                   onDelete={handleDelete}
                   onLoadMore={() => loadMoreMessages(selectedChatUUID)}
+                  bottomBarHeight={bottomBarHeight}
                 />
               </View>
             </View>
@@ -714,6 +716,7 @@ const ChatContent = () => {
               onCancel={handleCancelJob}
               onDelete={handleDelete}
               onLoadMore={() => loadMoreMessages(selectedChatUUID)}
+              bottomBarHeight={bottomBarHeight}
             />
           )}
         </Animated.View>

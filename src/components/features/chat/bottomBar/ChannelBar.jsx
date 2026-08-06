@@ -37,23 +37,24 @@ const ChannelBar = () => {
 function createStyle(theme) {
   return StyleSheet.create({
     container: {
-      paddingHorizontal: 20,
-      paddingVertical: 10,
+      paddingHorizontal: 10,
+      paddingTop: 10,
       width: "100%",
     },
     button: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      padding: 12,
+      padding: 10,
       backgroundColor: theme.backgroundMainGradient
         ? theme.backgroundMainGradient[0]
         : theme.backgroundCard,
-      borderRadius: 20,
+      borderRadius: 25,
       gap: 10,
+      height: 50,
     },
     text: {
-      fontSize: 16,
+      fontSize: 15,
       fontWeight: "600",
     },
   });
