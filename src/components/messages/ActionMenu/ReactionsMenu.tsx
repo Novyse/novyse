@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { StyleSheet, Animated, View } from "react-native";
 import { useThemeContext } from "@/src/context/ThemeContext";
-import { EmojiPicker } from "@/src/components/chat/content/emoji";
+import { EmojiPicker } from "@/src/components/features/chat/content/emoji/EmojiPicker";
 import BlurredView from "@/src/components/BlurredView";
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurredView);

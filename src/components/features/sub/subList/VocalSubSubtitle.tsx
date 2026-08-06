@@ -29,7 +29,7 @@ const VocalSubSubtitle = ({
 
   return (
     <View style={styles.reactionAvatars}>
-      {avatars.map((p, i) => {
+      {avatars.map((p) => {
         const uUUID = p.identity || p.participantInfo?.identity;
         const user = getUser(uUUID);
         return (
@@ -48,7 +48,7 @@ const VocalSubSubtitle = ({
   );
 };
 
-function createStyle(theme) {
+function createStyle(theme: any) {
   return StyleSheet.create({
     reactionAvatars: {
       flexDirection: "row",

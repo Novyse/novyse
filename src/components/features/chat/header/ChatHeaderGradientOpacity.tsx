@@ -18,6 +18,8 @@ const withAlpha = (hex: string, alpha: number) => {
 
 const FADE_EXTENSION = 10;
 
+
+// mobile gradient opacity to increase readability
 const ChatHeaderBackdrop = ({ height }: ChatHeaderBackdropProps) => {
   const { theme } = useThemeContext();
 

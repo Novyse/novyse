@@ -35,9 +35,9 @@ import useChatStore from "@/src/context/ChatContext";
 import { useKeyboardStore } from "@/src/context/KeyboardContext";
 
 import BottomBar from "@/src/components/chat/content/bottomBar";
-import MessageList from "@/src/components/chat/content/MessageList";
+import MessageList from "@/src/components/features/chat/content/MessageList";
 import UploadFileOverlay from "@/src/components/modalSheets/uploadFile";
-import { EmojiMenuOverlay } from "@/src/components/chat/content/emoji";
+import { EmojiMenuOverlay } from "@/src/components/features/chat/content/emoji/EmojiMenuOverlay";
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 import WebDropZone from "@/src/components/ui/input/WebDropZone";
 
@@ -45,7 +45,7 @@ import { validateFiles } from "@/src/utils/storage/file/validators";
 import Platform from "@/src/utils/device/type";
 import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 
-import SubList from "@/src/components/chat/content/SubList";
+import SubList from "@/src/components/features/sub/subList/SubList";
 import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 import useWindowSizeStore, {
   SUBLIST_MIN,
@@ -676,7 +676,6 @@ const ChatContent = () => {
                   selectedMessages={selectedMessages}
                   setSelectedMessages={setSelectedMessages}
                   myUUID={myUUID}
-                  theme={theme}
                   onRead={handleRead}
                   onPin={handlePin}
                   onUnpin={handleUnpin}
@@ -702,7 +701,6 @@ const ChatContent = () => {
               selectedMessages={selectedMessages}
               setSelectedMessages={setSelectedMessages}
               myUUID={myUUID}
-              theme={theme}
               onRead={handleRead}
               onPin={handlePin}
               onUnpin={handleUnpin}

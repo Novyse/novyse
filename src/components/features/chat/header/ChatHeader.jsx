@@ -1,12 +1,12 @@
 import React, { useContext } from "react";
 import { useScreen } from "@/src/context/ScreenContext";
 import AppHeader from "@/src/components/features/header/AppHeader";
-import MainHeader from "./main";
-import SelectedHeader from "./SelectedHeader";
-import SearchHeader from "./SearchHeader";
-import AudioHeader from "./audio";
-import PinnedMessageHeader from "./pinnedMessage";
-import CommsHeader from "./CommsHeader";
+import MainHeader from "./headers/ChatMainHeader";
+import SelectedHeader from "./headers/ChatSelectedHeader";
+import SearchHeader from "./headers/ChatSearchHeader";
+import AudioHeader from "./headers/ChatAudioHeader";
+import PinnedMessageHeader from "./headers/ChatPinnedMessagesHeader";
+import CommsHeader from "./headers/ChatCommsHeader";
 import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
 import useChatStore from "@/src/context/ChatContext";
 import { useCommsContext } from "@/src/context/CommsContext";

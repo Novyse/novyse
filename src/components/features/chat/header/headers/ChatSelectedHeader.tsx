@@ -21,8 +21,8 @@ interface SelectedHeaderProps {
 }
 
 const SelectedHeader: React.FC<SelectedHeaderProps> = ({
-  selectedMessages,
   setSelectedMessages,
+  selectedMessages,
   onForward,
   onDelete,
   onReply,

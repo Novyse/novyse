@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -28,7 +28,7 @@ const SubList = ({
   const router = useRouter();
   const headerHeight = useActiveChatStore((state) => state.headerHeight) || 60;
   const localUserUUID = useUserStore((state) => state.localUserUUID);
-  const styles = createStyle(theme, isSmallScreen);
+  const styles = createStyle(theme);
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
 
   const { checkRoomMatch } = useCommsContext();
@@ -170,7 +170,7 @@ function createStyle(theme: any) {
     avatar: {
       width: 40,
       height: 40,
-      borderRadius: 20,
+      borderRadius: 25,
       backgroundColor: theme.backgroundMain,
       justifyContent: "center",
       alignItems: "center",

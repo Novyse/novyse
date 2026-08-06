@@ -4,6 +4,7 @@ import React, {
   useRef,
   useEffect,
   useMemo,
+  useContext
 } from "react";
 import { StyleSheet, AppState } from "react-native";
 import { FlashList } from "@shopify/flash-list";
@@ -13,6 +14,7 @@ import * as Clipboard from "expo-clipboard";
 import useMessageActions from "@/src/hooks/chat/useMessageActions";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useChatStore from "@/src/context/ChatContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 import MessageBase from "@/src/components/messages/MessageBase";
 import MessageSystem from "@/src/components/messages/MessageSystem";
@@ -30,7 +32,6 @@ const MessageList = ({
   selectedMessages,
   setSelectedMessages,
   myUUID,
-  theme,
   onRead,
   onPin,
   onUnpin,
@@ -46,6 +47,7 @@ const MessageList = ({
   onLoadMore,
 }) => {
   const insets = useSafeAreaInsets();
+  const {theme} = useContext(ThemeContext);
   const headerHeight = useActiveChatStore((state) => state.headerHeight);
   const styles = useMemo(
     () => createStyle(theme, insets, headerHeight),

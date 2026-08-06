@@ -9,8 +9,8 @@ import { View, StyleSheet, useWindowDimensions } from "react-native";
 
 import { router, useLocalSearchParams } from "expo-router";
 
-import ChatContent from "@/src/components/chat/content/Chat";
-import Header from "@/src/components/chat/content/header/ChatHeader";
+import ChatContent from "@/src/components/features/chat/content/Chat";
+import Header from "@/src/components/features/chat/header/ChatHeader";
 import VocalContent from "@/src/components/comms/container";
 
 import { useScreen } from "@/src/context/ScreenContext";
@@ -30,7 +30,7 @@ import { useForward } from "@/src/hooks/chat/useForward";
 import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
 import JoinCreateChat from "@/src/components/features/chat/createChat/CreateOrJoinChatPanel";
 import AppText from "@/src/components/ui/text/AppText";
-import SubList from "@/src/components/chat/content/SubList";
+import SubList from "@/src/components/features/sub/subList/SubList";
 
 const ChatPageRoute = () => {
   const params = useLocalSearchParams();

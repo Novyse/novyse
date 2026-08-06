@@ -9,7 +9,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import BlurredView from "@/src/components/BlurredView";
-import ChatHeaderBackdrop from "@/src/components/chat/content/header/ChatHeaderBackdrop";
+import ChatHeaderBackdrop from "@/src/components/features/chat/header/ChatHeaderGradientOpacity";
 import AppHeaderRow from "@/src/components/features/header/AppHeaderRow";
 import {
   HEADER_INNER_PADDING,
@@ -60,7 +60,7 @@ const AppHeader = ({
     [onLayout],
   );
 
-  const borderRadius = expanded ? 15 : 100;
+  const borderRadius = expanded ? 25 : 100;
   const rowContent =
     children ??
     (collapsed ? (
@@ -77,6 +77,7 @@ const AppHeader = ({
         style,
       ]}
     >
+      {/* mobile gradient opacity to increase readability */}
       {fullWidthBackdrop && <ChatHeaderBackdrop height={backdropHeight} />}
 
       <View

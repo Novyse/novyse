@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import {
   View,
-  TextInput,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
@@ -17,6 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FlashList } from "@shopify/flash-list";
 import { t } from "i18next";
 
+import TextInput from "@/src/components/ui/input/TextInput";
 import { ScrollBar } from "@/constants/ScrollBar";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import AppText from "@/src/components/ui/text/AppText";
@@ -68,9 +68,8 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelectGif }) => {
   const requestIdRef = useRef(0);
 
   const columnCount = containerWidth < 280 ? 2 : 3;
-  const gap = 6;
-  const cellWidth =
-    (containerWidth - 20 - gap * (columnCount - 1)) / columnCount;
+  const gap = 5;
+  const cellWidth = (containerWidth - 10) / columnCount - gap;
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((val) => {
@@ -234,13 +233,9 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelectGif }) => {
     >
       <View style={styles.searchBarContainer}>
         <TextInput
-          style={styles.searchBarInput}
           placeholder={t("chat.gifCategories.searchPlaceholder")}
-          placeholderTextColor={theme.placeholderText}
           value={searchQuery}
           onChangeText={setSearchQuery}
-          autoCorrect={false}
-          clearButtonMode="always"
         />
       </View>
 
@@ -323,15 +318,15 @@ const createStyle = (theme: any) =>
       backgroundColor: theme.backgroundTextField,
     },
     providerToggleWrapper: {
-      paddingHorizontal: 10,
-      paddingBottom: 6,
+      paddingBottom: 10,
       alignItems: "center",
     },
     listWrapper: {
       flex: 1,
     },
     listContent: {
-      paddingBottom: 8,
+      paddingBottom: 5,
+      paddingHorizontal: 5
     },
     sectionHeaderContainer: {
       width: "100%",
@@ -341,14 +336,14 @@ const createStyle = (theme: any) =>
       fontSize: 13,
       fontWeight: "600",
       color: theme.text,
-      marginVertical: 8,
+      marginVertical: 10,
       marginLeft: 5,
     },
     gifCellWrapper: {
       padding: 3,
     },
     gifCell: {
-      borderRadius: 8,
+      borderRadius: 10,
       overflow: "hidden",
       backgroundColor: theme.backgroundSecondary,
     },
