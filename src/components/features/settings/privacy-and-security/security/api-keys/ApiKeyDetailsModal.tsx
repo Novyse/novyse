@@ -1,7 +1,7 @@
 import { View, StyleSheet } from "react-native";
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import Icon from "@/src/components/ui/icon/Icon";
-import CopyLabel from "@/src/components/features/settings/security/api-keys/CopyApiKeyButton";
+import CopyLabel from "@/src/components/features/settings/privacy-and-security/security/api-keys/CopyApiKeyButton";
 import Button from "@/src/components/ui/button/Button";
 import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
@@ -28,7 +28,7 @@ export default function ApiKeyDetailsModal({
       onClose={onClose}
       theme={theme}
       mode="modal"
-      titleTranslationKey="settings.security.apiKeys.detailsModal.title"
+      titleTranslationKey="settings.privacyAndSecurity.apiKeys.detailsModal.title"
     >
       <View style={styles.container}>
         <View style={styles.successIconContainer}>
@@ -40,16 +40,16 @@ export default function ApiKeyDetailsModal({
         </View>
         <AppText
           style={styles.subtitle}
-          translationKey="settings.security.apiKeys.detailsModal.subtitle"
+          translationKey="settings.privacyAndSecurity.apiKeys.detailsModal.subtitle"
         />
 
         <CopyLabel
           text={apiKey}
-          label={t("settings.security.apiKeys.detailsModal.label")}
+          label={t("settings.privacyAndSecurity.apiKeys.detailsModal.label")}
         />
 
         <Button
-          translationKey="settings.security.apiKeys.detailsModal.saved"
+          translationKey="settings.privacyAndSecurity.apiKeys.detailsModal.saved"
           onPress={onClose}
           style={{ marginTop: 25 }}
         />

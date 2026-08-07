@@ -12,7 +12,7 @@ import CameraArrowButton from "@/src/components/comms/BottomBar/CameraArrowButto
 import ScreenShareSelector from "@/src/components/comms/BottomBar/ScreenShareSelector";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 import Icon from "@/src/components/ui/icon/Icon";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";

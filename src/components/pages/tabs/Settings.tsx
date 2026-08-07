@@ -26,9 +26,9 @@ const getSections = (): SettingSection[] => {
           navToPage: "./settings/account",
         },
         {
-          translationKey: "settings.menu.security",
+          translationKey: "settings.menu.privacyAndSecurity",
           iconName: "BlockedIcon",
-          navToPage: "./settings/security",
+          navToPage: "./settings/privacy-and-security",
         },
       ],
     },

@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 
-import SmartBackground from "@/src/components/SmartBackground";
+import SmartBackground from "@/src/components/layout/SmartBackground";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
 

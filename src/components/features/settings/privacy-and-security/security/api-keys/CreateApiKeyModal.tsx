@@ -38,23 +38,23 @@ export default function CreateApiKeyModal({
       onClose={onClose}
       theme={theme}
       mode="modal"
-      titleTranslationKey="settings.security.apiKeys.createModal.title"
+      titleTranslationKey="settings.privacyAndSecurity.apiKeys.createModal.title"
     >
       <View>
         <AppText
           style={styles.subtitle}
-          translationKey="settings.security.apiKeys.createModal.subtitle"
+          translationKey="settings.privacyAndSecurity.apiKeys.createModal.subtitle"
         />
         <TextInput
-          placeholder={t("settings.security.apiKeys.createModal.placeholder")}
+          placeholder={t("settings.privacyAndSecurity.apiKeys.createModal.placeholder")}
           value={name}
           onChange={setName}
         />
         <Button
           translationKey={
             isLoading
-              ? "settings.security.apiKeys.createModal.creating"
-              : "settings.security.apiKeys.createModal.create"
+              ? "settings.privacyAndSecurity.apiKeys.createModal.creating"
+              : "settings.privacyAndSecurity.apiKeys.createModal.create"
           }
           onPress={handleConfirm}
           disabled={!name.trim() || isLoading}

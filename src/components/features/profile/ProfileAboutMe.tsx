@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 
 import AppText from "@/src/components/ui/text/AppText";
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 

@@ -11,11 +11,11 @@ import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-interface QRCodeReaderProps {
+interface QRCodeScannerProps {
   onCodeScanned: (data: string) => void;
 }
 
-export default function QRCodeReader({ onCodeScanned }: QRCodeReaderProps) {
+export default function QRCodeScanner({ onCodeScanned }: QRCodeScannerProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
   const { t } = useTranslation();

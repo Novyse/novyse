@@ -12,8 +12,8 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
-import SecurityListCard from "@/src/components/features/settings/security/SecurityListCard";
-import SessionInfo from "@/src/components/features/settings/security/SessionInfo";
+import SecurityListCard from "@/src/components/features/settings/privacy-and-security/security/SecurityListCard";
+import SessionInfo from "@/src/components/features/settings/privacy-and-security/security/SessionInfo";
 
 import auth from "@/src/utils/backend-services/auth";
 
@@ -48,13 +48,13 @@ export default function SessionsRoute() {
       const diffHours = Math.floor(diffMins / 60);
       const diffDays = Math.floor(diffHours / 24);
 
-      if (diffMins < 1) return t("settings.security.justNow");
-      if (diffMins < 60) return `${diffMins}${t("settings.security.mAgo")}`;
-      if (diffHours < 24) return `${diffHours}${t("settings.security.hAgo")}`;
-      if (diffDays === 1) return t("settings.security.yesterday");
+      if (diffMins < 1) return t("settings.privacyAndSecurity.justNow");
+      if (diffMins < 60) return `${diffMins}${t("settings.privacyAndSecurity.mAgo")}`;
+      if (diffHours < 24) return `${diffHours}${t("settings.privacyAndSecurity.hAgo")}`;
+      if (diffDays === 1) return t("settings.privacyAndSecurity.yesterday");
       return date.toFormat("MMMM d, yyyy");
     } catch (e) {
-      return t("settings.security.unknown");
+      return t("settings.privacyAndSecurity.unknown");
     }
   };
 
@@ -64,16 +64,16 @@ export default function SessionsRoute() {
     if (response.success) {
       const mapped = response.data.map((s: any) => ({
         id: s.id,
-        device: s.userAgent || t("settings.security.unknownDevice"),
+        device: s.userAgent || t("settings.privacyAndSecurity.unknownDevice"),
         deviceType: s.platform === "mobile" ? "mobile" : "desktop",
-        ip: s.ipAddress || t("settings.security.unknown"),
+        ip: s.ipAddress || t("settings.privacyAndSecurity.unknown"),
         createdAt: formatLastActive(s.createdAt),
         lastActive: formatLastActive(s.lastActiveAt),
         isCurrent: s.isCurrent,
       }));
       setSessions(mapped);
     } else {
-      setError(response.error || t("settings.security.failedToLoadSessions"));
+      setError(response.error || t("settings.privacyAndSecurity.failedToLoadSessions"));
     }
     setIsLoading(false);
   };
@@ -85,11 +85,11 @@ export default function SessionsRoute() {
   const handleDisconnect = async (id: number) => {
     const response = await auth.settings.session.revoke(id);
     if (response.success) {
-      setSuccess(t("settings.security.sessionDisconnected"));
+      setSuccess(t("settings.privacyAndSecurity.sessionDisconnected"));
       fetchSessions();
     } else {
       setError(
-        response.error || t("settings.security.sessionDisconnectFailed"),
+        response.error || t("settings.privacyAndSecurity.sessionDisconnectFailed"),
       );
     }
   };
@@ -97,12 +97,12 @@ export default function SessionsRoute() {
   const handleDisconnectAll = async () => {
     const response = await auth.settings.session.revokeOther();
     if (response.success) {
-      setSuccess(t("settings.security.allOtherSessionsDisconnected"));
+      setSuccess(t("settings.privacyAndSecurity.allOtherSessionsDisconnected"));
       fetchSessions();
     } else {
       setError(
         response.error ||
-          t("settings.security.allOtherSessionsDisconnectFailed"),
+          t("settings.privacyAndSecurity.allOtherSessionsDisconnectFailed"),
       );
     }
   };
@@ -112,18 +112,18 @@ export default function SessionsRoute() {
   return (
     <>
       <HeaderWithBackArrow
-        translationKey="settings.security.sessionsLabel"
+        translationKey="settings.privacyAndSecurity.sessionsLabel"
         onBack={onBack}
       />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
           <AppText
             style={styles.title}
-            translationKey="settings.security.activeSessions"
+            translationKey="settings.privacyAndSecurity.activeSessions"
           />
           <AppText
             style={styles.subtitle}
-            translationKey="settings.security.manageSessions"
+            translationKey="settings.privacyAndSecurity.manageSessions"
           />
         </View>
 
@@ -152,7 +152,7 @@ export default function SessionsRoute() {
                 />
               }
               badge={
-                session.isCurrent ? t("settings.security.current") : undefined
+                session.isCurrent ? t("settings.privacyAndSecurity.current") : undefined
               }
               isHighlighted={session.isCurrent}
               onDelete={
@@ -176,7 +176,7 @@ export default function SessionsRoute() {
             >
               <AppText
                 style={styles.disconnectAllText}
-                text={`${t("settings.security.disconnectAllOtherSessions")} (${otherSessionsCount})`}
+                text={`${t("settings.privacyAndSecurity.disconnectAllOtherSessions")} (${otherSessionsCount})`}
               />
             </Pressable>
           </View>

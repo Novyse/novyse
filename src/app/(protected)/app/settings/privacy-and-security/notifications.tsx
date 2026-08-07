@@ -7,7 +7,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
-import SecurityListCard from "@/src/components/features/settings/security/SecurityListCard";
+import SecurityListCard from "@/src/components/features/settings/privacy-and-security/security/SecurityListCard";
 import Icon from "@/src/components/ui/icon/Icon";
 
 interface NotificationMethod {
@@ -28,7 +28,7 @@ export default function NotificationsRoute() {
     {
       id: "1",
       name: "Novyse",
-      type: t("settings.security.inAppNotifications"),
+      type: t("settings.privacyAndSecurity.inAppNotifications"),
       isDefault: true,
     },
   ]);
@@ -44,24 +44,24 @@ export default function NotificationsRoute() {
     // TODO: API call
     console.log("Delete notification method", id);
     setMethods((prev) => prev.filter((m) => m.id !== id));
-    setSuccess(t("settings.security.notificationMethodRemoved"));
+    setSuccess(t("settings.privacyAndSecurity.notificationMethodRemoved"));
   };
 
   return (
     <>
       <HeaderWithBackArrow
-        translationKey="settings.security.notifications"
+        translationKey="settings.privacyAndSecurity.notifications"
         onBack={onBack}
       />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
           <AppText
             style={styles.title}
-            translationKey="settings.security.notificationMethods"
+            translationKey="settings.privacyAndSecurity.notificationMethods"
           />
           <AppText
             style={styles.subtitle}
-            translationKey="settings.security.manageNotifications"
+            translationKey="settings.privacyAndSecurity.manageNotifications"
           />
         </View>
 
@@ -80,7 +80,7 @@ export default function NotificationsRoute() {
               title={method.name}
               subtitle={method.type}
               badge={
-                method.isDefault ? t("settings.security.default") : undefined
+                method.isDefault ? t("settings.privacyAndSecurity.default") : undefined
               }
               isHighlighted={method.isDefault}
               onDelete={
@@ -104,7 +104,7 @@ export default function NotificationsRoute() {
             <Icon name="PlusSignCircleIcon" />
             <AppText
               style={styles.addButtonText}
-              translationKey="settings.security.addNotificationMethod"
+              translationKey="settings.privacyAndSecurity.addNotificationMethod"
             />
           </Pressable>
         </View>

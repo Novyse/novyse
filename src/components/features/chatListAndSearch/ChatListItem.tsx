@@ -5,7 +5,7 @@ import { DateTime } from "luxon";
 import { useTranslation } from "react-i18next";
 
 import Icon from "@/src/components/ui/icon/Icon";
-import Avatar from "@/src/components/Avatar";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 import BaseListItem from "./BaseListItem";
 
 import useUserStore from "@/src/context/UserContext";

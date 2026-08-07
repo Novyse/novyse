@@ -6,7 +6,7 @@ import { getColors } from "react-native-image-colors";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
-import Avatar from "@/src/components/Avatar";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 import AppText from "../ui/text/AppText";
 
 const UserProfileAvatar = ({

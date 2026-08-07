@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 import ChatHeaderBackdrop from "@/src/components/features/chat/header/ChatHeaderGradientOpacity";
 import AppHeaderRow from "@/src/components/features/header/AppHeaderRow";
 import {

@@ -2,15 +2,15 @@ import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import HoverAndPressedButton from "./ui/button/HoverAndPressedButton";
+import HoverAndPressedButton from "../../../../../ui/button/HoverAndPressedButton";
 
-interface ColorDotProps {
+interface AppearanceColorDotProps {
   color: string;
   selected?: boolean;
   onPress?: () => void;
 }
 
-export default function ColorDot({ color, selected, onPress }: ColorDotProps) {
+export default function AppearanceColorDot({ color, selected, onPress }: AppearanceColorDotProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 

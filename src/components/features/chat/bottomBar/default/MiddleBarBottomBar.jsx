@@ -7,7 +7,7 @@ import { Duration } from "luxon";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 import RecordingDot from "@/src/components/features/chat/bottomBar/RecordingDot";
 import SpeechIndicator from "@/src/components/features/chat/bottomBar/SpeechIndicator";
 import { getPlatform } from "@/src/utils/device/type";

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useScreen } from "@/src/context/ScreenContext";
 
 import Icon from "@/src/components/ui/icon/Icon";
-import Avatar from "@/src/components/Avatar";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 import AppHeaderRow, {
   headerIconButtonStyle,
 } from "@/src/components/features/header/AppHeaderRow";

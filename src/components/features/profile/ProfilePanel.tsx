@@ -13,7 +13,7 @@ import BirthdayLocation from "./ProfileBirthdayLocation";
 import QRCodeModal from "./ProfileQRCodeModal";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import SmartBackground from "../../SmartBackground";
+import SmartBackground from "../../layout/SmartBackground";
 import Icon from "@/src/components/ui/icon/Icon";
 
 interface Connection {

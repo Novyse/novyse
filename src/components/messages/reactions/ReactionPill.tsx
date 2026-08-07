@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useContext } from "react";
 import { Pressable, View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
-import Avatar from "@/src/components/Avatar";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/context/UserContext";
 import ReactionParticles from "./ReactionParticles";

@@ -325,7 +325,7 @@
       "account": "Account",
       "customization": "Customization",
       "storage": "Storage",
-      "security": "Security",
+      "privacyAndSecurity": "Privacy & Security",
       "comms": "Comms",
       "qrScanner": "QR Scanner",
       "shortcuts": "Shortcuts",
@@ -450,8 +450,8 @@
       "documents": "Documents",
       "others": "Others"
     },
-    "security": {
-      "title": "Security",
+    "privacyAndSecurity": {
+      "title": "Privacy & Security",
       "status": "Status",
       "actions": "Actions",
       "sessions": {

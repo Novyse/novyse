@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 
 import SectionHeader from "@/src/components/features/settings/account/modify-profile/modifyProfileForm/SectionHeader";
 import Icon from "@/src/components/ui/icon/Icon";

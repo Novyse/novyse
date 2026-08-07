@@ -4,7 +4,7 @@ import AppText from "@/src/components/ui/text/AppText";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import Avatar from "@/src/components/Avatar";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 import Badges from "@/src/components/features/badge/Badges";
 
 interface ProfileHeaderProps {

@@ -7,7 +7,7 @@ import useUserStore from "@/src/context/UserContext";
 
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 import ReactionMenu from "@/src/components/messages/ActionMenu/ReactionsMenu";
 import Platform from "@/src/utils/device/type";
 

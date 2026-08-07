@@ -9,7 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import Icon from "@/src/components/ui/icon/Icon";
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 import ImageViewer from "@/src/components/modalSheets/viewer/ImageViewer";
 import VideoViewer from "@/src/components/modalSheets/viewer/VideoViewer";
 import AppText from "@/src/components/ui/text/AppText";

@@ -18,21 +18,21 @@ const SessionInfo = ({ ip, createdAt, lastActive }: SessionInfoProps) => {
       <AppText style={styles.row}>
         <AppText
           style={styles.label}
-          translationKey="settings.security.sessions.ip"
+          translationKey="settings.privacyAndSecurity.sessions.ip"
         />
         : {ip}
       </AppText>
       <AppText style={styles.row}>
         <AppText
           style={styles.label}
-          translationKey="settings.security.sessions.created"
+          translationKey="settings.privacyAndSecurity.sessions.created"
         />
         : {createdAt}
       </AppText>
       <AppText style={styles.row}>
         <AppText
           style={styles.label}
-          translationKey="settings.security.sessions.lastActivity"
+          translationKey="settings.privacyAndSecurity.sessions.lastActivity"
         />
         : {lastActive}
       </AppText>

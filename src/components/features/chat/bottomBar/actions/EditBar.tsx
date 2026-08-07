@@ -3,7 +3,7 @@ import { View, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import AppText from "@/src/components/ui/text/AppText";
 import Icon from "@/src/components/ui/icon/Icon";
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 
 interface EditingMessage {
   content?: string;

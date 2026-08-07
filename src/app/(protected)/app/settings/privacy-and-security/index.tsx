@@ -12,35 +12,35 @@ export default function SecurityRoute() {
   return (
     <>
       <HeaderWithBackArrow
-        translationKey="settings.menu.security"
+        translationKey="settings.menu.privacyAndSecurity"
         onBack={onBack}
       />
       <SettingsPageScrollview>
         <Section>
           <SettingRow
             iconName="LockPasswordIcon"
-            labelKey="settings.security.password"
-            onPress={() => router.push("/app/settings/security/password")}
+            labelKey="settings.privacyAndSecurity.password"
+            onPress={() => router.push("/app/settings/privacy-and-security/password")}
           />
           <SettingRow
             iconName="TwoFactorAccessIcon"
-            labelKey="settings.security.mfa"
-            onPress={() => router.push("/app/settings/security/mfa")}
+            labelKey="settings.privacyAndSecurity.mfa"
+            onPress={() => router.push("/app/settings/privacy-and-security/mfa")}
           />
           <SettingRow
             iconName="ComputerIcon"
-            labelKey="settings.security.sessionsLabel"
-            onPress={() => router.push("/app/settings/security/sessions")}
+            labelKey="settings.privacyAndSecurity.sessionsLabel"
+            onPress={() => router.push("/app/settings/privacy-and-security/sessions")}
           />
           <SettingRow
             iconName="Key01Icon"
-            labelKey="settings.security.apiKeysLabel"
-            onPress={() => router.push("/app/settings/security/api-keys")}
+            labelKey="settings.privacyAndSecurity.apiKeysLabel"
+            onPress={() => router.push("/app/settings/privacy-and-security/api-keys")}
           />
           <SettingRow
             iconName="Notification03Icon"
-            labelKey="settings.security.notifications"
-            onPress={() => router.push("/app/settings/security/notifications")}
+            labelKey="settings.privacyAndSecurity.notifications"
+            onPress={() => router.push("/app/settings/privacy-and-security/notifications")}
             style={{ borderBottomWidth: 0 }}
           />
         </Section>

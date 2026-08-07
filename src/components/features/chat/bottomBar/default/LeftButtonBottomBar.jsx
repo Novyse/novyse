@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef } from "react";
 import { StyleSheet, Animated, Pressable } from "react-native";
 
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";

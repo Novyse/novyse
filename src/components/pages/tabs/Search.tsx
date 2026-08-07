@@ -22,7 +22,7 @@ import Label from "@/src/components/ui/label/Label";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import database from "@/src/utils/storage/database";
 import Icon from "@/src/components/ui/icon/Icon";
-import Avatar from "@/src/components/Avatar";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 import AppHeader from "@/src/components/features/header/AppHeader";
 import { headerIconButtonStyle } from "@/src/components/features/header/AppHeaderRow";
 import { getAppHeaderScrollPaddingTop } from "@/src/components/features/header/constants";

@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
-import Avatar from "@/src/components/Avatar";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 import Dropzone from "@/src/components/modalSheets/uploadFile/Dropzone";
 import Footer from "@/src/components/modalSheets/uploadFile/Footer";
 import StatusMessage from "@/src/components/features/status/StatusMessage";

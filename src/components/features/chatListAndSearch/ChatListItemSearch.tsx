@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 
-import Avatar from "@/src/components/Avatar";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 import BaseListItem from "./BaseListItem";
 
 import { ThemeContext } from "@/src/context/ThemeContext";

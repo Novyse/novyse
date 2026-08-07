@@ -323,7 +323,7 @@
       "account": "Account",
       "customization": "Personalizzazione",
       "storage": "Archiviazione",
-      "security": "Sicurezza",
+      "privacyAndSecurity": "Privacy & Sicurezza",
       "comms": "Comunicazioni",
       "qrScanner": "Scanner QR",
       "shortcuts": "Scorciatoie",
@@ -448,8 +448,8 @@
       "documents": "Documenti",
       "others": "Altro"
     },
-    "security": {
-      "title": "Sicurezza",
+    "privacyAndSecurity": {
+      "title": "Privacy & Sicurezza",
       "status": "Stato",
       "actions": "Azioni",
       "sessions": {

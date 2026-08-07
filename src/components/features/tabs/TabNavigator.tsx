@@ -15,7 +15,7 @@ import useWindowSizeStore, {
 
 import TabBar from "@/src/components/features/tabs/TabBar";
 import Icon from "@/src/components/ui/icon/Icon";
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 import ChatList from "@/src/components/pages/tabs/ChatList";
 import Settings from "@/src/components/pages/tabs/Settings";
 import ProfilePage from "@/src/components/pages/tabs/Profile";

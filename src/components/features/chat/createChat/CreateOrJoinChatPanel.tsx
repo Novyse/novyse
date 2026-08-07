@@ -4,7 +4,7 @@ import AppText from "@/src/components/ui/text/AppText";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 
-import Avatar from "@/src/components/Avatar";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 import useChatHandlers from "@/src/hooks/chat/useChatHandlers";
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import Button from "@/src/components/ui/button/Button";

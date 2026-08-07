@@ -4,7 +4,7 @@ import { View, StyleSheet } from "react-native";
 import useOTP from "@/src/hooks/auth/useOTP";
 
 import AddAuthenticator from "@/src/components/features/settings/account/privacy-and-security/verify-method/AddAuthenticator";
-import OtpDigitsInput from "@/src/components/OtpDigitsInput";
+import OtpDigitsInput from "@/src/components/features/settings/privacy-and-security/security/OtpDigitsInput";
 
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import logoForQR from "@/assets/images/logo-novyse.png";

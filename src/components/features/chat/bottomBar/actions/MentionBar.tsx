@@ -9,8 +9,8 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import AppText from "@/src/components/ui/text/AppText";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import BlurredView from "@/src/components/BlurredView";
-import Avatar from "@/src/components/Avatar";
+import BlurredView from "@/src/components/layout/BlurredView";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 
 interface Member {

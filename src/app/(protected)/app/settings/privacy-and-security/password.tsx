@@ -37,21 +37,21 @@ export default function PasswordRoute() {
 
   const handleChangePassword = async () => {
     if (!newPassword || !confirmPassword) {
-      setError(t("settings.security.fillAllFields"));
+      setError(t("settings.privacyAndSecurity.fillAllFields"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError(t("settings.security.newPasswordsDontMatch"));
+      setError(t("settings.privacyAndSecurity.newPasswordsDontMatch"));
       return;
     }
     setIsLoading(true);
     try {
       const response = await auth.settings.opaque(newPassword);
       if (response.success) {
-        setSuccess(t("settings.security.changePasswordSuccess"));
+        setSuccess(t("settings.privacyAndSecurity.changePasswordSuccess"));
         resetForm();
       } else {
-        setError(response.error || t("settings.security.changePasswordFailed"));
+        setError(response.error || t("settings.privacyAndSecurity.changePasswordFailed"));
       }
     } catch (err: any) {
       setError(err.message);
@@ -63,24 +63,24 @@ export default function PasswordRoute() {
   return (
     <>
       <HeaderWithBackArrow
-        translationKey="settings.security.password"
+        translationKey="settings.privacyAndSecurity.password"
         onBack={onBack}
       />
       <SettingsPageScrollview>
-        <Section titleKey="settings.security.status" style={{ marginTop: 20 }}>
+        <Section titleKey="settings.privacyAndSecurity.status" style={{ marginTop: 20 }}>
           <SettingRow
             iconName="CheckmarkCircle02Icon"
-            labelKey="settings.security.passwordActive"
-            valueKey="settings.security.passwordProtected"
+            labelKey="settings.privacyAndSecurity.passwordActive"
+            valueKey="settings.privacyAndSecurity.passwordProtected"
             style={{ borderBottomWidth: 0 }}
           />
         </Section>
 
         {!showForm && (
-          <Section titleKey="settings.security.actions">
+          <Section titleKey="settings.privacyAndSecurity.actions">
             <SettingRow
               iconName="Edit02Icon"
-              labelKey="settings.security.changePassword"
+              labelKey="settings.privacyAndSecurity.changePassword"
               onPress={() => setShowForm("change")}
               style={{ borderBottomWidth: 0 }}
             />
@@ -91,7 +91,7 @@ export default function PasswordRoute() {
 
         {/* Change Password Form */}
         {showForm === "change" && (
-          <Section titleKey="settings.security.changePassword">
+          <Section titleKey="settings.privacyAndSecurity.changePassword">
             <View style={styles.formContainer}>
               <StatusMessage
                 type="error"
@@ -102,8 +102,8 @@ export default function PasswordRoute() {
 
               <View style={styles.inputContainer}>
                 <TextInput
-                  labelTranslationKey="settings.security.newPassword"
-                  placeholder={t("settings.security.enterNewPassword")}
+                  labelTranslationKey="settings.privacyAndSecurity.newPassword"
+                  placeholder={t("settings.privacyAndSecurity.enterNewPassword")}
                   value={newPassword}
                   onChangeText={setNewPassword}
                   secureTextEntry
@@ -112,8 +112,8 @@ export default function PasswordRoute() {
               </View>
               <View style={styles.inputContainer}>
                 <TextInput
-                  labelTranslationKey="settings.security.confirmNewPassword"
-                  placeholder={t("settings.security.confirmNewPasswordInput")}
+                  labelTranslationKey="settings.privacyAndSecurity.confirmNewPassword"
+                  placeholder={t("settings.privacyAndSecurity.confirmNewPasswordInput")}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   secureTextEntry
@@ -125,14 +125,14 @@ export default function PasswordRoute() {
                 <Button
                   text={
                     isLoading
-                      ? t("settings.security.changing")
-                      : t("settings.security.changePassword")
+                      ? t("settings.privacyAndSecurity.changing")
+                      : t("settings.privacyAndSecurity.changePassword")
                   }
                   onPress={handleChangePassword}
                   disabled={isLoading}
                 />
                 <Button
-                  translationKey="settings.security.cancel"
+                  translationKey="settings.privacyAndSecurity.cancel"
                   onPress={resetForm}
                 />
               </View>
@@ -140,7 +140,7 @@ export default function PasswordRoute() {
               <View style={styles.securityNote}>
                 <AppText
                   style={styles.noteText}
-                  translationKey="settings.security.passwordNote"
+                  translationKey="settings.privacyAndSecurity.passwordNote"
                 />
               </View>
             </View>

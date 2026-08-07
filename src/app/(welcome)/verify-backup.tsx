@@ -7,7 +7,7 @@ import { useScreen } from "@/src/context/ScreenContext";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 import gateway from "@/src/utils/backend-services/api-gateway";
-import OtpDigitsInput from "@/src/components/OtpDigitsInput";
+import OtpDigitsInput from "@/src/components/features/settings/privacy-and-security/security/OtpDigitsInput";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import WelcomeButton from "@/src/components/features/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonText";

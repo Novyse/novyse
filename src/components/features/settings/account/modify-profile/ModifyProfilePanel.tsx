@@ -12,7 +12,7 @@ import ProfileBanner from "@/src/components/features/profile/ProfileBanner";
 import ProfileHeader from "@/src/components/features/profile/ProfileHeader";
 import FormSection from "@/src/components/features/settings/account/modify-profile/modifyProfileForm/ModifyProfileForm";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";

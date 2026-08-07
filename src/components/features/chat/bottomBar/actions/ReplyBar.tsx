@@ -8,7 +8,7 @@ import messageUtils from "@/src/utils/chat/messageFormat";
 
 import AppText from "@/src/components/ui/text/AppText";
 import Icon from "@/src/components/ui/icon/Icon";
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 
 interface Message {
   id: string | number;

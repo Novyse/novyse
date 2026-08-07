@@ -13,7 +13,7 @@ import { APP_URL } from "@/app.config";
 import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
 import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
-import Avatar from "@/src/components/Avatar";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 
 interface ProfileQRCodeModalProps {
   visible: boolean;

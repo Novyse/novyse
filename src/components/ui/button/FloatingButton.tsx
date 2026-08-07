@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import BlurredView from "../../BlurredView";
+import BlurredView from "../../layout/BlurredView";
 import HoverAndPressedButton from "./HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
 

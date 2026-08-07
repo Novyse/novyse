@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal, StyleSheet, Pressable, ScrollView, View } from "react-native";
-import BlurredView from "../BlurredView";
+import BlurredView from "../layout/BlurredView";
 import ModalHeader from "./ModalHeader";
 import { useScreen } from "@/src/context/ScreenContext";
 

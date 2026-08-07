@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 
 const RightButtonBottomBar = ({
   isRecording,

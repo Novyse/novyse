@@ -9,7 +9,7 @@ import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 import FileSizeProgress from "./FileSizeProgress";
 
 import { formatTime, formatDuration } from "@/src/utils/storage/file/utils";
-import SmoothWaveform from "../SmoothWaveform";
+import SmoothWaveform from "./MessageVoiceWaveform";
 import PlayButton from "./Button";
 
 const MessageVoice = ({

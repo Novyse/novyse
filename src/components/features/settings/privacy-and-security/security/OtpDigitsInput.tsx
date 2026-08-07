@@ -1,10 +1,9 @@
-import React, { useContext, useRef } from "react";
+import { useContext, useRef } from "react";
 import {
   View,
   TextInput,
   StyleSheet,
-  NativeSyntheticEvent,
-  TextInputKeyPressEventData,
+  TextInputKeyPressEvent,
   ViewStyle,
   TextStyle,
 } from "react-native";
@@ -76,10 +75,7 @@ const OtpDigitsInput = ({
     // Ignora qualsiasi altro input senza fare nulla
   };
 
-  const handleKeyPress = (
-    e: NativeSyntheticEvent<TextInputKeyPressEventData>,
-    index: number,
-  ): void => {
+  const handleKeyPress = (e: TextInputKeyPressEvent, index: number): void => {
     if (e.nativeEvent.key === "Backspace") {
       if (value[index] === "" && index > 0) {
         refs.current[index - 1]?.focus();

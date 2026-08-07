@@ -29,15 +29,15 @@ export default function MfaRoute() {
   const [methods, setMethods] = useState<MfaMethod[]>([
     {
       id: "authenticator",
-      name: t("settings.security.authenticator"),
-      description: t("settings.security.authAppDesc"),
+      name: t("settings.privacyAndSecurity.authenticator"),
+      description: t("settings.privacyAndSecurity.authAppDesc"),
       iconName: "SecurityIcon",
       isActive: true,
     },
     {
       id: "email",
-      name: t("settings.security.email"),
-      description: t("settings.security.emailCodeDesc"),
+      name: t("settings.privacyAndSecurity.email"),
+      description: t("settings.privacyAndSecurity.emailCodeDesc"),
       iconName: "Mail01Icon",
       isActive: false,
     },
@@ -52,7 +52,7 @@ export default function MfaRoute() {
     setMethods((prev) =>
       prev.map((m) => (m.id === methodId ? { ...m, isActive: true } : m)),
     );
-    setSuccess(t("settings.security.mfaMethodAdded"));
+    setSuccess(t("settings.privacyAndSecurity.mfaMethodAdded"));
   };
 
   const handleRemoveMethod = (methodId: string) => {
@@ -61,7 +61,7 @@ export default function MfaRoute() {
     setMethods((prev) =>
       prev.map((m) => (m.id === methodId ? { ...m, isActive: false } : m)),
     );
-    setSuccess(t("settings.security.mfaMethodRemoved"));
+    setSuccess(t("settings.privacyAndSecurity.mfaMethodRemoved"));
   };
 
   const handleShowBackupCodes = () => {
@@ -72,24 +72,24 @@ export default function MfaRoute() {
   const handleResetBackupCodes = () => {
     // TODO: API call
     console.log("Reset backup codes");
-    setSuccess(t("settings.security.backupCodesResetSuccess"));
+    setSuccess(t("settings.privacyAndSecurity.backupCodesResetSuccess"));
   };
 
   return (
     <>
       <HeaderWithBackArrow
-        translationKey="settings.security.mfa"
+        translationKey="settings.privacyAndSecurity.mfa"
         onBack={onBack}
       />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
           <AppText
             style={styles.title}
-            translationKey="settings.security.mfaTitle"
+            translationKey="settings.privacyAndSecurity.mfaTitle"
           />
           <AppText
             style={styles.subtitle}
-            translationKey="settings.security.manageAuthMethods"
+            translationKey="settings.privacyAndSecurity.manageAuthMethods"
           />
         </View>
 
@@ -129,7 +129,7 @@ export default function MfaRoute() {
                       <View style={styles.statusBadge}>
                         <AppText
                           style={styles.statusText}
-                          translationKey="settings.security.active"
+                          translationKey="settings.privacyAndSecurity.active"
                         />
                       </View>
                       <Pressable
@@ -155,7 +155,7 @@ export default function MfaRoute() {
                       <Icon name="PlusSignCircleIcon" />
                       <AppText
                         style={styles.addButtonText}
-                        translationKey="settings.security.add"
+                        translationKey="settings.privacyAndSecurity.add"
                       />
                     </Pressable>
                   )}
@@ -167,11 +167,11 @@ export default function MfaRoute() {
 
         <View style={styles.buttonContainer}>
           <Button
-            translationKey="settings.security.showBackupCodes"
+            translationKey="settings.privacyAndSecurity.showBackupCodes"
             onPress={handleShowBackupCodes}
           />
           <Button
-            translationKey="settings.security.resetBackupCodes"
+            translationKey="settings.privacyAndSecurity.resetBackupCodes"
             onPress={handleResetBackupCodes}
           />
         </View>

@@ -3,7 +3,7 @@ import { Animated, Easing, View, ScrollView, PanResponder } from "react-native";
 import { defaultWaveform } from "@/src/utils/storage/file/media";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-interface SmoothWaveformProps {
+interface MessageVoiceWaveformProps {
   waveformData?: number[];
   currentValue: number;
   maxValue: number;
@@ -13,7 +13,7 @@ interface SmoothWaveformProps {
   isMoving: boolean;
 }
 
-export default function SmoothWaveform({
+export default function MessageVoiceWaveform({
   waveformData = defaultWaveform,
   currentValue,
   maxValue,
@@ -21,7 +21,7 @@ export default function SmoothWaveform({
   onSeek,
   reset,
   isMoving,
-}: SmoothWaveformProps) {
+}: MessageVoiceWaveformProps) {
   const progressAnim = useRef(new Animated.Value(0)).current;
   const [progress, setProgress] = useState<number>(0);
   const waveformRef = useRef<View>(null);

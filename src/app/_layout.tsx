@@ -13,8 +13,8 @@ import { ThemeProvider, useThemeContext } from "@/src/context/ThemeContext";
 import { LanguageProvider } from "@/src/context/LanguageContext";
 import useAuthSession from "@/src/hooks/auth/useAuthSession";
 
-import SplashScreen from "@/src/components/SplashScreen";
-import SmartBackground from "@/src/components/SmartBackground";
+import SplashScreen from "@/src/components/layout/SplashScreen";
+import SmartBackground from "@/src/components/layout/SmartBackground";
 import WindowControls, {
   WINDOW_CONTROL_HEIGHT,
 } from "@/src/components/features/desktop/WindowControls";

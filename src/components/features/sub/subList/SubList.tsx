@@ -15,7 +15,7 @@ import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 import VocalSubSubtitle from "./VocalSubSubtitle";
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import { useCommsContext } from "@/src/context/CommsContext";
-import BlurredView from "@/src/components/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 
 const SubList = ({
   chat,
