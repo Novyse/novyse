@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import AppText from "../../ui/text/AppText";
 import HoverAndPressedButton from "../../ui/button/HoverAndPressedButton";
 
-const Footer = ({
+const UploadFileOverlayFooter = ({
   files,
   leftButtonText,
   rightButtonText,
@@ -71,4 +71,4 @@ const createStyles = (theme) =>
     },
   });
 
-export default Footer;
+export default UploadFileOverlayFooter;

@@ -8,7 +8,7 @@ import HoverAndPressedButton from "../../ui/button/HoverAndPressedButton";
 import { formatFileSize } from "@/src/utils/storage/file/utils";
 import { ScrollBar } from "@/constants/ScrollBar";
 
-const Dropzone = ({
+const UploadFileOverlayDropzone = ({
   title,
   subtitle,
   files,
@@ -179,4 +179,4 @@ const createStyle = (theme) =>
     },
   });
 
-export default Dropzone;
+export default UploadFileOverlayDropzone;

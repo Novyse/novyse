@@ -1,10 +1,9 @@
-import React from "react";
 import { View, StyleSheet } from "react-native";
 
 import AppText from "@/src/components/ui/text/AppText";
 import HoverAndPressedButton from "../../ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
-import AdaptiveModal from "../AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 import Platform from "@/src/utils/device/type";
 
 const MENU_ITEMS = [
@@ -109,7 +108,6 @@ const UploadFileOverlay = ({
 const createStyle = (theme) =>
   StyleSheet.create({
     content: {
-      padding: 10,
     },
     menuRow: {
       flexDirection: "row",

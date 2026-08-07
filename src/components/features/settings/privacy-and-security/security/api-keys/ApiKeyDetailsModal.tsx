@@ -1,5 +1,5 @@
 import { View, StyleSheet } from "react-native";
-import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 import Icon from "@/src/components/ui/icon/Icon";
 import CopyLabel from "@/src/components/features/settings/privacy-and-security/security/api-keys/CopyApiKeyButton";
 import Button from "@/src/components/ui/button/Button";

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
-import AdaptiveModal from "./AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 import Icon from "@/src/components/ui/icon/Icon";
 import AppText from "../ui/text/AppText";
 import gateway from "@/src/utils/backend-services/api-gateway";

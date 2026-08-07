@@ -1,6 +1,6 @@
 import { View, StyleSheet } from "react-native";
 import { useThemeContext } from "@/src/context/ThemeContext";
-import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 import SettingsSelectGroup, { SelectOption } from "./SettingsSelectGroup";
 import AppText from "@/src/components/ui/text/AppText";
 

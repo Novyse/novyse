@@ -6,7 +6,7 @@ import {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import BlurredView from "../layout/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 import ModalHeader from "./ModalHeader";
 
 const BottomSheetBase = forwardRef(

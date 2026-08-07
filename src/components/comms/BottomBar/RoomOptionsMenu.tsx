@@ -5,7 +5,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
 import HoverAndPressedButton from "../../ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
-import AdaptiveModal from "../../modalSheets/AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 
 interface RoomOptionsMenuProps {
   visible: boolean;

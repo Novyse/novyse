@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import Button from "@/src/components/ui/button/Button";
 import TextInput from "@/src/components/ui/input/TextInput";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import AppText from "@/src/components/ui/text/AppText";
 

@@ -8,7 +8,7 @@ import {
 } from "react-native";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
-import AdaptiveModal from "../../modalSheets/AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 import AppText from "@/src/components/ui/text/AppText";
 import Switch from "@/src/components/ui/switch/Switch";
 import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";

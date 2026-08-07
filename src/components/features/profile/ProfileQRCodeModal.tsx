@@ -10,7 +10,7 @@ import useClipboard from "@/src/hooks/useClipboard";
 import logoForQR from "@/assets/images/logo-novyse.png";
 import { APP_URL } from "@/app.config";
 
-import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Avatar from "@/src/components/ui/avatar/Avatar";

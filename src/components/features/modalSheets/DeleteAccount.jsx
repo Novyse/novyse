@@ -1,0 +1,171 @@
+import { useContext, useState } from "react";
+import { View, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
+import { useRouter } from "expo-router";
+
+import Button from "@/src/components/ui/button/Button";
+import TextInput from "@/src/components/ui/input/TextInput";
+import AppText from "@/src/components/ui/text/AppText";
+import LinkText from "@/src/components/ui/text/LinkText";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
+
+import { ThemeContext } from "@/src/context/ThemeContext";
+import useUserStore from "@/src/context/UserContext";
+
+import authBackend from "@/src/utils/backend-services/auth";
+import auth from "@/src/utils/welcome/auth";
+
+const DeleteAccount = ({ visible, onClose }) => {
+  const { theme } = useContext(ThemeContext);
+  const { t } = useTranslation();
+  const router = useRouter();
+  const styles = createStyles(theme);
+
+  const myUUID = useUserStore((state) => state.localUserUUID);
+  const username = useUserStore((state) => state.users[myUUID]?.handle);
+
+  const [inputUsername, setInputUsername] = useState("");
+  const [error, setError] = useState(null);
+
+  const isMatch = inputUsername === username;
+
+  const handleClose = () => {
+    setInputUsername("");
+    setError(null);
+    onClose?.();
+  };
+
+  const handleConfirm = async () => {
+    if (!isMatch) return;
+
+    const response = await authBackend.account.delete();
+    if (response) {
+      await auth.logout();
+      router.navigate("/welcome?deleteAccount=true");
+    } else {
+      setError(t("modals.create_chat.errors.genericError"));
+    }
+  };
+
+  const ModalContent = (
+    <View>
+      <View style={styles.header}>
+        <AppText
+          style={styles.modalSubtitle}
+          translationKey="modals.delete_account.warning"
+        />
+      </View>
+
+      <View style={styles.section}>
+        <AppText
+          style={styles.sectionLabel}
+          translationKey="modals.delete_account.confirmation_identity"
+        />
+        <AppText
+          style={styles.inputLabel}
+          translationKey="modals.delete_account.confirm_instruction"
+          translationOptions={{ username }}
+        />
+        <TextInput
+          value={inputUsername}
+          onChange={setInputUsername}
+          autoCapitalize="none"
+        />
+        <AppText style={styles.helperText}>
+          <AppText translationKey="modals.delete_account.helper_text" />{" "}
+          <LinkText
+            translationKey="modals.delete_account.learn_more"
+            href="https://www.novyse.com/help/guides/account/delete"
+          />
+        </AppText>
+      </View>
+
+      <StatusMessage
+        visible={!!error}
+        onClose={() => setError(null)}
+        content={[error]}
+        type="error"
+        theme={theme}
+      />
+
+      <View style={styles.footer}>
+        <Button
+          translationKey="modals.delete_account.delete"
+          icon="Delete02Icon"
+          disabled={!isMatch}
+          onPress={handleConfirm}
+          style={[styles.deleteBtn, !isMatch && styles.deleteBtnDisabled]}
+        />
+      </View>
+    </View>
+  );
+
+  return (
+    <AdaptiveModal
+      visible={visible}
+      onClose={handleClose}
+      theme={theme}
+      mode="adaptive"
+      titleTranslationKey="modals.delete_account.title"
+      titleStyle={styles.modalTitle}
+    >
+      {ModalContent}
+    </AdaptiveModal>
+  );
+};
+
+const createStyles = (theme) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    modalTitle: {
+      color: theme.dangerText,
+    },
+    modalSubtitle: {
+      fontSize: 14,
+      color: theme.placeholderText,
+      lineHeight: 20,
+    },
+    section: {
+      marginTop: 24,
+    },
+    sectionLabel: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: theme.icon,
+      letterSpacing: 1,
+      marginBottom: 12,
+      textTransform: "uppercase",
+    },
+    inputLabel: {
+      fontSize: 14,
+      color: theme.text,
+      marginBottom: 8,
+    },
+    helperText: {
+      fontSize: 12,
+      color: theme.placeholderText,
+      marginTop: 6,
+    },
+    footer: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      gap: 12,
+      paddingTop: 16,
+      marginTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: theme.backgroundCard,
+    },
+    deleteBtn: {
+      backgroundColor: theme.dangerText,
+    },
+    deleteBtnDisabled: {
+      backgroundColor: theme.backgroundDanger,
+    },
+  });
+
+export default DeleteAccount;

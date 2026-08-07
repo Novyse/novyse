@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
 import AppText from "@/src/components/ui/text/AppText";
-import AdaptiveModal from "../../modalSheets/AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { parseVideoUrl } from "@/src/hooks/comms/useWatchTogether";
 

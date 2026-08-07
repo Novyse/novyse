@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, StyleSheet } from "react-native";
-import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 import TextInput from "@/src/components/ui/input/TextInput";
 import Button from "@/src/components/ui/button/Button";
 import AppText from "@/src/components/ui/text/AppText";

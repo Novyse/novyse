@@ -14,7 +14,7 @@ import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
-import AdaptiveModal from "../../../modalSheets/AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 import SelectButton from "./ChatTypeButton";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import Icon from "@/src/components/ui/icon/Icon";

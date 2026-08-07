@@ -9,7 +9,7 @@ import OtpDigitsInput from "@/src/components/features/settings/privacy-and-secur
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import logoForQR from "@/assets/images/logo-novyse.png";
 
-import AdaptiveModal from "@/src/components/modalSheets/AdaptiveModal";
+import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
 import Button from "@/src/components/ui/button/Button";
 import AppText from "@/src/components/ui/text/AppText";
 
