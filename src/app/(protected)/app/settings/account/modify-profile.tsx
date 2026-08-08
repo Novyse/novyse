@@ -1,13 +1,13 @@
 import React, { useContext, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/context/UserContext";
 
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
-import UploadProfilePicture from "@/src/components/modalSheets/UploadProfilePicture";
+import UploadProfilePicture from "@/src/components/features/modalSheets/UploadProfilePicture";
 
 import Page from "@/src/components/features/settings/account/modify-profile/ModifyProfilePanel";
 
@@ -30,7 +30,7 @@ export default function AccountModifyRoute() {
           translationKey="settings.account.title"
           onBack={() => onBack()}
         />
-        <AppText
+        <Typography
           style={styles.loadingText}
           translationKey="common.loadingProfile"
         />

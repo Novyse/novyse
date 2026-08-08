@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, View, TouchableOpacity } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface ShortcutItemProps {
@@ -28,18 +28,18 @@ const ShortcutItem = ({
       disabled={disabled}
     >
       {translationKey ? (
-        <AppText style={styles.label} translationKey={translationKey} />
+        <Typography style={styles.label} translationKey={translationKey} />
       ) : (
-        <AppText style={styles.label} text={label} />
+        <Typography style={styles.label} text={label} />
       )}
       <View style={styles.keysContainer}>
         {keys.map((key, index) => (
           <React.Fragment key={index}>
             <View style={styles.keyBox}>
-              <AppText style={styles.keyText} text={key.toUpperCase()} />
+              <Typography style={styles.keyText} text={key.toUpperCase()} />
             </View>
             {index < keys.length - 1 && (
-              <AppText style={styles.plus} text="+" />
+              <Typography style={styles.plus} text="+" />
             )}
           </React.Fragment>
         ))}

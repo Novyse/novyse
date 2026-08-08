@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -142,11 +142,11 @@ export default function ApiKeysRoute() {
             {apiKeys.length === 0 ? (
               <View style={styles.emptyState}>
                 <Icon name="Key01Icon" size={48} />
-                <AppText
+                <Typography
                   style={styles.emptyText}
                   translationKey="settings.privacyAndSecurity.noApiKeys"
                 />
-                <AppText
+                <Typography
                   style={styles.emptySubtext}
                   translationKey="settings.privacyAndSecurity.createApiKeyPrompt"
                 />

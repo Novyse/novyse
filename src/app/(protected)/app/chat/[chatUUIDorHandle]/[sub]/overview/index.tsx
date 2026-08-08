@@ -8,7 +8,7 @@ import useUserStore from "@/src/context/UserContext";
 import SegmentedSwitch, {
   ToggleOption,
 } from "@/src/components/ui/switch/SegmentedSwitch";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 import Icon from "@/src/components/ui/icon/Icon";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
@@ -108,11 +108,11 @@ const ChatOverview = () => {
             <Icon name="UserIcon" color={theme.primary} />
           </View>
           <View style={styles.dmInfoContent}>
-            <AppText
+            <Typography
               style={styles.dmInfoLabel}
               translationKey="settings.modifyProfile.username"
             />
-            <AppText
+            <Typography
               style={styles.dmInfoValue}
               text={
                 dmUser.handle
@@ -133,11 +133,11 @@ const ChatOverview = () => {
             <Icon name="InformationCircleIcon" color={theme.primary} />
           </View>
           <View style={styles.dmInfoContent}>
-            <AppText
+            <Typography
               style={styles.dmInfoLabel}
               translationKey="settings.modifyProfile.biography"
             />
-            <AppText
+            <Typography
               style={styles.dmInfoValue}
               text={dmUser.biography || t("chat.overview.noDescriptionYet")}
             />
@@ -150,7 +150,7 @@ const ChatOverview = () => {
   const renderMembers = (chat: any) => {
     if (!chat?.members || chat.members.length === 0) {
       return (
-        <AppText
+        <Typography
           style={styles.emptyText}
           translationKey="chat.overview.noMembers"
         />
@@ -193,15 +193,15 @@ const ChatOverview = () => {
                     { backgroundColor: theme.primary + "33" },
                   ]}
                 >
-                  <AppText style={{ color: theme.primary, fontWeight: "600" }}>
+                  <Typography style={{ color: theme.primary, fontWeight: "600" }}>
                     {(user.name || user.handle || "?")[0].toUpperCase()}
-                  </AppText>
+                  </Typography>
                 </View>
               )}
               <View style={styles.memberInfo}>
-                <AppText style={styles.memberName}>
+                <Typography style={styles.memberName}>
                   {user.name || user.handle || t("chat.listItem.unknown")}
-                </AppText>
+                </Typography>
                 <View style={styles.roleBadgesContainer}>
                   {resolvedRoles.map((role: any) => (
                     <BadgeRenderer key={role.id} badge={role} />
@@ -209,13 +209,13 @@ const ChatOverview = () => {
                 </View>
               </View>
               {member.joinedAt && (
-                <AppText style={styles.memberJoinedAt}>
+                <Typography style={styles.memberJoinedAt}>
                   {DateTime.fromISO(new Date(member.joinedAt).toISOString(), {
                     zone: "utc",
                   })
                     .toLocal()
                     .toFormat("MMMM d, yyyy")}
-                </AppText>
+                </Typography>
               )}
             </Pressable>
           );
@@ -229,7 +229,7 @@ const ChatOverview = () => {
       return (
         <View style={styles.emptyContainer}>
           <Icon name="Folder01Icon" size={48} color={theme.subtitle} />
-          <AppText
+          <Typography
             style={styles.emptyText}
             translationKey="chat.overview.noFiles"
           />
@@ -243,10 +243,10 @@ const ChatOverview = () => {
           <View key={file.id || index} style={styles.fileItem}>
             <Icon name="File02Icon" size={32} color={theme.primary} />
             <View style={styles.fileInfo}>
-              <AppText style={styles.fileName}>
+              <Typography style={styles.fileName}>
                 {file.name || t("common.unnamedFile")}
-              </AppText>
-              <AppText
+              </Typography>
+              <Typography
                 style={styles.fileSize}
                 text={`${(file.size / 1024).toFixed(2)} KB`}
               />
@@ -284,9 +284,9 @@ const ChatOverview = () => {
               uuid={profilePictureUUID || undefined}
               style={styles.profilePicture}
             />
-            <AppText style={styles.membersLabel}>
+            <Typography style={styles.membersLabel}>
               {isDM ? name : t("chat.memberCount", { count: membersCount })}
-            </AppText>
+            </Typography>
           </View>
         </View>
 
@@ -330,7 +330,7 @@ const ChatOverview = () => {
             >
               <Icon name="Settings01Icon" color={theme.primary} />
             </View>
-            <AppText
+            <Typography
               style={[styles.actionText, { color: theme.primary }]}
               translationKey="common.settings"
             />
@@ -352,7 +352,7 @@ const ChatOverview = () => {
                 color={theme.iconDanger}
               />
             </View>
-            <AppText
+            <Typography
               style={[styles.actionText, { color: theme.iconDanger }]}
               translationKey={isDM ? "common.block" : "common.leave"}
             />

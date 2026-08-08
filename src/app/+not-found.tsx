@@ -8,7 +8,7 @@ import { LoginColors } from "@/constants/LoginColors";
 
 import WelcomeButton from "@/src/components/features/welcome/WelcomeButton";
 import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonText";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
@@ -24,15 +24,15 @@ export default function NotFoundPage() {
       <View style={styles.card}>
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
-          <AppText
+          <Typography
             style={styles.title}
             translationKey="layout.notFound.title"
           />
-          <AppText
+          <Typography
             style={styles.subtitle}
             translationKey="layout.notFound.subtitle"
           />
-          <AppText
+          <Typography
             style={styles.message}
             translationKey="layout.notFound.message"
           />

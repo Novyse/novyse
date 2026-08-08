@@ -1,11 +1,11 @@
 import React from "react";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { LoginColors } from "@/constants/LoginColors";
 import { validate } from "@/src/utils/welcome/validator";
 import Icon from "@/src/components/ui/icon/Icon";
-import TextLink from "@/src/components/ui/text/LinkText";
+import LinkTypography from "@/src/components/ui/typography/Typography";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 
 interface Props {
@@ -69,7 +69,7 @@ export default function SignupStepField({
     return (
       <View style={styles.group}>
         <View style={styles.inputGroup}>
-          <AppText
+          <Typography
             style={[styles.label, { color: colors.subtitle }]}
             translationKey="auth.signupStep.displayName"
           />
@@ -108,7 +108,7 @@ export default function SignupStepField({
     return (
       <View style={styles.group}>
         <View style={styles.inputGroup}>
-          <AppText
+          <Typography
             style={[styles.label, { color: colors.subtitle }]}
             translationKey="auth.signupStep.username"
           />
@@ -167,7 +167,7 @@ export default function SignupStepField({
               <StatusMessage type="error" content={[handleError]} />
             )}
             {!!(handleAvailable === true && !handleError && form.handle) && (
-              <AppText
+              <Typography
                 style={{
                   color: colors.signupReqGreen,
                   fontSize: 13,
@@ -200,7 +200,7 @@ export default function SignupStepField({
     return (
       <View style={styles.group}>
         <View style={styles.inputGroup}>
-          <AppText
+          <Typography
             style={[styles.label, { color: colors.subtitle }]}
             translationKey="auth.signupStep.password"
           />
@@ -233,7 +233,7 @@ export default function SignupStepField({
         </View>
 
         <View style={styles.inputGroup}>
-          <AppText
+          <Typography
             style={[styles.label, { color: colors.subtitle }]}
             translationKey="auth.signupStep.confirmPassword"
           />
@@ -286,16 +286,16 @@ export default function SignupStepField({
         )}
 
         <View style={styles.opaqueLink}>
-          <AppText
+          <Typography
             style={styles.opaqueLinkText}
             translationKey="auth.login.securedBy"
           />
-          <TextLink
+          <LinkTypography
             style={styles.opaqueLinkTextBold}
             href="https://opaque-auth.com/"
           >
             OPAQUE
-          </TextLink>
+          </LinkTypography>
         </View>
       </View>
     );

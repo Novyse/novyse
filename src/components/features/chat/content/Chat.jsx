@@ -36,9 +36,9 @@ import { useKeyboardStore } from "@/src/context/KeyboardContext";
 
 import BottomBar from "@/src/components/features/chat/bottomBar/ChatBottomBar";
 import MessageList from "@/src/components/features/chat/content/MessageList";
-import UploadFileOverlay from "@/src/components/modalSheets/uploadFile/UploadFileOverlay";
+import UploadFileOverlay from "@/src/components/features/modalSheets/uploadFile/UploadFileOverlay";
 import { EmojiMenuOverlay } from "@/src/components/features/chat/content/emoji/EmojiMenuOverlay";
-import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
+import DeleteMessageModal from "@/src/components/features/modalSheets/DeleteMessage";
 import WebDropZone from "@/src/components/ui/input/WebDropZone";
 
 import { validateFiles } from "@/src/utils/storage/file/validators";

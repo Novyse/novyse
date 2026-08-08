@@ -4,7 +4,7 @@ import { Image as ExpoImage } from "expo-image";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import FileButton from "@/src/components/messages/Button";
-import ImageViewer from "@/src/components/modalSheets/viewer/ImageViewer";
+import ImageViewer from "@/src/components/features/modalSheets/viewer/ImageViewer";
 import FileSizeProgress from "@/src/components/messages/FileSizeProgress";
 
 // Session cache to remember image ratios during the session

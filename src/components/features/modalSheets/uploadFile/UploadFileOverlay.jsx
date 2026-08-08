@@ -1,9 +1,9 @@
 import { View, StyleSheet } from "react-native";
 
-import AppText from "@/src/components/ui/text/AppText";
-import HoverAndPressedButton from "../../ui/button/HoverAndPressedButton";
+import Typography from "@/src/components/ui/typography/Typography";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import Platform from "@/src/utils/device/type";
 
 const MENU_ITEMS = [
@@ -93,7 +93,7 @@ const UploadFileOverlay = ({
               disabled={item.disabled}
             >
               <Icon name={item.iconName} size={32} color={theme.icon} />
-              <AppText
+              <Typography
                 style={styles.menuText}
                 translationKey={item.translationKey}
               />

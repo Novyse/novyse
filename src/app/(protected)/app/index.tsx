@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 export default function RootLayout() {
@@ -14,7 +14,7 @@ export default function RootLayout() {
         backgroundColor: "transparent",
       }}
     >
-      <AppText
+      <Typography
         style={{ fontSize: 18, color: theme.text }}
         translationKey="layout.nothingSelected"
       />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { useScreen } from "@/src/context/ScreenContext";
 
@@ -100,11 +100,11 @@ const Verify: React.FC = () => {
         <View style={styles.cardContent}>
           {/* <Image style={styles.logo} source={logoNovyse} /> */}
 
-          <AppText
+          <Typography
             style={styles.title}
             translationKey={getFormattedVerificationType()}
           />
-          <AppText
+          <Typography
             style={styles.subtitle}
             translationKey="auth.verify.subtitle"
           />

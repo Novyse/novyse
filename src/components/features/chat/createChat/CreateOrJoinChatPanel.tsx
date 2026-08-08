@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 
@@ -67,13 +67,13 @@ const CreateOrJoinChatPanel = ({
               style={styles.avatar}
             />
 
-            <AppText style={styles.title} text={displayName} />
-            <AppText style={styles.handle} text={`@${chat?.handle}`} />
+            <Typography style={styles.title} text={displayName} />
+            <Typography style={styles.handle} text={`@${chat?.handle}`} />
           </View>
 
           <View style={styles.infoBox}>
             <Icon name="InformationCircleIcon" />
-            <AppText
+            <Typography
               style={styles.infoText}
               translationKey={
                 isUser
@@ -86,7 +86,7 @@ const CreateOrJoinChatPanel = ({
           <View style={styles.extraInfoContainer}>
             <View style={styles.extraInfoItem}>
               <Icon name="Shield01Icon" size={20} />
-              <AppText
+              <Typography
                 style={styles.extraInfoText}
                 translationKey={
                   isUser
@@ -97,7 +97,7 @@ const CreateOrJoinChatPanel = ({
             </View>
             <View style={styles.extraInfoItem}>
               <Icon name="NotificationOff02Icon" size={20} />
-              <AppText
+              <Typography
                 style={styles.extraInfoText}
                 translationKey="chat.joinCreate.notificationMuteDesc"
               />

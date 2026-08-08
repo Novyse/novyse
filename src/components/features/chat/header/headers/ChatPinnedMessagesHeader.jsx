@@ -6,7 +6,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import useChatStore from "@/src/context/ChatContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 
 const PinnedMessageHeader = ({ pinnedMessages }) => {
@@ -93,13 +93,13 @@ const PinnedMessageHeader = ({ pinnedMessages }) => {
             style={styles.pinnedTextContainer}
             onPress={handlePress}
           >
-            <AppText
+            <Typography
               style={styles.pinnedText}
               numberOfLines={1}
               text={message?.content}
             />
             {hasMultiple && (
-              <AppText
+              <Typography
                 style={styles.indicatorText}
                 text={`${currentIndex + 1} / ${pinnedMessages.length}`}
               />

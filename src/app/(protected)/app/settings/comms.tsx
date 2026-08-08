@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { StyleSheet, View, TouchableOpacity } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
@@ -160,7 +160,7 @@ export default function CommsRoute() {
           onBack={onBack}
         />
         <View style={styles.container}>
-          <AppText
+          <Typography
             style={styles.loadingText}
             translationKey="settings.comms.loadingSettings"
           />
@@ -177,12 +177,12 @@ export default function CommsRoute() {
           onBack={onBack}
         />
         <View style={styles.container}>
-          <AppText
+          <Typography
             style={styles.dangerText}
             translationKey="settings.comms.errorLoadingSettings"
           />
           <TouchableOpacity style={styles.retryButton} onPress={loadSettings}>
-            <AppText
+            <Typography
               style={styles.retryButtonText}
               translationKey="settings.comms.retry"
             />
@@ -205,7 +205,7 @@ export default function CommsRoute() {
           closable={false}
         />
         <SettingsCard>
-          <AppText
+          <Typography
             style={styles.sectionTitle}
             translationKey="settings.comms.inputDevices"
           />
@@ -217,7 +217,7 @@ export default function CommsRoute() {
 
           {devicesLoading ? (
             <View style={styles.disabledField}>
-              <AppText
+              <Typography
                 translationKey="settings.comms.loadingDevices"
               />
             </View>
@@ -276,7 +276,7 @@ export default function CommsRoute() {
         </SettingsCard>
 
         <SettingsCard>
-          <AppText
+          <Typography
             style={styles.sectionTitle}
             translationKey="settings.comms.videoSettings"
           />
@@ -295,7 +295,7 @@ export default function CommsRoute() {
         </SettingsCard>
 
         <SettingsCard>
-          <AppText
+          <Typography
             style={styles.sectionTitle}
             translationKey="settings.comms.screenShareSettings"
           />
@@ -322,7 +322,7 @@ export default function CommsRoute() {
         </SettingsCard>
 
         <SettingsCard>
-          <AppText
+          <Typography
             style={styles.sectionTitle}
             translationKey="settings.comms.audioProcessing"
           />
@@ -371,13 +371,13 @@ export default function CommsRoute() {
 
         {__DEV__ && (
           <SettingsCard>
-            <AppText
+            <Typography
               style={styles.debugTitle}
               translationKey="settings.comms.currentSettings"
             />
-            <AppText style={styles.debugText}>
+            <Typography style={styles.debugText}>
               {JSON.stringify(audioSettings, null, 2)}
-            </AppText>
+            </Typography>
           </SettingsCard>
         )}
       </SettingsPageScrollview>

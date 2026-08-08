@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, TextInput, StyleSheet, Platform } from "react-native";
 import { useTranslation } from "react-i18next";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 import { useScreen } from "@/src/context/ScreenContext";
 import Icon from "@/src/components/ui/icon/Icon";
@@ -10,8 +10,8 @@ import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonTe
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import { router } from "expo-router";
 
-import TextLink from "../../../ui/text/LinkText";
-import TurnstileCaptcha from "../auth/TurnstileCaptcha";
+import LinkTypography from "@/src/components/ui/typography/LinkTypography";
+import TurnstileCaptcha from "@/src/components/features/welcome/auth/TurnstileCaptcha";
 
 interface LoginFormProps {
   onLogin: (username: string, password: string, captchaToken: string) => void;
@@ -58,8 +58,8 @@ const LoginForm = ({
       <View style={styles.card}>
         <View style={styles.cardContent}>
           {/* <Image style={styles.logo} source={logoNovyse} /> */}
-          <AppText style={styles.title} translationKey="auth.login.title" />
-          <AppText
+          <Typography style={styles.title} translationKey="auth.login.title" />
+          <Typography
             style={styles.subtitle}
             translationKey="auth.login.subtitle"
           />
@@ -123,11 +123,11 @@ const LoginForm = ({
             </View>
 
             <View style={styles.opaqueLink}>
-              <AppText
+              <Typography
                 style={styles.opaqueLinkText}
                 translationKey="auth.login.securedBy"
               />
-              <TextLink
+              <LinkTypography
                 style={styles.opaqueLinkTextBold}
                 text="OPAQUE"
                 href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
@@ -187,11 +187,11 @@ const LoginForm = ({
           </View>
           {/* Signup link */}
           <View style={styles.link}>
-            <AppText
+            <Typography
               style={styles.linkText}
               translationKey="auth.login.dontHaveAccount"
             />
-            <TextLink
+            <LinkTypography
               onPress={onSignup}
               style={styles.linkTextBold}
               translationKey="auth.welcome.signup"

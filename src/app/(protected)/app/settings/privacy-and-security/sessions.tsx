@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { StyleSheet, View, Pressable } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { DateTime } from "luxon";
 
@@ -117,11 +117,11 @@ export default function SessionsRoute() {
       />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
-          <AppText
+          <Typography
             style={styles.title}
             translationKey="settings.privacyAndSecurity.activeSessions"
           />
-          <AppText
+          <Typography
             style={styles.subtitle}
             translationKey="settings.privacyAndSecurity.manageSessions"
           />
@@ -174,7 +174,7 @@ export default function SessionsRoute() {
                 pressed && styles.disconnectAllButtonPressed,
               ]}
             >
-              <AppText
+              <Typography
                 style={styles.disconnectAllText}
                 text={`${t("settings.privacyAndSecurity.disconnectAllOtherSessions")} (${otherSessionsCount})`}
               />

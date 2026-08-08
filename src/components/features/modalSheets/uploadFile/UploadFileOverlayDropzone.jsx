@@ -1,9 +1,9 @@
 import React from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import Icon from "@/src/components/ui/icon/Icon";
-import HoverAndPressedButton from "../../ui/button/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 
 import { formatFileSize } from "@/src/utils/storage/file/utils";
 import { ScrollBar } from "@/constants/ScrollBar";
@@ -29,17 +29,17 @@ const UploadFileOverlayDropzone = ({
       <View style={styles.uploadIconCircle}>
         <Icon name="CloudUploadIcon" color={theme.text} />
       </View>
-      <AppText style={styles.title} text={title} />
-      <AppText style={styles.note}>
+      <Typography style={styles.title} text={title} />
+      <Typography style={styles.note}>
         {subtitle} Max single size: {formatFileSize(maxSingleSize)} Max total
         size: {formatFileSize(maxTotalSize)} File Number: {maxFile}
-      </AppText>
+      </Typography>
       <HoverAndPressedButton
         style={styles.chooseFileBtn}
         onPress={onChooseFile}
         disabled={!onChooseFile}
       >
-        <AppText
+        <Typography
           style={styles.chooseFileText}
           translationKey="chat.uploadFile.chooseFile"
         />
@@ -49,7 +49,7 @@ const UploadFileOverlayDropzone = ({
         onPress={removeAllFiles}
         disabled={!removeAllFiles || files.length === 0}
       >
-        <AppText
+        <Typography
           style={styles.removeAllFilesText}
           translationKey="chat.uploadFile.removeAll"
         />
@@ -65,14 +65,14 @@ const UploadFileOverlayDropzone = ({
               <React.Fragment key={index}>
                 <View style={styles.fileItem}>
                   <Icon name="FileIcon" size={16} color={theme.text} />
-                  <AppText
+                  <Typography
                     style={[
                       styles.fileName,
                       isInvalid && styles.invalidFileName,
                     ]}
                     text={file.name || file.fileName}
                   />
-                  <AppText
+                  <Typography
                     style={styles.fileSize}
                     text={formatFileSize(file.size || file.fileSize)}
                   />
@@ -84,7 +84,7 @@ const UploadFileOverlayDropzone = ({
                   </HoverAndPressedButton>
                 </View>
                 {isInvalid && (
-                  <AppText
+                  <Typography
                     style={styles.fileError}
                     text={invalidFile.errors.join(", ")}
                   />

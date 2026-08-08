@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Pressable, StyleSheet, Dimensions, Modal } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/context/UserContext";
@@ -296,7 +296,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
                 >
                   <View style={styles.menuItemContent}>
                     <Icon name={item.iconName} size={20} color={item.color} />
-                    <AppText
+                    <Typography
                       style={styles.menuText}
                       numberOfLines={1}
                       translationKey={item.translationKey}
@@ -318,7 +318,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
                   >
                     <View style={styles.statsRowHalf}>
                       <Icon name="EyeIcon" size={16} color={theme.text} />
-                      <AppText
+                      <Typography
                         style={styles.statsTextHalf}
                         text={readCount.toString()}
                       />
@@ -334,7 +334,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
                   >
                     <View style={styles.statsRowHalf}>
                       <Icon name="SmileIcon" size={16} color={theme.text} />
-                      <AppText
+                      <Typography
                         style={styles.statsTextHalf}
                         text={totalReactions.toString()}
                       />

@@ -7,7 +7,7 @@ import {
   BarcodeScanningResult,
 } from "expo-camera";
 
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
@@ -36,7 +36,7 @@ export default function QRCodeScanner({ onCodeScanned }: QRCodeScannerProps) {
   if (!permission) {
     return (
       <View style={styles.container}>
-        <AppText translationKey="common.qrReader.requestingPermissions" />
+        <Typography translationKey="common.qrReader.requestingPermissions" />
       </View>
     );
   }
@@ -44,7 +44,7 @@ export default function QRCodeScanner({ onCodeScanned }: QRCodeScannerProps) {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <AppText
+        <Typography
           style={{ textAlign: "center" }}
           translationKey="common.qrReader.needPermissions"
         />
@@ -70,7 +70,7 @@ export default function QRCodeScanner({ onCodeScanned }: QRCodeScannerProps) {
         {!scanned && (
           <View style={styles.overlay}>
             <View style={styles.qrFrame} />
-            <AppText
+            <Typography
               style={styles.instructionText}
               translationKey="common.qrReader.instruction"
             />

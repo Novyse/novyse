@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { View, StyleSheet, TouchableOpacity, Linking } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -46,7 +46,7 @@ export default function ProfileConnections({
         style={styles.glassCard}
       >
         <View style={styles.content}>
-          <AppText
+          <Typography
             style={styles.title}
             translationKey="profile.connections.title"
           />
@@ -62,7 +62,7 @@ export default function ProfileConnections({
                   <View style={styles.iconCircle}>
                     <Icon name={connection.icon} size={18} />
                   </View>
-                  <AppText
+                  <Typography
                     style={styles.connectionName}
                     text={connection.name}
                   />

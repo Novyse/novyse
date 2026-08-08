@@ -16,7 +16,7 @@ import Animated, {
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import BlurredView from "@/src/components/layout/BlurredView";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 import Label from "../label/Label";
 
@@ -188,7 +188,7 @@ function SegmentedSwitch<T extends string = string>({
                 />
               )}
               {option.label && (
-                <AppText
+                <Typography
                   style={[
                     styles.toggleText,
                     isActive && styles.toggleTextActive,

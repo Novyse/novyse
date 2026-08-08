@@ -3,7 +3,7 @@ import { StyleSheet, Pressable, Linking } from "react-native";
 import { Image as ExpoImage } from "expo-image";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import Platform from "@/src/utils/device/type";
-import ImageViewer from "@/src/components/modalSheets/viewer/ImageViewer";
+import ImageViewer from "@/src/components/features/modalSheets/viewer/ImageViewer";
 import messageUtils from "@/src/utils/chat/messageFormat";
 
 const MAX_GIF_WIDTH = 240;

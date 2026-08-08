@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { StyleSheet, Pressable, View } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useScreen } from "@/src/context/ScreenContext";
@@ -58,13 +58,13 @@ const MainHeader = ({
             isOnline={chatType === "DM" ? onlineMembersCount === 2 : false}
           />
           <View style={styles.headerCenterText}>
-            <AppText
+            <Typography
               style={styles.chatTitle}
               numberOfLines={1}
               text={selectedChatName}
             />
             {memberActivityData && memberActivityData.length > 0 ? (
-              <AppText
+              <Typography
                 style={styles.chatSubtitle}
                 numberOfLines={1}
                 text={chatUtils.formatActivity(memberActivityData, chatType)}
@@ -74,14 +74,14 @@ const MainHeader = ({
                 {chatType === "DM" &&
                   onlineMembersCount === 1 &&
                   lastAccessAt && (
-                    <AppText
+                    <Typography
                       style={styles.chatSubtitle}
                       numberOfLines={1}
                       text={`${t("chat.header.lastSeen")}: ${chatUtils.formatLastSeen(lastAccessAt)}`}
                     />
                   )}
                 {chatType === "GROUP" && (
-                  <AppText
+                  <Typography
                     style={styles.chatSubtitle}
                     numberOfLines={1}
                     text={`${t("chat.header.members", { count: memberCount })}${onlineMembersCount > 0 ? `, ${t("chat.header.online", { count: onlineMembersCount })}` : ""}`}

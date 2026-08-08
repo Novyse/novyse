@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { countryList, regionList } from "@/constants/Location";
 
@@ -101,9 +101,9 @@ export default function PersonalInfo({
             handleFieldChange("biography", val, setDescriptionVal)
           }
         />
-        <AppText style={styles.charCount}>
+        <Typography style={styles.charCount}>
           {descriptionLength}/{MAX_CHAR_COUNT}
-        </AppText>
+        </Typography>
       </View>
 
       <View style={styles.row}>

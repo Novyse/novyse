@@ -6,7 +6,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
 
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 import BlurredView from "@/src/components/layout/BlurredView";
 
@@ -47,12 +47,12 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ message, onCancel }) => {
       <Icon name={iconName} size={18} />
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
-        <AppText
+        <Typography
           style={styles.actionName}
           numberOfLines={1}
           text={senderName}
         />
-        <AppText style={styles.actionText} numberOfLines={1} text={content} />
+        <Typography style={styles.actionText} numberOfLines={1} text={content} />
       </View>
       <Icon
         name="Cancel01Icon"

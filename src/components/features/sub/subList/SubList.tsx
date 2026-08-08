@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useRouter } from "expo-router";
 import FloatingButton from "@/src/components/ui/button/FloatingButton";
@@ -78,16 +78,16 @@ const SubList = ({
           listStyles={styles}
         />
       ) : (
-        <AppText style={styles.preview} numberOfLines={1}>
+        <Typography style={styles.preview} numberOfLines={1}>
           {lastMsgPreview || ""}
-        </AppText>
+        </Typography>
       );
 
     const renderAvatar = () => (
       <View style={[styles.avatar, isActive && styles.activeAvatar]}>
-        <AppText style={[styles.initial, isActive && styles.activeInitial]}>
+        <Typography style={[styles.initial, isActive && styles.activeInitial]}>
           {sub.name ? sub.name[0].toUpperCase() : "#"}
-        </AppText>
+        </Typography>
       </View>
     );
 

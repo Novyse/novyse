@@ -8,10 +8,10 @@ import {
   TextStyle,
   Pressable,
 } from "react-native";
-import AppText from "./AppText";
+import Typography from "./Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-const AnimatedAppText = Animated.createAnimatedComponent(AppText);
+const AnimatedTypography = Animated.createAnimatedComponent(Typography);
 
 interface LinkTextProps {
   text?: string;
@@ -73,7 +73,7 @@ export default function LinkText({
       onPressOut={handlePressOut}
       accessibilityRole="link"
     >
-      <AnimatedAppText
+      <AnimatedTypography
         text={text}
         translationKey={translationKey}
         translationOptions={translationOptions}
@@ -89,7 +89,7 @@ export default function LinkText({
         onMouseLeave={() => setIsHovered(false)}
       >
         {children}
-      </AnimatedAppText>
+      </AnimatedTypography>
     </Pressable>
   );
 }

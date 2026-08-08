@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { router, useFocusEffect } from "expo-router";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 import { ScrollBar } from "@/constants/ScrollBar";
 
@@ -334,14 +334,14 @@ const Search = () => {
     }
     const msg = item.item;
     const subtitleNode = (
-      <AppText
+      <Typography
         style={styles.messageContent}
         numberOfLines={1}
         text={msg.content || ""}
       />
     );
     const dateNode = !!chatNameOf(msg.chatUUID) ? (
-      <AppText
+      <Typography
         style={styles.messageChatName}
         numberOfLines={1}
         text={chatNameOf(msg.chatUUID)}
@@ -421,7 +421,7 @@ const Search = () => {
         />
       )}
       {isSearching && !isLoading && !hasResults && !apiError && (
-        <AppText
+        <Typography
           style={styles.noResults}
           translationKey="tabs.search.noResults"
         />

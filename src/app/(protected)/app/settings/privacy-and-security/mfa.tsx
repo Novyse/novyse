@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { StyleSheet, View, Pressable } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -83,11 +83,11 @@ export default function MfaRoute() {
       />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
-          <AppText
+          <Typography
             style={styles.title}
             translationKey="settings.privacyAndSecurity.mfaTitle"
           />
-          <AppText
+          <Typography
             style={styles.subtitle}
             translationKey="settings.privacyAndSecurity.manageAuthMethods"
           />
@@ -115,8 +115,8 @@ export default function MfaRoute() {
                     <Icon name={method.iconName} />
                   </View>
                   <View style={styles.methodDetails}>
-                    <AppText style={styles.methodName} text={method.name} />
-                    <AppText
+                    <Typography style={styles.methodName} text={method.name} />
+                    <Typography
                       style={styles.methodDescription}
                       text={method.description}
                     />
@@ -127,7 +127,7 @@ export default function MfaRoute() {
                   {method.isActive ? (
                     <View style={styles.activeSection}>
                       <View style={styles.statusBadge}>
-                        <AppText
+                        <Typography
                           style={styles.statusText}
                           translationKey="settings.privacyAndSecurity.active"
                         />
@@ -153,7 +153,7 @@ export default function MfaRoute() {
                       ]}
                     >
                       <Icon name="PlusSignCircleIcon" />
-                      <AppText
+                      <Typography
                         style={styles.addButtonText}
                         translationKey="settings.privacyAndSecurity.add"
                       />

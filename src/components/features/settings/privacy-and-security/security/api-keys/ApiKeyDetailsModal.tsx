@@ -1,9 +1,9 @@
 import { View, StyleSheet } from "react-native";
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import Icon from "@/src/components/ui/icon/Icon";
 import CopyLabel from "@/src/components/features/settings/privacy-and-security/security/api-keys/CopyApiKeyButton";
 import Button from "@/src/components/ui/button/Button";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 
 interface ApiKeyDetailsModalProps {
@@ -38,7 +38,7 @@ export default function ApiKeyDetailsModal({
             size={48}
           />
         </View>
-        <AppText
+        <Typography
           style={styles.subtitle}
           translationKey="settings.privacyAndSecurity.apiKeys.detailsModal.subtitle"
         />

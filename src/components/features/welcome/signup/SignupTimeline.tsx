@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Pressable, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 
 interface Props {
@@ -59,7 +59,7 @@ export default function SignupTimeline({
                 onPress={isAccessible ? () => onStepPress(index) : undefined}
                 disabled={!isAccessible}
               >
-                <AppText
+                <Typography
                   style={[
                     styles.number,
                     {

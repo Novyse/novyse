@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Pressable, StyleSheet } from "react-native";
 import Platform from "@/src/utils/device/type";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import Reanimated, {
   useSharedValue,
@@ -476,7 +476,7 @@ const MessageBase = ({
       <BlurredView style={blurredViewStyles}>
         {!isSender && showSenderName && (
           <View style={styles.senderNameWrapper}>
-            <AppText
+            <Typography
               style={styles.senderName}
               numberOfLines={1}
               text={getUser(message.senderUUID)?.name}

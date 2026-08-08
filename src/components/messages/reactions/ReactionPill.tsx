@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useContext } from "react";
 import { Pressable, View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Avatar from "@/src/components/ui/avatar/Avatar";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/context/UserContext";
@@ -65,7 +65,7 @@ export const ReactionPill = ({
       style={styles.reactionPill}
       onPress={() => onReaction(message, reactionObj.emoji)}
     >
-      <AppText style={styles.reactionPillText} text={reactionObj.emoji} />
+      <Typography style={styles.reactionPillText} text={reactionObj.emoji} />
       <View style={styles.reactionAvatars}>
         {avatars.map((uUUID, i) => (
           <View
@@ -83,7 +83,7 @@ export const ReactionPill = ({
         ))}
       </View>
       {reactionObj.userUUIDs.length > 2 && (
-        <AppText
+        <Typography
           style={styles.reactionPillText}
           text={`+${reactionObj.userUUIDs.length - 2}`}
         />

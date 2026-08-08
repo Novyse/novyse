@@ -6,7 +6,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Button from "@/src/components/ui/button/Button";
 import ProfileBanner from "@/src/components/features/profile/ProfileBanner";
 import ProfileHeader from "@/src/components/features/profile/ProfileHeader";
@@ -175,7 +175,7 @@ export default function ModifyProfilePanel({
       </View>
       {!message && !error && hasChanges && (
         <BlurredView style={styles.floatingBar}>
-          <AppText
+          <Typography
             style={styles.floatingText}
             translationKey="settings.modifyProfile.unsavedChanges"
           />

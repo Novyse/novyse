@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import useCommsData from "@/src/hooks/comms/useCommsData";
 import useUserStore from "@/src/context/UserContext";
 import Avatar from "@/src/components/ui/avatar/Avatar";
@@ -19,9 +19,9 @@ const VocalSubSubtitle = ({
 
   if (!participants || participants.length === 0) {
     return (
-      <AppText style={listStyles.preview} numberOfLines={1}>
+      <Typography style={listStyles.preview} numberOfLines={1}>
         {defaultPreview || ""}
-      </AppText>
+      </Typography>
     );
   }
 
@@ -39,7 +39,7 @@ const VocalSubSubtitle = ({
         );
       })}
       {participants.length > 3 && (
-        <AppText
+        <Typography
           style={styles.reactionPillText}
           text={`+${participants.length - 3}`}
         />

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 
 import Icon from "@/src/components/ui/icon/Icon";
@@ -49,7 +49,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
             onPress={handleClose}
             style={headerIconButtonStyle.iconButton}
           />
-          <AppText
+          <Typography
             style={styles.chatTitle}
             numberOfLines={1}
             text={t("chat.header.selected", { count: selectedCount })}

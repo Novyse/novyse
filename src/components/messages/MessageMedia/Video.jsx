@@ -4,7 +4,7 @@ import { VideoView, useVideoPlayer } from "expo-video";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import FileButton from "@/src/components/messages/Button";
-import VideoViewer from "@/src/components/modalSheets/viewer/VideoViewer";
+import VideoViewer from "@/src/components/features/modalSheets/viewer/VideoViewer";
 import FileSizeProgress from "@/src/components/messages/FileSizeProgress";
 
 // Simple session cache to remember ratios without DB persistence

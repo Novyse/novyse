@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -138,7 +138,7 @@ export default function PasswordRoute() {
               </View>
 
               <View style={styles.securityNote}>
-                <AppText
+                <Typography
                   style={styles.noteText}
                   translationKey="settings.privacyAndSecurity.passwordNote"
                 />

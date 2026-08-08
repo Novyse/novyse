@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { View, StyleSheet, Image, ActivityIndicator } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { useScreen } from "@/src/context/ScreenContext";
 
@@ -57,7 +57,7 @@ const Welcome = () => {
         <View style={styles.cardContent}>
           <View style={styles.logoAndTitleContainer}>
             <Image style={styles.logo} source={logoNovyse} />
-            <AppText style={styles.title} translationKey="auth.welcome.title" />
+            <Typography style={styles.title} translationKey="auth.welcome.title" />
           </View>
 
           {/* Login / Signup buttons */}
@@ -86,7 +86,7 @@ const Welcome = () => {
           <>
             <View style={styles.divider}>
               <View style={styles.lineDivider} />
-              <AppText
+              <Typography
                 style={styles.textDivider}
                 translationKey="auth.welcome.or"
               />
@@ -138,12 +138,12 @@ const Welcome = () => {
                   />
                 )}
               </View>
-              <AppText
+              <Typography
                 style={styles.qrcodeSubtitle}
                 translationKey="auth.welcome.scanQr"
               />
               {qrToken ? (
-                <AppText
+                <Typography
                   style={styles.qrcodeSmallSubtitle}
                   translationKey="auth.welcome.expiresIn"
                   translationOptions={{ time: formatTime(remainingTime) }}

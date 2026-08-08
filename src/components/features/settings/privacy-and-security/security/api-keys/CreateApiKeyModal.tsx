@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { View, StyleSheet } from "react-native";
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import TextInput from "@/src/components/ui/input/TextInput";
 import Button from "@/src/components/ui/button/Button";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 
 interface CreateApiKeyModalProps {
@@ -41,7 +41,7 @@ export default function CreateApiKeyModal({
       titleTranslationKey="settings.privacyAndSecurity.apiKeys.createModal.title"
     >
       <View>
-        <AppText
+        <Typography
           style={styles.subtitle}
           translationKey="settings.privacyAndSecurity.apiKeys.createModal.subtitle"
         />

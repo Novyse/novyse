@@ -2,7 +2,7 @@ import React, { useState, useContext, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
@@ -75,14 +75,14 @@ const ChatSettings = () => {
             uuid={profilePictureUUID || undefined}
             style={styles.profilePicture}
           />
-          <AppText style={styles.chatName}>
+          <Typography style={styles.chatName}>
             {name ?? (isDM ? "Chat" : "Group")}
-          </AppText>
-          <AppText style={styles.chatMeta}>
+          </Typography>
+          <Typography style={styles.chatMeta}>
             {isDM
               ? t("chat.settings.directMessage")
               : t("chat.memberCount", { count: membersCount })}
-          </AppText>
+          </Typography>
         </View>
 
         {/* ── Notifications ── */}

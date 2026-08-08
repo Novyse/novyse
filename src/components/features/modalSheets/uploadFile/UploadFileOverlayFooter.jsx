@@ -1,7 +1,6 @@
-import React from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "../../ui/text/AppText";
-import HoverAndPressedButton from "../../ui/button/HoverAndPressedButton";
+import Typography from "@/src/components/ui/typography/Typography";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 
 const UploadFileOverlayFooter = ({
   files,
@@ -22,7 +21,7 @@ const UploadFileOverlayFooter = ({
         onPress={leftBtnOnPress}
         disabled={leftBtnDisabled}
       >
-        <AppText style={styles.leftBtnText} text={leftButtonText} />
+        <Typography style={styles.leftBtnText} text={leftButtonText} />
       </HoverAndPressedButton>
 
       <HoverAndPressedButton
@@ -30,7 +29,7 @@ const UploadFileOverlayFooter = ({
         onPress={rightButtonOnPress}
         disabled={rightBtnDisabled}
       >
-        <AppText style={styles.rightBtnText} text={rightButtonText} />
+        <Typography style={styles.rightBtnText} text={rightButtonText} />
       </HoverAndPressedButton>
     </View>
   );

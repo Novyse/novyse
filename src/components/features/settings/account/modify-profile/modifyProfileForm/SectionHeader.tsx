@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
@@ -24,9 +24,9 @@ export default function SectionHeader({
     <View style={styles.sectionHeader}>
       <Icon name={icon} size={20} />
       {translationKey ? (
-        <AppText style={styles.sectionTitle} translationKey={translationKey} />
+        <Typography style={styles.sectionTitle} translationKey={translationKey} />
       ) : title ? (
-        <AppText style={styles.sectionTitle} text={title} />
+        <Typography style={styles.sectionTitle} text={title} />
       ) : null}
     </View>
   );

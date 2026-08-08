@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import Icon from "@/src/components/ui/icon/Icon";
-import AppText from "../ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import gateway from "@/src/utils/backend-services/api-gateway";
 
 import useClipboard from "@/src/hooks/useClipboard";
@@ -43,7 +43,7 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
       titleTranslationKey="modals.backup_codes.title"
     >
       <View style={styles.contentContainer}>
-        <AppText
+        <Typography
           style={styles.subtitle}
           translationKey="modals.backup_codes.subtitle"
         />
@@ -56,7 +56,7 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
             <View style={styles.codesGrid}>
               {codes.map((code, index) => (
                 <View key={index} style={styles.codeItem}>
-                  <AppText style={styles.codeText} text={code} />
+                  <Typography style={styles.codeText} text={code} />
                 </View>
               ))}
             </View>
@@ -66,7 +66,7 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
             />
           </>
         ) : (
-          <AppText
+          <Typography
             style={styles.error}
             translationKey="modals.backup_codes.error"
           />

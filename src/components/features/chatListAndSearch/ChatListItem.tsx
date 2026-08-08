@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { DateTime } from "luxon";
 import { useTranslation } from "react-i18next";
 
@@ -95,7 +95,7 @@ const ChatListItem = React.memo(
         sender = `${t("chat.listItem.unknown")}: `;
       }
       return (
-        <AppText
+        <Typography
           style={[
             styles.chatSubtitle,
             styles.gridText,
@@ -113,7 +113,7 @@ const ChatListItem = React.memo(
         {!lastMessage.created_at ? (
           <Icon name={"Clock01Icon"} size={14} />
         ) : (
-          <AppText
+          <Typography
             style={styles.chatDateText}
             text={parseTime(lastMessage.created_at)}
           />
@@ -123,7 +123,7 @@ const ChatListItem = React.memo(
 
     const subtitleNode =
       memberActivityData && memberActivityData.length > 0 ? (
-        <AppText
+        <Typography
           style={styles.chatSubtitle}
           text={messageUtils.formatActivity(memberActivityData)}
         />

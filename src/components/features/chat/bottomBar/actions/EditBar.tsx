@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 import BlurredView from "@/src/components/layout/BlurredView";
 
@@ -26,12 +26,12 @@ const EditBar: React.FC<EditBarProps> = ({ editingMessage, onCancelEdit }) => {
       <Icon name="PencilEdit02Icon" size={18} />
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
-        <AppText
+        <Typography
           style={[styles.actionName, { color: theme.icon }]}
           numberOfLines={1}
           translationKey="chat.bottomBar.editing"
         />
-        <AppText
+        <Typography
           style={styles.actionText}
           numberOfLines={1}
           text={editingMessage.content ?? ""}

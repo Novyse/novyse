@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import Avatar from "@/src/components/ui/avatar/Avatar";
-import Dropzone from "@/src/components/modalSheets/uploadFile/UploadFileOverlayDropzone";
-import Footer from "@/src/components/modalSheets/uploadFile/UploadFileOverlayFooter";
+import Dropzone from "@/src/components/features/modalSheets/uploadFile/UploadFileOverlayDropzone";
+import Footer from "@/src/components/features/modalSheets/uploadFile/UploadFileOverlayFooter";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import WebDropZone from "@/src/components/ui/input/WebDropZone";
 

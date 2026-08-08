@@ -3,7 +3,7 @@ import { Text as RNText, TextProps as RNTextProps } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useTranslation } from "react-i18next";
 
-export interface AppTextProps extends RNTextProps {
+export interface TypographyProps extends RNTextProps {
   text?: string;
   translationKey?: string;
   translationOptions?: Record<string, any>;
@@ -12,7 +12,7 @@ export interface AppTextProps extends RNTextProps {
   color?: string;
 }
 
-const AppText = React.forwardRef<RNText, AppTextProps>(
+const Typography = React.forwardRef<RNText, TypographyProps>(
   (
     {
       text,
@@ -56,4 +56,4 @@ const AppText = React.forwardRef<RNText, AppTextProps>(
   },
 );
 
-export default AppText;
+export default Typography;

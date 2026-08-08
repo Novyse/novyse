@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
 
@@ -67,16 +67,16 @@ const StorageBreakdownChart = () => {
               <View style={styles.iconContainer}>
                 <Icon name={storage.iconName} size={18} />
               </View>
-              <AppText
+              <Typography
                 style={styles.storageTitle}
                 translationKey={`settings.storage.${storage.type === "local" ? "localStorage" : "cloudStorage"}`}
               />
             </View>
             <View style={styles.storageRight}>
-              <AppText style={styles.storageStat}>
+              <Typography style={styles.storageStat}>
                 {storage.totalUsed}{" "}
                 {storage.totalCapacity ? `/ ${storage.totalCapacity}` : ""} GB
-              </AppText>
+              </Typography>
               <Icon
                 name={isExpanded ? "ArrowUp01Icon" : "ArrowDown01Icon"}
                 size={20}
@@ -122,18 +122,18 @@ const StorageBreakdownChart = () => {
                         { backgroundColor: category.color },
                       ]}
                     />
-                    <AppText
+                    <Typography
                       style={styles.categoryName}
                       translationKey={`settings.storage.${category.name.toLowerCase()}`}
                     />
                   </View>
                   <View style={styles.categoryRight}>
-                    <AppText style={styles.categorySize}>
+                    <Typography style={styles.categorySize}>
                       {category.size} GB
-                    </AppText>
-                    <AppText style={styles.categoryPercentage}>
+                    </Typography>
+                    <Typography style={styles.categoryPercentage}>
                       {percentage}%
-                    </AppText>
+                    </Typography>
                   </View>
                 </View>
               );

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Pressable, StyleSheet, Dimensions, Modal } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
@@ -153,13 +153,13 @@ const CommsMenu = ({
         >
           <BlurredView style={styles.menuContainer}>
             <View style={styles.header}>
-              <AppText
+              <Typography
                 style={styles.title}
                 text={displayName}
                 numberOfLines={1}
               />
               {isScreenShare && (
-                <AppText style={styles.subtitle} text="Screen Share" />
+                <Typography style={styles.subtitle} text="Screen Share" />
               )}
             </View>
 
@@ -176,7 +176,7 @@ const CommsMenu = ({
                       size={20}
                       color={isMuted ? theme.iconDanger : theme.text}
                     />
-                    <AppText
+                    <Typography
                       style={[
                         styles.menuText,
                         isMuted && { color: theme.iconDanger },
@@ -204,7 +204,7 @@ const CommsMenu = ({
                       size={20}
                       color={theme.text}
                     />
-                    <AppText
+                    <Typography
                       style={styles.menuText}
                       translationKey={
                         isCurrentlyPinned
@@ -232,7 +232,7 @@ const CommsMenu = ({
                       size={20}
                       color={theme.text}
                     />
-                    <AppText
+                    <Typography
                       style={styles.menuText}
                       translationKey={
                         isCurrentlyFullScreen
@@ -257,12 +257,12 @@ const CommsMenu = ({
                 <View style={styles.menuItemContent}>
                   <Icon name="Settings02Icon" size={20} color={theme.text} />
                   {isWatchTogether ? (
-                    <AppText
+                    <Typography
                       style={styles.menuText}
                       translationKey="chat.comms.watchTogether.modify"
                     />
                   ) : (
-                    <AppText style={styles.menuText} text="Actions (WIP)" />
+                    <Typography style={styles.menuText} text="Actions (WIP)" />
                   )}
                 </View>
               </HoverAndPressedButton>
@@ -279,7 +279,7 @@ const CommsMenu = ({
                       size={20}
                       color={theme.text}
                     />
-                    <AppText style={styles.menuText} text="Info (WIP)" />
+                    <Typography style={styles.menuText} text="Info (WIP)" />
                   </View>
                 </HoverAndPressedButton>
               )}

@@ -27,9 +27,9 @@ import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 import useMessageHandlers from "@/src/hooks/chat/useMessageHandlers";
 import { useForward } from "@/src/hooks/chat/useForward";
 
-import DeleteMessageModal from "@/src/components/modalSheets/DeleteMessage";
+import DeleteMessageModal from "@/src/components/features/modalSheets/DeleteMessage";
 import JoinCreateChat from "@/src/components/features/chat/createChat/CreateOrJoinChatPanel";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import SubList from "@/src/components/features/sub/subList/SubList";
 
 const ChatPageRoute = () => {
@@ -262,7 +262,7 @@ const ChatPageRoute = () => {
           },
         ]}
       >
-        <AppText
+        <Typography
           style={{ color: theme.text, fontSize: 18 }}
           translationKey="chat.loading"
         />

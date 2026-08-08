@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
@@ -82,7 +82,7 @@ const MessageVoice = ({
           />
         </View>
         <View style={styles.textContainer}>
-          <AppText
+          <Typography
             style={styles.durationText}
             text={`${formatTime(thisCurrentTime)} / ${formatDuration(duration)}`}
           />

@@ -1,6 +1,6 @@
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 const InitPage = () => {
   const { theme } = useThemeContext();
@@ -13,7 +13,7 @@ const InitPage = () => {
           color={theme.text}
           style={styles.loader}
         />
-        <AppText
+        <Typography
           style={[styles.text, { color: theme.text }]}
           translationKey="layout.loadingData"
         />

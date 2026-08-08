@@ -7,7 +7,7 @@ import {
   TextStyle,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import BlurredView from "@/src/components/layout/BlurredView";
 import Avatar from "@/src/components/ui/avatar/Avatar";
@@ -40,12 +40,12 @@ const MentionBar: React.FC<MentionBarProps> = ({ members, onSelectMember }) => {
     >
       <Avatar size={32} uuid={item.profilePictureUUID}/>
       <View style={styles.memberInfo}>
-        <AppText
+        <Typography
           style={styles.memberName}
           numberOfLines={1}
           text={`${item.name} ${item.surname}`}
         />
-        <AppText
+        <Typography
           style={styles.memberHandle}
           numberOfLines={1}
           text={`@${item.handle}`}

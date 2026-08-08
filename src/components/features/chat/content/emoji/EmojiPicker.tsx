@@ -26,7 +26,7 @@ import { useThemeContext } from "@/src/context/ThemeContext";
 import TextInput from "@/src/components/ui/input/TextInput";
 import Icon from "@/src/components/ui/icon/Icon";
 import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 interface EmojiPickerProps {
   mode: "quick" | "full";
@@ -307,7 +307,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
       if (item.type === "header") {
         return (
           <View style={styles.sectionHeaderContainer}>
-            <AppText
+            <Typography
               style={styles.sectionHeader}
               translationKey={item.titleKey}
             />

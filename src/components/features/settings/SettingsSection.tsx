@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface SettingsSectionProps {
@@ -15,7 +15,7 @@ const SettingsSection = ({ titleKey, children, style }: SettingsSectionProps) =>
   return (
     <View style={[sectionStyles.container, style]}>
       {titleKey && (
-        <AppText
+        <Typography
           style={[sectionStyles.title, { color: theme.subtitle }]}
           translationKey={titleKey}
         />

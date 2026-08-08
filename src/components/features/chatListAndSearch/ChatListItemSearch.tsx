@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 
 import Avatar from "@/src/components/ui/avatar/Avatar";
@@ -29,7 +29,7 @@ const ChatListItemSearch = React.memo(
     const title = `${item.name}${item?.surname ? ` ${item?.surname}` : ""}`;
 
     const subtitleNode = (
-      <AppText
+      <Typography
         style={styles.profileHandle}
         numberOfLines={1}
         ellipsizeMode="tail"

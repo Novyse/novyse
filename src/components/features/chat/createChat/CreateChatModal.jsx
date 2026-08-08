@@ -14,11 +14,11 @@ import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import SelectButton from "./ChatTypeButton";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import Icon from "@/src/components/ui/icon/Icon";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
@@ -202,7 +202,7 @@ const CreateChatModal = ({ visible, onClose }) => {
     <View>
       {/* Header */}
       <View style={styles.header}>
-        <AppText
+        <Typography
           style={styles.modalSubtitle}
           translationKey="modals.create_chat.subtitle"
         />
@@ -210,7 +210,7 @@ const CreateChatModal = ({ visible, onClose }) => {
 
       {/* Chat Identity */}
       <View style={styles.section}>
-        <AppText
+        <Typography
           style={styles.sectionLabel}
           translationKey="modals.create_chat.sections.identity"
         />
@@ -220,7 +220,7 @@ const CreateChatModal = ({ visible, onClose }) => {
           value={name}
           onChange={handleNameChange}
         />
-        <AppText
+        <Typography
           style={styles.helperText}
           translationKey="modals.create_chat.fields.nameHelper"
         />
@@ -228,7 +228,7 @@ const CreateChatModal = ({ visible, onClose }) => {
 
       {/* Communication Style */}
       <View style={styles.section}>
-        <AppText
+        <Typography
           style={styles.sectionLabel}
           translationKey="modals.create_chat.sections.commsStyle"
         />
@@ -297,7 +297,7 @@ const CreateChatModal = ({ visible, onClose }) => {
               ) : null
             }
           />
-          <AppText
+          <Typography
             style={styles.helperText}
             translationKey="modals.create_chat.fields.handleHelper"
           />

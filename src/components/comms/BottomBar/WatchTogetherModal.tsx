@@ -9,8 +9,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
-import AppText from "@/src/components/ui/text/AppText";
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import Typography from "@/src/components/ui/typography/Typography";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { parseVideoUrl } from "@/src/hooks/comms/useWatchTogether";
 
@@ -127,7 +127,7 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
       }
     >
       <View style={styles.container}>
-        <AppText
+        <Typography
           style={styles.description}
           translationKey="chat.comms.watchTogether.description"
         />
@@ -142,10 +142,10 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
           autoFocus
         />
 
-        {!!errorMsg && <AppText style={styles.errorText} text={errorMsg} />}
+        {!!errorMsg && <Typography style={styles.errorText} text={errorMsg} />}
 
         <View style={styles.supportedCompactContainer}>
-          <AppText style={supportedStyle} text={supportedText} />
+          <Typography style={supportedStyle} text={supportedText} />
         </View>
 
         <View style={styles.buttonsContainer}>
@@ -155,7 +155,7 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
               onPress={handleStopSession}
               disabled={loading}
             >
-              <AppText
+              <Typography
                 style={styles.btnTextStop}
                 translationKey="chat.comms.watchTogether.stop"
               />
@@ -174,7 +174,7 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
             {loading ? (
               <ActivityIndicator size="small" color={theme.text} />
             ) : (
-              <AppText
+              <Typography
                 style={styles.btnTextConfirm}
                 translationKey={
                   isVideoActive

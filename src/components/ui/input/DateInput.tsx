@@ -8,7 +8,7 @@ import {
   TextInput,
   Platform,
 } from "react-native";
-import AppText from "../text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 import DatePicker from "react-native-date-picker";
 import { DateTime } from "luxon";
@@ -58,7 +58,7 @@ export default function DateInput({
         style={styles.pressable}
         disabled={disabled}
       >
-        <AppText
+        <Typography
           style={[styles.text, !value && styles.placeholder]}
           text={displayValue}
         />
@@ -93,7 +93,7 @@ export default function DateInput({
               ),
             })}
             <Pressable onPress={confirmDate} style={styles.confirmButton}>
-              <AppText
+              <Typography
                 style={styles.confirmText}
                 translationKey="common.inputs.confirm"
               />

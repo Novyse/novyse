@@ -1,6 +1,6 @@
 import React, { useContext, useState, useRef } from "react";
 import { StyleSheet, View, Platform } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { createPortal } from "react-dom";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
@@ -83,7 +83,7 @@ const MessageTimestamp = ({
           { top: tooltipPosition.top, left: tooltipPosition.left },
         ]}
       >
-        <AppText style={styles.tooltipText} text={parseFullTime(time)} />
+        <Typography style={styles.tooltipText} text={parseFullTime(time)} />
       </View>
     ) : null;
 
@@ -110,7 +110,7 @@ const MessageTimestamp = ({
               size={14}
               color={theme.subtitle}
             />
-            <AppText style={styles.replyCountText} text={String(replyCount)} />
+            <Typography style={styles.replyCountText} text={String(replyCount)} />
           </>
         )}
       </View>
@@ -122,11 +122,11 @@ const MessageTimestamp = ({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <AppText style={styles.timeText} text={parseTime(time)} />
+            <Typography style={styles.timeText} text={parseTime(time)} />
           </View>
         ) : (
           <View style={styles.timeContainer}>
-            <AppText style={styles.timeText} text={parseTime(time)} />
+            <Typography style={styles.timeText} text={parseTime(time)} />
           </View>
         ))}
       {Platform.OS === "web" && createPortal(tooltip, document.body)}

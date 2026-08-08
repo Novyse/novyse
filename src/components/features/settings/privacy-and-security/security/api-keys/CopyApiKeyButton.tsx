@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
 import useClipboard from "@/src/hooks/useClipboard";
@@ -28,10 +28,10 @@ export default function CopyApiKeyButton({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <AppText style={styles.label} text={label} />}
+      {label && <Typography style={styles.label} text={label} />}
       <View style={styles.contentContainer}>
         <View style={styles.textContainer}>
-          <AppText
+          <Typography
             style={styles.text}
             numberOfLines={1}
             ellipsizeMode="middle"

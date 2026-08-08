@@ -1,9 +1,8 @@
 import { Platform, Pressable, StyleSheet, View } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import * as Linking from "expo-linking";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 import { PRIVACY_POLICY_URL, TOS_URL } from "@/app.config";
-import TextLink from "@/src/components/ui/text/LinkText";
 
 interface Props {
   privacyAccepted: boolean;
@@ -47,7 +46,7 @@ export default function SignupCheckboxes({
       ]}
     >
       {checked && (
-        <AppText
+        <Typography
           style={[styles.tick, { color: colors.checkboxTick }]}
           text="✓"
         />
@@ -59,25 +58,25 @@ export default function SignupCheckboxes({
     <View style={styles.container}>
       <View style={styles.row}>
         <Checkbox checked={privacyAccepted} onPress={onTogglePrivacyTos} />
-        <AppText style={styles.text}>
-          <AppText style={styles.text} translationKey="auth.signupStep.iAccept" />{" "}
-          <AppText
+        <Typography style={styles.text}>
+          <Typography style={styles.text} translationKey="auth.signupStep.iAccept" />{" "}
+          <Typography
             translationKey="auth.signupStep.privacyPolicy"
             style={{ color: colors.link }}
             onPress={() => openUrl(PRIVACY_POLICY_URL)}
           />{" "}
-          <AppText style={styles.text} translationKey="auth.signupStep.and" />{" "}
-          <AppText
+          <Typography style={styles.text} translationKey="auth.signupStep.and" />{" "}
+          <Typography
             translationKey="auth.signupStep.termsOfService"
             style={{ color: colors.link }}
             onPress={() => openUrl(TOS_URL)}
           />
-        </AppText>
+        </Typography>
       </View>
 
       <View style={[styles.row, { marginTop: 10 }]}>
         <Checkbox checked={ageConfirmed} onPress={onToggleAge} />
-        <AppText style={styles.text} translationKey="auth.signupStep.iAm16" />
+        <Typography style={styles.text} translationKey="auth.signupStep.iAm16" />
       </View>
     </View>
   );

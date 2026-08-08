@@ -15,7 +15,7 @@ import * as IntentLauncher from "expo-intent-launcher";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { APP_VERSION, BRANCH } from "../../app.config";
 import Platform, {
@@ -324,17 +324,17 @@ export default function UpdateRequiredScreen() {
         />
       </View>
       {/* Text content */}
-      <AppText
+      <Typography
         style={styles.title}
         translationKey="layout.updateRequired.title"
       />
-      <AppText
+      <Typography
         style={styles.subtitle}
         translationKey="layout.updateRequired.subtitle"
       />
       {/* Version Info */}
       <View style={styles.versionContainer}>
-        <AppText
+        <Typography
           style={styles.versionText}
           translationKey="layout.updateRequired.currentVersion"
           translationOptions={{
@@ -342,7 +342,7 @@ export default function UpdateRequiredScreen() {
           }}
         />
         {minVersion && (
-          <AppText
+          <Typography
             style={styles.versionText}
             translationKey="layout.updateRequired.requiredVersion"
             translationOptions={{
@@ -363,7 +363,7 @@ export default function UpdateRequiredScreen() {
 
       {/* Error message */}
       {updaterError && (
-        <AppText
+        <Typography
           style={styles.errorText}
           translationKey="layout.updateRequired.autoUpdateError"
         />
@@ -383,7 +383,7 @@ export default function UpdateRequiredScreen() {
             style={styles.buttonSpinner}
           />
         )}
-        <AppText
+        <Typography
           style={styles.buttonText}
           translationKey={getPrimaryButtonKey()}
           translationOptions={{
@@ -399,7 +399,7 @@ export default function UpdateRequiredScreen() {
           onPress={() => Linking.openURL(GITHUB_URL)}
           activeOpacity={0.7}
         >
-          <AppText
+          <Typography
             style={styles.secondaryButtonText}
             translationKey="layout.updateRequired.openGitHub"
           />

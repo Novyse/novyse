@@ -19,7 +19,7 @@ import { t } from "i18next";
 import TextInput from "@/src/components/ui/input/TextInput";
 import { ScrollBar } from "@/constants/ScrollBar";
 import { useThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -192,7 +192,7 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelectGif }) => {
       if (item.type === "header") {
         return (
           <View style={styles.sectionHeaderContainer}>
-            <AppText
+            <Typography
               style={styles.sectionHeader}
               translationKey={item.titleKey}
             />
@@ -256,11 +256,11 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelectGif }) => {
         </View>
       ) : error && listData.length === 0 ? (
         <View style={styles.center}>
-          <AppText style={styles.errorText} text={error} />
+          <Typography style={styles.errorText} text={error} />
         </View>
       ) : listData.length === 0 ? (
         <View style={styles.center}>
-          <AppText
+          <Typography
             style={styles.emptyText}
             translationKey={"chat.gifCategories.noResults"}
           />

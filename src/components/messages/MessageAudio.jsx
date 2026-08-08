@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
@@ -71,7 +71,7 @@ const MessageAudio = ({
       />
 
       <View style={{ flexDirection: "column" }}>
-        <AppText style={styles.fileName} text={name} />
+        <Typography style={styles.fileName} text={name} />
         <View style={styles.progressContainer}>
           <SmoothSlider
             currentValue={thisCurrentTime}
@@ -82,7 +82,7 @@ const MessageAudio = ({
             isMoving={isThisPlaying}
           />
           <View>
-            <AppText
+            <Typography
               text={`${formatTime(thisCurrentTime)} / ${formatDuration(duration)}`}
             />
             <FileSizeProgress uuid={uuid} size={size} />

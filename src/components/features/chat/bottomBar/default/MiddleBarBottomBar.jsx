@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef } from "react";
 import { StyleSheet, View, TextInput } from "react-native";
 import { EnrichedMarkdownTextInput } from "react-native-enriched-markdown";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 import { Duration } from "luxon";
 
@@ -247,7 +247,7 @@ const MiddleBarBottomBar = ({
             <View style={styles.recordState}>
               <RecordingDot isRecording={!isPaused} />
 
-              <AppText
+              <Typography
                 style={styles.durationText}
                 text={Duration.fromMillis(
                   recorderState?.durationMillis || 0,

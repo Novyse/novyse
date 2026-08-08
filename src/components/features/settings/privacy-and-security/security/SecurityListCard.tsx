@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, View, Pressable } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
 
@@ -54,13 +54,13 @@ const SecurityListCard = ({
             <Icon name={iconName} />
           </View>
           <View style={styles.details}>
-            <AppText
+            <Typography
               style={[styles.title, !active && { color: theme.subtitle }]}
               text={title}
             />
             {subtitle &&
               (typeof subtitle === "string" ? (
-                <AppText style={styles.subtitle} text={subtitle} />
+                <Typography style={styles.subtitle} text={subtitle} />
               ) : (
                 subtitle
               ))}
@@ -70,7 +70,7 @@ const SecurityListCard = ({
         <View style={styles.actions}>
           {badge && (
             <View style={[styles.badge, { backgroundColor: badgeBgColor }]}>
-              <AppText style={styles.badgeText} text={badge} />
+              <Typography style={styles.badgeText} text={badge} />
             </View>
           )}
           {onToggle && (

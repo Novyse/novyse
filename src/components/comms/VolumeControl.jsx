@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 import { useCommsContext } from "@/src/context/CommsContext";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -34,9 +34,9 @@ const VolumeControl = ({ volKey, isScreenShare }) => {
       <View style={styles.sliderHeader}>
         <View style={styles.sliderHeaderLeft}>
           <Icon name="VolumeHighIcon" size={16} color={theme.text} />
-          <AppText style={styles.sliderLabel} text="Volume" />
+          <Typography style={styles.sliderLabel} text="Volume" />
         </View>
-        <AppText
+        <Typography
           style={styles.dbText}
           text={localDb > 0 ? `+${localDb} dB` : `${localDb} dB`}
         />

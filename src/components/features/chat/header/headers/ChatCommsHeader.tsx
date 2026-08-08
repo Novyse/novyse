@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import Animated, {
   useAnimatedStyle,
@@ -77,7 +77,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
     <Pressable style={styles.headerMainRow} onPress={handlePress}>
       <View style={styles.headerLeft}>
         <Icon name="UserMultipleIcon" style={styles.iconButtonSmall} />
-        <AppText
+        <Typography
           style={styles.participantsText}
           numberOfLines={1}
           ellipsizeMode="tail"

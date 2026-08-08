@@ -5,9 +5,9 @@ import { useRouter } from "expo-router";
 
 import Button from "@/src/components/ui/button/Button";
 import TextInput from "@/src/components/ui/input/TextInput";
-import AppText from "@/src/components/ui/text/AppText";
-import LinkText from "@/src/components/ui/text/LinkText";
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import Typography from "@/src/components/ui/typography/Typography";
+import LinkText from "@/src/components/ui/typography/Typography";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -51,18 +51,18 @@ const DeleteAccount = ({ visible, onClose }) => {
   const ModalContent = (
     <View>
       <View style={styles.header}>
-        <AppText
+        <Typography
           style={styles.modalSubtitle}
           translationKey="modals.delete_account.warning"
         />
       </View>
 
       <View style={styles.section}>
-        <AppText
+        <Typography
           style={styles.sectionLabel}
           translationKey="modals.delete_account.confirmation_identity"
         />
-        <AppText
+        <Typography
           style={styles.inputLabel}
           translationKey="modals.delete_account.confirm_instruction"
           translationOptions={{ username }}
@@ -72,13 +72,13 @@ const DeleteAccount = ({ visible, onClose }) => {
           onChange={setInputUsername}
           autoCapitalize="none"
         />
-        <AppText style={styles.helperText}>
-          <AppText translationKey="modals.delete_account.helper_text" />{" "}
+        <Typography style={styles.helperText}>
+          <Typography translationKey="modals.delete_account.helper_text" />{" "}
           <LinkText
             translationKey="modals.delete_account.learn_more"
             href="https://www.novyse.com/help/guides/account/delete"
           />
-        </AppText>
+        </Typography>
       </View>
 
       <StatusMessage

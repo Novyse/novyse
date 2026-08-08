@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Animated, {
@@ -85,15 +85,15 @@ const AudioHeader = () => {
 
         {/* Info Section */}
         <View style={styles.infoContainer}>
-          <AppText
+          <Typography
             style={styles.senderName}
             numberOfLines={1}
             text={senderName}
           />
           <View style={styles.statusRow}>
-            <AppText style={styles.timeText}>
+            <Typography style={styles.timeText}>
               {`${formatTime(currentTime)} / ${formatTime(safeDuration)}`}
-            </AppText>
+            </Typography>
           </View>
         </View>
 
@@ -103,7 +103,7 @@ const AudioHeader = () => {
             style={styles.controlButton}
             onPress={() => handleChangePlaybackRate()}
           >
-            <AppText text={`${playbackRate}x`} style={styles.rateText} />
+            <Typography text={`${playbackRate}x`} style={styles.rateText} />
           </HoverAndPressedButton>
 
           <HoverAndPressedButton

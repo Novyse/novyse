@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 import Switch from "@/src/components/ui/switch/Switch";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
@@ -78,26 +78,26 @@ const SettingsRow = ({
 
       <View style={SettingsRowStyles.labelContainer}>
         {labelKey ? (
-          <AppText
+          <Typography
             style={[SettingsRowStyles.label, { color: textColor }]}
             translationKey={labelKey}
             translationOptions={labelOptions}
           />
         ) : (
-          <AppText style={[SettingsRowStyles.label, { color: textColor }]}>
+          <Typography style={[SettingsRowStyles.label, { color: textColor }]}>
             {labelText}
-          </AppText>
+          </Typography>
         )}
         {valueKey ? (
-          <AppText
+          <Typography
             style={[SettingsRowStyles.value, { color: theme.subtitle }]}
             translationKey={valueKey}
             translationOptions={valueOptions}
           />
         ) : value && type !== "VALUE" ? (
-          <AppText style={[SettingsRowStyles.value, { color: theme.subtitle }]}>
+          <Typography style={[SettingsRowStyles.value, { color: theme.subtitle }]}>
             {value}
-          </AppText>
+          </Typography>
         ) : null}
       </View>
 
@@ -112,7 +112,7 @@ const SettingsRow = ({
             );
           case "VALUE":
             return valueKey ? (
-              <AppText
+              <Typography
                 style={[
                   SettingsRowStyles.rightValue,
                   { color: theme.subtitle },
@@ -121,14 +121,14 @@ const SettingsRow = ({
                 translationOptions={valueOptions}
               />
             ) : value ? (
-              <AppText
+              <Typography
                 style={[
                   SettingsRowStyles.rightValue,
                   { color: theme.subtitle },
                 ]}
               >
                 {value}
-              </AppText>
+              </Typography>
             ) : null;
           case "SELECT_GROUP":
             return (

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
-import AppText from "../ui/text/AppText";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
+import Typography from "@/src/components/ui/typography/Typography";
 
 const DeleteMessage = ({
   visible,
@@ -28,7 +28,7 @@ const DeleteMessage = ({
       titleTranslationKey="modals.delete_message.title"
     >
       <View style={styles.contentContainer}>
-        <AppText
+        <Typography
           style={styles.subtitle}
           translationKey="modals.delete_message.subtitle"
           translationOptions={{ count: messageCount }}
@@ -39,7 +39,7 @@ const DeleteMessage = ({
             style={[styles.button, styles.cancelButton]}
             onPress={onClose}
           >
-            <AppText
+            <Typography
               style={[styles.buttonText, styles.cancelButtonText]}
               translationKey="modals.delete_message.cancel"
             />
@@ -48,7 +48,7 @@ const DeleteMessage = ({
             style={[styles.button, styles.deleteButton]}
             onPress={onDeletePress}
           >
-            <AppText
+            <Typography
               style={[styles.buttonText, styles.deleteButtonText]}
               translationKey="modals.delete_message.delete"
             />

@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Button from "@/src/components/ui/button/Button";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import SettingsSelectModal from "@/src/components/features/settings/SettingsSelectModal";
 import { SelectOption } from "@/src/components/features/settings/SettingsSelectGroup";
 
@@ -32,7 +32,7 @@ const SystemChatSelector = ({
 
   return (
     <View style={styles.container}>
-      <AppText
+      <Typography
         style={styles.fieldLabel}
         translationKey="settings.system.selectChat"
       />

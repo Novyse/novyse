@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { StyleSheet, View, Pressable, StatusBar, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useEvent } from "expo";
 import Slider from "@react-native-community/slider";
@@ -292,7 +292,7 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
 
                 <View style={styles.footerContainer}>
                   <View style={styles.sliderRow}>
-                    <AppText
+                    <Typography
                       style={styles.timeText}
                       text={formatTime(isSeeking ? seekTime : currentTime)}
                     />
@@ -317,7 +317,7 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                       minimumTrackTintColor={theme.primary}
                       thumbTintColor={theme.primary}
                     />
-                    <AppText
+                    <Typography
                       style={styles.timeText}
                       text={formatTime(duration)}
                     />
@@ -368,7 +368,7 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                         style={styles.speedButton}
                         onPress={cycleSpeed}
                       >
-                        <AppText
+                        <Typography
                           style={styles.speedText}
                           text={`${speeds[currentSpeedIndex]}x`}
                         />

@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import BlurredView from "@/src/components/layout/BlurredView";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -18,11 +18,11 @@ export default function ProfileAboutMe({ biography }: ProfileAboutMeProps) {
     <View style={styles.container}>
       <BlurredView style={styles.glassCard}>
         <View style={styles.content}>
-          <AppText
+          <Typography
             style={styles.title}
             translationKey="profile.aboutMe.title"
           />
-          <AppText
+          <Typography
             style={styles.description}
             text={biography}
             translationKey={"profile.aboutMe.noDescription"}

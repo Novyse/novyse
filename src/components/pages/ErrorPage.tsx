@@ -1,5 +1,5 @@
 import { View, StyleSheet, Image } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { LinearGradient } from "expo-linear-gradient";
 import { LoginColors } from "@/constants/LoginColors";
 import { useScreen } from "@/src/context/ScreenContext";
@@ -21,19 +21,19 @@ export default function ErrorPage() {
       <View style={styles.card}>
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
-          <AppText
+          <Typography
             style={styles.title}
             translationKey="common.errorPage.title"
           />
-          <AppText
+          <Typography
             style={styles.message}
             translationKey="common.errorPage.message"
           />
-          <AppText
+          <Typography
             style={styles.messageSecondary}
             translationKey="common.errorPage.messageSecondary"
           />
-          <AppText
+          <Typography
             style={styles.messageTertiary}
             translationKey="common.errorPage.messageTertiary"
           />

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
 
@@ -27,13 +27,13 @@ const StorageBreakdown = ({ storage }) => {
           <View style={styles.iconContainer}>
             <Icon name={storage.iconName} size={18} />
           </View>
-          <AppText
+          <Typography
             style={styles.storageTitle}
             translationKey={`settings.storage.${storage.type === "local" ? "localStorage" : "cloudStorage"}`}
           />
         </View>
         <View style={styles.storageRight}>
-          <AppText
+          <Typography
             style={styles.storageStat}
             text={`${storage.totalUsed} ${storage.totalCapacity ? `/ ${storage.totalCapacity}` : ""} GB`}
           />
@@ -67,18 +67,18 @@ const StorageBreakdown = ({ storage }) => {
                 <View
                   style={[styles.colorDot, { backgroundColor: category.color }]}
                 />
-                <AppText
+                <Typography
                   style={styles.categoryName}
                   translationKey={`settings.storage.${category.name.toLowerCase()}`}
                   text={category.name}
                 />
               </View>
               <View style={styles.categoryRight}>
-                <AppText
+                <Typography
                   style={styles.categorySize}
                   text={`${category.size} GB`}
                 />
-                <AppText
+                <Typography
                   style={styles.categoryPercentage}
                   text={`${percentage}%`}
                 />

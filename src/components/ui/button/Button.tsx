@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { StyleSheet, ViewStyle, TextStyle, StyleProp } from "react-native";
 import { Theme, ThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 
@@ -67,7 +67,7 @@ export default function Button({
       disabled={disabled}
     >
       {renderIcon()}
-      <AppText
+      <Typography
         text={text}
         translationKey={translationKey}
         style={[

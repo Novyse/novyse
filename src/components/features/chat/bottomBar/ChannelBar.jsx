@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -22,7 +22,7 @@ const ChannelBar = () => {
           name={isMuted ? "VolumeOffIcon" : "VolumeMaxIcon"}
           color={isMuted ? theme.subtitle : theme.primary}
         />
-        <AppText
+        <Typography
           style={[
             styles.text,
             { color: isMuted ? theme.subtitle : theme.primary },

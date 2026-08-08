@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -41,11 +41,11 @@ export default function ProfileBirthdayLocation({
                 <Icon name="BirthdayIcon" size={16} />
               </View>
               <View style={styles.textContainer}>
-                <AppText
+                <Typography
                   style={styles.label}
                   translationKey="profile.birthdayLocation.born"
                 />
-                <AppText style={styles.value} text={birthday} />
+                <Typography style={styles.value} text={birthday} />
               </View>
             </View>
           )}
@@ -71,11 +71,11 @@ export default function ProfileBirthdayLocation({
                 <Icon name="LocationIcon" size={16} />
               </View>
               <View style={styles.textContainer}>
-                <AppText
+                <Typography
                   style={styles.label}
                   translationKey="profile.birthdayLocation.location"
                 />
-                <AppText style={styles.value} text={country} />
+                <Typography style={styles.value} text={country} />
               </View>
             </View>
           )}

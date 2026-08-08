@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface SessionInfoProps {
@@ -15,27 +15,27 @@ const SessionInfo = ({ ip, createdAt, lastActive }: SessionInfoProps) => {
 
   return (
     <View style={styles.container}>
-      <AppText style={styles.row}>
-        <AppText
+      <Typography style={styles.row}>
+        <Typography
           style={styles.label}
           translationKey="settings.privacyAndSecurity.sessions.ip"
         />
         : {ip}
-      </AppText>
-      <AppText style={styles.row}>
-        <AppText
+      </Typography>
+      <Typography style={styles.row}>
+        <Typography
           style={styles.label}
           translationKey="settings.privacyAndSecurity.sessions.created"
         />
         : {createdAt}
-      </AppText>
-      <AppText style={styles.row}>
-        <AppText
+      </Typography>
+      <Typography style={styles.row}>
+        <Typography
           style={styles.label}
           translationKey="settings.privacyAndSecurity.sessions.lastActivity"
         />
         : {lastActive}
-      </AppText>
+      </Typography>
     </View>
   );
 };

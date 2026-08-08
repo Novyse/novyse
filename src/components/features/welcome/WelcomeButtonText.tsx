@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 
 type WelcomeButtonTextType = "submit" | "back";
@@ -20,7 +20,7 @@ const WelcomeButtonText = ({
   const styles = createStyles(loginTheme, type);
 
   return (
-    <AppText style={styles.text} text={label} translationKey={translationKey} />
+    <Typography style={styles.text} text={label} translationKey={translationKey} />
   );
 };
 

@@ -7,7 +7,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import useProfilePicture from "@/src/hooks/avatar/useProfilePicture";
 
 import Avatar from "@/src/components/ui/avatar/Avatar";
-import AppText from "../ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 const UserProfileAvatar = ({
   userHandle,
@@ -95,7 +95,7 @@ const UserProfileAvatar = ({
             <Avatar uuid={profilePictureUUID} size={avatarSize}/>
           </View>
           <View style={styles.nameContainer}>
-            <AppText
+            <Typography
               style={styles.userName}
               numberOfLines={1}
               ellipsizeMode="tail"

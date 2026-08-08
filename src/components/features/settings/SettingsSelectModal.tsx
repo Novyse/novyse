@@ -1,8 +1,8 @@
 import { View, StyleSheet } from "react-native";
 import { useThemeContext } from "@/src/context/ThemeContext";
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import SettingsSelectGroup, { SelectOption } from "./SettingsSelectGroup";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 export interface SettingsSelectModalProps<T extends string = string> {
   visible: boolean;
@@ -52,7 +52,7 @@ function SettingsSelectModal<T extends string = string>({
       <View style={styles.container}>
         {loading ? (
           <View style={styles.loadingContainer}>
-            <AppText
+            <Typography
               style={styles.loadingText}
               translationKey={loadingKey || "common.loading"}
             />

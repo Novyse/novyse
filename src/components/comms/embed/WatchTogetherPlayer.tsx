@@ -1,7 +1,7 @@
 import React, { useRef, useContext, useEffect } from "react";
 import { View, StyleSheet, Pressable, Animated, Platform } from "react-native";
 import Slider from "@react-native-community/slider";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useWatchTogether } from "@/src/hooks/comms/useWatchTogether";
@@ -325,7 +325,7 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
         ) : (
           <View style={styles.errorContainer}>
             <Icon name="AlertCircleIcon" size={24} color={theme.iconDanger} />
-            <AppText
+            <Typography
               style={styles.errorText}
               text="Formato URL non supportato"
             />
@@ -402,7 +402,7 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
           />
 
           <View style={styles.timeWrapper}>
-            <AppText
+            <Typography
               style={styles.timeText}
               text={`${formatTime(currentTime)} / ${formatTime(duration)}`}
             />

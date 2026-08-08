@@ -1,11 +1,11 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
-import HoverAndPressedButton from "../../ui/button/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 
 interface RoomOptionsMenuProps {
   visible: boolean;
@@ -48,7 +48,7 @@ export const RoomOptionsMenu: React.FC<RoomOptionsMenuProps> = ({
           >
             <View style={styles.menuItemContent}>
               <Icon name="Link01Icon" size={20} color={theme.text} />
-              <AppText
+              <Typography
                 style={styles.menuText}
                 translationKey={
                   isVideoActive

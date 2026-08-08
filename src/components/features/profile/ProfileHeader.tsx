@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
@@ -39,11 +39,11 @@ export default function ProfileHeader({
         // style={styles.avatar}
       />
 
-      <AppText
+      <Typography
         style={styles.nameSurnameText}
         text={`${name} ${surname || ""}`}
       />
-      <AppText style={styles.usernameText} text={`@${username}`} />
+      <Typography style={styles.usernameText} text={`@${username}`} />
 
       <Badges userUUID={uuid} />
     </View>

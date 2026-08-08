@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { StyleSheet, View, Pressable } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -55,11 +55,11 @@ export default function NotificationsRoute() {
       />
       <SettingsPageScrollview>
         <View style={styles.headerSection}>
-          <AppText
+          <Typography
             style={styles.title}
             translationKey="settings.privacyAndSecurity.notificationMethods"
           />
-          <AppText
+          <Typography
             style={styles.subtitle}
             translationKey="settings.privacyAndSecurity.manageNotifications"
           />
@@ -102,7 +102,7 @@ export default function NotificationsRoute() {
             ]}
           >
             <Icon name="PlusSignCircleIcon" />
-            <AppText
+            <Typography
               style={styles.addButtonText}
               translationKey="settings.privacyAndSecurity.addNotificationMethod"
             />

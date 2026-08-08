@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import useOpenFile from "@/src/hooks/file/useOpenFile";
@@ -29,7 +29,7 @@ const MessageOther = ({ fileRef, uuid, mimeType, size, name, isPending }) => {
         handleDefaultPress={handlePress}
       />
       <View style={styles.detailsContainer}>
-        <AppText style={styles.name} numberOfLines={1} text={name} />
+        <Typography style={styles.name} numberOfLines={1} text={name} />
         <FileSizeProgress uuid={uuid} size={size} style={styles.fileSize} />
       </View>
     </Pressable>

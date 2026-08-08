@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import Button from "@/src/components/ui/button/Button";
 import TextInput from "@/src/components/ui/input/TextInput";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
@@ -50,7 +50,7 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
   const ModalContent = (
     <View>
       <View style={styles.header}>
-        <AppText
+        <Typography
           style={styles.modalSubtitle}
           text="Enter a name for the sub-channel"
         />

@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useShareIntentContext } from "expo-share-intent";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -242,7 +242,7 @@ const ChatList = () => {
           />
         }
         center={
-          <AppText
+          <Typography
             style={styles.headerTitle}
             translationKey="tabs.chatList.selected"
             translationOptions={{ count: selectedItems.length }}
@@ -279,7 +279,7 @@ const ChatList = () => {
           />
         }
         center={
-          <AppText
+          <Typography
             style={styles.headerTitle}
             translationKey="tabs.chatList.intentSharing"
           />
@@ -303,7 +303,7 @@ const ChatList = () => {
           />
         }
         center={
-          <AppText
+          <Typography
             style={styles.headerTitle}
             translationKey="tabs.chatList.forwarding"
           />

@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import AppText from "../text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -79,12 +79,12 @@ export default function SelectInput({
         onPress={() => !disabled && setModalVisible(true)}
         disabled={disabled}
       >
-        <AppText
+        <Typography
           style={[styles.text, !value && styles.placeholder]}
           numberOfLines={1}
           text={displayText}
         />
-        <AppText style={styles.arrow} text="▼" />
+        <Typography style={styles.arrow} text="▼" />
       </TouchableOpacity>
 
       <Modal
@@ -111,7 +111,7 @@ export default function SelectInput({
                   ]}
                   onPress={() => handleSelect(item)}
                 >
-                  <AppText
+                  <Typography
                     style={[
                       styles.optionText,
                       item === value && styles.selectedOptionText,

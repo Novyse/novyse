@@ -9,7 +9,7 @@ import Animated, {
 
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 type StatusMessageType = "success" | "error" | "warning" | "info";
@@ -147,12 +147,12 @@ const StatusMessage = ({
         {!iconOnly && (
           <>
             <View style={styles.contentContainer}>
-              <AppText
+              <Typography
                 style={styles.title}
                 translationKey={`common.status.${titleKey.toLowerCase()}`}
               />
               {translationKey ? (
-                <AppText
+                <Typography
                   style={styles.contentText}
                   translationKey={translationKey}
                 />
@@ -176,7 +176,7 @@ const StatusMessage = ({
                     const linkText = match[3];
 
                     parts.push(
-                      <AppText
+                      <Typography
                         key={`link-${index}-${lastIndex}`}
                         style={styles.linkText}
                         onPress={() => Linking.openURL(url)}
@@ -191,13 +191,13 @@ const StatusMessage = ({
                   }
 
                   return (
-                    <AppText
+                    <Typography
                       key={index}
                       style={styles.contentText}
                       text={parts.length > 0 ? undefined : formattedText}
                     >
                       {parts.length > 0 ? parts : null}
-                    </AppText>
+                    </Typography>
                   );
                 })
               )}

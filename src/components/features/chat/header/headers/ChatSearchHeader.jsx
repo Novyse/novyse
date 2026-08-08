@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { View, StyleSheet, TextInput, ActivityIndicator } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 
 import Icon from "@/src/components/ui/icon/Icon";
@@ -170,7 +170,7 @@ const SearchHeader = ({ onClose }) => {
             style={styles.counter}
           />
         ) : hasQuery ? (
-          <AppText
+          <Typography
             style={styles.counter}
             text={hasResults ? `${currentIndex + 1}/${results.length}` : "0/0"}
           />

@@ -10,9 +10,9 @@ import { useTranslation } from "react-i18next";
 
 import Icon from "@/src/components/ui/icon/Icon";
 import BlurredView from "@/src/components/layout/BlurredView";
-import ImageViewer from "@/src/components/modalSheets/viewer/ImageViewer";
-import VideoViewer from "@/src/components/modalSheets/viewer/VideoViewer";
-import AppText from "@/src/components/ui/text/AppText";
+import ImageViewer from "@/src/components/features/modalSheets/viewer/ImageViewer";
+import VideoViewer from "@/src/components/features/modalSheets/viewer/VideoViewer";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import { useAudioPlayer } from "@/src/context/AudioPlayerContext";
@@ -141,7 +141,7 @@ const FilesBar = () => {
           <Icon name="FileAttachmentIcon" size={18} />
           <View style={styles.accent} />
           <View style={styles.headerMeta}>
-            <AppText
+            <Typography
               style={[styles.headerTitle, { color: theme.icon }]}
               numberOfLines={1}
               text={t(
@@ -149,7 +149,7 @@ const FilesBar = () => {
                 { count: files.length },
               )}
             />
-            <AppText
+            <Typography
               style={[styles.headerSub, isNearLimit && styles.headerSubDanger]}
               numberOfLines={1}
               text={`${formatFileSize(totalSize)} / ${formatFileSize(maxTotalSize)}`}
@@ -202,7 +202,7 @@ const FilesBar = () => {
                       color={isInvalid ? theme.dangerText : theme.icon}
                     />
                     <View style={styles.chipText}>
-                      <AppText
+                      <Typography
                         style={[
                           styles.chipName,
                           isInvalid && styles.chipNameInvalid,
@@ -210,7 +210,7 @@ const FilesBar = () => {
                         numberOfLines={1}
                         text={name || t("chat.bottomBar.files.file")}
                       />
-                      <AppText
+                      <Typography
                         style={styles.chipSize}
                         text={formatFileSize(fileSize)}
                       />
@@ -228,7 +228,7 @@ const FilesBar = () => {
                   </TouchableOpacity>
                 </View>
                 {isInvalid && (
-                  <AppText
+                  <Typography
                     style={styles.dangerText}
                     numberOfLines={1}
                     text={invalidInfo.errors[0]}

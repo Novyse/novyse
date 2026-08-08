@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -6,7 +6,7 @@ import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBack
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import Section from "@/src/components/features/settings/SettingsSection";
 import SettingRow from "@/src/components/features/settings/SettingsRow";
-import DeleteAccount from "@/src/components/modalSheets/DeleteAccount";
+import DeleteAccount from "@/src/components/features/modalSheets/DeleteAccount";
 
 import auth from "@/src/utils/welcome/auth";
 

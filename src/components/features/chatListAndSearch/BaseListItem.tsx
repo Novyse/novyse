@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import SmartBackground from "@/src/components/layout/SmartBackground";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
@@ -111,7 +111,7 @@ const BaseListItem = React.memo(
             {renderAvatar()}
             {isSidebarCollapsed && unreadCount > 0 && (
               <View style={styles.collapsedUnreadBadge}>
-                <AppText style={styles.ballText} text={unreadCount.toString()} />
+                <Typography style={styles.ballText} text={unreadCount.toString()} />
               </View>
             )}
           </View>
@@ -119,7 +119,7 @@ const BaseListItem = React.memo(
             <View style={styles.chatItemGrid}>
               <View style={styles.leftContainer}>
                 <View style={styles.titleRow}>
-                  <AppText
+                  <Typography
                     style={[styles.chatTitle, styles.gridText]}
                     numberOfLines={1}
                     ellipsizeMode="tail"
@@ -136,7 +136,7 @@ const BaseListItem = React.memo(
                   {isPinned && <Icon name={"PinIcon"} size={16} />}
                   {unreadCount > 0 && (
                     <View style={styles.ball}>
-                      <AppText style={styles.ballText} text={unreadCount.toString()} />
+                      <Typography style={styles.ballText} text={unreadCount.toString()} />
                     </View>
                   )}
                 </View>

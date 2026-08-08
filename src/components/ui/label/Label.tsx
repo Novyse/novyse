@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
@@ -16,9 +16,9 @@ export default function Label({ text, translationKey }: LabelProps) {
   const styles = createStyles(theme);
 
   return translationKey ? (
-    <AppText style={styles.label} translationKey={translationKey} />
+    <Typography style={styles.label} translationKey={translationKey} />
   ) : text ? (
-    <AppText style={styles.label} text={text} />
+    <Typography style={styles.label} text={text} />
   ) : null;
 }
 

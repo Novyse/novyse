@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, TextInput as RNTextInput, StyleSheet } from "react-native";
-import AppText from "../text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import Label from "../label/Label";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -45,7 +45,7 @@ export default function TextInput({
 
   const inputElement = (
     <View style={styles.inputContainer}>
-      {prefix && <AppText style={styles.prefix} text={prefix} />}
+      {prefix && <Typography style={styles.prefix} text={prefix} />}
 
       <RNTextInput
         style={styles.TextInput}

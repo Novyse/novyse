@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useThemeContext } from "@/src/context/ThemeContext";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
@@ -52,14 +52,14 @@ const MessageReply = ({
         <View style={styles.accent} />
         <View style={styles.content}>
           <View style={styles.headerRow}>
-            <AppText
+            <Typography
               style={styles.senderName}
               numberOfLines={1}
               text={senderName ?? "Unknown"}
             />
             {isQuote && <Icon name="QuoteIcon" size={14} color={theme.icon} />}
           </View>
-          <AppText style={styles.text} numberOfLines={2} text={text ?? ""} />
+          <Typography style={styles.text} numberOfLines={2} text={text ?? ""} />
         </View>
       </View>
     </Pressable>

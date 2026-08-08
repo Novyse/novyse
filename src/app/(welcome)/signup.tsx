@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { useScreen } from "@/src/context/ScreenContext";
 import { LoginColors } from "@/constants/LoginColors";
@@ -66,7 +66,7 @@ export default function Signup() {
         <KeyboardAvoidingView behavior="position">
           <ScrollView contentContainerStyle={styles.cardContent}>
             {/* <Image style={styles.logo} source={logoNovyse} /> */}
-            <AppText style={styles.title} translationKey="auth.signup.title" />
+            <Typography style={styles.title} translationKey="auth.signup.title" />
 
             <SignupTimeline
               steps={STEPS}

@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
@@ -137,7 +137,7 @@ export default function SystemRoute() {
           onBack={onBack}
         />
         <View style={styles.container}>
-          <AppText
+          <Typography
             style={styles.loadingText}
             translationKey="settings.comms.loadingSettings"
           />

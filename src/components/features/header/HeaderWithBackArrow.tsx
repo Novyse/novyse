@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
 
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import AppHeader from "@/src/components/features/header/AppHeader";
 import { headerIconButtonStyle } from "@/src/components/features/header/AppHeaderRow";
 import Icon from "@/src/components/ui/icon/Icon";
@@ -22,13 +22,13 @@ const HeaderWithBackArrow = ({
   const styles = createStyle(theme);
 
   const titleNode = translationKey ? (
-    <AppText
+    <Typography
       style={styles.titleText}
       translationKey={translationKey}
       numberOfLines={1}
     />
   ) : title ? (
-    <AppText style={styles.titleText} text={title} numberOfLines={1} />
+    <Typography style={styles.titleText} text={title} numberOfLines={1} />
   ) : null;
 
   return (

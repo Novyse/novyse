@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/ui/text/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
@@ -54,9 +54,9 @@ const SettingsMenuItem = ({
         <Icon name={iconName} color={iconColor || theme.text} />
       </View>
       {translationKey ? (
-        <AppText style={styles.menuItemText} translationKey={translationKey} />
+        <Typography style={styles.menuItemText} translationKey={translationKey} />
       ) : (
-        <AppText style={styles.menuItemText} text={pageName} />
+        <Typography style={styles.menuItemText} text={pageName} />
       )}
     </HoverAndPressedButton>
   );

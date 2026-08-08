@@ -1,8 +1,7 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { StyleSheet } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
-
-import HoverAndPressedButton from "../../../../../ui/button/HoverAndPressedButton";
+import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 
 interface AppearanceColorDotProps {
   color: string;

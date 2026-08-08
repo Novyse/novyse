@@ -8,8 +8,8 @@ import {
 } from "react-native";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
-import AdaptiveModal from "@/src/components/modalSheets/components/AdaptiveModal";
-import AppText from "@/src/components/ui/text/AppText";
+import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
+import Typography from "@/src/components/ui/typography/Typography";
 import Switch from "@/src/components/ui/switch/Switch";
 import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 import { useTranslation } from "react-i18next";
@@ -149,9 +149,9 @@ const ScreenShareSelector = ({
           )}
         </View>
         <View style={styles.sourceNameContainer}>
-          <AppText style={styles.sourceName} numberOfLines={1}>
+          <Typography style={styles.sourceName} numberOfLines={1}>
             {source.name}
-          </AppText>
+          </Typography>
         </View>
       </TouchableOpacity>
     );
@@ -183,7 +183,7 @@ const ScreenShareSelector = ({
       {loading ? (
         <View style={styles.sourcesArea}>
           <View style={styles.loadingContainer}>
-            <AppText
+            <Typography
               style={styles.loadingText}
               translationKey="chat.comms.selectors.screenshare.loading"
             />
@@ -192,7 +192,7 @@ const ScreenShareSelector = ({
       ) : permissionDenied ? (
         <View style={styles.sourcesArea}>
           <View style={styles.warningContainer}>
-            <AppText
+            <Typography
               style={styles.warningText}
               translationKey="chat.comms.selectors.screenshare.permissionWarning"
             />
@@ -216,14 +216,14 @@ const ScreenShareSelector = ({
         <View style={styles.footerAudioRow}>
           {activeTab === "screen" ? (
             audioDisabledByMac ? (
-              <AppText
+              <Typography
                 style={styles.audioWarningText}
                 translationKey="chat.comms.selectors.screenshare.macOsAudioWarning"
               />
             ) : (
               <View style={styles.audioToggleContainer}>
                 <Switch value={includeAudio} onValueChange={setIncludeAudio} />
-                <AppText
+                <Typography
                   style={styles.audioText}
                   translationKey="chat.comms.selectors.screenshare.includeAudio"
                 />
@@ -237,7 +237,7 @@ const ScreenShareSelector = ({
             onPress={onClose}
             style={[styles.actionButton, styles.cancelButton]}
           >
-            <AppText
+            <Typography
               style={styles.cancelButtonText}
               translationKey="chat.comms.selectors.screenshare.cancel"
             />
@@ -258,7 +258,7 @@ const ScreenShareSelector = ({
                 styles.shareButtonDisabled,
             ]}
           >
-            <AppText
+            <Typography
               style={styles.startButtonText}
               translationKey="chat.comms.selectors.screenshare.startScreenShare"
             />
