@@ -57,7 +57,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ message, onCancel }) => {
       <Icon
         name="Cancel01Icon"
         size={18}
-        color={theme.placeholderText}
+        color={theme.subtitle}
         onPress={() => onCancel(message.id)}
       />
     </View>
@@ -123,7 +123,7 @@ const createStyle = (theme: any): Styles =>
       fontSize: 13,
     },
     actionText: {
-      color: theme.placeholderText,
+      color: theme.subtitle,
       fontSize: 13,
     },
   });

@@ -65,7 +65,7 @@ const createStyles = (theme) =>
     },
     cardSubtitle: {
       fontSize: 10,
-      color: theme.placeholderText,
+      color: theme.subtitle,
       textAlign: "center",
       lineHeight: 14,
     },

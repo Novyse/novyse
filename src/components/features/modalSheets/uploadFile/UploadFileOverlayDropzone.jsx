@@ -117,7 +117,7 @@ const createStyle = (theme) =>
       userSelect: "none",
     },
     note: {
-      color: theme.placeholderText,
+      color: theme.subtitle,
       fontSize: 12,
       marginTop: 4,
       marginBottom: 15,
@@ -162,7 +162,7 @@ const createStyle = (theme) =>
       marginBottom: 8,
     },
     fileSize: {
-      color: theme.placeholderText,
+      color: theme.subtitle,
       fontSize: 10,
       marginLeft: 8,
     },
@@ -173,7 +173,7 @@ const createStyle = (theme) =>
       marginTop: 10,
     },
     removeAllFilesText: {
-      color: theme.placeholderText,
+      color: theme.subtitle,
       fontSize: 10,
       userSelect: "none",
     },

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
@@ -163,7 +163,7 @@ function createStyle(theme) {
     },
     timeText: {
       fontSize: 12,
-      color: theme.placeholderText,
+      color: theme.subtitle,
       fontVariant: ["tabular-nums"],
     },
     rateText: {

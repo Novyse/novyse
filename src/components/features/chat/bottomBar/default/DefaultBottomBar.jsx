@@ -172,37 +172,6 @@ const createStyle = (theme) => ({
     minHeight: 55,
     gap: 10,
   },
-  replyBarContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: theme.backgroundCard,
-    borderRadius: 18,
-    marginBottom: 4,
-    gap: 8,
-  },
-  replyBarAccent: {
-    width: 3,
-    borderRadius: 2,
-    alignSelf: "stretch",
-    backgroundColor: theme.icon,
-  },
-  editBarAccent: {
-    width: 3,
-    borderRadius: 2,
-    alignSelf: "stretch",
-    backgroundColor: theme.icon,
-  },
-  replyBarText: {
-    color: theme.placeholderText,
-    fontSize: 13,
-  },
-  replyBarName: {
-    color: theme.text,
-    fontWeight: "600",
-    fontSize: 13,
-  },
 });
 
 export default DefaultBottomBar;

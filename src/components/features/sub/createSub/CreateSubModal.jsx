@@ -123,7 +123,7 @@ function createStyle(theme) {
     },
     modalSubtitle: {
       fontSize: 14,
-      color: theme.placeholderText,
+      color: theme.subtitle,
       lineHeight: 20,
     },
     section: {

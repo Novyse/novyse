@@ -17,7 +17,7 @@ import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import {
   HEADER_ROW_HEIGHT,
   ICON_BUTTON_SIZE,
-} from "@/src/components/features/header/constants";
+} from "@/constants/headers";
 
 interface CommsHeaderProps {
   connected: boolean;

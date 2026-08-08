@@ -126,7 +126,7 @@ const createStyles = (theme) =>
     },
     modalSubtitle: {
       fontSize: 14,
-      color: theme.placeholderText,
+      color: theme.subtitle,
       lineHeight: 20,
     },
     section: {
@@ -147,7 +147,7 @@ const createStyles = (theme) =>
     },
     helperText: {
       fontSize: 12,
-      color: theme.placeholderText,
+      color: theme.subtitle,
       marginTop: 6,
     },
     footer: {

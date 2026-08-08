@@ -114,7 +114,7 @@ const createStyle = (theme: any): Styles =>
       fontSize: 14,
     },
     memberHandle: {
-      color: theme.placeholderText,
+      color: theme.subtitle,
       fontSize: 14,
     },
     separator: {

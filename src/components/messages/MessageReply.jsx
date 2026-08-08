@@ -87,7 +87,7 @@ const createStyle = (theme) =>
       paddingHorizontal: 8,
       paddingVertical: 5,
       justifyContent: "center",
-      backgroundColor: theme.secondary + "30",
+      backgroundColor: theme.secondary + 30,
     },
     headerRow: {
       flexDirection: "row",
@@ -98,11 +98,11 @@ const createStyle = (theme) =>
     senderName: {
       fontWeight: "600",
       fontSize: 12,
-      color: theme.icon,
+      color: theme.primary,
     },
     text: {
       fontSize: 12,
-      color: theme.placeholderText,
+      color: theme.subtitle,
       lineHeight: 16,
     },
   });

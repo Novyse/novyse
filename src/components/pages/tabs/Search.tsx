@@ -25,7 +25,7 @@ import Icon from "@/src/components/ui/icon/Icon";
 import Avatar from "@/src/components/ui/avatar/Avatar";
 import AppHeader from "@/src/components/features/header/AppHeader";
 import { headerIconButtonStyle } from "@/src/components/features/header/AppHeaderRow";
-import { getAppHeaderScrollPaddingTop } from "@/src/components/features/header/constants";
+import { getAppHeaderScrollPaddingTop } from "@/constants/headers";
 import ChatListItemSearch from "@/src/components/features/chatListAndSearch/ChatListItemSearch";
 import BaseListItem from "@/src/components/features/chatListAndSearch/BaseListItem";
 
@@ -466,15 +466,6 @@ const createStyle = (theme: any, insets: any, statusBannerOffset: number) => {
       paddingTop: contentTop,
       paddingBottom: 10 + insets.bottom,
     },
-    sectionHeader: {
-      fontSize: 13,
-      fontWeight: "700",
-      color: theme.placeholderText,
-      textTransform: "uppercase",
-      paddingHorizontal: 6,
-      paddingTop: 6,
-      paddingBottom: 2,
-    },
     avatar: {
       width: 45,
       height: 45,
@@ -482,7 +473,7 @@ const createStyle = (theme: any, insets: any, statusBannerOffset: number) => {
     },
     messageChatName: {
       fontSize: 12,
-      color: theme.placeholderText,
+      color: theme.subtitle,
       flexShrink: 0,
     },
     messageContent: {

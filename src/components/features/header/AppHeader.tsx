@@ -15,7 +15,7 @@ import {
   HEADER_INNER_PADDING,
   HEADER_ROW_HEIGHT,
   HEADER_SHELL_PADDING,
-} from "@/src/components/features/header/constants";
+} from "@/constants/headers";
 
 interface AppHeaderProps {
   left?: React.ReactNode;

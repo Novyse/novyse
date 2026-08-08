@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import {
   View,
-  TextInput,
   StyleSheet,
   ActivityIndicator,
   Pressable,
@@ -13,6 +12,7 @@ import Typography from "@/src/components/ui/typography/Typography";
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { parseVideoUrl } from "@/src/hooks/comms/useWatchTogether";
+import TextInput from "@/src/components/ui/input/TextInput";
 
 interface WatchTogetherModalProps {
   visible: boolean;
@@ -133,13 +133,9 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
         />
 
         <TextInput
-          style={styles.textInput}
           placeholder={t("chat.comms.watchTogether.placeholder")}
-          placeholderTextColor={theme.placeholderText}
           value={videoUrl}
           onChangeText={setVideoUrl}
-          onSubmitEditing={handleStartSession}
-          autoFocus
         />
 
         {!!errorMsg && <Typography style={styles.errorText} text={errorMsg} />}

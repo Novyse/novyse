@@ -4,10 +4,7 @@ import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 
 import Icon from "@/src/components/ui/icon/Icon";
-import {
-  HEADER_ROW_HEIGHT,
-  ICON_BUTTON_SIZE,
-} from "@/src/components/features/header/constants";
+import { HEADER_ROW_HEIGHT, ICON_BUTTON_SIZE } from "@/constants/headers";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
@@ -146,7 +143,6 @@ const SearchHeader = ({ onClose }) => {
       <View style={styles.headerLeft}>
         <Icon
           name="Search01Icon"
-          color={theme.placeholderText}
           onPress={() => {}}
           style={styles.iconButton}
         />
@@ -175,18 +171,20 @@ const SearchHeader = ({ onClose }) => {
             text={hasResults ? `${currentIndex + 1}/${results.length}` : "0/0"}
           />
         ) : null}
-        <Icon
-          name="ArrowUp01Icon"
-          onPress={goOlder}
-          color={hasResults ? theme.icon : theme.placeholderText}
-          style={styles.iconButton}
-        />
-        <Icon
-          name="ArrowDown01Icon"
-          onPress={goNewer}
-          color={hasResults ? theme.icon : theme.placeholderText}
-          style={styles.iconButton}
-        />
+        {hasResults && (
+          <Icon
+            name="ArrowUp01Icon"
+            onPress={goOlder}
+            style={styles.iconButton}
+          />
+        )}
+        {hasResults && (
+          <Icon
+            name="ArrowDown01Icon"
+            onPress={goNewer}
+            style={styles.iconButton}
+          />
+        )}
         <Icon
           name="Cancel01Icon"
           onPress={handleClose}
@@ -224,8 +222,8 @@ function createStyle(theme) {
       outlineStyle: "none",
     },
     counter: {
-      fontSize: 13,
-      color: theme.placeholderText,
+      fontSize: 14,
+      color: theme.subtitle,
       minWidth: 34,
       textAlign: "center",
     },

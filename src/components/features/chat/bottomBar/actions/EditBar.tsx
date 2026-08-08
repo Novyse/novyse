@@ -40,7 +40,6 @@ const EditBar: React.FC<EditBarProps> = ({ editingMessage, onCancelEdit }) => {
       <Icon
         name="Cancel01Icon"
         size={18}
-        color={theme.placeholderText}
         onPress={onCancelEdit}
       />
     </BlurredView>
@@ -77,7 +76,7 @@ const createStyle = (theme: any): Styles =>
       fontSize: 13,
     },
     actionText: {
-      color: theme.placeholderText,
+      color: theme.subtitle,
       fontSize: 13,
     },
   });

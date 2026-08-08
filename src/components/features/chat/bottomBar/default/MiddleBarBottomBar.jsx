@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { StyleSheet, View, TextInput } from "react-native";
 import { EnrichedMarkdownTextInput } from "react-native-enriched-markdown";
 import Typography from "@/src/components/ui/typography/Typography";
@@ -362,12 +362,6 @@ const createStyle = (theme) =>
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-    },
-    screenRecordingLabel: {
-      color: theme.text,
-      fontSize: 13,
-      fontWeight: "600",
-      letterSpacing: 0.5,
     },
   });
 

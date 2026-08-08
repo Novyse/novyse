@@ -363,7 +363,7 @@ const createStyle = (theme: any) =>
       fontSize: 14,
     },
     emptyText: {
-      color: theme.placeholderText || "#a1a1a1",
+      color: theme.subtitle,
       textAlign: "center",
       fontSize: 14,
     },

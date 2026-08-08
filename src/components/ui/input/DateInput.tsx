@@ -59,7 +59,7 @@ export default function DateInput({
         disabled={disabled}
       >
         <Typography
-          style={[styles.text, !value && styles.placeholder]}
+          style={[styles.text, !value && styles.subtitle]}
           text={displayValue}
         />
       </Pressable>
@@ -121,8 +121,8 @@ const createStyles = (theme: any, disabled: boolean) =>
       color: theme.text,
       fontSize: 14,
     },
-    placeholder: {
-      color: theme.placeholderText,
+    subtitle: {
+      color: theme.subtitle,
     },
     modalContainer: {
       flex: 1,

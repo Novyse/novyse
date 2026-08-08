@@ -350,7 +350,7 @@ function createStyle(theme) {
     },
     modalSubtitle: {
       fontSize: 14,
-      color: theme.placeholderText,
+      color: theme.subtitle,
       lineHeight: 20,
     },
     // Sections
@@ -367,7 +367,7 @@ function createStyle(theme) {
     },
     helperText: {
       fontSize: 12,
-      color: theme.placeholderText,
+      color: theme.subtitle,
       marginTop: 6,
     },
     // Cards Styles

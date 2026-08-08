@@ -178,13 +178,7 @@ function SegmentedSwitch<T extends string = string>({
                 <Icon
                   name={option.icon}
                   size={18}
-                  color={
-                    isActive
-                      ? theme.text
-                      : option.disabled
-                        ? theme.placeholderText
-                        : theme.subtitle
-                  }
+                  color={isActive ? theme.icon : theme.subtitle}
                 />
               )}
               {option.label && (
@@ -271,7 +265,7 @@ function createStyles(theme: any, isIconOnly?: boolean, buttonWidth?: number) {
       color: theme.text,
     },
     toggleTextDisabled: {
-      color: theme.placeholderText,
+      color: theme.subtitle,
     },
   });
 }

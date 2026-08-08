@@ -15,7 +15,7 @@ import { headerIconButtonStyle } from "@/src/components/features/header/AppHeade
 import {
   COMMS_HEADER_OFFSET,
   getAppHeaderScrollPaddingTop,
-} from "@/src/components/features/header/constants";
+} from "@/constants/headers";
 import ChatListItem from "@/src/components/features/chatListAndSearch/ChatListItem";
 import ChatListHeader from "@/src/components/features/chatListAndSearch/header/ChatListHeader";
 import StatusHeader from "@/src/components/features/chatListAndSearch/header/StatusHeader";

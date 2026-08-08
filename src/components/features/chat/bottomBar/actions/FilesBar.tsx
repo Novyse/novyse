@@ -158,7 +158,7 @@ const FilesBar = () => {
           <Icon
             name="Cancel01Icon"
             size={18}
-            color={theme.placeholderText}
+            color={theme.subtitle}
             onPress={handleClearAll}
           />
         </View>
@@ -223,7 +223,7 @@ const FilesBar = () => {
                     <Icon
                       name="Cancel01Icon"
                       size={18}
-                      color={theme.placeholderText}
+                      color={theme.subtitle}
                     />
                   </TouchableOpacity>
                 </View>
@@ -290,7 +290,7 @@ const createStyle = (theme: any) =>
     },
     headerSub: {
       fontSize: 13,
-      color: theme.placeholderText,
+      color: theme.subtitle,
     },
     headerSubDanger: {
       color: theme.dangerText,
@@ -339,7 +339,7 @@ const createStyle = (theme: any) =>
     },
     chipSize: {
       fontSize: 11,
-      color: theme.placeholderText,
+      color: theme.subtitle,
     },
     dangerText: {
       fontSize: 11,

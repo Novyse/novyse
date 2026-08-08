@@ -80,7 +80,7 @@ export default function SelectInput({
         disabled={disabled}
       >
         <Typography
-          style={[styles.text, !value && styles.placeholder]}
+          style={[styles.text, !value && styles.subtitle]}
           numberOfLines={1}
           text={displayText}
         />
@@ -148,11 +148,11 @@ const createStyles = (theme: any) =>
       fontSize: 14,
       flex: 1,
     },
-    placeholder: {
-      color: theme.placeholderText,
+    subtitle: {
+      color: theme.subtitle,
     },
     arrow: {
-      color: theme.placeholderText,
+      color: theme.subtitle,
       fontSize: 12,
       marginLeft: 2,
     },
@@ -177,7 +177,7 @@ const createStyles = (theme: any) =>
       paddingVertical: 15,
     },
     selectedOption: {
-      backgroundColor: theme.primary + "20", // 20% opacity
+      backgroundColor: theme.primary,
     },
     optionText: {
       color: theme.text,
@@ -189,6 +189,6 @@ const createStyles = (theme: any) =>
     },
     separator: {
       height: 1,
-      backgroundColor: theme.placeholderText + "30",
+      backgroundColor: theme.subtitle,
     },
   });

@@ -53,7 +53,7 @@ export const getMarkdownStyle = (
     checkboxSize: 18,
     checkboxBorderRadius: 6,
     checkmarkColor: theme.backgroundCard,
-    checkedTextColor: theme.placeholderText,
+    checkedTextColor: theme.subtitle,
     checkedStrikethrough: true,
   },
   linkVariants: {
