@@ -797,10 +797,15 @@
     "delete_account": {
       "title": "Elimina Account",
       "warning": "Questa azione non può essere annullata. Tutti i tuoi dati verranno eliminati permanentemente.",
-      "confirmation_identity": "Conferma Identità",
       "confirm_instruction": "Inserisci il tuo nome utente {{username}} per confermare.",
       "helper_text": "Questa è un'azione permanente.",
       "learn_more": "Scopri di più",
+      "cancel": "Annulla",
+      "delete": "Elimina"
+    },
+    "delete_message": {
+      "subtitle_one": "Vuoi eliminare questo messaggio permanentemente?",
+      "subtitle_other": "Vuoi eliminare {{count}} messaggi permanentemente?",
       "cancel": "Annulla",
       "delete": "Elimina"
     },
@@ -813,14 +818,12 @@
       "title": "Crea Nuova Chat",
       "subtitle": "Configura le impostazioni della tua nuova chat qui sotto.",
       "sections": {
-        "identity": "Identità Chat",
         "commsStyle": "Stile Di Comunicazione",
         "privacy": "Impostazioni Privacy"
       },
       "fields": {
         "name": "Nome Chat",
         "namePlaceholder": "es., Novyse News",
-        "nameHelper": "Questo è il nome che sarà visibile ai membri.",
         "handle": "Handle Chat",
         "handlePlaceholder": "il-tuo-handle",
         "handleHelper": "Le persone possono trovare la tua chat usando questo handle.",

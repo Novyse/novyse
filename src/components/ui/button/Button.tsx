@@ -1,41 +1,45 @@
-import React, { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { StyleSheet, ViewStyle, TextStyle, StyleProp } from "react-native";
-import { Theme, ThemeContext } from "@/src/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 import Typography from "@/src/components/ui/typography/Typography";
-import Icon from "@/src/components/ui/icon/Icon";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
+import {
+  buttonDefaults,
+  getButtonVariantStyle,
+  resolveButtonTypographyVariant,
+  type ButtonVariant,
+} from "@/constants/button";
+import type {
+  TypographySize,
+  TypographyVariant,
+  TypographyWeight,
+} from "@/constants/typography";
 
 export interface ButtonProps {
-  /** Il testo del pulsante (opzionale se si usa translationKey) */
+  /** Button visual preset. Default: `primary`. */
+  variant?: ButtonVariant;
+  /** Typography variant for the label. Ignored on variants with a fixed text color (e.g. `danger`). */
+  textVariant?: TypographyVariant;
+  /** Typography size for the label. Default: `sm`. */
+  size?: TypographySize;
+  /** Typography weight for the label. Default: `semibold`. */
+  weight?: TypographyWeight;
   text?: string;
-  /** Chiave di traduzione i18n per il testo (opzionale) */
   translationKey?: string;
-  /** Icona a sinistra (opzionale): nome dell'icona (string) o elemento React custom */
-  icon?: string | React.ReactNode;
-  /** Dimensione dell'icona se 'icon' è una stringa (default 18) */
-  iconSize?: number;
-  /** Colore dell'icona (default theme.text o personalizzato) */
-  iconColor?: string;
-  /** Azione al click */
   onPress?: () => void;
-  /** Pulsante disabilitato */
   disabled?: boolean;
-  /** Stile aggiuntivo per il contenitore del pulsante */
   style?: StyleProp<ViewStyle>;
-  /** Stile aggiuntivo per il testo */
   textStyle?: StyleProp<TextStyle>;
-  /** Stile aggiuntivo per lo stato hover */
   hoveredStyle?: StyleProp<ViewStyle>;
-  /** Stile aggiuntivo per lo stato pressed */
   pressedStyle?: StyleProp<ViewStyle>;
 }
 
 export default function Button({
+  variant = buttonDefaults.variant,
+  size = "md",
+  weight = "semibold",
   text,
   translationKey,
-  icon,
-  iconSize = 20,
-  iconColor,
   onPress,
   disabled = false,
   style,
@@ -44,68 +48,75 @@ export default function Button({
   pressedStyle,
 }: ButtonProps) {
   const { theme } = useContext(ThemeContext);
-  const styles = createStyles(theme);
+  const styles = createStyles();
 
-  const renderIcon = () => {
-    if (!icon) return null;
+  const variantStyle = useMemo(
+    () => getButtonVariantStyle(theme, variant),
+    [theme, variant],
+  );
 
-    if (typeof icon === "string") {
-      return (
-        <Icon name={icon} size={iconSize} color={iconColor || theme.text} />
-      );
-    }
-
-    return icon;
-  };
+  const resolvedTextVariant = useMemo(
+    () => resolveButtonTypographyVariant(variantStyle),
+    [variantStyle],
+  );
 
   return (
     <HoverAndPressedButton
-      style={[styles.createBtn, style]}
-      hoveredStyle={[styles.hovered, hoveredStyle]}
-      pressedStyle={[styles.pressed, pressedStyle]}
+      style={[
+        styles.button,
+        { backgroundColor: variantStyle.backgroundColor },
+        style,
+      ]}
+      hoveredStyle={[
+        styles.hovered,
+        { backgroundColor: variantStyle.hoveredBackgroundColor },
+        hoveredStyle,
+      ]}
+      pressedStyle={[
+        styles.pressed,
+        { backgroundColor: variantStyle.pressedBackgroundColor },
+        pressedStyle,
+      ]}
       onPress={onPress}
       disabled={disabled}
     >
-      {renderIcon()}
-      <Typography
-        text={text}
-        translationKey={translationKey}
-        style={[
-          styles.createBtnText,
-          icon ? styles.createBtnTextWithIcon : undefined,
-          textStyle,
-        ]}
-      />
+        <Typography
+          text={text}
+          translationKey={translationKey}
+          size={size}
+          weight={weight}
+          variant={resolvedTextVariant}
+          style={[
+            styles.label,
+            textStyle,
+          ]}
+        />
     </HoverAndPressedButton>
   );
 }
 
-const createStyles = (theme: Theme) =>
+const createStyles = () =>
   StyleSheet.create({
-    createBtn: {
-      backgroundColor: theme.primary,
+    button: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 100,
+      alignSelf: "flex-end",
+    },
+    content: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 15,
-      paddingHorizontal: 20,
-      borderRadius: 100,
     },
-    createBtnText: {
-      color: theme.text,
-      fontSize: 15,
-      fontWeight: "600",
+    label: {
       textAlign: "center",
     },
-    createBtnTextWithIcon: {
-      marginLeft: 5,
-    },
     hovered: {
-      backgroundColor: theme.primary,
       opacity: 0.9,
     },
     pressed: {
-      backgroundColor: theme.primary,
       opacity: 0.8,
     },
   });

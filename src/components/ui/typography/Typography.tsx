@@ -1,5 +1,9 @@
 import React, { useMemo, useContext } from "react";
-import { Text as RNText, TextProps as RNTextProps, TextStyle } from "react-native";
+import {
+  Text as RNText,
+  TextProps as RNTextProps,
+  TextStyle,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import {
@@ -68,7 +72,12 @@ const Typography = React.forwardRef<RNText, TypographyProps>(
     );
 
     return (
-      <RNText ref={ref} style={[resolvedStyle, style]} selectable={false} {...rest}>
+      <RNText
+        ref={ref}
+        style={[resolvedStyle, style]}
+        selectable={false}
+        {...rest}
+      >
         {content as React.ReactNode}
       </RNText>
     );

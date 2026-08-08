@@ -49,30 +49,21 @@ const DeleteAccount = ({ visible, onClose }) => {
   };
 
   const ModalContent = (
-    <View>
-      <View style={styles.header}>
-        <Typography
-          style={styles.modalSubtitle}
-          translationKey="modals.delete_account.warning"
-        />
-      </View>
+    <View style={styles.container}>
+      <Typography
+        variant="subtitle"
+        translationKey="modals.delete_account.warning"
+      />
 
-      <View style={styles.section}>
-        <Typography
-          style={styles.sectionLabel}
-          translationKey="modals.delete_account.confirmation_identity"
-        />
-        <Typography
-          style={styles.inputLabel}
-          translationKey="modals.delete_account.confirm_instruction"
-          translationOptions={{ username }}
-        />
+      <View>
         <TextInput
           value={inputUsername}
           onChange={setInputUsername}
           autoCapitalize="none"
+          labelTranslationKey="modals.delete_account.confirm_instruction"
+          translationOptions={{ username }}
         />
-        <Typography style={styles.helperText}>
+        <Typography>
           <Typography translationKey="modals.delete_account.helper_text" />{" "}
           <LinkText
             translationKey="modals.delete_account.learn_more"
@@ -95,7 +86,7 @@ const DeleteAccount = ({ visible, onClose }) => {
           icon="Delete02Icon"
           disabled={!isMatch}
           onPress={handleConfirm}
-          style={[styles.deleteBtn, !isMatch && styles.deleteBtnDisabled]}
+          variant="danger"
         />
       </View>
     </View>
@@ -117,54 +108,11 @@ const DeleteAccount = ({ visible, onClose }) => {
 
 const createStyles = (theme) =>
   StyleSheet.create({
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
+    container: {
+      gap: 25,
     },
     modalTitle: {
       color: theme.dangerText,
-    },
-    modalSubtitle: {
-      fontSize: 14,
-      color: theme.subtitle,
-      lineHeight: 20,
-    },
-    section: {
-      marginTop: 24,
-    },
-    sectionLabel: {
-      fontSize: 11,
-      fontWeight: "700",
-      color: theme.icon,
-      letterSpacing: 1,
-      marginBottom: 12,
-      textTransform: "uppercase",
-    },
-    inputLabel: {
-      fontSize: 14,
-      color: theme.text,
-      marginBottom: 8,
-    },
-    helperText: {
-      fontSize: 12,
-      color: theme.subtitle,
-      marginTop: 6,
-    },
-    footer: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      alignItems: "center",
-      gap: 12,
-      paddingTop: 16,
-      marginTop: 16,
-      borderTopWidth: 1,
-      borderTopColor: theme.backgroundCard,
-    },
-    deleteBtn: {
-      backgroundColor: theme.dangerText,
-    },
-    deleteBtnDisabled: {
-      backgroundColor: theme.backgroundDanger,
     },
   });
 

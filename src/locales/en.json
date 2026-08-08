@@ -799,10 +799,15 @@
     "delete_account": {
       "title": "Delete Account",
       "warning": "This action cannot be undone. All your data will be permanently deleted.",
-      "confirmation_identity": "Confirm Identity",
       "confirm_instruction": "Please type your username {{username}} to confirm.",
       "helper_text": "This is a permanent action.",
       "learn_more": "Learn More",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "delete_message": {
+      "subtitle_one": "Do you want to delete this message permanently?",
+      "subtitle_other": "Do you want to delete {{count}} messages permanently?",
       "cancel": "Cancel",
       "delete": "Delete"
     },
@@ -815,14 +820,12 @@
       "title": "Create New Chat",
       "subtitle": "Configure your new chat space settings below.",
       "sections": {
-        "identity": "Chat Identity",
         "commsStyle": "Communication Style",
         "privacy": "Privacy Settings"
       },
       "fields": {
         "name": "Chat Name",
         "namePlaceholder": "e.g., Novyse News",
-        "nameHelper": "This is the name that will be visible to your members.",
         "handle": "Chat Handle",
         "handlePlaceholder": "your-handle",
         "handleHelper": "People can find your chat using this handle.",

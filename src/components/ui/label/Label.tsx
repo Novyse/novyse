@@ -9,14 +9,25 @@ interface LabelProps {
   text?: string;
   // translationKey to print text that change with languages
   translationKey?: string;
+  translationOptions?: Record<string, unknown>;
 }
 
-export default function Label({ text, translationKey }: LabelProps) {
+export default function Label({
+  text,
+  translationKey,
+  translationOptions,
+}: LabelProps) {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
   return translationKey ? (
-    <Typography style={styles.label} translationKey={translationKey} />
+    <Typography
+      weight="semibold"
+      size="sm"
+      style={styles.label}
+      translationKey={translationKey}
+      translationOptions={translationOptions}
+    />
   ) : text ? (
     <Typography style={styles.label} text={text} />
   ) : null;
@@ -25,9 +36,6 @@ export default function Label({ text, translationKey }: LabelProps) {
 const createStyles = (theme: any) =>
   StyleSheet.create({
     label: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "600",
-      marginBottom: 8,
+      marginBottom: 10,
     },
   });

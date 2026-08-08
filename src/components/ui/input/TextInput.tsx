@@ -20,6 +20,7 @@ interface TextInputProps {
   secureTextEntry?: boolean;
   label?: string;
   labelTranslationKey?: string;
+  translationOptions?: Record<string, unknown>;
 }
 
 export default function TextInput({
@@ -37,6 +38,7 @@ export default function TextInput({
   secureTextEntry,
   label,
   labelTranslationKey,
+  translationOptions,
 }: TextInputProps) {
   const isMultiline = numberOfLines > 1;
 
@@ -69,7 +71,11 @@ export default function TextInput({
   if (label || labelTranslationKey) {
     return (
       <View style={styles.container}>
-        <Label text={label} translationKey={labelTranslationKey} />
+        <Label
+          text={label}
+          translationKey={labelTranslationKey}
+          translationOptions={translationOptions}
+        />
         {inputElement}
       </View>
     );

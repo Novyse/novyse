@@ -1,6 +1,7 @@
 import React from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet } from "react-native";
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
+import Button from "@/src/components/ui/button/Button";
 import Typography from "@/src/components/ui/typography/Typography";
 
 const DeleteMessage = ({
@@ -12,6 +13,7 @@ const DeleteMessage = ({
   fullscreen,
 }) => {
   const styles = createStyles(theme);
+  const countOptions = { count: messageCount };
 
   const onDeletePress = () => {
     onDelete();
@@ -25,34 +27,29 @@ const DeleteMessage = ({
       theme={theme}
       mode="modal"
       fullscreen={fullscreen}
-      titleTranslationKey="modals.delete_message.title"
+      hideCloseX
     >
-      <View style={styles.contentContainer}>
+      <View style={styles.container}>
         <Typography
+          size="md"
           style={styles.subtitle}
           translationKey="modals.delete_message.subtitle"
-          translationOptions={{ count: messageCount }}
+          translationOptions={countOptions}
         />
 
         <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={[styles.button, styles.cancelButton]}
+          <Button
+            variant="secondary"
+            translationKey="modals.delete_message.cancel"
             onPress={onClose}
-          >
-            <Typography
-              style={[styles.buttonText, styles.cancelButtonText]}
-              translationKey="modals.delete_message.cancel"
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.deleteButton]}
+            style={styles.button}
+          />
+          <Button
+            variant="danger"
+            translationKey="modals.delete_message.delete"
+            icon="Delete02Icon"
             onPress={onDeletePress}
-          >
-            <Typography
-              style={[styles.buttonText, styles.deleteButtonText]}
-              translationKey="modals.delete_message.delete"
-            />
-          </TouchableOpacity>
+          />
         </View>
       </View>
     </AdaptiveModal>
@@ -61,50 +58,16 @@ const DeleteMessage = ({
 
 function createStyles(theme) {
   return StyleSheet.create({
-    contentContainer: {
-      alignItems: "center",
-      padding: 20,
+    container: {
+      gap: 25,
     },
-    title: {
-      fontSize: 20,
-      fontWeight: "bold",
-      marginBottom: 10,
-      color: theme.text,
-    },
-    subtitle: {
-      fontSize: 16,
-      textAlign: "center",
-      marginBottom: 20,
-      color: theme.subtitle,
+    modalTitle: {
+      color: theme.dangerText,
     },
     buttonRow: {
       flexDirection: "row",
-      justifyContent: "space-between",
-      width: "100%",
-      marginTop: 10,
-      gap: 15,
-    },
-    button: {
-      flex: 1,
-      paddingVertical: 12,
-      borderRadius: 8,
-      alignItems: "center",
-    },
-    cancelButton: {
-      backgroundColor: theme.primary,
-    },
-    deleteButton: {
-      backgroundColor: theme.backgroundDanger,
-    },
-    buttonText: {
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    cancelButtonText: {
-      color: theme.text,
-    },
-    deleteButtonText: {
-      color: theme.text,
+      alignSelf: "flex-end",
+      gap: 25,
     },
   });
 }

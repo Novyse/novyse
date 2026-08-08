@@ -26,12 +26,16 @@ const ChatTypeButtom = ({
         <Icon name={icon} />
       </View>
       <Typography
-        style={[styles.cardTitle, selected === id && styles.textSelected]}
+        size="sm"
+        weight="semibold"
         translationKey={titleKey}
         text={title}
       />
       <Typography
         style={styles.cardSubtitle}
+        size="xs"
+        weight="regular"
+        variant={selected === id ? "default" : "subtitle"}
         translationKey={subtitleKey}
         text={subtitle}
       />
@@ -44,9 +48,9 @@ const createStyles = (theme) =>
     card: {
       flex: 1,
       backgroundColor: theme.backgroundCard,
-      borderRadius: 12,
-      padding: 12,
-      marginHorizontal: 4,
+      borderRadius: 25,
+      padding: 10,
+      paddingHorizontal: 5,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -57,20 +61,8 @@ const createStyles = (theme) =>
     cardIconContainer: {
       marginBottom: 10,
     },
-    cardTitle: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: theme.text,
-      marginBottom: 4,
-    },
     cardSubtitle: {
-      fontSize: 10,
-      color: theme.subtitle,
       textAlign: "center",
-      lineHeight: 14,
-    },
-    textSelected: {
-      color: theme.text,
     },
   });
 

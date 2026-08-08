@@ -1,17 +1,18 @@
-import { useState, useContext, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
   View,
   StyleSheet,
   ActivityIndicator,
-  useWindowDimensions,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import Button from "@/src/components/ui/button/Button";
 import TextInput from "@/src/components/ui/input/TextInput";
-import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
+import SegmentedSwitch, {
+  type ToggleOption,
+} from "@/src/components/ui/switch/SegmentedSwitch";
 
-import { ThemeContext } from "@/src/context/ThemeContext";
+import { useThemeContext, type Theme } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
@@ -24,35 +25,44 @@ import gateway from "@/src/utils/backend-services/api-gateway";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import { validate } from "@/src/utils/welcome/validator";
 
-const CreateChatModal = ({ visible, onClose }) => {
-  const { theme } = useContext(ThemeContext);
+type ChatType = "GROUP" | "CHANNEL" | "FORUM";
+type PrivacyType = "PRIVATE" | "PUBLIC";
+
+interface CreateChatModalProps {
+  visible: boolean;
+  onClose: () => void;
+}
+
+interface CreatedChat {
+  uuid: string;
+}
+
+const CreateChatModal = ({ visible, onClose }: CreateChatModalProps) => {
+  const { theme } = useThemeContext();
   const { t } = useTranslation();
   const setSelectedChatUUID = useActiveChatStore(
     (state) => state.setSelectedChatUUID,
   );
-  const { width } = useWindowDimensions();
 
-  const styles = createStyle(theme);
+  const styles = createStyle();
 
   const [name, setName] = useState("");
-  const [type, setType] = useState("GROUP"); // 'GROUP', 'CHANNEL', 'FORUM'
-  const [privacy, setPrivacy] = useState("PRIVATE"); // 'PRIVATE', 'PUBLIC'
+  const [type, setType] = useState<ChatType>("GROUP");
+  const [privacy, setPrivacy] = useState<PrivacyType>("PRIVATE");
   const [handle, setHandle] = useState("");
-  const [handleAvailability, setHandleAvailable] = useState(null); // null, true, false
+  const [handleAvailability, setHandleAvailable] = useState<boolean | null>(
+    null,
+  );
 
-  // Loading
   const [isHandleLoading, setIsHandleLoading] = useState(false);
+  const handleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Timer
-  const [handleTimer, setHandleTimer] = useState(null);
-
-  // Error States
-  const [handleError, setHandleError] = useState(null);
-  const [nameError, setNameError] = useState(null);
+  const [handleError, setHandleError] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   const snapPoints = useMemo(() => ["85%"], []);
 
-  const privacyOptions = useMemo(
+  const privacyOptions = useMemo<ToggleOption<PrivacyType>[]>(
     () => [
       {
         value: "PRIVATE",
@@ -78,60 +88,66 @@ const CreateChatModal = ({ visible, onClose }) => {
     setNameError(null);
   };
 
-  const handleNameChange = (value) => {
+  const handleNameChange = (value: string) => {
     setName(value);
-    if (validate.chat.name(value)) {
-      setNameError(null);
-    } else {
-      setNameError(validate.chat.requirements.name);
-    }
+    const validation = validate.chat.name(value);
+    setNameError(validation.success ? null : (validation.error ?? null));
   };
 
-  const handleHandleChange = (value) => {
-    setHandle(value.toLowerCase());
-    console.log("Validating handle:", validate.handle(value));
-    if (validate.handle(value)) {
-      setIsHandleLoading(true);
-      setHandleError(null);
-      setHandleAvailable(null);
+  const handleHandleChange = (value: string) => {
+    const normalizedValue = value.toLowerCase();
+    setHandle(normalizedValue);
 
-      // Clear any existing timer
-      if (handleTimer) clearTimeout(handleTimer);
+    if (handleTimer.current) clearTimeout(handleTimer.current);
 
-      // Set new timer to check availability after typing stops
-      const timer = setTimeout(async () => {
-        const { success, available } = await gateway.check.handle(value);
-        if (success) {
-          setHandleAvailable(available);
-          if (!available)
-            setHandleError(t("modals.create_chat.errors.handleTaken"));
-          else setHandleError(null);
-          setIsHandleLoading(false);
-        } else {
-          setHandleAvailable(false);
-          setHandleError(t("modals.create_chat.errors.handleError"));
-          setIsHandleLoading(false);
-        }
-      }, 1000);
-
-      setHandleTimer(timer);
-    } else {
-      // Reset availability if handle is invalid
+    if (!normalizedValue) {
       setHandleAvailable(null);
       setHandleError(null);
       setIsHandleLoading(false);
-      if (handleTimer) clearTimeout(handleTimer);
-      if (value.length > 0) {
-        setHandleError(
-          validate.requirements.handle +
-            " " +
-            t("modals.create_chat.fields.publicRequired"),
-        );
-      }
+      return;
     }
+
+    const validation = validate.handle(normalizedValue);
+    if (!validation.success) {
+      setHandleAvailable(null);
+      setHandleError(
+        `${validation.error} ${t("modals.create_chat.fields.publicRequired")}`,
+      );
+      setIsHandleLoading(false);
+      return;
+    }
+
+    setIsHandleLoading(true);
+    setHandleError(null);
+    setHandleAvailable(null);
+
+    handleTimer.current = setTimeout(async () => {
+      try {
+        const { success, available } = await gateway.check.handle(
+          normalizedValue,
+        );
+
+        if (success) {
+          setHandleAvailable(available ?? false);
+          setHandleError(
+            available
+              ? null
+              : t("modals.create_chat.errors.handleTaken"),
+          );
+        } else {
+          setHandleAvailable(false);
+          setHandleError(t("modals.create_chat.errors.handleError"));
+        }
+      } catch {
+        setHandleAvailable(false);
+        setHandleError(t("modals.create_chat.errors.handleError"));
+      } finally {
+        setIsHandleLoading(false);
+      }
+    }, 1000);
   };
 
-  const handlePrivacyChange = (value) => {
+  const handlePrivacyChange = (value: PrivacyType) => {
     setPrivacy(value);
     if (value === "PRIVATE") {
       setHandle("");
@@ -141,57 +157,49 @@ const CreateChatModal = ({ visible, onClose }) => {
   };
 
   const handleCreateChat = async () => {
-    if (
-      !validate.chat.name(name) &&
-      !validate.handle(handle) &&
-      privacy === "PUBLIC"
-    ) {
-      setNameError(validate.chat.requirements.name);
+    const nameValidation = validate.chat.name(name);
+    const handleValidation = validate.handle(handle);
+
+    if (!nameValidation.success) {
+      setNameError(nameValidation.error ?? null);
+    }
+
+    if (privacy === "PUBLIC" && !handleValidation.success) {
       setHandleError(
-        validate.requirements.handle +
-          " " +
-          t("modals.create_chat.fields.publicRequired"),
+        `${handleValidation.error} ${t("modals.create_chat.fields.publicRequired")}`,
       );
+    }
+
+    if (!nameValidation.success) {
       return;
     }
 
-    if (!validate.chat.name(name)) {
-      setNameError(validate.chat.requirements.name);
-      return;
-    }
-    if (privacy === "PUBLIC" && !validate.handle(handle)) {
-      setHandleError(
-        validate.requirements.handle +
-          " " +
-          t("modals.create_chat.fields.publicRequired"),
-      );
+    if (privacy === "PUBLIC" && !handleValidation.success) {
       return;
     }
 
     if (
       privacy === "PUBLIC" &&
-      (handleAvailability === false || handleAvailability === undefined)
+      (handleAvailability === false || handleAvailability === null)
     ) {
       setHandleError(t("modals.create_chat.errors.handleTaken"));
       return;
     }
 
-    if (privacy === "PRIVATE") {
-      setHandle("");
-    }
+    const chatHandle = privacy === "PRIVATE" ? "" : handle;
 
-    // @SamueleOrazioDurante da capire se inserire una sezione per aggiungere membri ancor prima della creazione
-    const { success, chat } = await gateway.chat.create(type, [], name, handle);
+    const { success, chat } = (await gateway.chat.create(
+      type,
+      [],
+      name,
+      chatHandle,
+    )) as { success: boolean; chat?: CreatedChat };
 
-    if (success) {
-      console.info("Chat created successfully", chat);
-
+    if (success && chat?.uuid) {
       resetFields();
       onClose();
 
-      // Notify other parts of the app about the new chat
       await eventEmitter.chat.new(chat, []);
-      // Navigate to the newly created chat
       setSelectedChatUUID(chat.uuid);
     } else {
       console.error("Error during chat creation");
@@ -199,37 +207,23 @@ const CreateChatModal = ({ visible, onClose }) => {
   };
 
   const ModalContent = (
-    <View>
-      {/* Header */}
-      <View style={styles.header}>
+    <View style={styles.container}>
         <Typography
-          style={styles.modalSubtitle}
+          variant="subtitle"
           translationKey="modals.create_chat.subtitle"
         />
-      </View>
 
-      {/* Chat Identity */}
-      <View style={styles.section}>
-        <Typography
-          style={styles.sectionLabel}
-          translationKey="modals.create_chat.sections.identity"
-        />
+      <View>
         <TextInput
           labelTranslationKey="modals.create_chat.fields.name"
           placeholder={t("modals.create_chat.fields.namePlaceholder")}
           value={name}
           onChange={handleNameChange}
         />
-        <Typography
-          style={styles.helperText}
-          translationKey="modals.create_chat.fields.nameHelper"
-        />
       </View>
 
-      {/* Communication Style */}
-      <View style={styles.section}>
+      <View>
         <Typography
-          style={styles.sectionLabel}
           translationKey="modals.create_chat.sections.commsStyle"
         />
         <View style={styles.cardsRow}>
@@ -263,8 +257,7 @@ const CreateChatModal = ({ visible, onClose }) => {
         </View>
       </View>
 
-      {/* Privacy Settings */}
-      <View style={styles.section}>
+      <View>
         <SegmentedSwitch
           labelTranslationKey="modals.create_chat.sections.privacy"
           options={privacyOptions}
@@ -273,9 +266,8 @@ const CreateChatModal = ({ visible, onClose }) => {
         />
       </View>
 
-      {/* Chat Handle */}
       {privacy === "PUBLIC" && (
-        <View style={styles.section}>
+        <View>
           <TextInput
             labelTranslationKey="modals.create_chat.fields.handle"
             prefix="@"
@@ -298,32 +290,28 @@ const CreateChatModal = ({ visible, onClose }) => {
             }
           />
           <Typography
-            style={styles.helperText}
             translationKey="modals.create_chat.fields.handleHelper"
           />
         </View>
       )}
 
-      {/* Error Messages */}
       <StatusMessage
         type="error"
         visible={!!(nameError || handleError)}
-        content={[nameError, handleError].filter(Boolean)}
+        content={[nameError, handleError].filter(
+          (message): message is string => Boolean(message),
+        )}
         onClose={() => {
-          nameError && setNameError(null);
-          handleError && setHandleError(null);
+          if (nameError) setNameError(null);
+          if (handleError) setHandleError(null);
         }}
-        theme={theme}
       />
 
-      {/* Footer */}
-      <View style={styles.footer}>
+
         <Button
           translationKey="modals.create_chat.actions.create"
-          icon="PlusSignIcon"
           onPress={handleCreateChat}
         />
-      </View>
     </View>
   );
 
@@ -341,48 +329,14 @@ const CreateChatModal = ({ visible, onClose }) => {
   );
 };
 
-function createStyle(theme) {
+function createStyle() {
   return StyleSheet.create({
-    // Header
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
+    container: {
+      gap: 25,
     },
-    modalSubtitle: {
-      fontSize: 14,
-      color: theme.subtitle,
-      lineHeight: 20,
-    },
-    // Sections
-    section: {
-      marginTop: 24,
-    },
-    sectionLabel: {
-      fontSize: 11,
-      fontWeight: "700",
-      color: theme.icon,
-      letterSpacing: 1,
-      marginBottom: 12,
-      textTransform: "uppercase",
-    },
-    helperText: {
-      fontSize: 12,
-      color: theme.subtitle,
-      marginTop: 6,
-    },
-    // Cards Styles
     cardsRow: {
       flexDirection: "row",
-      justifyContent: "space-between",
-      flexWrap: "wrap",
-      gap: 8,
-    },
-    // Footer
-    footer: {
-      paddingTop: 16,
-      marginTop: 16,
-      borderTopWidth: 1,
-      borderTopColor: theme.backgroundCard,
+      gap: 15,
     },
   });
 }
