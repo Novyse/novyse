@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import Icon from "@/src/components/ui/icon/Icon";

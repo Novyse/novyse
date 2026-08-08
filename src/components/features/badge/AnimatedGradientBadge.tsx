@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from "react";
+import{ useEffect, useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {

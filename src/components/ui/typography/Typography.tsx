@@ -84,6 +84,4 @@ const Typography = React.forwardRef<RNText, TypographyProps>(
   },
 );
 
-Typography.displayName = "Typography";
-
 export default Typography;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import gateway from "@/src/utils/backend-services/api-gateway";
 

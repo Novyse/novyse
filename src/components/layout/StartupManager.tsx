@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import settingsManager from "@/src/utils/global/SettingsManager";
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 

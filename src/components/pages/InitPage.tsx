@@ -14,7 +14,7 @@ const InitPage = () => {
           style={styles.loader}
         />
         <Typography
-          style={[styles.text, { color: theme.text }]}
+          weight="medium"
           translationKey="layout.loadingData"
         />
       </View>
@@ -36,11 +36,6 @@ const styles = StyleSheet.create({
   loader: {
     marginBottom: 20,
     transform: [{ scale: 1.2 }],
-  },
-  text: {
-    fontSize: 16,
-    fontWeight: "500",
-    textAlign: "center",
   },
 });
 
