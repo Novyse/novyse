@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   TouchableOpacity,
   StyleSheet,
@@ -183,11 +183,8 @@ function SegmentedSwitch<T extends string = string>({
               )}
               {option.label && (
                 <Typography
-                  style={[
-                    styles.toggleText,
-                    isActive && styles.toggleTextActive,
-                    option.disabled && styles.toggleTextDisabled,
-                  ]}
+                  weight="semibold"
+                  variant={option.disabled ? "subtitle" : "default"}
                   text={option.label}
                   numberOfLines={1}
                 />
@@ -254,18 +251,6 @@ function createStyles(theme: any, isIconOnly?: boolean, buttonWidth?: number) {
     },
     toggleButtonDisabled: {
       opacity: 0.5,
-    },
-    toggleText: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: theme.subtitle,
-      textAlign: "center",
-    },
-    toggleTextActive: {
-      color: theme.text,
-    },
-    toggleTextDisabled: {
-      color: theme.subtitle,
     },
   });
 }

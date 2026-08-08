@@ -48,41 +48,35 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
   };
 
   const ModalContent = (
-    <View>
-      <View style={styles.header}>
-        <Typography
-          style={styles.modalSubtitle}
-          text="Enter a name for the sub-channel"
-        />
-      </View>
+    <View style={styles.container}>
+      <Typography
+        variant="subtitle"
+        text="Enter a name for the sub-channel"
+      />
 
-      <View style={styles.section}>
-        <TextInput
-          labelTranslationKey="modals.create_chat.fields.name"
-          placeholder={t("modals.create_chat.fields.namePlaceholder")}
-          value={name}
-          onChange={(val) => {
-            setName(val);
-            setError(null);
-          }}
-        />
-      </View>
+      <TextInput
+        labelTranslationKey="modals.create_chat.fields.name"
+        placeholder={t("modals.create_chat.fields.namePlaceholder")}
+        value={name}
+        onChange={(val) => {
+          setName(val);
+          setError(null);
+        }}
+      />
 
-      <View style={styles.section}>
-        <SegmentedSwitch
-          label="Sub Type"
-          options={[
-            { value: "MIXED", label: "Mixed" },
-            { value: "TEXT", label: "Text" },
-            { value: "VOCAL", label: "Vocal" },
-            { value: "ANNOUNCE", label: "Announce" },
-            { value: "BROADCAST", label: "Broadcast", disabled: true },
-            { value: "BOARD", label: "Board", disabled: true },
-          ]}
-          value={type}
-          onChange={(val) => setType(val)}
-        />
-      </View>
+      <SegmentedSwitch
+        label="Sub Type"
+        options={[
+          { value: "MIXED", label: "Mixed" },
+          { value: "TEXT", label: "Text" },
+          { value: "VOCAL", label: "Vocal" },
+          { value: "ANNOUNCE", label: "Announce" },
+          { value: "BROADCAST", label: "Broadcast", disabled: true },
+          { value: "BOARD", label: "Board", disabled: true },
+        ]}
+        value={type}
+        onChange={(val) => setType(val)}
+      />
 
       <StatusMessage
         type="error"
@@ -92,13 +86,11 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
         theme={theme}
       />
 
-      <View style={styles.footer}>
-        <Button
-          translationKey="modals.create_chat.actions.create"
-          icon="PlusSignIcon"
-          onPress={handleCreate}
-        />
-      </View>
+      <Button
+        translationKey="modals.create_chat.actions.create"
+        icon="PlusSignIcon"
+        onPress={handleCreate}
+      />
     </View>
   );
 
@@ -118,27 +110,8 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
 
 function createStyle(theme) {
   return StyleSheet.create({
-    header: {
-      marginBottom: 20,
-    },
-    modalSubtitle: {
-      fontSize: 14,
-      color: theme.subtitle,
-      lineHeight: 20,
-    },
-    section: {
-      marginTop: 10,
-    },
-    inputLabel: {
-      fontSize: 14,
-      color: theme.text,
-      marginBottom: 8,
-    },
-    footer: {
-      paddingTop: 16,
-      marginTop: 16,
-      borderTopWidth: 1,
-      borderTopColor: theme.backgroundCard,
+    container: {
+      gap: 25,
     },
   });
 }
