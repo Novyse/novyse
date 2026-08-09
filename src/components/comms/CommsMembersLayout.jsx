@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useContext,
-  useRef,
-} from "react";
+import { useState, useCallback, useMemo, useContext, useRef, useEffect } from "react";
 import { View, StyleSheet, Platform, Modal, Dimensions } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 
@@ -19,8 +13,8 @@ import CommsMenu from "./CommsMenu";
 
 const PADDING_TOP = 160;
 const PADDING_BOTTOM = 110;
-const PADDING_LEFT = 6;
-const PADDING_RIGHT = 6;
+const PADDING_LEFT = 5;
+const PADDING_RIGHT = 5;
 
 const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
   const [containerDimensions, setContainerDimensions] = useState({
@@ -36,6 +30,18 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
   } = useCommsContext();
 
   const containerRef = useRef(null);
+  const [containerBounds, setContainerBounds] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  });
+
+  const updateContainerBounds = useCallback(() => {
+    containerRef.current?.measureInWindow((x, y, width, height) => {
+      setContainerBounds({ x, y, width, height });
+    });
+  }, []);
 
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
@@ -61,10 +67,20 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
   } = useLayout(room, participants, adjustedDimensions, containerRef);
 
   // Layout Handler
-  const onContainerLayout = useCallback((event) => {
-    const { width, height } = event.nativeEvent.layout;
-    setContainerDimensions({ width, height });
-  }, []);
+  const onContainerLayout = useCallback(
+    (event) => {
+      const { width, height } = event.nativeEvent.layout;
+      setContainerDimensions({ width, height });
+      updateContainerBounds();
+    },
+    [updateContainerBounds],
+  );
+
+  useEffect(() => {
+    if (triggeredStream) {
+      updateContainerBounds();
+    }
+  }, [triggeredStream, updateContainerBounds]);
 
   const speakingStates = useMemo(() => {
     const map = {};
@@ -141,7 +157,7 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
   return (
     <View
       ref={containerRef}
-      style={styles.container}
+      style={[styles.container, !!triggeredStream && styles.containerWithMenu]}
       onLayout={onContainerLayout}
     >
       {/* Mobile: render fullscreen content in a Modal for true immersive fullscreen */}
@@ -221,10 +237,7 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
             })}
           </>
         ) : (
-          <Typography
-            style={styles.emptyChatText}
-            translationKey="chat.comms.noParticipants"
-          />
+          <Typography size="xl" translationKey="chat.comms.noParticipants" />
         )}
       </View>
       <CommsMenu
@@ -236,6 +249,7 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
         isScreenShare={triggeredStream?.isScreenShare}
         isLocal={triggeredStream?.isLocal}
         position={triggeredPosition}
+        containerBounds={containerBounds}
       />
     </View>
   );
@@ -247,6 +261,11 @@ const createStyles = (theme) =>
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
+      position: "relative",
+    },
+    containerWithMenu: {
+      zIndex: 300,
+      elevation: 300,
     },
     fullscreenContainer: {
       position: Platform.OS === "web" ? "fixed" : "absolute",
@@ -278,14 +297,6 @@ const createStyles = (theme) =>
         position: "relative",
         zIndex: 1,
       }),
-    },
-    emptyChatText: {
-      color: theme.text,
-      fontSize: 20,
-      padding: 8,
-      margin: 0,
-      borderRadius: 8,
-      alignContent: "center",
     },
   });
 

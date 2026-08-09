@@ -33,17 +33,16 @@ const VolumeControl = ({ volKey, isScreenShare }) => {
     <View style={styles.sliderContainer}>
       <View style={styles.sliderHeader}>
         <View style={styles.sliderHeaderLeft}>
-          <Icon name="VolumeHighIcon" size={16} color={theme.text} />
-          <Typography style={styles.sliderLabel} text="Volume" />
+          <Icon name="VolumeHighIcon" size={20} />
+          <Typography size="sm" text="Volume" />
         </View>
         <Typography
-          style={styles.dbText}
+          size="xs"
           text={localDb > 0 ? `+${localDb} dB` : `${localDb} dB`}
         />
       </View>
       <Slider
         key={volKey}
-        style={styles.slider}
         minimumValue={0}
         maximumValue={60}
         step={1}
@@ -62,34 +61,17 @@ const VolumeControl = ({ volKey, isScreenShare }) => {
 const createStyles = (theme) =>
   StyleSheet.create({
     sliderContainer: {
-      padding: 12,
-      marginTop: 4,
+      padding: 10,
     },
     sliderHeader: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: 8,
+      marginBottom: 10,
     },
     sliderHeaderLeft: {
       flexDirection: "row",
-      alignItems: "center",
-    },
-    sliderLabel: {
-      fontSize: 13,
-      marginLeft: 6,
-      opacity: 0.8,
-      color: theme.text, // Fallback color, will be overridden by theme if needed
-    },
-    dbText: {
-      fontSize: 12,
-      fontWeight: "600",
-      opacity: 0.6,
-      color: theme.text,
-    },
-    slider: {
-      width: "100%",
-      height: 35,
+      gap: 10,
     },
   });
 

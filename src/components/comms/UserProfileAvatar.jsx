@@ -92,11 +92,12 @@ const UserProfileAvatar = ({
               },
             ]}
           >
-            <Avatar uuid={profilePictureUUID} size={avatarSize}/>
+            <Avatar uuid={profilePictureUUID} size={avatarSize} />
           </View>
           <View style={styles.nameContainer}>
             <Typography
-              style={styles.userName}
+              size="sm"
+              weight="semibold"
               numberOfLines={1}
               ellipsizeMode="tail"
               text={userHandle || "Unknown User"}
@@ -138,12 +139,6 @@ const createStyles = (theme) =>
       paddingHorizontal: 8,
       paddingVertical: 4,
       maxWidth: "70%",
-    },
-    userName: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "600",
-      textAlign: "left",
     },
   });
 

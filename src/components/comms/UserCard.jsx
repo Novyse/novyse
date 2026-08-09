@@ -1,4 +1,4 @@
-import React, {
+import {
   memo,
   useMemo,
   useEffect,
@@ -149,7 +149,7 @@ const UserCard = memo(
         {isLocalMuted && (
           <View style={styles.muteIndicatorContainer}>
             <View style={styles.controlsRow}>
-              <Icon name="MicOff01Icon" size={16} color={theme.iconDanger} />
+              <Icon name="MicOff01Icon" size={20} color={theme.iconDanger} />
             </View>
           </View>
         )}

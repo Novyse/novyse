@@ -1,4 +1,3 @@
-import React from "react";
 import { View } from "react-native";
 
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
@@ -10,7 +9,7 @@ import { useScreen } from "@/src/context/ScreenContext";
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 
 import CommsMembersLayout from "@/src/components/comms/CommsMembersLayout";
-import CommsBottomBar from "@/src/components/comms/BottomBar";
+import CommsBottomBar from "@/src/components/comms/BottomBar/CommsBottomBar";
 import SubList from "@/src/components/features/sub/subList/SubList";
 import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 
@@ -59,12 +58,11 @@ const VocalContent = () => {
             chatUUID={chatUUIDorHandle}
             sub={selectedSub}
           />
+          {chatUUIDorHandle && (
+            <CommsBottomBar chatUUID={chatUUIDorHandle} sub={selectedSub} />
+          )}
         </View>
       </View>
-
-      {chatUUIDorHandle && (
-        <CommsBottomBar chatUUID={chatUUIDorHandle} sub={selectedSub} />
-      )}
     </View>
   );
 };

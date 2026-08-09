@@ -76,7 +76,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
   return (
     <Pressable style={styles.headerMainRow} onPress={handlePress}>
       <View style={styles.headerLeft}>
-        <Icon name="UserMultipleIcon" style={styles.iconButtonSmall} />
+        <Icon name="UserMultipleIcon" onPress={()=>{}} />
         <Typography
           style={styles.participantsText}
           numberOfLines={1}
@@ -143,7 +143,7 @@ function createStyle(theme: any, connected: boolean) {
       justifyContent: "space-between",
       height: HEADER_ROW_HEIGHT,
       width: "100%",
-      paddingHorizontal: 6,
+      // paddingHorizontal: 6,
       backgroundColor: "transparent",
       overflow: "hidden",
     },
@@ -166,12 +166,6 @@ function createStyle(theme: any, connected: boolean) {
     iconButton: {
       width: ICON_BUTTON_SIZE,
       height: ICON_BUTTON_SIZE,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    iconButtonSmall: {
-      width: 24,
-      height: 24,
       justifyContent: "center",
       alignItems: "center",
     },
