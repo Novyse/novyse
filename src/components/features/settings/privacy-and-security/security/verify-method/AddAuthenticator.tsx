@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { useContext } from "react";
+import { View, StyleSheet, Image } from "react-native";
 import QRCode from "react-native-qrcode-skia";
 import { LinearGradient, vec } from "@shopify/react-native-skia";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -7,6 +7,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import useClipboard from "@/src/hooks/useClipboard";
 
 import Icon from "@/src/components/ui/icon/Icon";
+import Typography from "@/src/components/ui/typography/Typography";
 
 interface AddAuthenticatorProps {
   secret: string;
@@ -61,13 +62,11 @@ const AddAuthenticator = ({
         </QRCode>
       </View>
       <View style={styles.secretKeyContainer}>
-        <Text
-          style={styles.secretText}
+        <Typography
+          text={secret}
           numberOfLines={1}
           ellipsizeMode="middle"
-        >
-          {secret}
-        </Text>
+        />
         <Icon
           name={copied ? "Tick01Icon" : "Copy01Icon"}
           style={styles.copyButton}
@@ -106,13 +105,6 @@ function createStyle(theme: any) {
       borderColor: theme.borderColor,
       paddingLeft: 16,
       maxWidth: "70%",
-    },
-    secretText: {
-      flex: 1,
-      fontSize: 16,
-      color: theme.text,
-      marginRight: 8,
-      textAlign: "center",
     },
     copyButton: {
       paddingVertical: 14,

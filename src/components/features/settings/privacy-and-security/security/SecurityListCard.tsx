@@ -54,13 +54,10 @@ const SecurityListCard = ({
             <Icon name={iconName} />
           </View>
           <View style={styles.details}>
-            <Typography
-              style={[styles.title, !active && { color: theme.subtitle }]}
-              text={title}
-            />
+            <Typography variant={active ? "default" : "subtitle"} text={title} />
             {subtitle &&
               (typeof subtitle === "string" ? (
-                <Typography style={styles.subtitle} text={subtitle} />
+                <Typography variant="subtitle" text={subtitle} />
               ) : (
                 subtitle
               ))}
@@ -70,7 +67,7 @@ const SecurityListCard = ({
         <View style={styles.actions}>
           {badge && (
             <View style={[styles.badge, { backgroundColor: badgeBgColor }]}>
-              <Typography style={styles.badgeText} text={badge} />
+              <Typography variant="subtitle" text={badge} />
             </View>
           )}
           {onToggle && (
@@ -142,16 +139,6 @@ const createStyle = (theme: any) =>
     details: {
       flex: 1,
     },
-    title: {
-      fontSize: 18,
-      fontWeight: "600",
-      color: theme.text,
-      marginBottom: 4,
-    },
-    subtitle: {
-      fontSize: 14,
-      color: theme.subtitle,
-    },
     actions: {
       flexDirection: "row",
       alignItems: "center",
@@ -161,11 +148,6 @@ const createStyle = (theme: any) =>
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 16,
-    },
-    badgeText: {
-      color: theme.text,
-      fontSize: 12,
-      fontWeight: "600",
     },
     deleteButton: {
       backgroundColor: theme.iconDanger,

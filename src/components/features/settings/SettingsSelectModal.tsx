@@ -53,7 +53,6 @@ function SettingsSelectModal<T extends string = string>({
         {loading ? (
           <View style={styles.loadingContainer}>
             <Typography
-              style={styles.loadingText}
               translationKey={loadingKey || "common.loading"}
             />
           </View>
@@ -78,13 +77,8 @@ function createStyle(theme: any) {
       
     },
     loadingContainer: {
-      padding: 40,
+      padding: 25,
       alignItems: "center",
-      
-    },
-    loadingText: {
-      fontSize: 16,
-      color: theme.text,
     },
     listWrapper: {
       width: "100%",

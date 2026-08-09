@@ -22,7 +22,7 @@ const ModalVerifyMethod = ({
   secret,
   otpauth,
 }) => {
-  const styles = createStyle(theme);
+  const styles = createStyle();
 
   const { isLoading, error, setError, handleVerifyOtp } = useOTP();
 
@@ -83,7 +83,7 @@ const ModalVerifyMethod = ({
     >
       <View style={styles.cardContent}>
         <Typography
-          style={styles.subtitle}
+          variant="subtitle"
           translationKey={getSubtitleTextKey()}
         />
 
@@ -122,30 +122,17 @@ const ModalVerifyMethod = ({
   );
 };
 
-function createStyle(theme) {
+function createStyle() {
   return StyleSheet.create({
     cardContent: {
       alignItems: "center",
-      gap: 24,
+      gap: 25,
       padding: 20,
-    },
-    title: {
-      fontSize: 28,
-      fontWeight: "700",
-      color: theme.text,
-      textAlign: "center",
-    },
-    subtitle: {
-      fontSize: 15,
-      color: theme.subtitle,
-      textAlign: "center",
-      lineHeight: 22,
-      paddingHorizontal: 8,
     },
     inputSection: {
       width: "100%",
       alignItems: "center",
-      gap: 24,
+      gap: 25,
     },
   });
 }

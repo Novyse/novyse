@@ -23,7 +23,7 @@ export default function CreateApiKeyModal({
 }: CreateApiKeyModalProps) {
   const [name, setName] = useState("");
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = createStyles();
 
   const handleConfirm = () => {
     if (name.trim()) {
@@ -40,9 +40,9 @@ export default function CreateApiKeyModal({
       mode="modal"
       titleTranslationKey="settings.privacyAndSecurity.apiKeys.createModal.title"
     >
-      <View>
+      <View style={styles.container}>
         <Typography
-          style={styles.subtitle}
+          variant="subtitle"
           translationKey="settings.privacyAndSecurity.apiKeys.createModal.subtitle"
         />
         <TextInput
@@ -58,20 +58,15 @@ export default function CreateApiKeyModal({
           }
           onPress={handleConfirm}
           disabled={!name.trim() || isLoading}
-          style={{ marginTop: 24 }}
         />
       </View>
     </AdaptiveModal>
   );
 }
 
-const createStyles = (theme: any) =>
+const createStyles = () =>
   StyleSheet.create({
-    subtitle: {
-      fontSize: 14,
-      color: theme.subtitle,
-      marginBottom: 24,
-      textAlign: "left",
-      lineHeight: 20,
+    container: {
+      gap: 25,
     },
   });

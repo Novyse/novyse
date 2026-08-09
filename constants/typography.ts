@@ -24,11 +24,9 @@ export type TypographyWeight = keyof typeof typography.weights;
 export type TypographyVariant =
   | "default"
   | "subtitle"
-  | "placeholder"
   | "link"
   | "primary"
   | "secondary"
-  | "icon"
   | "danger"
   | "success"
   | "warning"

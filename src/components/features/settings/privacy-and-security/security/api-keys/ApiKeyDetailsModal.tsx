@@ -20,7 +20,7 @@ export default function ApiKeyDetailsModal({
   theme,
 }: ApiKeyDetailsModalProps) {
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = createStyles();
 
   return (
     <AdaptiveModal
@@ -35,11 +35,11 @@ export default function ApiKeyDetailsModal({
           <Icon
             name="CheckmarkCircle02Icon"
             color={theme.iconSuccess}
-            size={48}
+            size={40}
           />
         </View>
         <Typography
-          style={styles.subtitle}
+          variant="subtitle"
           translationKey="settings.privacyAndSecurity.apiKeys.detailsModal.subtitle"
         />
 
@@ -51,24 +51,18 @@ export default function ApiKeyDetailsModal({
         <Button
           translationKey="settings.privacyAndSecurity.apiKeys.detailsModal.saved"
           onPress={onClose}
-          style={{ marginTop: 25 }}
         />
       </View>
     </AdaptiveModal>
   );
 }
 
-const createStyles = (theme: any) =>
+const createStyles = () =>
   StyleSheet.create({
+    container: {
+      gap: 25,
+    },
     successIconContainer: {
       alignItems: "center",
-      marginBottom: 16,
-    },
-    subtitle: {
-      fontSize: 14,
-      color: theme.subtitle,
-      marginBottom: 24,
-      textAlign: "center",
-      lineHeight: 20,
     },
   });

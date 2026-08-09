@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -15,25 +15,16 @@ const SessionInfo = ({ ip, createdAt, lastActive }: SessionInfoProps) => {
 
   return (
     <View style={styles.container}>
-      <Typography style={styles.row}>
-        <Typography
-          style={styles.label}
-          translationKey="settings.privacyAndSecurity.sessions.ip"
-        />
-        : {ip}
+      <Typography>
+        <Typography translationKey="settings.privacyAndSecurity.sessions.ip" />:{" "}
+        {ip}
       </Typography>
-      <Typography style={styles.row}>
-        <Typography
-          style={styles.label}
-          translationKey="settings.privacyAndSecurity.sessions.created"
-        />
+      <Typography>
+        <Typography translationKey="settings.privacyAndSecurity.sessions.created" />
         : {createdAt}
       </Typography>
-      <Typography style={styles.row}>
-        <Typography
-          style={styles.label}
-          translationKey="settings.privacyAndSecurity.sessions.lastActivity"
-        />
+      <Typography>
+        <Typography translationKey="settings.privacyAndSecurity.sessions.lastActivity" />
         : {lastActive}
       </Typography>
     </View>
@@ -45,14 +36,6 @@ const createStyles = (theme: any) =>
     container: {
       marginTop: 4,
       gap: 2,
-    },
-    row: {
-      fontSize: 13,
-      color: theme.subtitle,
-    },
-    label: {
-      fontWeight: "600",
-      color: theme.text,
     },
   });
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { StyleSheet, View, Button } from "react-native";
 import {
   CameraView,
@@ -44,10 +44,7 @@ export default function QRCodeScanner({ onCodeScanned }: QRCodeScannerProps) {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Typography
-          style={{ textAlign: "center" }}
-          translationKey="common.qrReader.needPermissions"
-        />
+        <Typography translationKey="common.qrReader.needPermissions" />
         <Button
           onPress={requestPermission}
           title={t("common.qrReader.grantPermission")}
@@ -70,10 +67,7 @@ export default function QRCodeScanner({ onCodeScanned }: QRCodeScannerProps) {
         {!scanned && (
           <View style={styles.overlay}>
             <View style={styles.qrFrame} />
-            <Typography
-              style={styles.instructionText}
-              translationKey="common.qrReader.instruction"
-            />
+            <Typography translationKey="common.qrReader.instruction" />
           </View>
         )}
         {scanned && (
@@ -122,10 +116,5 @@ const createStyles = (theme: any) =>
       borderRadius: 10,
       backgroundColor: "transparent",
       marginBottom: 20,
-    },
-    instructionText: {
-      color: theme.text,
-      fontSize: 18,
-      marginTop: 10,
     },
   });

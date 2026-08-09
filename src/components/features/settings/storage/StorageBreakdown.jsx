@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -25,16 +25,14 @@ const StorageBreakdown = ({ storage }) => {
       <View style={styles.storageLabelRow}>
         <View style={styles.storageLabelLeft}>
           <View style={styles.iconContainer}>
-            <Icon name={storage.iconName} size={18} />
+            <Icon name={storage.iconName} size={20} />
           </View>
           <Typography
-            style={styles.storageTitle}
             translationKey={`settings.storage.${storage.type === "local" ? "localStorage" : "cloudStorage"}`}
           />
         </View>
         <View style={styles.storageRight}>
           <Typography
-            style={styles.storageStat}
             text={`${storage.totalUsed} ${storage.totalCapacity ? `/ ${storage.totalCapacity}` : ""} GB`}
           />
         </View>
@@ -68,20 +66,13 @@ const StorageBreakdown = ({ storage }) => {
                   style={[styles.colorDot, { backgroundColor: category.color }]}
                 />
                 <Typography
-                  style={styles.categoryName}
                   translationKey={`settings.storage.${category.name.toLowerCase()}`}
                   text={category.name}
                 />
               </View>
               <View style={styles.categoryRight}>
-                <Typography
-                  style={styles.categorySize}
-                  text={`${category.size} GB`}
-                />
-                <Typography
-                  style={styles.categoryPercentage}
-                  text={`${percentage}%`}
-                />
+                <Typography text={`${category.size} GB`} />
+                <Typography text={`${percentage}%`} />
               </View>
             </View>
           );
@@ -109,28 +100,17 @@ const createStyle = (theme = {}) => {
       flex: 1,
     },
     iconContainer: {
-      width: 32,
-      height: 32,
+      width: 35,
+      height: 35,
       borderRadius: 8,
       backgroundColor: theme.primary,
       alignItems: "center",
       justifyContent: "center",
     },
-    storageTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: theme.text,
-      letterSpacing: -0.2,
-    },
     storageRight: {
       flexDirection: "row",
       alignItems: "center",
       gap: 8,
-    },
-    storageStat: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: theme.text,
     },
     progressBarOuter: {
       height: 16,
@@ -173,23 +153,6 @@ const createStyle = (theme = {}) => {
       height: 12,
       borderRadius: 6,
       marginRight: 12,
-    },
-    categoryName: {
-      fontSize: 15,
-      fontWeight: "500",
-      color: theme.text,
-    },
-    categorySize: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: theme.text,
-    },
-    categoryPercentage: {
-      fontSize: 13,
-      fontWeight: "500",
-      minWidth: 45,
-      textAlign: "right",
-      color: theme.subtitle,
     },
   });
 };

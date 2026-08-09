@@ -52,7 +52,7 @@ const SettingsRow = ({
 }: SettingsRowProps) => {
   const { theme } = useContext(ThemeContext);
   const rowColor = danger ? theme.dangerText : theme.primary;
-  const textColor = danger ? theme.dangerText : theme.text;
+  const rowVariant = danger ? "danger" : "default";
 
   return (
     <HoverAndPressedButton
@@ -69,7 +69,7 @@ const SettingsRow = ({
         <View
           style={[
             SettingsRowStyles.iconContainer,
-            { backgroundColor: rowColor + "15" },
+            { backgroundColor: rowColor + 15 },
           ]}
         >
           <Icon name={iconName} color={rowColor} size={20} />
@@ -79,25 +79,22 @@ const SettingsRow = ({
       <View style={SettingsRowStyles.labelContainer}>
         {labelKey ? (
           <Typography
-            style={[SettingsRowStyles.label, { color: textColor }]}
+            weight="medium"
+            variant={rowVariant}
             translationKey={labelKey}
             translationOptions={labelOptions}
           />
         ) : (
-          <Typography style={[SettingsRowStyles.label, { color: textColor }]}>
-            {labelText}
-          </Typography>
+          <Typography weight="medium" variant={rowVariant}>{labelText}</Typography>
         )}
         {valueKey ? (
           <Typography
-            style={[SettingsRowStyles.value, { color: theme.subtitle }]}
+            weight="medium"
             translationKey={valueKey}
             translationOptions={valueOptions}
           />
         ) : value && type !== "VALUE" ? (
-          <Typography style={[SettingsRowStyles.value, { color: theme.subtitle }]}>
-            {value}
-          </Typography>
+          <Typography weight="medium" >{value}</Typography>
         ) : null}
       </View>
 
@@ -113,22 +110,12 @@ const SettingsRow = ({
           case "VALUE":
             return valueKey ? (
               <Typography
-                style={[
-                  SettingsRowStyles.rightValue,
-                  { color: theme.subtitle },
-                ]}
+                variant="subtitle"
                 translationKey={valueKey}
                 translationOptions={valueOptions}
               />
             ) : value ? (
-              <Typography
-                style={[
-                  SettingsRowStyles.rightValue,
-                  { color: theme.subtitle },
-                ]}
-              >
-                {value}
-              </Typography>
+              <Typography variant="subtitle">{value}</Typography>
             ) : null;
           case "SELECT_GROUP":
             return (
@@ -179,18 +166,6 @@ const SettingsRowStyles = StyleSheet.create({
   },
   labelContainer: {
     flex: 1,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: "500",
-  },
-  value: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  rightValue: {
-    fontSize: 15,
-    fontWeight: "400",
   },
   radioOuter: {
     width: 22,

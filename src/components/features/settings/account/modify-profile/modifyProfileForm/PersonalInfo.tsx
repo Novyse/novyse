@@ -101,7 +101,7 @@ export default function PersonalInfo({
             handleFieldChange("biography", val, setDescriptionVal)
           }
         />
-        <Typography style={styles.charCount}>
+        <Typography style={styles.charCount} size="xs">
           {descriptionLength}/{MAX_CHAR_COUNT}
         </Typography>
       </View>
@@ -167,19 +167,17 @@ const createStyles = (theme: any, isSmallScreen: boolean) =>
   StyleSheet.create({
     row: {
       flexDirection: "row",
-      gap: isSmallScreen ? 12 : 16,
-      marginBottom: isSmallScreen ? 16 : 20,
+      gap: isSmallScreen ? 10 : 15,
+      marginBottom: isSmallScreen ? 15 : 20,
     },
     halfInput: {
       flex: 1,
     },
     fullInput: {
-      marginBottom: isSmallScreen ? 16 : 20,
+      marginBottom: isSmallScreen ? 15 : 20,
     },
     charCount: {
-      fontSize: 11,
-      color: theme.text,
       alignSelf: "flex-end",
-      marginTop: 4,
+      marginTop: 5,
     },
   });

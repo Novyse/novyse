@@ -28,11 +28,10 @@ export default function CopyApiKeyButton({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Typography style={styles.label} text={label} />}
+      {label && <Typography text={label} />}
       <View style={styles.contentContainer}>
         <View style={styles.textContainer}>
           <Typography
-            style={styles.text}
             numberOfLines={1}
             ellipsizeMode="middle"
             text={text}
@@ -58,12 +57,6 @@ const createStyles = (theme: any) =>
     container: {
       width: "100%",
     },
-    label: {
-      fontSize: 14,
-      color: theme.text,
-      marginBottom: 8,
-      fontWeight: "500",
-    },
     contentContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -75,11 +68,6 @@ const createStyles = (theme: any) =>
       flex: 1,
       paddingHorizontal: 20,
       paddingVertical: 10,
-    },
-    text: {
-      color: theme.text,
-      fontSize: 14,
-      fontFamily: "monospace",
     },
     copyButton: {
       padding: 12,

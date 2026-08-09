@@ -55,12 +55,10 @@ function ConnectionCard({
         </View>
         <View>
           <Typography
-            style={styles.connTitle}
             translationKey={translationKeyTitle}
             text={title}
           />
           <Typography
-            style={styles.connSub}
             translationKey={translationKeySubtitle}
             text={subtitle}
           />
@@ -71,7 +69,7 @@ function ConnectionCard({
         onPress={connected ? onDisconnect : onConnect}
       >
         <Typography
-          style={connected ? styles.disconnectText : styles.connectText}
+          variant={connected ? "danger" : "default"}
           translationKey={
             connected
               ? "settings.modifyProfile.unlink"
@@ -143,7 +141,6 @@ const createStyles = (theme: any) =>
       pointerEvents: "none",
       gap: 12,
     },
-
     connectionCard: {
       flexDirection: "row",
       alignItems: "center",
@@ -153,7 +150,6 @@ const createStyles = (theme: any) =>
       borderRadius: 20,
       marginBottom: 12,
     },
-
     connectionInfo: {
       flexDirection: "row",
       alignItems: "center",
@@ -166,35 +162,16 @@ const createStyles = (theme: any) =>
       justifyContent: "center",
       alignItems: "center",
     },
-    connTitle: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "600",
-    },
-    connSub: {
-      color: theme.subtitle,
-      fontSize: 12,
-    },
     disconnectBtn: {
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 20,
       backgroundColor: theme.backgroundDanger,
     },
-    disconnectText: {
-      color: theme.dangerText,
-      fontSize: 12,
-      fontWeight: "600",
-    },
     connectBtn: {
       paddingHorizontal: 16,
       paddingVertical: 6,
       borderRadius: 20,
       backgroundColor: theme.primary,
-    },
-    connectText: {
-      color: theme.text,
-      fontSize: 12,
-      fontWeight: "600",
     },
   });

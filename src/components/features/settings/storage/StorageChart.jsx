@@ -65,15 +65,14 @@ const StorageBreakdownChart = () => {
           <View style={styles.storageLabelRow}>
             <View style={styles.storageLabelLeft}>
               <View style={styles.iconContainer}>
-                <Icon name={storage.iconName} size={18} />
+                <Icon name={storage.iconName} size={20} />
               </View>
               <Typography
-                style={styles.storageTitle}
                 translationKey={`settings.storage.${storage.type === "local" ? "localStorage" : "cloudStorage"}`}
               />
             </View>
             <View style={styles.storageRight}>
-              <Typography style={styles.storageStat}>
+              <Typography>
                 {storage.totalUsed}{" "}
                 {storage.totalCapacity ? `/ ${storage.totalCapacity}` : ""} GB
               </Typography>
@@ -123,17 +122,12 @@ const StorageBreakdownChart = () => {
                       ]}
                     />
                     <Typography
-                      style={styles.categoryName}
                       translationKey={`settings.storage.${category.name.toLowerCase()}`}
                     />
                   </View>
                   <View style={styles.categoryRight}>
-                    <Typography style={styles.categorySize}>
-                      {category.size} GB
-                    </Typography>
-                    <Typography style={styles.categoryPercentage}>
-                      {percentage}%
-                    </Typography>
+                    <Typography>{category.size} GB</Typography>
+                    <Typography>{percentage}%</Typography>
                   </View>
                 </View>
               );
@@ -174,28 +168,17 @@ const createStyle = (theme = {}) => {
       flex: 1,
     },
     iconContainer: {
-      width: 32,
-      height: 32,
+      width: 35,
+      height: 35,
       borderRadius: 8,
       backgroundColor: theme.primary,
       alignItems: "center",
       justifyContent: "center",
     },
-    storageTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: theme.text,
-      letterSpacing: -0.2,
-    },
     storageRight: {
       flexDirection: "row",
       alignItems: "center",
       gap: 8,
-    },
-    storageStat: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: theme.textSecondary || theme.text,
     },
     chevronIcon: {
       marginLeft: 4,
@@ -243,24 +226,6 @@ const createStyle = (theme = {}) => {
       height: 12,
       borderRadius: 6,
       marginRight: 12,
-    },
-    categoryName: {
-      fontSize: 15,
-      fontWeight: "500",
-      color: theme.text,
-    },
-    categorySize: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: theme.text,
-    },
-    categoryPercentage: {
-      fontSize: 13,
-      fontWeight: "500",
-      minWidth: 45,
-      textAlign: "right",
-      color: theme.textSecondary || theme.text,
-      opacity: 0.7,
     },
   });
 };

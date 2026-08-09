@@ -152,7 +152,10 @@ export default function ModifyProfilePanel({
         >
           {/* Glass Card Container */}
           <BlurredView style={styles.glassPanel}>
-            <ProfileBanner height={isSmallScreen ? 120 : 180} onEdit={() => {}} />
+            <ProfileBanner
+              height={isSmallScreen ? 120 : 180}
+              onEdit={() => {}}
+            />
             <ProfileHeader
               uuid={userUUID}
               name={name}
@@ -175,10 +178,7 @@ export default function ModifyProfilePanel({
       </View>
       {!message && !error && hasChanges && (
         <BlurredView style={styles.floatingBar}>
-          <Typography
-            style={styles.floatingText}
-            translationKey="settings.modifyProfile.unsavedChanges"
-          />
+          <Typography translationKey="settings.modifyProfile.unsavedChanges" />
           <View style={styles.floatingButtons}>
             <Button
               translationKey="settings.modifyProfile.restore"
@@ -252,12 +252,6 @@ const createStyles = (
       justifyContent: "space-between",
       alignItems: "center",
       width: isSmallScreen ? "90%" : 500,
-    },
-    floatingText: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "500",
-      flex: 1,
     },
     floatingButtons: {
       flexDirection: "row",

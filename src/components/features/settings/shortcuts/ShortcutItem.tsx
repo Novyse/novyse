@@ -28,19 +28,17 @@ const ShortcutItem = ({
       disabled={disabled}
     >
       {translationKey ? (
-        <Typography style={styles.label} translationKey={translationKey} />
+        <Typography translationKey={translationKey} />
       ) : (
-        <Typography style={styles.label} text={label} />
+        <Typography text={label} />
       )}
       <View style={styles.keysContainer}>
         {keys.map((key, index) => (
           <React.Fragment key={index}>
             <View style={styles.keyBox}>
-              <Typography style={styles.keyText} text={key.toUpperCase()} />
+              <Typography text={key.toUpperCase()} />
             </View>
-            {index < keys.length - 1 && (
-              <Typography style={styles.plus} text="+" />
-            )}
+            {index < keys.length - 1 && <Typography text="+" />}
           </React.Fragment>
         ))}
       </View>
@@ -59,12 +57,6 @@ const createStyle = (theme: any) =>
       backgroundColor: theme.backgroundMainSecondary,
       borderRadius: 12,
       marginVertical: 4,
-    },
-    label: {
-      color: theme.text,
-      fontSize: 15,
-      fontWeight: "500",
-      flex: 1,
     },
     keysContainer: {
       flexDirection: "row",
@@ -85,18 +77,6 @@ const createStyle = (theme: any) =>
       shadowOpacity: 0.2,
       shadowRadius: 1,
       elevation: 2,
-    },
-    keyText: {
-      color: theme.text,
-      fontSize: 12,
-      fontWeight: "700",
-      fontFamily: "monospace",
-    },
-    plus: {
-      color: theme.text,
-      marginHorizontal: 4,
-      fontSize: 14,
-      fontWeight: "bold",
     },
   });
 

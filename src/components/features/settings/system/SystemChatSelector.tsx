@@ -1,11 +1,11 @@
-import React, { useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Button from "@/src/components/ui/button/Button";
-import Typography from "@/src/components/ui/typography/Typography";
 import SettingsSelectModal from "@/src/components/features/settings/SettingsSelectModal";
 import { SelectOption } from "@/src/components/features/settings/SettingsSelectGroup";
+import Label from "@/src/components/ui/label/Label";
 
 interface SystemChatSelectorProps {
   value: string;
@@ -32,13 +32,9 @@ const SystemChatSelector = ({
 
   return (
     <View style={styles.container}>
-      <Typography
-        style={styles.fieldLabel}
-        translationKey="settings.system.selectChat"
-      />
+      <Label translationKey="settings.system.selectChat" />
       <Button
         text={buttonText}
-        icon="Chat01Icon"
         onPress={() => setModalVisible(true)}
         disabled={disabled}
         style={styles.button}
@@ -60,12 +56,6 @@ const createStyles = (theme: any) =>
     container: {
       marginVertical: 10,
       width: "100%",
-    },
-    fieldLabel: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "600",
-      marginBottom: 8,
     },
     button: {
       width: "100%",
