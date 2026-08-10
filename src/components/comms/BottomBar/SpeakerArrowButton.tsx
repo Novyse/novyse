@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { StyleSheet } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import Icon from "@/src/components/ui/icon/Icon";
@@ -14,7 +14,8 @@ const SpeakerArrowButton = ({ onPress }: SpeakerArrowButtonProps) => {
   return (
     <Icon
       name={"ArrowDown01Icon"}
-      style={[styles.arrowButton, { backgroundColor: theme.backgroundMain }]}
+      size={18}
+      style={styles.arrowButton}
       onPress={onPress}
     />
   );
@@ -24,15 +25,14 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     arrowButton: {
       position: "absolute",
-      top: -8,
-      right: -8,
-      width: 20,
-      height: 20,
+      top: -5,
+      right: -5,
+      width: 18,
+      height: 18,
       borderRadius: 10,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
-      borderColor: theme.borderColor,
+      backgroundColor: theme.backgroundMain,
     },
   });
 

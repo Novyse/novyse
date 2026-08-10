@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -9,11 +9,13 @@ import {
 
 import { useThemeContext } from "@/src/context/ThemeContext";
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
+import Button from "@/src/components/ui/button/Button";
 import Typography from "@/src/components/ui/typography/Typography";
 import Switch from "@/src/components/ui/switch/Switch";
 import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 import { useTranslation } from "react-i18next";
 import { ScrollBar } from "@/constants/ScrollBar";
+import Divider from "@/src/components/ui/divider/Divider";
 
 interface ScreenShareSource {
   id: string;
@@ -149,9 +151,7 @@ const ScreenShareSelector = ({
           )}
         </View>
         <View style={styles.sourceNameContainer}>
-          <Typography style={styles.sourceName} numberOfLines={1}>
-            {source.name}
-          </Typography>
+          <Typography numberOfLines={1}>{source.name}</Typography>
         </View>
       </TouchableOpacity>
     );
@@ -183,17 +183,14 @@ const ScreenShareSelector = ({
       {loading ? (
         <View style={styles.sourcesArea}>
           <View style={styles.loadingContainer}>
-            <Typography
-              style={styles.loadingText}
-              translationKey="chat.comms.selectors.screenshare.loading"
-            />
+            <Typography translationKey="chat.comms.selectors.screenshare.loading" />
           </View>
         </View>
       ) : permissionDenied ? (
         <View style={styles.sourcesArea}>
           <View style={styles.warningContainer}>
             <Typography
-              style={styles.warningText}
+              variant="danger"
               translationKey="chat.comms.selectors.screenshare.permissionWarning"
             />
           </View>
@@ -212,57 +209,43 @@ const ScreenShareSelector = ({
         </View>
       )}
 
+      <Divider/>
+
       <View style={styles.footer}>
         <View style={styles.footerAudioRow}>
           {activeTab === "screen" ? (
             audioDisabledByMac ? (
               <Typography
-                style={styles.audioWarningText}
+                variant="danger"
                 translationKey="chat.comms.selectors.screenshare.macOsAudioWarning"
               />
             ) : (
               <View style={styles.audioToggleContainer}>
                 <Switch value={includeAudio} onValueChange={setIncludeAudio} />
-                <Typography
-                  style={styles.audioText}
-                  translationKey="chat.comms.selectors.screenshare.includeAudio"
-                />
+                <Typography translationKey="chat.comms.selectors.screenshare.includeAudio" />
               </View>
             )
           ) : null}
         </View>
 
         <View style={styles.footerButtonsRow}>
-          <TouchableOpacity
+          <Button
+            variant="secondary"
+            translationKey="chat.comms.selectors.screenshare.cancel"
             onPress={onClose}
-            style={[styles.actionButton, styles.cancelButton]}
-          >
-            <Typography
-              style={styles.cancelButtonText}
-              translationKey="chat.comms.selectors.screenshare.cancel"
-            />
-          </TouchableOpacity>
+            style={styles.footerButton}
+          />
 
-          <TouchableOpacity
+          <Button
+            translationKey="chat.comms.selectors.screenshare.startScreenShare"
             onPress={() =>
               hasNativeScreenShareMenu
                 ? handleNativeShare(activeTab)
                 : handleShare()
             }
             disabled={!hasNativeScreenShareMenu && !selectedSourceId}
-            style={[
-              styles.actionButton,
-              styles.startButton,
-              !hasNativeScreenShareMenu &&
-                !selectedSourceId &&
-                styles.shareButtonDisabled,
-            ]}
-          >
-            <Typography
-              style={styles.startButtonText}
-              translationKey="chat.comms.selectors.screenshare.startScreenShare"
-            />
-          </TouchableOpacity>
+            style={styles.footerButton}
+          />
         </View>
       </View>
     </View>
@@ -287,15 +270,12 @@ function createStyle(theme: any) {
   return StyleSheet.create({
     container: {
       width: "100%",
+      gap: 25
     },
     loadingContainer: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-    },
-    loadingText: {
-      fontSize: 16,
-      color: theme.text,
     },
     warningContainer: {
       flex: 1,
@@ -303,11 +283,6 @@ function createStyle(theme: any) {
       justifyContent: "center",
       gap: 20,
       paddingHorizontal: 20,
-    },
-    warningText: {
-      fontSize: 14,
-      color: theme.dangerText,
-      textAlign: "center",
     },
     sourcesArea: {
       width: "100%",
@@ -324,7 +299,7 @@ function createStyle(theme: any) {
     },
     listContent: {
       flexGrow: 1,
-      paddingBottom: 4,
+      paddingBottom: 5,
     },
     grid: {
       flexDirection: "row",
@@ -337,8 +312,6 @@ function createStyle(theme: any) {
     sourceItem: {
       width: 195,
       borderRadius: 10,
-      borderWidth: 2,
-      borderColor: "transparent",
       overflow: "hidden",
       backgroundColor: theme.backgroundMain,
     },
@@ -347,7 +320,7 @@ function createStyle(theme: any) {
     },
     thumbnailContainer: {
       width: "100%",
-      aspectRatio: 16 / 10,
+      aspectRatio: 16 / 9,
       overflow: "hidden",
       backgroundColor: theme.borderColor,
     },
@@ -366,25 +339,16 @@ function createStyle(theme: any) {
       justifyContent: "center",
       paddingHorizontal: 8,
     },
-    sourceName: {
-      fontSize: 12,
-      color: theme.text,
-      textAlign: "center",
-    },
     footer: {
-      marginTop: 12,
-      gap: 12,
-      padding: 12,
-      borderTopWidth: 1,
-      borderTopColor: theme.borderColor,
+      gap: 25,
+      padding: 15,
     },
     footerAudioRow: {
       height: 28,
       justifyContent: "center",
     },
     toggleWrapper: {
-      paddingHorizontal: 12,
-      marginBottom: 12,
+      paddingHorizontal: 10,
       alignItems: "center",
     },
     audioToggleContainer: {
@@ -392,46 +356,14 @@ function createStyle(theme: any) {
       alignItems: "center",
       gap: 10,
     },
-    audioText: {
-      fontSize: 14,
-      color: theme.text,
-    },
-    audioWarningText: {
-      fontSize: 12,
-      color: theme.dangerText,
-    },
     footerButtonsRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginTop: 12,
       gap: 10,
     },
-    actionButton: {
+    footerButton: {
       flex: 1,
-      paddingVertical: 10,
-      paddingHorizontal: 10,
-      borderRadius: 10,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    cancelButton: {
-      backgroundColor: theme.iconDanger,
-    },
-    cancelButtonText: {
-      color: theme.text,
-      fontSize: 15,
-      fontWeight: "600",
-    },
-    startButton: {
-      backgroundColor: theme.primary,
-    },
-    startButtonText: {
-      color: theme.text,
-      fontSize: 15,
-      fontWeight: "600",
-    },
-    shareButtonDisabled: {
-      opacity: 0.5,
+      alignSelf: "stretch",
     },
   });
 }

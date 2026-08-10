@@ -11,7 +11,7 @@ import AdaptiveModal from "@/src/components/features/modalSheets/components/Adap
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 
 import authBackend from "@/src/utils/backend-services/auth";
 import auth from "@/src/utils/welcome/auth";

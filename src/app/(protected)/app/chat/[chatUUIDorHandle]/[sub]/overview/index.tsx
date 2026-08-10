@@ -4,7 +4,7 @@ import { View, StyleSheet, TouchableOpacity, Pressable } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 import SegmentedSwitch, {
   ToggleOption,
 } from "@/src/components/ui/switch/SegmentedSwitch";

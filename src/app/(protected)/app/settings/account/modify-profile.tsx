@@ -4,7 +4,7 @@ import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import UploadProfilePicture from "@/src/components/features/modalSheets/UploadProfilePicture";

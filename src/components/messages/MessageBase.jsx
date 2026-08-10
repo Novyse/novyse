@@ -20,7 +20,7 @@ import * as Haptics from "expo-haptics";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
 import useChatStore from "@/src/context/ChatContext";
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 import Icon from "@/src/components/ui/icon/Icon";
 
 import useMessageGestures from "@/src/hooks/chat/useMessageGestures";

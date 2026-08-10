@@ -11,7 +11,7 @@ import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 
 import messageUtils from "@/src/utils/chat/message";
 import notificationManager from "@/src/utils/notifications/manager";
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 import useChatStore from "@/src/context/ChatContext";
 import useNetworkStore from "@/src/context/NetworkContext";
 

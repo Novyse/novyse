@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 import useChatStore from "@/src/context/ChatContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import {

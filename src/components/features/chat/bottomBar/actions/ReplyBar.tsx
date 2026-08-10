@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, ViewStyle, TextStyle } from "react-native";
 
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import messageUtils from "@/src/utils/chat/messageFormat";

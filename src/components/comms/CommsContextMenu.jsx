@@ -1,7 +1,7 @@
 import React from "react";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 import ContextMenu from "@/src/components/features/contextMenu/ContextMenu";
 import ContextMenuItem from "@/src/components/features/contextMenu/ContextMenuItem";
 import Divider from "@/src/components/ui/divider/Divider";

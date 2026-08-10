@@ -13,6 +13,8 @@ interface RoomOptionsMenuProps {
   onOpenWatchTogether: () => void;
 }
 
+// ! @MatteoMagnani7 da rifare bene anche lui, magari come Context Menu
+
 export const RoomOptionsMenu: React.FC<RoomOptionsMenuProps> = ({
   visible,
   onClose,
@@ -47,9 +49,8 @@ export const RoomOptionsMenu: React.FC<RoomOptionsMenuProps> = ({
             }}
           >
             <View style={styles.menuItemContent}>
-              <Icon name="Link01Icon" size={20} color={theme.text} />
+              <Icon name="Link01Icon" size={20}/>
               <Typography
-                style={styles.menuText}
                 translationKey={
                   isVideoActive
                     ? "chat.comms.roomOptions.modifyWatchTogether"
@@ -67,26 +68,20 @@ export const RoomOptionsMenu: React.FC<RoomOptionsMenuProps> = ({
 const createStyles = (theme: any) =>
   StyleSheet.create({
     content: {
-      padding: 6,
+      gap: 25
     },
     menuColumn: {
       flexDirection: "column",
-      gap: 4,
     },
     menuItem: {
-      paddingVertical: 8,
-      paddingHorizontal: 10,
-      borderRadius: 6,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 5,
       backgroundColor: theme.backgroundTextField,
     },
     menuItemContent: {
       flexDirection: "row",
       alignItems: "center",
       gap: 10,
-    },
-    menuText: {
-      fontSize: 13,
-      color: theme.text,
-      fontWeight: "600",
     },
   });

@@ -1,4 +1,4 @@
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 
 import Profile from "@/src/components/features/profile/ProfilePanel";
 

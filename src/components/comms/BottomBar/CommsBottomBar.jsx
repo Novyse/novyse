@@ -9,6 +9,8 @@ import MicrophoneSelector from "@/src/components/comms/bottomBar/MicrophoneSelec
 import MicrophoneArrowButton from "@/src/components/comms/bottomBar/MicrophoneArrowButton";
 import CameraSelector from "@/src/components/comms/bottomBar/CameraSelector";
 import CameraArrowButton from "@/src/components/comms/bottomBar/CameraArrowButton";
+import SpeakerArrowButton from "@/src/components/comms/bottomBar/SpeakerArrowButton";
+import SpeakerSelector from "@/src/components/comms/bottomBar/SpeakerSelector";
 import ScreenShareSelector from "@/src/components/comms/bottomBar/ScreenShareSelector";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 
@@ -17,7 +19,7 @@ import Icon from "@/src/components/ui/icon/Icon";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import { useCommsContext } from "@/src/context/CommsContext";
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 import useChatStore from "@/src/context/ChatContext";
 import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 
@@ -33,6 +35,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
 
   const [showMicrophoneSelector, setShowMicrophoneSelector] = useState(false);
   const [showCameraSelector, setShowCameraSelector] = useState(false);
+  const [showSpeakerSelector, setShowSpeakerSelector] = useState(false);
   const [showScreenShareSelector, setShowScreenShareSelector] = useState(false);
   const [showRoomMenu, setShowRoomMenu] = useState(false);
   const { showWatchTogetherModal, setShowWatchTogetherModal } =
@@ -162,11 +165,21 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
               />
             </View>
           )}
-          <Icon
-            onPress={toggleAudioOutput}
-            name={isAudioOutputEnabled ? "VolumeHighIcon" : "VolumeOffIcon"}
-            style={styles.icon}
-          />
+
+          <View style={styles.speakerButtonContainer}>
+            <Icon
+              onPress={toggleAudioOutput}
+              name={isAudioOutputEnabled ? "VolumeHighIcon" : "VolumeOffIcon"}
+              style={styles.icon}
+            />
+
+            <SpeakerArrowButton
+              onPress={() => {
+                if (connected && roomMatch) handleSpeakerArrowPress();
+              }}
+              theme={theme}
+            />
+          </View>
           {canScreenShare && (
             <Icon
               onPress={() => {
@@ -209,6 +222,13 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
         onClose={() => setShowCameraSelector(false)}
         onCameraSelected={(id) => setCameraDevice(id)}
         currentDeviceId={cameraDevice}
+      />
+
+      <SpeakerSelector
+        visible={showSpeakerSelector}
+        onClose={() => setShowSpeakerSelector(false)}
+        onSpeakerSelected={(id) => setSpeakerDevice(id)}
+        currentDeviceId={speakerDevice}
       />
 
       <ScreenShareSelector
@@ -265,6 +285,9 @@ const createStyle = (theme) =>
       position: "relative",
     },
     cameraButtonContainer: {
+      position: "relative",
+    },
+    speakerButtonContainer: {
       position: "relative",
     },
     joinIconButton: {

@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import EventEmitter from "@/src/utils/global/Events/EventEmitter";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import useChatStore from "./ChatContext";
-import useUserStore from "./UserStore";
+import useUserStore from "../store/UserStore";
 
 export interface ChatUIState {
   contentView: "chat" | "vocal" | "both";

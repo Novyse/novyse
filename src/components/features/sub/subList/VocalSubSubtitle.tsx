@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import useCommsData from "@/src/hooks/comms/useCommsData";
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 import Avatar from "@/src/components/ui/avatar/Avatar";
 
 const VocalSubSubtitle = ({

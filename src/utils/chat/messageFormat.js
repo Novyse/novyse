@@ -1,5 +1,5 @@
 import { getFileType } from "@/src/utils/storage/file/type";
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 import i18n from "@/src/i18n";
 import { DateTime } from "luxon";
 

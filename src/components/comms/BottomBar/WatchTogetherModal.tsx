@@ -1,19 +1,15 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  View,
-  StyleSheet,
-  ActivityIndicator,
-  Pressable,
-} from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
-import Typography from "@/src/components/ui/typography/Typography";
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { parseVideoUrl } from "@/src/hooks/comms/useWatchTogether";
-import TextInput from "@/src/components/ui/input/TextInput";
 
+import Button from "@/src/components/ui/button/Button";
+import Typography from "@/src/components/ui/typography/Typography";
+import TextInput from "@/src/components/ui/input/TextInput";
 interface WatchTogetherModalProps {
   visible: boolean;
   onClose: () => void;
@@ -50,17 +46,17 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
     }
   }
 
-  let supportedStyle = styles.supportedCompactText;
+  // let supportedStyle = styles.supportedCompactText;
   let supportedText = `${t("chat.comms.watchTogether.notSupported")} - ${t("chat.comms.watchTogether.supportedLinks")}: ${t("chat.comms.watchTogether.typeYoutube")}, ${t("chat.comms.watchTogether.typeDirect")}`;
 
   if (videoUrl.trim()) {
     if (isValid) {
-      supportedStyle = styles.supportedSuccessText;
+      // supportedStyle = styles.supportedSuccessText;
       supportedText = t("chat.comms.watchTogether.detectedType", {
         type: detectedTypeText,
       });
     } else {
-      supportedStyle = styles.supportedErrorText;
+      // supportedStyle = styles.supportedErrorText;
       supportedText = `${t("chat.comms.watchTogether.notSupported")} - ${t("chat.comms.watchTogether.supportedLinks")}: ${t("chat.comms.watchTogether.typeYoutube")}, ${t("chat.comms.watchTogether.typeDirect")}`;
     }
   }
@@ -127,60 +123,34 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
       }
     >
       <View style={styles.container}>
-        <Typography
-          style={styles.description}
-          translationKey="chat.comms.watchTogether.description"
-        />
-
+        <Typography translationKey="chat.comms.watchTogether.description" />
         <TextInput
           placeholder={t("chat.comms.watchTogether.placeholder")}
           value={videoUrl}
           onChangeText={setVideoUrl}
         />
-
-        {!!errorMsg && <Typography style={styles.errorText} text={errorMsg} />}
-
-        <View style={styles.supportedCompactContainer}>
-          <Typography style={supportedStyle} text={supportedText} />
-        </View>
-
+        {!!errorMsg && <Typography text={errorMsg} />}
+        <Typography text={supportedText} />
         <View style={styles.buttonsContainer}>
           {isVideoActive && (
-            <Pressable
-              style={[styles.btn, styles.btnStop]}
+            <Button
+              variant="danger"
+              translationKey="chat.comms.watchTogether.stop"
               onPress={handleStopSession}
               disabled={loading}
-            >
-              <Typography
-                style={styles.btnTextStop}
-                translationKey="chat.comms.watchTogether.stop"
-              />
-            </Pressable>
+            />
           )}
 
-          <Pressable
-            style={[
-              styles.btn,
-              styles.btnConfirm,
-              (loading || !videoUrl.trim() || !isValid) && styles.btnDisabled,
-            ]}
+          <Button
+            translationKey={
+              isVideoActive
+                ? "chat.comms.watchTogether.modify"
+                : "chat.comms.watchTogether.start"
+            }
             onPress={handleStartSession}
             disabled={loading || !videoUrl.trim() || !isValid}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color={theme.text} />
-            ) : (
-              <Typography
-                style={styles.btnTextConfirm}
-                translationKey={
-                  isVideoActive
-                    ? "chat.comms.watchTogether.modify"
-                    : "chat.comms.watchTogether.start"
-                }
-              />
-            )}
-          </Pressable>
-        </View>
+          />
+        </View>{" "}
       </View>
     </AdaptiveModal>
   );
@@ -188,77 +158,12 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
 
 const createStyles = (theme: any) =>
   StyleSheet.create({
-    container: {},
-    description: {
-      fontSize: 14,
-      color: theme.subtitle,
-      lineHeight: 20,
-      marginBottom: 20,
-    },
-    textInput: {
-      height: 48,
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      backgroundColor: theme.backgroundTextField,
-      color: theme.text,
-      fontSize: 15,
-      marginBottom: 20,
-      outlineStyle: "none" as any,
-    },
-    errorText: {
-      color: theme.iconDanger,
-      fontSize: 13,
-      marginBottom: 16,
-    },
-    supportedCompactContainer: {
-      marginTop: 4,
-      marginBottom: 16,
-    },
-    supportedCompactText: {
-      fontSize: 11,
-      color: theme.subtitle,
-      opacity: 0.6,
-    },
-    supportedSuccessText: {
-      fontSize: 11,
-      color: theme.iconSuccess,
-      fontWeight: "600",
-    },
-    supportedErrorText: {
-      fontSize: 11,
-      color: theme.iconDanger,
-      fontWeight: "600",
+    container: {
+      gap: 25,
     },
     buttonsContainer: {
       flexDirection: "row",
       justifyContent: "flex-end",
-      gap: 12,
-    },
-    btn: {
-      height: 40,
-      paddingHorizontal: 20,
-      borderRadius: 20,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    btnConfirm: {
-      backgroundColor: theme.primary,
-    },
-    btnStop: {
-      backgroundColor: theme.iconDanger,
-      marginRight: "auto",
-    },
-    btnTextConfirm: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "600",
-    },
-    btnTextStop: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "600",
-    },
-    btnDisabled: {
-      opacity: 0.5,
+      gap: 25,
     },
   });

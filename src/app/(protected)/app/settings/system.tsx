@@ -13,7 +13,7 @@ import Section from "@/src/components/features/settings/SettingsSection";
 import SettingRow from "@/src/components/features/settings/SettingsRow";
 
 import useChatStore from "@/src/context/ChatContext";
-import useUserStore from "@/src/context/UserStore";
+import useUserStore from "@/src/store/UserStore";
 
 import settingsManager from "@/src/utils/global/SettingsManager";
 import Platform from "@/src/utils/device/type";
