@@ -9,7 +9,7 @@ import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import useLayout from "@/src/hooks/comms/useLayout";
 
 import UserCard from "./UserCard";
-import CommsMenu from "./CommsMenu";
+import CommsMenu from "./CommsContextMenu";
 
 const PADDING_TOP = 160;
 const PADDING_BOTTOM = 110;

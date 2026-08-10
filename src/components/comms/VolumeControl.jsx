@@ -49,9 +49,9 @@ const VolumeControl = ({ volKey, isScreenShare }) => {
         value={localDb + 30}
         onValueChange={handleValueChange}
         onSlidingComplete={handleSlidingComplete}
-        minimumTrackTintColor={theme.primary}
+        minimumTrackTintColor={theme.text}
         maximumTrackTintColor={theme.secondary}
-        thumbTintColor={theme.primary}
+        thumbTintColor={theme.text}
         tapToSeek
       />
     </View>

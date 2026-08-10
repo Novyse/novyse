@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { StatusBar } from "react-native";
 
 import { useScreen } from "@/src/context/ScreenContext";

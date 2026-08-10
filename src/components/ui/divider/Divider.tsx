@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { View } from "react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
@@ -8,8 +8,8 @@ export default function Divider() {
     <View
       style={{
         height: 1,
-        backgroundColor: theme.backgroundCard,
-        marginVertical: 24,
+        backgroundColor: theme.borderColor,
+        marginVertical: 10,
       }}
     />
   );

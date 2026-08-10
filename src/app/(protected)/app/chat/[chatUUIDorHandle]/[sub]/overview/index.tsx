@@ -17,6 +17,7 @@ import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBack
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import useChatStore from "@/src/context/ChatContext";
 import { BadgeRenderer } from "@/src/components/features/badge/Badges";
+import Divider from "@/src/components/ui/divider/Divider";
 
 type GroupTab =
   | "members"
@@ -173,6 +174,7 @@ const ChatOverview = () => {
           );
 
           return (
+            <>
             <Pressable
               key={mUUID || index}
               style={styles.memberItem}
@@ -193,7 +195,9 @@ const ChatOverview = () => {
                     { backgroundColor: theme.primary + "33" },
                   ]}
                 >
-                  <Typography style={{ color: theme.primary, fontWeight: "600" }}>
+                  <Typography
+                    style={{ color: theme.primary, fontWeight: "600" }}
+                  >
                     {(user.name || user.handle || "?")[0].toUpperCase()}
                   </Typography>
                 </View>
@@ -218,6 +222,8 @@ const ChatOverview = () => {
                 </Typography>
               )}
             </Pressable>
+            {index !== chat.members.length - 1 && <Divider />}
+            </>
           );
         })}
       </View>
@@ -446,8 +452,6 @@ const createStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.border,
     },
     memberAvatar: {
       width: 45,
