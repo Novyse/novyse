@@ -1,15 +1,15 @@
-import React, { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 
 import { router } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import MicrophoneSelector from "@/src/components/comms/BottomBar/MicrophoneSelector";
-import MicrophoneArrowButton from "@/src/components/comms/BottomBar/MicrophoneArrowButton";
-import CameraSelector from "@/src/components/comms/BottomBar/CameraSelector";
-import CameraArrowButton from "@/src/components/comms/BottomBar/CameraArrowButton";
-import ScreenShareSelector from "@/src/components/comms/BottomBar/ScreenShareSelector";
+import MicrophoneSelector from "@/src/components/comms/bottomBar/MicrophoneSelector";
+import MicrophoneArrowButton from "@/src/components/comms/bottomBar/MicrophoneArrowButton";
+import CameraSelector from "@/src/components/comms/bottomBar/CameraSelector";
+import CameraArrowButton from "@/src/components/comms/bottomBar/CameraArrowButton";
+import ScreenShareSelector from "@/src/components/comms/bottomBar/ScreenShareSelector";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 
 import BlurredView from "@/src/components/layout/BlurredView";
@@ -17,13 +17,13 @@ import Icon from "@/src/components/ui/icon/Icon";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import { useCommsContext } from "@/src/context/CommsContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 import useChatStore from "@/src/context/ChatContext";
 import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 
 import Platform from "@/src/utils/device/type";
-import { RoomOptionsMenu } from "./RoomOptionsMenu";
-import { WatchTogetherModal } from "./WatchTogetherModal";
+import { RoomOptionsMenu } from "./RoomOptionsMenu.tsx";
+import { WatchTogetherModal } from "./WatchTogetherModal.tsx";
 
 const CommsBottomBar = ({ chatUUID, sub }) => {
   const { theme } = useContext(ThemeContext);

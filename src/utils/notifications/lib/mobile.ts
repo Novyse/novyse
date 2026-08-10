@@ -171,7 +171,7 @@ class MobileNotificationManager {
 
       // --- 2.7 Resolve context data (Store + DB Fallback) ---
       const useChatStore = (await import("@/src/context/ChatContext")).default;
-      const useUserStore = (await import("@/src/context/UserContext")).default;
+      const useUserStore = (await import("@/src/context/UserStore")).default;
       const database = (await import("../../storage/database")).default;
 
       // Ensure DB is connected in Headless mode (when UI SQLiteProvider is not mounted)

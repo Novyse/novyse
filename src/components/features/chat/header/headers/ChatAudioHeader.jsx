@@ -14,7 +14,7 @@ import Animated, {
 import { formatTime } from "@/src/utils/storage/file/utils";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 
 const AudioHeader = () => {
   const { theme } = useContext(ThemeContext);

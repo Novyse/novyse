@@ -14,7 +14,8 @@ const MicrophoneArrowButton = ({ onPress }: MicrophoneArrowButtonProps) => {
   return (
     <Icon
       name={"ArrowDown01Icon"}
-      style={[styles.arrowButton, { backgroundColor: theme.backgroundMain }]}
+      size={18}
+      style={styles.arrowButton}
       onPress={onPress}
     />
   );
@@ -24,15 +25,14 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     arrowButton: {
       position: "absolute",
-      top: -8,
-      right: -8,
-      width: 20,
-      height: 20,
+      top: -5,
+      right: -5,
+      width: 18,
+      height: 18,
       borderRadius: 10,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
-      borderColor: theme.borderColor,
+      backgroundColor: theme.backgroundMain
     },
   });
 

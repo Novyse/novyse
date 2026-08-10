@@ -9,7 +9,7 @@ import { useScreen } from "@/src/context/ScreenContext";
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 
 import CommsMembersLayout from "@/src/components/comms/CommsMembersLayout";
-import CommsBottomBar from "@/src/components/comms/BottomBar/CommsBottomBar";
+import CommsBottomBar from "@/src/components/comms/bottomBar/CommsBottomBar";
 import SubList from "@/src/components/features/sub/subList/SubList";
 import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 

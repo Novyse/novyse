@@ -1,12 +1,18 @@
 import React from "react";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
+import useUserStore from "@/src/context/UserStore";
 import ContextMenu from "@/src/components/features/contextMenu/ContextMenu";
 import ContextMenuItem from "@/src/components/features/contextMenu/ContextMenuItem";
 import Divider from "@/src/components/ui/divider/Divider";
 import VolumeControl from "./VolumeControl";
-
+import { useRouter } from "expo-router";
 const MENU_WIDTH = 220;
+
+const getUserUUIDFromDeviceUUID = (deviceUUID) => {
+  if (!deviceUUID || deviceUUID === "watch-together") return null;
+  return deviceUUID.split("_")[0];
+};
 
 const CommsContextMenu = ({
   visible,
@@ -20,6 +26,9 @@ const CommsContextMenu = ({
   containerBounds = { x: 0, y: 0, width: 0, height: 0 },
 }) => {
   const { theme } = useThemeContext();
+  const router = useRouter();
+  const getUser = useUserStore((state) => state.getUser);
+
   const {
     localMuted,
     toggleLocalMute,
@@ -108,6 +117,15 @@ const CommsContextMenu = ({
   const isMuted = localMuted[volKey] ?? false;
   const estimatedHeight = isLocal ? 150 : 320;
 
+  const userUUID = getUserUUIDFromDeviceUUID(activeDeviceUUID);
+  const user = userUUID ? getUser(userUUID) : null;
+
+  const handleProfilePress = () => {
+    if (!user?.handle) return;
+    onClose();
+    router.navigate(`/profile/${user.handle}`);
+  };
+
   return (
     <ContextMenu
       visible={visible}
@@ -121,10 +139,7 @@ const CommsContextMenu = ({
         iconName={"UserIcon"}
         iconColor={isMuted ? theme.dangerText : undefined}
         text={displayName}
-        onPress={() => {
-          // router.navigate(`/profile/${user.handle}`);
-          console.log("should navigate to user's profile")
-        }}
+        onPress={handleProfilePress}
       />
 
       <Divider />

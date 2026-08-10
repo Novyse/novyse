@@ -7,7 +7,7 @@ import TabNavigator, {
   getActiveTabName,
 } from "@/src/components/features/tabs/TabNavigator";
 import useChatStore from "@/src/context/ChatContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 import useWindowSizeStore, {
   SIDEBAR_MIN,
   SIDEBAR_COLLAPSED,

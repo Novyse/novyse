@@ -30,7 +30,7 @@ import { useForward } from "@/src/hooks/chat/useForward";
 
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 import useChatStore from "@/src/context/ChatContext";
 import { useKeyboardStore } from "@/src/context/KeyboardContext";
 

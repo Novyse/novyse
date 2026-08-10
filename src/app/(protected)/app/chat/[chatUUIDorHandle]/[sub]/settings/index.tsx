@@ -12,7 +12,7 @@ import SettingsPageScrollview from "@/src/components/features/settings/SettingsP
 import useChatStore from "@/src/context/ChatContext";
 import SettingRow from "@/src/components/features/settings/SettingsRow";
 import Section from "@/src/components/features/settings/SettingsSection";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 import { Role } from "@/src/types/chat";
 

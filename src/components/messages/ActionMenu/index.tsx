@@ -3,7 +3,7 @@ import { View, Pressable, StyleSheet, Dimensions, Modal } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";

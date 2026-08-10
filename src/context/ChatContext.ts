@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { Chat, User, Member } from "@/src/types";
 
 import database from "@/src/utils/storage/database";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 
 import notificationManager from "@/src/utils/notifications/manager";

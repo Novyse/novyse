@@ -8,8 +8,8 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 
 import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
-import CameraSelector from "@/src/components/comms/BottomBar/CameraSelector";
-import MicrophoneSelector from "@/src/components/comms/BottomBar/MicrophoneSelector";
+import CameraSelector from "@/src/components/comms/bottomBar/CameraSelector";
+import MicrophoneSelector from "@/src/components/comms/bottomBar/MicrophoneSelector";
 import Button from "@/src/components/ui/button/Button";
 import settingsManager from "@/src/utils/global/SettingsManager";
 import Label from "@/src/components/ui/label/Label";

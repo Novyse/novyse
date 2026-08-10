@@ -4,7 +4,7 @@ import {
   useAudioPlayerStatus,
   AudioModule,
 } from "expo-audio";
-import useUserStore from "./UserContext";
+import useUserStore from "./UserStore";
 
 interface AudioInfo {
   chatUUID?: string;

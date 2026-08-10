@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import useChatStore from "@/src/context/ChatContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 
 export const useChatMetadata = (
   chatUUIDorHandle: string | undefined,

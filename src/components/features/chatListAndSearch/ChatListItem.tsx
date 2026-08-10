@@ -8,7 +8,7 @@ import Icon from "@/src/components/ui/icon/Icon";
 import Avatar from "@/src/components/ui/avatar/Avatar";
 import BaseListItem from "./BaseListItem";
 
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";

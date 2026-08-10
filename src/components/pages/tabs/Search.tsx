@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useChatStore from "@/src/context/ChatContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 import Label from "@/src/components/ui/label/Label";
 
 import gateway from "@/src/utils/backend-services/api-gateway";

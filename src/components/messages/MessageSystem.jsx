@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 import BlurredView from "../layout/BlurredView";
 
 import messageUtils from "@/src/utils/chat/messageFormat";

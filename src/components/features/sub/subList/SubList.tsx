@@ -5,7 +5,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import { useRouter } from "expo-router";
 import FloatingButton from "@/src/components/ui/button/FloatingButton";
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 import { FlashList } from "@shopify/flash-list";
 import BaseListItem from "@/src/components/features/chatListAndSearch/BaseListItem";
 import messageUtils from "@/src/utils/chat/messageFormat";

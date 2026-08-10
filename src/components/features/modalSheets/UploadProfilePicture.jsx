@@ -9,7 +9,7 @@ import StatusMessage from "@/src/components/features/status/StatusMessage";
 import WebDropZone from "@/src/components/ui/input/WebDropZone";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 
 import useUploadFile from "@/src/hooks/modal/useUploadFile";
 import useAttachHandlers from "@/src/hooks/chat/useAttachHandlers";

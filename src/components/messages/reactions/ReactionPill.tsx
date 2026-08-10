@@ -3,7 +3,7 @@ import { Pressable, View, StyleSheet } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import Avatar from "@/src/components/ui/avatar/Avatar";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 import ReactionParticles from "./ReactionParticles";
 
 interface ReactionPillProps {

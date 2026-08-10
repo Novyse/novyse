@@ -16,7 +16,7 @@ import Typography from "@/src/components/ui/typography/Typography";
 
 import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import { useAudioPlayer } from "@/src/context/AudioPlayerContext";
-import useUserStore from "@/src/context/UserContext";
+import useUserStore from "@/src/context/UserStore";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import {
