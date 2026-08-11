@@ -1,8 +1,8 @@
-import useNetworkStore from "@/src/context/NetworkContext";
+import useNetworkStore from "@/src/store/NetworkStore";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import { useTranslation } from "react-i18next";
 import { useScreen } from "@/src/context/ScreenContext";
-import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import useWindowSizeStore from "@/src/store/WindowSizeStore";
 
 const StatusHeader = () => {
   const {

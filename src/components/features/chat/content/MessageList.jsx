@@ -12,8 +12,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 
 import useMessageActions from "@/src/hooks/chat/useMessageActions";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
-import useChatStore from "@/src/context/ChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
+import useChatStore from "@/src/store/ChatStore";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import MessageBase from "@/src/components/messages/MessageBase";

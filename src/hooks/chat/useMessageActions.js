@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import useUserStore from "@/src/store/UserStore";
-import useChatStore from "@/src/context/ChatContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useChatStore from "@/src/store/ChatStore";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 import {
   hasPermission,
   PERMISSIONS,

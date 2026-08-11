@@ -16,7 +16,7 @@ import { router } from "expo-router";
 import { DateTime } from "luxon";
 import messageFormat from "../../chat/messageFormat";
 import i18n from "../../../i18n";
-import { useActiveChatStore } from "../../../context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 class MobileNotificationManager {
   private processedMessageIds = new Set<string>();
@@ -170,7 +170,7 @@ class MobileNotificationManager {
       }
 
       // --- 2.7 Resolve context data (Store + DB Fallback) ---
-      const useChatStore = (await import("@/src/context/ChatContext")).default;
+      const useChatStore = (await import("@/src/store/ChatStore")).default;
       const useUserStore = (await import("@/src/store/UserStore")).default;
       const database = (await import("../../storage/database")).default;
 
@@ -181,7 +181,7 @@ class MobileNotificationManager {
       }
 
       // Ensure Network Context knows we are online in Headless mode
-      const useNetworkStore = (await import("@/src/context/NetworkContext"))
+      const useNetworkStore = (await import("@/src/store/NetworkStore"))
         .default;
       if (!useNetworkStore.getState().isConnected) {
         const NetInfo = (await import("@react-native-community/netinfo"))

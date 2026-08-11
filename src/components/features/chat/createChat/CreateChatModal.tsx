@@ -13,7 +13,7 @@ import SegmentedSwitch, {
 } from "@/src/components/ui/switch/SegmentedSwitch";
 
 import { useThemeContext, type Theme } from "@/src/context/ThemeContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import SelectButton from "./ChatTypeButton";

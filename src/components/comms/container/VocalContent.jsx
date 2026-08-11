@@ -1,10 +1,10 @@
 import { View } from "react-native";
 
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 import useWindowSizeStore, {
   SUBLIST_MIN,
   CHAT_MIN,
-} from "@/src/context/WindowSizeContext";
+} from "@/src/store/WindowSizeStore";
 import { useScreen } from "@/src/context/ScreenContext";
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 

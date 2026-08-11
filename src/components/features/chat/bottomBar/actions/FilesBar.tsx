@@ -14,7 +14,7 @@ import ImageViewer from "@/src/components/features/modalSheets/viewer/ImageViewe
 import VideoViewer from "@/src/components/features/modalSheets/viewer/VideoViewer";
 import Typography from "@/src/components/ui/typography/Typography";
 
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 import { useAudioPlayer } from "@/src/context/AudioPlayerContext";
 import useUserStore from "@/src/store/UserStore";
 import { ThemeContext } from "@/src/context/ThemeContext";

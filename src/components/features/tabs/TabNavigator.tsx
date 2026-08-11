@@ -11,7 +11,7 @@ import { useThemeContext, Theme } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
 import useWindowSizeStore, {
   SIDEBAR_MIN,
-} from "@/src/context/WindowSizeContext";
+} from "@/src/store/WindowSizeStore";
 
 import TabBar from "@/src/components/features/tabs/TabBar";
 import Icon from "@/src/components/ui/icon/Icon";

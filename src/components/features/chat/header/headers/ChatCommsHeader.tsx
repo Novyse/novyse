@@ -11,7 +11,7 @@ import Icon from "@/src/components/ui/icon/Icon";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import {

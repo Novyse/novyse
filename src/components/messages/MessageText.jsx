@@ -86,7 +86,7 @@ const MessageText = ({
                   }
                   const {
                     useActiveChatStore,
-                  } = require("@/src/context/ActiveChatContext");
+                  } = require("@/src/store/ActiveChatStore");
 
                   // Deselect the message when an action is performed
                   useActiveChatStore.getState().setSelectedMessages([]);

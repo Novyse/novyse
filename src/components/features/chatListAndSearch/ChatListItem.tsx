@@ -11,7 +11,7 @@ import BaseListItem from "./BaseListItem";
 import useUserStore from "@/src/store/UserStore";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
 

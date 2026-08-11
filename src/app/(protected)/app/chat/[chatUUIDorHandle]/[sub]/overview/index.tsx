@@ -15,7 +15,7 @@ import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
 import Avatar from "@/src/components/ui/avatar/Avatar";
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
-import useChatStore from "@/src/context/ChatContext";
+import useChatStore from "@/src/store/ChatStore";
 import { BadgeRenderer } from "@/src/components/features/badge/Badges";
 import Divider from "@/src/components/ui/divider/Divider";
 

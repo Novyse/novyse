@@ -9,7 +9,7 @@ import StatusMessage from "@/src/components/features/status/StatusMessage";
 import Avatar from "@/src/components/ui/avatar/Avatar";
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
-import useChatStore from "@/src/context/ChatContext";
+import useChatStore from "@/src/store/ChatStore";
 import SettingRow from "@/src/components/features/settings/SettingsRow";
 import Section from "@/src/components/features/settings/SettingsSection";
 import useUserStore from "@/src/store/UserStore";

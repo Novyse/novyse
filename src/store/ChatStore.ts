@@ -4,7 +4,7 @@ import { Chat, User, Member } from "@/src/types";
 
 import database from "@/src/utils/storage/database";
 import useUserStore from "@/src/store/UserStore";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import notificationManager from "@/src/utils/notifications/manager";
 import messageUtils from "@/src/utils/chat/messageFormat";

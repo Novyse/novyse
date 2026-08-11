@@ -14,13 +14,13 @@ import Header from "@/src/components/features/chat/header/ChatHeader";
 import VocalContent from "@/src/components/comms/container/VocalContent";
 
 import { useScreen } from "@/src/context/ScreenContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useWindowSizeStore, {
   SUBLIST_MIN,
   CHAT_MIN,
   VOCAL_MIN,
-} from "@/src/context/WindowSizeContext";
+} from "@/src/store/WindowSizeStore";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";

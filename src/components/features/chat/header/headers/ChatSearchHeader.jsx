@@ -7,7 +7,7 @@ import Icon from "@/src/components/ui/icon/Icon";
 import { HEADER_ROW_HEIGHT, ICON_BUTTON_SIZE } from "@/constants/headers";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import database from "@/src/utils/storage/database";
 

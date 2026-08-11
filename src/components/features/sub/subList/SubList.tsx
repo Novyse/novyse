@@ -4,7 +4,7 @@ import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useRouter } from "expo-router";
 import FloatingButton from "@/src/components/ui/button/FloatingButton";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 import useUserStore from "@/src/store/UserStore";
 import { FlashList } from "@shopify/flash-list";
 import BaseListItem from "@/src/components/features/chatListAndSearch/BaseListItem";

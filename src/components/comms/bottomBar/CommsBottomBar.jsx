@@ -17,9 +17,9 @@ import Icon from "@/src/components/ui/icon/Icon";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import { useCommsContext } from "@/src/context/CommsContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 import useUserStore from "@/src/store/UserStore";
-import useChatStore from "@/src/context/ChatContext";
+import useChatStore from "@/src/store/ChatStore";
 import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 
 import { getPlatform } from "@/src/utils/device/type";

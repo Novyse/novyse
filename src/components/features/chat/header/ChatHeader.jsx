@@ -8,10 +8,10 @@ import AudioHeader from "./headers/ChatAudioHeader";
 import PinnedMessageHeader from "./headers/ChatPinnedMessagesHeader";
 import CommsHeader from "./headers/ChatCommsHeader";
 import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
-import useChatStore from "@/src/context/ChatContext";
+import useChatStore from "@/src/store/ChatStore";
 import { useCommsContext } from "@/src/context/CommsContext";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 const ChatHeader = ({
   chatUUIDorHandle,

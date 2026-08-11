@@ -1,6 +1,6 @@
-import useNetworkStore from "@/src/context/NetworkContext";
+import useNetworkStore from "@/src/store/NetworkStore";
 import { useScreen } from "@/src/context/ScreenContext";
-import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import useWindowSizeStore from "@/src/store/WindowSizeStore";
 
 const STATUS_BANNER_HEIGHT = 82;
 const STATUS_BANNER_HEIGHT_COMPACT = 48;

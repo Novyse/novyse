@@ -14,8 +14,8 @@ import { ScrollBar } from "@/constants/ScrollBar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useThemeContext } from "@/src/context/ThemeContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
-import useChatStore from "@/src/context/ChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
+import useChatStore from "@/src/store/ChatStore";
 import useUserStore from "@/src/store/UserStore";
 import Label from "@/src/components/ui/label/Label";
 
@@ -31,7 +31,7 @@ import BaseListItem from "@/src/components/features/chatListAndSearch/BaseListIt
 
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 import { useStatusBannerOffset } from "@/src/hooks/useStatusBannerOffset";
-import useNetworkStore from "@/src/context/NetworkContext";
+import useNetworkStore from "@/src/store/NetworkStore";
 
 interface SearchResult {
   uuid: string | null;

@@ -28,11 +28,11 @@ import useDownload from "@/src/hooks/file/useDownload";
 import useActivityEmitter from "@/src/hooks/chat/useActivityEmitter";
 import { useForward } from "@/src/hooks/chat/useForward";
 
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/store/UserStore";
-import useChatStore from "@/src/context/ChatContext";
-import { useKeyboardStore } from "@/src/context/KeyboardContext";
+import useChatStore from "@/src/store/ChatStore";
+import { useKeyboardStore } from "@/src/store/KeyboardStore";
 
 import BottomBar from "@/src/components/features/chat/bottomBar/ChatBottomBar";
 import MessageList from "@/src/components/features/chat/content/MessageList";
@@ -50,7 +50,7 @@ import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 import useWindowSizeStore, {
   SUBLIST_MIN,
   CHAT_MIN,
-} from "@/src/context/WindowSizeContext";
+} from "@/src/store/WindowSizeStore";
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 import { useScreen } from "@/src/context/ScreenContext";
 

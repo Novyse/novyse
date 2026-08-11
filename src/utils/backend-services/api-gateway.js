@@ -4,7 +4,7 @@ import * as SecureStore from "expo-secure-store";
 import { secureStoreRpc } from "@/src/utils/electron/secureStore";
 
 import { BRANCH, APP_VERSION, API_BASE_URL } from "@/app.config";
-import useNetworkStore from "@/src/context/NetworkContext";
+import useNetworkStore from "@/src/store/NetworkStore";
 import { auth } from "@/src/utils/backend-services/auth";
 import eventEmitter from "@/src/utils/global/Events/lib/EventEmitter";
 

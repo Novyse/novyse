@@ -5,7 +5,7 @@ import { auth } from "@/src/utils/backend-services/auth";
 import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import eventReceiver from "@/src/utils/backend-services/lib/event-receiver";
 import eventSender from "@/src/utils/backend-services/lib/event-sender";
-import useNetworkStore from "@/src/context/NetworkContext";
+import useNetworkStore from "@/src/store/NetworkStore";
 
 import { SOCKET_BASE_URL } from "@/app.config";
 import Platform from "@/src/utils/device/type";

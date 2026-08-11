@@ -1,6 +1,6 @@
 import { useCallback, useContext } from "react";
 
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 import useUserStore from "@/src/store/UserStore";
 
 import queueManager from "@/src/utils/chat/queueManager";

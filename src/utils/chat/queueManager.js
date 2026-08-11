@@ -1,6 +1,6 @@
 import { v6 } from "uuid";
 
-import useNetworkStore from "@/src/context/NetworkContext";
+import useNetworkStore from "@/src/store/NetworkStore";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 import database from "@/src/utils/storage/database";

@@ -22,15 +22,15 @@ import StatusHeader from "@/src/components/features/chatListAndSearch/header/Sta
 import CreateChatModal from "@/src/components/features/chat/createChat/CreateChatModal";
 import CommsHeader from "@/src/components/features/chat/header/headers/ChatCommsHeader";
 
-import useChatStore from "@/src/context/ChatContext";
+import useChatStore from "@/src/store/ChatStore";
 import useChatPin from "@/src/hooks/chat/useChatPin";
 import useSelection from "@/src/hooks/useSelection";
 import { useForward } from "@/src/hooks/chat/useForward";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
 import { useCommsContext } from "@/src/context/CommsContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
-import useWindowSizeStore from "@/src/context/WindowSizeContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
+import useWindowSizeStore from "@/src/store/WindowSizeStore";
 import { useStatusBannerOffset } from "@/src/hooks/useStatusBannerOffset";
 
 import { ScrollBar } from "@/constants/ScrollBar";

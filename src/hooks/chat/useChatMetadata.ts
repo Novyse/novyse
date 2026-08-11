@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import useChatStore from "@/src/context/ChatContext";
+import useChatStore from "@/src/store/ChatStore";
 import useUserStore from "@/src/store/UserStore";
 
 export const useChatMetadata = (

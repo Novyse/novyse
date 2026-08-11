@@ -3,8 +3,8 @@ import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useChatStore from "@/src/context/ChatContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useChatStore from "@/src/store/ChatStore";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";

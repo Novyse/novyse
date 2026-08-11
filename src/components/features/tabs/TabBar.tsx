@@ -19,7 +19,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import { useScreen } from "@/src/context/ScreenContext";
 import useWindowSizeStore, {
   SIDEBAR_MIN,
-} from "@/src/context/WindowSizeContext";
+} from "@/src/store/WindowSizeStore";
 import Icon from "@/src/components/ui/icon/Icon";
 
 const TabBar: React.FC<BottomTabBarProps> = ({

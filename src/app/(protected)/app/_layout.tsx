@@ -6,14 +6,14 @@ import { useScreen } from "@/src/context/ScreenContext";
 import TabNavigator, {
   getActiveTabName,
 } from "@/src/components/features/tabs/TabNavigator";
-import useChatStore from "@/src/context/ChatContext";
+import useChatStore from "@/src/store/ChatStore";
 import useUserStore from "@/src/store/UserStore";
 import useWindowSizeStore, {
   SIDEBAR_MIN,
   SIDEBAR_COLLAPSED,
-} from "@/src/context/WindowSizeContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
-import useNetworkStore from "@/src/context/NetworkContext";
+} from "@/src/store/WindowSizeStore";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
+import useNetworkStore from "@/src/store/NetworkStore";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 import useMobileBackHandler from "@/src/hooks/layout/useMobileBackHandler";

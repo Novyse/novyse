@@ -5,7 +5,7 @@ import firebase from "./lib/firebase";
 import web from "./lib/web";
 import desktop from "./lib/desktop";
 
-import { useActiveChatStore } from "../../context/ActiveChatContext";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import { getProfilePictureUri } from "@/src/utils/avatar/profilePicture";
 import Platform from "@/src/utils/device/type";
