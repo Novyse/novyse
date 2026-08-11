@@ -8,8 +8,8 @@ import useWindowSizeStore, {
 import { useScreen } from "@/src/context/ScreenContext";
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 
-import CommsMembersLayout from "@/src/components/comms/CommsMembersLayout";
-import CommsBottomBar from "@/src/components/comms/bottomBar/CommsBottomBar";
+import CommsMembersLayout from "@/src/components/features/comms/CommsMembersLayout";
+import CommsBottomBar from "@/src/components/features/comms/bottomBar/CommsBottomBar";
 import SubList from "@/src/components/features/sub/subList/SubList";
 import PanelResizeHandle from "@/src/components/layout/PanelResizeHandle";
 

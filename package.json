@@ -42,7 +42,7 @@
     "@shopify/react-native-skia": "2.6.2",
     "axios": "^1.16.0",
     "electrobun": "^1.18.1",
-    "expo": "~57.0.10",
+    "expo": "~57.0.12",
     "expo-application": "~57.0.2",
     "expo-asset": "~57.0.8",
     "expo-audio": "~57.0.3",

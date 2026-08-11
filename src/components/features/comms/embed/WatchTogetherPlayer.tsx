@@ -325,10 +325,7 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
         ) : (
           <View style={styles.errorContainer}>
             <Icon name="AlertCircleIcon" size={24} color={theme.iconDanger} />
-            <Typography
-              style={styles.errorText}
-              text="Formato URL non supportato"
-            />
+            <Typography variant="danger" text="Formato URL non supportato" />
           </View>
         )}
 
@@ -403,7 +400,7 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
 
           <View style={styles.timeWrapper}>
             <Typography
-              style={styles.timeText}
+              size="xs"
               text={`${formatTime(currentTime)} / ${formatTime(duration)}`}
             />
           </View>
@@ -434,12 +431,6 @@ const createStyles = (theme: any) =>
       padding: 20,
       gap: 10,
     },
-    errorText: {
-      fontSize: 13,
-      color: theme.text,
-      opacity: 0.8,
-      textAlign: "center",
-    },
     controlsContainer: {
       position: "absolute",
       bottom: 8,
@@ -469,11 +460,6 @@ const createStyles = (theme: any) =>
     timeWrapper: {
       justifyContent: "center",
       alignItems: "flex-end",
-    },
-    timeText: {
-      fontSize: 11,
-      color: theme.text,
-      fontWeight: "500",
     },
     placeholderContainer: {
       flex: 1,

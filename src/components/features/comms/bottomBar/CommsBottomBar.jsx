@@ -5,11 +5,11 @@ import { router } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import MicrophoneSelector from "@/src/components/comms/bottomBar/MicrophoneSelector";
-import CameraSelector from "@/src/components/comms/bottomBar/CameraSelector";
-import CameraArrowButton from "@/src/components/comms/bottomBar/CameraArrowButton";
-import SpeakerSelector from "@/src/components/comms/bottomBar/SpeakerSelector";
-import ScreenShareSelector from "@/src/components/comms/bottomBar/ScreenShareSelector";
+import MicrophoneSelector from "@/src/components/features/comms/bottomBar/MicrophoneSelector";
+import CameraSelector from "@/src/components/features/comms/bottomBar/CameraSelector";
+import CameraArrowButton from "@/src/components/features/comms/bottomBar/CameraArrowButton";
+import SpeakerSelector from "@/src/components/features/comms/bottomBar/SpeakerSelector";
+import ScreenShareSelector from "@/src/components/features/comms/bottomBar/ScreenShareSelector";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 
 import BlurredView from "@/src/components/layout/BlurredView";
@@ -23,10 +23,10 @@ import useChatStore from "@/src/store/ChatStore";
 import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 
 import { getPlatform } from "@/src/utils/device/type";
-import { RoomOptionsMenu } from "@/src/components/comms/bottomBar/RoomOptionsMenu";
-import { WatchTogetherModal } from "@/src/components/comms/bottomBar/WatchTogetherModal";
-import SpeakerArrowButton from "@/src/components/comms/bottomBar/SpeakerArrowButton";
-import MicrophoneArrowButton from "@/src/components/comms/bottomBar/MicrophoneArrowButton";
+import { RoomOptionsMenu } from "@/src/components/features/comms/bottomBar/RoomOptionsMenu";
+import { WatchTogetherModal } from "@/src/components/features/comms/bottomBar/WatchTogetherModal";
+import SpeakerArrowButton from "@/src/components/features/comms/bottomBar/SpeakerArrowButton";
+import MicrophoneArrowButton from "@/src/components/features/comms/bottomBar/MicrophoneArrowButton";
 
 const CommsBottomBar = ({ chatUUID, sub }) => {
   const { theme } = useContext(ThemeContext);

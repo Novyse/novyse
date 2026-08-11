@@ -11,7 +11,7 @@ import { router, useLocalSearchParams } from "expo-router";
 
 import ChatContent from "@/src/components/features/chat/content/Chat";
 import Header from "@/src/components/features/chat/header/ChatHeader";
-import VocalContent from "@/src/components/comms/container/VocalContent";
+import VocalContent from "@/src/components/features/comms/container/VocalContent";
 
 import { useScreen } from "@/src/context/ScreenContext";
 import { useActiveChatStore } from "@/src/store/ActiveChatStore";

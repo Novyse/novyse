@@ -1,26 +1,26 @@
 import SettingsSelectModal from "@/src/components/features/settings/SettingsSelectModal";
 import {
   useMediaDeviceOptions,
-  CAMERA_DEVICE_OPTIONS,
-} from "@/src/components/comms/bottomBar/useMediaDeviceOptions";
+  MICROPHONE_DEVICE_OPTIONS,
+} from "@/src/components/features/comms/bottomBar/useMediaDeviceOptions";
 
-interface CameraSelectorProps {
+interface MicrophoneSelectorProps {
   visible: boolean;
   onClose: () => void;
-  onCameraSelected: (deviceId: string) => void;
+  onMicrophoneSelected: (deviceId: string) => void;
   currentDeviceId: string;
 }
 
-const CameraSelector = ({
+const MicrophoneSelector = ({
   visible,
   onClose,
-  onCameraSelected,
+  onMicrophoneSelected,
   currentDeviceId,
-}: CameraSelectorProps) => {
+}: MicrophoneSelectorProps) => {
   const { options, loading } = useMediaDeviceOptions({
     enabled: visible,
     currentDeviceId,
-    ...CAMERA_DEVICE_OPTIONS,
+    ...MICROPHONE_DEVICE_OPTIONS,
   });
 
   return (
@@ -29,12 +29,12 @@ const CameraSelector = ({
       onClose={onClose}
       options={options}
       value={currentDeviceId}
-      onChange={onCameraSelected}
-      titleKey="chat.comms.selectors.camera.title"
+      onChange={onMicrophoneSelected}
+      titleKey="chat.comms.selectors.microphone.title"
       loading={loading}
-      loadingKey="chat.comms.selectors.camera.loading"
+      loadingKey="chat.comms.selectors.microphone.loading"
     />
   );
 };
 
-export default CameraSelector;
+export default MicrophoneSelector;

@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import UserProfileAvatar from "./UserProfileAvatar";
-import BlurredView from "../layout/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 import Icon from "@/src/components/ui/icon/Icon";
 import { WatchTogetherPlayer } from "./embed/WatchTogetherPlayer";
 

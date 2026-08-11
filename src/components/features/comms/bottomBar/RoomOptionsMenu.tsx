@@ -10,7 +10,7 @@ import SettingsSelectGroup from "@/src/components/features/settings/SettingsSele
 import {
   useMediaDeviceOptions,
   SPEAKER_DEVICE_OPTIONS,
-} from "@/src/components/comms/bottomBar/useMediaDeviceOptions";
+} from "@/src/components/features/comms/bottomBar/useMediaDeviceOptions";
 
 interface RoomOptionsMenuProps {
   visible: boolean;
