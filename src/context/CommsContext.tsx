@@ -61,6 +61,8 @@ interface CommsContextType {
 
   showWatchTogetherModal: boolean;
   setShowWatchTogetherModal: React.Dispatch<React.SetStateAction<boolean>>;
+  speakerDevice: string | null;
+  setSpeakerDevice: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export const CommsContext = React.createContext<CommsContextType | undefined>(
@@ -70,6 +72,45 @@ export const CommsContext = React.createContext<CommsContextType | undefined>(
 const VOLUMES_MAX_SAVED = 2000;
 const VOLUMES_STORAGE_KEY = "novyse_comms_remote_volumes";
 const WATCH_TOGETHER_STREAM_UUID = "watch-together";
+
+/**
+ * Web-only remote audio playback.
+ *
+ * Mic/camera switches use LiveKit `room.switchActiveDevice` (capture side).
+ * Speaker on web is different: we manually create <audio> elements for each
+ * remote track (volume via el.volume + output via el.setSinkId). LiveKit's
+ * switchActiveDevice("audiooutput") alone does not retarget those elements,
+ * so we keep them in a Map and re-apply the sink when the user changes speaker.
+ *
+ * `setSinkId("")` resets to the OS default output — skipping the call would
+ * leave the previously selected device active.
+ */
+const setAudioElementSink = (
+  audioEl: HTMLAudioElement,
+  deviceId: string | null,
+) => {
+  if (
+    Platform.OS !== "web" ||
+    deviceId == null ||
+    typeof (audioEl as any).setSinkId !== "function"
+  ) {
+    return;
+  }
+
+  const sinkId = deviceId === "default" ? "" : deviceId;
+
+  (audioEl as any).setSinkId(sinkId).catch((err: unknown) => {
+    console.error("[CommsContext] Failed to set audio output device:", err);
+  });
+};
+
+/** Re-apply the chosen output device to every remote <audio> already playing. */
+const applyAudioOutputDevice = (
+  audioElements: Map<string, HTMLAudioElement>,
+  deviceId: string | null,
+) => {
+  audioElements.forEach((audioEl) => setAudioElementSink(audioEl, deviceId));
+};
 
 const dbToLinear = (db: number) => {
   if (db <= -30) return 0;
@@ -102,7 +143,10 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
   const [isSpeakingMap, setIsSpeakingMap] = React.useState<
     Map<string, boolean>
   >(new Map());
-  const audioElementsRef = React.useRef<Map<string, any>>(new Map());
+  /** Web: remote trackSid → <audio> (volume + setSinkId). Empty on native. */
+  const audioElementsRef = React.useRef<Map<string, HTMLAudioElement>>(
+    new Map(),
+  );
   const [streams, setStreams] = React.useState<Record<string, MediaStream>>({});
   const [mutedStreams, setMutedStreams] = React.useState<
     Record<string, MediaStream>
@@ -126,6 +170,9 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
 
   const [showWatchTogetherModal, setShowWatchTogetherModal] =
     React.useState<boolean>(false);
+  const [speakerDevice, setSpeakerDevice] = React.useState<string | null>(null);
+
+  const speakerDeviceRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     if (!room) {
@@ -183,6 +230,11 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
   React.useEffect(() => {
     isAudioOutputEnabledRef.current = isAudioOutputEnabled;
   }, [isAudioOutputEnabled]);
+
+  React.useEffect(() => {
+    speakerDeviceRef.current = speakerDevice;
+    applyAudioOutputDevice(audioElementsRef.current, speakerDevice);
+  }, [speakerDevice]);
 
   const [facingMode, setFacingMode] = React.useState<string>("environment");
 
@@ -361,10 +413,11 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
           audioEl.autoplay = true;
           audioEl.volume = Math.min(1.0, targetVolume);
           document.body.appendChild(audioEl);
+          audioElementsRef.current.set(publication.trackSid, audioEl);
+          setAudioElementSink(audioEl, speakerDeviceRef.current);
           audioEl
             .play()
             .catch((err) => console.error("Errore riproduzione audio:", err));
-          audioElementsRef.current.set(publication.trackSid, audioEl);
         }
       }
       // Add video streams to state
@@ -633,6 +686,9 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     setTriggeredPosition({ x: 0, y: 0 });
     setError(null);
     setShowWatchTogetherModal(false);
+    setSpeakerDevice(null);
+    audioElementsRef.current.forEach((audioEl) => audioEl.remove());
+    audioElementsRef.current.clear();
   };
 
   const setRemoteVolume = async (
@@ -798,6 +854,8 @@ export const CommsProvider = ({ children }: CommsProviderProps) => {
     setRoomMetadata,
     showWatchTogetherModal,
     setShowWatchTogetherModal,
+    speakerDevice,
+    setSpeakerDevice,
   };
 
   return (

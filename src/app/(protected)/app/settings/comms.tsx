@@ -13,6 +13,7 @@ import MicrophoneSelector from "@/src/components/comms/bottomBar/MicrophoneSelec
 import Button from "@/src/components/ui/button/Button";
 import settingsManager from "@/src/utils/global/SettingsManager";
 import Label from "@/src/components/ui/label/Label";
+import { usesNativeAudioRouting } from "@/src/utils/comms/nativeAudio";
 
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/features/settings/SettingsCard";
@@ -217,23 +218,24 @@ export default function CommsRoute() {
 
           {devicesLoading ? (
             <View style={styles.disabledField}>
-              <Typography
-                translationKey="settings.comms.loadingDevices"
-              />
+              <Typography translationKey="settings.comms.loadingDevices" />
             </View>
           ) : (
             <>
-              <Label translationKey="settings.comms.microphone" />
-              <Button
-                text={
-                  audioDeviceOptions.find(
-                    (o) => o.value === audioSettings.microphoneDeviceId,
-                  )?.label || t("settings.comms.microphone")
-                }
-                icon="Mic02Icon"
-                onPress={() => setMicModalVisible(true)}
-                style={{ width: "100%", marginBottom: 15 }}
-              />
+              {!usesNativeAudioRouting && (
+                <>
+                  <Label translationKey="settings.comms.microphone" />
+                  <Button
+                    text={
+                      audioDeviceOptions.find(
+                        (o) => o.value === audioSettings.microphoneDeviceId,
+                      )?.label || t("settings.comms.microphone")
+                    }
+                    onPress={() => setMicModalVisible(true)}
+                    style={{ width: "100%", marginBottom: 15 }}
+                  />
+                </>
+              )}
 
               <Label translationKey="settings.comms.webcam" />
               <Button
@@ -242,19 +244,22 @@ export default function CommsRoute() {
                     (o) => o.value === audioSettings.webcamDeviceId,
                   )?.label || t("settings.comms.webcam")
                 }
-                icon="Camera01Icon"
                 onPress={() => setCameraModalVisible(true)}
                 style={{ width: "100%", marginBottom: 15 }}
               />
 
-              <MicrophoneSelector
-                visible={micModalVisible}
-                onClose={() => setMicModalVisible(false)}
-                currentDeviceId={audioSettings.microphoneDeviceId || "default"}
-                onMicrophoneSelected={(deviceId) =>
-                  updateSetting("microphoneDeviceId", deviceId)
-                }
-              />
+              {!usesNativeAudioRouting && (
+                <MicrophoneSelector
+                  visible={micModalVisible}
+                  onClose={() => setMicModalVisible(false)}
+                  currentDeviceId={
+                    audioSettings.microphoneDeviceId || "default"
+                  }
+                  onMicrophoneSelected={(deviceId) =>
+                    updateSetting("microphoneDeviceId", deviceId)
+                  }
+                />
+              )}
 
               <CameraSelector
                 visible={cameraModalVisible}

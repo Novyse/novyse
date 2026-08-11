@@ -32,7 +32,7 @@ function SettingsSelectModal<T extends string = string>({
   mode = "adaptive",
 }: SettingsSelectModalProps<T>) {
   const { theme } = useThemeContext();
-  const styles = createStyle(theme);
+  const styles = createStyle();
 
   const handleSelect = (val: T) => {
     onChange(val);
@@ -70,11 +70,10 @@ function SettingsSelectModal<T extends string = string>({
   );
 }
 
-function createStyle(theme: any) {
+function createStyle() {
   return StyleSheet.create({
     container: {
       width: "100%",
-      
     },
     loadingContainer: {
       padding: 25,

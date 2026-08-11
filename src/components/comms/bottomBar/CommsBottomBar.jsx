@@ -6,10 +6,8 @@ import { router } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
 import MicrophoneSelector from "@/src/components/comms/bottomBar/MicrophoneSelector";
-import MicrophoneArrowButton from "@/src/components/comms/bottomBar/MicrophoneArrowButton";
 import CameraSelector from "@/src/components/comms/bottomBar/CameraSelector";
 import CameraArrowButton from "@/src/components/comms/bottomBar/CameraArrowButton";
-import SpeakerArrowButton from "@/src/components/comms/bottomBar/SpeakerArrowButton";
 import SpeakerSelector from "@/src/components/comms/bottomBar/SpeakerSelector";
 import ScreenShareSelector from "@/src/components/comms/bottomBar/ScreenShareSelector";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
@@ -19,19 +17,27 @@ import Icon from "@/src/components/ui/icon/Icon";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import { useCommsContext } from "@/src/context/CommsContext";
+import { useActiveChatStore } from "@/src/context/ActiveChatContext";
 import useUserStore from "@/src/store/UserStore";
 import useChatStore from "@/src/context/ChatContext";
 import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
 
-import Platform from "@/src/utils/device/type";
-import { RoomOptionsMenu } from "./RoomOptionsMenu.tsx";
-import { WatchTogetherModal } from "./WatchTogetherModal.tsx";
+import { getPlatform } from "@/src/utils/device/type";
+import { RoomOptionsMenu } from "@/src/components/comms/bottomBar/RoomOptionsMenu";
+import { WatchTogetherModal } from "@/src/components/comms/bottomBar/WatchTogetherModal";
+import SpeakerArrowButton from "@/src/components/comms/bottomBar/SpeakerArrowButton";
+import MicrophoneArrowButton from "@/src/components/comms/bottomBar/MicrophoneArrowButton";
 
 const CommsBottomBar = ({ chatUUID, sub }) => {
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
-
-  const isMobile = Platform === "mobile";
+  const platform = getPlatform();
+  const isDesktop = platform === "desktop";
+  const isMobile = platform === "mobile";
+  const showDeviceSelectors = isDesktop || platform === "web";
+  const showMicrophoneSelectorUI = showDeviceSelectors;
+  const showSpeakerOutputSelector = isDesktop;
+  const showMobileAudioInRoomMenu = isMobile;
+  const styles = createStyle(theme, isDesktop);
 
   const [showMicrophoneSelector, setShowMicrophoneSelector] = useState(false);
   const [showCameraSelector, setShowCameraSelector] = useState(false);
@@ -50,6 +56,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
     isVideoEnabled,
     microphoneDevice,
     cameraDevice,
+    speakerDevice,
     activeScreenShares,
     join,
     leave,
@@ -59,6 +66,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
     toggleFacingMode,
     setMicrophoneDevice,
     setCameraDevice,
+    setSpeakerDevice,
     startScreenShare,
     stopScreenShare,
     error,
@@ -66,23 +74,31 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
   } = useCommsAction(chatUUID, sub);
 
   const myUUID = useUserStore((state) => state.localUserUUID);
-  const chat = useChatStore((state) =>
-    state.chats.find((c) => c.uuid === chatUUID),
+  const activeChat = useActiveChatStore((state) => state.activeChatData);
+  const chatFromStore = useChatStore((state) =>
+    state.chats.find((c) => c.uuid === chatUUID || c.handle === chatUUID),
   );
+  const chat = activeChat || chatFromStore;
   const myMember = chat?.members?.find(
     (m) => (m.uuid || m.userUUID) === myUUID,
   );
-  const myRoleIDs = myMember?.roleIDs || [];
+  const myRoleIDs =
+    myMember?.roleIDs ||
+    myMember?.role_ids ||
+    myMember?.roleIds ||
+    (myMember ? [2] : []);
   const myRoles = (chat?.roles || []).filter((r) =>
     myRoleIDs.some((id) => Number(r.id) === Number(id)),
   );
-  const canSpeak = hasPermission(myRoles, PERMISSIONS.SPEAK_VOCAL, sub?.type);
-  const canVideo = hasPermission(myRoles, PERMISSIONS.VIDEO_VOCAL, sub?.type);
-  const canScreenShare = hasPermission(
-    myRoles,
-    PERMISSIONS.SCREENSHARE_VOCAL,
-    sub?.type,
-  );
+  const subType = chat?.subs?.find((s) => s.id === sub)?.type;
+  const inVocalCall = connected && roomMatch;
+  const canSpeak =
+    inVocalCall || hasPermission(myRoles, PERMISSIONS.SPEAK_VOCAL, subType);
+  const canVideo =
+    inVocalCall || hasPermission(myRoles, PERMISSIONS.VIDEO_VOCAL, subType);
+  const canScreenShare =
+    inVocalCall ||
+    hasPermission(myRoles, PERMISSIONS.SCREENSHARE_VOCAL, subType);
 
   // Shortcut: Ctrl+F12 per mutare il microfono (solo web)
   useEffect(() => {
@@ -99,8 +115,12 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
   }, [isAudioEnabled]);
 
   const handleCameraArrowPress = () => {
-    if (!isMobile) setShowCameraSelector(true);
+    if (showDeviceSelectors) setShowCameraSelector(true);
     else toggleFacingMode();
+  };
+
+  const handleSpeakerArrowPress = () => {
+    if (showSpeakerOutputSelector) setShowSpeakerSelector(true);
   };
 
   return (
@@ -131,7 +151,12 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
           </BlurredView>
         )
       ) : (
-        <BlurredView style={styles.blurredContainer}>
+        <BlurredView
+          style={[
+            styles.blurredContainer,
+            isDesktop && styles.blurredContainerDesktop,
+          ]}
+        >
           {canSpeak && (
             <View style={styles.microphoneButtonContainer}>
               <Icon
@@ -139,12 +164,11 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
                 name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
                 style={styles.icon}
               />
-              {!isMobile && (
+              {showMicrophoneSelectorUI && (
                 <MicrophoneArrowButton
                   onPress={() => {
                     if (connected && roomMatch) setShowMicrophoneSelector(true);
                   }}
-                  theme={theme}
                 />
               )}
             </View>
@@ -157,12 +181,22 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
                 style={styles.icon}
               />
 
-              <CameraArrowButton
-                onPress={() => {
-                  if (connected && roomMatch) handleCameraArrowPress();
-                }}
-                theme={theme}
-              />
+              {showDeviceSelectors ? (
+                <CameraArrowButton
+                  onPress={() => {
+                    if (connected && roomMatch) handleCameraArrowPress();
+                  }}
+                />
+              ) : (
+                isMobile && (
+                  <MicrophoneArrowButton
+                    isMobile={isMobile}
+                    onPress={() => {
+                      if (connected && roomMatch) toggleFacingMode();
+                    }}
+                  />
+                )
+              )}
             </View>
           )}
 
@@ -173,17 +207,18 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
               style={styles.icon}
             />
 
-            <SpeakerArrowButton
-              onPress={() => {
-                if (connected && roomMatch) handleSpeakerArrowPress();
-              }}
-              theme={theme}
-            />
+            {showSpeakerOutputSelector && (
+              <SpeakerArrowButton
+                onPress={() => {
+                  if (connected && roomMatch) handleSpeakerArrowPress();
+                }}
+              />
+            )}
           </View>
           {canScreenShare && (
             <Icon
               onPress={() => {
-                if (Platform === "desktop") setShowScreenShareSelector(true);
+                if (isDesktop) setShowScreenShareSelector(true);
                 else startScreenShare();
               }}
               name={"ComputerScreenShareIcon"}
@@ -210,26 +245,32 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
         </BlurredView>
       )}
 
-      <MicrophoneSelector
-        visible={showMicrophoneSelector}
-        onClose={() => setShowMicrophoneSelector(false)}
-        onMicrophoneSelected={(id) => setMicrophoneDevice(id)}
-        currentDeviceId={microphoneDevice}
-      />
+      {showMicrophoneSelectorUI && (
+        <MicrophoneSelector
+          visible={showMicrophoneSelector}
+          onClose={() => setShowMicrophoneSelector(false)}
+          onMicrophoneSelected={(id) => setMicrophoneDevice(id)}
+          currentDeviceId={microphoneDevice}
+        />
+      )}
 
-      <CameraSelector
-        visible={showCameraSelector}
-        onClose={() => setShowCameraSelector(false)}
-        onCameraSelected={(id) => setCameraDevice(id)}
-        currentDeviceId={cameraDevice}
-      />
+      {showDeviceSelectors && (
+        <CameraSelector
+          visible={showCameraSelector}
+          onClose={() => setShowCameraSelector(false)}
+          onCameraSelected={(id) => setCameraDevice(id)}
+          currentDeviceId={cameraDevice}
+        />
+      )}
 
-      <SpeakerSelector
-        visible={showSpeakerSelector}
-        onClose={() => setShowSpeakerSelector(false)}
-        onSpeakerSelected={(id) => setSpeakerDevice(id)}
-        currentDeviceId={speakerDevice}
-      />
+      {showSpeakerOutputSelector && (
+        <SpeakerSelector
+          visible={showSpeakerSelector}
+          onClose={() => setShowSpeakerSelector(false)}
+          onSpeakerSelected={(id) => setSpeakerDevice(id)}
+          currentDeviceId={speakerDevice}
+        />
+      )}
 
       <ScreenShareSelector
         visible={showScreenShareSelector}
@@ -241,6 +282,9 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
         visible={showRoomMenu}
         onClose={() => setShowRoomMenu(false)}
         onOpenWatchTogether={() => setShowWatchTogetherModal(true)}
+        showAudioOutput={showMobileAudioInRoomMenu && connected && roomMatch}
+        speakerDevice={speakerDevice}
+        onSpeakerSelected={(id) => setSpeakerDevice(id)}
       />
 
       <WatchTogetherModal
@@ -251,7 +295,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
   );
 };
 
-const createStyle = (theme) =>
+const createStyle = (theme, isDesktop) =>
   StyleSheet.create({
     container: {
       position: "absolute",
@@ -259,8 +303,8 @@ const createStyle = (theme) =>
       alignSelf: "center",
       borderRadius: 30,
       height: 60,
-      minWidth: 200,
-      maxWidth: 360,
+      minWidth: isDesktop ? 280 : 200,
+      maxWidth: isDesktop ? 520 : 360,
       zIndex: 100,
     },
     statusWrapper: {
@@ -279,16 +323,29 @@ const createStyle = (theme) =>
       justifyContent: "space-evenly",
       alignItems: "center",
       alignSelf: "center",
-      padding: 5,
+      paddingHorizontal: 8,
+      paddingVertical: 5,
+    },
+    blurredContainerDesktop: {
+      overflow: "visible",
     },
     microphoneButtonContainer: {
       position: "relative",
+      flexShrink: 0,
+      overflow: "visible",
+      zIndex: 3,
     },
     cameraButtonContainer: {
       position: "relative",
+      flexShrink: 0,
+      overflow: "visible",
+      zIndex: 3,
     },
     speakerButtonContainer: {
       position: "relative",
+      flexShrink: 0,
+      overflow: "visible",
+      zIndex: 3,
     },
     joinIconButton: {
       position: "absolute",
@@ -304,6 +361,7 @@ const createStyle = (theme) =>
       borderRadius: 100,
       height: 45,
       width: 45,
+      flexShrink: 0,
       alignItems: "center",
       justifyContent: "center",
     },

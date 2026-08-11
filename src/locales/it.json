@@ -216,7 +216,8 @@
       "error": {
         "chatFull": "Questa chat è piena",
         "generic": "Per favore riprova più tardi.",
-        "noMicPermissionWarning": "Il permesso del microfono è richiesto per riattivare l'audio. Consenti l'accesso al microfono nelle impostazioni del browser o del sistema."
+        "noMicPermissionWarning": "Il permesso del microfono è richiesto per riattivare l'audio. Consenti l'accesso al microfono nelle impostazioni del browser o del sistema.",
+        "noCamPermissionWarning": "Il permesso della fotocamera è richiesto per attivare il video. Consenti l'accesso alla fotocamera nelle impostazioni del dispositivo o del browser."
       },
       "selectors": {
         "camera": {
@@ -229,8 +230,7 @@
           "title": "Seleziona Microfono",
           "loading": "Caricamento microfoni...",
           "currentlySelected": "Attualmente Selezionato",
-          "defaultName": "Microfono {{id}}",
-          "permissionDenied": "Il permesso del microfono è negato. Abilita l'accesso al microfono nelle impostazioni di sistema per utilizzare le funzionalità vocali."
+          "defaultName": "Microfono {{id}}"
         },
         "speaker": {
           "title": "Seleziona Altoparlante",
@@ -238,18 +238,22 @@
           "currentlySelected": "Attualmente Selezionato",
           "defaultName": "Altoparlante {{id}}"
         },
+        "nativeAudioRoutes": {
+          "bluetooth": "Bluetooth",
+          "headset": "Cuffie",
+          "earpiece": "Telefono",
+          "speaker": "Altoparlante",
+          "default": "Predefinito",
+          "force_speaker": "Altoparlante"
+        },
         "screenshare": {
           "title": "Condividi il tuo schermo",
           "loading": "Caricamento delle sorgenti in corso...",
-          "screens": "Schermi interi",
-          "windows": "Singole finestre",
           "screen": "Schermo",
           "window": "Finestra",
           "includeAudio": "Includi l'audio di sistema",
           "macOsAudioWarning": "La condivisione audio non è supportata sulla tua versione di macOS.",
           "permissionWarning": "Per condividere lo schermo, devi consentire all'app i permessi di registrazione schermo nelle Impostazioni di Sistema (Privacy e Sicurezza).",
-          "nativeMenuWarning": "Il tuo ambiente Desktop richiede di selezionare lo schermo o la finestra dal portale di sistema nativo.",
-          "share": "Condividi",
           "cancel": "Annulla",
           "startScreenShare": "Avvia"
         }
@@ -259,7 +263,8 @@
         "watchTogether": "Guarda Insieme",
         "startWatchTogether": "Avvia Watch Together",
         "modifyWatchTogether": "Modifica Watch Together",
-        "stopWatchTogether": "Interrompi Watch Together"
+        "stopWatchTogether": "Interrompi Watch Together",
+        "audioOutput": "Uscita audio"
       },
       "watchTogether": {
         "title": "Watch Together",
@@ -405,9 +410,7 @@
       "inputDevicesWarning": "⚠️ Attenzione: Le modifiche ai dispositivi di input non influenzeranno attualmente le funzionalità della chat.",
       "loadingDevices": "Caricamento dispositivi...",
       "microphone": "Microfono",
-      "noMicrophonesFound": "Nessun microfono trovato",
       "webcam": "Webcam",
-      "noCamerasFound": "Nessuna fotocamera trovata",
       "entryMode": "Modalità di Ingresso",
       "videoSettings": "Impostazioni Video",
       "webcamQuality": "Qualità Webcam",

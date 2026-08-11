@@ -218,7 +218,8 @@
       "error": {
         "chatFull": "This chat is full",
         "generic": "Please try again later.",
-        "noMicPermissionWarning": "Microphone permission is required to unmute yourself. Please allow microphone access in your browser or system settings."
+        "noMicPermissionWarning": "Microphone permission is required to unmute yourself. Please allow microphone access in your browser or system settings.",
+        "noCamPermissionWarning": "Camera permission is required to enable video. Please allow camera access in your device or browser settings."
       },
       "selectors": {
         "camera": {
@@ -231,8 +232,7 @@
           "title": "Select Microphone",
           "loading": "Loading microphones...",
           "currentlySelected": "Currently Selected",
-          "defaultName": "Microphone {{id}}",
-          "permissionDenied": "Microphone permission is denied. Please enable microphone access in your system settings to use voice features."
+          "defaultName": "Microphone {{id}}"
         },
         "speaker": {
           "title": "Select Speaker",
@@ -240,18 +240,22 @@
           "currentlySelected": "Currently Selected",
           "defaultName": "Speaker {{id}}"
         },
+        "nativeAudioRoutes": {
+          "bluetooth": "Bluetooth",
+          "headset": "Headset",
+          "earpiece": "Phone",
+          "speaker": "Speaker",
+          "default": "Default",
+          "force_speaker": "Speaker"
+        },
         "screenshare": {
           "title": "Share your screen",
           "loading": "Loading sources...",
-          "screens": "Screens",
-          "windows": "Windows",
           "screen": "Screen",
           "window": "Window",
           "includeAudio": "Share system audio",
           "macOsAudioWarning": "Audio sharing is not supported on your macOS version.",
           "permissionWarning": "Please allow screen recording in System Settings (Privacy & Security) to share your screen.",
-          "nativeMenuWarning": "Your Desktop environment requires selecting the screen or window from the native system portal.",
-          "share": "Share",
           "cancel": "Cancel",
           "startScreenShare": "Start"
         }
@@ -261,7 +265,8 @@
         "watchTogether": "Watch Together",
         "startWatchTogether": "Start Watch Together",
         "modifyWatchTogether": "Modify Watch Together",
-        "stopWatchTogether": "Stop Watch Together"
+        "stopWatchTogether": "Stop Watch Together",
+        "audioOutput": "Audio output"
       },
       "watchTogether": {
         "title": "Watch Together",
@@ -407,9 +412,7 @@
       "inputDevicesWarning": "⚠️ Warning: Changes to input devices will not affect chat functionality at the moment.",
       "loadingDevices": "Loading devices...",
       "microphone": "Microphone",
-      "noMicrophonesFound": "No microphones found",
       "webcam": "Webcam",
-      "noCamerasFound": "No cameras found",
       "entryMode": "Entry Mode",
       "videoSettings": "Video Settings",
       "webcamQuality": "Webcam Quality",

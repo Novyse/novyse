@@ -5,15 +5,20 @@ import Icon from "@/src/components/ui/icon/Icon";
 
 interface MicrophoneArrowButtonProps {
   onPress: () => void;
+  isMobile?: boolean;
 }
 
-const MicrophoneArrowButton = ({ onPress }: MicrophoneArrowButtonProps) => {
+const MicrophoneArrowButton = ({
+
+  onPress,
+  isMobile = false,
+}: MicrophoneArrowButtonProps) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
   return (
     <Icon
-      name={"ArrowDown01Icon"}
+      name={isMobile ? "Refresh03Icon" : "ArrowDown01Icon"}
       size={18}
       style={styles.arrowButton}
       onPress={onPress}
@@ -32,7 +37,7 @@ const createStyles = (theme: any) =>
       borderRadius: 10,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: theme.backgroundMain
+      backgroundColor: theme.backgroundMain,
     },
   });
 

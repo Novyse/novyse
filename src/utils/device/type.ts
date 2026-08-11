@@ -4,7 +4,7 @@ import { electron } from "../electron/rpc";
 import { systemRpc } from "../electron/system";
 
 export const getOs = (): DesktopOS | "web" | typeof Platform.OS => {
-  if (electron) {
+  if (typeof window !== "undefined" && window.electron) {
     return getDesktopOS();
   }
 
@@ -16,7 +16,7 @@ export const getOs = (): DesktopOS | "web" | typeof Platform.OS => {
 };
 
 export const getPlatform = (): "desktop" | "web" | "mobile" => {
-  if (electron) {
+  if (typeof window !== "undefined" && window.electron) {
     return "desktop";
   }
 
@@ -30,8 +30,11 @@ export const getPlatform = (): "desktop" | "web" | "mobile" => {
 export type DesktopOS = "windows" | "macos" | "linux" | "unknown";
 
 export const getDesktopOS = (): DesktopOS => {
-  if (electron?.platform) {
-    return electron.platform as DesktopOS;
+  const desktop =
+    typeof window !== "undefined" ? window.electron : electron;
+
+  if (desktop?.platform) {
+    return desktop.platform as DesktopOS;
   }
 
   return "unknown";
