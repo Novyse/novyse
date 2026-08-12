@@ -23,6 +23,7 @@ import BlurredView from "@/src/components/layout/BlurredView";
 import Icon from "@/src/components/ui/icon/Icon";
 
 import { ScrollBar } from "@/constants/ScrollBar";
+import { getPlatform } from "@/src/utils/device/type";
 
 const MessageList = ({
   ref: flatListRef,
@@ -62,15 +63,20 @@ const MessageList = ({
 
   // Exit selection mode if the user copies something to the clipboard
   useEffect(() => {
-    let subscription = null;
-    if (selectedMessages && selectedMessages.length > 0) {
-      subscription = Clipboard.addClipboardListener(() => {
-        setSelectedMessages([]);
-      });
+    if (!selectedMessages?.length) return;
+
+    const clearSelection = () => setSelectedMessages([]);
+
+    // expo-clipboard's addClipboardListener calls native addListener, which
+    // is not implemented on web (ExpoClipboard.default.addListener is not a function).
+    if (getPlatform() !== "mobile") {
+      if (typeof document === "undefined") return;
+      document.addEventListener("copy", clearSelection);
+      return () => document.removeEventListener("copy", clearSelection);
     }
-    return () => {
-      if (subscription) subscription.remove();
-    };
+
+    const subscription = Clipboard.addClipboardListener(clearSelection);
+    return () => subscription.remove();
   }, [selectedMessages?.length, setSelectedMessages]);
 
   // Exit selection mode if the app goes to the background (e.g., opens native Share or Translate menu)
