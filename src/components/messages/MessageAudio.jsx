@@ -71,7 +71,7 @@ const MessageAudio = ({
       />
 
       <View style={{ flexDirection: "column" }}>
-        <Typography style={styles.fileName} text={name} />
+        <Typography text={name} />
         <View style={styles.progressContainer}>
           <SmoothSlider
             currentValue={thisCurrentTime}
@@ -93,7 +93,7 @@ const MessageAudio = ({
   );
 };
 
-function createStyle(theme) {
+function createStyle() {
   return StyleSheet.create({
     container: {
       flexDirection: "row",
@@ -105,9 +105,6 @@ function createStyle(theme) {
       flex: 1,
       flexDirection: "column",
       justifyContent: "center",
-    },
-    fileName: {
-      color: theme.text,
     },
   });
 }

@@ -53,13 +53,19 @@ const MessageReply = ({
         <View style={styles.content}>
           <View style={styles.headerRow}>
             <Typography
-              style={styles.senderName}
+              size="xs"
+              weight="semibold"
               numberOfLines={1}
               text={senderName ?? "Unknown"}
             />
             {isQuote && <Icon name="QuoteIcon" size={14} color={theme.icon} />}
           </View>
-          <Typography style={styles.text} numberOfLines={2} text={text ?? ""} />
+          <Typography
+            size="xs"
+            variant="subtitle"
+            numberOfLines={2}
+            text={text ?? ""}
+          />
         </View>
       </View>
     </Pressable>
@@ -94,16 +100,6 @@ const createStyle = (theme) =>
       alignItems: "center",
       justifyContent: "space-between",
       marginBottom: 2,
-    },
-    senderName: {
-      fontWeight: "600",
-      fontSize: 12,
-      color: theme.primary,
-    },
-    text: {
-      fontSize: 12,
-      color: theme.subtitle,
-      lineHeight: 16,
     },
   });
 

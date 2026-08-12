@@ -477,7 +477,7 @@ const MessageBase = ({
         {!isSender && showSenderName && (
           <View style={styles.senderNameWrapper}>
             <Typography
-              style={styles.senderName}
+              weight="semibold"
               numberOfLines={1}
               text={getUser(message.senderUUID)?.name}
               translationKey="chat.unknownUser"

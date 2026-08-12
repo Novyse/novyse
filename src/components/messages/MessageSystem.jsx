@@ -1,15 +1,14 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/store/UserStore";
 import BlurredView from "../layout/BlurredView";
-
 import messageUtils from "@/src/utils/chat/messageFormat";
 
 const MessageSystem = ({ type, data }) => {
   const { theme } = useContext(ThemeContext);
-  const styles = createStyles(theme);
+  const styles = createStyles();
 
   // trigger re-renders when user data changes
   useUserStore((state) => state.users[data?.content]);
@@ -22,7 +21,7 @@ const MessageSystem = ({ type, data }) => {
       colors={theme.backgroundDateSeparator}
       style={styles.container}
     >
-      <Typography style={styles.text} text={content} />
+      <Typography size="xs" weight="semibold" text={content} />
     </BlurredView>
   );
 
@@ -63,20 +62,14 @@ const MessageSystem = ({ type, data }) => {
   }
 };
 
-const createStyles = (theme) => {
+const createStyles = () => {
   return StyleSheet.create({
     container: {
       alignSelf: "center",
-      borderRadius: 20,
+      borderRadius: 25,
       paddingHorizontal: 15,
       paddingVertical: 5,
-      marginVertical: 6,
-    },
-    text: {
-      color: theme.text,
-      fontSize: 12,
-      fontWeight: "600",
-      textAlign: "center",
+      marginVertical: 5,
     },
   });
 };

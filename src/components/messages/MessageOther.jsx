@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -29,7 +29,7 @@ const MessageOther = ({ fileRef, uuid, mimeType, size, name, isPending }) => {
         handleDefaultPress={handlePress}
       />
       <View style={styles.detailsContainer}>
-        <Typography style={styles.name} numberOfLines={1} text={name} />
+        <Typography numberOfLines={1} text={name} />
         <FileSizeProgress uuid={uuid} size={size} style={styles.fileSize} />
       </View>
     </Pressable>
@@ -46,11 +46,6 @@ const createStyle = (theme) =>
     },
     detailsContainer: {
       flex: 1,
-    },
-    name: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: theme.text,
     },
     fileSize: {
       fontSize: 12,

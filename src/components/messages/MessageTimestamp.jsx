@@ -1,4 +1,4 @@
-import React, { useContext, useState, useRef } from "react";
+import { useContext, useState, useRef } from "react";
 import { StyleSheet, View, Platform } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { createPortal } from "react-dom";
@@ -83,7 +83,7 @@ const MessageTimestamp = ({
           { top: tooltipPosition.top, left: tooltipPosition.left },
         ]}
       >
-        <Typography style={styles.tooltipText} text={parseFullTime(time)} />
+        <Typography size="xs" text={parseFullTime(time)} />
       </View>
     ) : null;
 
@@ -110,7 +110,11 @@ const MessageTimestamp = ({
               size={14}
               color={theme.subtitle}
             />
-            <Typography style={styles.replyCountText} text={String(replyCount)} />
+            <Typography
+              size="xs"
+              variant="subtitle"
+              text={String(replyCount)}
+            />
           </>
         )}
       </View>
@@ -122,11 +126,11 @@ const MessageTimestamp = ({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <Typography style={styles.timeText} text={parseTime(time)} />
+            <Typography size="xs" variant="subtitle" text={parseTime(time)} />
           </View>
         ) : (
           <View style={styles.timeContainer}>
-            <Typography style={styles.timeText} text={parseTime(time)} />
+            <Typography size="xs" variant="subtitle" text={parseTime(time)} />
           </View>
         ))}
       {Platform.OS === "web" && createPortal(tooltip, document.body)}
@@ -136,26 +140,13 @@ const MessageTimestamp = ({
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    timeText: {
-      color: theme.subtitle,
-      textAlign: "right",
-      fontSize: 12,
-      minWidth: 35,
-    },
-    replyCountText: {
-      color: theme.subtitle,
-      textAlign: "right",
-      fontSize: 12,
-      paddingLeft: 2,
-    },
     alignContainer: {
       alignSelf: "flex-end",
-      marginLeft: 10,
       flexDirection: "row",
       alignItems: "center",
-      gap: 2,
       paddingHorizontal: 10,
       paddingVertical: 10,
+      gap: 5
     },
     timeContainer: {
       position: "relative",
@@ -169,19 +160,9 @@ const createStyle = (theme) =>
       position: "fixed",
       backgroundColor: theme.backgroundModalOverlay,
       padding: 10,
-      borderRadius: 5,
-      shadowColor: theme.shadowColor,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.8,
-      shadowRadius: 5,
-      elevation: 5,
+      borderRadius: 25,
       zIndex: 1000,
       minWidth: 150,
-    },
-    tooltipText: {
-      color: theme.text,
-      fontSize: 12,
-      textAlign: "center",
     },
   });
 
