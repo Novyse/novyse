@@ -39,6 +39,7 @@ import MessageAudio from "./MessageAudio";
 import MessageVoice from "./MessageVoice";
 import MessageReply from "./MessageReply";
 import MessageTimestamp from "./MessageTimestamp";
+import MessageTextWithMeta from "./MessageTextWithMeta";
 import ReactionPill from "./reactions/ReactionPill";
 import messageUtils from "@/src/utils/chat/messageFormat";
 
@@ -376,15 +377,9 @@ const MessageBase = ({
         </View>
       )}
 
-      {hasTextContent && (
-        <View
-          style={[
-            styles.textContainer,
-            !hasReactions && styles.textContainerWithMeta,
-            !hasReactions && hasReply && styles.textContainerStretch,
-          ]}
-        >
-          <View style={!hasReactions ? styles.textShrink : null}>
+      {hasTextContent &&
+        (hasReactions ? (
+          <View style={styles.textContainer}>
             <MessageText
               message={{ ...message, content: textWithoutGifs }}
               onReply={onReply}
@@ -393,24 +388,24 @@ const MessageBase = ({
               onTaskListItemPress={handleTaskListItemPress}
             />
           </View>
-          {!hasReactions && (
-            <View
-              style={[styles.metaInFlow, hasReply && styles.metaPushEnd]}
-            >
-              <MessageTimestamp
-                time={created_at}
-                sent={isSender}
-                receivedByAll={hasBeenRead}
-                isEdited={isEdited}
-                isPendingEdit={!!message.pendingEditJobId}
-                isPinned={isPinned}
-                replyCount={repliedCount}
-                compact
-              />
-            </View>
-          )}
-        </View>
-      )}
+        ) : (
+          <MessageTextWithMeta
+            message={message}
+            textContent={textWithoutGifs}
+            onReply={onReply}
+            isSelected={isSelected}
+            highlightedRange={highlightedRange}
+            onTaskListItemPress={handleTaskListItemPress}
+            createdAt={created_at}
+            isSender={isSender}
+            hasBeenRead={hasBeenRead}
+            isEdited={isEdited}
+            isPendingEdit={!!message.pendingEditJobId}
+            isPinned={isPinned}
+            replyCount={repliedCount}
+            fillWidth={hasReply}
+          />
+        ))}
 
       {!hasTextContent && !hasReactions && (
         <View style={styles.standaloneMeta}>
@@ -584,30 +579,6 @@ const createStyle = (theme, chatType) =>
       paddingHorizontal: 10,
       paddingVertical: 10,
       userSelect: "text",
-    },
-    textContainerWithMeta: {
-      flexDirection: "row",
-      flexWrap: "nowrap",
-      alignItems: "flex-end",
-      alignSelf: "flex-start",
-    },
-    // Only with a reply: fill the bubble so meta can sit on the right edge
-    textContainerStretch: {
-      alignSelf: "stretch",
-      width: "100%",
-    },
-    textShrink: {
-      flexGrow: 0,
-      flexShrink: 1,
-      minWidth: 0,
-    },
-    metaInFlow: {
-      flexGrow: 0,
-      flexShrink: 0,
-      marginLeft: 4,
-    },
-    metaPushEnd: {
-      marginLeft: "auto",
     },
     // Voice / media-only: pin meta to the right edge of the bubble
     standaloneMeta: {

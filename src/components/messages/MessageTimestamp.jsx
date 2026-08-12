@@ -92,19 +92,6 @@ const MessageTimestamp = ({
   return (
     <View style={styles.alignContainer}>
       <View style={styles.iconContainer}>
-        {isPinned && <Icon name={"PinIcon"} size={14} color={theme.subtitle} />}
-        {(isEdited || isPendingEdit) && (
-          <Icon name={"PencilEdit02Icon"} size={14} color={theme.subtitle} />
-        )}
-        {isPendingEdit && (
-          <Icon name={"Clock01Icon"} size={14} color={theme.subtitle} />
-        )}
-        {sent && !receivedByAll && !isPendingEdit && (
-          <Icon name={"Tick01Icon"} size={14} color={theme.subtitle} />
-        )}
-        {receivedByAll && !isPendingEdit && (
-          <Icon name={"TickDouble01Icon"} size={14} color={theme.subtitle} />
-        )}
         {replyCount > 0 && !isPendingEdit && (
           <>
             <Icon
@@ -118,6 +105,15 @@ const MessageTimestamp = ({
               text={String(replyCount)}
             />
           </>
+        )}
+
+        {isPinned && <Icon name={"PinIcon"} size={14} color={theme.subtitle} />}
+
+        {(isEdited || isPendingEdit) && (
+          <Icon name={"PencilEdit02Icon"} size={14} color={theme.subtitle} />
+        )}
+        {isPendingEdit && (
+          <Icon name={"Clock01Icon"} size={14} color={theme.subtitle} />
         )}
       </View>
       {!isPendingEdit &&
@@ -135,6 +131,12 @@ const MessageTimestamp = ({
             <Typography size="xs" variant="subtitle" text={parseTime(time)} />
           </View>
         ))}
+      {sent && !receivedByAll && !isPendingEdit && (
+        <Icon name={"Tick01Icon"} size={14} color={theme.subtitle} />
+      )}
+      {receivedByAll && !isPendingEdit && (
+        <Icon name={"TickDouble01Icon"} size={14} color={theme.subtitle} />
+      )}
       {Platform.OS === "web" && createPortal(tooltip, document.body)}
     </View>
   );

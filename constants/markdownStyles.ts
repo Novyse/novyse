@@ -7,7 +7,12 @@ import type { Theme } from "@/src/context/ThemeContext";
 export const getMarkdownStyle = (
   theme: Theme,
 ): MarkdownStyle & MarkdownTextInputStyle => ({
-  paragraph: { color: theme.text },
+  paragraph: {
+    color: theme.text,
+    marginTop: 0,
+    marginBottom: 0,
+    lineHeight: 21,
+  },
   h1: { color: theme.text },
   h2: { color: theme.text },
   h3: { color: theme.text },

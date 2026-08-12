@@ -115,7 +115,7 @@ const MessageText = ({
             background-color: ${theme.primary}40 !important;
           }
           #message-text-${message.id},
-          #message-text-${message.id} * {
+          #message-text-${message.id} *:not([data-msg-meta-spacer]) {
             overflow-wrap: anywhere !important;
             word-break: break-word !important;
             max-width: 100% !important;
@@ -133,7 +133,9 @@ const createStyle = (theme) =>
   StyleSheet.create({
     text: {
       fontSize: 15,
+      lineHeight: 20,
       maxWidth: "100%",
+      includeFontPadding: false,
       ...((Platform === "web" || Platform === "desktop") && {
         // Break long tokens (URLs, unbroken strings) instead of overflowing the bubble
         wordBreak: "break-word",
