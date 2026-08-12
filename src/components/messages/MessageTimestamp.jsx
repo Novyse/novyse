@@ -14,9 +14,11 @@ const MessageTimestamp = ({
   isPendingEdit = false,
   isPinned = false,
   replyCount = 0,
+  /** Tighter padding when meta sits inline with text (float / flow). */
+  compact = false,
 }) => {
   const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
+  const styles = createStyle(theme, compact);
   const [isHovered, setIsHovered] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const timeRef = useRef(null);
@@ -138,15 +140,14 @@ const MessageTimestamp = ({
   );
 };
 
-const createStyle = (theme) =>
+const createStyle = (theme, compact) =>
   StyleSheet.create({
     alignContainer: {
-      alignSelf: "flex-end",
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 10,
-      paddingVertical: 10,
-      gap: 5
+      paddingHorizontal: compact ? 0 : 10,
+      paddingVertical: compact ? 0 : 10,
+      gap: compact ? 3 : 5,
     },
     timeContainer: {
       position: "relative",
@@ -155,6 +156,7 @@ const createStyle = (theme) =>
       alignItems: "center",
       justifyContent: "center",
       flexDirection: "row",
+      gap: compact ? 1 : 2,
     },
     tooltip: {
       position: "fixed",

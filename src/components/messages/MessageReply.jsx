@@ -77,12 +77,16 @@ const createStyle = (theme) =>
     container: {
       paddingHorizontal: 10,
       paddingTop: 10,
+      // Keep bubbles with a reply wide enough for short text + timestamp on one row
+      minWidth: 220,
+      alignSelf: "stretch",
     },
     innerContainer: {
       flexDirection: "row",
       borderRadius: 10,
       overflow: "hidden",
       minHeight: 45,
+      width: "100%",
     },
     accent: {
       width: 4,
@@ -90,6 +94,7 @@ const createStyle = (theme) =>
     },
     content: {
       flex: 1,
+      minWidth: 0,
       paddingHorizontal: 8,
       paddingVertical: 5,
       justifyContent: "center",

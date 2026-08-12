@@ -10,7 +10,6 @@ import { getMarkdownStyle } from "@/constants/markdownStyles";
 const MessageText = ({
   message,
   onReply,
-  timestampWidth = 80,
   isSelected = false,
   highlightedRange,
   onTaskListItemPress,
@@ -26,8 +25,9 @@ const MessageText = ({
     .trimStart()
     .replace(/(^|\s)@(\w+)/g, "$1[@$2](/profile/$2)");
 
-  let normalized =
-    preprocessedText + `  ${"\u00A0".repeat(Math.ceil(timestampWidth / 4))}`;
+  // No trailing spacer chars — those were selectable/copyable and inflated short messages.
+  // Space for the meta is handled by layout (float on web, flow on native).
+  let normalized = preprocessedText;
 
   if (
     highlightedRange &&
@@ -108,14 +108,20 @@ const MessageText = ({
         nativeID={`message-text-${message.id}`}
         onMouseDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
-        style={{ userSelect: "text", cursor: "text" }}
+        style={[styles.textWebWrap, { userSelect: "text", cursor: "text" }]}
       >
         <style>{`
           #message-text-${message.id} ::selection {
             background-color: ${theme.primary}40 !important;
           }
+          #message-text-${message.id},
+          #message-text-${message.id} * {
+            overflow-wrap: anywhere !important;
+            word-break: break-word !important;
+            max-width: 100% !important;
+          }
         `}</style>
-        <View>{markdownElement}</View>
+        {markdownElement}
       </View>
     );
   }
@@ -127,12 +133,18 @@ const createStyle = (theme) =>
   StyleSheet.create({
     text: {
       fontSize: 15,
-      ...(Platform.OS === "web" && {
+      maxWidth: "100%",
+      ...((Platform === "web" || Platform === "desktop") && {
+        // Break long tokens (URLs, unbroken strings) instead of overflowing the bubble
         wordBreak: "break-word",
-        overflowWrap: "break-word",
+        overflowWrap: "anywhere",
         whiteSpace: "pre-wrap",
         userSelect: "text",
       }),
+    },
+    textWebWrap: {
+      maxWidth: "100%",
+      minWidth: 0,
     },
   });
 

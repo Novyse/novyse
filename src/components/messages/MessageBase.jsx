@@ -278,6 +278,7 @@ const MessageBase = ({
     hasOnlyGifs;
 
   const hasReactions = message.reactions && message.reactions.length > 0;
+  const hasReply = Array.isArray(replyTos) && replyTos.length > 0;
 
   const hasBeenRead = isSender && (message.readBy?.length || 0) > 0;
 
@@ -303,8 +304,8 @@ const MessageBase = ({
   };
 
   const sharedContent = (
-    <View style={hasOnlyMedia ? styles.mediaContainer : null}>
-      {replyTos && replyTos.length > 0 && (
+    <View style={hasOnlyMedia ? styles.mediaContainer : hasReply ? styles.bubbleBody : null}>
+      {hasReply && (
         <View style={styles.replyTosContainer}>
           {replyTos.map((reply, index) => (
             <MessageReplyWrapper
@@ -376,20 +377,26 @@ const MessageBase = ({
       )}
 
       {hasTextContent && (
-        <View style={styles.textContainer}>
-          <MessageText
-            message={{ ...message, content: textWithoutGifs }}
-            onReply={onReply}
-            // Passa 0 come timestampWidth quando ci sono reazioni:
-            // il timestamp non è più inline nel testo ma va sotto
-            timestampWidth={hasReactions ? 0 : 80}
-            isSelected={isSelected}
-            highlightedRange={highlightedRange}
-            onTaskListItemPress={handleTaskListItemPress}
-          />
-          {/* Timestamp inline (overlay) solo se NON ci sono reazioni */}
+        <View
+          style={[
+            styles.textContainer,
+            !hasReactions && styles.textContainerWithMeta,
+            !hasReactions && hasReply && styles.textContainerStretch,
+          ]}
+        >
+          <View style={!hasReactions ? styles.textShrink : null}>
+            <MessageText
+              message={{ ...message, content: textWithoutGifs }}
+              onReply={onReply}
+              isSelected={isSelected}
+              highlightedRange={highlightedRange}
+              onTaskListItemPress={handleTaskListItemPress}
+            />
+          </View>
           {!hasReactions && (
-            <View style={styles.timestampOverlay}>
+            <View
+              style={[styles.metaInFlow, hasReply && styles.metaPushEnd]}
+            >
               <MessageTimestamp
                 time={created_at}
                 sent={isSender}
@@ -398,6 +405,7 @@ const MessageBase = ({
                 isPendingEdit={!!message.pendingEditJobId}
                 isPinned={isPinned}
                 replyCount={repliedCount}
+                compact
               />
             </View>
           )}
@@ -405,15 +413,17 @@ const MessageBase = ({
       )}
 
       {!hasTextContent && !hasReactions && (
-        <MessageTimestamp
-          time={created_at}
-          sent={isSender}
-          receivedByAll={hasBeenRead}
-          isEdited={isEdited}
-          isPendingEdit={!!message.pendingEditJobId}
-          isPinned={isPinned}
-          replyCount={repliedCount}
-        />
+        <View style={styles.standaloneMeta}>
+          <MessageTimestamp
+            time={created_at}
+            sent={isSender}
+            receivedByAll={hasBeenRead}
+            isEdited={isEdited}
+            isPendingEdit={!!message.pendingEditJobId}
+            isPinned={isPinned}
+            replyCount={repliedCount}
+          />
+        </View>
       )}
 
       {/* Reazioni + timestamp sotto, stile Telegram */}
@@ -575,14 +585,41 @@ const createStyle = (theme, chatType) =>
       paddingVertical: 10,
       userSelect: "text",
     },
-    timestampOverlay: {
-      position: "absolute",
-      bottom: 0,
-      right: 0,
+    textContainerWithMeta: {
+      flexDirection: "row",
+      flexWrap: "nowrap",
+      alignItems: "flex-end",
+      alignSelf: "flex-start",
+    },
+    // Only with a reply: fill the bubble so meta can sit on the right edge
+    textContainerStretch: {
+      alignSelf: "stretch",
+      width: "100%",
+    },
+    textShrink: {
+      flexGrow: 0,
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    metaInFlow: {
+      flexGrow: 0,
+      flexShrink: 0,
+      marginLeft: 4,
+    },
+    metaPushEnd: {
+      marginLeft: "auto",
+    },
+    // Voice / media-only: pin meta to the right edge of the bubble
+    standaloneMeta: {
+      width: "100%",
+      alignItems: "flex-end",
     },
     mediaContainer: {
       flexDirection: "column",
       width: "100%",
+    },
+    bubbleBody: {
+      alignSelf: "stretch",
     },
     gifsContainer: {
       flexDirection: "column",
@@ -592,6 +629,7 @@ const createStyle = (theme, chatType) =>
     },
     replyTosContainer: {
       marginBottom: 0,
+      alignSelf: "stretch",
     },
     avatarWrapper: {
       marginLeft: 10,
@@ -623,6 +661,7 @@ const createStyle = (theme, chatType) =>
       alignItems: "center",
       flexWrap: "wrap",
       gap: 5,
+      justifyContent: "space-between",
     },
     reactionsContainer: {
       flexDirection: "row",
