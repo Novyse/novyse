@@ -85,7 +85,9 @@ const ProfileQRCodeModal = ({
             />
           </QRCode>
           <Typography
-            style={styles.usernameText}
+            size="hero"
+            weight="bold"
+            color={theme.primary}
             text={`@${username ? username.toLocaleUpperCase() : ""}`}
           />
         </View>
@@ -97,7 +99,6 @@ const ProfileQRCodeModal = ({
             disabled={copied}
           >
             <Typography
-              style={[styles.linkText, { color: theme.text }]}
               numberOfLines={1}
               ellipsizeMode="middle"
               text={profileLink}
@@ -130,13 +131,6 @@ const createStyles = (theme: any) =>
       zIndex: 10,
       elevation: 10,
     },
-    usernameText: {
-      fontSize: 30,
-      fontWeight: "900",
-      color: theme.primary,
-      letterSpacing: 1.2,
-      marginTop: 10,
-    },
     qrcodeContainer: {
       alignItems: "center",
       justifyContent: "center",
@@ -160,11 +154,6 @@ const createStyles = (theme: any) =>
       backgroundColor: theme.secondary,
       borderRadius: 10,
       width: "100%",
-    },
-    linkText: {
-      flex: 1,
-      marginRight: 10,
-      fontSize: 14,
     },
   });
 

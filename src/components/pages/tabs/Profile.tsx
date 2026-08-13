@@ -13,10 +13,11 @@ const ProfilePage = () => {
     useUserStore((state) => state.users[userUUID]?.profilePictureUUID) ||
     defaultProfilePictureUUID;
   const biography =
-    useUserStore((state) => state.users[userUUID]?.biography) || "";
+    useUserStore((state) => state.users[userUUID]?.biography) || undefined;
   const birthday =
-    useUserStore((state) => state.users[userUUID]?.birthday) || "";
-  const country = useUserStore((state) => state.users[userUUID]?.country) || "";
+    useUserStore((state) => state.users[userUUID]?.birthday) || undefined;
+  const country =
+    useUserStore((state) => state.users[userUUID]?.country) || undefined;
 
   return (
     <Profile

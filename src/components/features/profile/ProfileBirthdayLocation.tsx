@@ -41,11 +41,8 @@ export default function ProfileBirthdayLocation({
                 <Icon name="BirthdayIcon" size={16} />
               </View>
               <View style={styles.textContainer}>
-                <Typography
-                  style={styles.label}
-                  translationKey="profile.birthdayLocation.born"
-                />
-                <Typography style={styles.value} text={birthday} />
+                <Typography translationKey="profile.birthdayLocation.born" />
+                <Typography text={birthday} />
               </View>
             </View>
           )}
@@ -71,11 +68,8 @@ export default function ProfileBirthdayLocation({
                 <Icon name="LocationIcon" size={16} />
               </View>
               <View style={styles.textContainer}>
-                <Typography
-                  style={styles.label}
-                  translationKey="profile.birthdayLocation.location"
-                />
-                <Typography style={styles.value} text={country} />
+                <Typography translationKey="profile.birthdayLocation.location" />
+                <Typography text={country} />
               </View>
             </View>
           )}
@@ -114,18 +108,5 @@ const createStyles = (theme: any) =>
     textContainer: {
       flex: 1,
       justifyContent: "center",
-    },
-    label: {
-      fontSize: 11,
-      fontWeight: "600",
-      color: theme.text,
-      letterSpacing: 0.5,
-      opacity: 0.6,
-      marginBottom: 4,
-    },
-    value: {
-      fontSize: 14,
-      color: theme.text,
-      fontWeight: "500",
     },
   });

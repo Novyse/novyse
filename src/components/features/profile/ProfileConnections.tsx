@@ -47,7 +47,6 @@ export default function ProfileConnections({
       >
         <View style={styles.content}>
           <Typography
-            style={styles.title}
             translationKey="profile.connections.title"
           />
           <View style={styles.connectionsList}>
@@ -63,7 +62,6 @@ export default function ProfileConnections({
                     <Icon name={connection.icon} size={18} />
                   </View>
                   <Typography
-                    style={styles.connectionName}
                     text={connection.name}
                   />
                 </View>
@@ -90,14 +88,6 @@ const createStyles = (theme: any) =>
     content: {
       paddingHorizontal: 20,
       paddingVertical: 15,
-    },
-    title: {
-      fontSize: 12,
-      fontWeight: "600",
-      color: theme.text,
-      letterSpacing: 1,
-      opacity: 0.7,
-      marginBottom: 12,
     },
     connectionsList: {
       gap: 8,
@@ -126,10 +116,5 @@ const createStyles = (theme: any) =>
       backgroundColor: theme.backgroundMain,
       justifyContent: "center",
       alignItems: "center",
-    },
-    connectionName: {
-      fontSize: 14,
-      color: theme.text,
-      fontWeight: "500",
     },
   });

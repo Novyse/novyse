@@ -39,11 +39,12 @@ export default function ProfileHeader({
         // style={styles.avatar}
       />
 
-      <Typography
-        style={styles.nameSurnameText}
-        text={`${name} ${surname || ""}`}
-      />
-      <Typography style={styles.usernameText} text={`@${username}`} />
+      <View style={styles.nameSurnameContainer}>
+        {name && <Typography size="xxl" weight="semibold" text={name} />}
+        {surname && <Typography size="xxl" weight="semibold" text={surname} />}
+      </View>
+
+      <Typography size="sm" text={`@${username}`} />
 
       <Badges userUUID={uuid} />
     </View>
@@ -56,21 +57,15 @@ const createStyles = (theme: any) =>
       alignItems: "center",
       marginTop: -60,
       paddingHorizontal: 20,
+      gap: 15,
     },
     avatar: {
       borderColor: theme.backgroundMain,
       borderWidth: 5,
       backgroundColor: theme.backgroundMain,
     },
-    nameSurnameText: {
-      fontSize: 24,
-      fontWeight: "bold",
-      color: theme.text,
-      marginBottom: 4,
-    },
-    usernameText: {
-      fontSize: 14,
-      color: theme.text,
-      marginBottom: 15,
+    nameSurnameContainer: {
+      flexDirection: "row",
+      gap: 10,
     },
   });
