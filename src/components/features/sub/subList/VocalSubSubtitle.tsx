@@ -1,26 +1,24 @@
-import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import useCommsData from "@/src/hooks/comms/useCommsData";
 import useUserStore from "@/src/store/UserStore";
 import Avatar from "@/src/components/ui/avatar/Avatar";
 
-const VocalSubSubtitle = ({
-  chatUUID,
-  subId,
-  theme,
-  defaultPreview,
-  listStyles,
-}) => {
+const VocalSubSubtitle = ({ chatUUID, subId, defaultPreview }) => {
   const { participants } = useCommsData(chatUUID, subId);
   const getUser = useUserStore((state) => state.getUser);
 
-  const styles = useMemo(() => createStyle(theme), [theme]);
+  const styles = createStyle();
 
   if (!participants || participants.length === 0) {
     return (
-      <Typography style={listStyles.preview} numberOfLines={1}>
-        {defaultPreview || ""}
+      <Typography
+        size="sm"
+        variant="subtitle"
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        <Typography size="sm" variant="subtitle" text={defaultPreview || ""} />
       </Typography>
     );
   }
@@ -34,13 +32,16 @@ const VocalSubSubtitle = ({
         const user = getUser(uUUID);
         return (
           <View key={uUUID} style={[styles.reactionAvatarContainer]}>
-            <Avatar uuid={user?.profilePictureUUID} size={18}/>
+            <Avatar uuid={user?.profilePictureUUID} size={18} />
           </View>
         );
       })}
       {participants.length > 3 && (
         <Typography
-          style={styles.reactionPillText}
+          size="sm"
+          variant="subtitle"
+          numberOfLines={1}
+          ellipsizeMode="tail"
           text={`+${participants.length - 3}`}
         />
       )}
@@ -48,7 +49,7 @@ const VocalSubSubtitle = ({
   );
 };
 
-function createStyle(theme: any) {
+function createStyle() {
   return StyleSheet.create({
     reactionAvatars: {
       flexDirection: "row",
@@ -57,11 +58,6 @@ function createStyle(theme: any) {
     },
     reactionAvatarContainer: {
       borderRadius: 999,
-    },
-    reactionPillText: {
-      fontSize: 12,
-      color: theme.subtitle,
-      marginLeft: 4,
     },
   });
 }

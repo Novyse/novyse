@@ -121,7 +121,6 @@ const BaseListItem = React.memo(
                 <View style={styles.titleRow}>
                   <Typography
                     weight="semibold"
-                    size="sm"
                     numberOfLines={1}
                     ellipsizeMode="tail"
                     text={title}

@@ -73,21 +73,26 @@ const SubList = ({
         <VocalSubSubtitle
           chatUUID={chat.uuid}
           subId={sub.id}
-          theme={theme}
           defaultPreview={lastMsgPreview}
-          listStyles={styles}
         />
       ) : (
-        <Typography style={styles.preview} numberOfLines={1}>
-          {lastMsgPreview || ""}
-        </Typography>
+        <Typography
+          size="sm"
+          variant="subtitle"
+          ellipsizeMode="tail"
+          numberOfLines={1}
+          text={lastMsgPreview || ""}
+        />
       );
 
     const renderAvatar = () => (
       <View style={[styles.avatar, isActive && styles.activeAvatar]}>
-        <Typography style={[styles.initial, isActive && styles.activeInitial]}>
-          {sub.name ? sub.name[0].toUpperCase() : "#"}
-        </Typography>
+        <Typography
+          size="xl"
+          weight="semibold"
+          variant={isActive ? "default" : "subtitle"}
+          text={sub.name ? sub.name[0].toUpperCase() : "#"}
+        />
       </View>
     );
 
@@ -169,8 +174,8 @@ function createStyle(theme: any) {
       overflow: "hidden",
     },
     avatar: {
-      width: 40,
-      height: 40,
+      width: 45,
+      height: 45,
       borderRadius: 25,
       backgroundColor: theme.backgroundMain,
       justifyContent: "center",
@@ -178,19 +183,6 @@ function createStyle(theme: any) {
     },
     activeAvatar: {
       backgroundColor: theme.primary,
-    },
-    initial: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: theme.subtitle,
-    },
-    activeInitial: {
-      color: theme.text,
-    },
-    preview: {
-      fontSize: 13,
-      color: theme.subtitle,
-      marginTop: 2,
     },
   });
 }

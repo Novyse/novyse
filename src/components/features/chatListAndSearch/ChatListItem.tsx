@@ -66,6 +66,7 @@ const ChatListItem = React.memo(
         ? item.messages[item.messages.length - 1]
         : item.lastMessage || null;
 
+    // @MatteoMagnani7 si potrebbe gestire diversamente per essere come un sender: vedi riga 97 circa
     const relevantUUID =
       lastMessage?.type === "system"
         ? lastMessage?.content
@@ -93,9 +94,18 @@ const ChatListItem = React.memo(
         sender = `${t("chat.listItem.unknown")}: `;
       }
       return (
-        <Typography numberOfLines={1} ellipsizeMode="tail" size="sm">
-          <Typography variant={isDraft ? "danger" : "default"} text={sender} />
-          <Typography text={content} />
+        <Typography
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          size="sm"
+          variant="subtitle"
+        >
+          <Typography
+            size="sm"
+            variant={isDraft ? "danger" : "default"}
+            text={sender}
+          />
+          <Typography size="sm" variant="subtitle" text={content} />
         </Typography>
       );
     };
