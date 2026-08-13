@@ -173,7 +173,7 @@ export default function Signup() {
               </View>
 
               <StatusMessage
-                type="error"
+                type="danger"
                 content={error ? [error] : []}
                 visible={!!error}
                 onClose={() => setError(null)}

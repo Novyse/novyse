@@ -127,7 +127,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
     <View style={styles.container}>
       <View style={styles.statusWrapper}>
         <StatusMessage
-          type="error"
+          type="danger"
           visible={!!error}
           content={[error]}
           onClose={clearError}

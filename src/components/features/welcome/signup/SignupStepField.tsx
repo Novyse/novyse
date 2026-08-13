@@ -94,7 +94,7 @@ export default function SignupStepField({
           </View>
           {!!(!validation.success && form.name) && (
             <StatusMessage
-              type="error"
+              type="danger"
               content={[validation.error]}
               visible={true}
             />
@@ -164,7 +164,7 @@ export default function SignupStepField({
           </View>
           <View style={styles.requirements}>
             {!!(handleError && form.handle) && (
-              <StatusMessage type="error" content={[handleError]} />
+              <StatusMessage type="danger" content={[handleError]} />
             )}
             {!!(handleAvailable === true && !handleError && form.handle) && (
               <Typography
@@ -281,7 +281,7 @@ export default function SignupStepField({
               marginTop: -8,
             }}
           >
-            <StatusMessage type="error" content={passwordErrors} />
+            <StatusMessage type="danger" content={passwordErrors} />
           </View>
         )}
 

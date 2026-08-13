@@ -1,11 +1,8 @@
-import React, { useContext } from "react";
-import { StyleSheet, View } from "react-native";
-
+import { View } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import AppHeader from "@/src/components/features/header/AppHeader";
 import { headerIconButtonStyle } from "@/src/components/features/header/AppHeaderRow";
 import Icon from "@/src/components/ui/icon/Icon";
-import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface HeaderWithBackArrowProps {
   title?: string;
@@ -18,17 +15,14 @@ const HeaderWithBackArrow = ({
   translationKey,
   onBack,
 }: HeaderWithBackArrowProps) => {
-  const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
-
   const titleNode = translationKey ? (
     <Typography
-      style={styles.titleText}
+      weight="semibold"
       translationKey={translationKey}
       numberOfLines={1}
     />
   ) : title ? (
-    <Typography style={styles.titleText} text={title} numberOfLines={1} />
+    <Typography weight="semibold" text={title} numberOfLines={1} />
   ) : null;
 
   return (
@@ -47,15 +41,5 @@ const HeaderWithBackArrow = ({
     />
   );
 };
-
-const createStyle = (theme: { text: string }) =>
-  StyleSheet.create({
-    titleText: {
-      fontSize: 18,
-      fontWeight: "600",
-      color: theme.text,
-      textAlign: "center",
-    },
-  });
 
 export default HeaderWithBackArrow;

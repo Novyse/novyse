@@ -122,7 +122,7 @@ export default function ApiKeysRoute() {
       />
       <SettingsPageScrollview>
         <StatusMessage
-          type="error"
+          type="danger"
           content={[error || ""]}
           visible={!!error}
           onClose={() => setError(null)}

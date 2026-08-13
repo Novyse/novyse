@@ -19,12 +19,12 @@ const StatusHeader = () => {
   const showCollapsed = isSidebarCollapsed && !isSmallScreen;
 
   let message: string | null = null;
-  let type: "info" | "warning" | "error" = "info";
+  let type: "info" | "warning" | "danger" = "info";
   let translationKey: string | null = null;
 
   if (!isConnected) {
     translationKey = "chat.statusBanner.offline";
-    type = "error";
+    type = "danger";
   } else if (!isSynced) {
     message = t("chat.statusBanner.syncFailed", {
       count: syncRetryCountdown > 0 ? syncRetryCountdown : 0,
@@ -35,7 +35,7 @@ const StatusHeader = () => {
     type = "warning";
   } else if (apiError) {
     message = apiError;
-    type = "error";
+    type = "danger";
   }
 
   if (!translationKey && !message) return null;

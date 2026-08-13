@@ -170,7 +170,7 @@ const LoginForm = ({
           {/* Status messages */}
           <View style={styles.containerStatus}>
             <StatusMessage
-              type="error"
+              type="danger"
               content={[error as string]}
               visible={!!error}
               onClose={onErrorDismiss}

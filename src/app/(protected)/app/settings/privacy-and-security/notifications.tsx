@@ -66,7 +66,7 @@ export default function NotificationsRoute() {
         </View>
 
         <StatusMessage
-          type="error"
+          type="danger"
           content={[error || ""]}
           visible={!!error}
           onClose={() => setError(null)}

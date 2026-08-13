@@ -49,7 +49,7 @@ export default function QrscannerRoute() {
 
       <View style={[styles.statusMessageContainer, { top: insets.top + 80 }]}>
         <StatusMessage
-          type="error"
+          type="danger"
           content={[error || ""]}
           visible={!!error}
           onClose={() => setError(null)}

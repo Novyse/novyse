@@ -11,6 +11,8 @@ interface BlurredViewProps {
   isBorderActive?: boolean;
   style?: StyleProp<ViewStyle>;
   intensity?: number;
+  /** Overlay tint drawn above the blur (e.g. status / separator colors with alpha). */
+  color?: string;
 }
 
 const BlurredView = ({
@@ -18,6 +20,7 @@ const BlurredView = ({
   style,
   isBorderActive = true,
   intensity = 50,
+  color,
   ...rest
 }: BlurredViewProps & Record<string, unknown>) => {
   const { theme, resolvedMode } = useThemeContext();
@@ -42,13 +45,20 @@ const BlurredView = ({
 
   const os = getOs();
 
+  const overlay = color ? (
+    <View
+      style={[styles.blurBackground, { backgroundColor: color }, radiusStyle]}
+      pointerEvents="none"
+    />
+  ) : null;
+
   if (os === "android") {
     return (
       <View style={containerStyle} {...rest} collapsable={false}>
         <View
           style={[
             styles.blurBackground,
-            { backgroundColor: theme.backgroundMain },
+            { backgroundColor: color ?? theme.backgroundMain },
             radiusStyle,
           ]}
           pointerEvents="none"
@@ -67,6 +77,7 @@ const BlurredView = ({
         style={[styles.blurBackground, radiusStyle]}
         pointerEvents="none"
       />
+      {overlay}
       {children}
     </View>
   );

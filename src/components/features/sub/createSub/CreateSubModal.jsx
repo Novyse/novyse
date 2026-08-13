@@ -79,7 +79,7 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
       />
 
       <StatusMessage
-        type="error"
+        type="danger"
         visible={!!error}
         content={error}
         onClose={() => setError(null)}

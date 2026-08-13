@@ -296,7 +296,7 @@ const CreateChatModal = ({ visible, onClose }: CreateChatModalProps) => {
       )}
 
       <StatusMessage
-        type="error"
+        type="danger"
         visible={!!(nameError || handleError)}
         content={[nameError, handleError].filter(
           (message): message is string => Boolean(message),

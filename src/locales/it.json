@@ -7,9 +7,10 @@
     "error": "Errore",
     "success": "Successo",
     "status": {
-      "error": "Errore",
+      "danger": "Errore",
       "warning": "Attenzione",
-      "success": "Successo"
+      "success": "Successo",
+      "info": "Info"
     },
     "developerNote": "Nota per lo sviluppatore: questa pagina è attualmente solo un'anteprima dell'interfaccia utente. Tutte le funzionalità funzionali sono in fase di sviluppo e saranno incluse nella versione 1.2.",
     "errorPage": {

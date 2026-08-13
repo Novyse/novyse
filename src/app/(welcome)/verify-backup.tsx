@@ -147,7 +147,7 @@ const VerifyBackup: React.FC = () => {
           </View>
 
           <StatusMessage
-            type="error"
+            type="danger"
             content={error ? [error] : []}
             visible={!!error}
             onClose={() => setError(null)}

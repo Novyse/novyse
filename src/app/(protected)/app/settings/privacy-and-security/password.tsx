@@ -94,7 +94,7 @@ export default function PasswordRoute() {
           <Section titleKey="settings.privacyAndSecurity.changePassword">
             <View style={styles.formContainer}>
               <StatusMessage
-                type="error"
+                type="danger"
                 content={[error || ""]}
                 visible={!!error}
                 onClose={() => setError(null)}

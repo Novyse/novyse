@@ -192,7 +192,7 @@ const UploadProfilePicture = ({ visible, onClose }) => {
         {error && (
           <StatusMessage
             isVisible={true}
-            type="error"
+            type="danger"
             content={[error]}
             onClose={() => {
               setError(null);

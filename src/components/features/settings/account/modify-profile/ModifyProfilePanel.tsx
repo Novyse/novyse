@@ -206,7 +206,7 @@ export default function ModifyProfilePanel({
           onClose={() => setMessage("")}
         />
         <StatusMessage
-          type="error"
+          type="danger"
           visible={!!error}
           translationKey={error}
           timeout={5000}

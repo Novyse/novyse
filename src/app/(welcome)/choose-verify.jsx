@@ -125,7 +125,7 @@ const ChooseVerify = () => {
           </View>
           <View style={styles.containerStatus}>
             <StatusMessage
-              type="error"
+              type="danger"
               content={[error]}
               visible={!!error}
               onClose={() => {

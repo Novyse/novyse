@@ -76,7 +76,7 @@ const DeleteAccount = ({ visible, onClose }) => {
         visible={!!error}
         onClose={() => setError(null)}
         content={[error]}
-        type="error"
+        type="danger"
         theme={theme}
       />
 
