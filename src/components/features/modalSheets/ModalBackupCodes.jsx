@@ -43,10 +43,7 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
       titleTranslationKey="modals.backup_codes.title"
     >
       <View style={styles.contentContainer}>
-        <Typography
-          style={styles.subtitle}
-          translationKey="modals.backup_codes.subtitle"
-        />
+        <Typography translationKey="modals.backup_codes.subtitle" />
         {loading ? (
           <View style={styles.iconButton}>
             <ActivityIndicator color={theme.icon} size="small" />
@@ -56,7 +53,7 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
             <View style={styles.codesGrid}>
               {codes.map((code, index) => (
                 <View key={index} style={styles.codeItem}>
-                  <Typography style={styles.codeText} text={code} />
+                  <Typography text={code} />
                 </View>
               ))}
             </View>
@@ -67,7 +64,7 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
           </>
         ) : (
           <Typography
-            style={styles.error}
+            variant="danger"
             translationKey="modals.backup_codes.error"
           />
         )}
@@ -81,18 +78,6 @@ function createStyles(theme) {
     contentContainer: {
       alignItems: "center",
       padding: 20,
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: "bold",
-      marginBottom: 10,
-      color: theme.text,
-    },
-    subtitle: {
-      fontSize: 16,
-      textAlign: "center",
-      marginBottom: 20,
-      color: theme.text,
     },
     codesGrid: {
       flexDirection: "row",
@@ -108,20 +93,6 @@ function createStyles(theme) {
       margin: 5,
       minWidth: "40%",
       alignItems: "center",
-    },
-    codeText: {
-      fontSize: 18,
-      fontWeight: "500",
-      letterSpacing: 2,
-    },
-    error: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: theme.dangerText,
-      backgroundColor: theme.backgroundDanger,
-      padding: 5,
-      borderRadius: 8,
-      marginBottom: 40,
     },
     iconButton: {
       padding: 10,

@@ -1,4 +1,3 @@
-import React from "react";
 import { View, StyleSheet } from "react-native";
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import Button from "@/src/components/ui/button/Button";
@@ -32,7 +31,6 @@ const DeleteMessage = ({
       <View style={styles.container}>
         <Typography
           size="md"
-          style={styles.subtitle}
           translationKey="modals.delete_message.subtitle"
           translationOptions={countOptions}
         />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { StyleSheet, View, Pressable, StatusBar, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Typography from "@/src/components/ui/typography/Typography";
@@ -293,7 +293,8 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                 <View style={styles.footerContainer}>
                   <View style={styles.sliderRow}>
                     <Typography
-                      style={styles.timeText}
+                      size="sm"
+                      weight="semibold"
                       text={formatTime(isSeeking ? seekTime : currentTime)}
                     />
                     <Slider
@@ -318,7 +319,8 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                       thumbTintColor={theme.primary}
                     />
                     <Typography
-                      style={styles.timeText}
+                      size="sm"
+                      weight="semibold"
                       text={formatTime(duration)}
                     />
                   </View>
@@ -369,7 +371,8 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                         onPress={cycleSpeed}
                       >
                         <Typography
-                          style={styles.speedText}
+                          size="sm"
+                          weight="semibold"
                           text={`${speeds[currentSpeedIndex]}x`}
                         />
                       </Pressable>
@@ -468,12 +471,6 @@ const createStyle = (
       footerContainer: { paddingBottom: 20, paddingHorizontal: 20 },
       sliderRow: { flexDirection: "row", alignItems: "center" },
       slider: { flex: 1, marginHorizontal: 10, height: 40 },
-      timeText: {
-        color: theme.text,
-        fontSize: 12,
-        fontWeight: "600",
-        minWidth: 40,
-      },
       bottomActionsRow: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -492,7 +489,6 @@ const createStyle = (
         paddingVertical: 4,
         borderRadius: 5,
       },
-      speedText: { color: theme.text, fontSize: 12, fontWeight: "bold" },
     });
   })();
 

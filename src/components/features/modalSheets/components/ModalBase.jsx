@@ -35,7 +35,6 @@ const ModalBase = ({
   title,
   titleTranslationKey,
   titleTranslationOptions,
-  titleStyle,
 }) => {
   const { isSmallScreen } = useScreen();
   const shouldUseFullscreen = fullscreen && isSmallScreen && !popover;
@@ -105,10 +104,8 @@ const ModalBase = ({
         title={title}
         titleTranslationKey={titleTranslationKey}
         titleTranslationOptions={titleTranslationOptions}
-        titleStyle={titleStyle}
         hideCloseX={hideCloseX}
         onClose={onClose}
-        theme={theme}
       />
       {scrollable ? (
         <ScrollView

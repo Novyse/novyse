@@ -1,73 +1,28 @@
-import { View, StyleSheet } from "react-native";
-import Typography from "@/src/components/ui/typography/Typography";
-import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
+import { View } from "react-native";
+import Button from "@/src/components/ui/button/Button";
 
 const UploadFileOverlayFooter = ({
-  files,
   leftButtonText,
   rightButtonText,
   leftBtnOnPress,
   rightButtonOnPress,
   leftBtnDisabled,
   rightBtnDisabled,
-  theme,
 }) => {
-  const styles = createStyles(theme);
-
   return (
-    <View style={styles.container}>
-      <HoverAndPressedButton
-        style={styles.leftBtn}
+    <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 25 }}>
+      <Button
+        text={leftButtonText}
         onPress={leftBtnOnPress}
         disabled={leftBtnDisabled}
-      >
-        <Typography style={styles.leftBtnText} text={leftButtonText} />
-      </HoverAndPressedButton>
-
-      <HoverAndPressedButton
-        style={styles.rightBtn}
+      />
+      <Button
+        text={rightButtonText}
         onPress={rightButtonOnPress}
         disabled={rightBtnDisabled}
-      >
-        <Typography style={styles.rightBtnText} text={rightButtonText} />
-      </HoverAndPressedButton>
+      />
     </View>
   );
 };
-
-const createStyles = (theme) =>
-  StyleSheet.create({
-    container: {
-      flexDirection: "row",
-      width: "100%",
-      gap: 12,
-    },
-    leftBtn: {
-      flex: 1,
-      height: 50,
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 25,
-    },
-    leftBtnText: {
-      color: theme.text,
-      fontWeight: "600",
-      userSelect: "none",
-    },
-    rightBtn: {
-      flex: 1,
-      height: 50,
-      backgroundColor: theme.primary,
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 25,
-      elevation: 5,
-    },
-    rightBtnText: {
-      color: theme.text,
-      fontWeight: "600",
-      userSelect: "none",
-    },
-  });
 
 export default UploadFileOverlayFooter;

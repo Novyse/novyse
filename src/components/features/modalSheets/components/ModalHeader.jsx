@@ -1,4 +1,3 @@
-import React from "react";
 import { View, StyleSheet } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
@@ -7,10 +6,8 @@ const ModalHeader = ({
   title,
   titleTranslationKey,
   titleTranslationOptions,
-  titleStyle,
   hideCloseX = false,
   onClose,
-  theme,
 }) => {
   const shouldShowClose = !hideCloseX;
   const hasTitle = Boolean(title) || Boolean(titleTranslationKey);
@@ -20,7 +17,7 @@ const ModalHeader = ({
     return null;
   }
 
-  const styles = createStyles(theme);
+  const styles = createStyles();
 
   return (
     <View
@@ -31,14 +28,10 @@ const ModalHeader = ({
     >
       {hasTitle && (
         <Typography
+          weight="semibold"
           text={title}
           translationKey={titleTranslationKey}
           translationOptions={titleTranslationOptions}
-          style={[
-            styles.titleText,
-            titleStyle,
-            !shouldShowClose && styles.titleTextFull,
-          ]}
           numberOfLines={1}
           ellipsizeMode="tail"
         />
@@ -50,27 +43,16 @@ const ModalHeader = ({
   );
 };
 
-function createStyles(theme) {
+function createStyles() {
   return StyleSheet.create({
     headerBar: {
       flexDirection: "row",
+      justifyContent: "space-between",
       alignItems: "center",
       marginBottom: 25,
     },
     headerBarIconOnly: {
       justifyContent: "flex-end",
-    },
-    titleText: {
-      flex: 1,
-      flexShrink: 1,
-      minWidth: 0,
-      marginRight: 8,
-      color: theme.text,
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    titleTextFull: {
-      marginRight: 0,
     },
     closeIcon: {
       flexShrink: 0,

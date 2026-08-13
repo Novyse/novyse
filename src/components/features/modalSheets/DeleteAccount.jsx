@@ -99,7 +99,6 @@ const DeleteAccount = ({ visible, onClose }) => {
       theme={theme}
       mode="adaptive"
       titleTranslationKey="modals.delete_account.title"
-      titleStyle={styles.modalTitle}
     >
       {ModalContent}
     </AdaptiveModal>
@@ -110,9 +109,6 @@ const createStyles = (theme) =>
   StyleSheet.create({
     container: {
       gap: 25,
-    },
-    modalTitle: {
-      color: theme.dangerText,
     },
   });
 

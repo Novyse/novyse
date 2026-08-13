@@ -25,7 +25,6 @@ const BottomSheetBase = forwardRef(
       title,
       titleTranslationKey,
       titleTranslationOptions,
-      titleStyle,
       ...props
     },
     ref,
@@ -94,10 +93,8 @@ const BottomSheetBase = forwardRef(
             title={title}
             titleTranslationKey={titleTranslationKey}
             titleTranslationOptions={titleTranslationOptions}
-            titleStyle={titleStyle}
             hideCloseX={hideCloseX}
             onClose={onClose}
-            theme={theme}
           />
           {children}
         </Container>

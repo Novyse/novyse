@@ -94,7 +94,7 @@ const UploadFileOverlay = ({
             >
               <Icon name={item.iconName} size={32} color={theme.icon} />
               <Typography
-                style={styles.menuText}
+                size="xs"
                 translationKey={item.translationKey}
               />
             </HoverAndPressedButton>
@@ -117,11 +117,7 @@ const createStyle = (theme) =>
     menuItem: {
       alignItems: "center",
       borderRadius: 10,
-    },
-    menuText: {
-      marginTop: 6,
-      fontSize: 12,
-      color: theme.text,
+      gap: 5
     },
   });
 

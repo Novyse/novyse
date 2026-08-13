@@ -37,7 +37,6 @@ export interface AdaptiveModalProps {
   title?: string;
   titleTranslationKey?: string;
   titleTranslationOptions?: Record<string, unknown>;
-  titleStyle?: object;
 }
 
 const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
@@ -60,7 +59,6 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
       title,
       titleTranslationKey,
       titleTranslationOptions,
-      titleStyle,
     },
     ref,
   ) => {
@@ -124,7 +122,6 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
           title={title}
           titleTranslationKey={titleTranslationKey}
           titleTranslationOptions={titleTranslationOptions}
-          titleStyle={titleStyle}
           enablePanDownToClose={enablePanDownToClose}
           enableOverDrag={enableOverDrag}
           enableDynamicSizing={enableDynamicSizing}
@@ -147,7 +144,6 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
         title={title}
         titleTranslationKey={titleTranslationKey}
         titleTranslationOptions={titleTranslationOptions}
-        titleStyle={titleStyle}
       >
         {children}
       </ModalBase>

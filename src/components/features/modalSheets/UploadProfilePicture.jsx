@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { View, StyleSheet } from "react-native";
 
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
@@ -208,8 +208,6 @@ const UploadProfilePicture = ({ visible, onClose }) => {
 const createStyles = (theme) => {
   return StyleSheet.create({
     container: {
-      marginTop: 10,
-      padding: 20,
       maxWidth: "100%",
     },
     avatarContainer: {
@@ -217,7 +215,7 @@ const createStyles = (theme) => {
       height: 120,
       borderRadius: 60,
       overflow: "hidden",
-      marginBottom: 30,
+      marginBottom: 25,
       borderWidth: 2,
       borderColor: theme.primary,
       alignSelf: "center",
