@@ -1,12 +1,10 @@
-import React, { useContext } from "react";
+import React from "react";
 import { StyleSheet } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 
 import Avatar from "@/src/components/ui/avatar/Avatar";
 import BaseListItem from "./BaseListItem";
-
-import { ThemeContext } from "@/src/context/ThemeContext";
 
 interface ChatListItemSearchProps {
   item: {
@@ -22,15 +20,14 @@ interface ChatListItemSearchProps {
 
 const ChatListItemSearch = React.memo(
   ({ item, onPress }: ChatListItemSearchProps) => {
-    const { theme } = useContext(ThemeContext);
     const { t } = useTranslation();
-    const styles = createStyle(theme);
+    const styles = createStyle();
 
     const title = `${item.name}${item?.surname ? ` ${item?.surname}` : ""}`;
 
     const subtitleNode = (
       <Typography
-        style={styles.profileHandle}
+        size="sm"
         numberOfLines={1}
         ellipsizeMode="tail"
         text={[
@@ -47,10 +44,7 @@ const ChatListItemSearch = React.memo(
     );
 
     const renderAvatar = () => (
-      <Avatar
-        uuid={item.profilePictureUUID}
-        style={styles.avatar}
-      />
+      <Avatar uuid={item.profilePictureUUID} style={styles.avatar} />
     );
 
     return (
@@ -65,16 +59,12 @@ const ChatListItemSearch = React.memo(
   },
 );
 
-function createStyle(theme: any) {
+function createStyle() {
   return StyleSheet.create({
-    profileHandle: {
-      fontSize: 14,
-      color: theme.text,
-    },
     avatar: {
       width: 45,
       height: 45,
-      borderRadius: 20,
+      borderRadius: 25,
     },
   });
 }

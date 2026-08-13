@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import { StyleSheet } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { DateTime } from "luxon";
@@ -10,7 +10,6 @@ import BaseListItem from "./BaseListItem";
 
 import useUserStore from "@/src/store/UserStore";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
-import { ThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import messageUtils from "@/src/utils/chat/messageFormat";
@@ -38,8 +37,7 @@ const ChatListItem = React.memo(
     onLongPress,
   }: ChatListItemProps) => {
     const { t } = useTranslation();
-    const { theme } = useContext(ThemeContext);
-    const styles = React.useMemo(() => createStyle(theme), [theme]);
+    const styles = createStyle();
     const localUserUUID = useUserStore((state) => state.localUserUUID);
     const {
       name: displayName,
@@ -95,16 +93,10 @@ const ChatListItem = React.memo(
         sender = `${t("chat.listItem.unknown")}: `;
       }
       return (
-        <Typography
-          style={[
-            styles.chatSubtitle,
-            styles.gridText,
-            isDraft && { color: theme.error },
-          ]}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-          text={`${sender}${content}`}
-        />
+        <Typography numberOfLines={1} ellipsizeMode="tail" size="sm">
+          <Typography variant={isDraft ? "danger" : "default"} text={sender} />
+          <Typography text={content} />
+        </Typography>
       );
     };
 
@@ -113,10 +105,7 @@ const ChatListItem = React.memo(
         {!lastMessage.created_at ? (
           <Icon name={"Clock01Icon"} size={14} />
         ) : (
-          <Typography
-            style={styles.chatDateText}
-            text={parseTime(lastMessage.created_at)}
-          />
+          <Typography size="sm" text={parseTime(lastMessage.created_at)} />
         )}
       </>
     ) : null;
@@ -124,7 +113,7 @@ const ChatListItem = React.memo(
     const subtitleNode =
       memberActivityData && memberActivityData.length > 0 ? (
         <Typography
-          style={styles.chatSubtitle}
+          size="sm"
           text={messageUtils.formatActivity(memberActivityData)}
         />
       ) : (
@@ -166,26 +155,12 @@ const ChatListItem = React.memo(
   },
 );
 
-function createStyle(theme: any) {
+function createStyle() {
   return StyleSheet.create({
     avatar: {
       width: 45,
       height: 45,
-      borderRadius: 20,
-    },
-    chatSubtitle: {
-      fontSize: 14,
-      color: theme.text,
-    },
-    gridText: {
-      fontSize: 14,
-      color: theme.text,
-    },
-    chatDateText: {
-      fontSize: 14,
-      color: theme.text,
-      textAlign: "right",
-      marginLeft: 5,
+      borderRadius: 25,
     },
   });
 }

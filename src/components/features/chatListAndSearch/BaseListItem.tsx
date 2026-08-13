@@ -111,7 +111,7 @@ const BaseListItem = React.memo(
             {renderAvatar()}
             {isSidebarCollapsed && unreadCount > 0 && (
               <View style={styles.collapsedUnreadBadge}>
-                <Typography style={styles.ballText} text={unreadCount.toString()} />
+                <Typography size="xs" text={unreadCount.toString()} />
               </View>
             )}
           </View>
@@ -120,7 +120,8 @@ const BaseListItem = React.memo(
               <View style={styles.leftContainer}>
                 <View style={styles.titleRow}>
                   <Typography
-                    style={[styles.chatTitle, styles.gridText]}
+                    weight="semibold"
+                    size="sm"
                     numberOfLines={1}
                     ellipsizeMode="tail"
                     text={title}
@@ -136,7 +137,7 @@ const BaseListItem = React.memo(
                   {isPinned && <Icon name={"PinIcon"} size={16} />}
                   {unreadCount > 0 && (
                     <View style={styles.ball}>
-                      <Typography style={styles.ballText} text={unreadCount.toString()} />
+                      <Typography size="xs" text={unreadCount.toString()} />
                     </View>
                   )}
                 </View>
@@ -184,19 +185,10 @@ function createStyle(theme: any) {
       alignItems: "center",
       backgroundColor: theme.badgeColor,
     },
-    chatTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: theme.text,
-    },
     chatItemGrid: {
       flexDirection: "row",
       flex: 1,
       justifyContent: "space-between",
-    },
-    gridText: {
-      fontSize: 14,
-      color: theme.text,
     },
     ball: {
       borderRadius: 10,
@@ -205,11 +197,6 @@ function createStyle(theme: any) {
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: theme.badgeColor,
-    },
-    ballText: {
-      textAlign: "center",
-      color: theme.text,
-      fontSize: 12,
     },
     selectionIndicator: {
       position: "absolute",
