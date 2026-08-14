@@ -76,7 +76,7 @@ export default function NotificationsRoute() {
           {methods.map((method) => (
             <SecurityListCard
               key={method.id}
-              iconName="Notification03Icon"
+              iconName="Notification01Icon"
               title={method.name}
               subtitle={method.type}
               badge={

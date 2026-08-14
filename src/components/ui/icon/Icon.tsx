@@ -1,28 +1,12 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { StyleProp, ViewStyle } from "react-native";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
-
-const iconMap: Record<string, any> = {};
-
-const importIcon = async (name: string) => {
-  try {
-    if (!iconMap[name]) {
-      const icons = (await import("@hugeicons/core-free-icons")) as Record<
-        string,
-        any
-      >;
-      iconMap[name] = icons[name] ?? null;
-    }
-    return iconMap[name];
-  } catch {
-    return null;
-  }
-};
+import { iconMap, type IconName } from "@/src/utils/iconMap";
 
 interface IconProps {
-  name: string;
+  name: IconName;
   size?: number;
   color?: string;
   hoverColor?: string;
@@ -40,23 +24,23 @@ const Icon = ({
   style,
   onPress,
 }: IconProps) => {
-  const [IconComponent, setIconComponent] = useState<any>(null);
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const { theme } = useContext(ThemeContext);
 
-  useEffect(() => {
-    importIcon(name).then(setIconComponent);
-  }, [name]);
+  if (!iconMap[name]) {
+    console.log("🔴", name);
+  }
 
-  if (!IconComponent) return null;
+  const glyph = iconMap[name];
+  if (!glyph) return null;
 
   const iconColor = color || theme.icon;
   const activeColor = hoverColor || theme.iconHover;
 
   const icon = (
     <HugeiconsIcon
-      icon={IconComponent}
+      icon={glyph as any}
       size={size}
       color={hovered || pressed ? activeColor : iconColor}
       strokeWidth={strokeWidth}

@@ -38,7 +38,7 @@ export default function SecurityRoute() {
             onPress={() => router.push("/app/settings/privacy-and-security/api-keys")}
           />
           <SettingRow
-            iconName="Notification03Icon"
+            iconName="Notification01Icon"
             labelKey="settings.privacyAndSecurity.notifications"
             onPress={() => router.push("/app/settings/privacy-and-security/notifications")}
             style={{ borderBottomWidth: 0 }}

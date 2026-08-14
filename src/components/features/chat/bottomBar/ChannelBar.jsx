@@ -19,7 +19,7 @@ const ChannelBar = () => {
         onPress={() => setIsMuted(!isMuted)}
       >
         <Icon
-          name={isMuted ? "VolumeOffIcon" : "VolumeMaxIcon"}
+          name={isMuted ? "VolumeOffIcon" : "VolumeHighIcon"}
           color={isMuted ? theme.subtitle : theme.primary}
         />
         <Typography

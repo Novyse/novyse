@@ -10,8 +10,6 @@ interface ProfileAboutMeProps {
 export default function ProfileAboutMe({ biography }: ProfileAboutMeProps) {
   const styles = createStyles();
 
-  console.log("biography", biography);
-
   return (
     <View style={styles.container}>
       <BlurredView style={styles.glassCard}>
