@@ -149,7 +149,7 @@ const UserCard = memo(
         {isLocalMuted && (
           <View style={styles.muteIndicatorContainer}>
             <View style={styles.controlsRow}>
-              <Icon name="MicOff01Icon" size={20} color={theme.iconDanger} />
+              <Icon name="MicOff02Icon" size={20} color={theme.iconDanger} />
             </View>
           </View>
         )}
@@ -174,7 +174,7 @@ const UserCard = memo(
                 {(stream && stream.active && !isLocal) || isWatchTogether ? (
                   <Icon
                     name={
-                      !isFullScreen ? "ArrowExpand01Icon" : "ArrowShrink01Icon"
+                      !isFullScreen ? "ArrowExpand01Icon" : "ArrowShrink02Icon"
                     }
                     size={20}
                     onPress={() => onFullScreen(streamUUID)}

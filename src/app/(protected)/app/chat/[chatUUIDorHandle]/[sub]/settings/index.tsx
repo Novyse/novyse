@@ -118,7 +118,7 @@ const ChatSettings = () => {
         {isDM && (
           <Section titleKey="chat.settings.privacy">
             <SettingRow
-              iconName="Tick02Icon"
+              iconName="Tick01Icon"
               labelKey="chat.settings.readReceipts"
               type="SWITCH"
               isEnabled={readReceipts}
@@ -147,14 +147,14 @@ const ChatSettings = () => {
             )}
             {canManageInvite && (
               <SettingRow
-                iconName="LinkSquare01Icon"
+                iconName="Share05Icon"
                 labelKey="chat.settings.inviteLink"
                 onPress={() => {}}
               />
             )}
             {canManageChat && (
               <SettingRow
-                iconName="PencilEdit01Icon"
+                iconName="Pen01Icon"
                 labelKey="chat.settings.editGroupInfo"
                 onPress={() => {}}
                 style={{ borderBottomWidth: 0 }}

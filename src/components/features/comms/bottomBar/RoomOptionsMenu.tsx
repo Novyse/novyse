@@ -86,7 +86,7 @@ export const RoomOptionsMenu: React.FC<RoomOptionsMenuProps> = ({
             }}
           >
             <View style={styles.menuItemContent}>
-              <Icon name="Link01Icon" size={20} />
+              <Icon name="Link04Icon" size={20} />
               <Typography
                 translationKey={
                   isVideoActive

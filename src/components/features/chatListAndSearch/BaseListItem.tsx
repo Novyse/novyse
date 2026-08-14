@@ -99,7 +99,7 @@ const BaseListItem = React.memo(
                 isSidebarCollapsed && { top: 2, left: 2 },
               ]}
             >
-              <Icon name={"Tick02Icon"} size={isSidebarCollapsed ? 12 : 16} />
+              <Icon name={"Tick01Icon"} size={isSidebarCollapsed ? 12 : 16} />
             </View>
           )}
           <View

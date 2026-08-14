@@ -76,7 +76,7 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
   return (
     <Pressable style={styles.headerMainRow} onPress={handlePress}>
       <View style={styles.headerLeft}>
-        <Icon name="UserMultipleIcon" onPress={()=>{}} />
+        <Icon name="UserGroupIcon" onPress={()=>{}} />
         <Typography
           style={styles.participantsText}
           numberOfLines={1}

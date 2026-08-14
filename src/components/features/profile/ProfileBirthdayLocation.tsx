@@ -38,7 +38,7 @@ export default function ProfileBirthdayLocation({
                   { backgroundColor: theme.primary },
                 ]}
               >
-                <Icon name="BirthdayIcon" size={16} />
+                <Icon name="BirthdayCakeIcon" size={16} />
               </View>
               <View style={styles.textContainer}>
                 <Typography translationKey="profile.birthdayLocation.born" />
@@ -65,7 +65,7 @@ export default function ProfileBirthdayLocation({
                   { backgroundColor: theme.primary },
                 ]}
               >
-                <Icon name="LocationIcon" size={16} />
+                <Icon name="Location06Icon" size={16} />
               </View>
               <View style={styles.textContainer}>
                 <Typography translationKey="profile.birthdayLocation.location" />

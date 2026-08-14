@@ -227,7 +227,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
           )}
           <Icon
             onPress={() => router.push("/app/settings/comms")}
-            name={"Settings02Icon"}
+            name={"Settings01Icon"}
             style={styles.icon}
           />
           <Icon

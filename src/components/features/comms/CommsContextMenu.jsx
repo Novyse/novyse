@@ -146,7 +146,7 @@ const CommsContextMenu = ({
 
       {isLocal === false && (
         <ContextMenuItem
-          iconName={isMuted ? "MicOff01Icon" : "Mic01Icon"}
+          iconName={isMuted ? "MicOff02Icon" : "Mic02Icon"}
           iconColor={isMuted ? theme.dangerText : undefined}
           text={isMuted ? "Unmute" : "Mute"}
           variant={isMuted ? "danger" : "default"}
@@ -171,7 +171,7 @@ const CommsContextMenu = ({
       {showFullscreenButton && (
         <ContextMenuItem
           iconName={
-            isCurrentlyFullScreen ? "ArrowShrink01Icon" : "ArrowExpand01Icon"
+            isCurrentlyFullScreen ? "ArrowShrink02Icon" : "ArrowExpand01Icon"
           }
           translationKey={
             isCurrentlyFullScreen
@@ -183,7 +183,7 @@ const CommsContextMenu = ({
       )}
 
       <ContextMenuItem
-        iconName="Settings02Icon"
+        iconName="Settings01Icon"
         translationKey={
           isWatchTogether ? "chat.comms.watchTogether.modify" : undefined
         }

@@ -128,7 +128,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
         ? {
             action: "Edit",
             translationKey: "chat.messageActions.edit",
-            iconName: "PencilEdit02Icon",
+            iconName: "Pen01Icon",
             color: theme.text,
           }
         : undefined,
@@ -168,7 +168,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
         {
           action: "Copy",
           translationKey: "chat.messageActions.copy",
-          iconName: "Copy02Icon",
+          iconName: "Copy01Icon",
           color: theme.text,
         },
         selectedText
@@ -198,7 +198,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({
             ? {
                 action: "Edit",
                 translationKey: "chat.messageActions.edit",
-                iconName: "PencilEdit02Icon",
+                iconName: "Pen01Icon",
                 color: theme.text,
               }
             : undefined,

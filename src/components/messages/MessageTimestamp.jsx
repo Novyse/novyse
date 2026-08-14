@@ -67,7 +67,7 @@ const MessageTimestamp = ({
     return (
       <View style={styles.alignContainer}>
         {(isEdited || isPendingEdit) && (
-          <Icon name={"PencilEdit02Icon"} size={14} color={theme.subtitle} />
+          <Icon name={"Pen01Icon"} size={14} color={theme.subtitle} />
         )}
         {replyCount > 0 && (
           <Icon name={"ArrowMoveUpLeftIcon"} size={14} color={theme.subtitle} />
@@ -110,7 +110,7 @@ const MessageTimestamp = ({
         {isPinned && <Icon name={"PinIcon"} size={14} color={theme.subtitle} />}
 
         {(isEdited || isPendingEdit) && (
-          <Icon name={"PencilEdit02Icon"} size={14} color={theme.subtitle} />
+          <Icon name={"Pen01Icon"} size={14} color={theme.subtitle} />
         )}
         {isPendingEdit && (
           <Icon name={"Clock01Icon"} size={14} color={theme.subtitle} />

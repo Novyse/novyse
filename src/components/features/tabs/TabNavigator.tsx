@@ -80,7 +80,7 @@ export default function TabNavigator() {
               options={{
                 headerShown: false,
                 tabBarIcon: ({ color, size }) => (
-                  <Icon name="SettingsIcon" size={size} color={color} />
+                  <Icon name="Settings01Icon" size={size} color={color} />
                 ),
               }}
             />

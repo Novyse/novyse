@@ -62,7 +62,7 @@ const UploadFileOverlayDropzone = ({
               <React.Fragment key={index}>
                 <View style={styles.fileItem}>
                   <View style={styles.fileItemContent}>
-                    <Icon name="FileIcon" size={16} color={theme.text} />
+                    <Icon name="File01Icon" size={16} color={theme.text} />
                     <Typography
                       size="xs"
                       weight="semibold"

@@ -247,7 +247,7 @@ const ChatOverview = () => {
       <View style={styles.listContainer}>
         {files.map((file: any, index: number) => (
           <View key={file.id || index} style={styles.fileItem}>
-            <Icon name="File02Icon" size={32} color={theme.primary} />
+            <Icon name="File01Icon" size={32} color={theme.primary} />
             <View style={styles.fileInfo}>
               <Typography style={styles.fileName}>
                 {file.name || t("common.unnamedFile")}

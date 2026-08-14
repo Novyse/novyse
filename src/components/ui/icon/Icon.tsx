@@ -28,8 +28,9 @@ const Icon = ({
   const [pressed, setPressed] = useState(false);
   const { theme } = useContext(ThemeContext);
 
+  // kept to ensure no icon is missing during development
   if (!iconMap[name]) {
-    console.log("🔴", name);
+    console.log("🔴Icon Not Found:", name);
   }
 
   const glyph = iconMap[name];

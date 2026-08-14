@@ -103,7 +103,7 @@ export default function SystemRoute() {
     {
       labelText: t("settings.system.none") || "None",
       value: "",
-      iconName: "Chat01Icon",
+      iconName: "ChatIcon",
     },
     ...chats.map((chat) => {
       let displayName = chat.name || "Unknown Chat";
@@ -122,7 +122,7 @@ export default function SystemRoute() {
       return {
         labelText: displayName,
         value: chat.uuid,
-        iconName: "Chat01Icon",
+        iconName: "ChatIcon",
       };
     }),
   ];

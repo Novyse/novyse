@@ -31,7 +31,7 @@ export default function MfaRoute() {
       id: "authenticator",
       name: t("settings.privacyAndSecurity.authenticator"),
       description: t("settings.privacyAndSecurity.authAppDesc"),
-      iconName: "SecurityIcon",
+      iconName: "Shield01Icon",
       isActive: true,
     },
     {
@@ -152,7 +152,7 @@ export default function MfaRoute() {
                         pressed && styles.addButtonPressed,
                       ]}
                     >
-                      <Icon name="PlusSignCircleIcon" />
+                      <Icon name="PlusSign" />
                       <Typography
                         style={styles.addButtonText}
                         translationKey="settings.privacyAndSecurity.add"

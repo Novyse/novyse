@@ -96,7 +96,7 @@ const CreateOrJoinChatPanel = ({
               />
             </View>
             <View style={styles.extraInfoItem}>
-              <Icon name="NotificationOff02Icon" size={20} />
+              <Icon name="NotificationOff01Icon" size={20} />
               <Typography
                 style={styles.extraInfoText}
                 translationKey="chat.joinCreate.notificationMuteDesc"

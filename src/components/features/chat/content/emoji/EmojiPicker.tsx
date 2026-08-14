@@ -83,7 +83,7 @@ const EMOJI_CATEGORIES = [
   {
     key: "Objects",
     translationKey: "chat.emojiCategories.objects",
-    icon: "Settings02Icon",
+    icon: "Settings01Icon",
   },
   {
     key: "Symbols",

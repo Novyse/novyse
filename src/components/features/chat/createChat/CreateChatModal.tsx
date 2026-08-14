@@ -72,7 +72,7 @@ const CreateChatModal = ({ visible, onClose }: CreateChatModalProps) => {
       {
         value: "PUBLIC",
         label: t("modals.create_chat.privacy.public"),
-        icon: "Globe02Icon",
+        icon: "GlobalIcon",
       },
     ],
     [t],
@@ -247,7 +247,7 @@ const CreateChatModal = ({ visible, onClose }: CreateChatModalProps) => {
           />
           <SelectButton
             id="FORUM"
-            icon="Comment01Icon"
+            icon="MessageMultiple01Icon"
             titleKey="modals.create_chat.types.forum"
             subtitleKey="modals.create_chat.types.forumDesc"
             selected={type}
@@ -279,10 +279,10 @@ const CreateChatModal = ({ visible, onClose }: CreateChatModalProps) => {
               isHandleLoading ? (
                 <ActivityIndicator size="small" color={theme.icon} />
               ) : handleAvailability === true ? (
-                <Icon name="Tick02Icon" size={20} color={theme.successText} />
+                <Icon name="Tick01Icon" size={20} color={theme.successText} />
               ) : handleAvailability === false ? (
                 <Icon
-                  name="MultiplicationSignIcon"
+                  name="Cancel01Icon"
                   size={20}
                   color={theme.dangerText}
                 />

@@ -32,7 +32,7 @@ export default function AccountRoute() {
             onPress={() => router.push("/app/settings/account/modify-profile")}
           />
           <SettingRow
-            iconName="Logout03Icon"
+            iconName="Logout01Icon"
             labelKey="settings.account.logout"
             onPress={async () => {
               await auth.logout();

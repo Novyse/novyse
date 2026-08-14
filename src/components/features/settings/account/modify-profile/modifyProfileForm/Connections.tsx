@@ -88,7 +88,7 @@ export default function Connections() {
   return (
     <>
       <SectionHeader
-        icon="Link02Icon"
+        icon="Link04Icon"
         translationKey="settings.modifyProfile.connections"
       />
       <View style={styles.overlayWrapper}>
@@ -104,7 +104,7 @@ export default function Connections() {
 
           <ConnectionCard
             platform="github"
-            icon="Github01Icon"
+            icon="GithubIcon"
             translationKeyTitle="settings.modifyProfile.github"
             translationKeySubtitle="settings.modifyProfile.shareRepo"
             connected={false}

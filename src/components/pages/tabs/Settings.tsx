@@ -37,7 +37,7 @@ const getSections = (): SettingSection[] => {
       items: [
         {
           translationKey: "settings.menu.customization",
-          iconName: "PencilEdit01Icon",
+          iconName: "Pen01Icon",
           navToPage: "./settings/customization",
         },
         {
@@ -64,7 +64,7 @@ const getSections = (): SettingSection[] => {
           ? [
               {
                 translationKey: "settings.menu.qrScanner",
-                iconName: "QrCode01Icon",
+                iconName: "QrCodeIcon",
                 navToPage: "./settings/qrscanner",
               },
             ]
